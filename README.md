@@ -1,0 +1,3 @@
+# MantiqatiX
+
+MantiqatiX platform repository.
