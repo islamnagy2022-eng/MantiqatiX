@@ -1,0 +1,1 @@
+window.MANTIQATIX_CONFIG={supabaseUrl:'https://moyhiluyhjsujhwlyeuu.supabase.co',supabaseKey:'sb_publishable_uHibkJqWmePR8IHF7EFPYA_JJaXpFQM'};
