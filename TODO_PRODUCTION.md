@@ -1,0 +1,235 @@
+# MANTIQATIX — Production TODO Master List
+
+حالات العمل: TODO / IN PROGRESS / WAIT / BLOCKED / DONE / VERIFIED / NOT VERIFIED.  
+قاعدة الإغلاق: DONE لا تعني VERIFIED.
+
+## P0 — بوابة الإطلاق
+- [ ] Baseline مستقر موثق.
+- [ ] Auth production: Email OTP end-to-end، session، logout، expiry.
+- [ ] Authorization/RLS لكل جدول مكشوف.
+- [ ] مراجعة SECURITY DEFINER وEXECUTE privileges.
+- [ ] مراجعة Data API grants.
+- [ ] Database constraints/indexes/integrity.
+- [ ] API/Edge Functions/integrations.
+- [ ] Website/Admin/Owner/Manager/Employee/Customer E2E.
+- [ ] Finance E2E.
+- [ ] CRM + Marketing E2E.
+- [ ] Regression كامل.
+- [ ] Backup/Restore/DR test.
+- [ ] Monitoring/alerts/logging.
+- [ ] Production configuration/secrets.
+- [ ] Build/Release/Rollback.
+- [ ] External browser/device tests.
+- [ ] Release approval موثق.
+
+## P1 — Website / Platform
+- [x] Website baseline/PWA/brand.
+- [x] Email OTP path.
+- [x] user_memberships + active role.
+- [x] Feature flag reading.
+- [x] إزالة الأرقام التشغيلية الوهمية من الواجهة.
+- [ ] تطبيق feature flags على visibility/actions مع safe defaults.
+- [ ] loading/error/empty states.
+- [ ] responsive/accessibility review.
+- [ ] تنظيف legacy/duplicate render paths.
+- [ ] route/import/smoke tests.
+- [ ] snapshot كامل بعد CI ناجح.
+
+## P1 — Marketing & Advertising
+- [x] Live counts حيث تتوفر بيانات فعلية.
+- [x] إنشاء marketing lead فعلي عبر RLS.
+- [ ] قائمة leads + التفاصيل + lifecycle.
+- [ ] مقدمو خدمات التسويق: profiles/services.
+- [ ] marketing projects + participants.
+- [ ] provider subscriptions.
+- [ ] commission rules.
+- [ ] advertisements + ad_spaces.
+- [ ] دورة الإعلان Draft → Review → Approved → Published → Hidden/Archived.
+- [ ] تقارير الحملات مع FACT/CALCULATION/ANALYSIS/EXCEPTION/RISK.
+- [ ] إعادة تسمية/توحيد «التسويق الإلكتروني» ضمن منظومة التسويق والإعلان بدون كسر المسارات القديمة.
+
+## P1 — CRM
+- [ ] العملاء الحقيقيون.
+- [ ] leads.
+- [ ] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention/retargeting.
+- [ ] سجل التفاعلات.
+- [ ] مهام المتابعة والمسؤول.
+- [ ] ربط CRM بالطلبات والخدمات.
+- [ ] tenant/business isolation.
+- [ ] منع KPI غير مستند إلى بيانات.
+
+## P1 — Support & Governance
+- [x] عداد التذاكر وفق RLS.
+- [x] إنشاء تذكرة دعم فعلي.
+- [ ] قائمة/تفاصيل التذاكر.
+- [ ] ticket messages/status workflow.
+- [ ] Support/Support Manager authorization.
+- [ ] Audit للعمليات الحساسة.
+- [ ] notifications لحالات الدعم.
+- [ ] complaints/exceptions إذا كانت ممثلة فعلياً في schema.
+
+## P1 — Users / Roles / Permissions
+- [x] قراءة العضويات.
+- [x] عرض الدور النشط.
+- [ ] role + permissions matrix.
+- [ ] UI guards مع بقاء RLS هو الحاجز الحقيقي.
+- [ ] إدارة المستخدمين للمخولين فقط.
+- [ ] feature enable/disable per scope.
+- [ ] Audit للإجراءات الإدارية.
+- [ ] session/JWT lifecycle review.
+
+## P1 — Orders / Operations
+- [ ] orders list وفق RLS.
+- [ ] order details.
+- [ ] order status history.
+- [ ] user/business/branch links.
+- [ ] idempotency.
+- [ ] unauthorized mutation protection.
+- [ ] module-specific operations.
+- [ ] task lifecycle TODO/IN PROGRESS/WAIT/BLOCKED/DONE/VERIFIED.
+
+## P1 — Finance
+- [ ] payment intents/events/provider events.
+- [ ] commissions.
+- [ ] subscriptions/packages.
+- [ ] refunds/payouts/settlements.
+- [ ] ledger/journal validation.
+- [ ] reconciliation + duplicate/conflict detection.
+- [ ] FACT/CALCULATION/ANALYSIS/EXCEPTION/RISK separation.
+- [ ] server-authoritative sensitive financial actions.
+- [ ] daily/weekly/monthly reports.
+
+## P1 — Providers / Sectors
+- [ ] مصدر موحد للقطاعات/المجالات/الخدمات.
+- [ ] التحقق من seed الحقيقي لـ business_categories/modules قبل عرضه كبيانات production.
+- [ ] provider profiles + verification/featured.
+- [ ] sector-specific packages/commissions/ranking.
+- [ ] tenant/business/branch isolation.
+- [ ] specialized sector flows.
+
+## P1 — Content / Platform Management
+- [ ] Draft → Review → Approved → Published → Hidden/Archived.
+- [ ] services/packages/offers/pages management.
+- [ ] منع نشر غير معتمد.
+- [ ] shared-content consistency بين Website/App/Admin.
+- [ ] content audit trail.
+
+## P1 — Analytics / Reports
+- [ ] operational dashboard from real data.
+- [ ] customers/providers/marketing reports.
+- [ ] finance/commission reports.
+- [ ] usage/conversion/growth.
+- [ ] FACT/CALCULATION/ANALYSIS/EXCEPTION/RISK/NOT VERIFIED labels.
+- [ ] no hardcoded metrics.
+
+## P1 — Automation / Notifications
+- [ ] Event → Validation → Action → Log → Notification.
+- [ ] order/support/lead/campaign notifications.
+- [ ] idempotency.
+- [ ] automation error log.
+- [ ] enable/disable by authorized scope.
+- [ ] notifications RLS/read/update verification.
+
+## P1 — Monitoring / Maintenance
+- [ ] runtime/JS errors.
+- [ ] Auth failures.
+- [ ] API/database errors.
+- [ ] performance.
+- [ ] external integrations.
+- [ ] incident classification/root cause.
+- [ ] post-fix monitoring.
+- [ ] incident log + baseline.
+
+## P1 — Backup / Recovery
+- [ ] backup policy.
+- [ ] real Restore test.
+- [ ] RPO/RTO.
+- [ ] rollback runbook.
+- [ ] Disaster Recovery runbook.
+- [ ] periodic restore test.
+- [ ] إثبات أن النسخ قابلة للاستعادة.
+
+## P1 — QA
+- [ ] type/lint/static checks.
+- [ ] JS syntax.
+- [ ] routes/imports/environment.
+- [ ] DB/API tests.
+- [ ] Auth/Authz.
+- [ ] functional tests.
+- [ ] security tests.
+- [ ] regression.
+- [ ] browser/device/mobile.
+- [ ] كل إصلاح يُختبر في سياقه والمناطق المتأثرة.
+
+## P1 — Release
+- [ ] Development → Testing → Staging → Production.
+- [ ] Release Candidate.
+- [ ] CI success.
+- [ ] release notes/version/tag.
+- [ ] rollback rehearsal.
+- [ ] production smoke test.
+- [ ] post-release monitoring.
+- [ ] Baseline جديد بعد تحقق فعلي فقط.
+
+## P2 — Design / Brand
+- [ ] مراجعة الهوية على كل الشاشات.
+- [ ] typography/spacing/components.
+- [ ] accessibility/contrast.
+- [ ] mobile UX.
+- [ ] CTA consistency.
+- [ ] rights verification للأصول الخارجية.
+- [ ] commercial asset pack.
+
+## P2 — Mobile App
+- [ ] التطبيق عميل ثانٍ لنفس Backend/API/Business Logic.
+- [ ] shared auth/contracts.
+- [ ] عدم تكرار business/security logic الحساس.
+- [ ] mobile-specific UX.
+- [ ] build/sign/release.
+- [ ] App regression مقابل Website/API.
+
+## P2 — SMM
+- [ ] providers/services/orders/wallets review.
+- [ ] platform RBAC integration.
+- [ ] provider credentials isolation.
+- [ ] order events/idempotency.
+- [ ] wallet reconciliation.
+- [ ] monitoring.
+- [ ] حماية الوظائف الإدارية.
+
+## P2 — Specialized Modules
+- [ ] Retail/Fashion.
+- [ ] Grocery/Supermarket.
+- [ ] Restaurants/Kitchens.
+- [ ] Medical: Clinic/Pharmacy/Lab/Radiology/Hospital.
+- [ ] Maintenance.
+- [ ] Professional services.
+- [ ] MantiGO/reverse bidding.
+- [ ] Matrimony.
+- [ ] Jobs.
+- [ ] Schools/Tutoring.
+- [ ] Used Items.
+- [ ] Accounting/Companies/Marketing/Factories/Trips/Legal/ERP.
+- [ ] RBAC/RLS/integration/regression لكل موديول قبل VERIFIED.
+
+## P3 — Commercial / Operations
+- [ ] توثيق العمولة.
+- [ ] الاشتراكات والباقات.
+- [ ] provider onboarding.
+- [ ] customer onboarding.
+- [ ] privacy/terms.
+- [ ] disputes/support policy.
+- [ ] launch plan.
+- [ ] post-launch operating plan.
+
+## Current verified state
+- IMPLEMENTED: Website/PWA/brand baseline.
+- IMPLEMENTED: Email OTP path.
+- IMPLEMENTED: membership/active role.
+- IMPLEMENTED: feature-flag reading.
+- IMPLEMENTED: marketing lead creation.
+- IMPLEMENTED: support ticket creation.
+- NOT VERIFIED: آخر CI/CD وقت إعداد القائمة كان Queued.
+- NOT VERIFIED: production end-to-end.
+- NOT VERIFIED: restore test.
+- NOT VERIFIED: full security release gate.
