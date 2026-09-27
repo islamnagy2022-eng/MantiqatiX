@@ -24,6 +24,7 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/smm.js
+          node --check web/home.js
           node scripts/validate-web-assets.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
