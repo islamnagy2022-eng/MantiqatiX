@@ -32,6 +32,9 @@ These are not claimed as passed:
 - Production CI/Pages run result for the latest main commit is not exposed by the available GitHub workflow-run connector, so it is not claimed as passed.
 - External HTTP smoke test from this execution environment was blocked by DNS and is not claimed as passed.
 
+## Verification Environment Note
+The execution environment could not resolve GitHub DNS for a direct repository clone, so a local full workflow run was not claimed as successful. GitHub source inspection and Supabase live checks were used instead.
+
 ## Security Note
 Supabase Security Advisor currently reports anonymous-policy warnings and seven RLS-without-policy informational findings. These were not mass-modified because the current database privilege/RLS design requires table-by-table authorization review; broad policy deletion or blanket privilege changes would be unsafe.
 
