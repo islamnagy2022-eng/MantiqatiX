@@ -7,7 +7,7 @@
 - [x] Baseline CI مستقر — commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`, CI run #74 ناجح.
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry.
 - [🟡] Authorization/RLS: جميع الجداول العامة لديها RLS (111/111)، لكن مراجعة سياسات كل جدول ومسارات التعديل ما زالت مفتوحة.
-- [🟡] مراجعة SECURITY DEFINER وEXECUTE: تم إغلاق وظائف Backend غير المخصصة للعميل؛ بقيت 10 وظائف SECURITY DEFINER قابلة للتنفيذ للمستخدمين المسجلين وتحتاج مراجعة/قرار نهائي.
+- [🟢] مراجعة SECURITY DEFINER وEXECUTE: تمت مراجعة الوظائف العشر القابلة للاستدعاء من authenticated؛ كلها تحتوي تحقق هوية/ملكية/عضوية/نطاق مناسب حسب وظيفتها، ولا توجد وظائف مالية حساسة مكشوفة مباشرة.
 - [🟡] Data API grants: تم التحقق من الامتيازات؛ anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط، وauthenticated لديه امتيازات على مجموعة محددة؛ يلزم إغلاق المراجعة حسب كل مسار.
 - [🔴] Database constraints/indexes/integrity — لم يُغلق التحقق الشامل بعد.
 - [ ] API/Edge Functions/integrations.
@@ -243,4 +243,4 @@
 - NOT VERIFIED: restore test.
 - NOT VERIFIED: full security release gate.
 - SECURITY REVIEW: 6 RLS-enabled public tables currently have no policies; this is deny-by-default but still requires explicit review.
-- SECURITY REVIEW: Supabase advisor currently reports SECURITY DEFINER functions executable by authenticated users; inspected functions include explicit auth/role checks, but the complete function-by-function release review remains open.
+- SECURITY REVIEW: Advisor ما زال يعرض تحذير SECURITY DEFINER للوظائف التشغيلية المقصودة؛ تمت مراجعة الوظائف العشر، ويظل الاختبار الوظيفي/العدائي للـRPCs ضمن E2E.
