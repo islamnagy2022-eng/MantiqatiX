@@ -298,3 +298,9 @@
 - [x] Verified bootstrap negative-path test does not create data: current counts remain tenants=0, memberships=0, platform_admins=0.
 - [ ] CI verification for commits `a629cfc26e1e38a178dd345518ed67d592fcdda7` / `56a0bd48df2ae1dd820b1796d565b0028da12a64` remains pending/NOT VERIFIED through the available GitHub workflow-run query.
 - [ ] Real platform-admin bootstrap and authenticated multi-account E2E remain required before release.
+
+## 2026-09-27 — Registration security verification checkpoint
+- [x] Confirmed `private.review_registration_request_atomic` and `private.bootstrap_platform_admin` EXECUTE is denied to anon/authenticated and granted to service_role only.
+- [x] Confirmed `private.platform_admins` currently contains zero rows; no production identity was fabricated.
+- [x] Confirmed the registration-review Edge Function is ACTIVE, version 3, and JWT verification remains enabled.
+- [ ] GitHub Actions run result for the latest registration UI commits is still NOT VERIFIED through the available workflow-run connector.
