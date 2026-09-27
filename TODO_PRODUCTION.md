@@ -289,3 +289,12 @@
 - [ ] Add/verify Admin review UI against the Edge Function after the real platform admin exists.
 - [ ] Run authenticated multi-account E2E: customer registration → pending → admin approval → active membership → customer access; provider path separately.
 - [ ] Re-run full release gate after E2E, including auth/session, authorization/RLS, finance, backup/restore, monitoring, external browser/device tests, and rollback.
+
+## 2026-09-27 — Registration review UI integration
+- [x] Added an administration-only `طلبات التسجيل` workspace in `web/app.js`.
+- [x] Registration requests are loaded only for SUPER_ADMIN/ADMIN/OWNER memberships and remain RLS-scoped.
+- [x] Approval/rejection actions call JWT-protected Edge Function `mnty-registration-review`; no direct membership write is exposed to the browser.
+- [x] Edge Function CORS narrowed to the MNTY GitHub Pages origin and remains JWT-required.
+- [x] Verified bootstrap negative-path test does not create data: current counts remain tenants=0, memberships=0, platform_admins=0.
+- [ ] CI verification for commits `a629cfc26e1e38a178dd345518ed67d592fcdda7` / `56a0bd48df2ae1dd820b1796d565b0028da12a64` remains pending/NOT VERIFIED through the available GitHub workflow-run query.
+- [ ] Real platform-admin bootstrap and authenticated multi-account E2E remain required before release.
