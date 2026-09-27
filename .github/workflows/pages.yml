@@ -24,6 +24,7 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/smm.js
+          node scripts/validate-web-assets.mjs
       - name: Required web files
         run: |
           test -f web/index.html
