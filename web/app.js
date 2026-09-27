@@ -34,7 +34,7 @@ const sectors=[
 ['👗','الأزياء','المتاجر والمنتجات والحملات'],['🔧','الصيانة','مقدمو الخدمة والطلبات والترشيحات'],['💼','الأعمال وERP','إدارة الأعمال والمحاسبة والخدمات المهنية'],
 ['🎓','التعليم','المدارس والمدرسون والخدمات التعليمية'],['✈️','السفر والرحلات','الوكلاء والرحلات والحجوزات'],['🤝','الشركاء','الشركاء الاستراتيجيون ومصادر العملاء']
 ];
-let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false;
+let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER';
 const live={memberships:[],role:'CUSTOMER',businessId:null,counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[]},moduleData:{},loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
@@ -64,10 +64,11 @@ async function loadLiveData(){if(!user?.id)return;live.loading=true;live.error=n
 async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
-function authView(msg='',otpMode=false,emailValue=''){
+function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
+authIntent=mode||'login';
 document.getElementById('app').innerHTML=otpMode
 ?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>رمز الدخول</h1><p>أرسلنا رمز تحقق لمرة واحدة إلى <b>${esc(emailValue)}</b>. أدخل الرمز لإكمال الدخول.</p><div class="field"><label>رمز OTP</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"></div><button class="btn btn-primary" id="verify">تحقق ودخول</button><button class="text-btn" id="resend-otp">إرسال رمز جديد</button><button class="text-btn" id="back-auth">تغيير البريد الإلكتروني</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
-:`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>دخول / إنشاء حساب</h1><p>استخدم بريدك الإلكتروني للحصول على رمز تحقق لمرة واحدة. لا نستخدم كلمة مرور في مسار الإنتاج.</p><div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">إرسال رمز الدخول</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
+:`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>${authIntent==='register'?'تسجيل مستخدم جديد':'تسجيل الدخول'}</h1><p>${authIntent==='register'?'أنشئ حسابك باستخدام بريدك الإلكتروني. بعد التحقق يتم استكمال تفعيل العضوية وفق الصلاحيات المعتمدة.':'استخدم بريدك الإلكتروني للحصول على رمز تحقق لمرة واحدة. لا نستخدم كلمة مرور في مسار الإنتاج.'}</p>${authIntent==='register'?'<div class="field"><label>نوع الحساب</label><select id="registration-type"><option value="CUSTOMER">عميل</option><option value="SERVICE_PROVIDER">مقدم خدمة</option></select></div>':''}<div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">${authIntent==='register'?'إرسال رمز التسجيل':'إرسال رمز الدخول'}</button><button class="text-btn" id="switch-auth">${authIntent==='register'?'لدي حساب بالفعل — تسجيل الدخول':'مستخدم جديد؟ — تسجيل حساب'}</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
 if(otpMode){
 const otp=document.getElementById('otp');otp.focus();
 document.getElementById('verify').onclick=()=>verifyOtp(emailValue);
@@ -76,7 +77,7 @@ document.getElementById('back-auth').onclick=()=>authView('',false,emailValue);
 otp.addEventListener('keydown',e=>{if(e.key==='Enter')verifyOtp(emailValue)});
 }else{
 document.getElementById('email').focus();
-document.getElementById('send-otp').onclick=()=>sendOtp();
+document.getElementById('send-otp').onclick=()=>{if(authIntent==='register')authRegistrationType=document.getElementById('registration-type')?.value||'CUSTOMER';sendOtp();};document.getElementById('switch-auth').onclick=()=>authView('',false,'',authIntent==='register'?'login':'register');
 document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')sendOtp()});
 }
 }
@@ -116,7 +117,7 @@ document.getElementById('app').innerHTML=`<main class="landing">
 <section class="landing-cta"><span class="eyebrow">MANTIQATIX</span><h2>ابدأ من احتياجك</h2><p>عميل يبحث عن خدمة، أو مقدم خدمة يريد عملاء، أو شركة تريد شراكة وتسويقًا أقوى.</p><div class="cta-actions"><button class="btn btn-light" id="cta-login">الدخول إلى المنصة</button><button class="btn btn-ghost" id="cta-provider">الانضمام كمقدم خدمة</button></div></section>
 <footer id="contact"><div><div class="brand">${mark()}<span>MNTY</span></div><p>منصة تسويق وربط الخدمات والفرص.</p></div><div class="footer-links"><a href="#services">الخدمات</a><a href="#sectors">المجالات</a><a href="#plans">الباقات</a><a href="#faq">الأسئلة</a></div><div><b>خدمة العملاء</b><p>01010171770</p></div></footer>
 </main>`;
-document.getElementById('open-login').onclick=authView;document.getElementById('install-app').onclick=installApp;setupInstallPrompt();document.getElementById('cta-login').onclick=authView;document.getElementById('commission-login').onclick=authView;document.getElementById('provider').onclick=authView;document.getElementById('cta-provider').onclick=authView;
+document.getElementById('open-login').onclick=()=>authView();document.getElementById('install-app').onclick=installApp;setupInstallPrompt();document.getElementById('cta-login').onclick=()=>authView();document.getElementById('commission-login').onclick=()=>authView();document.getElementById('provider').onclick=()=>authView('',false,'','register');document.getElementById('cta-provider').onclick=()=>authView('',false,'','register');
 document.getElementById('start').onclick=()=>document.getElementById('sectors').scrollIntoView({behavior:'smooth'});
 document.getElementById('all-sectors').onclick=()=>{authView()};
 }
