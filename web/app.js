@@ -267,11 +267,28 @@ async function openSupportTicket(){
  if(error)return showToast('تعذر إنشاء التذكرة: '+error.message,'error');
  live.counts.support=(live.counts.support||0)+1; showToast('تم فتح التذكرة بنجاح. رقمها '+id,'success'); renderApp();
 }
-function accountView(){
+async function accountView(){
 const membership=live.memberships.find(m=>m.status==='ACTIVE');
-document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><p>حالة البريد: <b>تم التحقق</b></p><p>حالة العضوية: <b>'+(membership?'نشطة':'لم يتم ربط عضوية تشغيلية بعد')+'</b></p>'+(membership?'<p class="muted">يمكنك الآن استخدام مساحة المنصة وفق الدور والصلاحيات المرتبطة بعضويتك.</p>':'<p class="muted">يمكنك تصفح المنصة بحرية. لن يتم منح أي دور أو صلاحيات تشغيلية قبل ربط عضوية معتمدة بالحساب.</p>')+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
+let request=null;
+if(user?.id&&!membership){
+ const {data}=await sb.from('account_registration_requests').select('id,requested_role,status,reason,created_at,reviewed_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+ request=data||null;
+}
+const statusText=membership?'نشطة':request?.status==='PENDING'?'قيد المراجعة':request?.status==='REJECTED'?'مرفوض — يمكنك إعادة الطلب':'لم يتم ربط عضوية تشغيلية بعد';
+const requestBlock=membership
+?'<p class="muted">يمكنك الآن استخدام مساحة المنصة وفق الدور والصلاحيات المرتبطة بعضويتك.</p>'
+:request?.status==='PENDING'
+?'<p class="muted">طلبك قيد مراجعة الإدارة. لن يتم منح أي صلاحيات تشغيلية قبل الاعتماد.</p>'
+:request?.status==='REJECTED'
+?'<p class="muted">يمكنك تقديم طلب جديد واختيار نوع العضوية المناسب.</p>'
+:'<p class="muted">اختر نوع العضوية التي تناسب استخدامك للمنصة. إنشاء الطلب لا يمنح صلاحيات تشغيلية تلقائيًا.</p>';
+const requestButtons=membership||request?.status==='PENDING'?'':('<div class="action-bar"><button class="btn btn-primary" id="request-customer">الانضمام كعميل</button><button class="btn btn-outline" id="request-provider">الانضمام كمقدم خدمة</button></div>');
+document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><p>حالة البريد: <b>تم التحقق</b></p><p>حالة العضوية: <b>'+statusText+'</b></p>'+requestBlock+requestButtons+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
 document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
 document.getElementById('account-logout').onclick=logout;
+const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest();};
+document.getElementById('request-customer')?.addEventListener('click',()=>submitRole('CUSTOMER'));
+document.getElementById('request-provider')?.addEventListener('click',()=>submitRole('SERVICE_PROVIDER'));
 }
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
