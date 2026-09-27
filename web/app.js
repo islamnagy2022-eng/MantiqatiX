@@ -7,7 +7,7 @@ const modules=[
 ['🩺','المنظومة الطبية','الأطباء، العيادات، الصيدليات، المعامل والأشعة والمستشفيات'],['🔧','الصيانة','طلبات الصيانة ومقدمو الخدمة'],['💼','الخدمات المهنية','المحاسبة، القانون، الشركات، البرمجيات والتسويق'],
 ['🚗','MantiGO والمزايدات','الطلبات، العروض، الاختيار والتنفيذ'],['💍','الزواج','الملفات الموثقة والترشيحات والتواصل'],['💼','الوظائف','الوظائف، المتقدمون والمقابلات'],
 ['🎓','التعليم','المدارس والمدرسون والحجوزات'],['♻️','المستعمل','الإعلانات والعروض والتفاوض'],['📣','التسويق والإعلان','التسويق الداخلي وشركات التسويق والعملاء المحتملون'],['🚀','خدمات التسويق الرقمي SMM','الخدمات والموردون والطلبات والتتبع'],
-['👥','المستخدمون وCRM','العملاء، مقدمو الخدمة، المتابعة والاحتفاظ'],['📑','الطلبات والعمليات','الطلبات والحجوزات وسير التنفيذ'],['💳','العمولات والباقات','العمولات والاشتراكات والباقات'],['📊','التقارير والتحليلات','الأداء، التحويلات، الإيرادات والمخاطر'],['🎫','الدعم والحوكمة','التذاكر، التدقيق، الصلاحيات والمراقبة'],['⚙️','الإعدادات','الحساب والمنصة والتفضيلات']
+['👥','المستخدمون وCRM','العملاء، مقدمو الخدمة، المتابعة والاحتفاظ'],['📑','الطلبات والعمليات','الطلبات والحجوزات وسير التنفيذ'],['💳','العمولات والباقات','العمولات والاشتراكات والباقات'],['📊','التقارير والتحليلات','الأداء، التحويلات، الإيرادات والمخاطر'],['🎫','الدعم والحوكمة','التذاكر، التدقيق، الصلاحيات والمراقبة'],['🛡️','طلبات التسجيل','اعتماد طلبات العملاء ومقدمي الخدمة'],['⚙️','الإعدادات','الحساب والمنصة والتفضيلات']
 ];
 const domainModules=[
 {key:'FASHION',name:'التجارة والأزياء',icon:'🛍️',desc:'المنتجات والطلبات والخياطة والمخزون.',tables:['fashion_products','fashion_orders','fashion_tailor_services']},
@@ -139,6 +139,7 @@ function selectModule(name){if(!moduleEnabled(name)){showToast('هذه الوح�
 
 function domainModuleWorkspace(){const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();const d=live.moduleData[m.key]||{tables:{},ready:false};const cards=m.tables.map(t=>[t,d.tables?.[t]==null?'—':String(d.tables[t]),'عدد السجلات المتاحة وفق RLS']);if(!m.tables.length)cards.push(['حالة المخطط','NOT VERIFIED','لا يوجد جدول طبي متخصص مثبت في المخطط الحالي']);return workspaceHead(m.key,m.name,m.desc,'MODULE')+workspaceCards(cards)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'+recordsTable('مصادر البيانات الموصولة',m.tables.map(t=>({table:t,count:d.tables?.[t]})),[['الجدول',r=>r.table],['السجلات',r=>r.count==null?'—':r.count],['الحالة',r=>r.count==null?'NOT VERIFIED':'READABLE']])}
 function enhancedPageContent(){
+ if(current==='طلبات التسجيل')return registrationReviewWorkspace();
  if(domainModules.some(m=>m.name===current))return domainModuleWorkspace();
  switch(current){
   case 'التسويق والإعلان': return marketingWorkspace();
@@ -236,6 +237,29 @@ document.getElementById('logout-membership').onclick=logout;
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
 function governanceWorkspace(){return workspaceHead('GOVERNANCE','الدعم والحوكمة','التذاكر، الرسائل، الإشعارات والصلاحيات في مساحة تشغيلية موحدة.','CONTROL')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'إشعارات الحساب الفعلية'],['الصلاحيات',live.role,'الدور الفعلي من العضوية'],['التدقيق','نشط','السجل الإداري عند توفره'],['المراقبة','نشطة','مؤشرات الأخطاء والتشغيل'],['السياسات','منشورة','السياسات المنشورة عند توفرها']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم',live.records.supportTickets,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>'<button class="linkbtn" onclick="openTicketDetails(\''+esc(r.id)+'\')">تفاصيل</button>']])+recordsTable('آخر الإشعارات',live.records.notifications,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r.read_at?'—':'<button class="linkbtn" onclick="markNotificationRead(\''+esc(r.id)+'\')">تعليم كمقروء</button>']])}
+async function reviewRegistration(requestId,decision){
+ if(!user?.id||!requestId)return;
+ if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))return showToast('لا تملك صلاحية اعتماد التسجيلات.','error');
+ let tenantId=live.memberships.find(m=>m.status==='ACTIVE'&&m.tenant_id)?.tenant_id||null;
+ if(decision==='APPROVED'&&!tenantId)return showToast('لا يوجد نطاق Tenant نشط للاعتماد.','error');
+ const options={body:{request_id:requestId,decision,tenant_id:tenantId}};
+ const {data,error}=await sb.functions.invoke('mnty-registration-review',options);
+ if(error)return showToast('تعذر تنفيذ الاعتماد: '+(error.message||'خطأ غير معروف'),'error');
+ if(data?.error)return showToast('تعذر تنفيذ العملية: '+data.error,'error');
+ showToast(decision==='APPROVED'?'تم اعتماد التسجيل وإنشاء العضوية.':'تم رفض طلب التسجيل.','success');
+ await renderApp();
+}
+async function registrationReviewWorkspace(){
+ if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())){
+   return workspaceHead('REGISTRATION','طلبات التسجيل','هذه المساحة مخصصة للإدارة المعتمدة.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية مراجعة طلبات التسجيل.</div>';
+ }
+ const {data,error}=await sb.from('account_registration_requests').select('id,user_id,requested_role,status,reason,created_at,reviewed_at').in('status',['PENDING','APPROVED','REJECTED']).order('created_at',{ascending:false}).limit(50);
+ if(error)return workspaceHead('REGISTRATION','طلبات التسجيل','مراجعة طلبات العملاء ومقدمي الخدمة.','ADMIN')+'<div class="empty-state">تعذر تحميل طلبات التسجيل: '+esc(error.message)+'</div>';
+ const rows=data||[];
+ return workspaceHead('REGISTRATION','طلبات التسجيل','اعتماد الحسابات يتم عبر سلطة الخادم مع إنشاء العضوية وتسجيل التدقيق.','ADMIN')
+ +workspaceCards([['طلبات معلقة',rows.filter(r=>r.status==='PENDING').length,'طلبات تحتاج قرارًا إداريًا'],['معتمدة',rows.filter(r=>r.status==='APPROVED').length,'طلبات تم ربطها بعضوية'],['مرفوضة',rows.filter(r=>r.status==='REJECTED').length,'طلبات لم يتم اعتمادها']])
+ +recordsTable('سجل التسجيلات',rows,[['الدور',r=>r.requested_role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل'],['الحالة',r=>r.status||'—'],['المستخدم',r=>r.user_id||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['إجراء',r=>r.status==='PENDING'?'<div class="mini-actions"><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'APPROVED\')">اعتماد</button><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'REJECTED\')">رفض</button></div>':'—']]);
+}
 function registrationPendingView(role='CUSTOMER',status='PENDING'){
 const label=role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل';
 document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>تم إنشاء حسابك</h1><p>تم التحقق من بريدك الإلكتروني بنجاح.</p><p>طلب التسجيل كـ <b>'+esc(label)+'</b> في حالة <b>'+esc(status)+'</b>.</p><p class="muted">لن يتم منح أي صلاحيات تشغيلية تلقائيًا. بعد اعتماد الطلب سيتم ربط العضوية والصلاحيات بالحساب وفق سياسة المنصة.</p><div class="action-bar"><button class="btn btn-outline" id="registration-logout">تسجيل الخروج</button></div></section></main>';
