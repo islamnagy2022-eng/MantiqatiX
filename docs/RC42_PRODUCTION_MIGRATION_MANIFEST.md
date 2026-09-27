@@ -7,7 +7,11 @@ Project: `moyhiluyhjsujhwlyeuu`
 Live migration records: **150**
 
 ## GitHub
-Tracked migration files: **7**
+Tracked migration files: **8**
+
+## Current reconciliation note
+
+A fresh comparison on 2026-09-27 confirms that Production remains at 150 migration records while GitHub tracks 8 SQL files. The latest Production records include versions such as `20260927140200_lock_platform_admins_rls` and `20260927140545_remove_anonymous_sensitive_policy_access_v2`, while the tracked filenames use `20260927140202_...` and `20260927140500_...` respectively. These are not assumed equivalent without authoritative SQL/history evidence.
 
 ## Important
 The live database contains migrations that are not currently represented as SQL files in GitHub. This manifest deliberately records the drift without reconstructing SQL from names alone.
