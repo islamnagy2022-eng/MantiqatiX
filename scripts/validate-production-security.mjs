@@ -18,23 +18,27 @@ const forbidden = [
   /SUPABASE_SERVICE_ROLE_KEY/i,
   /SUPABASE_SECRET_KEY/i,
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i,
-  /postgres(?:ql)?:\\/\\//i,
+  /postgres(?:ql)?:\/\//i,
   /sk_live_[A-Za-z0-9]/i,
   /xox[baprs]-[A-Za-z0-9-]+/i
 ];
 
 const findings = [];
 for (const file of files) {
-  const text = fs.readFileSync(file, "utf8");
+  const source = fs.readFileSync(file, "utf8");
   for (const pattern of forbidden) {
-    if (pattern.test(text)) findings.push(`${path.relative(process.cwd(), file)}: forbidden secret pattern ${pattern}`);
+    if (pattern.test(source)) {
+      findings.push(`${path.relative(process.cwd(), file)}: forbidden secret pattern ${pattern}`);
+    }
   }
 }
 
 const config = path.join(root, "config.js");
 if (fs.existsSync(config)) {
   const cfg = fs.readFileSync(config, "utf8");
-  if (/https?:\\/\\/[^\\s"']+/.test(cfg) && !/https:\\/\\/[A-Za-z0-9-]+\\.supabase\\.co/.test(cfg)) {
+  const httpEndpoint = /https?:\/\/[^\s"']+/i;
+  const supabaseEndpoint = /https:\/\/[A-Za-z0-9-]+\.supabase\.co/i;
+  if (httpEndpoint.test(cfg) && !supabaseEndpoint.test(cfg)) {
     findings.push("web/config.js: unexpected non-Supabase HTTP endpoint detected");
   }
 }
