@@ -68,7 +68,7 @@ const mark=()=>'<span class="mark"></span>';
 function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
 authIntent=mode||'login';
 document.getElementById('app').innerHTML=otpMode
-?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>رمز الدخول</h1><p>أرسلنا رمز تحقق لمرة واحدة إلى <b>${esc(emailValue)}</b>. أدخل الرمز لإكمال الدخول.</p><div class="field"><label>رمز OTP</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"></div><button class="btn btn-primary" id="verify">تحقق ودخول</button><button class="text-btn" id="resend-otp">إرسال رمز جديد</button><button class="text-btn" id="back-auth">تغيير البريد الإلكتروني</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
+?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>رمز الدخول</h1><p>أرسلنا رمز تحقق لمرة واحدة إلى <b>${esc(emailValue)}</b>. أدخل الرمز لإكمال الدخول.</p><div class="field"><label>رمز OTP</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="أدخل رمز التحقق"></div><button class="btn btn-primary" id="verify">تحقق ودخول</button><button class="text-btn" id="resend-otp">إرسال رمز جديد</button><button class="text-btn" id="back-auth">تغيير البريد الإلكتروني</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
 :`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>${authIntent==='register'?'تسجيل مستخدم جديد':'تسجيل الدخول'}</h1><p>${authIntent==='register'?'أنشئ حسابك باستخدام بريدك الإلكتروني. بعد التحقق يتم استكمال تفعيل العضوية وفق الصلاحيات المعتمدة.':'استخدم بريدك الإلكتروني للحصول على رمز تحقق لمرة واحدة. لا نستخدم كلمة مرور في مسار الإنتاج.'}</p>${authIntent==='register'?'<div class="field"><label>نوع الحساب</label><select id="registration-type"><option value="CUSTOMER">عميل</option><option value="SERVICE_PROVIDER">مقدم خدمة</option></select></div>':''}<div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">${authIntent==='register'?'إرسال رمز التسجيل':'إرسال رمز الدخول'}</button><button class="text-btn" id="switch-auth">${authIntent==='register'?'لدي حساب بالفعل — تسجيل الدخول':'مستخدم جديد؟ — تسجيل حساب'}</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
 if(otpMode){
 const otp=document.getElementById('otp');otp.focus();
@@ -91,8 +91,8 @@ if(error)return authView('تعذر إرسال رمز الدخول: '+error.messa
 authView('',true,email);
 }
 async function verifyOtp(email){
-const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,6);
-if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 أرقام.',true,email);
+const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,10);
+if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);
 const button=document.getElementById('verify');if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
 const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});
 if(error)return authView('تعذر التحقق من الرمز: '+error.message,true,email);
