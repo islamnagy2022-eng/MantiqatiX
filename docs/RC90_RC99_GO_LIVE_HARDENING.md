@@ -133,3 +133,27 @@ PASS only when every mandatory external gate has evidence. Otherwise status rema
 ### Non-negotiable release rule
 
 Do not create fake accounts, fake transactions, speculative migrations, fabricated CI results, fabricated device tests, or fabricated provider responses merely to close a gate.
+
+
+## RC90 live freeze checkpoint — 2026-09-27
+
+Repository:
+- default branch: main
+- latest commit: 12e48883cfc44e562949e190ee9c0ce5ff169e64
+- repository is public and not archived
+
+Production Edge Functions previously verified:
+- api v8 ACTIVE / JWT required
+- order-create v1 ACTIVE / JWT required
+- order-status-update v1 ACTIVE / JWT required
+- mnty-registration-review v3 ACTIVE / JWT required
+- payment-intent v3 ACTIVE / JWT required
+- settlement-create v3 ACTIVE / JWT required
+
+Freeze rule:
+- No production schema or Edge Function mutation is performed merely to close RC90.
+- Emergency security changes remain allowed if required.
+- Final certification must reference an exact repository commit and exact production function versions.
+- Production migration drift remains a release evidence item and is not silently reconciled.
+
+RC90 status: **CHECKPOINT RECORDED**.
