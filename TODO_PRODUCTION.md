@@ -223,6 +223,8 @@
 - [ ] post-launch operating plan.
 
 ## Current verified state
+- BRAND: `MNTY = MantiqatiX`; MNTY is the short customer-facing identity, while MantiqatiX remains the full/original platform identity.
+- PRODUCT MODEL: Customer ↔ Service Provider with Operational Service Map only when location is operationally necessary; no general GIS/GEOINT platform is assumed.
 - BRAND: الاسم الرسمي المعتمد للمنتج الآن هو `MANTIX`؛ تم تحديث Website/PWA/SMM وسجل `platform_brand_identity` الحي.
 - IMPLEMENTED: Website/PWA/brand baseline.
 - IMPLEMENTED: Email OTP path.
