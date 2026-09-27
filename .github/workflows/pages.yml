@@ -31,6 +31,7 @@ jobs:
           node scripts/validate-auth-flow.mjs
           node scripts/validate-module-catalog.mjs
           node scripts/validate-public-web-secrets.mjs
+          node scripts/validate-web-config.mjs
       - name: Required web files
         run: |
           test -f web/index.html
@@ -81,7 +82,9 @@ jobs:
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
           HOME_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/home.js")"
+          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js")"
           echo "$APP_JS" | grep -q 'id="go-public-home"'
           echo "$HOME_JS" | grep -q "openPlatform"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js" | grep -q "moyhiluyhjsujhwlyeuu.supabase.co"
+          echo "$CONFIG_JS" | grep -q "moyhiluyhjsujhwlyeuu.supabase.co"
+          echo "$CONFIG_JS" | grep -q "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'"
           echo "Production smoke verification passed for $PAGE_URL"
