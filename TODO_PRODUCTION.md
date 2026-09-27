@@ -344,3 +344,12 @@
 - [ ] Actual Supabase backup/restore drill remains NOT VERIFIED.
 - [ ] Production monitoring, alert routing, and incident-response drill remain NOT VERIFIED.
 - [ ] Final release remains blocked until backup/restore and monitoring evidence exists.
+
+
+## 2026-09-27 — Security advisor / CI checkpoint
+- [x] Ran the live Supabase security advisor.
+- [x] The six RLS-enabled/no-policy tables remain intentionally deny-by-default and have no authenticated/anon CRUD grants; no permissive policy was added.
+- [x] The 10 authenticated-callable SECURITY DEFINER operational functions remain the only WARN class requiring workflow-specific E2E validation; they contain application-level auth/ownership/tenant checks and are not finance functions.
+- [x] Confirmed the reviewed finance SECURITY DEFINER functions remain non-executable by `authenticated` and `anon`.
+- [ ] Latest documentation commit workflow run is not yet returned by the available commit-run endpoint; CI status therefore remains NOT VERIFIED for the newest documentation checkpoint.
+- [ ] Final release remains blocked pending authenticated adversarial E2E and full regression.
