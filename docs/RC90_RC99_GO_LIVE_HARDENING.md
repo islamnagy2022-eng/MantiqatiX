@@ -157,3 +157,48 @@ Freeze rule:
 - Production migration drift remains a release evidence item and is not silently reconciled.
 
 RC90 status: **CHECKPOINT RECORDED**.
+
+
+## RC91-RC97 evidence checkpoint — 2026-09-27
+
+### RC91 Auth
+Status: **BLOCKED / EXTERNAL CONFIGURATION**.
+The available evidence does not verify that leaked-password protection is enabled in the production Auth dashboard. No claim of enablement is made.
+
+### RC92 Authorization E2E
+Status: **BLOCKED / EXTERNAL E2E**.
+Server-side authorization boundaries are implemented/reviewed, but a fresh two-user/two-tenant runtime E2E has not been executed in this checkpoint.
+
+### RC93 Storage E2E
+Status: **BLOCKED / EXTERNAL E2E**.
+Storage policy boundaries were reviewed previously. Two-user/two-tenant isolation and the complete media/signed-URL consumer path remain unverified.
+
+### RC94 Payment E2E
+Status: **BLOCKED / EXTERNAL PROVIDER TEST**.
+Payment authority and server-side guards are implemented. Signed provider traffic, webhook replay/authenticity, and end-to-end financial persistence require approved provider credentials/traffic.
+
+### RC95 Android release
+Status: **BLOCKED / EXTERNAL BUILD + DEVICE**.
+Release compilation, signing, AAB/APK certification and physical-device regression have not been verified in this environment.
+
+### RC96 Backup/restore
+Status: **BLOCKED / EXTERNAL DRILL**.
+Production backup restore, measured RPO/RTO, and isolated recovery verification have not been executed.
+
+### RC97 Observability
+Status: **REVIEW**.
+Source/configuration evidence exists for application and Edge Function operation, but a complete production observability drill with alert verification is not certified here.
+
+### CI evidence
+For commit `12e48883cfc44e562949e190ee9c0ce5ff169e64`, the available GitHub status/run interfaces returned no associated status checks or workflow runs. Therefore CI is **UNVERIFIED**, not PASS.
+
+### Public website smoke
+The public URL is configured as:
+https://islamnagy2022-eng.github.io/MantiqatiX/
+The external fetch available in this environment returned a cache miss, so live HTTP availability is **UNVERIFIED** from this environment.
+
+## Current release decision
+
+MantiqatiX remains **NOT PRODUCTION-READY CERTIFIED** until RC91-RC96 and the remaining external certification evidence are actually completed.
+
+This status is intentional and protects the release from false certification.
