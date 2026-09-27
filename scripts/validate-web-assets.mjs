@@ -23,3 +23,12 @@ for(const ref of refs){
 }
 if(missing.length){console.error('Missing local web assets:',missing);process.exit(1);}
 console.log(`Web asset smoke: PASS (${refs.size} local references checked)`);
+
+const indexHtml=fs.readFileSync(path.join(root,'index.html'),'utf8');
+if(!/<title>[^<]+<\/title>/i.test(indexHtml)) throw new Error('index.html missing title');
+if(!/dir=["']rtl["']/i.test(indexHtml)) throw new Error('index.html missing RTL direction');
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));
+for(const key of ['name','start_url','scope','display','icons']) if(manifest[key]===undefined) throw new Error('manifest missing '+key);
+const config=fs.readFileSync(path.join(root,'config.js'),'utf8');
+if(/service_role|sb_secret_|eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+/i.test(config)) throw new Error('possible privileged secret detected in web/config.js');
+console.log('Web metadata/security smoke: PASS');
