@@ -14,7 +14,11 @@ const required = [
   ["Admin role guard", "['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())", app],
   ["SMM Email OTP", "sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}})", smm],
   ["SMM OTP verification", "sb.auth.verifyOtp({email,token:otp,type:'email'})", smm],
-  ["SMM no password auth", "signInWithPassword", smm, true]
+  ["SMM no password auth", "signInWithPassword", smm, true],
+  ["No direct membership insert", ".from('user_memberships').insert", app, true],
+  ["No direct membership update", ".from('user_memberships').update", app, true],
+  ["No direct membership delete", ".from('user_memberships').delete", app, true],
+  ["No direct registration review update", ".from('account_registration_requests').update", app, true]
 ];
 
 const failures = [];
