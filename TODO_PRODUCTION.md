@@ -164,7 +164,7 @@
 ## P1 — Release
 - [ ] Development → Testing → Staging → Production.
 - [ ] Release Candidate.
-- [x] CI success — run #74 succeeded for current commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`.
+- [🟢] CI success — run #84 succeeded for current commit `794292a70c6fa1883224ca134e54998b0defb872`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
 - [ ] production smoke test.
@@ -234,7 +234,7 @@
 - IMPLEMENTED: RLS-scoped order status history read.
 - IMPLEMENTED: JS syntax check on current `web/app.js` — PASS.
 - VERIFIED: all 111 public tables have RLS enabled.
-- VERIFIED: CI validation run #74 succeeded for commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`.
+- VERIFIED: CI validation run #84 succeeded for commit `794292a70c6fa1883224ca134e54998b0defb872`.
 - NOT VERIFIED: production end-to-end, external browser/device, restore/DR, and full release gate.
 - SECURITY VERIFIED: 111/111 public tables have RLS enabled.
 - SECURITY REVIEW: anon SELECT grants are currently limited to `legal_documents` and `legal_document_versions`; no broad anon write grants were found.
