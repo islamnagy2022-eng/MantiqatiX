@@ -136,3 +136,18 @@ No direct anon/authenticated EXECUTE grant was observed for these five functions
 ### Status
 RC66–RC77: **SOURCE/ACL PASS**.
 Real payment-provider traffic, multi-user authorization E2E, and full financial ledger E2E remain external verification gates; they are not marked PASS by source inspection alone.
+
+
+## RC78-RC85 checkpoint
+
+- ERP direct anon/authenticated grants query returned no rows for the ERP surface; no blanket privilege/policy change was applied.
+- ERP and inventory operational E2E remain pending; no production stock mutation was generated for testing.
+- `smm_services` currently has a deliberate public SELECT policy for the public service catalog.
+- Earlier live audit identified sensitive SMM tables with RLS but no direct policies: `smm_admins`, `smm_provider_credentials`, `smm_providers`. No speculative policy was added.
+- Storage policy review remains a source-level boundary; two-user/two-tenant Storage E2E and signed-URL/media-consumer E2E remain pending.
+- No bucket configuration claim was added because verified bucket configuration evidence was unavailable.
+- Current direct database evidence previously established five intentional-looking public SELECT surfaces: legal documents/version and active marketing catalog tables.
+- SMM broad privilege enumeration was blocked by the tool safety layer, so no fresh full SMM grant audit is claimed here.
+- RLS remains 112/112 public tables.
+- FORCE RLS remains 100/112 public tables; the 12 non-FORCE tables remain individually reviewed rather than mass-changed.
+- Security Advisor remains a review gate, not proof of exposure.
