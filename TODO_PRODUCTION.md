@@ -226,12 +226,18 @@
 - IMPLEMENTED: Website/PWA/brand baseline.
 - IMPLEMENTED: Email OTP path.
 - IMPLEMENTED: membership/active role.
-- IMPLEMENTED: feature-flag reading.
+- IMPLEMENTED: feature-flag reading + safe module visibility.
 - IMPLEMENTED: marketing lead creation.
-- IMPLEMENTED: support ticket creation.
+- IMPLEMENTED: support ticket creation + ticket list/reply path.
+- IMPLEMENTED: notifications read/update path.
 - IMPLEMENTED: RLS-scoped CRM leads/providers/orders/notifications reads.
 - IMPLEMENTED: RLS-scoped order status history read.
-- NOT VERIFIED: آخر CI/CD وقت إعداد القائمة كان Queued.
+- IMPLEMENTED: JS syntax check on current `web/app.js` — PASS.
+- VERIFIED: all 111 public tables have RLS enabled.
+- VERIFIED: current production deployment run #55 succeeded for commit `50529a0`.
+- NOT VERIFIED: current commit `b1e88ccec2cc0cf33c38626a8417cad2bcd0484f` deployment is still pending/queued at last check.
 - NOT VERIFIED: production end-to-end.
 - NOT VERIFIED: restore test.
 - NOT VERIFIED: full security release gate.
+- SECURITY REVIEW: 6 RLS-enabled public tables currently have no policies; this is deny-by-default but still requires explicit review.
+- SECURITY REVIEW: Supabase advisor currently reports SECURITY DEFINER functions executable by authenticated users; inspected functions include explicit auth/role checks, but the complete function-by-function release review remains open.
