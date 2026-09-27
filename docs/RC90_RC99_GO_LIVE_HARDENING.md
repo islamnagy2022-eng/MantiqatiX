@@ -202,3 +202,47 @@ The external fetch available in this environment returned a cache miss, so live 
 MantiqatiX remains **NOT PRODUCTION-READY CERTIFIED** until RC91-RC96 and the remaining external certification evidence are actually completed.
 
 This status is intentional and protects the release from false certification.
+
+
+## RC98 — Final Evidence Pack checkpoint — 2026-09-27
+
+### Evidence currently established
+- Release hardening program is tracked in this document.
+- RC90 freeze checkpoint is recorded against the repository.
+- Production API authority and payment/settlement security boundaries were previously source/ACL audited.
+- Public database RLS coverage was previously verified at 112/112 tables; FORCE RLS at 100/112, with remaining non-FORCE tables individually reviewed rather than mass-modified.
+- Production migration drift is explicitly documented and is not being reconstructed speculatively.
+- No fake production accounts, fake financial transactions, or fabricated provider responses were used.
+- Current public site identity and MantiqatiX/MNTY platform definition are preserved.
+
+### Evidence still required before certification
+1. Supabase Auth dashboard configuration evidence, including leaked-password protection.
+2. Two-user/two-tenant authorization runtime evidence.
+3. Two-user/two-tenant Storage/media runtime evidence.
+4. Approved Paymob/provider signed E2E evidence.
+5. Android release build, signing, and physical-device regression evidence.
+6. Isolated backup restore evidence with measured RPO/RTO.
+7. Production observability/alert drill evidence.
+8. Successful CI/build evidence for the exact release commit.
+9. External production web smoke evidence.
+
+RC98 status: **BLOCKED — EVIDENCE PACK INCOMPLETE**.
+
+## RC99 — Final Go-Live Authorization
+
+Release authorization status: **BLOCKED / NOT CERTIFIED**.
+
+The project is not labeled Production Ready until all mandatory external evidence above is attached to the release record and the final regression/security gate passes.
+
+### Release candidate reference
+- Repository: islamnagy2022-eng/MantiqatiX
+- Branch: main
+- Freeze reference: 12e48883cfc44e562949e190ee9c0ce5ff169e64
+- Latest documentation commit: this RC98/RC99 update
+- Public site: https://islamnagy2022-eng.github.io/MantiqatiX/
+
+### Operational rule
+The public site may remain deployed, but deployment availability must not be confused with final Production Ready certification.
+
+### Final release statement
+MantiqatiX has reached a controlled release-hardening state. The remaining blockers are verification/configuration gates requiring external runtime, provider, device, Auth, and recovery evidence. No unsupported PASS is recorded.
