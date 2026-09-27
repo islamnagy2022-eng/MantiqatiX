@@ -94,9 +94,15 @@ serve(async (req) => {
   if (req.method === "GET" && orderMatch) {
     const { data: order, error } = await supabaseAdmin.from("orders").select("*").eq("id", orderMatch[1]).single()
     if (error || !order) return json({ error: "Order not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id")
+    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
       .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
     if (!membership) return json({ error: "Forbidden" }, 403)
+    const role = String(membership.role ?? "").toUpperCase()
+    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+    const operationalOrderRead =
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role) ||
+      permissions.includes("ORDER_READ_ALL")
+    if (order.customer_id !== user.id && !operationalOrderRead) return json({ error: "Forbidden" }, 403)
     return json(order)
   }
 
@@ -149,9 +155,16 @@ serve(async (req) => {
   if (req.method === "GET" && paymentIntentMatch) {
     const { data: intent, error } = await supabaseAdmin.from("payment_intents").select("*").eq("id", paymentIntentMatch[1]).single()
     if (error || !intent) return json({ error: "Intent not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id")
+    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
       .eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
     if (!membership) return json({ error: "Forbidden" }, 403)
+    const role = String(membership.role ?? "").toUpperCase()
+    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+    const operationalPaymentRead =
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
+      permissions.includes("PAYMENT_READ_ALL")
+    const { data: linkedOrder } = await supabaseAdmin.from("orders").select("customer_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrder?.customer_id !== user.id && !operationalPaymentRead) return json({ error: "Forbidden" }, 403)
     return json(intent)
   }
 
