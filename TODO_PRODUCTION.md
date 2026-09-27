@@ -151,7 +151,7 @@
 
 ## P1 — QA
 - [ ] type/lint/static checks.
-- [ ] JS syntax.
+- [x] JS syntax — current `web/app.js` and `web/smm.js` pass CI.
 - [ ] routes/imports/environment.
 - [ ] DB/API tests.
 - [ ] Auth/Authz.
@@ -164,7 +164,7 @@
 ## P1 — Release
 - [ ] Development → Testing → Staging → Production.
 - [ ] Release Candidate.
-- [ ] CI success.
+- [x] CI success — run #63 succeeded for current commit `fff6636506aa9295bcc8fa1c6ec28cbbc835abce`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
 - [ ] production smoke test.
@@ -234,8 +234,8 @@
 - IMPLEMENTED: RLS-scoped order status history read.
 - IMPLEMENTED: JS syntax check on current `web/app.js` — PASS.
 - VERIFIED: all 111 public tables have RLS enabled.
-- VERIFIED: current production deployment run #55 succeeded for commit `50529a0`.
-- NOT VERIFIED: current commit `b1e88ccec2cc0cf33c38626a8417cad2bcd0484f` deployment is still pending/queued at last check.
+- VERIFIED: current production deployment run #63 succeeded for commit `fff6636506aa9295bcc8fa1c6ec28cbbc835abce`.
+- NOT VERIFIED: production end-to-end, external browser/device, restore/DR, and full release gate.
 - NOT VERIFIED: production end-to-end.
 - NOT VERIFIED: restore test.
 - NOT VERIFIED: full security release gate.
