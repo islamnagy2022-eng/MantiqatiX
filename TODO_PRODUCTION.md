@@ -38,7 +38,7 @@
 ## P1 — Marketing & Advertising
 - [x] Live counts حيث تتوفر بيانات فعلية.
 - [x] إنشاء marketing lead فعلي عبر RLS.
-- [🟡] قائمة leads + التفاصيل + lifecycle — القائمة الأساسية بدأت، التفاصيل والـlifecycle متبقية.
+- [🟡] قائمة leads + التفاصيل + lifecycle — أضيفت تفاصيل Lead للقراءة وفق RLS في commit `9cbae8375ab39c835b7d3ff92c0c8bef49204064`؛ lifecycle والتحديثات ما زالت متبقية لأن `marketing_leads` لا يملك حاليًا UPDATE policy للمستخدم.
 - [ ] مقدمو خدمات التسويق: profiles/services — profiles قراءة فعلية في CRM، والخدمات التفصيلية ما زالت متبقية.
 - [ ] marketing projects + participants.
 - [ ] provider subscriptions.
@@ -51,7 +51,7 @@
 ## P1 — CRM
 - [ ] العملاء الحقيقيون.
 - [x] leads — عرض بيانات فعلية ضمن CRM.
-- [ ] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention/retargeting.
+- [ ] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention/retargeting — يحتاج نموذج أحداث/صلاحيات UPDATE موثق قبل التنفيذ.
 - [ ] سجل التفاعلات.
 - [ ] مهام المتابعة والمسؤول.
 - [x] ربط CRM بالطلبات والخدمات.
@@ -254,6 +254,8 @@
 
 
 ## Latest build checkpoint — 2026-09-27
+- [🟢] CI #120 succeeded for support status workflow hardening/docs on commit `091410b7e886d07621b5f5ef5c6de76dc41480f6`.
+- [🟡] CRM lead details: read-only detail view committed as `9cbae8375ab39c835b7d3ff92c0c8bef49204064`; CI verification pending.
 - [🟢] CI #118 succeeded for support ticket detail/thread UI on commit `4947decd99ffebd2cf1496479f9eb87ac9c878d2`.
 - [🟡] Support status workflow: database constraint + staff status update UI committed as `e12d8c0fa2281d3761f0659986b34068f7bafcb0`; CI verification pending.
 - [x] Runtime brand alignment: واجهات التطبيق الداخلية ومسار الدخول أصبحت تعرض `MNTY` كهوية العميل، مع بقاء `MantiqatiX` كهوية الاسم الكامل/الأصل.
