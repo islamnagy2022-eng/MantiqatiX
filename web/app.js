@@ -245,7 +245,9 @@ document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHome
 document.getElementById('account-logout').onclick=logout;
 }
 function membershipRequiredView(){
-if(window.MXHomeLanding){window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};window.MXHomeLanding();showToast('تم التحقق من الحساب. العضوية التشغيلية لم تُربط بعد.','success');return}
+window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
+if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();showToast('تم التحقق من الحساب. العضوية التشغيلية لم تُربط بعد.','success');return}
+if(typeof landingView==='function'){landingView();showToast('تم التحقق من الحساب. العضوية التشغيلية لم تُربط بعد.','success');return}
 accountView();
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
