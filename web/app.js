@@ -303,27 +303,26 @@ async function openSupportTicket(){
  live.counts.support=(live.counts.support||0)+1; showToast('تم فتح التذكرة بنجاح. رقمها '+id,'success'); renderApp();
 }
 async function accountView(){
-const membership=live.memberships.find(m=>m.status==='ACTIVE');
-let request=null;
-if(user?.id&&!membership){
- const {data}=await sb.from('account_registration_requests').select('id,requested_role,status,reason,created_at,reviewed_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
- request=data||null;
-}
-const statusText=membership?'نشطة':request?.status==='PENDING'?'قيد المراجعة':request?.status==='REJECTED'?'مرفوض — يمكنك إعادة الطلب':'لم يتم ربط عضوية تشغيلية بعد';
-const requestBlock=membership
-?'<p class="muted">يمكنك الآن استخدام مساحة المنصة وفق الدور والصلاحيات المرتبطة بعضويتك.</p>'
-:request?.status==='PENDING'
-?'<p class="muted">طلبك قيد مراجعة الإدارة. لن يتم منح أي صلاحيات تشغيلية قبل الاعتماد.</p>'
-:request?.status==='REJECTED'
-?'<p class="muted">يمكنك تقديم طلب جديد واختيار نوع العضوية المناسب.</p>'
-:'<p class="muted">اختر نوع العضوية التي تناسب استخدامك للمنصة. إنشاء الطلب لا يمنح صلاحيات تشغيلية تلقائيًا.</p>';
-const requestButtons=membership||request?.status==='PENDING'?'':('<div class="action-bar"><button class="btn btn-primary" id="request-customer">الانضمام كعميل</button><button class="btn btn-outline" id="request-provider">الانضمام كمقدم خدمة</button></div>');
-document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><p>حالة البريد: <b>تم التحقق</b></p><p>حالة العضوية: <b>'+statusText+'</b></p>'+requestBlock+requestButtons+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
-document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
-document.getElementById('account-logout').onclick=logout;
-const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest();};
-document.getElementById('request-customer')?.addEventListener('click',()=>submitRole('CUSTOMER'));
-document.getElementById('request-provider')?.addEventListener('click',()=>submitRole('SERVICE_PROVIDER'));
+ const memberships=(live.memberships||[]).filter(m=>m.status==='ACTIVE');
+ let requests=[];
+ if(user?.id){
+  const {data,error}=await sb.from('account_registration_requests').select('id,requested_role,status,reason,created_at,reviewed_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20);
+  if(error)return showToast('تعذر تحميل طلبات العضوية: '+error.message,'error');
+  requests=data||[];
+ }
+ const activeRoles=new Set(memberships.map(m=>String(m.role||'').toUpperCase()));
+ const pendingRoles=new Set(requests.filter(r=>r.status==='PENDING').map(r=>String(r.requested_role||'').toUpperCase()));
+ const roleOption=(role,label)=>activeRoles.has(role)||pendingRoles.has(role)?'':('<button class="btn btn-outline" id="request-'+role.toLowerCase()+'">'+label+'</button>');
+ const requestRows=requests.length?'<div class="request-list">'+requests.slice(0,8).map(r=>'<div class="request-row"><span>'+esc(roleLabel(r.requested_role))+'</span><b>'+esc(r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':'مرفوض')+'</b></div>').join('')+'</div>':'<p class="muted">لا توجد طلبات عضوية إضافية.</p>';
+ const membershipRows=memberships.length?'<div class="request-list">'+memberships.map(m=>'<div class="request-row"><span>'+esc(roleContextLabel(m))+'</span><b>نشطة</b></div>').join('')+'</div>':'<p class="muted">لا توجد عضوية تشغيلية نشطة.</p>';
+ const requestButtons=roleOption('CUSTOMER','طلب دور عميل')+roleOption('SERVICE_PROVIDER','طلب دور صاحب نشاط / مقدم خدمة');
+ const privilegedNote='<p class="muted">الأدوار الإدارية الحساسة مثل Owner وAdmin وManager لا تُمنح بطلب ذاتي؛ يتم ربطها واعتمادها من الإدارة وفق الصلاحيات والسياسات.</p>';
+ document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
+ document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
+ document.getElementById('account-logout').onclick=logout;
+ const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest(role);};
+ document.getElementById('request-customer')?.addEventListener('click',()=>submitRole('CUSTOMER'));
+ document.getElementById('request-service_provider')?.addEventListener('click',()=>submitRole('SERVICE_PROVIDER'));
 }
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
@@ -359,15 +358,32 @@ const label=role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل';
 document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تم إنشاء حسابك</h1><p>تم التحقق من بريدك الإلكتروني بنجاح.</p><p>طلب التسجيل كـ <b>'+esc(label)+'</b> في حالة <b>'+esc(status)+'</b>.</p><p class="muted">لن يتم منح أي صلاحيات تشغيلية تلقائيًا. بعد اعتماد الطلب سيتم ربط العضوية والصلاحيات بالحساب وفق سياسة المنصة.</p><div class="action-bar"><button class="btn btn-outline" id="registration-logout">تسجيل الخروج</button></div></section></main>';
 document.getElementById('registration-logout').onclick=logout;
 }
-async function submitRegistrationRequest(){
-if(!user?.id)return;
-const {data:existing,error:existingError}=await sb.from('account_registration_requests').select('id,requested_role,status').eq('user_id',user.id).in('status',['PENDING','APPROVED']).order('created_at',{ascending:false}).limit(1).maybeSingle();
-if(existingError){showToast('تعذر التحقق من طلب التسجيل: '+existingError.message,'error');return;}
-if(existing?.status==='APPROVED'){await renderApp();return;}
-if(existing?.status==='PENDING'){registrationPendingView(existing.requested_role,existing.status);return;}
-const {data,error}=await sb.from('account_registration_requests').insert({user_id:user.id,requested_role:authRegistrationType,status:'PENDING',metadata:{source:'web',brand:'Mantiqati X'}}).select('requested_role,status').single();
-if(error){showToast('تعذر إنشاء طلب التسجيل: '+error.message,'error');return;}
-registrationPendingView(data.requested_role,data.status);
+async function submitRegistrationRequest(requestedRole=authRegistrationType){
+ if(!user?.id)return;
+ const role=String(requestedRole||'').toUpperCase();
+ if(!['CUSTOMER','SERVICE_PROVIDER'].includes(role))return showToast('هذا الدور لا يُطلب ذاتيًا من الحساب.','error');
+ const active=live.memberships||[];
+ if(active.some(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()===role)){
+  return showToast('هذا الدور مرتبط بالحساب بالفعل.','error');
+ }
+ const {data:existing,error:existingError}=await sb.from('account_registration_requests')
+  .select('id,requested_role,status')
+  .eq('user_id',user.id)
+  .eq('requested_role',role)
+  .in('status',['PENDING','APPROVED'])
+  .order('created_at',{ascending:false})
+  .limit(1)
+  .maybeSingle();
+ if(existingError)return showToast('تعذر التحقق من طلب العضوية: '+existingError.message,'error');
+ if(existing?.status==='APPROVED')return showToast('هذا الدور معتمد بالفعل أو تم ربطه بالحساب.','success');
+ if(existing?.status==='PENDING')return showToast('يوجد طلب قيد المراجعة لهذا الدور بالفعل.','error');
+ const {data,error}=await sb.from('account_registration_requests')
+  .insert({user_id:user.id,requested_role:role,status:'PENDING',metadata:{source:'account_membership_request',brand:'Mantiqati X'}})
+  .select('requested_role,status')
+  .single();
+ if(error)return showToast('تعذر إنشاء طلب العضوية: '+error.message,'error');
+ showToast('تم إرسال طلب العضوية الإضافية للمراجعة.','success');
+ await accountView();
 }
 async function enterAuthenticatedApp(authUser){
 if(!authUser?.id)return;
@@ -395,7 +411,7 @@ window.MXHomeLanding?MXHomeLanding():landingView();
 showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصفحة.','error');
 }
 }
-async function renderApp(){if(!user?.id)return;live.loading=true;document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>جاري تحميل المنصة</h1><p>يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...</p></section></main>';await loadLiveData();if(live.error){document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تعذر تحميل البيانات</h1><p>'+esc(live.error)+'</p><button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button></section></main>';document.getElementById('retry-load').onclick=renderApp;document.getElementById('logout-load').onclick=logout;return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar"><div class="side-brand"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav">${modules.filter(m=>moduleEnabled(m[1])&& (m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" onclick="selectModule('${m[1]}')"><span>${m[0]}</span><span>${m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content"><header class="top"><div><div class="breadcrumb">Mantiqati X / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<label class="search">⌕ <input id="search" value="${esc(query)}" placeholder="بحث داخل المنصة..."></label><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()}}
+async function renderApp(){if(!user?.id)return;live.loading=true;document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>جاري تحميل المنصة</h1><p>يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...</p></section></main>';await loadLiveData();if(live.error){document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تعذر تحميل البيانات</h1><p>'+esc(live.error)+'</p><button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button></section></main>';document.getElementById('retry-load').onclick=renderApp;document.getElementById('logout-load').onclick=logout;return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar"><div class="side-brand"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav">${modules.filter(m=>moduleEnabled(m[1])&& (m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" onclick="selectModule('${m[1]}')"><span>${m[0]}</span><span>${m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content"><header class="top"><div><div class="breadcrumb">Mantiqati X / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<label class="search">⌕ <input id="search" value="${esc(query)}" placeholder="بحث داخل المنصة..."></label><button class="btn btn-outline" id="account-open">حسابي</button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;document.getElementById('account-open')?.addEventListener('click',accountView);const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()}}
 sb.auth.onAuthStateChange((event,session)=>{
 if(event==='SIGNED_OUT'){
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';
