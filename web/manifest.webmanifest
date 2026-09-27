@@ -1,7 +1,7 @@
 {
-  "name": "MANTIX",
-  "short_name": "MANTIX",
-  "description": "MNTY — Spatial Intelligence Platform — the short identity of MantiqatiX",
+  "name": "MNTY",
+  "short_name": "MNTY",
+  "description": "MNTY — منصة ربط الخدمات ومقدميها، الهوية المختصرة لـ MantiqatiX",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./",
