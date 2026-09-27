@@ -89,7 +89,7 @@ try{
  const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
   sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_provider_profiles').select('id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
-  sb.from('orders').select('id,status,total_amount,currency,customer_name,created_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('orders').select('id,status,total_amount,currency,customer_id,business_id,customer_name,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10),
   sb.from('advertisements').select('id,title,status,approval_status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(10),
