@@ -271,11 +271,13 @@ async function openProviderCatalog(businessId,providerName){
   const cards=(catalog.items||[]).map(item=>{
    const price=catalogCurrentPrice(catalog,item.id,live.branchId);
    const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
-   return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<button class="text-btn" onclick="openOrderForm('+JSON.stringify(businessId)+','+JSON.stringify(item.id)+')">طلب</button>':'')+'</div></article>';
+   return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب</button>':'')+'</div></article>';
   }).join('')||'<div class="muted">لا توجد أصناف نشطة متاحة حاليًا.</div>';
   const overlay=document.createElement('div');overlay.className='mx-modal';
-  overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">LIVE CATALOG</span><h2>كتالوج '+esc(providerName||'مقدم الخدمة')+'</h2><p>الأصناف والأسعار من الكتالوج التشغيلي الفعلي.</p></div><button class="text-btn" onclick="closeMxModal()">إغلاق</button></div><div class="cards">'+cards+'</div></div>';
+  overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">LIVE CATALOG</span><h2>كتالوج '+esc(providerName||'مقدم الخدمة')+'</h2><p>الأصناف والأسعار من الكتالوج التشغيلي الفعلي.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><div class="cards">'+cards+'</div></div>';
   document.body.appendChild(overlay);
+  overlay.querySelector('.mx-close-modal')?.addEventListener('click',closeMxModal);
+  overlay.querySelectorAll('.mx-order-trigger').forEach(btn=>btn.addEventListener('click',()=>openOrderForm(btn.dataset.businessId,btn.dataset.itemId)));
  }catch(e){showToast('تعذر تحميل الكتالوج: '+(e?.message||'CATALOG_REQUEST_FAILED'),'error')}
 }
 async function openOrderForm(businessId,itemId){
@@ -283,8 +285,9 @@ async function openOrderForm(businessId,itemId){
  if(!item||!price)return showToast('الصنف أو السعر غير متاح حاليًا.','error');
  const meta=user?.user_metadata||{}; const defaultName=meta.full_name||meta.name||user?.email||'';
  const overlay=document.createElement('div');overlay.className='mx-modal';
- overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">NEW ORDER</span><h2>'+esc(item.name_ar||item.name_en||'طلب')+'</h2><p>السعر المعروض مرجعي؛ الخادم يعيد احتساب الإجمالي اعتمادًا على الكتالوج.</p></div><button class="text-btn" onclick="closeMxModal()">إغلاق</button></div><div class="form-grid"><label class="field"><span>الاسم</span><input id="mx-order-name" value="'+esc(defaultName)+'"></label><label class="field"><span>الهاتف</span><input id="mx-order-phone" value="'+esc(user?.phone||meta.phone||'')+'"></label><label class="field"><span>الكمية</span><input id="mx-order-qty" type="number" min="1" step="1" value="1"></label><label class="field"><span>عنوان التنفيذ/التوصيل</span><input id="mx-order-address" placeholder="أدخل العنوان عند الحاجة"></label></div><button class="btn btn-primary" id="mx-submit-order">إرسال الطلب</button></div>';
+ overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">NEW ORDER</span><h2>'+esc(item.name_ar||item.name_en||'طلب')+'</h2><p>السعر المعروض مرجعي؛ الخادم يعيد احتساب الإجمالي اعتمادًا على الكتالوج.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><div class="form-grid"><label class="field"><span>الاسم</span><input id="mx-order-name" value="'+esc(defaultName)+'"></label><label class="field"><span>الهاتف</span><input id="mx-order-phone" value="'+esc(user?.phone||meta.phone||'')+'"></label><label class="field"><span>الكمية</span><input id="mx-order-qty" type="number" min="1" step="1" value="1"></label><label class="field"><span>عنوان التنفيذ/التوصيل</span><input id="mx-order-address" placeholder="أدخل العنوان عند الحاجة"></label></div><button class="btn btn-primary" id="mx-submit-order">إرسال الطلب</button></div>';
  document.body.appendChild(overlay);
+ overlay.querySelector('.mx-close-modal')?.addEventListener('click',closeMxModal);
  document.getElementById('mx-submit-order').onclick=async()=>{
   const name=document.getElementById('mx-order-name').value.trim(),phone=document.getElementById('mx-order-phone').value.trim(),address=document.getElementById('mx-order-address').value.trim();
   const qty=Number(document.getElementById('mx-order-qty').value);
@@ -296,12 +299,19 @@ async function openOrderForm(businessId,itemId){
   }catch(e){showToast('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error')}
  };
 }
+if(!window.MNTYCatalogClickBound){
+ window.MNTYCatalogClickBound=true;
+ document.addEventListener('click',event=>{
+  const btn=event.target.closest('.mx-provider-catalog');
+  if(btn)openProviderCatalog(btn.dataset.businessId,btn.dataset.providerName);
+ });
+}
 function isCustomerMode(){return String(live.role||'').toUpperCase()==='CUSTOMER'}
 function customerDashboard(){
  const visible=modules.filter(m=>moduleEnabled(m[1])&&!['الموديولات','المستخدمون وCRM','العمولات والباقات','التقارير والتحليلات','طلبات التسجيل'].includes(m[1]));
  const providers=live.records.providers||[];
  const services=live.records.services||[];
- const providerCards=providers.slice(0,6).map(p=>'<article class="card"><div class="row"><strong>'+esc(p.name_ar||'مقدم خدمة')+'</strong><span class="dot"></span></div><p class="muted">'+esc(p.provider_kind||'خدمة')+' · '+(p.is_verified?'موثق':'مسجل')+'</p><small>الحالة: '+esc(p.status||'—')+'</small>'+(p.business_id?'<button class="text-btn" onclick="openProviderCatalog('+JSON.stringify(p.business_id)+','+JSON.stringify(p.name_ar||'مقدم خدمة')+')">عرض الكتالوج</button>':'')+'</article>').join('');
+ const providerCards=providers.slice(0,6).map(p=>'<article class="card"><div class="row"><strong>'+esc(p.name_ar||'مقدم خدمة')+'</strong><span class="dot"></span></div><p class="muted">'+esc(p.provider_kind||'خدمة')+' · '+(p.is_verified?'موثق':'مسجل')+'</p><small>الحالة: '+esc(p.status||'—')+'</small>'+(p.business_id?'<button class="text-btn mx-provider-catalog" data-business-id="'+esc(p.business_id)+'" data-provider-name="'+esc(p.name_ar||'مقدم خدمة')+'">عرض الكتالوج</button>':'')+'</article>').join('');
  const serviceCards=services.slice(0,6).map(s=>'<article class="card"><div class="row"><strong>'+esc(s.name_ar||s.name_en||'خدمة')+'</strong><span class="dot"></span></div><p class="muted">'+esc(s.category_code||'خدمة متاحة')+'</p><small>خدمة نشطة على المنصة</small></article>').join('');
  return '<section class="hero"><div><span class="eyebrow">Mantiqati X · عميل</span><h2>اكتشف الخدمة المناسبة وتواصل مع مقدمها</h2><p>استعرض الخدمات ومقدميها من البيانات المتاحة، ثم أرسل طلبك وتابع حالته من حسابك.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الطلبات والعمليات\')">طلباتي</button></div></div></section><section class="cards"><div class="card"><div class="muted">وضع الحساب</div><div class="kpi">عميل</div><small>العضوية النشطة الحالية</small></div><div class="card"><div class="muted">الطلبات</div><div class="kpi">'+countOrDash('orders')+'</div><small>طلبات مرتبطة بحسابك</small></div><div class="card"><div class="muted">الخدمات النشطة</div><div class="kpi">'+services.length+'</div><small>خدمات مرئية حاليًا</small></div><div class="card"><div class="muted">الدعم</div><div class="kpi">'+countOrDash('support')+'</div><small>تذاكر الدعم</small></div></section><div class="section-head"><div><h2>خدمات متاحة الآن</h2><p>عرض معلومات فعلية فقط؛ لا يتم إنشاء طلب من هذه البطاقة دون مسار الطلب المعتمد.</p></div></div><div class="grid3">'+(serviceCards||'<div class="empty-state">لا توجد خدمات نشطة معروضة حاليًا.</div>')+'</div><div class="section-head"><div><h2>مقدمو الخدمات</h2><p>الملفات الظاهرة وفق صلاحيات القراءة الحالية.</p></div></div><div class="grid3">'+(providerCards||'<div class="empty-state">لا توجد ملفات مقدمي خدمة معروضة حاليًا.</div>')+'</div><div class="section-head"><div><h2>الوصول السريع</h2><p>الخدمات المتاحة لك كعميل.</p></div></div><div class="modules">'+visible.slice(0,8).map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div></article>').join('')+'</div>';
 }
