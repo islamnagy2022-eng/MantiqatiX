@@ -107,6 +107,22 @@
           </div>
         </section>
 
+        <section class="mx-section mx-audience-section" id="mx-audiences">
+          <div class="mx-section__head">
+            <div><span class="mx-hero__eyebrow">ابدأ بالطريقة المناسبة لك</span><h2>مساران واضحان داخل MANTIQATIX</h2><p>المنصة تربط الطرفين رقميًا، مع بقاء تقديم الخدمة وتنفيذها مسؤولية مقدم الخدمة.</p></div>
+          </div>
+          <div class="mx-audience-grid">
+            <article class="mx-audience-card">
+              <div class="mx-audience-card__icon">👤</div>
+              <div><span>للعملاء</span><h3>ابحث عن الخدمة واطلبها</h3><p>اكتشف الخدمات ومقدميها، قارن الخيارات المتاحة، ثم أنشئ طلبك وتابع حالته من حسابك.</p><button type="button" class="mx-btn mx-btn--primary" data-register-role="CUSTOMER">إنشاء حساب عميل ←</button></div>
+            </article>
+            <article class="mx-audience-card mx-audience-card--provider">
+              <div class="mx-audience-card__icon">🏢</div>
+              <div><span>لمقدمي الخدمات</span><h3>اعرض خدمتك وأدر نشاطك</h3><p>سجّل نشاطك، اعرض خدماتك وفق قواعد المنصة، واستقبل الطلبات وتابع تشغيلها من مساحة العمل المخصصة لك بعد الاعتماد.</p><button type="button" class="mx-btn mx-btn--light" data-register-role="SERVICE_PROVIDER">التسجيل كمقدم خدمة ←</button></div>
+            </article>
+          </div>
+        </section>
+
         <section class="mx-section" id="mx-categories">
           <div class="mx-section__head"><div><h2>استكشف القطاعات</h2><p>تنقل سريع إلى نوع النشاط أو الخدمة التي تبحث عنها.</p></div><button class="mx-link" id="mx-all" type="button">عرض الكل ←</button></div>
           <div class="mx-categories" id="mx-category-grid"></div>
@@ -178,6 +194,14 @@
     document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
     document.querySelectorAll('[data-auth-link]').forEach(a=>a.onclick=e=>{e.preventDefault();goLogin()});
     document.querySelectorAll('[data-module]').forEach(btn=>btn.onclick=goLogin);
+    document.querySelectorAll('[data-register-role]').forEach(btn=>btn.onclick=()=>{
+      if(typeof authView!=='function') return;
+      const role=btn.getAttribute('data-register-role')||'CUSTOMER';
+      authView('',false,'','register');
+      const select=document.getElementById('registration-type');
+      if(select) select.value=role;
+      if(typeof authRegistrationType!=='undefined') authRegistrationType=role;
+    });
 
     const renderServices=(services)=>{
       const el=document.getElementById('mx-service-grid');
