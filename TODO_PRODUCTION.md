@@ -335,3 +335,12 @@
 - [x] Confirmed the reviewed sensitive financial backend functions are not executable by `anon` or `authenticated`; execution remains server-side only.
 - [x] Confirmed `payment_financial_reconciliations` now uses tenant-scoped finance-role SELECT RLS.
 - [ ] Provider/payment/subscription/refund/settlement authenticated E2E remains required; no production financial success is claimed without it.
+
+
+## 2026-09-27 — Backup / monitoring verification checkpoint
+- [x] Verified the database has an `audit_logs` table with tenant/actor/action/entity/result fields suitable for application audit records.
+- [x] Verified `audit_logs` is not writable by `authenticated` and is not readable by `anon`; authenticated SELECT remains subject to its RLS policy.
+- [x] Verified no application-level public table currently exists with an explicit backup/restore or incident/alert name; this is not treated as proof of infrastructure backup or monitoring.
+- [ ] Actual Supabase backup/restore drill remains NOT VERIFIED.
+- [ ] Production monitoring, alert routing, and incident-response drill remain NOT VERIFIED.
+- [ ] Final release remains blocked until backup/restore and monitoring evidence exists.
