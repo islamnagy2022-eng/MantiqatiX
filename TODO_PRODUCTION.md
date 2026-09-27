@@ -309,3 +309,9 @@
 ## 2026-09-27 — Registration review cache isolation
 - [x] Cleared `live.records.registrationRequests` at the start of each live-data reload so privileged registration-review records cannot remain in client state after a role/session transition.
 - [ ] CI verification for commit `39656f0af6d23612cae5737b2b6f1cb494664255` remains pending through the available workflow-run connector.
+
+
+## 2026-09-27 — Session-scoped client state reset
+- [x] Reset feature flags, counts, module cache, and record cache at each live-data reload to prevent cross-session stale state.
+- [x] Reset the same client-side state explicitly on logout.
+- [ ] CI verification for commit `cb90678ddd7c89a798ae010943ad8a2fa50f5a5e` remains pending through the available workflow-run connector.
