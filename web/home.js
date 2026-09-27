@@ -60,7 +60,7 @@
           <button class="mx-header__login" id="mx-login" type="button">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
-            <a href="#mx-categories">التصنيفات</a>
+            <a href="#mx-about">عن المنصة</a><a href="#mx-categories">التصنيفات</a>
             <a href="#mx-services">الخدمات</a>
             <a href="#mx-offers">العروض</a>
             <a href="#mx-marketing">التسويق والإعلانات</a>
