@@ -321,3 +321,10 @@
 - [x] Escaped all values rendered by the shared `recordsTable()` renderer before inserting database-backed values into HTML cells.
 - [x] Closed the generic reflected/stored HTML injection path through record-table values at the shared rendering boundary.
 - [ ] CI verification for commit `dc0c836e219f99c9ebb322b891038a5b2b87ebf7` remains pending through the available workflow-run connector.
+
+
+## 2026-09-27 — Finance reconciliation read-scope hardening
+- [x] Replaced the broad authenticated SELECT policy on `payment_financial_reconciliations` with tenant-scoped finance-role access.
+- [x] Verified the new policy requires an ACTIVE membership in the row's `tenant_id` and role OWNER/ADMIN/MANAGER/FINANCE/ACCOUNTANT/FINANCE_MANAGER.
+- [x] Verified anonymous SELECT remains denied and authenticated table SELECT privilege remains subject to RLS.
+- [ ] Authenticated adversarial E2E across two tenants is still required before release.
