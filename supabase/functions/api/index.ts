@@ -67,10 +67,12 @@ serve(async (req) => {
     const ids = (items ?? []).map((x: any) => x.id);
     if (!ids.length) return json({ tenantId, businessId, branchId: branchId ?? null, items: [], prices: [], options: [] });
 
+    const nowIso = new Date().toISOString();
     const [pricesRes, optionsRes] = await Promise.all([
       supabaseAdmin.from("catalog_item_prices")
         .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
         .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
+        .lte("effective_from", nowIso).or(`effective_to.is.null,effective_to.gte.${nowIso}`)
         .order("version", { ascending: false }),
       supabaseAdmin.from("catalog_item_options")
         .select("id,catalog_item_id,name_ar,name_en,price_delta,status,metadata")
