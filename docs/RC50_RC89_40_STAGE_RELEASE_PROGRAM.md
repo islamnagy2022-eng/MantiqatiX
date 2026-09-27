@@ -63,3 +63,19 @@ This document is an execution gate, not a claim that every external test has pas
 ## Release discipline
 
 A BLOCKED gate is not converted to PASS by documentation alone. External credentials, device access, Auth dashboard configuration, real payment traffic, and actual restore execution must produce evidence before certification.
+
+
+## RC50 verification checkpoint
+
+- Workflow SHA: bf9f900683a76404e3b083f1d4d0ae0d4e75960e
+- Required production/web files missing from workflow checks: 0
+- Secret validator present: yes
+- Production security validator present: yes
+- Android parity validator present: yes
+- api: v8 ACTIVE, verify_jwt=true
+- order-create: v1 ACTIVE, verify_jwt=true
+- order-status-update: v1 ACTIVE, verify_jwt=true
+- mnty-registration-review: v3 ACTIVE, verify_jwt=true
+- payment-intent: v3 ACTIVE, verify_jwt=true
+- settlement-create: v3 ACTIVE, verify_jwt=true
+- Public web config: contains anon key; no service-role key/service-role-key marker detected.
