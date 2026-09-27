@@ -79,3 +79,28 @@ A BLOCKED gate is not converted to PASS by documentation alone. External credent
 - payment-intent: v3 ACTIVE, verify_jwt=true
 - settlement-create: v3 ACTIVE, verify_jwt=true
 - Public web config: contains anon key; no service-role key/service-role-key marker detected.
+
+
+## RC58–RC65 security boundary checkpoint
+
+Live database audit identified exactly 12 public tables with RLS enabled but FORCE RLS disabled:
+- account_registration_requests — 3 policies
+- erp_purchase_orders — 0 policies
+- erp_purchase_receipts — 0 policies
+- erp_stock_transfers — 0 policies
+- smm_admins — 0 policies
+- smm_order_events — 1 policy
+- smm_orders — 2 policies
+- smm_provider_credentials — 0 policies
+- smm_providers — 0 policies
+- smm_services — 1 policy
+- smm_wallet_transactions — 1 policy
+- smm_wallets — 1 policy
+
+The six policy-bearing tables were reviewed at policy-definition level. The seven zero-policy sensitive tables (including ERP and SMM credential/admin/provider surfaces) were not force-enabled automatically because doing so without first reconciling their production migration history could change runtime behavior and would conflict with the controlled migration-drift rule.
+
+Current decision:
+- No blanket FORCE RLS change.
+- No speculative migration reconstruction.
+- Zero-policy sensitive tables remain an explicit security review gate.
+- Policy-bearing tables remain an explicit FORCE-RLS review gate.
