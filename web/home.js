@@ -172,7 +172,7 @@
       const status=document.getElementById('mx-live-status');
       if(!sb){status.textContent='وضع العرض';renderServices([]);renderProviders([]);renderSponsored([]);return}
       const term=String(searchText||'').trim();
-        const safeTerm=term.replace(/[^p{L}p{N}s_-]/gu,' ').trim().slice(0,60);
+        const safeTerm=term.replace(/[^\p{L}\p{N}\s_-]/gu,' ').trim().slice(0,60);
       try{
         let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
         let providerQuery=sb.from('marketing_provider_profiles').select('id,name_ar,name_en,description,service_areas,status,is_verified,is_featured,ranking_weight').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
