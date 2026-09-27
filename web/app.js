@@ -34,7 +34,7 @@ const sectors=[
 ['👗','الأزياء','المتاجر والمنتجات والحملات'],['🔧','الصيانة','مقدمو الخدمة والطلبات والترشيحات'],['💼','الأعمال وERP','إدارة الأعمال والمحاسبة والخدمات المهنية'],
 ['🎓','التعليم','المدارس والمدرسون والخدمات التعليمية'],['✈️','السفر والرحلات','الوكلاء والرحلات والحجوزات'],['🤝','الشركاء','الشركاء الاستراتيجيون ومصادر العملاء']
 ];
-let current='الرئيسية', query='', user=null, deferredInstallPrompt=null;
+let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false;
 const live={memberships:[],role:'CUSTOMER',businessId:null,counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[]},moduleData:{},loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
@@ -66,25 +66,36 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const mark=()=>'<span class="mark"></span>';
 function authView(msg='',otpMode=false,emailValue=''){
 document.getElementById('app').innerHTML=otpMode
-?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>رمز الدخول</h1><p>أرسلنا رمز تحقق لمرة واحدة إلى <b>${esc(emailValue)}</b>. أدخل الرمز لإكمال الدخول.</p><div class="field"><label>رمز OTP</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="أدخل رمز التحقق"></div><button class="btn btn-primary" id="verify">تحقق ودخول</button><button class="text-btn" id="back-auth">تغيير البريد الإلكتروني</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
+?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>رمز الدخول</h1><p>أرسلنا رمز تحقق لمرة واحدة إلى <b>${esc(emailValue)}</b>. أدخل الرمز لإكمال الدخول.</p><div class="field"><label>رمز OTP</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"></div><button class="btn btn-primary" id="verify">تحقق ودخول</button><button class="text-btn" id="resend-otp">إرسال رمز جديد</button><button class="text-btn" id="back-auth">تغيير البريد الإلكتروني</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
 :`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div><h1>دخول / إنشاء حساب</h1><p>استخدم بريدك الإلكتروني للحصول على رمز تحقق لمرة واحدة. لا نستخدم كلمة مرور في مسار الإنتاج.</p><div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">إرسال رمز الدخول</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
-if(otpMode){document.getElementById('verify').onclick=()=>verifyOtp(emailValue);document.getElementById('back-auth').onclick=()=>authView('',false,emailValue)}
-else document.getElementById('send-otp').onclick=sendOtp;
-
+if(otpMode){
+const otp=document.getElementById('otp');otp.focus();
+document.getElementById('verify').onclick=()=>verifyOtp(emailValue);
+document.getElementById('resend-otp').onclick=()=>sendOtp(emailValue);
+document.getElementById('back-auth').onclick=()=>authView('',false,emailValue);
+otp.addEventListener('keydown',e=>{if(e.key==='Enter')verifyOtp(emailValue)});
+}else{
+document.getElementById('email').focus();
+document.getElementById('send-otp').onclick=()=>sendOtp();
+document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')sendOtp()});
 }
-async function sendOtp(){
-const email=document.getElementById('email').value.trim().toLowerCase();
+}
+async function sendOtp(existingEmail=''){
+const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
 if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
+const button=document.getElementById('send-otp')||document.getElementById('resend-otp');if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
 const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
-if(error)return authView(error.message);
+if(error)return authView('تعذر إرسال رمز الدخول: '+error.message,false,email);
 authView('',true,email);
 }
 async function verifyOtp(email){
-const token=document.getElementById('otp').value.trim();
-if(!token)return authView('أدخل رمز التحقق.',true,email);
+const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,6);
+if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 أرقام.',true,email);
+const button=document.getElementById('verify');if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
 const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});
-if(error)return authView(error.message,true,email);
-user=data.user;renderApp();
+if(error)return authView('تعذر التحقق من الرمز: '+error.message,true,email);
+if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
+user=data.user;await enterAuthenticatedApp(data.user);
 }
 async function logout(){const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;live.memberships=[];live.role='CUSTOMER';live.businessId=null;landingView()}
 function setupInstallPrompt(){
@@ -220,5 +231,37 @@ async function openSupportTicket(){
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
 function governanceWorkspace(){return workspaceHead('GOVERNANCE','الدعم والحوكمة','التذاكر، الرسائل، الإشعارات والصلاحيات في مساحة تشغيلية موحدة.','CONTROL')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'إشعارات الحساب الفعلية'],['الصلاحيات',live.role,'الدور الفعلي من العضوية'],['التدقيق','نشط','السجل الإداري عند توفره'],['المراقبة','نشطة','مؤشرات الأخطاء والتشغيل'],['السياسات','منشورة','السياسات المنشورة عند توفرها']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم',live.records.supportTickets,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>'<button class="linkbtn" onclick="openTicketDetails(\''+esc(r.id)+'\')">تفاصيل</button>']])+recordsTable('آخر الإشعارات',live.records.notifications,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r.read_at?'—':'<button class="linkbtn" onclick="markNotificationRead(\''+esc(r.id)+'\')">تعليم كمقروء</button>']])}
+async function enterAuthenticatedApp(authUser){
+if(!authUser?.id)return;
+user=authUser;
+if(authRenderLock)return;
+authRenderLock=true;
+try{await renderApp()}finally{authRenderLock=false}
+}
+async function bootAuth(){
+if(authBooted)return;authBooted=true;
+try{
+const {data,error}=await sb.auth.getSession();
+if(error)throw error;
+if(data?.session){
+const vr=await sb.auth.getUser();
+if(vr.error)throw vr.error;
+if(vr.data?.user){await enterAuthenticatedApp(vr.data.user);return}
+await sb.auth.signOut();
+}
+window.MXHomeLanding?MXHomeLanding():landingView();
+}catch(e){
+user=null;
+window.MXHomeLanding?MXHomeLanding():landingView();
+showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصفحة.','error');
+}
+}
 async function renderApp(){if(!user?.id)return;live.loading=true;document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>جاري تحميل المنصة</h1><p>يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...</p></section></main>';await loadLiveData();await loadDomainModule(current);if(live.error){document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>تعذر تحميل البيانات</h1><p>'+esc(live.error)+'</p><button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button></section></main>';document.getElementById('retry-load').onclick=renderApp;document.getElementById('logout-load').onclick=logout;return}document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar"><div class="side-brand"><div class="brand">${mark()}<span>MNTY</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav">${modules.filter(m=>moduleEnabled(m[1])).map(m=>`<button class="${m[1]===current?'active':''}" onclick="selectModule('${m[1]}')"><span>${m[0]}</span><span>${m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content"><header class="top"><div><div class="breadcrumb">MantiqatiX / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions"><label class="search">⌕ <input id="search" value="${esc(query)}" placeholder="بحث داخل المنصة..."></label><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;const si=document.getElementById('search');si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()}}
-sb.auth.getSession().then(async({data})=>{if(!data.session){user=null;window.MXHomeLanding?MXHomeLanding():landingView();return}const vr=await sb.auth.getUser();user=vr.data?.user||null;if(user)renderApp();else{await sb.auth.signOut();window.MXHomeLanding?MXHomeLanding():landingView()}}).catch(()=>landingView());sb.auth.onAuthStateChange((event,session)=>{user=session?.user||null;if(user){renderApp()}else{live.memberships=[];live.role='CUSTOMER';live.businessId=null;current='الرئيسية';query='';window.MXHomeLanding?MXHomeLanding():landingView()}});
+sb.auth.onAuthStateChange((event,session)=>{
+if(event==='SIGNED_OUT'){
+user=null;live.memberships=[];live.role='CUSTOMER';live.businessId=null;current='الرئيسية';query='';
+window.MXHomeLanding?MXHomeLanding():landingView();return;
+}
+if(session?.user&&!authRenderLock)enterAuthenticatedApp(session.user);
+});
+bootAuth();
