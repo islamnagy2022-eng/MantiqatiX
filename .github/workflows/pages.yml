@@ -26,10 +26,12 @@ jobs:
           node --check web/app.js
           node --check web/smm.js
           node --check web/home.js
+          node --check web/android-parity-catalog.js
           node scripts/validate-web-assets.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
           node scripts/validate-module-catalog.mjs
+          node scripts/validate-android-parity-catalog.mjs
           node scripts/validate-public-web-secrets.mjs
           node scripts/validate-web-config.mjs
       - name: Required web files
@@ -45,6 +47,7 @@ jobs:
           test -f web/smm.js
           test -f web/manifest.webmanifest
           test -f web/sw.js
+          test -f web/android-parity-catalog.js
           grep -q "mx-whatsapp-float" web/home.js
           grep -q "MNTY_SUPPORT" web/config.js
           grep -q "MNTY_SUPPORT" web/home.js
@@ -77,7 +80,7 @@ jobs:
           set -euo pipefail
           test -n "$PAGE_URL"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" | grep -Eq "Mantiqati X|MNTY"
-          for asset in config.js styles.css app.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
+          for asset in config.js styles.css app.js android-parity-catalog.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
