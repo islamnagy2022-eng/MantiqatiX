@@ -108,12 +108,20 @@ serve(async (req) => {
     if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total,currency").eq("id", orderId).single()
+      .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id")
+    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
       .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
     if (!membership) return json({ error: "Forbidden" }, 403)
+
+    const role = String(membership.role ?? "").toUpperCase()
+    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+    const operationalPaymentAccess =
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
+      permissions.includes("PAYMENT_CREATE")
+    const isOrderOwner = order.customer_id === user.id
+    if (!isOrderOwner && !operationalPaymentAccess) return json({ error: "Forbidden" }, 403)
 
     const { data: configuredMethod } = await supabaseAdmin.from("tenant_payment_methods").select("id")
       .eq("tenant_id", order.tenant_id).eq("payment_method", "CASH_ON_DELIVERY")
