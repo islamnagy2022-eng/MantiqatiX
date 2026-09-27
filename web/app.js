@@ -313,4 +313,4 @@ window.MXHomeLanding?MXHomeLanding():landingView();return;
 }
 if(session?.user&&!authRenderLock)enterAuthenticatedApp(session.user);
 });
-bootAuth();
+window.addEventListener('DOMContentLoaded',bootAuth,{once:true});
