@@ -381,7 +381,10 @@ async function submitRegistrationRequest(requestedRole=authRegistrationType){
   .insert({user_id:user.id,requested_role:role,status:'PENDING',metadata:{source:'account_membership_request',brand:'Mantiqati X'}})
   .select('requested_role,status')
   .single();
- if(error)return showToast('تعذر إنشاء طلب العضوية: '+error.message,'error');
+ if(error){
+  if(error.code==='23505')return showToast('يوجد طلب قيد المراجعة لهذا الدور بالفعل.','error');
+  return showToast('تعذر إنشاء طلب العضوية: '+error.message,'error');
+ }
  showToast('تم إرسال طلب العضوية الإضافية للمراجعة.','success');
  await accountView();
 }
