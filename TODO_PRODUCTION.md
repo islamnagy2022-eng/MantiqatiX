@@ -61,8 +61,8 @@
 ## P1 — Support & Governance
 - [x] عداد التذاكر وفق RLS.
 - [x] إنشاء تذكرة دعم فعلي.
-- [🟡] قائمة/تفاصيل التذاكر — أضيفت واجهة تفاصيل التذكرة وتحميل Thread الرسائل وفق RLS؛ تحقق CI للتعديل الأخير ما زال قيد الانتظار.
-- [🟡] ticket messages/status workflow — قراءة وإضافة الردود تعمل من الواجهة، وتحديث الحالة الإداري ما زال متبقيًا بعد تحقق الصلاحيات.
+- [🟢] قائمة/تفاصيل التذاكر — واجهة تفاصيل التذكرة وThread الرسائل وفق RLS؛ CI #118 نجح على `4947decd99ffebd2cf1496479f9eb87ac9c878d2`.
+- [🟡] ticket messages/status workflow — قراءة وإضافة الردود تعمل؛ أضيف تحديث حالة محكوم بـRLS وقيد DB للحالات `OPEN/IN_PROGRESS/RESOLVED/CLOSED` في commit `e12d8c0fa2281d3761f0659986b34068f7bafcb0`، والتحقق الآلي لهذا التعديل ما زال منتظرًا.
 - [ ] Support/Support Manager authorization.
 - [ ] Audit للعمليات الحساسة.
 - [ ] notifications لحالات الدعم.
@@ -254,6 +254,8 @@
 
 
 ## Latest build checkpoint — 2026-09-27
+- [🟢] CI #118 succeeded for support ticket detail/thread UI on commit `4947decd99ffebd2cf1496479f9eb87ac9c878d2`.
+- [🟡] Support status workflow: database constraint + staff status update UI committed as `e12d8c0fa2281d3761f0659986b34068f7bafcb0`; CI verification pending.
 - [x] Runtime brand alignment: واجهات التطبيق الداخلية ومسار الدخول أصبحت تعرض `MNTY` كهوية العميل، مع بقاء `MantiqatiX` كهوية الاسم الكامل/الأصل.
 - [🟢] CI verified: run #114 نجح للـcommit الحالي `d58e1360a170bce596494b2aeb37b5166fff6a5b` بعد تعديلات الهوية.
 - [ ] استكمال P0/P1 من أول عنصر غير VERIFIED، مع عدم اعتبار أي وظيفة مكتملة قبل اختبارها في سياقها.
