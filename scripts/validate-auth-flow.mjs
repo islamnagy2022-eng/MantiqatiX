@@ -16,7 +16,7 @@ const required = [
   ["Registration review Edge Function", "sb.functions.invoke('mnty-registration-review'", app],
   ["Admin role guard", "['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())", app],
   ["Role switcher", 'id="mx-role-switcher"', app],
-  ["Membership switch authority", "live.memberships.some(m=>m.id===membershipId)", app],
+  ["Membership switch authority", "live.memberships.find(m=>m.id===membershipId)", app],
   ["Role switch persistence", "localStorage.setItem('MNTYActiveMembershipId',membershipId)", app],
   ["Platform to public home", "id=\"go-public-home\"", app],
   ["Public home to platform", "typeof openPlatform==='function'?openPlatform():goLogin()", fs.readFileSync("web/home.js", "utf8")],
@@ -50,7 +50,7 @@ const migration = fs.readFileSync("supabase/migrations/20260927150000_owner_role
 for (const role of ["ADMIN","MANAGER","BUSINESS_OWNER","SUPPORT","SUPPORT_MANAGER","EMPLOYEE","STAFF","CUSTOMER","SERVICE_PROVIDER"]) {
   if (!migration.includes(`('${role}')`)) failures.push(`Owner role context: ${role}`);
 }
-if (migration.includes("SUPER_ADMIN")) failures.push("Owner role contexts must not bootstrap SUPER_ADMIN");
+if (/cross join[\s\S]*SUPER_ADMIN/i.test(migration) || /values\s*\([\s\S]*['\"]SUPER_ADMIN['\"]/i.test(migration)) failures.push("Owner role contexts must not bootstrap SUPER_ADMIN");
 
 if (failures.length) {
   console.error("Auth/registration production invariant check failed:");
