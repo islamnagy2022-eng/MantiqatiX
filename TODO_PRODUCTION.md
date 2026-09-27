@@ -328,3 +328,10 @@
 - [x] Verified the new policy requires an ACTIVE membership in the row's `tenant_id` and role OWNER/ADMIN/MANAGER/FINANCE/ACCOUNTANT/FINANCE_MANAGER.
 - [x] Verified anonymous SELECT remains denied and authenticated table SELECT privilege remains subject to RLS.
 - [ ] Authenticated adversarial E2E across two tenants is still required before release.
+
+
+## 2026-09-27 — Finance backend execution boundary review
+- [x] Reviewed SECURITY DEFINER functions related to payments, commissions, settlements, refunds, and subscription payments.
+- [x] Confirmed the reviewed sensitive financial backend functions are not executable by `anon` or `authenticated`; execution remains server-side only.
+- [x] Confirmed `payment_financial_reconciliations` now uses tenant-scoped finance-role SELECT RLS.
+- [ ] Provider/payment/subscription/refund/settlement authenticated E2E remains required; no production financial success is claimed without it.
