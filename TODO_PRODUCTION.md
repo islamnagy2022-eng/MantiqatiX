@@ -5,21 +5,21 @@
 
 ## P0 — بوابة الإطلاق
 - [x] Baseline CI مستقر — commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`, CI run #74 ناجح.
-- [ ] Auth production: Email OTP end-to-end، session، logout، expiry.
+- [ ] Auth production: Email OTP end-to-end، session، logout، expiry. **NOT VERIFIED — requires external browser/auth test.**
 - [🟡] Authorization/RLS: 111/111 جدول RLS؛ تمت مراجعة سياسات المسارات الحرجة (orders/support/tickets/notifications/memberships/marketing)، والسياسات العامة للحدود مصنفة RESTRICTIVE؛ بقي اختبار E2E بحسابات أدوار متعددة.
 - [🟢] مراجعة SECURITY DEFINER وEXECUTE: تمت مراجعة الوظائف العشر القابلة للاستدعاء من authenticated؛ كلها تحتوي تحقق هوية/ملكية/عضوية/نطاق مناسب حسب وظيفتها، ولا توجد وظائف مالية حساسة مكشوفة مباشرة.
 - [🟢] Data API grants baseline: anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط ولا يملك INSERT/UPDATE/DELETE؛ authenticated لديه امتيازات محددة ومحمية بـRLS؛ المراجعة التفصيلية لكل مسار تبقى ضمن E2E.
 - [🟡] Database constraints/indexes/integrity: 111/111 لها Primary Key و224 Foreign Keys؛ توجد 155 أعمدة FK بلا index أحادي مطابق وتحتاج مراجعة أداء حسب الاستخدام.
-- [ ] API/Edge Functions/integrations.
-- [ ] Website/Admin/Owner/Manager/Employee/Customer E2E.
+- [ ] API/Edge Functions/integrations. **NOT VERIFIED — external runtime test pending.**
+- [ ] Website/Admin/Owner/Manager/Employee/Customer E2E. **NOT VERIFIED — requires real test accounts and external browser.**
 - [🟡] Finance backend controls inspected (payment/refund/settlement/order pricing/idempotency); actual provider/payment E2E remains NOT VERIFIED.
 - [ ] CRM + Marketing E2E.
 - [ ] Regression كامل.
-- [ ] Backup/Restore/DR test.
+- [ ] Backup/Restore/DR test. **NOT VERIFIED — restore evidence not yet produced.**
 - [ ] Monitoring/alerts/logging.
 - [ ] Production configuration/secrets.
 - [ ] Build/Release/Rollback.
-- [ ] External browser/device tests.
+- [ ] External browser/device tests. **NOT VERIFIED — network/browser execution unavailable in current execution environment.**
 - [ ] Release approval موثق.
 
 ## P1 — Website / Platform
@@ -164,7 +164,7 @@
 ## P1 — Release
 - [ ] Development → Testing → Staging → Production.
 - [ ] Release Candidate.
-- [🟢] CI success — run #84 succeeded for current commit `794292a70c6fa1883224ca134e54998b0defb872`.
+- [🟢] CI success — run #109 succeeded for current commit `6728318cd68d0848d65973994629b13ea93ae885`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
 - [ ] production smoke test.
@@ -236,7 +236,7 @@
 - IMPLEMENTED: RLS-scoped order status history read.
 - IMPLEMENTED: JS syntax check on current `web/app.js` — PASS.
 - VERIFIED: all 111 public tables have RLS enabled.
-- VERIFIED: CI validation run #84 succeeded for commit `794292a70c6fa1883224ca134e54998b0defb872`.
+- VERIFIED: CI validation run #109 succeeded for commit `6728318cd68d0848d65973994629b13ea93ae885`.
 - NOT VERIFIED: production end-to-end, external browser/device, restore/DR, and full release gate.
 - SECURITY VERIFIED: 111/111 public tables have RLS enabled.
 - SECURITY REVIEW: anon SELECT grants are currently limited to `legal_documents` and `legal_document_versions`; no broad anon write grants were found.
