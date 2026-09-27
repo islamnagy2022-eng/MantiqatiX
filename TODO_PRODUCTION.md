@@ -353,3 +353,10 @@
 - [x] Confirmed the reviewed finance SECURITY DEFINER functions remain non-executable by `authenticated` and `anon`.
 - [ ] Latest documentation commit workflow run is not yet returned by the available commit-run endpoint; CI status therefore remains NOT VERIFIED for the newest documentation checkpoint.
 - [ ] Final release remains blocked pending authenticated adversarial E2E and full regression.
+
+
+## 2026-09-27 — Web security CI guard
+- [x] Added a production web asset scan for service-role/secret/private-key/database-URL patterns and common private API token formats.
+- [x] Added the scan to the Pages validation job before deployment.
+- [x] Verified the published `web/config.js` contains the publishable Supabase key and Supabase project URL only; no service-role secret is present in that file.
+- [ ] This static guard is not a substitute for authenticated adversarial RLS E2E; that remains a release gate.
