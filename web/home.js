@@ -51,13 +51,13 @@
     app.innerHTML=`<main class="mx-home" dir="rtl">
       <header class="mx-header">
         <div class="mx-header__inner">
-          <a class="mx-brand" href="#mx-home" aria-label="MNTY">'+logo()+'<div><div class="mx-brand__name">MANTIQATIX</div><span class="mx-brand__ar">MNTY · منصة متكاملة</span></div></a>
+          <a class="mx-brand" href="#mx-home" aria-label="MNTY">${logo()}<div><div class="mx-brand__name">MANTIQATIX</div><span class="mx-brand__ar">MNTY · منصة متكاملة</span></div></a>
           <label class="mx-search" aria-label="البحث">
             <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
             <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
             <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
           </label>
-          <button class="mx-header__login" id="mx-login" type="button">'+(window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول')+'</button>
+          <button class="mx-header__login" id="mx-login" type="button">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
             <a href="#mx-categories">التصنيفات</a>
