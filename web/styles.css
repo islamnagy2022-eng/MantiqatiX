@@ -162,4 +162,4 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .provider-profile-editor{padding:20px;margin-top:14px}
 .provider-profile-editor .row{align-items:center;gap:20px}
 .provider-profile-preview{width:150px;height:110px;object-fit:cover;border-radius:14px;border:1px solid #dce5ef;background:#eef4fa;display:block}
-.provider-profile-preview--empty{display:grid;place-items:center;color:#718096;font-size:11px}
+.provider-profile-preview--empty{display:grid;place-items:center;color:#718096;font-size:11px}.provider-image-preview-note{margin-top:10px;min-height:72px;border:1px dashed #cfd8e6;border-radius:12px;background:#f8fafc;color:#718096;display:grid;place-items:center;padding:8px;font-size:11px;text-align:center}.provider-image-preview-note img{max-width:100%;max-height:180px;border-radius:10px;object-fit:cover;display:block}
