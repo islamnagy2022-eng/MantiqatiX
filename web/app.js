@@ -295,7 +295,34 @@ async function openLeadDetails(leadId){
  document.body.appendChild(overlay);document.getElementById('close-lead').onclick=()=>overlay.remove();
 }
 function crmWorkspace(){return workspaceHead('CRM','المستخدمون وإدارة العلاقات','إدارة العملاء ومقدمي الخدمة والمتابعة والاحتفاظ من مساحة واحدة.','CRM')+workspaceCards([['العملاء',live.role==='CUSTOMER'?'1':'—','هوية الحساب الحالية'],['Leads',countOrDash('leads'),'بيانات العملاء المحتملين المتاحة وفق RLS'],['مقدمو الخدمة',countOrDash('providers'),'ملفات مقدمي الخدمة المتاحة وفق RLS'],['الطلبات',countOrDash('orders'),'الطلبات المتاحة للحساب وفق RLS'],['الإشعارات',countOrDash('notifications'),'آخر الإشعارات المتاحة للحساب'],['معدّل التحويل','—','يُحسب لاحقاً من أحداث CRM الفعلية']])+recordsTable('آخر العملاء المحتملين',live.records.leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('مقدمو الخدمة',live.records.providers,[['الاسم',r=>r.name_ar||'—'],['النوع',r=>r.provider_kind||'—'],['الحالة',r=>r.status||'—'],['موثق',r=>r.is_verified?'نعم':'لا']])}
-function ordersWorkspace(){return workspaceHead('ORDERS','الطلبات والعمليات','متابعة الطلبات التي يسمح نطاق الحساب برؤيتها، دون تجاوز الصلاحيات المالية.','ORDERS')+workspaceCards([['الطلبات',countOrDash('orders'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'تحديثات تشغيلية مرتبطة بالحساب'],['الحالات','سجل فعلي','يُعرض تاريخ الحالة عند فتح الطلب'],['المالية','محكومة','لا يتم تعديل القيود المالية من هذه الواجهة']])+recordsTable('آخر الطلبات',live.records.orders,[['العميل',r=>r.customer_name||'—'],['الحالة',r=>r.status||'—'],['الإجمالي',r=>r.total_amount!=null?(r.total_amount+' '+(r.currency||'')):'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('سجل حالات الطلبات',live.records.orderHistory,[['الطلب',r=>r.order_id||'—'],['من',r=>r.old_status||'—'],['إلى',r=>r.new_status||'—'],['السبب',r=>r.reason||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])}
+const ORDER_STAFF_ROLES=['OWNER','ADMIN','MANAGER','STAFF','CASHIER','DRIVER','BUSINESS_OWNER'];
+function orderAllowedNextStatuses(order){
+ const status=String(order?.status||'').toUpperCase();
+ const role=String(live.role||'').toUpperCase();
+ if(role==='CUSTOMER'&&order?.customer_id===user?.id)return status!=='DELIVERED'&&status!=='CANCELLED'?['CANCELLED']:[];
+ if(!ORDER_STAFF_ROLES.includes(role))return [];
+ if(['OWNER','ADMIN'].includes(role))return status==='PENDING'||status==='CREATED'?['CONFIRMED','CANCELLED']:status==='CONFIRMED'?['PREPARING','CANCELLED']:status==='PREPARING'?['OUT_FOR_DELIVERY','CANCELLED']:status==='OUT_FOR_DELIVERY'?['DELIVERED']:[];
+ if(!order.business_id||order.business_id!==live.businessId)return [];
+ return status==='PENDING'||status==='CREATED'?['CONFIRMED','CANCELLED']:status==='CONFIRMED'?['PREPARING','CANCELLED']:status==='PREPARING'?['OUT_FOR_DELIVERY','CANCELLED']:status==='OUT_FOR_DELIVERY'?['DELIVERED']:[];
+}
+async function updateOrderStatus(orderId,newStatus){
+ const order=(live.records.orders||[]).find(x=>x.id===orderId);
+ if(!order)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
+ const allowed=orderAllowedNextStatuses(order);
+ if(!allowed.includes(newStatus))return showToast('انتقال الحالة غير مسموح من الواجهة الحالية.','error');
+ try{
+  await invokeMntyFunction('order-status-update',{orderId,tenantId:live.tenantId,newStatus});
+  showToast('تم تحديث حالة الطلب إلى '+newStatus,'success');
+  await loadLiveData();
+  await renderApp();
+ }catch(e){showToast('تعذر تحديث حالة الطلب: '+(e?.message||'ORDER_STATUS_UPDATE_FAILED'),'error');}
+}
+function orderActions(order){
+ const actions=orderAllowedNextStatuses(order);
+ if(!actions.length)return '<span class="muted">لا توجد إجراءات متاحة</span>';
+ return actions.map(s=>'<button class="text-btn" onclick="updateOrderStatus(\''+esc(order.id)+'\',\''+s+'\')">'+esc(s)+'</button>').join(' ');
+}
+function ordersWorkspace(){return workspaceHead('ORDERS','الطلبات والعمليات','متابعة الطلبات التي يسمح نطاق الحساب برؤيتها، مع تغيير الحالة عبر الخادم فقط.','ORDERS')+workspaceCards([['الطلبات',countOrDash('orders'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'تحديثات تشغيلية مرتبطة بالحساب'],['الحالات','سجل فعلي','تغيير الحالة يمر عبر صلاحيات الخادم'],['المالية','محكومة','لا يتم تعديل القيود المالية من هذه الواجهة']])+recordsTable('آخر الطلبات',live.records.orders,[['العميل',r=>r.customer_name||'—'],['الحالة',r=>r.status||'—'],['الإجمالي',r=>r.total_amount!=null?(r.total_amount+' '+(r.currency||'')):'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراءات',r=>orderActions(r)]])+recordsTable('سجل حالات الطلبات',live.records.orderHistory,[['الطلب',r=>r.order_id||'—'],['من',r=>r.old_status||'—'],['إلى',r=>r.new_status||'—'],['السبب',r=>r.reason||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])}
 function analyticsWorkspace(){return workspaceHead('ANALYTICS','التقارير والتحليلات','مؤشرات موحدة للأداء والتحويلات والإيرادات والمخاطر.','LIVE')+workspaceCards([['نشاط المنصة','—','يُحسب من مؤشرات التشغيل الفعلية عند توفرها'],['التحويلات','—','تُحسب من بيانات التحويل الفعلية عند توفرها'],['الإيرادات','—','يُعرض من البيانات المالية الفعلية عند توفرها'],['مصادر العملاء','—','تُعرض من مصادر الإحالة والتسويق الفعلية عند توفرها'],['الاستثناءات','—','تُعرض من سجل الحالات الفعلي عند توفره'],['التدقيق','سليم','سجل قابل للمراجعة والتتبع']])}
 function financeWorkspace(){return workspaceHead('FINANCE','العمولات والباقات','نماذج مجانية وعمولات وباقات احترافية مع قابلية تخصيص حسب المجال.','FINANCE')+workspaceCards([['الباقة المجانية','أساسي','وجود أساسي داخل المنصة'],['نظام العمولة','Usage','عمولة على العمليات المؤهلة'],['احترافي — 1','مخصص','مزايا إضافية وظهور أكبر'],['احترافي — 2','مخصص','تسويق وتقارير متقدمة'],['احترافي — 3','مخصص','إدارة متقدمة للمجالات'],['التسويات','مراجعة','الربط مع النواة المالية الفعلية']])}
 
