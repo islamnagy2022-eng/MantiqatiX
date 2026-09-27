@@ -352,6 +352,7 @@ if(data?.session){
 const vr=await sb.auth.getUser();
 if(vr.error)throw vr.error;
 if(vr.data?.user){await enterAuthenticatedApp(vr.data.user);return}
+}
 window.MXHomeLanding?MXHomeLanding():landingView();
 }catch(e){
 user=null;
