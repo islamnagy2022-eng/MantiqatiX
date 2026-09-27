@@ -76,8 +76,12 @@ jobs:
           set -euo pipefail
           test -n "$PAGE_URL"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" | grep -Eq "Mantiqati X|MNTY"
-          for asset in config.js styles.css app.js manifest.webmanifest sw.js smm.html smm.js; do
+          for asset in config.js styles.css app.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
+          APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
+          HOME_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/home.js")"
+          echo "$APP_JS" | grep -q 'id="go-public-home"'
+          echo "$HOME_JS" | grep -q "openPlatform"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js" | grep -q "moyhiluyhjsujhwlyeuu.supabase.co"
           echo "Production smoke verification passed for $PAGE_URL"
