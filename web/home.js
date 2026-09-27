@@ -73,9 +73,9 @@
       <div class="mx-main" id="mx-home">
         <section class="mx-hero" aria-label="الواجهة الرئيسية">
           <div class="mx-hero__copy">
-            <span class="mx-hero__eyebrow">Mantiqati X · الهوية الحديثة لمنصة MantiqatiX</span>
-            <h1>كل الخدمات في مكان واحد</h1>
-            <p>اكتشف الخدمات ومقدميها، ابحث وقارن وابدأ طلبك بسهولة. نستخدم الموقع فقط عندما تكون هناك حاجة تشغيلية وبحسب الإذن.</p>
+            <span class="mx-hero__eyebrow">Mantiqati X · الهوية الحديثة لمنصة MANTIQATIX</span>
+            <h1>اكتشف الخدمة المناسبة، وتواصل مع مقدمها</h1>
+            <p>منصة رقمية متكاملة تربط العملاء بمقدمي الخدمات والأنشطة المسجلة، وتسهّل اكتشاف الخدمات ومقارنتها وطلبها ومتابعة تنفيذها عبر قطاعات متعددة، مع استخدام الموقع فقط عند الحاجة التشغيلية وبحسب الإذن.</p>
             <div class="mx-trust-row"><span>✓ مقدمو خدمات مسجلون</span><span>⚡ تجربة سريعة</span><span>⌖ موقع عند الحاجة</span></div>
             <div class="mx-hero__actions">
               <button class="mx-btn mx-btn--primary" id="mx-start" type="button">ابدأ الآن ←</button>
@@ -83,7 +83,7 @@
             </div>
           </div>
           <div class="mx-hero__visual">
-            <div class="mx-hero__visual-card"><b>منطقتك، خدمتك تبدأ هنا</b><span>اكتشاف · مطابقة · تواصل · تنفيذ</span></div>
+            <div class="mx-hero__visual-card"><b>خدمتك تبدأ من Mantiqati X</b><span>اكتشاف · مطابقة · تواصل · تنفيذ</span></div>
             <div class="mx-hero__city" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="mx-hero__phone" aria-hidden="true"><span>MX</span></div>
           </div>
@@ -122,7 +122,7 @@
 
       <footer class="mx-footer" id="mx-contact">
         <div class="mx-footer__inner">
-          <div><div class="mx-footer__brand">Mantiqati X</div><div class="mx-footer__sub">Mantiqati X · منصة ربط الخدمات ومقدميها</div><div class="mx-footer__sub">منصة تسويق وتشغيل متكاملة، وليست منصة خرائط فقط.</div></div>
+          <div><div class="mx-footer__brand">Mantiqati X</div><div class="mx-footer__sub">Mantiqati X · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
           <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
           <div><h3>عن Mantiqati X</h3><a href="#" data-auth-link="about">من نحن</a><a href="#" data-auth-link="legal">الشروط والأحكام</a><a href="#" data-auth-link="privacy">سياسة الخصوصية</a></div>
           <div><h3>خدمة العملاء</h3><div class="mx-footer__support">01010171770</div><div class="mx-footer__sub">منصتك في كل مكان</div></div>
