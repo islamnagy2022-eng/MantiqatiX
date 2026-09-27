@@ -39,7 +39,7 @@
     const app=document.getElementById('app');
     if(!app) return;
 
-    app.innerHTML='<main class="mx-home" dir="rtl">
+    app.innerHTML=`<main class="mx-home" dir="rtl">
       <header class="mx-header">
         <div class="mx-header__inner">
           <a class="mx-brand" href="#mx-home" aria-label="MNTY">'+logo()+'<div><div class="mx-brand__name">MANTIQATIX</div><span class="mx-brand__ar">MNTY · منصة متكاملة</span></div></a>
@@ -127,7 +127,7 @@
         <button type="button" data-scroll="mx-offers">☆<span>العروض</span></button>
         <button type="button" id="mx-bottom-account">♙<span>حسابي</span></button>
       </nav>
-    </main>';
+    </main>`;
 
     const categoryGrid=document.getElementById('mx-category-grid');
     categoryGrid.innerHTML=TAXONOMY.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media">'+c[0]+'</span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
