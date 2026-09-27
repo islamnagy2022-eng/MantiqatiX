@@ -167,7 +167,7 @@
 - [🟢] CI success — run #114 نجح للـcommit الحالي `d58e1360a170bce596494b2aeb37b5166fff6a5b`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
-- [🟡] production smoke test — CI تحقق من النشر وتحميل الموقع؛ اختبار المتصفح/التفاعل الكامل ما زال مطلوبًا.
+- [🟡] production smoke test — CI deployment verification is green; real browser/device interaction remains NOT VERIFIED.
 - [ ] post-release monitoring.
 - [ ] Baseline جديد بعد تحقق فعلي فقط.
 
@@ -376,3 +376,8 @@
 - [ ] Android build/test result remains NOT VERIFIED in this environment.
 - [ ] The uploaded RC40 Android source is not merged into the current GitHub Pages MNTY web release because the two artifacts are not yet reconciled into one verified release baseline.
 - [x] SMM backend tables API DML privileges hardened — `smm_provider_credentials` and `smm_providers` have no `anon`/`authenticated` table grants; access remains backend/RLS controlled.
+- [🟢] Supabase production project status — ACTIVE_HEALTHY; database PostgreSQL 17.6.1.155.
+- [🟢] Edge Functions inventory — active functions reviewed; authenticated functions use JWT verification, while webhook endpoints intentionally remain public for provider callbacks.
+- [🟡] Runtime log monitoring — log query could not be completed in this pass; NOT VERIFIED.
+- [🔴] Real Backup/Restore rehearsal — not performed on production to avoid destructive/unsafe action without an isolated restore target.
+- [🔴] Full browser/device E2E — requires real browser/device execution and OTP interaction; NOT VERIFIED.
