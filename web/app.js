@@ -46,9 +46,9 @@ try{
  const m=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status').eq('user_id',uid).eq('status','ACTIVE');
  if(m.error)throw m.error;
  live.memberships=m.data||[];
- const savedId=window.MNTYActiveMembershipId;
+ const savedId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
  const active=live.memberships.find(m=>m.id===savedId)||live.memberships[0];
- if(active)window.MNTYActiveMembershipId=active.id;
+ if(active){window.MNTYActiveMembershipId=active.id;localStorage.setItem('MNTYActiveMembershipId',active.id);}
  live.activeMembershipId=active?.id||null;
  live.role=String(active?.role||'CUSTOMER').toUpperCase();
  live.businessId=active?.business_id||null;
@@ -113,7 +113,7 @@ function roleContextLabel(m){
 async function switchMembership(membershipId){
  if(!membershipId||!live.memberships.some(m=>m.id===membershipId))return;
  if(membershipId===live.activeMembershipId)return;
- window.MNTYActiveMembershipId=membershipId;
+ window.MNTYActiveMembershipId=membershipId;localStorage.setItem('MNTYActiveMembershipId',membershipId);
  live.activeMembershipId=membershipId;
  current='الرئيسية';
  query='';
