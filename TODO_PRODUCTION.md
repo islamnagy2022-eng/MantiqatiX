@@ -278,3 +278,14 @@
 - [x] Re-ran Supabase security advisor; the `account_registration_requests` anonymous-access warning is cleared.
 - [ ] The remaining 10 authenticated-callable SECURITY DEFINER operational functions are intentionally retained for current domain workflows; each contains an authentication/ownership/role/scope guard, but adversarial multi-account E2E remains required before release.
 - [ ] Broader anonymous-policy advisor findings across legacy/domain tables remain under review; no blanket policy rewrite was applied because access semantics differ by module.
+
+## 2026-09-27 — MNTY registration approval authority
+- [x] Added private authoritative `private.platform_admins` registry; no anon/authenticated access and service-role-only database privileges.
+- [x] Added atomic `private.review_registration_request_atomic(...)` transaction for approval/rejection, membership provisioning, and audit logging; anon/authenticated EXECUTE is denied.
+- [x] Added JWT-protected Edge Function `mnty-registration-review` as the authenticated gateway to the atomic review operation.
+- [x] Added one-time `private.bootstrap_platform_admin(...)` procedure for controlled server-side bootstrap; it does not auto-create a user or seed fake production identities.
+- [x] Verified the new private functions are executable by `service_role` only; current tenant/membership/platform-admin counts remain zero because no real bootstrap identity has been supplied.
+- [ ] Execute the one-time platform bootstrap using the real authorized initial admin account; do not invent or seed a user.
+- [ ] Add/verify Admin review UI against the Edge Function after the real platform admin exists.
+- [ ] Run authenticated multi-account E2E: customer registration → pending → admin approval → active membership → customer access; provider path separately.
+- [ ] Re-run full release gate after E2E, including auth/session, authorization/RLS, finance, backup/restore, monitoring, external browser/device tests, and rollback.
