@@ -25,7 +25,7 @@
   const logo = () => '<span class="mark" aria-hidden="true"></span>';
   const getClient = () => {
     try{
-      const cfg=window.Mantiqati X_CONFIG;
+      const cfg=window.MNTY_CONFIG;
       if(!window.supabase?.createClient || !cfg?.supabaseUrl || !cfg?.supabaseKey) return null;
       return window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
     }catch(_){return null}
