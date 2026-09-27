@@ -4,7 +4,7 @@
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
 ## P0 — بوابة الإطلاق
-- [x] Baseline CI مستقر — commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`, CI run #74 ناجح.
+- [x] Baseline CI مستقر — آخر تحقق CI: run #110 ناجح، commit `d75e247929809cb444d08ea811f56e46793d8ad1`.
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry. **NOT VERIFIED — requires external browser/auth test.**
 - [🟡] Authorization/RLS: 111/111 جدول RLS؛ تمت مراجعة سياسات المسارات الحرجة (orders/support/tickets/notifications/memberships/marketing)، والسياسات العامة للحدود مصنفة RESTRICTIVE؛ بقي اختبار E2E بحسابات أدوار متعددة.
 - [🟢] مراجعة SECURITY DEFINER وEXECUTE: تمت مراجعة الوظائف العشر القابلة للاستدعاء من authenticated؛ كلها تحتوي تحقق هوية/ملكية/عضوية/نطاق مناسب حسب وظيفتها، ولا توجد وظائف مالية حساسة مكشوفة مباشرة.
@@ -33,7 +33,7 @@
 - [ ] responsive/accessibility review.
 - [ ] تنظيف legacy/duplicate render paths.
 - [ ] route/import/smoke tests.
-- [ ] snapshot كامل بعد CI ناجح.
+- [x] snapshot كامل بعد CI ناجح — آخر baseline موثق في CI run #110.
 
 ## P1 — Marketing & Advertising
 - [x] Live counts حيث تتوفر بيانات فعلية.
