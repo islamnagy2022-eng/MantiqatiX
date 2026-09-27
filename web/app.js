@@ -99,7 +99,7 @@ if(error)return authView('تعذر التحقق من الرمز: '+error.message
 if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
 user=data.user;if(authIntent==='register'){await submitRegistrationRequest();return;}await enterAuthenticatedApp(data.user);
 }
-async function logout(){const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;live.memberships=[];live.role='CUSTOMER';live.businessId=null;live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};landingView()}
+async function logout(){const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};live.memberships=[];live.role='CUSTOMER';live.businessId=null;live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};window.MXHomeLanding?MXHomeLanding():landingView()}
 function setupInstallPrompt(){
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('install-app');if(b)b.hidden=false});
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true});
@@ -238,9 +238,15 @@ async function openSupportTicket(){
  if(error)return showToast('تعذر إنشاء التذكرة: '+error.message,'error');
  live.counts.support=(live.counts.support||0)+1; showToast('تم فتح التذكرة بنجاح. رقمها '+id,'success'); renderApp();
 }
+function accountView(){
+const membership=live.memberships.find(m=>m.status==='ACTIVE');
+document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><p>حالة البريد: <b>تم التحقق</b></p><p>حالة العضوية: <b>'+(membership?'نشطة':'لم يتم ربط عضوية تشغيلية بعد')+'</b></p>'+(membership?'<p class="muted">يمكنك الآن استخدام مساحة المنصة وفق الدور والصلاحيات المرتبطة بعضويتك.</p>':'<p class="muted">يمكنك تصفح المنصة بحرية. لن يتم منح أي دور أو صلاحيات تشغيلية قبل ربط عضوية معتمدة بالحساب.</p>')+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
+document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
+document.getElementById('account-logout').onclick=logout;
+}
 function membershipRequiredView(){
-document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>تم التحقق من الحساب</h1><p>تم تسجيل الدخول بنجاح، لكن لا توجد عضوية نشطة مرتبطة بهذا الحساب حاليًا.</p><p class="muted">لن نمنح دورًا أو صلاحيات تشغيلية افتراضية. تواصل مع إدارة المنصة لإضافة العضوية المناسبة.</p><div class="action-bar"><button class="btn btn-outline" id="logout-membership">تسجيل الخروج</button></div></section></main>';
-document.getElementById('logout-membership').onclick=logout;
+if(window.MXHomeLanding){window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};window.MXHomeLanding();showToast('تم التحقق من الحساب. العضوية التشغيلية لم تُربط بعد.','success');return}
+accountView();
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
 function governanceWorkspace(){return workspaceHead('GOVERNANCE','الدعم والحوكمة','التذاكر، الرسائل، الإشعارات والصلاحيات في مساحة تشغيلية موحدة.','CONTROL')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'إشعارات الحساب الفعلية'],['الصلاحيات',live.role,'الدور الفعلي من العضوية'],['التدقيق','نشط','السجل الإداري عند توفره'],['المراقبة','نشطة','مؤشرات الأخطاء والتشغيل'],['السياسات','منشورة','السياسات المنشورة عند توفرها']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم',live.records.supportTickets,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>'<button class="linkbtn" onclick="openTicketDetails(\''+esc(r.id)+'\')">تفاصيل</button>']])+recordsTable('آخر الإشعارات',live.records.notifications,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r.read_at?'—':'<button class="linkbtn" onclick="markNotificationRead(\''+esc(r.id)+'\')">تعليم كمقروء</button>']])}
@@ -283,6 +289,7 @@ registrationPendingView(data.requested_role,data.status);
 async function enterAuthenticatedApp(authUser){
 if(!authUser?.id)return;
 user=authUser;
+window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:false};
 if(authRenderLock)return;
 authRenderLock=true;
 try{await renderApp()}finally{authRenderLock=false}
