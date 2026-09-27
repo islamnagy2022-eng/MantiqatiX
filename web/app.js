@@ -96,7 +96,7 @@ const button=document.getElementById('verify');if(button){button.disabled=true;b
 const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});
 if(error)return authView('تعذر التحقق من الرمز: '+error.message,true,email);
 if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
-user=data.user;await enterAuthenticatedApp(data.user);
+user=data.user;if(authIntent==='register'){await submitRegistrationRequest();return;}await enterAuthenticatedApp(data.user);
 }
 async function logout(){const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;live.memberships=[];live.role='CUSTOMER';live.businessId=null;landingView()}
 function setupInstallPrompt(){
@@ -236,6 +236,21 @@ document.getElementById('logout-membership').onclick=logout;
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
 function governanceWorkspace(){return workspaceHead('GOVERNANCE','الدعم والحوكمة','التذاكر، الرسائل، الإشعارات والصلاحيات في مساحة تشغيلية موحدة.','CONTROL')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'إشعارات الحساب الفعلية'],['الصلاحيات',live.role,'الدور الفعلي من العضوية'],['التدقيق','نشط','السجل الإداري عند توفره'],['المراقبة','نشطة','مؤشرات الأخطاء والتشغيل'],['السياسات','منشورة','السياسات المنشورة عند توفرها']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم',live.records.supportTickets,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>'<button class="linkbtn" onclick="openTicketDetails(\''+esc(r.id)+'\')">تفاصيل</button>']])+recordsTable('آخر الإشعارات',live.records.notifications,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r.read_at?'—':'<button class="linkbtn" onclick="markNotificationRead(\''+esc(r.id)+'\')">تعليم كمقروء</button>']])}
+function registrationPendingView(role='CUSTOMER',status='PENDING'){
+const label=role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل';
+document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MNTY</span></div><div class="gradient-line"></div><h1>تم إنشاء حسابك</h1><p>تم التحقق من بريدك الإلكتروني بنجاح.</p><p>طلب التسجيل كـ <b>'+esc(label)+'</b> في حالة <b>'+esc(status)+'</b>.</p><p class="muted">لن يتم منح أي صلاحيات تشغيلية تلقائيًا. بعد اعتماد الطلب سيتم ربط العضوية والصلاحيات بالحساب وفق سياسة المنصة.</p><div class="action-bar"><button class="btn btn-outline" id="registration-logout">تسجيل الخروج</button></div></section></main>';
+document.getElementById('registration-logout').onclick=logout;
+}
+async function submitRegistrationRequest(){
+if(!user?.id)return;
+const {data:existing,error:existingError}=await sb.from('account_registration_requests').select('id,requested_role,status').eq('user_id',user.id).in('status',['PENDING','APPROVED']).order('created_at',{ascending:false}).limit(1).maybeSingle();
+if(existingError){showToast('تعذر التحقق من طلب التسجيل: '+existingError.message,'error');return;}
+if(existing?.status==='APPROVED'){await renderApp();return;}
+if(existing?.status==='PENDING'){registrationPendingView(existing.requested_role,existing.status);return;}
+const {data,error}=await sb.from('account_registration_requests').insert({user_id:user.id,requested_role:authRegistrationType,status:'PENDING',metadata:{source:'web',brand:'MNTY'}}).select('requested_role,status').single();
+if(error){showToast('تعذر إنشاء طلب التسجيل: '+error.message,'error');return;}
+registrationPendingView(data.requested_role,data.status);
+}
 async function enterAuthenticatedApp(authUser){
 if(!authUser?.id)return;
 user=authUser;
