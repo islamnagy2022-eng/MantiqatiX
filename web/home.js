@@ -25,7 +25,7 @@
   const logo = () => '<span class="mark" aria-hidden="true"></span>';
   const getClient = () => {
     try{
-      const cfg=window.MANTIQATIX_CONFIG;
+      const cfg=window.Mantiqati X_CONFIG;
       if(!window.supabase?.createClient || !cfg?.supabaseUrl || !cfg?.supabaseKey) return null;
       return window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
     }catch(_){return null}
@@ -51,7 +51,7 @@
     app.innerHTML=`<main class="mx-home" dir="rtl">
       <header class="mx-header">
         <div class="mx-header__inner">
-          <a class="mx-brand" href="#mx-home" aria-label="MNTY">${logo()}<div><div class="mx-brand__name">MANTIQATIX</div><span class="mx-brand__ar">MNTY · منصة متكاملة</span></div></a>
+          <a class="mx-brand" href="#mx-home" aria-label="Mantiqati X">${logo()}<div><div class="mx-brand__name">Mantiqati X</div><span class="mx-brand__ar">Mantiqati X · منصة متكاملة</span></div></a>
           <label class="mx-search" aria-label="البحث">
             <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
             <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
@@ -73,7 +73,7 @@
       <div class="mx-main" id="mx-home">
         <section class="mx-hero" aria-label="الواجهة الرئيسية">
           <div class="mx-hero__copy">
-            <span class="mx-hero__eyebrow">MNTY · الهوية الحديثة لمنصة MantiqatiX</span>
+            <span class="mx-hero__eyebrow">Mantiqati X · الهوية الحديثة لمنصة MantiqatiX</span>
             <h1>كل الخدمات في مكان واحد</h1>
             <p>اكتشف الخدمات ومقدميها، ابحث وقارن وابدأ طلبك بسهولة. نستخدم الموقع فقط عندما تكون هناك حاجة تشغيلية وبحسب الإذن.</p>
             <div class="mx-trust-row"><span>✓ مقدمو خدمات مسجلون</span><span>⚡ تجربة سريعة</span><span>⌖ موقع عند الحاجة</span></div>
@@ -122,12 +122,12 @@
 
       <footer class="mx-footer" id="mx-contact">
         <div class="mx-footer__inner">
-          <div><div class="mx-footer__brand">MANTIQATIX</div><div class="mx-footer__sub">MNTY · منصة ربط الخدمات ومقدميها</div><div class="mx-footer__sub">منصة تسويق وتشغيل متكاملة، وليست منصة خرائط فقط.</div></div>
+          <div><div class="mx-footer__brand">Mantiqati X</div><div class="mx-footer__sub">Mantiqati X · منصة ربط الخدمات ومقدميها</div><div class="mx-footer__sub">منصة تسويق وتشغيل متكاملة، وليست منصة خرائط فقط.</div></div>
           <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
-          <div><h3>عن MNTY</h3><a href="#" data-auth-link="about">من نحن</a><a href="#" data-auth-link="legal">الشروط والأحكام</a><a href="#" data-auth-link="privacy">سياسة الخصوصية</a></div>
+          <div><h3>عن Mantiqati X</h3><a href="#" data-auth-link="about">من نحن</a><a href="#" data-auth-link="legal">الشروط والأحكام</a><a href="#" data-auth-link="privacy">سياسة الخصوصية</a></div>
           <div><h3>خدمة العملاء</h3><div class="mx-footer__support">01010171770</div><div class="mx-footer__sub">منصتك في كل مكان</div></div>
         </div>
-        <div class="mx-footer__bar"><span>© MNTY</span><span>بيانات حية عند توفرها · بدون بيانات وهمية</span></div>
+        <div class="mx-footer__bar"><span>© Mantiqati X</span><span>بيانات حية عند توفرها · بدون بيانات وهمية</span></div>
       </footer>
       <nav class="mx-bottom-nav">
         <button class="active" type="button" data-scroll="mx-home">⌂<span>الرئيسية</span></button>
@@ -160,20 +160,20 @@
     const renderServices=(services)=>{
       const el=document.getElementById('mx-service-grid');
       if(!services.length){el.innerHTML='<div class="mx-empty"><b>لا توجد خدمات منشورة حاليًا</b><span>سيظهر كتالوج الخدمات هنا تلقائيًا عند نشر الخدمات واعتمادها.</span></div>';return}
-      el.innerHTML=services.map(s=>'<article class="mx-service-card">'+serviceMedia(s)+'<div class="mx-service-card__body"><span class="mx-chip">'+escapeHtml(s.category_code||'SERVICE')+'</span><h3>'+escapeHtml(s.name_ar||s.name_en||'خدمة')+'</h3><p>'+escapeHtml(s.description||'خدمة متاحة ضمن كتالوج MNTY.')+'</p><button type="button" class="mx-card-link" data-service="'+escapeHtml(s.id)+'">استكشف الخدمة ←</button></div></article>').join('');
+      el.innerHTML=services.map(s=>'<article class="mx-service-card">'+serviceMedia(s)+'<div class="mx-service-card__body"><span class="mx-chip">'+escapeHtml(s.category_code||'SERVICE')+'</span><h3>'+escapeHtml(s.name_ar||s.name_en||'خدمة')+'</h3><p>'+escapeHtml(s.description||'خدمة متاحة ضمن كتالوج Mantiqati X.')+'</p><button type="button" class="mx-card-link" data-service="'+escapeHtml(s.id)+'">استكشف الخدمة ←</button></div></article>').join('');
       el.querySelectorAll('[data-service]').forEach(b=>b.onclick=goLogin);
     };
     const renderProviders=(providers)=>{
       const el=document.getElementById('mx-provider-grid');
       if(!providers.length){el.innerHTML='<div class="mx-empty"><b>لا يوجد مقدمو خدمات منشورون حاليًا</b><span>لن يتم إنشاء أو عرض أسماء تجريبية. ستظهر الجهات بعد نشرها واعتمادها.</span></div>';return}
-      el.innerHTML=providers.map(p=>'<article class="mx-provider-card">'+providerMedia(p)+'<div class="mx-provider-card__body"><div class="mx-provider-card__top"><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span></div><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'مقدم خدمة مسجل على MNTY.')+'</p><span class="mx-location">⌖ '+escapeHtml(readArea(p.service_areas)||'نطاق خدمة معلن')+'</span><button type="button" class="mx-card-link" data-provider="'+escapeHtml(p.id)+'">عرض الملف ←</button></div></article>').join('');
+      el.innerHTML=providers.map(p=>'<article class="mx-provider-card">'+providerMedia(p)+'<div class="mx-provider-card__body"><div class="mx-provider-card__top"><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span></div><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'مقدم خدمة مسجل على Mantiqati X.')+'</p><span class="mx-location">⌖ '+escapeHtml(readArea(p.service_areas)||'نطاق خدمة معلن')+'</span><button type="button" class="mx-card-link" data-provider="'+escapeHtml(p.id)+'">عرض الملف ←</button></div></article>').join('');
       el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=goLogin);
     };
     const renderSponsored=(providers)=>{
       const el=document.getElementById('mx-sponsored');
       const featured=providers.filter(p=>p.is_featured).slice(0,4);
       if(!featured.length){el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>كبّر ظهور نشاطك</h3><p>المساحة الإعلانية تُملأ تلقائيًا عند وجود نشاط منشور ومميز وفق قواعد المنصة.</p><button class="mx-btn mx-btn--primary" id="mx-feature-cta" type="button">ابدأ الإعلان الآن</button></div></div><div class="mx-empty mx-empty--dark">لا توجد إعلانات ممولة منشورة حاليًا.</div>';document.getElementById('mx-feature-cta').onclick=goLogin;return}
-      el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>ظهور مميز أمام جمهورك</h3><p>نتائج مدفوعة موسومة بوضوح ضمن تجربة البحث.</p></div></div><div class="mx-listing-grid">'+featured.map(p=>'<article class="mx-listing">'+providerMedia(p)+'<div class="mx-listing__body"><span class="mx-sponsored-badge">ممول</span><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'نشاط مميز على MNTY.')+'</p><button class="mx-listing__cta" type="button" data-provider="'+escapeHtml(p.id)+'">عرض النشاط</button></div></article>').join('')+'</div>';
+      el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>ظهور مميز أمام جمهورك</h3><p>نتائج مدفوعة موسومة بوضوح ضمن تجربة البحث.</p></div></div><div class="mx-listing-grid">'+featured.map(p=>'<article class="mx-listing">'+providerMedia(p)+'<div class="mx-listing__body"><span class="mx-sponsored-badge">ممول</span><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'نشاط مميز على Mantiqati X.')+'</p><button class="mx-listing__cta" type="button" data-provider="'+escapeHtml(p.id)+'">عرض النشاط</button></div></article>').join('')+'</div>';
       el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=goLogin);
     };
 
