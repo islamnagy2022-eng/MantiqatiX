@@ -1,7 +1,7 @@
 {
-  "name": "MNTY",
-  "short_name": "MNTY",
-  "description": "MNTY — منصة ربط الخدمات ومقدميها، الهوية المختصرة لـ MantiqatiX",
+  "name": "Mantiqati X",
+  "short_name": "Mantiqati X",
+  "description": "Mantiqati X — منصة ربط الخدمات ومقدميها، الهوية المختصرة لـ MantiqatiX",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./",
