@@ -28,6 +28,7 @@ jobs:
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
           node scripts/validate-module-catalog.mjs
+          node scripts/validate-public-web-secrets.mjs
       - name: Required web files
         run: |
           test -f web/index.html
