@@ -315,3 +315,9 @@
 - [x] Reset feature flags, counts, module cache, and record cache at each live-data reload to prevent cross-session stale state.
 - [x] Reset the same client-side state explicitly on logout.
 - [ ] CI verification for commit `cb90678ddd7c89a798ae010943ad8a2fa50f5a5e` remains pending through the available workflow-run connector.
+
+
+## 2026-09-27 — Record-table output escaping
+- [x] Escaped all values rendered by the shared `recordsTable()` renderer before inserting database-backed values into HTML cells.
+- [x] Closed the generic reflected/stored HTML injection path through record-table values at the shared rendering boundary.
+- [ ] CI verification for commit `dc0c836e219f99c9ebb322b891038a5b2b87ebf7` remains pending through the available workflow-run connector.
