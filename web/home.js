@@ -40,7 +40,7 @@
     const image=publicProfileImage(provider);
     const fallback=activityImage(provider?.provider_kind);
     const text = escapeHtml((provider?.name_ar || provider?.name_en || 'مقدم خدمة').slice(0,1));
-    return '<div class="mx-photo mx-photo--provider">'+(image?'<img src="'+escapeHtml(image)+'" alt="'+escapeHtml(provider?.name_ar||provider?.name_en||'صورة النشاط')+'" loading="lazy">':'<img src="'+fallback+'" alt="صورة النشاط" loading="lazy">')+'<span class="mx-photo-fallback">'+text+'</span></div>';
+    return '<div class="mx-photo mx-photo--provider">'+(image?'<img src="'+escapeHtml(image)+'" alt="'+escapeHtml(provider?.name_ar||provider?.name_en||'صورة النشاط')+'" loading="lazy">':'<img src="'+fallback+'" alt="صورة النشاط" loading="lazy"><span class="mx-photo-fallback">'+text+'</span>')+'</div>';
   };
   const serviceMedia = service => '<div class="mx-photo mx-photo--service"><img src="'+activityImage(service?.category_code)+'" alt="'+escapeHtml(service?.name_ar||service?.name_en||'صورة الخدمة')+'" loading="lazy"></div>';
 
