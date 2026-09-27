@@ -36,8 +36,11 @@ jobs:
           test -f web/index.html
           test -f web/config.js
           test -f web/styles.css
+          test -f web/home.css
           test -f web/app.js
+          test -f web/home.js
           test -f web/smm.html
+          for asset in web/assets/activity/*.svg; do test -f "$asset"; done
           test -f web/smm.js
           test -f web/manifest.webmanifest
           test -f web/sw.js
