@@ -104,3 +104,35 @@ Current decision:
 - No speculative migration reconstruction.
 - Zero-policy sensitive tables remain an explicit security review gate.
 - Policy-bearing tables remain an explicit FORCE-RLS review gate.
+
+
+## RC66–RC77 payment/order authority checkpoint
+
+Production source and database function ACL audit completed.
+
+### Order path
+- `order-create` requires a non-anonymous bearer session and delegates authoritative creation to `create_order_backend`.
+- `order-status-update` requires a non-anonymous bearer session and delegates status changes to `update_order_status_backend`.
+- The API order-read path requires an active tenant membership and either order ownership or an operational order-read permission/role.
+
+### Payment path
+- API cash payment intent creation is restricted to the order owner or approved operational payment roles/permission.
+- API payment-intent reads are restricted to the order owner or approved payment-read roles/permission.
+- Cash confirmation is restricted to ADMIN/MANAGER/CASHIER/STAFF/OWNER or explicit PAYMENT_CONFIRM_CASH permission.
+- Electronic payment creation is fail-closed when Paymob credentials are not configured.
+- Electronic payment binds the provider request to the authoritative order amount, pricing version, pricing hash and pricing authority.
+- Electronic payment provider persistence updates only the matching payment intent/pricing snapshot.
+
+### Financial RPC boundary
+The following production RPCs are SECURITY DEFINER and currently have direct ACL only for postgres/service_role:
+- create_order_backend
+- update_order_status_backend
+- create_payment_intent_backend
+- confirm_cash_payment
+- create_settlement_backend
+
+No direct anon/authenticated EXECUTE grant was observed for these five functions.
+
+### Status
+RC66–RC77: **SOURCE/ACL PASS**.
+Real payment-provider traffic, multi-user authorization E2E, and full financial ledger E2E remain external verification gates; they are not marked PASS by source inspection alone.
