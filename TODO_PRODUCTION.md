@@ -8,7 +8,7 @@
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry.
 - [🟡] Authorization/RLS: 111/111 جدول RLS؛ تمت مراجعة سياسات المسارات الحرجة (orders/support/tickets/notifications/memberships/marketing)، والسياسات العامة للحدود مصنفة RESTRICTIVE؛ بقي اختبار E2E بحسابات أدوار متعددة.
 - [🟢] مراجعة SECURITY DEFINER وEXECUTE: تمت مراجعة الوظائف العشر القابلة للاستدعاء من authenticated؛ كلها تحتوي تحقق هوية/ملكية/عضوية/نطاق مناسب حسب وظيفتها، ولا توجد وظائف مالية حساسة مكشوفة مباشرة.
-- [🟡] Data API grants: تم التحقق من الامتيازات؛ anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط، وauthenticated لديه امتيازات على مجموعة محددة؛ يلزم إغلاق المراجعة حسب كل مسار.
+- [🟢] Data API grants baseline: anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط ولا يملك INSERT/UPDATE/DELETE؛ authenticated لديه امتيازات محددة ومحمية بـRLS؛ المراجعة التفصيلية لكل مسار تبقى ضمن E2E.
 - [🟡] Database constraints/indexes/integrity: 111/111 لها Primary Key و224 Foreign Keys؛ توجد 155 أعمدة FK بلا index أحادي مطابق وتحتاج مراجعة أداء حسب الاستخدام.
 - [ ] API/Edge Functions/integrations.
 - [ ] Website/Admin/Owner/Manager/Employee/Customer E2E.
