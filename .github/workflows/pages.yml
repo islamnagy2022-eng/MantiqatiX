@@ -45,7 +45,8 @@ jobs:
           test -f web/manifest.webmanifest
           test -f web/sw.js
           grep -q "mx-whatsapp-float" web/home.js
-          grep -q "wa.me/201010171770" web/home.js
+          grep -q "MNTY_SUPPORT" web/config.js
+          grep -q "MNTY_SUPPORT" web/home.js
 
   deploy:
     needs: validate
