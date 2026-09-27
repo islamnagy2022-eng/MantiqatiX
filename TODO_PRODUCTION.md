@@ -38,8 +38,8 @@
 ## P1 — Marketing & Advertising
 - [x] Live counts حيث تتوفر بيانات فعلية.
 - [x] إنشاء marketing lead فعلي عبر RLS.
-- [ ] قائمة leads + التفاصيل + lifecycle.
-- [ ] مقدمو خدمات التسويق: profiles/services.
+- [🟡] قائمة leads + التفاصيل + lifecycle — القائمة الأساسية بدأت، التفاصيل والـlifecycle متبقية.
+- [ ] مقدمو خدمات التسويق: profiles/services — profiles قراءة فعلية في CRM، والخدمات التفصيلية ما زالت متبقية.
 - [ ] marketing projects + participants.
 - [ ] provider subscriptions.
 - [ ] commission rules.
@@ -50,13 +50,13 @@
 
 ## P1 — CRM
 - [ ] العملاء الحقيقيون.
-- [ ] leads.
+- [x] leads — عرض بيانات فعلية ضمن CRM.
 - [ ] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention/retargeting.
 - [ ] سجل التفاعلات.
 - [ ] مهام المتابعة والمسؤول.
-- [ ] ربط CRM بالطلبات والخدمات.
+- [x] ربط CRM بالطلبات والخدمات.
 - [ ] tenant/business isolation.
-- [ ] منع KPI غير مستند إلى بيانات.
+- [x] منع KPI غير مستند إلى بيانات — المؤشرات غير المتوفرة تعرض — بدل أرقام مصطنعة.
 
 ## P1 — Support & Governance
 - [x] عداد التذاكر وفق RLS.
@@ -79,9 +79,9 @@
 - [ ] session/JWT lifecycle review.
 
 ## P1 — Orders / Operations
-- [ ] orders list وفق RLS.
+- [x] orders list وفق RLS.
 - [ ] order details.
-- [ ] order status history.
+- [x] order status history.
 - [ ] user/business/branch links.
 - [ ] idempotency.
 - [ ] unauthorized mutation protection.
@@ -229,6 +229,8 @@
 - IMPLEMENTED: feature-flag reading.
 - IMPLEMENTED: marketing lead creation.
 - IMPLEMENTED: support ticket creation.
+- IMPLEMENTED: RLS-scoped CRM leads/providers/orders/notifications reads.
+- IMPLEMENTED: RLS-scoped order status history read.
 - NOT VERIFIED: آخر CI/CD وقت إعداد القائمة كان Queued.
 - NOT VERIFIED: production end-to-end.
 - NOT VERIFIED: restore test.
