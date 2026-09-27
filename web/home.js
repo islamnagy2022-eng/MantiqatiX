@@ -57,6 +57,7 @@
             <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
             <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
           </label>
+          <button class="mx-header__login" id="mx-login" type="button">تسجيل الدخول</button>
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
             <a href="#mx-categories">التصنيفات</a>
@@ -64,7 +65,6 @@
             <a href="#mx-offers">العروض</a>
             <a href="#mx-marketing">التسويق والإعلانات</a>
             <a href="#mx-contact">تواصل معنا</a>
-            <button class="mx-nav__icon" id="mx-login" type="button" aria-label="تسجيل الدخول">♙</button>
             <button class="mx-add" id="mx-add" type="button">＋ إضافة نشاط</button>
           </nav>
         </div>
