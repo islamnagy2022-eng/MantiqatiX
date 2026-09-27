@@ -85,7 +85,7 @@ const email=(existingEmail||document.getElementById('email')?.value||'').trim().
 if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
 const button=document.getElementById('send-otp')||document.getElementById('resend-otp');if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
 const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
-if(error)return authView('تعذر إرسال رمز الدخول: '+error.message,false,email);
+if(error)return authView('تعذر إرسال رمز الدخول: '+error.message,!!existingEmail,email);
 authView('',true,email);
 }
 async function verifyOtp(email){
