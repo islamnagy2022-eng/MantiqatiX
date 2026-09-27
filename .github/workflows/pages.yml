@@ -48,6 +48,12 @@ jobs:
           test -f web/manifest.webmanifest
           test -f web/sw.js
           test -f web/android-parity-catalog.js
+          test -f supabase/functions/api/index.ts
+          test -f supabase/functions/order-create/index.ts
+          test -f supabase/functions/order-status-update/index.ts
+          grep -q '/api/v1/catalog' supabase/functions/api/index.ts
+          grep -q 'update_order_status_backend' supabase/functions/order-status-update/index.ts
+          grep -q 'create_order_backend' supabase/functions/order-create/index.ts
           grep -q "mx-whatsapp-float" web/home.js
           grep -q "MNTY_SUPPORT" web/config.js
           grep -q "MNTY_SUPPORT" web/home.js
