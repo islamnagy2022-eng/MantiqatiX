@@ -1,0 +1,14 @@
+{
+  "name":"MANTIQATIX",
+  "short_name":"MANTIQATIX",
+  "description":"منصة تسويقية متكاملة لربط العملاء بمقدمي الخدمات",
+  "lang":"ar",
+  "dir":"rtl",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#F5F7FA",
+  "theme_color":"#101828",
+  "orientation":"portrait-primary",
+  "categories":["business","shopping","productivity"]
+}
