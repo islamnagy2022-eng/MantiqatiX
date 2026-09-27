@@ -4,12 +4,12 @@
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
 ## P0 — بوابة الإطلاق
-- [x] Baseline مستقر موثق — commit `c0da9944a7e7ed42a690f943efa690d2ae57f89d`, CI run #66 ناجح.
+- [x] Baseline CI مستقر — commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`, CI run #74 ناجح.
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry.
-- [ ] Authorization/RLS لكل جدول مكشوف.
-- [ ] مراجعة SECURITY DEFINER وEXECUTE privileges.
-- [ ] مراجعة Data API grants.
-- [ ] Database constraints/indexes/integrity.
+- [🟡] Authorization/RLS: جميع الجداول العامة لديها RLS (111/111)، لكن مراجعة سياسات كل جدول ومسارات التعديل ما زالت مفتوحة.
+- [🟡] مراجعة SECURITY DEFINER وEXECUTE: تم إغلاق وظائف Backend غير المخصصة للعميل؛ بقيت 10 وظائف SECURITY DEFINER قابلة للتنفيذ للمستخدمين المسجلين وتحتاج مراجعة/قرار نهائي.
+- [🟡] Data API grants: تم التحقق من الامتيازات؛ anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط، وauthenticated لديه امتيازات على مجموعة محددة؛ يلزم إغلاق المراجعة حسب كل مسار.
+- [🔴] Database constraints/indexes/integrity — لم يُغلق التحقق الشامل بعد.
 - [ ] API/Edge Functions/integrations.
 - [ ] Website/Admin/Owner/Manager/Employee/Customer E2E.
 - [ ] Finance E2E.
@@ -164,7 +164,7 @@
 ## P1 — Release
 - [ ] Development → Testing → Staging → Production.
 - [ ] Release Candidate.
-- [x] CI success — run #66 succeeded for current commit `c0da9944a7e7ed42a690f943efa690d2ae57f89d`.
+- [x] CI success — run #74 succeeded for current commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
 - [ ] production smoke test.
@@ -234,8 +234,11 @@
 - IMPLEMENTED: RLS-scoped order status history read.
 - IMPLEMENTED: JS syntax check on current `web/app.js` — PASS.
 - VERIFIED: all 111 public tables have RLS enabled.
-- VERIFIED: production deployment run #63 succeeded for commit `fff6636506aa9295bcc8fa1c6ec28cbbc835abce`; documentation baseline run #64 also succeeded.
+- VERIFIED: CI validation run #74 succeeded for commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`.
 - NOT VERIFIED: production end-to-end, external browser/device, restore/DR, and full release gate.
+- SECURITY VERIFIED: 111/111 public tables have RLS enabled.
+- SECURITY REVIEW: anon SELECT grants are currently limited to `legal_documents` and `legal_document_versions`; no broad anon write grants were found.
+- SECURITY REVIEW: 6 RLS-enabled tables have no policies; access remains deny-by-default and requires explicit product decision before adding policies.
 - NOT VERIFIED: production end-to-end.
 - NOT VERIFIED: restore test.
 - NOT VERIFIED: full security release gate.
