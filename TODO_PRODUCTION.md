@@ -164,7 +164,7 @@
 ## P1 — Release
 - [ ] Development → Testing → Staging → Production.
 - [ ] Release Candidate.
-- [x] CI success — run #63 succeeded for current commit `fff6636506aa9295bcc8fa1c6ec28cbbc835abce`.
+- [x] CI success — run #64 succeeded for current baseline commit `024ac01f40849cd6b65463d431354814afdea867`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
 - [ ] production smoke test.
@@ -234,7 +234,7 @@
 - IMPLEMENTED: RLS-scoped order status history read.
 - IMPLEMENTED: JS syntax check on current `web/app.js` — PASS.
 - VERIFIED: all 111 public tables have RLS enabled.
-- VERIFIED: current production deployment run #63 succeeded for commit `fff6636506aa9295bcc8fa1c6ec28cbbc835abce`.
+- VERIFIED: production deployment run #63 succeeded for commit `fff6636506aa9295bcc8fa1c6ec28cbbc835abce`; documentation baseline run #64 also succeeded.
 - NOT VERIFIED: production end-to-end, external browser/device, restore/DR, and full release gate.
 - NOT VERIFIED: production end-to-end.
 - NOT VERIFIED: restore test.
