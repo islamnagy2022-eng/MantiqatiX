@@ -304,3 +304,8 @@
 - [x] Confirmed `private.platform_admins` currently contains zero rows; no production identity was fabricated.
 - [x] Confirmed the registration-review Edge Function is ACTIVE, version 3, and JWT verification remains enabled.
 - [ ] GitHub Actions run result for the latest registration UI commits is still NOT VERIFIED through the available workflow-run connector.
+
+
+## 2026-09-27 — Registration review cache isolation
+- [x] Cleared `live.records.registrationRequests` at the start of each live-data reload so privileged registration-review records cannot remain in client state after a role/session transition.
+- [ ] CI verification for commit `39656f0af6d23612cae5737b2b6f1cb494664255` remains pending through the available workflow-run connector.
