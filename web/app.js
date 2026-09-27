@@ -319,6 +319,7 @@ registrationPendingView(data.requested_role,data.status);
 }
 async function enterAuthenticatedApp(authUser){
 if(!authUser?.id)return;
+if(user?.id===authUser.id&&window.MNTYAuthState?.authenticated)return;
 user=authUser;
 window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:false};
 if(authRenderLock)return;
