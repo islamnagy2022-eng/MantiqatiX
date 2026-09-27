@@ -51,9 +51,15 @@ jobs:
           test -f supabase/functions/api/index.ts
           test -f supabase/functions/order-create/index.ts
           test -f supabase/functions/order-status-update/index.ts
+          test -f supabase/functions/mnty-registration-review/index.ts
+          test -f supabase/functions/payment-intent/index.ts
+          test -f supabase/functions/settlement-create/index.ts
           grep -q '/api/v1/catalog' supabase/functions/api/index.ts
           grep -q 'update_order_status_backend' supabase/functions/order-status-update/index.ts
           grep -q 'create_order_backend' supabase/functions/order-create/index.ts
+          grep -q 'review_registration_request_atomic' supabase/functions/mnty-registration-review/index.ts
+          grep -q 'SUPABASE_SERVICE_ROLE_KEY' supabase/functions/payment-intent/index.ts
+          grep -q 'SUPABASE_SERVICE_ROLE_KEY' supabase/functions/settlement-create/index.ts
           grep -q "mx-whatsapp-float" web/home.js
           grep -q "MNTY_SUPPORT" web/config.js
           grep -q "MNTY_SUPPORT" web/home.js
