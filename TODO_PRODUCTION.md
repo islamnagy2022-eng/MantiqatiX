@@ -223,6 +223,7 @@
 - [ ] post-launch operating plan.
 
 ## Current verified state
+- BRAND: الاسم الرسمي المعتمد للمنتج الآن هو `MANTIX`؛ تم تحديث Website/PWA/SMM وسجل `platform_brand_identity` الحي.
 - IMPLEMENTED: Website/PWA/brand baseline.
 - IMPLEMENTED: Email OTP path.
 - IMPLEMENTED: membership/active role.
