@@ -4,7 +4,7 @@
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
 ## P0 — بوابة الإطلاق
-- [ ] Baseline مستقر موثق.
+- [x] Baseline مستقر موثق — commit `c0da9944a7e7ed42a690f943efa690d2ae57f89d`, CI run #66 ناجح.
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry.
 - [ ] Authorization/RLS لكل جدول مكشوف.
 - [ ] مراجعة SECURITY DEFINER وEXECUTE privileges.
@@ -29,7 +29,7 @@
 - [x] Feature flag reading.
 - [x] إزالة الأرقام التشغيلية الوهمية من الواجهة.
 - [ ] تطبيق feature flags على visibility/actions مع safe defaults.
-- [ ] loading/error/empty states.
+- [x] loading/error states — تمت إضافة حالة تحميل وحالة خطأ مع إعادة المحاولة.
 - [ ] responsive/accessibility review.
 - [ ] تنظيف legacy/duplicate render paths.
 - [ ] route/import/smoke tests.
@@ -164,7 +164,7 @@
 ## P1 — Release
 - [ ] Development → Testing → Staging → Production.
 - [ ] Release Candidate.
-- [x] CI success — run #64 succeeded for current baseline commit `024ac01f40849cd6b65463d431354814afdea867`.
+- [x] CI success — run #66 succeeded for current commit `c0da9944a7e7ed42a690f943efa690d2ae57f89d`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
 - [ ] production smoke test.
