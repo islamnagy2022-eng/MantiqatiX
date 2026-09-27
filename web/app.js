@@ -148,15 +148,34 @@ function ordersWorkspace(){return workspaceHead('ORDERS','الطلبات وال�
 function analyticsWorkspace(){return workspaceHead('ANALYTICS','التقارير والتحليلات','مؤشرات موحدة للأداء والتحويلات والإيرادات والمخاطر.','LIVE')+workspaceCards([['نشاط المنصة','—','يُحسب من مؤشرات التشغيل الفعلية عند توفرها'],['التحويلات','—','تُحسب من بيانات التحويل الفعلية عند توفرها'],['الإيرادات','—','يُعرض من البيانات المالية الفعلية عند توفرها'],['مصادر العملاء','—','تُعرض من مصادر الإحالة والتسويق الفعلية عند توفرها'],['الاستثناءات','—','تُعرض من سجل الحالات الفعلي عند توفره'],['التدقيق','سليم','سجل قابل للمراجعة والتتبع']])}
 function financeWorkspace(){return workspaceHead('FINANCE','العمولات والباقات','نماذج مجانية وعمولات وباقات احترافية مع قابلية تخصيص حسب المجال.','FINANCE')+workspaceCards([['الباقة المجانية','أساسي','وجود أساسي داخل المنصة'],['نظام العمولة','Usage','عمولة على العمليات المؤهلة'],['احترافي — 1','مخصص','مزايا إضافية وظهور أكبر'],['احترافي — 2','مخصص','تسويق وتقارير متقدمة'],['احترافي — 3','مخصص','إدارة متقدمة للمجالات'],['التسويات','مراجعة','الربط مع النواة المالية الفعلية']])}
 
+function canManageSupport(){return ['ADMIN','SUPER_ADMIN','OWNER','BUSINESS_OWNER','SUPPORT','SUPPORT_MANAGER'].includes(String(live.role||'').toUpperCase())}
+const SUPPORT_STATUSES=['OPEN','IN_PROGRESS','RESOLVED','CLOSED'];
+async function updateTicketStatus(ticketId,status){
+ if(!user?.id||!ticketId)return authView();
+ if(!SUPPORT_STATUSES.includes(status))return showToast('حالة دعم غير معتمدة.','error');
+ const ticket=live.records.supportTickets.find(x=>x.id===ticketId);
+ if(!ticket)return showToast('التذكرة غير متاحة وفق الصلاحيات الحالية.','error');
+ const payload={status,closed_at:status==='CLOSED'?new Date().toISOString():null,updated_at:new Date().toISOString()};
+ const {error}=await sb.from('support_tickets').update(payload).eq('id',ticketId);
+ if(error)return showToast('تعذر تحديث حالة التذكرة: '+error.message,'error');
+ ticket.status=status;ticket.closed_at=payload.closed_at;ticket.updated_at=payload.updated_at;
+ showToast('تم تحديث حالة التذكرة إلى '+status,'success');
+ return true;
+}
 async function openTicketDetails(ticketId){
  if(!user?.id||!ticketId)return authView();
  const ticket=live.records.supportTickets.find(x=>x.id===ticketId);
  if(!ticket)return showToast('التذكرة غير متاحة وفق الصلاحيات الحالية.','error');
  const {data,error}=await sb.from('ticket_messages').select('id,sender_user_id,sender_role,content,created_at').eq('ticket_id',ticketId).order('created_at',{ascending:true});
  if(error)return showToast('تعذر تحميل رسائل التذكرة: '+error.message,'error');
- const messages=(data||[]).map(m=>'<article class="card"><div class="row"><strong>'+esc(m.sender_role||'USER')+'</strong><span class="muted">'+(m.created_at?new Date(m.created_at).toLocaleString('ar-EG'):'—')+'</span></div><p>'+esc(m.content)+'</p></article>').join('')||'<div class="empty-state">لا توجد رسائل بعد.</div>';
- const overlay=document.createElement('div'); overlay.className='mx-modal'; overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">SUPPORT TICKET</span><h2>'+esc(ticket.subject)+'</h2><p>'+esc(ticket.description)+'</p></div><button class="text-btn" id="close-ticket">إغلاق</button></div><div class="row"><span>الحالة: <b>'+esc(ticket.status)+'</b></span><span>الأولوية: <b>'+esc(ticket.priority)+'</b></span></div><div class="ticket-thread">'+messages+'</div><div class="action-bar"><button class="btn btn-primary" id="ticket-reply">إضافة رد</button></div></div>';
- document.body.appendChild(overlay);document.getElementById('close-ticket').onclick=()=>overlay.remove();document.getElementById('ticket-reply').onclick=async()=>{overlay.remove();await replyToTicket(ticketId)};
+ const messages=(data||[]).map(m=>'<article class="card"><div class="row"><b>'+esc(m.sender_role||'USER')+'</b><span>'+esc(m.created_at?new Date(m.created_at).toLocaleString('ar-EG'):'—')+'</span></div><p>'+esc(m.content)+'</p></article>').join('')||'<div class="muted">لا توجد رسائل بعد.</div>';
+ const statusOptions=SUPPORT_STATUSES.map(s=>'<option value="'+s+'" '+(ticket.status===s?'selected':'')+'>'+s+'</option>').join('');
+ const statusControl=canManageSupport()?'<label class="field"><span>تحديث الحالة</span><select id="ticket-status">'+statusOptions+'</select></label>':'<span>الحالة: <b>'+esc(ticket.status)+'</b></span>';
+ const overlay=document.createElement('div'); overlay.className='mx-modal'; overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">SUPPORT TICKET</span><h2>'+esc(ticket.subject)+'</h2><p>'+esc(ticket.description)+'</p></div><button class="text-btn" id="close-ticket">إغلاق</button></div><div class="row">'+statusControl+'<span>الأولوية: <b>'+esc(ticket.priority)+'</b></span></div><div class="ticket-thread">'+messages+'</div><div class="action-bar"><button class="btn btn-primary" id="ticket-reply">إضافة رد</button>'+(canManageSupport()?'<button class="btn btn-outline" id="ticket-save-status">حفظ الحالة</button>':'')+'</div></div>';
+ document.body.appendChild(overlay);
+ document.getElementById('close-ticket').onclick=()=>overlay.remove();
+ document.getElementById('ticket-reply').onclick=async()=>{overlay.remove();await replyToTicket(ticketId)};
+ if(canManageSupport())document.getElementById('ticket-save-status').onclick=async()=>{const next=document.getElementById('ticket-status').value;const ok=await updateTicketStatus(ticketId,next);if(ok){overlay.remove();await renderApp()}};
 }
 async function replyToTicket(ticketId){
  if(!user?.id||!ticketId)return authView();
