@@ -22,6 +22,17 @@ const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?Str
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){if(!user?.id)return;try{const m=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status').eq('user_id',user.id).eq('status','ACTIVE');live.memberships=m.data||[];const active=live.memberships[0];live.role=String(active?.role||'CUSTOMER').toUpperCase();live.businessId=active?.business_id||null;const specs=[['notifications','user_id',user.id,'notifications'],['support_tickets','requester_id',user.id,'support'],['marketing_leads','requester_user_id',user.id,'leads'],['marketing_provider_profiles','owner_user_id',user.id,'providers'],['orders','customer_id',user.id,'orders']];if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));specs.forEach((x,i)=>{if(results[i]!==null)live.counts[x[3]]=results[i]});
  const fq=sb.from('platform_feature_flags').select('module_code,feature_code,enabled,configuration').eq('enabled',true); if(live.businessId)fq.or(`scope_type.eq.PLATFORM,business_id.eq.${live.businessId}`); else fq.eq('scope_type','PLATFORM'); const fr=await fq; (fr.data||[]).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
+   const [leadsRes,providersRes,ordersRes,notificationsRes]=await Promise.all([
+    sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
+    sb.from('marketing_provider_profiles').select('id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
+    sb.from('orders').select('id,status,total_amount,currency,customer_name,created_at').order('created_at',{ascending:false}).limit(10),
+    sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10)
+  ]);
+  live.records.leads=leadsRes.data||[]; live.records.providers=providersRes.data||[]; live.records.orders=ordersRes.data||[]; live.records.notifications=notificationsRes.data||[];
+  live.counts.leads=leadsRes.error?live.counts.leads:(live.counts.leads??live.records.leads.length);
+  live.counts.providers=providersRes.error?live.counts.providers:(live.counts.providers??live.records.providers.length);
+  live.counts.orders=ordersRes.error?live.counts.orders:(live.counts.orders??live.records.orders.length);
+  live.counts.notifications=notificationsRes.error?live.counts.notifications:(live.counts.notifications??live.records.notifications.length);
  }catch(_){} }
 
 
@@ -33,17 +44,7 @@ document.getElementById('app').innerHTML=otpMode
 :`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MANTIQATIX</span></div><div class="gradient-line"></div><h1>دخول / إنشاء حساب</h1><p>استخدم بريدك الإلكتروني للحصول على رمز تحقق لمرة واحدة. لا نستخدم كلمة مرور في مسار الإنتاج.</p><div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">إرسال رمز الدخول</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
 if(otpMode){document.getElementById('verify').onclick=()=>verifyOtp(emailValue);document.getElementById('back-auth').onclick=()=>authView('',false,emailValue)}
 else document.getElementById('send-otp').onclick=sendOtp;
-  const [leadsRes,providersRes,ordersRes,notificationsRes]=await Promise.all([
-    sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('marketing_provider_profiles').select('id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('orders').select('id,status,total_amount,currency,customer_name,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10)
-  ]);
-  live.records.leads=leadsRes.data||[]; live.records.providers=providersRes.data||[]; live.records.orders=ordersRes.data||[]; live.records.notifications=notificationsRes.data||[];
-  live.counts.leads=leadsRes.error?live.counts.leads:(live.counts.leads??live.records.leads.length);
-  live.counts.providers=providersRes.error?live.counts.providers:(live.counts.providers??live.records.providers.length);
-  live.counts.orders=ordersRes.error?live.counts.orders:(live.counts.orders??live.records.orders.length);
-  live.counts.notifications=notificationsRes.error?live.counts.notifications:(live.counts.notifications??live.records.notifications.length);
+
 }
 async function sendOtp(){
 const email=document.getElementById('email').value.trim().toLowerCase();
