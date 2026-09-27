@@ -38,28 +38,57 @@ let current='الرئيسية', query='', user=null, deferredInstallPrompt=null,
 const live={memberships:[],role:'CUSTOMER',businessId:null,counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]},moduleData:{},myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
-async function loadLiveData(){if(!user?.id)return;live.loading=true;live.error=null;live.flags={};live.counts={};live.moduleData={};live.records.registrationRequests=[];live.myProviderProfile=null;try{const m=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status').eq('user_id',user.id).eq('status','ACTIVE');live.memberships=m.data||[];const active=live.memberships[0];live.role=String(active?.role||'CUSTOMER').toUpperCase();live.businessId=active?.business_id||null;const myProviderRes=await sb.from('marketing_provider_profiles').select('id,name_ar,name_en,provider_kind,description,service_areas,profile_image_path,updated_at,status,is_verified,is_featured').eq('owner_user_id',user.id).maybeSingle();live.myProviderProfile=myProviderRes.data||null;const specs=[['advertisements',null,null,'ads'],['marketing_projects',live.businessId?'client_business_id':null,live.businessId,'projects'],['notifications','user_id',user.id,'notifications'],['support_tickets','requester_id',user.id,'support'],['marketing_leads','requester_user_id',user.id,'leads'],['marketing_provider_profiles','owner_user_id',user.id,'providers'],['orders','customer_id',user.id,'orders']];if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));specs.forEach((x,i)=>{if(results[i]!==null)live.counts[x[3]]=results[i]});
- const fq=sb.from('platform_feature_flags').select('module_code,feature_code,enabled,configuration'); if(live.businessId)fq.or(`scope_type.eq.PLATFORM,business_id.eq.${live.businessId}`); else fq.eq('scope_type','PLATFORM'); const fr=await fq; (fr.data||[]).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
-   const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
-    sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('marketing_provider_profiles').select('id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('orders').select('id,status,total_amount,currency,customer_name,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('advertisements').select('id,title,status,approval_status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('marketing_projects').select('id,project_type,management_mode,status,gross_value,platform_commission,currency,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,status,created_at').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(20)
-  ]);
-  live.records.leads=leadsRes.data||[]; live.records.providers=providersRes.data||[]; live.records.orders=ordersRes.data||[]; live.records.notifications=notificationsRes.data||[]; live.records.supportTickets=ticketsRes.data||[]; live.records.ads=adsRes.data||[]; live.records.projects=projectsRes.data||[]; live.records.services=servicesRes.data||[];
-  if(['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())){const rr=await sb.from('account_registration_requests').select('id,user_id,requested_role,status,reason,created_at,reviewed_at').in('status',['PENDING','APPROVED','REJECTED']).order('created_at',{ascending:false}).limit(50);live.records.registrationRequests=rr.data||[];}
-  const orderIds=(live.records.orders||[]).map(r=>r.id).filter(Boolean);
-  const histRes=orderIds.length?await sb.from('order_status_history').select('order_id,old_status,new_status,reason,created_at').in('order_id',orderIds).order('created_at',{ascending:false}).limit(30):{data:[],error:null};
-  live.records.orderHistory=histRes.data||[];
-  live.counts.leads=leadsRes.error?live.counts.leads:(live.counts.leads??live.records.leads.length);
-  live.counts.providers=providersRes.error?live.counts.providers:(live.counts.providers??live.records.providers.length);
-  live.counts.orders=ordersRes.error?live.counts.orders:(live.counts.orders??live.records.orders.length);
-  live.counts.notifications=notificationsRes.error?live.counts.notifications:(live.counts.notifications??live.records.notifications.length); live.counts.support=ticketsRes.error?live.counts.support:(live.counts.support??live.records.supportTickets.length);
- }catch(e){live.error=e?.message||'تعذر تحميل بيانات المنصة';}finally{live.loading=false;} }
+async function loadLiveData(){
+const uid=user?.id;
+if(!uid)return;
+live.loading=true;live.error=null;live.flags={};live.counts={};live.moduleData={};live.records.registrationRequests=[];live.myProviderProfile=null;
+try{
+ const m=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status').eq('user_id',uid).eq('status','ACTIVE');
+ if(m.error)throw m.error;
+ live.memberships=m.data||[];
+ const active=live.memberships[0];
+ live.role=String(active?.role||'CUSTOMER').toUpperCase();
+ live.businessId=active?.business_id||null;
+ if(!active){
+   live.loading=false;
+   return;
+ }
+ const myProviderRes=await sb.from('marketing_provider_profiles').select('id,name_ar,name_en,provider_kind,description,service_areas,profile_image_path,updated_at,status,is_verified,is_featured').eq('owner_user_id',uid).maybeSingle();
+ if(myProviderRes.error)throw myProviderRes.error;
+ live.myProviderProfile=myProviderRes.data||null;
+ const specs=[['advertisements',null,null,'ads'],['marketing_projects',live.businessId?'client_business_id':null,live.businessId,'projects'],['notifications','user_id',uid,'notifications'],['support_tickets','requester_id',uid,'support'],['marketing_leads','requester_user_id',uid,'leads'],['marketing_provider_profiles','owner_user_id',uid,'providers'],['orders','customer_id',uid,'orders']];
+ if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);
+ const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));
+ specs.forEach((x,i)=>{if(results[i]!==null)live.counts[x[3]]=results[i]});
+ const fq=sb.from('platform_feature_flags').select('module_code,feature_code,enabled,configuration');
+ if(live.businessId)fq.or(`scope_type.eq.PLATFORM,business_id.eq.${live.businessId}`);else fq.eq('scope_type','PLATFORM');
+ const fr=await fq;if(fr.error)throw fr.error;
+ (fr.data||[]).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
+ const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
+  sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('marketing_provider_profiles').select('id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('orders').select('id,status,total_amount,currency,customer_name,created_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('advertisements').select('id,title,status,approval_status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('marketing_projects').select('id,project_type,management_mode,status,gross_value,platform_commission,currency,created_at').order('created_at',{ascending:false}).limit(10),
+  sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,status,created_at').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(20)
+ ]);
+ live.records.leads=leadsRes.data||[];live.records.providers=providersRes.data||[];live.records.orders=ordersRes.data||[];live.records.notifications=notificationsRes.data||[];live.records.supportTickets=ticketsRes.data||[];live.records.ads=adsRes.data||[];live.records.projects=projectsRes.data||[];live.records.services=servicesRes.data||[];
+ if(['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())){
+  const rr=await sb.from('account_registration_requests').select('id,user_id,requested_role,status,reason,created_at,reviewed_at').in('status',['PENDING','APPROVED','REJECTED']).order('created_at',{ascending:false}).limit(50);
+  live.records.registrationRequests=rr.data||[];
+ }
+ const orderIds=(live.records.orders||[]).map(r=>r.id).filter(Boolean);
+ const histRes=orderIds.length?await sb.from('order_status_history').select('order_id,old_status,new_status,reason,created_at').in('order_id',orderIds).order('created_at',{ascending:false}).limit(30):{data:[],error:null};
+ live.records.orderHistory=histRes.data||[];
+ live.counts.leads=leadsRes.error?live.counts.leads:(live.counts.leads??live.records.leads.length);
+ live.counts.providers=providersRes.error?live.counts.providers:(live.counts.providers??live.records.providers.length);
+ live.counts.orders=ordersRes.error?live.counts.orders:(live.counts.orders??live.records.orders.length);
+ live.counts.notifications=notificationsRes.error?live.counts.notifications:(live.counts.notifications??live.records.notifications.length);
+ live.counts.support=ticketsRes.error?live.counts.support:(live.counts.support??live.records.supportTickets.length);
+}catch(e){live.error=e?.message||'تعذر تحميل بيانات المنصة';}finally{live.loading=false;}
+}
 
 
 async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}
