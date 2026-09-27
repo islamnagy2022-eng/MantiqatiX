@@ -17,25 +17,26 @@ const sectors=[
 ['🎓','التعليم','المدارس والمدرسون والخدمات التعليمية'],['✈️','السفر والرحلات','الوكلاء والرحلات والحجوزات'],['🤝','الشركاء','الشركاء الاستراتيجيون ومصادر العملاء']
 ];
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null;
-const live={memberships:[],role:'CUSTOMER',businessId:null,counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[]}};
+const live={memberships:[],role:'CUSTOMER',businessId:null,counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[]}};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){if(!user?.id)return;try{const m=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status').eq('user_id',user.id).eq('status','ACTIVE');live.memberships=m.data||[];const active=live.memberships[0];live.role=String(active?.role||'CUSTOMER').toUpperCase();live.businessId=active?.business_id||null;const specs=[['notifications','user_id',user.id,'notifications'],['support_tickets','requester_id',user.id,'support'],['marketing_leads','requester_user_id',user.id,'leads'],['marketing_provider_profiles','owner_user_id',user.id,'providers'],['orders','customer_id',user.id,'orders']];if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));specs.forEach((x,i)=>{if(results[i]!==null)live.counts[x[3]]=results[i]});
  const fq=sb.from('platform_feature_flags').select('module_code,feature_code,enabled,configuration'); if(live.businessId)fq.or(`scope_type.eq.PLATFORM,business_id.eq.${live.businessId}`); else fq.eq('scope_type','PLATFORM'); const fr=await fq; (fr.data||[]).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
-   const [leadsRes,providersRes,ordersRes,notificationsRes]=await Promise.all([
+   const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes]=await Promise.all([
     sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
     sb.from('marketing_provider_profiles').select('id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
     sb.from('orders').select('id,status,total_amount,currency,customer_name,created_at').order('created_at',{ascending:false}).limit(10),
-    sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10)
+    sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
+    sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10)
   ]);
-  live.records.leads=leadsRes.data||[]; live.records.providers=providersRes.data||[]; live.records.orders=ordersRes.data||[]; live.records.notifications=notificationsRes.data||[];
+  live.records.leads=leadsRes.data||[]; live.records.providers=providersRes.data||[]; live.records.orders=ordersRes.data||[]; live.records.notifications=notificationsRes.data||[]; live.records.supportTickets=ticketsRes.data||[];
   const orderIds=(live.records.orders||[]).map(r=>r.id).filter(Boolean);
   const histRes=orderIds.length?await sb.from('order_status_history').select('order_id,old_status,new_status,reason,created_at').in('order_id',orderIds).order('created_at',{ascending:false}).limit(30):{data:[],error:null};
   live.records.orderHistory=histRes.data||[];
   live.counts.leads=leadsRes.error?live.counts.leads:(live.counts.leads??live.records.leads.length);
   live.counts.providers=providersRes.error?live.counts.providers:(live.counts.providers??live.records.providers.length);
   live.counts.orders=ordersRes.error?live.counts.orders:(live.counts.orders??live.records.orders.length);
-  live.counts.notifications=notificationsRes.error?live.counts.notifications:(live.counts.notifications??live.records.notifications.length);
+  live.counts.notifications=notificationsRes.error?live.counts.notifications:(live.counts.notifications??live.records.notifications.length); live.counts.support=ticketsRes.error?live.counts.support:(live.counts.support??live.records.supportTickets.length);
  }catch(_){} }
 
 
@@ -122,6 +123,22 @@ function ordersWorkspace(){return workspaceHead('ORDERS','الطلبات وال�
 function analyticsWorkspace(){return workspaceHead('ANALYTICS','التقارير والتحليلات','مؤشرات موحدة للأداء والتحويلات والإيرادات والمخاطر.','LIVE')+workspaceCards([['نشاط المنصة','—','يُحسب من مؤشرات التشغيل الفعلية عند توفرها'],['التحويلات','—','تُحسب من بيانات التحويل الفعلية عند توفرها'],['الإيرادات','—','يُعرض من البيانات المالية الفعلية عند توفرها'],['مصادر العملاء','—','تُعرض من مصادر الإحالة والتسويق الفعلية عند توفرها'],['الاستثناءات','—','تُعرض من سجل الحالات الفعلي عند توفره'],['التدقيق','سليم','سجل قابل للمراجعة والتتبع']])}
 function financeWorkspace(){return workspaceHead('FINANCE','العمولات والباقات','نماذج مجانية وعمولات وباقات احترافية مع قابلية تخصيص حسب المجال.','FINANCE')+workspaceCards([['الباقة المجانية','أساسي','وجود أساسي داخل المنصة'],['نظام العمولة','Usage','عمولة على العمليات المؤهلة'],['احترافي — 1','مخصص','مزايا إضافية وظهور أكبر'],['احترافي — 2','مخصص','تسويق وتقارير متقدمة'],['احترافي — 3','مخصص','إدارة متقدمة للمجالات'],['التسويات','مراجعة','الربط مع النواة المالية الفعلية']])}
 
+async function replyToTicket(ticketId){
+ if(!user?.id||!ticketId)return authView();
+ const content=window.prompt('اكتب ردك على التذكرة');
+ if(!content?.trim())return;
+ const id='MSG-'+Date.now().toString(36).toUpperCase();
+ const {error}=await sb.from('ticket_messages').insert({id,ticket_id:ticketId,sender_user_id:user.id,sender_role:live.role,content:content.trim()});
+ if(error)return showToast('تعذر إرسال الرد: '+error.message,'error');
+ showToast('تم إرسال الرد.','success'); renderApp();
+}
+async function markNotificationRead(notificationId){
+ if(!notificationId)return;
+ const {error}=await sb.from('notifications').update({read_at:new Date().toISOString()}).eq('id',notificationId).eq('user_id',user.id);
+ if(error)return showToast('تعذر تحديث الإشعار.','error');
+ const n=live.records.notifications.find(x=>x.id===notificationId); if(n)n.read_at=new Date().toISOString();
+ showToast('تم تعليم الإشعار كمقروء.','success'); renderApp();
+}
 async function openSupportTicket(){
  if(!user?.id)return authView();
  const membership=live.memberships.find(m=>m.status==='ACTIVE'&&m.tenant_id);
@@ -135,6 +152,6 @@ async function openSupportTicket(){
  live.counts.support=(live.counts.support||0)+1; showToast('تم فتح التذكرة بنجاح. رقمها '+id,'success'); renderApp();
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
-function governanceWorkspace(){return workspaceHead('GOVERNANCE','الدعم والحوكمة','التذاكر، الصلاحيات، التدقيق والمراقبة في مساحة تشغيلية موحدة.','CONTROL')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'التذاكر التي يملك الحساب صلاحية رؤيتها'],['شكاوى','—','تُعرض من حالات الدعم الفعلية عند توفرها'],['الصلاحيات',live.role,'الدور الفعلي للحساب من عضوية المنصة'],['التدقيق','نشط','سجل الأحداث الإدارية وفق الصلاحيات'],['المراقبة','نشطة','مؤشرات تشغيل وأخطاء'],['السياسات','منشورة','الخصوصية والشروط والإجراءات']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'}
+function governanceWorkspace(){return workspaceHead('GOVERNANCE','الدعم والحوكمة','التذاكر، الرسائل، الإشعارات والصلاحيات في مساحة تشغيلية موحدة.','CONTROL')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'إشعارات الحساب الفعلية'],['الصلاحيات',live.role,'الدور الفعلي من العضوية'],['التدقيق','نشط','السجل الإداري عند توفره'],['المراقبة','نشطة','مؤشرات الأخطاء والتشغيل'],['السياسات','منشورة','السياسات المنشورة عند توفرها']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم',live.records.supportTickets,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>'<button class="linkbtn" onclick="replyToTicket(\''+esc(r.id)+'\')">رد</button>']])+recordsTable('آخر الإشعارات',live.records.notifications,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r.read_at?'—':'<button class="linkbtn" onclick="markNotificationRead(\''+esc(r.id)+'\')">تعليم كمقروء</button>']])}
 async function renderApp(){await loadLiveData();document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar"><div class="side-brand"><div class="brand">${mark()}<span>MANTIQATIX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav">${modules.filter(m=>moduleEnabled(m[1])).map(m=>`<button class="${m[1]===current?'active':''}" onclick="selectModule('${m[1]}')"><span>${m[0]}</span><span>${m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content"><header class="top"><div><div class="breadcrumb">MantiqatiX / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions"><label class="search">⌕ <input id="search" value="${esc(query)}" placeholder="بحث داخل المنصة..."></label><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;const si=document.getElementById('search');si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()}}
 sb.auth.getSession().then(async ({data})=>{user=data.session?.user||null;if(user){await loadLiveData();renderApp()}else{window.MXHomeLanding?MXHomeLanding():landingView()}});sb.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;if(user)renderApp();});
