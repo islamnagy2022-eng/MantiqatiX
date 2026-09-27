@@ -81,7 +81,7 @@ function enhancedPageContent(){
   case 'التقارير والتحليلات': return analyticsWorkspace();
   case 'العمولات والباقات': return financeWorkspace();
   case 'الدعم والحوكمة': return governanceWorkspace();
-  default: return enhancedPageContent();
+  default: return pageContent();
  }
 }
 function workspaceHead(kicker,title,desc,badge){return '<div class="section-head"><div><span class="eyebrow">'+kicker+'</span><h2>'+title+'</h2><p>'+desc+'</p></div>'+(badge?'<span class="count">'+badge+'</span>':'')+'</div>'}
