@@ -61,8 +61,8 @@
 ## P1 — Support & Governance
 - [x] عداد التذاكر وفق RLS.
 - [x] إنشاء تذكرة دعم فعلي.
-- [ ] قائمة/تفاصيل التذاكر.
-- [ ] ticket messages/status workflow.
+- [🟡] قائمة/تفاصيل التذاكر — أضيفت واجهة تفاصيل التذكرة وتحميل Thread الرسائل وفق RLS؛ تحقق CI للتعديل الأخير ما زال قيد الانتظار.
+- [🟡] ticket messages/status workflow — قراءة وإضافة الردود تعمل من الواجهة، وتحديث الحالة الإداري ما زال متبقيًا بعد تحقق الصلاحيات.
 - [ ] Support/Support Manager authorization.
 - [ ] Audit للعمليات الحساسة.
 - [ ] notifications لحالات الدعم.
@@ -257,3 +257,8 @@
 - [x] Runtime brand alignment: واجهات التطبيق الداخلية ومسار الدخول أصبحت تعرض `MNTY` كهوية العميل، مع بقاء `MantiqatiX` كهوية الاسم الكامل/الأصل.
 - [🟢] CI verified: run #114 نجح للـcommit الحالي `d58e1360a170bce596494b2aeb37b5166fff6a5b` بعد تعديلات الهوية.
 - [ ] استكمال P0/P1 من أول عنصر غير VERIFIED، مع عدم اعتبار أي وظيفة مكتملة قبل اختبارها في سياقها.
+
+
+## Latest implementation checkpoint — 2026-09-27
+- [🟡] Support ticket detail/thread UI: commits `20624048b97e30d4dd88aa897c9d66f9e01cfd4a` and `6522e9df10ec908e5279f5fdb4f0291df0ffd644` add ticket details, message thread loading, and reply entry while relying on existing RLS policies.
+- [🟡] CI runs #116/#117 are pending; no production verification claim is made until the latest run succeeds.
