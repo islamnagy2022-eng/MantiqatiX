@@ -16,6 +16,21 @@ async function invokeMntyFunction(name,body){
  if(!res.ok)throw new Error(payload?.error||payload?.message||'FUNCTION_REQUEST_FAILED');
  return payload;
 }
+
+async function invokeMntyApi(path,options={}){
+ const {data:{session},error:sessionError}=await sb.auth.getSession();
+ if(sessionError)throw sessionError;
+ if(!session?.access_token)throw new Error('AUTH_REQUIRED');
+ const res=await fetch(cfg.supabaseUrl+'/functions/v1/api'+path,{
+  method:options.method||'GET',
+  headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,...(options.headers||{})},
+  body:options.body?JSON.stringify(options.body):undefined
+ });
+ let payload=null;
+ try{payload=await res.json();}catch{}
+ if(!res.ok)throw new Error(payload?.error||payload?.message||'API_REQUEST_FAILED');
+ return payload;
+}
 const modules=[
 ['🏠','الرئيسية','لوحة التحكم الموحدة'],['🧩','الموديولات','تشغيل وإدارة وحدات المنصة'],['🏢','المجالات والخدمات','القطاعات ومقدمو الخدمات'],
 ['🛍️','التجارة والأزياء','المنتجات، المقاسات، السلة والطلبات'],['🛒','البقالة والسوبر ماركت','المنتجات، المخزون، السلة والتوصيل'],['🍽️','المطاعم والمطابخ','القوائم، الإضافات، المطبخ والتوصيل'],
