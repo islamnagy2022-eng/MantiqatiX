@@ -72,7 +72,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$PAGE_URL"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" | grep -q "MNTY"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" | grep -Eq "Mantiqati X|MNTY"
           for asset in config.js styles.css app.js manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
