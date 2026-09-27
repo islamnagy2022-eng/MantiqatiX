@@ -284,19 +284,23 @@ async function openOrderForm(businessId,itemId){
  const catalog=live.catalogByBusiness[businessId]; const item=(catalog?.items||[]).find(x=>x.id===itemId); const price=catalogCurrentPrice(catalog,itemId,live.branchId);
  if(!item||!price)return showToast('الصنف أو السعر غير متاح حاليًا.','error');
  const meta=user?.user_metadata||{}; const defaultName=meta.full_name||meta.name||user?.email||'';
+ const orderAttemptId=crypto.randomUUID(), clientIdempotencyKey=crypto.randomUUID();
  const overlay=document.createElement('div');overlay.className='mx-modal';
  overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">NEW ORDER</span><h2>'+esc(item.name_ar||item.name_en||'طلب')+'</h2><p>السعر المعروض مرجعي؛ الخادم يعيد احتساب الإجمالي اعتمادًا على الكتالوج.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><div class="form-grid"><label class="field"><span>الاسم</span><input id="mx-order-name" value="'+esc(defaultName)+'"></label><label class="field"><span>الهاتف</span><input id="mx-order-phone" value="'+esc(user?.phone||meta.phone||'')+'"></label><label class="field"><span>الكمية</span><input id="mx-order-qty" type="number" min="1" step="1" value="1"></label><label class="field"><span>عنوان التنفيذ/التوصيل</span><input id="mx-order-address" placeholder="أدخل العنوان عند الحاجة"></label></div><button class="btn btn-primary" id="mx-submit-order">إرسال الطلب</button></div>';
  document.body.appendChild(overlay);
  overlay.querySelector('.mx-close-modal')?.addEventListener('click',closeMxModal);
  document.getElementById('mx-submit-order').onclick=async()=>{
+  const submit=document.getElementById('mx-submit-order');
+  if(submit.disabled)return;
   const name=document.getElementById('mx-order-name').value.trim(),phone=document.getElementById('mx-order-phone').value.trim(),address=document.getElementById('mx-order-address').value.trim();
   const qty=Number(document.getElementById('mx-order-qty').value);
   if(!name||!phone||!Number.isInteger(qty)||qty<1)return showToast('أكمل الاسم والهاتف والكمية بشكل صحيح.','error');
   const subtotal=Number(price.unit_price||0)*qty;
+  submit.disabled=true; submit.textContent='جارٍ إرسال الطلب…';
   try{
-   const result=await invokeMntyFunction('order-create',{orderId:crypto.randomUUID(),tenantId:live.tenantId,businessId,branchId:live.branchId||null,clientIdempotencyKey:crypto.randomUUID(),subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true}});
+   const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:live.tenantId,businessId,branchId:live.branchId||null,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true}});
    closeMxModal(); await loadLiveData(); await renderApp(); showToast('تم إرسال الطلب بنجاح.','success'); return result;
-  }catch(e){showToast('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error')}
+  }catch(e){submit.disabled=false;submit.textContent='إرسال الطلب';showToast('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error')}
  };
 }
 if(!window.MNTYCatalogClickBound){
