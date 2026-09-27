@@ -61,7 +61,8 @@ async function loadLiveData(){if(!user?.id)return;live.loading=true;live.error=n
  }catch(e){live.error=e?.message||'تعذر تحميل بيانات المنصة';}finally{live.loading=false;} }
 
 
-async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}\nconst esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
 function authView(msg='',otpMode=false,emailValue=''){
 document.getElementById('app').innerHTML=otpMode
@@ -124,7 +125,8 @@ function featureEnabled(moduleCode,featureCode){const a=live.flags[normCode(modu
 function canManage(){return ['ADMIN','OWNER','MANAGER'].includes(live.role)}
 function selectModule(name){if(!moduleEnabled(name)){showToast('هذه الوحدة غير مفعلة لهذا النطاق.','error');return}current=name;query='';renderApp()}
 
-function domainModuleWorkspace(){const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();const d=live.moduleData[m.key]||{tables:{},ready:false};const cards=m.tables.map(t=>[t,d.tables?.[t]==null?'—':String(d.tables[t]),'عدد السجلات المتاحة وفق RLS']);if(!m.tables.length)cards.push(['حالة المخطط','NOT VERIFIED','لا يوجد جدول طبي متخصص مثبت في المخطط الحالي']);return workspaceHead(m.key,m.name,m.desc,'MODULE')+workspaceCards(cards)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'+recordsTable('مصادر البيانات الموصولة',m.tables.map(t=>({table:t,count:d.tables?.[t]})),[['الجدول',r=>r.table],['السجلات',r=>r.count==null?'—':r.count],['الحالة',r=>r.count==null?'NOT VERIFIED':'READABLE']])}\nfunction enhancedPageContent(){
+function domainModuleWorkspace(){const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();const d=live.moduleData[m.key]||{tables:{},ready:false};const cards=m.tables.map(t=>[t,d.tables?.[t]==null?'—':String(d.tables[t]),'عدد السجلات المتاحة وفق RLS']);if(!m.tables.length)cards.push(['حالة المخطط','NOT VERIFIED','لا يوجد جدول طبي متخصص مثبت في المخطط الحالي']);return workspaceHead(m.key,m.name,m.desc,'MODULE')+workspaceCards(cards)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'+recordsTable('مصادر البيانات الموصولة',m.tables.map(t=>({table:t,count:d.tables?.[t]})),[['الجدول',r=>r.table],['السجلات',r=>r.count==null?'—':r.count],['الحالة',r=>r.count==null?'NOT VERIFIED':'READABLE']])}
+function enhancedPageContent(){
  if(domainModules.some(m=>m.name===current))return domainModuleWorkspace();
  switch(current){
   case 'التسويق والإعلان': return marketingWorkspace();
