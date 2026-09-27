@@ -22,7 +22,7 @@ const bootStart = app.indexOf("async function bootAuth(){");
 const bootEnd = app.indexOf("async function renderApp()", bootStart);
 const bootAuth = bootStart >= 0 && bootEnd > bootStart ? app.slice(bootStart, bootEnd) : "";
 if (bootAuth.includes("sb.auth.signOut()")) failures.push("Automatic boot must not sign out");
-const signOutMatches = [...app.matchAll(/sb\\.auth\\.signOut\\(\\)/g)];
+const signOutMatches = [...app.matchAll(/sb\.auth\.signOut\(\)/g)];
 if (signOutMatches.length !== 1) failures.push("Explicit logout is the only sign-out path");
 
 for (const [name, marker, source, forbidden] of required) {
