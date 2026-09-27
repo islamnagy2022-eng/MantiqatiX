@@ -408,7 +408,8 @@ async function submitRegistrationRequest(requestedRole=authRegistrationType){
  showToast('تم إرسال طلب العضوية الإضافية للمراجعة.','success');
  await accountView();
 }
-async function openPlatform(){if(!user?.id){return typeof authView==='function'?authView():null}return renderApp()}\nasync function enterAuthenticatedApp(authUser){
+async function openPlatform(){if(!user?.id){return typeof authView==='function'?authView():null}return renderApp()}
+async function enterAuthenticatedApp(authUser){
 if(!authUser?.id)return;
 if(user?.id===authUser.id&&window.MNTYAuthState?.authenticated)return;
 user=authUser;
