@@ -360,3 +360,9 @@
 - [x] Added the scan to the Pages validation job before deployment.
 - [x] Verified the published `web/config.js` contains the publishable Supabase key and Supabase project URL only; no service-role secret is present in that file.
 - [ ] This static guard is not a substitute for authenticated adversarial RLS E2E; that remains a release gate.
+
+
+## 2026-09-27 — Auth / registration CI invariants
+- [x] Added static invariants for Email OTP, OTP verification, valid-session gating, registration-request routing, active-membership gating, logout state reset, registration-review Edge Function usage, and admin-role guarding.
+- [x] Added the auth/registration invariant scan to the Pages validation job before deployment.
+- [ ] These checks validate source invariants only; real Email OTP, session expiry, multi-account approval, and adversarial RLS E2E remain NOT VERIFIED.
