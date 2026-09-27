@@ -17,9 +17,28 @@ let current='الرئيسية', query='', user=null;
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
-function authView(msg=''){document.getElementById('app').innerHTML=`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MANTIQATIX</span></div><div class="gradient-line"></div><h1>تسجيل الدخول</h1><p>الوصول إلى منصة MantiqatiX بنفس الحساب والصلاحيات.</p><div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><div class="field"><label>كلمة المرور</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••"></div><button class="btn btn-primary" id="login">دخول إلى MantiqatiX</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;document.getElementById('login').onclick=login}
-async function login(){const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;if(!email||!password)return authView('أدخل البريد الإلكتروني وكلمة المرور.');const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)return authView(error.message);user=data.user;renderApp()}
-async function logout(){await sb.auth.signOut();user=null;authView()}
+function authView(msg='',otpMode=false,emailValue=''){
+document.getElementById('app').innerHTML=otpMode
+?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MANTIQATIX</span></div><div class="gradient-line"></div><h1>رمز الدخول</h1><p>أرسلنا رمز تحقق لمرة واحدة إلى <b>${esc(emailValue)}</b>. أدخل الرمز لإكمال الدخول.</p><div class="field"><label>رمز OTP</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="أدخل رمز التحقق"></div><button class="btn btn-primary" id="verify">تحقق ودخول</button><button class="text-btn" id="back-auth">تغيير البريد الإلكتروني</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
+:`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>MANTIQATIX</span></div><div class="gradient-line"></div><h1>دخول / إنشاء حساب</h1><p>استخدم بريدك الإلكتروني للحصول على رمز تحقق لمرة واحدة. لا نستخدم كلمة مرور في مسار الإنتاج.</p><div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">إرسال رمز الدخول</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
+if(otpMode){document.getElementById('verify').onclick=()=>verifyOtp(emailValue);document.getElementById('back-auth').onclick=()=>authView('',false,emailValue)}
+else document.getElementById('send-otp').onclick=sendOtp;
+}
+async function sendOtp(){
+const email=document.getElementById('email').value.trim().toLowerCase();
+if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
+const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+if(error)return authView(error.message);
+authView('',true,email);
+}
+async function verifyOtp(email){
+const token=document.getElementById('otp').value.trim();
+if(!token)return authView('أدخل رمز التحقق.',true,email);
+const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});
+if(error)return authView(error.message,true,email);
+user=data.user;renderApp();
+}
+async function logout(){await sb.auth.signOut();user=null;landingView()}
 function landingView(){
 document.getElementById('app').innerHTML=`<main class="landing">
 <header class="landing-nav"><div class="brand">${mark()}<span>MANTIQATIX</span></div><nav><a href="smm.html">خدمات SMM</a><a href="#services">الخدمات</a><a href="#sectors">المجالات</a><a href="#audiences">لمن؟</a><a href="#plans">الباقات</a><a href="#how">كيف تعمل</a><a href="#faq">الأسئلة</a></nav><button class="btn btn-primary login-open" id="open-login">تسجيل الدخول</button></header>
