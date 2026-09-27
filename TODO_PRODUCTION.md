@@ -4,7 +4,7 @@
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
 ## P0 — بوابة الإطلاق
-- [x] Baseline CI مستقر — آخر تحقق CI: run #110 ناجح، commit `d75e247929809cb444d08ea811f56e46793d8ad1`.
+- [🟡] Baseline CI — آخر تعديل تنفيذي: commit `5a4a46b79dd50623d79af77e2252fba544012aa5`; تحقق CI لهذا التعديل مطلوب قبل اعتباره VERIFIED.
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry. **NOT VERIFIED — requires external browser/auth test.**
 - [🟡] Authorization/RLS: 111/111 جدول RLS؛ تمت مراجعة سياسات المسارات الحرجة (orders/support/tickets/notifications/memberships/marketing)، وتم إصلاح `support_tickets_update_staff` لمنع تغيير `tenant_id` أثناء التحديث؛ بقي اختبار E2E بحسابات أدوار متعددة.
 - [🟢] مراجعة SECURITY DEFINER وEXECUTE: تمت مراجعة الوظائف العشر القابلة للاستدعاء من authenticated؛ كلها تحتوي تحقق هوية/ملكية/عضوية/نطاق مناسب حسب وظيفتها، ولا توجد وظائف مالية حساسة مكشوفة مباشرة.
@@ -164,7 +164,7 @@
 ## P1 — Release
 - [ ] Development → Testing → Staging → Production.
 - [ ] Release Candidate.
-- [🟢] CI success — run #109 succeeded for current commit `6728318cd68d0848d65973994629b13ea93ae885`.
+- [🟡] CI success — baseline السابق نجح، وأي commit أحدث يبقى PENDING حتى ينجح CI الخاص به.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
 - [ ] production smoke test.
@@ -251,3 +251,9 @@
 - SECURITY REVIEW: 6 RLS-enabled public tables currently have no policies; this is deny-by-default but still requires explicit review.
 - SECURITY REVIEW: Advisor ما زال يعرض تحذير SECURITY DEFINER للوظائف التشغيلية المقصودة؛ تمت مراجعة الوظائف العشر، ويظل الاختبار الوظيفي/العدائي للـRPCs ضمن E2E.
 - SECURITY REVIEW: Advisor ما زال يعرض تحذيرات Anonymous Access Policies؛ لا يتم تعديلها جماعيًا قبل تحديد ما هو مقصود كقراءة عامة وما هو مقصود للمستخدم الموثق.
+
+
+## Latest build checkpoint — 2026-09-27
+- [x] Runtime brand alignment: واجهات التطبيق الداخلية ومسار الدخول أصبحت تعرض `MNTY` كهوية العميل، مع بقاء `MantiqatiX` كهوية الاسم الكامل/الأصل.
+- [🟡] CI verification pending for commit `5a4a46b79dd50623d79af77e2252fba544012aa5`.
+- [ ] بعد نجاح CI: استكمال P0/P1 من أول عنصر غير VERIFIED، مع عدم اعتبار أي وظيفة مكتملة قبل اختبارها في سياقها.
