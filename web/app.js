@@ -111,20 +111,35 @@ function roleContextLabel(m){
  return parts.join(' · ');
 }
 async function switchMembership(membershipId){
- if(!membershipId||!live.memberships.some(m=>m.id===membershipId))return;
+ const target=live.memberships.find(m=>m.id===membershipId);
+ if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
  if(membershipId===live.activeMembershipId)return;
- window.MNTYActiveMembershipId=membershipId;localStorage.setItem('MNTYActiveMembershipId',membershipId);
+ window.MNTYActiveMembershipId=membershipId;
+ localStorage.setItem('MNTYActiveMembershipId',membershipId);
  live.activeMembershipId=membershipId;
+ live.role=String(target.role||'CUSTOMER').toUpperCase();
+ live.businessId=target.business_id||null;
+ live.tenantId=target.tenant_id||null;
+ live.organizationId=target.organization_id||null;
+ live.branchId=target.branch_id||null;
+ live.permissions=target.permissions||{};
  current='الرئيسية';
  query='';
  await renderApp();
- showToast('تم التبديل إلى: '+roleContextLabel(live.memberships.find(m=>m.id===membershipId)),'success');
+ showToast('تم التبديل إلى: '+roleContextLabel(target),'success');
+}
+function switchToCustomerRole(){
+ const customer=live.memberships.find(m=>String(m.role||'').toUpperCase()==='CUSTOMER'&&m.status==='ACTIVE');
+ if(!customer)return showToast('لا توجد عضوية عميل نشطة لهذا الحساب.','error');
+ return switchMembership(customer.id);
 }
 function roleSwitcher(){
  if(!live.memberships.length)return '';
  const active=live.memberships.find(m=>m.id===live.activeMembershipId)||live.memberships[0];
  const options=live.memberships.map(m=>'<option value="'+esc(m.id)+'" '+(m.id===active?.id?'selected':'')+'>'+esc(roleContextLabel(m))+'</option>').join('');
- return '<label class="role-switcher"><span>الوضع الحالي</span><select id="mx-role-switcher" aria-label="التبديل بين الأدوار">'+options+'</select></label>';
+ const customer=live.memberships.find(m=>String(m.role||'').toUpperCase()==='CUSTOMER'&&m.status==='ACTIVE');
+ const customerButton=customer&&customer.id!==active?.id?'<button type="button" class="btn btn-outline role-customer-return" id="mx-customer-return" title="الرجوع إلى وضع العميل">👤 وضع العميل</button>':'';
+ return '<div class="role-switcher-wrap"><label class="role-switcher"><span>الوضع الحالي</span><select id="mx-role-switcher" aria-label="التبديل بين الأدوار">'+options+'</select></label>'+customerButton+'</div>';
 }
 async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
