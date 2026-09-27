@@ -167,7 +167,7 @@
 - [🟢] CI success — run #114 نجح للـcommit الحالي `d58e1360a170bce596494b2aeb37b5166fff6a5b`.
 - [ ] release notes/version/tag.
 - [ ] rollback rehearsal.
-- [🟡] production smoke test — CI تحقّق من تحميل الموقع المنشور فقط؛ اختبار المتصفح/التفاعل الكامل ما زال مطلوبًا.
+- [🟡] production smoke test — CI تحقق من النشر وتحميل الموقع؛ اختبار المتصفح/التفاعل الكامل ما زال مطلوبًا.
 - [ ] post-release monitoring.
 - [ ] Baseline جديد بعد تحقق فعلي فقط.
 
