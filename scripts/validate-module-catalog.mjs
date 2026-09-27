@@ -26,11 +26,14 @@ for(const [key,name] of expected){
     missing.push(key+" / "+name);
   }
 }
-const domainBlock=source.match(/const domainModules=\[([\\s\\S]*?)\];/);
-if(!domainBlock) missing.push("domainModules catalog");
+if(!source.includes("const domainModules=[")) missing.push("domainModules catalog");
+const keyMatches=source.match(/key:'[A-Z0-9_]+'/g)||[];
+const uniqueKeys=new Set(keyMatches);
+if(expected.some(([key])=>!uniqueKeys.has("key:'"+key+"'"))) missing.push("one or more domain module keys");
+
 if(missing.length){
   console.error("Module catalog validation failed:");
-  for(const item of missing) console.error("- "+item);
+  for(const item of [...new Set(missing)]) console.error("- "+item);
   process.exit(1);
 }
 console.log("Module catalog validation passed: 16/16 documented domain modules present.");
