@@ -1,0 +1,171 @@
+# Production Migration Manifest — RC42
+
+Generated from the live Supabase migration history and the tracked GitHub migration tree.
+
+## Production
+Project: `moyhiluyhjsujhwlyeuu`
+Live migration records: **150**
+
+## GitHub
+Tracked migration files: **7**
+
+## Important
+The live database contains migrations that are not currently represented as SQL files in GitHub. This manifest deliberately records the drift without reconstructing SQL from names alone.
+
+### Live migrations not represented by the tracked migration tree
+- `20260808000000_phase04_enterprise_schema_and_rls`
+- `20260808000001_phase05_sync_engine`
+- `20260808000002_phase06_financial_core_hardening`
+- `20260906190900_phase11_payment_intents`
+- `20260906191100_phase11b_harden_payment_intents`
+- `20260910130000_phase12e_corrective_atomic_cash_confirm`
+- `20260910140000_phase13_tenant_payment_methods`
+- `20260910150000_phase14a_payment_architecture_refactor`
+- `20260910160000_phase14a1_cash_rpc_payment_method_alignment`
+- `20260912170000_phase04_reconciliation`
+- `20260912180000_phase14b_payment_rls_grants_hardening`
+- `20260912190000_phase14a2_cash_rpc_type_alignment`
+- `20260919233425_production_security_hardening_v1`
+- `20260919233450_production_security_hardening_v2`
+- `20260919233455_production_block_anonymous_users_v1`
+- `20260920003116_phase27_auth_platform_continuity_hardening`
+- `20260920011110_phase28_mantiqatix_brand_identity`
+- `20260920013928_phase28b_mantiqatix_brand_identity_update`
+- `20260920071316_phase28_financial_backend_authority`
+- `20260920071808_20260920130000_phase3_wallet_backend_authority`
+- `20260920071851_20260920133000_phase3_commission_backend_authority`
+- `20260920072107_20260920140000_phase3_refund_backend_authority`
+- `20260920072143_20260920141000_phase3_refund_wallet_atomic_fix`
+- `20260920072158_20260920142000_phase3_commission_rule_authority`
+- `20260920072213_20260920143000_phase3_commission_rule_enforcement`
+- `20260920072522_phase4_communications_support_feature_flags_v2`
+- `20260920073255_phase4_audit_and_notification_authority`
+- `20260920074341_phase4_feature_flag_and_support_status_authority`
+- `20260920085437_production_security_hardening_v3`
+- `20260920090217_production_marketplace_real_data_v1`
+- `20260920090828_production_indrive_bidding_real_data_v1`
+- `20260920091119_production_education_matrimony_real_data_v1`
+- `20260920091734_production_fashion_tailors_real_data_v1`
+- `20260920091922_production_fashion_erp_real_data_v1`
+- `20260920092005_production_restaurant_menu_real_data_v1`
+- `20260920092245_production_restaurant_orders_tables_inventory_v1`
+- `20260920092724_production_settlement_persistence_v1`
+- `20260920093101_production_mantigo_real_data_v1`
+- `20260920095706_production_security_definer_execute_lockdown_v4`
+- `20260920112742_harden_identity_rls_against_anonymous_sessions`
+- `20260920112849_global_authenticated_anonymous_boundary_and_admin_function_hardening`
+- `20260920120235_real_settlement_obligations_and_payout_destinations`
+- `20260920155456_harden_credit_status_authorization`
+- `20260920211525_production_business_deactivation_and_payment_intent_hardening`
+- `20260920211717_security_definer_surface_reduction_and_finance_rls`
+- `20260920211732_revoke_exposed_backend_rpc_execute`
+- `20260920223002_add_personal_referral_qr_system`
+- `20260920223109_extend_referral_qr_to_service_profiles`
+- `20260921025705_phase_1_1_canonical_catalog_pricing_authority`
+- `20260921025804_phase_1_1_catalog_admin_functions`
+- `20260921030321_phase_1_2_payment_pricing_binding`
+- `20260921030535_phase_1_3_order_payment_state_machine_hardening`
+- `20260921030546_phase_1_3_cash_payment_state_binding`
+- `20260921033101_phase_1_8_targeted_fk_indexes`
+- `20260921034303_phase_1_9_complete_anonymous_boundary_financial`
+- `20260921035003_phase_2_0_financial_anon_privilege_hardening`
+- `20260921035103_phase_2_1_revoke_anon_write_privileges_public`
+- `20260921035155_phase_2_2_restrict_sensitive_authenticated_writes`
+- `20260921035250_phase_2_3_force_rls_financial_audit_support`
+- `20260921035325_phase_2_4_critical_fk_indexes_v2`
+- `20260921092106_phase17_atomic_settlement_financial_authority`
+- `20260921092131_phase17_atomic_settlement_anonymous_guard`
+- `20260921092144_phase18_sensitive_finance_anonymous_boundary`
+- `20260921092150_phase19_remove_verified_duplicate_indexes`
+- `20260921110130_phase_27_profile_project_visual_identity`
+- `20260921110313_phase_28_secure_media_storage`
+- `20260921111157_phase_29_atomic_settlement_service_role_boundary`
+- `20260921111310_phase_30_remove_legacy_atomic_settlement_rpc_signature`
+- `20260921114304_phase30_legal_agreements_engine`
+- `20260921114319_phase30_legal_publish_and_gates`
+- `20260921114713_phase30_legal_business_gate`
+- `20260921114719_phase30_legal_commission_referral_gates`
+- `20260921114727_phase30_legal_audit_bridge`
+- `20260921114819_phase30_legal_cms_grants`
+- `20260921114827_phase30_legal_auto_enforcement`
+- `20260921114906_phase30_legal_consent_backend`
+- `20260921114950_phase30_legal_function_acl_hardening`
+- `20260921115022_phase30_legal_advisor_hardening`
+- `20260921115043_phase30_legal_function_search_path`
+- `20260921141517_phase30_legal_private_rbac_helper`
+- `20260921141524_phase30_legal_assert_private_admin`
+- `20260921141547_phase30_legal_rpc_edge_only`
+- `20260921141641_phase30_legal_edge_actor_hardening`
+- `20260921141809_phase30_legal_assert_explicit_admin`
+- `20260921152539_phase30_1_legal_cms_hardening`
+- `20260921152646_phase30_2_legal_anonymous_boundary`
+- `20260921205038_phase41_lockdown_payment_client_writes`
+- `20260921205608_phase36_subscription_canonical_authority`
+- `20260921211423_phase_357_subscription_rls_hardening`
+- `20260921211617_phase_358_non_anonymous_sensitive_rls`
+- `20260921223349_phase_362_subscription_payments`
+- `20260921223417_phase_362_payment_provider_order_correlation`
+- `20260921224322_phase363_payment_financial_reconciliation`
+- `20260922160100_phase364_anonymous_authenticated_guard`
+- `20260923162559_phase327_harden_atomic_settlement_search_path`
+- `20260923194640_phase328_revoke_public_reverse_journal_execute`
+- `20260924130434_phase_3_36_global_non_anonymous_rls_boundary`
+- `20260924132631_phase_3_37_storage_public_media_path_boundary`
+- `20260924153852_phase_3_41_legacy_module_idempotency`
+- `20260924153901_phase_3_41_restaurant_mutation_rpc`
+- `20260924153921_phase_3_41_restaurant_mutation_rpc_completion`
+- `20260924153935_phase_3_41_fashion_mutation_rpc`
+- `20260924153948_phase_3_41_revoke_legacy_sector_direct_writes`
+- `20260924155033_phase_3_42_restaurant_tables_server_authority`
+- `20260924161001_phase_3_43_legacy_tenant_branch_columns`
+- `20260924161040_phase_3_43_legacy_scope_enforcement`
+- `20260924162612_phase_3_46_auth_security_closure`
+- `20260924163938_phase_3_49_storage_policy_ownership_hardening`
+- `20260924165707_phase_3_54_anonymous_session_boundary_closure`
+- `20260924165733_phase_3_54_anonymous_boundary_cleanup`
+- `20260924210114_phase_3_55_revoke_exposed_legacy_erp_rpc_execute`
+- `20260924211708_phase_3_56_anon_privilege_lockdown`
+- `20260924221741_maintenance_request_simple_flow_v1`
+- `20260924221938_maintenance_provider_request_visibility_fix_v1`
+- `20260924224046_indrive_bid_acceptance_atomicity_v1`
+- `20260924230603_harden_indrive_server_state_transitions`
+- `20260924230659_fix_indrive_rls_recursion_with_private_helpers`
+- `20260924230730_move_indrive_bid_security_definers_to_private_schema`
+- `20260925010851_mantigo_server_authority_mutations_v2`
+- `20260925011128_storage_remove_legacy_anon_media_read`
+- `20260925134831_mantigo_server_authoritative_state_v1`
+- `20260925135339_mantigo_server_authoritative_create_v1`
+- `20260926213901_erp_inventory_transfer_authority_v1`
+- `20260926214420_erp_stock_transfer_authority_v1`
+- `20260926214429_erp_stock_transfer_authority_cleanup_v2`
+- `20260926214633_erp_warehouse_opening_stock_authority_v1`
+- `20260926215401_erp_purchase_receipts_table_v1`
+- `20260926215717_erp_purchase_receipts_table_v2`
+- `20260926215725_erp_purchase_receiving_function_v2`
+- `20260926220351_erp_purchase_order_authority_v1`
+- `20260926220729_erp_purchase_order_authority_v1`
+- `20260926220746_erp_purchase_order_submit_approval_v2`
+- `20260927020456_phase_3_57_receive_purchase_rpc_anon_lockdown`
+- `20260927021510_phase_3_58_fix_erp_catalog_item_reference`
+- `20260927033925_harden_smm_bootstrap_trigger_execute_privilege`
+- `20260927054629_support_ticket_status_workflow_constraint`
+- `20260927065218_mnty_platform_admin_authority`
+- `20260927065247_mnty_atomic_registration_review`
+- `20260927065347_mnty_platform_bootstrap_authority`
+- `20260927071154_harden_payment_reconciliation_read_scope`
+- `20260927074210_harden_smm_table_api_privileges`
+- `20260927131555_bootstrap_mnty_owner_islam_nagy_v2`
+- `20260927132359_lock_membership_client_mutations`
+- `20260927132406_lock_registration_direct_updates`
+- `20260927132904_restore_marketing_catalog_grants_and_owner_profile_access`
+- `20260927133148_restore_feature_flags_authenticated_read`
+- `20260927134228_add_unique_pending_membership_request`
+- `20260927135741_owner_role_switch_memberships`
+- `20260927140200_lock_platform_admins_rls`
+- `20260927140545_remove_anonymous_sensitive_policy_access_v2`
+
+## Release rule
+Do not regenerate or re-apply these migrations from names. Their SQL must be recovered from the authoritative source/history before migration convergence is attempted.
+
+## Security
+No production schema was changed while generating this manifest.
