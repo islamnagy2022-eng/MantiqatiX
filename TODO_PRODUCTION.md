@@ -6,13 +6,13 @@
 ## P0 — بوابة الإطلاق
 - [x] Baseline CI مستقر — commit `8306cb5de0803a124733effdcaa9a9f8edce1b4d`, CI run #74 ناجح.
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry.
-- [🟡] Authorization/RLS: جميع الجداول العامة لديها RLS (111/111)، لكن مراجعة سياسات كل جدول ومسارات التعديل ما زالت مفتوحة.
+- [🟡] Authorization/RLS: 111/111 جدول RLS؛ تمت مراجعة سياسات المسارات الحرجة (orders/support/tickets/notifications/memberships/marketing)، والسياسات العامة للحدود مصنفة RESTRICTIVE؛ بقي اختبار E2E بحسابات أدوار متعددة.
 - [🟢] مراجعة SECURITY DEFINER وEXECUTE: تمت مراجعة الوظائف العشر القابلة للاستدعاء من authenticated؛ كلها تحتوي تحقق هوية/ملكية/عضوية/نطاق مناسب حسب وظيفتها، ولا توجد وظائف مالية حساسة مكشوفة مباشرة.
 - [🟡] Data API grants: تم التحقق من الامتيازات؛ anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط، وauthenticated لديه امتيازات على مجموعة محددة؛ يلزم إغلاق المراجعة حسب كل مسار.
-- [🔴] Database constraints/indexes/integrity — لم يُغلق التحقق الشامل بعد.
+- [🟡] Database constraints/indexes/integrity: 111/111 لها Primary Key و224 Foreign Keys؛ توجد 155 أعمدة FK بلا index أحادي مطابق وتحتاج مراجعة أداء حسب الاستخدام.
 - [ ] API/Edge Functions/integrations.
 - [ ] Website/Admin/Owner/Manager/Employee/Customer E2E.
-- [ ] Finance E2E.
+- [🟡] Finance backend controls inspected (payment/refund/settlement/order pricing/idempotency); actual provider/payment E2E remains NOT VERIFIED.
 - [ ] CRM + Marketing E2E.
 - [ ] Regression كامل.
 - [ ] Backup/Restore/DR test.
