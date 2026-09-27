@@ -163,8 +163,11 @@ document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Ente
 }
 async function sendOtp(existingEmail=''){
 const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
-if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
+if(!/^\S+@\S+\.\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
 const button=document.getElementById('send-otp')||document.getElementById('resend-otp');if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
+if(authIntent==='register'){
+ try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,createdAt:Date.now()}))}catch(_){}
+}
 const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
 if(error)return authView('تعذر إرسال رمز الدخول: '+error.message,!!existingEmail,email);
 authView('',true,email);
@@ -176,7 +179,13 @@ const button=document.getElementById('verify');if(button){button.disabled=true;b
 const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});
 if(error)return authView('تعذر التحقق من الرمز: '+error.message,true,email);
 if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
-user=data.user;if(authIntent==='register'){await submitRegistrationRequest();return;}await enterAuthenticatedApp(data.user);
+user=data.user;
+if(authIntent==='register'){
+ try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+ await submitRegistrationRequest();
+ return;
+}
+await enterAuthenticatedApp(data.user);
 }
 async function logout(){const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;localStorage.removeItem('MNTYActiveMembershipId');live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};window.MXHomeLanding?MXHomeLanding():landingView()}
 function setupInstallPrompt(){
@@ -416,7 +425,15 @@ user=authUser;
 window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:false};
 if(authRenderLock)return;
 authRenderLock=true;
-try{await renderApp()}finally{authRenderLock=false}
+try{
+ await renderApp();
+ let pending=null;
+ try{pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null')}catch(_){}
+ if(pending&&String(pending.email||'').toLowerCase()===String(authUser.email||'').toLowerCase()&&['CUSTOMER','SERVICE_PROVIDER'].includes(String(pending.role||'').toUpperCase())){
+   try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+   await submitRegistrationRequest(String(pending.role).toUpperCase());
+ }
+}finally{authRenderLock=false}
 }
 async function bootAuth(){
 if(authBooted)return;authBooted=true;
