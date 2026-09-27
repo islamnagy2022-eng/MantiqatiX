@@ -11,7 +11,32 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Syntax check
+        run: |
+          node --check web/app.js
+          node --check web/smm.js
+      - name: Required web files
+        run: |
+          test -f web/index.html
+          test -f web/config.js
+          test -f web/styles.css
+          test -f web/app.js
+          test -f web/smm.html
+          test -f web/smm.js
+          test -f web/manifest.webmanifest
+          test -f web/sw.js
+
   deploy:
+    needs: validate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
