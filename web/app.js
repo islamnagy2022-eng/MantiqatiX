@@ -275,9 +275,11 @@ async function installApp(){if(!deferredInstallPrompt)return;deferredInstallProm
 function landingView(){
 document.getElementById('app').innerHTML=`<main class="landing">
 <header class="landing-nav"><div class="brand">${mark()}<span>Mantiqati X</span></div><nav><a href="smm.html">خدمات SMM</a><a href="#services">الخدمات</a><a href="#sectors">المجالات</a><a href="#audiences">لمن؟</a><a href="#plans">الباقات</a><a href="#how">كيف تعمل</a><a href="#faq">الأسئلة</a></nav><div style="display:flex;gap:8px;align-items:center"><button class="btn btn-outline" id="install-app" hidden>📲 تثبيت الموقع</button><button class="btn btn-outline" id="open-register">تسجيل مستخدم جديد</button><button class="btn btn-primary login-open" id="open-login">تسجيل الدخول</button></div></header>
-<aside class="mx-cover-ad mx-cover-ad--right" data-cover-ad-slot="0" aria-label="إعلان ممول يمين"></aside>
-<aside class="mx-cover-ad mx-cover-ad--left" data-cover-ad-slot="1" aria-label="إعلان ممول يسار"></aside>
+<aside class="mx-cover-ad mx-cover-ad--right" data-cover-ad-slot="0" aria-label="إعلان ممول عائم يمين"></aside>
 <section class="landing-hero"><div class="hero-copy"><span class="eyebrow">Mantiqati X</span><h1>منصة واحدة تربطك <span>بالخدمات والفرص المناسبة</span></h1><p>منصة تسويق وربط تجمع العملاء بمقدمي الخدمات، وتمنح كل مجال نظامًا مستقلًا للباقات والطلبات والترشيحات والعمولات.</p><div class="hero-actions"><button class="btn btn-primary" id="start">استكشف المجالات</button><button class="btn btn-outline" id="provider">انضم كمقدم خدمة</button></div><div class="trust-row"><span>✓ مجالات متعددة</span><span>✓ باقات مرنة</span><span>✓ ترشيحات حسب المجال</span></div></div><div class="landing-panel"><div class="panel-top"><b>لوحة MantiqatiX</b><span>● جاهزة للتوسع</span></div><div class="panel-stat"><small>مجالات رئيسية</small><strong>${sectors.length}</strong></div><div class="panel-grid"><div>🩺<b>أطباء</b></div><div>💊<b>صيدليات</b></div><div>🧪<b>تحاليل وأشعة</b></div><div>🏥<b>مستشفيات</b></div><div>🍽️<b>مطاعم</b></div><div>💼<b>أعمال</b></div></div></div></section>
+<section class="mx-cover-stage" aria-label="الإعلانات الممولة">
+<aside class="mx-cover-ad mx-cover-ad--wide" data-cover-ad-slot="1" aria-label="إعلان ممول بعرض الصفحة"></aside>
+</section>
 <section class="landing-section" id="services"><div class="section-head"><div><h2>ماذا تقدم MantiqatiX؟</h2><p>منظومة تسويقية وربط للخدمات قابلة للتوسع حسب طبيعة كل نشاط.</p></div></div><div class="feature-grid"><article><span class="feature-icon">🔗</span><b>ربط مباشر</b><p>نساعد العميل على اكتشاف مقدم الخدمة المناسب، بينما تتم المعاملة المالية مباشرة بين الطرفين.</p></article><article><span class="feature-icon">💳</span><b>نماذج ربح مرنة</b><p>نظام مجاني، عمولة على العمليات المؤهلة، وباقات احترافية تختلف حسب قوة وطبيعة كل مجال.</p></article><article><span class="feature-icon">📣</span><b>تسويق وإعلان</b><p>نظام تسويق للشركة نفسها، مع إمكانية الاستفادة من شركات التسويق والشركاء ومصادر العملاء.</p></article><article><span class="feature-icon">🎯</span><b>ترشيحات مناسبة</b><p>عرض مقدمي الخدمات وفق المجال والتخصص وطريقة الاستفادة من الخدمة.</p></article><article><span class="feature-icon">📊</span><b>تقارير ومؤشرات</b><p>متابعة الطلبات، النشاط، العمولات، الباقات، ومصادر العملاء من لوحة موحدة.</p></article><article><span class="feature-icon">🧩</span><b>موديولات مستقلة</b><p>يمكن تشغيل الموديولات وإتاحتها حسب المجال والاشتراك والصلاحيات دون التأثير على باقي النظام.</p></article></div></section>
 <section class="landing-section soft" id="sectors"><div class="section-head"><div><h2>مجالات المنصة</h2><p>كل مجال له خدمات ومسارات عمل وباقات مناسبة لطبيعته.</p></div><button class="section-link" id="all-sectors">عرض كل المجالات</button></div><div class="sector-grid">${sectors.map(s=>`<article class="sector-card"><div class="sector-icon">${s[0]}</div><h3>${s[1]}</h3><p>${s[2]}</p><button>استكشف المجال ←</button></article>`).join('')}</div></section>
 <section class="landing-section" id="audiences"><div class="section-head"><div><h2>مصمم لكل طرف</h2><p>تجربة مختلفة حسب دور المستخدم داخل المنصة.</p></div></div><div class="audience-grid"><article><span>👤</span><h3>العميل</h3><p>اكتشاف الخدمات، مقارنة الخيارات، إرسال الطلبات والوصول لمقدم الخدمة المناسب.</p></article><article><span>🏢</span><h3>مقدم الخدمة</h3><p>ملف مهني، باقات، خدمات، استقبال العملاء والطلبات، وفرص تسويقية.</p></article><article><span>📣</span><h3>شركة التسويق</h3><p>مصادر عملاء وحملات وشراكات وتسويق للخدمات وفق نظام المنصة.</p></article><article><span>🤝</span><h3>الشريك</h3><p>مسارات شراكة وإحالة واستفادة من شبكة الخدمات والفرص المتاحة.</p></article></div></section>
@@ -292,15 +294,39 @@ const mountLandingCoverAds=async()=>{
  const slots=[...document.querySelectorAll('[data-cover-ad-slot]')]; if(!slots.length)return;
  const safeUrl=u=>{try{const x=new URL(String(u||''),location.href);return ['http:','https:'].includes(x.protocol)?x.href:''}catch(_){return ''}};
  const escAttr=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- const render=(el,ad)=>{if(!ad){el.hidden=true;return} const href=safeUrl(ad.target_url); const img=safeUrl(ad.creative_url);
-   el.hidden=false; el.innerHTML='<div class="mx-cover-ad__cloud"><div class="mx-cover-ad__media">'+(img?'<img src="'+escAttr(img)+'" alt="'+escAttr(ad.title||'إعلان ممول')+'" loading="eager">':'<span>MNTY</span>')+'</div><div class="mx-cover-ad__body"><span class="mx-cover-ad__badge">ممول</span><strong>'+String(ad.title||'إعلان ممول').replace(/[<>]/g,'')+'</strong></div></div>'+(href?'<a class="mx-cover-ad__link" href="'+escAttr(href)+'" target="_blank" rel="noopener noreferrer" aria-label="فتح الإعلان"></a>':'');
+ let rightClosed=false;
+ try{rightClosed=sessionStorage.getItem('MNTYRightCoverClosed')==='1'}catch(_){}
+ const render=(el,ad)=>{
+   if(!ad){el.hidden=true;return}
+   if(el.classList.contains('mx-cover-ad--right')&&rightClosed){el.hidden=true;return}
+   const href=safeUrl(ad.target_url);
+   const img=safeUrl(ad.creative_url);
+   const title=String(ad.title||'إعلان ممول').replace(/[<>]/g,'');
+   const wide=el.classList.contains('mx-cover-ad--wide');
+   el.hidden=false;
+   el.innerHTML=wide
+     ? '<div class="mx-cover-ad__wide-frame">'+(img?'<img src="'+escAttr(img)+'" alt="'+escAttr(title)+'" loading="eager">':'<span class="mx-cover-ad__fallback">MNTY</span>')+'<span class="mx-cover-ad__badge">ممول</span>'+(href?'<a class="mx-cover-ad__link" href="'+escAttr(href)+'" target="_blank" rel="noopener noreferrer" aria-label="فتح الإعلان"></a>':'')+'</div>'
+     : '<div class="mx-cover-ad__cloud">'+(img?'<img class="mx-cover-ad__float-media" src="'+escAttr(img)+'" alt="'+escAttr(title)+'" loading="eager">':'<span class="mx-cover-ad__float-fallback">MNTY</span>')+'<div class="mx-cover-ad__float-body"><span class="mx-cover-ad__badge">ممول</span><strong>'+title+'</strong></div></div>'+(href?'<a class="mx-cover-ad__link" href="'+escAttr(href)+'" target="_blank" rel="noopener noreferrer" aria-label="فتح الإعلان"></a>':'')+'<button type="button" class="mx-cover-ad__close" aria-label="إغلاق الإعلان">×</button>';
+   if(!wide){
+     const close=el.querySelector('.mx-cover-ad__close');
+     close?.addEventListener('click',event=>{
+       event.preventDefault();event.stopPropagation();rightClosed=true;el.hidden=true;
+       try{sessionStorage.setItem('MNTYRightCoverClosed','1')}catch(_){}
+     },{once:true});
+   }
  };
  try{
    const coords=window.MNTYLocationAdapter?.state?.coords||null;
    const {data,error}=await sb.rpc('get_mnty_targeted_advertisements',{p_country_code:'EG',p_governorate_code:null,p_center_code:null,p_lat:coords?.latitude??null,p_lon:coords?.longitude??null,p_ad_space_id:'HOME_SPONSORED',p_limit:3});
-   if(error)throw error; const ads=(data||[]).filter(x=>x&&x.advertisement_id);
+   if(error)throw error;
+   const ads=(data||[]).filter(x=>x&&x.advertisement_id);
    if(!ads.length){slots.forEach(x=>x.hidden=true);return}
-   let tick=0; const paint=()=>{slots.forEach((slot,n)=>render(slot,ads[(tick+n)%ads.length]));tick=(tick+1)%ads.length}; paint();
+   let tick=0;
+   const paint=()=>{
+     slots.forEach((slot,n)=>render(slot,ads[(tick+n)%ads.length]));
+     tick=(tick+1)%ads.length;
+   };
+   paint();
    if(ads.length>1)window.setInterval(paint,6000);
  }catch(error){console.warn('[MNTY cover ads] unavailable',error);slots.forEach(x=>x.hidden=true)}
 };
