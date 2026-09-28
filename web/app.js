@@ -298,7 +298,7 @@ const mountLandingCoverAds=async()=>{
  const right=slots.find(x=>x.classList.contains('mx-cover-ad--right'));
  if(wide){
    wide.hidden=false;
-   wide.innerHTML='<div class="mx-cover-ad__wide-frame mx-cover-ad__booking-frame"><img src="assets/mnty-ad-space-booking-banner.svg" alt="احجز مساحة إعلانية الآن" loading="eager"><span class="mx-cover-ad__badge">مساحة إعلانية</span><button type="button" class="mx-cover-ad__booking-cta" aria-label="احجز مساحة إعلانية الآن"></button></div>';
+   wide.innerHTML='<div class="mx-cover-ad__wide-frame mx-cover-ad__booking-frame"><img src="assets/mnty-ad-space-booking-banner.svg?v=mnty35" alt="احجز مساحة إعلانية الآن" loading="eager"><span class="mx-cover-ad__badge">مساحة إعلانية</span><button type="button" class="mx-cover-ad__booking-cta" aria-label="احجز مساحة إعلانية الآن"></button></div>';
    wide.querySelector('.mx-cover-ad__booking-cta')?.addEventListener('click',()=>requestAdBooking('QUARTERLY'));
  }
  let rightClosed=false;
