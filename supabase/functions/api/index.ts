@@ -128,8 +128,15 @@ serve(async (req) => {
     if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
     if (String(body.clientIdempotencyKey).length > 200) return json({ error: "Invalid idempotency key" }, 400)
 
+    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
+      .select("id,tenant_id,status").eq("id", String(body.businessId)).single()
+    if (businessError || !business || String(business.status ?? "").toUpperCase() !== "ACTIVE")
+      return json({ error: "Business not available" }, 404)
+    const tenantId = String(business.tenant_id)
+    if (String(body.tenantId) !== tenantId) return json({ error: "Business tenant mismatch" }, 403)
+
     const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("id,role").eq("user_id", user.id).eq("tenant_id", String(body.tenantId)).eq("status", "ACTIVE")
+      .select("id,role").eq("user_id", user.id).eq("tenant_id", tenantId).eq("status", "ACTIVE")
       .limit(1).maybeSingle()
     if (!membership) {
       const { data: customerMembership } = await supabaseAdmin.from("user_memberships")
