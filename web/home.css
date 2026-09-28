@@ -141,3 +141,17 @@
   .mx-platform-notice{font-size:9px}
   .mx-platform-notices__timer{display:none}
 }
+
+
+/* Ad package cards are actionable */
+.mx-ad-cloud__plans{grid-column:2;grid-row:1;align-self:center;z-index:8}
+.mx-ad-plan{appearance:none;text-align:right;cursor:pointer;font:inherit;color:inherit;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.mx-ad-plan:hover,.mx-ad-plan.is-selected{transform:translateY(-5px);border-color:#4f93e8;box-shadow:0 14px 32px rgba(37,99,235,.18)}
+.mx-ad-plan--featured{transform:translateY(-5px)}
+.mx-ad-plan--featured:hover,.mx-ad-plan--featured.is-selected{transform:translateY(-9px)}
+.mx-ad-cloud__content{grid-column:1;grid-row:1}
+.mx-ad-cloud__visual{width:58%}
+@media(max-width:900px){
+  .mx-ad-cloud__plans{grid-column:1;grid-row:2;align-self:start}
+  .mx-ad-cloud__content{grid-column:1;grid-row:1}
+}
