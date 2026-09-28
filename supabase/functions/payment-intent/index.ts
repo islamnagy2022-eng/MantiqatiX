@@ -10,12 +10,25 @@ const PAYMOB_CALLBACK_URL = Deno.env.get("PAYMOB_CALLBACK_URL") ?? `${SUPABASE_U
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false, autoRefreshToken: false } });
 
+const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": allowedOrigin,
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
+};
 const json = (body: unknown, status = 200, requestId?: string) => new Response(JSON.stringify(body), {
-  status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...(requestId ? { "X-Request-Id": requestId } : {}) }
+  status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", ...(requestId ? { "X-Request-Id": requestId } : {}) }
 });
 
 Deno.serve(async (req) => {
   const requestId = crypto.randomUUID();
+  const origin = req.headers.get("Origin");
+  if (req.method === "OPTIONS") {
+    if (origin && origin !== allowedOrigin) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403, requestId);
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
+  if (origin && origin !== allowedOrigin) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403, requestId);
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, requestId);
 
   const auth = req.headers.get("Authorization");
