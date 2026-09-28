@@ -476,3 +476,9 @@
 - Activated applicant submission from existing `jobs` records into `job_applications`.
 - Existing self-scoped RLS remains the authorization boundary; no parallel schema added.
 - OPEN: browser E2E, employer/applicant isolation, review lifecycle, notifications, CI/release verification.
+
+
+## RC175 — Jobs Module Activation — 2026-09-28
+- Activated authenticated customer job application journey using existing `job_applications` table.
+- No parallel schema or fake records introduced.
+- OPEN: browser E2E, applicant/employer isolation, employer review lifecycle, notifications, attachments/CV storage, CI and release gate.
