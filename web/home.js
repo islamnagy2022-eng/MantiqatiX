@@ -98,6 +98,7 @@
             <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
           </label>
           <button class="mx-header__login" id="mx-login" type="button">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
+          ${window.MNTYAuthState?.authenticated&&window.MNTYAdminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
             <a href="#mx-about">عن المنصة</a><a href="#mx-categories">التصنيفات</a>
@@ -233,6 +234,12 @@
     const openAccount=()=>window.MNTYAuthState?.authenticated&&typeof openPlatform==='function'?openPlatform():goLogin();
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('mx-login').onclick=openAccount;
+    document.getElementById('mx-admin-return')?.addEventListener('click',async()=>{
+      const id=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId');
+      if(!id||typeof switchMembership!=='function')return;
+      localStorage.removeItem('MNTYAdminReturnMembershipId');window.MNTYAdminReturnMembershipId=null;
+      await switchMembership(id);
+    });
     document.getElementById('mx-add').onclick=goLogin;
     document.getElementById('mx-bottom-account').onclick=openAccount;
     document.getElementById('mx-bottom-add').onclick=goLogin;
