@@ -53,7 +53,8 @@ Deno.serve(async (req) => {
     .eq("id", orderId).single();
   if (orderError || !order) return json({ error: "Order not found" }, 404, requestId);
 
-  if (String(order.status ?? "").toUpperCase() === "CANCELLED") return json({ error: "Order is cancelled" }, 409, requestId);
+  const orderStatus = String(order.status ?? "").toUpperCase();
+  if (!["PENDING","CREATED"].includes(orderStatus)) return json({ error: "Order is not payable in its current state" }, 409, requestId);
   if (!order.pricing_hash || order.pricing_version == null || !order.pricing_authority) return json({ error: "Order pricing snapshot is unavailable" }, 409, requestId);
 
   if (order.customer_id && order.customer_id !== user.id) {
