@@ -647,3 +647,11 @@
 - Security Advisor remains OPEN; no broad policies were added merely to silence lints.
 - RC201 remains OPEN.
 
+
+
+### RC201 build verification update — 2026-09-28
+- RC40 static gates remain PASS.
+- Local Android Gradle execution was attempted against the uploaded RC40 source.
+- Gradle 9.3.1 could not be downloaded because this execution environment has no external network access and no cached Gradle distribution.
+- Result: **Android build/tests NOT VERIFIED**; no APK/AAB or signing evidence was produced.
+- This is an environment blocker, not evidence of a source compilation failure.
