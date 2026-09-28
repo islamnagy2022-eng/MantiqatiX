@@ -666,3 +666,13 @@
 - Homepage now requests targeted sponsored ads using the existing on-demand location adapter; no continuous location tracking added.
 - Egypt country baseline and homepage ad spaces are seeded.
 - Remaining verification: populate/verify the authoritative Egypt governorate/center master data and execute a controlled non-production or authorized live fixture test for exact, multi-area, country-wide, and nearest-fallback cases. No synthetic production advertisements were created.
+
+
+## RC209 — Security Advisor Access-Path Reconciliation
+- Live Security Advisor access-path reconciliation completed on 2026-09-29.
+- The seven core backend-only RLS-no-policy tables were verified to have no direct anon/authenticated table grants.
+- Reviewed backend SECURITY DEFINER paths; client EXECUTE remains revoked for the backend-only ERP/SMM functions inspected.
+- No broad RLS policies were added merely to silence Advisor.
+- Additional no-policy findings for the geographic/global-ad tables are intentionally fail-closed behind sanitized delivery/admin RPCs and remain subject to workflow-specific verification.
+- Overall Security Advisor remains OPEN because leaked-password protection is still disabled and user-facing E2E evidence remains incomplete.
+- Detailed evidence: docs/RC209_SECURITY_ADVISOR_ACCESS_PATH_RECONCILIATION.md
