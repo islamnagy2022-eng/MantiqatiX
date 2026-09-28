@@ -230,6 +230,8 @@
       </nav>
     </main>`;
 
+    document.querySelectorAll('[data-side-ad-book]').forEach(btn=>btn.addEventListener('click',()=>{try{localStorage.setItem('MNTYOpenAdBooking','1')}catch(_){};if(window.MNTYAuthState?.authenticated&&typeof window.selectModule==='function'){window.selectModule('التسويق والإعلان')}else if(typeof window.authView==='function'){window.authView('',false,'','login')}}));
+
     const categoryGrid=document.getElementById('mx-category-grid');
     const renderDynamicCategories=(services=[],providers=[])=>{
       const items=dynamicTaxonomy(services,providers);
