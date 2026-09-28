@@ -463,3 +463,10 @@
 - Restored `medical_appointments` with patient/provider scoped RLS and backend-authoritative booking/status functions.
 - Activated the existing web Medical module using real provider profiles + the restored appointment boundary; no fake medical providers or appointments were created.
 - OPEN: browser/mobile E2E, two-user booking isolation, notification delivery, payment/commission settlement, and Android Room/cloud synchronization.
+
+
+## RC174 — Education Module Activation — 2026-09-28
+- Reviewed RC40 `SchoolAndTeacherEngine` and customer education workspace before implementation.
+- Activated school enrollment and teacher lesson-request actions using existing `school_profiles`, `teacher_profiles`, and `education_requests` tables.
+- No parallel education schema and no fake education records introduced.
+- OPEN: browser E2E, provider/request isolation, approval lifecycle, notifications, payment/commission behavior.
