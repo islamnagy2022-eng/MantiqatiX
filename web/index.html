@@ -8,10 +8,17 @@
     return new Promise(function(resolve,reject){
       var el=document.createElement('script');
       var settled=false;
+      var timer=setTimeout(function(){
+        if(settled)return;
+        settled=true;
+        window.removeEventListener('error',onError,true);
+        reject(new Error('SCRIPT_TIMEOUT:'+src));
+      },12000);
       var onError=function(event){
         if(settled)return;
         if(event && event.filename && event.filename.indexOf(src.split('?')[0])===-1)return;
         settled=true;
+        clearTimeout(timer);
         window.removeEventListener('error',onError,true);
         reject(new Error('SCRIPT_RUNTIME_FAILED:'+src));
       };
@@ -19,12 +26,14 @@
       el.onload=function(){
         if(settled)return;
         settled=true;
+        clearTimeout(timer);
         window.removeEventListener('error',onError,true);
         resolve();
       };
       el.onerror=function(){
         if(settled)return;
         settled=true;
+        clearTimeout(timer);
         window.removeEventListener('error',onError,true);
         reject(new Error('LOAD_FAILED:'+src));
       };
@@ -45,6 +54,7 @@
         if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
       }catch(_){
         await load('https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js');
+        if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
       }
       await load('config.js?v=mnty29');
       await load('android-parity-catalog.js?v=mnty29');
