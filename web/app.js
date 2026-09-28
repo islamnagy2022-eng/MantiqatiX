@@ -486,10 +486,11 @@ async function updateOrderStatus(orderId,newStatus){
   await renderApp();
  }catch(e){showToast('تعذر تحديث حالة الطلب: '+(e?.message||'ORDER_STATUS_UPDATE_FAILED'),'error');}
 }
+const ORDER_ACTION_AR={CONFIRMED:'تأكيد الطلب',PREPARING:'بدء التجهيز',OUT_FOR_DELIVERY:'إرسال للتوصيل',DELIVERED:'تأكيد التسليم',CANCELLED:'إلغاء الطلب'};
 function orderActions(order){
  const actions=orderAllowedNextStatuses(order);
  if(!actions.length)return '<span class="muted">لا توجد إجراءات متاحة</span>';
- return actions.map(s=>'<button class="text-btn" onclick="updateOrderStatus(\''+esc(order.id)+'\',\''+s+'\')">'+esc(s)+'</button>').join(' ');
+ return actions.map(s=>'<button class="text-btn" onclick="updateOrderStatus(\''+esc(order.id)+'\',\''+s+'\')">'+esc(ORDER_ACTION_AR[s]||s)+'</button>').join(' ');
 }
 const ORDER_STATUS_AR={PENDING:'قيد الانتظار',CREATED:'تم الإنشاء',CONFIRMED:'تم التأكيد',PREPARING:'جاري التجهيز',OUT_FOR_DELIVERY:'في الطريق',DELIVERED:'تم التسليم',CANCELLED:'ملغي',FAILED:'فشل',EXPIRED:'منتهي'};
 function orderStatusLabel(s){const k=String(s||'').toUpperCase();return ORDER_STATUS_AR[k]||k||'غير محدد'}
