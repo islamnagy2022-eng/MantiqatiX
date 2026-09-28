@@ -289,6 +289,7 @@ document.getElementById('app').innerHTML=`<main class="landing">
 </main>`;
 document.getElementById('open-login').onclick=()=>authView();document.getElementById('open-register').onclick=()=>authView('',false,'','register');document.getElementById('install-app').onclick=installApp;setupInstallPrompt();document.getElementById('cta-login').onclick=()=>authView();document.getElementById('commission-login').onclick=()=>authView();document.getElementById('provider').onclick=()=>authView('',false,'','register');document.getElementById('cta-provider').onclick=()=>authView('',false,'','register');
 document.getElementById('start').onclick=()=>document.getElementById('sectors').scrollIntoView({behavior:'smooth'});
+document.querySelectorAll('[data-side-ad-book]').forEach(btn=>btn.onclick=()=>{try{localStorage.setItem('MNTYOpenAdBooking','1');localStorage.setItem('MNTYAdBookingDuration','QUARTERLY')}catch(_){};authView('',false,'','login')});
 document.getElementById('all-sectors').onclick=()=>{authView()};
 }
 
