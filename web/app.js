@@ -169,6 +169,19 @@ async function switchMembership(membershipId){
  current='الرئيسية';
  query='';
  try{
+   if(String(target.role||'').toUpperCase()==='CUSTOMER' && previous && ['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(String(previous.role||'').toUpperCase())){
+     localStorage.setItem('MNTYAdminReturnMembershipId',previous.id);
+     window.MNTYAdminReturnMembershipId=previous.id;
+     if(window.MXHomeLanding){
+       window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:'CUSTOMER'};
+       window.MXHomeLanding();
+       showToast('تم فتح الصفحة الرئيسية بوضع العميل.','success');
+       return;
+     }
+   }else{
+     localStorage.removeItem('MNTYAdminReturnMembershipId');
+     window.MNTYAdminReturnMembershipId=null;
+   }
    await renderApp();
    showToast('تم التبديل فعليًا إلى: '+roleContextLabel(target),'success');
  }catch(e){
