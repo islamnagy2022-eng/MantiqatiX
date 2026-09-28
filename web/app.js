@@ -475,7 +475,7 @@ async function updateOrderStatus(orderId,newStatus){
  const allowed=orderAllowedNextStatuses(order);
  if(!allowed.includes(newStatus))return showToast('انتقال الحالة غير مسموح من الواجهة الحالية.','error');
  try{
-  await invokeMntyFunction('order-status-update',{orderId,tenantId:live.tenantId,newStatus});
+  await invokeMntyFunction('order-status-update',{orderId,tenantId:order.tenant_id||live.tenantId,newStatus});
   showToast('تم تحديث حالة الطلب إلى '+newStatus,'success');
   await loadLiveData();
   await renderApp();
