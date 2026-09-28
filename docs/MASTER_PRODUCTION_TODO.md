@@ -456,3 +456,10 @@
 - Customer actions: open bidding/cancel and accept visible bids; provider/driver/captain actions: submit bid and server-authorized trip progress actions.
 - Existing RLS/backend state machine remains authoritative; no real ride or bid was created during implementation.
 - OPEN: multi-user customer/captain E2E, bid visibility/discovery flow, notifications, payment/settlement, CI and release verification.
+
+
+## RC172 — Medical Booking Contract Restoration — 2026-09-28
+- Reviewed the RC40 Medical/Clinics source before implementation; source confirms `medical_appointments` as the cloud booking contract and protects legacy EMR/encounter/lab concepts from the main owner workspace.
+- Restored `medical_appointments` with patient/provider scoped RLS and backend-authoritative booking/status functions.
+- Activated the existing web Medical module using real provider profiles + the restored appointment boundary; no fake medical providers or appointments were created.
+- OPEN: browser/mobile E2E, two-user booking isolation, notification delivery, payment/commission settlement, and Android Room/cloud synchronization.
