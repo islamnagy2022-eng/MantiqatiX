@@ -503,3 +503,9 @@
 - Existing order-created notification trigger confirmed and retained.
 - Added order-status notification trigger using the existing `public.notifications` contract; customer receives status updates and provider-side business members receive cancellation notices.
 - OPEN: real two-user booking E2E, browser/mobile E2E, notification delivery/push E2E, payment/refund path, CI and final production smoke.
+
+
+## RC183 — Fashion Module Presentation — 2026-09-28
+- Upgraded Fashion products to responsive visual cards using real product records and local fallback artwork.
+- Existing Fashion orders/tailor services remain read surfaces until a verified authoritative checkout contract is confirmed.
+- OPEN: checkout/order authority, stock reservation, payment, notifications, E2E, CI and release gate.
