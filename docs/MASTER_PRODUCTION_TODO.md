@@ -560,3 +560,8 @@
 - Persisted the admin return target across public-home refreshes.
 - The authenticated customer-preview page can recover the stored admin return membership and keep `لوحة الإدارة` visible.
 - OPEN: deployed browser E2E, CI/deployment convergence, real booking E2E and final release gate.
+
+
+## RC190 — Provider Catalog Branch Context — 2026-09-28
+- Fixed customer catalog price resolution to use the provider catalog branch context instead of the customer's active membership branch.
+- OPEN: deployed browser E2E, CI/deployment convergence, real order lifecycle, notification delivery and payment/refund verification.
