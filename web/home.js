@@ -179,7 +179,12 @@
         </section>
 
         <section class="mx-section" id="mx-nearby">
-          <div class="mx-section__head"><div><h2>أنشطة ومقدمو خدمات</h2><p>نتائج موثقة من الكتالوج العام. لا يتم ادعاء القرب الجغرافي دون بيانات موقع مناسبة.</p></div><button class="mx-link" id="mx-location-btn" type="button">استخدام الموقع عند الحاجة</button></div>
+          <div class="mx-section__head"><div><h2>أنشطة ومقدمو خدمات</h2><p id="mx-location-help">نتائج موثقة من الكتالوج العام، وتُرتب حسب موقعك عند توفره.</p></div><button class="mx-link" id="mx-location-btn" type="button">تحديد موقعي 📍</button></div>
+          <div id="mx-location-controls" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px">
+            <span id="mx-location-status" class="mx-live">الموقع عند الحاجة</span>
+            <span style="font-size:12px;color:#667085">نطاق البحث:</span>
+            <div id="mx-location-ranges" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          </div>
           <div class="mx-provider-grid" id="mx-provider-grid"><div class="mx-empty">جارٍ تحميل مقدمي الخدمات...</div></div>
         </section>
 
@@ -269,6 +274,16 @@
       el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=goLogin);
     };
 
+    const loadLocationUi=()=>{
+      const api=window.MNTYLocationAdapter;
+      const status=document.getElementById('mx-location-status');
+      const ranges=document.getElementById('mx-location-ranges');
+      if(!api||!status||!ranges)return;
+      status.textContent=api.statusText();
+      ranges.innerHTML=api.ranges.map(x=>'<button type="button" class="mx-link" data-radius="'+x.km+'" style="border:1px solid #d0d5dd;border-radius:999px;padding:6px 10px;background:'+(api.state.radiusKm===x.km?'#101828':'#fff')+';color:'+(api.state.radiusKm===x.km?'#fff':'#344054')+'">'+x.label+'</button>').join('');
+      ranges.querySelectorAll('[data-radius]').forEach(b=>b.onclick=async()=>{api.setRadius(Number(b.dataset.radius));loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'')});
+    };
+
     const loadData=async(searchText='')=>{
       const sb=getClient();
       const status=document.getElementById('mx-live-status');
@@ -277,6 +292,8 @@
         const safeTerm=term.replace(/[^\p{L}\p{N}\s_-]/gu,' ').trim().slice(0,60);
       try{
         await loadHomeRuntimeFlags(sb);
+        if(window.MNTYLocationAdapter?.state.status==='idle') await window.MNTYLocationAdapter.requestLocation();
+        loadLocationUi();
         document.querySelectorAll('[data-module]').forEach(btn=>{ btn.hidden=!homeFeatureEnabled(btn.dataset.module); });
         const moduleStrip=document.getElementById('mx-marketing');
         if(moduleStrip && !['CRM','MARKETING','ANALYTICS','OPERATIONS'].some(homeFeatureEnabled)) moduleStrip.hidden=true;
@@ -290,7 +307,8 @@
         const [servicesRes,providersRes]=await Promise.all([serviceQuery,providerQuery]);
         if(servicesRes.error) throw servicesRes.error;
         if(providersRes.error) throw providersRes.error;
-        const services=servicesRes.data||[], providers=providersRes.data||[];
+        const services=servicesRes.data||[];
+        const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.data||[]):providersRes.data||[];
         renderDynamicCategories(services,providers);
         renderServices(services);renderProviders(providers);renderSponsored(providers);
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
@@ -305,7 +323,7 @@
     document.getElementById('mx-search-btn').onclick=search;
     document.getElementById('mx-home-search').onkeydown=e=>{if(e.key==='Enter')search()};
     document.getElementById('mx-bottom-search').onclick=()=>document.getElementById('mx-home-search').focus();
-    document.getElementById('mx-location-btn').onclick=()=>goLogin();
+    document.getElementById('mx-location-btn').onclick=async()=>{const api=window.MNTYLocationAdapter;if(api){await api.requestLocation();loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'');}else goLogin();};
     loadData();
   };
 })();
