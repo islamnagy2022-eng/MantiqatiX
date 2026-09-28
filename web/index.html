@@ -53,8 +53,14 @@
         await load('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2');
         if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
       }catch(_){
-        await load('https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js');
-        if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
+        try{
+          await load('https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js');
+          if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
+        }catch(__){
+          var mod=await import('https://esm.sh/@supabase/supabase-js@2.117.2?bundle');
+          if(!mod || typeof mod.createClient!=='function') throw new Error('SUPABASE_MODULE_MISSING');
+          window.supabase=mod;
+        }
       }
       await load('config.js?v=mnty29');
       await load('android-parity-catalog.js?v=mnty29');
