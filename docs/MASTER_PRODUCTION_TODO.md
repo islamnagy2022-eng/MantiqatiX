@@ -708,3 +708,17 @@
 - Source commit: `628a254a8b9efd0a773be1325202bba00fff421d`.
 - Verification: pending the post-push CI/deployment gate.
 
+
+
+## RC214 — Android Source Convergence Audit — 2026-09-29
+- RC40 source package checksum and static production gates verified.
+- Current `main` does not contain the RC40 Android/Gradle tree; no blind merge performed.
+- Android package identity/deep-link names require explicit MNTY migration review before merge.
+- Android build, tests, lint, release AAB, signing and real-device regression remain NOT VERIFIED.
+- Detailed evidence: `docs/RC214_ANDROID_SOURCE_CONVERGENCE_AUDIT.md`.
+- Status: OPEN / CANDIDATE SOURCE ONLY.
+
+## RC215 — Android CI Restoration Gate — 2026-09-29
+- Defined isolated CI evidence requirements for JDK21, Gradle 9.3.1, tests, lint, debug build, release AAB, signing and artifact verification.
+- This is a gate specification, not build-success evidence.
+- Status: OPEN.
