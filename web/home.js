@@ -123,9 +123,8 @@
             </div>
           </div>
           <div class="mx-hero__visual">
-            <div class="mx-hero__visual-card"><b>خدمتك تبدأ من Mantiqati X</b><span>اكتشاف · مطابقة · تواصل · تنفيذ</span></div>
-            <div class="mx-hero__city" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="mx-hero__phone" aria-hidden="true"><span>MX</span></div>
+            <img class="mx-hero__art" src="assets/hero/mnty-home-hero.svg" alt="MNTY — اكتشاف الخدمات والتواصل والحجز" fetchpriority="high">
+            <div class="mx-hero__visual-card"><b>احجز خدمتك من MNTY</b><span>اكتشاف · مقارنة · طلب · متابعة</span></div>
           </div>
         </section>
 
