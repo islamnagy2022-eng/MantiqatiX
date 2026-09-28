@@ -655,3 +655,14 @@
 - Gradle 9.3.1 could not be downloaded because this execution environment has no external network access and no cached Gradle distribution.
 - Result: **Android build/tests NOT VERIFIED**; no APK/AAB or signing evidence was produced.
 - This is an environment blocker, not evidence of a source compilation failure.
+
+
+## RC206 — Geographic Advertisement Targeting
+- Status: **IMPLEMENTED / VERIFICATION PARTIAL**
+- Production schema added for hierarchical geographic ad targeting: COUNTRY / GOVERNORATE / CENTER.
+- One advertisement may target multiple geographic areas.
+- Public delivery is through a sanitized SECURITY DEFINER function only.
+- Selection precedence: exact center → governorate → country → nearest target with coordinates.
+- Homepage now requests targeted sponsored ads using the existing on-demand location adapter; no continuous location tracking added.
+- Egypt country baseline and homepage ad spaces are seeded.
+- Remaining verification: populate/verify the authoritative Egypt governorate/center master data and execute a controlled non-production or authorized live fixture test for exact, multi-area, country-wide, and nearest-fallback cases. No synthetic production advertisements were created.
