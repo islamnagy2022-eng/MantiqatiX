@@ -584,3 +584,9 @@
 - Production convergence for the RC192 order-create fix could not be retrieved/verified in this checkpoint.
 - Established an explicit deployment gate before real booking testing.
 - OPEN: deployed function verification, real customer booking, provider isolation/status flow, notifications, payment/refund, CI and release gate.
+
+
+## RC193 — order-create Deployment Verification — 2026-09-28
+- Attempted production Edge Function metadata verification for order-create after RC192.
+- Production lookup returned no usable metadata; deployment/convergence remains NOT VERIFIED.
+- RC192 is source-complete but must not be treated as live until version/hash convergence is proven.
