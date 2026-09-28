@@ -88,6 +88,8 @@
     const app=document.getElementById('app');
     if(!app) return;
 
+    const adminReturnMembershipId=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId')||'';
+    if(adminReturnMembershipId) window.MNTYAdminReturnMembershipId=adminReturnMembershipId;
     app.innerHTML=`<main class="mx-home" dir="rtl">
       <header class="mx-header">
         <div class="mx-header__inner">
@@ -98,7 +100,7 @@
             <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
           </label>
           <button class="mx-header__login" id="mx-login" type="button">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
-          ${window.MNTYAuthState?.authenticated&&window.MNTYAdminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
+          ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
             <a href="#mx-about">عن المنصة</a><a href="#mx-categories">التصنيفات</a>
