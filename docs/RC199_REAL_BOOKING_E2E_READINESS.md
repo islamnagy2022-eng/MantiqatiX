@@ -63,3 +63,17 @@ No synthetic production order or fabricated IDs were created to close this gate.
 
 ## Next
 RC199 remains open until real E2E credentials/data are available. Do not advance the booking gate by inventing production data.
+## Additional RC199 finding — browser read privilege
+The current `web/app.js` reads `orders` and `order_status_history` directly through the Supabase client.
+
+Live privilege inspection shows `authenticated` currently has no `SELECT` privilege on `public.orders`; the RLS policies therefore cannot make the direct browser read path functional by themselves.
+
+The required least-privilege fix is:
+- grant `SELECT` to `authenticated` on `orders` and `order_status_history` only;
+- keep INSERT/UPDATE/DELETE client privileges absent;
+- keep RLS/FORCE RLS enabled;
+- add a customer-only `order_status_history` SELECT policy tied to the customer's own order.
+
+This DDL was **NOT APPLIED** in this checkpoint because the DDL execution tool rejected the grant migration. No unsafe workaround was used.
+
+Therefore browser order visibility remains **NOT VERIFIED/BLOCKED** until the read grant is applied and re-verified.
