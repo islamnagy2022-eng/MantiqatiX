@@ -565,3 +565,9 @@
 ## RC190 — Provider Catalog Branch Context — 2026-09-28
 - Fixed customer catalog price resolution to use the provider catalog branch context instead of the customer's active membership branch.
 - OPEN: deployed browser E2E, CI/deployment convergence, real order lifecycle, notification delivery and payment/refund verification.
+
+
+## RC191 — Booking Catalog Boundary Verification — 2026-09-28
+- Verified source boundary from public provider card through catalog API to authoritative order creation.
+- No duplicate catalog/order architecture introduced.
+- OPEN: deployed browser E2E, real Customer → Provider booking lifecycle, notification delivery, payment/refund, CI/deployment convergence.
