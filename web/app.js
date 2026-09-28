@@ -525,7 +525,7 @@ async function createGlobalAdFromAdmin(){
  const creative=document.getElementById('global-ad-creative')?.value?.trim();
  const target=document.getElementById('global-ad-target')?.value?.trim()||null;
  if(!title||!creative)return showToast('أدخل عنوان الإعلان ورابط الصورة/التصميم.','error');
- if(!/^https?:\\/\\//i.test(creative))return showToast('رابط التصميم يجب أن يبدأ بـ https:// أو http://','error');
+ if(!/^https?:\/\//i.test(creative))return showToast('رابط التصميم يجب أن يبدأ بـ https:// أو http://','error');
  const {data,error}=await sb.rpc('admin_create_global_ad',{p_title:title,p_creative_url:creative,p_target_url:target});
  if(error)return showToast('تعذر إضافة الإعلان: '+(error.message||'خطأ غير معروف'),'error');
  showToast('تمت إضافة الإعلان العام مجاناً وتفعيله.','success');
