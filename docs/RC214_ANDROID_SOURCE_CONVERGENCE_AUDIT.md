@@ -33,6 +33,16 @@ The wrapper requests Gradle 9.3.1.
 
 The RC40 CI workflow requests JDK 21 and includes unit tests, lint, debug APK build, and release AAB build/signing through GitHub Secrets.
 
+## Static production-gate verification
+
+The RC40 package was re-run through its included static production checks:
+
+- `tools/production_gate.py`: **PASS**
+- `tools/verify_production_invariants.py`: **PASS**
+- Authoritative pricing, payment cancellation checks, request correlation, backend catalog/settings/settlement boundaries, referral execution boundary and business approval checks: **PASS**
+
+These are source-package static checks only. They do not prove current-main deployment, runtime E2E, Android compilation, signing, or device behavior.
+
 ## Current-main boundary
 
 Current GitHub `main` does not contain the RC40 Android/Gradle paths. Therefore RC40 Android CI/build evidence cannot be treated as evidence for current `main`.
@@ -45,11 +55,13 @@ RC40's Android `applicationId` is:
 
 `com.aistudio.manteqti.platform`
 
-The inspected RC40 Android source also contains legacy `manteqti` identifiers in notification/auth/deep-link/database names.
+The inspected RC40 Android source also contains legacy `manteqti` identifiers in notification/auth/deep-link/database names, including the custom auth scheme `manteqti://auth-callback`.
 
 This requires an explicit identity/package/deep-link migration review before treating RC40 as the current MNTY Android source. No automatic rename was performed.
 
-The RC40 build script correctly rejects placeholder Supabase configuration and demo data for Release builds and keeps payment webhook secrets out of the Android client.
+The RC40 build script rejects placeholder Supabase configuration and demo data for Release builds and keeps payment webhook secrets out of the Android client.
+
+The Android manifest requests network, notification, and fine/coarse location permissions. Location permission must remain operationally justified and on-demand; continuous tracking must not be introduced merely to support discovery.
 
 ## Build verification
 
@@ -59,14 +71,15 @@ Gradle 9.3.1 could not be downloaded in the current execution environment becaus
 
 Therefore:
 
-- Source checksum: VERIFIED
-- Static package inspection: VERIFIED
-- Android build: NOT VERIFIED
-- Unit tests: NOT VERIFIED
-- Lint: NOT VERIFIED
-- Release AAB: NOT VERIFIED
-- Release signing: NOT VERIFIED
-- Real-device regression: NOT VERIFIED
+- Source checksum: **VERIFIED**
+- Static package inspection: **VERIFIED**
+- Static production gates: **PASS**
+- Android build: **NOT VERIFIED**
+- Unit tests: **NOT VERIFIED**
+- Lint: **NOT VERIFIED**
+- Release AAB: **NOT VERIFIED**
+- Release signing: **NOT VERIFIED**
+- Real-device regression: **NOT VERIFIED**
 
 The build failure is an environment/network blocker, not evidence of source compilation failure.
 
