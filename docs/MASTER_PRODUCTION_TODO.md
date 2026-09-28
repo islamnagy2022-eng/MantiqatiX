@@ -571,3 +571,10 @@
 - Verified source boundary from public provider card through catalog API to authoritative order creation.
 - No duplicate catalog/order architecture introduced.
 - OPEN: deployed browser E2E, real Customer → Provider booking lifecycle, notification delivery, payment/refund, CI/deployment convergence.
+
+
+## RC192 — Marketplace Order Authorization Fix — 2026-09-28
+- Fixed order-create Edge Function authorization so an active CUSTOMER membership can order from another provider tenant/business.
+- Target-business membership remains accepted for business-scoped users.
+- Catalog, active-business and server-authoritative pricing checks remain intact.
+- OPEN: deploy/convergence verification, real booking E2E, provider receipt/status flow, notifications, payment/refund, CI and final release gate.
