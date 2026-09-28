@@ -439,3 +439,12 @@
 - Homepage now requests location non-blockingly, ranks provider branches by actual coordinates when available, applies the existing range semantics, and keeps `10 كم` as the all-results range.
 - Homepage location/range state is reflected in the UI; no coordinates are persisted by this adapter.
 - OPEN: verify production browser permission flow, `branches` public RLS scope for latitude/longitude, and real mobile/desktop E2E.
+
+
+## RC170 — Canonical Location Adapter Reuse — 2026-09-28
+- Confirmed existing `web/location-adapter.js` is the single Web/PWA location integration layer; no second GPS/radius adapter retained.
+- Existing ranges remain 1/3/5/10 km (10 = all), default 3 km.
+- Updated the existing adapter to use the secure nearby-provider RPC instead of directly reading protected `branches` coordinates.
+- Added `find_mnty_nearby_provider_businesses(...)` as a backend-only coordinate computation boundary; browser receives business IDs + computed distance, not raw coordinates.
+- Removed temporary duplicate `web/location-contract.js` and its loader.
+- OPEN: production browser/mobile E2E, permission UX, and final verification of nearby results/ads under each range.
