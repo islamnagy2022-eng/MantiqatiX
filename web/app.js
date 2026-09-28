@@ -374,8 +374,8 @@ function mntTripActions(ride){
  if(ride?.customer_id===user?.id){
    if(s==='OPEN')a.push('<button class="linkbtn" onclick="updateMntTripStatus(\''+id+'\',\'OPEN_FOR_BIDS\')">فتح المزايدة</button>');
    if(['OPEN','OPEN_FOR_BIDS','MATCHING'].includes(s))a.push('<button class="linkbtn" onclick="updateMntTripStatus(\''+id+'\',\'CANCELLED\')">إلغاء</button>');
-   if(s==='OPEN_FOR_BIDS')a.push('<button class="linkbtn" onclick="createMntBid(\''+id+'\')">إضافة عرض</button>');
  }
+ if(['SERVICE_PROVIDER','DRIVER','CAPTAIN'].includes(role)&&s==='OPEN_FOR_BIDS')a.push('<button class="linkbtn" onclick="createMntBid(\''+id+'\')">تقديم عرض</button>');
  if(['SERVICE_PROVIDER','DRIVER','CAPTAIN'].includes(role)&&s==='ACCEPTED')a.push('<button class="linkbtn" onclick="updateMntTripStatus(\''+id+'\',\'ARRIVED\')">وصلت</button>');
  if(['SERVICE_PROVIDER','DRIVER','CAPTAIN'].includes(role)&&s==='STARTED')a.push('<button class="linkbtn" onclick="updateMntTripStatus(\''+id+'\',\'IN_PROGRESS\')">بدء التنفيذ</button>');
  if(['SERVICE_PROVIDER','DRIVER','CAPTAIN'].includes(role)&&s==='IN_PROGRESS')a.push('<button class="linkbtn" onclick="updateMntTripStatus(\''+id+'\',\'COMPLETED\')">إكمال الرحلة</button>');
