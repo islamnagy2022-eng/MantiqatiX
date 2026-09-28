@@ -178,3 +178,34 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .auth-link-btn:hover{text-decoration:underline;color:#1d4ed8}
 .auth-link-btn:focus-visible,.auth-switch-btn:focus-visible{outline:3px solid #2563eb26;outline-offset:2px}
 @media(max-width:480px){.auth-card{padding:28px 22px}.auth-switch-btn{font-size:14px}.auth-secondary-actions{gap:8px;flex-wrap:wrap}}
+
+/* Public landing cloud side banners */
+.mx-side-banner{position:fixed;top:150px;width:142px;height:360px;z-index:80;overflow:hidden;border:1px solid #cfe0f0;border-radius:22px;background:linear-gradient(165deg,#f8fcff,#e8f5ff 52%,#f4efff);box-shadow:0 14px 36px rgba(20,58,100,.14);direction:rtl}
+.mx-side-banner--right{right:10px}.mx-side-banner--left{left:10px}
+.mx-side-banner__cloud{position:absolute;border-radius:999px;background:linear-gradient(180deg,#fff,#dceeff);box-shadow:0 10px 24px rgba(70,125,184,.11)}
+.mx-side-banner__cloud:before,.mx-side-banner__cloud:after{content:'';position:absolute;border-radius:50%;background:inherit}
+.mx-side-banner__cloud--one{width:170px;height:58px;right:-35px;top:48px}
+.mx-side-banner__cloud--one:before{width:78px;height:78px;right:50px;top:-35px}.mx-side-banner__cloud--one:after{width:58px;height:58px;right:8px;top:-21px}
+.mx-side-banner__cloud--two{width:135px;height:48px;left:-35px;bottom:48px;opacity:.72}
+.mx-side-banner__cloud--two:before{width:60px;height:60px;left:38px;top:-28px}.mx-side-banner__cloud--two:after{width:45px;height:45px;left:8px;top:-18px}
+.mx-side-banner__screen{position:absolute;top:100px;right:20px;width:102px;height:76px;border:5px solid #132d55;border-radius:15px;transform:rotate(-6deg);background:linear-gradient(145deg,#fff,#e9f7ff);box-shadow:0 14px 28px rgba(20,49,86,.2);display:grid;place-items:center;align-content:center;gap:2px}
+.mx-side-banner__screen b{font:950 21px Arial;background:linear-gradient(135deg,#146be7,#8c46e7);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mx-side-banner__screen span{font-size:7px;color:#234a82;font-weight:950}
+.mx-side-banner__copy{position:absolute;left:12px;right:12px;bottom:14px;text-align:center;z-index:2}
+.mx-side-banner__copy strong{display:block;color:#082e78;font-size:14px;font-weight:950}
+.mx-side-banner__copy span{display:block;color:#526985;font-size:9px;line-height:1.5;margin:3px 0 8px}
+.mx-side-banner__copy button{border:0;border-radius:9px;background:#1769e8;color:#fff;padding:7px 13px;font:900 10px Tajawal,Arial,sans-serif;cursor:pointer;box-shadow:0 7px 15px rgba(23,105,232,.2)}
+@media(max-width:1250px){.mx-side-banner{display:none}}
+@media(max-width:800px){
+ .mx-side-banner{display:block;top:auto;bottom:76px;width:54px;height:156px;border-radius:16px;z-index:95;box-shadow:0 10px 26px rgba(20,58,100,.16)}
+ .mx-side-banner--right{right:5px}.mx-side-banner--left{left:5px}
+ .mx-side-banner__cloud--one{width:88px;height:30px;right:-28px;top:25px}
+ .mx-side-banner__cloud--one:before{width:40px;height:40px;right:28px;top:-18px}.mx-side-banner__cloud--one:after{width:30px;height:30px;right:4px;top:-11px}
+ .mx-side-banner__cloud--two{width:75px;height:25px;left:-25px;bottom:26px}
+ .mx-side-banner__cloud--two:before{width:32px;height:32px;left:22px;top:-15px}.mx-side-banner__cloud--two:after{width:24px;height:24px;left:5px;top:-10px}
+ .mx-side-banner__screen{top:50px;right:8px;width:38px;height:31px;border-width:2px;border-radius:7px;transform:rotate(-5deg)}
+ .mx-side-banner__screen b{font-size:8px}.mx-side-banner__screen span{display:none}
+ .mx-side-banner__copy{left:3px;right:3px;bottom:7px}.mx-side-banner__copy strong{font-size:7px}.mx-side-banner__copy span{display:none}
+ .mx-side-banner__copy button{padding:4px 5px;border-radius:6px;font-size:6px}
+}
+@media(max-width:380px){.mx-side-banner{width:46px;height:140px}.mx-side-banner--right{right:3px}.mx-side-banner--left{left:3px}.mx-side-banner__screen{right:6px}.mx-side-banner__copy strong{font-size:6px}.mx-side-banner__copy button{font-size:5px;padding:3px 4px}}
