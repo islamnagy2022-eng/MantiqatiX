@@ -134,16 +134,24 @@ function roleLabel(role){
 }
 function roleContextLabel(m){
  if(!m)return 'دور';
- const parts=[roleLabel(m.role)];
- if(m.tenant_id)parts.push('Tenant: '+m.tenant_id);
- if(m.business_id)parts.push('نشاط: '+m.business_id);
- if(m.branch_id)parts.push('فرع: '+m.branch_id);
+ const role=roleLabel(m.role);
+ const parts=[role];
+ if(m.business_id)parts.push('النشاط: '+m.business_id);
+ if(m.branch_id)parts.push('الفرع: '+m.branch_id);
  return parts.join(' · ');
 }
+function membershipOptionLabel(m){
+ const role=String(m?.role||'').toUpperCase();
+ const icons={OWNER:'👑',SUPER_ADMIN:'🛡️',ADMIN:'⚙️',MANAGER:'📊',BUSINESS_OWNER:'🏢',EMPLOYEE:'👤',STAFF:'👤',SUPPORT_MANAGER:'🎧',SUPPORT:'🎫',SERVICE_PROVIDER:'🧰',CUSTOMER:'👤'};
+ const icon=icons[role]||'•';
+ return icon+' '+roleLabel(role);
+}
 async function switchMembership(membershipId){
- const target=live.memberships.find(m=>m.id===membershipId);
+ const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
  if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
  if(membershipId===live.activeMembershipId)return;
+ const selector=document.getElementById('mx-role-switcher');
+ if(selector)selector.disabled=true;
  window.MNTYActiveMembershipId=membershipId;
  localStorage.setItem('MNTYActiveMembershipId',membershipId);
  live.activeMembershipId=membershipId;
@@ -155,21 +163,25 @@ async function switchMembership(membershipId){
  live.permissions=target.permissions||{};
  current='الرئيسية';
  query='';
- await renderApp();
- showToast('تم التبديل إلى: '+roleContextLabel(target),'success');
-}
-function switchToCustomerRole(){
- const customer=live.memberships.find(m=>String(m.role||'').toUpperCase()==='CUSTOMER'&&m.status==='ACTIVE');
- if(!customer)return showToast('لا توجد عضوية عميل نشطة لهذا الحساب.','error');
- return switchMembership(customer.id);
+ try{
+   await renderApp();
+   showToast('تم التبديل فعليًا إلى: '+roleContextLabel(target),'success');
+ }catch(e){
+   showToast('تعذر إكمال تبديل الدور: '+(e?.message||'خطأ غير معروف'),'error');
+ }
 }
 function roleSwitcher(){
  if(!live.memberships.length)return '';
  const active=live.memberships.find(m=>m.id===live.activeMembershipId)||live.memberships[0];
- const options=live.memberships.map(m=>'<option value="'+esc(m.id)+'" '+(m.id===active?.id?'selected':'')+'>'+esc(roleContextLabel(m))+'</option>').join('');
- const customer=live.memberships.find(m=>String(m.role||'').toUpperCase()==='CUSTOMER'&&m.status==='ACTIVE');
- const customerButton=customer&&customer.id!==active?.id?'<button type="button" class="btn btn-outline role-customer-return" id="mx-customer-return" title="الرجوع إلى وضع العميل">👤 وضع العميل</button>':'';
- return '<div class="role-switcher-wrap"><label class="role-switcher"><span>الوضع الحالي</span><select id="mx-role-switcher" aria-label="التبديل بين الأدوار">'+options+'</select></label>'+customerButton+'</div>';
+ const seen=new Set();
+ const options=live.memberships.filter(m=>m?.id&&m.status==='ACTIVE').filter(m=>{
+   const key=[String(m.role||'').toUpperCase(),m.tenant_id||'',m.business_id||'',m.branch_id||''].join('|');
+   if(seen.has(key))return false;
+   seen.add(key);
+   return true;
+ }).map(m=>'<option value="'+esc(m.id)+'" '+(m.id===active?.id?'selected':'')+'>'+esc(membershipOptionLabel(m))+'</option>').join('');
+ const tenant=active?.tenant_id?'<small class="role-context-tenant">النطاق: '+esc(active.tenant_id)+'</small>':'';
+ return '<label class="role-switcher"><span>تبديل الدور</span><select id="mx-role-switcher" aria-label="تبديل الدور بين العضويات الفعلية">'+options+'</select>'+tenant+'</label>';
 }
 async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -613,7 +625,7 @@ window.MXHomeLanding?MXHomeLanding():landingView();
 showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصفحة.','error');
 }
 }
-async function renderApp(){if(!user?.id)return;live.loading=true;document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>جاري تحميل المنصة</h1><p>يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...</p></section></main>';await loadLiveData();if(live.error){document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تعذر تحميل البيانات</h1><p>'+esc(live.error)+'</p><button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button></section></main>';document.getElementById('retry-load').onclick=renderApp;document.getElementById('logout-load').onclick=logout;return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar"><div class="side-brand"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav">${modules.filter(m=>moduleEnabled(m[1])&&!(isCustomerMode()&&['الموديولات','المستخدمون وCRM','العمولات والباقات','التقارير والتحليلات','طلبات التسجيل'].includes(m[1]))&& (m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" onclick="selectModule('${m[1]}')"><span>${m[0]}</span><span>${m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content"><header class="top"><div><div class="breadcrumb">Mantiqati X / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<label class="search">⌕ <input id="search" value="${esc(query)}" placeholder="بحث داخل المنصة..."></label><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open">حسابي</button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;document.getElementById('go-public-home')?.addEventListener('click',()=>window.MXHomeLanding?window.MXHomeLanding():landingView());document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const customerReturn=document.getElementById('mx-customer-return');if(customerReturn)customerReturn.onclick=switchToCustomerRole;const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()}}
+async function renderApp(){if(!user?.id)return;live.loading=true;document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>جاري تحميل المنصة</h1><p>يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...</p></section></main>';await loadLiveData();if(live.error){document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تعذر تحميل البيانات</h1><p>'+esc(live.error)+'</p><button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button></section></main>';document.getElementById('retry-load').onclick=renderApp;document.getElementById('logout-load').onclick=logout;return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar"><div class="side-brand"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav">${modules.filter(m=>moduleEnabled(m[1])&&!(isCustomerMode()&&['الموديولات','المستخدمون وCRM','العمولات والباقات','التقارير والتحليلات','طلبات التسجيل'].includes(m[1]))&& (m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" onclick="selectModule('${m[1]}')"><span>${m[0]}</span><span>${m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content"><header class="top"><div><div class="breadcrumb">Mantiqati X / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<label class="search">⌕ <input id="search" value="${esc(query)}" placeholder="بحث داخل المنصة..."></label><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open">حسابي</button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;document.getElementById('go-public-home')?.addEventListener('click',()=>window.MXHomeLanding?window.MXHomeLanding():landingView());document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()}}
 sb.auth.onAuthStateChange((event,session)=>{
 if(event==='SIGNED_OUT'){
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';
