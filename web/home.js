@@ -377,7 +377,7 @@
           p_center_code:null,
           p_lat:adCoords?.latitude??null,
           p_lon:adCoords?.longitude??null,
-          p_ad_space_id:null,
+          p_ad_space_id:'HOME_SPONSORED',
           p_limit:4
         });
         const [servicesRes,providersRes,adsRes]=await Promise.all([serviceQuery,providerQuery,adsPromise]);
