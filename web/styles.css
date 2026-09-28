@@ -266,3 +266,30 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
  .mx-cover-ad__float-body strong{font-size:5.7px}
  .mx-cover-ad__close{width:20px;height:20px;font-size:14px}
 }
+
+/* RC209 compact landing hero strip */
+.landing-hero--compact{display:block;padding:14px 6%;min-height:104px;background:linear-gradient(100deg,#111827,#17253a 55%,#0b2430);box-sizing:border-box}
+.landing-hero--compact .hero-copy{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;text-align:center}
+.landing-hero--compact .hero-copy .eyebrow{display:none}
+.landing-hero--compact .hero-copy h1{font-size:30px;line-height:1.15;margin:0;max-width:none}
+.landing-hero--compact .hero-copy>p{font-size:12px;line-height:1.5;margin:0;max-width:420px;color:#cbd5e1}
+.landing-hero--compact .hero-actions{display:flex;gap:8px}
+.landing-hero--compact .hero-actions .btn{padding:9px 16px;font-size:12px}
+.landing-hero--compact .trust-row{display:none}
+@media(max-width:850px){
+ .landing-hero--compact{min-height:78px;height:78px;padding:8px 10px}
+ .landing-hero--compact .hero-copy{gap:8px;flex-wrap:nowrap}
+ .landing-hero--compact .hero-copy h1{font-size:18px;line-height:1.2;flex:1;min-width:0}
+ .landing-hero--compact .hero-copy>p{display:none}
+ .landing-hero--compact .hero-actions{gap:5px;flex-shrink:0}
+ .landing-hero--compact .hero-actions .btn{padding:7px 9px;font-size:9px;white-space:nowrap}
+}
+@media(max-width:480px){
+ .landing-hero--compact{height:74px;min-height:74px}
+ .landing-hero--compact .hero-copy h1{font-size:15px}
+ .landing-hero--compact .hero-actions .btn{padding:6px 7px;font-size:8px}
+}
+/* Keep the Egypt-wide ad clearly larger than the compact hero strip */
+.mx-cover-ad--wide{height:170px}
+@media(max-width:900px){.mx-cover-ad--wide{height:112px}}
+@media(max-width:480px){.mx-cover-ad--wide{height:92px}}
