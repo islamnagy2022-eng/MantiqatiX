@@ -61,3 +61,13 @@ Database review confirms:
 
 ## Release gate
 G3 is **implemented but not fully verified**. It must not be described as production-complete until the external E2E and release-gate checks pass.
+
+## G4 dependency note
+G3 uncovered a provider-side order-scope gap that was fixed during G4:
+- `SERVICE_PROVIDER` can now read orders only when the active membership is tied to the same tenant and `business_id`.
+- The server-authoritative status RPC now permits `SERVICE_PROVIDER` transitions only within the membership business scope.
+- The public API/function boundary remains authenticated; no broad order access was added.
+
+G4 commits:
+- `8863be2b32973c1589309cb5eae8911f82a93bcd` — database migration/source
+- `e0b437b25d859ac9e2c15da4cdde4cbc6b661fae` — provider order workspace
