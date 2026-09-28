@@ -280,4 +280,6 @@
 - Support ticket and message reads/writes now require an ACTIVE membership in the ticket tenant, including requester/assigned-user paths.
 - Live DB policy re-read verified the new tenant membership predicates.
 - External two-user/two-tenant E2E is still NOT VERIFIED.
-- Source migration synchronization is pending because the GitHub write tool rejected the SQL migration payload; do not mark repository convergence complete until the migration is committed.
+- Source migration synchronization completed via Git object path; RC109 migration committed as 9dd15b631a147f15ac27809e7458de00231e4fa3. CI is not currently verified for this commit.
+
+- E2E test prerequisite check: production currently has 10 ACTIVE memberships across 1 tenant and 1 active user; there is no real two-user/two-tenant fixture to execute the required isolation E2E without creating test identities/data. Keep this gate OPEN rather than simulating verification.
