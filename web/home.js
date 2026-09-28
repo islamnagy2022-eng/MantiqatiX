@@ -319,6 +319,19 @@
         goLogin();
       });
     };
+    const safeAdUrl=value=>{try{const u=new URL(String(value||''),window.location.origin);return ['http:','https:'].includes(u.protocol)?u.href:''}catch(_){return ''}};
+    const renderTargetedAds=ads=>{
+      const el=document.getElementById('mx-sponsored');
+      if(!el)return;
+      const list=Array.isArray(ads)?ads:[];
+      if(!list.length){renderSponsored([]);return}
+      el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>إعلانات موجهة حسب موقعك</h3><p>يتم اختيار الإعلان على مستوى المركز أو المحافظة أو الدولة، ومع عدم وجود إعلان مطابق يتم عرض الأقرب.</p></div></div><div class="mx-listing-grid">'+list.map(a=>{
+        const href=safeAdUrl(a.target_url);
+        const action=href?'<a class="mx-listing__cta" href="'+escapeHtml(href)+'" target="_blank" rel="noopener noreferrer">عرض الإعلان</a>':'';
+        return '<article class="mx-listing"><div class="mx-listing__media"><img src="'+escapeHtml(a.creative_url||'')+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+action+'</div></article>';
+      }).join('')+'</div>';
+    };
+
     const renderSponsored=(providers)=>{
       const el=document.getElementById('mx-sponsored');
       const featured=providers.filter(p=>p.is_featured).slice(0,4);
@@ -357,13 +370,26 @@
         let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
         let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
         if(safeTerm){serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%');providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
-        const [servicesRes,providersRes]=await Promise.all([serviceQuery,providerQuery]);
+        const adCoords=window.MNTYLocationAdapter?.state?.coords||null;
+        const adsPromise=sb.rpc('get_mnty_targeted_advertisements',{
+          p_country_code:'EG',
+          p_governorate_code:null,
+          p_center_code:null,
+          p_lat:adCoords?.latitude??null,
+          p_lon:adCoords?.longitude??null,
+          p_ad_space_id:null,
+          p_limit:4
+        });
+        const [servicesRes,providersRes,adsRes]=await Promise.all([serviceQuery,providerQuery,adsPromise]);
         if(servicesRes.error) throw servicesRes.error;
         if(providersRes.error) throw providersRes.error;
+        if(adsRes.error) throw adsRes.error;
         const services=servicesRes.data||[];
         const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.data||[]):providersRes.data||[];
         renderDynamicCategories(services,providers);
-        renderServices(services);renderProviders(providers);renderSponsored(providers);
+        renderServices(services);renderProviders(providers);
+        if((adsRes.data||[]).length) renderTargetedAds(adsRes.data||[]);
+        else renderSponsored(providers);
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
       }catch(error){
         console.warn('[MNTY home] public catalog load failed',error);
