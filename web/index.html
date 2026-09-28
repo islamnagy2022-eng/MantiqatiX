@@ -57,7 +57,10 @@
           await load('https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js');
           if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
         }catch(__){
-          var mod=await import('https://esm.sh/@supabase/supabase-js@2.117.2?bundle');
+          var mod=await Promise.race([
+            import('https://esm.sh/@supabase/supabase-js@2.117.2?bundle'),
+            new Promise(function(_,reject){setTimeout(function(){reject(new Error('SUPABASE_MODULE_TIMEOUT'))},12000)})
+          ]);
           if(!mod || typeof mod.createClient!=='function') throw new Error('SUPABASE_MODULE_MISSING');
           window.supabase=mod;
         }
