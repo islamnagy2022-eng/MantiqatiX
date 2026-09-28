@@ -343,3 +343,14 @@
 ### RC120 — Final production gate
 - Final gate remains OPEN.
 - Required remaining P0/E2E items: multi-user/multi-tenant isolation fixture, customer→provider order/status/notification E2E, real payment E2E, leaked-password protection, Security Advisor closure/intentional sign-off, release build/signing, device/browser smoke, backup/restore rehearsal and rollback verification.
+
+
+## RC121 — Source / migration reproducibility repair — 2026-09-28
+
+- Restored the RC110 structural RLS regression contract at `supabase/tests/rc110_rls_policy_contract.sql` and corrected its comment to RC110.
+- Restored the RC109 tenant-boundary migration source at `supabase/migrations/20260928060000_rc109_harden_order_support_tenant_boundaries.sql`.
+- Restored the RC111 audit anonymous-boundary migration source at `supabase/migrations/20260928061000_rc111_harden_audit_admin_anonymous_boundary.sql`.
+- These are source-of-truth restoration changes only; no new production schema change was executed in RC121.
+- Live verification remains unchanged: the production boundaries are already present; the purpose of RC121 is to keep source and production history reproducible.
+- Backend-only table mapping review confirms the six public no-policy tables are not directly readable by `anon` or `authenticated`; source archive shows ERP tables are intentionally fail-closed and used through privileged database functions. SMM tables require further live backend-path mapping before any policy is added.
+- Security Advisor remains OPEN; leaked-password protection, critical E2E, release signing, browser/device smoke, backup/restore rehearsal and rollback remain release blockers.
