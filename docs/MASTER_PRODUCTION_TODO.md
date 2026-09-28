@@ -701,3 +701,10 @@
 - Production verification of the RPC at Cairo/Giza coordinates returned an empty set because Production currently has no active provider business/branch chain; this is a data-state verification, not an invented E2E result.
 - Status: **IMPLEMENTED / RPC VERIFIED / E2E PENDING REAL PROVIDER DATA**.
 - Source migration: `supabase/migrations/20260929033000_rc212_nearest_provider_fallback.sql`.
+
+## RC213 — Nearest Provider UX Label — 2026-09-29
+- Updated the public provider cards to explicitly label results returned by the nearest-provider fallback as **الأقرب المتاح**.
+- No backend authorization, location collection, ranking, or radius semantics were changed.
+- Source commit: `628a254a8b9efd0a773be1325202bba00fff421d`.
+- Verification: pending the post-push CI/deployment gate.
+
