@@ -150,7 +150,7 @@ serve(async (req) => {
   if (req.method === "GET" && orderMatch) {
     const { data: order, error } = await supabaseAdmin.from("orders").select("*").eq("id", orderMatch[1]).single()
     if (error || !order) return json({ error: "Order not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
+    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions,business_id")
       .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
     if (!membership) return json({ error: "Forbidden" }, 403)
     const role = String(membership.role ?? "").toUpperCase()
@@ -158,7 +158,11 @@ serve(async (req) => {
     const operationalOrderRead =
       ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role) ||
       permissions.includes("ORDER_READ_ALL")
-    if (order.customer_id !== user.id && !operationalOrderRead) return json({ error: "Forbidden" }, 403)
+    const providerOrderRead =
+      role === "SERVICE_PROVIDER" &&
+      !!membership.business_id &&
+      String(membership.business_id) === String(order.business_id)
+    if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) return json({ error: "Forbidden" }, 403)
     return json(order)
   }
 
