@@ -516,3 +516,10 @@
 - Order submission uses the provider catalog tenant; customer access does not grant provider-tenant management permissions.
 - Active business + active provider profile remain required.
 - OPEN: independently verify latest API Edge Function deployment/convergence, real customer/provider E2E, payment, notifications/push, CI and final release gate.
+
+
+## RC184 — Customer / Provider Order Workspace — 2026-09-28
+- Orders workspace converted from a raw table into responsive tracking cards with Arabic status labels and scoped actions.
+- Successful catalog orders now navigate directly to the Orders workspace.
+- Customer cancellation and provider business-scoped status transitions remain backend-authoritative.
+- OPEN: real two-user order E2E, push notification delivery, payment/refund E2E, CI and final production smoke/release gate.
