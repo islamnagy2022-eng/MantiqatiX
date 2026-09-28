@@ -58,12 +58,19 @@ serve(async (req) => {
   }
 
   if (req.method === "GET" && path === "/api/v1/catalog") {
-    const tenantId = url.searchParams.get("tenantId");
+    const requestedTenantId = url.searchParams.get("tenantId");
     const businessId = url.searchParams.get("businessId");
     const branchId = url.searchParams.get("branchId");
     const parsedLimit = Number(url.searchParams.get("limit") ?? "100");
     const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 100, 1), 100);
-    if (!tenantId || !businessId) return json({ error: "tenantId and businessId are required" }, 400);
+    if (!businessId) return json({ error: "businessId is required" }, 400);
+
+    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
+      .select("id,tenant_id,status").eq("id", businessId).single();
+    if (businessError || !business || String(business.status ?? "").toUpperCase() !== "ACTIVE")
+      return json({ error: "Business not available" }, 404);
+    const tenantId = String(business.tenant_id);
+    if (requestedTenantId && requestedTenantId !== tenantId) return json({ error: "Business tenant mismatch" }, 403);
 
     const { data: membership } = await supabaseAdmin.from("user_memberships")
       .select("id,role").eq("user_id", user.id).eq("tenant_id", tenantId).eq("status", "ACTIVE")
@@ -78,10 +85,6 @@ serve(async (req) => {
       .select("id").eq("business_id", businessId).eq("status", "ACTIVE").limit(1).maybeSingle();
     if (!provider) return json({ error: "Provider not available" }, 404);
 
-    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
-      .select("id,tenant_id,status").eq("id", businessId).eq("tenant_id", tenantId).single();
-    if (businessError || !business || String(business.status ?? "").toUpperCase() !== "ACTIVE")
-      return json({ error: "Business not available" }, 404);
 
     let itemQuery = supabaseAdmin.from("catalog_items")
       .select("id,tenant_id,business_id,branch_id,legacy_ref,item_type,name_ar,name_en,description,sku,status,tax_rate,metadata")
