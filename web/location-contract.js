@@ -41,7 +41,7 @@
       const lat=Number(row?.latitude),lon=Number(row?.longitude);
       const d=Number.isFinite(lat)&&Number.isFinite(lon)?distanceKm(state.latitude,state.longitude,lat,lon):null;
       return {...row,_distanceKm:d};
-    }).filter(row=>max===10||row._distanceKm==null||row._distanceKm<=max)
+    }) .filter(row=>max===10||row._distanceKm!=null&&row._distanceKm<=max)
       .sort((a,b)=>{
         if(a._distanceKm==null&&b._distanceKm==null)return 0;
         if(a._distanceKm==null)return 1;
