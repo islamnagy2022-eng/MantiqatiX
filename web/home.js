@@ -237,8 +237,15 @@
     document.getElementById('mx-admin-return')?.addEventListener('click',async()=>{
       const id=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId');
       if(!id||typeof switchMembership!=='function')return;
-      localStorage.removeItem('MNTYAdminReturnMembershipId');window.MNTYAdminReturnMembershipId=null;
-      await switchMembership(id);
+      const btn=document.getElementById('mx-admin-return');
+      if(btn)btn.disabled=true;
+      try{
+        await switchMembership(id);
+        localStorage.removeItem('MNTYAdminReturnMembershipId');
+        window.MNTYAdminReturnMembershipId=null;
+      }catch(e){
+        if(btn)btn.disabled=false;
+      }
     });
     document.getElementById('mx-add').onclick=goLogin;
     document.getElementById('mx-bottom-account').onclick=openAccount;
