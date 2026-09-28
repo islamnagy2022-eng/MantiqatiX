@@ -103,3 +103,18 @@ Before merging into `main`, the following must be completed:
 This audit does not close the Android release gate.
 
 Production Go-Live remains OPEN.
+
+
+## RC214.1 — Deeper Android static findings
+
+Additional inspection of the unpacked RC40 candidate found:
+
+- Android Gradle namespace is `com.example`, while `applicationId` is `com.aistudio.manteqti.platform`.
+- MainActivity and a large portion of the source still use `MantiqatiX` naming; this is compatible with the product identity but requires the planned MNTY presentation review rather than blind global replacement.
+- The Android manifest/source includes legacy `manteqti` naming and custom auth/deep-link contracts.
+- Static secret-pattern scan of Android source/build files found no service-role JWT/private-key material; the only relevant recovery guard explicitly rejects recording `service_role` in evidence details.
+- Release configuration requires real Supabase URL/client key and a release keystore, while explicitly rejecting demo data for Release.
+- Release workflow decodes the keystore only from GitHub Secrets and does not place the keystore in the repository.
+- The Android release package name used by the historical Google Play upload configuration is still `com.aistudio.manteqti.platform` and therefore must be reviewed before any store submission.
+
+These findings increase the need for an isolated Android convergence/build branch. They do not justify changing production or renaming the package before a compatibility review.
