@@ -622,3 +622,15 @@
 - RLS + FORCE RLS remain enabled on both relations.
 - Source migration synchronized in commit `0e32929e75f3cec65626aa5b38a3320f740bd753`.
 - Real booking E2E remains BLOCKED only because Production has no active business/provider/catalog/price chain.
+## RC200 — Payment / Refund Booking Path — 2026-09-28
+- Found and fixed cross-tenant customer payment authorization in `create_payment_intent_backend`.
+- Live payment idempotency constraints are VERIFIED: tenant/idempotency, provider/order, provider/external-event.
+- Live RPC remains SECURITY DEFINER with `search_path=public`; anon EXECUTE false; authenticated EXECUTE true.
+- `payment-intent` and `paymob-webhook` source paths reviewed for auth, pricing authority, HMAC, correlation and replay protection.
+- Real Paymob transaction/refund E2E remains BLOCKED because Production has no active booking fixture and no real payment transaction was executed.
+- RC200 remains OPEN.
+
+## Current release truth
+- RC198: VERIFIED/CLOSED.
+- RC199: BLOCKED only on real provider/business/catalog/price E2E fixture after browser read privileges were closed.
+- RC200: OPEN; authorization/idempotency boundaries verified, real payment/refund not verified.
