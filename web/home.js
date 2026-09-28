@@ -179,7 +179,7 @@
     const categoryGrid=document.getElementById('mx-category-grid');
     categoryGrid.innerHTML=TAXONOMY.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
 
-    const goLogin=()=>typeof authView==='function'&&authView();
+    const goLogin=()=>{if(window.MNTYAuthState?.authenticated&&typeof openPlatform==='function')return openPlatform();return typeof authView==='function'&&authView();};
     const openAccount=()=>window.MNTYAuthState?.authenticated&&typeof openPlatform==='function'?openPlatform():goLogin();
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('mx-login').onclick=openAccount;
