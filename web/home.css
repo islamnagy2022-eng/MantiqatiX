@@ -197,3 +197,34 @@
   .mx-side-banner{width:46px;height:140px}.mx-side-banner--right{right:3px}.mx-side-banner--left{left:3px}
   .mx-side-banner__screen{right:6px}.mx-side-banner__copy strong{font-size:6px}.mx-side-banner__copy button{font-size:5px;padding:3px 4px}
 }
+
+/* Final responsive side-banner override: keep the public cloud banners visible below desktop width */
+@media(max-width:1250px){
+  .mx-side-banner{
+    display:block!important;
+    position:fixed!important;
+    top:auto!important;
+    bottom:82px!important;
+    width:58px!important;
+    height:170px!important;
+    z-index:999!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+  }
+  .mx-side-banner--right{right:4px!important;left:auto!important}
+  .mx-side-banner--left{left:4px!important;right:auto!important}
+  .mx-side-banner__screen{top:54px!important;right:9px!important;width:40px!important;height:33px!important;border-width:2px!important;border-radius:7px!important}
+  .mx-side-banner__screen b{font-size:8px!important}
+  .mx-side-banner__screen span{display:none!important}
+  .mx-side-banner__copy{left:3px!important;right:3px!important;bottom:8px!important}
+  .mx-side-banner__copy strong{font-size:7px!important}
+  .mx-side-banner__copy span{display:none!important}
+  .mx-side-banner__copy button{display:inline-block!important;padding:4px 5px!important;border-radius:6px!important;font-size:6px!important}
+  .mx-side-banner__cloud--one{width:92px!important;height:31px!important;right:-30px!important;top:25px!important}
+  .mx-side-banner__cloud--two{width:78px!important;height:26px!important;left:-26px!important;bottom:27px!important}
+}
+@media(max-width:380px){
+  .mx-side-banner{width:48px!important;height:145px!important;bottom:80px!important}
+  .mx-side-banner--right{right:3px!important}.mx-side-banner--left{left:3px!important}
+}
