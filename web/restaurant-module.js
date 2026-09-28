@@ -101,13 +101,19 @@ function inventoryView(){
 }
 async function createRestaurantOrder(){
  if(!state.user||!scope())return alert('يجب اختيار عضوية مطعم/فرع نشطة.');
- const item=state.menu.find(x=>x.is_available);
- if(!item)return alert('لا توجد أصناف متاحة حالياً.');
- const qty=Number(prompt('الكمية للصنف: '+item.name_ar,'1'));
- if(!Number.isInteger(qty)||qty<1)return;
  const m=scope();
- const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS'}};
- try{const r=await invokeMntyApi('/api/v1/orders',{method:'POST',body:payload});alert('تم إنشاء الطلب '+(r?.id||payload.orderId)+' بإجمالي '+money(r?.total_amount||0));await load();}catch(e){alert('تعذر إنشاء الطلب: '+(e?.message||'خطأ'))}
+ try{
+   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
+   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
+   const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE');
+   if(!item)return alert('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
+   const qty=Number(prompt('الكمية للصنف: '+(item.name_ar||item.name_en||'صنف'),'1'));
+   if(!Number.isInteger(qty)||qty<1)return;
+   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   const r=await invokeMntyFunction('order-create',payload);
+   alert('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
+   await load();
+ }catch(e){alert('تعذر إنشاء الطلب: '+(e?.message||'خطأ'))}
 }
 function dashboard(){
  return shell('لوحة المطعم',tabs()+'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>'+cards()+
