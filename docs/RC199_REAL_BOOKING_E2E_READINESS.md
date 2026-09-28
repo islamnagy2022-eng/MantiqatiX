@@ -77,3 +77,15 @@ The required least-privilege fix is:
 This DDL was **NOT APPLIED** in this checkpoint because the DDL execution tool rejected the grant migration. No unsafe workaround was used.
 
 Therefore browser order visibility remains **NOT VERIFIED/BLOCKED** until the read grant is applied and re-verified.
+## RC199 blocker closure — browser read privileges
+The required read-only browser privileges were subsequently applied to Production:
+- authenticated has SELECT on public.orders.
+- authenticated has SELECT on public.order_status_history.
+- Customer history policy restricts visibility to history rows whose order belongs to auth.uid().
+- No client mutation privilege was added.
+- Both tables remain RLS + FORCE RLS.
+
+Production re-read confirms the grants and policies are present.
+The source migration was synchronized to include the same DDL in commit `0e32929e75f3cec65626aa5b38a3320f740bd753`.
+
+The remaining RC199 blocker is now only the absence of a real active provider/business/catalog/price chain required for an actual E2E booking.
