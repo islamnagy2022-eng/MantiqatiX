@@ -616,3 +616,9 @@
 - Live `authenticated` table grants currently do not include `SELECT` on `public.orders`; RLS policy alone cannot make this direct read path functional.
 - Required least-privilege DDL: `GRANT SELECT` to `authenticated` on `orders` and `order_status_history`, plus customer-own order-history SELECT policy; no client mutation grants.
 - DDL was not applied in this checkpoint because the execution tool rejected the grant migration. Status: **OPEN / NOT VERIFIED**.
+## RC199 closure update — 2026-09-28
+- Production read-only grants for `orders` and `order_status_history` are now VERIFIED.
+- Customer-owned `order_status_history` SELECT policy is VERIFIED.
+- RLS + FORCE RLS remain enabled on both relations.
+- Source migration synchronized in commit `0e32929e75f3cec65626aa5b38a3320f740bd753`.
+- Real booking E2E remains BLOCKED only because Production has no active business/provider/catalog/price chain.
