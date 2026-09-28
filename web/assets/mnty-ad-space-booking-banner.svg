@@ -1,30 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" role="img" aria-labelledby="title desc">
 <title id="title">احجز مساحة إعلانية الآن</title>
-<desc id="desc">شريط ترويجي لحجز مساحة إعلانية على MantiqatiX</desc>
+<desc id="desc">شريط MNTY لحجز مساحة إعلانية واستهداف العملاء في المنطقة</desc>
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5f8ff"/><stop offset=".55" stop-color="#e9f3ff"/><stop offset="1" stop-color="#d8edff"/></linearGradient>
- <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#155eef"/><stop offset="1" stop-color="#2f7bff"/></linearGradient>
- <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity=".16"/></filter>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".52" stop-color="#eef6ff"/><stop offset="1" stop-color="#cfe9ff"/></linearGradient>
+ <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#1260f5"/><stop offset="1" stop-color="#3183ff"/></linearGradient>
+ <linearGradient id="meg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0e5bf0"/><stop offset="1" stop-color="#3c91ff"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#1759a8" flood-opacity=".22"/></filter>
+ <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
 </defs>
-<rect x="5" y="5" width="1590" height="290" rx="34" fill="url(#bg)" stroke="#d8e7ff" stroke-width="4"/>
-<g opacity=".35" fill="#79aaff"><circle cx="1420" cy="72" r="8"/><circle cx="1450" cy="72" r="5"/><circle cx="1480" cy="72" r="8"/><circle cx="1510" cy="72" r="5"/></g>
-<g transform="translate(55 48)" filter="url(#shadow)">
- <path d="M20 48h58l42-31v116l-42-31H20z" fill="#1769e8"/>
- <path d="M120 42q45 25 0 50" fill="none" stroke="#1769e8" stroke-width="13" stroke-linecap="round"/>
- <circle cx="40" cy="18" r="25" fill="#2f7bff"/><text x="40" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="900" fill="#fff">%</text>
+<rect width="1600" height="300" rx="34" fill="url(#bg)"/>
+<circle cx="1480" cy="80" r="100" fill="#80c7ff" opacity=".20" filter="url(#soft)"/>
+<circle cx="170" cy="230" r="100" fill="#6ca9ff" opacity=".14" filter="url(#soft)"/>
+<g opacity=".3" fill="#75aefc"><circle cx="1290" cy="48" r="5"/><circle cx="1320" cy="48" r="8"/><circle cx="1352" cy="48" r="5"/><circle cx="1382" cy="48" r="8"/><circle cx="1414" cy="48" r="5"/></g>
+
+<!-- megaphone -->
+<g transform="translate(62 52)" filter="url(#shadow)">
+ <path d="M20 64h78l62-45v174l-62-45H20z" fill="url(#meg)"/>
+ <path d="M160 70q58 35 0 70" fill="none" stroke="#1769e8" stroke-width="14" stroke-linecap="round"/>
+ <path d="M48 193l18-2 15-56H48z" fill="#0b4fcf"/>
+ <circle cx="36" cy="28" r="30" fill="#2e7eff"/><text x="36" y="40" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="900" fill="#fff">%</text>
 </g>
+<g transform="translate(300 164)" fill="none" stroke="#f2b43a" stroke-width="9" stroke-linecap="round"><path d="M0 0l35-18"/><path d="M8 18h43"/><path d="M0 36l35 18"/></g>
+
+<!-- main Arabic copy -->
 <g font-family="Arial,Tahoma,sans-serif" direction="rtl" text-anchor="middle">
- <text x="820" y="102" font-size="62" font-weight="900" fill="#101f45">احجز <tspan fill="#1769e8">مساحة إعلانية</tspan> الآن</text>
- <text x="820" y="156" font-size="31" font-weight="700" fill="#20355e">وصل إلى عملائك المستهدفين في منطقتك</text>
- <g font-size="22" font-weight="800" fill="#162a51">
-  <text x="640" y="216">استهداف حسب المنطقة</text><text x="885" y="216">زيادة الوصول والمبيعات</text><text x="1165" y="216">ظهور يومي للعملاء</text>
+ <text x="855" y="92" font-size="61" font-weight="900" fill="#0d1d43">احجز <tspan fill="#1464f4">مساحة إعلانية</tspan> الآن</text>
+ <text x="855" y="145" font-size="31" font-weight="800" fill="#17315d">وصل إلى عملائك المستهدفين في منطقتك</text>
+ <g font-size="21" font-weight="800" fill="#122b55">
+  <text x="660" y="207">استهداف حسب المنطقة</text>
+  <text x="900" y="207">زيادة الوصول والمبيعات</text>
+  <text x="1160" y="207">ظهور يومي للعملاء</text>
  </g>
- <g fill="#1769e8"><circle cx="580" cy="209" r="9"/><circle cx="825" cy="209" r="9"/><circle cx="1105" cy="209" r="9"/></g>
+ <g fill="#18b97a"><circle cx="555" cy="200" r="9"/><circle cx="795" cy="200" r="9"/><circle cx="1055" cy="200" r="9"/></g>
 </g>
-<g transform="translate(1325 93)" filter="url(#shadow)">
- <rect width="220" height="94" rx="47" fill="url(#blue)"/>
- <text x="110" y="60" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="34" font-weight="900" fill="#fff">احجز الآن</text>
- <circle cx="183" cy="47" r="23" fill="#fff"/><path d="M173 47h20M185 39l9 8-9 8" fill="none" stroke="#1769e8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+<!-- CTA -->
+<g transform="translate(1300 92)" filter="url(#shadow)">
+ <rect width="245" height="100" rx="50" fill="url(#btn)"/>
+ <text x="122" y="63" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="35" font-weight="900" fill="#fff">احجز الآن</text>
+ <circle cx="195" cy="50" r="24" fill="#fff"/>
+ <path d="M184 50h23M197 41l10 9-10 9" fill="none" stroke="#1769e8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<rect x="1492" y="20" width="82" height="32" rx="16" fill="#1769e8"/><text x="1533" y="43" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="16" font-weight="900" fill="#fff">إعلان</text>
+<rect x="1490" y="18" width="88" height="34" rx="17" fill="#1260f5"/>
+<text x="1534" y="42" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="17" font-weight="900" fill="#fff">إعلان</text>
 </svg>
