@@ -534,3 +534,10 @@
 - Aligned order counters with active customer/provider/business scope.
 - CUSTOMER uses customer_id; SERVICE_PROVIDER/BUSINESS_OWNER use business_id.
 - OPEN: CI, deployment convergence, real two-user E2E, notifications and payment/refund verification.
+
+
+## RC187 — Admin Customer Homepage Preview — 2026-09-28
+- Switching from a privileged admin/owner/manager membership to CUSTOMER now opens the same public MNTY homepage used by customers.
+- Added an admin-only temporary return control for the previous privileged membership.
+- No backend authorization is changed by the preview.
+- OPEN: browser E2E, CI, deployment convergence and final release verification.
