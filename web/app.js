@@ -274,9 +274,10 @@ function sectorsPage(){
  return '<div class="section-head"><div><h2>المجالات والخدمات</h2><p>اختر مجالًا لاستعراض الوحدة التشغيلية المرتبطة به. التنفيذ الفعلي يظل محكومًا بالبيانات والصلاحيات المتاحة.</p></div></div><div class="modules">'+list.map(s=>'<article class="card module"><div class="icon">'+s[0]+'</div><h3>'+s[1]+'</h3><div class="muted">'+s[2]+'</div><div class="mini-actions"><button type="button" onclick="selectModule(\''+(sectorMap[s[1]]||'الموديولات')+'\')">فتح المجال</button><button type="button" onclick="selectModule(\'العمولات والباقات\')">الباقات</button></div></article>').join('')+'</div>';
 }
 function genericPage(title,desc,items){return `<div class="section-head"><div><h2>${title}</h2><p>${desc}</p></div></div><div class="grid3">${items.map(x=>`<div class="card"><div class="row"><strong>${x[0]}</strong><span class="dot"></span></div><p class="muted">${x[1]}</p><button class="linkbtn">عرض التفاصيل ←</button></div>`).join('')}</div>`}
-async function loadBusinessCatalog(businessId,branchId=null){
- if(!businessId||!live.tenantId)throw new Error('CATALOG_CONTEXT_REQUIRED');
- const q=new URLSearchParams({tenantId:live.tenantId,businessId});
+async function loadBusinessCatalog(businessId,branchId=null,tenantId=null){
+ if(!businessId)throw new Error('CATALOG_CONTEXT_REQUIRED');
+ const q=new URLSearchParams({businessId});
+ if(tenantId)q.set('tenantId',tenantId);
  if(branchId)q.set('branchId',branchId);
  const data=await invokeMntyApi('/api/v1/catalog?'+q.toString());
  live.catalogByBusiness[businessId]=data;
@@ -289,10 +290,10 @@ function catalogCurrentPrice(catalog,itemId,branchId=null){
  return eligible[0]||null;
 }
 function closeMxModal(){document.querySelectorAll('.mx-modal').forEach(x=>x.remove())}
-async function openProviderCatalog(businessId,providerName){
+async function openProviderCatalog(businessId,providerName,providerTenantId=null){
  if(!businessId)return showToast('لا يوجد نشاط تشغيلي مرتبط بهذا المقدم.','error');
  try{
-  const catalog=live.catalogByBusiness[businessId]||await loadBusinessCatalog(businessId,live.branchId);
+  const catalog=live.catalogByBusiness[businessId]||await loadBusinessCatalog(businessId,null,providerTenantId);
   const cards=(catalog.items||[]).map(item=>{
    const price=catalogCurrentPrice(catalog,item.id,live.branchId);
    const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
@@ -323,7 +324,7 @@ async function openOrderForm(businessId,itemId){
   const subtotal=Number(price.unit_price||0)*qty;
   submit.disabled=true; submit.textContent='جارٍ إرسال الطلب…';
   try{
-   const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:live.tenantId,businessId,branchId:live.branchId||null,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true}});
+   const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:live.tenantId,businessId,branchId:null,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true}});
    closeMxModal(); await loadLiveData(); await renderApp(); showToast('تم إرسال الطلب بنجاح.','success'); return result;
   }catch(e){submit.disabled=false;submit.textContent='إرسال الطلب';showToast('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error')}
  };
