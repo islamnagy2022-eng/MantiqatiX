@@ -178,3 +178,22 @@
 .mx-side-banner__copy button{border:0;border-radius:9px;background:#1769e8;color:#fff;padding:7px 13px;font:900 10px Tajawal,Arial,sans-serif;cursor:pointer;box-shadow:0 7px 15px rgba(23,105,232,.2)}
 .mx-side-banner__copy button:hover{filter:brightness(.96);transform:translateY(-1px)}
 @media(max-width:1250px){.mx-side-banner{display:none}}
+
+/* Mobile: compact cloud ad rails instead of hiding the side banners */
+@media(max-width:800px){
+  .mx-side-banner{display:block;top:auto;bottom:78px;width:54px;height:156px;border-radius:16px;z-index:45;box-shadow:0 10px 26px rgba(20,58,100,.16)}
+  .mx-side-banner--right{right:5px}.mx-side-banner--left{left:5px}
+  .mx-side-banner__cloud--one{width:88px;height:30px;right:-28px;top:25px}
+  .mx-side-banner__cloud--one:before{width:40px;height:40px;right:28px;top:-18px}.mx-side-banner__cloud--one:after{width:30px;height:30px;right:4px;top:-11px}
+  .mx-side-banner__cloud--two{width:75px;height:25px;left:-25px;bottom:26px}
+  .mx-side-banner__cloud--two:before{width:32px;height:32px;left:22px;top:-15px}.mx-side-banner__cloud--two:after{width:24px;height:24px;left:5px;top:-10px}
+  .mx-side-banner__screen{top:50px;right:8px;width:38px;height:31px;border-width:2px;border-radius:7px;transform:rotate(-5deg)}
+  .mx-side-banner__screen b{font-size:8px}.mx-side-banner__screen span{display:none}
+  .mx-side-banner__copy{left:3px;right:3px;bottom:7px}
+  .mx-side-banner__copy strong{font-size:7px}.mx-side-banner__copy span{display:none}
+  .mx-side-banner__copy button{padding:4px 5px;border-radius:6px;font-size:6px}
+}
+@media(max-width:380px){
+  .mx-side-banner{width:46px;height:140px}.mx-side-banner--right{right:3px}.mx-side-banner--left{left:3px}
+  .mx-side-banner__screen{right:6px}.mx-side-banner__copy strong{font-size:6px}.mx-side-banner__copy button{font-size:5px;padding:3px 4px}
+}
