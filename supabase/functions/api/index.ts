@@ -66,9 +66,17 @@ serve(async (req) => {
     if (!tenantId || !businessId) return json({ error: "tenantId and businessId are required" }, 400);
 
     const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("id").eq("user_id", user.id).eq("tenant_id", tenantId).eq("status", "ACTIVE")
+      .select("id,role").eq("user_id", user.id).eq("tenant_id", tenantId).eq("status", "ACTIVE")
       .limit(1).maybeSingle();
-    if (!membership) return json({ error: "Forbidden" }, 403);
+    if (!membership) {
+      const { data: customerMembership } = await supabaseAdmin.from("user_memberships")
+        .select("id,role").eq("user_id", user.id).eq("status", "ACTIVE").eq("role", "CUSTOMER")
+        .limit(1).maybeSingle();
+      if (!customerMembership) return json({ error: "Forbidden" }, 403);
+    }
+    const { data: provider } = await supabaseAdmin.from("marketing_provider_profiles")
+      .select("id").eq("business_id", businessId).eq("status", "ACTIVE").limit(1).maybeSingle();
+    if (!provider) return json({ error: "Provider not available" }, 404);
 
     const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
       .select("id,tenant_id,status").eq("id", businessId).eq("tenant_id", tenantId).single();
@@ -118,9 +126,17 @@ serve(async (req) => {
     if (String(body.clientIdempotencyKey).length > 200) return json({ error: "Invalid idempotency key" }, 400)
 
     const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("id").eq("user_id", user.id).eq("tenant_id", String(body.tenantId)).eq("status", "ACTIVE")
+      .select("id,role").eq("user_id", user.id).eq("tenant_id", String(body.tenantId)).eq("status", "ACTIVE")
       .limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
+    if (!membership) {
+      const { data: customerMembership } = await supabaseAdmin.from("user_memberships")
+        .select("id,role").eq("user_id", user.id).eq("status", "ACTIVE").eq("role", "CUSTOMER")
+        .limit(1).maybeSingle()
+      if (!customerMembership) return json({ error: "Forbidden" }, 403)
+    }
+    const { data: provider } = await supabaseAdmin.from("marketing_provider_profiles")
+      .select("id").eq("business_id", String(body.businessId)).eq("status", "ACTIVE").limit(1).maybeSingle()
+    if (!provider) return json({ error: "Provider not available" }, 404)
 
     const { data, error } = await supabaseAdmin.rpc("create_order_backend", {
       p_order_id: String(body.orderId),
