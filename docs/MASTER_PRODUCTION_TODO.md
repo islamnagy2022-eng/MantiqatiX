@@ -590,3 +590,24 @@
 - Attempted production Edge Function metadata verification for order-create after RC192.
 - Production lookup returned no usable metadata; deployment/convergence remains NOT VERIFIED.
 - RC192 is source-complete but must not be treated as live until version/hash convergence is proven.
+
+## RC198 — Order Idempotency Atomicity & Production Convergence — 2026-09-28
+- Live `orders` schema contains `client_idempotency_key`.
+- Live unique partial index `ux_orders_tenant_client_idempotency` on `(tenant_id, client_idempotency_key)` is VERIFIED, valid and ready.
+- Duplicate-key query returned zero duplicate groups.
+- Live `create_order_backend` was read back and retains server-authoritative pricing and backend-only execution.
+- Production `order-create` is ACTIVE v5, `verify_jwt=true`, SHA-256 `7f2090ba15abe3fbc58cf8d1c5308423ac7d92bbb2544e09de27df238080e713`.
+- RC198: VERIFIED/CLOSED.
+
+## RC199 — Real Booking E2E Readiness — 2026-09-28
+- Live production currently has 0 active businesses, 0 active provider profiles, 0 active catalog items and 0 active catalog prices.
+- Therefore real customer→provider booking E2E is BLOCKED; no synthetic production order or fabricated IDs were created.
+- Found an RLS gap: customer read of own orders across provider tenants was not covered by the previous SELECT policy.
+- Added least-privilege `orders_customer_select_own`: authenticated non-anonymous user may SELECT only rows where `customer_id = auth.uid()`.
+- Verified `orders` remains RLS-enabled and FORCE RLS.
+- Migration source committed as `57c8be1fa086ec2cb6339d879ee2b4b82721d493`.
+- RC199 remains BLOCKED until authorized real provider/catalog/test data exists.
+
+## Current next gate
+- RC200 — Payment / Refund Booking Path.
+- Do not advance to real payment testing until RC199 real booking prerequisites are available.
