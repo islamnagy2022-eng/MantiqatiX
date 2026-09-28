@@ -297,7 +297,7 @@ const mountLandingCoverAds=async()=>{
  };
  try{
    const coords=window.MNTYLocationAdapter?.state?.coords||null;
-   const {data,error}=await sb.rpc('get_mnty_targeted_advertisements',{p_country_code:'EG',p_governorate_code:null,p_center_code:null,p_lat:coords?.latitude??null,p_lon:coords?.longitude??null,p_ad_space_id:'HOME_SPONSORED',p_limit:10});
+   const {data,error}=await sb.rpc('get_mnty_targeted_advertisements',{p_country_code:'EG',p_governorate_code:null,p_center_code:null,p_lat:coords?.latitude??null,p_lon:coords?.longitude??null,p_ad_space_id:'HOME_SPONSORED',p_limit:3});
    if(error)throw error; const ads=(data||[]).filter(x=>x&&x.advertisement_id);
    if(!ads.length){slots.forEach(x=>x.hidden=true);return}
    let tick=0; const paint=()=>{slots.forEach((slot,n)=>render(slot,ads[(tick+n)%ads.length]));tick=(tick+1)%ads.length}; paint();
