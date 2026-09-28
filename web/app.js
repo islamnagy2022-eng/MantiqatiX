@@ -784,4 +784,5 @@ window.MXHomeLanding?MXHomeLanding():landingView();return;
 }
 if(session?.user&&!authRenderLock)enterAuthenticatedApp(session.user);
 });
-window.addEventListener('DOMContentLoaded',bootAuth,{once:true});
+window.MNTYBootAuth=bootAuth;
+if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',bootAuth,{once:true});else bootAuth();
