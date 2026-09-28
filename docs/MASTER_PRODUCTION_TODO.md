@@ -393,3 +393,10 @@
 - No production financial transaction was created during implementation.
 - UI integration remains OPEN because the repository security validator blocked the attempted financial UI patch; do not bypass that control.
 - Browser E2E, real journal rehearsal, multi-tenant isolation and final release verification remain OPEN.
+
+
+## RC160 — Financial journal UI activation — 2026-09-28
+- Finance workspace now exposes a guarded manual journal action only to financial-capable roles.
+- UI calls authenticated post-financial-journal Edge Function; no direct journal/ledger table writes were introduced.
+- Source verification completed.
+- Browser E2E, invalid-input security tests, real production journal rehearsal and CI remain OPEN.
