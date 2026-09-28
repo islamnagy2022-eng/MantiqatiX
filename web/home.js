@@ -114,39 +114,41 @@
       </header>
 
       <div class="mx-main" id="mx-home">
-        <section class="mx-hero" aria-label="الواجهة الرئيسية">
-          <div class="mx-hero__copy">
-            <span class="mx-hero__eyebrow">MNTY · الهوية الحديثة لمنصة MantiqatiX</span>
-            <h1>اكتشف الخدمة المناسبة، وتواصل مع مقدمها</h1>
-            <p>منصة رقمية متكاملة تربط العملاء بمقدمي الخدمات والأنشطة المسجلة، وتسهّل اكتشاف الخدمات ومقارنتها وطلبها ومتابعة تنفيذها عبر قطاعات متعددة، مع استخدام الموقع فقط عند الحاجة التشغيلية وبحسب الإذن. MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ يقتصر دورها على توفير البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، بينما يظل مقدم الخدمة هو المسؤول عن تقديم الخدمة وتنفيذها فعليًا.</p>
-            <div class="mx-trust-row"><span>✓ مقدمو خدمات مسجلون</span><span>⚡ تجربة سريعة</span><span>⌖ موقع عند الحاجة</span></div>
-            <div class="mx-hero__actions">
-              <button class="mx-btn mx-btn--primary" id="mx-start" type="button">ابدأ الآن ←</button>
-              <button class="mx-btn mx-btn--light" id="mx-explore" type="button">استكشف الخدمات</button>
+        <section class="mx-ad-cloud" aria-label="الإعلان الرئيسي والحجز الإعلاني">
+          <div class="mx-ad-cloud__glow mx-ad-cloud__glow--one"></div>
+          <div class="mx-ad-cloud__glow mx-ad-cloud__glow--two"></div>
+          <div class="mx-ad-cloud__content">
+            <span class="mx-ad-cloud__eyebrow">MNTY · إعلانات بالحجز المسبق</span>
+            <h1>كل الخدمات في منصة واحدة</h1>
+            <p>احجز ظهور نشاطك داخل MantiqatiX باقة إعلانية تناسب مدة حملتك: ربع سنوي، نصف سنوي أو سنوي.</p>
+            <div class="mx-ad-cloud__actions">
+              <button class="mx-btn mx-btn--primary" id="mx-ad-book" type="button">احجز إعلان نشاطك هنا ←</button>
+              <button class="mx-btn mx-btn--light" id="mx-ad-plans" type="button">شاهد باقات الإعلان</button>
             </div>
           </div>
-          <div class="mx-hero__visual">
-            <img class="mx-hero__art" src="assets/hero/mnty-home-hero.svg" alt="MNTY — اكتشاف الخدمات والتواصل والحجز" fetchpriority="high">
-            <div class="mx-hero__visual-card"><b>احجز خدمتك من MNTY</b><span>اكتشاف · مقارنة · طلب · متابعة</span></div>
+          <div class="mx-ad-cloud__plans" id="mx-ad-plans-grid">
+            <article class="mx-ad-plan">
+              <span>01</span><b>ربع سنوي</b><small>حجز إعلاني لمدة 3 أشهر</small>
+            </article>
+            <article class="mx-ad-plan mx-ad-plan--featured">
+              <span>02</span><b>نصف سنوي</b><small>حجز إعلاني لمدة 6 أشهر</small>
+            </article>
+            <article class="mx-ad-plan">
+              <span>03</span><b>سنوي</b><small>حجز إعلاني لمدة 12 شهرًا</small>
+            </article>
+          </div>
+          <div class="mx-ad-cloud__visual" aria-hidden="true">
+            <div class="mx-cloud mx-cloud--a"></div><div class="mx-cloud mx-cloud--b"></div><div class="mx-cloud mx-cloud--c"></div>
+            <div class="mx-cloud-screen"><b>MNTY</b><span>إعلان نشاطك هنا</span></div>
           </div>
         </section>
 
-        <section class="mx-section mx-platform-definition" id="mx-about">
-          <div class="mx-platform-definition__intro">
-            <span class="mx-hero__eyebrow">MANTIQATIX · تعريف المنصة</span>
-            <h2>منصة رقمية تربط الطلب بالخدمة</h2>
-            <p>منصة رقمية متكاملة تربط العملاء بمقدمي الخدمات والأنشطة المسجلة، وتسهّل اكتشاف الخدمات ومقارنتها وطلبها ومتابعة تنفيذها عبر قطاعات متعددة، مع استخدام الموقع فقط عند الحاجة التشغيلية وبحسب الإذن.</p>
+        <section class="mx-platform-notices" aria-label="إشعارات المنصة">
+          <div class="mx-platform-notices__label">تنبيهات MNTY</div>
+          <div class="mx-platform-notices__viewport">
+            <div id="mx-platform-notice" class="mx-platform-notice" aria-live="polite"></div>
           </div>
-          <div class="mx-platform-definition__model">
-            <div class="mx-model-card"><span>01</span><b>اكتشاف</b><small>العثور على الخدمات والأنشطة المسجلة.</small></div>
-            <div class="mx-model-card"><span>02</span><b>مطابقة</b><small>ربط احتياج العميل بمقدم الخدمة المناسب.</small></div>
-            <div class="mx-model-card"><span>03</span><b>طلب وتواصل</b><small>إدارة الطلب والتواصل عبر البنية الرقمية.</small></div>
-            <div class="mx-model-card"><span>04</span><b>متابعة</b><small>متابعة حالة الطلب دون الحلول محل مقدم الخدمة.</small></div>
-          </div>
-          <div class="mx-platform-definition__notice">
-            <strong>دور MANTIQATIX رقمي وليس ماديًا</strong>
-            <p>MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ يقتصر دورها على توفير البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، بينما يظل مقدم الخدمة هو المسؤول عن تقديم الخدمة وتنفيذها فعليًا.</p>
-          </div>
+          <span class="mx-platform-notices__timer">تتبدل تلقائيًا</span>
         </section>
 
         <section class="mx-section mx-audience-section" id="mx-audiences">
@@ -232,6 +234,31 @@
     categoryGrid.innerHTML='';
 (c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
 
+    const platformNotices=[
+      'استكشف الخدمات ومقدميها من مكان واحد.',
+      'احجز إعلان نشاطك مسبقًا بباقة ربع سنوية أو نصف سنوية أو سنوية.',
+      'أضف نشاطك إلى المنصة وابدأ في بناء حضورك الرقمي.',
+      'تابع الخدمات والطلبات من خلال تجربة MNTY الموحدة.',
+      'MantiqatiX تربط العميل بمقدم الخدمة رقميًا دون الحلول محل مقدم الخدمة.'
+    ];
+    let platformNoticeIndex=0;
+    let platformNoticeTimer=null;
+    const renderPlatformNotice=()=>{
+      const el=document.getElementById('mx-platform-notice');
+      if(!el)return;
+      el.classList.remove('is-visible');
+      window.setTimeout(()=>{
+        el.textContent=platformNotices[platformNoticeIndex];
+        el.classList.add('is-visible');
+      },120);
+    };
+    renderPlatformNotice();
+    platformNoticeTimer=window.setInterval(()=>{
+      platformNoticeIndex=(platformNoticeIndex+1)%platformNotices.length;
+      renderPlatformNotice();
+    },3000);
+    window.addEventListener('pagehide',()=>{if(platformNoticeTimer)window.clearInterval(platformNoticeTimer)},{once:true});
+
     const goLogin=()=>{if(window.MNTYAuthState?.authenticated&&typeof openPlatform==='function')return openPlatform();return typeof authView==='function'&&authView();};
     const openAccount=()=>window.MNTYAuthState?.authenticated&&typeof openPlatform==='function'?openPlatform():goLogin();
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -250,6 +277,8 @@
       }
     });
     document.getElementById('mx-add').onclick=goLogin;
+    document.getElementById('mx-ad-book').onclick=goLogin;
+    document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView({behavior:'smooth',block:'center'});
     document.getElementById('mx-bottom-account').onclick=openAccount;
     document.getElementById('mx-bottom-add').onclick=goLogin;
     document.getElementById('mx-start').onclick=()=>scrollTo('mx-categories');
