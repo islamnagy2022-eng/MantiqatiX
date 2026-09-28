@@ -295,7 +295,15 @@
       }
     });
     document.getElementById('mx-add').onclick=goLogin;
-    document.getElementById('mx-ad-book').onclick=goLogin;
+    const selectAdPlan=(plan)=>{
+      try{localStorage.setItem('MNTYPendingAdPlan',String(plan||'QUARTERLY'));}catch(_){}
+      document.querySelectorAll('[data-ad-plan]').forEach(x=>x.classList.toggle('is-selected',x.dataset.adPlan===plan));
+    };
+    document.querySelectorAll('[data-ad-plan]').forEach(btn=>btn.onclick=()=>{
+      selectAdPlan(btn.dataset.adPlan||'QUARTERLY');
+      goLogin();
+    });
+    document.getElementById('mx-ad-book').onclick=()=>{selectAdPlan('QUARTERLY');goLogin();};
     document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView({behavior:'smooth',block:'center'});
     document.getElementById('mx-bottom-account').onclick=openAccount;
     document.getElementById('mx-bottom-add').onclick=goLogin;
