@@ -364,3 +364,13 @@
 - anon SECURITY DEFINER execute: 0; authenticated SECURITY DEFINER execute: 1 (payment-intent backend RPC).
 - Payment idempotency constraints verified; current payment_intents and payment_provider_events counts are both 0.
 - Multi-tenant/customer-provider E2E and real payment E2E remain NOT VERIFIED.
+
+
+## RC153–RC154 — Domain module build continuation — 2026-09-28
+
+- RC153 implemented real web runtime modules for Fashion, Education, Jobs and Used Items using existing Supabase tables and existing RLS boundaries.
+- RC154 implemented the Reverse Bidding / Professional Services runtime using the existing indrive_requests / indrive_bids contract and private bid-access functions.
+- Restaurant module was already present as web/restaurant-module.js and was retained rather than duplicated.
+- Matrimony was not opened as a generic profile UI because the current profile schema contains direct contact fields; a dedicated privacy-safe projection/contract is required before exposing that module broadly.
+- Medical was not marked complete because the current inspected public schema does not expose a verified medical transaction model; no fake tables/data were introduced.
+- Browser E2E and production CI remain NOT VERIFIED for the new module runtimes.
