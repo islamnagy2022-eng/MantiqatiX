@@ -1,11 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0"
 
+const allowedOrigin = "https://islamnagy2022-eng.github.io"
+const corsHeaders = {
+  "Access-Control-Allow-Origin": allowedOrigin,
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Vary": "Origin",
+}
+
 serve(async (req) => {
+  const origin = req.headers.get("Origin")
+  if (req.method === "OPTIONS") {
+    if (origin && origin !== allowedOrigin) {
+      return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } })
+    }
+    return new Response("ok", { status: 200, headers: corsHeaders })
+  }
+  if (origin && origin !== allowedOrigin) {
+    return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } })
+  }
   const url = new URL(req.url)
   const path = url.pathname
   const json = (body: unknown, status = 200, extra: Record<string,string> = {}) =>
-    new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...extra } })
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", ...extra } })
 
   if (path === "/health") return json({ status: "ok" })
 
@@ -27,7 +45,7 @@ serve(async (req) => {
       .select("brand_key,brand_name_en,brand_name_ar,tagline_ar,primary_colors,typography,logo_usage,icon_sizes,version,status,logo_asset_ref,app_icon_asset_ref")
       .eq("brand_key", "MANTIQATIX").eq("status", "ACTIVE").single()
     if (error || !brand) return json({ error: "Brand identity not found" }, 404)
-    return new Response(JSON.stringify(brand), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } })
+    return new Response(JSON.stringify(brand), { headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } })
   }
 
   if (path === "/api/v1/me") {
