@@ -283,3 +283,63 @@
 - Source migration synchronization completed via Git object path; RC109 migration committed as 9dd15b631a147f15ac27809e7458de00231e4fa3. CI is not currently verified for this commit.
 
 - E2E test prerequisite check: production currently has 10 ACTIVE memberships across 1 tenant and 1 active user; there is no real two-user/two-tenant fixture to execute the required isolation E2E without creating test identities/data. Keep this gate OPEN rather than simulating verification.
+
+
+## RC110 → RC120 execution ledger — 2026-09-28
+
+### RC110 — RLS regression contract
+- Added `supabase/tests/rc110_rls_policy_contract.sql`.
+- Structural contract added; behavioral pgTAP execution is NOT VERIFIED because production does not have the `pgtap` extension.
+
+### RC111 — Security Advisor / audit anonymous boundary
+- Production `audit_logs_select_admin_scope` now explicitly rejects anonymous Auth users.
+- Migration synchronized to source.
+- Security Advisor remains OPEN because other intentional findings remain.
+
+### RC112 — Leaked password protection
+- Advisor confirms leaked-password protection is DISABLED.
+- No safe SQL control surface exists in this project for Auth managed setting.
+- Status: OPEN / Dashboard action required.
+
+### RC113 — SECURITY DEFINER execution
+- Production inventory: 79 public SECURITY DEFINER functions.
+- `anon` execute privilege: 0.
+- `authenticated` execute privilege: 1, specifically `create_payment_intent_backend`.
+- This execute grant is intentional for the payment-intent Edge Function and remains under source/RPC validation.
+- Status: VERIFIED boundary; Advisor warning remains intentional.
+
+### RC114 — Backend-only sensitive tables
+- `erp_purchase_orders`, `erp_purchase_receipts`, `erp_stock_transfers`, `smm_admins`, `smm_provider_credentials`, `smm_providers` remain RLS-enabled with no policies.
+- Direct `anon/authenticated` table grants were not present in the verified grant query.
+- Status: fail-closed for ordinary API roles; backend/service-role path mapping remains OPEN.
+
+### RC115 — Payment idempotency
+- Verified unique `payment_intents(tenant_id,idempotency_key)`.
+- Verified unique `payment_provider_events(provider,external_event_id)`.
+- Verified unique provider/order payment-intent constraint when provider_order_id is present.
+- Status: database idempotency constraints VERIFIED; real duplicate webhook replay E2E NOT VERIFIED.
+
+### RC116 — Finance read scope
+- `financial_obligations` currently has tenant-member read policy.
+- No source usage was found in GitHub search to prove a narrower consumer contract.
+- Status: REVIEW REQUIRED before narrowing; do not change blindly.
+
+### RC117 — Auditability
+- Audit-log admin read boundary hardened.
+- Append path remains backend-oriented.
+- Data retention/redaction/integrity-hash requirements are not fully verified.
+- Status: PARTIAL.
+
+### RC118 — Backup / recovery
+- No backup/restore rehearsal was performed against production.
+- No destructive restore action will be executed without an explicit controlled environment.
+- Status: OPEN.
+
+### RC119 — Release/CI
+- Current repository workflow inventory shows GitHub Pages workflow; the historical `ci_cd.yml` is not present on current `main`.
+- RC110/111 source commits have no verified workflow run through the available workflow-run endpoint.
+- Status: OPEN.
+
+### RC120 — Final production gate
+- Final gate remains OPEN.
+- Required remaining P0/E2E items: multi-user/multi-tenant isolation fixture, customer→provider order/status/notification E2E, real payment E2E, leaked-password protection, Security Advisor closure/intentional sign-off, release build/signing, device/browser smoke, backup/restore rehearsal and rollback verification.
