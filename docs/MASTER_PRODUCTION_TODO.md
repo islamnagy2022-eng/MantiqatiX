@@ -423,3 +423,11 @@
 - Canonical components: `LocationEngine`, `LocationSelectorModal`, `SmartLocationCategoriesSection`, `HomeScreenDisplaySystem`, and `AdCampaignEngine` radius.
 - Removed the duplicate browser-only GPS/distance implementation introduced in RC166.
 - Required next integration: adapt the canonical location/range contract into the web/PWA rather than creating a parallel GPS/radius engine.
+
+
+## RC168 — Web GPS/range integration adapter — 2026-09-28
+- Reused the RC40 location contract instead of creating a second GPS/radius engine.
+- Added `web/location-adapter.js` using the existing 1/3/5 km/all range semantics.
+- Integrated location/range controls into the public home and nearest provider ordering.
+- Coordinates remain page-memory only; no continuous watcher or new location table was introduced.
+- OPEN: browser/mobile E2E, branches RLS coordinate review, CI, and production nearest-results verification.
