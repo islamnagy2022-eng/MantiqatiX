@@ -168,12 +168,12 @@
           <div class="mx-categories" id="mx-category-grid"></div>
         </section>
 
-        <section class="mx-section" id="mx-services">
+        <section class="mx-section" id="mx-services" hidden>
           <div class="mx-section__head"><div><h2>الخدمات المتاحة الآن</h2><p>بيانات منشورة من كتالوج المنصة، وليست بيانات وهمية.</p></div><span class="mx-live" id="mx-live-status">جارٍ التحميل...</span></div>
           <div class="mx-service-grid" id="mx-service-grid"><div class="mx-loading">جارٍ تحميل الخدمات...</div></div>
         </section>
 
-        <section class="mx-section" id="mx-offers">
+        <section class="mx-section" id="mx-offers" hidden>
           <div class="mx-section__head"><div><h2>إعلانات ممولة</h2><p>تظهر هنا الأنشطة المميزة المنشورة والفعالة فقط.</p></div><button class="mx-link" id="mx-ad-cta" type="button">أعلن عن نشاطك ←</button></div>
           <div class="mx-sponsored" id="mx-sponsored"><div class="mx-empty">جارٍ التحقق من الإعلانات المنشورة...</div></div>
         </section>
@@ -183,7 +183,7 @@
           <div class="mx-provider-grid" id="mx-provider-grid"><div class="mx-empty">جارٍ تحميل مقدمي الخدمات...</div></div>
         </section>
 
-        <section class="mx-section mx-module-strip" id="mx-marketing">
+        <section class="mx-section mx-module-strip" id="mx-marketing" hidden>
           <div><span class="mx-hero__eyebrow">وحدات المنصة</span><h2>من الاكتشاف إلى التشغيل</h2><p>واجهة واحدة تربط البحث والخدمات والتسويق وطلبات الخدمة مع الوحدات التشغيلية المخصصة للمستخدمين المسجلين.</p></div>
           <div class="mx-module-grid">
             <button data-module="CRM">👥<b>CRM</b><small>إدارة العملاء والعلاقات</small></button>
@@ -277,6 +277,9 @@
         const safeTerm=term.replace(/[^\p{L}\p{N}\s_-]/gu,' ').trim().slice(0,60);
       try{
         await loadHomeRuntimeFlags(sb);
+        document.querySelectorAll('[data-module]').forEach(btn=>{ btn.hidden=!homeFeatureEnabled(btn.dataset.module); });
+        const moduleStrip=document.getElementById('mx-marketing');
+        if(moduleStrip && !['CRM','MARKETING','ANALYTICS','OPERATIONS'].some(homeFeatureEnabled)) moduleStrip.hidden=true;
         ['mx-services','mx-offers','mx-marketing'].forEach(id=>{
           const el=document.getElementById(id);
           if(el) el.hidden = id==='mx-services' ? !homeSectionEnabled('SERVICE_CATALOG') : id==='mx-offers' ? !homeSectionEnabled('ADVERTISEMENTS') : !homeSectionEnabled('MARKETING');
