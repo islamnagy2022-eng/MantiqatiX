@@ -155,3 +155,7 @@
   .mx-ad-cloud__plans{grid-column:1;grid-row:2;align-self:start}
   .mx-ad-cloud__content{grid-column:1;grid-row:1}
 }
+
+.mx-ad-plan button{border:0;border-radius:9px;padding:7px 9px;background:#1454df;color:#fff;font-size:9px;font-weight:950;cursor:pointer;margin-top:3px}
+.mx-ad-plan button:hover{filter:brightness(.96);transform:translateY(-1px)}
+.mx-ad-plan--featured button{background:linear-gradient(135deg,#1454df,#7c3aed)}
