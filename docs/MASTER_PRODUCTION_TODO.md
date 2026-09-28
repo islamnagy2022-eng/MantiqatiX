@@ -488,3 +488,10 @@
 - Activated owner-scoped sold/available state changes for existing used-item advertisements.
 - No buyer/payment/chat/escrow contract was invented.
 - OPEN: browser E2E, owner isolation, buyer contact workflow, payment/commission, image/storage validation, CI and release gate.
+
+
+## RC177–RC180 — Homepage & Booking First Release — 2026-09-28
+- Homepage is now the primary marketplace entry point with live provider/service discovery and provider-level booking/order CTA.
+- Cross-tenant customer order boundary hardened: customer membership can authorize ordering without granting provider-tenant management access; ACTIVE provider profile is required.
+- Local default artwork added for completed sector modules and homepage hero.
+- OPEN: real order/booking E2E, cross-tenant payment path, provider acceptance/status notifications, browser/mobile UX, CI, production smoke and final release gate.
