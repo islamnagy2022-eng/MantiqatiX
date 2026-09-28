@@ -177,11 +177,7 @@ function addInventory(existing){
   const r=await q;if(r.error)return alert('تعذر الحفظ: '+r.error.message);o.remove();await load();
  });
 }
-async function updateOrder(id,status){
- if(!canOperate())return;
- const r=await sb.from('restaurant_orders').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('owner_user_id',state.user.id);
- if(r.error)alert('تعذر تحديث الطلب: '+r.error.message);else await load();
-}
+async function updateOrder(){return;}
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
@@ -192,7 +188,6 @@ function bind(){
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
  document.querySelectorAll('[data-table-edit]').forEach(b=>b.onclick=()=>addTable(state.tables.find(x=>x.id===b.dataset.tableEdit)));
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
- document.querySelectorAll('[data-order-status]').forEach(s=>s.onchange=()=>updateOrder(s.dataset.orderStatus,s.value));
 }
 function activeModule(){
  const h=document.querySelector('.breadcrumb');
