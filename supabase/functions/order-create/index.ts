@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: membership, error: membershipError } = await admin
+  const { data: targetMembership, error: targetMembershipError } = await admin
     .from("user_memberships")
     .select("id,role,status")
     .eq("user_id", user.id)
@@ -60,7 +60,20 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE")
     .limit(1)
     .maybeSingle();
-  if (membershipError || !membership) return json({ error: "FORBIDDEN" }, 403);
+  if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+
+  if (!targetMembership) {
+    const { data: customerMembership, error: customerMembershipError } = await admin
+      .from("user_memberships")
+      .select("id,role,status")
+      .eq("user_id", user.id)
+      .eq("status", "ACTIVE")
+      .eq("role", "CUSTOMER")
+      .limit(1)
+      .maybeSingle();
+    if (customerMembershipError) return json({ error: "CUSTOMER_MEMBERSHIP_READ_FAILED" }, 500);
+    if (!customerMembership) return json({ error: "FORBIDDEN" }, 403);
+  }
 
   const { data: business, error: businessError } = await admin
     .from("businesses")
