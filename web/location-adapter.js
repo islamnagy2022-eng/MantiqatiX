@@ -43,28 +43,38 @@
   });
 
   const loadBranchDistances=async(sb,businessIds)=>{
-    if(!sb||!state.coords||!businessIds.length)return {};
+    if(!sb||!state.coords||!businessIds.length)return {nearest:{},fallback:{}};
     const ids=[...new Set(businessIds.filter(Boolean))];
-    if(!ids.length)return {};
+    if(!ids.length)return {nearest:{},fallback:{}};
+    const allowed=new Set(ids);
+    const nearest={};
     try{
       const r=await sb.rpc('find_mnty_nearby_provider_businesses',{p_lat:state.coords.latitude,p_lon:state.coords.longitude,p_radius_km:state.radiusKm});
-      if(r.error)return {};
-      const allowed=new Set(ids);
-      const nearest={};
-      (r.data||[]).forEach(row=>{
+      if(!r.error)(r.data||[]).forEach(row=>{
         if(allowed.has(row.business_id))nearest[row.business_id]=Number(row.distance_km);
       });
-      return nearest;
-    }catch(_){return {}}
+    }catch(_){}
+    if(Object.keys(nearest).length||Number(state.radiusKm)>=10)return {nearest,fallback:{}};
+    try{
+      const r=await sb.rpc('find_mnty_nearest_provider_businesses',{p_lat:state.coords.latitude,p_lon:state.coords.longitude,p_limit:12});
+      if(!r.error){
+        const fallback={};
+        (r.data||[]).forEach(row=>{
+          if(allowed.has(row.business_id))fallback[row.business_id]=Number(row.distance_km);
+        });
+        return {nearest,fallback};
+      }
+    }catch(_){}
+    return {nearest,fallback:{}};
   };
 
   const applyProviderRange=async(sb,providers)=>{
     const list=Array.isArray(providers)?providers:[];
-    if(!state.coords)return list.map(p=>({...p,_distanceKm:null}));
-    const nearest=await loadBranchDistances(sb,list.map(p=>p.business_id));
+    if(!state.coords)return list.map(p=>({...p,_distanceKm:null,_nearestFallback:false}));
+    const distances=await loadBranchDistances(sb,list.map(p=>p.business_id));
     const maxKm=Number(state.radiusKm);
-    return list
-      .map(p=>({...p,_distanceKm:nearest[p.business_id]??null}))
+    const local=list
+      .map(p=>({...p,_distanceKm:distances.nearest[p.business_id]??null,_nearestFallback:false}))
       .filter(p=>maxKm>=10||p._distanceKm!=null&&p._distanceKm<=maxKm)
       .sort((a,b)=>{
         if(a._distanceKm==null&&b._distanceKm==null)return 0;
@@ -72,6 +82,11 @@
         if(b._distanceKm==null)return -1;
         return a._distanceKm-b._distanceKm;
       });
+    if(local.length||maxKm>=10)return local;
+    return list
+      .map(p=>({...p,_distanceKm:distances.fallback[p.business_id]??null,_nearestFallback:distances.fallback[p.business_id]!=null}))
+      .filter(p=>p._distanceKm!=null)
+      .sort((a,b)=>a._distanceKm-b._distanceKm);
   };
 
   const setRadius=km=>{
