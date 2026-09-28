@@ -684,6 +684,12 @@ try{
    try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
    await submitRegistrationRequest(String(pending.role).toUpperCase());
  }
+ let pendingProvider=null;
+ try{pendingProvider=JSON.parse(localStorage.getItem('MNTYPendingProvider')||'null')}catch(_){}
+ if(pendingProvider?.businessId&&String(live.role||'').toUpperCase()==='CUSTOMER'&&typeof openProviderCatalog==='function'){
+   try{localStorage.removeItem('MNTYPendingProvider')}catch(_){}
+   await openProviderCatalog(String(pendingProvider.businessId),String(pendingProvider.providerName||'مقدم الخدمة'));
+ }
 }finally{authRenderLock=false}
 }
 async function bootAuth(){
