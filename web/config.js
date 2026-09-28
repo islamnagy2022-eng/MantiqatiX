@@ -2,3 +2,4 @@ window.MANTIQATIX_CONFIG={supabaseUrl:'https://moyhiluyhjsujhwlyeuu.supabase.co'
 window.MNTY_CONFIG=window.MANTIQATIX_CONFIG;
 window.MNTY_SUPPORT={whatsapp:'201010171770'};
 window.MNTY_DATA_SOURCE='WEBSITE_SUPABASE';
+window.MNTY_WEB_PUSH_PUBLIC_KEY='BPLMpu7NvGMROu3CfsZdieVBgKrXI3u8o6m1COq24RHigGlZN60MakIvaiHmqU8CdcWDCM_F6IQgep4ok6DmUTg';
