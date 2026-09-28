@@ -482,3 +482,9 @@
 - Activated authenticated customer job application journey using existing `job_applications` table.
 - No parallel schema or fake records introduced.
 - OPEN: browser E2E, applicant/employer isolation, employer review lifecycle, notifications, attachments/CV storage, CI and release gate.
+
+
+## RC176 — Used Items Module Activation — 2026-09-28
+- Activated owner-scoped sold/available state changes for existing used-item advertisements.
+- No buyer/payment/chat/escrow contract was invented.
+- OPEN: browser E2E, owner isolation, buyer contact workflow, payment/commission, image/storage validation, CI and release gate.
