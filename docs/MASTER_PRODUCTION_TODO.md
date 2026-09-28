@@ -374,3 +374,13 @@
 - Matrimony was not opened as a generic profile UI because the current profile schema contains direct contact fields; a dedicated privacy-safe projection/contract is required before exposing that module broadly.
 - Medical was not marked complete because the current inspected public schema does not expose a verified medical transaction model; no fake tables/data were introduced.
 - Browser E2E and production CI remain NOT VERIFIED for the new module runtimes.
+
+
+## RC157–RC158 — Enterprise runtime + ERP operations — 2026-09-28
+- RC157 activated enterprise workspaces in the existing web runtime for Accounting, ERP, Factories, Trips and Matrimony using existing production data contracts.
+- RC158 connected guarded ERP operations to existing SECURITY DEFINER backend RPCs: purchase order creation/status workflow, purchase receiving, stock transfer creation/status/receipt.
+- No direct client writes were added to the backend-only ERP tables.
+- Matrimony public listing remains privacy-safe; direct contact and wali phone fields are not rendered.
+- Source verification completed for the runtime commits.
+- GitHub workflow runs for RC158 are currently not returned; browser E2E, CI, cross-tenant E2E and production release verification remain OPEN.
+- Do not mark ERP/accounting operational completion as VERIFIED until authenticated browser tests and multi-tenant isolation tests pass.
