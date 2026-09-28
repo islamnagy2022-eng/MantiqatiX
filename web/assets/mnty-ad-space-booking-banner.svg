@@ -1,46 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" role="img" aria-labelledby="title desc">
-<title id="title">احجز مساحة إعلانية الآن</title>
-<desc id="desc">شريط MNTY لحجز مساحة إعلانية واستهداف العملاء في المنطقة</desc>
+<title id="title">احجز مساحة إعلانية الآن — إعلانك يوصل لكل أنحاء مصر</title>
+<desc id="desc">إعلان MantiqatiX لحجز مساحة إعلانية واستهداف العملاء في جميع محافظات مصر</desc>
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".52" stop-color="#eef6ff"/><stop offset="1" stop-color="#cfe9ff"/></linearGradient>
- <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#1260f5"/><stop offset="1" stop-color="#3183ff"/></linearGradient>
- <linearGradient id="meg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0e5bf0"/><stop offset="1" stop-color="#3c91ff"/></linearGradient>
- <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#1759a8" flood-opacity=".22"/></filter>
- <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+ <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eef8ff"/><stop offset=".48" stop-color="#d9efff"/><stop offset="1" stop-color="#eaf5ff"/></linearGradient>
+ <linearGradient id="cta" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#1267ef"/><stop offset="1" stop-color="#2f8dff"/></linearGradient>
+ <linearGradient id="eg" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#ce1126"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="#111"/><stop offset="1" stop-color="#111"/></linearGradient>
+ <filter id="shadow"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-opacity=".18"/></filter>
+ <clipPath id="round"><rect x="5" y="5" width="1590" height="290" rx="32"/></clipPath>
 </defs>
-<rect width="1600" height="300" rx="34" fill="url(#bg)"/>
-<circle cx="1480" cy="80" r="100" fill="#80c7ff" opacity=".20" filter="url(#soft)"/>
-<circle cx="170" cy="230" r="100" fill="#6ca9ff" opacity=".14" filter="url(#soft)"/>
-<g opacity=".3" fill="#75aefc"><circle cx="1290" cy="48" r="5"/><circle cx="1320" cy="48" r="8"/><circle cx="1352" cy="48" r="5"/><circle cx="1382" cy="48" r="8"/><circle cx="1414" cy="48" r="5"/></g>
-
+<g clip-path="url(#round)">
+<rect x="5" y="5" width="1590" height="290" rx="32" fill="url(#sky)"/>
+<!-- Egypt-inspired background -->
+<path d="M0 235 Q240 175 450 238 T900 224 T1600 215 V300H0Z" fill="#b9ddf2" opacity=".6"/>
+<path d="M0 252 Q260 205 480 255 T980 245 T1600 232 V300H0Z" fill="#79bfe2" opacity=".45"/>
+<g fill="#2b75a8" opacity=".38"><path d="M35 215l34-82 34 82z"/><path d="M88 215l28-64 28 64z"/><path d="M150 215l42-103 42 103z"/><path d="M1280 215l32-76 32 76z"/><path d="M1340 215l42-104 42 104z"/></g>
+<g fill="none" stroke="#fff" opacity=".7"><path d="M1260 62h180M1310 82h130M1360 102h80"/></g>
+<!-- logo -->
+<g transform="translate(45 35)">
+ <text x="0" y="30" font-family="Arial,sans-serif" font-size="28" font-weight="900" fill="#132a67">MANTIQATIX</text>
+ <path d="M0 44h180" stroke="#1769e8" stroke-width="4"/><text x="0" y="68" font-family="Arial,Tahoma,sans-serif" font-size="17" font-weight="700" fill="#263d6b">منصة خدمات منطقتك</text>
+</g>
 <!-- megaphone -->
-<g transform="translate(62 52)" filter="url(#shadow)">
- <path d="M20 64h78l62-45v174l-62-45H20z" fill="url(#meg)"/>
- <path d="M160 70q58 35 0 70" fill="none" stroke="#1769e8" stroke-width="14" stroke-linecap="round"/>
- <path d="M48 193l18-2 15-56H48z" fill="#0b4fcf"/>
- <circle cx="36" cy="28" r="30" fill="#2e7eff"/><text x="36" y="40" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="900" fill="#fff">%</text>
+<g transform="translate(85 105)" filter="url(#shadow)">
+ <path d="M0 45L82 5v96L0 61z" fill="#1769e8"/><path d="M82 25q46 23 0 46" fill="none" stroke="#1769e8" stroke-width="10" stroke-linecap="round"/>
+ <circle cx="30" cy="27" r="20" fill="#6138e8"/><text x="30" y="35" text-anchor="middle" font-family="Arial" font-size="24" font-weight="900" fill="#fff">%</text>
 </g>
-<g transform="translate(300 164)" fill="none" stroke="#f2b43a" stroke-width="9" stroke-linecap="round"><path d="M0 0l35-18"/><path d="M8 18h43"/><path d="M0 36l35 18"/></g>
-
-<!-- main Arabic copy -->
-<g font-family="Arial,Tahoma,sans-serif" direction="rtl" text-anchor="middle">
- <text x="855" y="92" font-size="61" font-weight="900" fill="#0d1d43">احجز <tspan fill="#1464f4">مساحة إعلانية</tspan> الآن</text>
- <text x="855" y="145" font-size="31" font-weight="800" fill="#17315d">وصل إلى عملائك المستهدفين في منطقتك</text>
- <g font-size="21" font-weight="800" fill="#122b55">
-  <text x="660" y="207">استهداف حسب المنطقة</text>
-  <text x="900" y="207">زيادة الوصول والمبيعات</text>
-  <text x="1160" y="207">ظهور يومي للعملاء</text>
- </g>
- <g fill="#18b97a"><circle cx="555" cy="200" r="9"/><circle cx="795" cy="200" r="9"/><circle cx="1055" cy="200" r="9"/></g>
+<!-- top badge -->
+<rect x="585" y="24" width="430" height="46" rx="23" fill="#1769e8"/>
+<text x="800" y="56" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="28" font-weight="900" fill="#fff">إعلانك يوصل لكل أنحاء مصر 🇪🇬</text>
+<!-- headline -->
+<g direction="rtl" text-anchor="middle" font-family="Arial,Tahoma,sans-serif">
+ <text x="805" y="128" font-size="59" font-weight="900" fill="#10266a">احجز <tspan fill="#1769e8">مساحة إعلانية</tspan> الآن</text>
+ <text x="805" y="169" font-size="27" font-weight="800" fill="#1e3b68">وصل إلى آلاف العملاء في منطقتك وعبر كل محافظات مصر</text>
 </g>
-
+<!-- feature pills -->
+<g font-family="Arial,Tahoma,sans-serif" font-weight="800" font-size="19" text-anchor="middle">
+ <rect x="525" y="193" width="185" height="50" rx="25" fill="#fff" stroke="#d8e8f8"/><text x="617" y="224" fill="#153b78">استهداف دقيق</text>
+ <rect x="730" y="193" width="185" height="50" rx="25" fill="#fff" stroke="#d8e8f8"/><text x="822" y="224" fill="#153b78">زيادة المبيعات</text>
+ <rect x="935" y="193" width="185" height="50" rx="25" fill="#fff" stroke="#d8e8f8"/><text x="1027" y="224" fill="#153b78">آلاف العملاء</text>
+</g>
+<!-- Egypt map/card -->
+<g transform="translate(1250 55)" filter="url(#shadow)">
+ <rect width="265" height="145" rx="22" fill="#fff" opacity=".92"/>
+ <path d="M150 18l42 19-5 33 24 27-35 23-28-15-34 15-26-27 14-36z" fill="#dceeff" stroke="#1769e8" stroke-width="3"/>
+ <g fill="#1769e8"><circle cx="155" cy="43" r="7"/><circle cx="181" cy="75" r="7"/><circle cx="160" cy="105" r="7"/></g>
+ <text x="24" y="45" font-family="Arial,Tahoma,sans-serif" font-size="19" font-weight="900" fill="#153b78">استهداف</text>
+ <text x="24" y="72" font-family="Arial,Tahoma,sans-serif" font-size="19" font-weight="900" fill="#153b78">كل أنحاء مصر</text>
+ <text x="24" y="108" font-family="Arial,Tahoma,sans-serif" font-size="16" font-weight="700" fill="#50709c">محافظات • مراكز • مناطق</text>
+</g>
 <!-- CTA -->
-<g transform="translate(1300 92)" filter="url(#shadow)">
- <rect width="245" height="100" rx="50" fill="url(#btn)"/>
- <text x="122" y="63" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="35" font-weight="900" fill="#fff">احجز الآن</text>
- <circle cx="195" cy="50" r="24" fill="#fff"/>
- <path d="M184 50h23M197 41l10 9-10 9" fill="none" stroke="#1769e8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(1270 215)" filter="url(#shadow)">
+ <rect width="270" height="64" rx="32" fill="url(#cta)"/>
+ <text x="135" y="42" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="30" font-weight="900" fill="#fff">احجز الآن</text>
+ <circle cx="225" cy="32" r="20" fill="#fff"/><path d="M216 32h18M226 24l9 8-9 8" fill="none" stroke="#1769e8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<rect x="1490" y="18" width="88" height="34" rx="17" fill="#1260f5"/>
-<text x="1534" y="42" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="17" font-weight="900" fill="#fff">إعلان</text>
+<!-- Egyptian ribbon -->
+<path d="M0 276H500" stroke="#ce1126" stroke-width="8"/><path d="M500 276H1000" stroke="#fff" stroke-width="8"/><path d="M1000 276H1600" stroke="#111" stroke-width="8"/>
+</g>
+<rect x="5" y="5" width="1590" height="290" rx="32" fill="none" stroke="#cfe4f7" stroke-width="3"/>
 </svg>
