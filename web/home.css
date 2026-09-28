@@ -57,3 +57,18 @@
 .fashion-card>img{width:100%;height:170px;object-fit:cover;display:block;background:#f4f7fb}
 .fashion-card-body{padding:14px;display:grid;gap:7px}.fashion-card-body h3{margin:0;font-size:17px}.fashion-card-body p{margin:0;color:#64748b;font-size:12px;min-height:34px}.fashion-card-body strong{font-size:17px;color:#1454df}
 @media(max-width:1000px){.fashion-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.fashion-grid{grid-template-columns:1fr}.fashion-card>img{height:190px}}
+
+.mx-order-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
+.mx-order-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;box-shadow:0 8px 24px #0b25400d}
+.mx-order-card__head,.mx-order-card__meta{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mx-order-card__head small{color:#7a8797;font-size:11px}
+.mx-order-card h3{margin:14px 0 6px;font-size:17px}
+.mx-order-card p{margin:0 0 14px;color:#64748b}
+.mx-order-status{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#eef4ff;color:#2859a8}
+.mx-order-status-cancelled{background:#fff0f0;color:#b42318}.mx-order-status-delivered{background:#edf9f0;color:#18723a}.mx-order-status-confirmed{background:#edf8ff;color:#0a668d}.mx-order-status-preparing{background:#fff8e8;color:#8a5a00}.mx-order-status-out-for-delivery{background:#f1edff;color:#6741a5}
+.mx-order-card__actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #eef2f7}
+.mx-order-card__actions .text-btn{font-size:11px}
+.empty-state{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;min-height:160px;border:1px dashed #cfd9e5;border-radius:16px;color:#506176;background:#fbfdff;margin:16px 0}
+.empty-state span{font-size:12px;color:#7b8798}
+@media(max-width:1000px){.mx-order-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.mx-order-grid{grid-template-columns:1fr}.mx-order-card{padding:14px}}
