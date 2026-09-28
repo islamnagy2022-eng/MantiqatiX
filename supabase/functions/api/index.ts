@@ -20,12 +20,13 @@ serve(async (req) => {
   if (origin && origin !== allowedOrigin) {
     return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } })
   }
+  const requestId = req.headers.get("x-request-id")?.trim() || crypto.randomUUID()
   const url = new URL(req.url)
   const path = url.pathname
   const json = (body: unknown, status = 200, extra: Record<string,string> = {}) =>
-    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", ...extra } })
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", "X-Request-Id": requestId, ...extra } })
 
-  if (path === "/health") return json({ status: "ok" })
+  if (path === "/health") return json({ status: "ok", requestId })
 
   const authHeader = req.headers.get("Authorization")
   if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401)
@@ -44,7 +45,7 @@ serve(async (req) => {
     const { data: brand, error } = await supabaseAdmin.from("platform_brand_identity")
       .select("brand_key,brand_name_en,brand_name_ar,tagline_ar,primary_colors,typography,logo_usage,icon_sizes,version,status,logo_asset_ref,app_icon_asset_ref")
       .eq("brand_key", "MANTIQATIX").eq("status", "ACTIVE").single()
-    if (error || !brand) return json({ error: "Brand identity not found" }, 404)
+    if (error || !brand) { console.error(`[${requestId}] brand read failed`); return json({ error: "Brand identity not found", requestId }, 404) }
     return new Response(JSON.stringify(brand), { headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } })
   }
 
@@ -52,7 +53,7 @@ serve(async (req) => {
     const { data, error } = await supabaseAdmin.from("user_memberships")
       .select("id,tenant_id,organization_id,business_id,branch_id,role,permissions,status")
       .eq("user_id", user.id).eq("status", "ACTIVE")
-    if (error) return json({ error: "Failed to load memberships" }, 500)
+    if (error) { console.error(`[${requestId}] memberships read failed`, error); return json({ error: "Failed to load memberships", requestId }, 500) }
     return json({ id: user.id, memberships: data ?? [] })
   }
 
