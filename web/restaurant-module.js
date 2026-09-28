@@ -82,9 +82,8 @@ function menuView(){
  '</tbody></table></div>');
 }
 function ordersView(){
- const statuses=['NEW','CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
- return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>النوع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
- (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.fulfillment_type)+'</td><td>'+money(x.total_egp)+'</td><td>'+(canOperate()?'<select data-order-status="'+esc(x.id)+'">'+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
+ return shell('طلبات المطعم',tabs()+'<div class="notice">حالات الطلبات معروضة من البيانات الفعلية فقط. لا يتم تغيير حالة الطلب من الواجهة مباشرة؛ انتقالات الحالة النهائية يجب أن تمر بمسار خادمي موثوق حتى لا يتم تجاوز التسعير أو الدفع أو سجل الحالة.</div><div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>النوع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
+ (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.fulfillment_type)+'</td><td>'+money(x.total_egp)+'</td><td>'+esc(x.status)+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function tablesView(){
