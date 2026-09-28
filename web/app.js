@@ -325,7 +325,7 @@ async function openOrderForm(businessId,itemId){
   submit.disabled=true; submit.textContent='جارٍ إرسال الطلب…';
   try{
    const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:catalog.tenantId,businessId,branchId:null,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true}});
-   closeMxModal(); await loadLiveData(); await renderApp(); showToast('تم إرسال الطلب بنجاح.','success'); return result;
+   closeMxModal(); current='الطلبات'; await loadLiveData(); await renderApp(); showToast('تم إرسال الطلب بنجاح. يمكنك متابعة الحالة من الطلبات.','success'); return result;
   }catch(e){submit.disabled=false;submit.textContent='إرسال الطلب';showToast('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error')}
  };
 }
