@@ -318,7 +318,7 @@ async function openProviderCatalog(businessId,providerName,providerTenantId=null
  try{
   const catalog=live.catalogByBusiness[businessId]||await loadBusinessCatalog(businessId,null,providerTenantId);
   const cards=(catalog.items||[]).map(item=>{
-   const price=catalogCurrentPrice(catalog,item.id,live.branchId);
+   const price=catalogCurrentPrice(catalog,item.id,catalog.branchId||null);
    const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
    return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب</button>':'')+'</div></article>';
   }).join('')||'<div class="muted">لا توجد أصناف نشطة متاحة حاليًا.</div>';
@@ -330,7 +330,7 @@ async function openProviderCatalog(businessId,providerName,providerTenantId=null
  }catch(e){showToast('تعذر تحميل الكتالوج: '+(e?.message||'CATALOG_REQUEST_FAILED'),'error')}
 }
 async function openOrderForm(businessId,itemId){
- const catalog=live.catalogByBusiness[businessId]; const item=(catalog?.items||[]).find(x=>x.id===itemId); const price=catalogCurrentPrice(catalog,itemId,live.branchId);
+ const catalog=live.catalogByBusiness[businessId]; const item=(catalog?.items||[]).find(x=>x.id===itemId); const price=catalogCurrentPrice(catalog,itemId,catalog.branchId||null);
  if(!item||!price)return showToast('الصنف أو السعر غير متاح حاليًا.','error');
  const meta=user?.user_metadata||{}; const defaultName=meta.full_name||meta.name||user?.email||'';
  const orderAttemptId=crypto.randomUUID(), clientIdempotencyKey=crypto.randomUUID();
