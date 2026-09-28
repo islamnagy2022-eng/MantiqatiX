@@ -408,3 +408,11 @@
 - Existing RLS remains in place; broader ride/bid lifecycle actions require E2E before being marked complete.
 - No real ride/bid transaction was created during implementation.
 - Browser multi-user E2E, captain/customer isolation, notifications, payment completion and CI remain OPEN.
+
+
+## RC162 — MantiGo trip state machine — 2026-09-28
+- Applied backend-only trip transition contract aligned with the source workflow: Request → Validation → Matching/Assignment → Acceptance → Arrival → Start → In Progress → Completed.
+- Exceptional states include Failed, Show-No, Expired and Cancelled under actor/state rules.
+- Customer/driver actor checks and row locking are enforced server-side; direct client EXECUTE is revoked.
+- UI transition controls remain OPEN because repository security validation blocked the app.js patch.
+- Matching concurrency, two-user E2E, Payment→Settlement, notifications, offline/device and final production gate remain OPEN.
