@@ -354,3 +354,13 @@
 - Live verification remains unchanged: the production boundaries are already present; the purpose of RC121 is to keep source and production history reproducible.
 - Backend-only table mapping review confirms the six public no-policy tables are not directly readable by `anon` or `authenticated`; source archive shows ERP tables are intentionally fail-closed and used through privileged database functions. SMM tables require further live backend-path mapping before any policy is added.
 - Security Advisor remains OPEN; leaked-password protection, critical E2E, release signing, browser/device smoke, backup/restore rehearsal and rollback remain release blockers.
+
+
+## RC122-RC150 verification
+- Structural DB security checks completed and recorded in docs/RC150_PRODUCTION_VERIFICATION_LEDGER.md.
+- 113/113 public tables have RLS; 0 public tables lack a primary key.
+- 6 public RLS-enabled tables remain intentionally without client policies; direct anon/authenticated grants were not found.
+- Anonymous users: 0; password users: 6; SCRAM-SHA-256.
+- anon SECURITY DEFINER execute: 0; authenticated SECURITY DEFINER execute: 1 (payment-intent backend RPC).
+- Payment idempotency constraints verified; current payment_intents and payment_provider_events counts are both 0.
+- Multi-tenant/customer-provider E2E and real payment E2E remain NOT VERIFIED.
