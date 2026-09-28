@@ -228,3 +228,25 @@
   .mx-side-banner{width:48px!important;height:145px!important;bottom:80px!important}
   .mx-side-banner--right{right:3px!important}.mx-side-banner--left{left:3px!important}
 }
+
+
+/* Public website completion: about + public provider profile */
+.mx-about-section{background:#fff;border:1px solid #dfe7f1;border-radius:22px;padding:24px;box-shadow:var(--mx-shadow)}
+.mx-about-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mx-about-card{border:1px solid #e2eaf3;border-radius:16px;background:linear-gradient(145deg,#fbfdff,#f4f8fc);padding:16px}
+.mx-about-card>span{display:inline-grid;place-items:center;width:30px;height:22px;border-radius:999px;background:#eaf2ff;color:#175cd3;font:900 9px Inter,Tajawal,sans-serif}
+.mx-about-card h3{margin:10px 0 6px;font-size:14px;color:#16335f}
+.mx-about-card p{margin:0;color:#596a82;font-size:11px;line-height:1.8}
+.mx-about-note{margin-top:12px;padding:13px 15px;border-radius:14px;background:#f7fbff;border:1px solid #d7e7f5;display:flex;gap:8px;align-items:flex-start}
+.mx-about-note strong{color:#175cd3;font-size:11px;white-space:nowrap}
+.mx-about-note span{color:#475467;font-size:11px;line-height:1.8}
+.mx-public-modal{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px}
+.mx-public-modal__backdrop{position:absolute;inset:0;background:rgba(7,27,56,.58);backdrop-filter:blur(4px)}
+.mx-public-modal__card{position:relative;z-index:1;width:min(520px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border:1px solid #dbe6f2;border-radius:22px;padding:22px;box-shadow:0 28px 80px rgba(7,27,56,.28);direction:rtl}
+.mx-public-modal__card .mx-photo{width:100%;height:190px;margin-bottom:14px}
+.mx-public-modal__card h2{margin:9px 0 6px;font-size:22px;color:#10285a}
+.mx-public-modal__card p{margin:0 0 10px;color:#53657d;font-size:12px;line-height:1.9}
+.mx-public-modal__area{padding:9px 11px;border-radius:10px;background:#f5f8fc;color:#53657d;font-size:11px;margin-bottom:13px}
+.mx-public-modal__close{position:absolute;left:14px;top:12px;width:34px;height:34px;border:0;border-radius:50%;background:#f2f5f8;color:#344054;font-size:22px;cursor:pointer}
+@media(max-width:950px){.mx-about-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.mx-about-section{padding:17px}.mx-about-grid{grid-template-columns:1fr}.mx-about-note{display:block}.mx-about-note strong{display:block;margin-bottom:4px}.mx-public-modal__card{padding:17px}.mx-public-modal__card .mx-photo{height:150px}}
