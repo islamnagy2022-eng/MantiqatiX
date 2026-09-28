@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" role="img" aria-labelledby="title desc">
+<title id="title">احجز مساحة إعلانية الآن</title>
+<desc id="desc">شريط ترويجي لحجز مساحة إعلانية على MantiqatiX</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5f8ff"/><stop offset=".55" stop-color="#e9f3ff"/><stop offset="1" stop-color="#d8edff"/></linearGradient>
+ <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#155eef"/><stop offset="1" stop-color="#2f7bff"/></linearGradient>
+ <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity=".16"/></filter>
+</defs>
+<rect x="5" y="5" width="1590" height="290" rx="34" fill="url(#bg)" stroke="#d8e7ff" stroke-width="4"/>
+<g opacity=".35" fill="#79aaff"><circle cx="1420" cy="72" r="8"/><circle cx="1450" cy="72" r="5"/><circle cx="1480" cy="72" r="8"/><circle cx="1510" cy="72" r="5"/></g>
+<g transform="translate(55 48)" filter="url(#shadow)">
+ <path d="M20 48h58l42-31v116l-42-31H20z" fill="#1769e8"/>
+ <path d="M120 42q45 25 0 50" fill="none" stroke="#1769e8" stroke-width="13" stroke-linecap="round"/>
+ <circle cx="40" cy="18" r="25" fill="#2f7bff"/><text x="40" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="900" fill="#fff">%</text>
+</g>
+<g font-family="Arial,Tahoma,sans-serif" direction="rtl" text-anchor="middle">
+ <text x="820" y="102" font-size="62" font-weight="900" fill="#101f45">احجز <tspan fill="#1769e8">مساحة إعلانية</tspan> الآن</text>
+ <text x="820" y="156" font-size="31" font-weight="700" fill="#20355e">وصل إلى عملائك المستهدفين في منطقتك</text>
+ <g font-size="22" font-weight="800" fill="#162a51">
+  <text x="640" y="216">استهداف حسب المنطقة</text><text x="885" y="216">زيادة الوصول والمبيعات</text><text x="1165" y="216">ظهور يومي للعملاء</text>
+ </g>
+ <g fill="#1769e8"><circle cx="580" cy="209" r="9"/><circle cx="825" cy="209" r="9"/><circle cx="1105" cy="209" r="9"/></g>
+</g>
+<g transform="translate(1325 93)" filter="url(#shadow)">
+ <rect width="220" height="94" rx="47" fill="url(#blue)"/>
+ <text x="110" y="60" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="34" font-weight="900" fill="#fff">احجز الآن</text>
+ <circle cx="183" cy="47" r="23" fill="#fff"/><path d="M173 47h20M185 39l9 8-9 8" fill="none" stroke="#1769e8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<rect x="1492" y="20" width="82" height="32" rx="16" fill="#1769e8"/><text x="1533" y="43" text-anchor="middle" font-family="Arial,Tahoma,sans-serif" font-size="16" font-weight="900" fill="#fff">إعلان</text>
+</svg>
