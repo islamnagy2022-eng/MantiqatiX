@@ -150,6 +150,7 @@ async function switchMembership(membershipId){
  const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
  if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
  if(membershipId===live.activeMembershipId)return;
+ const previous=live.memberships.find(m=>m.id===live.activeMembershipId&&m.status==='ACTIVE')||null;
  const selector=document.getElementById('mx-role-switcher');
  if(selector)selector.disabled=true;
  window.MNTYActiveMembershipId=membershipId;
@@ -167,7 +168,19 @@ async function switchMembership(membershipId){
    await renderApp();
    showToast('تم التبديل فعليًا إلى: '+roleContextLabel(target),'success');
  }catch(e){
-   showToast('تعذر إكمال تبديل الدور: '+(e?.message||'خطأ غير معروف'),'error');
+   if(previous){
+     window.MNTYActiveMembershipId=previous.id;
+     localStorage.setItem('MNTYActiveMembershipId',previous.id);
+     live.activeMembershipId=previous.id;
+     live.role=String(previous.role||'CUSTOMER').toUpperCase();
+     live.businessId=previous.business_id||null;
+     live.tenantId=previous.tenant_id||null;
+     live.organizationId=previous.organization_id||null;
+     live.branchId=previous.branch_id||null;
+     live.permissions=previous.permissions||{};
+   }
+   showToast('تعذر إكمال تبديل الدور وتمت استعادة الدور السابق: '+(e?.message||'خطأ غير معروف'),'error');
+   await renderApp();
  }
 }
 function roleSwitcher(){
