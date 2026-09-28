@@ -1,0 +1,102 @@
+/* MNTY Location Adapter
+   Web/PWA integration layer for the canonical RC40 location contract.
+   It does not replace LocationEngine; it adapts browser location permission
+   to the existing GPS/range semantics used by the Android client.
+*/
+(function(){
+  'use strict';
+
+  const RANGES = Object.freeze([
+    {km:1,label:'1 كم 🎯'},
+    {km:3,label:'3 كم 📍'},
+    {km:5,label:'5 كم 🌐'},
+    {km:10,label:'الكل 🗺️'}
+  ]);
+
+  const state={coords:null,radiusKm:3,status:'idle',accuracyMeters:null};
+
+  const distanceKm=(lat1,lon1,lat2,lon2)=>{
+    const R=6371;
+    const dLat=(lat2-lat1)*Math.PI/180;
+    const dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return 2*R*Math.asin(Math.sqrt(a));
+  };
+
+  const requestLocation=()=>new Promise(resolve=>{
+    if(!navigator.geolocation){state.status='unsupported';resolve(null);return}
+    state.status='requesting';
+    navigator.geolocation.getCurrentPosition(
+      p=>{
+        state.coords={latitude:Number(p.coords.latitude),longitude:Number(p.coords.longitude)};
+        state.accuracyMeters=Number.isFinite(p.coords.accuracy)?p.coords.accuracy:null;
+        state.status='ready';
+        resolve(state.coords);
+      },
+      ()=>{
+        state.coords=null;
+        state.status='denied';
+        resolve(null);
+      },
+      {enableHighAccuracy:false,maximumAge:300000,timeout:7000}
+    );
+  });
+
+  const loadBranchDistances=async(sb,businessIds)=>{
+    if(!sb||!state.coords||!businessIds.length)return {};
+    const ids=[...new Set(businessIds.filter(Boolean))];
+    if(!ids.length)return {};
+    try{
+      const r=await sb.from('branches').select('business_id,latitude,longitude').in('business_id',ids).not('latitude','is',null).not('longitude','is',null).limit(500);
+      if(r.error)return {};
+      const nearest={};
+      (r.data||[]).forEach(row=>{
+        const lat=Number(row.latitude),lon=Number(row.longitude);
+        if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+        const d=distanceKm(state.coords.latitude,state.coords.longitude,lat,lon);
+        if(Number.isFinite(d)&&(!nearest[row.business_id]||d<nearest[row.business_id]))nearest[row.business_id]=d;
+      });
+      return nearest;
+    }catch(_){return {}}
+  };
+
+  const applyProviderRange=async(sb,providers)=>{
+    const list=Array.isArray(providers)?providers:[];
+    if(!state.coords)return list.map(p=>({...p,_distanceKm:null}));
+    const nearest=await loadBranchDistances(sb,list.map(p=>p.business_id));
+    const maxKm=Number(state.radiusKm);
+    return list
+      .map(p=>({...p,_distanceKm:nearest[p.business_id]??null}))
+      .filter(p=>maxKm>=10||p._distanceKm==null||p._distanceKm<=maxKm)
+      .sort((a,b)=>{
+        if(a._distanceKm==null&&b._distanceKm==null)return 0;
+        if(a._distanceKm==null)return 1;
+        if(b._distanceKm==null)return -1;
+        return a._distanceKm-b._distanceKm;
+      });
+  };
+
+  const setRadius=km=>{
+    const n=Number(km);
+    if(RANGES.some(x=>x.km===n))state.radiusKm=n;
+    return state.radiusKm;
+  };
+
+  const statusText=()=>{
+    if(state.status==='ready')return 'تم تحديد موقعك';
+    if(state.status==='requesting')return 'جارٍ تحديد موقعك…';
+    if(state.status==='denied')return 'الموقع غير متاح — عرض النتائج العامة';
+    if(state.status==='unsupported')return 'الموقع غير مدعوم — عرض النتائج العامة';
+    return 'الموقع عند الحاجة';
+  };
+
+  window.MNTYLocationAdapter=Object.freeze({
+    ranges:RANGES,
+    state,
+    requestLocation,
+    applyProviderRange,
+    setRadius,
+    statusText,
+    distanceKm
+  });
+})();
