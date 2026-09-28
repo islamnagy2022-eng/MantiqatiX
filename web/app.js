@@ -172,12 +172,18 @@ async function switchMembership(membershipId){
    if(String(target.role||'').toUpperCase()==='CUSTOMER' && previous && ['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(String(previous.role||'').toUpperCase())){
      localStorage.setItem('MNTYAdminReturnMembershipId',previous.id);
      window.MNTYAdminReturnMembershipId=previous.id;
-     if(window.MXHomeLanding){
-       window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:'CUSTOMER'};
+     window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:'CUSTOMER'};
+     if(typeof window.MXHomeLanding==='function'){
        window.MXHomeLanding();
+       showToast('تم فتح الصفحة الرئيسية العامة بوضع العميل.','success');
+       return;
+     }
+     if(typeof window.landingView==='function'){
+       window.landingView();
        showToast('تم فتح الصفحة الرئيسية بوضع العميل.','success');
        return;
      }
+     throw new Error('PUBLIC_HOME_NOT_LOADED');
    }else{
      localStorage.removeItem('MNTYAdminReturnMembershipId');
      window.MNTYAdminReturnMembershipId=null;
