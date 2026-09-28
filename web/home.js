@@ -24,6 +24,41 @@
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
   const logo = () => '<span class="mark" aria-hidden="true"></span>';
   const normCode = value => String(value||'').trim().toUpperCase().replace(/[^A-Z0-9_:-]+/g,'_');
+  let HOME_USER_LOCATION = null;
+  const distanceKm=(a,b,c,d)=>{
+    const rad=x=>x*Math.PI/180, R=6371;
+    const dLat=rad(c-a), dLon=rad(d-b), x=Math.sin(dLat/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dLon/2)**2;
+    return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+  };
+  const requestHomeLocation=async()=>{
+    if(!navigator.geolocation) return null;
+    return new Promise(resolve=>{
+      navigator.geolocation.getCurrentPosition(
+        p=>{HOME_USER_LOCATION={lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy||null};resolve(HOME_USER_LOCATION)},
+        ()=>resolve(null),
+        {enableHighAccuracy:false,maximumAge:300000,timeout:7000}
+      );
+    });
+  };
+  const rankProvidersByLocation=async(sb,providers)=>{
+    if(!HOME_USER_LOCATION||!providers.length) return providers;
+    try{
+      const ids=[...new Set(providers.map(p=>p.business_id).filter(Boolean))];
+      if(!ids.length) return providers;
+      const br=await sb.from('branches').select('business_id,latitude,longitude').in('business_id',ids).not('latitude','is',null).not('longitude','is',null).limit(200);
+      if(br.error) return providers;
+      const nearest={};
+      (br.data||[]).forEach(b=>{
+        const d=distanceKm(HOME_USER_LOCATION.lat,HOME_USER_LOCATION.lon,Number(b.latitude),Number(b.longitude));
+        if(Number.isFinite(d)&&(!nearest[b.business_id]||d<nearest[b.business_id])) nearest[b.business_id]=d;
+      });
+      return providers.map(p=>({...p,_distanceKm:nearest[p.business_id]??null})).sort((a,b)=>{
+        if(a._distanceKm==null&&b._distanceKm==null)return 0;
+        if(a._distanceKm==null)return 1;if(b._distanceKm==null)return -1;
+        return a._distanceKm-b._distanceKm;
+      });
+    }catch(_){return providers}
+  };
   let HOME_RUNTIME_FLAGS = null;
   const loadHomeRuntimeFlags = async sb => {
     try {
@@ -277,6 +312,7 @@
         const safeTerm=term.replace(/[^\p{L}\p{N}\s_-]/gu,' ').trim().slice(0,60);
       try{
         await loadHomeRuntimeFlags(sb);
+        await requestHomeLocation();
         document.querySelectorAll('[data-module]').forEach(btn=>{ btn.hidden=!homeFeatureEnabled(btn.dataset.module); });
         const moduleStrip=document.getElementById('mx-marketing');
         if(moduleStrip && !['CRM','MARKETING','ANALYTICS','OPERATIONS'].some(homeFeatureEnabled)) moduleStrip.hidden=true;
