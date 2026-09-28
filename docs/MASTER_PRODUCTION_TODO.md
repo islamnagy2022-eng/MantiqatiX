@@ -470,3 +470,9 @@
 - Activated school enrollment and teacher lesson-request actions using existing `school_profiles`, `teacher_profiles`, and `education_requests` tables.
 - No parallel education schema and no fake education records introduced.
 - OPEN: browser E2E, provider/request isolation, approval lifecycle, notifications, payment/commission behavior.
+
+
+## RC175 — Jobs Application Activation — 2026-09-28
+- Activated applicant submission from existing `jobs` records into `job_applications`.
+- Existing self-scoped RLS remains the authorization boundary; no parallel schema added.
+- OPEN: browser E2E, employer/applicant isolation, review lifecycle, notifications, CI/release verification.
