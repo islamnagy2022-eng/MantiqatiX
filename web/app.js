@@ -289,21 +289,20 @@ document.getElementById('app').innerHTML=`<main class="landing">
 </main>`;
 document.getElementById('open-login').onclick=()=>authView();document.getElementById('open-register').onclick=()=>authView('',false,'','register');document.getElementById('install-app').onclick=installApp;setupInstallPrompt();document.getElementById('cta-login').onclick=()=>authView();document.getElementById('commission-login').onclick=()=>authView();document.getElementById('provider').onclick=()=>authView('',false,'','register');document.getElementById('cta-provider').onclick=()=>authView('',false,'','register');
 const mountLandingCoverAds=async()=>{
-  const slots=[...document.querySelectorAll('[data-cover-ad-slot]')];
-  if(!slots.length)return;
-  const safeUrl=(u)=>{try{const x=new URL(String(u||''),location.href);return ['http:','https:'].includes(x.protocol)?x.href:''}catch(_){return ''}};
-  const render=(el,ad)=>{if(!ad){el.hidden=true;return} const href=safeUrl(ad.target_url); el.hidden=false; el.innerHTML='<div class="mx-cover-ad__cloud"><div class="mx-cover-ad__media">'+(ad.creative_url?'<img src="'+String(ad.creative_url).replace(/["<>]/g,'')+'" alt="'+String(ad.title||'إعلان ممول').replace(/["<>]/g,'')+'" loading="eager">':'<span>MNTY</span>')+'</div><div class="mx-cover-ad__body"><span class="mx-cover-ad__badge">ممول</span><strong>'+String(ad.title||'إعلان ممول').replace(/[<>]/g,'')+'</strong></div></div>'+(href?'<a class="mx-cover-ad__link" href="'+href.replace(/["<>]/g,'')+'" target="_blank" rel="noopener noreferrer" aria-label="فتح الإعلان"></a>':'');};
-  try{
-    const coords=window.MNTYLocationAdapter?.state?.coords||null;
-    const {data,error}=await sb.rpc('get_mnty_targeted_advertisements',{p_country_code:'EG',p_governorate_code:null,p_center_code:null,p_lat:coords?.latitude??null,p_lon:coords?.longitude??null,p_ad_space_id:'HOME_SPONSORED',p_limit:10});
-    if(error)throw error;
-    const ads=(data||[]).filter(x=>x&&x.advertisement_id);
-    if(!ads.length){slots.forEach(x=>x.hidden=true);return}
-    let tick=0;
-    const paint=()=>{slots.forEach((slot,n)=>render(slot,ads[(tick+n)%ads.length]));tick=(tick+1)%ads.length};
-    paint();
-    if(ads.length>1)window.setInterval(paint,6000);
-  }catch(error){console.warn('[MNTY cover ads] unavailable',error);slots.forEach(x=>x.hidden=true)}
+ const slots=[...document.querySelectorAll('[data-cover-ad-slot]')]; if(!slots.length)return;
+ const safeUrl=u=>{try{const x=new URL(String(u||''),location.href);return ['http:','https:'].includes(x.protocol)?x.href:''}catch(_){return ''}};
+ const escAttr=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const render=(el,ad)=>{if(!ad){el.hidden=true;return} const href=safeUrl(ad.target_url); const img=safeUrl(ad.creative_url);
+   el.hidden=false; el.innerHTML='<div class="mx-cover-ad__cloud"><div class="mx-cover-ad__media">'+(img?'<img src="'+escAttr(img)+'" alt="'+escAttr(ad.title||'إعلان ممول')+'" loading="eager">':'<span>MNTY</span>')+'</div><div class="mx-cover-ad__body"><span class="mx-cover-ad__badge">ممول</span><strong>'+String(ad.title||'إعلان ممول').replace(/[<>]/g,'')+'</strong></div></div>'+(href?'<a class="mx-cover-ad__link" href="'+escAttr(href)+'" target="_blank" rel="noopener noreferrer" aria-label="فتح الإعلان"></a>':'');
+ };
+ try{
+   const coords=window.MNTYLocationAdapter?.state?.coords||null;
+   const {data,error}=await sb.rpc('get_mnty_targeted_advertisements',{p_country_code:'EG',p_governorate_code:null,p_center_code:null,p_lat:coords?.latitude??null,p_lon:coords?.longitude??null,p_ad_space_id:'HOME_SPONSORED',p_limit:10});
+   if(error)throw error; const ads=(data||[]).filter(x=>x&&x.advertisement_id);
+   if(!ads.length){slots.forEach(x=>x.hidden=true);return}
+   let tick=0; const paint=()=>{slots.forEach((slot,n)=>render(slot,ads[(tick+n)%ads.length]));tick=(tick+1)%ads.length}; paint();
+   if(ads.length>1)window.setInterval(paint,6000);
+ }catch(error){console.warn('[MNTY cover ads] unavailable',error);slots.forEach(x=>x.hidden=true)}
 };
 document.getElementById('start').onclick=()=>document.getElementById('sectors').scrollIntoView({behavior:'smooth'});
 mountLandingCoverAds();
