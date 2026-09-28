@@ -262,3 +262,12 @@
 - Security Advisor no longer returned the extension_in_public finding in the post-change payload.
 - No broad RLS policies were added to the 7 no-policy tables; live privilege inspection showed no direct anon/authenticated grants.
 - Remaining P0 security items: leaked-password protection, contextual anonymous-policy review, SECURITY DEFINER payment RPC decision/documentation, backend-only access-path mapping, and full E2E verification.
+
+
+## RC108 P0 Auth Security verification — 2026-09-28
+
+- Live Auth DB check: 6 users currently have password hashes; anonymous-user count is 0.
+- `password_encryption` is `scram-sha-256`.
+- Supabase Auth does not expose a writable `auth.config` table in this project; leaked-password protection is an Auth dashboard/managed setting and was NOT falsely marked enabled.
+- Required next action remains: enable leaked-password protection in Supabase Auth settings, then re-run Security Advisor and verify the setting.
+- Current implementation evidence remains: web authentication validates session with `getSession()` then `getUser()`, rejects anonymous operational access, and membership/role access is RLS/server scoped.
