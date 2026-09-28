@@ -108,6 +108,43 @@ serve(async (req) => {
     });
   }
 
+  if (req.method === "POST" && path === "/api/v1/orders") {
+    const body = await req.json().catch(() => null)
+    if (!body || typeof body !== "object") return json({ error: "Invalid JSON body" }, 400)
+    const required = ["orderId","tenantId","businessId","branchId","clientIdempotencyKey","items"]
+    if (required.some((k) => body[k] == null || body[k] === "")) return json({ error: "Missing required order fields" }, 400)
+    if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
+    if (String(body.clientIdempotencyKey).length > 200) return json({ error: "Invalid idempotency key" }, 400)
+
+    const { data: membership } = await supabaseAdmin.from("user_memberships")
+      .select("id").eq("user_id", user.id).eq("tenant_id", String(body.tenantId)).eq("status", "ACTIVE")
+      .limit(1).maybeSingle()
+    if (!membership) return json({ error: "Forbidden" }, 403)
+
+    const { data, error } = await supabaseAdmin.rpc("create_order_backend", {
+      p_order_id: String(body.orderId),
+      p_tenant_id: String(body.tenantId),
+      p_business_id: String(body.businessId),
+      p_branch_id: body.branchId == null ? null : String(body.branchId),
+      p_customer_id: user.id,
+      p_client_idempotency_key: String(body.clientIdempotencyKey),
+      p_subtotal: 0,
+      p_discount: 0,
+      p_tax: 0,
+      p_delivery_fee: 0,
+      p_total_amount: 0,
+      p_currency: String(body.currency || "EGP"),
+      p_customer_name: String(body.customerName || ""),
+      p_customer_phone: String(body.customerPhone || ""),
+      p_delivery_address: String(body.deliveryAddress || ""),
+      p_items_json: body.items,
+      p_notes: body.notes == null ? null : String(body.notes),
+      p_metadata: body.metadata && typeof body.metadata === "object" ? body.metadata : {},
+    })
+    if (error) return json({ error: error.message }, 400)
+    return json(data, 201)
+  }
+
   const orderMatch = path.match(/^\/api\/v1\/orders\/([^/]+)$/)
   if (req.method === "GET" && orderMatch) {
     const { data: order, error } = await supabaseAdmin.from("orders").select("*").eq("id", orderMatch[1]).single()
