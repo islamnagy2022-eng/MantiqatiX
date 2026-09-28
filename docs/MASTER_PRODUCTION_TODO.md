@@ -271,3 +271,13 @@
 - Supabase Auth does not expose a writable `auth.config` table in this project; leaked-password protection is an Auth dashboard/managed setting and was NOT falsely marked enabled.
 - Required next action remains: enable leaked-password protection in Supabase Auth settings, then re-run Security Advisor and verify the setting.
 - Current implementation evidence remains: web authentication validates session with `getSession()` then `getUser()`, rejects anonymous operational access, and membership/role access is RLS/server scoped.
+
+
+## RC109 P0 Tenant isolation hardening — 2026-09-28
+
+- Production policies hardened for `orders`, `support_tickets`, and `ticket_messages`.
+- Order partner reads now require an ACTIVE membership in the order tenant; provider business-scoped policy remains intact.
+- Support ticket and message reads/writes now require an ACTIVE membership in the ticket tenant, including requester/assigned-user paths.
+- Live DB policy re-read verified the new tenant membership predicates.
+- External two-user/two-tenant E2E is still NOT VERIFIED.
+- Source migration synchronization is pending because the GitHub write tool rejected the SQL migration payload; do not mark repository convergence complete until the migration is committed.
