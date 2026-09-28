@@ -752,6 +752,11 @@ try{
    try{localStorage.removeItem('MNTYPendingProvider')}catch(_){}
    await openProviderCatalog(String(pendingProvider.businessId),String(pendingProvider.providerName||'مقدم الخدمة'));
  }
+ let pendingAdBooking=false;
+ try{pendingAdBooking=localStorage.getItem('MNTYOpenAdBooking')==='1'}catch(_){}
+ if(pendingAdBooking&&typeof selectModule==='function'){
+   try{localStorage.removeItem('MNTYOpenAdBooking');selectModule('التسويق والإعلان')}catch(_){}
+ }
 }finally{authRenderLock=false}
 }
 async function bootAuth(){
