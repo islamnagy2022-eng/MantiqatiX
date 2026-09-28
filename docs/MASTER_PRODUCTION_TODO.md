@@ -554,3 +554,9 @@
 - Hardened the `لوحة الإدارة` return action from the public customer homepage.
 - Prevented duplicate clicks while membership switching is in progress.
 - OPEN: deployed browser E2E, CI/deployment convergence and final release gate.
+
+
+## RC190 — Admin Return Persistence — 2026-09-28
+- Persisted the admin return target across public-home refreshes.
+- The authenticated customer-preview page can recover the stored admin return membership and keep `لوحة الإدارة` visible.
+- OPEN: deployed browser E2E, CI/deployment convergence, real booking E2E and final release gate.
