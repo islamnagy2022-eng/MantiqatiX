@@ -523,3 +523,8 @@
 - Successful catalog orders now navigate directly to the Orders workspace.
 - Customer cancellation and provider business-scoped status transitions remain backend-authoritative.
 - OPEN: real two-user order E2E, push notification delivery, payment/refund E2E, CI and final production smoke/release gate.
+
+
+## RC185 — Order API Tenant Boundary — 2026-09-28
+- Hardened POST /api/v1/orders to derive tenant from the target business and reject tenant/business mismatch.
+- OPEN: deploy/convergence verification, real customer-provider E2E, payment/refund E2E, notification delivery, CI and final release gate.
