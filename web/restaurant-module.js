@@ -37,7 +37,7 @@ async function load(){
  state.error=null; state.loading=true; render();
  const s=scope();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
- let ordersQ=sb.from('restaurant_orders').select('id,owner_user_id,customer_name,customer_phone,fulfillment_type,table_number,items,subtotal_egp,tax_egp,delivery_fee_egp,discount_egp,total_egp,status,notes_from_customer,driver_name,driver_phone,delivery_pin_code,delivery_address,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
+ let ordersQ=sb.from('orders').select('id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,total,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
  let tablesQ=sb.from('restaurant_tables').select('id,owner_user_id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name').order('table_number').limit(100);
  let invQ=sb.from('restaurant_inventory').select('id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at').order('name_ar').limit(200);
  if(s&&canOperate()){
@@ -47,7 +47,7 @@ async function load(){
    invQ=invQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
    menuQ=menuQ.eq('is_available',true);
-   ordersQ=ordersQ.eq('owner_user_id',state.user.id);
+   ordersQ=ordersQ.eq('customer_id',state.user.id);
    tablesQ=tablesQ.eq('owner_user_id',state.user.id);
    invQ=invQ.eq('owner_user_id',state.user.id);
  }
@@ -84,7 +84,7 @@ function menuView(){
 function ordersView(){
  const statuses=['NEW','CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
  return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>النوع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
- (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.fulfillment_type)+'</td><td>'+money(x.total_egp)+'</td><td>'+(canOperate()?'<select data-order-status="'+esc(x.id)+'">'+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
+ (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.fulfillment_type)+'</td><td>'+money(x.total_amount)+'</td><td>'+(canOperate()?'<select data-order-status="'+esc(x.id)+'">'+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function tablesView(){
@@ -177,7 +177,14 @@ function addInventory(existing){
   const r=await q;if(r.error)return alert('تعذر الحفظ: '+r.error.message);o.remove();await load();
  });
 }
-async function updateOrder(){return;}
+async function updateOrder(id,status){
+ if(!canOperate())return;
+ const m=scope(); if(!m)return alert('لا يوجد نطاق نشاط/فرع نشط.');
+ try{
+  await invokeMntyFunction('order-status-update',{orderId:id,tenantId:m.tenant_id,newStatus:status});
+  await load();
+ }catch(e){alert('تعذر تحديث حالة الطلب: '+(e?.message||'خطأ'))}
+}
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
