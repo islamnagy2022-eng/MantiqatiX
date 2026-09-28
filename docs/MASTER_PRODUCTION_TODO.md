@@ -676,3 +676,19 @@
 - Additional no-policy findings for the geographic/global-ad tables are intentionally fail-closed behind sanitized delivery/admin RPCs and remain subject to workflow-specific verification.
 - Overall Security Advisor remains OPEN because leaked-password protection is still disabled and user-facing E2E evidence remains incomplete.
 - Detailed evidence: docs/RC209_SECURITY_ADVISOR_ACCESS_PATH_RECONCILIATION.md
+
+
+## RC210 — Egypt Governorate Master Baseline — 2026-09-29
+- Seeded the 27 Egypt governorates under the existing `platform_geo_areas` hierarchy.
+- Used the established CAPMAS governorate code convention; no center/Markaz records were invented.
+- Verified each governorate points to the existing Egypt country node.
+- Status: **VERIFIED BASELINE / CENTERS STILL OPEN**.
+- Source migration: `supabase/migrations/20260929030000_rc210_seed_egypt_governorate_master_baseline.sql`.
+- CAPMAS publication guide states that the Administrative Units Directory covers governorate/Kism-Markaz/city/Shiaka/village and that the latest edition cited in the 2024 guide is 2023. citeturn1search24
+
+## RC211 — Global Cover Ad Rotation — 2026-09-29
+- Updated `get_mnty_targeted_advertisements` to keep geographic precedence unchanged while ordering same-tier/global ads by newest approved creative.
+- Verified the approved Egypt-wide booking creative now enters the HOME_SPONSORED top-3 delivery result.
+- No fake advertisement or synthetic campaign was created.
+- Status: **VERIFIED**.
+- Source migration: `supabase/migrations/20260929031000_rc211_global_cover_rotation_order.sql`.
