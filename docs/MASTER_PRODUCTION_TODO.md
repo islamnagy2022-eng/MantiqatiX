@@ -400,3 +400,11 @@
 - UI calls authenticated post-financial-journal Edge Function; no direct journal/ledger table writes were introduced.
 - Source verification completed.
 - Browser E2E, invalid-input security tests, real production journal rehearsal and CI remain OPEN.
+
+
+## RC161 — MantiGO guarded workflow — 2026-09-28
+- Added backend-only MantiGO contracts for ride creation, captain bid creation and customer bid acceptance.
+- Added guarded ride creation to the Trips workspace; no direct ride insert was added to the client path.
+- Existing RLS remains in place; broader ride/bid lifecycle actions require E2E before being marked complete.
+- No real ride/bid transaction was created during implementation.
+- Browser multi-user E2E, captain/customer isolation, notifications, payment completion and CI remain OPEN.
