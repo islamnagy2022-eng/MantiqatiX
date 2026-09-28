@@ -113,6 +113,17 @@
         </div>
       </header>
 
+      <aside class="mx-side-banner mx-side-banner--right" aria-label="مساحة إعلانية جانبية يمين">
+        <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
+        <div class="mx-side-banner__screen"><b>MNTY</b><span>مساحة إعلانية</span></div>
+        <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
+      </aside>
+      <aside class="mx-side-banner mx-side-banner--left" aria-label="مساحة إعلانية جانبية يسار">
+        <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
+        <div class="mx-side-banner__screen"><b>MNTY</b><span>مساحة إعلانية</span></div>
+        <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
+      </aside>
+
       <div class="mx-main" id="mx-home">
         <section class="mx-ad-cloud" aria-label="الإعلان الرئيسي والحجز الإعلاني">
           <div class="mx-ad-cloud__glow mx-ad-cloud__glow--one"></div>
