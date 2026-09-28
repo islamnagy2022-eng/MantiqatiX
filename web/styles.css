@@ -167,3 +167,14 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .request-list{display:grid;gap:8px;margin:10px 0 16px}
 .request-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}
 .request-row b{font-size:12px}
+
+/* Auth actions — polished mobile-first controls */
+.auth-switch-btn,.auth-link-btn{font-family:inherit;cursor:pointer;transition:all .18s ease}
+.auth-switch-btn{width:100%;margin-top:12px;padding:13px 16px;border:1px solid #d0d5dd;border-radius:12px;background:#f8fafc;color:#344054;font-weight:800;font-size:15px}
+.auth-switch-btn:hover{background:#f1f5f9;border-color:#98a2b3;transform:translateY(-1px)}
+.auth-switch-btn:active{transform:translateY(0)}
+.auth-secondary-actions{display:flex;justify-content:center;gap:18px;margin-top:14px}
+.auth-link-btn{border:0;background:transparent;color:#2563eb;padding:7px 10px;font-weight:700;font-size:14px}
+.auth-link-btn:hover{text-decoration:underline;color:#1d4ed8}
+.auth-link-btn:focus-visible,.auth-switch-btn:focus-visible{outline:3px solid #2563eb26;outline-offset:2px}
+@media(max-width:480px){.auth-card{padding:28px 22px}.auth-switch-btn{font-size:14px}.auth-secondary-actions{gap:8px;flex-wrap:wrap}}
