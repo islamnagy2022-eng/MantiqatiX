@@ -548,3 +548,9 @@
 - Added administrative return target and public-home `لوحة الإدارة` path.
 - Added fallback to legacy landing view if the homepage module is not loaded.
 - OPEN: deployed browser E2E, CI, deployment convergence and final release gate.
+
+
+## RC189 — Admin Return From Public Customer Home — 2026-09-28
+- Hardened the `لوحة الإدارة` return action from the public customer homepage.
+- Prevented duplicate clicks while membership switching is in progress.
+- OPEN: deployed browser E2E, CI/deployment convergence and final release gate.
