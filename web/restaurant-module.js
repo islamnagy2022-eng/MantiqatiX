@@ -8,8 +8,6 @@ const money=v=>Number(v||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maxi
 const uid=()=>crypto.randomUUID();
 let state={user:null,membership:null,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
 
-async function restaurantRpc(action,payload={}){ const s=scope(); if(!s)throw Error('ACTIVE_BUSINESS_SCOPE_REQUIRED'); const {data,error}=await sb.rpc('restaurant_erp_mutate',{p_action:action,p_payload:{...payload,branch_id:s.branch_id},p_idempotency_key:'REST-'+crypto.randomUUID()}); if(error)throw error; return data; }
-async function restaurantTableRpc(action,payload={}){ const s=scope(); if(!s)throw Error('ACTIVE_BUSINESS_SCOPE_REQUIRED'); const {data,error}=await sb.rpc('restaurant_table_mutate',{p_action:action,p_payload:{...payload,branch_id:s.branch_id},p_idempotency_key:'REST-TBL-'+crypto.randomUUID()}); if(error)throw error; return data; }
 async function session(){
  const {data,error}=await sb.auth.getSession();
  if(error||!data?.session?.user)return null;
@@ -84,8 +82,9 @@ function menuView(){
  '</tbody></table></div>');
 }
 function ordersView(){
- return shell('طلبات المطعم',tabs()+'<div class="notice">حالات الطلبات معروضة من البيانات الفعلية فقط. لا يتم تغيير حالة الطلب من الواجهة مباشرة؛ انتقالات الحالة النهائية يجب أن تمر بمسار خادمي موثوق حتى لا يتم تجاوز التسعير أو الدفع أو سجل الحالة.</div><div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>النوع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
- (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.fulfillment_type)+'</td><td>'+money(x.total_egp)+'</td><td>'+esc(x.status)+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
+ const statuses=['NEW','CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
+ return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>النوع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
+ (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.fulfillment_type)+'</td><td>'+money(x.total_egp)+'</td><td>'+(canOperate()?'<select data-order-status="'+esc(x.id)+'">'+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function tablesView(){
@@ -128,7 +127,10 @@ function addMenu(existing){
   const s=scope();if(!s)return alert('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={name_ar:o.querySelector('#name').value.trim(),description_ar:o.querySelector('#desc').value.trim(),category:o.querySelector('#cat').value.trim(),base_price_egp:Number(o.querySelector('#price').value),is_available:o.querySelector('#available').checked,is_popular:o.querySelector('#popular').checked};
   if(!payload.name_ar||!payload.category||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0)return alert('أكمل الاسم والفئة والسعر بشكل صحيح.');
-  if(existing){const q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id);const r=await q;if(r.error)return alert('تعذر الحفظ: '+r.error.message);}else{await restaurantRpc('create_menu_item',{...payload,id:uid(),original_price_egp:payload.original_price_egp??null});}o.remove();await load();
+  let q;
+  if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id);
+  else q=sb.from('restaurant_menu_items').insert({...payload,id:uid(),owner_user_id:state.user.id,...s});
+  const r=await q;if(r.error)return alert('تعذر الحفظ: '+r.error.message);o.remove();await load();
  });
 }
 function addTable(existing){
@@ -142,7 +144,8 @@ function addTable(existing){
   const s=scope();if(!s)return alert('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={table_number:Number(o.querySelector('#num').value),capacity_persons:Number(o.querySelector('#cap').value),status:o.querySelector('#status').value,reserved_customer_name:o.querySelector('#reserved').value.trim()||null};
   if(!Number.isInteger(payload.table_number)||payload.table_number<1||!Number.isInteger(payload.capacity_persons)||payload.capacity_persons<1)return alert('أدخل رقم وسعة صحيحين.');
-  if(existing){await restaurantTableRpc('update_status',{id:existing.id,...payload,current_bill_egp:existing.current_bill_egp||0});}else{await restaurantTableRpc('upsert_table',{...payload,id:uid(),current_active_order_id:null,current_bill_egp:0});}o.remove();await load();
+  let q=existing?sb.from('restaurant_tables').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id):sb.from('restaurant_tables').insert({...payload,id:uid(),owner_user_id:state.user.id,current_active_order_id:null,current_bill_egp:0,...s});
+  const r=await q;if(r.error)return alert('تعذر الحفظ: '+r.error.message);o.remove();await load();
  });
 }
 function addInventory(existing){
@@ -160,9 +163,8 @@ function addInventory(existing){
 }
 async function updateOrder(id,status){
  if(!canOperate())return;
- const s=scope();if(!s)return alert('لا يوجد نطاق نشاط/فرع نشط.');
- const {data,error}=await sb.rpc('restaurant_erp_mutate',{p_action:'update_order_status',p_payload:{id,status,branch_id:s.branch_id},p_idempotency_key:'REST-ORDER-'+crypto.randomUUID()});
- if(error)alert('تعذر تحديث الطلب: '+error.message);else await load();
+ const r=await sb.from('restaurant_orders').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('owner_user_id',state.user.id);
+ if(r.error)alert('تعذر تحديث الطلب: '+r.error.message);else await load();
 }
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
