@@ -528,3 +528,9 @@
 ## RC185 — Order API Tenant Boundary — 2026-09-28
 - Hardened POST /api/v1/orders to derive tenant from the target business and reject tenant/business mismatch.
 - OPEN: deploy/convergence verification, real customer-provider E2E, payment/refund E2E, notification delivery, CI and final release gate.
+
+
+## RC186 — Order Scope Counters — 2026-09-28
+- Aligned order counters with active customer/provider/business scope.
+- CUSTOMER uses customer_id; SERVICE_PROVIDER/BUSINESS_OWNER use business_id.
+- OPEN: CI, deployment convergence, real two-user E2E, notifications and payment/refund verification.
