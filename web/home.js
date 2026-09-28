@@ -23,6 +23,46 @@
   };
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
   const logo = () => '<span class="mark" aria-hidden="true"></span>';
+  const normCode = value => String(value||'').trim().toUpperCase().replace(/[^A-Z0-9_:-]+/g,'_');
+  let HOME_RUNTIME_FLAGS = null;
+  const loadHomeRuntimeFlags = async sb => {
+    try {
+      const r=await sb.from('platform_feature_flags').select('module_code,feature_code,enabled,configuration').limit(500);
+      if(r.error) throw r.error;
+      const map={};
+      (r.data||[]).forEach(x=>{
+        const moduleCode=normCode(x.module_code), featureCode=normCode(x.feature_code);
+        if(moduleCode) map[moduleCode+':'+featureCode]=x;
+      });
+      HOME_RUNTIME_FLAGS=map;
+    } catch(_) {
+      HOME_RUNTIME_FLAGS={};
+    }
+    return HOME_RUNTIME_FLAGS;
+  };
+  const homeFeatureEnabled = code => {
+    const map=HOME_RUNTIME_FLAGS||{};
+    const m=normCode(code);
+    const candidates=['MODULE_ENABLED','ENABLED','VISIBILITY'];
+    for(const f of candidates){
+      const row=map[m+':'+f];
+      if(row) return row.enabled!==false;
+    }
+    return true;
+  };
+  const homeSectionEnabled = code => homeFeatureEnabled(code);
+  const dynamicTaxonomy = (services,providers) => {
+    const known=new Map(TAXONOMY.map(x=>[x[3],x]));
+    [...(services||[]).map(x=>x.category_code),...(providers||[]).map(x=>x.provider_kind)]
+      .filter(Boolean).forEach(code=>{
+        const key=normCode(code);
+        if(!known.has(key) && homeFeatureEnabled(key)){
+          const label=String(code).replace(/[_-]+/g,' ').trim();
+          known.set(key,['◉',label,'خدمات وأنشطة منشورة على المنصة',key]);
+        }
+      });
+    return [...known.values()].filter(x=>homeFeatureEnabled(x[3]));
+  };
   const getClient = () => {
     try{
       const cfg=window.MNTY_CONFIG;
@@ -177,7 +217,13 @@
     </main>`;
 
     const categoryGrid=document.getElementById('mx-category-grid');
-    categoryGrid.innerHTML=TAXONOMY.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
+    const renderDynamicCategories=(services=[],providers=[])=>{
+      const items=dynamicTaxonomy(services,providers);
+      categoryGrid.innerHTML=items.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
+      categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ document.getElementById('mx-home-search').value=btn.querySelector('strong').textContent; loadData(btn.querySelector('strong').textContent); document.getElementById('mx-services')?.scrollIntoView({behavior:'smooth',block:'start'}); });
+    };
+    categoryGrid.innerHTML='';
+(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
 
     const goLogin=()=>{if(window.MNTYAuthState?.authenticated&&typeof openPlatform==='function')return openPlatform();return typeof authView==='function'&&authView();};
     const openAccount=()=>window.MNTYAuthState?.authenticated&&typeof openPlatform==='function'?openPlatform():goLogin();
@@ -190,7 +236,7 @@
     document.getElementById('mx-explore').onclick=()=>scrollTo('mx-services');
     document.getElementById('mx-all').onclick=goLogin;
     document.getElementById('mx-ad-cta').onclick=goLogin;
-    document.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ document.getElementById('mx-home-search').value=btn.querySelector('strong').textContent; loadData(btn.querySelector('strong').textContent); scrollTo('mx-services'); });
+
     document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
     document.querySelectorAll('[data-auth-link]').forEach(a=>a.onclick=e=>{e.preventDefault();goLogin()});
     document.querySelectorAll('[data-module]').forEach(btn=>btn.onclick=goLogin);
@@ -230,6 +276,11 @@
       const term=String(searchText||'').trim();
         const safeTerm=term.replace(/[^\p{L}\p{N}\s_-]/gu,' ').trim().slice(0,60);
       try{
+        await loadHomeRuntimeFlags(sb);
+        ['mx-services','mx-offers','mx-marketing'].forEach(id=>{
+          const el=document.getElementById(id);
+          if(el) el.hidden = id==='mx-services' ? !homeSectionEnabled('SERVICE_CATALOG') : id==='mx-offers' ? !homeSectionEnabled('ADVERTISEMENTS') : !homeSectionEnabled('MARKETING');
+        });
         let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
         let providerQuery=sb.from('marketing_provider_profiles').select('id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
         if(safeTerm){serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%');providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
@@ -237,6 +288,7 @@
         if(servicesRes.error) throw servicesRes.error;
         if(providersRes.error) throw providersRes.error;
         const services=servicesRes.data||[], providers=providersRes.data||[];
+        renderDynamicCategories(services,providers);
         renderServices(services);renderProviders(providers);renderSponsored(providers);
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
       }catch(error){
