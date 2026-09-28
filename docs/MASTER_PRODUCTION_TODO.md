@@ -495,3 +495,11 @@
 - Cross-tenant customer order boundary hardened: customer membership can authorize ordering without granting provider-tenant management access; ACTIVE provider profile is required.
 - Local default artwork added for completed sector modules and homepage hero.
 - OPEN: real order/booking E2E, cross-tenant payment path, provider acceptance/status notifications, browser/mobile UX, CI, production smoke and final release gate.
+
+
+## RC181–RC182 — Booking Lifecycle & Notifications — 2026-09-28
+- Customer cancellation now works for the customer's own cross-tenant marketplace order without granting provider-tenant membership.
+- Order status updates continue to require backend/service-role execution and provider-side business scope.
+- Existing order-created notification trigger confirmed and retained.
+- Added order-status notification trigger using the existing `public.notifications` contract; customer receives status updates and provider-side business members receive cancellation notices.
+- OPEN: real two-user booking E2E, browser/mobile E2E, notification delivery/push E2E, payment/refund path, CI and final production smoke.
