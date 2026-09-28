@@ -448,3 +448,11 @@
 - Added `find_mnty_nearby_provider_businesses(...)` as a backend-only coordinate computation boundary; browser receives business IDs + computed distance, not raw coordinates.
 - Removed temporary duplicate `web/location-contract.js` and its loader.
 - OPEN: production browser/mobile E2E, permission UX, and final verification of nearby results/ads under each range.
+
+
+## RC171 — MantiGO Workspace Activation — 2026-09-28
+- Activated the already-existing MantiGO backend contracts in the web Trips workspace: create ride, submit bid, accept bid, and server-side trip state transitions.
+- Added role/state-aware UI actions without adding a parallel workflow or direct lifecycle writes.
+- Customer actions: open bidding/cancel and accept visible bids; provider/driver/captain actions: submit bid and server-authorized trip progress actions.
+- Existing RLS/backend state machine remains authoritative; no real ride or bid was created during implementation.
+- OPEN: multi-user customer/captain E2E, bid visibility/discovery flow, notifications, payment/settlement, CI and release verification.
