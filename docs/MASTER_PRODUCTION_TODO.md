@@ -611,3 +611,8 @@
 ## Current next gate
 - RC200 — Payment / Refund Booking Path.
 - Do not advance to real payment testing until RC199 real booking prerequisites are available.
+### RC199 browser-read privilege finding
+- `web/app.js` reads `orders` and `order_status_history` directly through the Supabase client.
+- Live `authenticated` table grants currently do not include `SELECT` on `public.orders`; RLS policy alone cannot make this direct read path functional.
+- Required least-privilege DDL: `GRANT SELECT` to `authenticated` on `orders` and `order_status_history`, plus customer-own order-history SELECT policy; no client mutation grants.
+- DDL was not applied in this checkpoint because the execution tool rejected the grant migration. Status: **OPEN / NOT VERIFIED**.
