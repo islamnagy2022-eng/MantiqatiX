@@ -127,15 +127,9 @@
             </div>
           </div>
           <div class="mx-ad-cloud__plans" id="mx-ad-plans-grid">
-            <article class="mx-ad-plan">
-              <span>01</span><b>ربع سنوي</b><small>حجز إعلاني لمدة 3 أشهر</small>
-            </article>
-            <article class="mx-ad-plan mx-ad-plan--featured">
-              <span>02</span><b>نصف سنوي</b><small>حجز إعلاني لمدة 6 أشهر</small>
-            </article>
-            <article class="mx-ad-plan">
-              <span>03</span><b>سنوي</b><small>حجز إعلاني لمدة 12 شهرًا</small>
-            </article>
+            <button type="button" class="mx-ad-plan" data-ad-plan="QUARTERLY"><span>01</span><b>ربع سنوي</b><small>حجز إعلاني لمدة 3 أشهر</small></button>
+            <button type="button" class="mx-ad-plan mx-ad-plan--featured" data-ad-plan="SEMIANNUAL"><span>02</span><b>نصف سنوي</b><small>حجز إعلاني لمدة 6 أشهر</small></button>
+            <button type="button" class="mx-ad-plan" data-ad-plan="ANNUAL"><span>03</span><b>سنوي</b><small>حجز إعلاني لمدة 12 شهرًا</small></button>
           </div>
           <div class="mx-ad-cloud__visual" aria-hidden="true">
             <div class="mx-cloud mx-cloud--a"></div><div class="mx-cloud mx-cloud--b"></div><div class="mx-cloud mx-cloud--c"></div>
@@ -149,24 +143,6 @@
             <div id="mx-platform-notice" class="mx-platform-notice" aria-live="polite"></div>
           </div>
           <span class="mx-platform-notices__timer">تتبدل تلقائيًا</span>
-        </section>
-
-        <section class="mx-section mx-platform-definition" id="mx-about">
-          <div class="mx-platform-definition__intro">
-            <span class="mx-hero__eyebrow">MANTIQATIX · تعريف المنصة</span>
-            <h2>منصة رقمية تربط الطلب بالخدمة</h2>
-            <p>منصة رقمية متكاملة تربط العملاء بمقدمي الخدمات والأنشطة المسجلة، وتسهّل اكتشاف الخدمات ومقارنتها وطلبها ومتابعة تنفيذها عبر قطاعات متعددة، مع استخدام الموقع فقط عند الحاجة التشغيلية وبحسب الإذن.</p>
-          </div>
-          <div class="mx-platform-definition__model">
-            <div class="mx-model-card"><span>01</span><b>اكتشاف</b><small>العثور على الخدمات والأنشطة المسجلة.</small></div>
-            <div class="mx-model-card"><span>02</span><b>مطابقة</b><small>ربط احتياج العميل بمقدم الخدمة المناسب.</small></div>
-            <div class="mx-model-card"><span>03</span><b>طلب وتواصل</b><small>إدارة الطلب والتواصل عبر البنية الرقمية.</small></div>
-            <div class="mx-model-card"><span>04</span><b>متابعة</b><small>متابعة حالة الطلب دون الحلول محل مقدم الخدمة.</small></div>
-          </div>
-          <div class="mx-platform-definition__notice">
-            <strong>دور MANTIQATIX رقمي وليس ماديًا</strong>
-            <p>MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ يقتصر دورها على توفير البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، بينما يظل مقدم الخدمة هو المسؤول عن تقديم الخدمة وتنفيذها فعليًا.</p>
-          </div>
         </section>
 
         <section class="mx-section mx-audience-section" id="mx-audiences">
