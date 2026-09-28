@@ -416,3 +416,10 @@
 - Customer/driver actor checks and row locking are enforced server-side; direct client EXECUTE is revoked.
 - UI transition controls remain OPEN because repository security validation blocked the app.js patch.
 - Matching concurrency, two-user E2E, Payment→Settlement, notifications, offline/device and final production gate remain OPEN.
+
+
+## RC167 — Reuse canonical GPS/search-range contract — 2026-09-28
+- Reviewed source archive before modifying home location behavior.
+- Canonical components: `LocationEngine`, `LocationSelectorModal`, `SmartLocationCategoriesSection`, `HomeScreenDisplaySystem`, and `AdCampaignEngine` radius.
+- Removed the duplicate browser-only GPS/distance implementation introduced in RC166.
+- Required next integration: adapt the canonical location/range contract into the web/PWA rather than creating a parallel GPS/radius engine.
