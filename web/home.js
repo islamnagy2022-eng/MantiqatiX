@@ -151,6 +151,24 @@
           <span class="mx-platform-notices__timer">تتبدل تلقائيًا</span>
         </section>
 
+        <section class="mx-section mx-platform-definition" id="mx-about">
+          <div class="mx-platform-definition__intro">
+            <span class="mx-hero__eyebrow">MANTIQATIX · تعريف المنصة</span>
+            <h2>منصة رقمية تربط الطلب بالخدمة</h2>
+            <p>منصة رقمية متكاملة تربط العملاء بمقدمي الخدمات والأنشطة المسجلة، وتسهّل اكتشاف الخدمات ومقارنتها وطلبها ومتابعة تنفيذها عبر قطاعات متعددة، مع استخدام الموقع فقط عند الحاجة التشغيلية وبحسب الإذن.</p>
+          </div>
+          <div class="mx-platform-definition__model">
+            <div class="mx-model-card"><span>01</span><b>اكتشاف</b><small>العثور على الخدمات والأنشطة المسجلة.</small></div>
+            <div class="mx-model-card"><span>02</span><b>مطابقة</b><small>ربط احتياج العميل بمقدم الخدمة المناسب.</small></div>
+            <div class="mx-model-card"><span>03</span><b>طلب وتواصل</b><small>إدارة الطلب والتواصل عبر البنية الرقمية.</small></div>
+            <div class="mx-model-card"><span>04</span><b>متابعة</b><small>متابعة حالة الطلب دون الحلول محل مقدم الخدمة.</small></div>
+          </div>
+          <div class="mx-platform-definition__notice">
+            <strong>دور MANTIQATIX رقمي وليس ماديًا</strong>
+            <p>MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ يقتصر دورها على توفير البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، بينما يظل مقدم الخدمة هو المسؤول عن تقديم الخدمة وتنفيذها فعليًا.</p>
+          </div>
+        </section>
+
         <section class="mx-section mx-audience-section" id="mx-audiences">
           <div class="mx-section__head">
             <div><span class="mx-hero__eyebrow">ابدأ بالطريقة المناسبة لك</span><h2>مساران واضحان داخل MANTIQATIX</h2><p>المنصة تربط الطرفين رقميًا، مع بقاء تقديم الخدمة وتنفيذها مسؤولية مقدم الخدمة.</p></div>
