@@ -541,3 +541,10 @@
 - Added an admin-only temporary return control for the previous privileged membership.
 - No backend authorization is changed by the preview.
 - OPEN: browser E2E, CI, deployment convergence and final release verification.
+
+
+## RC188 — Admin → Customer Homepage Switch — 2026-09-28
+- Customer membership selection from an administrative context opens the public MNTY homepage instead of the internal customer dashboard.
+- Added administrative return target and public-home `لوحة الإدارة` path.
+- Added fallback to legacy landing view if the homepage module is not loaded.
+- OPEN: deployed browser E2E, CI, deployment convergence and final release gate.
