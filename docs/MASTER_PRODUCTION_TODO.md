@@ -634,3 +634,16 @@
 - RC198: VERIFIED/CLOSED.
 - RC199: BLOCKED only on real provider/business/catalog/price E2E fixture after browser read privileges were closed.
 - RC200: OPEN; authorization/idempotency boundaries verified, real payment/refund not verified.
+
+## RC201 — Release / CI / Source Package Audit — 2026-09-28
+
+- Uploaded RC40 source package static `production_gate.py`: **PASS**.
+- Uploaded RC40 source package `verify_production_invariants.py`: **PASS**.
+- Separate source-package credential scan: **PASS**; no private-key/JWT credential material detected.
+- RC40 contains a CI/CD workflow with JDK 21, unit tests, lint, debug APK and signed release AAB using GitHub Secrets.
+- Current GitHub `main` was checked independently and the RC40 Android/CI paths are not present at their expected locations.
+- Therefore RC40 CI evidence is **not** treated as current-`main` CI evidence.
+- Current-main browser smoke, Android release build/signing, device regression and rollback remain **NOT VERIFIED**.
+- Security Advisor remains OPEN; no broad policies were added merely to silence lints.
+- RC201 remains OPEN.
+
