@@ -41,8 +41,8 @@
    - GL posting/account mapping/reconciliation.
 
 5. Supabase Security Advisor — OPEN
-   - 7 جداول RLS بلا policies.
-   - pg_net داخل public.
+   - 7 جداول RLS بلا policies — REVIEWED: no direct anon/authenticated grants; backend-only isolation still requires access-path documentation.
+   - pg_net داخل public — CLOSED in RC107; moved to extensions and trigger dependency revalidated.
    - create_payment_intent_backend SECURITY DEFINER قابل للتنفيذ من authenticated؛ الاستدعاء مقصود حالياً لكن يلزم إغلاق/توثيق الإنذار بأمان.
    - تحذيرات anonymous policies تحتاج مراجعة حسب الجدول.
    - leaked-password protection معطل.
@@ -55,7 +55,8 @@
    - public.smm_admins
    - public.smm_provider_credentials
    - public.smm_providers
-   - تحديد backend-only/private أو إضافة policies صحيحة؛ لا نفتحها لمجرد إسكات Advisor.
+   - Direct anon/authenticated grants: VERIFIED NONE.
+   - Next: map service-role/backend access paths; do not add broad policies merely to silence Advisor.
 
 7. Leaked Password Protection — WAIT
    - تفعيلها من Supabase Auth.
@@ -250,3 +251,14 @@
 - Therefore they are NOT opened by adding broad policies just to silence the advisor.
 - TODO: verify backend/service-role access paths for each table, then document intentional backend-only isolation or add least-privilege policies only where a real user-facing workflow requires them.
 - `smm_provider_credentials` contains `api_key_ciphertext` and must remain fail-closed to ordinary client roles.
+
+
+## RC107 P0 Security update — 2026-09-28
+
+- pg_net was moved from public to extensions using migration rc107_move_pg_net_to_extensions.
+- Verified live extension: pg_net 0.20.4 in schema extensions.
+- Verified notification trigger: public.notifications.mnty_notifications_push_after_insert remains attached to public.mnty_push_notification_hook().
+- Hook was recreated to call extensions.http_post(...) instead of net.http_post(...).
+- Security Advisor no longer returned the extension_in_public finding in the post-change payload.
+- No broad RLS policies were added to the 7 no-policy tables; live privilege inspection showed no direct anon/authenticated grants.
+- Remaining P0 security items: leaked-password protection, contextual anonymous-policy review, SECURITY DEFINER payment RPC decision/documentation, backend-only access-path mapping, and full E2E verification.
