@@ -692,3 +692,12 @@
 - No fake advertisement or synthetic campaign was created.
 - Status: **VERIFIED**.
 - Source migration: `supabase/migrations/20260929031000_rc211_global_cover_rotation_order.sql`.
+
+
+## RC212 — Nearest Provider Fallback — 2026-09-29
+- Added a dedicated `find_mnty_nearest_provider_businesses` RPC that ranks active provider businesses by minimum branch distance without imposing the selected 1/3/5/10 km radius.
+- Updated the web location adapter: when a user has granted location, the selected local radius returns zero providers, and the radius is below 10 km, the adapter now falls back to the nearest available providers.
+- No continuous tracking was introduced; the existing on-demand browser location contract remains unchanged.
+- Production verification of the RPC at Cairo/Giza coordinates returned an empty set because Production currently has no active provider business/branch chain; this is a data-state verification, not an invented E2E result.
+- Status: **IMPLEMENTED / RPC VERIFIED / E2E PENDING REAL PROVIDER DATA**.
+- Source migration: `supabase/migrations/20260929033000_rc212_nearest_provider_fallback.sql`.
