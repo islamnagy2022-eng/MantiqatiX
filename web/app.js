@@ -481,8 +481,8 @@ async function requestAdBooking(duration='QUARTERLY'){
       title,
       description,
       currency:'EGP',
-      status:'NEW',
-      source:'WEB_AD_BOOKING',
+      status:'OPEN',
+      source:'PLATFORM',
       required_services:['AD_BOOKING',key]
     }).select('id,title,status,source,created_at').single();
     if(error)throw error;
