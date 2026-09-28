@@ -118,12 +118,6 @@
         <div class="mx-side-banner__screen"><b>MNTY</b><span>مساحة إعلانية</span></div>
         <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
       </aside>
-      <aside class="mx-side-banner mx-side-banner--left" aria-label="مساحة إعلانية جانبية يسار">
-        <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
-        <div class="mx-side-banner__screen"><b>MNTY</b><span>مساحة إعلانية</span></div>
-        <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
-      </aside>
-
       <div class="mx-main" id="mx-home">
         <section class="mx-ad-cloud" aria-label="الإعلان الرئيسي والحجز الإعلاني">
           <div class="mx-ad-cloud__glow mx-ad-cloud__glow--one"></div>
@@ -154,6 +148,19 @@
             <div id="mx-platform-notice" class="mx-platform-notice" aria-live="polite"></div>
           </div>
           <span class="mx-platform-notices__timer">تتبدل تلقائيًا</span>
+        </section>
+
+        <section class="mx-section mx-about-section" id="mx-about">
+          <div class="mx-section__head">
+            <div><span class="mx-hero__eyebrow">عن MantiqatiX</span><h2>منصة رقمية لاكتشاف الخدمات وربط العملاء بمقدميها</h2><p>تجمع MNTY بين اكتشاف الخدمة، الوصول إلى مقدم الخدمة، الطلب والمتابعة داخل تجربة رقمية موحدة.</p></div>
+          </div>
+          <div class="mx-about-grid">
+            <article class="mx-about-card"><span>01</span><h3>اكتشاف ومطابقة</h3><p>ابحث عن الخدمة أو النشاط المناسب، ثم استعرض البيانات المنشورة من الكتالوج العام عند توفرها.</p></article>
+            <article class="mx-about-card"><span>02</span><h3>طلب ومتابعة</h3><p>يمكن للعميل إنشاء الطلب ومتابعة حالته من حسابه، بينما يظل تنفيذ الخدمة مسؤولية مقدم الخدمة.</p></article>
+            <article class="mx-about-card"><span>03</span><h3>موقع عند الحاجة</h3><p>يُستخدم الموقع كعامل مساعد عند الحاجة التشغيلية وبإذن المستخدم، وليس كتتبع مستمر لمجرد تسجيل الدخول.</p></article>
+            <article class="mx-about-card"><span>04</span><h3>منظومة موحدة</h3><p>الموقع والتطبيق والإدارة تعتمد منطقًا وبيانات مشتركة، مع تجربة واجهة مناسبة لكل منصة.</p></article>
+          </div>
+          <div class="mx-about-note"><strong>دور المنصة</strong><span>MantiqatiX توفر البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، ولا تحل محل مقدم الخدمة في تنفيذ الخدمة ماديًا.</span></div>
         </section>
 
         <section class="mx-section mx-audience-section" id="mx-audiences">
@@ -298,7 +305,7 @@
     document.getElementById('mx-bottom-add').onclick=goLogin;
     document.getElementById('mx-start').onclick=()=>scrollTo('mx-categories');
     document.getElementById('mx-explore').onclick=()=>scrollTo('mx-services');
-    document.getElementById('mx-all').onclick=goLogin;
+    document.getElementById('mx-all').onclick=()=>scrollTo('mx-services');
     document.getElementById('mx-ad-cta').onclick=goLogin;
 
     document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
@@ -317,14 +324,39 @@
       const el=document.getElementById('mx-service-grid');
       if(!services.length){el.innerHTML='<div class="mx-empty"><b>لا توجد خدمات منشورة حاليًا</b><span>سيظهر كتالوج الخدمات هنا تلقائيًا عند نشر الخدمات واعتمادها.</span></div>';return}
       el.innerHTML=services.map(s=>'<article class="mx-service-card">'+serviceMedia(s)+'<div class="mx-service-card__body"><span class="mx-chip">'+escapeHtml(s.category_code||'SERVICE')+'</span><h3>'+escapeHtml(s.name_ar||s.name_en||'خدمة')+'</h3><p>'+escapeHtml(s.description||'خدمة متاحة ضمن كتالوج Mantiqati X.')+'</p><button type="button" class="mx-card-link" data-service="'+escapeHtml(s.id)+'">استكشف الخدمة ←</button></div></article>').join('');
-      el.querySelectorAll('[data-service]').forEach(b=>b.onclick=goLogin);
+      el.querySelectorAll('[data-service]').forEach(b=>b.onclick=()=>{
+        const id=b.dataset.service;
+        const item=(services||[]).find(x=>String(x.id)===String(id));
+        const input=document.getElementById('mx-home-search');
+        if(input){input.value=item?.name_ar||item?.name_en||'';}
+        loadData(item?.name_ar||item?.name_en||'');
+        document.getElementById('mx-services')?.scrollIntoView({behavior:'smooth',block:'start'});
+      });
     };
     const renderLocationRange=()=>{const el=document.getElementById('mx-location-range');if(!el||!window.MNTYLocationContract)return;const s=window.MNTYLocationContract.state();el.innerHTML=window.MNTYLocationContract.ranges.map(k=>'<button type="button" class="mx-range'+(s.selectedDistanceKm===k?' is-active':'')+'" data-range="'+k+'">'+(k===10?'الكل':k+' كم')+'</button>').join('');el.querySelectorAll('[data-range]').forEach(b=>b.onclick=async()=>{window.MNTYLocationContract.setRange(Number(b.dataset.range));renderLocationRange();await loadData(document.getElementById('mx-home-search')?.value||'')});};
     const renderProviders=(providers)=>{
       const el=document.getElementById('mx-provider-grid');
       if(!providers.length){el.innerHTML='<div class="mx-empty"><b>لا يوجد مقدمو خدمات منشورون حاليًا</b><span>لن يتم إنشاء أو عرض أسماء تجريبية. ستظهر الجهات بعد نشرها واعتمادها.</span></div>';return}
       el.innerHTML=providers.map(p=>'<article class="mx-provider-card">'+providerMedia(p)+'<div class="mx-provider-card__body"><div class="mx-provider-card__top"><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span></div><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'مقدم خدمة مسجل على Mantiqati X.')+'</p><span class="mx-location">⌖ '+escapeHtml((readArea(p.service_areas)||'نطاق خدمة معلن')+(p._distanceKm!=null?' · '+p._distanceKm.toFixed(1)+' كم':''))+(p._nearestFallback?' · الأقرب المتاح':'')+'</span><div class="mx-provider-actions"><button type="button" class="mx-card-link" data-provider="'+escapeHtml(p.id)+'">عرض الملف ←</button>'+(p.business_id?'<button type="button" class="mx-card-book" data-book-business="'+escapeHtml(p.business_id)+'" data-book-provider="'+escapeHtml(p.name_ar||p.name_en||'مقدم الخدمة')+'">احجز / اطلب خدمة</button>':'')+'</div></div></article>').join('');
-      el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=goLogin);
+      el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=()=>{
+        const id=b.dataset.provider;
+        const item=(providers||[]).find(x=>String(x.id)===String(id));
+        if(!item)return;
+        const modal=document.createElement('div');
+        modal.className='mx-public-modal';
+        modal.innerHTML='<div class="mx-public-modal__backdrop"></div><section class="mx-public-modal__card" role="dialog" aria-modal="true" aria-label="ملف مقدم الخدمة"><button class="mx-public-modal__close" type="button" aria-label="إغلاق">×</button>'+providerMedia(item)+'<span class="mx-verified">'+(item.is_verified?'✓ موثق':'منشور')+'</span><h2>'+escapeHtml(item.name_ar||item.name_en||'مقدم خدمة')+'</h2><p>'+escapeHtml(item.description||'مقدم خدمة مسجل على Mantiqati X.')+'</p><div class="mx-public-modal__area">⌖ '+escapeHtml(readArea(item.service_areas)||'نطاق خدمة معلن')+'</div>'+(item.business_id?'<button class="mx-btn mx-btn--primary" type="button" id="mx-public-modal-book">احجز / اطلب خدمة ←</button>':'')+'</section></div>';
+        document.body.appendChild(modal);
+        const close=()=>modal.remove();
+        modal.querySelector('.mx-public-modal__close').onclick=close;
+        modal.querySelector('.mx-public-modal__backdrop').onclick=close;
+        modal.querySelector('#mx-public-modal-book')?.addEventListener('click',()=>{
+          close();
+          const businessId=item.business_id, providerName=item.name_ar||item.name_en||'مقدم الخدمة';
+          if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function') return openProviderCatalog(businessId,providerName);
+          try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId,providerName}));}catch(_){}
+          goLogin();
+        });
+      });
       el.querySelectorAll('[data-book-business]').forEach(b=>b.onclick=()=>{
         const businessId=b.dataset.bookBusiness, providerName=b.dataset.bookProvider||'مقدم الخدمة';
         if(window.MNTYAuthState?.authenticated && typeof openProviderCatalog==='function') return openProviderCatalog(businessId,providerName);
