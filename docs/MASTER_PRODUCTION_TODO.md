@@ -578,3 +578,9 @@
 - Target-business membership remains accepted for business-scoped users.
 - Catalog, active-business and server-authoritative pricing checks remain intact.
 - OPEN: deploy/convergence verification, real booking E2E, provider receipt/status flow, notifications, payment/refund, CI and final release gate.
+
+
+## RC193 — Order Create Deployment Gate — 2026-09-28
+- Production convergence for the RC192 order-create fix could not be retrieved/verified in this checkpoint.
+- Established an explicit deployment gate before real booking testing.
+- OPEN: deployed function verification, real customer booking, provider isolation/status flow, notifications, payment/refund, CI and release gate.
