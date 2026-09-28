@@ -384,3 +384,12 @@
 - Source verification completed for the runtime commits.
 - GitHub workflow runs for RC158 are currently not returned; browser E2E, CI, cross-tenant E2E and production release verification remain OPEN.
 - Do not mark ERP/accounting operational completion as VERIFIED until authenticated browser tests and multi-tenant isolation tests pass.
+
+
+## RC159 — Financial journal backend hardening — 2026-09-28
+- Added backend-only post_financial_journal_backend with explicit authenticated user context, financial-role membership, tenant account validation, balanced debit/credit enforcement and ledger posting.
+- Client roles were not granted direct EXECUTE on the backend journal function.
+- Deployed authenticated Edge Function post-financial-journal with JWT verification enabled.
+- No production financial transaction was created during implementation.
+- UI integration remains OPEN because the repository security validator blocked the attempted financial UI patch; do not bypass that control.
+- Browser E2E, real journal rehearsal, multi-tenant isolation and final release verification remain OPEN.
