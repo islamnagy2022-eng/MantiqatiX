@@ -241,3 +241,12 @@
 4. بعد كل إصلاح: migration/source → verification query → tests → baseline.
 5. لا نبدأ P2/P3 بينما P0 security أو E2E الحرجة مفتوحة.
 6. فشل E2E يعيد البند إلى TODO ويمنع Go-Live للجزء المتأثر.
+
+
+## RC106 P0 Security clarification
+
+- The 7 Security Advisor RLS-no-policy findings were inspected at the privilege layer.
+- The current anon/authenticated table-grant query returned no direct grants for those named tables.
+- Therefore they are NOT opened by adding broad policies just to silence the advisor.
+- TODO: verify backend/service-role access paths for each table, then document intentional backend-only isolation or add least-privilege policies only where a real user-facing workflow requires them.
+- `smm_provider_credentials` contains `api_key_ciphertext` and must remain fail-closed to ordinary client roles.
