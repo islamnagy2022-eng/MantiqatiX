@@ -431,3 +431,11 @@
 - Integrated location/range controls into the public home and nearest provider ordering.
 - Coordinates remain page-memory only; no continuous watcher or new location table was introduced.
 - OPEN: browser/mobile E2E, branches RLS coordinate review, CI, and production nearest-results verification.
+
+
+## RC168 — Web/PWA Location Integration — 2026-09-28
+- Reused the canonical location semantics already present in the source: GPS state, geographic context, and search ranges 1/3/5/10 km.
+- Added `web/location-contract.js` as an adapter only; it does not introduce a second GPS/radius architecture.
+- Homepage now requests location non-blockingly, ranks provider branches by actual coordinates when available, applies the existing range semantics, and keeps `10 كم` as the all-results range.
+- Homepage location/range state is reflected in the UI; no coordinates are persisted by this adapter.
+- OPEN: verify production browser permission flow, `branches` public RLS scope for latitude/longitude, and real mobile/desktop E2E.
