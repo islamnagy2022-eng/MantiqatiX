@@ -509,3 +509,10 @@
 - Upgraded Fashion products to responsive visual cards using real product records and local fallback artwork.
 - Existing Fashion orders/tailor services remain read surfaces until a verified authoritative checkout contract is confirmed.
 - OPEN: checkout/order authority, stock reservation, payment, notifications, E2E, CI and release gate.
+
+
+## RC183 — Marketplace Catalog Tenant Boundary — 2026-09-28
+- Provider catalog tenant is now derived from the authoritative `business_id`, preventing customer-tenant context from breaking cross-tenant marketplace booking.
+- Order submission uses the provider catalog tenant; customer access does not grant provider-tenant management permissions.
+- Active business + active provider profile remain required.
+- OPEN: independently verify latest API Edge Function deployment/convergence, real customer/provider E2E, payment, notifications/push, CI and final release gate.
