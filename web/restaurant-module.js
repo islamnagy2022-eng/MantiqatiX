@@ -99,8 +99,18 @@ function inventoryView(){
  (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate()?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
+async function createRestaurantOrder(){
+ if(!state.user||!scope())return alert('يجب اختيار عضوية مطعم/فرع نشطة.');
+ const item=state.menu.find(x=>x.is_available);
+ if(!item)return alert('لا توجد أصناف متاحة حالياً.');
+ const qty=Number(prompt('الكمية للصنف: '+item.name_ar,'1'));
+ if(!Number.isInteger(qty)||qty<1)return;
+ const m=scope();
+ const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS'}};
+ try{const r=await invokeMntyApi('/api/v1/orders',{method:'POST',body:payload});alert('تم إنشاء الطلب '+(r?.id||payload.orderId)+' بإجمالي '+money(r?.total_amount||0));await load();}catch(e){alert('تعذر إنشاء الطلب: '+(e?.message||'خطأ'))}
+}
 function dashboard(){
- return shell('لوحة المطعم',tabs()+cards()+
+ return shell('لوحة المطعم',tabs()+'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>'+cards()+
  '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
 }
@@ -170,6 +180,7 @@ function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
+ document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
