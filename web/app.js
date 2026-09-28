@@ -65,13 +65,13 @@ const sectors=[
 ['🎓','التعليم','المدارس والمدرسون والخدمات التعليمية'],['✈️','السفر والرحلات','الوكلاء والرحلات والحجوزات'],['🤝','الشركاء','الشركاء الاستراتيجيون ومصادر العملاء']
 ];
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER';
-const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
+const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){
 const uid=user?.id;
 if(!uid)return;
-live.loading=true;live.error=null;live.flags={};live.counts={};live.moduleData={};live.catalogByBusiness={};live.records.registrationRequests=[];live.myProviderProfile=null;
+live.loading=true;live.error=null;live.flags={};live.counts={};live.moduleData={};live.catalogByBusiness={};live.records.registrationRequests=[];live.records.providerServices=[];live.myProviderProfile=null;
 try{
  const m=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status').eq('user_id',uid).eq('status','ACTIVE');
  if(m.error)throw m.error;
@@ -92,7 +92,7 @@ try{
  }
  const myProviderRes=await sb.from('marketing_provider_profiles').select('id,name_ar,name_en,provider_kind,description,service_areas,profile_image_path,updated_at,status,is_verified,is_featured').eq('owner_user_id',uid).maybeSingle();
  if(myProviderRes.error)throw myProviderRes.error;
- live.myProviderProfile=myProviderRes.data||null;
+ live.myProviderProfile=myProviderRes.data||null;\n if(live.myProviderProfile){const ps=await sb.from('marketing_provider_services').select('id,provider_id,service_id,service_description,pricing_from,pricing_to,currency,status,created_at').eq('provider_id',live.myProviderProfile.id).order('created_at',{ascending:false}).limit(50);if(ps.error)throw ps.error;live.records.providerServices=ps.data||[];}
  const specs=[['advertisements',null,null,'ads'],['marketing_projects',live.businessId?'client_business_id':null,live.businessId,'projects'],['notifications','user_id',uid,'notifications'],['support_tickets','requester_id',uid,'support'],['marketing_leads','requester_user_id',uid,'leads'],['marketing_provider_profiles','owner_user_id',uid,'providers'],['orders','customer_id',uid,'orders']];
  if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);
  const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));
