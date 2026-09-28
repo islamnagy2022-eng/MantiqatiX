@@ -467,6 +467,35 @@ async function receivePurchaseStock(){const purchaseOrderId=window.prompt('مع�
 async function createStockTransfer(){const transferNumber=window.prompt('رقم التحويل');if(!transferNumber?.trim())return;const from=window.prompt('معرف المخزن المصدر');const to=window.prompt('معرف المخزن الهدف');const product=window.prompt('معرف المنتج');const qty=Number(window.prompt('الكمية','1'));if(!from?.trim()||!to?.trim()||!product?.trim()||!Number.isFinite(qty)||qty<=0)return showToast('بيانات التحويل غير صحيحة','error');return erpRpc('create_stock_transfer_backend',{p_id:'tr-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_transfer_number:transferNumber.trim(),p_from_warehouse_id:from.trim(),p_to_warehouse_id:to.trim(),p_product_id:product.trim(),p_quantity:qty})}
 async function updateStockTransferStatus(id,status){if(!id)return;return erpRpc('update_stock_transfer_status_backend',{p_transfer_id:id,p_target_status:status})}
 async function receiveStockTransfer(id){if(!id)return;return erpRpc('receive_stock_transfer_backend',{p_transfer_id:id})}
+const AD_BOOKING_LABELS={QUARTERLY:'ربع سنوي (3 أشهر)',HALF_YEARLY:'نصف سنوي (6 أشهر)',ANNUAL:'سنوي (12 شهرًا)'};
+async function requestAdBooking(duration='QUARTERLY'){
+  if(!user?.id)return authView();
+  const key=String(duration||'QUARTERLY').toUpperCase();
+  const label=AD_BOOKING_LABELS[key]||AD_BOOKING_LABELS.QUARTERLY;
+  const title='طلب حجز إعلان نشاط — '+label;
+  const description='طلب حجز مبدئي لظهور النشاط على MantiqatiX لمدة '+label+'. يخضع الطلب لمراجعة المنصة وتأكيد التوفر والسعر وإتمام المسار المالي قبل تفعيل الإعلان.';
+  try{
+    const {data,error}=await sb.from('marketing_leads').insert({
+      requester_user_id:user.id,
+      requester_business_id:live.businessId||null,
+      title,
+      description,
+      currency:'EGP',
+      status:'NEW',
+      source:'WEB_AD_BOOKING',
+      required_services:['AD_BOOKING',key]
+    }).select('id,title,status,source,created_at').single();
+    if(error)throw error;
+    try{localStorage.removeItem('MNTYOpenAdBooking');localStorage.removeItem('MNTYAdBookingDuration')}catch(_){}
+    showToast('تم إنشاء طلب حجز الإعلان بنجاح. سيظهر في مركز التسويق للمراجعة.','success');
+    current='التسويق والإعلان';
+    await renderApp();
+    return data;
+  }catch(e){
+    showToast('تعذر إنشاء طلب حجز الإعلان: '+(e?.message||'خطأ غير معروف'),'error');
+    return null;
+  }
+}
 async function createMarketingLead(){if(!user?.id)return authView();const title=window.prompt('عنوان احتياج التسويق');if(!title?.trim())return;const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');if(!description?.trim())return;const {data,error}=await sb.from('marketing_leads').insert({requester_user_id:user.id,requester_business_id:live.businessId||null,title:title.trim(),description:description.trim(),currency:'EGP',status:'NEW',source:'WEB'}).select('id').single();if(error)return showToast('تعذر إنشاء طلب التسويق: '+error.message,'error');live.counts.leads=(live.counts.leads||0)+1;showToast('تم إنشاء طلب التسويق'+(data?.id?' #'+data.id:''),'success');renderApp()}
 function marketingWorkspace(){return workspaceHead('MANTIQATIX MARKETING','مركز التسويق والإعلان','إدارة الحملات، شركات التسويق، الإعلانات ومصادر العملاء من البيانات الفعلية.','MARKETING')+workspaceCards([['المشروعات',countOrDash('projects'),'مشروعات التسويق المرئية وفق RLS'],['العملاء المحتملون',countOrDash('leads'),'طلبات التسويق الفعلية'],['الإعلانات',countOrDash('ads'),'إعلانات مرئية وفق RLS'],['شركات التسويق',countOrDash('providers'),'ملفات مقدمي التسويق'],['الخدمات',live.records.services.length,'الخدمات التسويقية النشطة'],['التقارير','—','لا يتم عرض رقم غير محسوب فعلياً']])+'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ إنشاء طلب تسويقي</button></div>'+recordsTable('طلبات التسويق',live.records.leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('الإعلانات',live.records.ads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['الموافقة',r=>r.approval_status||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('المشروعات',live.records.projects,[['النوع',r=>r.project_type||'—'],['الحالة',r=>r.status||'—'],['القيمة',r=>r.gross_value!=null?(r.gross_value+' '+(r.currency||'')):'—'],['العمولة',r=>r.platform_commission!=null?(r.platform_commission+' '+(r.currency||'')):'—']])+recordsTable('الخدمات التسويقية النشطة',live.records.services,[['الخدمة',r=>r.name_ar||r.name_en||'—'],['الكود',r=>r.code||'—'],['الفئة',r=>r.category_code||'—'],['الحالة',r=>r.status||'—']])}
 async function openLeadDetails(leadId){
