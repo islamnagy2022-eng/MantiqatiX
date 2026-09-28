@@ -51,7 +51,7 @@
     app.innerHTML=`<main class="mx-home" dir="rtl">
       <header class="mx-header">
         <div class="mx-header__inner">
-          <a class="mx-brand" href="#mx-home" aria-label="Mantiqati X">${logo()}<div><div class="mx-brand__name">Mantiqati X</div><span class="mx-brand__ar">Mantiqati X · منصة متكاملة</span></div></a>
+          <a class="mx-brand" href="#mx-home" aria-label="MNTY — MantiqatiX">${logo()}<div><div class="mx-brand__name">MNTY</div><span class="mx-brand__ar">MNTY — MantiqatiX</span></div></a>
           <label class="mx-search" aria-label="البحث">
             <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
             <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
@@ -73,7 +73,7 @@
       <div class="mx-main" id="mx-home">
         <section class="mx-hero" aria-label="الواجهة الرئيسية">
           <div class="mx-hero__copy">
-            <span class="mx-hero__eyebrow">Mantiqati X · الهوية الحديثة لمنصة MANTIQATIX</span>
+            <span class="mx-hero__eyebrow">MNTY · الهوية الحديثة لمنصة MantiqatiX</span>
             <h1>اكتشف الخدمة المناسبة، وتواصل مع مقدمها</h1>
             <p>منصة رقمية متكاملة تربط العملاء بمقدمي الخدمات والأنشطة المسجلة، وتسهّل اكتشاف الخدمات ومقارنتها وطلبها ومتابعة تنفيذها عبر قطاعات متعددة، مع استخدام الموقع فقط عند الحاجة التشغيلية وبحسب الإذن. MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ يقتصر دورها على توفير البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، بينما يظل مقدم الخدمة هو المسؤول عن تقديم الخدمة وتنفيذها فعليًا.</p>
             <div class="mx-trust-row"><span>✓ مقدمو خدمات مسجلون</span><span>⚡ تجربة سريعة</span><span>⌖ موقع عند الحاجة</span></div>
@@ -156,7 +156,7 @@
 
       <footer class="mx-footer" id="mx-contact">
         <div class="mx-footer__inner">
-          <div><div class="mx-footer__brand">Mantiqati X</div><div class="mx-footer__sub">Mantiqati X · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
+          <div><div class="mx-footer__brand">MNTY</div><div class="mx-footer__sub">MNTY — MantiqatiX · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
           <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
           <div><h3>عن Mantiqati X</h3><a href="#" data-auth-link="about">من نحن</a><a href="#" data-auth-link="legal">الشروط والأحكام</a><a href="#" data-auth-link="privacy">سياسة الخصوصية</a></div>
           <div><h3>خدمة العملاء</h3><div class="mx-footer__support">01010171770</div><div class="mx-footer__sub">منصتك في كل مكان</div></div>
