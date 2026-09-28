@@ -47,14 +47,12 @@
     const ids=[...new Set(businessIds.filter(Boolean))];
     if(!ids.length)return {};
     try{
-      const r=await sb.from('branches').select('business_id,latitude,longitude').in('business_id',ids).not('latitude','is',null).not('longitude','is',null).limit(500);
+      const r=await sb.rpc('find_mnty_nearby_provider_businesses',{p_lat:state.coords.latitude,p_lon:state.coords.longitude,p_radius_km:state.radiusKm});
       if(r.error)return {};
+      const allowed=new Set(ids);
       const nearest={};
       (r.data||[]).forEach(row=>{
-        const lat=Number(row.latitude),lon=Number(row.longitude);
-        if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
-        const d=distanceKm(state.coords.latitude,state.coords.longitude,lat,lon);
-        if(Number.isFinite(d)&&(!nearest[row.business_id]||d<nearest[row.business_id]))nearest[row.business_id]=d;
+        if(allowed.has(row.business_id))nearest[row.business_id]=Number(row.distance_km);
       });
       return nearest;
     }catch(_){return {}}
@@ -67,7 +65,7 @@
     const maxKm=Number(state.radiusKm);
     return list
       .map(p=>({...p,_distanceKm:nearest[p.business_id]??null}))
-      .filter(p=>maxKm>=10||p._distanceKm==null||p._distanceKm<=maxKm)
+      .filter(p=>maxKm>=10||p._distanceKm!=null&&p._distanceKm<=maxKm)
       .sort((a,b)=>{
         if(a._distanceKm==null&&b._distanceKm==null)return 0;
         if(a._distanceKm==null)return 1;
