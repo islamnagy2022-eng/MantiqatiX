@@ -96,3 +96,22 @@ as separate evidence sets. No convergence claim is made without matching hashes/
 - RC199: **BLOCKED** on real provider/business/catalog/price fixture for booking E2E
 - RC200: **OPEN**; authorization/idempotency verified, real payment/refund not verified
 - RC201: **OPEN**; static source-package checks pass, current-main CI/release convergence and browser/device smoke remain unverified
+
+
+## Build attempt — 2026-09-28
+
+A local build attempt was made against the uploaded RC40 package:
+
+`./gradlew test lintDebug assembleDebug --no-daemon`
+
+Result: **NOT VERIFIED / BLOCKED BY EXECUTION ENVIRONMENT**.
+
+The Gradle wrapper requires Gradle 9.3.1 from `services.gradle.org`, but the execution environment has no external network access and no cached Gradle distribution. The failure was a network resolution error (`UnknownHostException: services.gradle.org`), not a compiler/test failure.
+
+Therefore:
+- no claim of Android compilation success is made;
+- no claim of unit-test success is made;
+- no release APK/AAB was generated;
+- release signing was not exercised.
+
+RC40 static gates remain PASS, but executable build evidence remains OPEN.
