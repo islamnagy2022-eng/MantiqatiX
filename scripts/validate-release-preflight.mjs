@@ -33,8 +33,14 @@ if (!/provider-onboarding-module\.js\?v=mnty\d+/.test(index)) {
 if (!/business-register/.test(onboarding) || !/business-onboarding-status/.test(onboarding) || !/catalog-admin/.test(onboarding) || !/business-branch-admin/.test(onboarding)) {
   throw new Error('Provider onboarding module is missing required production workflow integrations.');
 }
-if (!/emailRedirectTo\s*:\s*redirectTo/.test(app) || !/detectSessionInUrl\s*:\s*true/.test(app)) {
-  throw new Error('Production auth flow is missing the secure email redirect/session detection guard.');
+if (!/signInWithOAuth\(\{provider:\s*['"]google['"]/.test(app) ||
+    !/redirectTo\s*:\s*oauthRedirectUrl\(\)/.test(app) ||
+    !/detectSessionInUrl\s*:\s*true/.test(app)) {
+  throw new Error('Production auth flow is missing the secure Google OAuth redirect/session detection guard.');
+}
+if (!/signInWithOtp\(\{email,options:\{shouldCreateUser:true\}\}\)/.test(app) ||
+    !/verifyOtp\(\{email,token,type:\s*['"]email['"]\}\)/.test(app)) {
+  throw new Error('Production auth flow is missing the Email OTP fallback guard.');
 }
 if (!/Mantiqati X|MNTY/i.test(index)) {
   throw new Error('Production landing page does not contain the MNTY identity marker.');
