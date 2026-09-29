@@ -303,8 +303,7 @@
     document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView({behavior:'smooth',block:'center'});
     document.getElementById('mx-bottom-account').onclick=openAccount;
     document.getElementById('mx-bottom-add').onclick=goLogin;
-    document.getElementById('mx-start').onclick=()=>scrollTo('mx-categories');
-    document.getElementById('mx-explore').onclick=()=>scrollTo('mx-services');
+    document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
     document.getElementById('mx-all').onclick=()=>scrollTo('mx-services');
     document.getElementById('mx-ad-cta').onclick=goLogin;
 
