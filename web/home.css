@@ -250,3 +250,6 @@
 .mx-public-modal__close{position:absolute;left:14px;top:12px;width:34px;height:34px;border:0;border-radius:50%;background:#f2f5f8;color:#344054;font-size:22px;cursor:pointer}
 @media(max-width:950px){.mx-about-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.mx-about-section{padding:17px}.mx-about-grid{grid-template-columns:1fr}.mx-about-note{display:block}.mx-about-note strong{display:block;margin-bottom:4px}.mx-public-modal__card{padding:17px}.mx-public-modal__card .mx-photo{height:150px}}
+
+/* Accessibility: keyboard skip link */
+.mx-skip-link{position:fixed;top:10px;right:10px;z-index:2000;transform:translateY(-180%);background:#101828;color:#fff;border:2px solid #fff;border-radius:10px;padding:10px 14px;font:800 12px Tajawal,Arial,sans-serif;text-decoration:none;box-shadow:0 8px 24px rgba(16,24,40,.25)}.mx-skip-link:focus{transform:translateY(0);outline:3px solid #2563eb;outline-offset:2px}
