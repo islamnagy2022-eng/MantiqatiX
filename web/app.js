@@ -250,7 +250,7 @@ document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Ente
 }
 async function sendOtp(existingEmail=''){
 const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
-if(!/^\\S+@\\S+\\.\\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
+if(!/^\S+@\S+\.\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
 const button=document.getElementById('send-otp')||document.getElementById('resend-otp');if(button){button.disabled=true;button.textContent='جارٍ إرسال الرابط...'}
 if(authIntent==='register'){
  try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,createdAt:Date.now()}))}catch(_){}
