@@ -27,6 +27,7 @@ jobs:
           node --check web/smm.js
           node --check web/home.js
           node --check web/android-parity-catalog.js
+          node --check web/provider-onboarding-module.js
           node scripts/validate-web-assets.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
@@ -50,6 +51,7 @@ jobs:
           test -f web/manifest.webmanifest
           test -f web/sw.js
           test -f web/android-parity-catalog.js
+          test -f web/provider-onboarding-module.js
           test -f supabase/functions/api/index.ts
           test -f supabase/functions/order-create/index.ts
           test -f supabase/functions/order-status-update/index.ts
@@ -99,7 +101,7 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Eq "Mantiqati X|MNTY" "$TMP_PAGE"
-          for asset in config.js styles.css app.js android-parity-catalog.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
+          for asset in config.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
