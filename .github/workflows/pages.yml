@@ -95,7 +95,9 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$PAGE_URL"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" | grep -Eq "Mantiqati X|MNTY"
+          TMP_PAGE="$(mktemp)"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
+          grep -Eq "Mantiqati X|MNTY" "$TMP_PAGE"
           for asset in config.js styles.css app.js android-parity-catalog.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
