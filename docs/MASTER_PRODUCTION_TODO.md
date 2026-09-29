@@ -762,3 +762,13 @@
 - [x] Deployed Edge Function to Production as ACTIVE v1.
 - [ ] CI verification of the web changes remains pending.
 - [ ] Real branch/service/order E2E remains pending real authorized provider data.
+
+
+## RC161 — Branch-aware customer ordering (2026-09-29)
+- **DONE:** Production catalog API v14 now returns active branches for an active provider business.
+- **DONE:** Customer catalog UI requires selecting an active branch before opening the order form.
+- **DONE:** Customer order submission now sends the selected `branchId`; no longer submits a production order with `branchId: null`.
+- **VERIFIED:** Supabase Production Edge Function `api` is ACTIVE v14 and its deployed source contains the active-branch catalog response.
+- **VERIFIED:** GitHub `web/app.js` contains branch selection, branch-aware catalog loading, and branch-required order submission.
+- **NOT VERIFIED:** Real authenticated customer → provider → branch → service → price → order E2E remains blocked by the absence of authorized real provider/business/catalog data and a browser E2E runner.
+- **WAIT:** GitHub Pages CI/published-site verification for the latest web commits remains pending until the corresponding workflow run is observed and passed.
