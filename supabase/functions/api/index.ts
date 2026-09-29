@@ -85,6 +85,11 @@ serve(async (req) => {
       .select("id").eq("business_id", businessId).eq("status", "ACTIVE").limit(1).maybeSingle();
     if (!provider) return json({ error: "Provider not available" }, 404);
 
+    const { data: branches, error: branchesError } = await supabaseAdmin.from("branches")
+      .select("id,business_id,name,code,status,address,phone")
+      .eq("business_id", businessId).eq("status", "ACTIVE")
+      .order("name", { ascending: true }).limit(100);
+    if (branchesError) return json({ error: "Failed to load branches" }, 500);
 
     let itemQuery = supabaseAdmin.from("catalog_items")
       .select("id,tenant_id,business_id,branch_id,legacy_ref,item_type,name_ar,name_en,description,sku,status,tax_rate,metadata")
@@ -114,6 +119,7 @@ serve(async (req) => {
     return json({
       tenantId, businessId, branchId: branchId ?? null,
       pricingAuthority: "catalog_v1",
+      branches: branches ?? [],
       items: items ?? [],
       prices: pricesRes.data ?? [],
       options: optionsRes.data ?? []
