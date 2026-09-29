@@ -271,7 +271,9 @@ document.getElementById('switch-auth').onclick=()=>authView('',false,'',authInte
 document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')sendOtp()});
 }
 }
-async function sendOtp(existingEmail=''){\nif(authSendInFlight)return;\nauthSendInFlight=true;
+async function sendOtp(existingEmail=''){
+if(authSendInFlight)return;
+authSendInFlight=true;
 const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
 if(!/^\S+@\S+\.\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
 const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
@@ -293,7 +295,8 @@ try{
 }}
 async function verifyOtp(email){
 const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,10);
-if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);\nauthVerificationInFlight=true;
+if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);
+authVerificationInFlight=true;
 const button=document.getElementById('verify');
 if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
 try{
