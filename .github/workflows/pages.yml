@@ -21,6 +21,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Install web runtime dependency
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Vendor Supabase browser SDK
+        run: |
+          mkdir -p web/vendor
+          cp node_modules/@supabase/supabase-js/dist/umd/supabase.js web/vendor/supabase.js
+          test -s web/vendor/supabase.js
       - name: Syntax check
         run: |
           node --check web/app.js
@@ -41,6 +48,7 @@ jobs:
       - name: Required web files
         run: |
           test -f web/index.html
+          test -s web/vendor/supabase.js
           test -f web/config.js
           test -f web/styles.css
           test -f web/home.css
@@ -86,6 +94,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install web runtime dependency
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Vendor Supabase browser SDK
+        run: |
+          mkdir -p web/vendor
+          cp node_modules/@supabase/supabase-js/dist/umd/supabase.js web/vendor/supabase.js
+          test -s web/vendor/supabase.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
@@ -109,7 +128,7 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Eq "Mantiqati X|MNTY" "$TMP_PAGE"
-          for asset in config.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
+          for asset in config.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
