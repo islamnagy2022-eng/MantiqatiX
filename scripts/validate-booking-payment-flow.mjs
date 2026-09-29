@@ -14,6 +14,8 @@ const required=[
   ["Order creation uses backend RPC", 'rpc("create_order_backend"', api],
   ["Order creation validates catalog items", "CATALOG_ITEM_NOT_AVAILABLE", order],
   ["Order creation validates active pricing", "ACTIVE_PRICE_NOT_AVAILABLE", order],
+  ["Server requires branch when active branches exist", "BRANCH_REQUIRED", order],
+  ["Server validates selected branch", "BRANCH_NOT_AVAILABLE", order],
   ["Catalog API exposes active branches", "branches: branches ?? []", api],
   ["Customer catalog requires branch selection", "mx-catalog-branch", app],
   ["Customer order requires branch", "if(!branchId)", app],
