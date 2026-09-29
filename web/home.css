@@ -162,7 +162,7 @@
 
 /* Desktop side cloud banners */
 .mx-side-banner{position:fixed;top:150px;width:142px;height:360px;z-index:20;overflow:hidden;border:1px solid #cfe0f0;border-radius:22px;background:linear-gradient(165deg,#f8fcff,#e8f5ff 52%,#f4efff);box-shadow:0 14px 36px rgba(20,58,100,.14);pointer-events:auto}
-.mx-side-banner--right{right:12px}.mx-side-banner--left{left:12px}
+.mx-side-banner--right{right:12px}
 .mx-side-banner__cloud{position:absolute;border-radius:999px;background:linear-gradient(180deg,#fff,#dceeff);box-shadow:0 10px 24px rgba(70,125,184,.11)}
 .mx-side-banner__cloud:before,.mx-side-banner__cloud:after{content:'';position:absolute;border-radius:50%;background:inherit}
 .mx-side-banner__cloud--one{width:170px;height:58px;right:-35px;top:48px}
@@ -213,7 +213,7 @@
     pointer-events:auto!important;
   }
   .mx-side-banner--right{right:4px!important;left:auto!important}
-  .mx-side-banner--left{left:4px!important;right:auto!important}
+  
   .mx-side-banner__screen{top:54px!important;right:9px!important;width:40px!important;height:33px!important;border-width:2px!important;border-radius:7px!important}
   .mx-side-banner__screen b{font-size:8px!important}
   .mx-side-banner__screen span{display:none!important}
@@ -226,7 +226,7 @@
 }
 @media(max-width:380px){
   .mx-side-banner{width:48px!important;height:145px!important;bottom:80px!important}
-  .mx-side-banner--right{right:3px!important}.mx-side-banner--left{left:3px!important}
+  .mx-side-banner--right{right:3px!important}
 }
 
 
