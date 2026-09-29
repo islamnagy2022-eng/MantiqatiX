@@ -277,22 +277,22 @@ authSendInFlight=true;
 const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
 if(!/^\S+@\S+\.\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
 const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
-if(button){button.disabled=true;button.textContent='جارٍ إرسال الرابط...'}
+if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
 if(authIntent==='register'){
  try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,createdAt:Date.now()}))}catch(_){}
 }
 try{
- const redirectTo=new URL(window.location.pathname||'/',window.location.origin).toString();
  const result=await Promise.race([
-  sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo}}),
+  sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}}),
   new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_OTP_SEND_TIMEOUT')),12000))
  ]);
  const {error}=result||{};
  if(error)return authView('تعذر إرسال رمز التحقق: '+error.message,!!existingEmail,email);
  authView('',true,email);
 }catch(e){
- authView(e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال رابط الدخول. تحقق من اتصال الإنترنت ثم أعد المحاولة.':'تعذر إرسال رابط الدخول. أعد المحاولة.',!!existingEmail,email);
-}}
+ authView(e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال رمز التحقق. تحقق من اتصال الإنترنت ثم أعد المحاولة.':'تعذر إرسال رمز التحقق. أعد المحاولة.',!!existingEmail,email);
+}finally{authSendInFlight=false}
+}
 async function verifyOtp(email){
 const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,10);
 if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);
@@ -308,7 +308,7 @@ try{
  if(error){
   const message=String(error.message||'');
   const expired=/expired|invalid|otp_expired/i.test(message);
-  return authView(expired?'الرمز منتهي أو غير صالح. استخدم أحدث رمز أرسلناه، أو أعد إرسال رابط الدخول ثم استخدم الرمز الجديد.':'تعذر التحقق من الرمز: '+message,true,email);
+  return authView(expired?'الرمز منتهي أو غير صالح. استخدم أحدث رمز أرسلناه، أو أعد إرسال رمز التحقق ثم استخدم الرمز الجديد.':'تعذر التحقق من الرمز: '+message,true,email);
  }
  if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
  user=data.user;
@@ -324,6 +324,7 @@ try{
   :'تعذر الاتصال بخدمة التحقق. أعد المحاولة.';
  authView(message,true,email);
 }finally{
+ authVerificationInFlight=false;
  const currentButton=document.getElementById('verify');
  if(currentButton){currentButton.disabled=false;currentButton.textContent='تحقق بالرمز'}
 }
