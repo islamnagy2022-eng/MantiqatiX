@@ -260,11 +260,14 @@ async function signInWithGoogle(intent='login'){
  const role=String(intent==='register'?authRegistrationType:'').toUpperCase();
  if(intent==='register')try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({role:role||'CUSTOMER',source:'google',createdAt:Date.now()}))}catch(_){}
  try{
-  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:oauthRedirectUrl(),queryParams:{access_type:'online',prompt:'select_account'}}});
+  const {data,error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:oauthRedirectUrl(),queryParams:{access_type:'online',prompt:'select_account'}}});
   if(error)throw error;
+  if(!data?.url)throw new Error('GOOGLE_OAUTH_URL_MISSING');
+  window.location.assign(data.url);
  }catch(e){
   try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
-  authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'','',intent);
+  console.error('[MNTY][GoogleAuth]',e);
+  authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),false,'',intent);
  }finally{authSendInFlight=false}
 }
 function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
