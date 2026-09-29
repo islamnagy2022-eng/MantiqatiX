@@ -65,3 +65,12 @@ No blanket RLS rewrite is authorized from this audit alone.
 ## Decision
 Status: NOT PRODUCTION READY.
 Reason: release gates remain NOT VERIFIED; no claim of production certification is made.
+
+
+## 2026-09-29 — Booking / Payment CI gate
+- [x] Added `scripts/validate-booking-payment-flow.mjs`.
+- [x] Gate verifies public booking auth handoff, authenticated order boundary, backend order RPC, catalog availability, active server pricing, pricing authority, payment pricing snapshot, Paymob integration boundary, and absence of direct client writes to orders/payment intents.
+- [x] Initial gate run #785 failed because the test expected an incorrect source marker (`h` instead of the implementation's `authHeader`). This was a test defect, not a production failure.
+- [x] Corrected the invariant and reran CI.
+- [x] GitHub Actions run #786 succeeded: validate + deploy + deployed-site verification.
+- [x] New verified baseline commit: `8196cf532f754421171a43b1172f7e229c9be726`.
