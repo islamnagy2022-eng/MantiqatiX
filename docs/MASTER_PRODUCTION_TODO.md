@@ -717,3 +717,13 @@
 - Current production data gate recheck: businesses=0, branches=0, provider_profiles=0, provider_services=0, catalog_items=0, catalog_prices=0, orders=0, payment_intents=0, payment_provider_events=0, bookings=1, geo_areas=28, global_ads=4.
 - No fake provider/business/catalog/payment data will be inserted to manufacture E2E evidence.
 - Final blockers remain: real authenticated multi-account E2E, real provider/service/order chain, authorized payment/webhook/refund/reconciliation E2E, backup/restore rehearsal, monitoring alert delivery, rollback rehearsal, external browser/device regression, and Supabase leaked-password protection.
+
+
+## RC156 — 2026-09-29 release acceleration checkpoint
+- [x] Website CI/deployment gate verified by clean run #795 (validate + deploy + published-site verification).
+- [x] Pages rerun artifact-collision protection verified by successful clean deployment after the prior #789 incident.
+- [x] Pages smoke false-failure protection verified after replacing curl|grep with temp-file verification.
+- [x] Booking/payment static security gate remains enforced in the deployment validation job.
+- [x] Supabase production health remains ACTIVE_HEALTHY.
+- [x] No synthetic production provider/business/catalog/payment fixtures added.
+- [ ] Final Go-Live still depends on real authorized E2E, payment/webhook/refund/reconciliation, backup/restore, rollback, monitoring alert delivery, external browser/device regression, and leaked-password protection.
