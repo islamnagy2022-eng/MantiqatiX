@@ -116,6 +116,8 @@ jobs:
           HOME_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/home.js")"
           CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js")"
           echo "$APP_JS" | grep -q 'id="go-public-home"'
+          echo "$APP_JS" | grep -q "mnty-customer-registration"
+          echo "$APP_JS" | grep -q "tenant_id:'MNTY-PLATFORM'"
           echo "$HOME_JS" | grep -q "openPlatform"
           echo "$CONFIG_JS" | grep -q "moyhiluyhjsujhwlyeuu.supabase.co"
           echo "$CONFIG_JS" | grep -q "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'"
