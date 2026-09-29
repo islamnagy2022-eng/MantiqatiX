@@ -135,3 +135,10 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] Supabase production remains ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
 - [ ] No new fake provider/business/catalog/payment fixtures were introduced; real production business data is still required for the transactional E2E gate.
 - [ ] Interactive browser/device, real payment, backup/restore, rollback, alert-delivery, and leaked-password-protection gates remain open.
+
+
+## RC157 — 2026-09-29 live privilege verification
+- [x] Rechecked all public RLS-enabled tables with zero policies: no direct SELECT/INSERT privilege is granted to anon or authenticated roles on the nine public no-policy tables currently surfaced by the database check.
+- [x] Rechecked the documented SECURITY DEFINER workflow functions: anonymous execution is denied for workflow functions; the geographic discovery functions remain intentionally public for discovery and targeting; create_payment_intent_backend remains authenticated-callable by design and is protected by its server-side identity/order/pricing checks.
+- [x] No broad RLS policies were added merely to silence Security Advisor.
+- [ ] Contextual anonymous-policy review and adversarial multi-account E2E remain open; static privilege checks are not a substitute for runtime authorization tests.
