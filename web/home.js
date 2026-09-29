@@ -240,10 +240,12 @@
     document.querySelectorAll('[data-side-ad-book]').forEach(btn=>btn.addEventListener('click',()=>{try{localStorage.setItem('MNTYOpenAdBooking','1')}catch(_){};if(window.MNTYAuthState?.authenticated&&typeof window.selectModule==='function'){window.selectModule('التسويق والإعلان')}else if(typeof window.authView==='function'){window.authView('',false,'','login')}}));
 
     const categoryGrid=document.getElementById('mx-category-grid');
+    const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const scrollOptions=(block='start')=>({behavior:reduceMotion()?'auto':'smooth',block});
     const renderDynamicCategories=(services=[],providers=[])=>{
       const items=dynamicTaxonomy(services,providers);
       categoryGrid.innerHTML=items.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
-      categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ document.getElementById('mx-home-search').value=btn.querySelector('strong').textContent; loadData(btn.querySelector('strong').textContent); document.getElementById('mx-services')?.scrollIntoView({behavior:'smooth',block:'start'}); });
+      categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ document.getElementById('mx-home-search').value=btn.querySelector('strong').textContent; loadData(btn.querySelector('strong').textContent); document.getElementById('mx-services')?.scrollIntoView(scrollOptions('start')); });
     };
 
     const platformNotices=[
@@ -298,7 +300,7 @@
       goLogin();
     });
     document.getElementById('mx-ad-book').onclick=()=>{selectAdPlan('QUARTERLY');goLogin();};
-    document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView({behavior:'smooth',block:'center'});
+    document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center'));
     document.getElementById('mx-bottom-account').onclick=openAccount;
     document.getElementById('mx-bottom-add').onclick=goLogin;
     document.getElementById('mx-all').onclick=()=>scrollTo('mx-services');
