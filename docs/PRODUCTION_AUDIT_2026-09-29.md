@@ -81,3 +81,9 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] Verified CI baseline commit: `6561e79d8f0171b39067d9bfdffab2cdf26bb8ac`.
 - [x] Supabase Edge Functions relevant to the production flow are ACTIVE, including `api`, `order-create`, `payment-intent`, `payment-webhook`, and `paymob-webhook`.
 - [ ] Monitoring verification remains BLOCKED: the Supabase unified-log query backend returned an internal backend error for an error/fatal aggregation query. A successful `distinct source` query confirmed the log streams exist, but no claim about current error rates is made until the log query path succeeds.
+
+
+## 2026-09-29 — Monitoring recheck
+- [x] Supabase unified logs successfully returned per-source counts on recheck: edge_logs 1055, postgrest_logs 684, postgres_logs 572, auth_logs 170, auth_audit_logs 59, pgbouncer_logs 12, function_logs 7, storage_logs 6, function_edge_logs 3, realtime_logs 2.
+- [ ] Error-rate verification remains BLOCKED: filtering/reading detailed log rows still returns a Supabase unified-log backend error, so current error/fatal rates are not certified.
+- [x] GitHub Actions run #788 remains the latest verified website baseline: validate PASS, deploy PASS, deployed-site verification PASS.
