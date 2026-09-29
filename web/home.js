@@ -332,7 +332,6 @@
         document.getElementById('mx-services')?.scrollIntoView({behavior:'smooth',block:'start'});
       });
     };
-    const renderLocationRange=()=>{const el=document.getElementById('mx-location-range');if(!el||!window.MNTYLocationContract)return;const s=window.MNTYLocationContract.state();el.innerHTML=window.MNTYLocationContract.ranges.map(k=>'<button type="button" class="mx-range'+(s.selectedDistanceKm===k?' is-active':'')+'" data-range="'+k+'">'+(k===10?'الكل':k+' كم')+'</button>').join('');el.querySelectorAll('[data-range]').forEach(b=>b.onclick=async()=>{window.MNTYLocationContract.setRange(Number(b.dataset.range));renderLocationRange();await loadData(document.getElementById('mx-home-search')?.value||'')});};
     const renderProviders=(providers)=>{
       const el=document.getElementById('mx-provider-grid');
       if(!providers.length){el.innerHTML='<div class="mx-empty"><b>لا يوجد مقدمو خدمات منشورون حاليًا</b><span>لن يتم إنشاء أو عرض أسماء تجريبية. ستظهر الجهات بعد نشرها واعتمادها.</span></div>';return}
@@ -372,7 +371,7 @@
       el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>إعلانات موجهة حسب موقعك</h3><p>يتم اختيار الإعلان على مستوى المركز أو المحافظة أو الدولة، ومع عدم وجود إعلان مطابق يتم عرض الأقرب.</p></div></div><div class="mx-listing-grid">'+list.map(a=>{
         const href=safeAdUrl(a.target_url);
         const action=href?'<a class="mx-listing__cta" href="'+escapeHtml(href)+'" target="_blank" rel="noopener noreferrer">عرض الإعلان</a>':'';
-        return '<article class="mx-listing"><div class="mx-listing__media"><img src="'+escapeHtml(a.creative_url||'')+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+action+'</div></article>';
+        const creative=safeAdUrl(a.creative_url)||'assets/mnty-ad-space-booking-banner.svg'; return '<article class="mx-listing"><div class="mx-listing__media"><img src="'+escapeHtml(a.creative_url||'')+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+action+'</div></article>';
       }).join('')+'</div>';
     };
 
@@ -402,7 +401,6 @@
         const safeTerm=term.replace(/[^\p{L}\p{N}\s_-]/gu,' ').trim().slice(0,60);
       try{
         await loadHomeRuntimeFlags(sb);
-        if(window.MNTYLocationAdapter?.state.status==='idle') await window.MNTYLocationAdapter.requestLocation();
         loadLocationUi();
         document.querySelectorAll('[data-module]').forEach(btn=>{ btn.hidden=!homeFeatureEnabled(btn.dataset.module); });
         const moduleStrip=document.getElementById('mx-marketing');
