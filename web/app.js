@@ -230,20 +230,35 @@ async function completeAuthCallback(){
   const type=url.searchParams.get('type');
   const oauthError=url.searchParams.get('error_description')||url.searchParams.get('error');
   if(oauthError)throw new Error('OAUTH_CALLBACK_ERROR:'+oauthError);
-  if(url.searchParams.has('code'))return false;
+  if(url.searchParams.has('code')){
+   // Supabase owns the PKCE code exchange when detectSessionInUrl=true.
+   // Wait for the browser client to finish it instead of racing a second exchange.
+   for(let i=0;i<40;i++){
+    const {data,error}=await sb.auth.getSession();
+    if(error)throw error;
+    if(data?.session?.user){
+     cleanAuthUrl();
+     user=data.session.user;
+     await enterAuthenticatedApp(data.session.user,{force:true});
+     return true;
+    }
+    await new Promise(resolve=>setTimeout(resolve,250));
+   }
+   throw new Error('OAUTH_SESSION_TIMEOUT');
+  }
   if(!tokenHash)return false;
   if(type!=='email'&&type!=='recovery')return false;
   const {data,error}=await sb.auth.verifyOtp({token_hash:tokenHash,type});
   if(error)throw error;
   if(!data?.session||!data?.user)throw new Error('AUTH_CALLBACK_SESSION_MISSING');
-  history.replaceState({},document.title,url.pathname);
+  cleanAuthUrl();
   user=data.user;
   await enterAuthenticatedApp(data.user,{force:true});
   return true;
  }catch(e){
   try{
    const url=new URL(window.location.href);
-   if(url.searchParams.has('token_hash')||url.searchParams.has('error')||url.searchParams.has('error_description'))history.replaceState({},document.title,url.pathname);
+   if(url.searchParams.has('token_hash')||url.searchParams.has('code')||url.searchParams.has('error')||url.searchParams.has('error_description'))history.replaceState({},document.title,url.pathname);
   }catch(_){}
   console.error('[MNTY][AuthCallback]',e);
   authView('تعذر إكمال تسجيل الدخول. أعد المحاولة بحساب Google أو استخدم رمز البريد.');
@@ -257,7 +272,12 @@ function cleanAuthUrl(){
   if(hasAuthParams)history.replaceState({},document.title,url.pathname);
  }catch(_){}
 }
-function oauthRedirectUrl(){return window.location.origin+window.location.pathname+window.location.search.split('#')[0].replace(/\\?$/,'');}
+function oauthRedirectUrl(){
+ const url=new URL('./',window.location.href);
+ url.search='';
+ url.hash='';
+ return url.href;
+}
 async function signInWithGoogle(intent='login'){
  if(authSendInFlight)return;
  authSendInFlight=true;
