@@ -14,6 +14,7 @@
   ]);
 
   const state={coords:null,radiusKm:3,status:'idle',accuracyMeters:null};
+  let locationRequestId=0;
 
   const distanceKm=(lat1,lon1,lat2,lon2)=>{
     const R=6371;
@@ -24,16 +25,21 @@
   };
 
   const requestLocation=()=>new Promise(resolve=>{
+    const requestId=++locationRequestId;
     if(!navigator.geolocation){state.status='unsupported';resolve(null);return}
     state.status='requesting';
     navigator.geolocation.getCurrentPosition(
       p=>{
-        state.coords={latitude:Number(p.coords.latitude),longitude:Number(p.coords.longitude)};
+        if(requestId!==locationRequestId)return resolve(null);
+        const latitude=Number(p.coords.latitude),longitude=Number(p.coords.longitude);
+        if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180){state.coords=null;state.status='denied';return resolve(null)}
+        state.coords={latitude,longitude};
         state.accuracyMeters=Number.isFinite(p.coords.accuracy)?p.coords.accuracy:null;
         state.status='ready';
         resolve(state.coords);
       },
       ()=>{
+        if(requestId!==locationRequestId)return resolve(null);
         state.coords=null;
         state.status='denied';
         resolve(null);
