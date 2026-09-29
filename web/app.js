@@ -916,7 +916,45 @@ async function submitRegistrationRequest(requestedRole=authRegistrationType){
  await accountView();
 }
 async function openPlatform(){if(!user?.id){return typeof authView==='function'?authView():null}return renderApp({forceWorkspace:true})}
-async function enterAuthenticatedApp(authUser,options={}){async function bootAuth(){
+async function enterAuthenticatedApp(authUser,options={}){
+if(!authUser?.id)return;
+const force=options?.force===true;
+if(!force&&user?.id===authUser.id&&window.MNTYAuthState?.authenticated)return;
+user=authUser;
+window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:false};
+if(authRenderLock)return;
+authRenderLock=true;
+try{
+ let pending=null;
+ try{pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null')}catch(_){}
+ if(!pending){
+   const {data:membershipRows,error:membershipError}=await sb.from('user_memberships').select('id').eq('user_id',authUser.id).eq('status','ACTIVE').limit(1);
+   if(membershipError)throw membershipError;
+   if(!(membershipRows||[]).length){
+     const {data:activation,error:activationError}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});
+     if(activationError)throw activationError;
+     if(activation?.error)throw new Error(activation.error);
+   }
+ }
+ await renderApp();
+ if(pending&&String(pending.email||'').toLowerCase()===String(authUser.email||'').toLowerCase()&&['CUSTOMER','SERVICE_PROVIDER'].includes(String(pending.role||'').toUpperCase())){
+   try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+   await submitRegistrationRequest(String(pending.role).toUpperCase());
+ }
+ let pendingProvider=null;
+ try{pendingProvider=JSON.parse(localStorage.getItem('MNTYPendingProvider')||'null')}catch(_){}
+ if(pendingProvider?.businessId&&String(live.role||'').toUpperCase()==='CUSTOMER'&&typeof openProviderCatalog==='function'){
+   try{localStorage.removeItem('MNTYPendingProvider')}catch(_){}
+   await openProviderCatalog(String(pendingProvider.businessId),String(pendingProvider.providerName||'مقدم الخدمة'));
+ }
+ let pendingAdBooking=false;
+ try{pendingAdBooking=localStorage.getItem('MNTYOpenAdBooking')==='1'}catch(_){}
+ if(pendingAdBooking&&typeof selectModule==='function'){
+   try{localStorage.removeItem('MNTYOpenAdBooking');selectModule('التسويق والإعلان')}catch(_){}
+ }
+}finally{authRenderLock=false}
+}
+async function bootAuth(){
 if(authBooted)return;authBooted=true;
 try{
 if(await completeAuthCallback())return;
