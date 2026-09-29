@@ -417,7 +417,9 @@
       ranges.querySelectorAll('[data-radius]').forEach(b=>b.onclick=async()=>{api.setRadius(Number(b.dataset.radius));loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'')});
     };
 
+    let homeLoadSequence=0;
     const loadData=async(searchText='')=>{
+      const requestSequence=++homeLoadSequence;
       const sb=getClient();
       const status=document.getElementById('mx-live-status');
       if(!sb){status.textContent='وضع العرض';renderServices([]);renderProviders([]);renderSponsored([]);return}
@@ -450,14 +452,17 @@
         if(servicesRes.error) throw servicesRes.error;
         if(providersRes.error) throw providersRes.error;
         if(adsRes.error) throw adsRes.error;
+        if(requestSequence!==homeLoadSequence)return;
         const services=servicesRes.data||[];
         const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.data||[]):providersRes.data||[];
+        if(requestSequence!==homeLoadSequence)return;
         renderDynamicCategories(services,providers);
         renderServices(services);renderProviders(providers);
         if((adsRes.data||[]).length) renderTargetedAds(adsRes.data||[]);
         else renderSponsored(providers);
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
       }catch(error){
+        if(requestSequence!==homeLoadSequence)return;
         console.warn('[MNTY home] public catalog load failed',error);
         status.textContent='تعذر تحميل البيانات الحية';
         renderServices([]);renderProviders([]);renderSponsored([]);
