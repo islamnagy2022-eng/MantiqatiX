@@ -50,11 +50,11 @@
   async function boot(){
     try{
       try{
-        await load('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2');
+        await load('vendor/supabase.js?v=supabase21172');
         if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
       }catch(_){
         try{
-          await load('https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js');
+          await load('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2');
           if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
         }catch(__){
           var mod=await Promise.race([
