@@ -909,9 +909,18 @@ window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:fal
 if(authRenderLock)return;
 authRenderLock=true;
 try{
- await renderApp();
  let pending=null;
  try{pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null')}catch(_){}
+ if(!pending){
+   const {data:membershipRows,error:membershipError}=await sb.from('user_memberships').select('id').eq('user_id',authUser.id).eq('status','ACTIVE').limit(1);
+   if(membershipError)throw membershipError;
+   if(!(membershipRows||[]).length){
+     const {data:activation,error:activationError}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});
+     if(activationError)throw activationError;
+     if(activation?.error)throw new Error(activation.error);
+   }
+ }
+ await renderApp();
  if(pending&&String(pending.email||'').toLowerCase()===String(authUser.email||'').toLowerCase()&&['CUSTOMER','SERVICE_PROVIDER'].includes(String(pending.role||'').toUpperCase())){
    try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
    await submitRegistrationRequest(String(pending.role).toUpperCase());
