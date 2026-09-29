@@ -115,3 +115,13 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] Edge 4xx/5xx classification was drilled down by path/status. The observed 403 volume is concentrated on RLS-protected resources: /rest/v1/orders (49), /rest/v1/support_tickets (48), /rest/v1/notifications (48), /rest/v1/marketing_leads (47), and /rest/v1/marketing_projects (46), plus small counts on catalog/auth/push endpoints.
 - [x] This evidence does not by itself prove zero application errors; it shows that the dominant observed Edge error class is authorization denial on protected resources, consistent with the current deny-by-default/RLS model.
 - [ ] Formal alert thresholds, incident routing, and alert delivery remain NOT VERIFIED.
+
+
+## 2026-09-29 — Pages smoke verification fix and clean release run
+- [x] Fixed the deployed-site smoke check to download the page to a temporary file before grep, eliminating the curl exit-23 broken-pipe false failure.
+- [x] Added per-run/per-attempt Pages artifact naming so reruns cannot collide on the default `github-pages` artifact name.
+- [x] GitHub Actions run #795 (ID 36506805818) completed successfully for commit 03e975de9dea820da3af50ba6690dead32d0023b.
+- [x] Run #795 validate job PASS.
+- [x] Run #795 deploy job PASS.
+- [x] Run #795 published-site verification PASS.
+- [x] Supabase production project remains ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
