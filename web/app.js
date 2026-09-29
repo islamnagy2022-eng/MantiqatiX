@@ -235,7 +235,7 @@ async function completeAuthCallback(){
   if(!data?.session||!data?.user)throw new Error('AUTH_CALLBACK_SESSION_MISSING');
   history.replaceState({},document.title,url.pathname);
   user=data.user;
-  await enterAuthenticatedApp(data.user);
+  await enterAuthenticatedApp(data.user,{force:true});
   return true;
  }catch(e){
   try{
@@ -885,9 +885,10 @@ async function submitRegistrationRequest(requestedRole=authRegistrationType){
  await accountView();
 }
 async function openPlatform(){if(!user?.id){return typeof authView==='function'?authView():null}return renderApp({forceWorkspace:true})}
-async function enterAuthenticatedApp(authUser){
+async function enterAuthenticatedApp(authUser,options={}){
 if(!authUser?.id)return;
-if(user?.id===authUser.id&&window.MNTYAuthState?.authenticated)return;
+const force=options?.force===true;
+if(!force&&user?.id===authUser.id&&window.MNTYAuthState?.authenticated)return;
 user=authUser;
 window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:false};
 if(authRenderLock)return;
