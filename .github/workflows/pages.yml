@@ -26,7 +26,7 @@ jobs:
       - name: Vendor Supabase browser SDK
         run: |
           mkdir -p web/vendor
-          cp node_modules/@supabase/supabase-js/dist/umd/supabase.js web/vendor/supabase.js
+          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
           test -s web/vendor/supabase.js
       - name: Syntax check
         run: |
