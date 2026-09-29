@@ -9,7 +9,7 @@ const payment=fs.readFileSync("supabase/functions/payment-intent/index.ts","utf8
 const required=[
   ["Public provider booking requires auth", "MNTYPendingProvider", home],
   ["Public provider booking opens catalog", "openProviderCatalog", home],
-  ["Order endpoint requires Bearer token", 'h.startsWith("Bearer ")', api],
+  ["Order endpoint requires Bearer token", 'authHeader?.startsWith("Bearer ")', api],
   ["Order endpoint rejects anonymous users", "user.is_anonymous", api],
   ["Order creation uses backend RPC", 'rpc("create_order_backend"', api],
   ["Order creation validates catalog items", "CATALOG_ITEM_NOT_AVAILABLE", order],
