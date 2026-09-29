@@ -125,3 +125,13 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] Run #795 deploy job PASS.
 - [x] Run #795 published-site verification PASS.
 - [x] Supabase production project remains ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+
+
+## 2026-09-29 — Release acceleration checkpoint (current)
+- [x] Latest website/release CI evidence remains GitHub Actions run #795 (ID 36506805818): validate PASS, deploy PASS, published-site verification PASS.
+- [x] Pages smoke verification now avoids the previously observed curl exit-23 broken-pipe failure by downloading the document before content matching.
+- [x] Pages artifacts are uniquely named per run/attempt, preventing the previously observed duplicate-artifact rerun failure.
+- [x] Booking/payment static security gate remains part of the mandatory CI validation path.
+- [x] Supabase production remains ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [ ] No new fake provider/business/catalog/payment fixtures were introduced; real production business data is still required for the transactional E2E gate.
+- [ ] Interactive browser/device, real payment, backup/restore, rollback, alert-delivery, and leaked-password-protection gates remain open.
