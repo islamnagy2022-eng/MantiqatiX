@@ -90,5 +90,6 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [ ] Deploy job FAILED at actions/deploy-pages@v4.
 - [x] Root cause verified from job log: the rerun sequence left 3 artifacts named github-pages in the same workflow run, and actions/deploy-pages@v4 rejected the deployment with "Multiple artifacts named github-pages were unexpectedly found".
 - [x] This failure is isolated to the repeated workflow-run artifact state; it did not fail because of site validation or application code.
-- [ ] A fresh workflow run is required to re-verify a clean Pages deployment.
+- [x] Fresh GitHub Actions run #790 completed successfully: validate PASS, deploy PASS, and deployed-site verification PASS.
+- [x] Verified website baseline commit: 6336864003a8554570214794e97eeef853f6fb67.
 
