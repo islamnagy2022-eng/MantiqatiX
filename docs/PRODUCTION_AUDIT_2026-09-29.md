@@ -93,3 +93,17 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] Fresh GitHub Actions run #790 completed successfully: validate PASS, deploy PASS, and deployed-site verification PASS.
 - [x] Verified website baseline commit: 6336864003a8554570214794e97eeef853f6fb67.
 
+
+
+## 2026-09-29 — Clean Pages verification follow-up
+- [x] GitHub Actions run #791 completed successfully for commit c62fceb48bd63ef62fa7379f1c571665e4befd85.
+- [x] Validate job PASS.
+- [x] Deploy job PASS.
+- [x] Published-site verification PASS.
+- [x] Website deployment remains VERIFIED after a second clean run following the artifact duplication incident in #789.
+
+## 2026-09-29 — Current Security Advisor recheck
+- [x] RLS-enabled/no-policy findings remain limited to 10 intentionally restricted tables, including private.platform_admins and administrative/operational tables. No blanket policy rewrite applied.
+- [x] The 3 anonymous SECURITY DEFINER findings remain the documented public geographic/advertising discovery RPCs.
+- [x] Authenticated SECURITY DEFINER findings remain workflow-specific and require adversarial multi-account E2E; no direct privilege escalation was inferred from the advisor warning alone.
+- [ ] Leaked-password protection remains WARN / disabled and must be enabled in Supabase Auth Security settings before final release certification.
