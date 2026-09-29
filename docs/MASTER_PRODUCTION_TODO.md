@@ -727,3 +727,10 @@
 - [x] Supabase production health remains ACTIVE_HEALTHY.
 - [x] No synthetic production provider/business/catalog/payment fixtures added.
 - [ ] Final Go-Live still depends on real authorized E2E, payment/webhook/refund/reconciliation, backup/restore, rollback, monitoring alert delivery, external browser/device regression, and leaked-password protection.
+
+
+## RC157 — 2026-09-29 live privilege verification
+- [x] Rechecked all public RLS-enabled tables with zero policies: no direct SELECT/INSERT privilege is granted to anon or authenticated roles on the nine public no-policy tables currently surfaced by the database check.
+- [x] Rechecked the documented SECURITY DEFINER workflow functions: anonymous execution is denied for workflow functions; the geographic discovery functions remain intentionally public for discovery and targeting; create_payment_intent_backend remains authenticated-callable by design and is protected by its server-side identity/order/pricing checks.
+- [x] No broad RLS policies were added merely to silence Security Advisor.
+- [ ] Contextual anonymous-policy review and adversarial multi-account E2E remain open; static privilege checks are not a substitute for runtime authorization tests.
