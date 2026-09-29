@@ -110,6 +110,20 @@ Deno.serve(async (req: Request) => {
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
   const branchId = body.branchId ? String(body.branchId) : null;
+  const { data: activeBranches, error: branchReadError } = await admin
+    .from("branches")
+    .select("id")
+    .eq("tenant_id", body.tenantId)
+    .eq("business_id", body.businessId)
+    .eq("status", "ACTIVE")
+    .limit(100);
+  if (branchReadError) return json({ error: "BRANCH_READ_FAILED" }, 500);
+  if ((activeBranches ?? []).length > 0 && !branchId) {
+    return json({ error: "BRANCH_REQUIRED" }, 409);
+  }
+  if (branchId && !(activeBranches ?? []).some((branch: any) => String(branch.id) === branchId)) {
+    return json({ error: "BRANCH_NOT_AVAILABLE" }, 409);
+  }
   const itemMap = new Map((catalogItems ?? [])
     .filter((x: any) => !branchId || !x.branch_id || String(x.branch_id) === branchId)
     .map((x: any) => [String(x.id), x]));
