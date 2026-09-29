@@ -360,20 +360,36 @@ async function openProviderCatalog(businessId,providerName,providerTenantId=null
  if(!businessId)return showToast('لا يوجد نشاط تشغيلي مرتبط بهذا المقدم.','error');
  try{
   const catalog=live.catalogByBusiness[businessId]||await loadBusinessCatalog(businessId,null,providerTenantId);
+  const activeBranches=(catalog.branches||[]).filter(b=>String(b.status||'').toUpperCase()==='ACTIVE');
+  if(!activeBranches.length)return showToast('لا يوجد فرع نشط متاح لهذا النشاط بعد.','error');
+  const defaultBranch=activeBranches[0];
   const cards=(catalog.items||[]).map(item=>{
    const price=catalogCurrentPrice(catalog,item.id,catalog.branchId||null);
    const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
    return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب</button>':'')+'</div></article>';
   }).join('')||'<div class="muted">لا توجد أصناف نشطة متاحة حاليًا.</div>';
   const overlay=document.createElement('div');overlay.className='mx-modal';
-  overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">LIVE CATALOG</span><h2>كتالوج '+esc(providerName||'مقدم الخدمة')+'</h2><p>الأصناف والأسعار من الكتالوج التشغيلي الفعلي.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><div class="cards">'+cards+'</div></div>';
+  overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">LIVE CATALOG</span><h2>كتالوج '+esc(providerName||'مقدم الخدمة')+'</h2><p>الأصناف والأسعار من الكتالوج التشغيلي الفعلي.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><label class="field" style="margin:12px 0"><span>اختر الفرع</span><select id="mx-catalog-branch">'+activeBranches.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name||b.code||b.id)+'</option>').join('')+'</select></label><div class="cards">'+cards+'</div></div>';
   document.body.appendChild(overlay);
   overlay.querySelector('.mx-close-modal')?.addEventListener('click',closeMxModal);
-  overlay.querySelectorAll('.mx-order-trigger').forEach(btn=>btn.addEventListener('click',()=>openOrderForm(btn.dataset.businessId,btn.dataset.itemId)));
+  overlay.querySelectorAll('.mx-order-trigger').forEach(btn=>btn.addEventListener('click',()=>openOrderForm(btn.dataset.businessId,btn.dataset.itemId,document.getElementById('mx-catalog-branch')?.value||defaultBranch.id)));
+  document.getElementById('mx-catalog-branch')?.addEventListener('change',async event=>{
+    try{
+      const branchId=event.target.value;
+      const branchCatalog=await loadBusinessCatalog(businessId,branchId,providerTenantId);
+      const branchCards=(branchCatalog.items||[]).map(item=>{
+        const price=catalogCurrentPrice(branchCatalog,item.id,branchId);
+        const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
+        return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب</button>':'')+'</div></article>';
+      }).join('')||'<div class="muted">لا توجد أصناف نشطة متاحة لهذا الفرع حاليًا.</div>';
+      const box=overlay.querySelector('.cards'); if(box) box.innerHTML=branchCards;
+      box?.querySelectorAll('.mx-order-trigger').forEach(btn=>btn.addEventListener('click',()=>openOrderForm(btn.dataset.businessId,btn.dataset.itemId,branchId)));
+    }catch(e){showToast('تعذر تحميل كتالوج الفرع: '+(e?.message||'CATALOG_REQUEST_FAILED'),'error')}
+  });
  }catch(e){showToast('تعذر تحميل الكتالوج: '+(e?.message||'CATALOG_REQUEST_FAILED'),'error')}
 }
-async function openOrderForm(businessId,itemId){
- const catalog=live.catalogByBusiness[businessId]; const item=(catalog?.items||[]).find(x=>x.id===itemId); const price=catalogCurrentPrice(catalog,itemId,catalog.branchId||null);
+async function openOrderForm(businessId,itemId,branchId=null){
+ const catalog=live.catalogByBusiness[businessId]; const item=(catalog?.items||[]).find(x=>x.id===itemId); const price=catalogCurrentPrice(catalog,itemId,branchId);
  if(!item||!price)return showToast('الصنف أو السعر غير متاح حاليًا.','error');
  const meta=user?.user_metadata||{}; const defaultName=meta.full_name||meta.name||user?.email||'';
  const orderAttemptId=crypto.randomUUID(), clientIdempotencyKey=crypto.randomUUID();
@@ -390,7 +406,8 @@ async function openOrderForm(businessId,itemId){
   const subtotal=Number(price.unit_price||0)*qty;
   submit.disabled=true; submit.textContent='جارٍ إرسال الطلب…';
   try{
-   const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:catalog.tenantId,businessId,branchId:null,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true}});
+   if(!branchId)return showToast('اختر الفرع قبل إرسال الطلب.','error');
+   const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:catalog.tenantId,businessId,branchId,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true,branch_id:branchId}});
    closeMxModal(); current='الطلبات'; await loadLiveData(); await renderApp(); showToast('تم إرسال الطلب بنجاح. يمكنك متابعة الحالة من الطلبات.','success'); return result;
   }catch(e){submit.disabled=false;submit.textContent='إرسال الطلب';showToast('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error')}
  };
