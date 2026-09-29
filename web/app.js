@@ -920,7 +920,7 @@ try{
      if(activation?.error)throw new Error(activation.error);
    }
  }
- await renderApp();
+ await renderApp({forceWorkspace:true});
  if(pending&&String(pending.email||'').toLowerCase()===String(authUser.email||'').toLowerCase()&&['CUSTOMER','SERVICE_PROVIDER'].includes(String(pending.role||'').toUpperCase())){
    try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
    await submitRegistrationRequest(String(pending.role).toUpperCase());
