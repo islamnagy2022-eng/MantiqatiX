@@ -34,6 +34,7 @@ jobs:
           node scripts/validate-android-parity-catalog.mjs
           node scripts/validate-public-web-secrets.mjs
           node scripts/validate-web-config.mjs
+          node scripts/validate-booking-payment-flow.mjs
       - name: Required web files
         run: |
           test -f web/index.html
