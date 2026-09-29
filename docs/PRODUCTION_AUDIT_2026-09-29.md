@@ -142,3 +142,10 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] Rechecked the documented SECURITY DEFINER workflow functions: anonymous execution is denied for workflow functions; the geographic discovery functions remain intentionally public for discovery and targeting; create_payment_intent_backend remains authenticated-callable by design and is protected by its server-side identity/order/pricing checks.
 - [x] No broad RLS policies were added merely to silence Security Advisor.
 - [ ] Contextual anonymous-policy review and adversarial multi-account E2E remain open; static privilege checks are not a substitute for runtime authorization tests.
+
+
+## RC158 — 2026-09-29 production preflight guard
+- [x] Added scripts/validate-release-preflight.mjs to enforce production Supabase pin, connected WEBSITE_SUPABASE data source, MNTY identity marker, and mandatory Pages CI safety markers.
+- [x] Added the preflight to the mandatory Pages validate job before deployment.
+- [x] Verified the resulting workflow commit diff contains the new preflight invocation.
+- [ ] CI execution for the new commit is pending; the guard is not marked VERIFIED until GitHub Actions completes successfully.
