@@ -59,7 +59,7 @@
       const r=await sb.rpc('find_mnty_nearby_provider_businesses',{p_lat:state.coords.latitude,p_lon:state.coords.longitude,p_radius_km:state.radiusKm});
       if(requestId!==locationRequestId)return {nearest:{},fallback:{}};
       if(!r.error)(r.data||[]).forEach(row=>{
-        if(allowed.has(row.business_id))nearest[row.business_id]=Number(row.distance_km);
+        if(allowed.has(row.business_id)){const d=Number(row.distance_km);if(Number.isFinite(d)&&d>=0)nearest[row.business_id]=d;}
       });
     }catch(_){}
     if(Object.keys(nearest).length||Number(state.radiusKm)>=10)return {nearest,fallback:{}};
@@ -69,7 +69,7 @@
       if(!r.error){
         const fallback={};
         (r.data||[]).forEach(row=>{
-          if(allowed.has(row.business_id))fallback[row.business_id]=Number(row.distance_km);
+          if(allowed.has(row.business_id)){const d=Number(row.distance_km);if(Number.isFinite(d)&&d>=0)fallback[row.business_id]=d;}
         });
         return {nearest,fallback};
       }
