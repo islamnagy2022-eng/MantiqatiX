@@ -293,3 +293,5 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-cover-ad--wide{height:170px}
 @media(max-width:900px){.mx-cover-ad--wide{height:112px}}
 @media(max-width:480px){.mx-cover-ad--wide{height:92px}}
+
+.auth-divider{display:flex;align-items:center;gap:12px;margin:14px 0;color:#98a2b3;font-size:13px}.auth-divider:before,.auth-divider:after{content:"";height:1px;flex:1;background:#e4e7ec}.auth-divider span{padding:0 4px}.auth-card #google-auth{font-weight:700}
