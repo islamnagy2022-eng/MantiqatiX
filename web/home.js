@@ -401,7 +401,10 @@
       el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=()=>{
         const id=b.dataset.provider;
         const item=featured.find(p=>String(p.id)===String(id));
-        if(item) openPublicProvider(item.id);
+        if(item){
+          const card=document.querySelector('#mx-provider-grid [data-provider="'+escapeHtml(item.id)+'"]');
+          card?.click();
+        }
       });
     };
 
