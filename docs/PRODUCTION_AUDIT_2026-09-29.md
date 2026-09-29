@@ -149,3 +149,11 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] Added the preflight to the mandatory Pages validate job before deployment.
 - [x] Verified the resulting workflow commit diff contains the new preflight invocation.
 - [ ] CI execution for the new commit is pending; the guard is not marked VERIFIED until GitHub Actions completes successfully.
+
+
+## RC159 — Provider activity onboarding build
+- Added a production web onboarding helper for authenticated provider/business roles.
+- The module calls only existing protected Edge Functions: `business-register`, `business-onboarding-status`, and prepares catalog operations through `catalog-admin`.
+- The UI is intentionally unable to manufacture approval, membership, payment, or order evidence; those remain backend-controlled.
+- Pages workflow now syntax-checks and publishes the onboarding asset, and release preflight checks that the asset is loaded and its required integrations remain present.
+- Verification state: **IMPLEMENTED / CI PENDING / E2E NOT VERIFIED**.
