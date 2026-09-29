@@ -708,3 +708,12 @@
 - Source commit: `628a254a8b9efd0a773be1325202bba00fff421d`.
 - Verification: pending the post-push CI/deployment gate.
 
+
+
+## RC155 — 2026-09-29 Release acceleration checkpoint
+- Website CI gate is VERIFIED: run #795 passed validation, Pages deployment, and published-site smoke verification after fixing the curl broken-pipe check and per-attempt artifact naming.
+- Booking/payment static security gate is VERIFIED in CI; this does not replace real customer/provider/payment E2E.
+- Supabase production remains ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- Current production data gate recheck: businesses=0, branches=0, provider_profiles=0, provider_services=0, catalog_items=0, catalog_prices=0, orders=0, payment_intents=0, payment_provider_events=0, bookings=1, geo_areas=28, global_ads=4.
+- No fake provider/business/catalog/payment data will be inserted to manufacture E2E evidence.
+- Final blockers remain: real authenticated multi-account E2E, real provider/service/order chain, authorized payment/webhook/refund/reconciliation E2E, backup/restore rehearsal, monitoring alert delivery, rollback rehearsal, external browser/device regression, and Supabase leaked-password protection.
