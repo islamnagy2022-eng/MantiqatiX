@@ -427,7 +427,7 @@
       const status=document.getElementById('mx-live-status');
       if(!sb){status.textContent='وضع العرض';renderServices([]);renderProviders([]);renderSponsored([]);return}
       const term=String(searchText||'').trim();
-        const safeTerm=term.replace(/[^\p{L}\p{N}\s_-]/gu,' ').trim().slice(0,60);
+        const safeTerm=term.replace(/[^\p{L}\p{N}\s-]/gu,' ').trim().slice(0,60);
       try{
         await loadHomeRuntimeFlags(sb);
         loadLocationUi();
