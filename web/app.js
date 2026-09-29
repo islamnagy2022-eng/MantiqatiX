@@ -274,29 +274,55 @@ document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Ente
 async function sendOtp(existingEmail=''){
 const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
 if(!/^\S+@\S+\.\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
-const button=document.getElementById('send-otp')||document.getElementById('resend-otp');if(button){button.disabled=true;button.textContent='جارٍ إرسال الرابط...'}
+const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
+if(button){button.disabled=true;button.textContent='جارٍ إرسال الرابط...'}
 if(authIntent==='register'){
  try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,createdAt:Date.now()}))}catch(_){}
 }
-const redirectTo=new URL(window.location.pathname||'/',window.location.origin).toString();
-const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo}});
-if(error)return authView('تعذر إرسال رابط الدخول: '+error.message,!!existingEmail,email);
-authView('',true,email);
-}
+try{
+ const redirectTo=new URL(window.location.pathname||'/',window.location.origin).toString();
+ const result=await Promise.race([
+  sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo}}),
+  new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_OTP_SEND_TIMEOUT')),12000))
+ ]);
+ const {error}=result||{};
+ if(error)return authView('تعذر إرسال رابط الدخول: '+error.message,!!existingEmail,email);
+ authView('',true,email);
+}catch(e){
+ authView(e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال رابط الدخول. تحقق من اتصال الإنترنت ثم أعد المحاولة.':'تعذر إرسال رابط الدخول. أعد المحاولة.',!!existingEmail,email);
+}}
 async function verifyOtp(email){
 const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,10);
 if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);
-const button=document.getElementById('verify');if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
-const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});
-if(error)return authView('تعذر التحقق من الرمز: '+error.message,true,email);
-if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
-user=data.user;
-if(authIntent==='register'){
- try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
- await submitRegistrationRequest();
- return;
-}
-await enterAuthenticatedApp(data.user);
+const button=document.getElementById('verify');
+if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
+try{
+ const result=await Promise.race([
+  sb.auth.verifyOtp({email,token,type:'email'}),
+  new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_VERIFY_TIMEOUT')),12000))
+ ]);
+ const {data,error}=result||{};
+ if(error){
+  const message=String(error.message||'');
+  const expired=/expired|invalid|otp_expired/i.test(message);
+  return authView(expired?'الرمز منتهي أو غير صالح. استخدم أحدث رمز أرسلناه، أو أعد إرسال رابط الدخول ثم استخدم الرمز الجديد.':'تعذر التحقق من الرمز: '+message,true,email);
+ }
+ if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
+ user=data.user;
+ if(authIntent==='register'){
+  try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+  await submitRegistrationRequest();
+  return;
+ }
+ await enterAuthenticatedApp(data.user);
+}catch(e){
+ const message=e?.message==='AUTH_VERIFY_TIMEOUT'
+  ?'انتهت مهلة الاتصال بخدمة التحقق. لا تضغط الزر عدة مرات؛ أعد المحاولة بعد لحظات أو أرسل رمزًا جديدًا.'
+  :'تعذر الاتصال بخدمة التحقق. أعد المحاولة.';
+ authView(message,true,email);
+}finally{
+ const currentButton=document.getElementById('verify');
+ if(currentButton){currentButton.disabled=false;currentButton.textContent='تحقق بالرمز'}
 }
 async function logout(){await disableCurrentPushSubscription();const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;localStorage.removeItem('MNTYActiveMembershipId');live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};window.MXHomeLanding?MXHomeLanding():landingView()}
 function setupInstallPrompt(){
