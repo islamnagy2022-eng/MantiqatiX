@@ -41,7 +41,7 @@
       }
       const cards=s.businesses.map(b=>{
         const set=b.settings||{};
-        return '<article class="card"><div class="card-title">🏢 '+esc(b.name)+'</div><div class="muted">الحالة: '+esc(b.status)+' · الكود: '+esc(b.code)+'</div><div class="muted">القطاع: '+esc(set.sector||'غير محدد')+'</div><div class="muted">المدينة: '+esc(set.city||'غير محددة')+'</div><button class="btn" data-onboard-status="'+esc(b.id)+'" style="margin-top:10px">تحديث حالة التسجيل</button><div id="onboard-status-'+esc(b.id)+'" class="muted" style="margin-top:8px"></div></article>';
+        return '<article class="card"><div class="card-title">🏢 '+esc(b.name)+'</div><div class="muted">الحالة: '+esc(b.status)+' · الكود: '+esc(b.code)+'</div><div class="muted">القطاع: '+esc(set.sector||'غير محدد')+'</div><div class="muted">المدينة: '+esc(set.city||'غير محددة')+'</div><button class="btn" data-onboard-status="'+esc(b.id)+'" style="margin-top:10px">تحديث حالة التسجيل</button><div id="onboard-status-'+esc(b.id)+'" class="muted" style="margin-top:8px"></div>'+(String(b.status).toUpperCase()==='ACTIVE'?'<form class="card" data-catalog-form="'+esc(b.id)+'" style="margin-top:12px"><div class="field"><label>اسم الخدمة</label><input data-service-name required maxlength="200" placeholder="مثال: صيانة غسالة"></div><div class="field"><label>السعر (جنيه)</label><input data-service-price required type="number" min="0" step="0.01" inputmode="decimal"></div><button class="btn btn-primary" type="submit">إضافة الخدمة والسعر</button><div data-catalog-result class="muted" style="margin-top:8px"></div></form>':'')+'</article>';
       }).join('');
       page('<div class="workspace-head"><div><div class="eyebrow">PROVIDER ONBOARDING</div><h1>تكوين نشاط مقدم الخدمة</h1><p class="muted">إنشاء النشاط يمر بمسار الموافقة الرسمي. بعد التفعيل يمكن إعداد الكتالوج والأسعار من المسارات الخلفية الموثوقة.</p></div></div>'+
         '<section class="workspace-section"><h2>1. إنشاء نشاط</h2><form id="mnty-business-form" class="card"><div class="field"><label>اسم النشاط</label><input id="mnty-business-name" required maxlength="200" placeholder="اسم النشاط الحقيقي"></div><div class="field"><label>القطاع</label><input id="mnty-business-sector" maxlength="80" placeholder="مثال: MAINTENANCE"></div><div class="field"><label>المدينة</label><input id="mnty-business-city" maxlength="120"></div><div class="field"><label>المنطقة</label><input id="mnty-business-district" maxlength="120"></div><div class="field"><label>العنوان</label><input id="mnty-business-address" maxlength="500"></div><div class="field"><label>الهاتف</label><input id="mnty-business-phone" maxlength="64" inputmode="tel"></div><button class="btn btn-primary" type="submit">إرسال طلب إنشاء النشاط</button><div id="mnty-business-result" class="muted" style="margin-top:10px"></div></form></section>'+
@@ -54,6 +54,18 @@
           setTimeout(render,500);
         }catch(err){out.textContent='تعذر إرسال الطلب: '+esc(err.message);}
       });
+      document.querySelectorAll('[data-catalog-form]').forEach(form=>form.addEventListener('submit',async e=>{
+        e.preventDefault(); const out=form.querySelector('[data-catalog-result]'); out.textContent='جارٍ حفظ الخدمة والسعر…';
+        try{
+          const businessId=form.dataset.catalogForm; const name=form.querySelector('[data-service-name]').value.trim(); const price=Number(form.querySelector('[data-service-price]').value);
+          if(!name||!Number.isFinite(price)||price<0)throw new Error('INVALID_SERVICE_OR_PRICE');
+          const item=await call('catalog-admin',{action:'ITEM_UPSERT',tenantId:s.active.tenant_id,businessId,nameAr:name,itemType:'SERVICE',taxRate:0,metadata:{source:'provider_onboarding'}});
+          const itemId=item?.id||item?.catalog_item_id||item?.data?.id;
+          if(!itemId)throw new Error('CATALOG_ITEM_ID_MISSING');
+          await call('catalog-admin',{action:'PRICE_UPSERT',tenantId:s.active.tenant_id,businessId,catalogItemId:itemId,currency:'EGP',unitPrice:price});
+          out.textContent='تمت إضافة الخدمة والسعر عبر المسار الخلفي الموثوق.';
+        }catch(err){out.textContent='تعذر حفظ الخدمة: '+esc(err.message);}
+      }));
       document.querySelectorAll('[data-onboard-status]').forEach(btn=>btn.addEventListener('click',async()=>{
         const id=btn.dataset.onboardStatus; const out=document.getElementById('onboard-status-'+id); out.textContent='جارٍ التحقق…';
         try{const p=await call('business-onboarding-status',{businessId:id});out.textContent=(p.requests||[]).map(x=>'طلب '+x.id+': '+x.status).join(' · ')||'لا توجد حالة طلب.';}
