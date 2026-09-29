@@ -253,81 +253,81 @@ function cleanAuthUrl(){
   if(hasAuthParams)history.replaceState({},document.title,url.pathname);
  }catch(_){}
 }
-function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
-authIntent=mode||'login';
-document.getElementById('app').innerHTML=otpMode
-?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تحقق من بريدك الإلكتروني</h1><p>أرسلنا إلى <b>${esc(emailValue)}</b> رمز تحقق آمن إلى MNTY. أدخل أحدث رمز وصلك لإكمال تسجيل الدخول وفتح حسابك.</p><div class="field"><label>رمز التحقق</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="أدخل الرمز إذا ظهر في البريد"></div><button class="btn btn-primary" id="verify">تحقق بالرمز</button><div class="auth-secondary-actions"><button class="auth-link-btn" id="resend-otp" type="button">إعادة إرسال رمز التحقق</button><button class="auth-link-btn" id="back-auth" type="button">تغيير البريد الإلكتروني</button></div>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
-: `<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>${authIntent==='register'?'تسجيل مستخدم جديد':'تسجيل الدخول'}</h1><p>${authIntent==='register'?'أنشئ حسابك باستخدام بريدك الإلكتروني. بعد التحقق يتم استكمال تفعيل العضوية وفق الصلاحيات المعتمدة.':'استخدم بريدك الإلكتروني لإرسال رمز تحقق آمن إلى MNTY. أدخل الرمز الذي يصلك لإكمال تسجيل الدخول.'}</p>${authIntent==='register'?'<div class="field"><label>نوع الحساب</label><select id="registration-type"><option value="CUSTOMER">عميل</option><option value="SERVICE_PROVIDER">مقدم خدمة</option></select></div>':''}<div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">${authIntent==='register'?'إرسال رابط التسجيل':'إرسال رابط الدخول'}</button><button class="auth-switch-btn" id="switch-auth" type="button">${authIntent==='register'?'لدي حساب بالفعل؟ تسجيل الدخول':'مستخدم جديد؟ إنشاء حساب'}</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
-if(otpMode){
-const otp=document.getElementById('otp');otp.focus();
-document.getElementById('verify').onclick=()=>verifyOtp(emailValue);
-document.getElementById('resend-otp').onclick=()=>sendOtp(emailValue);
-document.getElementById('back-auth').onclick=()=>authView('',false,emailValue);
-otp.addEventListener('keydown',e=>{if(e.key==='Enter')verifyOtp(emailValue)});
-}else{
-document.getElementById('email').focus();
-document.getElementById('send-otp').onclick=()=>{if(authIntent==='register')authRegistrationType=document.getElementById('registration-type')?.value||'CUSTOMER';sendOtp();};
-document.getElementById('switch-auth').onclick=()=>authView('',false,'',authIntent==='register'?'login':'register');
-document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')sendOtp()});
+function oauthRedirectUrl(){return window.location.origin+window.location.pathname+window.location.search.split('#')[0].replace(/\\?$/,'');}
+async function signInWithGoogle(intent='login'){
+ if(authSendInFlight)return;
+ authSendInFlight=true;
+ const role=String(intent==='register'?authRegistrationType:'').toUpperCase();
+ if(intent==='register')try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({role:role||'CUSTOMER',source:'google',createdAt:Date.now()}))}catch(_){}
+ try{
+  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:oauthRedirectUrl(),queryParams:{access_type:'online',prompt:'select_account'}}});
+  if(error)throw error;
+ }catch(e){
+  try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+  authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'','',intent);
+ }finally{authSendInFlight=false}
 }
+function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
+ authIntent=mode||'login';
+ document.getElementById('app').innerHTML=otpMode
+ ?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تحقق من بريدك الإلكتروني</h1><p>أرسلنا إلى <b>${esc(emailValue)}</b> رمز تحقق آمن إلى MNTY. أدخل أحدث رمز وصلك لإكمال تسجيل الدخول.</p><div class="field"><label>رمز التحقق</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="أدخل الرمز"></div><button class="btn btn-primary" id="verify">تحقق بالرمز</button><div class="auth-secondary-actions"><button class="auth-link-btn" id="resend-otp" type="button">إعادة إرسال رمز البريد</button><button class="auth-link-btn" id="back-auth" type="button">تغيير البريد الإلكتروني</button></div>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
+ : `<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>${authIntent==='register'?'تسجيل مستخدم جديد':'تسجيل الدخول'}</h1><p>${authIntent==='register'?'استخدم حساب Google للتحقق من هويتك وإنشاء حساب MNTY. لا تُمنح الصلاحيات التشغيلية إلا وفق العضوية المعتمدة.':'استخدم حساب Google للدخول بأمان إلى MNTY. سيجري التحقق عبر Google ثم تعود مباشرة إلى المنصة.'}</p>${authIntent==='register'?'<div class="field"><label>نوع الحساب</label><select id="registration-type"><option value="CUSTOMER">عميل</option><option value="SERVICE_PROVIDER">مقدم خدمة</option></select></div>':''}<button class="btn btn-primary" id="google-auth" type="button">🔐 ${authIntent==='register'?'التسجيل بحساب Google':'الدخول بحساب Google'}</button><div class="auth-divider"><span>أو</span></div><div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-outline" id="send-otp" type="button">${authIntent==='register'?'التسجيل برمز البريد':'الدخول برمز البريد'}</button><button class="auth-switch-btn" id="switch-auth" type="button">${authIntent==='register'?'لدي حساب بالفعل؟ تسجيل الدخول':'مستخدم جديد؟ إنشاء حساب'}</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
+ if(otpMode){
+  const otp=document.getElementById('otp');otp.focus();
+  document.getElementById('verify').onclick=()=>verifyOtp(emailValue);
+  document.getElementById('resend-otp').onclick=()=>sendOtp(emailValue);
+  document.getElementById('back-auth').onclick=()=>authView('',false,emailValue,authIntent);
+  otp.addEventListener('keydown',e=>{if(e.key==='Enter')verifyOtp(emailValue)});
+ }else{
+  document.getElementById('google-auth').onclick=()=>{
+   if(authIntent==='register')authRegistrationType=document.getElementById('registration-type')?.value||'CUSTOMER';
+   signInWithGoogle(authIntent);
+  };
+  document.getElementById('email').focus();
+  document.getElementById('send-otp').onclick=()=>{if(authIntent==='register')authRegistrationType=document.getElementById('registration-type')?.value||'CUSTOMER';sendOtp();};
+  document.getElementById('switch-auth').onclick=()=>authView('',false,'',authIntent==='register'?'login':'register');
+  document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')sendOtp()});
+ }
 }
 async function sendOtp(existingEmail=''){
-if(authSendInFlight)return;
-authSendInFlight=true;
-const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
-if(!/^\S+@\S+\.\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
-const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
-if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
-if(authIntent==='register'){
- try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,createdAt:Date.now()}))}catch(_){}
-}
-try{
- const result=await Promise.race([
-  sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}}),
-  new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_OTP_SEND_TIMEOUT')),12000))
- ]);
- const {error}=result||{};
- if(error)return authView('تعذر إرسال رمز التحقق: '+error.message,!!existingEmail,email);
- authView('',true,email);
-}catch(e){
- authView(e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال رمز التحقق. تحقق من اتصال الإنترنت ثم أعد المحاولة.':'تعذر إرسال رمز التحقق. أعد المحاولة.',!!existingEmail,email);
-}finally{authSendInFlight=false}
+ if(authSendInFlight)return;
+ authSendInFlight=true;
+ const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
+ if(!/^\\S+@\\S+\\.\\S+$/.test(email)){authSendInFlight=false;return authView('أدخل بريدًا إلكترونيًا صحيحًا.');}
+ const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
+ if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
+ if(authIntent==='register')try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,source:'email',createdAt:Date.now()}))}catch(_){}
+ try{
+  const result=await Promise.race([sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_OTP_SEND_TIMEOUT')),12000))]);
+  const {error}=result||{};
+  if(error)return authView('تعذر إرسال رمز التحقق: '+error.message,!!existingEmail,email,authIntent);
+  authView('',true,email,authIntent);
+ }catch(e){
+  authView(e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال رمز التحقق. تحقق من اتصال الإنترنت ثم أعد المحاولة.':'تعذر إرسال رمز التحقق. أعد المحاولة.',!!existingEmail,email,authIntent);
+ }finally{authSendInFlight=false}
 }
 async function verifyOtp(email){
-const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,10);
-if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);
-authVerificationInFlight=true;
-const button=document.getElementById('verify');
-if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
-try{
- const result=await Promise.race([
-  sb.auth.verifyOtp({email,token,type:'email'}),
-  new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_VERIFY_TIMEOUT')),12000))
- ]);
- const {data,error}=result||{};
- if(error){
-  const message=String(error.message||'');
-  const expired=/expired|invalid|otp_expired/i.test(message);
-  return authView(expired?'الرمز منتهي أو غير صالح. استخدم أحدث رمز أرسلناه، أو أعد إرسال رمز التحقق ثم استخدم الرمز الجديد.':'تعذر التحقق من الرمز: '+message,true,email);
+ const token=(document.getElementById('otp')?.value||'').replace(/\\D/g,'').slice(0,10);
+ if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email,authIntent);
+ authVerificationInFlight=true;
+ const button=document.getElementById('verify');if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
+ try{
+  const result=await Promise.race([sb.auth.verifyOtp({email,token,type:'email'}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_VERIFY_TIMEOUT')),12000))]);
+  const {data,error}=result||{};
+  if(error){
+   const message=String(error.message||'');const expired=/expired|invalid|otp_expired/i.test(message);
+   return authView(expired?'الرمز منتهي أو غير صالح. استخدم أحدث رمز أو أعد إرساله.':'تعذر التحقق من الرمز: '+message,true,email,authIntent);
+  }
+  if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email,authIntent);
+  user=data.user;
+  if(authIntent==='register'){try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){} await submitRegistrationRequest();return}
+  await enterAuthenticatedApp(data.user,{force:true});
+ }catch(e){
+  authView(e?.message==='AUTH_VERIFY_TIMEOUT'?'انتهت مهلة الاتصال بخدمة التحقق. أعد المحاولة بعد لحظات.':'تعذر الاتصال بخدمة التحقق. أعد المحاولة.',true,email,authIntent);
+ }finally{
+  authVerificationInFlight=false;
+  const currentButton=document.getElementById('verify');if(currentButton){currentButton.disabled=false;currentButton.textContent='تحقق بالرمز'}
  }
- if(!data?.session||!data?.user)return authView('تم التحقق لكن لم تُنشأ جلسة دخول صالحة. أعد المحاولة.',true,email);
- user=data.user;
- if(authIntent==='register'){
-  try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
-  await submitRegistrationRequest();
-  return;
- }
- await enterAuthenticatedApp(data.user,{force:true});
-}catch(e){
- const message=e?.message==='AUTH_VERIFY_TIMEOUT'
-  ?'انتهت مهلة الاتصال بخدمة التحقق. لا تضغط الزر عدة مرات؛ أعد المحاولة بعد لحظات أو أرسل رمزًا جديدًا.'
-  :'تعذر الاتصال بخدمة التحقق. أعد المحاولة.';
- authView(message,true,email);
-}finally{
- authVerificationInFlight=false;
- const currentButton=document.getElementById('verify');
- if(currentButton){currentButton.disabled=false;currentButton.textContent='تحقق بالرمز'}
-}
 }
 async function logout(){await disableCurrentPushSubscription();const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;localStorage.removeItem('MNTYActiveMembershipId');live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};window.MXHomeLanding?MXHomeLanding():landingView()}
 function setupInstallPrompt(){
