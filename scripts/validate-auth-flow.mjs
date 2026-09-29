@@ -4,7 +4,8 @@ const app = fs.readFileSync("web/app.js", "utf8");
 const smm = fs.readFileSync("web/smm.js", "utf8");
 
 const required = [
-  ["Main Email OTP", "sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}})", app],
+  ["Main Email OTP", "sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo}})", app],
+  ["Secure auth redirect", "const redirectTo=new URL(window.location.pathname||'/',window.location.origin).toString();", app],
   ["Main OTP verification", "sb.auth.verifyOtp({email,token,type:'email'})", app],
   ["Session verification", "session?.user", app],
   ["Registration request path", "submitRegistrationRequest", app],
