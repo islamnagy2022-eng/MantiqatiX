@@ -223,10 +223,33 @@ function roleSwitcher(){
 async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
+async function completeAuthCallback(){
+ try{
+  const url=new URL(window.location.href);
+  const tokenHash=url.searchParams.get('token_hash');
+  const type=url.searchParams.get('type');
+  if(!tokenHash)return false;
+  if(type!=='email'&&type!=='recovery')return false;
+  const {data,error}=await sb.auth.verifyOtp({token_hash:tokenHash,type});
+  if(error)throw error;
+  if(!data?.session||!data?.user)throw new Error('AUTH_CALLBACK_SESSION_MISSING');
+  history.replaceState({},document.title,url.pathname);
+  user=data.user;
+  await enterAuthenticatedApp(data.user);
+  return true;
+ }catch(e){
+  try{
+   const url=new URL(window.location.href);
+   if(url.searchParams.has('token_hash'))history.replaceState({},document.title,url.pathname);
+  }catch(_){}
+  authView('تعذر إكمال رابط التحقق. أعد طلب رابط دخول جديد من MNTY.');
+  return false;
+ }
+}
 function cleanAuthUrl(){
  try{
   const url=new URL(window.location.href);
-  const hasAuthParams=url.hash.includes('access_token=')||url.hash.includes('refresh_token=')||url.hash.includes('code=')||url.searchParams.has('code')||url.searchParams.has('error');
+  const hasAuthParams=url.hash.includes('access_token=')||url.hash.includes('refresh_token=')||url.hash.includes('code=')||url.searchParams.has('code')||url.searchParams.has('error')||url.searchParams.has('token_hash');
   if(hasAuthParams)history.replaceState({},document.title,url.pathname);
  }catch(_){}
 }
@@ -850,6 +873,7 @@ try{
 async function bootAuth(){
 if(authBooted)return;authBooted=true;
 try{
+if(await completeAuthCallback())return;
 const {data,error}=await sb.auth.getSession();
 if(error)throw error;
 if(data?.session){
