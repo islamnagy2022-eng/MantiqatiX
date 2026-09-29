@@ -1,6 +1,6 @@
 const {createClient}=window.supabase;
 const cfg=window.MANTIQATIX_CONFIG;
-const sb=createClient(cfg.supabaseUrl,cfg.supabaseKey);
+const sb=createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
 
 async function invokeMntyFunction(name,body){
  const {data:{session},error:sessionError}=await sb.auth.getSession();
@@ -223,6 +223,13 @@ function roleSwitcher(){
 async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};if(!m.tables.length){live.moduleData[m.key].ready=true;return}const out=await Promise.all(m.tables.map(async t=>{const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
+function cleanAuthUrl(){
+ try{
+  const url=new URL(window.location.href);
+  const hasAuthParams=url.hash.includes('access_token=')||url.hash.includes('refresh_token=')||url.hash.includes('code=')||url.searchParams.has('code')||url.searchParams.has('error');
+  if(hasAuthParams)history.replaceState({},document.title,url.pathname);
+ }catch(_){}
+}
 function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
 authIntent=mode||'login';
 document.getElementById('app').innerHTML=otpMode
@@ -846,6 +853,7 @@ try{
 const {data,error}=await sb.auth.getSession();
 if(error)throw error;
 if(data?.session){
+cleanAuthUrl();
 const vr=await sb.auth.getUser();
 if(vr.error)throw vr.error;
 if(vr.data?.user){await enterAuthenticatedApp(vr.data.user);return}
