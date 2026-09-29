@@ -389,6 +389,8 @@
       const ranges=document.getElementById('mx-location-ranges');
       if(!api||!status||!ranges)return;
       status.textContent=api.statusText();
+       const label=document.getElementById('mx-location-label');
+       if(label) label.textContent=api.state.status==='ready'?'الموقع محدد':api.state.status==='requesting'?'جارٍ تحديد الموقع…':'الموقع عند الحاجة';
       ranges.innerHTML=api.ranges.map(x=>'<button type="button" class="mx-link" data-radius="'+x.km+'" style="border:1px solid #d0d5dd;border-radius:999px;padding:6px 10px;background:'+(api.state.radiusKm===x.km?'#101828':'#fff')+';color:'+(api.state.radiusKm===x.km?'#fff':'#344054')+'">'+x.label+'</button>').join('');
       ranges.querySelectorAll('[data-radius]').forEach(b=>b.onclick=async()=>{api.setRadius(Number(b.dataset.radius));loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'')});
     };
