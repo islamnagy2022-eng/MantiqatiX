@@ -88,6 +88,29 @@
     const app=document.getElementById('app');
     if(!app) return;
 
+    const syncHomeAuthState = async () => {
+      try{
+        const sb=getClient();
+        if(!sb?.auth?.getSession) return;
+        const {data,error}=await sb.auth.getSession();
+        if(error || !data?.session?.user) return;
+        const authUser=data.session.user;
+        const current=window.MNTYAuthState||{};
+        window.MNTYAuthState={
+          ...current,
+          authenticated:true,
+          email:authUser.email||current.email||'',
+        };
+        const loginButton=document.getElementById('mx-login');
+        if(loginButton){
+          loginButton.textContent='حسابي';
+          loginButton.onclick=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
+        }
+        const addButton=document.getElementById('mx-add');
+        if(addButton) addButton.onclick=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
+      }catch(_){}
+    };
+
     const adminReturnMembershipId=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId')||'';
     if(adminReturnMembershipId) window.MNTYAdminReturnMembershipId=adminReturnMembershipId;
     app.innerHTML=`<main class="mx-home" dir="rtl"><a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
@@ -277,6 +300,7 @@
     const openAccount=()=>window.MNTYAuthState?.authenticated&&typeof openPlatform==='function'?openPlatform():goLogin();
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('mx-login').onclick=openAccount;
+    syncHomeAuthState();
     document.getElementById('mx-admin-return')?.addEventListener('click',async()=>{
       const id=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId');
       if(!id||typeof switchMembership!=='function')return;
