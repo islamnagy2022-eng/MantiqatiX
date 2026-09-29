@@ -4,7 +4,8 @@
   function fail(msg){
     if(status){status.textContent=msg;status.style.color='#b42318'}
   }
-  function load(src){
+  function load(src,timeoutMs){
+    timeoutMs=timeoutMs||12000;
     return new Promise(function(resolve,reject){
       var el=document.createElement('script');
       var settled=false;
@@ -13,7 +14,7 @@
         settled=true;
         window.removeEventListener('error',onError,true);
         reject(new Error('SCRIPT_TIMEOUT:'+src));
-      },12000);
+      },timeoutMs);
       var onError=function(event){
         if(settled)return;
         if(event && event.filename && event.filename.indexOf(src.split('?')[0])===-1)return;
@@ -49,42 +50,58 @@
   });
   async function boot(){
     try{
+      // Open the public website shell first. The landing page is intentionally
+      // independent from authenticated app boot so a transient SDK/network
+      // failure can never leave the user on a blank/error-only screen.
+      await load('config.js?v=mnty58');
+      await load('location-adapter.js?v=mnty58');
+      await load('home.js?v=mnty58');
+      if(typeof window.MXHomeLanding==='function') window.MXHomeLanding();
+
+      var supabaseReady=false;
       try{
-        await load('vendor/supabase.js?v=supabase21172');
-        if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
-      }catch(_){
         try{
-          await load('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2');
+          await load('vendor/supabase.js?v=supabase21172');
           if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
-        }catch(__){
-          var mod=await Promise.race([
-            import('https://esm.sh/@supabase/supabase-js@2.117.2?bundle'),
-            new Promise(function(_,reject){setTimeout(function(){reject(new Error('SUPABASE_MODULE_TIMEOUT'))},12000)})
-          ]);
-          if(!mod || typeof mod.createClient!=='function') throw new Error('SUPABASE_MODULE_MISSING');
-          window.supabase=mod;
+        }catch(_){
+          try{
+            await load('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2');
+            if(!window.supabase?.createClient) throw new Error('SUPABASE_GLOBAL_MISSING');
+          }catch(__){
+            var mod=await Promise.race([
+              import('https://esm.sh/@supabase/supabase-js@2.117.2?bundle'),
+              new Promise(function(_,reject){setTimeout(function(){reject(new Error('SUPABASE_MODULE_TIMEOUT'))},12000)})
+            ]);
+            if(!mod || typeof mod.createClient!=='function') throw new Error('SUPABASE_MODULE_MISSING');
+            window.supabase=mod;
+          }
         }
+        supabaseReady=true;
+      }catch(sdkError){
+        console.error('[MNTY boot] Supabase SDK unavailable; public mode remains open',sdkError);
+        var publicStatus=document.getElementById('mx-live-status');
+        if(publicStatus) publicStatus.textContent='وضع العرض — الخدمات الحية ستتوفر عند استعادة الاتصال';
       }
-      await load('config.js?v=mnty57');
-      await load('android-parity-catalog.js?v=mnty57');
-      await load('location-adapter.js?v=mnty57');
-      await load('app.js?v=mnty57');
-      await load('restaurant-module.js?v=mnty57');
-      await load('sector-modules.js?v=mnty57');
-      await load('reverse-bidding-module.js?v=mnty57');
-      await load('operations-modules.js?v=mnty57');
-      await load('provider-onboarding-module.js?v=mnty57');
-      await load('brand.js?v=mnty57');
-      await load('home.js?v=mnty57');
-      if(typeof window.MNTYBootAuth==='function') window.MNTYBootAuth();
+
+      if(supabaseReady){
+        await load('android-parity-catalog.js?v=mnty58');
+        await load('app.js?v=mnty58');
+        await load('restaurant-module.js?v=mnty58');
+        await load('sector-modules.js?v=mnty58');
+        await load('reverse-bidding-module.js?v=mnty58');
+        await load('operations-modules.js?v=mnty58');
+        await load('provider-onboarding-module.js?v=mnty58');
+        await load('brand.js?v=mnty58');
+        if(typeof window.MNTYBootAuth==='function') window.MNTYBootAuth();
+      }
       if("serviceWorker" in navigator){
-        navigator.serviceWorker.register("./sw.js?v=mnty57").catch(function(){});
+        navigator.serviceWorker.register("./sw.js?v=mnty58").catch(function(){});
       }
     }catch(e){
-      fail('تعذر تحميل مكونات المنصة. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة.');
-      console.error(e);
+      console.error('[MNTY boot fatal]',e);
+      fail('تعذر تحميل واجهة المنصة. أعد المحاولة من فضلك.');
     }
   }
   boot();
 })();
-</script></body></html>
+</script>></body></html>
