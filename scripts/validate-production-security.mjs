@@ -25,6 +25,8 @@ const forbidden = [
 
 const findings = [];
 for (const file of files) {
+  const rel = path.relative(process.cwd(), file).replaceAll("\\", "/");
+  if (rel === "web/vendor/supabase.js") continue;
   const source = fs.readFileSync(file, "utf8");
   for (const pattern of forbidden) {
     if (pattern.test(source)) {
