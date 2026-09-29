@@ -9,6 +9,8 @@ const required = [
   ["Main OTP verification", "sb.auth.verifyOtp({email,token,type:'email'})", app],
   ["Session verification", "session?.user", app],
   ["Registration request path", "submitRegistrationRequest", app],
+  ["Customer direct activation", "sb.functions.invoke('mnty-customer-registration'", app],
+  ["Customer direct activation tenant", "tenant_id:'MNTY-PLATFORM'", app],
   ["Additional membership roles", "['CUSTOMER','SERVICE_PROVIDER']", app],
   ["Duplicate pending protection", ".in('status',['PENDING','APPROVED'])", app],
   ["Additional membership UI", "request-service_provider", app],
