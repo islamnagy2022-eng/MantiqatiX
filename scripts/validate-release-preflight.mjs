@@ -26,7 +26,7 @@ if (!/MNTY_DATA_SOURCE\s*=\s*['"]WEBSITE_SUPABASE['"]/.test(config)) {
 if (/DISCONNECTED|blockedQuery|demo|mock/i.test(config)) {
   throw new Error('Release config contains a disconnected/demo/mock marker.');
 }
-if (!/provider-onboarding-module\.js\?v=mnty37/.test(index)) {
+if (!/provider-onboarding-module\.js\?v=mnty\d+/.test(index)) {
   throw new Error('Provider onboarding module is not loaded by the production landing shell.');
 }
 if (!/business-register/.test(onboarding) || !/business-onboarding-status/.test(onboarding) || !/catalog-admin/.test(onboarding) || !/business-branch-admin/.test(onboarding)) {
