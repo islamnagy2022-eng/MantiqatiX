@@ -64,7 +64,7 @@ const sectors=[
 ['👗','الأزياء','المتاجر والمنتجات والحملات'],['🔧','الصيانة','مقدمو الخدمة والطلبات والترشيحات'],['💼','الأعمال وERP','إدارة الأعمال والمحاسبة والخدمات المهنية'],
 ['🎓','التعليم','المدارس والمدرسون والخدمات التعليمية'],['✈️','السفر والرحلات','الوكلاء والرحلات والحجوزات'],['🤝','الشركاء','الشركاء الاستراتيجيون ومصادر العملاء']
 ];
-let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER';
+let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
 const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
@@ -256,8 +256,8 @@ function cleanAuthUrl(){
 function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
 authIntent=mode||'login';
 document.getElementById('app').innerHTML=otpMode
-?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تحقق من بريدك الإلكتروني</h1><p>أرسلنا إلى <b>${esc(emailValue)}</b> رابط دخول آمن إلى MNTY. اضغط الرابط في البريد للعودة إلى الموقع وفتح الجلسة تلقائيًا. إذا ظهر لك رمز تحقق في البريد، يمكنك إدخاله هنا كخيار بديل.</p><div class="field"><label>رمز OTP (اختياري)</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="أدخل الرمز إذا ظهر في البريد"></div><button class="btn btn-primary" id="verify">تحقق بالرمز</button><div class="auth-secondary-actions"><button class="auth-link-btn" id="resend-otp" type="button">إعادة إرسال رابط الدخول</button><button class="auth-link-btn" id="back-auth" type="button">تغيير البريد الإلكتروني</button></div>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
-: `<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>${authIntent==='register'?'تسجيل مستخدم جديد':'تسجيل الدخول'}</h1><p>${authIntent==='register'?'أنشئ حسابك باستخدام بريدك الإلكتروني. بعد التحقق يتم استكمال تفعيل العضوية وفق الصلاحيات المعتمدة.':'استخدم بريدك الإلكتروني لإرسال رابط دخول آمن إلى MNTY. عند الضغط على الرابط ستعود للموقع وتُفتح الجلسة تلقائيًا.'}</p>${authIntent==='register'?'<div class="field"><label>نوع الحساب</label><select id="registration-type"><option value="CUSTOMER">عميل</option><option value="SERVICE_PROVIDER">مقدم خدمة</option></select></div>':''}<div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">${authIntent==='register'?'إرسال رابط التسجيل':'إرسال رابط الدخول'}</button><button class="auth-switch-btn" id="switch-auth" type="button">${authIntent==='register'?'لدي حساب بالفعل؟ تسجيل الدخول':'مستخدم جديد؟ إنشاء حساب'}</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
+?`<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>تحقق من بريدك الإلكتروني</h1><p>أرسلنا إلى <b>${esc(emailValue)}</b> رمز تحقق آمن إلى MNTY. أدخل أحدث رمز وصلك لإكمال تسجيل الدخول وفتح حسابك.</p><div class="field"><label>رمز التحقق</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="أدخل الرمز إذا ظهر في البريد"></div><button class="btn btn-primary" id="verify">تحقق بالرمز</button><div class="auth-secondary-actions"><button class="auth-link-btn" id="resend-otp" type="button">إعادة إرسال رمز التحقق</button><button class="auth-link-btn" id="back-auth" type="button">تغيير البريد الإلكتروني</button></div>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`
+: `<main class="auth"><section class="auth-card"><div class="brand">${mark()}<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>${authIntent==='register'?'تسجيل مستخدم جديد':'تسجيل الدخول'}</h1><p>${authIntent==='register'?'أنشئ حسابك باستخدام بريدك الإلكتروني. بعد التحقق يتم استكمال تفعيل العضوية وفق الصلاحيات المعتمدة.':'استخدم بريدك الإلكتروني لإرسال رمز تحقق آمن إلى MNTY. أدخل الرمز الذي يصلك لإكمال تسجيل الدخول.'}</p>${authIntent==='register'?'<div class="field"><label>نوع الحساب</label><select id="registration-type"><option value="CUSTOMER">عميل</option><option value="SERVICE_PROVIDER">مقدم خدمة</option></select></div>':''}<div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com"></div><button class="btn btn-primary" id="send-otp">${authIntent==='register'?'إرسال رابط التسجيل':'إرسال رابط الدخول'}</button><button class="auth-switch-btn" id="switch-auth" type="button">${authIntent==='register'?'لدي حساب بالفعل؟ تسجيل الدخول':'مستخدم جديد؟ إنشاء حساب'}</button>${msg?`<div class="msg">${esc(msg)}</div>`:''}</section></main>`;
 if(otpMode){
 const otp=document.getElementById('otp');otp.focus();
 document.getElementById('verify').onclick=()=>verifyOtp(emailValue);
@@ -271,7 +271,7 @@ document.getElementById('switch-auth').onclick=()=>authView('',false,'',authInte
 document.getElementById('email').addEventListener('keydown',e=>{if(e.key==='Enter')sendOtp()});
 }
 }
-async function sendOtp(existingEmail=''){
+async function sendOtp(existingEmail=''){\nif(authSendInFlight)return;\nauthSendInFlight=true;
 const email=(existingEmail||document.getElementById('email')?.value||'').trim().toLowerCase();
 if(!/^\S+@\S+\.\S+$/.test(email))return authView('أدخل بريدًا إلكترونيًا صحيحًا.');
 const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
@@ -286,14 +286,14 @@ try{
   new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_OTP_SEND_TIMEOUT')),12000))
  ]);
  const {error}=result||{};
- if(error)return authView('تعذر إرسال رابط الدخول: '+error.message,!!existingEmail,email);
+ if(error)return authView('تعذر إرسال رمز التحقق: '+error.message,!!existingEmail,email);
  authView('',true,email);
 }catch(e){
  authView(e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال رابط الدخول. تحقق من اتصال الإنترنت ثم أعد المحاولة.':'تعذر إرسال رابط الدخول. أعد المحاولة.',!!existingEmail,email);
 }}
 async function verifyOtp(email){
 const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,10);
-if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);
+if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email);\nauthVerificationInFlight=true;
 const button=document.getElementById('verify');
 if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
 try{
@@ -314,7 +314,7 @@ try{
   await submitRegistrationRequest();
   return;
  }
- await enterAuthenticatedApp(data.user);
+ await enterAuthenticatedApp(data.user,{force:true});
 }catch(e){
  const message=e?.message==='AUTH_VERIFY_TIMEOUT'
   ?'انتهت مهلة الاتصال بخدمة التحقق. لا تضغط الزر عدة مرات؛ أعد المحاولة بعد لحظات أو أرسل رمزًا جديدًا.'
