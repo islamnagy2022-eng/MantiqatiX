@@ -741,3 +741,14 @@
 - [x] Added the preflight to the mandatory Pages validate job before deployment.
 - [x] Verified the resulting workflow commit diff contains the new preflight invocation.
 - [ ] CI execution for the new commit is pending; the guard is not marked VERIFIED until GitHub Actions completes successfully.
+
+
+## RC159 — 2026-09-29 provider activity onboarding build
+- [x] Added `web/provider-onboarding-module.js` as a real authenticated provider workflow helper; it does not create synthetic production data.
+- [x] Wired the UI to the production `business-register` Edge Function for activity creation requests.
+- [x] Wired onboarding status refresh to `business-onboarding-status`.
+- [x] Prepared the next catalog stage through the existing `catalog-admin` backend path; catalog writes remain server-authoritative.
+- [x] Added the module to the production web shell and mandatory Pages asset/syntax validation.
+- [x] Added release-preflight guards for the onboarding module and required backend integrations.
+- [ ] CI/deployment verification for the new commits is pending; do not mark this build VERIFIED until Actions succeeds.
+- [ ] Business approval, branch/service/price setup, customer order flow and payment remain dependent on authorized real provider/business data and E2E execution.
