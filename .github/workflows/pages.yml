@@ -70,6 +70,9 @@ jobs:
           grep -q "mx-whatsapp-float" web/home.js
           grep -q "MNTY_SUPPORT" web/config.js
           grep -q "MNTY_SUPPORT" web/home.js
+          grep -q "mx-catalog-branch" web/app.js
+          grep -q "if(!branchId)" web/app.js
+          grep -q "branches: branches ?? \[\]" supabase/functions/api/index.ts
 
   deploy:
     needs: validate
