@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "name": "mantiqatix-web-release",
+  "version": "1.0.0",
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.2"
+  }
+}
