@@ -28,6 +28,7 @@ jobs:
           node --check web/home.js
           node --check web/android-parity-catalog.js
           node --check web/provider-onboarding-module.js
+          test -f supabase/functions/business-branch-admin/index.ts
           node scripts/validate-web-assets.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
@@ -56,12 +57,14 @@ jobs:
           test -f supabase/functions/order-create/index.ts
           test -f supabase/functions/order-status-update/index.ts
           test -f supabase/functions/mnty-registration-review/index.ts
+          test -f supabase/functions/business-branch-admin/index.ts
           test -f supabase/functions/payment-intent/index.ts
           test -f supabase/functions/settlement-create/index.ts
           grep -q '/api/v1/catalog' supabase/functions/api/index.ts
           grep -q 'update_order_status_backend' supabase/functions/order-status-update/index.ts
           grep -q 'create_order_backend' supabase/functions/order-create/index.ts
           grep -q 'review_registration_request_atomic' supabase/functions/mnty-registration-review/index.ts
+          grep -q 'business-branch-admin' web/provider-onboarding-module.js
           grep -q 'SUPABASE_SERVICE_ROLE_KEY' supabase/functions/payment-intent/index.ts
           grep -q 'SUPABASE_SERVICE_ROLE_KEY' supabase/functions/settlement-create/index.ts
           grep -q "mx-whatsapp-float" web/home.js
