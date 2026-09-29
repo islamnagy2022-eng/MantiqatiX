@@ -815,6 +815,21 @@ async function submitRegistrationRequest(requestedRole=authRegistrationType){
  if(!user?.id)return;
  const role=String(requestedRole||'').toUpperCase();
  if(!['CUSTOMER','SERVICE_PROVIDER'].includes(role))return showToast('هذا الدور لا يُطلب ذاتيًا من الحساب.','error');
+
+ if(role==='CUSTOMER'){
+   const {data:{session},error:sessionError}=await sb.auth.getSession();
+   if(sessionError||!session?.access_token)return showToast('جلسة الدخول غير صالحة. أعد التحقق من البريد ثم حاول مرة أخرى.','error');
+   const {data,error}=await sb.functions.invoke('mnty-customer-registration',{
+     body:{tenant_id:'MNTY-PLATFORM'}
+   });
+   if(error)return showToast('تعذر تفعيل حساب العميل: '+(error.message||'خطأ غير معروف'),'error');
+   if(data?.error)return showToast('تعذر تفعيل حساب العميل: '+data.error,'error');
+   try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+   showToast('تم تفعيل حساب العميل ويمكنك الدخول مباشرة.','success');
+   await renderApp();
+   return;
+ }
+
  const active=live.memberships||[];
  if(active.some(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()===role)){
   return showToast('هذا الدور مرتبط بالحساب بالفعل.','error');
