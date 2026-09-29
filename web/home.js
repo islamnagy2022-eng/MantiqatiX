@@ -90,7 +90,7 @@
 
     const adminReturnMembershipId=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId')||'';
     if(adminReturnMembershipId) window.MNTYAdminReturnMembershipId=adminReturnMembershipId;
-    app.innerHTML=`<main class="mx-home" dir="rtl">
+    app.innerHTML=`<main class="mx-home" dir="rtl"><a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
       <header class="mx-header">
         <div class="mx-header__inner">
           <a class="mx-brand" href="#mx-home" aria-label="MNTY — MantiqatiX">${logo()}<div><div class="mx-brand__name">MNTY</div><span class="mx-brand__ar">MNTY — MantiqatiX</span></div></a>
