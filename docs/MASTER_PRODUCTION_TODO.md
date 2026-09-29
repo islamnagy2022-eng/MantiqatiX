@@ -752,3 +752,13 @@
 - [x] Added release-preflight guards for the onboarding module and required backend integrations.
 - [ ] CI/deployment verification for the new commits is pending; do not mark this build VERIFIED until Actions succeeds.
 - [ ] Business approval, branch/service/price setup, customer order flow and payment remain dependent on authorized real provider/business data and E2E execution.
+
+
+## RC160 — 2026-09-29 branch onboarding build
+- [x] Added protected `business-branch-admin` Edge Function with JWT verification and tenant/business membership authorization.
+- [x] Requires an ACTIVE business; branch writes are performed server-side with service role.
+- [x] Added provider UI for branch creation after business activation.
+- [x] Added CI/preflight guards for the branch workflow.
+- [x] Deployed Edge Function to Production as ACTIVE v1.
+- [ ] CI verification of the web changes remains pending.
+- [ ] Real branch/service/order E2E remains pending real authorized provider data.
