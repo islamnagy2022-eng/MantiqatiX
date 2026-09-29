@@ -107,3 +107,11 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - [x] The 3 anonymous SECURITY DEFINER findings remain the documented public geographic/advertising discovery RPCs.
 - [x] Authenticated SECURITY DEFINER findings remain workflow-specific and require adversarial multi-account E2E; no direct privilege escalation was inferred from the advisor warning alone.
 - [ ] Leaked-password protection remains WARN / disabled and must be enabled in Supabase Auth Security settings before final release certification.
+
+
+## 2026-09-29 — Runtime log verification
+- [x] Unified Supabase log stream query is operational again; sources observed include edge_logs, postgrest_logs, postgres_logs, auth_logs, auth_audit_logs, function_logs, storage_logs, realtime_logs and related streams.
+- [x] Current unified query returned 1,085 edge events, 685 PostgREST events, 574 PostgreSQL events and 187 Auth events in the available log window.
+- [x] Edge 4xx/5xx classification was drilled down by path/status. The observed 403 volume is concentrated on RLS-protected resources: /rest/v1/orders (49), /rest/v1/support_tickets (48), /rest/v1/notifications (48), /rest/v1/marketing_leads (47), and /rest/v1/marketing_projects (46), plus small counts on catalog/auth/push endpoints.
+- [x] This evidence does not by itself prove zero application errors; it shows that the dominant observed Edge error class is authorization denial on protected resources, consistent with the current deny-by-default/RLS model.
+- [ ] Formal alert thresholds, incident routing, and alert delivery remain NOT VERIFIED.
