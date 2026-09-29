@@ -226,8 +226,20 @@ const mark=()=>'<span class="mark"></span>';
 async function completeAuthCallback(){
  try{
   const url=new URL(window.location.href);
+  const code=url.searchParams.get('code');
   const tokenHash=url.searchParams.get('token_hash');
   const type=url.searchParams.get('type');
+  const oauthError=url.searchParams.get('error_description')||url.searchParams.get('error');
+  if(oauthError)throw new Error('OAUTH_CALLBACK_ERROR:'+oauthError);
+  if(code){
+   const {data,error}=await sb.auth.exchangeCodeForSession(code);
+   if(error)throw error;
+   if(!data?.session||!data?.user)throw new Error('AUTH_CALLBACK_SESSION_MISSING');
+   history.replaceState({},document.title,url.pathname);
+   user=data.user;
+   await enterAuthenticatedApp(data.user,{force:true});
+   return true;
+  }
   if(!tokenHash)return false;
   if(type!=='email'&&type!=='recovery')return false;
   const {data,error}=await sb.auth.verifyOtp({token_hash:tokenHash,type});
@@ -240,9 +252,10 @@ async function completeAuthCallback(){
  }catch(e){
   try{
    const url=new URL(window.location.href);
-   if(url.searchParams.has('token_hash'))history.replaceState({},document.title,url.pathname);
+   if(url.searchParams.has('code')||url.searchParams.has('token_hash')||url.searchParams.has('error')||url.searchParams.has('error_description'))history.replaceState({},document.title,url.pathname);
   }catch(_){}
-  authView('تعذر إكمال رابط التحقق. أعد طلب رابط دخول جديد من MNTY.');
+  console.error('[MNTY][AuthCallback]',e);
+  authView('تعذر إكمال تسجيل الدخول. أعد المحاولة بحساب Google أو استخدم رمز البريد.');
   return false;
  }
 }
