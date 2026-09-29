@@ -50,12 +50,14 @@
 
   const loadBranchDistances=async(sb,businessIds)=>{
     if(!sb||!state.coords||!businessIds.length)return {nearest:{},fallback:{}};
+    const requestId=locationRequestId;
     const ids=[...new Set(businessIds.filter(Boolean))];
     if(!ids.length)return {nearest:{},fallback:{}};
     const allowed=new Set(ids);
     const nearest={};
     try{
       const r=await sb.rpc('find_mnty_nearby_provider_businesses',{p_lat:state.coords.latitude,p_lon:state.coords.longitude,p_radius_km:state.radiusKm});
+      if(requestId!==locationRequestId)return {nearest:{},fallback:{}};
       if(!r.error)(r.data||[]).forEach(row=>{
         if(allowed.has(row.business_id))nearest[row.business_id]=Number(row.distance_km);
       });
@@ -63,6 +65,7 @@
     if(Object.keys(nearest).length||Number(state.radiusKm)>=10)return {nearest,fallback:{}};
     try{
       const r=await sb.rpc('find_mnty_nearest_provider_businesses',{p_lat:state.coords.latitude,p_lon:state.coords.longitude,p_limit:12});
+      if(requestId!==locationRequestId)return {nearest:{},fallback:{}};
       if(!r.error){
         const fallback={};
         (r.data||[]).forEach(row=>{
