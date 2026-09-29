@@ -35,6 +35,7 @@ jobs:
           node scripts/validate-public-web-secrets.mjs
           node scripts/validate-web-config.mjs
           node scripts/validate-booking-payment-flow.mjs
+          node scripts/validate-release-preflight.mjs
       - name: Required web files
         run: |
           test -f web/index.html
