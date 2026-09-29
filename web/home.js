@@ -341,9 +341,11 @@
         modal.className='mx-public-modal';
         modal.innerHTML='<div class="mx-public-modal__backdrop"></div><section class="mx-public-modal__card" role="dialog" aria-modal="true" aria-label="ملف مقدم الخدمة"><button class="mx-public-modal__close" type="button" aria-label="إغلاق">×</button>'+providerMedia(item)+'<span class="mx-verified">'+(item.is_verified?'✓ موثق':'منشور')+'</span><h2>'+escapeHtml(item.name_ar||item.name_en||'مقدم خدمة')+'</h2><p>'+escapeHtml(item.description||'مقدم خدمة مسجل على Mantiqati X.')+'</p><div class="mx-public-modal__area">⌖ '+escapeHtml(readArea(item.service_areas)||'نطاق خدمة معلن')+'</div>'+(item.business_id?'<button class="mx-btn mx-btn--primary" type="button" id="mx-public-modal-book">احجز / اطلب خدمة ←</button>':'')+'</section></div>';
         document.body.appendChild(modal);
-        const close=()=>modal.remove();
+        const onKey=e=>{if(e.key==='Escape')close();};
+        const close=()=>{modal.remove();document.removeEventListener('keydown',onKey);};
         modal.querySelector('.mx-public-modal__close').onclick=close;
         modal.querySelector('.mx-public-modal__backdrop').onclick=close;
+        document.addEventListener('keydown',onKey);
         modal.querySelector('#mx-public-modal-book')?.addEventListener('click',()=>{
           close();
           const businessId=item.business_id, providerName=item.name_ar||item.name_en||'مقدم الخدمة';
