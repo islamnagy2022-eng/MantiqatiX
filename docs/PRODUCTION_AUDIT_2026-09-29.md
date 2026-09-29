@@ -157,3 +157,29 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 - The UI is intentionally unable to manufacture approval, membership, payment, or order evidence; those remain backend-controlled.
 - Pages workflow now syntax-checks and publishes the onboarding asset, and release preflight checks that the asset is loaded and its required integrations remain present.
 - Verification state: **IMPLEMENTED / CI PENDING / E2E NOT VERIFIED**.
+
+
+## RC160 — 2026-09-29 branch onboarding production verification
+- [x] `business-branch-admin` is deployed ACTIVE with JWT verification enabled.
+- [x] Provider onboarding contains the branch creation path and the Pages workflow checks its integration.
+- [x] `order-create` production deployment is now version 6, ACTIVE, with JWT verification enabled.
+- [x] Deployed `order-create` source was rechecked for the server-side `BRANCH_REQUIRED` and `BRANCH_NOT_AVAILABLE` guards.
+- [x] Customer web catalog path requires an active branch when the business has active branches and passes `branchId` to order creation.
+- [ ] Real authenticated browser E2E remains NOT VERIFIED.
+
+## RC161 — 2026-09-29 production security recheck
+- [x] The nine public RLS-enabled/no-policy tables currently surfaced in the public schema have no direct `anon` or `authenticated` table grants; no broad policies were added merely to clear the linter.
+- [x] The three public SECURITY DEFINER discovery functions use `search_path=public`, clamp caller-controlled radius/limit values, and return discovery/advertising data intended for public marketplace discovery.
+- [x] Workflow SECURITY DEFINER functions remain separated from the public discovery surface; no anonymous EXECUTE grant was found for the workflow functions checked.
+- [ ] Security Advisor still reports the documented public discovery SECURITY DEFINER warnings; runtime adversarial authorization testing remains required.
+- [ ] Leaked-password protection remains an external Supabase Auth Security setting and is not VERIFIED enabled.
+
+## RC162 — 2026-09-29 controlled provider fixture state
+- [x] The requested Berket El Sabaa test fixture exists in production in a non-active state: business `MNTY-BERKET-TEST` is INACTIVE, its main branch is ACTIVE, the provider profile is PENDING/unverified, and 10 provider-service records exist.
+- [x] The sponsored test advertisement `MNTY-AD-BERKET-20260929` remains PENDING_APPROVAL/PENDING; it was not activated by bypassing governance.
+- [x] The associated test user currently has no recorded `user_consents` row and no registration request; therefore no activation/approval was forced.
+- [ ] Customer -> Provider -> Service -> Price -> Order transactional E2E cannot be marked VERIFIED until an authorized active provider/business and catalog pricing path exists.
+
+## RC163 — 2026-09-29 geographic advertisement runtime check
+- [x] Production targeted-advertisement RPC returned the configured HOME_SPONSORED global fallback ads for a Cairo coordinate when no more-specific eligible target was available.
+- [ ] Provider-nearest runtime result remains unverified for an active provider because the controlled Berket fixture is intentionally INACTIVE/PENDING.
