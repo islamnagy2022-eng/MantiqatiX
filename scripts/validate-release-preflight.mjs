@@ -38,7 +38,7 @@ if (!/signInWithOAuth\(\{provider:\s*['"]google['"]/.test(app) ||
     !/detectSessionInUrl\s*:\s*true/.test(app)) {
   throw new Error('Production auth flow is missing the secure Google OAuth redirect/session detection guard.');
 }
-if (!/signInWithOtp\\(\\{email,options:\\{shouldCreateUser(?::\\s*authIntent==='register'|:\\s*true)\\}\\}\\)/.test(app) ||
+if (!/signInWithOtp\\(\\{email,options:\\{shouldCreateUser\\}\\}/.test(app) ||
     !/verifyOtp\\(\\{email,token,type:\\s*['"]email['"]\\}\\)/.test(app)) {
   throw new Error('Production auth flow is missing the Email OTP fallback guard.');
 }
