@@ -38,12 +38,15 @@ if (!/signInWithOAuth\(\{provider:\s*['"]google['"]/.test(app) ||
     !/detectSessionInUrl\s*:\s*true/.test(app)) {
   throw new Error('Production auth flow is missing the secure Google OAuth redirect/session detection guard.');
 }
-if (!app.includes("signInWithOtp({email,options:{shouldCreateUser}})") ||
-    !app.includes("verifyOtp({email,token,type:'email'})")) {
-  throw new Error('Production auth flow is missing the Email OTP fallback guard.');
+const smm = fs.readFileSync('web/smm.js', 'utf8');
+if (app.includes('signInWithOtp(') || app.includes('verifyOtp(') || smm.includes('signInWithOtp(') || smm.includes('verifyOtp(')) {
+  throw new Error('Production auth flow still exposes an Email OTP path.');
 }
-if (!/Mantiqati X|MNTY/i.test(index)) {
-  throw new Error('Production landing page does not contain the MNTY identity marker.');
+if (!/signInWithOAuth\\(\\{provider:\s*['"]google['"]/.test(smm) || !smm.includes('id="google-auth"')) {
+  throw new Error('SMM production auth flow is not Google-only.');
+}
+if (!/MantiqatiX/i.test(index)) {
+  throw new Error('Production landing page does not contain the MantiqatiX identity marker.');
 }
 
-console.log('Production release preflight: PASS (CI guards, production Supabase pin, connected data source, MNTY identity, secure auth redirect)');
+console.log('Production release preflight: PASS (CI guards, production Supabase pin, connected data source, MantiqatiX identity, secure Google-only auth)');
