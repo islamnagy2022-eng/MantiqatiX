@@ -99,7 +99,15 @@ try{
  const orderCountSpec=(orderRole==='SERVICE_PROVIDER'||orderRole==='BUSINESS_OWNER')&&live.businessId
    ? ['orders','business_id',live.businessId,'orders']
    : ['orders','customer_id',uid,'orders'];
- const specs=[['advertisements',null,null,'ads'],['marketing_projects',live.businessId?'client_business_id':null,live.businessId,'projects'],['notifications','user_id',uid,'notifications'],['support_tickets','requester_id',uid,'support'],['marketing_leads','requester_user_id',uid,'leads'],['marketing_provider_profiles','owner_user_id',uid,'providers'],orderCountSpec];
+ const supportManager=['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','SUPPORT','SUPPORT_MANAGER'].includes(orderRole);
+ const crmManager=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(orderRole);
+ const leadSpec=crmManager?['marketing_leads',null,null,'leads']:['marketing_leads','requester_user_id',uid,'leads'];
+ const providerSpec=crmManager?['marketing_provider_profiles',null,null,'providers']:['marketing_provider_profiles','owner_user_id',uid,'providers'];
+ const supportSpec=supportManager?['support_tickets',null,null,'support']:['support_tickets','requester_id',uid,'support'];
+ const orderSpec=(['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER'].includes(orderRole)&&live.businessId)
+   ? ['orders','business_id',live.businessId,'orders']
+   : (orderRole==='SUPER_ADMIN'&&!live.businessId?['orders',null,null,'orders']:orderCountSpec);
+ const specs=[['advertisements',null,null,'ads'],['marketing_projects',crmManager?null:(live.businessId?'client_business_id':null),crmManager?null:live.businessId,'projects'],['notifications','user_id',uid,'notifications'],supportSpec,leadSpec,providerSpec,orderSpec];
  if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);
  const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));
  specs.forEach((x,i)=>{if(results[i]!==null)live.counts[x[3]]=results[i]});
@@ -108,11 +116,11 @@ try{
  const fr=await fq;if(fr.error)throw fr.error;
  (fr.data||[]).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
  const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
-  sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
-  sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
-  (()=>{const oq=sb.from('orders').select('id,tenant_id,status,total_amount,currency,customer_id,business_id,customer_name,created_at').order('created_at',{ascending:false}).limit(10);if(['SERVICE_PROVIDER','BUSINESS_OWNER'].includes(String(live.role||'').toUpperCase())&&live.businessId)oq.eq('business_id',live.businessId);else oq.eq('customer_id',uid);return oq})(),
+  (()=>{const q=sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10);if(!crmManager)q.eq('requester_user_id',uid);return q})(),
+  (()=>{const q=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10);if(!crmManager)q.eq('owner_user_id',uid);return q})(),
+  (()=>{const oq=sb.from('orders').select('id,tenant_id,status,total_amount,currency,customer_id,business_id,customer_name,created_at').order('created_at',{ascending:false}).limit(10);if(orderRole==='SUPER_ADMIN'&&!live.businessId){}else if(['ADMIN','OWNER','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER'].includes(orderRole)&&live.businessId)oq.eq('business_id',live.businessId);else oq.eq('customer_id',uid);return oq})(),
   sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
-  sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10),
+  (()=>{const q=sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10);if(!supportManager)q.eq('requester_id',uid);return q})(),
   sb.from('advertisements').select('id,title,status,approval_status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_projects').select('id,project_type,management_mode,status,gross_value,platform_commission,currency,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,status,created_at').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(20)
@@ -1051,6 +1059,7 @@ if(session?.user&&!authRenderLock)enterAuthenticatedApp(session.user);
 });
 // Explicit browser globals used by the public landing page buttons.
 window.openPlatform=openPlatform;
+window.selectModule=selectModule;
 window.authView=authView;
 window.accountView=accountView;
 window.renderApp=renderApp;
