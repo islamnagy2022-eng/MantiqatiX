@@ -195,6 +195,7 @@ function bind(){
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
  document.querySelectorAll('[data-table-edit]').forEach(b=>b.onclick=()=>addTable(state.tables.find(x=>x.id===b.dataset.tableEdit)));
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
+ document.querySelectorAll('[data-order-status]').forEach(s=>s.onchange=async()=>{await updateOrder(s.dataset.orderStatus,s.value)});
 }
 function activeModule(){
  const h=document.querySelector('.breadcrumb');
