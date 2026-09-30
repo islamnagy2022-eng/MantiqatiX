@@ -346,12 +346,28 @@ async function sendOtp(existingEmail=''){
  if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
  if(authIntent==='register')try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,source:'email',createdAt:Date.now()}))}catch(_){}
  try{
-  const result=await Promise.race([sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_OTP_SEND_TIMEOUT')),12000))]);
+  const shouldCreateUser=authIntent==='register';
+  const result=await Promise.race([sb.auth.signInWithOtp({email,options:{shouldCreateUser}}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_OTP_SEND_TIMEOUT')),12000))]);
   const {error}=result||{};
-  if(error)return authView('تعذر إرسال رمز التحقق: '+error.message,!!existingEmail,email,authIntent);
+  if(error){
+   const code=String(error.code||error.status||'').toLowerCase();
+   const message=String(error.message||'').trim();
+   const rateLimited=/rate.?limit|too many|60 seconds|429|over_email_send_rate_limit/i.test(code+' '+message);
+   const friendly=rateLimited
+     ? 'تم تجاوز حد إرسال رموز البريد مؤقتًا. انتظر قليلًا ثم أعد المحاولة.'
+     : (message||'تعذر إرسال رمز التحقق.');
+   return authView('تعذر إرسال رمز التحقق: '+friendly,false,email,authIntent);
+  }
   authView('',true,email,authIntent);
  }catch(e){
-  authView(e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال رمز التحقق. تحقق من اتصال الإنترنت ثم أعد المحاولة.':'تعذر إرسال رمز التحقق. أعد المحاولة.',!!existingEmail,email,authIntent);
+  const message=String(e?.message||'').trim();
+  const rateLimited=/rate.?limit|too many|60 seconds|429|over_email_send_rate_limit/i.test(message);
+  const friendly=e?.message==='AUTH_OTP_SEND_TIMEOUT'
+    ? 'انتهت مهلة إرسال رمز التحقق. تحقق من اتصال الإنترنت ثم أعد المحاولة.'
+    : rateLimited
+      ? 'تم تجاوز حد إرسال رموز البريد مؤقتًا. انتظر قليلًا ثم أعد المحاولة.'
+      : (message||'تعذر إرسال رمز التحقق. أعد المحاولة.');
+  return authView('تعذر إرسال رمز التحقق: '+friendly,false,email,authIntent);
  }finally{authSendInFlight=false}
 }
 async function verifyOtp(email){
