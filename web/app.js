@@ -151,6 +151,37 @@ function membershipOptionLabel(m){
  const icon=icons[role]||'•';
  return icon+' '+roleLabel(role);
 }
+async function openPrivilegedWorkspace(preferredRole='OWNER'){
+ if(!user?.id)return authView();
+ try{
+  const {data:rows,error}=await sb.from('user_memberships')
+   .select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status')
+   .eq('user_id',user.id).eq('status','ACTIVE');
+  if(error)throw error;
+  const memberships=rows||[];
+  live.memberships=memberships;
+  const preferred=String(preferredRole||'OWNER').toUpperCase();
+  const target=memberships.find(m=>String(m.role||'').toUpperCase()===preferred)
+    ||memberships.find(m=>['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER'].includes(String(m.role||'').toUpperCase()));
+  if(!target)return showToast('لا توجد عضوية تشغيلية فعالة لهذا الحساب.','error');
+  window.MNTYActiveMembershipId=target.id;
+  localStorage.setItem('MNTYActiveMembershipId',target.id);
+  window.MNTYAdminReturnMembershipId=null;
+  localStorage.removeItem('MNTYAdminReturnMembershipId');
+  live.activeMembershipId=target.id;
+  live.role=String(target.role||'CUSTOMER').toUpperCase();
+  live.businessId=target.business_id||null;
+  live.tenantId=target.tenant_id||null;
+  live.organizationId=target.organization_id||null;
+  live.branchId=target.branch_id||null;
+  live.permissions=target.permissions||{};
+  current='الرئيسية'; query='';
+  await renderApp({forceWorkspace:true});
+  showToast('تم فتح مساحة التشغيل بدور: '+roleLabel(target.role),'success');
+ }catch(e){
+  showToast('تعذر فتح مساحة التشغيل: '+(e?.message||'خطأ غير معروف'),'error');
+ }
+}
 async function switchMembership(membershipId){
  const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
  if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
@@ -815,7 +846,7 @@ async function accountView(){
  const workspaceButton=privilegedMembership?'<button class="btn btn-primary" id="account-workspace">دخول مساحة التشغيل</button>':'';
  const privilegedNote='<p class="muted">دور العميل أساسي لكل حساب ويُفعّل تلقائيًا، لكنه <b>ليس له صلاحية دخول لوحة التشغيل</b>. الأدوار التشغيلية مثل مقدم الخدمة وOwner وAdmin وManager تملك مساحة التشغيل وفق صلاحياتها.</p>';
  document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>Mantiqati X</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar">'+workspaceButton+'<button class="btn btn-outline" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
- document.getElementById('account-workspace')?.addEventListener('click',async()=>{try{await switchMembership(privilegedMembership.id)}catch(e){showToast('تعذر فتح مساحة التشغيل.','error')}});
+ document.getElementById('account-workspace')?.addEventListener('click',async()=>{await openPrivilegedWorkspace('OWNER')});
  document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
  document.getElementById('account-logout').onclick=logout;
  const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest(role);};
