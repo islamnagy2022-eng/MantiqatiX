@@ -341,7 +341,7 @@ async function sendOtp(existingEmail=''){
  authSendInFlight=true;
  const rawEmail=existingEmail||document.getElementById('email')?.value||'';
  const email=rawEmail.normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g,'').trim().toLowerCase();
- if(!/^\\S+@\\S+\\.\\S+$/.test(email)){authSendInFlight=false;return authView('أدخل بريدًا إلكترونيًا صحيحًا.',false,email,authIntent);}
+ if(!/^\S+@\S+\.\S+$/.test(email)){authSendInFlight=false;return authView('أدخل بريدًا إلكترونيًا صحيحًا.',false,email,authIntent);}
  const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
  if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
  if(authIntent==='register')try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,source:'email',createdAt:Date.now()}))}catch(_){}
@@ -355,7 +355,7 @@ async function sendOtp(existingEmail=''){
  }finally{authSendInFlight=false}
 }
 async function verifyOtp(email){
- const token=(document.getElementById('otp')?.value||'').replace(/\\D/g,'').slice(0,10);
+ const token=(document.getElementById('otp')?.value||'').replace(/\D/g,'').slice(0,10);
  if(token.length<6)return authView('أدخل رمز التحقق المكوّن من 6 إلى 10 أرقام.',true,email,authIntent);
  authVerificationInFlight=true;
  const button=document.getElementById('verify');if(button){button.disabled=true;button.textContent='جارٍ التحقق...'}
@@ -549,7 +549,7 @@ function dashboard(){const visibleModules=modules.filter(m=>moduleEnabled(m[1]))
 function smmModulePage(){return `<div class="section-head"><div><h2>خدمات التسويق الرقمي SMM</h2><p>موديول MANTIQATIX لإدارة الخدمات الرقمية والطلبات والموردين من نفس الحساب.</p></div><span class="count">Module / SMM</span></div><div class="embedded-module"><iframe src="smm.html" title="MANTIQATIX SMM Module" loading="lazy"></iframe></div>`}
 function pageContent(){switch(current){case'الرئيسية':return isCustomerMode()?customerDashboard():isProviderMode()?providerDashboard():dashboard();case'الموديولات':return modulePage();case'خدمات التسويق الرقمي SMM':return smmModulePage();case'المجالات والخدمات':return sectorsPage();case'المستخدمون':return genericPage('المستخدمون','إدارة العملاء ومقدمي الخدمة والموظفين.',[['العملاء','ملفات العملاء وتاريخ الطلبات'],['مقدمو الخدمة','الملفات والاعتماد والباقات'],['الموظفون','الأدوار والصلاحيات']]);case'الطلبات':return genericPage('الطلبات','متابعة الطلبات والحجوزات ومسارات الإحالة.',[['طلبات جديدة','طلبات تحتاج مراجعة'],['قيد المتابعة','طلبات مرتبطة بمقدم خدمة'],['مكتملة','سجل الطلبات المكتملة']]);case'التسويق والإعلان':return genericPage('التسويق والإعلان','نظام التسويق الخاص بالشركة مع إمكانية التعاون مع شركات تسويق أخرى.',[['حملات MantiqatiX','حملات جذب العملاء'],['شركات التسويق','إدارة الشركاء ومصادر العملاء'],['الإعلانات','الحملات والإعلانات الممولة']]);case'العمولات والباقات':return genericPage('العمولات والباقات','نماذج مجانية، عمولة بيع، وباقات احترافية تختلف حسب المجال.',[['الباقة المجانية','وجود أساسي داخل المنصة'],['نظام العمولة','عمولة على العمليات/الإضافات المؤهلة'],['الباقات الاحترافية','3 مستويات قابلة للتخصيص حسب المجال']]);case'التقارير':return genericPage('التقارير','لوحة مؤشرات للإدارة والأداء.',[['الأداء','نشاط المنصة ومقدمي الخدمة'],['الإيرادات','العمولات والباقات'],['التحويلات','مصادر العملاء والطلبات']]);case'الدعم':return customerSupportWorkspace();default:return genericPage('الإعدادات','إدارة الحساب والمنصة.',[['الحساب','بيانات الحساب وتسجيل الدخول'],['الصلاحيات','الأدوار والوصول'],['إعدادات المنصة','الهوية والإعدادات العامة']])}}
 const moduleAliases={'الرئيسية':['HOME','DASHBOARD'],'الموديولات':['MODULES'],'المجالات والخدمات':['SECTORS','SERVICES'],'التجارة والأزياء':['FASHION','RETAIL'],'البقالة والسوبر ماركت':['GROCERY'],'المطاعم والمطابخ':['RESTAURANTS'],'المنظومة الطبية':['MEDICAL','HEALTH'],'الصيانة':['MAINTENANCE'],'الخدمات المهنية':['PROFESSIONAL','ERP'],'MantiGO والمزايدات':['MANTIGO','REVERSE_BIDDING'],'الزواج':['MATRIMONY'],'الوظائف':['JOBS'],'التعليم':['EDUCATION'],'المستعمل':['USED_ITEMS'],'التسويق والإعلان':['MARKETING','ADVERTISING'],'خدمات التسويق الرقمي SMM':['SMM'],'المستخدمون وCRM':['CRM','USERS'],'الطلبات والعمليات':['ORDERS','OPERATIONS'],'العمولات والباقات':['FINANCE','COMMISSIONS'],'التقارير والتحليلات':['ANALYTICS','REPORTS'],'الدعم والحوكمة':['GOVERNANCE','SUPPORT'],'الإعدادات':['SETTINGS']};
-function normCode(v){return String(v||'').trim().toUpperCase().replace(/[\\s-]+/g,'_')}
+function normCode(v){return String(v||'').trim().toUpperCase().replace(/[\s-]+/g,'_')}
 function moduleFlagKeys(name){return [normCode(name)].concat((moduleAliases[name]||[]).map(normCode))}
 function moduleEnabled(name){for(const key of moduleFlagKeys(name)){for(const feature of ['MODULE_ENABLED','ENABLED','VISIBILITY']){const flag=live.flags[key+':'+feature];if(flag)return flag.enabled!==false}}return true}
 function featureEnabled(moduleCode,featureCode){const a=live.flags[normCode(moduleCode)+':'+normCode(featureCode)];const b=live.flags[':'+normCode(featureCode)];return a?.enabled===true||b?.enabled===true}
