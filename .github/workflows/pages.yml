@@ -31,6 +31,9 @@ jobs:
       - name: Syntax check
         run: |
           node --check web/app.js
+          ! grep -Eq 'signInWithOtp|verifyOtp|sendOtp|resend-otp|one-time-code|رمز التحقق|رمز البريد' web/app.js
+          grep -q 'signInWithGoogle' web/app.js
+          grep -q 'id="google-auth"' web/app.js
           node --check web/smm.js
           node --check web/home.js
           node --check web/android-parity-catalog.js
