@@ -339,9 +339,15 @@ function authView(msg='',otpMode=false,emailValue='',mode=authIntent){
 async function sendOtp(existingEmail=''){
  if(authSendInFlight)return;
  authSendInFlight=true;
- const rawEmail=existingEmail||document.getElementById('email')?.value||'';
- const email=rawEmail.normalize('NFKC').replace(/[\u0000-\u001F\u007F-\u009F\u061C\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,'').replace(/[\u00A0\u2000-\u200A]/g,' ').trim().toLowerCase();
- if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){authSendInFlight=false;return authView('أدخل بريدًا إلكترونيًا صحيحًا.',false,email,authIntent);}
+ const rawEmail=String(existingEmail||document.getElementById('email')?.value||'');
+ const email=rawEmail.normalize('NFKC')
+  .replace(/[\\u0000-\\u001F\\u007F-\\u009F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]/g,'')
+  .replace(/[\\s\\u00A0\\u2000-\\u200A]+/g,'')
+  .trim().toLowerCase();
+ if(!/^[a-z0-9.!#$%&'*+/=?^_\`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(email)){
+  authSendInFlight=false;
+  return authView('صيغة البريد غير صحيحة. استخدم مثلًا: name@example.com',false,email,authIntent);
+ }
  const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
  if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
  if(authIntent==='register')try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,source:'email',createdAt:Date.now()}))}catch(_){}
@@ -353,20 +359,14 @@ async function sendOtp(existingEmail=''){
    const code=String(error.code||error.status||'').toLowerCase();
    const message=String(error.message||'').trim();
    const rateLimited=/rate.?limit|too many|60 seconds|429|over_email_send_rate_limit/i.test(code+' '+message);
-   const friendly=rateLimited
-     ? 'تم تجاوز حد إرسال رموز البريد مؤقتًا. انتظر قليلًا ثم أعد المحاولة.'
-     : (message||'تعذر إرسال رمز التحقق.');
+   const friendly=rateLimited?'تم تجاوز حد إرسال رموز البريد مؤقتًا. انتظر قليلًا ثم أعد المحاولة.':(message||'تعذر إرسال رمز التحقق.');
    return authView('تعذر إرسال رمز التحقق: '+friendly,false,email,authIntent);
   }
   authView('',true,email,authIntent);
  }catch(e){
   const message=String(e?.message||'').trim();
   const rateLimited=/rate.?limit|too many|60 seconds|429|over_email_send_rate_limit/i.test(message);
-  const friendly=e?.message==='AUTH_OTP_SEND_TIMEOUT'
-    ? 'انتهت مهلة إرسال الرمز. تحقق من اتصال الإنترنت ثم أعد المحاولة.'
-    : rateLimited
-      ? 'تم تجاوز حد إرسال رموز البريد مؤقتًا. انتظر قليلًا ثم أعد المحاولة.'
-      : (message||'تعذر إرسال رمز التحقق. أعد المحاولة.');
+  const friendly=e?.message==='AUTH_OTP_SEND_TIMEOUT'?'انتهت مهلة إرسال الرمز. تحقق من اتصال الإنترنت ثم أعد المحاولة.':rateLimited?'تم تجاوز حد إرسال رموز البريد مؤقتًا. انتظر قليلًا ثم أعد المحاولة.':(message||'تعذر إرسال رمز التحقق. أعد المحاولة.');
   return authView('تعذر إرسال رمز التحقق: '+friendly,false,email,authIntent);
  }finally{authSendInFlight=false}
 }
