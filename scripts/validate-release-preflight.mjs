@@ -38,8 +38,8 @@ if (!/signInWithOAuth\(\{provider:\s*['"]google['"]/.test(app) ||
     !/detectSessionInUrl\s*:\s*true/.test(app)) {
   throw new Error('Production auth flow is missing the secure Google OAuth redirect/session detection guard.');
 }
-if (!/signInWithOtp\(\{email,options:\{shouldCreateUser\}\}/.test(app) ||
-    !/verifyOtp\\(\\{email,token,type:\\s*['"]email['"]\\}\\)/.test(app)) {
+if (!app.includes("signInWithOtp({email,options:{shouldCreateUser}})") ||
+    !app.includes("verifyOtp({email,token,type:'email'})")) {
   throw new Error('Production auth flow is missing the Email OTP fallback guard.');
 }
 if (!/Mantiqati X|MNTY/i.test(index)) {
