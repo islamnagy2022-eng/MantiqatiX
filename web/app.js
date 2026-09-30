@@ -965,5 +965,10 @@ window.MXHomeLanding?MXHomeLanding():landingView();return;
 }
 if(session?.user&&!authRenderLock)enterAuthenticatedApp(session.user);
 });
+// Explicit browser globals used by the public landing page buttons.
+window.openPlatform=openPlatform;
+window.authView=authView;
+window.accountView=accountView;
+window.renderApp=renderApp;
 window.MNTYBootAuth=bootAuth;
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',bootAuth,{once:true});else bootAuth();
