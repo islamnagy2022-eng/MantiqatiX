@@ -77,7 +77,8 @@ try{
  if(m.error)throw m.error;
  live.memberships=m.data||[];
  const savedId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
- const active=live.memberships.find(m=>m.id===savedId)||live.memberships[0];
+ const preferredIds=[live.activeMembershipId,savedId].filter(Boolean);
+ const active=preferredIds.map(id=>live.memberships.find(m=>m.id===id)).find(Boolean)||live.memberships[0];
  if(active){window.MNTYActiveMembershipId=active.id;localStorage.setItem('MNTYActiveMembershipId',active.id);}
  live.activeMembershipId=active?.id||null;
  live.role=String(active?.role||'CUSTOMER').toUpperCase();
