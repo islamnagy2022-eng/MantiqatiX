@@ -42,7 +42,7 @@ const smm = fs.readFileSync('web/smm.js', 'utf8');
 if (app.includes('signInWithOtp(') || app.includes('verifyOtp(') || smm.includes('signInWithOtp(') || smm.includes('verifyOtp(')) {
   throw new Error('Production auth flow still exposes an Email OTP path.');
 }
-if (!/signInWithOAuth\\(\\{provider:\s*['"]google['"]/.test(smm) || !smm.includes('id="google-auth"')) {
+if (!smm.includes("signInWithOAuth({provider:'google',options:") || !smm.includes('id="google-auth"')) {
   throw new Error('SMM production auth flow is not Google-only.');
 }
 if (!/MantiqatiX/i.test(index)) {
