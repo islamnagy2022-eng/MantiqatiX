@@ -130,7 +130,7 @@ jobs:
           test -n "$PAGE_URL"
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
-          grep -Eq "Mantiqati X|MNTY" "$TMP_PAGE"
+          grep -Fq "MantiqatiX" "$TMP_PAGE"
           for asset in config.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
