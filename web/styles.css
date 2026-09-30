@@ -6,7 +6,7 @@
 
 
 /* ============================================================
-   MNTY HOMEPAGE — production visual rebuild
+   MantiqatiX HOMEPAGE — production visual rebuild
    Reference: supplied MantiqatiX homepage composition.
    Data remains live; decorative media never represents providers.
    ============================================================ */
@@ -210,7 +210,7 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 }
 @media(max-width:380px){.mx-side-banner{width:46px;height:140px}.mx-side-banner--right{right:3px}.mx-side-banner--left{left:3px}.mx-side-banner__screen{right:6px}.mx-side-banner__copy strong{font-size:6px}.mx-side-banner__copy button{font-size:5px;padding:3px 4px}}
 
-/* MNTY production cover advertising */
+/* MantiqatiX production cover advertising */
 .mx-cover-stage{width:100%;padding:0 22px 22px;box-sizing:border-box}
 .mx-cover-ad{direction:rtl;z-index:120}
 .mx-cover-ad[hidden]{display:none!important}
