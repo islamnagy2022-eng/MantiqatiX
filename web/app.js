@@ -679,7 +679,31 @@ async function requestAdBooking(duration='QUARTERLY'){
     return null;
   }
 }
-async function createMarketingLead(){if(!user?.id)return authView();const title=window.prompt('عنوان احتياج التسويق');if(!title?.trim())return;const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');if(!description?.trim())return;const {data,error}=await sb.from('marketing_leads').insert({requester_user_id:user.id,requester_business_id:live.businessId||null,title:title.trim(),description:description.trim(),currency:'EGP',status:'NEW',source:'WEB'}).select('id').single();if(error)return showToast('تعذر إنشاء طلب التسويق: '+error.message,'error');live.counts.leads=(live.counts.leads||0)+1;showToast('تم إنشاء طلب التسويق'+(data?.id?' #'+data.id:''),'success');renderApp()}
+async async function createMarketingLead(){
+ if(!user?.id)return authView();
+ const overlay=document.createElement('div');overlay.className='mx-modal';
+ overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">CRM LEAD</span><h2>إنشاء Lead جديد</h2><p>سجّل احتياج العميل لمتابعته داخل CRM.</p></div><button type="button" class="text-btn" id="close-create-lead">إغلاق</button></div><div class="form-grid"><label class="field"><span>عنوان الاحتياج *</span><input id="lead-title" maxlength="160" placeholder="مثال: إدارة إعلانات النشاط"></label><label class="field"><span>وصف الاحتياج *</span><textarea id="lead-description" rows="5" maxlength="4000" placeholder="اكتب تفاصيل الخدمة المطلوبة..."></textarea></label><label class="field"><span>الميزانية من (اختياري)</span><input id="lead-budget-min" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label><label class="field"><span>الميزانية إلى (اختياري)</span><input id="lead-budget-max" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label><label class="field"><span>منطقة الخدمة (اختياري)</span><input id="lead-service-area" maxlength="240" placeholder="المدينة / المنطقة"></label></div><div class="action-bar"><button type="button" class="btn btn-outline" id="cancel-create-lead">إلغاء</button><button type="button" class="btn btn-primary" id="save-create-lead">حفظ Lead</button></div></div>';
+ document.body.appendChild(overlay);
+ const close=()=>overlay.remove();
+ overlay.querySelector('#close-create-lead')?.addEventListener('click',close);
+ overlay.querySelector('#cancel-create-lead')?.addEventListener('click',close);
+ overlay.querySelector('#save-create-lead')?.addEventListener('click',async()=>{
+  const title=overlay.querySelector('#lead-title')?.value?.trim();
+  const description=overlay.querySelector('#lead-description')?.value?.trim();
+  const minRaw=overlay.querySelector('#lead-budget-min')?.value?.trim();
+  const maxRaw=overlay.querySelector('#lead-budget-max')?.value?.trim();
+  const serviceArea=overlay.querySelector('#lead-service-area')?.value?.trim()||null;
+  const budgetMin=minRaw===''?null:Number(minRaw);
+  const budgetMax=maxRaw===''?null:Number(maxRaw);
+  if(!title||!description)return showToast('أدخل عنوان الاحتياج ووصفه.','error');
+  if((budgetMin!=null&&!Number.isFinite(budgetMin))||(budgetMax!=null&&!Number.isFinite(budgetMax))||((budgetMin!=null&&budgetMax!=null)&&budgetMax<budgetMin))return showToast('تحقق من نطاق الميزانية.','error');
+  const btn=overlay.querySelector('#save-create-lead');if(btn){btn.disabled=true;btn.textContent='جارٍ الحفظ...'}
+  const {data,error}=await sb.from('marketing_leads').insert({requester_user_id:user.id,requester_business_id:live.businessId||null,title,description,budget_min:budgetMin,budget_max:budgetMax,currency:'EGP',service_area:serviceArea,status:'NEW',source:'WEB'}).select('id').single();
+  if(error){if(btn){btn.disabled=false;btn.textContent='حفظ Lead'}return showToast('تعذر إنشاء طلب التسويق: '+error.message,'error')}
+  close();live.counts.leads=(live.counts.leads||0)+1;showToast('تم إنشاء Lead'+(data?.id?' #'+data.id:''),'success');await renderApp({forceWorkspace:true});
+ });
+ overlay.querySelector('#lead-title')?.focus();
+}
 async function createGlobalAdFromAdmin(){
  if(!user?.id)return authView();
  if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))return showToast('هذه العملية للإدارة فقط.','error');
