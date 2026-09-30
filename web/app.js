@@ -545,7 +545,24 @@ function moduleFlagKeys(name){return [normCode(name)].concat((moduleAliases[name
 function moduleEnabled(name){for(const key of moduleFlagKeys(name)){for(const feature of ['MODULE_ENABLED','ENABLED','VISIBILITY']){const flag=live.flags[key+':'+feature];if(flag)return flag.enabled!==false}}return true}
 function featureEnabled(moduleCode,featureCode){const a=live.flags[normCode(moduleCode)+':'+normCode(featureCode)];const b=live.flags[':'+normCode(featureCode)];return a?.enabled===true||b?.enabled===true}
 function canManage(){return ['ADMIN','OWNER','MANAGER'].includes(live.role)}
-function selectModule(name){if(isCustomerMode()){showToast('دور العميل لا يملك صلاحية دخول لوحة التشغيل. استخدم الصفحة الرئيسية لاكتشاف الخدمات وطلبها.','error');return}if(name!=='ملف نشاطي'&&!moduleEnabled(name)){showToast('هذه الوحدة غير مفعلة لهذا النطاق.','error');return}current=name;query='';renderApp()}
+function syncActiveMembershipState(){
+ const id=live.activeMembershipId||window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
+ const active=live.memberships.find(m=>m.id===id&&m.status==='ACTIVE');
+ if(!active)return null;
+ live.activeMembershipId=active.id;
+ window.MNTYActiveMembershipId=active.id;
+ localStorage.setItem('MNTYActiveMembershipId',active.id);
+ live.role=String(active.role||'CUSTOMER').toUpperCase();
+ live.businessId=active.business_id||null;live.tenantId=active.tenant_id||null;live.organizationId=active.organization_id||null;live.branchId=active.branch_id||null;live.permissions=active.permissions||{};
+ return active;
+}
+function selectModule(name){
+ const active=syncActiveMembershipState();
+ if(isCustomerMode()){showToast('دور العميل لا يملك صلاحية دخول لوحة التشغيل. استخدم الصفحة الرئيسية لاكتشاف الخدمات وطلبها.','error');return}
+ if(['المستخدمون وCRM','التسويق والإعلان','خدمات التسويق الرقمي SMM','الطلبات والعمليات','العمولات والباقات','التقارير والتحليلات','الدعم والحوكمة','طلبات التسجيل','الإعدادات'].includes(name)&&!active){showToast('تعذر التحقق من العضوية التشغيلية الحالية.','error');return}
+ if(name!=='ملف نشاطي'&&!moduleEnabled(name)){showToast('هذه الوحدة غير مفعلة لهذا النطاق.','error');return}
+ current=name;query='';renderApp({forceWorkspace:true})
+}
 function providerImageUrl(path,version='1'){if(!path)return '';try{const url=sb.storage.from('mantiqatix-profile-media').getPublicUrl(path)?.data?.publicUrl||'';return url?(url+'?v='+encodeURIComponent(version)) : ''}catch(_){return ''}}
 async function prepareProviderImage(file){if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type))throw new Error('اختر صورة JPG أو PNG أو WebP.');if(file.size>5*1024*1024)throw new Error('حجم الصورة يجب ألا يتجاوز 5MB.');return new Promise((resolve,reject)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{try{const max=1600,scale=Math.min(1,max/Math.max(img.width,img.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.toBlob(blob=>{URL.revokeObjectURL(url);if(!blob)return reject(new Error('تعذر تجهيز الصورة.'));resolve(blob)},'image/webp',.86)}catch(e){URL.revokeObjectURL(url);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('تعذر قراءة الصورة.'))};img.src=url})}
 async function saveProviderProfileImage(){if(!user?.id||!live.myProviderProfile)return authView();const input=document.getElementById('provider-image-file');const file=input?.files?.[0];if(!file)return showToast('اختر صورة النشاط أولًا.','error');const btn=document.getElementById('provider-image-save');if(btn){btn.disabled=true;btn.textContent='جارٍ رفع الصورة...'}try{const blob=await prepareProviderImage(file);const path='users/'+user.id+'/providers/'+live.myProviderProfile.id+'/cover.webp';const upload=await sb.storage.from('mantiqatix-profile-media').upload(path,blob,{contentType:'image/webp',upsert:true,cacheControl:'31536000'});if(upload.error)throw upload.error;const {data,error}=await sb.from('marketing_provider_profiles').update({profile_image_path:path,updated_at:new Date().toISOString()}).eq('id',live.myProviderProfile.id).eq('owner_user_id',user.id).select('id,profile_image_path').single();if(error)throw error;live.myProviderProfile.profile_image_path=data.profile_image_path;showToast('تم تحديث صورة النشاط بنجاح.','success');renderApp()}catch(e){if(btn){btn.disabled=false;btn.textContent='حفظ صورة النشاط'}showToast('تعذر تحديث صورة النشاط: '+(e?.message||'خطأ غير معروف'),'error')}}
