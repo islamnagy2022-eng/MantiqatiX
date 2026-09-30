@@ -361,7 +361,14 @@
 
     document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
     document.querySelectorAll('[data-auth-link]').forEach(a=>a.onclick=e=>{e.preventDefault();goLogin()});
-    document.querySelectorAll('[data-module]').forEach(btn=>btn.onclick=goLogin);
+    document.querySelectorAll('[data-module]').forEach(btn=>btn.onclick=()=>{
+  const moduleName=btn.dataset.module||'';
+  if(window.MNTYAuthState?.authenticated&&typeof window.selectModule==='function'){
+    window.selectModule(moduleName);
+    return;
+  }
+  goLogin();
+});
     document.querySelectorAll('[data-register-role]').forEach(btn=>btn.onclick=()=>{
       if(typeof authView!=='function') return;
       const role=btn.getAttribute('data-register-role')||'CUSTOMER';
