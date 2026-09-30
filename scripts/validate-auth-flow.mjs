@@ -32,7 +32,7 @@ const required = [
   ["SMM Google sign-in", "sb.auth.signInWithOAuth({provider:'google',options:", smm],
   ["SMM email OTP removed", "signInWithOtp(", smm, true],
   ["SMM OTP verification removed", "verifyOtp(", smm, true],
-  ["SMM Google button", "id="google-auth"", smm],
+  ["SMM Google button", 'id="google-auth"', smm],
   ["SMM no password auth", "signInWithPassword", smm, true],
   ["No direct membership insert", ".from('user_memberships').insert", app, true],
   ["No direct membership update", ".from('user_memberships').update", app, true],
