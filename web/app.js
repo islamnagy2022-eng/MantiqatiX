@@ -689,37 +689,40 @@ async function requestAdBooking(duration='QUARTERLY'){
 }
 async function createMarketingLead(){
  if(!user?.id)return authView();
- const title=window.prompt('عنوان احتياج التسويق');
- if(!title?.trim())return;
- const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');
- if(!description?.trim())return;
- const budgetMinRaw=window.prompt('الميزانية من (اختياري)');
- const budgetMaxRaw=window.prompt('الميزانية إلى (اختياري)');
- const serviceArea=window.prompt('منطقة الخدمة (اختياري)')||'';
- const parseBudget=v=>{if(v===null||v.trim()==='')return null;const n=Number(v);return Number.isFinite(n)&&n>=0?n:null};
- const budget_min=parseBudget(budgetMinRaw);
- const budget_max=parseBudget(budgetMaxRaw);
- if(budgetMinRaw?.trim()&&budget_min===null)return showToast('قيمة الميزانية من غير صحيحة.','error');
- if(budgetMaxRaw?.trim()&&budget_max===null)return showToast('قيمة الميزانية إلى غير صحيحة.','error');
- if(budget_min!==null&&budget_max!==null&&budget_max<budget_min)return showToast('الميزانية إلى يجب أن تكون أكبر من أو تساوي الميزانية من.','error');
- try{
-  const data=await invokeMntyFunction('marketing-lead-create',{
-   title:title.trim(),
-   description:description.trim(),
-   budget_min,
-   budget_max,
-   currency:'EGP',
-   service_area:serviceArea.trim(),
-   requester_business_id:live.businessId||null
-  });
-  live.counts.leads=(live.counts.leads||0)+1;
-  showToast('تم إنشاء طلب التسويق'+(data?.lead?.id?' #'+data.lead.id:''),'success');
-  await renderApp({forceWorkspace:true});
- }catch(e){
-  showToast('تعذر إنشاء طلب التسويق: '+(e?.message||'خطأ غير معروف'),'error');
- }
+ const overlay=document.createElement('div');
+ overlay.className='mx-modal';
+ overlay.innerHTML='<div class="mx-modal-card" role="dialog" aria-modal="true" aria-labelledby="mntyLeadTitle"><div class="section-head"><div><span class="eyebrow">CRM LEAD</span><h2 id="mntyLeadTitle">إنشاء Lead جديد</h2><p>سجّل احتياج العميل لمتابعته داخل CRM.</p></div><button type="button" class="btn btn-outline" data-close-lead>إغلاق</button></div><form id="mntyLeadForm"><label>عنوان الاحتياج *<input name="title" maxlength="160" required placeholder="مثال: إدارة إعلانات النشاط"></label><label>وصف الاحتياج *<textarea name="description" maxlength="4000" required placeholder="اكتب تفاصيل الخدمة المطلوبة..."></textarea></label><label>الميزانية من (اختياري)<input name="budget_min" type="number" min="0" step="0.01" inputmode="decimal"></label><label>الميزانية إلى (اختياري)<input name="budget_max" type="number" min="0" step="0.01" inputmode="decimal"></label><label>منطقة الخدمة (اختياري)<input name="service_area" maxlength="160" placeholder="المدينة / المنطقة"></label><div class="action-bar"><button type="submit" class="btn btn-primary">حفظ Lead</button><button type="button" class="btn btn-outline" data-close-lead>إلغاء</button></div></form></div>';
+ document.body.appendChild(overlay);
+ const close=()=>overlay.remove();
+ overlay.querySelectorAll('[data-close-lead]').forEach(b=>b.addEventListener('click',close));
+ overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+ const form=overlay.querySelector('#mntyLeadForm');
+ form.querySelector('[name="title"]').focus();
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const fd=new FormData(form);
+  const title=String(fd.get('title')||'').trim();
+  const description=String(fd.get('description')||'').trim();
+  const serviceArea=String(fd.get('service_area')||'').trim();
+  const parseBudget=v=>{if(v===null||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)&&n>=0?n:null};
+  const budget_min=parseBudget(fd.get('budget_min'));
+  const budget_max=parseBudget(fd.get('budget_max'));
+  if(!title||!description)return showToast('أكمل الحقول المطلوبة.','error');
+  if(budget_min!==null&&budget_max!==null&&budget_max<budget_min)return showToast('الميزانية إلى يجب أن تكون أكبر من أو تساوي الميزانية من.','error');
+  const submit=form.querySelector('button[type="submit"]');
+  submit.disabled=true;
+  try{
+   const data=await invokeMntyFunction('marketing-lead-create',{title,description,budget_min,budget_max,currency:'EGP',service_area:serviceArea,requester_business_id:live.businessId||null});
+   live.counts.leads=(live.counts.leads||0)+1;
+   close();
+   showToast('تم إنشاء طلب التسويق'+(data?.lead?.id?' #'+data.lead.id:''),'success');
+   await renderApp({forceWorkspace:true});
+  }catch(e){
+   submit.disabled=false;
+   showToast('تعذر إنشاء طلب التسويق: '+(e?.message||'خطأ غير معروف'),'error');
+  }
+ });
 }
-
 async function openLeadDetails(leadId){
  if(!user?.id||!leadId)return authView();
  const lead=live.records.leads.find(x=>x.id===leadId);
