@@ -215,6 +215,8 @@ async function openPrivilegedWorkspace(preferredRole='OWNER'){
  if(!target)return showToast('لا توجد عضوية إدارية نشطة لهذا الحساب.','error');
  window.MNTYAdminReturnMembershipId=target.id;
  localStorage.setItem('MNTYAdminReturnMembershipId',target.id);
+ localStorage.setItem('MNTYWorkspaceMode','ADMIN');
+ localStorage.setItem('MNTYWorkspaceCurrent','الرئيسية');
  if(target.id!==live.activeMembershipId){
    await switchMembership(target.id);
    return;
@@ -451,13 +453,14 @@ function moduleFlagKeys(name){return [normCode(name)].concat((moduleAliases[name
 function moduleEnabled(name){for(const key of moduleFlagKeys(name)){for(const feature of ['MODULE_ENABLED','ENABLED','VISIBILITY']){const flag=live.flags[key+':'+feature];if(flag)return flag.enabled!==false}}return true}
 function featureEnabled(moduleCode,featureCode){const a=live.flags[normCode(moduleCode)+':'+normCode(featureCode)];const b=live.flags[':'+normCode(featureCode)];return a?.enabled===true||b?.enabled===true}
 function canManage(){return ['ADMIN','OWNER','MANAGER'].includes(live.role)}
-async function selectModule(name){
+async async function selectModule(name){
  const role=String(live.role||'').toUpperCase();
  const privileged=['SUPER_ADMIN','OWNER','ADMIN','MANAGER'].includes(role);
  if(name!=='ملف نشاطي'&&!moduleEnabled(name)&&!(privileged&&name==='المستخدمون وCRM')){
    showToast('هذه الوحدة غير مفعلة لهذا النطاق.','error');return;
  }
  current=name;query='';
+ try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',name)}catch(_){}
  try{await renderApp({forceWorkspace:true})}catch(e){showToast('تعذر فتح الوحدة: '+(e?.message||'خطأ غير معروف'),'error')}
 }
 window.openCrmWorkspace=()=>selectModule('المستخدمون وCRM');
@@ -856,7 +859,20 @@ window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:fal
 if(authRenderLock)return;
 authRenderLock=true;
 try{
- await renderApp();
+ let restoreWorkspace=false;
+ try{
+   const savedWorkspace=localStorage.getItem('MNTYWorkspaceMode');
+   const savedCurrent=localStorage.getItem('MNTYWorkspaceCurrent');
+   const privileged=live.memberships?.some?.(m=>m.status==='ACTIVE'&&['SUPER_ADMIN','OWNER','ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));
+   if(savedWorkspace==='ADMIN'&&privileged){
+     restoreWorkspace=true;
+     if(savedCurrent)current=savedCurrent;
+   }else if(savedWorkspace==='ADMIN'&&!privileged){
+     localStorage.removeItem('MNTYWorkspaceMode');
+     localStorage.removeItem('MNTYWorkspaceCurrent');
+   }
+ }catch(_){}
+ await renderApp({forceWorkspace:restoreWorkspace});
  let pending=null;
  try{pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null')}catch(_){}
  if(pending&&['CUSTOMER','SERVICE_PROVIDER'].includes(String(pending.role||'').toUpperCase())&&(!pending.email||String(pending.email||'').toLowerCase()===String(authUser.email||'').toLowerCase())){
