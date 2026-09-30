@@ -74,7 +74,7 @@
 @media(max-width:640px){.mx-order-grid{grid-template-columns:1fr}.mx-order-card{padding:14px}}
 
 
-/* ===== MNTY Cloud Ad Booking Hero ===== */
+/* ===== MantiqatiX Cloud Ad Booking Hero ===== */
 .mx-ad-cloud{
   position:relative;overflow:hidden;min-height:350px;margin:0;
   display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:20px;
@@ -254,7 +254,7 @@
 /* Accessibility: keyboard skip link */
 .mx-skip-link{position:fixed;top:10px;right:10px;z-index:2000;transform:translateY(-180%);background:#101828;color:#fff;border:2px solid #fff;border-radius:10px;padding:10px 14px;font:800 12px Tajawal,Arial,sans-serif;text-decoration:none;box-shadow:0 8px 24px rgba(16,24,40,.25)}.mx-skip-link:focus{transform:translateY(0);outline:3px solid #2563eb;outline-offset:2px}
 @media(prefers-reduced-motion:reduce){.mx-home *,.mx-home *::before,.mx-home *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-/* MNTY first-fold density: eliminate empty hero space and surface discovery earlier */
+/* MantiqatiX first-fold density: eliminate empty hero space and surface discovery earlier */
 .mx-main{padding-top:8px}
 .mx-ad-cloud{min-height:286px;padding:24px 4%;grid-template-columns:1.15fr .85fr;gap:14px;border:1px solid #dce8f5;border-radius:22px;box-shadow:0 12px 30px rgba(16,40,70,.07);margin-bottom:10px}
 .mx-ad-cloud h1{font-size:34px;margin:7px 0 5px}
@@ -274,7 +274,7 @@
 @media(max-width:650px){.mx-ad-cloud{min-height:500px;padding:18px 12px}.mx-ad-cloud h1{font-size:27px}.mx-section{margin-top:12px}}
 
 
-/* ===== MNTY Homepage v2: service-first visual system ===== */
+/* ===== MantiqatiX Homepage v2: service-first visual system ===== */
 .mx-home{
   --mx-bg:#f6f8fc;--mx-surface:#fff;--mx-ink:#10213f;--mx-muted:#61708a;
   --mx-blue:#1769e8;--mx-turq:#08a99b;--mx-purple:#7047e8;
