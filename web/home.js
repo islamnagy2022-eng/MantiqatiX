@@ -296,8 +296,13 @@
     },3000);
     window.addEventListener('pagehide',()=>{if(platformNoticeTimer)window.clearInterval(platformNoticeTimer)},{once:true});
 
-    const goLogin=()=>{if(window.MNTYAuthState?.authenticated&&typeof openPlatform==='function')return openPlatform();return typeof authView==='function'&&authView();};
-    const openAccount=()=>window.MNTYAuthState?.authenticated&&typeof openPlatform==='function'?openPlatform():goLogin();
+    const callAuth=()=>typeof window.authView==='function'?window.authView():typeof authView==='function'?authView():null;
+    const callPlatform=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof openPlatform==='function'?openPlatform():callAuth();
+    const goLogin=()=>window.MNTYAuthState?.authenticated?callPlatform():callAuth();
+    // "حسابي" must open the account page itself, not the workspace.
+    const openAccount=()=>window.MNTYAuthState?.authenticated
+      ? (typeof window.accountView==='function'?window.accountView():typeof accountView==='function'?accountView():callPlatform())
+      : callAuth();
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('mx-login').onclick=openAccount;
     syncHomeAuthState();
