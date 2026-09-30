@@ -320,14 +320,21 @@
     document.getElementById('mx-login').onclick=openAccount;
     syncHomeAuthState();
     document.getElementById('mx-admin-return')?.addEventListener('click',async()=>{
-      const id=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId');
-      if(!id||typeof switchMembership!=='function')return;
       const btn=document.getElementById('mx-admin-return');
       if(btn)btn.disabled=true;
       try{
-        await switchMembership(id);
-        localStorage.removeItem('MNTYAdminReturnMembershipId');
-        window.MNTYAdminReturnMembershipId=null;
+        if(typeof openPrivilegedWorkspace==='function'){
+          await openPrivilegedWorkspace('OWNER');
+          return;
+        }
+        const id=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId');
+        if(id&&typeof switchMembership==='function'){
+          await switchMembership(id);
+          localStorage.removeItem('MNTYAdminReturnMembershipId');
+          window.MNTYAdminReturnMembershipId=null;
+        }else{
+          if(btn)btn.disabled=false;
+        }
       }catch(e){
         if(btn)btn.disabled=false;
       }
