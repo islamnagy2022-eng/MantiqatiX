@@ -104,7 +104,7 @@
         const loginButton=document.getElementById('mx-login');
         if(loginButton){
           loginButton.textContent='حسابي';
-          loginButton.onclick=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
+          loginButton.onclick=()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
         }
         const addButton=document.getElementById('mx-add');
         if(addButton) addButton.onclick=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
