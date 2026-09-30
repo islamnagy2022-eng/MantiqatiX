@@ -340,8 +340,8 @@ async function sendOtp(existingEmail=''){
  if(authSendInFlight)return;
  authSendInFlight=true;
  const rawEmail=existingEmail||document.getElementById('email')?.value||'';
- const email=rawEmail.normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g,'').trim().toLowerCase();
- if(!/^\S+@\S+\.\S+$/.test(email)){authSendInFlight=false;return authView('أدخل بريدًا إلكترونيًا صحيحًا.',false,email,authIntent);}
+ const email=rawEmail.normalize('NFKC').replace(/[\\u0000-\\u001F\\u007F-\\u009F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]/g,'').replace(/[\\u00A0\\u2000-\\u200A]/g,' ').trim().toLowerCase();
+ if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){authSendInFlight=false;return authView('أدخل بريدًا إلكترونيًا صحيحًا.',false,email,authIntent);}
  const button=document.getElementById('send-otp')||document.getElementById('resend-otp');
  if(button){button.disabled=true;button.textContent='جارٍ إرسال الرمز...'}
  if(authIntent==='register')try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({email,role:authRegistrationType,source:'email',createdAt:Date.now()}))}catch(_){}
