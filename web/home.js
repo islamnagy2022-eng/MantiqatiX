@@ -311,11 +311,30 @@
     const callAuth=()=>typeof window.authView==='function'?window.authView():typeof authView==='function'?authView():null;
     const publicHomeToPlatform=()=>typeof openPlatform==='function'?openPlatform():goLogin();
     const callPlatform=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():publicHomeToPlatform();
-    const goLogin=()=>window.MNTYAuthState?.authenticated?callPlatform():callAuth();
+    const hydrateAuthenticatedSession=async()=>{
+      if(window.MNTYAuthState?.authenticated)return true;
+      try{
+        if(typeof sb==='undefined'||!sb?.auth?.getSession)return false;
+        const {data,error}=await sb.auth.getSession();
+        if(error||!data?.session?.user)return false;
+        if(typeof enterAuthenticatedApp==='function'){
+          await enterAuthenticatedApp(data.session.user,{force:true});
+          return !!window.MNTYAuthState?.authenticated;
+        }
+      }catch(_){}
+      return false;
+    };
+    const goLogin=async()=>{
+      if(await hydrateAuthenticatedSession())return callPlatform();
+      return callAuth();
+    };
     // "حسابي" must open the account page itself, not the workspace.
-    const openAccount=()=>window.MNTYAuthState?.authenticated
-      ? (typeof window.accountView==='function'?window.accountView():typeof accountView==='function'?accountView():callPlatform())
-      : callAuth();
+    const openAccount=async()=>{
+      if(await hydrateAuthenticatedSession()){
+        return typeof window.accountView==='function'?window.accountView():typeof accountView==='function'?accountView():callPlatform();
+      }
+      return callAuth();
+    };
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('mx-login').onclick=openAccount;
     syncHomeAuthState();
