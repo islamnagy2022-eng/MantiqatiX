@@ -309,7 +309,7 @@
     window.addEventListener('pagehide',()=>{if(platformNoticeTimer)window.clearInterval(platformNoticeTimer)},{once:true});
 
     const callAuth=()=>typeof window.authView==='function'?window.authView():typeof authView==='function'?authView():null;
-    const callPlatform=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof openPlatform==='function'?openPlatform():callAuth();
+    const callPlatform=()=>typeof openPlatform==='function'?openPlatform():typeof window.openPlatform==='function'?window.openPlatform():callAuth();
     const goLogin=()=>window.MNTYAuthState?.authenticated?callPlatform():callAuth();
     // "حسابي" must open the account page itself, not the workspace.
     const openAccount=()=>window.MNTYAuthState?.authenticated
