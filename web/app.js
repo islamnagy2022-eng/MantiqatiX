@@ -689,49 +689,37 @@ async function requestAdBooking(duration='QUARTERLY'){
 }
 async function createMarketingLead(){
  if(!user?.id)return authView();
- const overlay=document.createElement('div');overlay.className='mx-modal';
- overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">CRM LEAD</span><h2>إنشاء Lead جديد</h2><p>سجّل احتياج العميل لمتابعته داخل CRM.</p></div><button type="button" class="text-btn" id="close-create-lead">إغلاق</button></div><div class="form-grid"><label class="field"><span>عنوان الاحتياج *</span><input id="lead-title" maxlength="160" placeholder="مثال: إدارة إعلانات النشاط"></label><label class="field"><span>وصف الاحتياج *</span><textarea id="lead-description" rows="5" maxlength="4000" placeholder="اكتب تفاصيل الخدمة المطلوبة..."></textarea></label><label class="field"><span>الميزانية من (اختياري)</span><input id="lead-budget-min" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label><label class="field"><span>الميزانية إلى (اختياري)</span><input id="lead-budget-max" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label><label class="field"><span>منطقة الخدمة (اختياري)</span><input id="lead-service-area" maxlength="240" placeholder="المدينة / المنطقة"></label></div><div class="action-bar"><button type="button" class="btn btn-outline" id="cancel-create-lead">إلغاء</button><button type="button" class="btn btn-primary" id="save-create-lead">حفظ Lead</button></div></div>';
- document.body.appendChild(overlay);
- const close=()=>overlay.remove();
- overlay.querySelector('#close-create-lead')?.addEventListener('click',close);
- overlay.querySelector('#cancel-create-lead')?.addEventListener('click',close);
- overlay.querySelector('#save-create-lead')?.addEventListener('click',async()=>{
-  const title=overlay.querySelector('#lead-title')?.value?.trim();
-  const description=overlay.querySelector('#lead-description')?.value?.trim();
-  const minRaw=overlay.querySelector('#lead-budget-min')?.value?.trim();
-  const maxRaw=overlay.querySelector('#lead-budget-max')?.value?.trim();
-  const serviceArea=overlay.querySelector('#lead-service-area')?.value?.trim()||null;
-  const budgetMin=minRaw===''?null:Number(minRaw);
-  const budgetMax=maxRaw===''?null:Number(maxRaw);
-  if(!title||!description)return showToast('أدخل عنوان الاحتياج ووصفه.','error');
-  if((budgetMin!=null&&!Number.isFinite(budgetMin))||(budgetMax!=null&&!Number.isFinite(budgetMax))||((budgetMin!=null&&budgetMax!=null)&&budgetMax<budgetMin))return showToast('تحقق من نطاق الميزانية.','error');
-  const btn=overlay.querySelector('#save-create-lead');if(btn){btn.disabled=true;btn.textContent='جارٍ الحفظ...'}
-  const {data,error}=await sb.from('marketing_leads').insert({requester_user_id:user.id,requester_business_id:live.businessId||null,title,description,budget_min:budgetMin,budget_max:budgetMax,currency:'EGP',service_area:serviceArea,status:'NEW',source:'WEB'}).select('id').single();
-  if(error){if(btn){btn.disabled=false;btn.textContent='حفظ Lead'}return showToast('تعذر إنشاء طلب التسويق: '+error.message,'error')}
-  close();live.counts.leads=(live.counts.leads||0)+1;showToast('تم إنشاء Lead'+(data?.id?' #'+data.id:''),'success');await renderApp({forceWorkspace:true});
- });
- overlay.querySelector('#lead-title')?.focus();
+ const title=window.prompt('عنوان احتياج التسويق');
+ if(!title?.trim())return;
+ const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');
+ if(!description?.trim())return;
+ const budgetMinRaw=window.prompt('الميزانية من (اختياري)');
+ const budgetMaxRaw=window.prompt('الميزانية إلى (اختياري)');
+ const serviceArea=window.prompt('منطقة الخدمة (اختياري)')||'';
+ const parseBudget=v=>{if(v===null||v.trim()==='')return null;const n=Number(v);return Number.isFinite(n)&&n>=0?n:null};
+ const budget_min=parseBudget(budgetMinRaw);
+ const budget_max=parseBudget(budgetMaxRaw);
+ if(budgetMinRaw?.trim()&&budget_min===null)return showToast('قيمة الميزانية من غير صحيحة.','error');
+ if(budgetMaxRaw?.trim()&&budget_max===null)return showToast('قيمة الميزانية إلى غير صحيحة.','error');
+ if(budget_min!==null&&budget_max!==null&&budget_max<budget_min)return showToast('الميزانية إلى يجب أن تكون أكبر من أو تساوي الميزانية من.','error');
+ try{
+  const data=await invokeMntyFunction('marketing-lead-create',{
+   title:title.trim(),
+   description:description.trim(),
+   budget_min,
+   budget_max,
+   currency:'EGP',
+   service_area:serviceArea.trim(),
+   requester_business_id:live.businessId||null
+  });
+  live.counts.leads=(live.counts.leads||0)+1;
+  showToast('تم إنشاء طلب التسويق'+(data?.lead?.id?' #'+data.lead.id:''),'success');
+  await renderApp({forceWorkspace:true});
+ }catch(e){
+  showToast('تعذر إنشاء طلب التسويق: '+(e?.message||'خطأ غير معروف'),'error');
+ }
 }
-async function createGlobalAdFromAdmin(){
- if(!user?.id)return authView();
- if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))return showToast('هذه العملية للإدارة فقط.','error');
- const title=document.getElementById('global-ad-title')?.value?.trim();
- const creative=document.getElementById('global-ad-creative')?.value?.trim();
- const target=document.getElementById('global-ad-target')?.value?.trim()||null;
- if(!title||!creative)return showToast('أدخل عنوان الإعلان ورابط الصورة/التصميم.','error');
- if(!/^https?:\/\//i.test(creative))return showToast('رابط التصميم يجب أن يبدأ بـ https:// أو http://','error');
- const {data,error}=await sb.rpc('admin_create_global_ad',{p_title:title,p_creative_url:creative,p_target_url:target});
- if(error)return showToast('تعذر إضافة الإعلان: '+(error.message||'خطأ غير معروف'),'error');
- showToast('تمت إضافة الإعلان العام مجاناً وتفعيله.','success');
- document.getElementById('global-ad-title').value='';
- document.getElementById('global-ad-creative').value='';
- document.getElementById('global-ad-target').value='';
-}
-function globalAdAdminPanel(){
- if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))return '';
- return '<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">إدارة الإعلانات العامة</span><h2>إضافة إعلان MNTY مجاني</h2><p>يظهر الإعلان لجميع المناطق عند عدم وجود إعلان جغرافي مطابق، ويمكن للإدارة إضافته دون رسوم.</p></div></div><div class="grid3" style="margin-top:12px"><label>عنوان الإعلان<input id="global-ad-title" class="input" placeholder="مثال: سجّل نشاطك على MNTY"></label><label>رابط التصميم<input id="global-ad-creative" class="input" placeholder="https://.../creative.svg"></label><label>رابط الوجهة<input id="global-ad-target" class="input" placeholder="https://..."></label></div><div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createGlobalAdFromAdmin()">إضافة الإعلان مجاناً</button></div></section>';
-}
-function marketingWorkspace(){return workspaceHead('MANTIQATIX MARKETING','مركز التسويق والإعلان','إدارة الحملات، شركات التسويق، الإعلانات ومصادر العملاء من البيانات الفعلية.','MARKETING')+workspaceCards([['المشروعات',countOrDash('projects'),'مشروعات التسويق المرئية وفق RLS'],['العملاء المحتملون',countOrDash('leads'),'طلبات التسويق الفعلية'],['الإعلانات',countOrDash('ads'),'إعلانات مرئية وفق RLS'],['شركات التسويق',countOrDash('providers'),'ملفات مقدمي التسويق'],['الخدمات',live.records.services.length,'الخدمات التسويقية النشطة'],['التقارير','—','لا يتم عرض رقم غير محسوب فعلياً']])+ '<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">حجز الظهور الإعلاني</span><h2>اختر مدة الحجز المناسبة لنشاطك</h2><p>طلب الحجز مبدئي؛ يتم تأكيد التوفر والسعر ثم استكمال المسار المالي قبل تفعيل الإعلان.</p></div></div><div class="grid3" style="margin-top:12px"><article class="card" style="padding:16px"><b>ربع سنوي</b><p>ظهور إعلاني لمدة 3 أشهر.</p><button class="btn btn-outline" onclick="requestAdBooking(&quot;QUARTERLY&quot;)">طلب حجز</button></article><article class="card" style="padding:16px;border-color:#2563eb"><b>نصف سنوي</b><p>ظهور إعلاني لمدة 6 أشهر.</p><button class="btn btn-primary" onclick="requestAdBooking(&quot;HALF_YEARLY&quot;)">طلب حجز</button></article><article class="card" style="padding:16px"><b>سنوي</b><p>ظهور إعلاني لمدة 12 شهرًا.</p><button class="btn btn-outline" onclick="requestAdBooking(&quot;ANNUAL&quot;)">طلب حجز</button></article></div></section><div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ إنشاء طلب تسويقي</button></div>'+globalAdAdminPanel()+recordsTable('طلبات التسويق',live.records.leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('الإعلانات',live.records.ads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['الموافقة',r=>r.approval_status||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('المشروعات',live.records.projects,[['النوع',r=>r.project_type||'—'],['الحالة',r=>r.status||'—'],['القيمة',r=>r.gross_value!=null?(r.gross_value+' '+(r.currency||'')):'—'],['العمولة',r=>r.platform_commission!=null?(r.platform_commission+' '+(r.currency||'')):'—']])+recordsTable('الخدمات التسويقية النشطة',live.records.services,[['الخدمة',r=>r.name_ar||r.name_en||'—'],['الكود',r=>r.code||'—'],['الفئة',r=>r.category_code||'—'],['الحالة',r=>r.status||'—']])}
+
 async function openLeadDetails(leadId){
  if(!user?.id||!leadId)return authView();
  const lead=live.records.leads.find(x=>x.id===leadId);
