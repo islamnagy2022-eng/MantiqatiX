@@ -310,7 +310,7 @@
 
     const callAuth=()=>typeof window.authView==='function'?window.authView():typeof authView==='function'?authView():null;
     const publicHomeToPlatform=()=>typeof openPlatform==='function'?openPlatform():goLogin();
-    const callPlatform=()=>typeof window.openPlatform==='function'?window.openPlatform():publicHomeToPlatform();
+    const callPlatform=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():publicHomeToPlatform();
     const goLogin=()=>window.MNTYAuthState?.authenticated?callPlatform():callAuth();
     // "حسابي" must open the account page itself, not the workspace.
     const openAccount=()=>window.MNTYAuthState?.authenticated
@@ -523,6 +523,7 @@
     document.getElementById('mx-home-search').onkeydown=e=>{if(e.key==='Enter')search()};
     document.getElementById('mx-bottom-search').onclick=()=>document.getElementById('mx-home-search').focus();
     document.getElementById('mx-location-btn').onclick=async()=>{const api=window.MNTYLocationAdapter;if(api){await api.requestLocation();loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'');}else goLogin();};
+    window.MNTY_HOME_READY=true;
     loadData();
   };
 })();
