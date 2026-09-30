@@ -207,6 +207,31 @@ async function switchMembership(membershipId){
    await renderApp();
  }
 }
+async function openPrivilegedWorkspace(preferredRole='OWNER'){
+ const privilegedRoles=['SUPER_ADMIN','OWNER','ADMIN','MANAGER'];
+ const wanted=String(preferredRole||'OWNER').toUpperCase();
+ const target=live.memberships.find(m=>m?.status==='ACTIVE'&&String(m.role||'').toUpperCase()===wanted)
+   ||live.memberships.find(m=>m?.status==='ACTIVE'&&privilegedRoles.includes(String(m.role||'').toUpperCase()));
+ if(!target)return showToast('لا توجد عضوية إدارية نشطة لهذا الحساب.','error');
+ window.MNTYAdminReturnMembershipId=target.id;
+ localStorage.setItem('MNTYAdminReturnMembershipId',target.id);
+ if(target.id!==live.activeMembershipId){
+   await switchMembership(target.id);
+   return;
+ }
+ live.role=String(target.role||'').toUpperCase();
+ live.businessId=target.business_id||null;
+ live.tenantId=target.tenant_id||null;
+ live.organizationId=target.organization_id||null;
+ live.branchId=target.branch_id||null;
+ live.permissions=target.permissions||{};
+ current='الرئيسية';
+ query='';
+ await renderApp({forceWorkspace:true});
+ showToast('تم فتح لوحة الإدارة بصلاحية '+roleLabel(live.role),'success');
+}
+window.openPrivilegedWorkspace=openPrivilegedWorkspace;
+
 function roleSwitcher(){
  if(!live.memberships.length)return '';
  const active=live.memberships.find(m=>m.id===live.activeMembershipId)||live.memberships[0];
