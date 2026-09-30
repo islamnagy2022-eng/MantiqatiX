@@ -116,7 +116,7 @@
     app.innerHTML=`<main class="mx-home" dir="rtl"><a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
       <header class="mx-header">
         <div class="mx-header__inner">
-          <a class="mx-brand" href="#mx-home" aria-label="MNTY — MantiqatiX">${logo()}<div><div class="mx-brand__name">MNTY</div><span class="mx-brand__ar">MNTY — MantiqatiX</span></div></a>
+          <a class="mx-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<div><div class="mx-brand__name">MantiqatiX</div><span class="mx-brand__ar">MantiqatiX</span></div></a>
           <label class="mx-search" aria-label="البحث">
             <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
             <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
@@ -138,13 +138,13 @@
 
       <aside class="mx-side-banner mx-side-banner--right" aria-label="مساحة إعلانية جانبية يمين">
         <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
-        <div class="mx-side-banner__screen"><b>MNTY</b><span>مساحة إعلانية</span></div>
+        <div class="mx-side-banner__screen"><b>MantiqatiX</b><span>مساحة إعلانية</span></div>
         <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
       </aside>
       <div class="mx-main" id="mx-home">
         <section class="mx-home-hero" aria-label="اكتشاف الخدمات ومقدمي الخدمات">
           <div class="mx-home-hero__copy">
-            <span class="mx-home-hero__eyebrow">MNTY — MantiqatiX</span>
+            <span class="mx-home-hero__eyebrow">MantiqatiX</span>
             <h1>ابحث عن الخدمة المناسبة ومقدم الخدمة المناسب</h1>
             <p>اكتشف الخدمات والأنشطة المسجلة، تعرّف على مقدميها، ثم اطلب الخدمة وتابعها من تجربة رقمية واحدة.</p>
             <div class="mx-home-hero__actions">
@@ -157,9 +157,9 @@
               <span>✓ الموقع عند الحاجة فقط</span>
             </div>
           </div>
-          <div class="mx-home-hero__visual" aria-label="كيف تعمل MNTY">
+          <div class="mx-home-hero__visual" aria-label="كيف تعمل MantiqatiX">
             <div class="mx-home-hero__glow"></div>
-            <div class="mx-home-hero__brand-card"><b>MNTY</b><span>خدمات · مقدمو خدمات · طلبات</span></div>
+            <div class="mx-home-hero__brand-card"><b>MantiqatiX</b><span>خدمات · مقدمو خدمات · طلبات</span></div>
             <div class="mx-home-hero__steps">
               <article><i>01</i><b>اكتشف</b><span>ابحث عن الخدمة أو النشاط</span></article>
               <article><i>02</i><b>طابق</b><span>استعرض مقدم الخدمة المناسب</span></article>
@@ -178,7 +178,7 @@
         </section>
 
         <section class="mx-platform-notices" aria-label="إشعارات المنصة">
-          <div class="mx-platform-notices__label">تنبيهات MNTY</div>
+          <div class="mx-platform-notices__label">تنبيهات MantiqatiX</div>
           <div class="mx-platform-notices__viewport">
             <div id="mx-platform-notice" class="mx-platform-notice" aria-live="polite"></div>
           </div>
@@ -187,7 +187,7 @@
 
         <section class="mx-section mx-about-section" id="mx-about">
           <div class="mx-section__head">
-            <div><span class="mx-hero__eyebrow">عن MantiqatiX</span><h2>منصة رقمية لاكتشاف الخدمات وربط العملاء بمقدميها</h2><p>تجمع MNTY بين اكتشاف الخدمة، الوصول إلى مقدم الخدمة، الطلب والمتابعة داخل تجربة رقمية موحدة.</p></div>
+            <div><span class="mx-hero__eyebrow">عن MantiqatiX</span><h2>منصة رقمية لاكتشاف الخدمات وربط العملاء بمقدميها</h2><p>تجمع MantiqatiX بين اكتشاف الخدمة، الوصول إلى مقدم الخدمة، الطلب والمتابعة داخل تجربة رقمية موحدة.</p></div>
           </div>
           <div class="mx-about-grid">
             <article class="mx-about-card"><span>01</span><h3>اكتشاف ومطابقة</h3><p>ابحث عن الخدمة أو النشاط المناسب، ثم استعرض البيانات المنشورة من الكتالوج العام عند توفرها.</p></article>
@@ -252,7 +252,7 @@
 
       <footer class="mx-footer" id="mx-contact">
         <div class="mx-footer__inner">
-          <div><div class="mx-footer__brand">MNTY</div><div class="mx-footer__sub">MNTY — MantiqatiX · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
+          <div><div class="mx-footer__brand">MantiqatiX</div><div class="mx-footer__sub">MantiqatiX · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
           <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
           <div><h3>عن Mantiqati X</h3><a href="#" data-auth-link="about">من نحن</a><a href="#" data-auth-link="legal">الشروط والأحكام</a><a href="#" data-auth-link="privacy">سياسة الخصوصية</a></div>
           <div><h3>خدمة العملاء</h3><div class="mx-footer__support">01010171770</div><div class="mx-footer__sub">منصتك في كل مكان</div></div>
@@ -287,7 +287,7 @@
       'استكشف الخدمات ومقدميها من مكان واحد.',
       'احجز إعلان نشاطك مسبقًا بباقة ربع سنوية أو نصف سنوية أو سنوية.',
       'أضف نشاطك إلى المنصة وابدأ في بناء حضورك الرقمي.',
-      'تابع الخدمات والطلبات من خلال تجربة MNTY الموحدة.',
+      'تابع الخدمات والطلبات من خلال تجربة MantiqatiX الموحدة.',
       'MantiqatiX تربط العميل بمقدم الخدمة رقميًا دون الحلول محل مقدم الخدمة.'
     ];
     let platformNoticeIndex=0;
@@ -545,7 +545,7 @@
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
       }catch(error){
         if(requestSequence!==homeLoadSequence)return;
-        console.warn('[MNTY home] public catalog load failed',error);
+        console.warn('[MantiqatiX home] public catalog load failed',error);
         status.textContent='تعذر تحميل البيانات الحية';
         renderServices([]);renderProviders([]);renderSponsored([]);
       }
