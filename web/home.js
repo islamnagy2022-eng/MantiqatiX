@@ -142,26 +142,38 @@
         <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
       </aside>
       <div class="mx-main" id="mx-home">
-        <section class="mx-ad-cloud" aria-label="الإعلان الرئيسي والحجز الإعلاني">
-          <div class="mx-ad-cloud__glow mx-ad-cloud__glow--one"></div>
-          <div class="mx-ad-cloud__glow mx-ad-cloud__glow--two"></div>
-          <div class="mx-ad-cloud__content">
-            <span class="mx-ad-cloud__eyebrow">MNTY · إعلانات بالحجز المسبق</span>
-            <h1>كل الخدمات في منصة واحدة</h1>
-            <p>احجز ظهور نشاطك داخل MantiqatiX باقة إعلانية تناسب مدة حملتك: ربع سنوي، نصف سنوي أو سنوي.</p>
-            <div class="mx-ad-cloud__actions">
-              <button class="mx-btn mx-btn--primary" id="mx-ad-book" type="button">احجز إعلان نشاطك هنا ←</button>
-              <button class="mx-btn mx-btn--light" id="mx-ad-plans" type="button">شاهد باقات الإعلان</button>
+        <section class="mx-home-hero" aria-label="اكتشاف الخدمات ومقدمي الخدمات">
+          <div class="mx-home-hero__copy">
+            <span class="mx-home-hero__eyebrow">MNTY — MantiqatiX</span>
+            <h1>ابحث عن الخدمة المناسبة ومقدم الخدمة المناسب</h1>
+            <p>اكتشف الخدمات والأنشطة المسجلة، تعرّف على مقدميها، ثم اطلب الخدمة وتابعها من تجربة رقمية واحدة.</p>
+            <div class="mx-home-hero__actions">
+              <button class="mx-btn mx-btn--primary" id="mx-hero-search" type="button">ابدأ البحث الآن ←</button>
+              <button class="mx-btn mx-btn--light" id="mx-ad-book" type="button">أعلن عن نشاطك</button>
+            </div>
+            <div class="mx-home-hero__trust">
+              <span>✓ مقدمو خدمات مسجلون</span>
+              <span>✓ بيانات منشورة عند توفرها</span>
+              <span>✓ الموقع عند الحاجة فقط</span>
             </div>
           </div>
-          <div class="mx-ad-cloud__plans" id="mx-ad-plans-grid">
-            <button type="button" class="mx-ad-plan" data-ad-plan="QUARTERLY"><span>01</span><b>ربع سنوي</b><small>حجز إعلاني لمدة 3 أشهر</small></button>
-            <button type="button" class="mx-ad-plan mx-ad-plan--featured" data-ad-plan="SEMIANNUAL"><span>02</span><b>نصف سنوي</b><small>حجز إعلاني لمدة 6 أشهر</small></button>
-            <button type="button" class="mx-ad-plan" data-ad-plan="ANNUAL"><span>03</span><b>سنوي</b><small>حجز إعلاني لمدة 12 شهرًا</small></button>
-          </div>
-          <div class="mx-ad-cloud__visual" aria-hidden="true">
-            <div class="mx-cloud mx-cloud--a"></div><div class="mx-cloud mx-cloud--b"></div><div class="mx-cloud mx-cloud--c"></div>
-            <div class="mx-cloud-screen"><b>MNTY</b><span>إعلان نشاطك هنا</span></div>
+          <div class="mx-home-hero__visual" aria-label="كيف تعمل MNTY">
+            <div class="mx-home-hero__glow"></div>
+            <div class="mx-home-hero__brand-card"><b>MNTY</b><span>خدمات · مقدمو خدمات · طلبات</span></div>
+            <div class="mx-home-hero__steps">
+              <article><i>01</i><b>اكتشف</b><span>ابحث عن الخدمة أو النشاط</span></article>
+              <article><i>02</i><b>طابق</b><span>استعرض مقدم الخدمة المناسب</span></article>
+              <article><i>03</i><b>اطلب</b><span>أنشئ الطلب وتابع حالته</span></article>
+            </div>
+            <div class="mx-home-hero__provider">
+              <div><strong>لأصحاب الأنشطة</strong><span>اعرض نشاطك داخل المنصة</span></div>
+              <button id="mx-ad-plans" type="button">باقات الإعلان ←</button>
+            </div>
+            <div class="mx-home-hero__plans" id="mx-ad-plans-grid" aria-label="باقات الإعلان">
+              <button type="button" class="mx-ad-plan" data-ad-plan="QUARTERLY"><span>01</span><b>ربع سنوي</b><small>3 أشهر</small></button>
+              <button type="button" class="mx-ad-plan mx-ad-plan--featured" data-ad-plan="SEMIANNUAL"><span>02</span><b>نصف سنوي</b><small>6 أشهر</small></button>
+              <button type="button" class="mx-ad-plan" data-ad-plan="ANNUAL"><span>03</span><b>سنوي</b><small>12 شهرًا</small></button>
+            </div>
           </div>
         </section>
 
@@ -328,6 +340,10 @@
       selectAdPlan(btn.dataset.adPlan||'QUARTERLY');
       goLogin();
     });
+    document.getElementById('mx-hero-search').onclick=()=>{
+      const input=document.getElementById('mx-home-search');
+      if(input){input.focus();input.scrollIntoView(scrollOptions('center'));}
+    };
     document.getElementById('mx-ad-book').onclick=()=>{selectAdPlan('QUARTERLY');goLogin();};
     document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center'));
     document.getElementById('mx-bottom-account').onclick=openAccount;
