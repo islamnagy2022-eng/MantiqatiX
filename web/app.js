@@ -453,7 +453,7 @@ function moduleFlagKeys(name){return [normCode(name)].concat((moduleAliases[name
 function moduleEnabled(name){for(const key of moduleFlagKeys(name)){for(const feature of ['MODULE_ENABLED','ENABLED','VISIBILITY']){const flag=live.flags[key+':'+feature];if(flag)return flag.enabled!==false}}return true}
 function featureEnabled(moduleCode,featureCode){const a=live.flags[normCode(moduleCode)+':'+normCode(featureCode)];const b=live.flags[':'+normCode(featureCode)];return a?.enabled===true||b?.enabled===true}
 function canManage(){return ['ADMIN','OWNER','MANAGER'].includes(live.role)}
-async async function selectModule(name){
+async function selectModule(name){
  const role=String(live.role||'').toUpperCase();
  const privileged=['SUPER_ADMIN','OWNER','ADMIN','MANAGER'].includes(role);
  if(name!=='ملف نشاطي'&&!moduleEnabled(name)&&!(privileged&&name==='المستخدمون وCRM')){
