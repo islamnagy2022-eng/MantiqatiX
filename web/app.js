@@ -687,7 +687,7 @@ async function requestAdBooking(duration='QUARTERLY'){
     return null;
   }
 }
-async async function createMarketingLead(){
+async function createMarketingLead(){
  if(!user?.id)return authView();
  const overlay=document.createElement('div');overlay.className='mx-modal';
  overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">CRM LEAD</span><h2>إنشاء Lead جديد</h2><p>سجّل احتياج العميل لمتابعته داخل CRM.</p></div><button type="button" class="text-btn" id="close-create-lead">إغلاق</button></div><div class="form-grid"><label class="field"><span>عنوان الاحتياج *</span><input id="lead-title" maxlength="160" placeholder="مثال: إدارة إعلانات النشاط"></label><label class="field"><span>وصف الاحتياج *</span><textarea id="lead-description" rows="5" maxlength="4000" placeholder="اكتب تفاصيل الخدمة المطلوبة..."></textarea></label><label class="field"><span>الميزانية من (اختياري)</span><input id="lead-budget-min" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label><label class="field"><span>الميزانية إلى (اختياري)</span><input id="lead-budget-max" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label><label class="field"><span>منطقة الخدمة (اختياري)</span><input id="lead-service-area" maxlength="240" placeholder="المدينة / المنطقة"></label></div><div class="action-bar"><button type="button" class="btn btn-outline" id="cancel-create-lead">إلغاء</button><button type="button" class="btn btn-primary" id="save-create-lead">حفظ Lead</button></div></div>';
