@@ -339,7 +339,7 @@
         const role=String(window.MNTYAuthState?.role||'').toUpperCase();
         if(role==='CUSTOMER'){
           try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({role:'SERVICE_PROVIDER',email:window.MNTYAuthState?.email||''}));}catch(_){}
-          return typeof window.accountView==='function'?window.accountView():callAuth();
+          return typeof window.providerOnboardingView==='function'?window.providerOnboardingView():(typeof window.accountView==='function'?window.accountView():callAuth());
         }
         return callPlatform();
       }
