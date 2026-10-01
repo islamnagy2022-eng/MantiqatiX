@@ -67,7 +67,7 @@
     try{
       const cfg=window.MNTY_CONFIG;
       if(!window.supabase?.createClient || !cfg?.supabaseUrl || !cfg?.supabaseKey) return null;
-      return window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+      if(window.MNTY_SB) return window.MNTY_SB; const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey); window.MNTY_SB=sb; return sb;
     }catch(_){return null}
   };
   const readArea = value => {
