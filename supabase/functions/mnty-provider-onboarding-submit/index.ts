@@ -25,7 +25,7 @@ Deno.serve(async(req)=>{
  const {data:gov,error:govErr}=await admin.from("platform_geo_areas").select("id,code,name_ar,name_en").eq("id",String(area.governorate_id)).eq("country_code","EG").eq("level","GOVERNORATE").eq("status","ACTIVE").maybeSingle();
  if(govErr)return json({error:"governorate_lookup_failed"},500);
  if(!gov||gov.code!==String(area.governorate_code)||gov.name_ar!==String(area.governorate_name_ar))return json({error:"invalid_governorate"},400);
- const {data:center,error:centerErr}=await admin.from("platform_geo_areas").select("id,code,name_ar,name_en,parent_id").eq("id",String(area.center_id)).eq("country_code","EG").eq("level","MARKAZ").eq("status","ACTIVE").eq("parent_id",gov.id).maybeSingle();
+ const {data:center,error:centerErr}=await admin.from("platform_geo_areas").select("id,code,name_ar,name_en,parent_id").eq("id",String(area.center_id)).eq("country_code","EG").eq("level","CENTER").eq("status","ACTIVE").eq("parent_id",gov.id).maybeSingle();
  if(centerErr)return json({error:"center_lookup_failed"},500);
  if(!center||center.code!==String(area.center_code)||center.name_ar!==String(area.center_name_ar))return json({error:"invalid_center"},400);
  const normalizedArea={governorate_id:gov.id,governorate_code:gov.code,governorate_name_ar:gov.name_ar,governorate_name_en:gov.name_en||"",center_id:center.id,center_code:center.code,center_name_ar:center.name_ar,center_name_en:center.name_en||""};
