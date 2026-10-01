@@ -333,6 +333,19 @@
       if(await hydrateAuthenticatedSession())return callPlatform();
       return callAuth();
     };
+    const goAdvertise=async()=>{
+      try{localStorage.removeItem('MNTYWorkspaceMode');localStorage.removeItem('MNTYWorkspaceCurrent');}catch(_){}
+      if(await hydrateAuthenticatedSession()){
+        const role=String(window.MNTYAuthState?.role||'').toUpperCase();
+        if(role==='CUSTOMER'){
+          try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({role:'SERVICE_PROVIDER',email:window.MNTYAuthState?.email||''}));}catch(_){}
+          return typeof window.accountView==='function'?window.accountView():callAuth();
+        }
+        return callPlatform();
+      }
+      try{localStorage.setItem('MNTYPendingRegistration',JSON.stringify({role:'SERVICE_PROVIDER',email:''}));}catch(_){}
+      return callAuth();
+    };
     // "حسابي" must open the account page itself, not the workspace.
     const openAccount=async()=>{
       if(await hydrateAuthenticatedSession()){
@@ -376,12 +389,12 @@
       const input=document.getElementById('mx-home-search');
       if(input){input.focus();input.scrollIntoView(scrollOptions('center'));}
     };
-    document.getElementById('mx-ad-book').onclick=()=>{selectAdPlan('QUARTERLY');goLogin();};
+    document.getElementById('mx-ad-book').onclick=()=>{selectAdPlan('QUARTERLY');goAdvertise();};
     document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center'));
     document.getElementById('mx-bottom-account').onclick=openAccount;
     document.getElementById('mx-bottom-add').onclick=goLogin;
     document.getElementById('mx-all').onclick=()=>scrollTo('mx-services');
-    document.getElementById('mx-ad-cta').onclick=goLogin;
+    document.getElementById('mx-ad-cta').onclick=goAdvertise;
 
     document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
     document.querySelectorAll('[data-auth-link]').forEach(a=>a.onclick=e=>{e.preventDefault();goLogin()});
