@@ -8,7 +8,9 @@ const checks = [
   ['renderApp loads live data before workspace restore decision', /async\s+function\s+renderApp\(options=\{\}\)[\s\S]*?await\s+loadLiveData\(\);[\s\S]*?savedWorkspace/],
   ['admin workspace is restored only for privileged active memberships', /savedWorkspace===['"]ADMIN['"][\s\S]*?privileged/],
   ['privileged workspace persists admin mode', /localStorage\.setItem\(['"]MNTYWorkspaceMode['"],['"]ADMIN['"]\)/],
-  ['privileged workspace persists current module', /localStorage\.setItem\(['"]MNTYWorkspaceCurrent['"],['"]الرئيسية['"]\)/]
+  ['privileged workspace persists current module', /localStorage\.setItem\(['"]MNTYWorkspaceCurrent['"],['"]الرئيسية['"]\)/],
+  ['contextual home keeps privileged admin users in workspace', /function\s+openContextualHome\(\)[\s\S]*?privileged[\s\S]*?adminWorkspace[\s\S]*?selectModule\(['"]الرئيسية['"]\)/],
+  ['top home button uses contextual home handler', /go-public-home[^\n]*addEventListener\(['"]click['"],openContextualHome\)/]
 ];
 
 const failed = checks.filter(([name, rule]) => {
