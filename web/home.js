@@ -27,6 +27,11 @@
   let HOME_RUNTIME_FLAGS = null;
   const loadHomeRuntimeFlags = async sb => {
     try {
+      const sessionRes = await sb.auth.getSession();
+      if (sessionRes.error || !sessionRes.data?.session?.user) {
+        HOME_RUNTIME_FLAGS={};
+        return HOME_RUNTIME_FLAGS;
+      }
       const r=await sb.from('platform_feature_flags').select('module_code,feature_code,enabled,configuration').limit(500);
       if(r.error) throw r.error;
       const map={};
