@@ -72,3 +72,35 @@ body{background:var(--light);font-family:Tajawal,Inter,Arial,sans-serif}
 .card{border-radius:16px;box-shadow:0 8px 24px rgba(16,24,40,.05);border-color:#E4E7EC}.module .icon{background:linear-gradient(135deg,#EFF6FF,#F5F3FF);color:#175CD3}.status{background:#ECFDF3;color:#027A48}.count{background:#EEF4FF;color:#175CD3}
 .section-head h2{font-size:22px}.grid3{gap:16px}
 @media(max-width:760px){.shell{display:block}.sidebar{border:0;box-shadow:none;padding:10px}.side-brand{padding-bottom:8px}.nav{display:grid;grid-template-columns:repeat(2,1fr)}.side-support{display:none}.content{padding:10px}.top{border-radius:14px}.top h1{font-size:20px}}
+
+/* ===== MantiqatiX 2.0 — Red & Gold brand system ===== */
+:root{
+  --mx-red:#B5121B;--mx-red-dark:#72070D;--mx-red-bright:#E21B2D;
+  --mx-gold:#F6C453;--mx-gold-dark:#B97812;--mx-cream:#FFF8E7;
+  --mx-ink:#241113;--mx-bg:#FBF8F2;--mx-line:#E9DCC4;
+  --mx-gradient:linear-gradient(135deg,#8D0D16 0%,#E21B2D 52%,#F6C453 100%);
+  --mx-soft:linear-gradient(135deg,#FFF8E7 0%,#FFFDF8 55%,#FBE8E8 100%);
+}
+body{background:var(--mx-bg)}
+.mark{background:#160809;border:1px solid rgba(246,196,83,.55);box-shadow:0 8px 24px rgba(114,7,13,.18)}
+.mark img.mnty-brand-mark{width:100%;height:100%;object-fit:contain;display:block}
+.btn-primary{background:var(--mx-red);box-shadow:0 8px 20px rgba(181,18,27,.2)}
+.landing{background:var(--mx-bg)}
+.landing-nav nav a:hover{color:var(--mx-red)}
+.landing-hero{background:radial-gradient(circle at 12% 20%,#E21B2D18,transparent 28%),radial-gradient(circle at 84% 18%,#F6C45324,transparent 26%),radial-gradient(circle at 70% 90%,#B5121B12,transparent 32%),linear-gradient(135deg,#fffdf8 0%,#fbf3e9 55%,#fff8e7 100%)}
+.hero-copy h1 span{background:var(--mx-gradient);-webkit-background-clip:text;background-clip:text;color:transparent}
+.panel-grid div{background:var(--mx-soft)}
+.feature-icon,.sector-icon{color:var(--mx-red)}
+.sector-icon{background:var(--mx-soft)}
+.feature-grid article:hover,.sector-card:hover{border-color:#E6C66E;box-shadow:0 16px 40px rgba(181,18,27,.12)}
+.plan.featured{border-color:var(--mx-gold)}
+.landing-cta{background:linear-gradient(135deg,#160809 0%,#72070D 58%,#B5121B 100%)}
+.auth{background:radial-gradient(circle at 10% 10%,#FBE1E3,transparent 35%),radial-gradient(circle at 90% 90%,#FFF1C9,transparent 35%),var(--mx-bg)}
+.sponsored-zone{background:linear-gradient(135deg,#fffdf8,#fff8e7);border-color:#E9DCC4}
+.sponsored-badge,.sponsored-card button{background:var(--mx-red)}
+.shell{background:var(--mx-bg)}
+.sidebar{background:#fffdf9;color:#321518;border-left-color:var(--mx-line)}
+.nav button{color:#5B4548}.nav button.active{background:#FBE7E8;color:var(--mx-red)}.nav button:hover{background:#FFF3E8;color:var(--mx-red)}
+.content{background:var(--mx-bg)}.top{border-color:var(--mx-line)}
+.hero{background:linear-gradient(135deg,#160809,#8D0D16 58%,#C88A1C)}
+.card{border-color:var(--mx-line)}.module .icon{background:var(--mx-soft);color:var(--mx-red)}.count{background:#FBE7E8;color:var(--mx-red)}
