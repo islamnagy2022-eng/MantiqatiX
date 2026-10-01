@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const cfg=window.MANTIQATIX_CONFIG;
-const sb=window.MNTY_SB || (window.supabase && window.supabase.createClient ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey) : null);
+const sb=window.MNTY_SB || (window.supabase && window.supabase.createClient ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey) : null); if(sb) window.MNTY_SB=sb;
 if(!cfg || !sb)return;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>Number(v||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' ج.م';
