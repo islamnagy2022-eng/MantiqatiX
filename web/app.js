@@ -863,7 +863,7 @@ function registrationReviewWorkspace(){
  const rows=live.records.registrationRequests||[];
  const html=workspaceHead('REGISTRATION','طلبات التسجيل','اعتماد الحسابات والأنشطة يتم عبر سلطة الخادم مع إنشاء العضوية وتسجيل التدقيق.','ADMIN')
  +workspaceCards([['طلبات معلقة',rows.filter(r=>r.status==='PENDING').length,'طلبات تحتاج قرارًا إداريًا'],['معتمدة',rows.filter(r=>r.status==='APPROVED').length,'طلبات تم ربطها بعضوية'],['مرفوضة',rows.filter(r=>r.status==='REJECTED').length,'طلبات لم يتم اعتمادها']])
- +recordsTable('سجل التسجيلات',rows,[['الدور',r=>r.requested_role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل'],['الحالة',r=>r.status||'—'],['المستخدم',r=>r.user_id||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['إجراء',r=>r.status==='PENDING'?'<div class="mini-actions"><button onclick="reviewRegistration(\\''+esc(r.id)+'\\',\\'APPROVED\\')">اعتماد</button><button onclick="reviewRegistration(\\''+esc(r.id)+'\\',\\'REJECTED\\')">رفض</button></div>':'—']])
+ +recordsTable('سجل التسجيلات',rows,[['الدور',r=>r.requested_role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل'],['الحالة',r=>r.status||'—'],['المستخدم',r=>r.user_id||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['إجراء',r=>r.status==='PENDING'?'<div class="mini-actions"><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'APPROVED\')">اعتماد</button><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'REJECTED\')">رفض</button></div>':'—']])
  +'<div id="provider-onboarding-review-list" style="margin-top:18px"><div class="empty-state">جاري تحميل طلبات تسجيل الأنشطة…</div></div>';
  setTimeout(loadProviderOnboardingReview,0);
  return html;
