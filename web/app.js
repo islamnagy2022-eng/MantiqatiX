@@ -761,7 +761,7 @@ async function openSupportTicket(){
  if(error)return showToast('تعذر إنشاء التذكرة: '+error.message,'error');
  live.counts.support=(live.counts.support||0)+1; showToast('تم فتح التذكرة بنجاح. رقمها '+id,'success'); renderApp();
 }
-async async function accountView(){
+async function accountView(){
  const memberships=(live.memberships||[]).filter(m=>m.status==='ACTIVE');
  let requests=[];
  if(user?.id){
