@@ -801,7 +801,7 @@ async function accountView(){
    centerSelect.innerHTML='<option value="">جارٍ تحميل المراكز...</option>';
    centerSelect.disabled=true;
    if(!governorateId){centerSelect.innerHTML='<option value="">اختر المحافظة أولًا</option>';return}
-   const {data,error}=await sb.from('platform_geo_areas').select('id,code,name_ar,name_en').eq('country_code','EG').eq('level','MARKAZ').eq('status','ACTIVE').eq('parent_id',governorateId).order('code',{ascending:true});
+   const {data,error}=await sb.from('platform_geo_areas').select('id,code,name_ar,name_en').eq('country_code','EG').eq('level','CENTER').eq('status','ACTIVE').eq('parent_id',governorateId).order('code',{ascending:true});
    if(error||!(data||[]).length){centerSelect.innerHTML='<option value="">لا توجد مراكز مسجلة حاليًا لهذه المحافظة</option>';return}
    centerSelect.innerHTML='<option value="">اختر المركز</option>'+(data||[]).map(x=>'<option value="'+esc(x.id)+'" data-code="'+esc(x.code)+'" data-name-ar="'+esc(x.name_ar)+'" data-name-en="'+esc(x.name_en||'')+'">'+esc(x.name_ar)+'</option>').join('');
    centerSelect.disabled=false;
