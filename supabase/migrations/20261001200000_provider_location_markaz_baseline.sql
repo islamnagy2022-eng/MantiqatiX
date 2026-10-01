@@ -4,7 +4,7 @@
 -- in its 2024 publications guide is 2023; this dataset must be reconciled against that directory before
 -- treating it as the authoritative master.
 insert into public.platform_geo_areas(country_code,level,code,parent_id,name_ar,name_en,status)
-select 'EG','MARKAZ',v.code,g.id,v.name_ar,v.name_en,'ACTIVE'
+select 'EG','CENTER',v.code,g.id,v.name_ar,v.name_en,'ACTIVE'
 from (values
 ('EG1102','مركز دمياط','Dumyat','11'),
 ('EG1103','مركز فارسكور','Fariskur','11'),
@@ -180,6 +180,6 @@ on conflict (country_code,level,code) do update set
 do $$
 declare c integer;
 begin
- select count(*) into c from public.platform_geo_areas where country_code='EG' and level='MARKAZ' and status='ACTIVE';
+ select count(*) into c from public.platform_geo_areas where country_code='EG' and level='CENTER' and status='ACTIVE';
  if c < 160 then raise exception 'Provider location baseline incomplete: expected at least 160 centers, found %',c; end if;
 end $$;
