@@ -761,11 +761,11 @@ async function openSupportTicket(){
  if(error)return showToast('تعذر إنشاء التذكرة: '+error.message,'error');
  live.counts.support=(live.counts.support||0)+1; showToast('تم فتح التذكرة بنجاح. رقمها '+id,'success'); renderApp();
 }
-async function accountView(){
+async async function accountView(){
  const memberships=(live.memberships||[]).filter(m=>m.status==='ACTIVE');
  let requests=[];
  if(user?.id){
-  const {data,error}=await sb.from('account_registration_requests').select('id,requested_role,status,reason,created_at,reviewed_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20);
+  const {data,error}=await sb.from('account_registration_requests').select('id,requested_role,status,reason,metadata,created_at,reviewed_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20);
   if(error)return showToast('تعذر تحميل طلبات العضوية: '+error.message,'error');
   requests=data||[];
  }
@@ -774,14 +774,45 @@ async function accountView(){
  const roleOption=(role,label)=>activeRoles.has(role)||pendingRoles.has(role)?'':('<button class="btn btn-outline" id="request-'+role.toLowerCase()+'">'+label+'</button>');
  const requestRows=requests.length?'<div class="request-list">'+requests.slice(0,8).map(r=>'<div class="request-row"><span>'+esc(roleLabel(r.requested_role))+'</span><b>'+esc(r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':'مرفوض')+'</b></div>').join('')+'</div>':'<p class="muted">لا توجد طلبات عضوية إضافية.</p>';
  const membershipRows=memberships.length?'<div class="request-list">'+memberships.map(m=>'<div class="request-row"><span>'+esc(roleContextLabel(m))+'</span><b>نشطة</b></div>').join('')+'</div>':'<p class="muted">لا توجد عضوية تشغيلية نشطة.</p>';
+ const pendingProvider=requests.find(r=>String(r.requested_role||'').toUpperCase()==='SERVICE_PROVIDER'&&r.status==='PENDING');
+ let onboarding=null;
+ if(pendingProvider){
+   const {data}=await sb.from('provider_onboarding_requests').select('id,status,business_name,provider_kind,name_en,description,specialties,service_areas,portfolio,created_at,rejection_reason').eq('registration_request_id',pendingProvider.id).maybeSingle();
+   onboarding=data||null;
+ }
+ const onboardingHtml=pendingProvider&&!onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>استكمال تسجيل النشاط</h3><p class="muted">أدخل بيانات النشاط الأساسية. لن يتم إنشاء نشاط تشغيلي أو منحه صلاحيات مقدم خدمة إلا بعد مراجعة الإدارة.</p></div><span class="count">مراجعة إدارية</span></div><form id="provider-onboarding-form"><div class="grid2"><label class="field"><span>اسم النشاط *</span><input id="po-business-name" maxlength="180" required placeholder="اسم النشاط أو المنشأة"></label><label class="field"><span>القطاع / نوع مقدم الخدمة *</span><select id="po-kind" required><option value="">اختر القطاع</option><option value="FOOD">مطاعم وكافيهات</option><option value="HEALTH">أطباء وعيادات</option><option value="PHARMACY">صيدليات</option><option value="LABS">معامل تحاليل</option><option value="MEDICAL">مراكز طبية</option><option value="REAL_ESTATE">عقارات</option><option value="AUTO">سيارات ونقل</option><option value="HOME">خدمات منزلية</option><option value="EDU">تعليم وتدريب</option><option value="DIGITAL">تسويق وإعلان</option><option value="FITNESS">رياضة ولياقة</option><option value="TRAVEL">سياحة وسفر</option></select></label></div><div class="grid2"><label class="field"><span>الاسم بالإنجليزية</span><input id="po-name-en" maxlength="180"></label><label class="field"><span>مجالات التخصص</span><input id="po-specialties" maxlength="1000" placeholder="مثال: تسويق رقمي، إعلانات، محتوى"></label></div><label class="field"><span>وصف النشاط</span><textarea id="po-description" maxlength="3000" rows="4" placeholder="وصف مختصر وواضح للنشاط والخدمات"></textarea></label><label class="field"><span>مناطق تقديم الخدمة</span><input id="po-service-areas" maxlength="1000" placeholder="مثال: الجيزة، القاهرة، مصر"></label><label class="field"><span>روابط/نماذج أعمال (اختياري)</span><textarea id="po-portfolio" maxlength="2000" rows="2" placeholder="رابط واحد لكل سطر"></textarea></label><div class="action-bar"><button class="btn btn-primary" id="po-submit" type="submit" style="width:auto">إرسال بيانات النشاط للمراجعة</button></div></form></section>':pendingProvider&&onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>بيانات النشاط</h3><p class="muted">'+esc(onboarding.business_name||'—')+' · '+esc(onboarding.provider_kind||'—')+'</p></div><span class="count">'+esc(onboarding.status==='PENDING'?'قيد المراجعة':onboarding.status==='APPROVED'?'معتمد':'مرفوض')+'</span></div>'+(onboarding.rejection_reason?'<p class="muted">سبب الرفض: '+esc(onboarding.rejection_reason)+'</p>':'<p class="muted">تم استلام بيانات النشاط. لا توجد صلاحيات تشغيلية قبل اعتماد الإدارة.</p>')+'</section>':'';
  const requestButtons=roleOption('CUSTOMER','طلب دور عميل')+roleOption('SERVICE_PROVIDER','طلب دور صاحب نشاط / مقدم خدمة');
  const privilegedNote='<p class="muted">الأدوار الإدارية الحساسة مثل Owner وAdmin وManager لا تُمنح بطلب ذاتي؛ يتم ربطها واعتمادها من الإدارة وفق الصلاحيات والسياسات.</p>';
- document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
+ document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
  document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
  document.getElementById('account-logout').onclick=logout;
  const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest(role);};
  document.getElementById('request-customer')?.addEventListener('click',()=>submitRole('CUSTOMER'));
  document.getElementById('request-service_provider')?.addEventListener('click',()=>submitRole('SERVICE_PROVIDER'));
+ document.getElementById('provider-onboarding-form')?.addEventListener('submit',async e=>{
+   e.preventDefault();
+   const btn=document.getElementById('po-submit'); if(btn){btn.disabled=true;btn.textContent='جارٍ إرسال الطلب...'}
+   try{
+     const split=(v,max=30)=>String(v||'').split(/[,\n]/).map(x=>x.trim()).filter(Boolean).slice(0,max);
+     const {data,error}=await sb.functions.invoke('mnty-provider-onboarding-submit',{body:{
+       registration_request_id:pendingProvider.id,tenant_id:'MNTY-PLATFORM',organization_id:'MNTY-MAIN',
+       business_name:document.getElementById('po-business-name')?.value||'',
+       provider_kind:document.getElementById('po-kind')?.value||'',
+       name_en:document.getElementById('po-name-en')?.value||null,
+       description:document.getElementById('po-description')?.value||null,
+       specialties:split(document.getElementById('po-specialties')?.value),
+       service_areas:split(document.getElementById('po-service-areas')?.value),
+       portfolio:split(document.getElementById('po-portfolio')?.value,20)
+     }});
+     if(error)throw error;
+     if(data?.error)throw new Error(data.error);
+     showToast('تم إرسال بيانات النشاط للمراجعة. لن تُمنح صلاحيات تشغيلية قبل الاعتماد.','success');
+     await accountView();
+   }catch(err){
+     if(btn){btn.disabled=false;btn.textContent='إرسال بيانات النشاط للمراجعة'}
+     showToast('تعذر إرسال بيانات النشاط: '+(err?.message||'خطأ غير معروف'),'error');
+   }
+ });
 }
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
