@@ -776,11 +776,16 @@ async function accountView(){
  const membershipRows=memberships.length?'<div class="request-list">'+memberships.map(m=>'<div class="request-row"><span>'+esc(roleContextLabel(m))+'</span><b>نشطة</b></div>').join('')+'</div>':'<p class="muted">لا توجد عضوية تشغيلية نشطة.</p>';
  const pendingProvider=requests.find(r=>String(r.requested_role||'').toUpperCase()==='SERVICE_PROVIDER'&&r.status==='PENDING');
  let onboarding=null;
+ let providerGovernorates=[];
+ if(pendingProvider){
+   const {data:govs}=await sb.from('platform_geo_areas').select('id,code,name_ar,name_en').eq('country_code','EG').eq('level','GOVERNORATE').eq('status','ACTIVE').order('code',{ascending:true});
+   providerGovernorates=govs||[];
+ }
  if(pendingProvider){
    const {data}=await sb.from('provider_onboarding_requests').select('id,status,business_name,provider_kind,name_en,description,specialties,service_areas,portfolio,created_at,rejection_reason').eq('registration_request_id',pendingProvider.id).maybeSingle();
    onboarding=data||null;
  }
- const onboardingHtml=pendingProvider&&!onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>استكمال تسجيل النشاط</h3><p class="muted">أدخل بيانات النشاط الأساسية. لن يتم إنشاء نشاط تشغيلي أو منحه صلاحيات مقدم خدمة إلا بعد مراجعة الإدارة.</p></div><span class="count">مراجعة إدارية</span></div><form id="provider-onboarding-form"><div class="grid2"><label class="field"><span>اسم النشاط *</span><input id="po-business-name" maxlength="180" required placeholder="اسم النشاط أو المنشأة"></label><label class="field"><span>القطاع / نوع مقدم الخدمة *</span><select id="po-kind" required><option value="">اختر القطاع</option><option value="FOOD">مطاعم وكافيهات</option><option value="HEALTH">أطباء وعيادات</option><option value="PHARMACY">صيدليات</option><option value="LABS">معامل تحاليل</option><option value="MEDICAL">مراكز طبية</option><option value="REAL_ESTATE">عقارات</option><option value="AUTO">سيارات ونقل</option><option value="HOME">خدمات منزلية</option><option value="EDU">تعليم وتدريب</option><option value="DIGITAL">تسويق وإعلان</option><option value="FITNESS">رياضة ولياقة</option><option value="TRAVEL">سياحة وسفر</option></select></label></div><div class="grid2"><label class="field"><span>الاسم بالإنجليزية</span><input id="po-name-en" maxlength="180"></label><label class="field"><span>مجالات التخصص</span><input id="po-specialties" maxlength="1000" placeholder="مثال: تسويق رقمي، إعلانات، محتوى"></label></div><label class="field"><span>وصف النشاط</span><textarea id="po-description" maxlength="3000" rows="4" placeholder="وصف مختصر وواضح للنشاط والخدمات"></textarea></label><label class="field"><span>مناطق تقديم الخدمة</span><input id="po-service-areas" maxlength="1000" placeholder="مثال: الجيزة، القاهرة، مصر"></label><label class="field"><span>روابط/نماذج أعمال (اختياري)</span><textarea id="po-portfolio" maxlength="2000" rows="2" placeholder="رابط واحد لكل سطر"></textarea></label><div class="action-bar"><button class="btn btn-primary" id="po-submit" type="submit" style="width:auto">إرسال بيانات النشاط للمراجعة</button></div></form></section>':pendingProvider&&onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>بيانات النشاط</h3><p class="muted">'+esc(onboarding.business_name||'—')+' · '+esc(onboarding.provider_kind||'—')+'</p></div><span class="count">'+esc(onboarding.status==='PENDING'?'قيد المراجعة':onboarding.status==='APPROVED'?'معتمد':'مرفوض')+'</span></div>'+(onboarding.rejection_reason?'<p class="muted">سبب الرفض: '+esc(onboarding.rejection_reason)+'</p>':'<p class="muted">تم استلام بيانات النشاط. لا توجد صلاحيات تشغيلية قبل اعتماد الإدارة.</p>')+'</section>':'';
+ const onboardingHtml=pendingProvider&&!onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>استكمال تسجيل النشاط</h3><p class="muted">أدخل بيانات النشاط الأساسية. لن يتم إنشاء نشاط تشغيلي أو منحه صلاحيات مقدم خدمة إلا بعد مراجعة الإدارة.</p></div><span class="count">مراجعة إدارية</span></div><form id="provider-onboarding-form"><div class="grid2"><label class="field"><span>اسم النشاط *</span><input id="po-business-name" maxlength="180" required placeholder="اسم النشاط أو المنشأة"></label><label class="field"><span>القطاع / نوع مقدم الخدمة *</span><select id="po-kind" required><option value="">اختر القطاع</option><option value="FOOD">مطاعم وكافيهات</option><option value="HEALTH">أطباء وعيادات</option><option value="PHARMACY">صيدليات</option><option value="LABS">معامل تحاليل</option><option value="MEDICAL">مراكز طبية</option><option value="REAL_ESTATE">عقارات</option><option value="AUTO">سيارات ونقل</option><option value="HOME">خدمات منزلية</option><option value="EDU">تعليم وتدريب</option><option value="DIGITAL">تسويق وإعلان</option><option value="FITNESS">رياضة ولياقة</option><option value="TRAVEL">سياحة وسفر</option></select></label></div><div class="grid2"><label class="field"><span>الاسم بالإنجليزية</span><input id="po-name-en" maxlength="180"></label><label class="field"><span>مجالات التخصص</span><input id="po-specialties" maxlength="1000" placeholder="مثال: تسويق رقمي، إعلانات، محتوى"></label></div><label class="field"><span>وصف النشاط</span><textarea id="po-description" maxlength="3000" rows="4" placeholder="وصف مختصر وواضح للنشاط والخدمات"></textarea></label><div class="grid2"><label class="field"><span>المحافظة *</span><select id="po-governorate" required><option value="">اختر المحافظة</option>${providerGovernorates.map(g=>'<option value="'+esc(g.id)+'" data-code="'+esc(g.code)+'" data-name-ar="'+esc(g.name_ar)+'" data-name-en="'+esc(g.name_en||'')+'">'+esc(g.name_ar)+'</option>').join('')}</select></label><label class="field"><span>المركز *</span><select id="po-center" required disabled><option value="">اختر المحافظة أولًا</option></select></label></div><p class="muted" style="margin-top:-8px">تحديد منطقة تقديم الخدمة يتم من خلال المحافظة ثم المركز. لا يتم استخدام الموقع الجغرافي التلقائي بدلًا من الاختيار الإداري.</p><label class="field"><span>روابط/نماذج أعمال (اختياري)</span><textarea id="po-portfolio" maxlength="2000" rows="2" placeholder="رابط واحد لكل سطر"></textarea></label><div class="action-bar"><button class="btn btn-primary" id="po-submit" type="submit" style="width:auto">إرسال بيانات النشاط للمراجعة</button></div></form></section>':pendingProvider&&onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>بيانات النشاط</h3><p class="muted">'+esc(onboarding.business_name||'—')+' · '+esc(onboarding.provider_kind||'—')+'</p></div><span class="count">'+esc(onboarding.status==='PENDING'?'قيد المراجعة':onboarding.status==='APPROVED'?'معتمد':'مرفوض')+'</span></div>'+(onboarding.rejection_reason?'<p class="muted">سبب الرفض: '+esc(onboarding.rejection_reason)+'</p>':'<p class="muted">تم استلام بيانات النشاط. لا توجد صلاحيات تشغيلية قبل اعتماد الإدارة.</p>')+'</section>':'';
  const requestButtons=roleOption('CUSTOMER','طلب دور عميل')+roleOption('SERVICE_PROVIDER','طلب دور صاحب نشاط / مقدم خدمة');
  const privilegedNote='<p class="muted">الأدوار الإدارية الحساسة مثل Owner وAdmin وManager لا تُمنح بطلب ذاتي؛ يتم ربطها واعتمادها من الإدارة وفق الصلاحيات والسياسات.</p>';
  document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
@@ -789,11 +794,29 @@ async function accountView(){
  const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest(role);};
  document.getElementById('request-customer')?.addEventListener('click',()=>submitRole('CUSTOMER'));
  document.getElementById('request-service_provider')?.addEventListener('click',()=>submitRole('SERVICE_PROVIDER'));
+ const govSelect=document.getElementById('po-governorate');
+ const centerSelect=document.getElementById('po-center');
+ govSelect?.addEventListener('change',async ()=>{
+   const governorateId=govSelect.value;
+   centerSelect.innerHTML='<option value="">جارٍ تحميل المراكز...</option>';
+   centerSelect.disabled=true;
+   if(!governorateId){centerSelect.innerHTML='<option value="">اختر المحافظة أولًا</option>';return}
+   const {data,error}=await sb.from('platform_geo_areas').select('id,code,name_ar,name_en').eq('country_code','EG').eq('level','MARKAZ').eq('status','ACTIVE').eq('parent_id',governorateId).order('code',{ascending:true});
+   if(error||!(data||[]).length){centerSelect.innerHTML='<option value="">لا توجد مراكز مسجلة حاليًا لهذه المحافظة</option>';return}
+   centerSelect.innerHTML='<option value="">اختر المركز</option>'+(data||[]).map(x=>'<option value="'+esc(x.id)+'" data-code="'+esc(x.code)+'" data-name-ar="'+esc(x.name_ar)+'" data-name-en="'+esc(x.name_en||'')+'">'+esc(x.name_ar)+'</option>').join('');
+   centerSelect.disabled=false;
+ });
  document.getElementById('provider-onboarding-form')?.addEventListener('submit',async e=>{
    e.preventDefault();
    const btn=document.getElementById('po-submit'); if(btn){btn.disabled=true;btn.textContent='جارٍ إرسال الطلب...'}
    try{
      const split=(v,max=30)=>String(v||'').split(/[,\n]/).map(x=>x.trim()).filter(Boolean).slice(0,max);
+     const gov=document.getElementById('po-governorate');
+     const center=document.getElementById('po-center');
+     const go=gov?.selectedOptions?.[0];
+     const ce=center?.selectedOptions?.[0];
+     if(!go?.value||!ce?.value)throw new Error('يجب اختيار المحافظة والمركز');
+     const serviceArea={governorate_id:go.value,governorate_code:go.dataset.code||'',governorate_name_ar:go.dataset.nameAr||go.textContent.trim(),governorate_name_en:go.dataset.nameEn||'',center_id:ce.value,center_code:ce.dataset.code||'',center_name_ar:ce.dataset.nameAr||ce.textContent.trim(),center_name_en:ce.dataset.nameEn||''};
      const {data,error}=await sb.functions.invoke('mnty-provider-onboarding-submit',{body:{
        registration_request_id:pendingProvider.id,tenant_id:'MNTY-PLATFORM',organization_id:'MNTY-MAIN',
        business_name:document.getElementById('po-business-name')?.value||'',
@@ -801,7 +824,7 @@ async function accountView(){
        name_en:document.getElementById('po-name-en')?.value||null,
        description:document.getElementById('po-description')?.value||null,
        specialties:split(document.getElementById('po-specialties')?.value),
-       service_areas:split(document.getElementById('po-service-areas')?.value),
+       service_areas:[serviceArea],
        portfolio:split(document.getElementById('po-portfolio')?.value,20)
      }});
      if(error)throw error;
