@@ -1,6 +1,6 @@
 const {createClient}=window.supabase;
 const cfg=window.MANTIQATIX_CONFIG;
-const sb=createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
+const sb=window.MNTY_SB || createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
 window.MNTY_SB=sb;
 
 async function invokeMntyFunction(name,body){
