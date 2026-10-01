@@ -814,6 +814,15 @@ async function accountView(){
    }
  });
 }
+async function providerOnboardingView(){
+  await accountView();
+  const form=document.getElementById('provider-onboarding-form');
+  if(form){
+    form.scrollIntoView({behavior:'smooth',block:'start'});
+    window.setTimeout(()=>document.getElementById('po-business-name')?.focus(),250);
+  }
+}
+window.providerOnboardingView=providerOnboardingView;
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
 if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();showToast('تم التحقق من الحساب. العضوية التشغيلية لم تُربط بعد.','success');return}
@@ -825,6 +834,8 @@ function customerSupportWorkspace(){return workspaceHead('SUPPORT','الدعم',
 function governanceWorkspace(){return workspaceHead('GOVERNANCE','الدعم والحوكمة','التذاكر، الرسائل، الإشعارات والصلاحيات في مساحة تشغيلية موحدة.','CONTROL')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'بيانات فعلية وفق RLS'],['الإشعارات',countOrDash('notifications'),'إشعارات الحساب الفعلية'],['الصلاحيات',live.role,'الدور الفعلي من العضوية'],['التدقيق','نشط','السجل الإداري عند توفره'],['المراقبة','نشطة','مؤشرات الأخطاء والتشغيل'],['السياسات','منشورة','السياسات المنشورة عند توفرها']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم',live.records.supportTickets,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>'<button class="linkbtn" onclick="openTicketDetails(\''+esc(r.id)+'\')">تفاصيل</button>']])+recordsTable('آخر الإشعارات',live.records.notifications,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r.read_at?'—':'<button class="linkbtn" onclick="markNotificationRead(\''+esc(r.id)+'\')">تعليم كمقروء</button>']])}
 async function reviewRegistration(requestId,decision){
  if(!user?.id||!requestId)return;
+ const req=(live.records.registrationRequests||[]).find(x=>String(x.id)===String(requestId));
+ if(decision==='APPROVED'&&String(req?.requested_role||'').toUpperCase()==='SERVICE_PROVIDER')return showToast('اعتماد مقدم الخدمة يتم من طلب تسجيل النشاط بعد استكمال بيانات النشاط.','error');
  if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))return showToast('لا تملك صلاحية اعتماد التسجيلات.','error');
  let tenantId=live.memberships.find(m=>m.status==='ACTIVE'&&m.tenant_id)?.tenant_id||null;
  if(decision==='APPROVED'&&!tenantId)return showToast('لا يوجد نطاق Tenant نشط للاعتماد.','error');
