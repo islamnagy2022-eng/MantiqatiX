@@ -2,7 +2,7 @@
 'use strict';
 const cfg=window.MANTIQATIX_CONFIG;
 if(!cfg||!window.supabase)return;
-const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+const sb=window.MNTY_SB || window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey); window.MNTY_SB=sb;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>Number(v||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' ج.م';
 const uid=()=>crypto.randomUUID();
