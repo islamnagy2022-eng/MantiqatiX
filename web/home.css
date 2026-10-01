@@ -388,3 +388,25 @@
  .mx-category strong{font-size:10px}
  .mx-category small{display:none}
 }
+
+/* ===== MantiqatiX 2.0 — marketplace red & gold theme ===== */
+:root{--mx-blue:#B5121B;--mx-turq:#D79B2B;--mx-purple:#8D0D16;--mx-orange:#F6C453;--mx-navy:#160809;--mx-ink:#241113;--mx-muted:#765E61;--mx-bg:#FBF8F2;--mx-surface:#FFFDF9;--mx-line:#E9DCC4;--mx-gradient:linear-gradient(90deg,#8D0D16,#E21B2D 52%,#F6C453)}
+.mx-home{background:var(--mx-bg);color:var(--mx-ink)}
+.mx-header{background:rgba(255,253,249,.97);border-bottom-color:var(--mx-line)}
+.mx-brand__name{color:#4A1116}.mx-brand__ar{color:#765E61}
+.mx-search{background:#fffaf2;border-color:#E6D8BE}.mx-search__location{background:#FBE7E8;color:var(--mx-red)}.mx-search button,.mx-add{background:var(--mx-red)}
+.mx-header__login{border-color:#E6C66E;background:#FFF7E2;color:#8D0D16}.mx-nav a:hover{color:var(--mx-red)}
+.mx-hero__copy{background:linear-gradient(135deg,#FFFDF8,#FFF8ED 62%,#FBE7E8)}.mx-hero__eyebrow{color:var(--mx-red)}
+.mx-hero h1{color:#4A1116}.mx-btn--primary{background:var(--mx-red);box-shadow:0 8px 18px rgba(181,18,27,.22)}
+.mx-hero__visual{background:radial-gradient(circle at 73% 27%,rgba(246,196,83,.3),transparent 16%),linear-gradient(125deg,#160809,#8D0D16 48%,#C78C22)}
+.mx-category:hover{border-color:#E6C66E}.mx-category__media{background:linear-gradient(135deg,#FFF5DD,#FBE7E8)}
+.mx-service-card,.mx-provider-card,.mx-listing,.mx-module-strip,.mx-category{border-color:var(--mx-line);background:#FFFDF9}
+.mx-chip{background:#FBE7E8;color:var(--mx-red)}.mx-verified{background:#FFF4D6;color:#7A5207}
+.mx-feature-ad{background:linear-gradient(135deg,#160809,#72070D 55%,#B97812)}.mx-sponsored-badge{background:var(--mx-red)}
+.mx-listing__cta{background:#FFF1E8;color:var(--mx-red)}
+.mx-live{background:#FFF4D6;color:#7A5207}
+.mx-module-grid button{background:#FFF9F0;border-color:var(--mx-line)}
+.mx-bottom-nav{background:rgba(255,253,249,.98);border-top-color:var(--mx-line)}
+.mx-bottom-nav button.active{color:var(--mx-red)}
+.mx-footer{background:#160809}
+.mx-footer a:hover{color:#F6C453}
