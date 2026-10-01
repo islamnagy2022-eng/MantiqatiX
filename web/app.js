@@ -9,7 +9,8 @@ async function invokeMntyFunction(name,body){
  if(!session?.access_token)throw new Error('AUTH_REQUIRED');
  const res=await fetch(cfg.supabaseUrl+'/functions/v1/'+encodeURIComponent(name),{
   method:'POST',
-  headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+  cache:'no-store',
+  headers:{'Content-Type':'application/json','Accept':'application/json','apikey':cfg.supabaseKey,'Authorization':'Bearer '+session.access_token},
   body:JSON.stringify(body||{})
  });
  let payload=null;
@@ -817,7 +818,7 @@ async function accountView(){
      const ce=center?.selectedOptions?.[0];
      if(!go?.value||!ce?.value)throw new Error('يجب اختيار المحافظة والمركز');
      const serviceArea={governorate_id:go.value,governorate_code:go.dataset.code||'',governorate_name_ar:go.dataset.nameAr||go.textContent.trim(),governorate_name_en:go.dataset.nameEn||'',center_id:ce.value,center_code:ce.dataset.code||'',center_name_ar:ce.dataset.nameAr||ce.textContent.trim(),center_name_en:ce.dataset.nameEn||''};
-     const {data,error}=await sb.functions.invoke('mnty-provider-onboarding-submit',{body:{
+     const data=await invokeMntyFunction('mnty-provider-onboarding-submit',{
        registration_request_id:pendingProvider.id,tenant_id:'MNTY-PLATFORM',organization_id:'MNTY-MAIN',
        business_name:document.getElementById('po-business-name')?.value||'',
        provider_kind:document.getElementById('po-kind')?.value||'',
@@ -826,9 +827,7 @@ async function accountView(){
        specialties:split(document.getElementById('po-specialties')?.value),
        service_areas:[serviceArea],
        portfolio:split(document.getElementById('po-portfolio')?.value,20)
-     }});
-     if(error)throw error;
-     if(data?.error)throw new Error(data.error);
+     });
      showToast('تم إرسال بيانات النشاط للمراجعة. لن تُمنح صلاحيات تشغيلية قبل الاعتماد.','success');
      await accountView();
    }catch(err){
