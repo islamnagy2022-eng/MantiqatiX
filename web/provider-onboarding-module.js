@@ -4,7 +4,7 @@
   'use strict';
   const cfg=window.MANTIQATIX_CONFIG;
   if(!cfg || !window.supabase?.createClient)return;
-  const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+  const sb=window.MNTY_SB || window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey); window.MNTY_SB=sb;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const call=async(name,body)=>{
     const {data:{session},error}=await sb.auth.getSession();
