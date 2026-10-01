@@ -835,14 +835,38 @@ async function reviewRegistration(requestId,decision){
  showToast(decision==='APPROVED'?'تم اعتماد التسجيل وإنشاء العضوية.':'تم رفض طلب التسجيل.','success');
  await renderApp();
 }
+async function reviewProviderOnboarding(requestId,decision){
+ if(!user?.id||!requestId)return;
+ if(!['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(String(live.role||'').toUpperCase()))return showToast('لا تملك صلاحية مراجعة نشاطات مقدمي الخدمة.','error');
+ const reason=decision==='REJECTED'?(window.prompt('سبب الرفض (اختياري):','')||null):null;
+ const {data,error}=await sb.functions.invoke('mnty-provider-onboarding-review',{body:{onboarding_request_id:requestId,decision,rejection_reason:reason}});
+ if(error)return showToast('تعذر تنفيذ المراجعة: '+(error.message||'خطأ غير معروف'),'error');
+ if(data?.error)return showToast('تعذر تنفيذ المراجعة: '+data.error,'error');
+ showToast(decision==='APPROVED'?'تم اعتماد النشاط وإنشاء النشاط التشغيلي والعضوية.':'تم رفض طلب النشاط.','success');
+ await renderApp();
+}
+async function loadProviderOnboardingReview(){
+ const host=document.getElementById('provider-onboarding-review-list');
+ if(!host)return;
+ const {data,error}=await sb.from('provider_onboarding_requests').select('id,user_id,registration_request_id,business_name,provider_kind,name_en,description,specialties,service_areas,portfolio,status,created_at,rejection_reason').order('created_at',{ascending:false}).limit(50);
+ if(error){host.innerHTML='<div class="empty-state">تعذر تحميل طلبات تسجيل الأنشطة: '+esc(error.message)+'</div>';return}
+ const rows=data||[];
+ if(!rows.length){host.innerHTML='<div class="empty-state">لا توجد طلبات تسجيل نشاط فعلية حاليًا.</div>';return}
+ host.innerHTML='<section class="records"><div class="section-head"><div><h3>طلبات تسجيل الأنشطة</h3><p class="muted">'+rows.length+' طلب معروض وفق صلاحيات الإدارة.</p></div></div><div class="table-wrap"><table><thead><tr><th>النشاط</th><th>القطاع</th><th>المستخدم</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+esc(r.business_name)+'</b>'+(r.name_en?'<br><small>'+esc(r.name_en)+'</small>':'')+'</td><td>'+esc(r.provider_kind)+'</td><td>'+esc(r.user_id)+'</td><td>'+esc(r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':r.status==='REJECTED'?'مرفوض':'ملغى')+'</td><td>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</td><td>'+(r.status==='PENDING'?'<div class="mini-actions"><button data-po-approve="'+esc(r.id)+'">اعتماد</button><button data-po-reject="'+esc(r.id)+'">رفض</button></div>':'—')+'</td></tr>').join('')+'</tbody></table></div></section>';
+ host.querySelectorAll('[data-po-approve]').forEach(b=>b.onclick=()=>reviewProviderOnboarding(b.dataset.poApprove,'APPROVED'));
+ host.querySelectorAll('[data-po-reject]').forEach(b=>b.onclick=()=>reviewProviderOnboarding(b.dataset.poReject,'REJECTED'));
+}
 function registrationReviewWorkspace(){
- if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())){
+ if(!['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(String(live.role||'').toUpperCase())){
    return workspaceHead('REGISTRATION','طلبات التسجيل','هذه المساحة مخصصة للإدارة المعتمدة.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية مراجعة طلبات التسجيل.</div>';
  }
  const rows=live.records.registrationRequests||[];
- return workspaceHead('REGISTRATION','طلبات التسجيل','اعتماد الحسابات يتم عبر سلطة الخادم مع إنشاء العضوية وتسجيل التدقيق.','ADMIN')
+ const html=workspaceHead('REGISTRATION','طلبات التسجيل','اعتماد الحسابات والأنشطة يتم عبر سلطة الخادم مع إنشاء العضوية وتسجيل التدقيق.','ADMIN')
  +workspaceCards([['طلبات معلقة',rows.filter(r=>r.status==='PENDING').length,'طلبات تحتاج قرارًا إداريًا'],['معتمدة',rows.filter(r=>r.status==='APPROVED').length,'طلبات تم ربطها بعضوية'],['مرفوضة',rows.filter(r=>r.status==='REJECTED').length,'طلبات لم يتم اعتمادها']])
- +recordsTable('سجل التسجيلات',rows,[['الدور',r=>r.requested_role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل'],['الحالة',r=>r.status||'—'],['المستخدم',r=>r.user_id||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['إجراء',r=>r.status==='PENDING'?'<div class="mini-actions"><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'APPROVED\')">اعتماد</button><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'REJECTED\')">رفض</button></div>':'—']]);
+ +recordsTable('سجل التسجيلات',rows,[['الدور',r=>r.requested_role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل'],['الحالة',r=>r.status||'—'],['المستخدم',r=>r.user_id||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['إجراء',r=>r.status==='PENDING'?'<div class="mini-actions"><button onclick="reviewRegistration(\\''+esc(r.id)+'\\',\\'APPROVED\\')">اعتماد</button><button onclick="reviewRegistration(\\''+esc(r.id)+'\\',\\'REJECTED\\')">رفض</button></div>':'—']])
+ +'<div id="provider-onboarding-review-list" style="margin-top:18px"><div class="empty-state">جاري تحميل طلبات تسجيل الأنشطة…</div></div>';
+ setTimeout(loadProviderOnboardingReview,0);
+ return html;
 }
 function registrationPendingView(role='CUSTOMER',status='PENDING'){
 const label=role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل';
