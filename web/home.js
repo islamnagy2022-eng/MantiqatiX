@@ -378,12 +378,14 @@
       window.setTimeout(()=>overlay.querySelector('#mx-req-business')?.focus(),0);
     };
 
+    window.addEventListener('popstate',()=>{if(location.hash==='#mx-home'||location.hash===''||location.hash==='#'){window.MXHomeLanding?.();}}, {once:false});
     const openCategoryPage=async(code)=>{
       const item=TAXONOMY.find(x=>String(x[3])===String(code))||['◉',String(code||'نشاط'),'خدمات وأنشطة منشورة',String(code||'')];
       const label=item[1], desc=item[2], key=normCode(code);
       const app=document.getElementById('app'); if(!app)return;
+      try{if(location.hash!=='#category/'+encodeURIComponent(key))history.pushState({category:key},'', '#category/'+encodeURIComponent(key));}catch(_){}
       app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">MantiqatiX</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>اكتشف '+escapeHtml(label)+'</h2><p>الأنشطة والخدمات المنشورة فعليًا ضمن هذا القطاع.</p></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات</h2><p class="muted">خدمات منشورة في '+escapeHtml(label)+'</p></div></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الأنشطة ومقدمو الخدمات</h2><p class="muted">بيانات الأنشطة المنشورة والمعتمدة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
-      document.getElementById('mx-category-back').onclick=()=>window.MXHomeLanding?.();
+      document.getElementById('mx-category-back').onclick=()=>{try{history.pushState({},'', '#mx-home');}catch(_){};window.MXHomeLanding?.();};
       document.getElementById('mx-category-account').onclick=async()=>{if(typeof window.accountView==='function'&&window.MNTYAuthState?.authenticated)return window.accountView();if(typeof window.authView==='function')return window.authView();};
       try{
         const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
