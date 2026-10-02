@@ -71,6 +71,8 @@ jobs:
           test -f web/android-parity-catalog.js
           test -f web/provider-onboarding-module.js
           test -f web/marketing-platform-module.js
+          test -f supabase/functions/marketing-lead-create/index.ts
+          grep -q 'marketing-lead-create' web/operations-modules.js
           test -f supabase/functions/api/index.ts
           test -f supabase/functions/order-create/index.ts
           test -f supabase/functions/order-status-update/index.ts
