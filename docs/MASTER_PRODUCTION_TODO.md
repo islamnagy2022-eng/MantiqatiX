@@ -586,3 +586,11 @@
 - [x] Production database currently reports RLS enabled on all 121 public base tables and 0 public base tables without RLS.
 - [ ] RLS enabled status alone does not prove correct policy semantics or tenant isolation; real two-user/two-tenant E2E remains open.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC248 — Mandatory Project Continuity Baseline — 2026-10-02
+- [x] Added `docs/PROJECT_CONTINUITY.md` as the mandatory cross-session project handoff and anti-duplication reference.
+- [x] Documented the current verified baseline, completed work, exact Edge Function source-convergence state, security state, finance/payment boundaries, and all remaining release gates.
+- [x] Established the continuation protocol: future sessions must read `docs/PROJECT_CONTINUITY.md` and the latest Master TODO before making changes, must not repeat checked work without new evidence, and must append material progress to the release record.
+- [x] Latest baseline before this record: RC247 / commit `92480ab2594ad17ad296168c5bf172e60146f3a2`.
+- [ ] Final Production Gate remains OPEN.
