@@ -578,3 +578,11 @@
 - [ ] Leaked-password protection still requires Supabase Auth/dashboard configuration and recheck before final release.
 - [ ] Security Advisor remains non-clean; contextual findings require explicit per-function review before final release.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC247 — CI + RLS Baseline Revalidation — 2026-10-02
+- [x] Latest GitHub Actions run `36986515744` completed `success` for security-audit documentation commit `fc8f68030fa50750f68f6d1d77ad5fd841183f70`.
+- [x] Production database currently reports 121 public base tables.
+- [x] Production database currently reports RLS enabled on all 121 public base tables and 0 public base tables without RLS.
+- [ ] RLS enabled status alone does not prove correct policy semantics or tenant isolation; real two-user/two-tenant E2E remains open.
+- [ ] Final Production Gate remains OPEN.
