@@ -121,7 +121,7 @@
     app.innerHTML=`<main class="mx-home" dir="rtl"><a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
       <header class="mx-header">
         <div class="mx-header__inner">
-          <a class="mx-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<div><div class="mx-brand__name">MantiqatiX</div><span class="mx-brand__ar">MantiqatiX</span></div></a>
+          <a class="mx-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<div><div class="mx-brand__name">MantiqatiX</div><span class="mx-brand__ar">منصة خدمات وتسويق متكاملة</span></div></a>
           <label class="mx-search" aria-label="البحث">
             <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
             <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
@@ -150,8 +150,8 @@
         <section class="mx-home-hero" aria-label="اكتشاف الخدمات ومقدمي الخدمات">
           <div class="mx-home-hero__copy">
             <span class="mx-home-hero__eyebrow">MantiqatiX</span>
-            <h1>ابحث عن الخدمة المناسبة ومقدم الخدمة المناسب</h1>
-            <p>اكتشف الخدمات والأنشطة المسجلة، تعرّف على مقدميها، ثم اطلب الخدمة وتابعها من تجربة رقمية واحدة.</p>
+            <h1>كل الخدمات في مكان واحد</h1>
+            <p>اكتشف ... احجز ... تواصل ... بسهولة وأمان مع مقدمي الخدمات والأنشطة المسجلة على MantiqatiX.</p>
             <div class="mx-home-hero__actions">
               <button class="mx-btn mx-btn--primary" id="mx-hero-search" type="button">ابدأ البحث الآن ←</button>
               <button class="mx-btn mx-btn--light" id="mx-ad-book" type="button">أعلن عن نشاطك</button>
