@@ -736,23 +736,56 @@ Account → Own Business → Menu Plan → Order → Payment → Fulfillment →
 
 # 32) SESSION CHECKPOINT
 
-في نهاية كل جلسة يجب تسجيل:
-- Current Baseline/Commit
-- Implemented
-- Verified
-- Blocked
-- Security findings
-- DB/API changes
-- Tests executed
-- GitHub Pages deployment requirement
-- Next TODO item
+## Latest checkpoint — 2026-10-02
+### Baseline / commits
+- RC227: `305db3d435a9975ee3ccd95c4d34270851884054` — master continuation TODO/prompts.
+- RC228: `188a9b2ad562a90f2e10bb2215e0510447d6d318` — Account digital services wiring + Payment Intent handoff.
+- RC229: `202ca3538dcc43ce8b4a42b4539c72334cc98904` — public digital page route/renderer.
+- RC230: `1c4c1970eb47bab2a9f8b1c26a4c2456216a0ead` — digital page styles.
+- RC231: `4474cd5620ad9a7a1194b211120dd653759e8fd0` — web asset revision bump.
 
-آخر حالة معروفة عند تحديث هذا الملف:
-- Website-first.
-- GitHub Pages.
-- Supabase project: `moyhiluyhjsujhwlyeuu`.
-- Production certification: NOT CERTIFIED.
-- Category pages: implemented partially.
-- Add Activity modal: implemented partially.
-- Account/profile/wallet/cart: implemented partially.
-- Digital Portfolio/Menu data model + products + order Edge Functions: موجودة، لكن flow غير مكتمل حتى الدفع والـfulfillment/public publish.
+### Implemented in this continuation
+- Master A→Z TODO and reusable module prompts committed.
+- Account now actually inserts the commercial digital-services section that was previously constructed but omitted from the page HTML.
+- Provider profile query includes `business_id`, enabling Menu purchase for an owned activity when the profile is available.
+- Digital page order flow now creates the order and then invokes the protected payment-intent function.
+- Payment-intent Edge Function v2 can return a Paymob Unified Checkout URL when `PAYMOB_PUBLIC_KEY` is configured server-side.
+- Paymob webhook already contains verified digital-page payment handling and changes successful orders to `PAID / IN_REVIEW`.
+- Public published digital pages now have a GitHub Pages-safe hash route: `#page/<slug>`.
+- Public digital page renderer reads only `PUBLISHED` pages and active public sections.
+- Website asset revisions were bumped to prevent stale home/app CSS/JS after deployment.
+
+### Verified
+- Live database contains active PORTFOLIO and MENU products:
+  - Portfolio Basic / Pro.
+  - Menu Basic / Pro.
+- `digital_pages` and `digital_page_sections` have public-read policies only for PUBLISHED/active content.
+- `digital_page_orders` owner-read is restricted to `auth.uid()`.
+- `digital_page_products` public read is limited to active products; writes are admin-controlled.
+- `digital_page_sections` owner management is scoped to business membership or provider ownership.
+- Payment webhook has a digital-page path with HMAC-verified processing.
+- Payment Intent Edge Function remains JWT protected.
+
+### Still OPEN / NOT VERIFIED
+- `PAYMOB_PUBLIC_KEY` production configuration is not verified/set through an available secrets-management tool; therefore checkout redirect cannot be declared live-ready.
+- Independent real payment E2E remains unverified.
+- Successful payment currently moves the digital order to `IN_REVIEW`; automated fulfillment that creates the final `digital_pages` record and publishes it is not yet closed.
+- Owner editor for Portfolio/Menu content is not yet closed.
+- Menu content synchronization from `restaurant_menu_items` into published digital page sections is not yet closed.
+- Public page SEO/share/QR generation is partially implemented; final production metadata/QR lifecycle remains open.
+- Category Service Detail currently has a placeholder action and needs a real service detail/catalog route.
+- Independent tenant-isolation browser E2E is blocked by lack of a suitable authorized test identity.
+- Storage E2E, backup restore/RPO-RTO, rollback drill, browser regression, and leaked-password protection remain open.
+- Production status remains **NOT PRODUCTION CERTIFIED**.
+
+### GitHub Pages deployment
+- **YES — deployment is required after these Website commits.**
+- The repository's GitHub Pages workflow publishes `web/` from `main`; no manual Run should be necessary when the workflow succeeds.
+- After deployment, verify the published site, hard refresh if needed, and confirm the new asset revisions `mnty119` are loaded.
+
+### Next execution priority
+1. Close digital-page fulfillment after verified payment.
+2. Add owner editor for Portfolio/Menu and safe media management.
+3. Add Menu public content model/section generation and QR/share.
+4. Close service-detail route.
+5. Continue release gates: payment E2E → storage E2E → backup/restore → rollback → browser regression → security → production certification.
