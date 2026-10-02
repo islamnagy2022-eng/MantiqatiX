@@ -702,3 +702,40 @@
  .mx-card-book,.mx-card-link{width:100%;text-align:center}
 }
 @media(max-width:800px){.mx-side-banner{display:none}}
+
+
+/* ===== RC1 explicit login CTA ===== */
+.mx-header__login{
+  min-width:116px;
+  height:42px;
+  border:1px solid #d9a83f;
+  border-radius:11px;
+  background:linear-gradient(135deg,#c91427,#8d0d16);
+  color:#fff;
+  box-shadow:0 6px 15px rgba(141,13,22,.18);
+  font-size:12px;
+  font-weight:950;
+}
+.mx-header__login:hover,.mx-header__login:focus-visible{
+  background:linear-gradient(135deg,#d61b30,#9d101b);
+  border-color:#f0c35a;
+  box-shadow:0 9px 20px rgba(141,13,22,.24);
+  outline:none;
+}
+.mx-header__login:focus-visible{box-shadow:0 0 0 3px rgba(226,173,57,.28),0 9px 20px rgba(141,13,22,.24)}
+.mx-admin-return{background:#fff4d6;color:#7a5207;border-color:#d9a83f;box-shadow:none}
+@media(max-width:1250px){
+  .mx-header__login{min-width:108px}
+}
+@media(max-width:800px){
+  .mx-header__login{
+    min-width:104px;
+    height:40px;
+    padding:0 11px;
+    font-size:11px;
+    justify-self:start;
+  }
+}
+@media(max-width:500px){
+  .mx-header__login{min-width:96px;font-size:10px}
+}
