@@ -670,3 +670,13 @@
 - No rollback rehearsal was claimed without an actual release artifact and controlled recovery target.
 - GitHub Actions evidence for the RC261 commit is currently NOT VERIFIED by the available commit-run endpoint; absence of a returned run is recorded rather than treated as success.
 - Release gate remains OPEN for backup/restore rehearsal, rollback rehearsal, external browser/device smoke, real payment/finance E2E, and leaked-password protection.
+
+
+## RC263 — Central RBAC runtime smoke — 2026-10-02
+
+- Production has active memberships for the expected role families, including CUSTOMER, ADMIN, OWNER, SUPER_ADMIN, SERVICE_PROVIDER, STAFF and support roles.
+- Read-only runtime simulation with an existing CUSTOMER identity returned: customer=true; admin=false; manage_orders=false; platform_admin=false.
+- Read-only runtime simulation with the existing privileged production identity returned: admin=true; manage_orders=true; platform_admin=true.
+- No production data was mutated; each runtime check was wrapped in a transaction and rolled back.
+- This verifies the centralized permission helper behavior for two existing identities, but does NOT replace multi-user/multi-tenant E2E isolation.
+- The current privileged identity carries both OWNER and SUPER_ADMIN memberships; therefore this test cannot independently prove separation between those two roles.
