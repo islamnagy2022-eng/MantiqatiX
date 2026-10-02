@@ -606,3 +606,14 @@
 - [ ] Real browser E2E for page creation, publication, public rendering and Paymob checkout remains NOT VERIFIED.
 - [ ] Media/storage-backed portfolio images, QR generation and advanced fulfillment workflow remain open for the next iteration.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC250 — Edge Function Source Convergence Batch 1 — 2026-10-02
+- [x] Restored live Production source for `settlement-financial-atomic` including `index.ts` and `deno.json`.
+- [x] Restored live Production source for `subscription-payment-intent`.
+- [x] Restored live Production source for `subscription-start-trial`.
+- [x] Restored live Production source for `financial-journal`.
+- [x] Exact content comparison passed for all restored files against current live Supabase Edge Function source.
+- [x] No speculative rewrite or security bypass was used.
+- [ ] 11 active Edge Functions still lack repository source convergence.
+- [ ] Final Production Gate remains OPEN.
