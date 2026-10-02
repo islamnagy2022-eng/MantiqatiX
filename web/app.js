@@ -583,7 +583,7 @@ async function superAdminFunction(name,body){
  if(!canSuperAdmin())throw new Error('SUPER_ADMIN_REQUIRED');
  return invokeMntyFunction(name,body);
 }
-async function superAdminControlWorkspace(){
+function superAdminControlWorkspace(){
  if(!canSuperAdmin())return workspaceHead('PLATFORM CONTROL','التحكم الكامل','هذه المساحة مخصصة لـ SUPER_ADMIN فقط.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية التحكم الكامل.</div>';
  const tenants=[...new Map((live.memberships||[]).filter(m=>String(m.role||'').toUpperCase()==='SUPER_ADMIN'&&m.status==='ACTIVE').map(m=>[m.tenant_id,m])).values()];
  const tenantOptions=tenants.map(m=>'<option value="'+esc(m.tenant_id)+'" '+(m.tenant_id===live.tenantId?'selected':'')+'>'+esc(m.tenant_id)+'</option>').join('');
