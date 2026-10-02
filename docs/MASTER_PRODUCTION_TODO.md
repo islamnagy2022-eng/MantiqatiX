@@ -715,3 +715,12 @@
 - [x] Reviewed `.github/workflows/pages.yml`: pushes to `main` are configured to run validation and GitHub Pages deployment, followed by HTTP smoke checks of the deployed assets.
 - [ ] A successful RC265 run exists for the preceding source commit `d65a24fe8abe18ed76632f6f5ac6e08baa9940ea`; certification of the later docs-only commit remains unverified with the available run-query surface.
 - Production Release Gate remains OPEN.
+
+
+## RC267 — Android source provenance audit — 2026-10-03
+
+- [x] Audited the supplied RC40 archive independently: it contains an Android/Gradle project (`settings.gradle.kts`, `build.gradle.kts`, `app/build.gradle.kts`, `gradlew`, Android source/tests) and a release CI workflow.
+- [x] Audited the current `main` repository tree/search: the active release tree is the web platform (`web/` + `.github/workflows/pages.yml`) and does not currently contain the RC40 Android Gradle project.
+- [x] Confirmed RC40's Android release configuration requires external signing secrets/keystore and real build/device evidence; the archive itself is not treated as proof of a production Android release.
+- [ ] Android release is therefore NOT VERIFIED and must not be closed by copying the older RC40 Android tree into `main` without a compatibility/reconciliation pass against the current production source, Supabase contract, auth/RBAC, and release pipeline.
+- Production Release Gate remains OPEN.
