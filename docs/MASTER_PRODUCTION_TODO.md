@@ -790,3 +790,14 @@
 - **Security status:** Supabase project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155. Security Advisor still reports leaked-password protection disabled and contextual anonymous-access-policy findings; no blanket policy rewrite was applied.
 - **Release gates still open:** real browser/device E2E, multi-user/multi-tenant authorization E2E, real provider/business/catalog booking fixture, real payment/refund/webhook/reconciliation E2E, backup/restore rehearsal, monitoring/alert drill, rollback rehearsal, and final external release certification.
 - **Rule:** no item above is marked VERIFIED from source inspection alone.
+
+## RC236 — Post-RC235 production verification — 2026-10-02
+
+- **GitHub Actions #1233:** VERIFIED — validate and deploy jobs completed successfully for baseline `9d24ddbb5b4a2f60a25d219174a42c05fc34ae2b`.
+- **GitHub Pages deployment:** VERIFIED — Pages deployment reported success and the published-site smoke verification passed against `https://islamnagy2022-eng.github.io/MantiqatiX/`.
+- **Published assets:** VERIFIED — homepage, `config.js`, `vendor/supabase.js`, `styles.css`, `app.js`, `home.js`, `provider-onboarding-module.js`, `smm.html`, `smm.js` and other required assets were reachable during the production smoke gate.
+- **Production data gate recheck:** the current database is no longer in the earlier zero-provider state: `businesses=2`, `branches=2`, `marketing_provider_profiles=1`, `catalog_items=11`, `catalog_item_prices=11`, `bookings=1`; `orders=0`, `payment_intents=0`, and `payment_provider_events=0` at this checkpoint.
+- **Digital payment event table:** VERIFIED fail-closed for ordinary API roles; RLS is enabled and direct `anon/authenticated` table grants are absent.
+- **Security Advisor current observation:** the remaining findings include one intentional public sanitized geographic-ad SECURITY DEFINER RPC, several authenticated SECURITY DEFINER workflow RPCs requiring workflow-specific authorization review, contextual anonymous-policy findings, and leaked-password protection not yet enabled.
+- **Decision:** no broad RLS policy or blanket SECURITY DEFINER change was applied merely to reduce Advisor findings. Public ad delivery remains intentionally exposed through its sanitized RPC contract.
+- **Release status:** **NOT Production Ready yet**. The next gate is authorized browser E2E against the now-populated provider/catalog chain, followed by payment/refund/webhook/reconciliation, multi-account tenant isolation, backup/restore, monitoring/rollback and remaining Auth security controls.
