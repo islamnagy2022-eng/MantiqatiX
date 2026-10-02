@@ -147,7 +147,7 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Fq "MantiqatiX" "$TMP_PAGE"
-          for asset in config.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
+          for asset in config.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js marketing-platform-module.js operations-modules.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
@@ -159,4 +159,9 @@ jobs:
           grep -Fq "openPlatform" <<<"$HOME_JS"
           grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"$CONFIG_JS"
           grep -Fq "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'" <<<"$CONFIG_JS"
+          MARKETING_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/marketing-platform-module.js")"
+          OPS_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/operations-modules.js")"
+          grep -Fq "التسويق والإعلان" <<<"$MARKETING_JS"
+          grep -Fq "marketing-lead-create" <<<"$OPS_JS"
+          ! grep -Eq 'SUPABASE_SERVICE_ROLE_KEY|service_role' <<<"$MARKETING_JS"
           echo "Production smoke verification passed for $PAGE_URL"
