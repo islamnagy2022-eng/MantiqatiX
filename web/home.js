@@ -477,12 +477,8 @@
       }
     });
     document.getElementById('mx-add').onclick=openActivityRequestModal;
-    document.getElementById('mx-mobile-add')?.addEventListener('click',openActivityRequestModal);
     document.getElementById('mx-ad-book')?.addEventListener('click',openActivityRequestModal);
     document.getElementById('mx-bottom-add')?.addEventListener('click',openActivityRequestModal);
-    document.getElementById('mx-wallet')?.addEventListener('click',async()=>{if(window.MNTYAuthState?.authenticated&&typeof window.walletView==='function')return window.walletView();return goLogin();});
-    document.getElementById('mx-cart')?.addEventListener('click',()=>typeof window.cartView==='function'?window.cartView():showToast('السلة غير متاحة حاليًا.','error'));
-    window.refreshMntiCartCount?.();
     const selectAdPlan=(plan)=>{
       try{localStorage.setItem('MNTYPendingAdPlan',String(plan||'QUARTERLY'));}catch(_){}
       document.querySelectorAll('[data-ad-plan]').forEach(x=>x.classList.toggle('is-selected',x.dataset.adPlan===plan));
