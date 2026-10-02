@@ -4,17 +4,32 @@
     ['🩺','أطباء وعيادات','تخصصات وحجوزات','HEALTH'],
     ['💊','صيدليات','منتجات وخدمات','PHARMACY'],
     ['🧪','معامل تحاليل','تحاليل وتشخيص','LABS'],
+    ['🩻','مراكز الأشعة','أشعة وتشخيص','RADIOLOGY'],
+    ['🦷','أطباء الأسنان','أسنان وعيادات تخصصية','DENTAL'],
+    ['🏥','المستشفيات','أقسام ورعاية وحجوزات','HOSPITAL'],
     ['🩻','مراكز طبية','تشخيص ورعاية','MEDICAL'],
     ['🏠','عقارات','بيع وإيجار وخدمات','REAL_ESTATE'],
     ['🚗','سيارات ونقل','سيارات وخدمات نقل','AUTO'],
-    ['🔧','خدمات منزلية','صيانة وإصلاح','HOME'],
-    ['🎓','تعليم وتدريب','دورات ومهارات','EDU'],
-    ['📣','تسويق وإعلان','حملات ونمو','DIGITAL'],
+    ['🔧','الصيانة والخدمات المنزلية','صيانة وإصلاح وخدمات منزلية','MAINTENANCE'],
+    ['🧾','المحاسبة ومكاتب المحاسبة','محاسبون ومكاتب وخدمات مالية','ACCOUNTING'],
+    ['⚖️','المحاماة والخدمات القانونية','محامون ومكاتب واستشارات قانونية','LEGAL'],
+    ['🏢','الشركات والموردون','شركات، مصانع، موردون وخدمات أعمال','COMPANIES'],
+    ['🎓','تعليم وتدريب','دورات ومدارس ومدرسون','EDU'],
+    ['📣','تسويق وإعلان','حملات ونمو وشركات تسويق','DIGITAL'],
+    ['💻','البرمجيات والخدمات الرقمية','برمجيات، مواقع وخدمات تقنية','TECH'],
     ['💪','رياضة ولياقة','أندية ومدربون','FITNESS'],
-    ['✈️','سياحة وسفر','رحلات وحجوزات','TRAVEL']
+    ['✈️','سياحة وسفر','رحلات وحجوزات','TRAVEL'],
+    ['🚕','MantiGO والنقل عند الطلب','رحلات، سائقون ومقدمو عروض','MANTIGO'],
+    ['💼','الوظائف والتوظيف','وظائف، أصحاب أعمال ومتقدمون','JOBS'],
+    ['💍','الزواج والخدمات المرتبطة','خدمات وملفات وترشيحات','MATRIMONY'],
+    ['♻️','المستعمل','إعلانات وعروض وتفاوض','USED_ITEMS'],
+    ['👗','الأزياء والخياطة','متاجر، منتجات وخدمات تفصيل','FASHION'],
+    ['🛒','البقالة والسوبر ماركت','منتجات، مخزون وطلبات','GROCERY'],
+    ['🐾','العيادات والخدمات البيطرية','أطباء وخدمات للحيوانات','VETERINARY'],
+    ['🤝','المستقلون ومقدمو الخدمات','خدمات احترافية ومشروعات مستقلة','FREELANCER']
   ];
   const SERVICE_ICONS = {DIGITAL:'📣',CONTENT:'✍️',CREATIVE:'🎨',BRANDING:'✨',TECH:'💻',PR:'📢'};
-  const ACTIVITY_IMAGES = {FOOD:'food.svg',HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',MEDICAL:'medical.svg',REAL_ESTATE:'real-estate.svg',AUTO:'auto.svg',HOME:'home.svg',EDU:'education.svg',DIGITAL:'digital.svg',FITNESS:'fitness.svg',TRAVEL:'travel.svg'};
+  const ACTIVITY_IMAGES = {FOOD:'food.svg',HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'medical.svg',DENTAL:'medical.svg',HOSPITAL:'medical.svg',MEDICAL:'medical.svg',REAL_ESTATE:'real-estate.svg',AUTO:'auto.svg',HOME:'home.svg',MAINTENANCE:'home.svg',ACCOUNTING:'digital.svg',LEGAL:'digital.svg',COMPANIES:'home.svg',EDU:'education.svg',DIGITAL:'digital.svg',TECH:'digital.svg',FITNESS:'fitness.svg',TRAVEL:'travel.svg',MANTIGO:'auto.svg',JOBS:'home.svg',MATRIMONY:'home.svg',USED_ITEMS:'home.svg',FASHION:'home.svg',GROCERY:'home.svg',VETERINARY:'medical.svg',FREELANCER:'digital.svg'};
   const activityImage = code => 'assets/activity/'+(ACTIVITY_IMAGES[String(code||'').toUpperCase()]||'home.svg');
   const publicProfileImage = provider => {
     const path=provider?.profile_image_path;
