@@ -116,15 +116,14 @@
         if(error || !data?.session?.user) return;
         const authUser=data.session.user;
         const current=window.MNTYAuthState||{};
-        window.MNTYAuthState={
-          ...current,
-          authenticated:true,
-          email:authUser.email||current.email||'',
-        };
+        const meta=authUser.user_metadata||{};
+        window.MNTYAuthState={...current,authenticated:true,email:authUser.email||current.email||'',name:meta.full_name||meta.name||current.name||'',avatarUrl:meta.avatar_url||meta.picture||current.avatarUrl||''};
         const loginButton=document.getElementById('mx-login');
         if(loginButton){
-          loginButton.innerHTML='<span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span>';
-          loginButton.setAttribute('aria-label','فتح حسابي');
+          const name=meta.full_name||meta.name||authUser.email?.split('@')[0]||'حسابي';
+          const avatar=meta.avatar_url||meta.picture||'';
+          loginButton.innerHTML=(avatar?'<img class="mx-account-avatar" src="'+escapeHtml(avatar)+'" alt="">':'<span class="mx-account-icon" aria-hidden="true">♙</span>')+'<span class="mx-account-copy"><b>'+escapeHtml(name.slice(0,24))+'</b><small><i></i> مسجل الدخول</small></span>';
+          loginButton.setAttribute('aria-label','فتح الملف الشخصي والحساب');
           loginButton.onclick=()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
         }
         const addButton=document.getElementById('mx-add');
@@ -147,7 +146,9 @@
             </label>
             <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
           </div>
-          <button class="mx-header__login" id="mx-login" type="button" aria-label="حسابي"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button>
+          <button class="mx-header__login" id="mx-login" type="button" aria-label="تسجيل الدخول / فتح الحساب"><span class="mx-account-icon" aria-hidden="true">♙</span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button>
+          <button class="mx-header-tool" id="mx-wallet" type="button" aria-label="المحفظة"><span>▣</span><small>المحفظة</small></button>
+          <button class="mx-header-tool" id="mx-cart" type="button" aria-label="السلة"><span>🛒</span><small>السلة <b id="mx-cart-count">0</b></small></button>
           ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
           <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer">☰</button>
           <nav class="mx-nav">
