@@ -190,3 +190,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Hardened marketing lead mutation boundary: browser-side direct inserts into `marketing_leads` were removed from normal lead creation and advertising booking; both now use the protected `marketing-lead-create` Edge Function.
 - Added CI regression checks to prevent reintroducing direct browser inserts for this table.
 - Runtime multi-user/multi-tenant E2E remains open.
+
+## RC269 update — 2026-10-03
+- Re-ran live Security Advisor after the RC268 marketing mutation hardening.
+- Confirmed the remaining findings are not all safe candidates for blanket revocation: the public targeted-ad RPC is intentionally exposed for advertisement serving, while RBAC/admin SECURITY DEFINER functions already have explicit authenticated-only grants and internal authorization checks.
+- Checked current Supabase billing state: organization plan is Free; production project creation cost is $0/month; a development branch is currently quoted at $0.01344/hour.
+- No branch or other cost-incurring resource was created.
+- Recorded the current cost envelope and external dependencies for Paymob, Android distribution, PITR, browser/device testing, and push delivery.
+- Final Production Gate remains OPEN.
