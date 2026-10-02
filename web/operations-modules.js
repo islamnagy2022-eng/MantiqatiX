@@ -5,7 +5,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=v=>Number(v||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' ج.م';
 const defs={
 'البقالة والسوبر ماركت':{key:'GROCERY',tabs:['overview','catalog','prices'],tables:['catalog_items','catalog_item_prices'],desc:'كتالوج الأصناف والأسعار والطلبات من البنية المركزية.'},
-'المزايدات — التسويق':{key:'MARKETING',tabs:['overview','providers','services','leads','projects'],tables:['marketing_provider_profiles','marketing_services','marketing_leads','marketing_projects'],desc:'مقدمو خدمات التسويق والخدمات والعملاء والمشروعات.'},
+'التسويق والإعلان':{key:'MARKETING',tabs:['overview','providers','services','leads','projects'],tables:['marketing_provider_profiles','marketing_services','marketing_leads','marketing_projects'],desc:'مقدمو خدمات التسويق والخدمات والعملاء والمشروعات.'},
 'المزايدات — الخدمات القانونية':{key:'LEGAL',tabs:['overview','documents','requirements','agreements'],tables:['legal_documents','legal_requirements','agreements'],desc:'الوثائق والمتطلبات والاتفاقيات من سجل قانوني مركزي.'},
 'المزايدات — الصيانة':{key:'MAINTENANCE',tabs:['overview','requests','support'],tables:['indrive_requests','indrive_bids','support_tickets'],desc:'طلبات الصيانة والعروض والدعم التشغيلي.'}
 };
