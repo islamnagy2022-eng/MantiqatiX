@@ -138,3 +138,8 @@ This status is intentional and must remain until the open gates above are indepe
 - Applied migration: `20261002110000_rc248_digital_page_content_publishing`.
 - Added public renderer and authenticated owner editor under `web/digital-page*` and `web/digital-page-editor*`.
 - Browser E2E, media/storage integration, QR and advanced fulfillment remain open.
+
+
+## RC250 update — Edge Function source convergence batch 1
+- Exact-matched live Production source into GitHub for: `settlement-financial-atomic` (`index.ts` + `deno.json`), `subscription-payment-intent`, `subscription-start-trial`, `financial-journal`.
+- 11 of the original 16 missing active function sources remain to be converged.
