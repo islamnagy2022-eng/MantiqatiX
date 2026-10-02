@@ -507,3 +507,13 @@
 - [x] Backend `mnty-provider-onboarding-submit` is already ACTIVE in production (JWT verification enabled); this change only completes the missing browser integration.
 - [ ] E2E with an authorized real customer identity and subsequent admin approval remains NOT VERIFIED; no identity or provider fixture was invented.
 - [ ] Production payment/order/notification/backup/rollback/leaked-password gates remain open.
+
+
+## RC238 — Atomic Settlement Journal Posting Fix — 2026-10-02
+- [x] Fixed production create_settlement_and_post_journal ordering: journal header is created as DRAFT, journal lines are inserted, then the entry transitions to POSTED so the existing journal-balance trigger can validate actual lines.
+- [x] Removed duplicate General Ledger insertion from the settlement function; the existing trg_post_journal_to_gl trigger is now the single GL posting path for this workflow.
+- [x] Preserved tenant membership, finance-role authorization, beneficiary/type constraints, amount breakdown checks, idempotent settlement handling, and chart-of-accounts validation.
+- [x] Applied the migration to Supabase production; migration recorded as 20261002083009 / fix_settlement_journal_posting_order.
+- [x] Added source migration to GitHub: supabase/migrations/20261002010000_rc238_fix_settlement_journal_posting.sql.
+- [ ] Real settlement transaction remains NOT VERIFIED because no safe real-money/test-user fixture is available; no financial transaction was created during this fix.
+- [ ] Final Production Gate remains OPEN for Paymob E2E, finance/settlement real-money E2E, notifications E2E, monitoring drill, backup/restore rehearsal, leaked-password protection, and exact production/source convergence.
