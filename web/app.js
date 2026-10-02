@@ -732,28 +732,47 @@ async function requestAdBooking(duration='QUARTERLY'){
   const title='طلب حجز إعلان نشاط — '+label;
   const description='طلب حجز مبدئي لظهور النشاط على MantiqatiX لمدة '+label+'. يخضع الطلب لمراجعة المنصة وتأكيد التوفر والسعر وإتمام المسار المالي قبل تفعيل الإعلان.';
   try{
-    const {data,error}=await sb.from('marketing_leads').insert({
-      requester_user_id:user.id,
-      requester_business_id:live.businessId||null,
+    const {data,error}=await sb.functions.invoke('marketing-lead-create',{body:{
       title,
       description,
-      currency:'EGP',
-      status:'OPEN',
-      source:'PLATFORM',
-      required_services:['AD_BOOKING',key]
-    }).select('id,title,status,source,created_at').single();
+      required_services:['AD_BOOKING',key],
+      service_area:'',
+      budget_min:0,
+      budget_max:0,
+      business_id:live.businessId||null
+    }});
     if(error)throw error;
+    if(data?.error)throw new Error(data.error);
     try{localStorage.removeItem('MNTYOpenAdBooking');localStorage.removeItem('MNTYAdBookingDuration')}catch(_){}
     showToast('تم إنشاء طلب حجز الإعلان بنجاح. سيظهر في مركز التسويق للمراجعة.','success');
     current='التسويق والإعلان';
     await renderApp();
-    return data;
+    return data?.lead||data;
   }catch(e){
     showToast('تعذر إنشاء طلب حجز الإعلان: '+(e?.message||'خطأ غير معروف'),'error');
     return null;
   }
 }
-async function createMarketingLead(){if(!user?.id)return authView();const title=window.prompt('عنوان احتياج التسويق');if(!title?.trim())return;const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');if(!description?.trim())return;const {data,error}=await sb.from('marketing_leads').insert({requester_user_id:user.id,requester_business_id:live.businessId||null,title:title.trim(),description:description.trim(),currency:'EGP',status:'NEW',source:'WEB'}).select('id').single();if(error)return showToast('تعذر إنشاء طلب التسويق: '+error.message,'error');live.counts.leads=(live.counts.leads||0)+1;showToast('تم إنشاء طلب التسويق'+(data?.id?' #'+data.id:''),'success');renderApp()}
+async function createMarketingLead(){
+  if(!user?.id)return authView();
+  const title=window.prompt('عنوان احتياج التسويق');
+  if(!title?.trim())return;
+  const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');
+  if(!description?.trim())return;
+  const {data,error}=await sb.functions.invoke('marketing-lead-create',{body:{
+    title:title.trim(),
+    description:description.trim(),
+    required_services:[],
+    service_area:'',
+    budget_min:0,
+    budget_max:0,
+    business_id:live.businessId||null
+  }});
+  if(error||data?.error)return showToast('تعذر إنشاء طلب التسويق: '+(error?.message||data?.error||'خطأ غير معروف'),'error');
+  live.counts.leads=(live.counts.leads||0)+1;
+  showToast('تم إنشاء طلب التسويق'+(data?.lead?.id?' #'+data.lead.id:''),'success');
+  renderApp();
+}
 async function createGlobalAdFromAdmin(){
  if(!user?.id)return authView();
  if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))return showToast('هذه العملية للإدارة فقط.','error');
