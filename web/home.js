@@ -683,7 +683,7 @@
     mobileMenu?.addEventListener('click',()=>mobileDrawer?.classList.contains('is-open')?closeMobileMenu():openMobileMenu());
     mobileMenuClose?.addEventListener('click',closeMobileMenu);
     mobileBackdrop?.addEventListener('click',closeMobileMenu);
-    mobileAdd?.addEventListener('click',()=>{closeMobileMenu();goAdvertise();});
+    mobileAdd?.addEventListener('click',()=>{closeMobileMenu();openActivityRequestModal();});
     document.querySelectorAll('[data-mobile-nav]').forEach(a=>a.addEventListener('click',closeMobileMenu));
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMobileMenu();closeSearchSuggestions();}});
 
@@ -727,6 +727,7 @@
     document.getElementById('mx-cart')?.addEventListener('click',()=>typeof window.cartView==='function'?window.cartView():null);
     if(typeof window.refreshMntiCartCount==='function')window.refreshMntiCartCount();
     window.MNTY_HOME_READY=true;
-    loadData();
+    const initialCategory=location.hash.match(/^#category\/(.+)$/);
+    if(initialCategory){try{openCategoryPage(decodeURIComponent(initialCategory[1]));}catch(_){loadData();}}else loadData();
   };
 })();
