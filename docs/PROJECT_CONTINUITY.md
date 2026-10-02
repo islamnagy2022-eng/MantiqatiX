@@ -131,3 +131,10 @@ For every future session:
 **NOT PRODUCTION READY YET.**
 
 This status is intentional and must remain until the open gates above are independently evidenced.
+
+
+## RC249 update — Digital Page content layer
+- Added production `digital_pages` and `digital_page_sections` with RLS and publication lifecycle.
+- Applied migration: `20261002110000_rc248_digital_page_content_publishing`.
+- Added public renderer and authenticated owner editor under `web/digital-page*` and `web/digital-page-editor*`.
+- Browser E2E, media/storage integration, QR and advanced fulfillment remain open.
