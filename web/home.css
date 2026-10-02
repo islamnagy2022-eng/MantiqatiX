@@ -575,3 +575,23 @@
   .mx-home-hero__actions{flex-direction:row}
   .mx-home-hero__actions .mx-btn{width:auto;padding-inline:16px}
 }
+
+
+/* ===== RC3 landing rhythm: discovery before informational sections ===== */
+.mx-main{display:flex;flex-direction:column}
+.mx-home-hero{order:1;height:260px;min-height:260px}
+.mx-platform-notices{order:2}
+#mx-categories{order:3}
+#mx-services{order:4}
+#mx-offers{order:5}
+#mx-nearby{order:6}
+#mx-about{order:7}
+#mx-audiences{order:8}
+#mx-marketing{order:9}
+.mx-home-hero__copy{padding-top:24px;padding-bottom:24px}
+@media(max-width:900px){
+ .mx-home-hero{height:255px;min-height:255px}
+}
+@media(max-width:600px){
+ .mx-home-hero{height:275px;min-height:275px}
+}
