@@ -378,7 +378,6 @@
       window.setTimeout(()=>overlay.querySelector('#mx-req-business')?.focus(),0);
     };
 
-    window.addEventListener('popstate',()=>{if(location.hash==='#mx-home'||location.hash===''||location.hash==='#'){window.MXHomeLanding?.();}}, {once:false});
     const openCategoryPage=async(code)=>{
       const item=TAXONOMY.find(x=>String(x[3])===String(code))||['◉',String(code||'نشاط'),'خدمات وأنشطة منشورة',String(code||'')];
       const label=item[1], desc=item[2], key=normCode(code);
@@ -404,8 +403,11 @@
       }catch(e){document.getElementById('mx-category-services').innerHTML='<div class="empty-state">تعذر تحميل الخدمات حاليًا.</div>';document.getElementById('mx-category-providers').innerHTML='<div class="empty-state">تعذر تحميل الأنشطة حاليًا.</div>';}
     };
 
+    window.__MNTYOpenCategoryPage=openCategoryPage;
     const openProviderProfilePage=(provider,categoryLabel='')=>{
       const app=document.getElementById('app'); if(!app)return;
+      const providerKey=String(provider?.id||'');
+      try{if(providerKey&&location.hash!=='#provider/'+encodeURIComponent(providerKey))history.pushState({provider:providerKey},'', '#provider/'+encodeURIComponent(providerKey));}catch(_){}
       const name=provider?.name_ar||provider?.name_en||'مقدم خدمة';
       app.innerHTML='<main class="mx-profile-page" dir="rtl"><header class="mx-profile-page__head"><button type="button" class="mx-category-back" id="mx-profile-back">← العودة</button><span class="eyebrow">ملف النشاط</span></header><section class="mx-profile-page__hero"><div class="mx-profile-page__cover"><img src="'+escapeHtml(publicProfileImage(provider)||activityImage(provider?.provider_kind))+'" alt="'+escapeHtml(name)+'"></div><div class="mx-profile-page__identity"><div class="mx-profile-page__avatar">'+escapeHtml(name.slice(0,1))+'</div><div><span class="mx-verified">'+(provider?.is_verified?'✓ موثق':'منشور')+'</span><h1>'+escapeHtml(name)+'</h1><p>'+escapeHtml(categoryLabel||provider?.provider_kind||'نشاط')+'</p></div></div><p class="mx-profile-page__description">'+escapeHtml(provider?.description||'لا يوجد وصف منشور حاليًا.')+'</p><div class="mx-profile-page__meta"><span>⌖ '+escapeHtml(readArea(provider?.service_areas)||'نطاق خدمة معلن')+'</span><span>✓ نشاط منشور على MantiqatiX</span></div>'+(provider?.business_id?'<div class="mx-profile-page__actions"><button type="button" class="btn btn-primary" id="mx-profile-book">احجز / اطلب خدمة</button><button type="button" class="btn btn-outline" id="mx-profile-back2">العودة للقطاع</button></div>':'')+'</section><section class="mx-profile-page__section"><h2>الخدمات والتخصصات</h2><p class="muted">تفاصيل الخدمات تظهر من الكتالوج التشغيلي عند توفرها.</p></section></main>';
       const back=()=>openCategoryPage(provider?.provider_kind||'');
@@ -413,6 +415,26 @@
       document.getElementById('mx-profile-book')?.addEventListener('click',()=>{const id=provider.business_id,n=name;if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function')return openProviderCatalog(id,n);try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId:id,providerName:n}));}catch(_){};goLogin();});
     };
 
+    window.__MNTYOpenProviderProfilePage=openProviderProfilePage;
+    if(!window.__MNTYHomeRouteBound){
+      window.__MNTYHomeRouteBound=true;
+      window.addEventListener('popstate',()=>window.__MNTYHandlePublicRoute?.());
+      window.addEventListener('hashchange',()=>window.__MNTYHandlePublicRoute?.());
+    }
+    window.__MNTYHandlePublicRoute=async()=>{
+      const h=String(location.hash||'');
+      if(h.startsWith('#category/')) return window.__MNTYOpenCategoryPage?.(decodeURIComponent(h.slice(10)));
+      if(h.startsWith('#provider/')){
+        const id=decodeURIComponent(h.slice(10));
+        try{
+          const sb=getClient(); if(!sb)return;
+          const {data,error}=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('id',id).eq('status','ACTIVE').maybeSingle();
+          if(error||!data)return;
+          return window.__MNTYOpenProviderProfilePage?.(data);
+        }catch(_){return}
+      }
+      if(h==='#mx-home'||h===''||h==='#') return window.MXHomeLanding?.();
+    };
     const callAuth=()=>typeof window.authView==='function'?window.authView():typeof authView==='function'?authView():null;
     const publicHomeToPlatform=()=>typeof openPlatform==='function'?openPlatform():goLogin();
     const callPlatform=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():publicHomeToPlatform();
@@ -456,6 +478,8 @@
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
     document.getElementById('mx-login').onclick=openAccount;
     syncHomeAuthState();
+    if(String(location.hash||'').startsWith('#category/')) setTimeout(()=>window.__MNTYOpenCategoryPage?.(decodeURIComponent(String(location.hash).slice(10))),0);
+    else if(String(location.hash||'').startsWith('#provider/')) setTimeout(()=>window.__MNTYHandlePublicRoute?.(),0);
     document.getElementById('mx-admin-return')?.addEventListener('click',async()=>{
       const btn=document.getElementById('mx-admin-return');
       if(btn)btn.disabled=true;
