@@ -626,3 +626,11 @@
 - [x] Exact-matched `legal-consent` live source to GitHub.
 - [ ] 7 active Edge Functions from the original gap remain: `legal-cms`, `legal-gate`, `legal-center`, `ai-gemini-proxy`, `erp-product-create`, `erp-purchase-receive`, `marketing-lead-create`.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC252 — Edge Function Source Convergence COMPLETE — 2026-10-02
+- [x] Exact-matched the final 7 previously missing active Production Edge Functions: `legal-cms`, `legal-gate`, `legal-center`, `ai-gemini-proxy`, `erp-product-create`, `erp-purchase-receive`, `marketing-lead-create`.
+- [x] The original 16-function source gap is now CLOSED: all 35 ACTIVE Production Edge Functions have corresponding repository source directories/files.
+- [x] No speculative source rewrite was used; every restored file was fetched from live Production and exact-compared after write.
+- [ ] CI/release verification for the final convergence commits is still pending.
+- [ ] Final Production Gate remains OPEN pending the remaining runtime/security/recovery gates.
