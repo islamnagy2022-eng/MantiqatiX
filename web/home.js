@@ -149,7 +149,7 @@
       <div class="mx-main" id="mx-home">
         <section class="mx-home-hero" aria-label="اكتشاف الخدمات ومقدمي الخدمات">
           <div class="mx-home-hero__copy">
-            <span class="mx-home-hero__eyebrow">MantiqatiX</span>
+            <span class="mx-home-hero__eyebrow">منطقتك تبدأ من هنا</span>
             <h1>كل الخدمات في مكان واحد</h1>
             <p>اكتشف ... احجز ... تواصل ... بسهولة وأمان مع مقدمي الخدمات والأنشطة المسجلة على MantiqatiX.</p>
             <div class="mx-home-hero__actions">
@@ -160,6 +160,7 @@
               <span>✓ مقدمو خدمات مسجلون</span>
               <span>✓ بيانات منشورة عند توفرها</span>
               <span>✓ الموقع عند الحاجة فقط</span>
+              <span>✓ تجربة رقمية موحدة</span>
             </div>
           </div>
           <div class="mx-home-hero__visual" aria-label="كيف تعمل MantiqatiX">
