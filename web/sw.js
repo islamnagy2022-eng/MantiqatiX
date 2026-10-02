@@ -1,4 +1,4 @@
-const CACHE='mnty-web-v108';
+const CACHE='mnty-web-v109';
 const APP_SHELL=['./','./index.html','./styles.css','./android-parity-catalog.js','./app.js','./config.js','./location-adapter.js','./brand.css','./brand.js','./home.css','./home.js','./sector-modules.js','./reverse-bidding-module.js','./operations-modules.js','./restaurant-module.js','./manifest.webmanifest','./vendor/supabase.js','./assets/mantiqatix-logo.svg','./assets/mantiqatix-mark.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
