@@ -560,3 +560,10 @@
 - [x] Revalidated live source availability for 8 remaining production functions: `approval-list`, `business-onboarding-status`, `financial-journal`, `settlement-financial-atomic`, `legal-consent`, `legal-cms`, `legal-gate`, `legal-center`.
 - [ ] Repository source convergence remains OPEN; live source exists but GitHub restoration is still blocked by the write safety layer for the attempted missing-source path.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC245 — Remaining Live Production Source Revalidation — 2026-10-02
+- [x] Revalidated live source availability for the remaining 7 functions: `subscription-start-trial`, `subscription-payment-intent`, `ai-gemini-proxy`, `erp-product-create`, `erp-purchase-receive`, `marketing-lead-create`, `mnty-provider-onboarding-review`.
+- [x] Confirmed the GitHub `supabase/functions` tree still contains 20 directories, including `mnty-provider-onboarding-review` restored in RC242.
+- [ ] Source convergence is not yet closed because the other live production functions still lack matching authoritative repository source.
+- [ ] Final Production Gate remains OPEN.
