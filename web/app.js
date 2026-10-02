@@ -1009,7 +1009,7 @@ async function reviewProviderOnboarding(requestId,decision){
  await renderApp();
 }
 async function loadProviderOnboardingReview(){
- const host=document.getElementById('provider-onboarding-review-list');
+ const host=document.getElementById('provider-onboarding-review-list')||document.getElementById('sa-provider-review-list');
  if(!host)return;
  const {data,error}=await sb.from('provider_onboarding_requests').select('id,user_id,registration_request_id,business_name,provider_kind,name_en,description,specialties,service_areas,portfolio,status,created_at,rejection_reason').order('created_at',{ascending:false}).limit(50);
  if(error){host.innerHTML='<div class="empty-state">تعذر تحميل طلبات تسجيل الأنشطة: '+esc(error.message)+'</div>';return}
