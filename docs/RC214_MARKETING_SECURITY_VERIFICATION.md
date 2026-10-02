@@ -62,3 +62,11 @@ Remaining release evidence still required:
 - monitoring/alert delivery verification
 - rollback rehearsal
 - final production configuration verification
+
+
+## Latest automated evidence — 2026-10-02
+- GitHub Actions validation run `36950722027` completed successfully on the candidate branch.
+- The validation job passed all syntax, asset, production-security, auth, module, Android-parity, public-secret, config, booking/payment, release-preflight, admin-workspace, and marketing-boundary checks included in the workflow.
+- The Pages deploy job was correctly skipped because the run was for a pull request.
+- The production Pages smoke test has been extended to verify the marketing workspace assets and absence of privileged-service markers when the candidate is eventually deployed from main.
+- Edge Function `marketing-lead-create` is ACTIVE at version 6 with JWT verification enabled.
