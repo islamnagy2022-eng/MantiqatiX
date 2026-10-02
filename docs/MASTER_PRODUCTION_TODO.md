@@ -691,3 +691,16 @@
 - [x] Authorization regression check with a non-platform identity was rejected with `platform_admin_required`; pending registration count remained unchanged at 2.
 - [ ] End-to-end delivery/click-through of the resulting notification remains NOT VERIFIED.
 - [ ] Final Production Gate remains OPEN for multi-tenant E2E, real payment/finance E2E, browser/device smoke, backup/restore, rollback and leaked-password protection.
+
+
+## RC265 — Production security / notification path re-verification — 2026-10-02
+
+- Live Supabase Security Advisor re-run after RC264.
+- Current RLS-no-policy finding: public.digital_page_payment_events only; direct client grants remain absent and this is not converted into a broad policy merely to silence Advisor.
+- Current SECURITY DEFINER findings: 1 anonymous + 9 authenticated-callable functions. The additional authenticated warnings include the centralized RBAC helpers (mnty_active_membership, mnty_can, mnty_can_platform_admin) and the global-ad creation RPC; their exposure remains a documented workflow boundary and still requires adversarial multi-account E2E before release certification.
+- Live privilege check confirms mnty_active_membership, mnty_can, mnty_can_platform_admin, and admin_create_global_ad are not executable by anon; authenticated execution is explicit for the RBAC/admin workflow.
+- Push path re-verified in production: notifications has AFTER INSERT trigger mnty_notifications_push_after_insert; trigger calls mnty_push_notification_hook(), which reads the VAPID/webhook secrets from Vault and posts to the protected mnty-push-dispatch Edge Function. The dispatcher removes 404/410 stale subscriptions and records success/error timestamps.
+- Push delivery/click-through remains NOT VERIFIED because no real user/device push subscription test was executed.
+- Public GitHub Pages browser smoke remains NOT VERIFIED because the available web browser fetch could not access the deployed URL; no false PASS recorded.
+- Backend-only ERP/SMM table contract remains fail-closed for ordinary client roles; source documentation and production privilege baselines already record the service/backend-only boundary.
+- Production Release Gate remains OPEN. No destructive test, synthetic financial transaction, fake identity, or cost-incurring branch was created.
