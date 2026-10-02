@@ -108,7 +108,8 @@
         };
         const loginButton=document.getElementById('mx-login');
         if(loginButton){
-          loginButton.textContent='حسابي';
+          loginButton.innerHTML='<span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span>';
+          loginButton.setAttribute('aria-label','فتح حسابي');
           loginButton.onclick=()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
         }
         const addButton=document.getElementById('mx-add');
@@ -131,7 +132,7 @@
             </label>
             <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
           </div>
-          <button class="mx-header__login" id="mx-login" type="button" aria-label="${window.MNTYAuthState?.authenticated?'فتح حسابي':'تسجيل الدخول إلى MantiqatiX'}">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
+          <button class="mx-header__login" id="mx-login" type="button" aria-label="حسابي"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button>
           ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
           <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer">☰</button>
           <nav class="mx-nav">
@@ -396,7 +397,7 @@
         if(btn)btn.disabled=false;
       }
     });
-    document.getElementById('mx-add').onclick=goLogin;
+    document.getElementById('mx-add').onclick=goAdvertise;
     const selectAdPlan=(plan)=>{
       try{localStorage.setItem('MNTYPendingAdPlan',String(plan||'QUARTERLY'));}catch(_){}
       document.querySelectorAll('[data-ad-plan]').forEach(x=>x.classList.toggle('is-selected',x.dataset.adPlan===plan));
@@ -412,7 +413,7 @@
     document.getElementById('mx-ad-book').onclick=()=>{selectAdPlan('QUARTERLY');goAdvertise();};
     document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center'));
     document.getElementById('mx-bottom-account').onclick=openAccount;
-    document.getElementById('mx-bottom-add').onclick=goLogin;
+    document.getElementById('mx-bottom-add').onclick=goAdvertise;
     document.getElementById('mx-all').onclick=()=>scrollTo('mx-services');
     document.getElementById('mx-ad-cta').onclick=goAdvertise;
 
@@ -628,7 +629,7 @@
     mobileMenu?.addEventListener('click',()=>mobileDrawer?.classList.contains('is-open')?closeMobileMenu():openMobileMenu());
     mobileMenuClose?.addEventListener('click',closeMobileMenu);
     mobileBackdrop?.addEventListener('click',closeMobileMenu);
-    mobileAdd?.addEventListener('click',()=>{closeMobileMenu();goLogin();});
+    mobileAdd?.addEventListener('click',()=>{closeMobileMenu();goAdvertise();});
     document.querySelectorAll('[data-mobile-nav]').forEach(a=>a.addEventListener('click',closeMobileMenu));
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMobileMenu();closeSearchSuggestions();}});
 
