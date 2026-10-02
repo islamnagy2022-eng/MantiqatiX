@@ -202,6 +202,11 @@
     if(!b || b.dataset.mntyMarketingBound==='1') return;
     b.dataset.mntyMarketingBound='1';
     b.onclick=()=>{
+      if(typeof window.selectModule==='function'){
+        window.selectModule('التسويق والإعلان');
+        setTimeout(read,0);
+        return;
+      }
       document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
       read();
