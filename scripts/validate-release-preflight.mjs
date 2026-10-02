@@ -5,6 +5,8 @@ const config = fs.readFileSync('web/config.js', 'utf8');
 const index = fs.readFileSync('web/index.html', 'utf8');
 const app = fs.readFileSync('web/app.js', 'utf8');
 const onboarding = fs.readFileSync('web/provider-onboarding-module.js', 'utf8');
+const home = fs.readFileSync('web/home.js', 'utf8');
+const homeCss = fs.readFileSync('web/home.css', 'utf8');
 
 const requiredWorkflowMarkers = [
   'node scripts/validate-production-security.mjs',
@@ -47,6 +49,31 @@ if (!smm.includes("signInWithOAuth({provider:'google',options:") || !smm.include
 }
 if (!/MantiqatiX/i.test(index)) {
   throw new Error('Production landing page does not contain the MantiqatiX identity marker.');
+}
+
+const launchUiGuards = [
+  ['header search input', /id="mx-home-search"/],
+  ['search action', /id="mx-search-btn"/],
+  ['search suggestions', /id="mx-search-suggestions"/],
+  ['mobile menu', /id="mx-mobile-menu"/],
+  ['mobile drawer', /id="mx-mobile-drawer"/],
+  ['mobile drawer close', /id="mx-mobile-menu-close"/],
+  ['mobile add activity', /id="mx-mobile-add"/],
+  ['footer', /class="mx-footer"/],
+  ['bottom search action', /id="mx-bottom-search"/]
+];
+for (const [label, pattern] of launchUiGuards) {
+  if (!pattern.test(home)) throw new Error('Homepage launch UI guard missing: ' + label);
+}
+for (const [label, pattern] of [
+  ['mobile drawer open state', /\.mx-mobile-drawer\.is-open/],
+  ['responsive mobile breakpoint', /@media\(max-width:800px\)/],
+  ['reduced motion support', /prefers-reduced-motion:reduce/]
+]) {
+  if (!pattern.test(homeCss)) throw new Error('Homepage responsive guard missing: ' + label);
+}
+if (!/loadData\(term\)/.test(home) || !/marketing_services/.test(home) || !/marketing_provider_profiles/.test(home)) {
+  throw new Error('Homepage search is not connected to the live service/provider catalog.');
 }
 
 console.log('Production release preflight: PASS (CI guards, production Supabase pin, connected data source, MantiqatiX identity, secure Google-only auth)');
