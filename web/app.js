@@ -111,7 +111,7 @@ try{
    live.loading=false;
    return;
  }
- const myProviderRes=await sb.from('marketing_provider_profiles').select('id,name_ar,name_en,provider_kind,description,service_areas,profile_image_path,updated_at,status,is_verified,is_featured').eq('owner_user_id',uid).maybeSingle();
+ const myProviderRes=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,profile_image_path,updated_at,status,is_verified,is_featured').eq('owner_user_id',uid).maybeSingle();
  if(myProviderRes.error)throw myProviderRes.error;
  live.myProviderProfile=myProviderRes.data||null;
  if(live.myProviderProfile){const ps=await sb.from('marketing_provider_services').select('id,provider_id,service_id,service_description,pricing_from,pricing_to,currency,status,created_at').eq('provider_id',live.myProviderProfile.id).order('created_at',{ascending:false}).limit(50);if(ps.error)throw ps.error;live.records.providerServices=ps.data||[];}
@@ -974,8 +974,19 @@ async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
    try{
      const {data,error}=await sb.functions.invoke('digital-page-order-create',{body:{productId:selected,pageType:type,title,targetBusinessId,idempotencyKey:idem}});
      if(error||data?.error)throw new Error(data?.error||error?.message||'تعذر إنشاء الطلب');
+     const orderId=data?.order?.id;
+     if(!orderId)throw new Error('تم إنشاء الطلب دون رقم طلب صالح');
+     const paymentIdem=crypto.randomUUID();
+     const payment=await sb.functions.invoke('digital-page-payment-intent',{body:{orderId,idempotencyKey:paymentIdem}});
+     if(payment.error||payment.data?.error)throw new Error(payment.data?.error||payment.error?.message||'تعذر بدء الدفع');
+     const checkoutUrl=String(payment.data?.checkoutUrl||'');
      close();
-     showToast('تم إنشاء طلب الصفحة بسعر مثبت. سيظهر الطلب في حسابك، واستكمال الدفع يعتمد على بوابة الدفع المفعلة.','success');
+     if(checkoutUrl){
+       showToast('تم تجهيز الدفع. سيتم تحويلك الآن إلى بوابة الدفع الآمنة.','success');
+       window.setTimeout(()=>{window.location.assign(checkoutUrl)},350);
+       return;
+     }
+     showToast('تم إنشاء الطلب وتجهيز نية الدفع، لكن رابط الدفع غير متاح حاليًا. راجع إعدادات بوابة الدفع قبل الإطلاق.','error');
      await accountView();
    }catch(e){btn.disabled=false;btn.textContent='إنشاء طلب مدفوع';showToast(e?.message||'تعذر إنشاء الطلب','error')}
  };
@@ -1028,7 +1039,7 @@ async function accountView(){
  const commercialHtml='<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">DIGITAL SERVICES</span><h3>صفحات مدفوعة من حسابي</h3><p class="muted">اطلب Portfolio شخصية أو Menu للنشاط. السعر يثبت من الخادم ولا يتم النشر تلقائيًا بمجرد الدفع.</p></div></div><div class="action-bar">'+(portfolioProducts.length?'<button class="btn btn-primary" id="account-buy-portfolio" style="width:auto">طلب Portfolio مدفوعة</button>':'')+(providerProfile&&providerProfile.business_id&&menuProducts.length?'<button class="btn btn-outline" id="account-buy-menu" style="width:auto">طلب Menu للنشاط</button>':'')+'</div>'+(!providerProfile&&menuProducts.length?'<p class="muted">لطلب Menu، أكمل تسجيل نشاطك أولًا واعتمد النشاط.</p>':'')+(digitalOrders.length?'<div class="request-list" style="margin-top:12px">'+digitalOrders.slice(0,8).map(o=>'<div class="request-row"><span>'+esc(o.title)+' · '+esc(o.page_type==='PORTFOLIO'?'Portfolio':'Menu')+'</span><b>'+esc(o.payment_status==='PAID'?(o.fulfillment_status==='PUBLISHED'?'منشور':'مدفوع'):o.payment_status==='PENDING'?'بانتظار الدفع':o.payment_status==='FAILED'?'فشل الدفع':'غير مكتمل')+'</b></div>').join('')+'</div>':'<p class="muted" style="margin-top:12px">لا توجد طلبات صفحات رقمية حتى الآن.</p>')+'</section>';
  const profileCard='<section class="mx-profile-card mx-profile-card--account">'+(profileAvatar?'<img class="mx-profile-card__avatar-img" src="'+esc(profileAvatar)+'" alt="صورة الملف الشخصي">':'<div class="mx-profile-card__avatar">'+esc(profileName.slice(0,1).toUpperCase())+'</div>')+'<div class="mx-profile-card__body"><span class="eyebrow">PROFILE</span><h2>'+esc(profileName)+'</h2><p>'+esc(user?.email||'—')+'</p><small><i></i> الحساب مسجل الدخول</small></div></section>';
  const activityCard=providerProfile?'<section class="mx-profile-card mx-profile-card--activity"><div class="mx-profile-card__avatar">'+esc((providerProfile.name_ar||providerProfile.name_en||'نشاط').slice(0,1))+'</div><div class="mx-profile-card__body"><span class="eyebrow">ACTIVITY PROFILE</span><h2>'+esc(providerProfile.name_ar||providerProfile.name_en||'النشاط')+'</h2><p>'+esc(roleLabel(providerProfile.provider_kind||'SERVICE_PROVIDER'))+'</p><small>'+(providerProfile.is_verified?'✓ نشاط موثق':'نشاط منشور')+'</small></div></section>':'<section class="mx-profile-card mx-profile-card--activity"><div class="mx-profile-card__avatar">＋</div><div class="mx-profile-card__body"><span class="eyebrow">ACTIVITY PROFILE</span><h2>ملف النشاط</h2><p>أنشئ أو أكمل ملف نشاطك لعرض الخدمات والتخصصات.</p><button class="text-btn" id="profile-provider-start">استكمال ملف النشاط ←</button></div></section>';
- document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>حسابي وملفي الشخصي</h1>'+profileCard+activityCard+'<h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
+ document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>حسابي وملفي الشخصي</h1>'+profileCard+activityCard+'<h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div>'+commercialHtml+'</section></main>';
  document.getElementById('profile-provider-start')?.addEventListener('click',()=>typeof providerOnboardingView==='function'?providerOnboardingView():showToast('مسار تسجيل النشاط غير متاح حاليًا.','error'));
  document.getElementById('account-buy-portfolio')?.addEventListener('click',()=>openDigitalPageOrderModal('PORTFOLIO'));
  document.getElementById('account-buy-menu')?.addEventListener('click',()=>openDigitalPageOrderModal('MENU',providerProfile?.business_id||null));
