@@ -154,3 +154,17 @@ This status is intentional and must remain until the open gates above are indepe
 - All 35 ACTIVE Production Edge Functions now have corresponding repository source.
 - The original 16-function source gap is closed with exact live-vs-GitHub comparisons.
 - CI/release verification for the final convergence commits remains pending; runtime/security/recovery release gates remain open.
+
+
+## RC253 update — Final convergence CI/release verification — 2026-10-02
+- [x] Verified GitHub Actions run `36987846198` for the final Edge Function source-convergence commit `286c70896ccf8ba0eea91ee5a4d0dd1cdbe8027d`.
+- [x] `validate` job completed successfully, including syntax checks and required web files.
+- [x] `deploy` job completed successfully, including GitHub Pages deployment and the production deployed-site verification step.
+- [x] The preceding run `36987837273` was cancelled because a newer commit/run superseded it; its completed validation steps had passed before cancellation.
+- [x] Edge Function source convergence is therefore now CI/release-verified for the current main baseline.
+- [ ] Final Production Gate remains OPEN for leaked-password protection, per-function SECURITY DEFINER review, real multi-tenant E2E, Paymob/finance/refund E2E, notifications, monitoring drill, backup/restore, Android release/device evidence, and final regression/release evidence.
+
+## Current baseline after RC253
+- Latest verified project commit: `286c70896ccf8ba0eea91ee5a4d0dd1cdbe8027d`.
+- Latest release-gate record: **RC253**.
+- Final Production Gate: **OPEN**.
