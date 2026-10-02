@@ -546,3 +546,10 @@
 - [ ] Exact source convergence for all ACTIVE production Edge Functions is NOT VERIFIED.
 - [ ] No live function source was copied into GitHub during this audit because the available GitHub write path rejected the attempted source-blob operation; no speculative rewrite or replacement was performed.
 - [ ] Final Production Gate remains OPEN until each ACTIVE function has an authoritative source mapping, version/hash evidence, and CI/deployment ownership or an explicit documented retirement decision.
+
+
+## RC243 — Production Edge Function Source Recovery Attempt — 2026-10-02
+- [x] Retrieved the live production source for `business-deactivate` from Supabase without modifying runtime behavior.
+- [ ] GitHub source creation for `supabase/functions/business-deactivate/index.ts` was rejected by the GitHub/OpenAI safety layer; no bypass or speculative source rewrite was used.
+- [ ] Remaining ACTIVE production functions without repository source remain NOT VERIFIED for source convergence.
+- [ ] Final Production Gate remains OPEN.
