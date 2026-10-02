@@ -594,3 +594,15 @@
 - [x] Established the continuation protocol: future sessions must read `docs/PROJECT_CONTINUITY.md` and the latest Master TODO before making changes, must not repeat checked work without new evidence, and must append material progress to the release record.
 - [x] Latest baseline before this record: RC247 / commit `92480ab2594ad17ad296168c5bf172e60146f3a2`.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC249 — Digital Page Content & Publishing Completion — 2026-10-02
+- [x] Added production `digital_pages` content model for PORTFOLIO/MENU with DRAFT/PUBLISHED/ARCHIVED lifecycle, unique slug, SEO fields, theme metadata, versioning and owner attribution.
+- [x] Added production `digital_page_sections` model with typed sections, ordering, JSON data payloads and active flag.
+- [x] Added RLS: public can read only PUBLISHED pages/active sections; authenticated owners/admins manage only pages within their authorized business or owned provider profile.
+- [x] Applied migration `rc248_digital_page_content_publishing` to Supabase production and verified both tables exist with RLS enabled.
+- [x] Added public renderer: `web/digital-page.html`, `web/digital-page.js`, `web/digital-page.css`.
+- [x] Added authenticated owner editor: `web/digital-page-editor.html`, `web/digital-page-editor.js`, `web/digital-page-editor.css`.
+- [ ] Real browser E2E for page creation, publication, public rendering and Paymob checkout remains NOT VERIFIED.
+- [ ] Media/storage-backed portfolio images, QR generation and advanced fulfillment workflow remain open for the next iteration.
+- [ ] Final Production Gate remains OPEN.
