@@ -32,6 +32,8 @@ jobs:
         run: |
           node --check web/rbac.js
           node --check web/app.js
+          ! grep -Eq "from\\(['\"]marketing_leads['\"]\\)\\.insert|from\\(['\"]marketing_leads['\"]\\).*\\.insert" web/app.js
+          grep -q "sb.functions.invoke('marketing-lead-create'" web/app.js
           ! grep -Eq 'signInWithOtp|verifyOtp|sendOtp|resend-otp|one-time-code|رمز التحقق|رمز البريد' web/app.js
           grep -q 'signInWithGoogle' web/app.js
           grep -q 'id="google-auth"' web/app.js
