@@ -327,7 +327,7 @@
     const renderDynamicCategories=(services=[],providers=[])=>{
       const items=dynamicTaxonomy(services,providers);
       categoryGrid.innerHTML=items.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
-      categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; const label=btn.querySelector('strong')?.textContent||''; const input=document.getElementById('mx-home-search'); if(input) input.value=label; loadData('',code); document.getElementById('mx-services')?.scrollIntoView(scrollOptions('start')); });
+      categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
     };
 
     const platformNotices=[
@@ -354,6 +354,62 @@
       renderPlatformNotice();
     },3000);
     window.addEventListener('pagehide',()=>{if(platformNoticeTimer)window.clearInterval(platformNoticeTimer)},{once:true});
+
+    const openActivityRequestModal=async()=>{
+      const overlay=document.createElement('div');
+      overlay.className='mx-modal mx-home-request-modal';
+      overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">MantiqatiX</span><h2>إضافة نشاط</h2><p>أرسل بيانات النشاط، وسيتم استكمال المراجعة والاعتماد وفق إجراءات المنصة.</p></div><button type="button" class="text-btn mx-close-modal" aria-label="إغلاق">إغلاق</button></div><form id="mx-activity-request-form" class="form-grid"><label class="field"><span>اسم النشاط *</span><input id="mx-req-business" required maxlength="120" placeholder="مثال: مطعم أو شركة"></label><label class="field"><span>نوع النشاط *</span><select id="mx-req-kind" required>__TAX_OPTIONS__</select></label><label class="field"><span>رقم الهاتف</span><input id="mx-req-phone" inputmode="tel" maxlength="30" placeholder="رقم التواصل"></label><label class="field"><span>المدينة / المنطقة</span><input id="mx-req-area" maxlength="120" placeholder="المدينة والمنطقة"></label><label class="field" style="grid-column:1/-1"><span>وصف النشاط</span><textarea id="mx-req-description" rows="3" maxlength="1000" placeholder="وصف مختصر للنشاط والخدمات"></textarea></label><label class="field" style="grid-column:1/-1"><span>الخدمات أو التخصصات</span><input id="mx-req-services" maxlength="500" placeholder="افصل الخدمات بفواصل"></label><div class="action-bar" style="grid-column:1/-1"><button type="submit" class="btn btn-primary" id="mx-activity-request-submit">إرسال الطلب</button><button type="button" class="btn btn-outline mx-close-modal">إلغاء</button></div></form></div>';
+      overlay.innerHTML=overlay.innerHTML.replace('__TAX_OPTIONS__',TAXONOMY.map(x=>'<option value="'+escapeHtml(x[3])+'">'+escapeHtml(x[1])+'</option>').join(''));
+      document.body.appendChild(overlay);
+      const close=()=>overlay.remove();
+      overlay.querySelectorAll('.mx-close-modal').forEach(b=>b.addEventListener('click',close));
+      overlay.querySelector('#mx-activity-request-form')?.addEventListener('submit',async e=>{
+        e.preventDefault();
+        const draft={business_name:document.getElementById('mx-req-business')?.value?.trim()||'',provider_kind:document.getElementById('mx-req-kind')?.value||'FOOD',phone:document.getElementById('mx-req-phone')?.value?.trim()||'',area:document.getElementById('mx-req-area')?.value?.trim()||'',description:document.getElementById('mx-req-description')?.value?.trim()||'',specialties:document.getElementById('mx-req-services')?.value?.trim()||''};
+        try{localStorage.setItem('MNTYPendingActivityDraft',JSON.stringify(draft));}catch(_){}
+        close();
+        if(await hydrateAuthenticatedSession()){
+          if(typeof submitRegistrationRequest==='function'){try{await submitRegistrationRequest('SERVICE_PROVIDER');}catch(_){}}
+          if(typeof window.providerOnboardingView==='function') return window.providerOnboardingView();
+          return typeof window.accountView==='function'?window.accountView():callPlatform();
+        }
+        return callAuth();
+      });
+      window.setTimeout(()=>overlay.querySelector('#mx-req-business')?.focus(),0);
+    };
+
+    const openCategoryPage=async(code)=>{
+      const item=TAXONOMY.find(x=>String(x[3])===String(code))||['◉',String(code||'نشاط'),'خدمات وأنشطة منشورة',String(code||'')];
+      const label=item[1], desc=item[2], key=normCode(code);
+      const app=document.getElementById('app'); if(!app)return;
+      app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">MantiqatiX</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>اكتشف '+escapeHtml(label)+'</h2><p>الأنشطة والخدمات المنشورة فعليًا ضمن هذا القطاع.</p></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات</h2><p class="muted">خدمات منشورة في '+escapeHtml(label)+'</p></div></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الأنشطة ومقدمو الخدمات</h2><p class="muted">بيانات الأنشطة المنشورة والمعتمدة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
+      document.getElementById('mx-category-back').onclick=()=>window.MXHomeLanding?.();
+      document.getElementById('mx-category-account').onclick=async()=>{if(typeof window.accountView==='function'&&window.MNTYAuthState?.authenticated)return window.accountView();if(typeof window.authView==='function')return window.authView();};
+      try{
+        const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
+        const [sr,pr]=await Promise.all([
+          sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').eq('category_code',key).order('created_at',{ascending:false}).limit(50),
+          sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('status','ACTIVE').eq('provider_kind',key).order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(50)
+        ]);
+        if(sr.error)throw sr.error; if(pr.error)throw pr.error;
+        const services=sr.data||[], providers=pr.data||[];
+        const se=document.getElementById('mx-category-services'), pe=document.getElementById('mx-category-providers');
+        se.innerHTML=services.length?services.map(s=>'<article class="mx-category-result-card"><img src="'+activityImage(key)+'" alt=""><div><span class="mx-chip">'+escapeHtml(key)+'</span><h3>'+escapeHtml(s.name_ar||s.name_en||'خدمة')+'</h3><p>'+escapeHtml(s.description||'خدمة منشورة على MantiqatiX.')+'</p><button type="button" class="mx-card-link" data-cat-service="'+escapeHtml(s.id)+'">استكشف الخدمة ←</button></div></article>').join(''):'<div class="empty-state">لا توجد خدمات منشورة حاليًا في هذا القطاع.</div>';
+        pe.innerHTML=providers.length?providers.map(p=>'<article class="mx-category-result-card"><div class="mx-category-result-card__media">'+providerMedia(p)+'</div><div><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'نشاط مسجل على MantiqatiX.')+'</p><span class="mx-location">⌖ '+escapeHtml(readArea(p.service_areas)||'نطاق خدمة معلن')+'</span><div class="mx-provider-actions"><button type="button" class="mx-card-link" data-cat-provider="'+escapeHtml(p.id)+'">عرض الملف ←</button>'+(p.business_id?'<button type="button" class="mx-card-book" data-cat-book="'+escapeHtml(p.business_id)+'" data-cat-provider-name="'+escapeHtml(p.name_ar||p.name_en||'مقدم الخدمة')+'">احجز / اطلب</button>':'')+'</div></div></article>').join(''):'<div class="empty-state">لا توجد أنشطة منشورة حاليًا في هذا القطاع.</div>';
+        se.querySelectorAll('[data-cat-service]').forEach(b=>b.onclick=()=>{const s=services.find(x=>String(x.id)===String(b.dataset.catService));if(s){document.getElementById('mx-category-services')?.scrollIntoView({behavior:'smooth'});}});
+        pe.querySelectorAll('[data-cat-provider]').forEach(b=>{b.onclick=()=>{const p=providers.find(x=>String(x.id)===String(b.dataset.catProvider));if(p)openProviderProfilePage(p,label);}});
+        pe.querySelectorAll('[data-cat-book]').forEach(b=>b.onclick=()=>{const id=b.dataset.catBook,n=b.dataset.catProviderName||'مقدم الخدمة';if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function')return openProviderCatalog(id,n);try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId:id,providerName:n}));}catch(_){};goLogin();});
+      }catch(e){document.getElementById('mx-category-services').innerHTML='<div class="empty-state">تعذر تحميل الخدمات حاليًا.</div>';document.getElementById('mx-category-providers').innerHTML='<div class="empty-state">تعذر تحميل الأنشطة حاليًا.</div>';}
+    };
+
+    const openProviderProfilePage=(provider,categoryLabel='')=>{
+      const app=document.getElementById('app'); if(!app)return;
+      const name=provider?.name_ar||provider?.name_en||'مقدم خدمة';
+      app.innerHTML='<main class="mx-profile-page" dir="rtl"><header class="mx-profile-page__head"><button type="button" class="mx-category-back" id="mx-profile-back">← العودة</button><span class="eyebrow">ملف النشاط</span></header><section class="mx-profile-page__hero"><div class="mx-profile-page__cover"><img src="'+escapeHtml(publicProfileImage(provider)||activityImage(provider?.provider_kind))+'" alt="'+escapeHtml(name)+'"></div><div class="mx-profile-page__identity"><div class="mx-profile-page__avatar">'+escapeHtml(name.slice(0,1))+'</div><div><span class="mx-verified">'+(provider?.is_verified?'✓ موثق':'منشور')+'</span><h1>'+escapeHtml(name)+'</h1><p>'+escapeHtml(categoryLabel||provider?.provider_kind||'نشاط')+'</p></div></div><p class="mx-profile-page__description">'+escapeHtml(provider?.description||'لا يوجد وصف منشور حاليًا.')+'</p><div class="mx-profile-page__meta"><span>⌖ '+escapeHtml(readArea(provider?.service_areas)||'نطاق خدمة معلن')+'</span><span>✓ نشاط منشور على MantiqatiX</span></div>'+(provider?.business_id?'<div class="mx-profile-page__actions"><button type="button" class="btn btn-primary" id="mx-profile-book">احجز / اطلب خدمة</button><button type="button" class="btn btn-outline" id="mx-profile-back2">العودة للقطاع</button></div>':'')+'</section><section class="mx-profile-page__section"><h2>الخدمات والتخصصات</h2><p class="muted">تفاصيل الخدمات تظهر من الكتالوج التشغيلي عند توفرها.</p></section></main>';
+      const back=()=>openCategoryPage(provider?.provider_kind||'');
+      document.getElementById('mx-profile-back').onclick=back;document.getElementById('mx-profile-back2')?.addEventListener('click',back);
+      document.getElementById('mx-profile-book')?.addEventListener('click',()=>{const id=provider.business_id,n=name;if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function')return openProviderCatalog(id,n);try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId:id,providerName:n}));}catch(_){};goLogin();});
+    };
 
     const callAuth=()=>typeof window.authView==='function'?window.authView():typeof authView==='function'?authView():null;
     const publicHomeToPlatform=()=>typeof openPlatform==='function'?openPlatform():goLogin();
@@ -418,7 +474,13 @@
         if(btn)btn.disabled=false;
       }
     });
-    document.getElementById('mx-add').onclick=goAdvertise;
+    document.getElementById('mx-add').onclick=openActivityRequestModal;
+    document.getElementById('mx-mobile-add')?.addEventListener('click',openActivityRequestModal);
+    document.getElementById('mx-ad-book')?.addEventListener('click',openActivityRequestModal);
+    document.getElementById('mx-bottom-add')?.addEventListener('click',openActivityRequestModal);
+    document.getElementById('mx-wallet')?.addEventListener('click',async()=>{if(window.MNTYAuthState?.authenticated&&typeof window.walletView==='function')return window.walletView();return goLogin();});
+    document.getElementById('mx-cart')?.addEventListener('click',()=>typeof window.cartView==='function'?window.cartView():showToast('السلة غير متاحة حاليًا.','error'));
+    window.refreshMntiCartCount?.();
     const selectAdPlan=(plan)=>{
       try{localStorage.setItem('MNTYPendingAdPlan',String(plan||'QUARTERLY'));}catch(_){}
       document.querySelectorAll('[data-ad-plan]').forEach(x=>x.classList.toggle('is-selected',x.dataset.adPlan===plan));
@@ -478,39 +540,7 @@
         const id=b.dataset.provider;
         const item=(providers||[]).find(x=>String(x.id)===String(id));
         if(!item)return;
-        const modal=document.createElement('div');
-        modal.className='mx-public-modal';
-        modal.innerHTML='<div class="mx-public-modal__backdrop"></div><section class="mx-public-modal__card" role="dialog" aria-modal="true" aria-labelledby="mx-public-modal-title"><button class="mx-public-modal__close" type="button" aria-label="إغلاق">×</button>'+providerMedia(item)+'<span class="mx-verified">'+(item.is_verified?'✓ موثق':'منشور')+'</span><h2 id="mx-public-modal-title">'+escapeHtml(item.name_ar||item.name_en||'مقدم خدمة')+'</h2><p>'+escapeHtml(item.description||'مقدم خدمة مسجل على MantiqatiX.')+'</p><div class="mx-public-modal__area">⌖ '+escapeHtml(readArea(item.service_areas)||'نطاق خدمة معلن')+'</div>'+(item.business_id?'<button class="mx-btn mx-btn--primary" type="button" id="mx-public-modal-book">احجز / اطلب خدمة ←</button>':'')+'</section></div>';
-        const previousFocus=document.activeElement;
-        document.body.appendChild(modal);
-        const dialog=modal.querySelector('.mx-public-modal__card');
-        const focusable=()=>[...dialog.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.offsetParent!==null);
-        const onKey=e=>{
-          if(e.key==='Escape'){e.preventDefault();close();return;}
-          if(e.key==='Tab'){
-            const nodes=focusable();
-            if(!nodes.length)return;
-            const first=nodes[0],last=nodes[nodes.length-1];
-            if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
-            else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
-          }
-        };
-        const close=()=>{
-          modal.remove();
-          document.removeEventListener('keydown',onKey);
-          if(previousFocus&&typeof previousFocus.focus==='function')previousFocus.focus();
-        };
-        modal.querySelector('.mx-public-modal__close').onclick=close;
-        modal.querySelector('.mx-public-modal__backdrop').onclick=close;
-        document.addEventListener('keydown',onKey);
-        window.setTimeout(()=>modal.querySelector('.mx-public-modal__close')?.focus(),0);
-        modal.querySelector('#mx-public-modal-book')?.addEventListener('click',()=>{
-          close();
-          const businessId=item.business_id, providerName=item.name_ar||item.name_en||'مقدم الخدمة';
-          if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function') return openProviderCatalog(businessId,providerName);
-          try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId,providerName}));}catch(_){}
-          goLogin();
-        });
+        openProviderProfilePage(item);
       });
       el.querySelectorAll('[data-book-business]').forEach(b=>b.onclick=()=>{
         const businessId=b.dataset.bookBusiness, providerName=b.dataset.bookProvider||'مقدم الخدمة';
