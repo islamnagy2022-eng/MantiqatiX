@@ -1014,6 +1014,15 @@ async function accountView(){
  const splitServices=(v)=>String(v||'').split(/[،,\n]/).map(x=>x.trim()).filter(Boolean).slice(0,30);
  kindSelect?.addEventListener('change',refreshProviderServices);
  refreshProviderServices();
+ try{
+   const raw=localStorage.getItem('MNTYPendingActivityDraft');
+   if(raw){
+     const d=JSON.parse(raw)||{};
+     const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=String(v)};
+     set('po-business-name',d.business_name);set('po-kind',d.provider_kind);set('po-description',d.description);set('po-specialties',d.specialties);
+     window.MNTYPendingActivityDraft=d;
+   }
+ }catch(_){}
  const govSelect=document.getElementById('po-governorate');
  const centerSelect=document.getElementById('po-center');
  govSelect?.addEventListener('change',async ()=>{
@@ -1047,7 +1056,7 @@ async function accountView(){
        service_areas:[serviceArea],
        portfolio:split(document.getElementById('po-portfolio')?.value,20)
      });
-     showToast('تم إرسال بيانات النشاط للمراجعة. لن تُمنح صلاحيات تشغيلية قبل الاعتماد.','success');
+     showToast('تم إرسال بيانات النشاط للمراجعة. لن تُمنح صلاحيات تشغيلية قبل الاعتماد.','success');\n     try{localStorage.removeItem('MNTYPendingActivityDraft');}catch(_){};
      await accountView();
    }catch(err){
      if(btn){btn.disabled=false;btn.textContent='إرسال بيانات النشاط للمراجعة'}
