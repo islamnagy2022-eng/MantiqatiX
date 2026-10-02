@@ -1097,7 +1097,8 @@ async function accountView(){
        service_areas:[serviceArea],
        portfolio:split(document.getElementById('po-portfolio')?.value,20)
      });
-     showToast('تم إرسال بيانات النشاط للمراجعة. لن تُمنح صلاحيات تشغيلية قبل الاعتماد.','success');\n     try{localStorage.removeItem('MNTYPendingActivityDraft');}catch(_){};
+     showToast('تم إرسال بيانات النشاط للمراجعة. لن تُمنح صلاحيات تشغيلية قبل الاعتماد.','success');
+     try{localStorage.removeItem('MNTYPendingActivityDraft');}catch(_){};
      await accountView();
    }catch(err){
      if(btn){btn.disabled=false;btn.textContent='إرسال بيانات النشاط للمراجعة'}
