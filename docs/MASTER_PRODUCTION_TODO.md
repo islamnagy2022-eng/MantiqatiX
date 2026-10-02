@@ -724,3 +724,13 @@
 - [x] Confirmed RC40's Android release configuration requires external signing secrets/keystore and real build/device evidence; the archive itself is not treated as proof of a production Android release.
 - [ ] Android release is therefore NOT VERIFIED and must not be closed by copying the older RC40 Android tree into `main` without a compatibility/reconciliation pass against the current production source, Supabase contract, auth/RBAC, and release pipeline.
 - Production Release Gate remains OPEN.
+
+
+## RC268 — Marketing lead mutation boundary hardening — 2026-10-03
+
+- [x] Audited the marketing lead creation path in `web/app.js` against the existing protected `marketing-lead-create` Edge Function.
+- [x] Removed direct browser inserts into `public.marketing_leads` for both normal marketing requests and advertising-booking requests.
+- [x] Both UI flows now call `marketing-lead-create`, so authentication, actor validation, business membership selection, payload limits and server-side insertion are enforced by the backend path.
+- [x] Added Pages CI regression checks preventing direct `marketing_leads` inserts in `web/app.js` and requiring the protected Edge Function call.
+- [ ] Runtime customer/provider E2E remains NOT VERIFIED; this source hardening does not substitute for independent multi-user/multi-tenant testing.
+- Production Release Gate remains OPEN.
