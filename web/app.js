@@ -85,6 +85,18 @@ try{
  const m=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,permissions,status').eq('user_id',uid).eq('status','ACTIVE');
  if(m.error)throw m.error;
  live.memberships=m.data||[];
+ // Resolve human-readable activity names for the signed-in user's own memberships.
+ // This is best-effort only; authorization remains enforced by RLS/server paths.
+ const businessIds=[...new Set(live.memberships.map(x=>x.business_id).filter(Boolean))];
+ if(businessIds.length){
+   try{
+     const br=await sb.from('businesses').select('id,name_ar,name_en').in('id',businessIds);
+     if(!br.error){
+       const names=new Map((br.data||[]).map(b=>[String(b.id),b.name_ar||b.name_en||'نشاط']));
+       live.memberships=live.memberships.map(m=>({...m,business_name:names.get(String(m.business_id))||null}));
+     }
+   }catch(_){}
+ }
  const savedId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
  const active=live.memberships.find(m=>m.id===savedId)||live.memberships[0];
  if(active){window.MNTYActiveMembershipId=active.id;localStorage.setItem('MNTYActiveMembershipId',active.id);}
@@ -143,15 +155,15 @@ try{
 
 
 function roleLabel(role){
- const labels={CUSTOMER:'عميل',SERVICE_PROVIDER:'صاحب نشاط / مقدم خدمة',OWNER:'Owner',ADMIN:'مدير إداري',SUPER_ADMIN:'مدير النظام',MANAGER:'مدير تشغيل',BUSINESS_OWNER:'مالك نشاط',SUPPORT:'دعم',SUPPORT_MANAGER:'مدير الدعم',EMPLOYEE:'موظف',STAFF:'طاقم تشغيل'};
+ const labels={CUSTOMER:'عميل',SERVICE_PROVIDER:'صاحب نشاط / مقدم خدمة',OWNER:'مالك',ADMIN:'مدير إداري',SUPER_ADMIN:'مدير النظام',MANAGER:'مدير تشغيل',BUSINESS_OWNER:'مالك نشاط',SUPPORT:'دعم',SUPPORT_MANAGER:'مدير الدعم',EMPLOYEE:'موظف',STAFF:'طاقم تشغيل'};
  return labels[String(role||'').toUpperCase()]||String(role||'دور');
 }
 function roleContextLabel(m){
  if(!m)return 'دور';
  const role=roleLabel(m.role);
  const parts=[role];
- if(m.business_id)parts.push('النشاط: '+m.business_id);
- if(m.branch_id)parts.push('الفرع: '+m.branch_id);
+ if(m.business_id)parts.push('النشاط: '+(m.business_name||'نشاط مرتبط'));
+ if(m.branch_id)parts.push('الفرع مرتبط');
  if(m.tenant_id&&!m.business_id&&!m.branch_id)parts.push('النطاق: '+m.tenant_id);
  return parts.join(' · ');
 }
