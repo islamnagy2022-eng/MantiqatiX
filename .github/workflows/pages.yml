@@ -52,6 +52,7 @@ jobs:
           node scripts/validate-web-config.mjs
           node scripts/validate-booking-payment-flow.mjs
           node scripts/validate-release-preflight.mjs
+          node scripts/validate-order-lifecycle.mjs
           node scripts/validate-admin-workspace.mjs
       - name: Required web files
         run: |
