@@ -4,7 +4,7 @@
 - Supabase project: moyhiluyhjsujhwlyeuu
 - Verification date: 2026-10-02
 - Web continuation branch: web-continuation-rc214-marketing
-- Edge Function `marketing-lead-create`: deployed and ACTIVE, version 3, JWT verification enabled
+- Edge Function `marketing-lead-create`: deployed and ACTIVE, version 4, JWT verification enabled
 
 ## Database findings
 
@@ -48,6 +48,9 @@ These findings are not silently reclassified as resolved. The public advertiseme
 ## Release decision
 
 This verification does NOT certify Production Ready.
+
+## Contract reconciliation
+The database check constraint for `marketing_leads.source` accepts `PLATFORM`, `OFFICIAL_MANTIQATIX`, `PARTNER_REFERRAL`, and `OTHER`. The deployed creator now writes `PLATFORM`, matching the existing production contract.
 
 Remaining release evidence still required:
 - CI run on the exact candidate
