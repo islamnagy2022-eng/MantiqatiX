@@ -653,3 +653,20 @@
 - [x] Defined the next executable release gate as a controlled two-user/two-tenant authorization E2E covering: own-tenant read/write, cross-tenant denial, customer-to-provider order/payment boundary, provider/admin role separation, and anonymous denial for authenticated-only RPCs.
 - [ ] Runtime E2E remains NOT VERIFIED because the available project environment does not provide safe disposable authenticated test identities/fixtures for two independent tenants.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC261 — Digital Pages production boundary — 2026-10-02
+
+- Added `scripts/validate-digital-pages-boundary.mjs` and wired it into Pages CI.
+- Source boundary verified for digital-page order creation, ownership/idempotency, canonical product pricing, payment-intent ownership/duplicate protection, Paymob webhook event handling, and editor publish lifecycle.
+- Live RLS inspection verified public reads are limited to PUBLISHED pages/active sections and authenticated management is scoped to business/provider ownership.
+- Digital Pages browser creation → publish → public render → checkout remains NOT VERIFIED; no synthetic production payment was created.
+- Notification trigger exists on `public.notifications`; delivery/click-through remains NOT VERIFIED.
+
+## RC262 — Backup / restore / rollback evidence refresh — 2026-10-02
+
+- Production project is ACTIVE_HEALTHY; live migration history currently ends at `20261002122515 rc258_use_central_rbac_admin_ad`.
+- No production backup/restore rehearsal was executed. No destructive restore was attempted.
+- No rollback rehearsal was claimed without an actual release artifact and controlled recovery target.
+- GitHub Actions evidence for the RC261 commit is currently NOT VERIFIED by the available commit-run endpoint; absence of a returned run is recorded rather than treated as success.
+- Release gate remains OPEN for backup/restore rehearsal, rollback rehearsal, external browser/device smoke, real payment/finance E2E, and leaked-password protection.
