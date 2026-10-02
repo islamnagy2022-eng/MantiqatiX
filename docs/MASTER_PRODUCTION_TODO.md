@@ -706,3 +706,12 @@
 - Production Release Gate remains OPEN. No destructive test, synthetic financial transaction, fake identity, or cost-incurring branch was created.
 
 - Push runtime inventory rechecked: production currently has 1 stored push subscription, but it is disabled and has no success/error delivery timestamp; notifications table currently contains 0 rows. Therefore push delivery remains NOT VERIFIED and no synthetic notification was inserted.
+
+
+## RC266 — CI traceability check — 2026-10-03
+
+- [x] Checked GitHub Actions association for documentation commit `bd5422e8cc5eb0d7d71eb63c7df33226d7cf7d64`.
+- [ ] No workflow run was returned for that commit by the available commit-run endpoint; therefore the RC265 documentation commit is NOT treated as CI-verified or deployment-verified.
+- [x] Reviewed `.github/workflows/pages.yml`: pushes to `main` are configured to run validation and GitHub Pages deployment, followed by HTTP smoke checks of the deployed assets.
+- [ ] A successful RC265 run exists for the preceding source commit `d65a24fe8abe18ed76632f6f5ac6e08baa9940ea`, but it does not certify the later docs-only commit.
+- Production Release Gate remains OPEN.
