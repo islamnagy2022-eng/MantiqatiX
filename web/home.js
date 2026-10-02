@@ -416,6 +416,43 @@
     };
 
     window.__MNTYOpenProviderProfilePage=openProviderProfilePage;
+    const openDigitalPage=async(slug)=>{
+      const key=String(slug||'').trim().replace(/[^A-Za-z0-9._-]/g,'').slice(0,180);
+      const app=document.getElementById('app'); if(!app||!key)return;
+      try{if(location.hash!=='#page/'+encodeURIComponent(key))history.pushState({page:key},'', '#page/'+encodeURIComponent(key));}catch(_){}
+      app.innerHTML='<main class="mx-digital-page" dir="rtl"><header class="mx-digital-page__head"><button type="button" class="mx-category-back" id="mx-digital-back">← الرئيسية</button><span class="eyebrow">MantiqaTix DIGITAL PAGE</span></header><section class="mx-digital-page__hero"><div class="mx-digital-page__cover" id="mx-digital-cover"></div><div><span class="mx-chip" id="mx-digital-type">PAGE</span><h1 id="mx-digital-title">جاري التحميل…</h1><p id="mx-digital-subtitle" class="muted"></p></div></section><section class="mx-digital-page__section"><div id="mx-digital-sections"><div class="empty-state">جاري تحميل الصفحة…</div></div></section></main>';
+      document.getElementById('mx-digital-back').onclick=()=>{try{history.pushState({},'', '#mx-home');}catch(_){};window.MXHomeLanding?.();};
+      try{
+        const sb=getClient(); if(!sb)throw new Error('NO_CLIENT');
+        const {data:page,error}=await sb.from('digital_pages').select('id,page_type,business_id,provider_profile_id,slug,title,subtitle,description,seo_title,seo_description,theme,status,version,published_at').eq('slug',key).eq('status','PUBLISHED').maybeSingle();
+        if(error||!page)throw new Error('PAGE_NOT_FOUND');
+        const {data:sections,error:se}=await sb.from('digital_page_sections').select('id,section_type,sort_order,title,content,data,active').eq('page_id',page.id).eq('active',true).order('sort_order',{ascending:true});
+        if(se)throw se;
+        document.title=page.seo_title||page.title||'MantiqaTix';
+        const meta=document.querySelector('meta[name="description"]');if(meta&&page.seo_description)meta.setAttribute('content',page.seo_description);
+        document.getElementById('mx-digital-title').textContent=page.title||'صفحة MantiqaTix';
+        document.getElementById('mx-digital-subtitle').textContent=page.subtitle||page.description||'';
+        document.getElementById('mx-digital-type').textContent=page.page_type==='MENU'?'MENU':'PORTFOLIO';
+        const theme=page.theme&&typeof page.theme==='object'?page.theme:{};
+        const cover=theme.cover_url||theme.coverUrl||'';
+        document.getElementById('mx-digital-cover').innerHTML=cover?'<img src="'+escapeHtml(cover)+'" alt="'+escapeHtml(page.title||'')+'">':'<div class="mx-digital-page__cover-fallback">'+(page.page_type==='MENU'?'🍽️':'✦')+'</div>';
+        const list=Array.isArray(sections)?sections:[];
+        document.getElementById('mx-digital-sections').innerHTML=list.length?list.map(s=>{
+          const data=s.data&&typeof s.data==='object'?s.data:{};
+          const type=String(s.section_type||'CONTENT').toUpperCase();
+          const title=s.title||data.title||'';
+          const content=s.content||data.content||'';
+          const image=data.image_url||data.imageUrl||'';
+          const links=Array.isArray(data.links)?data.links:[];
+          return '<article class="mx-digital-section mx-digital-section--'+escapeHtml(type.toLowerCase())+'">'+(image?'<img class="mx-digital-section__image" src="'+escapeHtml(image)+'" alt="'+escapeHtml(title)+'" loading="lazy">':'')+(title?'<h2>'+escapeHtml(title)+'</h2>':'')+(content?'<p>'+escapeHtml(content).replace(/\n/g,'<br>')+'</p>':'')+(links.length?'<div class="mx-digital-links">'+links.slice(0,12).map(x=>'<a href="'+escapeHtml(x.url||'#')+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(x.label||x.name||'رابط')+'</a>').join('')+'</div>':'')+'</article>';
+        }).join(''):'<div class="empty-state">لم يتم نشر محتوى الصفحة بعد.</div>';
+      }catch(e){
+        document.getElementById('mx-digital-title').textContent='الصفحة غير متاحة';
+        document.getElementById('mx-digital-subtitle').textContent='قد تكون الصفحة غير منشورة أو انتهت صلاحيتها.';
+        document.getElementById('mx-digital-sections').innerHTML='<div class="empty-state">تعذر عرض الصفحة الرقمية حاليًا.</div>';
+      }
+    };
+    window.__MNTYOpenDigitalPage=openDigitalPage;
     if(!window.__MNTYHomeRouteBound){
       window.__MNTYHomeRouteBound=true;
       window.addEventListener('popstate',()=>window.__MNTYHandlePublicRoute?.());
@@ -424,6 +461,7 @@
     window.__MNTYHandlePublicRoute=async()=>{
       const h=String(location.hash||'');
       if(h.startsWith('#category/')) return window.__MNTYOpenCategoryPage?.(decodeURIComponent(h.slice(10)));
+      if(h.startsWith('#page/')) return window.__MNTYOpenDigitalPage?.(decodeURIComponent(h.slice(6)));
       if(h.startsWith('#provider/')){
         const id=decodeURIComponent(h.slice(10));
         try{
@@ -480,6 +518,7 @@
     syncHomeAuthState();
     if(String(location.hash||'').startsWith('#category/')) setTimeout(()=>window.__MNTYOpenCategoryPage?.(decodeURIComponent(String(location.hash).slice(10))),0);
     else if(String(location.hash||'').startsWith('#provider/')) setTimeout(()=>window.__MNTYHandlePublicRoute?.(),0);
+    else if(String(location.hash||'').startsWith('#page/')) setTimeout(()=>window.__MNTYHandlePublicRoute?.(),0);
     document.getElementById('mx-admin-return')?.addEventListener('click',async()=>{
       const btn=document.getElementById('mx-admin-return');
       if(btn)btn.disabled=true;
