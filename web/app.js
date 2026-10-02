@@ -143,7 +143,7 @@ try{
 
 
 function roleLabel(role){
- const labels={CUSTOMER:'عميل',SERVICE_PROVIDER:'صاحب نشاط / مقدم خدمة',OWNER:'Owner',ADMIN:'مدير',SUPER_ADMIN:'مدير النظام',MANAGER:'مدير',BUSINESS_OWNER:'مالك نشاط',SUPPORT:'دعم',SUPPORT_MANAGER:'مدير الدعم',EMPLOYEE:'موظف',STAFF:'موظف'};
+ const labels={CUSTOMER:'عميل',SERVICE_PROVIDER:'صاحب نشاط / مقدم خدمة',OWNER:'Owner',ADMIN:'مدير إداري',SUPER_ADMIN:'مدير النظام',MANAGER:'مدير تشغيل',BUSINESS_OWNER:'مالك نشاط',SUPPORT:'دعم',SUPPORT_MANAGER:'مدير الدعم',EMPLOYEE:'موظف',STAFF:'طاقم تشغيل'};
  return labels[String(role||'').toUpperCase()]||String(role||'دور');
 }
 function roleContextLabel(m){
@@ -152,6 +152,7 @@ function roleContextLabel(m){
  const parts=[role];
  if(m.business_id)parts.push('النشاط: '+m.business_id);
  if(m.branch_id)parts.push('الفرع: '+m.branch_id);
+ if(m.tenant_id&&!m.business_id&&!m.branch_id)parts.push('النطاق: '+m.tenant_id);
  return parts.join(' · ');
 }
 function membershipOptionLabel(m){
