@@ -799,3 +799,20 @@
 @media(prefers-reduced-motion:reduce){
   .mx-mobile-drawer{transition:none}
 }
+
+/* RC227/231 account, wallet and cart header */
+.mx-header__inner{grid-template-columns:auto minmax(240px,1fr) auto auto auto auto}
+.mx-header__login{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:150px}
+.mx-account-copy{display:inline-grid;gap:1px;text-align:right;line-height:1.1}
+.mx-account-copy b{font-size:11px;max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-account-copy small{font-size:8px;font-weight:800;opacity:.9}
+.mx-account-copy i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#39d98a;margin-inline-end:3px;box-shadow:0 0 0 2px rgba(57,217,138,.16)}
+.mx-account-avatar{width:27px;height:27px;border-radius:50%;object-fit:cover;border:2px solid #f0c35a;background:#fff}
+.mx-header-tool{height:42px;min-width:58px;border:1px solid #d9a83f;border-radius:11px;background:#fff8e6;color:#7a5207;display:grid;place-items:center;gap:0;padding:3px 7px;font-family:inherit;font-weight:900;cursor:pointer;position:relative}
+.mx-header-tool span{font-size:17px;line-height:1}.mx-header-tool small{font-size:8px;line-height:1.1}.mx-header-tool b{display:inline-grid;place-items:center;min-width:13px;height:13px;padding:0 3px;border-radius:999px;background:#c91427;color:#fff;font-size:7px;margin-inline-start:2px}
+.mx-profile-card{display:flex;align-items:center;gap:13px;border:1px solid #e1e7ef;background:linear-gradient(135deg,#fff,#f8fbff);border-radius:17px;padding:14px;margin:12px 0;box-shadow:0 8px 22px rgba(16,24,40,.06);text-align:right}
+.mx-profile-card__avatar,.mx-profile-card__avatar-img{width:58px;height:58px;min-width:58px;border-radius:17px;object-fit:cover;display:grid;place-items:center;background:linear-gradient(135deg,#10285a,#c91427);color:#fff;font-size:23px;font-weight:950}.mx-profile-card__body{min-width:0}.mx-profile-card__body h2{margin:2px 0 3px;font-size:18px;color:#10285a}.mx-profile-card__body p{margin:0 0 4px;color:#667085;font-size:11px}.mx-profile-card__body small{color:#027a48;font-size:9px;font-weight:900}.mx-profile-card__body small i{display:inline-block;width:6px;height:6px;background:#39d98a;border-radius:50%;margin-inline-end:4px}.mx-profile-card--activity{background:linear-gradient(135deg,#fff9ed,#fff)}
+.mx-wallet-balance{display:grid;gap:5px;border-radius:17px;padding:17px;background:linear-gradient(135deg,#10285a,#174f91);color:#fff;margin:12px 0}.mx-wallet-balance span,.mx-wallet-balance small{font-size:10px;opacity:.82}.mx-wallet-balance strong{font-size:28px}.mx-cart-list{display:grid;gap:8px}.mx-cart-row{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #e4e9f1;border-radius:13px;padding:11px}.mx-cart-row>div:first-child{display:grid;gap:3px}.mx-cart-row small{font-size:9px;color:#667085}.mx-cart-row strong{display:block;font-size:11px;color:#10285a;margin-bottom:4px}.mx-catalog-actions{display:flex;gap:6px;align-items:center}.mx-catalog-actions .text-btn{white-space:nowrap}
+@media(max-width:1250px){.mx-header__inner{grid-template-columns:auto minmax(180px,1fr) auto auto auto auto}.mx-header__login{min-width:125px}.mx-header-tool{min-width:52px}}
+@media(max-width:800px){.mx-header__inner{display:flex;flex-wrap:wrap;gap:6px}.mx-header__login{min-width:108px;max-width:140px;height:40px}.mx-header-tool{width:43px;min-width:43px;height:40px;padding:2px}.mx-header-tool small{font-size:7px}.mx-account-copy b{max-width:70px}.mx-account-avatar{width:24px;height:24px}.mx-search-wrap{order:3;flex-basis:100%}}
+@media(max-width:500px){.mx-header__login{min-width:92px;max-width:105px;padding:0 7px}.mx-header-tool{width:39px;min-width:39px}.mx-account-copy b{font-size:9px;max-width:58px}.mx-account-copy small{font-size:7px}.mx-header-tool span{font-size:15px}.mx-profile-card{padding:11px}.mx-profile-card__avatar,.mx-profile-card__avatar-img{width:50px;height:50px;min-width:50px}.mx-catalog-actions{flex-direction:column;align-items:stretch}}
