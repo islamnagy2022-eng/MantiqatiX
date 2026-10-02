@@ -517,3 +517,14 @@
 - [x] Added source migration to GitHub: supabase/migrations/20261002010000_rc238_fix_settlement_journal_posting.sql.
 - [ ] Real settlement transaction remains NOT VERIFIED because no safe real-money/test-user fixture is available; no financial transaction was created during this fix.
 - [ ] Final Production Gate remains OPEN for Paymob E2E, finance/settlement real-money E2E, notifications E2E, monitoring drill, backup/restore rehearsal, leaked-password protection, and exact production/source convergence.
+
+## RC239 — Refund Authority Trace & Release Boundary — 2026-10-02
+- [x] Traced production `record_refund_backend`: it is `SECURITY DEFINER`, `search_path=public`, executable only by `service_role` (and postgres); `anon` and `authenticated` have no EXECUTE.
+- [x] Verified the function enforces payment/order/pricing binding, remaining-refund limits, idempotency, commission reversal, wallet atomicity and financial journal posting before confirming the refund.
+- [x] Verified there is currently no deployed Edge Function named refund/refund-create and no PostgreSQL dependent routine was found calling `record_refund_backend`; therefore the function is not currently reachable through an identified production refund API path.
+- [x] Identified a latent context mismatch: `record_refund_backend` calls `assert_financial_membership()` and `post_financial_journal()`, both of which rely on `auth.uid()`. A service-role-only caller without a user JWT would not satisfy that actor context.
+- [x] No speculative refund API or Paymob refund call was added because the repository does not document an approved provider-refund endpoint/contract; inventing one would violate the no-speculation production rule.
+- [x] Financial tables remain fail-closed for direct writes: refund transactions have no anon/authenticated DML grants; wallet/journal/ledger/payment tables have no direct client INSERT/UPDATE/DELETE grants.
+- [ ] Refund API/provider refund contract remains OPEN and must be implemented only after the authoritative provider refund contract and actor model are established.
+- [ ] Real refund E2E remains NOT VERIFIED; no financial transaction was created.
+- [ ] Final Production Gate remains OPEN.
