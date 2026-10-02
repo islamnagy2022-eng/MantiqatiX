@@ -57,6 +57,7 @@ jobs:
           node scripts/validate-rbac-workspace.mjs
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-finance-boundaries.mjs
+          node scripts/validate-digital-pages-boundary.mjs
       - name: Required web files
         run: |
           test -f web/index.html
