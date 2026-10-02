@@ -617,3 +617,12 @@
 - [x] No speculative rewrite or security bypass was used.
 - [ ] 11 active Edge Functions still lack repository source convergence.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC251 — Edge Function Source Convergence Batch 2 — 2026-10-02
+- [x] Exact-matched `business-deactivate` live source to GitHub.
+- [x] Exact-matched `business-onboarding-status` live source to GitHub.
+- [x] Exact-matched `approval-list` live source to GitHub.
+- [x] Exact-matched `legal-consent` live source to GitHub.
+- [ ] 7 active Edge Functions from the original gap remain: `legal-cms`, `legal-gate`, `legal-center`, `ai-gemini-proxy`, `erp-product-create`, `erp-purchase-receive`, `marketing-lead-create`.
+- [ ] Final Production Gate remains OPEN.
