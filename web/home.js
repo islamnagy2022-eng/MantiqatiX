@@ -685,6 +685,9 @@
     document.getElementById('mx-bottom-search').onclick=()=>{searchInput?.focus();searchInput?.scrollIntoView({behavior:'smooth',block:'center'});};
 
     document.getElementById('mx-location-btn').onclick=async()=>{const api=window.MNTYLocationAdapter;if(api){await api.requestLocation();loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'');}else goLogin();};
+    document.getElementById('mx-wallet')?.addEventListener('click',()=>typeof window.walletView==='function'?window.walletView():goLogin());
+    document.getElementById('mx-cart')?.addEventListener('click',()=>typeof window.cartView==='function'?window.cartView():null);
+    if(typeof window.refreshMntiCartCount==='function')window.refreshMntiCartCount();
     window.MNTY_HOME_READY=true;
     loadData();
   };
