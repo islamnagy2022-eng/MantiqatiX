@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 420" role="img" aria-labelledby="title desc">
+<title>MantiqatiX marketplace cover</title><desc>Urban skyline, road and location theme for MantiqatiX</desc>
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#21090b"/><stop offset=".42" stop-color="#7e1018"/><stop offset=".72" stop-color="#d27b20"/><stop offset="1" stop-color="#f3c65a"/></linearGradient>
+ <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#3b2020"/><stop offset="1" stop-color="#12090a"/></linearGradient>
+ <linearGradient id="road" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2b1a1a"/><stop offset=".5" stop-color="#080708"/><stop offset="1" stop-color="#6f1118"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff1a8"/><stop offset=".45" stop-color="#f6c453"/><stop offset="1" stop-color="#a8650f"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="14"/></filter>
+</defs>
+<rect width="1600" height="420" fill="url(#sky)"/>
+<circle cx="1250" cy="115" r="82" fill="#fff0a2" opacity=".35" filter="url(#glow)"/>
+<g fill="#28181b" opacity=".88">
+ <path d="M0 270V190h50v80h24V150h56v120h24V205h45v65h25V128h68v142h18V178h46v92h22V115h72v155h20V165h54v105h22V92h78v178h24V142h62v128h22V185h50v85h25V110h82v160h22V154h57v116h25V205h51v65h25V132h70v138h22V180h54v90h20V112h74v158h25V170h58v100h20V200h65v70h20v-90h80v90h20v-70h70v70h20v-45h90v45h25v-65h85v65h40v80H0Z"/>
+</g>
+<g fill="#f6c453" opacity=".48">
+ <path d="M110 180h8v34h-8zM192 151h8v48h-8zM280 135h8v60h-8zM390 122h8v55h-8zM512 105h8v63h-8zM640 142h8v51h-8zM770 98h8v67h-8zM900 128h8v56h-8zM1030 112h8v64h-8zM1180 145h8v52h-8zM1310 118h8v60h-8zM1450 150h8v45h-8z"/>
+</g>
+<path d="M0 292 Q390 268 800 298 T1600 285 V420 H0Z" fill="url(#water)" opacity=".92"/>
+<path d="M-80 430 Q300 360 610 330 Q910 300 1280 185 Q1390 150 1700 120 L1700 250 Q1390 260 1260 286 Q930 345 640 390 Q310 445 -80 490Z" fill="url(#road)"/>
+<path d="M-50 414 Q300 356 620 325 Q920 296 1275 183" fill="none" stroke="url(#gold)" stroke-width="8" opacity=".9"/>
+<path d="M210 395 Q470 355 690 330 M820 302 Q1010 274 1150 230" fill="none" stroke="#fff7d5" stroke-width="7" stroke-dasharray="30 24" opacity=".82"/>
+<g transform="translate(1260 150)">
+ <circle r="74" fill="#18090b" opacity=".42"/>
+ <circle r="65" fill="none" stroke="url(#gold)" stroke-width="9"/>
+ <path d="M0-42c-25 0-45 20-45 45 0 38 45 79 45 79s45-41 45-79C45-22 25-42 0-42z" fill="#c81723" stroke="#f6c453" stroke-width="5"/>
+ <circle cy="3" r="15" fill="#fff8df" stroke="#d6a52d" stroke-width="4"/>
+</g>
+<g fill="#fff" opacity=".13">
+ <path d="M0 48h520v6H0zM80 75h390v4H80z"/>
+</g>
+</svg>

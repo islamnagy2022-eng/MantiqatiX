@@ -46,7 +46,7 @@ const domainModules=[
 {key:'GROCERY',name:'البقالة والسوبر ماركت',icon:'🛒',desc:'كتالوج الأصناف والأسعار والمخزون والطلبات.',tables:['catalog_items','catalog_item_prices','inventory_transactions','orders']},
 {key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries']},
 {key:'COMPANIES',name:'المزايدات — الشركات',icon:'🏢',desc:'طلبات الشركات ومقدمو الخدمة والعروض.',tables:['indrive_requests','indrive_bids','businesses']},
-{key:'MARKETING',name:'المزايدات — التسويق',icon:'📣',desc:'طلبات التسويق ومقدمو الخدمة والمشروعات.',tables:['marketing_leads','marketing_provider_profiles','marketing_services','marketing_projects']},
+{key:'MARKETING',name:'التسويق والإعلان',icon:'📣',desc:'التسويق الداخلي وشركات التسويق والخدمات والعملاء والمشروعات.',tables:['marketing_leads','marketing_provider_profiles','marketing_services','marketing_projects']},
 {key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والتشغيل المرتبط بالمخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses']},
 {key:'TRIPS',name:'المزايدات — الرحلات',icon:'✈️',desc:'طلبات الرحلات والعروض والتنفيذ.',tables:['indrive_requests','indrive_bids','mantigo_rides','mantigo_bids']},
 {key:'MAINTENANCE',name:'المزايدات — الصيانة',icon:'🔧',desc:'طلبات الصيانة والعروض والمتابعة.',tables:['indrive_requests','indrive_bids','support_tickets']},
@@ -567,35 +567,68 @@ async function createStockTransfer(){const transferNumber=window.prompt('رقم 
 async function updateStockTransferStatus(id,status){if(!id)return;return erpRpc('update_stock_transfer_status_backend',{p_transfer_id:id,p_target_status:status})}
 async function receiveStockTransfer(id){if(!id)return;return erpRpc('receive_stock_transfer_backend',{p_transfer_id:id})}
 const AD_BOOKING_LABELS={QUARTERLY:'ربع سنوي (3 أشهر)',HALF_YEARLY:'نصف سنوي (6 أشهر)',ANNUAL:'سنوي (12 شهرًا)'};
-async function requestAdBooking(duration='QUARTERLY'){
-  if(!user?.id)return authView();
-  const key=String(duration||'QUARTERLY').toUpperCase();
-  const label=AD_BOOKING_LABELS[key]||AD_BOOKING_LABELS.QUARTERLY;
-  const title='طلب حجز إعلان نشاط — '+label;
-  const description='طلب حجز مبدئي لظهور النشاط على MantiqatiX لمدة '+label+'. يخضع الطلب لمراجعة المنصة وتأكيد التوفر والسعر وإتمام المسار المالي قبل تفعيل الإعلان.';
-  try{
-    const {data,error}=await sb.from('marketing_leads').insert({
-      requester_user_id:user.id,
-      requester_business_id:live.businessId||null,
-      title,
-      description,
-      currency:'EGP',
-      status:'OPEN',
-      source:'PLATFORM',
-      required_services:['AD_BOOKING',key]
-    }).select('id,title,status,source,created_at').single();
-    if(error)throw error;
-    try{localStorage.removeItem('MNTYOpenAdBooking');localStorage.removeItem('MNTYAdBookingDuration')}catch(_){}
-    showToast('تم إنشاء طلب حجز الإعلان بنجاح. سيظهر في مركز التسويق للمراجعة.','success');
-    current='التسويق والإعلان';
-    await renderApp();
-    return data;
-  }catch(e){
-    showToast('تعذر إنشاء طلب حجز الإعلان: '+(e?.message||'خطأ غير معروف'),'error');
-    return null;
-  }
+async function createMarketingLeadViaFunction(payload){
+  const {data:{session},error:sessionError}=await sb.auth.getSession();
+  if(sessionError||!session?.access_token)throw new Error('يجب تسجيل الدخول لإنشاء الطلب.');
+  const res=await fetch(cfg.supabaseUrl+'/functions/v1/marketing-lead-create',{
+    method:'POST',
+    cache:'no-store',
+    headers:{'Content-Type':'application/json',apikey:cfg.supabaseKey,Authorization:'Bearer '+session.access_token},
+    body:JSON.stringify(payload)
+  });
+  let body=null;try{body=await res.json()}catch(_){}
+  if(!res.ok)throw new Error(body?.error||'تعذر إنشاء الطلب.');
+  return body?.lead||null;
 }
-async function createMarketingLead(){if(!user?.id)return authView();const title=window.prompt('عنوان احتياج التسويق');if(!title?.trim())return;const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');if(!description?.trim())return;const {data,error}=await sb.from('marketing_leads').insert({requester_user_id:user.id,requester_business_id:live.businessId||null,title:title.trim(),description:description.trim(),currency:'EGP',status:'NEW',source:'WEB'}).select('id').single();if(error)return showToast('تعذر إنشاء طلب التسويق: '+error.message,'error');live.counts.leads=(live.counts.leads||0)+1;showToast('تم إنشاء طلب التسويق'+(data?.id?' #'+data.id:''),'success');renderApp()}
+async function requestAdBooking(duration='QUARTERLY'){
+ if(!user?.id)return authView();
+ const key=String(duration||'QUARTERLY').toUpperCase();
+ const label=AD_BOOKING_LABELS[key]||AD_BOOKING_LABELS.QUARTERLY;
+ const title='طلب حجز إعلان نشاط — '+label;
+ const description='طلب حجز مبدئي لظهور النشاط على MantiqatiX لمدة '+label+'. يخضع الطلب لمراجعة المنصة وتأكيد التوفر والسعر وإتمام المسار المالي قبل تفعيل الإعلان.';
+ try{
+   const data=await createMarketingLeadViaFunction({
+     title,
+     description,
+     service_area:'',
+     budget_min:0,
+     budget_max:0,
+     business_id:live.businessId||null,
+     required_services:['AD_BOOKING',key]
+   });
+   try{localStorage.removeItem('MNTYOpenAdBooking');localStorage.removeItem('MNTYAdBookingDuration')}catch(_){}
+   showToast('تم إنشاء طلب حجز الإعلان بنجاح. سيظهر في مركز التسويق للمراجعة.','success');
+   current='التسويق والإعلان';
+   await renderApp();
+   return data;
+ }catch(e){
+   showToast('تعذر إنشاء طلب حجز الإعلان: '+(e?.message||'خطأ غير معروف'),'error');
+   return null;
+ }
+}
+async function createMarketingLead(){
+ if(!user?.id)return authView();
+ const title=window.prompt('عنوان احتياج التسويق');
+ if(!title?.trim())return;
+ const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');
+ if(!description?.trim())return;
+ try{
+   const data=await createMarketingLeadViaFunction({
+     title:title.trim(),
+     description:description.trim(),
+     service_area:'',
+     budget_min:0,
+     budget_max:0,
+     business_id:live.businessId||null,
+     required_services:[]
+   });
+   live.counts.leads=(live.counts.leads||0)+1;
+   showToast('تم إنشاء طلب التسويق'+(data?.id?' #'+data.id:''),'success');
+   renderApp();
+ }catch(e){
+   showToast('تعذر إنشاء طلب التسويق: '+(e?.message||'خطأ غير معروف'),'error');
+ }
+}
 async function createGlobalAdFromAdmin(){
  if(!user?.id)return authView();
  if(!['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))return showToast('هذه العملية للإدارة فقط.','error');
@@ -786,7 +819,8 @@ async function accountView(){
    const {data}=await sb.from('provider_onboarding_requests').select('id,status,business_name,provider_kind,name_en,description,specialties,service_areas,portfolio,created_at,rejection_reason').eq('registration_request_id',pendingProvider.id).maybeSingle();
    onboarding=data||null;
  }
- const onboardingHtml=pendingProvider&&!onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>استكمال تسجيل النشاط</h3><p class="muted">أدخل بيانات النشاط الأساسية. لن يتم إنشاء نشاط تشغيلي أو منحه صلاحيات مقدم خدمة إلا بعد مراجعة الإدارة.</p></div><span class="count">مراجعة إدارية</span></div><form id="provider-onboarding-form"><div class="grid2"><label class="field"><span>اسم النشاط *</span><input id="po-business-name" maxlength="180" required placeholder="اسم النشاط أو المنشأة"></label><label class="field"><span>القطاع / نوع مقدم الخدمة *</span><select id="po-kind" required><option value="">اختر القطاع</option><option value="FOOD">مطاعم وكافيهات</option><option value="HEALTH">أطباء وعيادات</option><option value="PHARMACY">صيدليات</option><option value="LABS">معامل تحاليل</option><option value="MEDICAL">مراكز طبية</option><option value="REAL_ESTATE">عقارات</option><option value="AUTO">سيارات ونقل</option><option value="HOME">خدمات منزلية</option><option value="EDU">تعليم وتدريب</option><option value="DIGITAL">تسويق وإعلان</option><option value="FITNESS">رياضة ولياقة</option><option value="TRAVEL">سياحة وسفر</option></select></label></div><div class="grid2"><label class="field"><span>الاسم بالإنجليزية</span><input id="po-name-en" maxlength="180"></label><label class="field"><span>مجالات التخصص</span><input id="po-specialties" maxlength="1000" placeholder="مثال: تسويق رقمي، إعلانات، محتوى"></label></div><label class="field"><span>وصف النشاط</span><textarea id="po-description" maxlength="3000" rows="4" placeholder="وصف مختصر وواضح للنشاط والخدمات"></textarea></label><div class="grid2"><label class="field"><span>المحافظة *</span><select id="po-governorate" required><option value="">اختر المحافظة</option>${providerGovernorates.map(g=>'<option value="'+esc(g.id)+'" data-code="'+esc(g.code)+'" data-name-ar="'+esc(g.name_ar)+'" data-name-en="'+esc(g.name_en||'')+'">'+esc(g.name_ar)+'</option>').join('')}</select></label><label class="field"><span>المركز *</span><select id="po-center" required disabled><option value="">اختر المحافظة أولًا</option></select></label></div><p class="muted" style="margin-top:-8px">تحديد منطقة تقديم الخدمة يتم من خلال المحافظة ثم المركز. لا يتم استخدام الموقع الجغرافي التلقائي بدلًا من الاختيار الإداري.</p><label class="field"><span>روابط/نماذج أعمال (اختياري)</span><textarea id="po-portfolio" maxlength="2000" rows="2" placeholder="رابط واحد لكل سطر"></textarea></label><div class="action-bar"><button class="btn btn-primary" id="po-submit" type="submit" style="width:auto">إرسال بيانات النشاط للمراجعة</button></div></form></section>':pendingProvider&&onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>بيانات النشاط</h3><p class="muted">'+esc(onboarding.business_name||'—')+' · '+esc(onboarding.provider_kind||'—')+'</p></div><span class="count">'+esc(onboarding.status==='PENDING'?'قيد المراجعة':onboarding.status==='APPROVED'?'معتمد':'مرفوض')+'</span></div>'+(onboarding.rejection_reason?'<p class="muted">سبب الرفض: '+esc(onboarding.rejection_reason)+'</p>':'<p class="muted">تم استلام بيانات النشاط. لا توجد صلاحيات تشغيلية قبل اعتماد الإدارة.</p>')+'</section>':'';
+ const onboardingHtml=pendingProvider&&!onboarding?`<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>استكمال تسجيل النشاط</h3><p class="muted">أدخل بيانات النشاط الأساسية. لن يتم إنشاء نشاط تشغيلي أو منحه صلاحيات مقدم خدمة إلا بعد مراجعة الإدارة.</p></div><span class="count">مراجعة إدارية</span></div><form id="provider-onboarding-form"><div class="grid2"><label class="field"><span>اسم النشاط *</span><input id="po-business-name" maxlength="180" required placeholder="اسم النشاط أو المنشأة"></label><label class="field"><span>القطاع / نوع مقدم الخدمة *</span><select id="po-kind" required><option value="">اختر القطاع</option><option value="FOOD">مطاعم وكافيهات</option><option value="HEALTH">أطباء وعيادات</option><option value="PHARMACY">صيدليات</option><option value="LABS">معامل تحاليل</option><option value="MEDICAL">مراكز طبية</option><option value="REAL_ESTATE">عقارات</option><option value="AUTO">سيارات ونقل</option><option value="HOME">خدمات منزلية</option><option value="EDU">تعليم وتدريب</option><option value="DIGITAL">تسويق وإعلان</option><option value="FITNESS">رياضة ولياقة</option><option value="TRAVEL">سياحة وسفر</option></select></label></div><div class="grid2"><label class="field"><span>الاسم بالإنجليزية</span><input id="po-name-en" maxlength="180"></label><label class="field"><span>مجالات التخصص</span><input id="po-specialties" maxlength="1000" placeholder="مثال: تسويق رقمي، إعلانات، محتوى"></label></div><label class="field"><span>وصف النشاط</span><textarea id="po-description" maxlength="3000" rows="4" placeholder="وصف مختصر وواضح للنشاط والخدمات"></textarea></label><div class="grid2"><label class="field"><span>المحافظة *</span><select id="po-governorate" required><option value="">اختر المحافظة</option>${providerGovernorates.map(g=>'<option value="'+esc(g.id)+'" data-code="'+esc(g.code)+'" data-name-ar="'+esc(g.name_ar)+'" data-name-en="'+esc(g.name_en||'')+'">'+esc(g.name_ar)+'</option>').join('')}</select></label><label class="field"><span>المركز *</span><select id="po-center" required disabled><option value="">اختر المحافظة أولًا</option></select></label></div><p class="muted" style="margin-top:-8px">تحديد منطقة تقديم الخدمة يتم من خلال المحافظة ثم المركز. لا يتم استخدام الموقع الجغرافي التلقائي بدلًا من الاختيار الإداري.</p><label class="field"><span>روابط/نماذج أعمال (اختياري)</span><textarea id="po-portfolio" maxlength="2000" rows="2" placeholder="رابط واحد لكل سطر"></textarea></label><div class="action-bar"><button class="btn btn-primary" id="po-submit" type="submit" style="width:auto">إرسال بيانات النشاط للمراجعة</button></div></form></section>`:pendingProvider&&onboarding?`<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>بيانات النشاط</h3><p class="muted">${esc(onboarding.business_name||'—')} · ${esc(onboarding.provider_kind||'—')}</p></div><span class="count">${esc(onboarding.status==='PENDING'?'قيد المراجعة':onboarding.status==='APPROVED'?'معتمد':'مرفوض')}</span></div>${onboarding.rejection_reason?'<p class="muted">سبب الرفض: '+esc(onboarding.rejection_reason)+'</p>':'<p class="muted">تم استلام بيانات النشاط. لا توجد صلاحيات تشغيلية قبل اعتماد الإدارة.</p>'}</section>`:'';
+
  const requestButtons=roleOption('CUSTOMER','طلب دور عميل')+roleOption('SERVICE_PROVIDER','طلب دور صاحب نشاط / مقدم خدمة');
  const privilegedNote='<p class="muted">الأدوار الإدارية الحساسة مثل Owner وAdmin وManager لا تُمنح بطلب ذاتي؛ يتم ربطها واعتمادها من الإدارة وفق الصلاحيات والسياسات.</p>';
  document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>حسابي</h1><p>الحساب: <b>'+esc(user?.email||'—')+'</b></p><h3>عضوياتي الحالية</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div></section></main>';
