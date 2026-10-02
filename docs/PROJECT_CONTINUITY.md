@@ -184,3 +184,9 @@ This status is intentional and must remain until the open gates above are indepe
 - CI traceability for the later docs-only commit remains unverified because the available commit-run connector operation is PR-filtered; an empty result is not evidence that a push run did not execute.
 - Supplied RC40 archive was audited and confirmed to contain an Android/Gradle project, but the current `main` release tree is web-only and does not contain that Android project. Android is therefore still an external/unverified release gate; no blind source merge was performed.
 - Final Production Gate remains OPEN.
+
+
+## RC268 update — 2026-10-03
+- Hardened marketing lead mutation boundary: browser-side direct inserts into `marketing_leads` were removed from normal lead creation and advertising booking; both now use the protected `marketing-lead-create` Edge Function.
+- Added CI regression checks to prevent reintroducing direct browser inserts for this table.
+- Runtime multi-user/multi-tenant E2E remains open.
