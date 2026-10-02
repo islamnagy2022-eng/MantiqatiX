@@ -30,6 +30,7 @@ jobs:
           test -s web/vendor/supabase.js
       - name: Syntax check
         run: |
+          node --check web/rbac.js
           node --check web/app.js
           ! grep -Eq 'signInWithOtp|verifyOtp|sendOtp|resend-otp|one-time-code|رمز التحقق|رمز البريد' web/app.js
           grep -q 'signInWithGoogle' web/app.js
@@ -53,11 +54,13 @@ jobs:
           node scripts/validate-booking-payment-flow.mjs
           node scripts/validate-release-preflight.mjs
           node scripts/validate-admin-workspace.mjs
+          node scripts/validate-rbac-workspace.mjs
       - name: Required web files
         run: |
           test -f web/index.html
           test -s web/vendor/supabase.js
           test -f web/config.js
+          test -f web/rbac.js
           test -f web/styles.css
           test -f web/home.css
           test -f web/app.js
