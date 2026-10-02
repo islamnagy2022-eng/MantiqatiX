@@ -25,7 +25,7 @@ Deno.serve(async(req)=>{
  if(be||!business)return out({error:"BUSINESS_NOT_FOUND"},404);
  if(String(business.status).toUpperCase()!=="ACTIVE")return out({error:"BUSINESS_NOT_ACTIVE"},409);
  const branchId=crypto.randomUUID(),branchCode=code(name);
- const {data:branch,error:ie}=await db.from("branches").insert({id:branchId,tenant_id:tenantId,organization_id:body.organizationId??business.organization_id??null,business_id:businessId,name,code:branchCode,status:"ACTIVE",phone:body.phone?String(body.phone).trim():null,address:body.address?String(body.address).trim():null,latitude:body.latitude==null?null:Number(body.latitude),longitude:body.longitude==null?null:Number(body.longitude),settings:{source:"MNTY_PROVIDER_ONBOARDING"}}).select("id,tenant_id,organization_id,business_id,name,code,status,phone,address,latitude,longitude").single();
+ const {data:branch,error:ie}=await db.from("branches").insert({id:branchId,tenant_id:tenantId,organization_id:body.organizationId??business.organization_id??null,business_id:businessId,name,code:branchCode,status:"ACTIVE",phone:body.phone?String(body.phone).trim():null,address:body.address?String(body.address).trim():null,latitude:body.latitude==null?null:Number(body.latitude),longitude:body.longitude==null?null:Number(body.longitude),settings:{source:"MNTY_ADMIN_WORKSPACE"}}).select("id,tenant_id,organization_id,business_id,name,code,status,phone,address,latitude,longitude").single();
  if(ie)return out({error:ie.message||"BRANCH_CREATE_FAILED"},400);
  return out({success:true,branch});
 });
