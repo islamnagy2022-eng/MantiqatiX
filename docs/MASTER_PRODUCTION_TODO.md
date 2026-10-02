@@ -643,3 +643,16 @@
 - [x] Superseded run `36987837273` was cancelled by the newer run; this is not a release failure.
 - [x] The final Edge Function source-convergence work is now CI/release-verified on main.
 - [ ] Final Production Gate remains OPEN: leaked-password protection; SECURITY DEFINER authorization review; real two-user/two-tenant E2E; Paymob/payment, refund and settlement E2E; onboarding notification E2E; monitoring incident drill; backup/restore/RPO/RTO; Android signed/device evidence; final regression and release evidence package.
+
+
+## RC254 — Security Advisor + SECURITY DEFINER review — 2026-10-02
+- [x] Re-ran Supabase Security Advisor on production after the RC253 baseline.
+- [x] Confirmed the release blocker remains: leaked-password protection is disabled. The available project tools do not expose a hosted Auth configuration mutation, so it was not falsely marked enabled and no SQL workaround was invented.
+- [x] Reviewed all 6 authenticated SECURITY DEFINER warnings at function-definition and EXECUTE-grant level: `admin_create_global_ad`, `create_job_backend`, `create_medical_appointment_backend`, `create_payment_intent_backend`, `get_mnty_targeted_advertisements`, `update_medical_appointment_status_backend`.
+- [x] Verified `search_path=public` is explicitly pinned on all 6 reviewed functions.
+- [x] Verified caller-side authorization checks exist in the reviewed definitions; `create_payment_intent_backend` additionally rejects unauthenticated/anonymous callers and enforces order tenant, ownership/membership, pricing snapshot, amount/currency and idempotency constraints.
+- [x] Verified the public advertisement RPC is intentionally executable by `anon` and `authenticated`; it returns sanitized advertisement fields and is the documented public-ad-serving boundary. No blanket EXECUTE revocation was applied.
+- [x] No privilege or function definition was changed during this review because the remaining risk requires runtime caller-path/E2E evidence rather than a blanket security change.
+- [ ] Leaked-password protection still requires hosted Supabase Auth configuration and Advisor recheck.
+- [ ] Real two-user/two-tenant authorization E2E remains required before closing the authorization gate.
+- [ ] Final Production Gate remains OPEN.
