@@ -122,13 +122,18 @@
       <header class="mx-header">
         <div class="mx-header__inner">
           <a class="mx-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<div><div class="mx-brand__name">MantiqatiX</div><span class="mx-brand__ar">منصة خدمات وتسويق متكاملة</span></div></a>
-          <label class="mx-search" aria-label="البحث">
-            <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
-            <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
-            <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
-          </label>
+          <div class="mx-search-wrap">
+            <label class="mx-search" aria-label="البحث في الخدمات ومقدميها">
+              <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
+              <input id="mx-home-search" autocomplete="off" inputmode="search" enterkeyhint="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
+              <button id="mx-search-clear" class="mx-search__clear" type="button" aria-label="مسح البحث" hidden>×</button>
+              <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
+            </label>
+            <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
+          </div>
           <button class="mx-header__login" id="mx-login" type="button" aria-label="${window.MNTYAuthState?.authenticated?'فتح حسابي':'تسجيل الدخول إلى MantiqatiX'}">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
           ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
+          <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer">☰</button>
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
             <a href="#mx-about">عن المنصة</a><a href="#mx-categories">التصنيفات</a>
@@ -140,6 +145,20 @@
           </nav>
         </div>
       </header>
+      <div class="mx-mobile-drawer-backdrop" id="mx-mobile-drawer-backdrop" hidden></div>
+      <aside class="mx-mobile-drawer" id="mx-mobile-drawer" aria-hidden="true">
+        <div class="mx-mobile-drawer__head"><strong>التنقل</strong><button id="mx-mobile-menu-close" type="button" aria-label="إغلاق القائمة">×</button></div>
+        <nav>
+          <a href="#mx-home" data-mobile-nav>الرئيسية</a>
+          <a href="#mx-about" data-mobile-nav>عن المنصة</a>
+          <a href="#mx-categories" data-mobile-nav>التصنيفات</a>
+          <a href="#mx-services" data-mobile-nav>الخدمات</a>
+          <a href="#mx-offers" data-mobile-nav>العروض</a>
+          <a href="#mx-marketing" data-mobile-nav>التسويق والإعلانات</a>
+          <a href="#mx-contact" data-mobile-nav>تواصل معنا</a>
+          <button type="button" id="mx-mobile-add">＋ إضافة نشاط</button>
+        </nav>
+      </aside>
 
       <aside class="mx-side-banner mx-side-banner--right" aria-label="مساحة إعلانية جانبية يمين">
         <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
@@ -226,7 +245,7 @@
         </section>
 
         <section class="mx-section" id="mx-services" hidden>
-          <div class="mx-section__head"><div><h2>الخدمات المتاحة الآن</h2><p>بيانات منشورة من كتالوج المنصة، وليست بيانات وهمية.</p></div><span class="mx-live" id="mx-live-status">جارٍ التحميل...</span></div>
+          <div class="mx-section__head"><div><h2>نتائج البحث والخدمات</h2><p id="mx-search-context">بيانات منشورة من كتالوج المنصة، وليست بيانات وهمية.</p></div><div class="mx-search-result-tools"><span class="mx-live" id="mx-live-status">جارٍ التحميل...</span><button class="mx-link" id="mx-search-clear-results" type="button" hidden>مسح البحث</button></div></div>
           <div class="mx-service-grid" id="mx-service-grid"><div class="mx-loading">جارٍ تحميل الخدمات...</div></div>
         </section>
 
@@ -562,6 +581,10 @@
         if((adsRes.data||[]).length) renderTargetedAds(adsRes.data||[]);
         else renderSponsored(providers);
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
+        const activeTerm=String(term||'').trim();
+        if(searchContext) searchContext.textContent=activeTerm?'نتائج البحث عن «'+activeTerm.slice(0,60)+'» من الكتالوج المنشور.':'استكشف الخدمات ومقدمي الخدمات المنشورين على المنصة.';
+        if(searchClear) searchClear.hidden=!activeTerm;
+        if(searchClearResults) searchClearResults.hidden=!activeTerm;
       }catch(error){
         if(requestSequence!==homeLoadSequence)return;
         console.warn('[MantiqatiX home] public catalog load failed',error);
@@ -570,10 +593,80 @@
       }
     };
 
-    const search=()=>{const input=document.getElementById('mx-home-search');loadData(input.value);scrollTo('mx-services')};
-    document.getElementById('mx-search-btn').onclick=search;
-    document.getElementById('mx-home-search').onkeydown=e=>{if(e.key==='Enter')search()};
-    document.getElementById('mx-bottom-search').onclick=()=>document.getElementById('mx-home-search').focus();
+    const searchInput=document.getElementById('mx-home-search');
+    const searchButton=document.getElementById('mx-search-btn');
+    const searchClear=document.getElementById('mx-search-clear');
+    const searchSuggestions=document.getElementById('mx-search-suggestions');
+    const searchContext=document.getElementById('mx-search-context');
+    const searchClearResults=document.getElementById('mx-search-clear-results');
+    const mobileMenu=document.getElementById('mx-mobile-menu');
+    const mobileDrawer=document.getElementById('mx-mobile-drawer');
+    const mobileBackdrop=document.getElementById('mx-mobile-drawer-backdrop');
+    const mobileMenuClose=document.getElementById('mx-mobile-menu-close');
+    const mobileAdd=document.getElementById('mx-mobile-add');
+
+    const closeSearchSuggestions=()=>{
+      if(!searchSuggestions)return;
+      searchSuggestions.hidden=true;
+      searchInput?.setAttribute('aria-expanded','false');
+    };
+    const closeMobileMenu=()=>{
+      if(!mobileDrawer)return;
+      mobileDrawer.classList.remove('is-open');
+      mobileDrawer.setAttribute('aria-hidden','true');
+      if(mobileBackdrop)mobileBackdrop.hidden=true;
+      mobileMenu?.setAttribute('aria-expanded','false');
+    };
+    const openMobileMenu=()=>{
+      if(!mobileDrawer)return;
+      mobileDrawer.classList.add('is-open');
+      mobileDrawer.setAttribute('aria-hidden','false');
+      if(mobileBackdrop)mobileBackdrop.hidden=false;
+      mobileMenu?.setAttribute('aria-expanded','true');
+      mobileDrawer.querySelector('a,button')?.focus();
+    };
+    mobileMenu?.addEventListener('click',()=>mobileDrawer?.classList.contains('is-open')?closeMobileMenu():openMobileMenu());
+    mobileMenuClose?.addEventListener('click',closeMobileMenu);
+    mobileBackdrop?.addEventListener('click',closeMobileMenu);
+    mobileAdd?.addEventListener('click',()=>{closeMobileMenu();goLogin();});
+    document.querySelectorAll('[data-mobile-nav]').forEach(a=>a.addEventListener('click',closeMobileMenu));
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMobileMenu();closeSearchSuggestions();}});
+
+    const runSearch=()=>{
+      const term=String(searchInput?.value||'').trim();
+      closeSearchSuggestions();
+      if(searchClear)searchClear.hidden=!term;
+      if(searchClearResults)searchClearResults.hidden=!term;
+      if(searchContext)searchContext.textContent=term?'نتائج البحث عن «'+term.slice(0,60)+'» من الكتالوج المنشور.':'استكشف الخدمات ومقدمي الخدمات المنشورين على المنصة.';
+      loadData(term);
+      scrollTo('mx-services');
+    };
+    const clearSearch=()=>{
+      if(searchInput)searchInput.value='';
+      if(searchClear)searchClear.hidden=true;
+      if(searchClearResults)searchClearResults.hidden=true;
+      if(searchContext)searchContext.textContent='استكشف الخدمات ومقدمي الخدمات المنشورين على المنصة.';
+      closeSearchSuggestions();
+      loadData('');
+    };
+    const showSearchSuggestions=()=>{
+      if(!searchSuggestions||!searchInput)return;
+      const term=String(searchInput.value||'').trim().toLowerCase();
+      const suggestions=TAXONOMY.filter(x=>!term||String(x[1]).toLowerCase().includes(term)||String(x[2]).toLowerCase().includes(term)).slice(0,6);
+      if(!term||!suggestions.length){closeSearchSuggestions();return;}
+      searchSuggestions.innerHTML=suggestions.map(x=>'<button type="button" role="option" data-suggest="'+escapeHtml(x[1])+'"><span>'+escapeHtml(x[0])+'</span><b>'+escapeHtml(x[1])+'</b><small>'+escapeHtml(x[2])+'</small></button>').join('');
+      searchSuggestions.hidden=false;
+      searchInput.setAttribute('aria-expanded','true');
+      searchSuggestions.querySelectorAll('[data-suggest]').forEach(btn=>btn.addEventListener('click',()=>{searchInput.value=btn.dataset.suggest||'';runSearch();}));
+    };
+    searchButton?.addEventListener('click',runSearch);
+    searchInput?.addEventListener('input',()=>{if(searchClear)searchClear.hidden=!String(searchInput.value||'').trim();showSearchSuggestions();});
+    searchInput?.addEventListener('focus',showSearchSuggestions);
+    searchInput?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch();}if(e.key==='Escape')closeSearchSuggestions();});
+    searchClear?.addEventListener('click',clearSearch);
+    searchClearResults?.addEventListener('click',clearSearch);
+    document.getElementById('mx-bottom-search').onclick=()=>{searchInput?.focus();searchInput?.scrollIntoView({behavior:'smooth',block:'center'});};
+
     document.getElementById('mx-location-btn').onclick=async()=>{const api=window.MNTYLocationAdapter;if(api){await api.requestLocation();loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'');}else goLogin();};
     window.MNTY_HOME_READY=true;
     loadData();
