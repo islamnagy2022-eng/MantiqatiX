@@ -127,7 +127,7 @@
             <input id="mx-home-search" autocomplete="off" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
             <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
           </label>
-          <button class="mx-header__login" id="mx-login" type="button">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
+          <button class="mx-header__login" id="mx-login" type="button" aria-label="${window.MNTYAuthState?.authenticated?'فتح حسابي':'تسجيل الدخول إلى MantiqatiX'}">${window.MNTYAuthState?.authenticated?'حسابي':'تسجيل الدخول'}</button>
           ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
