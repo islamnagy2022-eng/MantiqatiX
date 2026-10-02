@@ -434,13 +434,18 @@ async function openProviderCatalog(businessId,providerName,providerTenantId=null
   const cards=(catalog.items||[]).map(item=>{
    const price=catalogCurrentPrice(catalog,item.id,catalog.branchId||null);
    const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
-   return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب</button>':'')+'</div></article>';
+   return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<div class="mx-catalog-actions"><button class="text-btn mx-cart-add" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">أضف للسلة</button><button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب الآن</button></div>':'')+'</div></article>';
   }).join('')||'<div class="muted">لا توجد أصناف نشطة متاحة حاليًا.</div>';
   const overlay=document.createElement('div');overlay.className='mx-modal';
   overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">LIVE CATALOG</span><h2>كتالوج '+esc(providerName||'مقدم الخدمة')+'</h2><p>الأصناف والأسعار من الكتالوج التشغيلي الفعلي.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><label class="field" style="margin:12px 0"><span>اختر الفرع</span><select id="mx-catalog-branch">'+activeBranches.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name||b.code||b.id)+'</option>').join('')+'</select></label><div class="cards">'+cards+'</div></div>';
   document.body.appendChild(overlay);
   overlay.querySelector('.mx-close-modal')?.addEventListener('click',closeMxModal);
   overlay.querySelectorAll('.mx-order-trigger').forEach(btn=>btn.addEventListener('click',()=>openOrderForm(btn.dataset.businessId,btn.dataset.itemId,document.getElementById('mx-catalog-branch')?.value||defaultBranch.id)));
+  overlay.querySelectorAll('.mx-cart-add').forEach(btn=>btn.addEventListener('click',()=>{
+    const catalogItem=(catalog.items||[]).find(x=>String(x.id)===String(btn.dataset.itemId));
+    const price=catalogCurrentPrice(catalog,btn.dataset.itemId,document.getElementById('mx-catalog-branch')?.value||defaultBranch.id);
+    addToMntiCart(catalogItem,price,providerName,businessId,document.getElementById('mx-catalog-branch')?.value||defaultBranch.id);
+  }));
   document.getElementById('mx-catalog-branch')?.addEventListener('change',async event=>{
     try{
       const branchId=event.target.value;
@@ -448,10 +453,15 @@ async function openProviderCatalog(businessId,providerName,providerTenantId=null
       const branchCards=(branchCatalog.items||[]).map(item=>{
         const price=catalogCurrentPrice(branchCatalog,item.id,branchId);
         const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
-        return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب</button>':'')+'</div></article>';
+        return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<div class="mx-catalog-actions"><button class="text-btn mx-cart-add" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">أضف للسلة</button><button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب الآن</button></div>':'')+'</div></article>';
       }).join('')||'<div class="muted">لا توجد أصناف نشطة متاحة لهذا الفرع حاليًا.</div>';
       const box=overlay.querySelector('.cards'); if(box) box.innerHTML=branchCards;
       box?.querySelectorAll('.mx-order-trigger').forEach(btn=>btn.addEventListener('click',()=>openOrderForm(btn.dataset.businessId,btn.dataset.itemId,branchId)));
+      box?.querySelectorAll('.mx-cart-add').forEach(btn=>btn.addEventListener('click',()=>{
+        const catalogItem=(branchCatalog.items||[]).find(x=>String(x.id)===String(btn.dataset.itemId));
+        const price=catalogCurrentPrice(branchCatalog,btn.dataset.itemId,branchId);
+        addToMntiCart(catalogItem,price,providerName,businessId,branchId);
+      }));
     }catch(e){showToast('تعذر تحميل كتالوج الفرع: '+(e?.message||'CATALOG_REQUEST_FAILED'),'error')}
   });
  }catch(e){showToast('تعذر تحميل الكتالوج: '+(e?.message||'CATALOG_REQUEST_FAILED'),'error')}
@@ -914,6 +924,17 @@ function cartView(){
  overlay.querySelector('#mx-cart-checkout')?.addEventListener('click',()=>showToast('اختَر الخدمة من الكتالوج لبدء الطلب والدفع الآمن.','success'));
 }
 window.cartView=cartView;
+function addToMntiCart(item,price,providerName,businessId,branchId){
+ const items=getMntiCart();
+ const key=[businessId,branchId,item?.id].join('|');
+ const found=items.find(x=>x.key===key);
+ if(found)found.quantity=Math.max(1,(Number(found.quantity)||1)+1);
+ else items.push({key,itemId:item?.id,businessId,branchId,name:item?.name_ar||item?.name_en||'خدمة',providerName:providerName||'مقدم الخدمة',priceLabel:price?String(price.unit_price)+' '+String(price.currency||''):'السعر حسب الكتالوج',quantity:1});
+ setMntiCart(items);
+ showToast('تمت إضافة الخدمة إلى السلة.','success');
+}
+window.addToMntiCart=addToMntiCart;
+
 async function walletView(){
  if(!user?.id)return authView();
  let smm=null,general=[];
