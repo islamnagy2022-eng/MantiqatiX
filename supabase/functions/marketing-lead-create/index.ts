@@ -36,10 +36,14 @@ Deno.serve(async (req: Request) => {
   const serviceArea = String(body.service_area || "").trim();
   const budgetMin = Number(body.budget_min || 0);
   const budgetMax = Number(body.budget_max || 0);
+  const requiredServices = Array.isArray(body.required_services)
+    ? body.required_services.map(x => String(x || "").trim()).filter(Boolean)
+    : [];
 
   if (!title || title.length > 200) return json({ error: "invalid_title" }, 400);
   if (!description || description.length > 5000) return json({ error: "invalid_description" }, 400);
   if (serviceArea.length > 200) return json({ error: "invalid_service_area" }, 400);
+  if (requiredServices.length > 10 || requiredServices.some(x => x.length > 80)) return json({ error: "invalid_required_services" }, 400);
   if (!Number.isFinite(budgetMin) || !Number.isFinite(budgetMax) || budgetMin < 0 || budgetMax < budgetMin) {
     return json({ error: "invalid_budget" }, 400);
   }
@@ -69,7 +73,7 @@ Deno.serve(async (req: Request) => {
     budget_min: budgetMin,
     budget_max: budgetMax,
     currency: "EGP",
-    required_services: [],
+    required_services: requiredServices,
     service_area: serviceArea,
     status: "OPEN",
     source: "PLATFORM",
