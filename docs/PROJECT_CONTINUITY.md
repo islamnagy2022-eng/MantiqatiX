@@ -148,3 +148,9 @@ This status is intentional and must remain until the open gates above are indepe
 ## RC251 update
 - Exact-matched 4 more live Edge Functions: `business-deactivate`, `business-onboarding-status`, `approval-list`, `legal-consent`.
 - Original source-convergence gap is now reduced to 7 active functions: `legal-cms`, `legal-gate`, `legal-center`, `ai-gemini-proxy`, `erp-product-create`, `erp-purchase-receive`, `marketing-lead-create`.
+
+
+## RC252 update — Edge Function source convergence CLOSED
+- All 35 ACTIVE Production Edge Functions now have corresponding repository source.
+- The original 16-function source gap is closed with exact live-vs-GitHub comparisons.
+- CI/release verification for the final convergence commits remains pending; runtime/security/recovery release gates remain open.
