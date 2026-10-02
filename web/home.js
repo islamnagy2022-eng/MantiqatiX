@@ -132,7 +132,7 @@
           loginButton.onclick=()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
         }
         const addButton=document.getElementById('mx-add');
-        if(addButton) addButton.onclick=()=>typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
+        if(addButton) addButton.onclick=()=>openActivityRequestModal();
       }catch(_){}
     };
 
@@ -786,7 +786,29 @@
     document.getElementById('mx-cart')?.addEventListener('click',()=>typeof window.cartView==='function'?window.cartView():null);
     if(typeof window.refreshMntiCartCount==='function')window.refreshMntiCartCount();
     window.MNTY_HOME_READY=true;
-    const initialCategory=location.hash.match(/^#category\/(.+)$/);
-    if(initialCategory){try{openCategoryPage(decodeURIComponent(initialCategory[1]));}catch(_){loadData();}}else loadData();
+    const routeHash=location.hash||'';
+    const initialCategory=routeHash.match(/^#category\/(.+)$/);
+    const initialProvider=routeHash.match(/^#provider\/(.+)$/);
+    const openInitialProvider=async id=>{
+      try{
+        const sb=getClient(); if(!sb) throw new Error('NO_CLIENT');
+        const r=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('id',decodeURIComponent(id)).eq('status','ACTIVE').maybeSingle();
+        if(r.error||!r.data) throw (r.error||new Error('NOT_FOUND'));
+        openProviderProfilePage(r.data,'');
+      }catch(_){ loadData(); }
+    };
+    if(!window.__MNTY_HOME_ROUTER_BOUND){
+      window.__MNTY_HOME_ROUTER_BOUND=true;
+      window.addEventListener('popstate',()=>{
+        const h=location.hash||'';
+        const cat=h.match(/^#category\/(.+)$/), prov=h.match(/^#provider\/(.+)$/);
+        if(cat){try{openCategoryPage(decodeURIComponent(cat[1]));}catch(_){}}
+        else if(prov){openInitialProvider(prov[1]);}
+        else {try{window.MXHomeLanding?.();}catch(_){}}
+      });
+    }
+    if(initialCategory){try{openCategoryPage(decodeURIComponent(initialCategory[1]));}catch(_){loadData();}}
+    else if(initialProvider){openInitialProvider(initialProvider[1]);}
+    else loadData();
   };
 })();
