@@ -734,3 +734,32 @@
 - [x] Added Pages CI regression checks preventing direct `marketing_leads` inserts in `web/app.js` and requiring the protected Edge Function call.
 - [ ] Runtime customer/provider E2E remains NOT VERIFIED; this source hardening does not substitute for independent multi-user/multi-tenant testing.
 - Production Release Gate remains OPEN.
+
+## RC269 — Release-cost and Security Advisor recheck — 2026-10-03
+
+- [x] Live Supabase organization is on the Free plan; current production project is ACTIVE_HEALTHY.
+- [x] Supabase Security Advisor rechecked after RC268. Current security findings still include 1 RLS-enabled/no-policy table (public.digital_page_payment_events), 1 anon-callable SECURITY DEFINER (get_mnty_targeted_advertisements), and 9 authenticated-callable SECURITY DEFINER functions.
+- [x] Direct privilege inspection confirms the centralized RBAC helpers and admin_create_global_ad are not executable by anon; authenticated execution is explicit. No grant was changed merely to silence the Advisor.
+- [x] The targeted-ad RPC remains intentionally callable by anon/authenticated because it is the public advertisement-serving boundary; removing anon execution without replacing the public-serving contract would be a functional regression.
+- [ ] Leaked Password Protection remains NOT VERIFIED/enabled; this requires the Supabase Auth/dashboard control and cannot be honestly closed from the available database interface.
+- [x] Current Supabase branch cost was checked: $0.01344/hour (about $9.80 for 730 hours) if a temporary branch is kept for a full month. No branch was created.
+- [x] Current Supabase project creation cost for this organization is $0/month; the existing production project remains on Free. Pro is currently listed at $25/month and includes daily backups retained 7 days.
+- [ ] PITR/restore rehearsal remains open. PITR is a paid add-on on paid plans, with retention-dependent pricing; no add-on was enabled.
+- [ ] Real Paymob production payment/refund/settlement E2E remains blocked on merchant credentials, provider-side production activation and real payment authorization; no fee was inferred from documentation.
+- [ ] Android signed release/device verification remains blocked on a real Android build/signing environment and developer credentials. Google Play registration is an external one-time fee if distribution is required.
+- [ ] External browser/device smoke can be performed without a paid test-cloud subscription if suitable real browsers/devices are available; no paid test-cloud service is assumed.
+- [ ] FCM push delivery itself is not a paid blocker; the remaining blocker is real device/browser subscription and end-to-end evidence.
+- Production Release Gate remains OPEN.
+
+### Cost envelope for completing the remaining gates
+
+- **Required now:** no new subscription is technically required just to continue source/security work; the existing Supabase Free project is active.
+- **Recommended production baseline:** Supabase Pro at **$25/month** if daily backups, higher production quotas and paid-plan operational controls are required.
+- **Optional temporary DB branch:** **$0.01344/hour**, approximately **$9.80/month** at continuous use; it is not required to remain running after the rehearsal.
+- **PITR:** additional paid add-on; current official pricing is retention-dependent and must be selected in the Supabase billing UI before use.
+- **Android publishing:** Google Play registration **$25 one-time** if a Play Console account is not already available.
+- **FCM push:** Firebase Cloud Messaging is listed as no-cost.
+- **Paymob:** transaction/merchant fees are contract/account-specific; do not budget a fabricated fixed percentage from public docs. Obtain the merchant production fee schedule before live-payment testing.
+- **Test devices/browser cloud:** $0 if using owned devices/browsers; otherwise variable by vendor/plan.
+
+**Budget guidance:** a practical platform-side baseline can remain near **$25/month + $25 one-time Android registration**, excluding Paymob transaction fees, any PITR retention selected, devices/test-cloud usage, domains, SMS/email and other external services. This is a budgeting envelope, not a claim that every item must be purchased immediately.
