@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const maxBodyBytes = 20000;
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -11,6 +12,9 @@ const corsHeaders = {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+
+  const contentLength = Number(req.headers.get("Content-Length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) return json({ error: "payload_too_large" }, 413);
 
   const origin = req.headers.get("Origin");
   if (origin && origin !== allowedOrigin) return json({ error: "origin_not_allowed" }, 403);
@@ -28,7 +32,14 @@ Deno.serve(async (req: Request) => {
   if (error || !actor || actor.is_anonymous) return json({ error: "unauthorized" }, 401);
 
   let body: Record<string, unknown>;
-  try { body = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
+  try {
+    const raw = await req.text();
+    if (raw.length > maxBodyBytes) return json({ error: "payload_too_large" }, 413);
+    body = JSON.parse(raw);
+  } catch {
+    return json({ error: "invalid_json" }, 400);
+  }
+  if (!body || Array.isArray(body) || typeof body !== "object") return json({ error: "invalid_body" }, 400);
 
   const requestedBusinessId = String(body.business_id || "").trim() || null;
   const title = String(body.title || "").trim();
