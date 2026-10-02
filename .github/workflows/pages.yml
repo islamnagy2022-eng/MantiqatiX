@@ -2,6 +2,8 @@ name: Deploy MantiqatiX Web
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -99,6 +101,7 @@ jobs:
           grep -q "branches: branches ?? \[\]" supabase/functions/api/index.ts
 
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: validate
     timeout-minutes: 10
     environment:
