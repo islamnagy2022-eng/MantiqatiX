@@ -122,7 +122,12 @@
         if(loginButton){
           const name=meta.full_name||meta.name||authUser.email?.split('@')[0]||'حسابي';
           const avatar=meta.avatar_url||meta.picture||'';
-          loginButton.innerHTML=(avatar?'<img class="mx-account-avatar" src="'+escapeHtml(avatar)+'" alt="">':'<span class="mx-account-icon" aria-hidden="true">♙</span>')+'<span class="mx-account-copy"><b>'+escapeHtml(name.slice(0,24))+'</b><small><i></i> مسجل الدخول</small></span>';
+          let activityName='';
+          try{
+            const pr=await sb.from('marketing_provider_profiles').select('name_ar,name_en').eq('owner_user_id',authUser.id).eq('status','ACTIVE').maybeSingle();
+            activityName=pr?.data?.name_ar||pr?.data?.name_en||'';
+          }catch(_){}
+          loginButton.innerHTML=(avatar?'<img class="mx-account-avatar" src="'+escapeHtml(avatar)+'" alt="">':'<span class="mx-account-icon" aria-hidden="true">♙</span>')+'<span class="mx-account-copy"><b>'+escapeHtml((activityName||name).slice(0,24))+'</b><small><i></i> '+escapeHtml(activityName?'نشاط نشط':'مسجل الدخول')+'</small></span>';
           loginButton.setAttribute('aria-label','فتح الملف الشخصي والحساب');
           loginButton.onclick=()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
         }
