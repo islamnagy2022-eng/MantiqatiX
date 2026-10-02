@@ -196,18 +196,16 @@
 
   function install(){
     const nav = document.querySelector('.nav');
-    if(!nav || nav.querySelector('[data-mnty-marketing-workspace]')) return;
-
-    const b = document.createElement('button');
-    b.type='button';
-    b.dataset.mntyMarketingWorkspace='1';
-    b.innerHTML='<span>📣</span><span>التسويق والإعلان</span>';
+    if(!nav) return;
+    const buttons = Array.from(nav.querySelectorAll('button'));
+    const b = buttons.find(x => String(x.textContent||'').includes('التسويق والإعلان'));
+    if(!b || b.dataset.mntyMarketingBound==='1') return;
+    b.dataset.mntyMarketingBound='1';
     b.onclick=()=>{
       document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
       read();
     };
-    nav.appendChild(b);
   }
 
   const observer = new MutationObserver(install);
