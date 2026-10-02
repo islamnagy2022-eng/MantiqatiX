@@ -645,14 +645,11 @@
 - [ ] Final Production Gate remains OPEN: leaked-password protection; SECURITY DEFINER authorization review; real two-user/two-tenant E2E; Paymob/payment, refund and settlement E2E; onboarding notification E2E; monitoring incident drill; backup/restore/RPO/RTO; Android signed/device evidence; final regression and release evidence package.
 
 
-## RC254 — Security Advisor + SECURITY DEFINER review — 2026-10-02
-- [x] Re-ran Supabase Security Advisor on production after the RC253 baseline.
-- [x] Confirmed the release blocker remains: leaked-password protection is disabled. The available project tools do not expose a hosted Auth configuration mutation, so it was not falsely marked enabled and no SQL workaround was invented.
-- [x] Reviewed all 6 authenticated SECURITY DEFINER warnings at function-definition and EXECUTE-grant level: `admin_create_global_ad`, `create_job_backend`, `create_medical_appointment_backend`, `create_payment_intent_backend`, `get_mnty_targeted_advertisements`, `update_medical_appointment_status_backend`.
-- [x] Verified `search_path=public` is explicitly pinned on all 6 reviewed functions.
-- [x] Verified caller-side authorization checks exist in the reviewed definitions; `create_payment_intent_backend` additionally rejects unauthenticated/anonymous callers and enforces order tenant, ownership/membership, pricing snapshot, amount/currency and idempotency constraints.
-- [x] Verified the public advertisement RPC is intentionally executable by `anon` and `authenticated`; it returns sanitized advertisement fields and is the documented public-ad-serving boundary. No blanket EXECUTE revocation was applied.
-- [x] No privilege or function definition was changed during this review because the remaining risk requires runtime caller-path/E2E evidence rather than a blanket security change.
-- [ ] Leaked-password protection still requires hosted Supabase Auth configuration and Advisor recheck.
-- [ ] Real two-user/two-tenant authorization E2E remains required before closing the authorization gate.
+## RC255 — Runtime authorization test design gate — 2026-10-02
+- [x] Re-read the current continuity/TODO baseline before changing scope.
+- [x] Confirmed source convergence and CI verification are already closed; no repeat implementation was performed.
+- [x] Audited repository call-site search for direct client calls to the six reviewed SECURITY DEFINER functions; no direct `supabase.rpc(...)` call-site was found for the searched signatures. This does not prove absence because wrappers/dynamic calls may exist.
+- [x] Kept production grants unchanged because authorization correctness must be demonstrated with authenticated identities, not inferred from static search alone.
+- [x] Defined the next executable release gate as a controlled two-user/two-tenant authorization E2E covering: own-tenant read/write, cross-tenant denial, customer-to-provider order/payment boundary, provider/admin role separation, and anonymous denial for authenticated-only RPCs.
+- [ ] Runtime E2E remains NOT VERIFIED because the available project environment does not provide safe disposable authenticated test identities/fixtures for two independent tenants.
 - [ ] Final Production Gate remains OPEN.
