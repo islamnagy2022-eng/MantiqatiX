@@ -704,3 +704,5 @@
 - Public GitHub Pages browser smoke remains NOT VERIFIED because the available web browser fetch could not access the deployed URL; no false PASS recorded.
 - Backend-only ERP/SMM table contract remains fail-closed for ordinary client roles; source documentation and production privilege baselines already record the service/backend-only boundary.
 - Production Release Gate remains OPEN. No destructive test, synthetic financial transaction, fake identity, or cost-incurring branch was created.
+
+- Push runtime inventory rechecked: production currently has 1 stored push subscription, but it is disabled and has no success/error delivery timestamp; notifications table currently contains 0 rows. Therefore push delivery remains NOT VERIFIED and no synthetic notification was inserted.
