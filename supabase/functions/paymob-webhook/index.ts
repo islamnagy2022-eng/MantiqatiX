@@ -24,6 +24,22 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    if(!success){const {error:e}=await admin.from("subscription_payment_intents").update({status:"FAILED",provider_transaction_id:value(obj.id),updated_at:new Date().toISOString()}).eq("id",sub.id).eq("status","PENDING");if(e)return json({error:"SUBSCRIPTION_FAILURE_PERSISTENCE",requestId},500,requestId);return json({ok:true,status:"FAILED",requestId},200,requestId)}
    const {data:processed,error:e}=await admin.rpc("process_verified_subscription_payment",{p_event_id:`paymob-sub:${value(obj.id)}`,p_external_event_id:eventId,p_subscription_payment_intent_id:sub.id,p_provider_transaction_id:value(obj.id),p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_signature_verified:true});if(e)return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);return json({ok:true,status:String(processed?.status??"ACTIVE"),result:processed,requestId},200,requestId)
  }
+ const {data:digitalByRef}=await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
+ const {data:digitalByOrder}=digitalByRef?{data:null}:await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
+ const digital=digitalByRef??digitalByOrder
+ if(digital){
+   if(Math.abs(Number(digital.amount)-amount)>0.01||String(digital.currency).toUpperCase()!==currency)return json({error:"DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
+   const {data:existingDigital}=await admin.from("digital_page_payment_events").select("id").eq("external_event_id",eventId).maybeSingle()
+   if(existingDigital)return json({ok:true,idempotent:true,requestId},200,requestId)
+   const {error:ee}=await admin.from("digital_page_payment_events").insert({digital_page_order_id:digital.id,provider:"PAYMOB",external_event_id:eventId,event_type:"TRANSACTION",status:success?"SUCCEEDED":"FAILED",signature_verified:true,raw_payload:raw})
+   if(ee)return json({error:"DIGITAL_PAGE_EVENT_PERSISTENCE",requestId},500,requestId)
+   const next=success?"PAID":"FAILED"
+   const fulfillment=success?"IN_REVIEW":"REQUESTED"
+   const {error:oe}=await admin.from("digital_page_orders").update({payment_status:next,fulfillment_status:fulfillment,provider_transaction_id:value(obj.id),provider_order_id:paymobOrderId,updated_at:new Date().toISOString()}).eq("id",digital.id).eq("payment_status","PENDING")
+   if(oe)return json({error:"DIGITAL_PAGE_ORDER_UPDATE_FAILED",requestId},500,requestId)
+   await admin.from("notifications").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",user_id:digital.user_id,type:"DIGITAL_PAGE_PAYMENT",title:success?"تم تأكيد الدفع":"تعذر تأكيد الدفع",body:success?"تم تأكيد طلب الصفحة الرقمية وسيبدأ فريق المنصة مراجعته.":"تعذر تأكيد عملية الدفع لطلب الصفحة الرقمية.",entity_type:"digital_page_order",entity_id:digital.id})
+   return json({ok:true,status:next,requestId},200,requestId)
+ }
  const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash").eq("id",merchantRef).maybeSingle()
  const {data:intentByOrder}=intentByRef?{data:null}:await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const intent=intentByRef??intentByOrder;if(!intent)return json({error:"PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId)
