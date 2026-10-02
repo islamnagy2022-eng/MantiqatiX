@@ -528,3 +528,10 @@
 - [ ] Refund API/provider refund contract remains OPEN and must be implemented only after the authoritative provider refund contract and actor model are established.
 - [ ] Real refund E2E remains NOT VERIFIED; no financial transaction was created.
 - [ ] Final Production Gate remains OPEN.
+
+## RC240 — Monitoring Pipeline Verification — 2026-10-02
+- [x] Supabase unified log query is now reachable for production project `moyhiluyhjsujhwlyeuu`; source inventory returned live streams including edge, PostgREST, Postgres, Auth, Storage, function-edge and audit logs.
+- [x] Current 24-hour source inventory observed: edge_logs 2146, postgrest_logs 347, postgres_logs 204, auth_logs 186, function_logs 70, storage_logs 69, auth_audit_logs 45, function_edge_logs 34, pgbouncer_logs 18, realtime_logs 2.
+- [ ] Detailed severity/error aggregation is NOT VERIFIED because the unified-log backend rejected queries using the inferred level column and row expansion; no false monitoring conclusion is claimed.
+- [ ] Monitoring/alert incident drill remains OPEN; source availability alone does not prove alerting, classification, notification, diagnosis and recovery.
+- [ ] Final Production Gate remains OPEN.
