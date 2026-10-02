@@ -711,7 +711,7 @@
 ## RC266 — CI traceability check — 2026-10-03
 
 - [x] Checked GitHub Actions association for documentation commit `bd5422e8cc5eb0d7d71eb63c7df33226d7cf7d64`.
-- [ ] No workflow run was returned for that commit by the available commit-run endpoint; therefore the RC265 documentation commit is NOT treated as CI-verified or deployment-verified.
+- [ ] CI association for that commit remains UNVERIFIED by the available connector endpoint: its `fetch_commit_workflow_runs` operation is documented as filtering to pull-request-triggered runs, so an empty result cannot establish the absence of a push-triggered run.
 - [x] Reviewed `.github/workflows/pages.yml`: pushes to `main` are configured to run validation and GitHub Pages deployment, followed by HTTP smoke checks of the deployed assets.
-- [ ] A successful RC265 run exists for the preceding source commit `d65a24fe8abe18ed76632f6f5ac6e08baa9940ea`, but it does not certify the later docs-only commit.
+- [ ] A successful RC265 run exists for the preceding source commit `d65a24fe8abe18ed76632f6f5ac6e08baa9940ea`; certification of the later docs-only commit remains unverified with the available run-query surface.
 - Production Release Gate remains OPEN.
