@@ -12,7 +12,7 @@ const checks = [
   ['contextual home keeps privileged admin users in workspace', /function\s+openContextualHome\(\)[\s\S]*?privileged[\s\S]*?adminWorkspace[\s\S]*?selectModule\(['"]الرئيسية['"]\)/],
   ['top home button uses contextual home handler', /go-public-home[^\n]*addEventListener\(['"]click['"],openContextualHome\)/],
   ['Super Admin control module exists', /التحكم الكامل/],
-  ['Super Admin control is role and permission gated', /function\s+canSuperAdmin\(\)[\s\S]*SUPER_ADMIN[\s\S]*full_control/],
+  ['Super Admin control is role and permission gated', /function\s+canSuperAdmin\(\)[\s\S]*MNTY_RBAC[\s\S]*can\(/],
   ['Super Admin creation uses server functions', /superAdminFunction\(['"]business-register['"][\s\S]*superAdminFunction\(['"]business-approval['"][\s\S]*superAdminFunction\(['"]business-branch-admin['"][\s\S]*superAdminFunction\(['"]catalog-admin['"]/]
 ];
 
