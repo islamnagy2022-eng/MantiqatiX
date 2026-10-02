@@ -4,7 +4,7 @@ const app=fs.readFileSync('web/app.js','utf8');
 const index=fs.readFileSync('web/index.html','utf8');
 const requiredRoles=['SUPER_ADMIN','OWNER','BUSINESS_OWNER','ADMIN','MANAGER','FINANCE','SALES','MARKETING','SUPPORT','SUPPORT_MANAGER','EMPLOYEE','STAFF','SERVICE_PROVIDER','PROVIDER_OWNER','PROVIDER_ADMIN','BRANCH_MANAGER','PROVIDER_FINANCE','PROVIDER_MARKETING','PROVIDER_OPERATIONS','PROVIDER_SUPPORT'];
 for(const role of requiredRoles){
- if(!new RegExp(role.replace('_','\\_')).test(rbac)) throw new Error('RBAC role missing: '+role);
+ if(!rbac.includes(role)) throw new Error('RBAC role missing: '+role);
 }
 for(const marker of ['window.MNTY_RBAC','ROLE_DEFAULTS','function can(','function scope(','function providerRole(','function ownerRole(']){
  if(!rbac.includes(marker)) throw new Error('RBAC contract marker missing: '+marker);
