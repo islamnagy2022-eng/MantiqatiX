@@ -80,6 +80,70 @@
       }));
     }catch(err){page('<section class="workspace-section"><div class="notice">تعذر تحميل تكوين النشاط: '+esc(err.message)+'</div></section>');}
   }
+
+  const onboardingView=async()=>{
+    const page=html=>{const p=document.getElementById('page');if(p)p.innerHTML=html;};
+    const draft=(()=>{try{return JSON.parse(localStorage.getItem('MNTYPendingActivityDraft')||'{}')||{};}catch(_){return {};}})();
+    try{
+      const {data:{user},error:ue}=await sb.auth.getUser(); if(ue)throw ue;
+      if(!user||user.is_anonymous)throw new Error('AUTH_REQUIRED');
+      const [rr,or,geo]=await Promise.all([
+        sb.from('account_registration_requests').select('id,requested_role,status,created_at,reviewed_at').eq('user_id',user.id).eq('requested_role','SERVICE_PROVIDER').order('created_at',{ascending:false}).limit(10),
+        sb.from('provider_onboarding_requests').select('id,registration_request_id,business_name,provider_kind,name_en,description,specialties,service_areas,status,rejection_reason,created_at,reviewed_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(10),
+        sb.from('platform_geo_areas').select('id,code,name_ar,name_en,parent_id,level').eq('country_code','EG').eq('status','ACTIVE').in('level',['GOVERNORATE','CENTER']).order('level').order('name_ar')
+      ]);
+      if(rr.error)throw rr.error;if(or.error)throw or.error;if(geo.error)throw geo.error;
+      const registrations=rr.data||[], onboardings=or.data||[], areas=geo.data||[], latest=onboardings[0]||null;
+      const govs=areas.filter(x=>x.level==='GOVERNORATE'), centers=areas.filter(x=>x.level==='CENTER');
+      const area=Array.isArray(draft.service_areas)?draft.service_areas[0]:null;
+      const status=s=>({PENDING:'قيد المراجعة',APPROVED:'تم الاعتماد',REJECTED:'مرفوض — يمكن إعادة التقديم',CANCELLED:'ملغى'}[String(s||'').toUpperCase()]||String(s||''));
+      const kinds=[['FOOD','مطاعم وكافيهات'],['HEALTH','أطباء وعيادات'],['PHARMACY','صيدليات'],['LABS','معامل تحاليل'],['RADIOLOGY','مراكز الأشعة'],['DENTAL','أطباء الأسنان'],['HOSPITAL','المستشفيات'],['REAL_ESTATE','العقارات'],['AUTO','السيارات والنقل'],['MAINTENANCE','الصيانة والخدمات المنزلية'],['ACCOUNTING','المحاسبة'],['LEGAL','الخدمات القانونية'],['COMPANIES','الشركات والموردون'],['EDU','التعليم والتدريب'],['DIGITAL','التسويق والإعلان'],['TECH','البرمجيات والخدمات الرقمية'],['FITNESS','الرياضة واللياقة'],['TRAVEL','السفر والرحلات'],['JOBS','الوظائف والتوظيف'],['MATRIMONY','الزواج والخدمات المرتبطة'],['USED_ITEMS','المستعمل'],['FASHION','الأزياء والخياطة'],['GROCERY','البقالة والسوبر ماركت'],['VETERINARY','الخدمات البيطرية'],['FREELANCER','المستقلون ومقدمو الخدمات']];
+      const govOptions=govs.map(g=>'<option value="'+esc(g.id)+'" '+(String(g.id)===String(area?.governorate_id||'')?'selected':'')+'>'+esc(g.name_ar||g.name_en||g.code)+'</option>').join('');
+      const locked=latest?.status==='PENDING'||latest?.status==='APPROVED';
+      page('<section class="workspace-section" dir="rtl"><div class="workspace-head"><div><div class="eyebrow">PROVIDER ONBOARDING</div><h1>إضافة نشاط</h1><p class="muted">يتم إرسال الطلب للمراجعة؛ لا يتم إنشاء نشاط منشور أو عضوية تشغيلية من المتصفح.</p></div></div>'+
+        (latest?'<article class="card"><div class="card-title">آخر طلب: '+esc(latest.business_name)+'</div><div class="muted">'+esc(status(latest.status))+' · '+esc(new Date(latest.created_at).toLocaleString('ar-EG'))+'</div>'+(latest.rejection_reason?'<div class="notice" style="margin-top:8px">سبب الرفض: '+esc(latest.rejection_reason)+'</div>':'')+'</article>':'')+
+        '<section class="card" style="margin-top:14px"><h2>بيانات النشاط</h2><form id="mnty-po-form" class="form-grid">'+
+        '<label class="field"><span>اسم النشاط *</span><input id="po-name" required maxlength="180" value="'+esc(draft.business_name||latest?.business_name||'')+'"></label>'+
+        '<label class="field"><span>نوع النشاط *</span><select id="po-kind" required>'+kinds.map(x=>'<option value="'+x[0]+'" '+(String(draft.provider_kind||latest?.provider_kind||'FOOD')===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></label>'+
+        '<label class="field"><span>الاسم بالإنجليزية</span><input id="po-name-en" maxlength="180" value="'+esc(draft.name_en||latest?.name_en||'')+'"></label>'+
+        '<label class="field"><span>المحافظة *</span><select id="po-gov" required><option value="">اختر المحافظة</option>'+govOptions+'</select></label>'+
+        '<label class="field"><span>المركز / المدينة *</span><select id="po-center" required><option value="">اختر المركز</option></select></label>'+
+        '<label class="field" style="grid-column:1/-1"><span>وصف النشاط</span><textarea id="po-desc" rows="4" maxlength="3000">'+esc(draft.description||latest?.description||'')+'</textarea></label>'+
+        '<label class="field" style="grid-column:1/-1"><span>الخدمات والتخصصات</span><input id="po-specialties" maxlength="1000" value="'+esc(Array.isArray(draft.specialties)?draft.specialties.join('، '):(draft.specialties||''))+'" placeholder="افصل العناصر بفواصل"></label>'+
+        '<label class="field" style="grid-column:1/-1;display:flex;gap:8px;align-items:flex-start"><input id="po-consent" type="checkbox" required style="width:auto;margin-top:4px"><span>أقر بأن البيانات صحيحة وأوافق على مراجعتها وفق شروط المنصة.</span></label>'+
+        '<div class="action-bar" style="grid-column:1/-1"><button class="btn btn-primary" id="po-submit" type="submit" '+(locked?'disabled':'')+'>'+(locked?'الطلب قيد المعالجة':'إرسال طلب الاعتماد')+'</button><button class="btn btn-outline" id="po-back" type="button">العودة</button></div><div id="po-result" class="muted" style="grid-column:1/-1"></div></form></section>'+
+        '<section class="card" style="margin-top:14px"><h2>سجل الطلبات</h2>'+(registrations.length?registrations.map(r=>'<div class="muted" style="padding:8px 0;border-bottom:1px solid #eee">طلب '+esc(r.id)+' · '+esc(status(r.status))+' · '+esc(new Date(r.created_at).toLocaleString('ar-EG'))+'</div>').join(''):'<div class="muted">لا توجد طلبات مقدم خدمة بعد.</div>')+'</section></section>');
+      const gov=document.getElementById('po-gov'), center=document.getElementById('po-center');
+      const fill=()=>{const rows=centers.filter(x=>!gov.value||String(x.parent_id)===String(gov.value));center.innerHTML='<option value="">اختر المركز</option>'+rows.map(x=>'<option value="'+esc(x.id)+'" '+(String(x.id)===String(area?.center_id||'')?'selected':'')+'>'+esc(x.name_ar||x.name_en||x.code)+'</option>').join('');};
+      gov?.addEventListener('change',()=>{center.value='';fill();}); fill();
+      document.getElementById('po-back')?.addEventListener('click',()=>window.accountView?.());
+      document.getElementById('mnty-po-form')?.addEventListener('submit',async e=>{
+        e.preventDefault();const out=document.getElementById('po-result'),btn=document.getElementById('po-submit');btn.disabled=true;out.textContent='جارٍ إرسال طلب الاعتماد…';
+        try{
+          const g=gov.value,c=center.value,gr=govs.find(x=>String(x.id)===String(g)),cr=centers.find(x=>String(x.id)===String(c));
+          if(!gr||!cr||String(cr.parent_id)!==String(gr.id))throw new Error('INVALID_GOVERNORATE_OR_CENTER');
+          const specialties=String(document.getElementById('po-specialties').value||'').split(/[،,]/).map(x=>x.trim()).filter(Boolean).slice(0,30);
+          const payload={business_name:document.getElementById('po-name').value.trim(),provider_kind:document.getElementById('po-kind').value,name_en:document.getElementById('po-name-en').value.trim(),description:document.getElementById('po-desc').value.trim(),specialties,service_areas:[{governorate_id:gr.id,governorate_code:gr.code,governorate_name_ar:gr.name_ar,center_id:cr.id,center_code:cr.code,center_name_ar:cr.name_ar}]};
+          if(payload.business_name.length<2)throw new Error('BUSINESS_NAME_REQUIRED');
+          try{localStorage.setItem('MNTYPendingActivityDraft',JSON.stringify(payload));}catch(_){}
+          let reg=registrations.find(x=>x.status==='PENDING');
+          if(!reg){
+            if(typeof submitRegistrationRequest!=='function')throw new Error('REGISTRATION_PATH_UNAVAILABLE');
+            try{await submitRegistrationRequest('SERVICE_PROVIDER');}catch(_){}
+            const q=await sb.from('account_registration_requests').select('id,status').eq('user_id',user.id).eq('requested_role','SERVICE_PROVIDER').eq('status','PENDING').order('created_at',{ascending:false}).limit(1).maybeSingle();
+            if(q.error)throw q.error;reg=q.data||null;
+          }
+          if(!reg)throw new Error('REGISTRATION_REQUEST_REQUIRED');
+          const p=await call('mnty-provider-onboarding-submit',{registration_request_id:reg.id,tenant_id:'MNTY-PLATFORM',organization_id:'MNTY-MAIN',business_name:payload.business_name,provider_kind:payload.provider_kind,name_en:payload.name_en||null,description:payload.description||null,specialties:payload.specialties,service_areas:payload.service_areas});
+          try{localStorage.removeItem('MNTYPendingActivityDraft');}catch(_){}
+          out.textContent='تم إرسال طلب النشاط بنجاح. رقم الطلب: '+(p.onboarding_request_id||'PENDING');
+          setTimeout(render,600);
+        }catch(err){btn.disabled=false;out.textContent='تعذر إرسال الطلب: '+esc(err.message);}
+      });
+    }catch(err){page('<section class="workspace-section" dir="rtl"><div class="notice">تعذر تحميل طلب إضافة النشاط: '+esc(err.message)+'</div></section>');}
+  };
+  window.providerOnboardingView=onboardingView;
+
   function install(){
     const nav=document.querySelector('.nav');
     if(!nav || nav.querySelector('[data-mnty-provider-onboarding]'))return;
