@@ -567,3 +567,14 @@
 - [x] Confirmed the GitHub `supabase/functions` tree still contains 20 directories, including `mnty-provider-onboarding-review` restored in RC242.
 - [ ] Source convergence is not yet closed because the other live production functions still lack matching authoritative repository source.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC246 — Security Advisor Recheck — 2026-10-02
+- [x] Re-ran Supabase Security Advisor against production.
+- [x] Confirmed leaked-password protection remains disabled and therefore remains a release-security gate.
+- [x] Confirmed the intentional public SECURITY DEFINER advertisement RPC finding remains present; no blanket privilege change was applied because the RPC is an intentional public sanitized-ad-serving path.
+- [x] Confirmed six authenticated SECURITY DEFINER findings remain visible, including the payment-intent backend; no blanket revocation was applied without caller-path verification.
+- [x] Confirmed `digital_page_payment_events` has RLS enabled with no policies; this remains consistent with its ledger/event isolation design and was not weakened by adding broad policies.
+- [ ] Leaked-password protection still requires Supabase Auth/dashboard configuration and recheck before final release.
+- [ ] Security Advisor remains non-clean; contextual findings require explicit per-function review before final release.
+- [ ] Final Production Gate remains OPEN.
