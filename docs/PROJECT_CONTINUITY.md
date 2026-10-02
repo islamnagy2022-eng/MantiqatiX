@@ -143,3 +143,8 @@ This status is intentional and must remain until the open gates above are indepe
 ## RC250 update — Edge Function source convergence batch 1
 - Exact-matched live Production source into GitHub for: `settlement-financial-atomic` (`index.ts` + `deno.json`), `subscription-payment-intent`, `subscription-start-trial`, `financial-journal`.
 - 11 of the original 16 missing active function sources remain to be converged.
+
+
+## RC251 update
+- Exact-matched 4 more live Edge Functions: `business-deactivate`, `business-onboarding-status`, `approval-list`, `legal-consent`.
+- Original source-convergence gap is now reduced to 7 active functions: `legal-cms`, `legal-gate`, `legal-center`, `ai-gemini-proxy`, `erp-product-create`, `erp-purchase-receive`, `marketing-lead-create`.
