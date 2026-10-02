@@ -680,3 +680,14 @@
 - No production data was mutated; each runtime check was wrapped in a transaction and rolled back.
 - This verifies the centralized permission helper behavior for two existing identities, but does NOT replace multi-user/multi-tenant E2E isolation.
 - The current privileged identity carries both OWNER and SUPER_ADMIN memberships; therefore this test cannot independently prove separation between those two roles.
+
+
+## RC264 — Registration Review Audit & Notification Closure — 2026-10-02
+- [x] Applied production migration `20261002142519 rc264_registration_review_audit_notifications`.
+- [x] `private.review_registration_request_atomic` now writes a server-side audit record for both APPROVED and REJECTED decisions.
+- [x] APPROVED decisions now create a recipient notification in the approved tenant after membership creation.
+- [x] REJECTED decisions create a platform-scoped recipient notification because a pending registration has no tenant membership yet.
+- [x] Verified the deployed function source and migration history after application.
+- [x] Authorization regression check with a non-platform identity was rejected with `platform_admin_required`; pending registration count remained unchanged at 2.
+- [ ] End-to-end delivery/click-through of the resulting notification remains NOT VERIFIED.
+- [ ] Final Production Gate remains OPEN for multi-tenant E2E, real payment/finance E2E, browser/device smoke, backup/restore, rollback and leaked-password protection.
