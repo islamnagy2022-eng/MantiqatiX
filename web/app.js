@@ -1020,6 +1020,7 @@ async function accountView(){
      const d=JSON.parse(raw)||{};
      const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=String(v)};
      set('po-business-name',d.business_name);set('po-kind',d.provider_kind);set('po-description',d.description);set('po-specialties',d.specialties);
+     if(d.provider_kind)kindSelect?.dispatchEvent(new Event('change'));
      window.MNTYPendingActivityDraft=d;
    }
  }catch(_){}
