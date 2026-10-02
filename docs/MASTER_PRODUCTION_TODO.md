@@ -772,3 +772,10 @@
 - **VERIFIED:** GitHub `web/app.js` contains branch selection, branch-aware catalog loading, and branch-required order submission.
 - **NOT VERIFIED:** Real authenticated customer → provider → branch → service → price → order E2E remains blocked by the absence of authorized real provider/business/catalog data and a browser E2E runner.
 - **WAIT:** GitHub Pages CI/published-site verification for the latest web commits remains pending until the corresponding workflow run is observed and passed.
+
+
+## Product completeness additions — 2026-10-02
+- A→Z module prompt contract is now maintained in `docs/DEVELOPMENT_PROMPTS_TODO.md` and is mandatory before future implementation.
+- Portfolio/Menu paid page foundation is implemented through canonical product pricing, owner-scoped orders, idempotency, JWT-protected order creation, Paymob intent creation, and isolated webhook event ledger.
+- Public sector/provider routing and Add Activity request flow are implemented in the website baseline.
+- Remaining for these modules: public Portfolio/Menu renderer, fulfillment/editor workflow, payment checkout browser E2E, refunds/receipts, SEO/QR/versioning, and final release verification.
