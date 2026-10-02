@@ -23,6 +23,7 @@
 
   let state = {
     user: null,
+    memberships: [],
     membership: null,
     providers: [],
     services: [],
@@ -47,7 +48,8 @@
     if(r.error) throw r.error;
 
     const wanted = window.MNTYActiveMembershipId || localStorage.getItem('MNTYActiveMembershipId');
-    state.membership = (r.data||[]).find(x => x.id === wanted) || r.data?.[0] || null;
+    state.memberships = r.data || [];
+    state.membership = state.memberships.find(x => x.id === wanted) || state.memberships[0] || null;
   }
 
   async function read(){
@@ -104,6 +106,11 @@
     }
   }
 
+  function membershipSelector(){
+    if(state.memberships.length < 2) return '';
+    return '<div class="card" style="margin:12px 0"><label for="mnty-marketing-membership"><strong>الحساب التشغيلي</strong></label><select id="mnty-marketing-membership" class="input" style="margin-top:8px">'+state.memberships.map(m=>'<option value="'+esc(m.id)+'" '+(m.id===state.membership?.id?'selected':'')+'>'+esc((m.business_id||'حساب المنصة')+' — '+(m.role||'ROLE'))+'</option>').join('')+'</select><p class="muted">اختيار العضوية يحدد نطاق المشروعات والطلبات المرتبطة بالشركة.</p></div>';
+  }
+
   function table(rows, headers){
     return '<div class="table-wrap"><table><thead><tr>' +
       headers.map(h=>'<th>'+h[0]+'</th>').join('') +
@@ -133,6 +140,7 @@
 
     page.innerHTML =
       '<section class="workspace-section" dir="rtl">' +
+        membershipSelector() +
         '<div class="workspace-head"><div>' +
           '<div class="eyebrow">MNTY MARKETING</div>' +
           '<h1>التسويق والإعلان</h1>' +
@@ -193,6 +201,21 @@
         '</section>' +
       '</section>';
   }
+
+  function bindMembership(){
+    const sel = document.getElementById('mnty-marketing-membership');
+    if(!sel) return;
+    sel.onchange = async () => {
+      const next = state.memberships.find(m => m.id === sel.value);
+      if(!next) return;
+      state.membership = next;
+      localStorage.setItem('MNTYActiveMembershipId', next.id);
+      await read();
+    };
+  }
+
+  const originalRender = render;
+  render = function(){ originalRender(); bindMembership(); };
 
   function install(){
     const nav = document.querySelector('.nav');
