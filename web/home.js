@@ -584,18 +584,19 @@
           p_ad_space_id:'HOME_SPONSORED',
           p_limit:4
         });
-        const [servicesRes,providersRes,adsRes]=await Promise.all([serviceQuery,providerQuery,adsPromise]);
-        if(servicesRes.error) throw servicesRes.error;
-        if(providersRes.error) throw providersRes.error;
-        if(adsRes.error) throw adsRes.error;
+        const [servicesRes,providersRes,adsRes]=await Promise.allSettled([serviceQuery,providerQuery,adsPromise]);
+        if(servicesRes.status!=='fulfilled' || servicesRes.value?.error) throw (servicesRes.status==='fulfilled'?servicesRes.value.error:new Error('تعذر تحميل الخدمات'));
+        if(providersRes.status!=='fulfilled' || providersRes.value?.error) throw (providersRes.status==='fulfilled'?providersRes.value.error:new Error('تعذر تحميل مقدمي الخدمات'));
         if(requestSequence!==homeLoadSequence)return;
-        const services=servicesRes.data||[];
-        const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.data||[]):providersRes.data||[];
+        const services=servicesRes.value?.data||[];
+        const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.value?.data||[]):providersRes.value?.data||[];
         if(requestSequence!==homeLoadSequence)return;
         renderDynamicCategories(services,providers);
         renderServices(services,term);renderProviders(providers,term);
-        if((adsRes.data||[]).length) renderTargetedAds(adsRes.data||[]);
+        const adsData=adsRes.status==='fulfilled' && !adsRes.value?.error ? (adsRes.value.data||[]) : [];
+        if(adsData.length) renderTargetedAds(adsData);
         else renderSponsored(providers);
+        if(adsRes.status!=='fulfilled' || adsRes.value?.error) console.warn('[MantiqatiX home] ads load failed; catalog results kept visible',adsRes.value?.error||adsRes.reason);
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
         const activeTerm=String(term||'').trim();
         if(searchContext) searchContext.textContent=activeTerm?'نتائج البحث عن «'+activeTerm.slice(0,60)+'» من الكتالوج المنشور.':'استكشف الخدمات ومقدمي الخدمات المنشورين على المنصة.';
