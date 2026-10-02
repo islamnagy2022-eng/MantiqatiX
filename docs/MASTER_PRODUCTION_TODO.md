@@ -553,3 +553,10 @@
 - [ ] GitHub source creation for `supabase/functions/business-deactivate/index.ts` was rejected by the GitHub/OpenAI safety layer; no bypass or speculative source rewrite was used.
 - [ ] Remaining ACTIVE production functions without repository source remain NOT VERIFIED for source convergence.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC244 — Live Source Inventory Revalidation — 2026-10-02
+- [x] Revalidated GitHub Actions after RC243: latest run `36985997626` completed `success` for commit `b625a1e3222bd10ee2a1437bd20519d7cbfcc1c5`.
+- [x] Revalidated live source availability for 8 remaining production functions: `approval-list`, `business-onboarding-status`, `financial-journal`, `settlement-financial-atomic`, `legal-consent`, `legal-cms`, `legal-gate`, `legal-center`.
+- [ ] Repository source convergence remains OPEN; live source exists but GitHub restoration is still blocked by the write safety layer for the attempted missing-source path.
+- [ ] Final Production Gate remains OPEN.
