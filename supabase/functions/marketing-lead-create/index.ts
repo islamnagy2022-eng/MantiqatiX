@@ -30,6 +30,7 @@ Deno.serve(async (req: Request) => {
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
 
+  const requestedBusinessId = String(body.business_id || "").trim() || null;
   const title = String(body.title || "").trim();
   const description = String(body.description || "").trim();
   const serviceArea = String(body.service_area || "").trim();
@@ -48,10 +49,17 @@ Deno.serve(async (req: Request) => {
     .select("business_id")
     .eq("user_id", actor.id)
     .eq("status", "ACTIVE")
-    .limit(20);
+    .limit(50);
   if (membershipError) return json({ error: "membership_lookup_failed" }, 500);
 
-  const businessId = memberships?.find(x => x.business_id)?.business_id || null;
+  const businessIds = (memberships || []).map(x => x.business_id).filter(Boolean);
+  if (requestedBusinessId && !businessIds.includes(requestedBusinessId)) {
+    return json({ error: "business_not_authorized" }, 403);
+  }
+  if (businessIds.length > 1 && !requestedBusinessId) {
+    return json({ error: "business_selection_required" }, 400);
+  }
+  const businessId = requestedBusinessId || businessIds[0] || null;
   const lead = {
     id: crypto.randomUUID(),
     requester_user_id: actor.id,
