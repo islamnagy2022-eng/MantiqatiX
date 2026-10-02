@@ -168,3 +168,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Latest verified project commit: `286c70896ccf8ba0eea91ee5a4d0dd1cdbe8027d`.
 - Latest release-gate record: **RC253**.
 - Final Production Gate: **OPEN**.
+
+
+## RC255 — Runtime authorization test design gate — 2026-10-02
+- [x] Re-read the current continuity/TODO baseline before changing scope.
+- [x] Confirmed source convergence and CI verification are already closed; no repeat implementation was performed.
+- [x] Audited repository call-site search for direct client calls to the six reviewed SECURITY DEFINER functions; no direct `supabase.rpc(...)` call-site was found for the searched signatures. This does not prove absence because wrappers/dynamic calls may exist.
+- [x] Kept production grants unchanged because authorization correctness must be demonstrated with authenticated identities, not inferred from static search alone.
+- [x] Defined the next executable release gate as a controlled two-user/two-tenant authorization E2E covering: own-tenant read/write, cross-tenant denial, customer-to-provider order/payment boundary, provider/admin role separation, and anonymous denial for authenticated-only RPCs.
+- [ ] Runtime E2E remains NOT VERIFIED because the available project environment does not provide safe disposable authenticated test identities/fixtures for two independent tenants.
+- [ ] Final Production Gate remains OPEN.
