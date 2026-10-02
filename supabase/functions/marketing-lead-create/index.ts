@@ -72,7 +72,7 @@ Deno.serve(async (req: Request) => {
     required_services: [],
     service_area: serviceArea,
     status: "OPEN",
-    source: "MNTY",
+    source: "PLATFORM",
   };
 
   const { data: created, error: insertError } = await admin
