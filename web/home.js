@@ -321,7 +321,7 @@
     const renderDynamicCategories=(services=[],providers=[])=>{
       const items=dynamicTaxonomy(services,providers);
       categoryGrid.innerHTML=items.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
-      categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ document.getElementById('mx-home-search').value=btn.querySelector('strong').textContent; loadData(btn.querySelector('strong').textContent); document.getElementById('mx-services')?.scrollIntoView(scrollOptions('start')); });
+      categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; const label=btn.querySelector('strong')?.textContent||''; const input=document.getElementById('mx-home-search'); if(input) input.value=label; loadData('',code); document.getElementById('mx-services')?.scrollIntoView(scrollOptions('start')); });
     };
 
     const platformNotices=[
@@ -554,7 +554,7 @@
     };
 
     let homeLoadSequence=0;
-    const loadData=async(searchText='')=>{
+    const loadData=async(searchText='',categoryCode='')=>{
       const requestSequence=++homeLoadSequence;
       const sb=getClient();
       const status=document.getElementById('mx-live-status');
@@ -573,7 +573,7 @@
         });
         let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
         let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
-        if(safeTerm){serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%');providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
+        if(categoryCode){ const code=normCode(categoryCode); serviceQuery=serviceQuery.eq('category_code',code); providerQuery=providerQuery.eq('provider_kind',code); } else if(safeTerm){ serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%'); providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
         const adCoords=window.MNTYLocationAdapter?.state?.coords||null;
         const adsPromise=sb.rpc('get_mnty_targeted_advertisements',{
           p_country_code:'EG',
