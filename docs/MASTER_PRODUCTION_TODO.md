@@ -535,3 +535,14 @@
 - [ ] Detailed severity/error aggregation is NOT VERIFIED because the unified-log backend rejected queries using the inferred level column and row expansion; no false monitoring conclusion is claimed.
 - [ ] Monitoring/alert incident drill remains OPEN; source availability alone does not prove alerting, classification, notification, diagnosis and recovery.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC241 — Active Supabase Edge Function Source-Convergence Audit — 2026-10-02
+- [x] Enumerated production Edge Functions from Supabase: 35 ACTIVE functions.
+- [x] Enumerated GitHub source directories under supabase/functions: 19.
+- [x] Confirmed 19 deployed ACTIVE functions have matching repository directories.
+- [x] Identified 16 ACTIVE production functions with no matching source directory in the current GitHub tree: business-deactivate, approval-list, business-onboarding-status, financial-journal, settlement-financial-atomic, legal-consent, legal-cms, legal-gate, legal-center, subscription-start-trial, subscription-payment-intent, ai-gemini-proxy, erp-product-create, erp-purchase-receive, marketing-lead-create, mnty-provider-onboarding-review.
+- [x] Searched the repository for those names; results did not reveal authoritative source files for the missing functions (apart from references/docs for a small subset).
+- [ ] Exact source convergence for all ACTIVE production Edge Functions is NOT VERIFIED.
+- [ ] No live function source was copied into GitHub during this audit because the available GitHub write path rejected the attempted source-blob operation; no speculative rewrite or replacement was performed.
+- [ ] Final Production Gate remains OPEN until each ACTIVE function has an authoritative source mapping, version/hash evidence, and CI/deployment ownership or an explicit documented retirement decision.
