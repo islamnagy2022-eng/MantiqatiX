@@ -4,7 +4,7 @@
 - Supabase project: moyhiluyhjsujhwlyeuu
 - Verification date: 2026-10-02
 - Web continuation branch: web-continuation-rc214-marketing
-- Edge Function `marketing-lead-create`: deployed and ACTIVE, version 5, JWT verification enabled
+- Edge Function `marketing-lead-create version 6, JWT verification enabled
 
 ## Database findings
 
