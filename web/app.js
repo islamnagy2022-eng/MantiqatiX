@@ -888,6 +888,54 @@ async function openSupportTicket(){
  if(error)return showToast('تعذر إنشاء التذكرة: '+error.message,'error');
  live.counts.support=(live.counts.support||0)+1; showToast('تم فتح التذكرة بنجاح. رقمها '+id,'success'); renderApp();
 }
+function getMntiCart(){
+ try{const x=JSON.parse(localStorage.getItem('MNTY_CART')||'[]');return Array.isArray(x)?x:[]}catch(_){return []}
+}
+function setMntiCart(items){
+ try{localStorage.setItem('MNTY_CART',JSON.stringify(Array.isArray(items)?items:[]))}catch(_){}
+ window.refreshMntiCartCount?.();
+}
+function refreshMntiCartCount(){
+ const count=getMntiCart().reduce((n,x)=>n+Math.max(1,Number(x.quantity)||1),0);
+ document.querySelectorAll('#mx-cart-count').forEach(el=>el.textContent=String(count));
+ return count;
+}
+window.refreshMntiCartCount=refreshMntiCartCount;
+function cartView(){
+ const items=getMntiCart();
+ const rows=items.length?items.map((x,i)=>'<article class="mx-cart-row"><div><b>'+esc(x.name||'خدمة')+'</b><small>'+esc(x.providerName||'مقدم الخدمة')+'</small></div><div><strong>'+esc(x.priceLabel||'السعر حسب الكتالوج')+'</strong><button class="text-btn" data-cart-remove="'+i+'">حذف</button></div></article>').join(''):'<div class="empty-state">السلة فارغة حاليًا. أضف الخدمات من كتالوج النشاط بعد اختيار مقدم الخدمة.</div>';
+ const overlay=document.createElement('div');overlay.className='mx-modal';
+ overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">CART</span><h2>سلة الخدمات</h2><p>العناصر محفوظة محليًا حتى تبدأ طلبًا فعليًا.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><div class="mx-cart-list">'+rows+'</div>'+(items.length?'<div class="action-bar"><button class="btn btn-primary" id="mx-cart-checkout">متابعة الطلب</button><button class="btn btn-outline" id="mx-cart-clear">تفريغ السلة</button></div>':'')+'</div>';
+ document.body.appendChild(overlay);
+ const close=()=>overlay.remove();
+ overlay.querySelector('.mx-close-modal')?.addEventListener('click',close);
+ overlay.querySelectorAll('[data-cart-remove]').forEach(b=>b.addEventListener('click',()=>{const next=getMntiCart();next.splice(Number(b.dataset.cartRemove),1);setMntiCart(next);close();cartView()}));
+ overlay.querySelector('#mx-cart-clear')?.addEventListener('click',()=>{setMntiCart([]);close();cartView()});
+ overlay.querySelector('#mx-cart-checkout')?.addEventListener('click',()=>showToast('اختَر الخدمة من الكتالوج لبدء الطلب والدفع الآمن.','success'));
+}
+window.cartView=cartView;
+async function walletView(){
+ if(!user?.id)return authView();
+ let smm=null,general=[];
+ try{
+   const sr=await sb.from('smm_wallets').select('balance,currency,updated_at').eq('user_id',user.id).maybeSingle();
+   if(!sr.error)smm=sr.data||null;
+ }catch(_){}
+ try{
+   const ids=(live.memberships||[]).filter(m=>m.status==='ACTIVE'&&m.tenant_id&&m.business_id).map(m=>m.business_id);
+   if(ids.length){
+     const wr=await sb.from('wallet_accounts').select('id,tenant_id,owner_type,owner_id,currency,status').in('owner_id',ids).eq('status','ACTIVE').limit(10);
+     if(!wr.error)general=wr.data||[];
+   }
+ }catch(_){}
+ const hasWallet=Boolean(smm||general.length);
+ const balance=smm?Number(smm.balance||0):null;
+ document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>المحفظة</h1><p class="muted">المحافظ المالية لا تُنشأ أو تُشحّن تلقائيًا من الواجهة.</p><section class="mx-profile-card"><div class="mx-profile-card__avatar">▣</div><div><b>'+esc(user.email||'الحساب')+'</b><small>'+ (hasWallet?'محفظة مرتبطة بالحساب':'لا توجد محفظة مالية مفعلة حاليًا')+'</small></div></section>'+(smm?'<div class="mx-wallet-balance"><span>رصيد محفظة الخدمات الرقمية</span><strong>'+balance.toFixed(2)+' '+esc(smm.currency||'EGP')+'</strong><small>آخر تحديث: '+esc(new Date(smm.updated_at).toLocaleString('ar-EG'))+'</small></div>':'<div class="empty-state">سيظهر الرصيد هنا عند تفعيل محفظة مالية للحساب.</div>')+'<div class="action-bar"><button class="btn btn-primary" id="wallet-account">العودة إلى حسابي</button><button class="btn btn-outline" id="wallet-home">الرئيسية</button></div></section></main>';
+ document.getElementById('wallet-account').onclick=accountView;
+ document.getElementById('wallet-home').onclick=()=>window.MXHomeLanding?MXHomeLanding():landingView();
+}
+window.walletView=walletView;
+
 async function accountView(){
  const memberships=(live.memberships||[]).filter(m=>m.status==='ACTIVE');
  let requests=[];
