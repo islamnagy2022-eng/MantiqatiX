@@ -634,3 +634,12 @@
 - [x] No speculative source rewrite was used; every restored file was fetched from live Production and exact-compared after write.
 - [ ] CI/release verification for the final convergence commits is still pending.
 - [ ] Final Production Gate remains OPEN pending the remaining runtime/security/recovery gates.
+
+
+## RC253 — Final Edge Function convergence CI/release verification — 2026-10-02
+- [x] Verified GitHub Actions run `36987846198` for commit `286c70896ccf8ba0eea91ee5a4d0dd1cdbe8027d`.
+- [x] Validation job succeeded, including syntax and required-file checks.
+- [x] Deploy job succeeded, including GitHub Pages deployment and the deployed-site verification step.
+- [x] Superseded run `36987837273` was cancelled by the newer run; this is not a release failure.
+- [x] The final Edge Function source-convergence work is now CI/release-verified on main.
+- [ ] Final Production Gate remains OPEN: leaked-password protection; SECURITY DEFINER authorization review; real two-user/two-tenant E2E; Paymob/payment, refund and settlement E2E; onboarding notification E2E; monitoring incident drill; backup/restore/RPO/RTO; Android signed/device evidence; final regression and release evidence package.
