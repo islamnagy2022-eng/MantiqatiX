@@ -738,7 +738,19 @@ async function initSuperAdminControlWorkspace(){
  }
  loadProviderOnboardingReview();
 }
-function recordsTable(title,rows,columns){const data=Array.isArray(rows)?rows:[];const cols=Array.isArray(columns)?columns:[];if(!data.length)return '<section class="records"><div class="section-head"><div><h3>'+esc(title)+'</h3><p class="muted">لا توجد بيانات فعلية متاحة حاليًا وفق الصلاحيات.</p></div></div><div class="empty-state">لا توجد سجلات للعرض</div></section>';return '<section class="records"><div class="section-head"><div><h3>'+esc(title)+'</h3><p class="muted">'+data.length+' سجل معروض</p></div></div><div class="table-wrap"><table><thead><tr>'+cols.map(c=>'<th>'+esc(c[0])+'</th>').join('')+'</tr></thead><tbody>'+data.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(c[1](r)??'—')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div></section>'}
+let recordsTableSeq=0;
+function filterRecordsTable(inputId,tableId){
+ const input=document.getElementById(inputId), table=document.getElementById(tableId);
+ if(!input||!table)return;
+ const q=String(input.value||'').trim().toLocaleLowerCase('ar');
+ table.querySelectorAll('tbody tr').forEach(row=>row.hidden=!!q&&!row.textContent.toLocaleLowerCase('ar').includes(q));
+}
+function recordsTable(title,rows,columns){
+ const data=Array.isArray(rows)?rows:[]; const cols=Array.isArray(columns)?columns:[];
+ if(!data.length)return '<section class="records"><div class="section-head"><div><h3>'+esc(title)+'</h3><p class="muted">لا توجد بيانات فعلية متاحة حاليًا وفق الصلاحيات.</p></div></div><div class="empty-state">لا توجد سجلات للعرض</div></section>';
+ const id='mx-records-'+(++recordsTableSeq), search='mx-search-'+recordsTableSeq;
+ return '<section class="records"><div class="section-head"><div><h3>'+esc(title)+'</h3><p class="muted">'+data.length+' سجل معروض</p></div><label class="search-field"><span>بحث</span><input id="'+search+'" type="search" placeholder="ابحث داخل السجلات…" oninput="filterRecordsTable(\''+search+'\',\''+id+'\')"></label></div><div class="table-wrap"><table id="'+id+'"><thead><tr>'+cols.map(c=>'<th>'+esc(c[0])+'</th>').join('')+'</tr></thead><tbody>'+data.map(r=>'<tr>'+cols.map(c=>'<td>'+String(c[1](r)??'—')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div></section>';
+}
 function workspaceHead(kicker,title,desc,badge){return '<div class="section-head"><div><span class="eyebrow">'+kicker+'</span><h2>'+title+'</h2><p>'+desc+'</p></div>'+(badge?'<span class="count">'+badge+'</span>':'')+'</div>'}
 function workspaceCards(items){return '<div class="grid3">'+items.map(x=>'<article class="card"><div class="row"><strong>'+x[0]+'</strong><span class="dot"></span></div><div class="kpi" style="font-size:24px">'+x[1]+'</div><p class="muted">'+x[2]+'</p><button class="linkbtn">فتح التفاصيل ←</button></article>').join('')+'</div>'}
 async function mntRpc(fn,args){if(!user?.id)return authView();const {data,error}=await sb.rpc(fn,args);if(error)return showToast('تعذر تنفيذ العملية: '+error.message,'error');showToast('تم تنفيذ العملية بنجاح','success');live.moduleData={};await loadDomainModule(current);renderApp();return data}
