@@ -321,3 +321,60 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mnty-provider-service-card{min-height:120px}.mnty-provider-service-card .row{gap:10px;align-items:flex-start}.mnty-provider-service-card strong{line-height:1.6}.mnty-provider-service-card p{margin:.55rem 0 0}.mnty-product-shell .mnty-screen-note{margin-top:14px}@media(max-width:760px){.mnty-provider-service-card{min-height:auto}}
 /* RC299 shared application states */
 .mnty-state-card{text-align:center}.mnty-state-card .brand{justify-content:center}.mnty-state-card .gradient-line{margin-left:auto;margin-right:auto}.mnty-state-icon{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;margin:0 auto 14px;background:#f4f1ed;font-size:25px}.mnty-state-card--error .mnty-state-icon{background:#fff0ed}.mnty-state-card--loading .mnty-state-icon{background:#eef5ff}.mnty-state-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.mnty-state-actions .btn-primary{width:auto;min-width:160px}.mnty-state-actions .text-btn{padding:12px 18px}.mnty-state-card p{line-height:1.8}
+
+/* RC303 site-wide workspace hierarchy */
+.shell{background:#f5f7fb;grid-template-columns:270px minmax(0,1fr)}
+.sidebar{position:sticky;top:0;height:100dvh;overflow-y:auto;overscroll-behavior:contain;padding:18px 15px}
+.side-brand{padding:5px 6px 14px}
+.side-caption{padding:0 7px 13px;font-weight:700}
+.nav{gap:5px}
+.nav button{min-height:44px;width:100%;font-size:13px;line-height:1.35}
+.nav button.active{box-shadow:inset -3px 0 0 #60a5fa;background:linear-gradient(90deg,#ffffff0a,#ffffff16)}
+.side-support{padding:15px 7px 6px}
+.content{padding:24px 28px 50px;min-width:0}
+.content>#page{max-width:1480px;margin:0 auto}
+.top{position:sticky;top:0;z-index:20;margin:0 -4px 22px;padding:12px 4px;background:rgba(245,247,251,.94);backdrop-filter:blur(12px);border-bottom:1px solid #e6eaf0}
+.top>div:first-child{min-width:190px}
+.top h1{font-size:28px;letter-spacing:-.02em}
+.top-actions{justify-content:flex-end}
+.top-actions>.btn,.top-actions>.logout{min-height:42px;white-space:nowrap}
+.top-actions>.search{min-height:42px}
+.search{min-width:240px}
+.hero{margin-bottom:20px}
+.cards{margin:16px 0 24px}
+.section-head{margin-top:26px}
+.card{min-width:0}
+.btn,.logout,.linkbtn,.mini-actions button,.nav button{transition:background .15s ease,border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.btn:focus-visible,.logout:focus-visible,.search input:focus-visible,.nav button:focus-visible{outline:3px solid rgba(37,99,235,.22);outline-offset:2px}
+@media(max-width:1050px){
+ .shell{grid-template-columns:230px minmax(0,1fr)}
+ .content{padding:20px 20px 45px}
+ .top{position:static;flex-direction:column;align-items:stretch}
+ .top-actions{justify-content:flex-start}
+ .top-actions>.search{flex:1;min-width:220px}
+}
+@media(max-width:760px){
+ .shell{display:block}
+ .sidebar{position:sticky;top:0;z-index:40;height:auto;max-height:none;padding:9px 10px 8px;border-bottom:1px solid #ffffff18;box-shadow:0 5px 20px rgba(16,24,40,.12)}
+ .side-brand{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 7px}
+ .side-brand .gradient-line{display:none}
+ .side-caption{display:none}
+ .nav{display:flex;gap:6px;overflow-x:auto;padding:1px 1px 4px;scrollbar-width:none}
+ .nav::-webkit-scrollbar{display:none}
+ .nav button{width:auto;min-width:max-content;min-height:40px;padding:8px 11px;border-radius:10px}
+ .nav button.active{box-shadow:none;background:#ffffff18}
+ .side-support{display:none}
+ .content{padding:12px 11px 34px}
+ .top{margin:0 0 15px;padding:4px 0 11px}
+ .top h1{font-size:23px}
+ .user{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .top-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ .top-actions>.role-switcher,.top-actions>.search{grid-column:1/-1;width:100%;min-width:0}
+ .top-actions>.btn,.top-actions>.logout{width:100%;min-width:0}
+ .hero{border-radius:17px;padding:20px}
+ .cards{gap:9px}
+ .card{padding:15px}
+}
+@media(prefers-reduced-motion:reduce){
+ .btn,.logout,.linkbtn,.mini-actions button,.nav button{transition:none}
+}
