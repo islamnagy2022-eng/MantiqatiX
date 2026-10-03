@@ -879,6 +879,11 @@ async function updateOrderStatus(orderId,newStatus){
  if(!order)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
  const allowed=orderAllowedNextStatuses(order);
  if(!allowed.includes(newStatus))return showToast('انتقال الحالة غير مسموح من الواجهة الحالية.','error');
+ const destructive=['CANCELLED','DELIVERED'].includes(String(newStatus).toUpperCase());
+ if(destructive){
+  const promptText=newStatus==='CANCELLED'?'هل تريد إلغاء هذا الطلب؟ لا تنفذ الإلغاء إلا إذا كنت متأكدًا.':'هل تؤكد تسجيل الطلب كمُسلَّم؟';
+  if(!window.confirm(promptText))return;
+ }
  try{
   await invokeMntyFunction('order-status-update',{orderId,tenantId:order.tenant_id||live.tenantId,newStatus});
   showToast('تم تحديث حالة الطلب إلى '+newStatus,'success');
