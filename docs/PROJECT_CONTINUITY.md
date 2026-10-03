@@ -198,3 +198,10 @@ This status is intentional and must remain until the open gates above are indepe
 - No branch or other cost-incurring resource was created.
 - Recorded the current cost envelope and external dependencies for Paymob, Android distribution, PITR, browser/device testing, and push delivery.
 - Final Production Gate remains OPEN.
+
+## RC270 update — 2026-10-03
+- Added CI regression guards covering sensitive browser mutation boundaries: orders, payment_intents, user_memberships, notifications, marketing_projects and advertisements.
+- Verified the current `web/*.js` source has no direct INSERT/UPDATE/DELETE calls for those protected tables.
+- Marketing lead protection remains enforced through the dedicated Edge Function guard.
+- Runtime E2E, Paymob/finance, backup/restore, Android and external device/browser gates remain open.
+- Final Production Gate remains OPEN.
