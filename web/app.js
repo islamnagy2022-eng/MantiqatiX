@@ -1425,7 +1425,13 @@ function bindGenericWorkspaceTabs(){
   const panel=document.getElementById('mnty-generic-tab-panel');if(panel)panel.innerHTML=panels[btn.dataset.tab]||panels.overview;
  }));
 }
-async function renderApp(options={}){if(!user?.id)return;live.loading=true;document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>جاري تحميل المنصة</h1><p>يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...</p></section></main>';await loadLiveData();if(live.error){document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>تعذر تحميل البيانات</h1><p>'+esc(live.error)+'</p><button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button></section></main>';document.getElementById('retry-load').onclick=renderApp;document.getElementById('logout-load').onclick=logout;return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};
+async function platformStateView(kind,title,description,actions=''){
+ const icon=kind==='error'?'⚠️':kind==='empty'?'◌':'⏳';
+ return '<main class="auth"><section class="auth-card mnty-state-card mnty-state-card--'+esc(kind)+'"><div class="mnty-state-icon" aria-hidden="true">'+icon+'</div><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p><div class="mnty-state-actions">'+actions+'</div></section></main>';
+}
+function showAppLoading(){const el=document.getElementById('app');if(el)el.innerHTML=platformStateView('loading','جاري تحميل المنصة','يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...');}
+function showAppError(message){const el=document.getElementById('app');if(!el)return;el.innerHTML=platformStateView('error','تعذر تحميل البيانات',message,'<button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button>');document.getElementById('retry-load')?.addEventListener('click',()=>renderApp());document.getElementById('logout-load')?.addEventListener('click',logout);}
+function renderApp(options={}){if(!user?.id)return;live.loading=true;showAppLoading();await loadLiveData();if(live.error){showAppError(live.error);return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};
 let restoreAdminWorkspace=options.forceWorkspace===true;
 try{
  const savedWorkspace=localStorage.getItem('MNTYWorkspaceMode');
