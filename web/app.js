@@ -1431,7 +1431,7 @@ async function platformStateView(kind,title,description,actions=''){
 }
 function showAppLoading(){const el=document.getElementById('app');if(el)el.innerHTML=platformStateView('loading','جاري تحميل المنصة','يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...');}
 function showAppError(message){const el=document.getElementById('app');if(!el)return;el.innerHTML=platformStateView('error','تعذر تحميل البيانات',message,'<button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button>');document.getElementById('retry-load')?.addEventListener('click',()=>renderApp());document.getElementById('logout-load')?.addEventListener('click',logout);}
-function renderApp(options={}){if(!user?.id)return;live.loading=true;showAppLoading();await loadLiveData();if(live.error){showAppError(live.error);return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};
+async function renderApp(options={}){if(!user?.id)return;live.loading=true;showAppLoading();await loadLiveData();if(live.error){showAppError(live.error);return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};
 let restoreAdminWorkspace=options.forceWorkspace===true;
 try{
  const savedWorkspace=localStorage.getItem('MNTYWorkspaceMode');
