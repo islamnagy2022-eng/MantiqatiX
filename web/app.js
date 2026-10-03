@@ -1229,9 +1229,11 @@ async function providerOnboardingView(){
 window.providerOnboardingView=providerOnboardingView;
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
-if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();showToast('تم التحقق من الحساب. العضوية التشغيلية لم تُربط بعد.','success');return}
-if(typeof landingView==='function'){landingView();showToast('تم التحقق من الحساب. العضوية التشغيلية لم تُربط بعد.','success');return}
-accountView();
+const app=document.getElementById('app');
+if(!app)return;
+app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">ACCOUNT STATUS</span><h1>الحساب تم التحقق منه</h1><p>حسابك مسجل بنجاح، لكن لا توجد عضوية تشغيلية نشطة مرتبطة به حاليًا.</p><div class="mnty-screen-note">يمكنك العودة للواجهة العامة أو تسجيل الخروج. لا يتم منح صلاحيات تشغيلية تلقائيًا قبل ربط العضوية من المسار المعتمد.</div><div class="action-bar"><button class="btn btn-primary" id="membership-home">العودة للواجهة العامة</button><button class="btn btn-outline" id="membership-logout">تسجيل الخروج</button></div></section></main>';
+document.getElementById('membership-home')?.addEventListener('click',()=>window.MXHomeLanding?window.MXHomeLanding():landingView());
+document.getElementById('membership-logout')?.addEventListener('click',logout);
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
 function notificationsWorkspace(){
