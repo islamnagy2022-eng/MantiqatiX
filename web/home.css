@@ -1014,3 +1014,20 @@
   .mx-ad-plan small{margin-inline-start:auto}
 }
 
+
+/* RC308 — public interaction/accessibility layer */
+:where(.mx-section,.mx-home-hero,.mx-about-section,.mx-category-page__section,.mx-profile-page__section){scroll-margin-top:92px}
+:where(.mx-btn,.mx-link,.mx-nav a,.mx-nav__icon,.mx-add,.mx-header__login,.mx-header-tool,.mx-mobile-menu,.mx-mobile-drawer a,.mx-mobile-drawer button,.mx-category,.mx-listing__cta,.mx-whatsapp-float,button,input,select,textarea,a):focus-visible{outline:3px solid rgba(23,105,232,.28);outline-offset:3px}
+:where(.mx-btn,.mx-add,.mx-header__login,.mx-header-tool,.mx-mobile-menu,.mx-mobile-drawer button){min-height:42px}
+:where(button,[role="button"]):disabled{cursor:not-allowed;opacity:.55}
+:where(.mx-btn,.mx-add,.mx-header__login,.mx-header-tool,.mx-mobile-menu,.mx-listing__cta){transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease,border-color .15s ease}
+:where(.mx-btn,.mx-add,.mx-header__login,.mx-header-tool,.mx-mobile-menu,.mx-listing__cta):not(:disabled):hover{transform:translateY(-1px)}
+@media(max-width:800px){
+ .mx-main{padding-inline:12px}
+ .mx-header__inner{padding-inline:12px}
+ :where(.mx-btn,.mx-add,.mx-header__login,.mx-header-tool,.mx-mobile-menu){min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+ :where(.mx-btn,.mx-add,.mx-header__login,.mx-header-tool,.mx-mobile-menu,.mx-listing__cta){transition:none}
+ html{scroll-behavior:auto!important}
+}
