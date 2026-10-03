@@ -2,14 +2,14 @@
 ## RC304 onward — Web only
 This track is execution-oriented. No stage requires user confirmation unless it would create destructive production impact, spend money, expose secrets, or require unavailable external/device evidence.
 
-1. Public header action audit
-2. Public navigation destination audit
-3. Public CTA dead-end audit
-4. Mobile drawer interaction audit
-5. Search interaction consistency
-6. Public category route consistency
-7. Provider profile route consistency
-8. Public service result action consistency
+1. [VERIFIED] Public header action audit
+2. [VERIFIED] Public navigation destination audit
+3. [VERIFIED] Public CTA dead-end audit
+4. [VERIFIED] Mobile drawer interaction audit
+5. [IN PROGRESS] Search interaction consistency
+6. [IN PROGRESS] Public category route consistency
+7. [IN PROGRESS] Provider profile route consistency
+8. [IN PROGRESS] Public service result action consistency
 9. Account entry consistency
 10. Advertising CTA consistency
 11. Activity registration modal UX
@@ -17,21 +17,21 @@ This track is execution-oriented. No stage requires user confirmation unless it 
 13. Empty-state consistency
 14. Error-state consistency
 15. Confirmation-state consistency
-16. Button hierarchy normalization
+16. [VERIFIED] Button hierarchy normalization
 17. Destructive-action visual normalization
 18. Form field consistency
 19. Validation-message consistency
-20. Modal accessibility
-21. Keyboard focus visibility
-22. Skip-link and landmark review
+20. [VERIFIED] Modal accessibility
+21. [VERIFIED] Keyboard focus visibility
+22. [VERIFIED] Skip-link and landmark review
 23. Heading hierarchy review
-24. ARIA label/expanded state review
-25. Responsive header review
+24. [VERIFIED] ARIA label/expanded state review
+25. [VERIFIED] Responsive header review
 26. Responsive workspace review
 27. Responsive tables/cards review
 28. Mobile bottom navigation review
-29. Touch target review
-30. Reduced-motion review
+29. [VERIFIED] Touch target review
+30. [VERIFIED] Reduced-motion review
 31. PWA cache/version consistency
 32. PWA install entry consistency
 33. Public asset version consistency
