@@ -301,7 +301,7 @@
         <div class="mx-footer__inner">
           <div><div class="mx-footer__brand">MantiqatiX</div><div class="mx-footer__sub">MantiqatiX · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
           <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
-          <div><h3>عن MantiqatiX</h3><a href="#" data-auth-link="about">من نحن</a><a href="#" data-auth-link="legal">الشروط والأحكام</a><a href="#" data-auth-link="privacy">سياسة الخصوصية</a></div>
+          <div><h3>عن MantiqatiX</h3><button type="button" class="mx-footer__link" data-footer-info="about">من نحن</button><button type="button" class="mx-footer__link" data-footer-info="legal">الشروط والأحكام</button><button type="button" class="mx-footer__link" data-footer-info="privacy">سياسة الخصوصية</button></div>
           <div><h3>خدمة العملاء</h3><div class="mx-footer__support">01010171770</div><div class="mx-footer__sub">منصتك في كل مكان</div></div>
         </div>
         <div class="mx-footer__bar"><span>© MantiqatiX</span><span>بيانات حية عند توفرها · بدون بيانات وهمية</span></div>
@@ -834,3 +834,8 @@
     else loadData();
   };
 })();
+
+// RC314 — footer information is an in-app surface, not a dead anchor.
+const MNTY_FOOTER_INFO={about:{title:'من نحن',body:'MantiqatiX منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة بين العملاء ومقدمي الخدمات. المنصة لا تقدم الخدمة ماديًا نيابة عن مقدم الخدمة.'},legal:{title:'الشروط والأحكام',body:'استخدام المنصة يخضع للشروط والسياسات المعتمدة عند إطلاق الخدمات ذات الصلة. أي خدمة أو معاملة تشغيلية تظهر للمستخدم يجب أن تمر عبر المسار المخصص لها داخل المنصة.'},privacy:{title:'سياسة الخصوصية',body:'نحافظ على استخدام البيانات في حدود الغرض التشغيلي المعلن. لا تُعرض البيانات الخاصة أو وسائل الاتصال الحساسة في الواجهات العامة، وتخضع الصلاحيات للوصول المصرح به.'}};
+function openMntyFooterInfo(key){const item=MNTY_FOOTER_INFO[key];if(!item)return;const existing=document.getElementById('mx-footer-info-modal');if(existing)existing.remove();const wrap=document.createElement('div');wrap.id='mx-footer-info-modal';wrap.className='mx-footer-info-modal';wrap.innerHTML='<div class="mx-footer-info-modal__backdrop" data-footer-close></div><section class="mx-footer-info-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mx-footer-info-title" tabindex="-1"><button type="button" class="mx-footer-info-modal__close" aria-label="إغلاق" data-footer-close>×</button><span class="eyebrow">MantiqatiX</span><h2 id="mx-footer-info-title"></h2><p></p></section>';wrap.querySelector('h2').textContent=item.title;wrap.querySelector('p').textContent=item.body;const close=()=>{wrap.remove();document.removeEventListener('keydown',onKey);};const onKey=e=>{if(e.key==='Escape')close();};wrap.querySelectorAll('[data-footer-close]').forEach(el=>el.addEventListener('click',close));document.addEventListener('keydown',onKey);document.body.appendChild(wrap);wrap.querySelector('.mx-footer-info-modal__dialog').focus();}
+document.addEventListener('click',e=>{const el=e.target.closest?.('[data-footer-info]');if(!el)return;e.preventDefault();openMntyFooterInfo(el.dataset.footerInfo);});
