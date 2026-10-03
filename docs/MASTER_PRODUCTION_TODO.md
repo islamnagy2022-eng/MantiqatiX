@@ -763,3 +763,12 @@
 - **Test devices/browser cloud:** $0 if using owned devices/browsers; otherwise variable by vendor/plan.
 
 **Budget guidance:** a practical platform-side baseline can remain near **$25/month + $25 one-time Android registration**, excluding Paymob transaction fees, any PITR retention selected, devices/test-cloud usage, domains, SMS/email and other external services. This is a budgeting envelope, not a claim that every item must be purchased immediately.
+
+## RC270 — Sensitive client mutation CI guard hardening — 2026-10-03
+
+- [x] Re-audited browser-side mutation call-sites for orders, payment_intents, user_memberships, notifications, marketing_projects and advertisements.
+- [x] No direct browser INSERT/UPDATE/DELETE call-sites were found for these protected tables in `web/*.js`.
+- [x] Added CI regression guards to prevent reintroducing direct client mutations for these sensitive tables.
+- [x] Existing marketing_leads-specific guard remains in place and requires the protected `marketing-lead-create` Edge Function path.
+- [ ] Runtime multi-user/multi-tenant and customer→provider→order→status→notification E2E remain NOT VERIFIED.
+- Production Release Gate remains OPEN.
