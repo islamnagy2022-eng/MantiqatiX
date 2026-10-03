@@ -128,8 +128,8 @@ function render(){
  bind();
 }
 function modal(title,html,onSave){
- const o=document.createElement('div');o.className='mx-modal';o.innerHTML='<div class="mx-modal-card"><div class="workspace-head"><h2>'+title+'</h2><button class="btn btn-outline" id="rest-close">إغلاق</button></div><div class="modal-body">'+html+'</div></div>';
- document.body.appendChild(o);o.querySelector('#rest-close').onclick=()=>o.remove();o.addEventListener('click',e=>{if(e.target===o)o.remove()});
+ const o=document.createElement('div');o.className='mx-modal';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label',title);o.tabIndex=-1;o.innerHTML='<div class="mx-modal-card"><div class="workspace-head"><h2>'+title+'</h2><button class="btn btn-outline" id="rest-close">إغلاق</button></div><div class="modal-body">'+html+'</div></div>';
+ document.body.appendChild(o);const close=()=>o.remove();o.querySelector('#rest-close').setAttribute('aria-label','إغلاق');o.querySelector('#rest-close').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});o.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close()}});requestAnimationFrame(()=>o.focus());
  o.querySelector('[data-save]')?.addEventListener('click',async()=>{await onSave(o)});
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
