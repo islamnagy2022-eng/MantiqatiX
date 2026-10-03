@@ -1020,3 +1020,7 @@
 - RC313: تحسين modal وحدة المطاعم: dialog semantics + Escape + focus.
 - آخر تحقق CI قبل RC313: Validate SUCCESS في RC312.
 - أي مرحلة تحتاج E2E إنتاجي/جهاز/مفتاح حقيقي تبقى NOT VERIFIED أو WAITING ولا تُغلق شكليًا.
+
+
+- RC314: removed three dead footer anchors (`href="#"`) and replaced them with real accessible in-app information dialogs for About, Terms and Privacy; Escape/outside-click close and focus management included.
+- RC314 verification: source-level footer dead-anchor check on fetched `main` content confirms the replaced footer block; CI runs #1420/#1421 were triggered for the two sequential commits and are pending/in progress at documentation time.
