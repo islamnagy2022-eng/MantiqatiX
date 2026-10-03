@@ -1258,7 +1258,7 @@ function showToast(message,type='success'){const old=document.getElementById('mx
 function notificationsWorkspace(){
  const rows=live.records.notifications||[];
  const unread=rows.filter(x=>!x.read_at).length;
- const sorted=[...rows].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0);
+ const sorted=[...rows].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
  const recent=sorted.slice(0,12);
  const unreadHtml=recent.filter(n=>!n.read_at).map(n=>'<article class="card mnty-notification-card"><div class="row"><div><span class="eyebrow">NEW</span><h3>'+esc(n.title||'إشعار')+'</h3></div><span class="mnty-badge mnty-badge--live">جديد</span></div><p>'+esc(n.body||n.message||'لا توجد تفاصيل إضافية.')+'</p><div class="row"><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small><button class="linkbtn" onclick="markNotificationRead(''+esc(n.id)+'')">تعليم كمقروء</button></div></article>').join('');
  const recentHtml=recent.map(n=>'<article class="card mnty-notification-card '+(n.read_at?'mnty-notification-card--read':'')+'"><div class="row"><div><span class="eyebrow">'+(n.read_at?'READ':'NOTIFICATION')+'</span><h3>'+esc(n.title||'إشعار')+'</h3></div><span class="mnty-badge">'+esc(n.read_at?'مقروء':'جديد')+'</span></div><p>'+esc(n.body||n.message||'لا توجد تفاصيل إضافية.')+'</p><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small></article>').join('');
