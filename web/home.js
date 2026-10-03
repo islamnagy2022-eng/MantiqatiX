@@ -302,7 +302,7 @@
           <div><div class="mx-footer__brand">MantiqatiX</div><div class="mx-footer__sub">MantiqatiX · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
           <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
           <div><h3>عن MantiqatiX</h3><button type="button" class="mx-footer__link" data-footer-info="about">من نحن</button><button type="button" class="mx-footer__link" data-footer-info="legal">الشروط والأحكام</button><button type="button" class="mx-footer__link" data-footer-info="privacy">سياسة الخصوصية</button></div>
-          <div><h3>خدمة العملاء</h3><div class="mx-footer__support">01010171770</div><div class="mx-footer__sub">منصتك في كل مكان</div></div>
+          <div><h3>خدمة العملاء</h3><a class="mx-footer__support" href="tel:+201010171770" aria-label="الاتصال بخدمة العملاء 01010171770">01010171770</a><div class="mx-footer__sub">منصتك في كل مكان</div></div>
         </div>
         <div class="mx-footer__bar"><span>© MantiqatiX</span><span>بيانات حية عند توفرها · بدون بيانات وهمية</span></div>
       </footer>
