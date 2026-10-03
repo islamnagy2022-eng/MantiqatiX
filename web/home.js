@@ -514,6 +514,26 @@
       return callAuth();
     };
     const scrollTo=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+    const navigateHomeSection=(id)=>{
+      const section=document.getElementById(id);
+      if(!section)return;
+      const featureMap={services:'SERVICE_CATALOG',offers:'ADVERTISEMENTS',marketing:'MARKETING'};
+      const code=featureMap[id];
+      if(code&&!homeSectionEnabled(code)){scrollTo('mx-categories');return}
+      if(section.hidden) section.hidden=false;
+      scrollTo(id);
+      if(id==='mx-services'&&!document.getElementById('mx-live-status')?.textContent?.includes('نتيجة')) loadData(document.getElementById('mx-home-search')?.value||'');
+    };
+    document.querySelectorAll('.mx-nav a[href^="#mx-"], .mx-mobile-drawer a[href^="#mx-"]').forEach(a=>{
+      a.addEventListener('click',e=>{
+        const id=String(a.getAttribute('href')||'').slice(1);
+        if(!id)return;
+        e.preventDefault();
+        navigateHomeSection(id);
+        closeMobileMenu();
+        try{history.replaceState({},'', '#'+id);}catch(_){}
+      });
+    });
     document.getElementById('mx-login').onclick=openAccount;
     syncHomeAuthState();
     if(String(location.hash||'').startsWith('#category/')) setTimeout(()=>window.__MNTYOpenCategoryPage?.(decodeURIComponent(String(location.hash).slice(10))),0);
