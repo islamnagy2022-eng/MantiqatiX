@@ -1100,7 +1100,7 @@ async function accountView(){
  let requests=[];
  if(user?.id){
   const {data,error}=await sb.from('account_registration_requests').select('id,requested_role,status,reason,metadata,created_at,reviewed_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(20);
-  if(error)return showToast('تعذر تحميل طلبات العضوية: '+error.message,'error');
+  if(error)return accountStatusPanel()+showToast('تعذر تحميل طلبات العضوية: '+error.message,'error');
   requests=data||[];
  }
  const activeRoles=new Set(memberships.map(m=>String(m.role||'').toUpperCase()));
