@@ -33,7 +33,6 @@ jobs:
           node --check web/rbac.js
           node --check web/app.js
           ! grep -Eq "from\\(['\"]marketing_leads['\"]\\)\\.insert|from\\(['\"]marketing_leads['\"]\\).*\\.insert" web/app.js
-          grep -Eq "from\\(['\"]marketing_leads['\"]\\)\\.insert|from\\(['\"]marketing_leads['\"]\\).*\\.insert" web/app.js && exit 1 || true
           grep -q "sb.functions.invoke('marketing-lead-create'" web/app.js
           ! grep -REq "from\\(['\"](orders|payment_intents|user_memberships|notifications|marketing_projects|advertisements)['\"]\\)\\.(insert|update|delete)" web --include='*.js'
           ! grep -REq "from\\(['\"](orders|payment_intents|user_memberships|notifications|marketing_projects|advertisements)['\"]\\).*\\.(insert|update|delete)" web --include='*.js'
