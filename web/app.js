@@ -1421,7 +1421,7 @@ showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصف
 function bindGenericWorkspaceTabs(){
  const panels={overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>مساحة العمل جاهزة</h3><p>الهيكل البصري والعمليات الأساسية لهذه الوحدة محددة. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>سيتم ربط الجداول وواجهات القراءة الفعلية هنا حسب نطاق الحساب والصلاحيات، دون إنشاء سجلات تجريبية.</p></div>',operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>أزرار التنفيذ تُضاف فقط للعمليات التي لها مسار خادم معتمد وصلاحية واضحة. لا يتم تشغيل إجراء غير متصل.</p></div>',reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات ستعتمد على بيانات تشغيلية حقيقية؛ لذلك تظل القيم غير المتاحة فارغة بدل عرض أرقام تقديرية.</p></div>',settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>إعدادات الوحدة تظهر عند اكتمال مساراتها الخلفية والصلاحيات المرتبطة بها.</p></div>'};
  document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>x.classList.toggle('active',x===btn));
+  document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-selected',x===btn?'true':'false')});
   const panel=document.getElementById('mnty-generic-tab-panel');if(panel)panel.innerHTML=panels[btn.dataset.tab]||panels.overview;
  }));
 }
