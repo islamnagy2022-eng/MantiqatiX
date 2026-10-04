@@ -958,3 +958,12 @@
 - Sector tiles include a persistent emoji/glyph fallback behind the official activity asset, use eager loading because the full catalog is intentionally always visible, and expose an accessible Arabic aria-label.
 - Strengthened tile borders, typography, shadows, and media contrast to prevent the large blank/low-contrast appearance observed in the browser screenshot.
 - No production business, order, payment, or financial data was modified.
+
+
+## RC365 — قطاعـات الصفحة الرئيسية: إصلاح مسار الرسم والكاش
+- الحالة: IMPLEMENTED — WAITING FOR CI EVIDENCE
+- السبب المعالج: كان تحديث عداد القطاعات يتم قبل تركيب البطاقات؛ أي استثناء أثناء توليد عنصر واحد كان يترك العداد ظاهرًا مع شبكة قطاعات فارغة.
+- تم جعل توليد كل بطاقة دفاعيًا مع قيم افتراضية آمنة لكل icon/label/description/code.
+- تحميل صورة القطاع أصبح اختياريًا مع `onerror` لإخفائها عند فشل الأصل دون إلغاء البطاقة.
+- تم رفع نسخة `home.js` إلى `rc365` ونسخة Service Worker إلى `v116` لكسر الكاش القديم.
+- لا توجد تغييرات على بيانات الأعمال أو الطلبات أو المدفوعات أو البيانات المالية.
