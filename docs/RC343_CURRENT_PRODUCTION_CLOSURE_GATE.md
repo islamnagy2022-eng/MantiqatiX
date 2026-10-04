@@ -4,7 +4,9 @@ Date: 2026-10-04
 
 ## Purpose
 
-This record is the current evidence boundary for the MNTY / MantiqatiX production release. It does not replace runtime evidence with source existence.
+This record is the current evidence boundary for the **MantiqatiX** production release. It does not replace runtime evidence with source existence.
+
+**Brand rule:** MantiqatiX is the sole official public brand name. Legacy `MNTY` identifiers appearing in backend functions, migrations, validation contracts, or other internal implementation surfaces are technical identifiers and are not customer-facing branding.
 
 Project baseline:
 - Repository: islamnagy2022-eng/MantiqatiX
@@ -32,7 +34,7 @@ RC342 validates:
 - the numbered sequence is contiguous;
 - stages 353–1000 are represented;
 - required continuity/release documentation exists;
-- critical MNTY web/PWA source contracts exist.
+- critical MantiqatiX web/PWA source contracts exist.
 
 Classification: STRUCTURAL CONTRACTS PASS.
 
@@ -85,7 +87,7 @@ Source code, migrations, CI success, database schema inspection, or Security Adv
 
 ## Decision
 
-**MNTY / MantiqatiX is NOT PRODUCTION CERTIFIED YET.**
+**MantiqatiX is NOT PRODUCTION CERTIFIED YET.**
 
 The current main branch is structurally CI-verified and the 1000-stage execution contract is machine-checked, but the Final Production Gate remains OPEN until the external/runtime P0 evidence above is completed.
 
