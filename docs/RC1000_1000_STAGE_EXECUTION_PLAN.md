@@ -1024,3 +1024,9 @@
 
 - RC314: removed three dead footer anchors (`href="#"`) and replaced them with real accessible in-app information dialogs for About, Terms and Privacy; Escape/outside-click close and focus management included.
 - RC314 verification: source-level footer dead-anchor check on fetched `main` content confirms the replaced footer block; CI runs #1420/#1421 were triggered for the two sequential commits and are pending/in progress at documentation time.
+
+
+## RC314–RC315 — Web execution evidence
+- RC314: restaurant workspace browser alerts were replaced with accessible in-platform toast feedback; error/success feedback now uses role=status / aria-live and reduced-motion styling. Public asset versions were refreshed and PWA cache advanced to mnty-web-v114.
+- RC315: restaurant order quantity entry was moved from the native browser prompt into the platform modal flow; latest source verification shows no alert( or prompt( in web/restaurant-module.js.
+- Status: IMPLEMENTED — NOT VERIFIED until the GitHub Pages workflow validates and deploys the new commits.
