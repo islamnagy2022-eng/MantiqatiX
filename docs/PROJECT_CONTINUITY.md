@@ -385,3 +385,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a visible sector-count indicator and clearer Arabic heading/copy.
 - The live taxonomy source was checked in `web/home.js`: exactly 27 canonical entries are present.
 - RC363 changes are UI/catalog presentation only; no production business/order/financial data was modified.
+
+## RC364 — Sector Tile Visibility Hardening
+- **Status:** IMPLEMENTED — WAITING FOR CI EVIDENCE.
+- Browser screenshot review identified that the 27-sector directory was technically present but visually too faint/empty.
+- Updated the public sector renderer and CSS so every sector has an explicit card, persistent visual glyph fallback, eager icon loading, stronger contrast, and accessible naming.
+- This is a presentation-only hardening; no production business, order, payment, or financial records were changed.
