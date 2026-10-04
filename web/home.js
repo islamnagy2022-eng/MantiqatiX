@@ -267,7 +267,7 @@
         </section>
 
         <section class="mx-section" id="mx-categories">
-          <div class="mx-section__head"><div><h2>استكشف القطاعات</h2><p>تنقل سريع إلى نوع النشاط أو الخدمة التي تبحث عنها.</p></div><button class="mx-link" id="mx-all" type="button">عرض الكل ←</button></div>
+          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف كل القطاعات</h2><p>جميع القطاعات الرئيسية ظاهرة أمامك دائمًا — اختر القطاع للوصول مباشرة إلى الأنشطة والخدمات.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
           <div class="mx-categories" id="mx-category-grid"></div>
         </section>
 
@@ -331,6 +331,8 @@
     const scrollOptions=(block='start')=>({behavior:reduceMotion()?'auto':'smooth',block});
     const renderDynamicCategories=(services=[],providers=[])=>{
       const items=dynamicTaxonomy(services,providers);
+      const count=document.getElementById('mx-sector-count');
+      if(count) count.textContent=String(items.length);
       categoryGrid.innerHTML=items.map(c=>'<button class="mx-category" type="button" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><img src="'+activityImage(c[3])+'" alt="'+escapeHtml(c[1])+'" loading="lazy"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
     };
