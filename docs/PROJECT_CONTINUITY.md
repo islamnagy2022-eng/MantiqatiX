@@ -355,3 +355,10 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] `deploy` passed and deployed-site smoke verification passed.
 - [ ] Runtime release blockers remain unchanged: Auth managed setting, adversarial tenant E2E, real payment/finance, recovery/rollback, browser/device/PWA/push and Android signed/device evidence.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+## RC360 — Production gate integrity contract — 2026-10-04
+- [x] Added `scripts/validate-production-gate-contract.mjs` to prevent accidental certification drift in the release documentation.
+- [x] Wired the validator into `.github/workflows/pages.yml`.
+- [x] The validator preserves the explicit open status of critical external/runtime gates and the required CI security contracts.
+- [ ] No external gate is considered closed by this source/CI guard.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
