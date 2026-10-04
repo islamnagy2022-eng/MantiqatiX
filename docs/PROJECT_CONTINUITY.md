@@ -331,3 +331,13 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Added the corresponding unavailable-link visual state in `web/home.css`.
 - [x] Refreshed public asset versions in `web/index.html` and advanced the service-worker cache from `mnty-web-v114` to `mnty-web-v115`.
 - [ ] CI/deployed-site verification is still pending for the RC340 commits; do not mark this UI hardening as production-verified until the Pages workflow provides evidence.
+
+
+## RC358 — Live security/performance re-verification — 2026-10-04
+- [x] Production Security Advisor re-run completed against moyhiluyhjsujhwlyeuu.
+- [x] digital_page_payment_events remains intentionally backend-only with RLS enabled and no direct anon/authenticated table grants.
+- [x] The targeted-ad SECURITY DEFINER RPC remains intentionally public and hardened with search_path=public, pg_temp.
+- [x] All 9 authenticated-callable SECURITY DEFINER RPCs retain search_path=public, pg_temp and no anonymous EXECUTE privilege.
+- [x] Performance Advisor currently reports 26 multiple-permissive-policy findings; no blanket policy rewrite was performed because several findings represent legitimate alternative authorization paths.
+- [ ] Leaked Password Protection still requires the Supabase Auth managed setting to be enabled by the project owner, then independently rechecked.
+- [ ] Final Production Gate remains OPEN.
