@@ -28,7 +28,15 @@ const requiredWorkflowMarkers = [
   'validate-release-preflight.mjs',
   'validate-rbac-contract.mjs',
 ];
+
+const home = read('web/home.js');
+const requiredHomeMarkers = [
+  'data-targeted-ad',
+  "e.key==='Enter'||e.key===' '",
+  'openMantiqatiAdModal(item)',
+];
 const missing = [
+  ...requiredHomeMarkers.filter(x => !home.includes(x)).map(x => 'HOME:' + x),
   ...requiredTodoMarkers.filter(x => !todo.includes(x)).map(x => 'TODO:' + x),
   ...requiredContinuityMarkers.filter(x => !continuity.includes(x)).map(x => 'CONTINUITY:' + x),
   ...requiredWorkflowMarkers.filter(x => !workflow.includes(x)).map(x => 'WORKFLOW:' + x),
