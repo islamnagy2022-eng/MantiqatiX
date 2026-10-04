@@ -31,7 +31,8 @@
   const SERVICE_ICONS = {DIGITAL:'📣',CONTENT:'✍️',CREATIVE:'🎨',BRANDING:'✨',TECH:'💻',PR:'📢'};
   const ACTIVITY_IMAGES = {FOOD:'food.svg',HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'medical.svg',DENTAL:'medical.svg',HOSPITAL:'medical.svg',MEDICAL:'medical.svg',REAL_ESTATE:'real-estate.svg',AUTO:'auto.svg',HOME:'home.svg',MAINTENANCE:'home.svg',ACCOUNTING:'digital.svg',LEGAL:'digital.svg',COMPANIES:'home.svg',EDU:'education.svg',DIGITAL:'digital.svg',TECH:'digital.svg',FITNESS:'fitness.svg',TRAVEL:'travel.svg',MANTIGO:'auto.svg',JOBS:'home.svg',MATRIMONY:'home.svg',USED_ITEMS:'home.svg',FASHION:'home.svg',GROCERY:'home.svg',VETERINARY:'medical.svg',FREELANCER:'digital.svg'};
   const OFFICIAL_ACTIVITY_ASSETS = {HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'radiology.svg',HOSPITAL:'hospital.svg',DENTAL:'dental.svg',VETERINARY:'veterinary.svg',FOOD:'food.svg',GROCERY:'grocery.svg',FASHION:'fashion.svg',MAINTENANCE:'maintenance.svg',ACCOUNTING:'accounting.svg',LEGAL:'legal.svg',COMPANIES:'companies.svg',EDUCATION:'education.svg',ERP:'erp.svg',MARKETING:'marketing.svg',TRIPS:'trips.svg',MANTIGO:'mantigo.svg',JOBS:'jobs.svg',MATRIMONY:'matrimony.svg',USED_ITEMS:'used_items.svg',REAL_ESTATE:'real_estate.svg',AUTO:'auto.svg',SPORTS:'sports.svg'};
-  const activityImage = code => { const key=String(code||'').toUpperCase(); return OFFICIAL_ACTIVITY_ASSETS[key] ? 'assets/activities/'+OFFICIAL_ACTIVITY_ASSETS[key] : 'assets/activity/'+(ACTIVITY_IMAGES[key]||'home.svg'); };
+  const ACTIVITY_ASSET_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',TECH:'ERP',TRAVEL:'TRIPS',FITNESS:'SPORTS'};
+  const activityImage = code => { const raw=String(code||'').toUpperCase(); const key=ACTIVITY_ASSET_ALIASES[raw]||raw; return OFFICIAL_ACTIVITY_ASSETS[key] ? 'assets/activities/'+OFFICIAL_ACTIVITY_ASSETS[key] : 'assets/activity/'+(ACTIVITY_IMAGES[raw]||'home.svg'); };
   const publicProfileImage = provider => {
     const path=provider?.profile_image_path;
     if(!path) return '';
@@ -83,7 +84,7 @@
           known.set(key,['◉',label,'خدمات وأنشطة منشورة على المنصة',key]);
         }
       });
-    return [...known.values()].filter(x=>homeFeatureEnabled(x[3]));
+    return [...known.values()];
   };
   const getClient = () => {
     try{
