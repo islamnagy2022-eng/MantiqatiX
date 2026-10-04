@@ -1,6 +1,6 @@
 // MantiqatiX canonical sector registry — public contract + backend boundary.
 // Keep legacy/internal identifiers unchanged elsewhere; this file defines the canonical mapping.
-export const CANONICAL_SECTORS = Object.freeze([
+const CANONICAL_SECTORS = Object.freeze([
   ['FOOD','مطاعم وكافيهات','FOOD'],
   ['HEALTH','أطباء وعيادات','HEALTH'],
   ['PHARMACY','صيدليات','PHARMACY'],
@@ -30,6 +30,8 @@ export const CANONICAL_SECTORS = Object.freeze([
   ['FREELANCER','المستقلون ومقدمو الخدمات','FREELANCER']
 ].map(([code,label,backend])=>Object.freeze({code,label,backend})));
 
-export const CANONICAL_SECTOR_CODES = Object.freeze(CANONICAL_SECTORS.map(s=>s.code));
-export const PUBLIC_TO_BACKEND_SECTOR = Object.freeze(Object.fromEntries(CANONICAL_SECTORS.map(s=>[s.code,s.backend])));
-export const BACKEND_TO_PUBLIC_SECTOR = Object.freeze(Object.fromEntries(CANONICAL_SECTORS.map(s=>[s.backend,s.code])));
+const CANONICAL_SECTOR_CODES = Object.freeze(CANONICAL_SECTORS.map(s=>s.code));
+const PUBLIC_TO_BACKEND_SECTOR = Object.freeze(Object.fromEntries(CANONICAL_SECTORS.map(s=>[s.code,s.backend])));
+const BACKEND_TO_PUBLIC_SECTOR = Object.freeze(Object.fromEntries(CANONICAL_SECTORS.map(s=>[s.backend,s.code])));
+
+window.MX_SECTOR_REGISTRY=Object.freeze({CANONICAL_SECTORS,CANONICAL_SECTOR_CODES,PUBLIC_TO_BACKEND_SECTOR,BACKEND_TO_PUBLIC_SECTOR});
