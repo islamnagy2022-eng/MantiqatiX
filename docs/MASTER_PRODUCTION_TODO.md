@@ -821,3 +821,12 @@
 - [ ] Leaked-password protection still requires the Auth managed setting.
 - [ ] Critical runtime/payment/recovery/device/Android gates remain open.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+
+## RC336 — Authenticated SECURITY DEFINER hardening — 2026-10-04
+- [x] Re-inventoried the 9 authenticated-callable SECURITY DEFINER functions; all deny `anon` execution.
+- [x] Verified critical authorization paths use `auth.uid()`, membership and/or centralized RBAC as applicable.
+- [x] Applied and verified `search_path=public, pg_temp` for all 9 authenticated-callable SECURITY DEFINER functions.
+- [x] Re-ran Security Advisor; warnings remain intentionally because these are authenticated RPC boundaries, not because the hardening failed.
+- [ ] Leaked-password protection and critical runtime/payment/recovery/device/Android gates remain open.
+- Production Release Gate remains **OPEN / NOT PRODUCTION READY YET**.
