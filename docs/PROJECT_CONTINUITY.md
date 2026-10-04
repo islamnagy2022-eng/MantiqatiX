@@ -11,9 +11,14 @@
 - Branch: `main`
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit: `92480ab2594ad17ad296168c5bf172e60146f3a2`
+- Latest documented project commit: `3ee901207ffd2672f7058ce2d3c5fce5d0b8eba8`
 - Latest release-gate record: **RC247**
 - Final Production Gate: **OPEN**
+
+## Latest web execution batch
+- RC314–RC315: restaurant workspace feedback was upgraded from browser alerts/prompts to platform-native accessible toast/modal flows; source verification confirms no `alert(` or `prompt(` remains in `web/restaurant-module.js`.
+- Public asset versions were refreshed and the PWA cache advanced to `mnty-web-v114`.
+- These changes are **IMPLEMENTED — NOT VERIFIED** until the main-branch Pages workflow completes successfully.
 
 ## Work already completed — DO NOT REPEAT
 
