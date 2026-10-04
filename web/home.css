@@ -1091,3 +1091,12 @@
 .mx-category strong{color:#10285a;font-weight:900}
 .mx-category small{color:#667085;font-weight:700}
 .mx-category:hover{border-color:#9ebcf0;box-shadow:0 12px 28px rgba(23,105,232,.12)}
+
+
+/* RC366 — enforce final 7-column sector matrix after legacy overrides */
+#mx-category-grid.mx-categories{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;overflow:visible}
+#mx-category-grid .mx-category{min-width:0;width:100%;visibility:visible;opacity:1}
+#mx-category-grid .mx-category__glyph{z-index:2;pointer-events:none}
+@media(max-width:1100px){#mx-category-grid.mx-categories{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:760px){#mx-category-grid.mx-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}}
+@media(max-width:460px){#mx-category-grid.mx-categories{grid-template-columns:repeat(2,minmax(0,1fr))}}
