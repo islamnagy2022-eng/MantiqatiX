@@ -77,6 +77,7 @@ jobs:
           test -f web/home.js
           test -f web/smm.html
           for asset in web/assets/activity/*.svg; do test -f "$asset"; done
+          for asset in web/assets/activities/*.svg; do test -f "$asset"; done
           test -f web/smm.js
           test -f web/manifest.webmanifest
           test -f web/sw.js
