@@ -108,6 +108,15 @@ function inventoryView(){
  (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate()?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
+function askQuantity(label='الكمية'){
+ return new Promise(resolve=>{
+  modal('إنشاء طلب',field('rest-qty','الكمية','1','number','min="1" step="1" required')+'<div class="action-bar"><button class="btn btn-primary" data-save>متابعة</button></div>',async o=>{
+   const value=Number(o.querySelector('#rest-qty')?.value);
+   if(!Number.isInteger(value)||value<1){notify('أدخل كمية صحيحة.','error');return;}
+   o.remove();resolve(value);
+  });
+ });
+}
 async function createRestaurantOrder(){
  if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
  const m=scope();
@@ -116,7 +125,7 @@ async function createRestaurantOrder(){
    const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
    const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE');
    if(!item)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const qty=Number(window.prompt('الكمية للصنف: '+(item.name_ar||item.name_en||'صنف'),'1'));
+   const qty=await askQuantity('الكمية');
    if(!Number.isInteger(qty)||qty<1)return;
    const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
    const r=await invokeMntyFunction('order-create',payload);
