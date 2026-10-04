@@ -323,3 +323,11 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Production database evidence remains: 25 active showcase businesses, 25 OWNER memberships, 25 verified/featured profiles, 25 services and 600 enabled module bindings.
 - [ ] Public browser smoke verification of the deployed homepage and Super Admin runtime panel remains an external runtime check; the public-site fetch could not be completed from this environment.
 - [ ] Final Production Gate remains **OPEN / NOT PRODUCTION READY YET** because the previously documented Auth, adversarial E2E, payment, recovery, device/PWA/push and Android gates remain open.
+
+
+## RC340 — 2026-10-04 — Public digital-link hardening
+- [x] Hardened public digital-page links in `web/home.js`: URLs are now accepted only when their resolved protocol is `http:` or `https:`.
+- [x] Removed the `#` fallback for missing/invalid digital content URLs; unavailable links remain visible as non-interactive status text instead of dead anchors.
+- [x] Added the corresponding unavailable-link visual state in `web/home.css`.
+- [x] Refreshed public asset versions in `web/index.html` and advanced the service-worker cache from `mnty-web-v114` to `mnty-web-v115`.
+- [ ] CI/deployed-site verification is still pending for the RC340 commits; do not mark this UI hardening as production-verified until the Pages workflow provides evidence.
