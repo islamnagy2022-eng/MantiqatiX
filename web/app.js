@@ -690,6 +690,28 @@ async function superAdminFunction(name,body){
  if(!canSuperAdmin())throw new Error('SUPER_ADMIN_REQUIRED');
  return invokeMntyFunction(name,body);
 }
+async function loadOfficialShowcaseAdmin(){
+ const root=document.getElementById('sa-showcase-list'); if(!root)return;
+ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ try{
+  const bq=await sb.from('businesses').select('id,name,code,status,settings,updated_at').eq('status','ACTIVE').eq('settings->>showcase','true').order('name',{ascending:true}).limit(100);
+  if(bq.error)throw bq.error;
+  const rows=bq.data||[];
+  if(!rows.length){root.innerHTML='<div class="empty-state">لا توجد أنشطة رسمية مسجلة.</div>';return}
+  const ids=rows.map(x=>x.id);
+  const [pq,mq,svq]=await Promise.all([
+   sb.from('marketing_provider_profiles').select('business_id,name_ar,status,is_verified,is_featured,slug').in('business_id',ids),
+   sb.from('business_modules').select('business_id,module_id,enabled').in('business_id',ids),
+   sb.from('marketing_provider_services').select('provider_id,status').limit(500)
+  ]);
+  if(pq.error)throw pq.error; if(mq.error)throw mq.error;
+  const pm=new Map((pq.data||[]).map(x=>[String(x.business_id),x]));
+  const counts=new Map(); (mq.data||[]).forEach(x=>{const k=String(x.business_id);const v=counts.get(k)||0;if(x.enabled)counts.set(k,v+1)});
+  const activeServices=new Map(); (svq.data||[]).forEach(x=>{if(x.status==='ACTIVE')activeServices.set(String(x.provider_id),(activeServices.get(String(x.provider_id))||0)+1)});
+  root.innerHTML='<div class="mnty-stat-strip"><div><b>'+rows.length+'</b><span>نشاط رسمي</span></div><div><b>'+rows.filter(x=>x.status==='ACTIVE').length+'</b><span>نشط</span></div><div><b>'+rows.reduce((n,x)=>n+(counts.get(String(x.id))||0),0)+'</b><span>تفعيل موديولات</span></div><div><b>'+rows.filter(x=>pm.get(String(x.id))?.is_verified).length+'</b><span>ملف موثق</span></div></div><div class="mnty-showcase-admin-grid">'+rows.map(b=>{const p=pm.get(String(b.id));const icon=esc(b.settings?.icon||'📍');return '<article class="mnty-showcase-admin-card"><div class="row"><strong>'+icon+' '+esc(b.name)+'</strong><span class="mnty-verified">'+(p?.is_verified?'✓ موثق':'غير موثق')+'</span></div><small>'+esc(b.code)+' · '+esc(p?.slug||'—')+'</small><div class="mnty-admin-mini"><span>المالك: OWNER</span><span>الموديولات: '+(counts.get(String(b.id))||0)+'</span><span>الخدمات: '+(p?activeServices.get(String(p.id))||0:0)+'</span></div><div class="mnty-admin-source">إدارة Super Admin · '+esc(b.settings?.source||'OFFICIAL_PLATFORM_SHOWCASE')+'</div></article>'}).join('')}</div>';
+ }catch(error){console.warn('[MNTY admin showcase] unavailable',error);root.innerHTML='<div class="empty-state">تعذر تحميل بيانات الأنشطة الرسمية: '+esc(error?.message||'خطأ غير معروف')+'</div>'}
+}
+
 function superAdminControlWorkspace(){
  if(!canSuperAdmin())return workspaceHead('PLATFORM CONTROL','التحكم الكامل','هذه المساحة مخصصة لـ SUPER_ADMIN فقط.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية التحكم الكامل.</div>';
  const tenants=[...new Map((live.memberships||[]).filter(m=>String(m.role||'').toUpperCase()==='SUPER_ADMIN'&&m.status==='ACTIVE').map(m=>[m.tenant_id,m])).values()];
@@ -711,6 +733,7 @@ function superAdminControlWorkspace(){
  +'</div><div class="action-bar"><button class="btn btn-primary" id="sa-submit" type="submit" style="width:auto">إنشاء النشاط وتشغيل المسار</button></div><p id="sa-progress" class="muted" aria-live="polite"></p></form></section>'
  +'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER APPROVAL</span><h3>اعتماد مقدمي الخدمة</h3><p class="muted">يعتمد فقط طلبًا حقيقيًا مقدمًا من حساب موثق؛ لا يتم إنشاء مستخدم أو هوية بديلة.</p></div></div><div id="sa-provider-review-list"><div class="empty-state">جاري تحميل الطلبات…</div></div></section>';
 }
+<style id="mnty-admin-showcase-style">.mnty-showcase-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.mnty-showcase-admin-card{border:1px solid rgba(24,100,171,.12);border-radius:16px;padding:14px;background:#fff}.mnty-showcase-admin-card small{display:block;color:#64748b;margin-top:5px}.mnty-admin-mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.mnty-admin-mini span{font-size:11px;background:#f1f5f9;border-radius:999px;padding:5px 8px}.mnty-admin-source{margin-top:10px;font-size:11px;color:#0b7285;font-weight:700}@media(max-width:900px){.mnty-showcase-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.mnty-showcase-admin-grid{grid-template-columns:1fr}}</style>
 function enhancedPageContent(){
  if(current==='التحكم الكامل')return superAdminControlWorkspace();
  if(current==='طلبات التسجيل')return registrationReviewWorkspace();
@@ -771,6 +794,8 @@ async function initSuperAdminControlWorkspace(){
   };
  }
  loadProviderOnboardingReview();
+ loadOfficialShowcaseAdmin();
+ document.getElementById('sa-showcase-refresh')?.addEventListener('click',loadOfficialShowcaseAdmin);
 }
 let recordsTableSeq=0;
 function filterRecordsTable(inputId,tableId){
