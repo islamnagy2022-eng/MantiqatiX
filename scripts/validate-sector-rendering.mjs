@@ -15,7 +15,7 @@ const checks = [
   ['image failure cannot remove tile', home.includes('onerror="this.hidden=true"')],
   ['sector grid is final 7 columns', css.includes('#mx-category-grid.mx-categories{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))')],
   ['sector tile forced visible', css.includes('#mx-category-grid .mx-category{min-width:0;width:100%;visibility:visible;opacity:1}')],
-  ['home.js cache version rc365', index.includes('home.js?v=rc365')],
+  ['home.js cache version rc366', index.includes('home.js?v=rc365')],
   ['service worker cache version v116', sw.includes("const CACHE='mnty-web-v116'")],
 ];
 
