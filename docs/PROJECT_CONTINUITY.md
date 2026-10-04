@@ -348,3 +348,10 @@ This status is intentional and must remain until the open gates above are indepe
 - The release workflow now checks that all eight authenticated SECURITY DEFINER boundaries retain the RC336 `search_path=public,pg_temp` hardening and that the RC337 live-verification contract remains present.
 - This is a source/CI guard, not live authorization proof; adversarial two-user/two-tenant E2E remains open.
 - Production Gate remains **OPEN / NOT PRODUCTION CERTIFIED**.
+
+## RC359 CI evidence — 2026-10-04
+- [x] GitHub Actions run `37169800396` completed SUCCESS for the RC343 closure-gate commit `da5c7dda5e66eb2f6e372f4607f9842f0ce9a800`.
+- [x] `validate` passed, including the RC359 SECURITY DEFINER/RBAC source contract.
+- [x] `deploy` passed and deployed-site smoke verification passed.
+- [ ] Runtime release blockers remain unchanged: Auth managed setting, adversarial tenant E2E, real payment/finance, recovery/rollback, browser/device/PWA/push and Android signed/device evidence.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
