@@ -892,3 +892,15 @@
 - [x] Removed invalid `#` fallback from public digital content links.
 - [x] Added explicit unavailable-link presentation and refreshed web/PWA asset versions.
 - [ ] Pages CI/deployed-site verification pending; this does not close the Final Production Gate.
+
+
+## RC358 — Live security/performance re-verification — 2026-10-04
+- [x] Re-ran Supabase Security Advisor against production project moyhiluyhjsujhwlyeuu.
+- [x] Confirmed public.digital_page_payment_events remains intentionally fail-closed: RLS enabled, no policies, no direct anon/authenticated table access.
+- [x] Confirmed the intentional public advertisement SECURITY DEFINER RPC remains the only anonymous-callable SECURITY DEFINER warning.
+- [x] Confirmed the 9 authenticated-callable SECURITY DEFINER functions retain search_path=public, pg_temp and anon_execute=false; no blanket EXECUTE revocation performed.
+- [x] Current Performance Advisor reports 26 multiple-permissive-policy findings; these are authorization-path-dependent and are not removed blindly.
+- [x] No production data, payment, notification, or destructive schema change was created to manufacture evidence.
+- [ ] Leaked Password Protection remains a managed Auth setting requiring user-side enablement and subsequent Advisor verification.
+- [ ] Adversarial two-user/two-tenant E2E, real payment/finance E2E, browser/device/PWA/push, recovery rehearsal and Android release evidence remain open.
+- Final Production Gate remains OPEN / NOT PRODUCTION READY YET.
