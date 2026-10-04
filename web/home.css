@@ -1034,3 +1034,6 @@
 
 
 .mx-footer__link{appearance:none;border:0;background:none;padding:0;margin:0;color:inherit;font:inherit;text-align:right;cursor:pointer;display:block;width:100%;}.mx-footer__link:hover{text-decoration:underline;}.mx-footer-info-modal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;}.mx-footer-info-modal__backdrop{position:absolute;inset:0;background:rgba(15,23,42,.62);backdrop-filter:blur(3px);}.mx-footer-info-modal__dialog{position:relative;z-index:1;width:min(620px,100%);max-height:min(80vh,720px);overflow:auto;background:#fff;border-radius:20px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.24);outline:none;}.mx-footer-info-modal__dialog h2{margin:8px 0 14px;}.mx-footer-info-modal__dialog p{margin:0;line-height:1.9;color:#475569;}.mx-footer-info-modal__close{position:absolute;top:12px;left:12px;width:42px;height:42px;border:0;border-radius:12px;background:#f1f5f9;font-size:24px;cursor:pointer;}@media (prefers-reduced-motion:reduce){.mx-footer-info-modal__backdrop{backdrop-filter:none;}}
+
+/* RC340 — invalid/unpublished digital links remain visible without becoming dead anchors. */
+.mx-digital-link--disabled{display:inline-flex;align-items:center;opacity:.55;cursor:not-allowed;text-decoration:none;}
