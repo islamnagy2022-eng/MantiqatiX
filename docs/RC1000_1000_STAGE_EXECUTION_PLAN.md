@@ -1030,3 +1030,11 @@
 - RC314: restaurant workspace browser alerts were replaced with accessible in-platform toast feedback; error/success feedback now uses role=status / aria-live and reduced-motion styling. Public asset versions were refreshed and PWA cache advanced to mnty-web-v114.
 - RC315: restaurant order quantity entry was moved from the native browser prompt into the platform modal flow; latest source verification shows no alert( or prompt( in web/restaurant-module.js.
 - Status: IMPLEMENTED — NOT VERIFIED until the GitHub Pages workflow validates and deploys the new commits.
+
+
+## RC340 — تنفيذ فعلي إضافي
+- [x] تأمين روابط المحتوى الرقمي العام ضد البروتوكولات غير الآمنة/غير الصالحة.
+- [x] إزالة fallback إلى `#` من روابط المحتوى الرقمي عند غياب URL صالح.
+- [x] إضافة حالة UI واضحة للرابط غير المتاح بدل عنصر تفاعلي ميت.
+- [x] تحديث نسخ الأصول وPWA cache إلى `mnty-web-v115`.
+- [ ] CI وdeployed-site verification: بانتظار دليل GitHub Actions النهائي.
