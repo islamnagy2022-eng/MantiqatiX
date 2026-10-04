@@ -692,10 +692,12 @@
       const requestSequence=++homeLoadSequence;
       const sb=getClient();
       const status=document.getElementById('mx-live-status');
-      if(!sb){status.textContent='وضع العرض';renderServices([]);renderProviders([]);renderSponsored([]);return}
+      if(!sb){status.textContent='وضع العرض';renderDynamicCategories(TAXONOMY,[]);renderServices([]);renderProviders([]);renderSponsored([]);return}
       const term=String(searchText||'').trim();
         const safeTerm=term.replace(/[^\p{L}\p{N}\s-]/gu,' ').trim().slice(0,60);
       try{
+        // The canonical sector directory is structural UI and must remain visible even when live catalog queries are unavailable.
+        renderDynamicCategories(TAXONOMY,[]);
         await loadHomeRuntimeFlags(sb);
         loadLocationUi();
         document.querySelectorAll('[data-module]').forEach(btn=>{ btn.hidden=!homeFeatureEnabled(btn.dataset.module); });
@@ -740,7 +742,7 @@
         if(requestSequence!==homeLoadSequence)return;
         console.warn('[MantiqatiX home] public catalog load failed',error);
         status.textContent='تعذر تحميل البيانات الحية';
-        renderServices([]);renderProviders([]);renderSponsored([]);
+        renderDynamicCategories(TAXONOMY,[]);renderServices([]);renderProviders([]);renderSponsored([]);
       }
     };
 
