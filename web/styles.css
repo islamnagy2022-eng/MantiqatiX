@@ -400,3 +400,5 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
  .records .table-wrap{border-radius:12px}
  .records th,.records td{padding:10px;font-size:12px}
 }
+
+.mnty-inline-toast{position:fixed;inset-inline-end:20px;bottom:20px;z-index:10000;max-width:min(420px,calc(100vw - 40px));padding:13px 16px;border:1px solid var(--border,#ddd);border-radius:12px;background:var(--surface,#fff);box-shadow:0 12px 32px rgba(0,0,0,.14);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;font-weight:700}.mnty-inline-toast.is-visible{opacity:1;transform:none}.mnty-inline-toast.is-error{border-color:#c62828}.mnty-inline-toast.is-success{border-color:#2e7d32}@media(prefers-reduced-motion:reduce){.mnty-inline-toast{transition:none}}
