@@ -796,3 +796,18 @@
 - [x] Initial focus now lands on the close control; the invoking footer control regains focus after close.
 - [ ] Browser/assistive-technology E2E remains NOT VERIFIED.
 - Production Release Gate remains OPEN.
+
+
+## RC318 — Production security gate re-verification — 2026-10-04
+- [x] Verified current `main` commit: `7d997bf718a52c4e74a076f4f6c14014fdb34e41`.
+- [x] Verified GitHub Pages run `37164800526` SUCCESS for the current main commit.
+- [x] Confirmed superseded run `37164793506` was CANCELLED, not failed.
+- [x] Re-ran live Supabase Security Advisor.
+- [x] Production project remains ACTIVE_HEALTHY.
+- [x] Current security findings remain: `digital_page_payment_events` RLS/no-policy; 1 anon-callable SECURITY DEFINER; 9 authenticated-callable SECURITY DEFINER functions.
+- [ ] Leaked Password Protection: NOT VERIFIED / requires Auth Dashboard.
+- [ ] Real two-user/two-tenant E2E: NOT VERIFIED.
+- [ ] Real payment/refund/settlement E2E: BLOCKED on credentials/provider activation.
+- [ ] Backup/restore/rollback and external browser/device evidence: NOT VERIFIED.
+- [ ] Android signed/device release: NOT VERIFIED.
+- Production Release Gate remains OPEN.
