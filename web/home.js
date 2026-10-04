@@ -625,7 +625,7 @@
         const item=(providers||[]).find(x=>String(x.id)===String(id));
         if(!item)return;
         openProviderProfilePage(item);
-      });
+      });\n      el.querySelectorAll('.mx-photo--provider').forEach(media=>media.onclick=()=>media.closest('.mx-provider-card')?.querySelector('[data-provider]')?.click());
       el.querySelectorAll('[data-book-business]').forEach(b=>b.onclick=()=>{
         const businessId=b.dataset.bookBusiness, providerName=b.dataset.bookProvider||'مقدم الخدمة';
         if(window.MNTYAuthState?.authenticated && typeof openProviderCatalog==='function') return openProviderCatalog(businessId,providerName);
@@ -640,10 +640,9 @@
       const list=Array.isArray(ads)?ads:[];
       if(!list.length){renderSponsored([]);return}
       el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>إعلانات موجهة حسب موقعك</h3><p>يتم اختيار الإعلان على مستوى المركز أو المحافظة أو الدولة، ومع عدم وجود إعلان مطابق يتم عرض الأقرب.</p></div></div><div class="mx-listing-grid">'+list.map(a=>{
-        const href=safeAdUrl(a.target_url);
-        const action=href?'<a class="mx-listing__cta" href="'+escapeHtml(href)+'" target="_blank" rel="noopener noreferrer">عرض الإعلان</a>':'';
-        const creative=safeAdUrl(a.creative_url)||'assets/mnty-ad-space-booking-banner.svg'; return '<article class="mx-listing"><div class="mx-listing__media"><img src="'+escapeHtml(creative)+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+action+'</div></article>';
+        const creative=safeAdUrl(a.creative_url)||'assets/mnty-ad-space-booking-banner.svg'; return '<article class="mx-listing" tabindex="0" role="button" data-targeted-ad="'+escapeHtml(a.id||'')+'"><div class="mx-listing__media"><img src="'+escapeHtml(creative)+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+'<button type="button" class="mx-listing__cta">عرض الإعلان</button></div></article>';
       }).join('')+'</div>';
+      el.querySelectorAll('[data-targeted-ad]').forEach(card=>{card.onclick=()=>{const item=list.find(x=>String(x.id||'')===String(card.dataset.targetedAd||''));if(item)openMantiqatiAdModal(item);};});
     };
 
     const renderSponsored=(providers)=>{
@@ -658,7 +657,7 @@
           const card=document.querySelector('#mx-provider-grid [data-provider="'+escapeHtml(item.id)+'"]');
           card?.click();
         }
-      });
+      });\n      el.querySelectorAll('.mx-photo--provider').forEach(media=>media.onclick=()=>media.closest('.mx-listing')?.querySelector('[data-provider]')?.click());
     };
 
     const loadLocationUi=()=>{
