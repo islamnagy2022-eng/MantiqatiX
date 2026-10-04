@@ -654,7 +654,7 @@
       el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>إعلانات موجهة حسب موقعك</h3><p>يتم اختيار الإعلان على مستوى المركز أو المحافظة أو الدولة، ومع عدم وجود إعلان مطابق يتم عرض الأقرب.</p></div></div><div class="mx-listing-grid">'+list.map(a=>{
         const creative=safeAdUrl(a.creative_url)||'assets/mnty-ad-space-booking-banner.svg'; return '<article class="mx-listing" tabindex="0" role="button" data-targeted-ad="'+escapeHtml(a.id||'')+'"><div class="mx-listing__media"><img src="'+escapeHtml(creative)+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+'<button type="button" class="mx-listing__cta">عرض الإعلان</button></div></article>';
       }).join('')+'</div>';
-      el.querySelectorAll('[data-targeted-ad]').forEach(card=>{card.onclick=()=>{const item=list.find(x=>String(x.id||'')===String(card.dataset.targetedAd||''));if(item)openMantiqatiAdModal(item);};});
+      el.querySelectorAll('[data-targeted-ad]').forEach(card=>{const open=()=>{const item=list.find(x=>String(x.id||'')===String(card.dataset.targetedAd||''));if(item)openMantiqatiAdModal(item);};card.onclick=open;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}};});
     };
 
     const renderSponsored=(providers)=>{
