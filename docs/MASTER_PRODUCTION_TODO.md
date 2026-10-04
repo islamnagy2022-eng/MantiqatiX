@@ -933,3 +933,12 @@
 - [x] Added a CI regression marker so future changes cannot silently remove keyboard activation from the sponsored-ad surface.
 - [x] No data, authorization, payment, or production records were modified.
 - [ ] Assistive-technology/device E2E remains NOT VERIFIED and is still a release gate.
+
+
+## RC362 — Official activity asset CI boundary
+
+- CI now validates both the legacy `web/assets/activity/*.svg` catalog and the official `web/assets/activities/*.svg` catalog used by the public sector/activity grid.
+- Commit: `66a508f1a9cdfe1595e0b297b16ea77b232baeab`.
+- No production database mutation was performed by RC362.
+- Live Supabase read-only verification: 25 active official showcase businesses, 25 active verified/featured official providers, 110 active services, 110 active provider-service links, 600 enabled business-module bindings, and 26 active OWNER memberships.
+- These counts are catalog/readiness evidence only; they do **not** close multi-user adversarial E2E, booking E2E, payment/refund/settlement E2E, backup/restore/rollback, device testing, or final production certification.
