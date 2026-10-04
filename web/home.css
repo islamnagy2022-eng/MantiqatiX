@@ -1071,3 +1071,6 @@
 
 /* RC354 — independent activity logo over cover */
 .mx-photo--provider{position:relative;overflow:hidden}.mx-provider-cover{display:block;width:100%;height:100%;object-fit:cover}.mx-provider-logo{position:absolute;right:12px;bottom:12px;width:58px;height:58px;border-radius:16px;background:#fff;border:3px solid rgba(255,255,255,.95);box-shadow:0 8px 24px rgba(0,0,0,.18);display:grid;place-items:center;padding:6px}.mx-provider-logo img{width:100%;height:100%;object-fit:contain;border-radius:10px}.mx-provider-card:hover .mx-provider-logo{transform:translateY(-1px)}
+
+/* RC354 activity logo editor */
+.mnty-provider-logo-editor{margin-top:14px}.mnty-provider-logo-editor .action-bar{display:flex;gap:9px;flex-wrap:wrap}.mnty-provider-logo-editor .btn-outline{background:#fff;border:1px solid var(--mx-line);color:var(--mx-red)}
