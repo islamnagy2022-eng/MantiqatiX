@@ -1037,3 +1037,27 @@
 
 /* RC340 — invalid/unpublished digital links remain visible without becoming dead anchors. */
 .mx-digital-link--disabled{display:inline-flex;align-items:center;opacity:.55;cursor:not-allowed;text-decoration:none;}
+
+
+/* RC341 — official Mantiqati activity profile */
+.mnty-showcase-profile-modal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:18px}
+.mnty-showcase-profile-backdrop{position:absolute;inset:0;background:rgba(7,15,29,.72);backdrop-filter:blur(7px)}
+.mnty-showcase-profile-dialog{position:relative;width:min(920px,100%);max-height:min(90vh,820px);overflow:auto;background:var(--surface,#fff);color:var(--text,#101828);border:1px solid rgba(16,24,40,.1);border-radius:24px;box-shadow:0 28px 90px rgba(0,0,0,.25);padding:26px;outline:none}
+.mnty-showcase-profile-close{position:absolute;inset-inline-end:16px;top:12px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(127,127,127,.12);font-size:28px;line-height:1;cursor:pointer}
+.mnty-showcase-profile-hero{display:grid;grid-template-columns:120px 1fr;gap:22px;align-items:center;padding:8px 42px 22px 0;border-bottom:1px solid rgba(127,127,127,.16)}
+.mnty-showcase-profile-hero img{width:120px;height:120px;border-radius:24px;display:block}
+.mnty-showcase-profile-hero h2{margin:5px 0 8px;font-size:clamp(26px,4vw,38px)}
+.mnty-showcase-profile-hero p{margin:0;line-height:1.8;opacity:.78}
+.mnty-showcase-profile-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.mnty-showcase-profile-badges span,.mnty-showcase-profile-tags span{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:999px;background:rgba(16,24,40,.06);font-size:13px}
+.mnty-showcase-profile-grid{display:grid;gap:20px;margin-top:22px}
+.mnty-showcase-profile-grid section{padding:18px;border:1px solid rgba(127,127,127,.14);border-radius:18px}
+.mnty-showcase-profile-grid h3{margin:0 0 12px}
+.mnty-showcase-profile-tags{display:flex;flex-wrap:wrap;gap:8px}
+.mnty-showcase-profile-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mnty-showcase-profile-services article{padding:15px;border-radius:15px;background:rgba(127,127,127,.07)}
+.mnty-showcase-profile-services article p{margin:6px 0;font-size:13px;line-height:1.7;opacity:.72}
+.mnty-showcase-profile-services article b{font-size:13px}
+.mnty-showcase-profile-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.mnty-showcase-profile-loading{text-align:center;padding:70px 20px}
+@media(max-width:680px){.mnty-showcase-profile-dialog{padding:20px;border-radius:20px}.mnty-showcase-profile-hero{grid-template-columns:80px 1fr;padding-inline-end:34px}.mnty-showcase-profile-hero img{width:80px;height:80px;border-radius:18px}.mnty-showcase-profile-services{grid-template-columns:1fr}.mnty-showcase-profile-actions{flex-direction:column}.mnty-showcase-profile-actions .btn{width:100%}}
