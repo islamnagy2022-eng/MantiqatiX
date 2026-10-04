@@ -50,3 +50,7 @@ Each activity has its own deterministic SVG icon/logo asset. SVG was chosen for 
 - Super Admin runtime verification that all 25 memberships and profiles appear in the management workspace.
 - Full domain-specific transaction E2E remains a separate release gate.
 - Real independent provider onboarding remains separate from these official platform-managed showcase profiles.
+
+
+## RC339 enrichment — sector service catalogs
+Each official profile was enriched with four sector-specific specialties and four portfolio entries. In addition, each profile now has three operational service catalog entries. Prices remain NULL intentionally; no fictional market price was inserted. The catalog is therefore ready for Super Admin pricing approval without presenting invented prices to customers.
