@@ -6,6 +6,7 @@ const home = read('web/home.js');
 const registry = read('web/sector-registry.js');
 const css = read('web/home.css');
 const index = read('web/index.html');
+const app = read('web/app.js');
 const sw = read('web/sw.js');
 
 const taxonomy = home.match(/^\s*\['[^']*','[^']*','[^']*','[A-Z0-9_]+\'],?\s*$/gm) || [];
@@ -22,6 +23,9 @@ const checks = [
   ['sector grid is final 7 columns', css.includes('#mx-category-grid.mx-categories{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))')],
   ['sector tile forced visible', css.includes('#mx-category-grid .mx-category{min-width:0;width:100%;visibility:visible;opacity:1}')],
   ['home.js cache version rc367', index.includes('home.js?v=rc367')],
+  ['app consumes canonical sector registry', app.includes('window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS') && app.includes('const SECTOR_PRESENTATION=')],
+  ['app sectors carry canonical code + backend code', app.includes("return [p[0],p[1],p[2],s.code,s.backend];")],
+  ['unsupported sectors do not claim an unrelated workspace', app.includes("return map[name]||'المجالات والخدمات';") && app.includes("const operational=Boolean(sectorMap[s[1]]);")],
   ['service worker cache version v116', sw.includes("const CACHE='mnty-web-v116'")],
 ];
 
