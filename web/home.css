@@ -1081,3 +1081,13 @@
 
 /* RC363 — full sector directory presentation */
 .mx-sector-count{min-width:92px;padding:10px 14px;border:1px solid var(--mx-line);border-radius:16px;background:#fff;display:flex;align-items:baseline;justify-content:center;gap:5px;box-shadow:0 5px 18px rgba(16,24,40,.05);color:var(--mx-blue)}.mx-sector-count strong{font-size:25px;line-height:1}.mx-sector-count span{font-size:11px;font-weight:900;color:var(--mx-muted)}#mx-categories .mx-section__head{align-items:center}#mx-categories .mx-section__head p{max-width:720px}@media(max-width:800px){.mx-sector-count{min-width:76px;padding:9px 10px}.mx-sector-count strong{font-size:21px}.mx-sector-count span{font-size:10px}}@media(max-width:500px){#mx-categories .mx-section__head{align-items:flex-start}.mx-sector-count{display:none}}
+
+/* RC364 — sector tile visibility hardening */
+#mx-category-grid{min-height:142px}
+.mx-category{position:relative;color:#162a4d;background:#fff;box-shadow:0 5px 18px rgba(16,24,40,.055);border:1px solid #d9e2ef}
+.mx-category__media{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(135deg,#eaf2ff,#f4f1ff 55%,#ecfbf7);border:1px solid #e4eaf3}
+.mx-category__glyph{position:absolute;inset:0;z-index:0;display:grid;place-items:center;font-size:38px;line-height:1;opacity:.88}
+.mx-category__media img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;background:#fff}
+.mx-category strong{color:#10285a;font-weight:900}
+.mx-category small{color:#667085;font-weight:700}
+.mx-category:hover{border-color:#9ebcf0;box-shadow:0 12px 28px rgba(23,105,232,.12)}
