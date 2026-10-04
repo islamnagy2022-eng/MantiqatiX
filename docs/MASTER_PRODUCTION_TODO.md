@@ -904,3 +904,10 @@
 - [ ] Leaked Password Protection remains a managed Auth setting requiring user-side enablement and subsequent Advisor verification.
 - [ ] Adversarial two-user/two-tenant E2E, real payment/finance E2E, browser/device/PWA/push, recovery rehearsal and Android release evidence remain open.
 - Final Production Gate remains OPEN / NOT PRODUCTION READY YET.
+
+
+## RC359 — CI security boundary contract
+- Added `scripts/validate-security-definer-contract.mjs` and wired it into `.github/workflows/pages.yml`.
+- The release workflow now checks that all eight authenticated SECURITY DEFINER boundaries retain the RC336 `search_path=public,pg_temp` hardening and that the RC337 live-verification contract remains present.
+- This is a source/CI guard, not live authorization proof; adversarial two-user/two-tenant E2E remains open.
+- Production Gate remains **OPEN / NOT PRODUCTION CERTIFIED**.
