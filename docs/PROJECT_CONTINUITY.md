@@ -391,3 +391,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Browser screenshot review identified that the 27-sector directory was technically present but visually too faint/empty.
 - Updated the public sector renderer and CSS so every sector has an explicit card, persistent visual glyph fallback, eager icon loading, stronger contrast, and accessible naming.
 - This is a presentation-only hardening; no production business, order, payment, or financial records were changed.
+
+
+## RC365 — قطاعـات الصفحة الرئيسية: إصلاح مسار الرسم والكاش
+- الحالة: IMPLEMENTED — WAITING FOR CI EVIDENCE
+- السبب المعالج: كان تحديث عداد القطاعات يتم قبل تركيب البطاقات؛ أي استثناء أثناء توليد عنصر واحد كان يترك العداد ظاهرًا مع شبكة قطاعات فارغة.
+- تم جعل توليد كل بطاقة دفاعيًا مع قيم افتراضية آمنة لكل icon/label/description/code.
+- تحميل صورة القطاع أصبح اختياريًا مع `onerror` لإخفائها عند فشل الأصل دون إلغاء البطاقة.
+- تم رفع نسخة `home.js` إلى `rc365` ونسخة Service Worker إلى `v116` لكسر الكاش القديم.
+- لا توجد تغييرات على بيانات الأعمال أو الطلبات أو المدفوعات أو البيانات المالية.
