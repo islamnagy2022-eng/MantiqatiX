@@ -104,3 +104,19 @@ body{background:var(--mx-bg)}
 .content{background:var(--mx-bg)}.top{border-color:var(--mx-line)}
 .hero{background:linear-gradient(135deg,#160809,#8D0D16 58%,#C88A1C)}
 .card{border-color:var(--mx-line)}.module .icon{background:var(--mx-soft);color:var(--mx-red)}.count{background:#FBE7E8;color:var(--mx-red)}
+
+
+/* ===== MantiqatiX Canonical Brand Lock ===== */
+:root{--mx-brand-ink:#241113;--mx-brand-red:#B5121B;--mx-brand-red-bright:#E21B2D;--mx-brand-red-dark:#72070D;--mx-brand-gold:#F6C453;--mx-brand-gold-dark:#B97812;--mx-brand-cream:#FFF8E7;--mx-brand-bg:#FBF8F2;--mx-brand-line:#E9DCC4;--mx-brand-gradient:linear-gradient(135deg,#72070D 0%,#B5121B 52%,#F6C453 100%)}
+body,.landing,.content,.shell{background:var(--mx-brand-bg)}
+.btn-primary,.sponsored-badge,.sponsored-card button{background:var(--mx-brand-red);border-color:var(--mx-brand-red)}
+.btn-primary:hover,.sponsored-card button:hover{background:var(--mx-brand-red-dark)}
+.hero,.landing-cta{background:var(--mx-brand-gradient)}
+.mark{background:#160809;border-color:rgba(246,196,83,.65)}
+.sidebar,.top,.card{border-color:var(--mx-brand-line)}
+.nav button.active{background:#FBE7E8;color:var(--mx-brand-red)}
+.nav button:hover{background:#FFF3E8;color:var(--mx-brand-red)}
+.count{background:#FBE7E8;color:var(--mx-brand-red)}
+.feature-icon,.sector-icon{color:var(--mx-brand-red)}
+.plan.featured{border-color:var(--mx-brand-gold)}
+.landing footer{background:#160809}
