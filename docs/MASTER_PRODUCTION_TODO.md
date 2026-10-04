@@ -927,3 +927,9 @@
 - [x] The guard also requires the continuity register and workflow to retain the critical release controls.
 - [ ] This is a safety guard only; it does not manufacture runtime evidence and does not close any external release blocker.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+## RC361 — Public sponsored-ad accessibility hardening — 2026-10-04
+- [x] Public targeted-ad cards now support Enter/Space activation in addition to pointer activation.
+- [x] Added a CI regression marker so future changes cannot silently remove keyboard activation from the sponsored-ad surface.
+- [x] No data, authorization, payment, or production records were modified.
+- [ ] Assistive-technology/device E2E remains NOT VERIFIED and is still a release gate.
