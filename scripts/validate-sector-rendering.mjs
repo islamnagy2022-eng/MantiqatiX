@@ -3,6 +3,7 @@ import fs from 'node:fs';
 
 const read = file => fs.readFileSync(file, 'utf8');
 const home = read('web/home.js');
+const registry = read('web/sector-registry.js');
 const css = read('web/home.css');
 const index = read('web/index.html');
 const sw = read('web/sw.js');
@@ -10,6 +11,9 @@ const sw = read('web/sw.js');
 const taxonomy = home.match(/^\s*\['[^']*','[^']*','[^']*','[A-Z0-9_]+\'],?\s*$/gm) || [];
 const checks = [
   ['27 canonical sectors', taxonomy.length === 27],
+  ['canonical registry exists', registry.includes('CANONICAL_SECTORS') && registry.includes('PUBLIC_TO_BACKEND_SECTOR')],
+  ['registry has 27 codes', (registry.match(/\['[A-Z0-9_]+','[^']*','[A-Z0-9_]+\']/g)||[]).length === 27],
+  ['registry covers medical + freelancer', registry.includes("['MEDICAL','مراكز طبية','MEDICAL']") && registry.includes("['FREELANCER','المستقلون ومقدمو الخدمات','FREELANCER']")],
   ['defensive sector tile renderer', home.includes('const tiles=items.map(c=>{')],
   ['safe tile defaults', home.includes("c?.[0]||'◉'") && home.includes("c?.[1]||'قطاع'") && home.includes("c?.[2]||'خدمات وأنشطة منشورة على المنصة'")],
   ['public/backend taxonomy aliases', home.includes("EDU:'EDUCATION'") && home.includes("DIGITAL:'MARKETING'") && home.includes("FITNESS:'SPORTS'") && home.includes("TRAVEL:'TRIPS'") && home.includes("TECH:'ERP'")],
