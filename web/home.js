@@ -333,7 +333,7 @@
       const items=dynamicTaxonomy(services,providers);
       const count=document.getElementById('mx-sector-count');
       if(count) count.textContent=String(items.length);
-      categoryGrid.innerHTML=items.map(c=>'<button class="mx-category" type="button" aria-label="'+escapeHtml(c[1])+'" data-category="'+escapeHtml(c[3])+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+escapeHtml(c[0])+'</span><img src="'+activityImage(c[3])+'" alt="" loading="eager"></span><strong>'+escapeHtml(c[1])+'</strong><small>'+escapeHtml(c[2])+'</small></button>').join('');
+      const tiles=items.map(c=>{        const icon=escapeHtml(c?.[0]||'◉');        const label=escapeHtml(c?.[1]||'قطاع');        const desc=escapeHtml(c?.[2]||'خدمات وأنشطة منشورة على المنصة');        const code=normCode(c?.[3]||'');        let image='';        try{image=activityImage(code)||'';}catch(_){}        return '<button class="mx-category" type="button" aria-label="'+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small></button>';      }).join('');      categoryGrid.innerHTML=tiles;
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
     };
 
