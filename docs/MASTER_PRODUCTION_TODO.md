@@ -772,3 +772,19 @@
 - [x] Existing marketing_leads-specific guard remains in place and requires the protected `marketing-lead-create` Edge Function path.
 - [ ] Runtime multi-user/multi-tenant and customer→provider→order→status→notification E2E remain NOT VERIFIED.
 - Production Release Gate remains OPEN.
+
+## RC315 — Public support contact actionability — 2026-10-04
+
+- [x] Converted the public customer-support phone number in the website footer from static text into an accessible `tel:` action.
+- [x] Preserved the existing displayed number while making the control usable on supported mobile/desktop clients.
+- [ ] Public browser smoke remains NOT VERIFIED; this source-level improvement does not substitute for deployed-device verification.
+- Production Release Gate remains OPEN.
+
+## RC316 — Restaurant modal focus isolation — 2026-10-04
+
+- [x] Hardened the restaurant workspace modal with focus restoration after close.
+- [x] Added keyboard focus cycling so Tab/Shift+Tab remain inside the active modal.
+- [x] Preserved Escape and backdrop close behavior while ensuring the key listener is cleaned up on close.
+- [x] Initial focus now lands on the modal close action instead of the dialog container.
+- [ ] Browser E2E/accessibility assistive-technology verification remains NOT VERIFIED.
+- Production Release Gate remains OPEN.
