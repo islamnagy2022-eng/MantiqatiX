@@ -846,3 +846,9 @@
 - [ ] Real Paymob/payment/refund/settlement/GL E2E remains WAITING FOR CREDENTIAL/PROVIDER AUTHORIZATION.
 - [ ] Browser/PWA/push, backup/restore/rollback, Android signed/device and final release evidence remain open.
 - Production Release Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+
+## RC337 CI evidence — 2026-10-04
+- [x] GitHub Actions run `37165994161` completed SUCCESS for commit `053298d6975d8e2bd3398e8e005d34392c9625b1`.
+- [x] Superseded intermediate RC337 runs were cancelled by newer pushes and are not treated as failures.
+- [ ] CI success does not close the external release gates; Production Release Gate remains OPEN.
