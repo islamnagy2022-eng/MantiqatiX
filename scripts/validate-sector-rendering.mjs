@@ -15,7 +15,7 @@ const checks = [
   ['image failure cannot remove tile', home.includes('onerror="this.hidden=true"')],
   ['sector grid is final 7 columns', css.includes('#mx-category-grid.mx-categories{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))')],
   ['sector tile forced visible', css.includes('#mx-category-grid .mx-category{min-width:0;width:100%;visibility:visible;opacity:1}')],
-  ['home.js cache version rc367', index.includes('home.js?v=rc365')],
+  ['home.js cache version rc367', index.includes('home.js?v=rc367')],
   ['service worker cache version v116', sw.includes("const CACHE='mnty-web-v116'")],
 ];
 
@@ -25,5 +25,5 @@ if (missing.length) {
   missing.forEach(x => console.error('MISSING:', x));
   process.exit(1);
 }
-console.log('RC366 sector rendering contract: PASS');
+console.log('RC367 sector rendering contract: PASS');
 console.log('27 canonical sectors + defensive renderer + final 7-column grid + cache rotation are guarded.');
