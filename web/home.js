@@ -37,6 +37,7 @@
     try { const sb=getClient(); const url=sb?.storage?.from('mantiqatix-profile-media').getPublicUrl(path)?.data?.publicUrl || ''; return url ? url+'?v='+encodeURIComponent(String(provider?.updated_at||'1').replace(/[^A-Za-z0-9._:-]/g,'')) : ''; } catch(_) { return ''; }
   };
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+  const safePublicHref = value => { try { const u = new URL(String(value || ''), window.location.origin); return ['http:','https:'].includes(u.protocol) ? u.href : ''; } catch (_) { return ''; } };
   const logo = () => '<span class="mark" aria-hidden="true"></span>';
   const normCode = value => String(value||'').trim().toUpperCase().replace(/[^A-Z0-9_:-]+/g,'_');
   let HOME_RUNTIME_FLAGS = null;
@@ -446,7 +447,7 @@
           const content=s.content||data.content||'';
           const image=data.image_url||data.imageUrl||'';
           const links=Array.isArray(data.links)?data.links:[];
-          return '<article class="mx-digital-section mx-digital-section--'+escapeHtml(type.toLowerCase())+'">'+(image?'<img class="mx-digital-section__image" src="'+escapeHtml(image)+'" alt="'+escapeHtml(title)+'" loading="lazy">':'')+(title?'<h2>'+escapeHtml(title)+'</h2>':'')+(content?'<p>'+escapeHtml(content).replace(/\n/g,'<br>')+'</p>':'')+(links.length?'<div class="mx-digital-links">'+links.slice(0,12).map(x=>'<a href="'+escapeHtml(x.url||'#')+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(x.label||x.name||'رابط')+'</a>').join('')+'</div>':'')+'</article>';
+          return '<article class="mx-digital-section mx-digital-section--'+escapeHtml(type.toLowerCase())+'">'+(image?'<img class="mx-digital-section__image" src="'+escapeHtml(image)+'" alt="'+escapeHtml(title)+'" loading="lazy">':'')+(title?'<h2>'+escapeHtml(title)+'</h2>':'')+(content?'<p>'+escapeHtml(content).replace(/\n/g,'<br>')+'</p>':'')+(links.length?'<div class="mx-digital-links">'+links.slice(0,12).map(x=>{const href=safePublicHref(x.url);const label=escapeHtml(x.label||x.name||'رابط');return href?'<a href="'+escapeHtml(href)+'" target="_blank" rel="noopener noreferrer">'+label+'</a>':'<span class="mx-digital-link mx-digital-link--disabled" aria-disabled="true">'+label+'</span>';}).join('')+'</div>':'')+'</article>';
         }).join(''):'<div class="empty-state">لم يتم نشر محتوى الصفحة بعد.</div>';
       }catch(e){
         document.getElementById('mx-digital-title').textContent='الصفحة غير متاحة';
