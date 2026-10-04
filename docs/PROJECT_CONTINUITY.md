@@ -290,3 +290,12 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] GitHub Actions run `37165994161` for commit `053298d6975d8e2bd3398e8e005d34392c9625b1` completed **SUCCESS**.
 - [x] The preceding rapid superseded runs for the intermediate RC337 commits were CANCELLED by newer pushes and are not treated as failures.
 - [ ] Final Production Gate remains OPEN because CI success does not substitute for external runtime, payment, recovery, browser/device, Auth managed-setting or Android evidence.
+
+
+## RC338 — Production boundary audit — 2026-10-04
+- [x] Verified RLS is enabled and policy-backed for orders, payment_intents, user_memberships, support_tickets, ticket_messages, notifications, financial_obligations, settlement_transactions and general_ledger.
+- [x] Verified `payment_intents` has `UNIQUE (tenant_id, idempotency_key)`.
+- [x] Re-verified the server-side payment-intent RPC validates authenticated identity, tenant/order ownership boundary, payable status, authoritative pricing snapshot, amount/currency and idempotency.
+- [x] Added read-only audit contract: `scripts/verify-rc338-production-boundaries.sql`.
+- [x] Added evidence record: `docs/RC338_PRODUCTION_BOUNDARY_AUDIT.md`.
+- [ ] Runtime adversarial two-user/two-tenant E2E remains NOT VERIFIED.
