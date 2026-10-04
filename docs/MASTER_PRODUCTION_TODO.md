@@ -861,3 +861,18 @@
 - [x] Added `scripts/verify-rc338-production-boundaries.sql`.
 - [x] Added `docs/RC338_PRODUCTION_BOUNDARY_AUDIT.md`.
 - [ ] Adversarial two-user/two-tenant runtime E2E remains open.
+
+
+## RC339 — Mantiqati official showcase — 2026-10-04
+- [x] Applied production migration `rc339_seed_mantiqati_official_showcase` successfully.
+- [x] Seeded 25 official showcase sectors/activities under `MNTY-PLATFORM`.
+- [x] Seeded 24 active master modules and enabled all 24 modules for each showcase business: 600 business-module bindings.
+- [x] Created 25 official business profiles, 25 OWNER memberships for the existing Super Admin identity, 25 verified/featured provider profiles, 25 primary services and provider-service links.
+- [x] Respected the existing legal business activation trigger; no trigger was disabled and no consent was fabricated.
+- [x] Added a narrowly scoped public RLS policy for active businesses where `settings.showcase=true`.
+- [x] Added 25 SVG activity identity/logo assets under `web/assets/activities/`.
+- [x] Integrated the official showcase and module catalog into the public homepage in `web/app.js`.
+- [x] Live SQL verification returned 25 sectors, 24 modules, 25 active showcase businesses, 25 active owner memberships, 25 active verified profiles, 25 services and 600 enabled module bindings.
+- [ ] Browser/Super Admin runtime smoke verification remains to be completed.
+- [ ] Domain-specific transactional E2E remains a separate release gate.
+- Production Release Gate remains **OPEN / NOT PRODUCTION READY YET**.
