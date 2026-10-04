@@ -830,3 +830,19 @@
 - [x] Re-ran Security Advisor; warnings remain intentionally because these are authenticated RPC boundaries, not because the hardening failed.
 - [ ] Leaked-password protection and critical runtime/payment/recovery/device/Android gates remain open.
 - Production Release Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+
+## RC337 — Current security/release gate snapshot — 2026-10-04
+
+- [x] Live production project remains ACTIVE_HEALTHY; migration history reaches RC336.
+- [x] Added `scripts/verify-rc337-security-definer-hardening.sql` as a read-only regression contract for the nine authenticated-callable SECURITY DEFINER RPCs plus the intentional public ad RPC.
+- [x] Added `docs/RC337_CURRENT_SECURITY_RELEASE_GATE.md` with the current evidence boundary.
+- [x] Re-ran Security Advisor: the remaining SECURITY DEFINER findings match the deliberate public-ad/RBAC/backend RPC contract; all exposed functions have explicit search-path hardening and anon is denied except the intentional ad-serving boundary.
+- [x] Re-ran Performance Advisor: 107 unindexed FK findings and 24 multiple-permissive-policy findings remain. No mass indexing or policy consolidation was applied without workload/query-plan evidence.
+- [x] Static web security spot-check: no eval/new Function or direct browser service_role exposure found; inspected dynamic public-home output escapes user/database text.
+- [ ] Leaked Password Protection still requires Supabase Auth managed configuration.
+- [ ] Two-user/two-tenant adversarial E2E remains NOT VERIFIED.
+- [ ] Customer/provider/order/status/notification E2E remains NOT VERIFIED.
+- [ ] Real Paymob/payment/refund/settlement/GL E2E remains WAITING FOR CREDENTIAL/PROVIDER AUTHORIZATION.
+- [ ] Browser/PWA/push, backup/restore/rollback, Android signed/device and final release evidence remain open.
+- Production Release Gate remains **OPEN / NOT PRODUCTION READY YET**.
