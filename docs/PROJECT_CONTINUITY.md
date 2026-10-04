@@ -11,8 +11,8 @@
 - Branch: `main`
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit: `3ee901207ffd2672f7058ce2d3c5fce5d0b8eba8`
-- Latest release-gate record: **RC247**
+- Latest documented project commit: `7d997bf718a52c4e74a076f4f6c14014fdb34e41`
+- Latest release-gate record: **RC318**
 - Final Production Gate: **OPEN**
 
 ## Latest web execution batch
@@ -238,3 +238,17 @@ This status is intentional and must remain until the open gates above are indepe
 - Hardened the public footer information dialog with focus containment and restoration, matching the restaurant modal accessibility pattern.
 - This is a source-level web accessibility improvement; deployed browser/assistive-technology E2E remains NOT VERIFIED.
 - Latest material commit: `5510a060de371d83579eb463870f1bd5edbe67c8`.
+
+
+## RC318 — Production security gate re-verification — 2026-10-04
+- [x] Main branch verified at `7d997bf718a52c4e74a076f4f6c14014fdb34e41`.
+- [x] GitHub Pages run `37164800526` for that exact commit completed SUCCESS.
+- [x] Superseded run `37164793506` was CANCELLED by the newer commit and is not treated as a failure.
+- [x] Live Supabase Security Advisor re-run.
+- [x] Production project is ACTIVE_HEALTHY.
+- [x] Current Advisor still reports `digital_page_payment_events` RLS-enabled/no-policy, 1 anonymous-callable SECURITY DEFINER function, and 9 authenticated-callable SECURITY DEFINER functions.
+- [ ] Leaked Password Protection remains NOT VERIFIED/enabled and requires the Auth/Dashboard control.
+- [ ] Two-user/two-tenant adversarial E2E remains NOT VERIFIED.
+- [ ] Payment/refund/settlement E2E remains blocked on production credentials and safe real-payment authorization.
+- [ ] Backup/restore, rollback, browser/device smoke, and Android signed/device evidence remain open.
+- Final Production Gate remains OPEN; project is NOT PRODUCTION READY YET.
