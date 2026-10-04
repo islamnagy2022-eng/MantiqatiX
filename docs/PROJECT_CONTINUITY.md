@@ -221,3 +221,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Replaced the three footer `href="#"` no-op links (About / Terms / Privacy) with functional in-app information dialogs.
 - Added accessible dialog semantics, initial focus, Escape close and backdrop close.
 - RC314 CI was triggered; production readiness remains OPEN because the independent authenticated E2E/payment/backup/device/monitoring gates are not closed.
+
+## RC315–RC316 update — 2026-10-04
+- Continued the web-only 1000-stage execution track without reopening completed UI work.
+- RC315: made the public customer-support phone number an accessible `tel:` action.
+- RC316: hardened the restaurant modal with focus restoration, Tab/Shift+Tab containment, Escape/backdrop close cleanup, and initial focus on the close control.
+- Latest material documentation commit: `6ffac78d3af33e6ca90f3b1a909b2a2d4fbb9013`.
+- These are source-level web UX/accessibility improvements; public browser E2E and final production gates remain OPEN.
