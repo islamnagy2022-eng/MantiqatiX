@@ -228,3 +228,8 @@ This status is intentional and must remain until the open gates above are indepe
 - RC316: hardened the restaurant modal with focus restoration, Tab/Shift+Tab containment, Escape/backdrop close cleanup, and initial focus on the close control.
 - Latest material documentation commit: `6ffac78d3af33e6ca90f3b1a909b2a2d4fbb9013`.
 - These are source-level web UX/accessibility improvements; public browser E2E and final production gates remain OPEN.
+
+## RC317 update — 2026-10-04
+- Hardened the public footer information dialog with focus containment and restoration, matching the restaurant modal accessibility pattern.
+- This is a source-level web accessibility improvement; deployed browser/assistive-technology E2E remains NOT VERIFIED.
+- Latest material commit: `5510a060de371d83579eb463870f1bd5edbe67c8`.
