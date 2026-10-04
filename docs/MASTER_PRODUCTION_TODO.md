@@ -852,3 +852,12 @@
 - [x] GitHub Actions run `37165994161` completed SUCCESS for commit `053298d6975d8e2bd3398e8e005d34392c9625b1`.
 - [x] Superseded intermediate RC337 runs were cancelled by newer pushes and are not treated as failures.
 - [ ] CI success does not close the external release gates; Production Release Gate remains OPEN.
+
+
+## RC338 — Production boundary audit — 2026-10-04
+- [x] Core sensitive tables structurally verified RLS-enabled and policy-backed.
+- [x] Payment idempotency database uniqueness verified: `tenant_id + idempotency_key`.
+- [x] Server-authoritative payment intent checks re-verified from live function definition.
+- [x] Added `scripts/verify-rc338-production-boundaries.sql`.
+- [x] Added `docs/RC338_PRODUCTION_BOUNDARY_AUDIT.md`.
+- [ ] Adversarial two-user/two-tenant runtime E2E remains open.
