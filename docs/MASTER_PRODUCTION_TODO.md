@@ -919,3 +919,11 @@
 - [x] This confirms the CI contract is executable and the deployed web artifact passed the current automated smoke checks.
 - [ ] This does not close live Auth managed settings, adversarial multi-tenant E2E, real payment/finance, backup/restore/rollback, browser/device/PWA/push, or Android signed-release evidence.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+## RC360 — Production gate integrity contract — 2026-10-04
+- [x] Added `scripts/validate-production-gate-contract.mjs`.
+- [x] Wired it into the Pages validation workflow after the SECURITY DEFINER/RBAC contract.
+- [x] The guard requires the release register to continue explicitly identifying multi-user/tenant E2E, Paymob, leaked-password protection, release signing and real-device testing as open gates until evidence exists.
+- [x] The guard also requires the continuity register and workflow to retain the critical release controls.
+- [ ] This is a safety guard only; it does not manufacture runtime evidence and does not close any external release blocker.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
