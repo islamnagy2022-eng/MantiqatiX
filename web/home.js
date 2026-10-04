@@ -479,7 +479,7 @@
         const id=decodeURIComponent(h.slice(10));
         try{
           const sb=getClient(); if(!sb)return;
-          const {data,error}=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('id',id).eq('status','ACTIVE').maybeSingle();
+          const {data,error}=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('id',id).eq('status','ACTIVE').maybeSingle();
           if(error||!data)return;
           return window.__MNTYOpenProviderProfilePage?.(data);
         }catch(_){return}
@@ -703,7 +703,7 @@
           if(el) el.hidden = id==='mx-services' ? !homeSectionEnabled('SERVICE_CATALOG') : id==='mx-offers' ? !homeSectionEnabled('ADVERTISEMENTS') : !homeSectionEnabled('MARKETING');
         });
         let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
-        let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
+        let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
         if(categoryCode){ const code=normCode(categoryCode); serviceQuery=serviceQuery.eq('category_code',code); providerQuery=providerQuery.eq('provider_kind',code); } else if(safeTerm){ serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%'); providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
         const adCoords=window.MNTYLocationAdapter?.state?.coords||null;
         const adsPromise=sb.rpc('get_mnty_targeted_advertisements',{
@@ -826,7 +826,7 @@
     const openInitialProvider=async id=>{
       try{
         const sb=getClient(); if(!sb) throw new Error('NO_CLIENT');
-        const r=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('id',decodeURIComponent(id)).eq('status','ACTIVE').maybeSingle();
+        const r=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('id',decodeURIComponent(id)).eq('status','ACTIVE').maybeSingle();
         if(r.error||!r.data) throw (r.error||new Error('NOT_FOUND'));
         openProviderProfilePage(r.data,'');
       }catch(_){ loadData(); }
