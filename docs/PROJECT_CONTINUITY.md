@@ -362,3 +362,8 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] The validator preserves the explicit open status of critical external/runtime gates and the required CI security contracts.
 - [ ] No external gate is considered closed by this source/CI guard.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+## RC361 — Public sponsored-ad accessibility hardening — 2026-10-04
+- [x] Targeted-ad cards support keyboard activation with Enter/Space while retaining the in-app modal interaction.
+- [x] The production-gate validator now guards this interaction contract.
+- [ ] Real browser/assistive-technology/device E2E remains NOT VERIFIED.
