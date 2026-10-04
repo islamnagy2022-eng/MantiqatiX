@@ -60,19 +60,39 @@ const domainModules=[
 {key:'EDUCATION',name:'المدارس والتدريب',icon:'🎓',desc:'المدارس والمدرسون وطلبات التعليم.',tables:['school_profiles','teacher_profiles','education_requests']},
 {key:'USED_ITEMS',name:'المستعمل',icon:'♻️',desc:'إعلانات المستعمل والعروض والتفاوض.',tables:['used_item_ads']}
 ];
-const sectors=[
-['🩺','الأطباء والعيادات','ملفات الأطباء، التخصصات، الباقات، الترشيحات والعمولات'],['💊','الصيدليات','الخدمات والمنتجات، الباقات، الطلبات والعمولات'],
-['🧪','معامل التحاليل','المعامل، الخدمات، الترشيحات والعمولات'],['🩻','مراكز الأشعة','مراكز الأشعة، الخدمات، الترشيحات والعمولات'],['🏥','المستشفيات الخاصة','الأقسام والخدمات والباقات والترشيحات'],
-['🦷','الأسنان والعيادات التخصصية','أطباء الأسنان والخدمات والحجوزات'],['🐾','الخدمات البيطرية','العيادات والأطباء والخدمات البيطرية'],
-['🍽️','المطاعم والكافيهات','الطلبات والعروض وإدارة النشاط'],['🛒','السوبر ماركت والبقالة','المنتجات والطلبات والمخزون'],['👗','الأزياء والخياطة','المتاجر والمنتجات والخدمات'],
-['🔧','الصيانة والخدمات المنزلية','مقدمو الخدمة والطلبات والترشيحات'],['🧾','المحاسبة ومكاتب المحاسبة','المحاسبون والمكاتب والخدمات المالية'],
-['⚖️','المحاماة والخدمات القانونية','المحامون والمكاتب والوثائق والاستشارات'],['🏢','الشركات والموردون','الشركات والمصانع والموردون وخدمات الأعمال'],
-['🎓','التعليم والتدريب','المدارس والمدرسون ومراكز التدريب'],['💻','البرمجيات والخدمات الرقمية','البرمجيات والمواقع والخدمات التقنية'],
-['📣','التسويق والإعلان','الشركة وشركات التسويق والعملاء والحملات'],['✈️','السفر والرحلات','الوكلاء والرحلات والحجوزات'],
-['🚕','MantiGO والنقل عند الطلب','الرحلات والعروض والسائقون'],['💼','الوظائف والتوظيف','أصحاب الأعمال والوظائف والمتقدمون'],
-['💍','الزواج والخدمات المرتبطة','الملفات والخدمات والترشيحات'],['♻️','المستعمل','الإعلانات والعروض والتفاوض'],['🏠','العقارات','البيع والإيجار والخدمات العقارية'],
-['🚗','السيارات والنقل','السيارات والصيانة وخدمات النقل'],['💪','الرياضة واللياقة','الأندية والمدربون'],['🤝','المستقلون ومقدمو الخدمات','الخدمات الاحترافية والمشروعات']
-];
+const SECTOR_PRESENTATION={
+ FOOD:['🍽️','مطاعم وكافيهات','الطلبات والعروض وإدارة النشاط'],
+ HEALTH:['🩺','الأطباء والعيادات','ملفات الأطباء، التخصصات، الباقات، الترشيحات والعمولات'],
+ PHARMACY:['💊','الصيدليات','الخدمات والمنتجات، الباقات، الطلبات والعمولات'],
+ LABS:['🧪','معامل التحاليل','المعامل، الخدمات، الترشيحات والعمولات'],
+ RADIOLOGY:['🩻','مراكز الأشعة','مراكز الأشعة، الخدمات، الترشيحات والعمولات'],
+ DENTAL:['🦷','الأسنان والعيادات التخصصية','أطباء الأسنان والخدمات والحجوزات'],
+ HOSPITAL:['🏥','المستشفيات الخاصة','الأقسام والخدمات والباقات والترشيحات'],
+ MEDICAL:['🏥','مراكز طبية','التشخيص والرعاية والخدمات الطبية المتكاملة'],
+ REAL_ESTATE:['🏠','العقارات','البيع والإيجار والخدمات العقارية'],
+ AUTO:['🚗','السيارات والنقل','السيارات والصيانة وخدمات النقل'],
+ MAINTENANCE:['🔧','الصيانة والخدمات المنزلية','مقدمو الخدمة والطلبات والترشيحات'],
+ ACCOUNTING:['🧾','المحاسبة ومكاتب المحاسبة','المحاسبون والمكاتب والخدمات المالية'],
+ LEGAL:['⚖️','المحاماة والخدمات القانونية','المحامون والمكاتب والوثائق والاستشارات'],
+ COMPANIES:['🏢','الشركات والموردون','الشركات والمصانع والموردون وخدمات الأعمال'],
+ EDU:['🎓','التعليم والتدريب','المدارس والمدرسون ومراكز التدريب'],
+ DIGITAL:['📣','التسويق والإعلان','الشركة وشركات التسويق والعملاء والحملات'],
+ TECH:['💻','البرمجيات والخدمات الرقمية','البرمجيات والمواقع والخدمات التقنية'],
+ FITNESS:['💪','الرياضة واللياقة','الأندية والمدربون'],
+ TRAVEL:['✈️','السفر والرحلات','الوكلاء والرحلات والحجوزات'],
+ MANTIGO:['🚕','MantiGO والنقل عند الطلب','الرحلات والعروض والسائقون'],
+ JOBS:['💼','الوظائف والتوظيف','أصحاب الأعمال والوظائف والمتقدمون'],
+ MATRIMONY:['💍','الزواج والخدمات المرتبطة','الملفات والخدمات والترشيحات'],
+ USED_ITEMS:['♻️','المستعمل','الإعلانات والعروض والتفاوض'],
+ FASHION:['👗','الأزياء والخياطة','المتاجر والمنتجات والخدمات'],
+ GROCERY:['🛒','السوبر ماركت والبقالة','المنتجات والطلبات والمخزون'],
+ VETERINARY:['🐾','الخدمات البيطرية','العيادات والأطباء والخدمات البيطرية'],
+ FREELANCER:['🤝','المستقلون ومقدمو الخدمات','الخدمات الاحترافية والمشروعات المستقلة']
+};
+const sectors=Object.freeze((window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS||[]).map(s=>{
+ const p=SECTOR_PRESENTATION[s.code]||['◉',s.label,'الخدمات والأنشطة ضمن هذا القطاع'];
+ return [p[0],p[1],p[2],s.code,s.backend];
+}));
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
 const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
@@ -309,40 +329,14 @@ window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;const b=d
 }
 async function installApp(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true}
 function openLandingSector(button){const name=button?.dataset?.sector||'';return selectModule(sectorMapForLanding(name))}
-function sectorMapForLanding(name){const map={'الأطباء والعيادات':'المنظومة الطبية','الصيدليات':'المنظومة الطبية','معامل التحاليل':'المنظومة الطبية','مراكز الأشعة':'المنظومة الطبية','المستشفيات الخاصة':'المنظومة الطبية','الأسنان والعيادات التخصصية':'المنظومة الطبية','مراكز طبية':'المنظومة الطبية','الخدمات البيطرية':'المنظومة الطبية','المطاعم والكافيهات':'المطاعم والمطابخ','السوبر ماركت والبقالة':'البقالة والسوبر ماركت','الأزياء والخياطة':'التجارة والأزياء','الصيانة والخدمات المنزلية':'الصيانة','المحاسبة ومكاتب المحاسبة':'المزايدات — المحاسبة','المحاماة والخدمات القانونية':'المزايدات — الخدمات القانونية','الشركات والموردون':'المزايدات — الشركات','التعليم والتدريب':'التعليم','البرمجيات والخدمات الرقمية':'البرمجيات ERP','التسويق والإعلان':'التسويق والإعلان','السفر والرحلات':'المزايدات — الرحلات','MantiGO والنقل عند الطلب':'MantiGO والمزايدات','الوظائف والتوظيف':'الوظائف','الزواج والخدمات المرتبطة':'الزواج','المستعمل':'المستعمل','العقارات':'المزايدات — الشركات','السيارات والنقل':'MantiGO والمزايدات','الرياضة واللياقة':'التعليم','المستقلون ومقدمو الخدمات':'المزايدات — التسويق'};return map[name]||'الموديولات'}
-function closeMantiqatiShowcaseProfile(){const el=document.getElementById('mnty-showcase-profile-modal');if(!el)return;el.remove();document.body.style.removeProperty('overflow');}
-async function openMantiqatiShowcaseProfile(providerId){
- const id=String(providerId||'').trim();if(!id)return;
- const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- closeMantiqatiShowcaseProfile();
- const modal=document.createElement('div');modal.id='mnty-showcase-profile-modal';modal.className='mnty-showcase-profile-modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','ملف النشاط');
- modal.innerHTML='<div class="mnty-showcase-profile-backdrop" data-close-showcase></div><section class="mnty-showcase-profile-dialog" tabindex="-1"><button type="button" class="mnty-showcase-profile-close" aria-label="إغلاق" data-close-showcase>×</button><div class="mnty-showcase-profile-content"><div class="mnty-showcase-profile-loading">جاري تحميل ملف النشاط…</div></div></section>';
- document.body.appendChild(modal);document.body.style.overflow='hidden';
- const close=()=>closeMantiqatiShowcaseProfile();modal.querySelectorAll('[data-close-showcase]').forEach(x=>x.addEventListener('click',close));const keyHandler=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',keyHandler);
- const root=modal.querySelector('.mnty-showcase-profile-content');
- try{
-  const p=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,slug,description,specialties,portfolio,status,is_verified,is_featured,profile_image_path,service_areas').eq('id',id).eq('status','ACTIVE').eq('is_featured',true).maybeSingle();
-  if(p.error)throw p.error;if(!p.data)throw new Error('PROFILE_NOT_FOUND');
-  const profile=p.data;
-  const [bq,sq]=await Promise.all([
-   sb.from('businesses').select('id,name,code,status,settings').eq('id',profile.business_id).eq('status','ACTIVE').eq('settings->>showcase','true').maybeSingle(),
-   sb.from('marketing_provider_services').select('id,service_id,service_description,pricing_from,pricing_to,currency,status').eq('provider_id',profile.id).eq('status','ACTIVE').order('created_at',{ascending:true}).limit(12)
-  ]);
-  if(bq.error)throw bq.error;if(sq.error)throw sq.error;if(!bq.data)throw new Error('BUSINESS_NOT_FOUND');
-  const serviceIds=[...new Set((sq.data||[]).map(x=>x.service_id).filter(Boolean))];
-  const sv=serviceIds.length?await sb.from('marketing_services').select('id,name_ar,name_en,category_code,status').in('id',serviceIds):{data:[],error:null};
-  if(sv.error)throw sv.error;
-  const names=new Map((sv.data||[]).map(x=>[String(x.id),x.name_ar||x.name_en||'خدمة']));
-  const asset=/^assets\/activities\/[a-z0-9_-]+\.svg$/i.test(String(profile.profile_image_path||''))?profile.profile_image_path:'assets/activities/health.svg';
-  const specs=(Array.isArray(profile.specialties)?profile.specialties:[]).slice(0,8).map(esc);
-  const portfolio=(Array.isArray(profile.portfolio)?profile.portfolio:[]).slice(0,8).map(x=>typeof x==='string'?x:(x?.title||x?.name||x?.description||'')).filter(Boolean).map(esc);
-  const services=(sq.data||[]).map(x=>({name:names.get(String(x.service_id))||x.service_description||'خدمة',desc:x.service_description||'',from:x.pricing_from,to:x.pricing_to,currency:x.currency||'EGP'}));
-  const price=x=>x.from==null&&x.to==null?'السعر يحدد حسب الطلب':x.from!=null&&x.to!=null?esc(x.from)+' – '+esc(x.to)+' '+esc(x.currency):x.from!=null?'يبدأ من '+esc(x.from)+' '+esc(x.currency):'حتى '+esc(x.to)+' '+esc(x.currency);
-  root.innerHTML='<div class="mnty-showcase-profile-hero"><img src="'+esc(asset)+'" alt="'+esc(profile.name_ar)+'"><div><span class="mnty-showcase-card__eyebrow">نشاط رسمي في منطقتي</span><h2>'+esc(profile.name_ar)+'</h2><p>'+esc(profile.description||'ملف خدمة رسمي مُدار من المنصة.')+'</p><div class="mnty-showcase-profile-badges"><span>✓ موثق</span><span>✓ رسمي</span><span>📍 '+esc((Array.isArray(profile.service_areas)?profile.service_areas[0]:'منطقتي')||'منطقتي')+'</span></div></div></div><div class="mnty-showcase-profile-grid"><section><h3>التخصصات</h3><div class="mnty-showcase-profile-tags">'+(specs.length?specs.map(x=>'<span>'+x+'</span>').join(''):'<span>سيتم تحديث التخصصات</span>')+'</div></section><section><h3>الخدمات المتاحة</h3><div class="mnty-showcase-profile-services">'+(services.length?services.map(x=>'<article><strong>'+esc(x.name)+'</strong><p>'+esc(x.desc||'خدمة متخصصة ضمن النشاط الرسمي.')+'</p><b>'+price(x)+'</b></article>').join(''):'<div class="empty-state">لا توجد خدمات منشورة حاليًا.</div>')+'</div></section><section><h3>نبذة عن الملف</h3><div class="mnty-showcase-profile-tags">'+(portfolio.length?portfolio.map(x=>'<span>✓ '+x+'</span>').join(''):'<span>الملف الرسمي قيد الإثراء</span>')+'</div></section></div><div class="mnty-showcase-profile-actions"><button type="button" class="btn btn-primary" data-showcase-login>تسجيل الدخول للمتابعة</button><button type="button" class="btn btn-outline" data-close-showcase>إغلاق</button></div>';
-  root.querySelector('[data-showcase-login]')?.addEventListener('click',()=>{closeMantiqatiShowcaseProfile();authView('',false,'','login')});
-  root.querySelector('[data-close-showcase]')?.addEventListener('click',close);
-  modal.querySelector('.mnty-showcase-profile-dialog')?.focus();
- }catch(error){root.innerHTML='<div class="empty-state"><h3>تعذر فتح ملف النشاط</h3><p>'+esc(error?.message||'حدث خطأ غير معروف')+'</p><button type="button" class="btn btn-outline" data-close-showcase>إغلاق</button></div>';root.querySelector('[data-close-showcase]')?.addEventListener('click',close);}
+function sectorMapForLanding(name){
+ const map={
+  'الأطباء والعيادات':'المنظومة الطبية','الصيدليات':'المنظومة الطبية','معامل التحاليل':'المنظومة الطبية','مراكز الأشعة':'المنظومة الطبية','المستشفيات الخاصة':'المنظومة الطبية','الأسنان والعيادات التخصصية':'المنظومة الطبية','مراكز طبية':'المنظومة الطبية','الخدمات البيطرية':'المنظومة الطبية',
+  'المطاعم والكافيهات':'المطاعم والمطابخ','السوبر ماركت والبقالة':'البقالة والسوبر ماركت','الأزياء والخياطة':'التجارة والأزياء','الصيانة والخدمات المنزلية':'الصيانة',
+  'المحاسبة ومكاتب المحاسبة':'المزايدات — المحاسبة','المحاماة والخدمات القانونية':'المزايدات — الخدمات القانونية','الشركات والموردون':'المزايدات — الشركات',
+  'التعليم والتدريب':'التعليم','التسويق والإعلان':'التسويق والإعلان','السفر والرحلات':'المزايدات — الرحلات','MantiGO والنقل عند الطلب':'MantiGO والمزايدات','الوظائف والتوظيف':'الوظائف','الزواج والخدمات المرتبطة':'الزواج','المستعمل':'المستعمل'
+ };
+ return map[name]||'المجالات والخدمات';
 }
 async function loadMantiqatiShowcase(){
  const grid=document.getElementById('mantiqati-showcase-grid'); if(!grid)return;
@@ -458,9 +452,18 @@ function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(
 function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>تحكم في الوحدات التي تظهر للمنصة والمشتركين.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>`<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span></article>`).join('')}</div>`}
 function sectorsPage(){
  const list=filtered(sectors);
- const sectorMap={'الأطباء والعيادات':'المنظومة الطبية','الصيدليات':'المنظومة الطبية','التحاليل والأشعة':'المنظومة الطبية','المستشفيات الخاصة':'المنظومة الطبية','الأسنان والعيادات التخصصية':'المنظومة الطبية','الخدمات البيطرية':'المنظومة الطبية','المطاعم والكافيهات':'المطاعم والمطابخ','السوبر ماركت والبقالة':'البقالة والسوبر ماركت','الأزياء والخياطة':'التجارة والأزياء','الصيانة والخدمات المنزلية':'الصيانة','المحاسبة ومكاتب المحاسبة':'الخدمات المهنية','المحاماة والخدمات القانونية':'الخدمات المهنية','الشركات والموردون':'الخدمات المهنية','التعليم والتدريب':'التعليم','البرمجيات والخدمات الرقمية':'الخدمات المهنية','التسويق والإعلان':'التسويق والإعلان','السفر والرحلات':'MantiGO والمزايدات','MantiGO والنقل عند الطلب':'MantiGO والمزايدات','الوظائف والتوظيف':'الوظائف','الزواج والخدمات المرتبطة':'الزواج','المستعمل':'المستعمل','العقارات':'الخدمات المهنية','السيارات والنقل':'MantiGO والمزايدات','الرياضة واللياقة':'التعليم','المستقلون ومقدمو الخدمات':'الخدمات المهنية'};
- const cards=list.map((s,i)=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+esc(s[0])+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(s[1])+'</h3><span class="mnty-badge mnty-badge--ui">UI READY</span></div><p>'+esc(s[2])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div><div class="mini-actions"><button type="button" onclick="selectModule(\''+(sectorMap[s[1]]||'الموديولات')+'\')">فتح المجال</button><button type="button" onclick="selectModule(\'العمولات والباقات\')">الباقات</button></div></div></article>').join('');
- return '<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">SERVICE DISCOVERY</span><h2>المجالات والخدمات</h2><p>المدخل الرئيسي لاكتشاف القطاعات والوصول إلى الوحدة التشغيلية المناسبة. لا يتم عرض أرقام أو عروض مصطنعة.</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--live">'+sectors.length+' مجال</span><small>'+list.length+' نتيجة مطابقة</small></div></div><div class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات معرفة</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+live.records.services.length+'</b><span>خدمات فعلية ظاهرة</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div></div><div class="mnty-screen-note">ابحث من شريط البحث العام بالأعلى، ثم افتح المجال للوصول إلى مساحة العمل الخاصة به. أي وظيفة غير موصولة ستظهر كواجهة جاهزة بدل إنشاء بيانات وهمية.</div><div class="mnty-blueprint-grid" style="margin-top:16px">'+(cards||'<div class="empty-state">لا توجد نتائج مطابقة للبحث الحالي.</div>')+'</div></section>';
+ const sectorMap={
+  'الأطباء والعيادات':'المنظومة الطبية','الصيدليات':'المنظومة الطبية','معامل التحاليل':'المنظومة الطبية','مراكز الأشعة':'المنظومة الطبية','المستشفيات الخاصة':'المنظومة الطبية','الأسنان والعيادات التخصصية':'المنظومة الطبية','مراكز طبية':'المنظومة الطبية','الخدمات البيطرية':'المنظومة الطبية',
+  'المطاعم والكافيهات':'المطاعم والمطابخ','السوبر ماركت والبقالة':'البقالة والسوبر ماركت','الأزياء والخياطة':'التجارة والأزياء','الصيانة والخدمات المنزلية':'الصيانة',
+  'المحاسبة ومكاتب المحاسبة':'المزايدات — المحاسبة','المحاماة والخدمات القانونية':'المزايدات — الخدمات القانونية','الشركات والموردون':'المزايدات — الشركات',
+  'التعليم والتدريب':'التعليم','التسويق والإعلان':'التسويق والإعلان','السفر والرحلات':'المزايدات — الرحلات','MantiGO والنقل عند الطلب':'MantiGO والمزايدات','الوظائف والتوظيف':'الوظائف','الزواج والخدمات المرتبطة':'الزواج','المستعمل':'المستعمل'
+ };
+ const cards=list.map(s=>{
+  const target=sectorMap[s[1]]||'المجالات والخدمات';
+  const operational=Boolean(sectorMap[s[1]]);
+  return '<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+esc(s[0])+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(s[1])+'</h3><span class="mnty-badge mnty-badge--ui">'+(operational?'OPERATIONAL':'DIRECTORY')+'</span></div><p>'+esc(s[2])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div><div class="mini-actions"><button type="button" onclick="selectModule(\''+target+'\')">'+(operational?'فتح المجال':'دليل القطاع')+'</button><button type="button" onclick="selectModule(\'العمولات والباقات\')">الباقات</button></div></div></article>';
+ }).join('');
+ return '<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">SERVICE DISCOVERY</span><h2>المجالات والخدمات</h2><p>دليل القطاعات الموحد للمنصة. يوضح هذا الدليل القطاعات التشغيلية والقطاعات التي ما زالت في وضع الدليل دون الإيحاء باكتمال وحدة خلفية غير موصولة.</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--live">'+sectors.length+' مجال</span><small>'+list.length+' نتيجة مطابقة</small></div></div><div class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات معرفة</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+live.records.services.length+'</b><span>خدمات فعلية ظاهرة</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div></div><div class="mnty-screen-note">ابحث من شريط البحث العام بالأعلى، ثم افتح القطاع التشغيلي عند توفر وحدته. القطاعات غير الموصولة تظهر كدليل فقط دون بيانات مصطنعة.</div><div class="mnty-blueprint-grid" style="margin-top:16px">'+(cards||'<div class="empty-state">لا توجد نتائج مطابقة للبحث الحالي.</div>')+'</div></section>';
 }
 function genericPage(title,desc,items){
  const safe=Array.isArray(items)?items:[];
