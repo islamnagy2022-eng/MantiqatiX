@@ -341,3 +341,10 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Performance Advisor currently reports 26 multiple-permissive-policy findings; no blanket policy rewrite was performed because several findings represent legitimate alternative authorization paths.
 - [ ] Leaked Password Protection still requires the Supabase Auth managed setting to be enabled by the project owner, then independently rechecked.
 - [ ] Final Production Gate remains OPEN.
+
+
+## RC359 — CI security boundary contract
+- Added `scripts/validate-security-definer-contract.mjs` and wired it into `.github/workflows/pages.yml`.
+- The release workflow now checks that all eight authenticated SECURITY DEFINER boundaries retain the RC336 `search_path=public,pg_temp` hardening and that the RC337 live-verification contract remains present.
+- This is a source/CI guard, not live authorization proof; adversarial two-user/two-tenant E2E remains open.
+- Production Gate remains **OPEN / NOT PRODUCTION CERTIFIED**.
