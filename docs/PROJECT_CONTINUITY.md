@@ -376,3 +376,12 @@ This status is intentional and must remain until the open gates above are indepe
 - No production database mutation was performed by RC362.
 - Live Supabase read-only verification: 25 active official showcase businesses, 25 active verified/featured official providers, 110 active services, 110 active provider-service links, 600 enabled business-module bindings, and 26 active OWNER memberships.
 - These counts are catalog/readiness evidence only; they do **not** close multi-user adversarial E2E, booking E2E, payment/refund/settlement E2E, backup/restore/rollback, device testing, or final production certification.
+
+
+## RC363 — Full sector directory visibility
+
+- Public homepage sector directory now explicitly presents **all 27 canonical sectors** as a permanent visible grid rather than a shortened/hidden category presentation.
+- Desktop layout remains 7 activities per row; responsive layouts use 5/3/2 columns by viewport.
+- Added a visible sector-count indicator and clearer Arabic heading/copy.
+- The live taxonomy source was checked in `web/home.js`: exactly 27 canonical entries are present.
+- RC363 changes are UI/catalog presentation only; no production business/order/financial data was modified.
