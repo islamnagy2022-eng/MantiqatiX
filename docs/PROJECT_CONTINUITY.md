@@ -284,3 +284,9 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Performance Advisor re-run: 107 unindexed FK findings and 24 multiple-permissive-policy findings remain; no blanket rewrite performed without workload evidence.
 - [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY YET.
 - [ ] External runtime gates remain: leaked-password protection, two-user/two-tenant E2E, order/notification E2E, real payment/finance/refund E2E, browser/device/PWA/push, backup/restore/rollback, Android signed/device evidence.
+
+
+## RC337 CI evidence — 2026-10-04
+- [x] GitHub Actions run `37165994161` for commit `053298d6975d8e2bd3398e8e005d34392c9625b1` completed **SUCCESS**.
+- [x] The preceding rapid superseded runs for the intermediate RC337 commits were CANCELLED by newer pushes and are not treated as failures.
+- [ ] Final Production Gate remains OPEN because CI success does not substitute for external runtime, payment, recovery, browser/device, Auth managed-setting or Android evidence.
