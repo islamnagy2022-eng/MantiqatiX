@@ -11,8 +11,8 @@
 - Branch: `main`
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit: `7d997bf718a52c4e74a076f4f6c14014fdb34e41`
-- Latest release-gate record: **RC318**
+- Latest documented project commit: `51b4d8d4c857cab3fad43ee68025cb7b6ce838a4`
+- Latest release-gate record: **RC337**
 - Final Production Gate: **OPEN**
 
 ## Latest web execution batch
@@ -272,3 +272,15 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Security Advisor re-run; the 9 authenticated SECURITY DEFINER warnings remain as intentional RPC boundaries and are not falsely suppressed.
 - [ ] Leaked-password protection, adversarial multi-tenant E2E, payment/finance E2E, backup/restore/rollback, browser/device/PWA/push and Android release evidence remain open.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+
+## RC337 — Current security/release gate snapshot — 2026-10-04
+- [x] Live Supabase project remains ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [x] Migration history rechecked; latest production migration is `20261004003842 rc336_harden_authenticated_security_definer_search_paths`.
+- [x] Added read-only reusable verification contract: `scripts/verify-rc337-security-definer-hardening.sql`.
+- [x] Added evidence record: `docs/RC337_CURRENT_SECURITY_RELEASE_GATE.md`.
+- [x] Static web spot-check found no `eval()`/\`new Function()\` and no direct browser `service_role` exposure; inspected dynamic public-home rendering uses escaping for user/database text and public ad URLs are normalized.
+- [x] Security Advisor re-run: 1 RLS/no-policy backend-only ledger, 1 intentional anon SECURITY DEFINER ad RPC, 9 intentional authenticated SECURITY DEFINER RPCs, contextual anonymous-policy warnings, and leaked-password protection disabled.
+- [x] Performance Advisor re-run: 107 unindexed FK findings and 24 multiple-permissive-policy findings remain; no blanket rewrite performed without workload evidence.
+- [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY YET.
+- [ ] External runtime gates remain: leaked-password protection, two-user/two-tenant E2E, order/notification E2E, real payment/finance/refund E2E, browser/device/PWA/push, backup/restore/rollback, Android signed/device evidence.
