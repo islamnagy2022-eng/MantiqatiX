@@ -666,7 +666,8 @@
           const card=document.querySelector('#mx-provider-grid [data-provider="'+escapeHtml(item.id)+'"]');
           card?.click();
         }
-      });\n      el.querySelectorAll('.mx-photo--provider').forEach(media=>media.onclick=()=>media.closest('.mx-listing')?.querySelector('[data-provider]')?.click());
+      });
+      el.querySelectorAll('.mx-photo--provider').forEach(media=>media.onclick=()=>media.closest('.mx-listing')?.querySelector('[data-provider]')?.click());
     };
 
     const loadLocationUi=()=>{
