@@ -313,7 +313,7 @@ function sectorMapForLanding(name){const map={'الأطباء والعيادات
 async function loadMantiqatiShowcase(){
  const grid=document.getElementById('mantiqati-showcase-grid'); if(!grid)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- const safeAsset=s=>/^assets\\/activities\\/[a-z0-9_-]+\\.svg$/i.test(String(s||''))?String(s):'assets/activities/health.svg';
+ const safeAsset=s=>/^assets\/activities\/[a-z0-9_-]+\.svg$/i.test(String(s||''))?String(s):'assets/activities/health.svg';
  try{
   const {data,error}=await sb.from('marketing_provider_profiles').select('id,name_ar,name_en,slug,description,specialties,profile_image_path,status,is_verified,is_featured,business_id').eq('status','ACTIVE').eq('is_featured',true).order('name_ar',{ascending:true}).limit(50);
   if(error)throw error;
