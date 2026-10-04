@@ -100,7 +100,7 @@
 - [ ] daily/weekly/monthly reports.
 
 ## P1 — Providers / Sectors
-- [ ] مصدر موحد للقطاعات/المجالات/الخدمات.
+- [🟡] مصدر موحد للقطاعات/المجالات/الخدمات — تم توحيد دليل القطاعات العام وقاعدة `business_sectors` إلى 27 قطاعًا في RC367؛ توحيد كل مسارات التطبيق/المجالات/الخدمات في registry برمجي واحد ما زال متبقيًا.
 - [ ] التحقق من seed الحقيقي لـ business_categories/modules قبل عرضه كبيانات production.
 - [ ] provider profiles + verification/featured.
 - [ ] sector-specific packages/commissions/ranking.
