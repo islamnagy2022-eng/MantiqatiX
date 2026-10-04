@@ -788,3 +788,11 @@
 - [x] Initial focus now lands on the modal close action instead of the dialog container.
 - [ ] Browser E2E/accessibility assistive-technology verification remains NOT VERIFIED.
 - Production Release Gate remains OPEN.
+
+## RC317 — Public footer dialog focus isolation — 2026-10-04
+
+- [x] Added focus restoration to the public About/Terms/Privacy information dialog.
+- [x] Added Tab/Shift+Tab focus containment and deterministic Escape cleanup.
+- [x] Initial focus now lands on the close control; the invoking footer control regains focus after close.
+- [ ] Browser/assistive-technology E2E remains NOT VERIFIED.
+- Production Release Gate remains OPEN.
