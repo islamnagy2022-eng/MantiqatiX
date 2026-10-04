@@ -716,7 +716,7 @@ function superAdminControlWorkspace(){
  if(!canSuperAdmin())return workspaceHead('PLATFORM CONTROL','التحكم الكامل','هذه المساحة مخصصة لـ SUPER_ADMIN فقط.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية التحكم الكامل.</div>';
  const tenants=[...new Map((live.memberships||[]).filter(m=>String(m.role||'').toUpperCase()==='SUPER_ADMIN'&&m.status==='ACTIVE').map(m=>[m.tenant_id,m])).values()];
  const tenantOptions=tenants.map(m=>'<option value="'+esc(m.tenant_id)+'" '+(m.tenant_id===live.tenantId?'selected':'')+'>'+esc(m.tenant_id)+'</option>').join('');
- return workspaceHead('SUPER ADMIN','التحكم الكامل','مسار تشغيلي موحد لإنشاء النشاط ثم اعتماده وإنشاء الفرع والخدمات والأسعار، مع بقاء كل الكتابات الحساسة عبر الخادم.','PLATFORM')
+ return MNTY_ADMIN_SHOWCASE_STYLE+workspaceHead('SUPER ADMIN','التحكم الكامل','مسار تشغيلي موحد لإنشاء النشاط ثم اعتماده وإنشاء الفرع والخدمات والأسعار، مع بقاء كل الكتابات الحساسة عبر الخادم.','PLATFORM')
  +workspaceCards([['النطاقات النشطة',String(tenants.length),'Tenant contexts المرتبطة بدور SUPER_ADMIN'],['صلاحية الحساب','Full Control','نطاق المنصة فقط'],['الاعتماد','Server-side','الاعتماد يمر عبر مسار الخادم'],['مقدمو الخدمة','هوية حقيقية','لا يتم إنشاء هوية وهمية من الواجهة']])
  +'<section class="card"><div class="section-head"><div><span class="eyebrow">CREATE ACTIVITY</span><h3>إنشاء نشاط كامل</h3><p class="muted">سيتم إنشاء طلب نشاط، ثم اعتماده، ثم إنشاء الفرع والخدمات والأسعار عند نجاح كل خطوة.</p></div></div>'
  +'<form id="mx-super-admin-create-form"><div class="grid2">'
