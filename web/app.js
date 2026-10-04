@@ -310,6 +310,40 @@ window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;const b=d
 async function installApp(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true}
 function openLandingSector(button){const name=button?.dataset?.sector||'';return selectModule(sectorMapForLanding(name))}
 function sectorMapForLanding(name){const map={'الأطباء والعيادات':'المنظومة الطبية','الصيدليات':'المنظومة الطبية','التحاليل والأشعة':'المنظومة الطبية','المستشفيات الخاصة':'المنظومة الطبية','الأسنان والعيادات التخصصية':'المنظومة الطبية','الخدمات البيطرية':'المنظومة الطبية','المطاعم والكافيهات':'المطاعم والمطابخ','السوبر ماركت والبقالة':'البقالة والسوبر ماركت','الأزياء والخياطة':'التجارة والأزياء','الصيانة والخدمات المنزلية':'الصيانة','المحاسبة ومكاتب المحاسبة':'المزايدات — المحاسبة','المحاماة والخدمات القانونية':'المزايدات — الخدمات القانونية','الشركات والموردون':'المزايدات — الشركات','التعليم والتدريب':'التعليم','البرمجيات والخدمات الرقمية':'البرمجيات ERP','التسويق والإعلان':'التسويق والإعلان','السفر والرحلات':'المزايدات — الرحلات','MantiGO والنقل عند الطلب':'MantiGO والمزايدات','الوظائف والتوظيف':'الوظائف','الزواج والخدمات المرتبطة':'الزواج','المستعمل':'المستعمل','العقارات':'المزايدات — الشركات','السيارات والنقل':'MantiGO والمزايدات','الرياضة واللياقة':'التعليم','المستقلون ومقدمو الخدمات':'المزايدات — التسويق'};return map[name]||'الموديولات'}
+function closeMantiqatiShowcaseProfile(){const el=document.getElementById('mnty-showcase-profile-modal');if(!el)return;el.remove();document.body.style.removeProperty('overflow');}
+async function openMantiqatiShowcaseProfile(providerId){
+ const id=String(providerId||'').trim();if(!id)return;
+ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ closeMantiqatiShowcaseProfile();
+ const modal=document.createElement('div');modal.id='mnty-showcase-profile-modal';modal.className='mnty-showcase-profile-modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','ملف النشاط');
+ modal.innerHTML='<div class="mnty-showcase-profile-backdrop" data-close-showcase></div><section class="mnty-showcase-profile-dialog" tabindex="-1"><button type="button" class="mnty-showcase-profile-close" aria-label="إغلاق" data-close-showcase>×</button><div class="mnty-showcase-profile-content"><div class="mnty-showcase-profile-loading">جاري تحميل ملف النشاط…</div></div></section>';
+ document.body.appendChild(modal);document.body.style.overflow='hidden';
+ const close=()=>closeMantiqatiShowcaseProfile();modal.querySelectorAll('[data-close-showcase]').forEach(x=>x.addEventListener('click',close));const keyHandler=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',keyHandler);
+ const root=modal.querySelector('.mnty-showcase-profile-content');
+ try{
+  const p=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,slug,description,specialties,portfolio,status,is_verified,is_featured,profile_image_path,service_areas').eq('id',id).eq('status','ACTIVE').eq('is_featured',true).maybeSingle();
+  if(p.error)throw p.error;if(!p.data)throw new Error('PROFILE_NOT_FOUND');
+  const profile=p.data;
+  const [bq,sq]=await Promise.all([
+   sb.from('businesses').select('id,name,code,status,settings').eq('id',profile.business_id).eq('status','ACTIVE').eq('settings->>showcase','true').maybeSingle(),
+   sb.from('marketing_provider_services').select('id,service_id,service_description,pricing_from,pricing_to,currency,status').eq('provider_id',profile.id).eq('status','ACTIVE').order('created_at',{ascending:true}).limit(12)
+  ]);
+  if(bq.error)throw bq.error;if(sq.error)throw sq.error;if(!bq.data)throw new Error('BUSINESS_NOT_FOUND');
+  const serviceIds=[...new Set((sq.data||[]).map(x=>x.service_id).filter(Boolean))];
+  const sv=serviceIds.length?await sb.from('marketing_services').select('id,name_ar,name_en,category_code,status').in('id',serviceIds):{data:[],error:null};
+  if(sv.error)throw sv.error;
+  const names=new Map((sv.data||[]).map(x=>[String(x.id),x.name_ar||x.name_en||'خدمة']));
+  const asset=/^assets\/activities\/[a-z0-9_-]+\.svg$/i.test(String(profile.profile_image_path||''))?profile.profile_image_path:'assets/activities/health.svg';
+  const specs=(Array.isArray(profile.specialties)?profile.specialties:[]).slice(0,8).map(esc);
+  const portfolio=(Array.isArray(profile.portfolio)?profile.portfolio:[]).slice(0,8).map(x=>typeof x==='string'?x:(x?.title||x?.name||x?.description||'')).filter(Boolean).map(esc);
+  const services=(sq.data||[]).map(x=>({name:names.get(String(x.service_id))||x.service_description||'خدمة',desc:x.service_description||'',from:x.pricing_from,to:x.pricing_to,currency:x.currency||'EGP'}));
+  const price=x=>x.from==null&&x.to==null?'السعر يحدد حسب الطلب':x.from!=null&&x.to!=null?esc(x.from)+' – '+esc(x.to)+' '+esc(x.currency):x.from!=null?'يبدأ من '+esc(x.from)+' '+esc(x.currency):'حتى '+esc(x.to)+' '+esc(x.currency);
+  root.innerHTML='<div class="mnty-showcase-profile-hero"><img src="'+esc(asset)+'" alt="'+esc(profile.name_ar)+'"><div><span class="mnty-showcase-card__eyebrow">نشاط رسمي في منطقتي</span><h2>'+esc(profile.name_ar)+'</h2><p>'+esc(profile.description||'ملف خدمة رسمي مُدار من المنصة.')+'</p><div class="mnty-showcase-profile-badges"><span>✓ موثق</span><span>✓ رسمي</span><span>📍 '+esc((Array.isArray(profile.service_areas)?profile.service_areas[0]:'منطقتي')||'منطقتي')+'</span></div></div></div><div class="mnty-showcase-profile-grid"><section><h3>التخصصات</h3><div class="mnty-showcase-profile-tags">'+(specs.length?specs.map(x=>'<span>'+x+'</span>').join(''):'<span>سيتم تحديث التخصصات</span>')+'</div></section><section><h3>الخدمات المتاحة</h3><div class="mnty-showcase-profile-services">'+(services.length?services.map(x=>'<article><strong>'+esc(x.name)+'</strong><p>'+esc(x.desc||'خدمة متخصصة ضمن النشاط الرسمي.')+'</p><b>'+price(x)+'</b></article>').join(''):'<div class="empty-state">لا توجد خدمات منشورة حاليًا.</div>')+'</div></section><section><h3>نبذة عن الملف</h3><div class="mnty-showcase-profile-tags">'+(portfolio.length?portfolio.map(x=>'<span>✓ '+x+'</span>').join(''):'<span>الملف الرسمي قيد الإثراء</span>')+'</div></section></div><div class="mnty-showcase-profile-actions"><button type="button" class="btn btn-primary" data-showcase-login>تسجيل الدخول للمتابعة</button><button type="button" class="btn btn-outline" data-close-showcase>إغلاق</button></div>';
+  root.querySelector('[data-showcase-login]')?.addEventListener('click',()=>{closeMantiqatiShowcaseProfile();authView('',false,'','login')});
+  root.querySelector('[data-close-showcase]')?.addEventListener('click',close);
+  modal.querySelector('.mnty-showcase-profile-dialog')?.focus();
+ }catch(error){root.innerHTML='<div class="empty-state"><h3>تعذر فتح ملف النشاط</h3><p>'+esc(error?.message||'حدث خطأ غير معروف')+'</p><button type="button" class="btn btn-outline" data-close-showcase>إغلاق</button></div>';root.querySelector('[data-close-showcase]')?.addEventListener('click',close);}
+}
 async function loadMantiqatiShowcase(){
  const grid=document.getElementById('mantiqati-showcase-grid'); if(!grid)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -322,8 +356,8 @@ async function loadMantiqatiShowcase(){
   const br=ids.length?await sb.from('businesses').select('id,name,code,settings').in('id',ids):{data:[],error:null};
   if(br.error)throw br.error;
   const bm=new Map((br.data||[]).map(x=>[String(x.id),x]));
-  grid.innerHTML=rows.map(p=>{const b=bm.get(String(p.business_id));const st=b?.settings||{};const icon=esc(st.icon||'📍');const asset=safeAsset(p.profile_image_path||st.icon_asset_ref);const specs=(Array.isArray(p.specialties)?p.specialties:[]).slice(0,3).map(esc);return '<article class="mnty-showcase-card"><div class="mnty-showcase-card__media"><img src="'+asset+'" alt="'+esc(p.name_ar)+'" loading="lazy"><span class="mnty-showcase-card__emoji">'+icon+'</span></div><div class="mnty-showcase-card__body"><div class="mnty-showcase-card__eyebrow">نشاط رسمي في منطقتي</div><h3>'+esc(p.name_ar)+'</h3><p>'+esc(p.description||'خدمات متخصصة داخل منظومة MantiqatiX.')+'</p><div class="mnty-showcase-tags">'+specs.map(x=>'<span>'+x+'</span>').join('')+'</div><div class="mnty-showcase-card__actions"><span class="mnty-verified">✓ موثق</span><button type="button" class="btn btn-primary" data-showcase-start="'+esc(p.name_ar)+'">ابدأ</button></div></div></article>'}).join('');
-  grid.querySelectorAll('[data-showcase-start]').forEach(btn=>btn.addEventListener('click',()=>authView('',false,'','login')));
+  grid.innerHTML=rows.map(p=>{const b=bm.get(String(p.business_id));const st=b?.settings||{};const icon=esc(st.icon||'📍');const asset=safeAsset(p.profile_image_path||st.icon_asset_ref);const specs=(Array.isArray(p.specialties)?p.specialties:[]).slice(0,3).map(esc);return '<article class="mnty-showcase-card"><div class="mnty-showcase-card__media"><img src="'+asset+'" alt="'+esc(p.name_ar)+'" loading="lazy"><span class="mnty-showcase-card__emoji">'+icon+'</span></div><div class="mnty-showcase-card__body"><div class="mnty-showcase-card__eyebrow">نشاط رسمي في منطقتي</div><h3>'+esc(p.name_ar)+'</h3><p>'+esc(p.description||'خدمات متخصصة داخل منظومة MantiqatiX.')+'</p><div class="mnty-showcase-tags">'+specs.map(x=>'<span>'+x+'</span>').join('')+'</div><div class="mnty-showcase-card__actions"><span class="mnty-verified">✓ موثق</span><button type="button" class="btn btn-primary" data-showcase-start="'+esc(p.id)+'" data-showcase-name="'+esc(p.name_ar)+'">عرض الملف</button></div></div></article>'}).join('');
+  grid.querySelectorAll('[data-showcase-start]').forEach(btn=>btn.addEventListener('click',()=>openMantiqatiShowcaseProfile(btn.dataset.showcaseStart)));
  }catch(error){console.warn('[MNTY showcase] unavailable',error);grid.innerHTML='<div class="mnty-showcase-empty">تعذر تحميل الأنشطة الرسمية الآن.</div>';}
 }
 
