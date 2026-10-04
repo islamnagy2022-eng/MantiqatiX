@@ -885,3 +885,10 @@
 - [x] Production database evidence remains: 25 active showcase businesses, 25 OWNER memberships, 25 verified/featured profiles, 25 services and 600 enabled module bindings.
 - [ ] Public browser smoke verification of the deployed homepage and Super Admin runtime panel remains an external runtime check; the public-site fetch could not be completed from this environment.
 - [ ] Final Production Gate remains **OPEN / NOT PRODUCTION READY YET** because the previously documented Auth, adversarial E2E, payment, recovery, device/PWA/push and Android gates remain open.
+
+
+## RC340 — 2026-10-04
+- [x] Public digital-content URL hardening implemented: only `http:`/`https:` links are rendered as anchors.
+- [x] Removed invalid `#` fallback from public digital content links.
+- [x] Added explicit unavailable-link presentation and refreshed web/PWA asset versions.
+- [ ] Pages CI/deployed-site verification pending; this does not close the Final Production Gate.
