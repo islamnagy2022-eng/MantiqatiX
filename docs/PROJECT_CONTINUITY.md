@@ -262,3 +262,13 @@ This status is intentional and must remain until the open gates above are indepe
 - [ ] Security Advisor still reports the intentional public SECURITY DEFINER warning; this is not falsely marked closed because the public-serving contract remains intentional.
 - [ ] Leaked-password protection, adversarial multi-tenant E2E, payment/finance E2E, backup/restore, browser/device/push, and Android release evidence remain open.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
+
+
+## RC336 — Authenticated SECURITY DEFINER hardening — 2026-10-04
+- [x] Re-inventoried the 9 SECURITY DEFINER functions executable by `authenticated`; none are executable by `anon`.
+- [x] Reviewed the critical RBAC/payment boundaries for `auth.uid()`, active membership and centralized permission checks.
+- [x] Applied production migration `20261004003820 rc336_harden_authenticated_security_definer_search_paths` to set `search_path=public, pg_temp` on all 9 authenticated-callable SECURITY DEFINER functions.
+- [x] Live SQL verification confirms all 9 retain `authenticated_execute=true`, `anon_execute=false`, and the hardened search path.
+- [x] Security Advisor re-run; the 9 authenticated SECURITY DEFINER warnings remain as intentional RPC boundaries and are not falsely suppressed.
+- [ ] Leaked-password protection, adversarial multi-tenant E2E, payment/finance E2E, backup/restore/rollback, browser/device/PWA/push and Android release evidence remain open.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
