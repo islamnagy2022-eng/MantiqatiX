@@ -49,6 +49,7 @@ jobs:
           node --check web/operations-modules.js
           test -f supabase/functions/business-branch-admin/index.ts
           node scripts/validate-web-assets.mjs
+          node scripts/validate-public-brand.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
           node scripts/validate-module-catalog.mjs
