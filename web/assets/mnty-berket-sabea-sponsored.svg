@@ -1,13 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628" role="img" aria-labelledby="title desc">
-<title id="title">MNTY — مقدم خدمات بركة السبع</title>
-<desc id="desc">إعلان ممول تجريبي لمقدم خدمات في بركة السبع</desc>
-<rect width="1200" height="628" fill="#0b1220"/>
-<circle cx="1030" cy="110" r="180" fill="#1d4ed8" opacity=".35"/>
-<circle cx="110" cy="570" r="220" fill="#14b8a6" opacity=".2"/>
-<text x="80" y="150" fill="#fff" font-family="Arial,sans-serif" font-size="54" font-weight="700">MNTY</text>
-<text x="80" y="250" fill="#fff" font-family="Arial,sans-serif" font-size="46" font-weight="700">مقدم خدمات بركة السبع</text>
-<text x="80" y="320" fill="#cbd5e1" font-family="Arial,sans-serif" font-size="30">خدمات متنوعة • أسعار مباشرة • طلب إلكتروني</text>
-<rect x="80" y="390" width="360" height="74" rx="18" fill="#fff"/>
-<text x="110" y="438" fill="#0b1220" font-family="Arial,sans-serif" font-size="28" font-weight="700">جرّب خدماتك الآن</text>
-<text x="80" y="550" fill="#94a3b8" font-family="Arial,sans-serif" font-size="22">إعلان اختبار تشغيلي — بركة السبع، المنوفية</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628" role="img" aria-labelledby="title desc"><title id="title">MantiqatiX — مقدم خدمات بركة السبع</title><desc id="desc">إعلان ممول تجريبي لمقدم خدمات في بركة السبع</desc><rect width="1200" height="628" rx="36" fill="#160809"/><circle cx="110" cy="570" r="220" fill="#F6C453" opacity=".16"/><text x="80" y="150" fill="#F6C453" font-family="Arial,sans-serif" font-size="50" font-weight="700">MantiqatiX</text><text x="80" y="250" fill="#fff" font-family="Arial,sans-serif" font-size="46" font-weight="700">مقدم خدمات بركة السبع</text><text x="80" y="325" fill="#F8E9C5" font-family="Arial,sans-serif" font-size="30">اكتشف النشاط والخدمات المتاحة</text></svg>
