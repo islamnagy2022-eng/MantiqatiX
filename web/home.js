@@ -42,6 +42,9 @@
   const safePublicHref = value => { try { const u = new URL(String(value || ''), window.location.origin); return ['http:','https:'].includes(u.protocol) ? u.href : ''; } catch (_) { return ''; } };
   const logo = () => '<span class="mark" aria-hidden="true"></span>';
   const normCode = value => String(value||'').trim().toUpperCase().replace(/[^A-Z0-9_:-]+/g,'_');
+  // Public sector codes may differ from backend taxonomy codes; keep the public contract stable and map only at the data boundary.
+  const DATA_CATEGORY_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',FITNESS:'SPORTS',TRAVEL:'TRIPS',TECH:'ERP',FOOD:'FOOD'};
+  const dataCategoryCode = code => DATA_CATEGORY_ALIASES[normCode(code)] || normCode(code);
   let HOME_RUNTIME_FLAGS = null;
   const loadHomeRuntimeFlags = async sb => {
     try {
@@ -389,7 +392,7 @@
 
     const openCategoryPage=async(code)=>{
       const item=TAXONOMY.find(x=>String(x[3])===String(code))||['◉',String(code||'نشاط'),'خدمات وأنشطة منشورة',String(code||'')];
-      const label=item[1], desc=item[2], key=normCode(code);
+      const label=item[1], desc=item[2], key=normCode(code), dataKey=dataCategoryCode(code);
       const app=document.getElementById('app'); if(!app)return;
       try{if(location.hash!=='#category/'+encodeURIComponent(key))history.pushState({category:key},'', location.pathname+location.search);}catch(_){}
       app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">MantiqatiX</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>اكتشف '+escapeHtml(label)+'</h2><p>الأنشطة والخدمات المنشورة فعليًا ضمن هذا القطاع.</p></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات</h2><p class="muted">خدمات منشورة في '+escapeHtml(label)+'</p></div></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الأنشطة ومقدمو الخدمات</h2><p class="muted">بيانات الأنشطة المنشورة والمعتمدة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
@@ -398,8 +401,8 @@
       try{
         const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
         const [sr,pr]=await Promise.all([
-          sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').eq('category_code',key).order('created_at',{ascending:false}).limit(50),
-          sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('status','ACTIVE').eq('provider_kind',key).order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(50)
+          sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE') .eq('category_code',dataKey).order('created_at',{ascending:false}).limit(50),
+          sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('status','ACTIVE') .eq('provider_kind',dataKey).order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(50)
         ]);
         if(sr.error)throw sr.error; if(pr.error)throw pr.error;
         const services=sr.data||[], providers=pr.data||[];
