@@ -951,3 +951,10 @@
 - Added a visible sector-count indicator and clearer Arabic heading/copy.
 - The live taxonomy source was checked in `web/home.js`: exactly 27 canonical entries are present.
 - RC363 changes are UI/catalog presentation only; no production business/order/financial data was modified.
+
+## RC364 — Sector Tile Visibility Hardening
+- **Status:** IMPLEMENTED — WAITING FOR CI EVIDENCE.
+- Public sector catalog keeps all 27 canonical sectors visible and now renders each tile as a self-contained, high-contrast card.
+- Sector tiles include a persistent emoji/glyph fallback behind the official activity asset, use eager loading because the full catalog is intentionally always visible, and expose an accessible Arabic aria-label.
+- Strengthened tile borders, typography, shadows, and media contrast to prevent the large blank/low-contrast appearance observed in the browser screenshot.
+- No production business, order, payment, or financial data was modified.
