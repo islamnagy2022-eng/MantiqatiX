@@ -367,3 +367,12 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Targeted-ad cards support keyboard activation with Enter/Space while retaining the in-app modal interaction.
 - [x] The production-gate validator now guards this interaction contract.
 - [ ] Real browser/assistive-technology/device E2E remains NOT VERIFIED.
+
+
+## RC362 — Official activity asset CI boundary
+
+- CI now validates both the legacy `web/assets/activity/*.svg` catalog and the official `web/assets/activities/*.svg` catalog used by the public sector/activity grid.
+- Commit: `66a508f1a9cdfe1595e0b297b16ea77b232baeab`.
+- No production database mutation was performed by RC362.
+- Live Supabase read-only verification: 25 active official showcase businesses, 25 active verified/featured official providers, 110 active services, 110 active provider-service links, 600 enabled business-module bindings, and 26 active OWNER memberships.
+- These counts are catalog/readiness evidence only; they do **not** close multi-user adversarial E2E, booking E2E, payment/refund/settlement E2E, backup/restore/rollback, device testing, or final production certification.
