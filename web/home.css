@@ -1195,3 +1195,341 @@
 .mx-category__media--ai:after{display:none}
 @media(max-width:800px){.mx-category__media{height:82px}.mx-category__media .mx-category__glyph{width:25px;height:25px;font-size:14px}}
 @media(max-width:500px){.mx-category__media{height:78px}}
+
+
+/* ============================================================
+   RC VISUAL REFERENCE — MantiqatiX marketplace homepage
+   Source direction: supplied reference image.
+   Brand colors remain the official MantiqatiX palette.
+   ============================================================ */
+.mx-home{
+  position:relative;
+  --mx-red:#B5121B;
+  --mx-red-bright:#E21B2D;
+  --mx-gold:#F6C453;
+  --mx-gold-dark:#B97812;
+  --mx-ink:#241113;
+  --mx-cream:#FFF8E7;
+  --mx-paper:#FFFDF9;
+  --mx-line:#E9DCC4;
+  --mx-bg:#FBF8F2;
+  background:
+    radial-gradient(circle at 12% 8%,rgba(246,196,83,.12),transparent 24%),
+    linear-gradient(180deg,#fffdf9 0%,#fbf8f2 100%);
+}
+
+/* Desktop reference composition: header floats over the panoramic hero. */
+@media(min-width:801px){
+  .mx-header{
+    position:absolute;
+    top:0;left:0;right:0;
+    z-index:100;
+    background:transparent!important;
+    border-bottom:0!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+  }
+  .mx-header__inner{
+    max-width:1536px;
+    grid-template-columns:auto minmax(320px,1fr) auto;
+    grid-template-areas:"brand search login" "nav nav nav";
+    padding:10px 22px 5px;
+    gap:7px 18px;
+  }
+  .mx-brand .mark{
+    width:174px!important;
+    height:72px!important;
+    border-radius:0!important;
+    background:transparent url('assets/mantiqatix-logo.svg') center/contain no-repeat!important;
+    box-shadow:none!important;
+  }
+  .mx-brand__name,.mx-brand__ar{display:none!important}
+  .mx-search{
+    max-width:650px;
+    height:48px;
+    background:rgba(255,255,255,.96)!important;
+    border:1px solid rgba(255,255,255,.85)!important;
+    border-radius:28px!important;
+    box-shadow:0 8px 25px rgba(36,17,19,.16)!important;
+  }
+  .mx-search__location{
+    background:#fff4dc!important;
+    color:#7d4d08!important;
+    border-radius:18px!important;
+  }
+  .mx-search button{
+    background:linear-gradient(135deg,var(--mx-red),var(--mx-red-bright))!important;
+    border-radius:22px!important;
+  }
+  .mx-header__login{
+    background:rgba(255,255,255,.95)!important;
+    border:1px solid #ead7aa!important;
+    border-radius:22px!important;
+    color:#5f171c!important;
+    box-shadow:0 6px 18px rgba(36,17,19,.10);
+  }
+  .mx-nav{
+    justify-self:center;
+    width:max-content;
+    max-width:calc(100% - 260px);
+    padding:6px 12px!important;
+    border:1px solid rgba(233,220,196,.9)!important;
+    border-radius:28px!important;
+    background:rgba(255,253,249,.94)!important;
+    box-shadow:0 8px 24px rgba(36,17,19,.10);
+    backdrop-filter:blur(12px);
+  }
+  .mx-nav a{font-size:12px!important}
+  .mx-nav a:first-child{
+    background:var(--mx-red)!important;
+    color:#fff!important;
+    border:0!important;
+    border-radius:20px!important;
+    padding:8px 18px!important;
+  }
+  .mx-add{
+    position:absolute!important;
+    right:22px!important;
+    top:12px!important;
+    background:linear-gradient(135deg,var(--mx-red),var(--mx-red-bright))!important;
+    border-radius:22px!important;
+    box-shadow:0 7px 18px rgba(181,18,27,.24)!important;
+  }
+  .mx-main{
+    max-width:1536px;
+    padding:0 18px 70px;
+    display:flex;
+    flex-direction:column;
+  }
+  .mx-home-hero{
+    order:1;
+    margin:0 -18px 10px!important;
+    height:390px!important;
+    min-height:390px!important;
+    border-radius:0 0 22px 22px!important;
+    background:
+      linear-gradient(90deg,rgba(22,8,9,.83) 0%,rgba(22,8,9,.58) 34%,rgba(22,8,9,.14) 63%,rgba(22,8,9,.03) 100%),
+      url('assets/mantiqatix-cover.svg') center/cover no-repeat!important;
+    box-shadow:0 14px 32px rgba(55,22,18,.14)!important;
+  }
+  .mx-home-hero__copy{
+    width:59%!important;
+    height:390px!important;
+    padding:100px 42px 30px 70px!important;
+    background:linear-gradient(90deg,rgba(12,4,5,.74),rgba(12,4,5,.38) 70%,rgba(12,4,5,.02))!important;
+  }
+  .mx-home-hero h1{font-size:50px!important;color:#fff!important}
+  .mx-home-hero p{font-size:17px!important;color:#fff!important}
+  .mx-home-hero__eyebrow{
+    background:rgba(246,196,83,.15)!important;
+    border:1px solid rgba(246,196,83,.4)!important;
+    color:#ffd96f!important;
+  }
+  .mx-home-hero__visual{
+    min-height:390px!important;
+    background:transparent!important;
+  }
+  .mx-home-hero__brand-card{
+    right:12%!important;
+    top:29%!important;
+    width:150px!important;
+    height:150px!important;
+    background:url('assets/mantiqatix-mark.svg') center/contain no-repeat!important;
+    border:0!important;
+  }
+  .mx-home-hero__steps,.mx-home-hero__provider,.mx-home-hero__plans{display:none!important}
+
+  /* Reference-like section sequence. */
+  .mx-platform-notices{order:2}
+  #mx-categories{order:3}
+  #mx-nearby{order:4}
+  #mx-offers{order:5}
+  #mx-marketing{order:6}
+  #mx-about{order:7}
+  #mx-audiences{order:8}
+  #mx-services{order:9}
+
+  /* Allow the real sponsored section to occupy the commercial slot. */
+  #mx-offers[hidden]{display:block!important}
+  #mx-offers .mx-empty{
+    min-height:135px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,#fffdf8,#fff3da);
+    border:1px solid #ead7aa;
+  }
+
+  .mx-platform-notices{
+    margin:0 0 2px!important;
+    border-radius:12px!important;
+  }
+  #mx-categories .mx-section__head,
+  #mx-nearby .mx-section__head,
+  #mx-offers .mx-section__head{
+    padding-inline:4px;
+  }
+  .mx-section__head h2{font-size:22px!important;color:#5c1016!important}
+  .mx-categories{
+    display:flex!important;
+    gap:9px!important;
+    overflow-x:auto!important;
+    scrollbar-width:none;
+    padding:2px 2px 9px!important;
+  }
+  .mx-categories::-webkit-scrollbar{display:none}
+  .mx-category{
+    flex:0 0 118px!important;
+    min-width:118px!important;
+    padding:6px!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    border:1px solid var(--mx-line)!important;
+    box-shadow:0 5px 14px rgba(55,22,18,.06)!important;
+  }
+  .mx-category__media{
+    height:78px!important;
+    border-radius:10px!important;
+    background:#fff9ef!important;
+  }
+  .mx-category strong{font-size:11px!important;color:#32191b!important}
+  .mx-category small{font-size:8px!important}
+  .mx-category__cta{
+    background:#fff4d6!important;
+    color:#7a5207!important;
+  }
+
+  .mx-provider-grid{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  .mx-provider-card{
+    border-radius:14px!important;
+    background:#fff!important;
+    border-color:var(--mx-line)!important;
+    box-shadow:0 6px 18px rgba(55,22,18,.07)!important;
+  }
+  .mx-provider-card .mx-photo{height:116px!important}
+  .mx-provider-card__body{padding:10px!important}
+
+  .mx-sponsored{
+    grid-template-columns:minmax(390px,1.1fr) minmax(0,1.9fr)!important;
+    gap:10px!important;
+  }
+  .mx-feature-ad{
+    min-height:210px!important;
+    border-radius:16px!important;
+    background:linear-gradient(135deg,#160809,#72070D 55%,#B97812)!important;
+  }
+  .mx-listing-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:9px!important;
+  }
+  .mx-listing{border-radius:13px!important}
+  .mx-listing .mx-photo{height:110px!important}
+
+  /* Commercial side promotion inspired by the reference right-side ad. */
+  .mx-side-banner--right{
+    position:absolute!important;
+    z-index:90!important;
+    top:92px!important;
+    right:26px!important;
+    width:255px!important;
+    max-width:18vw!important;
+    min-width:220px!important;
+    display:block!important;
+    border-radius:17px!important;
+    overflow:hidden!important;
+    background:rgba(255,253,249,.96)!important;
+    border:1px solid #ead7aa!important;
+    box-shadow:0 14px 34px rgba(36,17,19,.18)!important;
+  }
+  .mx-side-banner__screen{
+    min-height:112px!important;
+    background:linear-gradient(135deg,#fff5dc,#fbe7e8)!important;
+  }
+  .mx-side-banner__copy{padding:12px!important}
+  .mx-side-banner__copy strong{font-size:21px!important;color:#5b1117!important}
+  .mx-side-banner__copy span{font-size:10px!important;color:#765e61!important}
+  .mx-side-banner__copy button{
+    width:100%;
+    margin-top:8px;
+    border:0;
+    border-radius:12px;
+    padding:9px;
+    background:linear-gradient(135deg,var(--mx-red),var(--mx-red-bright));
+    color:#fff;
+    font:900 11px Tajawal,Arial,sans-serif;
+  }
+}
+
+@media(max-width:1100px) and (min-width:801px){
+  .mx-side-banner--right{display:none!important}
+  .mx-home-hero__copy{width:70%!important}
+  .mx-provider-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+
+@media(max-width:800px){
+  .mx-home{
+    background:#fbf8f2;
+  }
+  .mx-main{
+    display:flex;
+    flex-direction:column;
+    padding:0 10px 84px!important;
+  }
+  .mx-home-hero{order:1!important}
+  .mx-platform-notices{order:2!important}
+  #mx-categories{order:3!important}
+  #mx-nearby{order:4!important}
+  #mx-offers{order:5!important}
+  #mx-about{order:6!important}
+  #mx-audiences{order:7!important}
+  #mx-marketing{order:8!important}
+  #mx-services{order:9!important}
+  #mx-offers[hidden]{display:block!important}
+  .mx-home-hero{
+    margin:0 -10px 8px!important;
+    height:330px!important;
+    min-height:330px!important;
+    border-radius:0 0 18px 18px!important;
+  }
+  .mx-home-hero__copy{
+    width:100%!important;
+    height:330px!important;
+    padding:92px 20px 22px!important;
+    background:linear-gradient(90deg,rgba(12,4,5,.20),rgba(12,4,5,.82) 78%)!important;
+  }
+  .mx-home-hero h1{font-size:30px!important}
+  .mx-home-hero p{font-size:12px!important}
+  .mx-home-hero__brand-card{
+    right:8%!important;
+    top:20%!important;
+    width:86px!important;
+    height:86px!important;
+  }
+  .mx-side-banner--right{display:none!important}
+  .mx-categories{
+    gap:7px!important;
+    overflow-x:auto!important;
+    padding-bottom:7px!important;
+  }
+  .mx-category{
+    flex-basis:92px!important;
+    min-width:92px!important;
+  }
+  .mx-category__media{height:62px!important}
+  .mx-provider-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .mx-sponsored{grid-template-columns:1fr!important}
+  .mx-listing-grid{
+    grid-template-columns:repeat(4,150px)!important;
+    overflow-x:auto!important;
+  }
+}
+
+@media(max-width:500px){
+  .mx-home-hero{height:315px!important;min-height:315px!important}
+  .mx-home-hero__copy{height:315px!important;padding:82px 17px 18px!important}
+  .mx-home-hero h1{font-size:27px!important}
+  .mx-home-hero__brand-card{right:6%;top:18%;width:76px!important;height:76px!important}
+  .mx-provider-grid{grid-template-columns:1fr 1fr!important}
+}
