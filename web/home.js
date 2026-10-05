@@ -160,7 +160,7 @@
           const avatar=meta.avatar_url||meta.picture||'';
           let activityName='';
           try{
-            const pr=await sb.from('marketing_provider_profiles').select('name_ar,name_en').eq('owner_user_id',authUser.id).eq('status','ACTIVE').maybeSingle();
+            const pr=await sb.from('marketing_provider_profiles').select('name_ar,name_en').eq('owner_user_id',authUser.id).eq('status','ACTIVE').order('updated_at',{ascending:false}).limit(1).maybeSingle();
             activityName=pr?.data?.name_ar||pr?.data?.name_en||'';
           }catch(_){}
           loginButton.innerHTML=(avatar?'<img class="mx-account-avatar" src="'+escapeHtml(avatar)+'" alt="">':'<span class="mx-account-icon" aria-hidden="true">♙</span>')+'<span class="mx-account-copy"><b>'+escapeHtml((activityName||name).slice(0,24))+'</b><small><i></i> '+escapeHtml(activityName?'نشاط نشط':'مسجل الدخول')+'</small></span>';
