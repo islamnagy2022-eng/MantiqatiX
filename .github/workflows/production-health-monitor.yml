@@ -1,0 +1,47 @@
+name: Production Health Monitor
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-health-monitor
+  cancel-in-progress: true
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check GitHub Pages
+        run: |
+          set -euo pipefail
+          URL="https://islamnagy2022-eng.github.io/MantiqatiX/"
+          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$URL")"
+          grep -Fq "MantiqatiX" <<<"$BODY"
+
+      - name: Check Supabase API health
+        run: |
+          set -euo pipefail
+          URL="https://moyhiluyhjsujhwlyeuu.supabase.co/functions/v1/api/health"
+          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$URL")"
+          grep -Fq '"status":"ok"' <<<"$BODY"
+
+      - name: Check public web assets
+        run: |
+          set -euo pipefail
+          BASE="https://islamnagy2022-eng.github.io/MantiqatiX/"
+          for asset in index.html home.js home.css sw.js manifest.webmanifest config.js rbac.js app.js vendor/supabase.js; do
+            curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --head "$BASE$asset" >/dev/null
+          done
+
+      - name: Health summary
+        run: |
+          echo "Production health checks passed."
+          echo "Pages: reachable"
+          echo "API /health: OK"
+          echo "Core web assets: reachable"
