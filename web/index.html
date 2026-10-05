@@ -56,7 +56,7 @@
       await load('config.js?v=mnty116');
       await load('location-adapter.js?v=mnty116');
       await load('sector-registry.js?v=rc367');
-      await load('home.js?v=rc370');
+      await load('home.js?v=rc371');
       try{
         if(typeof window.MXHomeLanding==='function') window.MXHomeLanding();
       }catch(homeError){
@@ -117,11 +117,11 @@
         await load('reverse-bidding-module.js?v=mnty116');
         await load('operations-modules.js?v=mnty116');
         await load('provider-onboarding-module.js?v=mnty116');
-        await load('brand.js?v=rc354');
+        await load('brand.js?v=rc355');
         if(typeof window.MNTYBootAuth==='function') window.MNTYBootAuth();
       }
       if("serviceWorker" in navigator){
-        navigator.serviceWorker.register("./sw.js?v=rc367").catch(function(){});
+        navigator.serviceWorker.register("./sw.js?v=rc368").catch(function(){});
       }
     }catch(e){
       console.error('[MantiqatiX boot fatal]',e);
