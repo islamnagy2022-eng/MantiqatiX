@@ -270,8 +270,8 @@
         </section>
 
         <section class="mx-section" id="mx-categories">
-          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف كل القطاعات</h2><p>جميع القطاعات الرئيسية ظاهرة أمامك دائمًا — اختر القطاع للوصول مباشرة إلى الأنشطة والخدمات.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
-          <div class="mx-categories" id="mx-category-grid"></div>
+          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف القطاعات والأنشطة</h2><p>جميع القطاعات الرئيسية ظاهرة أمامك الآن. اختر أي قطاع لمشاهدة الأنشطة ومقدمي الخدمات والخدمات المتاحة به.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
+          <div class="mx-categories" id="mx-category-grid">${initialCategoryTiles}</div>
         </section>
 
         <section class="mx-section" id="mx-services" hidden>
@@ -329,6 +329,14 @@
 
     document.querySelectorAll('[data-side-ad-book]').forEach(btn=>btn.addEventListener('click',()=>{try{localStorage.setItem('MNTYOpenAdBooking','1')}catch(_){};if(window.MNTYAuthState?.authenticated&&typeof window.selectModule==='function'){window.selectModule('التسويق والإعلان')}else if(typeof window.authView==='function'){window.authView('',false,'','login')}}));
 
+    const initialCategoryTiles=TAXONOMY.map(c=>{
+      const icon=escapeHtml(c?.[0]||'◉');
+      const label=escapeHtml(c?.[1]||'قطاع');
+      const desc=escapeHtml(c?.[2]||'استكشف الأنشطة والخدمات');
+      const code=normCode(c?.[3]||'');
+      let image=''; try{image=activityImage(code)||'';}catch(_){}
+      return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small><span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
+    }).join('');
     const categoryGrid=document.getElementById('mx-category-grid');
     const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const scrollOptions=(block='start')=>({behavior:reduceMotion()?'auto':'smooth',block});
