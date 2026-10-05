@@ -386,9 +386,8 @@ const categoryGrid=document.getElementById('mx-category-grid');
         const desc=escapeHtml(c?.[2]||'استكشف الأنشطة والخدمات');
         const live=PUBLIC_DIRECTORY_COUNTS?.[code];
         const liveMeta=live ? ('<span class="mx-category__live">'+(live.services||0)+' خدمات · '+(live.providers||0)+' أنشطة</span>') : '';
-        const aiPhoto=aiSectorPhoto(code);
         let image=''; try{image=activityImage(code)||'';}catch(_){}
-        return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media '+(aiPhoto?'mx-category__media--ai':'')+'" '+aiPhoto+'><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(aiPhoto?'':'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">')+'</span><strong>'+label+'</strong><small>'+desc+'</small>'+liveMeta+'<span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
+        return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><img src="'+escapeHtml(image)+'" alt="" loading="eager" decoding="async" onerror="this.hidden=true"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span></span><strong>'+label+'</strong><small>'+desc+'</small>'+liveMeta+'<span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
       }).join('');
       categoryGrid.innerHTML=tiles;
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
