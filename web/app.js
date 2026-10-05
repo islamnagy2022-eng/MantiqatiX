@@ -120,7 +120,8 @@ try{
        (pr.error?[]:(pr.data||[])).forEach(p=>{const key=String(p.business_id||'');if(key&&!providerMap.has(key))providerMap.set(key,p);});
        const sectionName=(code,business,provider)=>{
          const normalized=String(code||business?.settings?.activity_code||business?.settings?.category_code||provider?.provider_kind||'').toUpperCase();
-         const presentation=SECTOR_PRESENTATION[normalized];
+         const canonical=window.MX_SECTOR_REGISTRY?.BACKEND_TO_PUBLIC_SECTOR?.[normalized]||normalized;
+         const presentation=SECTOR_PRESENTATION[canonical]||SECTOR_PRESENTATION[normalized];
          return presentation?.[1]||normalized||'غير محدد';
        };
        live.memberships=live.memberships.map(m=>{
