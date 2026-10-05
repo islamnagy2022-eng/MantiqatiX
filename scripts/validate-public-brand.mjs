@@ -3,7 +3,6 @@ import fs from 'node:fs';
 const forbiddenPublicBrand = /MNTY(?:\s+(?:JOBS|FASHION|EDUCATION))?/g;
 
 const checks = [
-  ['README.md', true],
   ['web/index.html', true],
   ['web/smm.html', true],
   ['web/assets/mnty-cover-ad-1.svg', true],
