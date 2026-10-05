@@ -26,19 +26,13 @@ jobs:
           BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$URL")"
           grep -Fq "MantiqatiX" <<<"$BODY"
 
-      - name: Check Supabase API health
+      - name: Check Supabase health function
         run: |
           set -euo pipefail
-          BASE="https://islamnagy2022-eng.github.io/MantiqatiX/"
-          CONFIG="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "${BASE}config.js")"
-          KEY="$(sed -n "s/.*supabaseKey:'\\([^']*\\)'.*/\\1/p" <<<"$CONFIG")"
-          test -n "$KEY"
-          URL="https://moyhiluyhjsujhwlyeuu.supabase.co/functions/v1/api/health"
-          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 \
-            -H "apikey: $KEY" \
-            -H "Authorization: Bearer $KEY" \
-            "$URL")"
+          URL="https://moyhiluyhjsujhwlyeuu.supabase.co/functions/v1/health"
+          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$URL")"
           grep -Fq '"status":"ok"' <<<"$BODY"
+          grep -Fq '"service":"mantiqatix-health"' <<<"$BODY"
 
       - name: Check public web assets
         run: |
