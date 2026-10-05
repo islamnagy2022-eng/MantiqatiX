@@ -1,52 +1,84 @@
-# MantiqatiX — الهوية البصرية الرسمية
+# MantiqatiX — الهوية البصرية الجديدة
 
-## قاعدة الاسم
-- الاسم الرسمي الوحيد للعلامة: **MantiqatiX**
-- لا يوجد اسم مختصر أو هوية مختصرة للاستخدام الجماهيري.
-- يمنع استخدام أي اختصار بديل في العناوين، الواجهات، الإعلانات، المواد التسويقية أو صفحات الموقع.
-- الأسماء التقنية الداخلية وقواعد البيانات والـAPI لا تُعاد تسميتها لمجرد التغيير البصري إذا كان ذلك سيؤثر على الأمان أو التوافق.
+## الحالة
+هذه الوثيقة تصف **الهوية البصرية الجديدة** المعتمدة بعد اعتماد الصورة المرجعية الجديدة للمنصة.
+
+الصورة المرجعية هي **MASTER VISUAL REFERENCE** للـWebsite والـMarketplace experience.
+
+## الاسم
+- الاسم الجماهيري الرسمي: **MantiqatiX**
+- لا يتم تغيير الاسم إلى MNTY في الواجهات العامة.
+- identifiers الداخلية وقواعد البيانات وواجهات API القديمة تبقى كما هي عند الحاجة للتوافق والأمان.
+
+## الاتجاه البصري
+الهوية الجديدة تعتمد على:
+- Blue Marketplace
+- Bright Urban / City Environment
+- Geographic Discovery
+- Local Services Marketplace
+- Premium Commercial Advertising
+- Modern Super-App feeling
+- White/Cyan surfaces
+- Strong Blue CTAs
+- Soft blue shadows
+- Rounded cards
+- High information density مع تنظيم واضح
+
+## الألوان الأساسية
+- Blue 950: #06235F
+- Blue 900: #07358D
+- Blue 800: #0750C9
+- Blue 700: #0A63E8
+- Blue 600: #0B75FF
+- Blue 500: #168DFF
+- Cyan: #0CC9FF
+- Light Cyan: #79EAFF
+- Blue 100: #E6F5FF
+- Blue 50: #F2FAFF
+- White: #FFFFFF
+- Surface: #F9FCFF
+- Border: #D6EAF8
+- Text: #09245C
+- Muted: #62728B
+- Accent Yellow: #FFD65A
 
 ## اللوجو
-- الملف الأساسي: `web/assets/mantiqatix-logo.svg`
-- العلامة المصغرة: `web/assets/mantiqatix-mark.svg`
-- اللوجو الأصلي أصل Master Immutable Asset ولا يتم تعديل ملفه.
-- أي نسخة بديلة مستقبلية يجب أن تُرفع كأصل مستقل مع إمكانية الرجوع للأصل.
+- web/assets/mantiqatix-logo.svg
+- web/assets/mantiqatix-mark.svg
+- النسخة الحالية تستخدم المعالجة الزرقاء الجديدة.
+- لا يتم تغيير نسب الشعار أو تشويهه.
+- أي نسخة مستقبلية يجب أن تكون أصلًا مستقلًا.
 
-## لوحة الألوان
-- Deep Burgundy: #160809
-- Brand Red: #B5121B
-- Bright Red: #E21B2D
-- Gold: #F6C453
-- Gold Dark: #B97812
-- Cream: #FFF8E7
-- Ink: #241113
-- Background: #FBF8F2
-- Line: #E9DCC4
-
-## الخطوط
+## Typography
 - العربية: Tajawal
 - الإنجليزية: Inter / Arial fallback
-- العناوين: وزن 700–900
-- النصوص: وزن 400–600
+- Headings: 700–900
+- Body: 400–600
 
-## قواعد الواجهة
-- اتجاه العربية RTL.
-- استخدام الاسم MantiqatiX كاملًا في المواضع الجماهيرية.
-- لا توجد ألوان هوية زرقاء/تركوازية/بنفسجية بديلة.
-- الأزرار الأساسية تعتمد الأحمر الرسمي، مع الذهبي للتأكيد والتمييز.
-- الخلفيات الرسمية تعتمد الكريمي والـInk والأحمر الداكن.
-- جميع الشاشات يجب أن تستخدم Design Tokens موحدة.
+## Visual Components
+- Floating rounded navigation
+- Large city Hero
+- Prominent global search
+- Horizontal sector explorer
+- Premium business cards
+- Sponsored/Featured advertising
+- Map discovery
+- KPI/statistics strip
+- App promotion
+- Customer reviews
+- Partner logos
+- Deep blue footer
 
-## مراحل التطبيق
-1. Landing Website
-2. Auth
-3. Dashboard / Admin
-4. CRM
-5. Marketing & Advertising
-6. Provider / Sector modules
-7. SMM
-8. PWA / Mobile surfaces
-9. Social / Commercial asset pack
+## قواعد
+- الأزرق هو اللون الأساسي.
+- الأحمر والعنابي والذهبي القديم لم تعد ألوان الهوية الأساسية.
+- لا تستخدم صورًا منخفضة الدقة.
+- لا تستخدم AI artifacts أو صورًا مشوهة.
+- لا تختلق شركات أو أرقامًا أو Reviews أو Partner logos.
+- الوظائف والبيانات الحقيقية لا تتغير بسبب إعادة الهوية.
+- العربية RTL والإنجليزية LTR.
+- التصميم Responsive ومبني Mobile-first في السلوك وليس مجرد تصغير Desktop.
 
 ## معيار القبول
-لا تعتبر الهوية مكتملة إلا بعد مراجعة الاسم، اللوجو، الألوان، typography، spacing، CTA، responsive، accessibility والاتساق عبر الشاشات.
+الواجهة يجب أن تكون أقرب ما يمكن للصورة المرجعية في:
+Layout, hierarchy, color, spacing, cards, navigation, hero, search, advertising, sectors, business discovery, map, statistics, app, reviews, partners and footer.
