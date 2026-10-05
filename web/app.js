@@ -110,10 +110,32 @@ try{
  const businessIds=[...new Set(live.memberships.map(x=>x.business_id).filter(Boolean))];
  if(businessIds.length){
    try{
-     const br=await sb.from('businesses').select('id,name_ar,name_en').in('id',businessIds);
+     const [br,pr]=await Promise.all([
+       sb.from('businesses').select('id,name,code,settings,status').in('id',businessIds),
+       sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,status,is_verified,updated_at').in('business_id',businessIds).order('updated_at',{ascending:false})
+     ]);
      if(!br.error){
-       const names=new Map((br.data||[]).map(b=>[String(b.id),b.name_ar||b.name_en||'نشاط']));
-       live.memberships=live.memberships.map(m=>({...m,business_name:names.get(String(m.business_id))||null}));
+       const businessMap=new Map((br.data||[]).map(b=>[String(b.id),b]));
+       const providerMap=new Map();
+       (pr.error?[]:(pr.data||[])).forEach(p=>{const key=String(p.business_id||'');if(key&&!providerMap.has(key))providerMap.set(key,p);});
+       const sectionName=(code,business,provider)=>{
+         const normalized=String(code||business?.settings?.activity_code||business?.settings?.category_code||provider?.provider_kind||'').toUpperCase();
+         const presentation=SECTOR_PRESENTATION[normalized];
+         return presentation?.[1]||normalized||'غير محدد';
+       };
+       live.memberships=live.memberships.map(m=>{
+         const b=businessMap.get(String(m.business_id));
+         const p=providerMap.get(String(m.business_id));
+         const activityCode=String(b?.settings?.activity_code||b?.settings?.category_code||p?.provider_kind||'').toUpperCase();
+         return {...m,
+           business_name:b?.name||p?.name_ar||p?.name_en||'نشاط مرتبط',
+           business_code:b?.code||null,
+           business_section:sectionName(activityCode,b,p),
+           business_section_code:activityCode||null,
+           business_icon:b?.settings?.icon||'🏢',
+           business_verified:Boolean(p?.is_verified)
+         };
+       });
      }
    }catch(_){}
  }
@@ -1212,7 +1234,15 @@ async function accountView(){
  const pendingRoles=new Set(requests.filter(r=>r.status==='PENDING').map(r=>String(r.requested_role||'').toUpperCase()));
  const roleOption=(role,label)=>activeRoles.has(role)||pendingRoles.has(role)?'':('<button class="btn btn-outline" id="request-'+role.toLowerCase()+'">'+label+'</button>');
  const requestRows=requests.length?'<div class="request-list">'+requests.slice(0,8).map(r=>'<div class="request-row"><span>'+esc(roleLabel(r.requested_role))+'</span><b>'+esc(r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':'مرفوض')+'</b></div>').join('')+'</div>':'<p class="muted">لا توجد طلبات عضوية إضافية.</p>';
- const membershipRows=memberships.length?'<div class="request-list">'+memberships.map(m=>'<div class="request-row"><span>'+esc(roleContextLabel(m))+'</span><b>نشطة</b></div>').join('')+'</div>':'<p class="muted">لا توجد عضوية تشغيلية نشطة.</p>';
+ const membershipRows=memberships.length?'<div class="mx-membership-grid">'+memberships.map(m=>{
+   const role=String(m.role||'CUSTOMER').toUpperCase();
+   const active=m.id===live.activeMembershipId;
+   const icon=m.business_icon||'🏢';
+   const activity=m.business_name||'نشاط مرتبط';
+   const section=m.business_section||'غير محدد';
+   const branch=m.branch_id?'فرع مرتبط':'كل الفروع';
+   return '<article class="mx-membership-card '+(active?'is-active':'')+'"><div class="mx-membership-card__top"><div class="mx-membership-card__icon">'+esc(icon)+'</div><div class="mx-membership-card__status">'+(active?'✓ نشطة':'نشطة')+'</div></div><div class="mx-membership-card__role">'+esc(roleLabel(role))+'</div><h4>'+esc(activity)+'</h4><div class="mx-membership-card__meta"><span><b>القسم</b><strong>'+esc(section)+'</strong></span><span><b>النشاط</b><strong>'+esc(activity)+'</strong></span><span><b>النطاق</b><strong>'+esc(branch)+'</strong></span></div>'+(m.business_verified?'<div class="mx-membership-card__verified">✓ نشاط موثق</div>':'')+'<button type="button" class="btn '+(active?'btn-light':'btn-primary')+' mx-membership-card__action" data-membership-open="'+esc(m.id)+'">'+(active?'الدخول للنشاط الحالي':'فتح هذا النشاط')+'</button></article>';
+ }).join('')+'</div>':'<p class="muted">لا توجد عضوية تشغيلية نشطة.</p>';
  const pendingProvider=requests.find(r=>String(r.requested_role||'').toUpperCase()==='SERVICE_PROVIDER'&&r.status==='PENDING');
  let onboarding=null;
  let providerGovernorates=[];
@@ -1251,6 +1281,12 @@ async function accountView(){
  document.getElementById('account-buy-menu')?.addEventListener('click',()=>openDigitalPageOrderModal('MENU',providerProfile?.business_id||null));
  document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
  document.getElementById('account-logout').onclick=logout;
+ document.querySelectorAll('[data-membership-open]').forEach(btn=>btn.addEventListener('click',async()=>{
+   const id=btn.getAttribute('data-membership-open');
+   if(!id)return;
+   if(id===live.activeMembershipId){await renderApp();return;}
+   await switchMembership(id);
+ }));
  const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest(role);};
  document.getElementById('request-customer')?.addEventListener('click',()=>submitRole('CUSTOMER'));
  document.getElementById('request-service_provider')?.addEventListener('click',()=>submitRole('SERVICE_PROVIDER'));
