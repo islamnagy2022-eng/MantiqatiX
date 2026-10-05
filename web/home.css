@@ -1141,3 +1141,9 @@
   #mx-cart{width:38px;min-width:38px}
   .mx-mobile-menu{width:38px;height:38px}
 }
+
+/* AI-generated sector photography */
+.mx-category__media--ai{position:relative;overflow:hidden;background:#e8eef5}
+.mx-category__media--ai:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.12));pointer-events:none}
+.mx-category__media--ai .mx-category__glyph{display:none}
+.mx-category__media--ai{background-image:url('./assets/activities/ai-sector-directory.svg');background-repeat:no-repeat;background-size:500% 600%;background-position:calc(var(--ai-col) * 25%) calc(var(--ai-row) * 20%);background-origin:border-box}
