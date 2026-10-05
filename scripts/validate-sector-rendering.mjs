@@ -23,6 +23,8 @@ const checks = [
   ['sector grid is final 7 columns', css.includes('#mx-category-grid.mx-categories{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))')],
   ['sector tile forced visible', css.includes('#mx-category-grid .mx-category{min-width:0;width:100%;visibility:visible;opacity:1}')],
   ['home.js cache version rc367', index.includes('home.js?v=rc369')],
+  ['mobile header hides desktop add activity control', css.includes('.mx-nav .mx-add,.mx-header__inner>.mx-add{display:none!important}')],
+  ['mobile header has dedicated grid areas', css.includes('grid-template-areas:') && css.includes('"brand login cart menu"')],
   ['live sector counts are supported', app.includes('PUBLIC_DIRECTORY_COUNTS') && app.includes("select('category_code')") && app.includes("select('provider_kind')")],
   ['sector live metadata is rendered', app.includes('mx-category__live')],
   ['static sector tiles exist before live catalog', app.includes('const initialCategoryTiles=TAXONOMY.map') && app.includes('id="mx-category-grid">')],
