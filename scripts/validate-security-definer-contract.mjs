@@ -38,9 +38,27 @@ for(const marker of [
   if(!verify.includes(marker)) throw new Error('RC337 verification contract marker missing: '+marker);
 }
 
+const rc340='supabase/migrations/20261005160000_rc340_live_security_boundary_assertions.sql';
+if(!fs.existsSync(rc340)) throw new Error('RC340 live security-boundary assertion migration is missing.');
+const rc340Sql=fs.readFileSync(rc340,'utf8');
+for(const marker of [
+  'RC340_RLS_DISABLED',
+  'RC340_RLS_NO_POLICY',
+  'has_function_privilege',
+  'search_path=public, pg_temp',
+  'get_mnty_targeted_advertisements',
+  'digital_page_payment_events',
+  'RC340_PAYMENT_EVENTS_POLICY_DRIFT'
+]){
+  if(!rc340Sql.includes(marker)) throw new Error('RC340 security-boundary marker missing: '+marker);
+}
+
 const currentWorkflow=fs.readFileSync('.github/workflows/pages.yml','utf8');
+if(!currentWorkflow.includes('node scripts/validate-security-definer-contract.mjs')){
+  throw new Error('SECURITY DEFINER validation is not wired into production CI.');
+}
 if(!currentWorkflow.includes('node scripts/validate-rbac-contract.mjs')){
   throw new Error('RBAC validation is not wired into production CI.');
 }
 
-console.log('RC359 SECURITY DEFINER/RBAC release contract: PASS');
+console.log('RC340 SECURITY DEFINER/RBAC release contract: PASS');
