@@ -402,3 +402,23 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 }
 
 .mnty-inline-toast{position:fixed;inset-inline-end:20px;bottom:20px;z-index:10000;max-width:min(420px,calc(100vw - 40px));padding:13px 16px;border:1px solid var(--border,#ddd);border-radius:12px;background:var(--surface,#fff);box-shadow:0 12px 32px rgba(0,0,0,.14);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;font-weight:700}.mnty-inline-toast.is-visible{opacity:1;transform:none}.mnty-inline-toast.is-error{border-color:#c62828}.mnty-inline-toast.is-success{border-color:#2e7d32}@media(prefers-reduced-motion:reduce){.mnty-inline-toast{transition:none}}
+
+/* Account memberships — activity-first presentation */
+.mx-membership-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0 24px}
+.mx-membership-card{position:relative;background:#fff;border:1px solid #e3e7ee;border-radius:20px;padding:17px;box-shadow:0 10px 28px rgba(16,24,40,.06);transition:.18s;overflow:hidden}
+.mx-membership-card:hover{transform:translateY(-2px);border-color:#bfd0ef;box-shadow:0 15px 34px rgba(16,24,40,.09)}
+.mx-membership-card.is-active{border-color:#2563eb;box-shadow:0 14px 34px rgba(37,99,235,.13)}
+.mx-membership-card.is-active:before{content:'';position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,#2563eb,#00c896)}
+.mx-membership-card__top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mx-membership-card__icon{width:52px;height:52px;border-radius:15px;background:#f1f6ff;border:1px solid #dce7f7;display:grid;place-items:center;font-size:25px}
+.mx-membership-card__status{padding:6px 10px;border-radius:999px;background:#ecfdf3;color:#027a48;font-size:11px;font-weight:900}
+.mx-membership-card__role{display:inline-flex;margin-top:14px;padding:5px 9px;border-radius:8px;background:#eef4ff;color:#1d4ed8;font-size:11px;font-weight:900}
+.mx-membership-card h4{margin:8px 0 12px;font-size:19px;color:#101828}
+.mx-membership-card__meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mx-membership-card__meta span{display:grid;gap:3px;padding:9px;border-radius:11px;background:#f8fafc;border:1px solid #edf0f4;min-width:0}
+.mx-membership-card__meta b{font-size:9px;color:#98a2b3;font-weight:700}
+.mx-membership-card__meta strong{font-size:11px;color:#344054;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mx-membership-card__verified{margin-top:10px;color:#027a48;font-size:10px;font-weight:900}
+.mx-membership-card__action{margin-top:14px;width:100%!important}
+@media(max-width:760px){.mx-membership-grid{grid-template-columns:1fr}.mx-membership-card__meta{grid-template-columns:1fr 1fr}.mx-membership-card__meta span:last-child{grid-column:1/-1}}
+@media(max-width:430px){.mx-membership-card__meta{grid-template-columns:1fr}.mx-membership-card__meta span:last-child{grid-column:auto}}
