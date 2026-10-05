@@ -101,7 +101,7 @@
 
 ## P1 — Providers / Sectors
 - [🟢] مصدر موحد للقطاعات/المجالات/الخدمات — تم توحيد دليل القطاعات العام، قاعدة `business_sectors`، ومساحة التطبيق على Registry برمجي واحد من 27 قطاعًا؛ مع منع توجيه القطاعات غير الموصولة إلى وحدات غير مطابقة.
-- [ ] التحقق من seed الحقيقي لـ business_categories/modules قبل عرضه كبيانات production.
+- [🟢] التحقق من seed الحقيقي لـ business_categories/modules — تم التحقق من `business_categories`: 27/27 ACTIVE وتغطي 27/27 قطاعًا بعد RC368؛ `business_modules` تحتوي 24 module codes تشغيلية، ولا تُعامل كمرادف لعدد القطاعات.
 - [ ] provider profiles + verification/featured.
 - [ ] sector-specific packages/commissions/ranking.
 - [ ] tenant/business/branch isolation.
