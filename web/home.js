@@ -45,6 +45,23 @@
   // Public sector codes may differ from backend taxonomy codes; keep the public contract stable and map only at the data boundary.
   const DATA_CATEGORY_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',FITNESS:'SPORTS',TRAVEL:'TRIPS',TECH:'ERP',FOOD:'FOOD'};
   const dataCategoryCode = code => DATA_CATEGORY_ALIASES[normCode(code)] || normCode(code);
+  let PUBLIC_DIRECTORY_COUNTS = null;
+  const loadPublicDirectoryCounts = async sb => {
+    try {
+      const [servicesRes,providersRes]=await Promise.all([
+        sb.from('marketing_services').select('category_code').eq('status','ACTIVE').limit(1000),
+        sb.from('marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').limit(1000)
+      ]);
+      if(servicesRes.error || providersRes.error) throw (servicesRes.error||providersRes.error);
+      const counts={};
+      (servicesRes.data||[]).forEach(x=>{const k=normCode(x?.category_code);if(k){counts[k]??={services:0,providers:0};counts[k].services++;}});
+      (providersRes.data||[]).forEach(x=>{const k=normCode(x?.provider_kind);if(k){counts[k]??={services:0,providers:0};counts[k].providers++;}});
+      PUBLIC_DIRECTORY_COUNTS=counts;
+    } catch(_) {
+      PUBLIC_DIRECTORY_COUNTS=null;
+    }
+    return PUBLIC_DIRECTORY_COUNTS;
+  };
   let HOME_RUNTIME_FLAGS = null;
   const loadHomeRuntimeFlags = async sb => {
     try {
@@ -279,7 +296,7 @@
         </section>
 
         <section class="mx-section" id="mx-categories">
-          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف القطاعات والأنشطة</h2><p>جميع القطاعات الرئيسية ظاهرة أمامك الآن. اختر أي قطاع لمشاهدة الأنشطة ومقدمي الخدمات والخدمات المتاحة به.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
+          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف القطاعات والأنشطة الحالية</h2><p>27 قطاعًا متاحة الآن. تظهر أسفل كل قطاع أعداد الخدمات والأنشطة المنشورة فعليًا عند توفر البيانات، ويمكنك فتح القطاع لرؤية التفاصيل.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
           <div class="mx-categories" id="mx-category-grid">${initialCategoryTiles}</div>
         </section>
 
@@ -345,10 +362,19 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const items=dynamicTaxonomy(services,providers);
       const count=document.getElementById('mx-sector-count');
       if(count) count.textContent=String(items.length);
-      const tiles=items.map(c=>{        const icon=escapeHtml(c?.[0]||'◉');        const label=escapeHtml(c?.[1]||'قطاع');        const desc=escapeHtml(c?.[2]||'خدمات وأنشطة منشورة على المنصة');        const code=normCode(c?.[3]||'');        let image='';        try{image=activityImage(code)||'';}catch(_){}        return '<button class="mx-category" type="button" aria-label="'+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small></button>';      }).join('');      categoryGrid.innerHTML=tiles;
+      const tiles=items.map(c=>{
+        const icon=escapeHtml(c?.[0]||'◉');
+        const label=escapeHtml(c?.[1]||'قطاع');
+        const code=normCode(c?.[3]||'');
+        const desc=escapeHtml(c?.[2]||'استكشف الأنشطة والخدمات');
+        const live=PUBLIC_DIRECTORY_COUNTS?.[code];
+        const liveMeta=live ? ('<span class="mx-category__live">'+(live.services||0)+' خدمات · '+(live.providers||0)+' أنشطة</span>') : '';
+        let image=''; try{image=activityImage(code)||'';}catch(_){}
+        return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small>'+liveMeta+'<span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
+      }).join('');
+      categoryGrid.innerHTML=tiles;
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
     };
-
     const platformNotices=[
       'استكشف الخدمات ومقدميها من مكان واحد.',
       'احجز إعلان نشاطك مسبقًا بباقة ربع سنوية أو نصف سنوية أو سنوية.',
@@ -711,6 +737,8 @@ const categoryGrid=document.getElementById('mx-category-grid');
         // The canonical sector directory is structural UI and must remain visible even when live catalog queries are unavailable.
         renderDynamicCategories(TAXONOMY,[]);
         await loadHomeRuntimeFlags(sb);
+        await loadPublicDirectoryCounts(sb);
+        renderDynamicCategories(TAXONOMY,[]);
         loadLocationUi();
         document.querySelectorAll('[data-module]').forEach(btn=>{ btn.hidden=!homeFeatureEnabled(btn.dataset.module); });
         const moduleStrip=document.getElementById('mx-marketing');
