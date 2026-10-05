@@ -127,7 +127,18 @@
     const text = escapeHtml((provider?.name_ar || provider?.name_en || 'مقدم خدمة').slice(0,1));
     return '<div class="mx-photo mx-photo--provider">'+(image?'<img class="mx-provider-cover" src="'+escapeHtml(image)+'" alt="'+escapeHtml(provider?.name_ar||provider?.name_en||'صورة النشاط')+'" loading="lazy">':'<img class="mx-provider-cover" src="'+fallback+'" alt="صورة النشاط" loading="lazy"><span class="mx-photo-fallback">'+text+'</span>')+(logo?'<span class="mx-provider-logo"><img src="'+escapeHtml(logo)+'" alt="لوجو النشاط" loading="lazy"></span>':'')+'</div>';
   };
-  const serviceMedia = service => '<div class="mx-photo mx-photo--service"><img src="'+activityImage(service?.category_code)+'" alt="'+escapeHtml(service?.name_ar||service?.name_en||'صورة الخدمة')+'" loading="lazy"></div>';
+  const serviceVisualKey=service=>{
+    const raw=String(service?.id||service?.code||service?.name_ar||service?.name_en||'SERVICE');
+    let h=0; for(let i=0;i<raw.length;i++) h=((h<<5)-h+raw.charCodeAt(i))|0;
+    return Math.abs(h)%12;
+  };
+  const serviceMedia = service => {
+    const key=serviceVisualKey(service);
+    const code=normCode(service?.category_code||'SERVICE');
+    const label=String(service?.name_ar||service?.name_en||'خدمة');
+    const image=activityImage(code);
+    return '<div class="mx-photo mx-photo--service mx-service-visual mx-service-visual--'+key+'" data-service-visual="'+key+'"><img src="'+escapeHtml(image||'')+'" alt="'+escapeHtml(label)+'" loading="lazy"><span class="mx-service-visual__veil"></span><span class="mx-service-visual__mark" aria-hidden="true">'+escapeHtml((label||'خ').slice(0,1))+'</span></div>';
+  };
 
   window.MXHomeLanding = function(){
     const app=document.getElementById('app');
