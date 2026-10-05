@@ -1109,3 +1109,35 @@
 #mx-category-grid .mx-category__live{display:block;margin-top:5px;color:#9a6a08;font-size:8px;font-weight:900;line-height:1.3}
 #mx-category-grid .mx-category__cta{margin-top:6px}
 @media(max-width:460px){#mx-category-grid .mx-category__live{font-size:7.5px}}
+
+
+/* RC370 — final mobile header layout: prevent desktop add-activity action from overlapping header controls */
+@media(max-width:800px){
+  .mx-header__inner{
+    direction:rtl;
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto auto;
+    grid-template-areas:
+      "brand login cart menu"
+      "search search search search";
+    align-items:center;
+    gap:7px;
+    padding:8px 11px 9px;
+  }
+  .mx-brand{grid-area:brand;min-width:45px;justify-self:start}
+  .mx-header__login{grid-area:login;justify-self:center;min-width:96px;max-width:145px}
+  #mx-cart{grid-area:cart;display:grid;place-items:center;width:42px;min-width:42px;height:40px}
+  #mx-wallet{display:none!important}
+  .mx-mobile-menu{grid-area:menu;display:grid;place-items:center;width:40px;height:40px}
+  .mx-nav{display:none!important}
+  .mx-nav .mx-add,.mx-header__inner>.mx-add{display:none!important}
+  .mx-search-wrap{grid-area:search;width:100%;min-width:0;order:initial}
+  .mx-search{width:100%;max-width:none}
+}
+@media(max-width:500px){
+  .mx-header__inner{grid-template-columns:auto minmax(0,1fr) auto auto;gap:5px;padding-inline:9px}
+  .mx-brand .mark{width:44px;height:44px}
+  .mx-header__login{min-width:90px;max-width:112px;padding-inline:8px;font-size:10px}
+  #mx-cart{width:38px;min-width:38px}
+  .mx-mobile-menu{width:38px;height:38px}
+}
