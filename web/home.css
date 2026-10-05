@@ -2880,3 +2880,192 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
   .mx-home .mx-header__login{height:38px!important;max-width:78px!important;padding:0 6px!important}
   .mx-home .mx-mobile-menu{width:38px!important;min-width:38px!important;height:38px!important}
 }
+
+
+/* =========================================================
+   FINAL RC383 — MantiqatiX visual identity / real-photo layer
+   Uses live business images first; photographic URLs are fallback only.
+   ========================================================= */
+:root{
+  --mx-brand-blue:#0750C9;
+  --mx-brand-blue-2:#0B75FF;
+  --mx-brand-cyan:#0CC9FF;
+  --mx-brand-navy:#06235F;
+  --mx-brand-surface:#F7FBFF;
+  --mx-brand-border:#D7EAF8;
+  --mx-brand-text:#09245C;
+}
+
+/* Premium marketplace surface */
+.mx-home{
+  background:
+    radial-gradient(circle at 8% 3%,rgba(12,201,255,.09),transparent 22%),
+    linear-gradient(180deg,#F7FBFF 0%,#F2FAFF 48%,#FFFFFF 100%)!important;
+}
+.mx-home .mx-section,
+.mx-home .mx-about-section,
+.mx-home .mx-audience-section,
+.mx-home .mx-module-strip{
+  border:1px solid var(--mx-brand-border)!important;
+  box-shadow:0 10px 30px rgba(7,80,201,.07)!important;
+}
+
+/* Hero: real photographic city fallback, never replaces live content. */
+.mx-home .mx-home-hero{
+  position:relative!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(90deg,rgba(4,27,75,.92) 0%,rgba(5,60,139,.72) 48%,rgba(7,117,255,.28) 100%),
+    url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1800&q=86') center/cover no-repeat!important;
+  border:1px solid rgba(255,255,255,.25)!important;
+  box-shadow:0 18px 45px rgba(4,47,112,.20)!important;
+}
+.mx-home .mx-home-hero__copy{
+  position:relative!important;
+  z-index:3!important;
+}
+.mx-home .mx-home-hero__eyebrow{
+  color:#79EAFF!important;
+}
+.mx-home .mx-home-hero h1{
+  color:#fff!important;
+  text-shadow:0 4px 18px rgba(0,0,0,.22)!important;
+}
+.mx-home .mx-home-hero p{
+  color:#EAF5FF!important;
+}
+.mx-home .mx-home-hero__trust span{
+  background:rgba(255,255,255,.94)!important;
+  border-color:rgba(255,255,255,.55)!important;
+  color:#07358D!important;
+}
+.mx-home .mx-home-hero__visual{
+  background:linear-gradient(135deg,rgba(6,35,95,.70),rgba(7,80,201,.36),rgba(12,201,255,.16))!important;
+}
+.mx-home .mx-home-hero__brand-card,
+.mx-home .mx-home-hero__provider,
+.mx-home .mx-home-hero__steps article{
+  backdrop-filter:blur(12px)!important;
+  background:rgba(255,255,255,.90)!important;
+  border-color:rgba(255,255,255,.65)!important;
+}
+
+/* Real-photo fallbacks for service cards. Live <img> remains above them. */
+.mx-home .mx-service-card .mx-photo{
+  background-position:center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.mx-home .mx-service-card:nth-child(1) .mx-photo{
+  background-image:linear-gradient(180deg,rgba(4,35,95,.05),rgba(4,35,95,.25)),url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=900&q=82')!important;
+}
+.mx-home .mx-service-card:nth-child(2) .mx-photo{
+  background-image:linear-gradient(180deg,rgba(4,35,95,.04),rgba(4,35,95,.22)),url('https://images.unsplash.com/photo-1580281658628-2a20e6f1d0f1?auto=format&fit=crop&w=900&q=82')!important;
+}
+.mx-home .mx-service-card:nth-child(3) .mx-photo{
+  background-image:linear-gradient(180deg,rgba(4,35,95,.04),rgba(4,35,95,.24)),url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=82')!important;
+}
+.mx-home .mx-service-card:nth-child(4) .mx-photo{
+  background-image:linear-gradient(180deg,rgba(4,35,95,.04),rgba(4,35,95,.24)),url('https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=900&q=82')!important;
+}
+.mx-home .mx-service-card:nth-child(5) .mx-photo{
+  background-image:linear-gradient(180deg,rgba(4,35,95,.04),rgba(4,35,95,.24)),url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=82')!important;
+}
+.mx-home .mx-service-card:nth-child(6) .mx-photo{
+  background-image:linear-gradient(180deg,rgba(4,35,95,.04),rgba(4,35,95,.24)),url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=82')!important;
+}
+.mx-home .mx-service-card .mx-photo span{
+  background:rgba(255,255,255,.90)!important;
+  color:var(--mx-brand-blue)!important;
+}
+.mx-home .mx-service-card .mx-photo:has(img) span{
+  display:none!important;
+}
+
+/* Provider cards: real live image first; photographic fallback second. */
+.mx-home .mx-provider-card .mx-photo{
+  background-position:center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.mx-home .mx-provider-card:nth-child(1) .mx-photo{background-image:url('https://images.unsplash.com/photo-1550831107-1553da8c8464?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-provider-card:nth-child(2) .mx-photo{background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-provider-card:nth-child(3) .mx-photo{background-image:url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-provider-card:nth-child(4) .mx-photo{background-image:url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-provider-card:nth-child(5) .mx-photo{background-image:url('https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-provider-card:nth-child(6) .mx-photo{background-image:url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-provider-card .mx-photo:has(img) span{
+  display:none!important;
+}
+
+/* Sponsored/listing cards become photo-led like the approved reference. */
+.mx-home .mx-listing .mx-photo{
+  background-position:center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.mx-home .mx-listing:nth-child(1) .mx-photo{background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-listing:nth-child(2) .mx-photo{background-image:url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-listing:nth-child(3) .mx-photo{background-image:url('https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-listing:nth-child(4) .mx-photo{background-image:url('https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=900&q=82')!important}
+.mx-home .mx-listing .mx-photo:has(img) span{display:none!important}
+
+/* Cards and controls */
+.mx-home .mx-card-book,
+.mx-home .mx-listing__cta,
+.mx-home .mx-sponsored-badge{
+  background:linear-gradient(135deg,var(--mx-brand-blue),var(--mx-brand-blue-2))!important;
+}
+.mx-home .mx-chip{
+  background:#EAF7FF!important;
+  color:var(--mx-brand-blue)!important;
+  border:1px solid #CBEAFF!important;
+}
+.mx-home .mx-verified{
+  background:#E9FBF5!important;
+  color:#087A5B!important;
+}
+
+/* Category tiles: stronger photo-frame treatment while retaining canonical sector assets. */
+.mx-home #mx-category-grid .mx-category{
+  background:linear-gradient(180deg,#fff,#F8FCFF)!important;
+  border-color:#D7EAF8!important;
+  box-shadow:0 7px 20px rgba(7,80,201,.06)!important;
+}
+.mx-home #mx-category-grid .mx-category:hover{
+  border-color:#7BCBFF!important;
+  box-shadow:0 13px 28px rgba(7,80,201,.13)!important;
+}
+.mx-home #mx-category-grid .mx-category__media{
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 6px 15px rgba(7,80,201,.10)!important;
+}
+
+/* Search and primary actions */
+.mx-home .mx-search{
+  border-color:#B8E7FA!important;
+  box-shadow:0 8px 24px rgba(7,80,201,.11)!important;
+}
+.mx-home .mx-search button{
+  background:linear-gradient(135deg,#0750C9,#0B75FF)!important;
+}
+.mx-home .mx-btn--primary{
+  background:linear-gradient(135deg,#0750C9,#0B75FF)!important;
+}
+.mx-home .mx-btn--light{
+  color:#0750C9!important;
+}
+
+/* Mobile keeps the photographic hero but never overlays the header search. */
+@media(max-width:800px){
+  .mx-home .mx-home-hero{
+    background-position:62% center!important;
+    min-height:310px!important;
+  }
+  .mx-home .mx-home-hero__copy{
+    background:linear-gradient(90deg,rgba(3,28,78,.86),rgba(3,55,130,.48))!important;
+  }
+  .mx-home .mx-service-card .mx-photo,
+  .mx-home .mx-provider-card .mx-photo{
+    min-height:105px!important;
+  }
+}
