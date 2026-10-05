@@ -422,3 +422,8 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-membership-card__action{margin-top:14px;width:100%!important}
 @media(max-width:760px){.mx-membership-grid{grid-template-columns:1fr}.mx-membership-card__meta{grid-template-columns:1fr 1fr}.mx-membership-card__meta span:last-child{grid-column:1/-1}}
 @media(max-width:430px){.mx-membership-card__meta{grid-template-columns:1fr}.mx-membership-card__meta span:last-child{grid-column:auto}}
+
+.mx-account-card{width:min(980px,100%);max-width:980px}
+.mx-account-card>h3{margin:26px 0 8px;color:#101828;font-size:17px}
+.mx-account-card .mx-profile-card{margin:12px 0}
+@media(max-width:760px){.mx-account-card{padding:22px 16px}}
