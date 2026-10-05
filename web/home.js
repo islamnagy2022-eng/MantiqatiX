@@ -356,6 +356,12 @@
     document.querySelectorAll('[data-side-ad-book]').forEach(btn=>btn.addEventListener('click',()=>{try{localStorage.setItem('MNTYOpenAdBooking','1')}catch(_){};if(window.MNTYAuthState?.authenticated&&typeof window.selectModule==='function'){window.selectModule('التسويق والإعلان')}else if(typeof window.authView==='function'){window.authView('',false,'','login')}}));
 
 const categoryGrid=document.getElementById('mx-category-grid');
+    const AI_SECTOR_INDEX=Object.freeze(Object.fromEntries(TAXONOMY.map((x,i)=>[String(x[3]),i])));
+    const aiSectorPhoto=(code)=>{
+      const i=AI_SECTOR_INDEX[String(code||'')];
+      if(!Number.isInteger(i))return '';
+      return 'style="--ai-col:'+(i%5)+';--ai-row:'+Math.floor(i/5)+';"';
+    };
     const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const scrollOptions=(block='start')=>({behavior:reduceMotion()?'auto':'smooth',block});
     const renderDynamicCategories=(services=[],providers=[])=>{
@@ -369,8 +375,9 @@ const categoryGrid=document.getElementById('mx-category-grid');
         const desc=escapeHtml(c?.[2]||'استكشف الأنشطة والخدمات');
         const live=PUBLIC_DIRECTORY_COUNTS?.[code];
         const liveMeta=live ? ('<span class="mx-category__live">'+(live.services||0)+' خدمات · '+(live.providers||0)+' أنشطة</span>') : '';
+        const aiPhoto=aiSectorPhoto(code);
         let image=''; try{image=activityImage(code)||'';}catch(_){}
-        return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small>'+liveMeta+'<span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
+        return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media '+(aiPhoto?'mx-category__media--ai':'')+'" '+aiPhoto+'><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(aiPhoto?'':'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">')+'</span><strong>'+label+'</strong><small>'+desc+'</small>'+liveMeta+'<span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
       }).join('');
       categoryGrid.innerHTML=tiles;
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
