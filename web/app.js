@@ -1509,7 +1509,7 @@ function bindGenericWorkspaceTabs(){
   const panel=document.getElementById('mnty-generic-tab-panel');if(panel)panel.innerHTML=panels[btn.dataset.tab]||panels.overview;
  }));
 }
-async function platformStateView(kind,title,description,actions=''){
+function platformStateView(kind,title,description,actions=''){
  const icon=kind==='error'?'⚠️':kind==='empty'?'◌':'⏳';
  return '<main class="auth"><section class="auth-card mnty-state-card mnty-state-card--'+esc(kind)+'"><div class="mnty-state-icon" aria-hidden="true">'+icon+'</div><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p><div class="mnty-state-actions">'+actions+'</div></section></main>';
 }
