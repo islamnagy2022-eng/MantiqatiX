@@ -112,7 +112,7 @@ try{
    try{
      const [br,pr]=await Promise.all([
        sb.from('businesses').select('id,name,code,settings,status').in('id',businessIds),
-       sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,status,is_verified,updated_at').in('business_id',businessIds).order('updated_at',{ascending:false})
+       sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,status,is_verified,profile_image_path,updated_at').in('business_id',businessIds).order('updated_at',{ascending:false})
      ]);
      if(!br.error){
        const businessMap=new Map((br.data||[]).map(b=>[String(b.id),b]));
@@ -134,6 +134,7 @@ try{
            business_section:sectionName(activityCode,b,p),
            business_section_code:activityCode||null,
            business_icon:b?.settings?.icon||'🏢',
+           business_image_path:p?.profile_image_path||null,
            business_verified:Boolean(p?.is_verified)
          };
        });
@@ -1241,11 +1242,12 @@ async function accountView(){
    const role=String(m.role||'CUSTOMER').toUpperCase();
    const active=m.id===live.activeMembershipId;
    const icon=m.business_icon||'🏢';
+   const image=providerImageUrl(m.business_image_path||'');
    const activity=m.business_name||'نشاط مرتبط';
    const section=m.business_section||'غير محدد';
    const branch=m.branch_id?'فرع مرتبط':'كل الفروع';
    const ownerRole=['OWNER','BUSINESS_OWNER'].includes(role)?'مالك النشاط':roleLabel(role);
- return '<article class="mx-membership-card '+(active?'is-active':'')+'"><div class="mx-membership-card__top"><div class="mx-membership-card__icon">'+esc(icon)+'</div><div class="mx-membership-card__status">'+(active?'✓ الحالية':'✓ نشطة')+'</div></div><div class="mx-membership-card__role">'+esc(ownerRole)+'</div><h4>'+esc(activity)+'</h4><div class="mx-membership-card__meta"><span><b>القسم</b><strong>'+esc(section)+'</strong></span><span><b>النشاط</b><strong>'+esc(activity)+'</strong></span><span><b>الفرع</b><strong>'+esc(branch)+'</strong></span></div>'+(m.tenant_id?'<div class="mx-membership-card__tenant">النطاق: '+esc(m.tenant_id)+'</div>':'')+(m.business_verified?'<div class="mx-membership-card__verified">✓ النشاط موثق</div>':'')+'<button type="button" class="btn '+(active?'btn-light':'btn-primary')+' mx-membership-card__action" data-membership-open="'+esc(m.id)+'">'+(active?'الدخول للمساحة الحالية':'دخول إلى المساحة')+'</button></article>';
+ return '<article class="mx-membership-card '+(active?'is-active':'')+'">'+(image?'<div class="mx-membership-card__media"><img src="'+esc(image)+'" alt="صورة '+esc(activity)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="mx-membership-card__media-badge">صورة النشاط</span></div>':'<div class="mx-membership-card__media mx-membership-card__media--fallback"><div class="mx-membership-card__icon">'+esc(icon)+'</div><span class="mx-membership-card__media-badge">لا توجد صورة مرفوعة</span></div>')+'<div class="mx-membership-card__top"><div class="mx-membership-card__status">'+(active?'✓ الحالية':'✓ نشطة')+'</div></div><div class="mx-membership-card__role">'+esc(ownerRole)+'</div><h4>'+esc(activity)+'</h4><div class="mx-membership-card__meta"><span><b>القسم</b><strong>'+esc(section)+'</strong></span><span><b>النشاط</b><strong>'+esc(activity)+'</strong></span><span><b>الفرع</b><strong>'+esc(branch)+'</strong></span></div>'+(m.tenant_id?'<div class="mx-membership-card__tenant">النطاق: '+esc(m.tenant_id)+'</div>':'')+(m.business_verified?'<div class="mx-membership-card__verified">✓ النشاط موثق</div>':'')+'<button type="button" class="btn '+(active?'btn-light':'btn-primary')+' mx-membership-card__action" data-membership-open="'+esc(m.id)+'">'+(active?'الدخول للمساحة الحالية':'دخول إلى المساحة')+'</button></article>';
  }).join('')+'</div>':'<p class="muted">لا توجد عضوية تشغيلية نشطة.</p>';
  const pendingProvider=requests.find(r=>String(r.requested_role||'').toUpperCase()==='SERVICE_PROVIDER'&&r.status==='PENDING');
  let onboarding=null;
