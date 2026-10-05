@@ -26,7 +26,7 @@ serve(async (req) => {
   const json = (body: unknown, status = 200, extra: Record<string,string> = {}) =>
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", "X-Request-Id": requestId, ...extra } })
 
-  if (path === "/health") return json({ status: "ok", requestId })
+  if (path === "/api/health" || path === "/health") return json({ status: "ok", requestId })
 
   const authHeader = req.headers.get("Authorization")
   if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401)
