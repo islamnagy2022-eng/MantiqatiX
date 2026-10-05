@@ -589,7 +589,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         try{history.replaceState({},'', '#'+id);}catch(_){}
       });
     });
-    document.getElementById('mx-login').onclick=openAccount;
+    bindClick('mx-login',openAccount);
     syncHomeAuthState();
     if(String(location.hash||'').startsWith('#category/')) setTimeout(()=>window.__MNTYOpenCategoryPage?.(decodeURIComponent(String(location.hash).slice(10))),0);
     else if(String(location.hash||'').startsWith('#provider/')) setTimeout(()=>window.__MNTYHandlePublicRoute?.(),0);
@@ -614,7 +614,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(btn)btn.disabled=false;
       }
     });
-    document.getElementById('mx-add').onclick=openActivityRequestModal;
+    bindClick('mx-add',openActivityRequestModal);
     document.getElementById('mx-ad-book')?.addEventListener('click',openActivityRequestModal);
     document.getElementById('mx-bottom-add')?.addEventListener('click',openActivityRequestModal);
     const selectAdPlan=(plan)=>{
