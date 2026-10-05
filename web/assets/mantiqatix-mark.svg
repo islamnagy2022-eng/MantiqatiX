@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-<title>MantiqatiX Mark</title><desc>Red and gold location mark</desc>
-<defs><linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8D0D16"/><stop offset=".55" stop-color="#E21B2D"/><stop offset="1" stop-color="#6F0710"/></linearGradient><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF1A8"/><stop offset=".4" stop-color="#F6C453"/><stop offset="1" stop-color="#B97812"/></linearGradient></defs>
-<rect x="8" y="8" width="496" height="496" rx="110" fill="#160809"/>
-<circle cx="256" cy="256" r="190" fill="none" stroke="url(#g)" stroke-width="16"/>
-<circle cx="256" cy="256" r="162" fill="none" stroke="url(#r)" stroke-width="30"/>
-<path d="M256 100c-57 0-103 46-103 103 0 87 103 180 103 180s103-93 103-180c0-57-46-103-103-103z" fill="url(#r)" stroke="url(#g)" stroke-width="8"/>
-<circle cx="256" cy="203" r="35" fill="#FFF8E7" stroke="#D7A83F" stroke-width="7"/>
-<path d="M126 392c43-43 88-64 134-67 54-4 102 13 145 50l-42 34c-34-24-68-34-101-31-35 3-68 18-98 46z" fill="#222326" stroke="url(#g)" stroke-width="7"/>
-<path d="M170 391h28m22-5h28m22-1h28m22 4h28" stroke="#FFF6D8" stroke-width="7" stroke-linecap="round"/>
+<title>MantiqatiX Mark</title><desc>Blue location mark</desc>
+<defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#063BFF"/><stop offset=".55" stop-color="#0B7CFF"/><stop offset="1" stop-color="#12D6FF"/></linearGradient><linearGradient id="c" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C7F8FF"/><stop offset=".5" stop-color="#4ADFFF"/><stop offset="1" stop-color="#0A6CFF"/></linearGradient></defs>
+<rect x="8" y="8" width="496" height="496" rx="110" fill="#062B78"/>
+<circle cx="256" cy="256" r="190" fill="none" stroke="url(#c)" stroke-width="16"/>
+<circle cx="256" cy="256" r="162" fill="none" stroke="#0BBFFF" stroke-width="30"/>
+<path d="M256 100c-57 0-103 46-103 103 0 87 103 180 103 180s103-93 103-180c0-57-46-103-103-103z" fill="url(#b)" stroke="url(#c)" stroke-width="8"/>
+<circle cx="256" cy="203" r="35" fill="#fff" stroke="#62DFFF" stroke-width="7"/>
+<path d="M126 392c43-43 88-64 134-67 54-4 102 13 145 50l-42 34c-34-24-68-34-101-31-35 3-68 18-98 46z" fill="#0A245C" stroke="url(#c)" stroke-width="7"/>
+<path d="M170 391h28m22-5h28m22-1h28m22 4h28" stroke="#E8FBFF" stroke-width="7" stroke-linecap="round"/>
 </svg>
