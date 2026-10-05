@@ -120,3 +120,33 @@ body,.landing,.content,.shell{background:var(--mx-brand-bg)}
 .feature-icon,.sector-icon{color:var(--mx-brand-red)}
 .plan.featured{border-color:var(--mx-brand-gold)}
 .landing footer{background:#160809}
+
+
+/* ===== Account Workspace — clear activity/owner context ===== */
+.mx-account-card{width:min(980px,100%);max-width:980px}
+.mx-account-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin:0 0 18px}
+.mx-account-heading h1{margin:3px 0 5px;font-size:28px;color:var(--mx-brand-ink)}
+.mx-account-heading p{margin:0;color:#6f5a5c;font-size:13px;line-height:1.8}
+.mx-account-count{flex:0 0 auto;background:#FBE7E8;color:var(--mx-brand-red);border:1px solid #EBC7CA;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:900}
+.mx-account-section-title{margin:24px 0 10px;color:var(--mx-brand-ink);font-size:18px}
+.mx-membership-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:12px 0 20px}
+.mx-membership-card{position:relative;background:linear-gradient(145deg,#fff,#FFF9EE);border:1px solid var(--mx-brand-line);border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(36,17,19,.06);transition:.16s}
+.mx-membership-card:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(181,18,27,.10);border-color:#DDBE7A}
+.mx-membership-card.is-active{border:2px solid var(--mx-brand-red);box-shadow:0 12px 30px rgba(181,18,27,.12)}
+.mx-membership-card__top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mx-membership-card__icon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:#FBE7E8;font-size:23px}
+.mx-membership-card__status{font-size:10px;font-weight:900;color:#287A4B;background:#ECFDF3;border-radius:999px;padding:5px 9px}
+.mx-membership-card__role{font-size:11px;font-weight:950;color:var(--mx-brand-red);margin-top:6px}
+.mx-membership-card h4{font-size:19px;color:var(--mx-brand-ink);margin:4px 0 12px}
+.mx-membership-card__meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.mx-membership-card__meta span{background:#fff;border:1px solid #EEE2CF;border-radius:11px;padding:8px;display:grid;gap:2px;min-width:0}
+.mx-membership-card__meta b{font-size:9px;color:#927B7D}
+.mx-membership-card__meta strong{font-size:10px;color:#392326;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mx-membership-card__tenant{display:block;margin-top:8px;color:#7A6567;font-size:9px}
+.mx-membership-card__verified{display:inline-block;margin-top:9px;color:#287A4B;font-size:9px;font-weight:900}
+.mx-membership-card__action{width:100%!important;margin-top:12px}
+@media(max-width:700px){
+ .mx-account-heading{flex-direction:column}
+ .mx-membership-grid{grid-template-columns:1fr}
+ .mx-membership-card__meta{grid-template-columns:1fr}
+}
