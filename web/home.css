@@ -2614,3 +2614,56 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
   .mx-home-hero h1{font-size:27px!important}
   .mx-categories{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
+
+
+/* FINAL RC381 — hard stop for legacy red/oversized homepage presentation.
+   Keep the original DOM and functionality; only enforce the approved blue system. */
+.mx-home .mx-header__login,
+.mx-home .mx-header-tool,
+.mx-home .mx-mobile-menu{
+  background:#fff!important;
+  color:#09245C!important;
+  border-color:#BFE7FB!important;
+}
+.mx-home .mx-nav a[href="#mx-home"],
+.mx-home .mx-add{
+  background:linear-gradient(135deg,#0750C9,#0B75FF)!important;
+  color:#fff!important;
+}
+.mx-home .mx-feature-ad{
+  background:linear-gradient(135deg,#06235F,#0750C9 58%,#0CC9FF)!important;
+}
+.mx-home .mx-side-banner--right{
+  background:#fff!important;
+  border-color:#BFE7FB!important;
+}
+.mx-home .mx-side-banner__copy strong{color:#07358D!important}
+.mx-home .mx-side-banner__copy button{
+  background:linear-gradient(135deg,#0750C9,#0B75FF)!important;
+  color:#fff!important;
+}
+.mx-home .mx-category__media{
+  height:76px!important;
+  min-height:76px!important;
+  max-height:76px!important;
+  border-radius:11px!important;
+  background:#F4FBFF!important;
+  overflow:hidden!important;
+}
+.mx-home .mx-category__media>img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  transform:none!important;
+}
+.mx-home .mx-footer{
+  background:linear-gradient(135deg,#041B4B,#06235F 55%,#0750C9)!important;
+  color:#fff!important;
+}
+@media(max-width:800px){
+  .mx-home .mx-category__media{
+    height:62px!important;
+    min-height:62px!important;
+    max-height:62px!important;
+  }
+}
