@@ -625,16 +625,16 @@ const categoryGrid=document.getElementById('mx-category-grid');
       selectAdPlan(btn.dataset.adPlan||'QUARTERLY');
       goLogin();
     });
-    document.getElementById('mx-hero-search').onclick=()=>{
+    bindClick('mx-hero-search',()=>{
       const input=document.getElementById('mx-home-search');
       if(input){input.focus();input.scrollIntoView(scrollOptions('center'));}
-    };
-    document.getElementById('mx-ad-book').onclick=()=>{selectAdPlan('QUARTERLY');goAdvertise();};
-    document.getElementById('mx-ad-plans').onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center'));
-    document.getElementById('mx-bottom-account').onclick=openAccount;
-    document.getElementById('mx-bottom-add').onclick=goAdvertise;
-    document.getElementById('mx-all').onclick=()=>scrollTo('mx-services');
-    document.getElementById('mx-ad-cta').onclick=goAdvertise;
+    });
+    bindClick('mx-ad-book',()=>{selectAdPlan('QUARTERLY');goAdvertise();});
+    bindClick('mx-ad-plans',()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center')));
+    bindClick('mx-bottom-account',openAccount);
+    bindClick('mx-bottom-add',goAdvertise);
+    bindClick('mx-all',()=>scrollTo('mx-services'));
+    bindClick('mx-ad-cta',goAdvertise);
 
     document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
     document.querySelectorAll('[data-auth-link]').forEach(a=>a.onclick=e=>{e.preventDefault();goLogin()});
