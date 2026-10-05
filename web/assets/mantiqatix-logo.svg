@@ -1,26 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
-<title>MantiqatiX</title><desc>Red and gold MantiqatiX location and service platform logo</desc>
+<title>MantiqatiX</title><desc>Blue MantiqatiX location and service platform logo</desc>
 <defs>
- <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8D0D16"/><stop offset=".55" stop-color="#E21B2D"/><stop offset="1" stop-color="#6F0710"/></linearGradient>
- <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF1A8"/><stop offset=".35" stop-color="#F6C453"/><stop offset="1" stop-color="#B97812"/></linearGradient>
- <linearGradient id="cream" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#FFFDF7"/><stop offset="1" stop-color="#F8E9C5"/></linearGradient>
- <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#4a070b" flood-opacity=".28"/></filter>
+ <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#063BFF"/><stop offset=".55" stop-color="#0B7CFF"/><stop offset="1" stop-color="#12D6FF"/></linearGradient>
+ <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#BDF6FF"/><stop offset=".5" stop-color="#4ADFFF"/><stop offset="1" stop-color="#0A6CFF"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="15" flood-color="#063BFF" flood-opacity=".28"/></filter>
 </defs>
 <g transform="translate(28 18)" filter="url(#shadow)">
- <circle cx="235" cy="242" r="204" fill="#180809" stroke="url(#gold)" stroke-width="12"/>
- <circle cx="235" cy="242" r="176" fill="none" stroke="url(#red)" stroke-width="30"/>
- <circle cx="235" cy="242" r="145" fill="#FFF9EE" opacity=".96"/>
- <path d="M82 277c65-54 105-78 154-79 59-2 113 31 150 75" fill="none" stroke="#D9B56B" stroke-width="4" opacity=".55"/>
- <path d="M112 338c48-25 92-38 132-39 55-2 101 12 145 42" fill="none" stroke="#B9B4A8" stroke-width="4" opacity=".42"/>
- <path d="M226 110c-51 0-92 41-92 92 0 77 92 153 92 153s92-76 92-153c0-51-41-92-92-92z" fill="url(#red)" stroke="url(#gold)" stroke-width="7"/>
- <circle cx="226" cy="201" r="31" fill="#FFF8E7" stroke="#D7A83F" stroke-width="6"/>
- <path d="M120 365c34-32 70-50 109-54 44-5 91 7 140 38l-35 30c-40-21-77-28-111-24-35 4-67 18-96 42z" fill="#222326" stroke="url(#gold)" stroke-width="6"/>
- <path d="M163 362h26m20-5h26m20-1h26m20 5h25" stroke="#FFF6D8" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 0"/>
+ <circle cx="235" cy="242" r="204" fill="#063BFF" stroke="url(#cyan)" stroke-width="12"/>
+ <circle cx="235" cy="242" r="176" fill="none" stroke="#10BFFF" stroke-width="30"/>
+ <circle cx="235" cy="242" r="145" fill="#F8FDFF" opacity=".98"/>
+ <path d="M82 277c65-54 105-78 154-79 59-2 113 31 150 75" fill="none" stroke="#9EDCFF" stroke-width="4" opacity=".7"/>
+ <path d="M112 338c48-25 92-38 132-39 55-2 101 12 145 42" fill="none" stroke="#B9D8FF" stroke-width="4" opacity=".6"/>
+ <path d="M226 110c-51 0-92 41-92 92 0 77 92 153 92 153s92-76 92-153c0-51-41-92-92-92z" fill="url(#blue)" stroke="url(#cyan)" stroke-width="7"/>
+ <circle cx="226" cy="201" r="31" fill="#fff" stroke="#62DFFF" stroke-width="6"/>
+ <path d="M120 365c34-32 70-50 109-54 44-5 91 7 140 38l-35 30c-40-21-77-28-111-24-35 4-67 18-96 42z" fill="#0A245C" stroke="url(#cyan)" stroke-width="6"/>
+ <path d="M163 362h26m20-5h26m20-1h26m20 5h25" stroke="#E8FBFF" stroke-width="5" stroke-linecap="round"/>
 </g>
 <g transform="translate(410 205)">
- <text x="0" y="0" font-family="Inter,Arial,sans-serif" font-size="108" font-weight="900" letter-spacing="-4" fill="url(#cream)">Mantiqati</text>
- <text x="675" y="0" font-family="Inter,Arial,sans-serif" font-size="126" font-weight="900" fill="url(#gold)">X</text>
- <rect x="2" y="28" width="805" height="8" rx="4" fill="url(#gold)" opacity=".9"/>
- <text x="4" y="78" font-family="Tajawal,Arial,sans-serif" font-size="28" font-weight="700" fill="#F4DDA6">منصة الخدمات • اكتشاف • مطابقة • طلب</text>
+ <text x="0" y="0" font-family="Inter,Arial,sans-serif" font-size="108" font-weight="900" letter-spacing="-4" fill="#FFFFFF">Mantiqati</text>
+ <text x="675" y="0" font-family="Inter,Arial,sans-serif" font-size="126" font-weight="900" fill="url(#cyan)">X</text>
+ <rect x="2" y="28" width="805" height="8" rx="4" fill="url(#cyan)"/>
+ <text x="4" y="78" font-family="Tajawal,Arial,sans-serif" font-size="28" font-weight="700" fill="#D8F7FF">كل الخدمات • أقرب إليك • بسهولة</text>
 </g>
 </svg>
