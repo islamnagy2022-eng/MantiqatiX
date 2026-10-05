@@ -1100,3 +1100,7 @@
 @media(max-width:1100px){#mx-category-grid.mx-categories{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:760px){#mx-category-grid.mx-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}}
 @media(max-width:460px){#mx-category-grid.mx-categories{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* RC368 — visible sector exploration CTA */
+#mx-category-grid .mx-category__cta{display:inline-flex;align-items:center;justify-content:center;margin-top:7px;padding:4px 8px;border-radius:999px;background:#fff4d6;color:#7a5207;font-size:9px;font-weight:900;line-height:1.2}
+@media(max-width:460px){#mx-category-grid .mx-category__cta{font-size:8px;padding:4px 6px}}
