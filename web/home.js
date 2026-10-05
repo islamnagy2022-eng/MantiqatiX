@@ -187,15 +187,7 @@
       <header class="mx-header">
         <div class="mx-header__inner">
           <a class="mx-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<div><div class="mx-brand__name">MantiqatiX</div><span class="mx-brand__ar">منصة خدمات وتسويق متكاملة</span></div></a>
-          <div class="mx-search-wrap">
-            <label class="mx-search" aria-label="البحث في الخدمات ومقدميها">
-              <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
-              <input id="mx-home-search" autocomplete="off" inputmode="search" enterkeyhint="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
-              <button id="mx-search-clear" class="mx-search__clear" type="button" aria-label="مسح البحث" hidden>×</button>
-              <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
-            </label>
-            <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
-          </div>
+          <button class="mx-header-search-trigger" id="mx-search-btn" type="button" aria-label="فتح البحث">⌕ <span>بحث</span></button>
           <button class="mx-header__login" id="mx-login" type="button" aria-label="تسجيل الدخول / فتح الحساب"><span class="mx-account-icon" aria-hidden="true">♙</span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button>
           <button class="mx-header-tool" id="mx-wallet" type="button" aria-label="المحفظة"><span>▣</span><small>المحفظة</small></button>
           <button class="mx-header-tool" id="mx-cart" type="button" aria-label="السلة"><span>🛒</span><small>السلة <b id="mx-cart-count">0</b></small></button>
