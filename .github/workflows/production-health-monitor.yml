@@ -29,8 +29,15 @@ jobs:
       - name: Check Supabase API health
         run: |
           set -euo pipefail
+          BASE="https://islamnagy2022-eng.github.io/MantiqatiX/"
+          CONFIG="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "${BASE}config.js")"
+          KEY="$(sed -n "s/.*supabaseKey:'\\([^']*\\)'.*/\\1/p" <<<"$CONFIG")"
+          test -n "$KEY"
           URL="https://moyhiluyhjsujhwlyeuu.supabase.co/functions/v1/api/health"
-          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$URL")"
+          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY" \
+            "$URL")"
           grep -Fq '"status":"ok"' <<<"$BODY"
 
       - name: Check public web assets
