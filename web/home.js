@@ -227,122 +227,83 @@
         </nav>
       </aside>
 
-      <aside class="mx-side-banner mx-side-banner--right" aria-label="مساحة إعلانية جانبية يمين">
-        <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
-        <div class="mx-side-banner__screen"><b>MantiqatiX</b><span>مساحة إعلانية</span></div>
-        <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
-      </aside>
       <div class="mx-main" id="mx-home">
-        <section class="mx-home-hero" aria-label="اكتشاف الخدمات ومقدمي الخدمات">
-          <div class="mx-home-hero__copy">
-            <span class="mx-home-hero__eyebrow">منطقتك تبدأ من هنا</span>
-            <h1>كل الخدمات في مكان واحد</h1>
-            <p>اكتشف ... احجز ... تواصل ... بسهولة وأمان مع مقدمي الخدمات والأنشطة المسجلة على MantiqatiX.</p>
-            <div class="mx-home-hero__actions">
-              <button class="mx-btn mx-btn--primary" id="mx-hero-search" type="button">ابدأ البحث الآن ←</button>
-              <button class="mx-btn mx-btn--light" id="mx-ad-book" type="button">أعلن عن نشاطك</button>
+        <section class="mx-home-hero mx-home-hero--reference" aria-label="اكتشاف الخدمات ومقدمي الخدمات">
+          <div class="mx-home-hero__backdrop" aria-hidden="true"></div>
+          <div class="mx-home-hero__content">
+            <div class="mx-home-hero__copy">
+              <span class="mx-home-hero__eyebrow">منطقتك تبدأ من هنا</span>
+              <h1>كل الخدمات.. أقرب إليك</h1>
+              <p>منصة رقمية تربطك بمقدمي الخدمات والأنشطة المسجلة في منطقتك، وتساعدك على اكتشاف الخدمة المناسبة والتواصل معها بسهولة.</p>
+              <div class="mx-home-searchbar">
+                <span class="mx-home-searchbar__icon" aria-hidden="true">⌕</span>
+                <input id="mx-home-search" autocomplete="off" inputmode="search" enterkeyhint="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
+                <button id="mx-search-clear" type="button" aria-label="مسح البحث" hidden>×</button>
+                <span class="mx-home-searchbar__location" id="mx-location-label">الموقع عند الحاجة</span>
+                <button id="mx-search-btn" class="mx-home-searchbar__submit" type="button">بحث</button>
+              </div>
+              <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
+              <div class="mx-home-hero__trust"><span>✓ مقدمو خدمات مسجلون</span><span>✓ بيانات منشورة عند توفرها</span><span>✓ الموقع عند الحاجة فقط</span></div>
             </div>
-            <div class="mx-home-hero__trust">
-              <span>✓ مقدمو خدمات مسجلون</span>
-              <span>✓ بيانات منشورة عند توفرها</span>
-              <span>✓ الموقع عند الحاجة فقط</span>
-              <span>✓ تجربة رقمية موحدة</span>
-            </div>
-          </div>
-          <div class="mx-home-hero__visual" aria-label="كيف تعمل MantiqatiX">
-            <div class="mx-home-hero__glow"></div>
-            <div class="mx-home-hero__brand-card"><b>MantiqatiX</b><span>خدمات · مقدمو خدمات · طلبات</span></div>
-            <div class="mx-home-hero__steps">
-              <article><i>01</i><b>اكتشف</b><span>ابحث عن الخدمة أو النشاط</span></article>
-              <article><i>02</i><b>طابق</b><span>استعرض مقدم الخدمة المناسب</span></article>
-              <article><i>03</i><b>اطلب</b><span>أنشئ الطلب وتابع حالته</span></article>
-            </div>
-            <div class="mx-home-hero__provider">
-              <div><strong>لأصحاب الأنشطة</strong><span>اعرض نشاطك داخل المنصة</span></div>
-              <button id="mx-ad-plans" type="button">باقات الإعلان ←</button>
-            </div>
-            <div class="mx-home-hero__plans" id="mx-ad-plans-grid" aria-label="باقات الإعلان">
-              <button type="button" class="mx-ad-plan" data-ad-plan="QUARTERLY"><span>01</span><b>ربع سنوي</b><small>3 أشهر</small></button>
-              <button type="button" class="mx-ad-plan mx-ad-plan--featured" data-ad-plan="SEMIANNUAL"><span>02</span><b>نصف سنوي</b><small>6 أشهر</small></button>
-              <button type="button" class="mx-ad-plan" data-ad-plan="ANNUAL"><span>03</span><b>سنوي</b><small>12 شهرًا</small></button>
+            <div class="mx-home-hero__visual mx-home-hero__visual--reference" aria-label="تجربة MantiqatiX">
+              <div class="mx-hero-device"><img src="assets/mantiqatix-mark.svg" alt="MantiqatiX" loading="eager"></div>
+              <div class="mx-hero-floating-card"><b>اكتشف خدمات قريبة منك</b><span>بحث · موقع · قطاعات · مقدمو خدمات</span><button id="mx-hero-search" type="button">ابدأ البحث الآن</button></div>
             </div>
           </div>
         </section>
 
-        <section class="mx-platform-notices" aria-label="إشعارات المنصة">
-          <div class="mx-platform-notices__label">تنبيهات MantiqatiX</div>
-          <div class="mx-platform-notices__viewport">
-            <div id="mx-platform-notice" class="mx-platform-notice" aria-live="polite"></div>
-          </div>
-          <span class="mx-platform-notices__timer">تتبدل تلقائيًا</span>
+        <section class="mx-home-sectorbar" aria-label="القطاعات السريعة"><div class="mx-home-sectorbar__inner"><button class="mx-sector-more" type="button" data-scroll="mx-categories">المزيد <span>⋮</span></button><div class="mx-home-sectorbar__items">${initialCategoryTiles}</div></div></section>
+
+        <section class="mx-home-promo-grid" aria-label="الإعلانات والمساحات الترويجية">
+          <article class="mx-home-promo mx-home-promo--primary"><span class="mx-home-promo__badge">MantiqatiX</span><div><b>طريق أسرع لاكتشاف الخدمة المناسبة</b><small>ابحث، استكشف، تواصل، ثم تابع طلبك من المنصة.</small></div><button type="button" data-scroll="mx-services">استكشف الخدمات الآن</button></article>
+          <article class="mx-home-promo mx-home-promo--secondary"><span class="mx-home-promo__badge">لمقدمي الخدمات</span><div><b>اعرض نشاطك أمام جمهورك</b><small>سجّل نشاطك واستفد من الظهور داخل المنصة.</small></div><button id="mx-ad-book" type="button">أعلن عن نشاطك</button></article>
         </section>
 
-        <section class="mx-section mx-about-section" id="mx-about">
-          <div class="mx-section__head">
-            <div><span class="mx-hero__eyebrow">عن MantiqatiX</span><h2>منصة رقمية لاكتشاف الخدمات وربط العملاء بمقدميها</h2><p>تجمع MantiqatiX بين اكتشاف الخدمة، الوصول إلى مقدم الخدمة، الطلب والمتابعة داخل تجربة رقمية موحدة.</p></div>
+        <section class="mx-home-discovery">
+          <div class="mx-home-discovery__main">
+            <section class="mx-section mx-home-panel" id="mx-nearby">
+              <div class="mx-section__head"><div><span class="mx-hero__eyebrow">اكتشاف محلي</span><h2>خدمات مميزة بالقرب منك</h2><p id="mx-location-help">نتائج موثقة من الكتالوج العام، وتُرتب حسب موقعك عند توفره.</p></div><button class="mx-link" id="mx-location-btn" type="button">تحديد موقعي 📍</button></div>
+              <div id="mx-location-controls" class="mx-location-controls"><span id="mx-location-status" class="mx-live">الموقع عند الحاجة</span><span class="mx-location-controls__label">نطاق البحث:</span><div id="mx-location-ranges"></div></div>
+              <div class="mx-provider-grid" id="mx-provider-grid"><div class="mx-empty">جارٍ تحميل مقدمي الخدمات...</div></div>
+            </section>
+            <section class="mx-section mx-home-panel" id="mx-services" hidden>
+              <div class="mx-section__head"><div><span class="mx-hero__eyebrow">نتائج البحث</span><h2>الخدمات المتاحة</h2><p id="mx-search-context">بيانات منشورة من كتالوج المنصة، وليست بيانات وهمية.</p></div><div class="mx-search-result-tools"><span class="mx-live" id="mx-live-status">جارٍ التحميل...</span><button class="mx-link" id="mx-search-clear-results" type="button" hidden>مسح البحث</button></div></div>
+              <div class="mx-service-grid" id="mx-service-grid"><div class="mx-loading">جارٍ تحميل الخدمات...</div></div>
+            </section>
           </div>
-          <div class="mx-about-grid">
-            <article class="mx-about-card"><span>01</span><h3>اكتشاف ومطابقة</h3><p>ابحث عن الخدمة أو النشاط المناسب، ثم استعرض البيانات المنشورة من الكتالوج العام عند توفرها.</p></article>
-            <article class="mx-about-card"><span>02</span><h3>طلب ومتابعة</h3><p>يمكن للعميل إنشاء الطلب ومتابعة حالته من حسابه، بينما يظل تنفيذ الخدمة مسؤولية مقدم الخدمة.</p></article>
-            <article class="mx-about-card"><span>03</span><h3>موقع عند الحاجة</h3><p>يُستخدم الموقع كعامل مساعد عند الحاجة التشغيلية وبإذن المستخدم، وليس كتتبع مستمر لمجرد تسجيل الدخول.</p></article>
-            <article class="mx-about-card"><span>04</span><h3>منظومة موحدة</h3><p>الموقع والتطبيق والإدارة تعتمد منطقًا وبيانات مشتركة، مع تجربة واجهة مناسبة لكل منصة.</p></article>
-          </div>
-          <div class="mx-about-note"><strong>دور المنصة</strong><span>MantiqatiX توفر البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، ولا تحل محل مقدم الخدمة في تنفيذ الخدمة ماديًا.</span></div>
+          <aside class="mx-home-discovery__side">
+            <div class="mx-home-ad-panel"><span class="mx-home-ad-panel__label">إعلان ممول</span><div class="mx-home-ad-panel__art"><img src="assets/mantiqatix-cover.svg" alt="" loading="lazy"></div><div><h3>ظهور مميز لنشاطك</h3><p>المساحات الإعلانية تظهر وفق قواعد المنصة والبيانات المنشورة فعليًا.</p><button id="mx-ad-cta" type="button">ابدأ الإعلان</button></div></div>
+            <div class="mx-home-stat-panel"><div><b id="mx-sector-count">27</b><span>قطاعًا</span></div><div><b>Live</b><span>بيانات منشورة</span></div><div><b>24/7</b><span>تجربة رقمية</span></div></div>
+          </aside>
         </section>
 
-        <section class="mx-section mx-audience-section" id="mx-audiences">
-          <div class="mx-section__head">
-            <div><span class="mx-hero__eyebrow">ابدأ بالطريقة المناسبة لك</span><h2>مساران واضحان داخل MANTIQATIX</h2><p>المنصة تربط الطرفين رقميًا، مع بقاء تقديم الخدمة وتنفيذها مسؤولية مقدم الخدمة.</p></div>
-          </div>
-          <div class="mx-audience-grid">
-            <article class="mx-audience-card">
-              <div class="mx-audience-card__icon">👤</div>
-              <div><span>للعملاء</span><h3>ابحث عن الخدمة واطلبها</h3><p>اكتشف الخدمات ومقدميها، قارن الخيارات المتاحة، ثم أنشئ طلبك وتابع حالته من حسابك.</p><button type="button" class="mx-btn mx-btn--primary" data-register-role="CUSTOMER">إنشاء حساب عميل ←</button></div>
-            </article>
-            <article class="mx-audience-card mx-audience-card--provider">
-              <div class="mx-audience-card__icon">🏢</div>
-              <div><span>لمقدمي الخدمات</span><h3>اعرض خدمتك وأدر نشاطك</h3><p>سجّل نشاطك، اعرض خدماتك وفق قواعد المنصة، واستقبل الطلبات وتابع تشغيلها من مساحة العمل المخصصة لك بعد الاعتماد.</p><button type="button" class="mx-btn mx-btn--light" data-register-role="SERVICE_PROVIDER">التسجيل كمقدم خدمة ←</button></div>
-            </article>
-          </div>
-        </section>
-
-        <section class="mx-section" id="mx-categories">
-          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف القطاعات والأنشطة الحالية</h2><p>27 قطاعًا متاحة الآن. تظهر أسفل كل قطاع أعداد الخدمات والأنشطة المنشورة فعليًا عند توفر البيانات، ويمكنك فتح القطاع لرؤية التفاصيل.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
+        <section class="mx-section mx-home-panel" id="mx-categories">
+          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">استكشف حسب القطاع</span><h2>الخدمات والأنشطة في 27 قطاعًا</h2><p>استخدم القطاعات للوصول إلى الأنشطة والخدمات المتاحة فعليًا في المنصة.</p></div><button class="mx-link" type="button" data-scroll="mx-home">الرئيسية ↑</button></div>
           <div class="mx-categories" id="mx-category-grid">${initialCategoryTiles}</div>
         </section>
 
-        <section class="mx-section" id="mx-services" hidden>
-          <div class="mx-section__head"><div><h2>نتائج البحث والخدمات</h2><p id="mx-search-context">بيانات منشورة من كتالوج المنصة، وليست بيانات وهمية.</p></div><div class="mx-search-result-tools"><span class="mx-live" id="mx-live-status">جارٍ التحميل...</span><button class="mx-link" id="mx-search-clear-results" type="button" hidden>مسح البحث</button></div></div>
-          <div class="mx-service-grid" id="mx-service-grid"><div class="mx-loading">جارٍ تحميل الخدمات...</div></div>
-        </section>
-
-        <section class="mx-section" id="mx-offers" hidden>
-          <div class="mx-section__head"><div><h2>إعلانات ممولة</h2><p>تظهر هنا الأنشطة المميزة المنشورة والفعالة فقط.</p></div><button class="mx-link" id="mx-ad-cta" type="button">أعلن عن نشاطك ←</button></div>
+        <section class="mx-section mx-home-panel" id="mx-offers" hidden>
+          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">Marketplace Advertising</span><h2>عروض وإعلانات ممولة</h2><p>تظهر هنا الأنشطة المميزة المنشورة والفعالة فقط.</p></div><button class="mx-link" id="mx-ad-cta-2" type="button">أعلن عن نشاطك ←</button></div>
           <div class="mx-sponsored" id="mx-sponsored"><div class="mx-empty">جارٍ التحقق من الإعلانات المنشورة...</div></div>
         </section>
 
-        <section class="mx-section" id="mx-nearby">
-          <div class="mx-section__head"><div><h2>أنشطة ومقدمو خدمات</h2><p id="mx-location-help">نتائج موثقة من الكتالوج العام، وتُرتب حسب موقعك عند توفره.</p></div><button class="mx-link" id="mx-location-btn" type="button">تحديد موقعي 📍</button></div>
-          <div id="mx-location-controls" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px">
-            <span id="mx-location-status" class="mx-live">الموقع عند الحاجة</span>
-            <span style="font-size:12px;color:#667085">نطاق البحث:</span>
-            <div id="mx-location-ranges" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-          </div>
-          <div class="mx-provider-grid" id="mx-provider-grid"><div class="mx-empty">جارٍ تحميل مقدمي الخدمات...</div></div>
+        <section class="mx-section mx-about-section" id="mx-about">
+          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">عن MantiqatiX</span><h2>منصة رقمية لاكتشاف الخدمات وربط العملاء بمقدميها</h2><p>تجمع MantiqatiX بين اكتشاف الخدمة، الوصول إلى مقدم الخدمة، الطلب والمتابعة داخل تجربة رقمية موحدة.</p></div></div>
+          <div class="mx-about-grid"><article class="mx-about-card"><span>01</span><h3>اكتشاف ومطابقة</h3><p>ابحث عن الخدمة أو النشاط المناسب، ثم استعرض البيانات المنشورة من الكتالوج العام عند توفرها.</p></article><article class="mx-about-card"><span>02</span><h3>طلب ومتابعة</h3><p>يمكن للعميل إنشاء الطلب ومتابعة حالته من حسابه.</p></article><article class="mx-about-card"><span>03</span><h3>موقع عند الحاجة</h3><p>يُستخدم الموقع كعامل مساعد عند الحاجة التشغيلية وبإذن المستخدم.</p></article><article class="mx-about-card"><span>04</span><h3>منظومة موحدة</h3><p>الموقع والتطبيق والإدارة تعتمد منطقًا وبيانات مشتركة.</p></article></div>
+        </section>
+
+        <section class="mx-section mx-audience-section" id="mx-audiences">
+          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">ابدأ بالطريقة المناسبة لك</span><h2>تجربة واضحة للعميل ولمقدم الخدمة</h2></div></div>
+          <div class="mx-audience-grid"><article class="mx-audience-card"><div class="mx-audience-card__icon">👤</div><div><span>للعملاء</span><h3>ابحث عن الخدمة واطلبها</h3><p>اكتشف الخدمات ومقدميها وأنشئ طلبك وتابع حالته.</p><button type="button" class="mx-btn mx-btn--primary" data-register-role="CUSTOMER">إنشاء حساب عميل ←</button></div></article><article class="mx-audience-card mx-audience-card--provider"><div class="mx-audience-card__icon">🏢</div><div><span>لمقدمي الخدمات</span><h3>اعرض خدمتك وأدر نشاطك</h3><p>سجّل نشاطك واستقبل الطلبات وتابع تشغيلها بعد الاعتماد.</p><button type="button" class="mx-btn mx-btn--light" data-register-role="SERVICE_PROVIDER">التسجيل كمقدم خدمة ←</button></div></article></div>
         </section>
 
         <section class="mx-section mx-module-strip" id="mx-marketing" hidden>
-          <div><span class="mx-hero__eyebrow">وحدات المنصة</span><h2>من الاكتشاف إلى التشغيل</h2><p>واجهة واحدة تربط البحث والخدمات والتسويق وطلبات الخدمة مع الوحدات التشغيلية المخصصة للمستخدمين المسجلين.</p></div>
-          <div class="mx-module-grid">
-            <button data-module="CRM">👥<b>CRM</b><small>إدارة العملاء والعلاقات</small></button>
-            <button data-module="MARKETING">📣<b>التسويق والإعلانات</b><small>الحملات والظهور المدفوع</small></button>
-            <button data-module="ANALYTICS">📊<b>التحليلات والتقارير</b><small>مؤشرات وقرارات تشغيلية</small></button>
-            <button data-module="OPERATIONS">⚙️<b>العمليات والمهام</b><small>متابعة التنفيذ والخدمة</small></button>
-          </div>
+          <div><span class="mx-hero__eyebrow">وحدات المنصة</span><h2>من الاكتشاف إلى التشغيل</h2><p>واجهة واحدة تربط البحث والخدمات والتسويق وطلبات الخدمة مع الوحدات التشغيلية.</p></div>
+          <div class="mx-module-grid"><button data-module="CRM">👥<b>CRM</b><small>إدارة العملاء والعلاقات</small></button><button data-module="MARKETING">📣<b>التسويق والإعلانات</b><small>الحملات والظهور المدفوع</small></button><button data-module="ANALYTICS">📊<b>التحليلات والتقارير</b><small>مؤشرات وقرارات تشغيلية</small></button><button data-module="OPERATIONS">⚙️<b>العمليات والمهام</b><small>متابعة التنفيذ والخدمة</small></button></div>
         </section>
       </div>
 
-      <footer class="mx-footer" id="mx-contact">
+<footer class="mx-footer" id="mx-contact">
         <div class="mx-footer__inner">
           <div><div class="mx-footer__brand">MantiqatiX</div><div class="mx-footer__sub">MantiqatiX · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
           <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
