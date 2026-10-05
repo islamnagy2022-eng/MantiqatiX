@@ -425,14 +425,16 @@ const categoryGrid=document.getElementById('mx-category-grid');
       window.setTimeout(()=>overlay.querySelector('#mx-req-business')?.focus(),0);
     };
 
+    const bindClick=(id,fn)=>{const el=document.getElementById(id);if(el)el.onclick=fn;};
+
     const openCategoryPage=async(code)=>{
       const item=TAXONOMY.find(x=>String(x[3])===String(code))||['◉',String(code||'نشاط'),'خدمات وأنشطة منشورة',String(code||'')];
       const label=item[1], desc=item[2], key=normCode(code), dataKey=dataCategoryCode(code);
       const app=document.getElementById('app'); if(!app)return;
       try{if(location.hash!=='#category/'+encodeURIComponent(key))history.pushState({category:key},'', location.pathname+location.search);}catch(_){}
       app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">MantiqatiX</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>اكتشف '+escapeHtml(label)+'</h2><p>الأنشطة والخدمات المنشورة فعليًا ضمن هذا القطاع.</p></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات</h2><p class="muted">خدمات منشورة في '+escapeHtml(label)+'</p></div></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>الأنشطة ومقدمو الخدمات</h2><p class="muted">بيانات الأنشطة المنشورة والمعتمدة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
-      document.getElementById('mx-category-back')?.onclick=()=>{try{history.pushState({},'', '#mx-home');}catch(_){};window.MXHomeLanding?.();};
-      document.getElementById('mx-category-account')?.onclick=async()=>{if(typeof window.accountView==='function'&&window.MNTYAuthState?.authenticated)return window.accountView();if(typeof window.authView==='function')return window.authView();};
+      bindClick('mx-category-back',()=>{try{history.pushState({},'', '#mx-home'));}catch(_){};window.MXHomeLanding?.();};
+      bindClick('mx-category-account',async()=>{if(typeof window.accountView==='function'&&window.MNTYAuthState?.authenticated)return window.accountView());if(typeof window.authView==='function')return window.authView();};
       try{
         const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
         const [sr,pr]=await Promise.all([
@@ -458,7 +460,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const name=provider?.name_ar||provider?.name_en||'مقدم خدمة';
       app.innerHTML='<main class="mx-profile-page" dir="rtl"><header class="mx-profile-page__head"><button type="button" class="mx-category-back" id="mx-profile-back">← العودة</button><span class="eyebrow">ملف النشاط</span></header><section class="mx-profile-page__hero"><div class="mx-profile-page__cover"><img src="'+escapeHtml(publicProfileImage(provider)||activityImage(provider?.provider_kind))+'" alt="'+escapeHtml(name)+'"></div><div class="mx-profile-page__identity"><div class="mx-profile-page__avatar">'+escapeHtml(name.slice(0,1))+'</div><div><span class="mx-verified">'+(provider?.is_verified?'✓ موثق':'منشور')+'</span><h1>'+escapeHtml(name)+'</h1><p>'+escapeHtml(categoryLabel||provider?.provider_kind||'نشاط')+'</p></div></div><p class="mx-profile-page__description">'+escapeHtml(provider?.description||'لا يوجد وصف منشور حاليًا.')+'</p><div class="mx-profile-page__meta"><span>⌖ '+escapeHtml(readArea(provider?.service_areas)||'نطاق خدمة معلن')+'</span><span>✓ نشاط منشور على MantiqatiX</span></div>'+(provider?.business_id?'<div class="mx-profile-page__actions"><button type="button" class="btn btn-primary" id="mx-profile-book">احجز / اطلب خدمة</button><button type="button" class="btn btn-outline" id="mx-profile-back2">العودة للقطاع</button></div>':'')+'</section><section class="mx-profile-page__section"><h2>الخدمات والتخصصات</h2><p class="muted">تفاصيل الخدمات تظهر من الكتالوج التشغيلي عند توفرها.</p></section></main>';
       const back=()=>openCategoryPage(provider?.provider_kind||'');
-      document.getElementById('mx-profile-back')?.onclick=back;document.getElementById('mx-profile-back2')?.addEventListener('click',back);
+      bindClick('mx-profile-back',back);document.getElementById('mx-profile-back2')?.addEventListener('click',back);
       document.getElementById('mx-profile-book')?.addEventListener('click',()=>{const id=provider.business_id,n=name;if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function')return openProviderCatalog(id,n);try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId:id,providerName:n}));}catch(_){};goLogin();});
     };
 
@@ -475,7 +477,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const app=document.getElementById('app'); if(!app||!key)return;
       try{if(location.hash!=='#page/'+encodeURIComponent(key))history.pushState({page:key},'', '#page/'+encodeURIComponent(key));}catch(_){}
       app.innerHTML='<main class="mx-digital-page" dir="rtl"><header class="mx-digital-page__head"><button type="button" class="mx-category-back" id="mx-digital-back">← الرئيسية</button><span class="eyebrow">MantiqaTix DIGITAL PAGE</span></header><section class="mx-digital-page__hero"><div class="mx-digital-page__cover" id="mx-digital-cover"></div><div><span class="mx-chip" id="mx-digital-type">PAGE</span><h1 id="mx-digital-title">جاري التحميل…</h1><p id="mx-digital-subtitle" class="muted"></p></div></section><section class="mx-digital-page__section"><div id="mx-digital-sections"><div class="empty-state">جاري تحميل الصفحة…</div></div></section></main>';
-      document.getElementById('mx-digital-back')?.onclick=()=>{try{history.pushState({},'', '#mx-home');}catch(_){};window.MXHomeLanding?.();};
+      bindClick('mx-digital-back',()=>{try{history.pushState({},'', '#mx-home'));}catch(_){};window.MXHomeLanding?.();};
       try{
         const sb=getClient(); if(!sb)throw new Error('NO_CLIENT');
         const {data:page,error}=await sb.from('digital_pages').select('id,page_type,business_id,provider_profile_id,slug,title,subtitle,description,seo_title,seo_description,theme,status,version,published_at').eq('slug',key).eq('status','PUBLISHED').maybeSingle();
@@ -588,7 +590,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         try{history.replaceState({},'', '#'+id);}catch(_){}
       });
     });
-    document.getElementById('mx-login')?.onclick=openAccount;
+    bindClick('mx-login',openAccount);
     syncHomeAuthState();
     if(String(location.hash||'').startsWith('#category/')) setTimeout(()=>window.__MNTYOpenCategoryPage?.(decodeURIComponent(String(location.hash).slice(10))),0);
     else if(String(location.hash||'').startsWith('#provider/')) setTimeout(()=>window.__MNTYHandlePublicRoute?.(),0);
@@ -613,7 +615,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(btn)btn.disabled=false;
       }
     });
-    document.getElementById('mx-add')?.onclick=openActivityRequestModal;
+    bindClick('mx-add',openActivityRequestModal);
     document.getElementById('mx-ad-book')?.addEventListener('click',openActivityRequestModal);
     document.getElementById('mx-bottom-add')?.addEventListener('click',openActivityRequestModal);
     const selectAdPlan=(plan)=>{
@@ -624,16 +626,16 @@ const categoryGrid=document.getElementById('mx-category-grid');
       selectAdPlan(btn.dataset.adPlan||'QUARTERLY');
       goLogin();
     });
-    document.getElementById('mx-hero-search')?.onclick=()=>{
-      const input=document.getElementById('mx-home-search');
+    bindClick('mx-hero-search',()=>{
+      const input=document.getElementById('mx-home-search'));
       if(input){input.focus();input.scrollIntoView(scrollOptions('center'));}
     };
-    document.getElementById('mx-ad-book')?.onclick=()=>{selectAdPlan('QUARTERLY');goAdvertise();};
-    document.getElementById('mx-ad-plans')?.onclick=()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center'));
-    document.getElementById('mx-bottom-account')?.onclick=openAccount;
-    document.getElementById('mx-bottom-add')?.onclick=goAdvertise;
-    document.getElementById('mx-all')?.onclick=()=>scrollTo('mx-services');
-    document.getElementById('mx-ad-cta')?.onclick=goAdvertise;
+    bindClick('mx-ad-book',()=>{selectAdPlan('QUARTERLY'));goAdvertise();};
+    bindClick('mx-ad-plans',()=>document.getElementById('mx-ad-plans-grid')?.scrollIntoView(scrollOptions('center')));
+    bindClick('mx-bottom-account',openAccount);
+    bindClick('mx-bottom-add',goAdvertise);
+    bindClick('mx-all',()=>scrollTo('mx-services'));
+    bindClick('mx-ad-cta',goAdvertise);
 
     document.querySelectorAll('[data-scroll]').forEach(btn=>btn.onclick=()=>scrollTo(btn.dataset.scroll));
     document.querySelectorAll('[data-auth-link]').forEach(a=>a.onclick=e=>{e.preventDefault();goLogin()});
@@ -700,7 +702,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
     const renderSponsored=(providers)=>{
       const el=document.getElementById('mx-sponsored');
       const featured=providers.filter(p=>p.is_featured).slice(0,4);
-      if(!featured.length){el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>كبّر ظهور نشاطك</h3><p>المساحة الإعلانية تُملأ تلقائيًا عند وجود نشاط منشور ومميز وفق قواعد المنصة.</p><button class="mx-btn mx-btn--primary" id="mx-feature-cta" type="button">ابدأ الإعلان الآن</button></div></div><div class="mx-empty mx-empty--dark">لا توجد إعلانات ممولة منشورة حاليًا.</div>';document.getElementById('mx-feature-cta')?.onclick=goLogin;return}
+      if(!featured.length){el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>كبّر ظهور نشاطك</h3><p>المساحة الإعلانية تُملأ تلقائيًا عند وجود نشاط منشور ومميز وفق قواعد المنصة.</p><button class="mx-btn mx-btn--primary" id="mx-feature-cta" type="button">ابدأ الإعلان الآن</button></div></div><div class="mx-empty mx-empty--dark">لا توجد إعلانات ممولة منشورة حاليًا.</div>';bindClick('mx-feature-cta',goLogin);return}
       el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>ظهور مميز أمام جمهورك</h3><p>نتائج مدفوعة موسومة بوضوح ضمن تجربة البحث.</p></div></div><div class="mx-listing-grid">'+featured.map(p=>'<article class="mx-listing" tabindex="0" role="button">'+providerMedia(p)+'<div class="mx-listing__body"><span class="mx-sponsored-badge">ممول</span><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'نشاط مميز على MantiqatiX.')+'</p><button class="mx-listing__cta" type="button" data-provider="'+escapeHtml(p.id)+'">عرض النشاط</button></div></article>').join('')+'</div>';
       el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=()=>{
         const id=b.dataset.provider;
@@ -858,9 +860,9 @@ const categoryGrid=document.getElementById('mx-category-grid');
     searchInput?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch();}if(e.key==='Escape')closeSearchSuggestions();});
     searchClear?.addEventListener('click',clearSearch);
     searchClearResults?.addEventListener('click',clearSearch);
-    document.getElementById('mx-bottom-search')?.onclick=()=>{searchInput?.focus();searchInput?.scrollIntoView({behavior:'smooth',block:'center'});};
+    bindClick('mx-bottom-search',()=>{searchInput?.focus());searchInput?.scrollIntoView({behavior:'smooth',block:'center'});};
 
-    document.getElementById('mx-location-btn')?.onclick=async()=>{const api=window.MNTYLocationAdapter;if(api){await api.requestLocation();loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'');}else goLogin();};
+    bindClick('mx-location-btn',async()=>{const api=window.MNTYLocationAdapter);if(api){await api.requestLocation();loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'');}else goLogin();};
     document.getElementById('mx-wallet')?.addEventListener('click',()=>typeof window.walletView==='function'?window.walletView():goLogin());
     document.getElementById('mx-cart')?.addEventListener('click',()=>typeof window.cartView==='function'?window.cartView():goLogin());
     if(typeof window.refreshMntiCartCount==='function')window.refreshMntiCartCount();
