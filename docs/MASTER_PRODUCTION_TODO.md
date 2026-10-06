@@ -976,3 +976,11 @@
 - أضيف `scripts/validate-sector-rendering.mjs` ويتحقق من 27 قطاعًا، renderer دفاعي، fallback للصورة، 7 أعمدة، وتدوير الكاش.
 - تم ربط العقدة داخل Pages CI.
 - لا توجد أي تغييرات على بيانات الإنتاج أو الطلبات أو المدفوعات أو الحسابات المالية.
+
+
+## RC367 — Unified module runtime contract gate — 2026-10-07
+- [x] Added `scripts/validate-module-runtime-contracts.mjs` covering all 28 registered catalog modules.
+- [x] Each module is mapped to an existing website runtime surface and its declared authoritative data tables.
+- [x] Added `docs/MODULE_RUNTIME_TEST_GATE.md` defining the boundary between automated contract testing and real transactional E2E.
+- [x] Wired the validator into `.github/workflows/pages.yml`.
+- [ ] Real authenticated/module transaction E2E remains NOT VERIFIED by design; no fake production data was created.
