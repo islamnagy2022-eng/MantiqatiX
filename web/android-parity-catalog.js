@@ -26,7 +26,13 @@
     {code:'PHARMACIES',nameAr:'الصيدليات',icon:'💊',role:'صيدلي',purpose:'الأدوية، المخزون، الوصفات والطلبات',websiteTables:['pharmacy_profiles','pharmacy_offers','orders']},
     {code:'CLINICS',nameAr:'عيادات الأطباء',icon:'🩺',role:'طبيب',purpose:'الأطباء، التخصصات، المواعيد والمرضى',websiteTables:['doctor_profiles','medical_appointments','clinic_offers']},
     {code:'HOSPITALS',nameAr:'المستشفيات الخاصة',icon:'🏥',role:'مدير مستشفى',purpose:'الأقسام، الخدمات، الأسرة والحالات التشغيلية',websiteTables:['hospital_profiles','medical_appointments']},
-    {code:'LABS',nameAr:'مراكز التحاليل والأشعة',icon:'🧪',role:'فني تحاليل',purpose:'التحاليل، الأجهزة، النتائج والحجز/الاستلام',websiteTables:['lab_profiles','lab_tests','medical_appointments']}
+    {code:'LABS',nameAr:'مراكز التحاليل والأشعة',icon:'🧪',role:'فني تحاليل',purpose:'التحاليل، الأجهزة، النتائج والحجز/الاستلام',websiteTables:['lab_profiles','lab_tests','medical_appointments']},
+    {code:'ACCOUNTING_SERVICES',nameAr:'الخدمات المحاسبية',icon:'🧾',role:'محاسب خدمات',purpose:'طلبات المحاسبة والمزايدات والخدمات المالية',websiteTables:['indrive_requests','indrive_bids']},
+    {code:'COMPANIES',nameAr:'خدمات الشركات',icon:'🏢',role:'مقدم خدمات شركات',purpose:'طلبات الشركات والعروض والتنفيذ',websiteTables:['indrive_requests','indrive_bids']},
+    {code:'FACTORIES',nameAr:'المصانع والخدمات الصناعية',icon:'🏭',role:'مصنع / ورشة',purpose:'طلبات التصنيع والخدمات الصناعية والمزايدات',websiteTables:['indrive_requests','indrive_bids']},
+    {code:'FLIGHTS_TRIPS',nameAr:'الرحلات والسفر',icon:'✈️',role:'وكيل سفر',purpose:'طلبات السفر والرحلات والعروض',websiteTables:['indrive_requests','indrive_bids']},
+    {code:'HOME_MAINTENANCE',nameAr:'خدمات المنزل والصيانة',icon:'🔧',role:'فني صيانة',purpose:'طلبات الصيانة والمعاينة والعروض',websiteTables:['indrive_requests','indrive_bids']},
+    {code:'SOFTWARE_ERP',nameAr:'البرمجيات وERP',icon:'💻',role:'مزود حلول تقنية',purpose:'طلبات البرمجيات وERP والعروض المهنية',websiteTables:['indrive_requests','indrive_bids']}
   ];
 
   const masterData = {
