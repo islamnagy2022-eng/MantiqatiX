@@ -62,6 +62,7 @@ jobs:
           node scripts/validate-rbac-workspace.mjs
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
+          node scripts/validate-mantigo-high-risk-definers.mjs
           node scripts/validate-production-gate-contract.mjs
           node scripts/validate-finance-boundaries.mjs
           node scripts/validate-digital-pages-boundaries.mjs
