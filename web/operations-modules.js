@@ -20,6 +20,7 @@ const defs={
 'المزايدات — الصيانة':{key:'MAINTENANCE',tabs:['overview','requests','support','live'],tables:['indrive_requests','indrive_bids','support_tickets'],desc:'طلبات الصيانة والعروض والدعم.'},
 'المزايدات — الخدمات القانونية':{key:'LEGAL',tabs:['overview','documents','requirements','agreements','live'],tables:['legal_documents','legal_requirements','agreements'],desc:'الوثائق والمتطلبات والاتفاقيات القانونية.'},
 'المزايدات — البرمجيات ERP':{key:'ERP',tabs:['overview','live'],tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'],desc:'المشتريات والاستلام والتحويلات والمخازن.'},
+'برامج إدارة الأعمال ERP':{key:'BUSINESS_ERP',tabs:['overview','live'],tables:['businesses','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'],desc:'إدارة الأعمال والمشتريات والاستلام والتحويلات والمخازن الفعلية.'},
 'الزواج':{key:'MATRIMONY',tabs:['overview','live'],tables:['matrimony_profiles','matrimony_requests','matrimony_contact_unlocks'],desc:'الملفات والطلبات وفتح التواصل وفق الصلاحيات.'},
 'الوظائف':{key:'JOBS',tabs:['overview','live'],tables:['jobs','job_applications'],desc:'الوظائف والتقديمات الفعلية.'},
 'التعليم':{key:'EDUCATION',tabs:['overview','live'],tables:['school_profiles','teacher_profiles','education_requests'],desc:'المدارس والمدرسون وطلبات التعليم.'},
