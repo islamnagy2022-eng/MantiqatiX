@@ -50,6 +50,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    if(ee)return json({error:"MANTIGO_PROVIDER_EVENT_PERSISTENCE",requestId},500,requestId);
    const {error:le}=await admin.from("mantigo_financial_ledger").update({payment_status:nextStatus,payment_reference:eventId,provider_transaction_id:value(obj.id),payment_confirmed_at:success?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq("id",mantigo.id).eq("payment_status","PENDING");
    if(le)return json({error:"MANTIGO_PAYMENT_UPDATE_FAILED",requestId},500,requestId);
+   await admin.from("notifications").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",user_id:mantigo.customer_id,type:"MANTIGO_PAYMENT",title:success?"تم تأكيد الدفع":"تعذر تأكيد الدفع",body:success?"تم تأكيد الدفع الإلكتروني للرحلة.":"تعذر تأكيد الدفع الإلكتروني للرحلة.",entity_type:"MANTIGO_RIDE",entity_id:mantigo.ride_id});
    return json({ok:true,status:nextStatus,requestId},200,requestId);
  }
 const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash").eq("id",merchantRef).maybeSingle()
