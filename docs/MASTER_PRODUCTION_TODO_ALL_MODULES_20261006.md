@@ -444,3 +444,4 @@ Blocked dependency = **BLOCKED**.
 Production Ready is forbidden until Core, Auth, Authz, DB, RLS, Security, API, Website, App, Admin, Finance, CRM, Marketing, Provider Operations, Customer Operations, Payments, Notifications, Analytics, Backup, Restore, Monitoring, Build, Signing, External Tests, Rollback and Disaster Recovery are verified.
 
 **FINAL STATUS: NOT CERTIFIED.**
+\n\n## 2026-10-06 execution update\n- [x] Secure customer ride tracking RPC deployed live and execute restricted to authenticated users.\n- [x] MantiGO admin/operations KPI RPC deployed live and role-gated.\n- [x] Commission engine live hardening: unique order commission constraint + secure commission preview.\n- [x] Customer MantiGO UI switched to the secured tracking RPC for customer trip history/bids.\n- [ ] Repository sync of commission migration remains NOT VERIFIED because GitHub write was blocked by security checks.\n
