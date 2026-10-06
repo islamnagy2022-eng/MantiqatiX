@@ -455,19 +455,64 @@ const categoryGrid=document.getElementById('mx-category-grid');
         document.getElementById('mx-category-account').onclick=async()=>{if(typeof window.accountView==='function'&&window.MNTYAuthState?.authenticated)return window.accountView();if(typeof window.authView==='function')return window.authView();};
         const openRide=async()=>{
           if(!window.MNTYAuthState?.authenticated){try{localStorage.setItem('MNTYPendingMantiGoAction','REQUEST_RIDE')}catch(_){};return goLogin();}
-          const old=document.getElementById('mx-mantigo-request-modal');if(old)old.remove();
-          const wrap=document.createElement('div');wrap.id='mx-mantigo-request-modal';wrap.className='mx-public-modal';
-          wrap.innerHTML='<div class="mx-public-modal__backdrop"></div><section class="mx-public-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mx-mg-title"><button type="button" class="mx-public-modal__close" aria-label="إغلاق">×</button><span class="mx-chip">MantiGO</span><h2 id="mx-mg-title">اطلب مشوار</h2><p class="muted">أدخل تفاصيل الرحلة ليتم نشر الطلب واستقبال عروض الكباتن.</p><form id="mx-mg-form"><div class="grid-2"><input id="mx-mg-pickup" class="input" required placeholder="من — نقطة الانطلاق"><input id="mx-mg-destination" class="input" required placeholder="إلى — الوجهة"><select id="mx-mg-vehicle" class="input"><option value="CAR">سيارة</option><option value="TAXI">تاكسي</option><option value="VAN">فان</option><option value="MOTORCYCLE">موتوسيكل</option></select><select id="mx-mg-type" class="input"><option value="ONE_WAY">ذهاب</option><option value="ROUND_TRIP">ذهاب وعودة</option></select><input id="mx-mg-price" class="input" type="number" min="1" step="1" required placeholder="السعر المقترح بالجنيه"><input id="mx-mg-phone" class="input" placeholder="رقم التواصل"><textarea id="mx-mg-note" class="input" placeholder="ملاحظات الرحلة"></textarea></div><button class="btn btn-primary" type="submit">نشر طلب الرحلة</button></form></section></div>';
-          document.body.appendChild(wrap);
-          const close=()=>wrap.remove();wrap.querySelector('.mx-public-modal__backdrop')?.addEventListener('click',close);wrap.querySelector('.mx-public-modal__close')?.addEventListener('click',close);
-          wrap.querySelector('#mx-mg-form')?.addEventListener('submit',async e=>{
-            e.preventDefault();const sb=getClient();if(!sb)return alert('تعذر الاتصال بالمنصة.');
+          const app=document.getElementById('app'); if(!app)return;
+          try{history.pushState({mantigo:'REQUEST_RIDE'},'', '#mantigo/request');}catch(_){}
+          app.innerHTML='<main class="mx-mantigo-app" dir="rtl" style="min-height:100vh;background:#f5f7fa">'+
+            '<header style="position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #e6eaf0;padding:14px 18px;display:flex;align-items:center;gap:12px">'+
+              '<button type="button" id="mx-mg-back" style="border:0;background:#f1f3f5;border-radius:12px;width:42px;height:42px;font-size:20px">→</button>'+
+              '<div style="flex:1"><strong style="font-size:20px">MantiGO</strong><div style="font-size:12px;color:#667085">طلب رحلة</div></div>'+
+              '<span style="font-size:13px;color:#087f5b;font-weight:700">● متصل</span>'+
+            '</header>'+
+            '<section style="max-width:760px;margin:0 auto;padding:18px 16px 110px">'+
+              '<div style="background:linear-gradient(135deg,#0b7285,#1864ab);color:#fff;border-radius:24px;padding:22px;margin-bottom:16px;box-shadow:0 12px 30px rgba(24,100,171,.18)">'+
+                '<div style="font-size:13px;opacity:.85">MantiGO · نقل عند الطلب</div><h1 style="margin:6px 0;font-size:28px">إلى أين تريد الذهاب؟</h1><p style="margin:0;opacity:.9">حدد الرحلة مرة واحدة، ثم استقبل عروض الكباتن داخل MantiGO.</p>'+
+              '</div>'+
+              '<form id="mx-mg-form" style="display:grid;gap:14px">'+
+                '<section style="background:#fff;border-radius:20px;padding:16px;border:1px solid #e7ebf0">'+
+                  '<div style="font-weight:800;margin-bottom:12px">مسار الرحلة</div>'+
+                  '<label style="display:block;margin-bottom:10px"><span style="display:block;font-size:12px;color:#667085;margin-bottom:6px">من</span><input id="mx-mg-pickup" required class="input" style="width:100%;box-sizing:border-box" placeholder="نقطة الانطلاق"></label>'+
+                  '<label style="display:block"><span style="display:block;font-size:12px;color:#667085;margin-bottom:6px">إلى</span><input id="mx-mg-destination" required class="input" style="width:100%;box-sizing:border-box" placeholder="الوجهة"></label>'+
+                  '<div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#f8f9fa;color:#667085;font-size:12px">📍 سنستخدم موقعك الحالي فقط عند السماح به لتسهيل تحديد نقطة الانطلاق.</div>'+
+                '</section>'+
+                '<section style="background:#fff;border-radius:20px;padding:16px;border:1px solid #e7ebf0">'+
+                  '<div style="font-weight:800;margin-bottom:12px">تفاصيل الرحلة</div>'+
+                  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+                    '<select id="mx-mg-vehicle" class="input"><option value="CAR">🚗 سيارة</option><option value="TAXI">🚕 تاكسي</option><option value="VAN">🚐 فان</option><option value="MOTORCYCLE">🏍️ موتوسيكل</option></select>'+
+                    '<select id="mx-mg-type" class="input"><option value="ONE_WAY">ذهاب</option><option value="ROUND_TRIP">ذهاب وعودة</option></select>'+
+                  '</div>'+
+                '</section>'+
+                '<section style="background:#fff;border-radius:20px;padding:16px;border:1px solid #e7ebf0">'+
+                  '<div style="font-weight:800;margin-bottom:12px">السعر والتواصل</div>'+
+                  '<input id="mx-mg-price" class="input" type="number" min="1" step="1" required placeholder="السعر المقترح بالجنيه">'+
+                  '<input id="mx-mg-phone" class="input" style="margin-top:10px;width:100%;box-sizing:border-box" placeholder="رقم التواصل">'+
+                  '<textarea id="mx-mg-note" class="input" style="margin-top:10px;width:100%;box-sizing:border-box;min-height:90px" placeholder="ملاحظات الرحلة (اختياري)"></textarea>'+
+                '</section>'+
+                '<button id="mx-mg-submit" class="btn btn-primary" style="min-height:54px;border-radius:16px;font-size:17px;font-weight:800" type="submit">🚕 نشر طلب الرحلة</button>'+
+              '</form>'+
+              '<div style="margin-top:16px;text-align:center;color:#667085;font-size:12px">بعد النشر ستظهر عروض الكباتن، ثم تختار العرض المناسب وتكمل الدفع والرحلة من MantiGO.</div>'+
+            '</section>'+
+            '<nav style="position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid #e6eaf0;display:flex;justify-content:center;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom))">'+
+              '<button type="button" id="mx-mg-nav-request" style="flex:1;max-width:180px;border:0;background:#e7f5ff;color:#1864ab;border-radius:14px;padding:11px;font-weight:800">🚕 طلب رحلة</button>'+
+              '<button type="button" id="mx-mg-nav-rides" style="flex:1;max-width:180px;border:0;background:#f1f3f5;border-radius:14px;padding:11px;font-weight:700">رحلاتي</button>'+
+              '<button type="button" id="mx-mg-nav-account" style="flex:1;max-width:180px;border:0;background:#f1f3f5;border-radius:14px;padding:11px;font-weight:700">حسابي</button>'+
+            '</nav></main>';
+          const goBack=()=>{try{history.pushState({},'', '#category/MANTIGO');}catch(_){};openCategoryPage('MANTIGO');};
+          document.getElementById('mx-mg-back')?.addEventListener('click',goBack);
+          document.getElementById('mx-mg-nav-request')?.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+          document.getElementById('mx-mg-nav-rides')?.addEventListener('click',async()=>{if(typeof window.selectModule==='function')return window.selectModule('MantiGO والنقل');});
+          document.getElementById('mx-mg-nav-account')?.addEventListener('click',()=>typeof window.accountView==='function'?window.accountView():null);
+          document.getElementById('mx-mg-form')?.addEventListener('submit',async e=>{
+            e.preventDefault();
+            const sb=getClient();if(!sb)return alert('تعذر الاتصال بالمنصة.');
             const {data:{session}}=await sb.auth.getSession();const uid=session?.user?.id;if(!uid)return goLogin();
+            const submit=document.getElementById('mx-mg-submit');if(submit){submit.disabled=true;submit.textContent='جاري نشر الطلب...';}
             const keyId=crypto.randomUUID?crypto.randomUUID():(Date.now()+'-'+Math.random());let pos=null;
             if(navigator.geolocation)pos=await new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>resolve({lat:Number(p.coords.latitude.toFixed(6)),lon:Number(p.coords.longitude.toFixed(6))}),()=>resolve(null),{enableHighAccuracy:true,timeout:8000,maximumAge:30000}));
             const p={p_user_id:uid,p_customer_name:session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'عميل MantiGO',p_customer_phone:document.getElementById('mx-mg-phone').value.trim(),p_vehicle_category:document.getElementById('mx-mg-vehicle').value,p_ride_type:document.getElementById('mx-mg-type').value,p_pickup_location:document.getElementById('mx-mg-pickup').value.trim(),p_destination_location:document.getElementById('mx-mg-destination').value.trim(),p_proposed_price:Number(document.getElementById('mx-mg-price').value)||0,p_note:document.getElementById('mx-mg-note').value.trim(),p_idempotency_key:keyId,p_pickup_lat:pos?.lat??null,p_pickup_lon:pos?.lon??null,p_destination_lat:null,p_destination_lon:null};
-            const r=await sb.rpc('create_mantigo_ride_backend_v2',p);if(r.error)return alert('تعذر نشر الطلب: '+r.error.message);
-            close();alert('تم نشر طلب الرحلة بنجاح. يمكنك متابعة عروض الكباتن من حسابك.');
+            const r=await sb.rpc('create_mantigo_ride_backend_v2',p);
+            if(r.error){if(submit){submit.disabled=false;submit.textContent='🚕 نشر طلب الرحلة';}return alert('تعذر نشر الطلب: '+r.error.message);}
+            alert('تم نشر طلب الرحلة بنجاح. يمكنك متابعة عروض الكباتن من رحلاتي.');
+            if(typeof window.selectModule==='function')return window.selectModule('MantiGO والنقل');
           });
         };
         document.getElementById('mx-mantigo-request')?.addEventListener('click',openRide);
