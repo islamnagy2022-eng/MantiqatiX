@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??"";
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
 const PAYMOB_SECRET_KEY=Deno.env.get("PAYMOB_SECRET_KEY")??"";
+const PAYMOB_PUBLIC_KEY=Deno.env.get("PAYMOB_PUBLIC_KEY")??"";
 const PAYMOB_INTEGRATION_ID=Deno.env.get("PAYMOB_INTEGRATION_ID")??"";
 const PAYMOB_CALLBACK_URL=Deno.env.get("PAYMOB_CALLBACK_URL")??`${SUPABASE_URL}/functions/v1/paymob-webhook`;
 const admin=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -35,7 +36,7 @@ Deno.serve(async req=>{
 
   const metadata=(ledger.metadata&&typeof ledger.metadata==="object"?ledger.metadata:{}) as Record<string,unknown>;
   if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret){
-    return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),requestId},200,requestId);
+    return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
   }
 
   const amount=Number(ledger.gross_amount);
@@ -71,7 +72,7 @@ Deno.serve(async req=>{
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
   }).eq("id",ledger.id).eq("payment_status","REQUIRED");
   if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
-  return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret,requestId},200,requestId);
+  return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret,checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(clientSecret)}`:null,requestId},200,requestId);
  }catch(error){
   console.error(JSON.stringify({requestId,error:String(error)}));
   return json({error:"MANTIGO_PAYMENT_INTENT_FAILED"},500,requestId);
