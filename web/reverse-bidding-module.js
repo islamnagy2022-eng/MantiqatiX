@@ -89,7 +89,7 @@ function syncDomain(key){
 async function createRequest(){
  if(!user)return;
  const p={p_user_id:user.id,p_domain_type:document.getElementById('rDomain').value.trim().toUpperCase(),p_category_name:document.getElementById('rCategory').value.trim(),p_title:document.getElementById('rTitle').value.trim(),p_details_description:document.getElementById('rDetails').value.trim(),p_user_proposed_price:Number(document.getElementById('rPrice').value)||0,p_target_provider_type:document.getElementById('rProvider').value.trim(),p_req_location_district:document.getElementById('rDistrict').value.trim(),p_idempotency_key:crypto.randomUUID()};
- if(!p.domain_type||!p.title||!p.details_description)return alert('أكمل المجال والعنوان والتفاصيل.');
+ if(!p.p_domain_type||!p.p_title||!p.p_details_description)return alert('أكمل المجال والعنوان والتفاصيل.');
  const button=document.getElementById('save-request');if(button){button.disabled=true;button.textContent='جارٍ نشر الطلب…';}
  const r=await sb.rpc('create_indrive_request_backend',p);
  if(r.error){if(button){button.disabled=false;button.textContent='نشر الطلب واستقبال العروض';}return alert(r.error.message);}
