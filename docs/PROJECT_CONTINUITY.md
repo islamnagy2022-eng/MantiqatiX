@@ -409,3 +409,9 @@ This status is intentional and must remain until the open gates above are indepe
 - أضيف `scripts/validate-sector-rendering.mjs` ويتحقق من 27 قطاعًا، renderer دفاعي، fallback للصورة، 7 أعمدة، وتدوير الكاش.
 - تم ربط العقدة داخل Pages CI.
 - لا توجد أي تغييرات على بيانات الإنتاج أو الطلبات أو المدفوعات أو الحسابات المالية.
+
+
+## RC367 — Module runtime test gate
+- Added a CI-enforced runtime/data contract check for all 28 catalog modules.
+- This advances every module from catalog-only presence toward an explicit executable runtime contract without fabricating production transactions.
+- Real customer/provider/payment/device E2E remains an external evidence gate.
