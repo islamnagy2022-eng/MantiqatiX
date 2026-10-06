@@ -71,6 +71,7 @@ jobs:
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
+          node scripts/validate-module-runtime-coverage.mjs
       - name: Required web files
         run: |
           test -f web/index.html
