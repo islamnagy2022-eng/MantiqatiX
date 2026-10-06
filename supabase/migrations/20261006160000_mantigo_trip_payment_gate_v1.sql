@@ -22,6 +22,9 @@ declare
   v_financial_exists boolean := false;
 begin
   if p_user_id is null or p_user_id <> auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
+  if v_target in ('FAILED','SHOW_NO') and nullif(trim(coalesce(p_reason,'')),'') is null then
+    raise exception 'TRIP_REASON_REQUIRED';
+  end if;
 
   select r.status,r.customer_id,b.captain_id
     into v_status,v_customer,v_driver
