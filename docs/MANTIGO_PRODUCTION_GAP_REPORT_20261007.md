@@ -19,14 +19,19 @@ Supabase project: moyhiluyhjsujhwlyeuu
 - Rating submission is immutable/idempotent.
 - Digital-page publication is payment/fulfillment gated.
 - Financial-config RLS is enabled and client access is fail-closed.
-- Latest GitHub main commit 0adcdb252d7cd72899dac8ed094bfacdcae2a0d4 had successful deploy and production-health workflow runs.
-- Live migration history includes the MantiGO hardening/finance/payment/rating/config migrations through 20261006184441.
+- Every public ordinary table currently has RLS enabled.
+- All core MantiGO tables deny direct anon writes; sensitive ledger/config/profile tables also deny direct authenticated writes.
+- Live MantiGO security boundary inspection confirms critical SECURITY DEFINER RPCs use hardened search_path and anon execution is disabled.
+- DB-enforced MantiGO abuse controls are now installed for ride creation and captain bid creation, with advisory-lock serialization and configurable internal thresholds (10 rides/hour/customer, 30 bids/hour/captain).
+- Latest GitHub main baseline before the abuse-control change had successful deploy and production-health workflow evidence.
+- Live migration history includes the MantiGO hardening/finance/payment/rating/config migrations plus mantigo_abuse_rate_limits_v1.
 
 ## SECURITY REVIEW — CURRENT
 Supabase Security Advisor currently reports:
 - 1 intentional anonymous SECURITY DEFINER boundary: get_mnty_targeted_advertisements.
 - 32 authenticated-callable SECURITY DEFINER findings. These are not automatically vulnerabilities; many are deliberate backend RPC boundaries.
 - 1 informational RLS-without-policy finding on digital_page_payment_events. This is intentionally backend-only and has no anon/authenticated table access.
+- Additional anonymous-policy findings exist across legacy/general modules and require contextual product review; they are not being silently classified as safe.
 
 High-risk functions inspected include payment intent creation, RBAC helpers, commission preview, MantiGO admin/report/earnings, captain review, stale ride expiration and settlement. The reviewed functions use auth.uid()/membership/RBAC checks and hardened search_path where applicable.
 
@@ -40,7 +45,6 @@ High-risk functions inspected include payment intent creation, RBAC helpers, com
 7. Android signed release and real-device E2E.
 8. Supabase leaked-password protection managed setting.
 9. Full MantiGO state-machine/concurrency/IDOR test matrix.
-10. Rate limiting/abuse controls for sensitive public-facing operations.
 
 ## MantiGO FUNCTIONAL GAPS STILL OPEN
 - Destination map coordinates and map UI.
