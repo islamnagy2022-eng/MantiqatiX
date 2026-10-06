@@ -23,6 +23,7 @@ Supabase project: moyhiluyhjsujhwlyeuu
 - All core MantiGO tables deny direct anon writes; sensitive ledger/config/profile tables also deny direct authenticated writes.
 - Live MantiGO security boundary inspection confirms critical SECURITY DEFINER RPCs use hardened search_path and anon execution is disabled.
 - DB-enforced MantiGO abuse controls are now installed for ride creation and captain bid creation, with advisory-lock serialization and configurable internal thresholds (10 rides/hour/customer, 30 bids/hour/captain).
+- A read-only MantiGO SQL security regression contract was executed against production and passed the RLS/RPC boundary assertions.
 - Latest GitHub main baseline before the abuse-control change had successful deploy and production-health workflow evidence.
 - Live migration history includes the MantiGO hardening/finance/payment/rating/config migrations plus mantigo_abuse_rate_limits_v1.
 
@@ -45,6 +46,7 @@ High-risk functions inspected include payment intent creation, RBAC helpers, com
 7. Android signed release and real-device E2E.
 8. Supabase leaked-password protection managed setting.
 9. Full MantiGO state-machine/concurrency/IDOR test matrix.
+10. CI success for the latest main commits must still be observed before using those commits as release evidence.
 
 ## MantiGO FUNCTIONAL GAPS STILL OPEN
 - Destination map coordinates and map UI.
