@@ -445,3 +445,9 @@ Production Ready is forbidden until Core, Auth, Authz, DB, RLS, Security, API, W
 
 **FINAL STATUS: NOT CERTIFIED.**
 \n\n## 2026-10-06 execution update\n- [x] Secure customer ride tracking RPC deployed live and execute restricted to authenticated users.\n- [x] MantiGO admin/operations KPI RPC deployed live and role-gated.\n- [x] Commission engine live hardening: unique order commission constraint + secure commission preview.\n- [x] Customer MantiGO UI switched to the secured tracking RPC for customer trip history/bids.\n- [ ] Repository sync of commission migration remains NOT VERIFIED because GitHub write was blocked by security checks.\n
+
+- [x] Removed broad direct MantiGO ride/bid/rating/ledger reads from the workspace loader; frontend now consumes authenticated backend RPC boundaries.
+- [x] Added live captain earnings dashboard RPC with authenticated-only execution and captain-profile gate.
+- [x] Added repository migration for captain earnings RPC.
+- [ ] CI/workflow verification for frontend commit `c5caebdeb77e3d78d8cb29a05e3344446fb3c460` remains NOT VERIFIED (no workflow/status records returned).
+- [ ] Full customer/captain financial E2E and settlement evidence remains NOT VERIFIED.
