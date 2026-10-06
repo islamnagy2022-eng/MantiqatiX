@@ -1,9 +1,12 @@
 import fs from "node:fs";
 
 const migration = "supabase/migrations/20261007001000_mantigo_abuse_rate_limits_v1.sql";
+const idempotencyMigration = "supabase/migrations/20261007002000_mantigo_rate_limit_idempotency_compat_v1.sql";
 if (!fs.existsSync(migration)) throw new Error("Missing MantiGO abuse rate-limit migration");
+if (!fs.existsSync(idempotencyMigration)) throw new Error("Missing MantiGO rate-limit/idempotency compatibility migration");
 
 const sql = fs.readFileSync(migration, "utf8");
+const idempotencySql = fs.readFileSync(idempotencyMigration, "utf8");
 const required = [
   "mantigo_rate_limit_config",
   "mantigo_rate_limit_check",
@@ -20,4 +23,5 @@ for (const marker of required) {
   if (!sql.includes(marker)) throw new Error("MantiGO rate-limit contract missing: " + marker);
 }
 
+if (!idempotencySql.includes("idempotency_key") || !idempotencySql.includes("mantigo_guard_ride_rate_limit")) throw new Error("MantiGO idempotency compatibility contract missing");
 console.log("MantiGO abuse rate-limit contract: PASS");
