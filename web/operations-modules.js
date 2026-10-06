@@ -136,9 +136,9 @@ async function applyJob(jobId){
  if(qualifications===null)return;
  const summary=prompt('اكتب ملخص السيرة الذاتية أو الخبرات المهمة:','');
  if(summary===null)return;
- const p={id:crypto.randomUUID(),job_id:jobId,applicant_user_id:user.id,applicant_name:user?.user_metadata?.full_name||user?.user_metadata?.name||'',applicant_phone:user?.user_metadata?.phone||'',qualifications:qualifications.trim(),cv_summary_text:summary.trim()};
- if(!p.qualifications||!p.cv_summary_text)return alert('يجب إدخال المؤهلات وملخص الخبرة.');
- const r=await sb.from('job_applications').upsert(p,{onConflict:'job_id,applicant_user_id',ignoreDuplicates:true});
+ const p={p_user_id:user.id,p_job_id:jobId,p_applicant_name:user?.user_metadata?.full_name||user?.user_metadata?.name||'',p_applicant_phone:user?.user_metadata?.phone||'',p_qualifications:qualifications.trim(),p_cv_summary_text:summary.trim()};
+ if(!p.p_qualifications||!p.p_cv_summary_text)return alert('يجب إدخال المؤهلات وملخص الخبرة.');
+ const r=await sb.rpc('submit_job_application_backend',p);
  if(r.error)return alert('تعذر إرسال الطلب: '+r.error.message);
  await load(defs['الوظائف']); tab='overview'; render();
 }
