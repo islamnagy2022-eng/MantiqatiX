@@ -26,7 +26,24 @@ const defs={
 'المستعمل':{key:'USED_ITEMS',tabs:['overview','live'],tables:['used_item_ads'],desc:'إعلانات المستعمل الفعلية.'},
 'المطاعم والمطابخ':{key:'RESTAURANTS',tabs:['overview','live'],tables:['restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory'],desc:'القوائم والطلبات والطاولات والمخزون الفعلي.'},
 'المنظومة الطبية':{key:'MEDICAL',tabs:['overview','live'],tables:['doctor_profiles','medical_appointments','clinic_offers','pharmacy_profiles','pharmacy_offers','hospital_profiles','lab_profiles','lab_tests'],desc:'الأطباء والمواعيد والخدمات الطبية الفعلية حسب الصلاحية.'},
-'المجمع الطبي والصيدليات':{key:'MEDICAL',tabs:['overview','live'],tables:['doctor_profiles','medical_appointments','clinic_offers','pharmacy_profiles','pharmacy_offers','hospital_profiles','lab_profiles','lab_tests'],desc:'الأطباء والمواعيد والخدمات الطبية الفعلية حسب الصلاحية.'}
+'المجمع الطبي والصيدليات':{key:'MEDICAL',tabs:['overview','live'],tables:['doctor_profiles','medical_appointments','clinic_offers','pharmacy_profiles','pharmacy_offers','hospital_profiles','lab_profiles','lab_tests'],desc:'الأطباء والمواعيد والخدمات الطبية الفعلية حسب الصلاحية.'},
+'المطاعم':{key:'RESTAURANTS',tabs:['overview','live'],tables:['restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory'],desc:'القوائم والطلبات والطاولات والمخزون الفعلي.'},
+'كافيهات':{key:'CAFES',tabs:['overview','live'],tables:['restaurant_menu_items','restaurant_tables','restaurant_orders'],desc:'القائمة والطاولات والطلبات الفعلية للكافيه.'},
+'سوبر ماركت':{key:'SUPERMARKET',tabs:['overview','live'],tables:['catalog_items','catalog_item_prices','inventory_transactions','orders'],desc:'الكتالوج والأسعار والمخزون والطلبات الفعلية.'},
+'ملابس وأزياء':{key:'CLOTHING',tabs:['overview','live'],tables:['fashion_products','fashion_orders','fashion_tailor_services'],desc:'المنتجات والطلبات وخدمات الخياطة الفعلية.'},
+'الزواج':{key:'MARRIAGE',tabs:['overview','live'],tables:['matrimony_profiles','matrimony_requests','matrimony_contact_unlocks'],desc:'ملفات الزواج والطلبات وفتح التواصل وفق الصلاحيات.'},
+'مدارس خاصة':{key:'SCHOOLS',tabs:['overview','live'],tables:['school_profiles','teacher_profiles','education_requests'],desc:'المدارس والمدرسون وطلبات القبول الفعلية.'},
+'العلاج الطبيعي':{key:'PHYSIOTHERAPY',tabs:['overview','live'],tables:['medical_appointments','patient_records'],desc:'المواعيد والسجلات العلاجية الفعلية وفق الصلاحيات.'},
+'الصيدليات':{key:'PHARMACIES',tabs:['overview','live'],tables:['pharmacy_profiles','pharmacy_offers','orders'],desc:'الصيدليات والعروض والطلبات الفعلية.'},
+'عيادات الأطباء':{key:'CLINICS',tabs:['overview','live'],tables:['doctor_profiles','medical_appointments','clinic_offers'],desc:'الأطباء والمواعيد وعروض العيادات الفعلية.'},
+'المستشفيات الخاصة':{key:'HOSPITALS',tabs:['overview','live'],tables:['hospital_profiles','medical_appointments'],desc:'المستشفيات والمواعيد الفعلية وفق الصلاحيات.'},
+'مراكز التحاليل والأشعة':{key:'LABS',tabs:['overview','live'],tables:['lab_profiles','lab_tests','medical_appointments'],desc:'المعامل والخدمات والمواعيد الفعلية.'},
+'الخدمات المحاسبية':{key:'ACCOUNTING_SERVICES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات الخدمات المحاسبية والعروض الفعلية.'},
+'خدمات الشركات':{key:'COMPANIES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات الشركات والعروض الفعلية.'},
+'المصانع والخدمات الصناعية':{key:'FACTORIES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات التصنيع والعروض والمخزون الفعلي.'},
+'الرحلات والسفر':{key:'FLIGHTS_TRIPS',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات السفر والعروض الفعلية.'},
+'خدمات المنزل والصيانة':{key:'HOME_MAINTENANCE',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات الصيانة والعروض الفعلية.'},
+'البرمجيات وERP':{key:'SOFTWARE_ERP',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات البرمجيات والعروض الفعلية.'}
 };
 let current=null,rows={},user=null,membership=null,tab='overview',loading=false,error=null,mgRealtime=null;
 async function init(){const s=await sb.auth.getSession();user=s.data?.session?.user||null;if(!user)return;const id=localStorage.getItem('MNTYActiveMembershipId');let q=sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');if(id)q=q.eq('id',id);let r=await q.maybeSingle();if(!r.data)r=await sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE').limit(1).maybeSingle();membership=r.data||null}
