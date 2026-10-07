@@ -380,7 +380,10 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const items=dynamicTaxonomy(services,providers);
       const count=document.getElementById('mx-sector-count');
       if(count) count.textContent=String(items.length);
-      const tiles=items.map(c=>{
+      const previewSize=8;
+      const expanded=categoryGrid?.dataset.expanded==='1';
+      const visibleItems=expanded?items:items.slice(0,previewSize);
+      const tiles=visibleItems.map(c=>{
         const icon=escapeHtml(c?.[0]||'◉');
         const label=escapeHtml(c?.[1]||'قطاع');
         const code=normCode(c?.[3]||'');
