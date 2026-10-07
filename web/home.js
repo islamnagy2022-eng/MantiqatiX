@@ -174,7 +174,7 @@
 
     const adminReturnMembershipId=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId')||'';
     if(adminReturnMembershipId) window.MNTYAdminReturnMembershipId=adminReturnMembershipId;
-    const initialCategoryTiles=TAXONOMY.map(c=>{
+    const initialCategoryTiles=TAXONOMY.slice(0,8).map(c=>{
       const icon=escapeHtml(c?.[0]||'◉');
       const label=escapeHtml(c?.[1]||'قطاع');
       const desc=escapeHtml(c?.[2]||'استكشف الأنشطة والخدمات');
@@ -309,6 +309,7 @@
         <section class="mx-section" id="mx-categories">
           <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف القطاعات والأنشطة الحالية</h2><p>27 قطاعًا متاحة الآن. تظهر أسفل كل قطاع أعداد الخدمات والأنشطة المنشورة فعليًا عند توفر البيانات، ويمكنك فتح القطاع لرؤية التفاصيل.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
           <div class="mx-categories" id="mx-category-grid">${initialCategoryTiles}</div>
+          <div class="mx-category-actions"><button type="button" class="mx-btn mx-btn--light" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات</button></div>
         </section>
 
         <section class="mx-section" id="mx-services" hidden>
@@ -971,6 +972,8 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(providersRes.status!=='fulfilled' || providersRes.value?.error) throw (providersRes.status==='fulfilled'?providersRes.value.error:new Error('تعذر تحميل مقدمي الخدمات'));
         if(requestSequence!==homeLoadSequence)return;
         const services=servicesRes.value?.data||[];
+        window.__MNTY_HOME_SERVICES=services;
+        window.__MNTY_HOME_PROVIDERS=providersRes.value?.data||[];
         const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.value?.data||[]):providersRes.value?.data||[];
         if(requestSequence!==homeLoadSequence)return;
         renderDynamicCategories(services,providers);
