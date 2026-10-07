@@ -415,3 +415,33 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a CI-enforced runtime/data contract check for all 28 catalog modules.
 - This advances every module from catalog-only presence toward an explicit executable runtime contract without fabricating production transactions.
 - Real customer/provider/payment/device E2E remains an external evidence gate.
+
+
+## RC385 update — 2026-10-07
+- Homepage visual rebuild is implemented on branch `feat/homepage-rebuild-rc385` and tracked by PR #56.
+- Scope is UI/CSS plus the matching rendering validator/cache contract; no database or payment behavior was changed.
+- A validator mismatch was found and corrected: the check now validates `home.css?v=rc385` rather than `home.js?v=rc385`.
+- Latest branch commit: `147e288617e9144b423f0ea065862e731afa0ae`.
+- Production Pages workflow supports `workflow_dispatch`, but the available connector cannot dispatch it. No deployment result for the corrected RC385 commit is therefore claimed.
+- RC385 remains NOT VERIFIED for production runtime. Do not merge until CI/deployment evidence exists.
+- Core production blockers remain: leaked-password protection, per-function SECURITY DEFINER review, real two-user/two-tenant E2E, payment/finance E2E, notification E2E, backup/restore, Android signed/device evidence, browser smoke, and final regression/release evidence.
+
+
+## RC386 update — 2026-10-07
+- Revalidated Production Supabase security state before making any security change.
+- 128/128 public tables have RLS enabled; anonymous Auth users = 0; one intentional anonymous SECURITY DEFINER endpoint remains for sanitized advertisements.
+- Security Advisor's anonymous-policy findings were sampled at policy level and are bound to `authenticated` with explicit non-anonymous guards; no broad policy rewrite was made.
+- Leaked-password protection is still disabled and requires managed Auth/dashboard action.
+- No production schema/data/payment mutation was performed.
+
+
+## RC387 update — 2026-10-07
+- Revalidated CI evidence for the latest RC385 branch head `39bf8aa1ee0aff029f7c6a2e2b0cabb0327ac6b6`.
+- Two relevant validation workflows completed successfully; no commit statuses are attached.
+- Production Pages deployment/runtime is still not evidenced for this branch head, so the homepage change remains unmerged and NOT VERIFIED in production.
+
+
+## RC388 update — 2026-10-07
+- Verified root cause of unchanged public homepage: RC385 exists only on the feature branch; Pages deployment is main-only.
+- Updated Pages workflow so validation runs on PRs while deployment remains main-only.
+- No production merge/deployment claimed; waiting for CI evidence before merge.

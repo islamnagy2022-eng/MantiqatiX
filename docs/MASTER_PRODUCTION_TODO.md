@@ -1188,3 +1188,49 @@
 - **CI/CD — NOT VERIFIED:** the repository workflow is configured for push to `main` and manual dispatch and contains the production validation/deploy smoke gates, but the available commit-run connector did not provide a successful run for the latest documentation commits. Therefore CI execution remains unverified rather than assumed.
 - **PERFORMANCE ADVISOR — OPEN:** 28 multiple-permissive-policy findings remain, plus unused/unindexed-index findings. No mass policy merge or index changes were made because these can alter authorization semantics or workload performance without measured query plans.
 - **PAYMENT / CASH:** `confirm_mantigo_cash_payment_backend` correctly binds the caller to the ride customer and performs idempotent state handling. Real payment/settlement E2E is still WAIT/NOT VERIFIED and was not simulated with real money.
+
+
+## RC385 — Homepage rebuild / release evidence update — 2026-10-07
+
+- Rebuilt the public homepage presentation layer in `web/home.css` without changing database schema, Supabase RPC contracts, or business data paths.
+- Updated `web/index.html` to load `home.css?v=rc385`.
+- Added/updated sector rendering validation so the cache contract explicitly checks `home.css?v=rc385`.
+- Corrected a validator defect discovered during review: the previous RC385 check incorrectly looked for `home.js?v=rc385`; it now checks the actual changed asset `home.css?v=rc385`.
+- GitHub branch: `feat/homepage-rebuild-rc385`; PR #56 remains OPEN and unmerged.
+- Latest branch commit after validator correction: `147e288617e9144b423f0ea065862e731afa0ae`.
+- Existing GitHub validation runs inspected for the preceding RC385 commit were successful for Module Professionalization Validation and Backend-only Module Boundary.
+- No new main Pages deployment run exists for the corrected branch commit because the Pages workflow triggers on `main` push or manual dispatch; the available GitHub connector does not expose workflow dispatch.
+- Therefore RC385 status remains **IMPLEMENTED — NOT VERIFIED for production deployment/runtime** until the main Pages workflow validates and deploys the exact release candidate.
+- No production database migration, financial transaction, payment, credential rotation, or destructive operation was performed in RC385.
+- Final Production Gate remains OPEN.
+
+
+## RC386 — Live Supabase Security Advisor revalidation — 2026-10-07
+
+- Production project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.
+- Live structural query: 128/128 public tables have RLS enabled.
+- Live Auth query: anonymous user count = 0.
+- Live function privilege query: 1 public SECURITY DEFINER function is executable by `anon`; this matches the intentionally public sanitized advertisement projection `get_mnty_targeted_advertisements` already reviewed.
+- Current Security Advisor still reports: 1 RLS-enabled table without policy (`public.digital_page_payment_events`), 1 anonymous SECURITY DEFINER warning (the intentional advertisement projection), 40 authenticated SECURITY DEFINER warnings, and leaked-password protection disabled.
+- Reviewed representative Advisor `auth_allow_anonymous_sign_ins` findings directly in `pg_policies`: the affected policies are assigned to `authenticated`, not `anon`, and include explicit `auth.jwt()->>'is_anonymous' <> 'true'` guards where applicable. Therefore these findings are not evidence of anonymous-user access in the current project state and must not be mass-rewritten merely to silence Advisor.
+- No production mutation was made in RC386. No broad RLS policies were added. No financial/payment operation was executed.
+- Leaked-password protection remains a managed Auth setting requiring dashboard/owner action; it is still a release blocker.
+- Final Production Gate remains OPEN.
+
+
+## RC387 — CI / branch verification — 2026-10-07
+
+- Latest RC385 branch documentation head verified as `39bf8aa1ee0aff029f7c6a2e2b0cabb0327ac6b6`.
+- GitHub Actions evidence for this head currently contains two completed successful workflows: `Backend-only Module Boundary` run #76 and `Module Professionalization Validation` run #82.
+- No GitHub commit statuses are attached to this head.
+- The production Pages workflow has not produced a verified deployment result for this head; therefore RC385 homepage production deployment/runtime remains NOT VERIFIED.
+- No merge to `main` was performed.
+
+
+## RC388 — Homepage deployment path correction — 2026-10-07
+
+- Confirmed user-visible homepage had not changed because RC385 remained on feature branch while GitHub Pages deploys from `main`.
+- Confirmed RC385 `web/index.html` references `home.css?v=rc385`, and PR #56 contains the homepage CSS rebuild.
+- Corrected `.github/workflows/pages.yml` on the feature branch to run validation on pull requests targeting `main`, while keeping actual Pages deployment restricted to pushes on `main`.
+- This improves pre-merge evidence without deploying feature branches or granting production deployment on PRs.
+- Latest workflow-trigger evidence is not yet available for the new workflow commit; therefore no merge was performed.
