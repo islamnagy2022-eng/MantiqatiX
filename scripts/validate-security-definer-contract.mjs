@@ -14,7 +14,7 @@ const expected=[
 ];
 
 const hardening=migrationFiles
-  .filter(f=>/^20261004003820_rc336_harden_authenticated_security_definer_search_paths\.sql$/.test(f))
+  .filter(f=>/^20261004003842_rc336_harden_authenticated_security_definer_search_paths\.sql$/.test(f))
   .map(f=>fs.readFileSync(migrationDir+'/'+f,'utf8'))
   .join('\n');
 
