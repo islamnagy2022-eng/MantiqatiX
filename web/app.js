@@ -913,7 +913,7 @@ function domainModuleWorkspace(){
  const d=live.moduleData[m.key]||{tables:{},ready:false};
  if(m.key==='RESTAURANTS'){
   if(!d.rowsReady){loadRestaurantWorkspace();return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل بيانات المطعم الفعلية وفق نطاق النشاط والفرع والصلاحيات…</div>'}
-  return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\\'الموديولات\\')">← العودة للموديولات</button></div>';
+  return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>';
  }
  if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
