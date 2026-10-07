@@ -1399,3 +1399,11 @@
 - PR #65 merged safely; merge commit: `3e007a52cb2e2fde934ce5a9623efd253644a07e`.
 - CI after correction: Backend-only Module Boundary #165 SUCCESS; Module Professionalization #171 SUCCESS; Deploy validation #1948 SUCCESS.
 
+## RC480 — Operations Command Workspace (DASH-110)
+- Status: **PASS for implementation + CI**; production browser/runtime and multi-user tenant E2E remain **NOT VERIFIED**.
+- Upgraded the existing orders area into an operational command workspace using existing `orders`, `order_status_history`, and `notifications` data.
+- Added real status KPIs, status distribution, visible-value context with explicit non-revenue wording, operational navigation, and existing order actions.
+- No schema, RPC, Edge Function, or RLS policy changes.
+- PR #66 merged safely; merge commit: `72267c03cea5cb9a04b4a1023508945566911b22`.
+- CI: Module Professionalization #176 SUCCESS; Backend-only Module Boundary #170 SUCCESS; Deploy validation #1951 SUCCESS.
+
