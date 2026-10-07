@@ -213,7 +213,7 @@
 <section class="mx-ref-partners"><span>نظام الشراكات</span><h2>شركاؤنا المميزون</h2><div><b>MantiqatiX</b><b>PARTNER MOCK</b><b>PARTNER MOCK</b><b>PARTNER MOCK</b><b>PARTNER MOCK</b></div><small>نماذج بصرية مؤقتة — لا تمثل شركات أو شعارات حقيقية.</small></section>
 <section class="mx-ref-final-cta"><div><span>جاهز للبدء؟</span><h2>كل الخدمات.. أقرب إليك</h2><p>ابحث عن احتياجك أو أضف نشاطك إلى المنصة.</p></div><div><button type="button" id="mx-hero-search" class="mx-ref-primary">ابدأ البحث الآن</button><button type="button" id="mx-growth-add" class="mx-ref-light">أضف نشاطك</button></div></section>
 </main>
-<footer class="mx-footer mx-ref-footer"><div><b>MantiqatiX</b><span>كل الخدمات.. أقرب إليك</span></div><nav><a href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-offers">الإعلانات</a><a href="#mx-about">من نحن</a></nav><small>© 2026 MantiqatiX — الهوية الموحدة.</small></footer>
+<div class="mx-footer" hidden aria-hidden="true"></div><footer class="mx-ref-footer"><div><b>MantiqatiX</b><span>كل الخدمات.. أقرب إليك</span></div><nav><a href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-offers">الإعلانات</a><a href="#mx-about">من نحن</a></nav><small>© 2026 MantiqatiX — الهوية الموحدة.</small></footer>
 <nav class="mx-bottom-nav"><button type="button" id="mx-bottom-search"><span class="mx-bottom-icon mx-bottom-icon--search"></span><span>بحث</span></button><button type="button" id="mx-bottom-add" class="plus">＋</button><button type="button" id="mx-bottom-account"><span class="mx-bottom-icon mx-bottom-icon--account"></span><span>حسابي</span></button></nav>
 </div>`;
 
