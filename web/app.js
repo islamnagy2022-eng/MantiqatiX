@@ -475,6 +475,57 @@ const PROVIDER_SERVICE_TEMPLATES={
  FREELANCER:['كتابة','ترجمة','تصميم','برمجة','استشارات','إدخال بيانات']
 };
 const providerKinds=[["FOOD","مطاعم وكافيهات ومطابخ"],["HEALTH","طبيب أو عيادة"],["PHARMACY","صيدلية"],["LABS","معمل تحاليل"],["RADIOLOGY","مركز أشعة"],["HOSPITAL","مستشفى"],["DENTAL","طبيب أو عيادة أسنان"],["VETERINARY","عيادة أو خدمة بيطرية"],["MEDICAL","مركز طبي"],["REAL_ESTATE","شركة أو مكتب عقارات"],["AUTO","سيارات ونقل"],["MAINTENANCE","مقدم خدمات صيانة"],["HOME","خدمات منزلية"],["ACCOUNTING","محاسب أو مكتب محاسبة"],["LEGAL","محامٍ أو مكتب محاماة"],["COMPANIES","شركة أو مقدم خدمات أعمال"],["FACTORIES","مصنع أو مورد"],["EDU","مدرسة أو مدرس أو مركز تدريب"],["DIGITAL","شركة تسويق وإعلان"],["TECH","شركة برمجيات وخدمات تقنية"],["FITNESS","نادي أو مدرب لياقة"],["TRAVEL","شركة سياحة وسفر"],["MANTIGO","مقدم نقل أو سائق MantiGO"],["JOBS","صاحب عمل أو جهة توظيف"],["MATRIMONY","مقدم خدمات زواج ومناسبات"],["USED_ITEMS","بائع أو مقدم خدمة للمستعمل"],["FASHION","متجر أو مقدم خدمات أزياء وخياطة"],["GROCERY","بقالة أو سوبر ماركت"],["FREELANCER","مستقل أو مقدم خدمة احترافية"]];
+const GLOBAL_SEARCH_SOURCES=[
+ {key:'businesses',label:'الأنشطة والشركات',icon:'🏢',module:'المستخدمون وCRM',table:'businesses',select:'id,name,code,status',fields:['name','code'],route:'المستخدمون وCRM'},
+ {key:'providers',label:'مقدمو الخدمة',icon:'👤',module:'المستخدمون وCRM',table:'marketing_provider_profiles',select:'id,name_ar,name_en,provider_kind,status,is_verified',fields:['name_ar','name_en','provider_kind'],route:'المستخدمون وCRM'},
+ {key:'orders',label:'الطلبات',icon:'🧾',module:'الطلبات والعمليات',table:'orders',select:'id,status,total_amount,total,currency,customer_name,created_at',fields:['id','status','customer_name'],route:'الطلبات والعمليات'},
+ {key:'services',label:'الخدمات',icon:'🛠️',module:'المجالات والخدمات',table:'marketing_services',select:'id,code,name_ar,name_en,category_code,status',fields:['code','name_ar','name_en','category_code'],route:'المجالات والخدمات'},
+ {key:'catalog',label:'الخدمات والمنتجات',icon:'📦',module:'الموديولات',table:'catalog_items',select:'id,name_ar,name_en,sku,item_type,status,business_id',fields:['name_ar','name_en','sku','item_type'],route:'الموديولات'},
+ {key:'leads',label:'العملاء المحتملون',icon:'🎯',module:'المستخدمون وCRM',table:'marketing_leads',select:'id,title,status,source,service_area,created_at',fields:['title','status','source','service_area'],route:'المستخدمون وCRM'},
+ {key:'projects',label:'المشروعات التسويقية',icon:'📣',module:'التسويق والإعلان',table:'marketing_projects',select:'id,project_type,management_mode,status,currency,created_at',fields:['project_type','management_mode','status'],route:'التسويق والإعلان'},
+ {key:'tickets',label:'تذاكر الدعم',icon:'🎫',module:'الدعم والحوكمة',table:'support_tickets',select:'id,subject,category,priority,status,created_at',fields:['id','subject','category','priority','status'],route:'الدعم والحوكمة'},
+ {key:'ads',label:'الإعلانات',icon:'📢',module:'التسويق والإعلان',table:'advertisements',select:'id,title,status,approval_status,start_at,end_at,created_at',fields:['id','title','status','approval_status'],route:'التسويق والإعلان'},
+ {key:'jobs',label:'الوظائف',icon:'💼',module:'الوظائف',table:'jobs',select:'id,title,company_name,category,location,job_type,is_active,created_at',fields:['title','company_name','category','location','job_type'],route:'الوظائف'}
+];
+function globalSearchCan(source){
+ const role=String(live.role||'').toUpperCase();
+ if(role==='SUPER_ADMIN')return canSuperAdmin();
+ return window.MNTY_RBAC?.can(role,source.module,'view',live.permissions)===true;
+}
+function globalSearchText(row,fields){return fields.map(k=>row?.[k]).filter(v=>v!==null&&v!==undefined).map(v=>typeof v==='object'?JSON.stringify(v):String(v)).join(' ')}
+async function globalSearch(queryText){
+ const q=String(queryText||'').trim();
+ if(q.length<2)return [];
+ const needle='%'+q.replace(/[%_]/g,m=>'\\'+m)+'%';
+ const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan);
+ const tasks=sources.map(async source=>{
+  try{
+   let queryBuilder=sb.from(source.table).select(source.select).limit(6);
+   if(source.key==='businesses')queryBuilder=queryBuilder.or('name.ilike.'+needle+',code.ilike.'+needle);
+   else if(source.key==='providers')queryBuilder=queryBuilder.or('name_ar.ilike.'+needle+',name_en.ilike.'+needle+',provider_kind.ilike.'+needle);
+   else if(source.key==='orders')queryBuilder=queryBuilder.or('id.ilike.'+needle+',status.ilike.'+needle+',customer_name.ilike.'+needle);
+   else if(source.key==='services')queryBuilder=queryBuilder.or('code.ilike.'+needle+',name_ar.ilike.'+needle+',name_en.ilike.'+needle+',category_code.ilike.'+needle);
+   else if(source.key==='catalog')queryBuilder=queryBuilder.or('name_ar.ilike.'+needle+',name_en.ilike.'+needle+',sku.ilike.'+needle+',item_type.ilike.'+needle);
+   else if(source.key==='leads')queryBuilder=queryBuilder.or('title.ilike.'+needle+',status.ilike.'+needle+',source.ilike.'+needle+',service_area.ilike.'+needle);
+   else if(source.key==='projects')queryBuilder=queryBuilder.or('project_type.ilike.'+needle+',management_mode.ilike.'+needle+',status.ilike.'+needle);
+   else if(source.key==='tickets')queryBuilder=queryBuilder.or('id.ilike.'+needle+',subject.ilike.'+needle+',category.ilike.'+needle+',priority.ilike.'+needle+',status.ilike.'+needle);
+   else if(source.key==='ads')queryBuilder=queryBuilder.or('id.ilike.'+needle+',title.ilike.'+needle+',status.ilike.'+needle+',approval_status.ilike.'+needle);
+   else if(source.key==='jobs')queryBuilder=queryBuilder.or('title.ilike.'+needle+',company_name.ilike.'+needle+',category.ilike.'+needle+',location.ilike.'+needle+',job_type.ilike.'+needle);
+   const result=await queryBuilder;
+   if(result.error)throw result.error;
+   return (result.data||[]).map(row=>({source,row,title:row.name||row.name_ar||row.name_en||row.title||row.subject||row.code||row.id,detail:globalSearchText(row,source.fields)}));
+  }catch(error){
+   console.warn('[MantiqatiX global search]',source.key,error?.message||error);
+   return [];
+  }
+ });
+ const groups=await Promise.all(tasks);
+ return groups.flat().slice(0,40);
+}
+function globalSearchResultHtml(results){
+ if(!results.length)return '<div class="mx-global-search-empty">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
+ return results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
+}
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
 function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>تحكم في الوحدات التي تظهر للمنصة والمشتركين.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>`<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span></article>`).join('')}</div>`}
 function sectorsPage(){
