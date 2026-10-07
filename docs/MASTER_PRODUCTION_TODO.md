@@ -1416,3 +1416,13 @@
 - PR #67 merged safely; merge commit: `b28490372941f41bac14df67784bcc90a33e9cc5`.
 - CI: Module Professionalization #181 SUCCESS; Backend-only Module Boundary #175 SUCCESS; Deploy validation #1954 SUCCESS.
 
+## RC500 — Unified Attention Center (DASH-140/142)
+- Status: **PASS for implementation + CI**; production runtime and multi-user authorization E2E remain **NOT VERIFIED**.
+- Added a unified attention queue over real unread notifications, active orders, open support tickets, and open marketing leads.
+- Actions route to existing authorized handlers; no new mutation authority was introduced.
+- Governance action bindings were hardened to data attributes after CI caught fragile inline quote escaping.
+- Tasks are explicitly **NOT AVAILABLE** as an authoritative source because no real `tasks` table/source was identified; no synthetic tasks were created.
+- No schema, RPC, Edge Function, or RLS policy changes.
+- PR #68 merged safely; merge commit: `2237ee769dc7321ee90bec21fae14ded40f0c22e`.
+- CI: Module Professionalization #188 SUCCESS; Backend-only Module Boundary #182 SUCCESS; Deploy validation #1958 SUCCESS.
+
