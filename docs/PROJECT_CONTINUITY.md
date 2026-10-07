@@ -439,3 +439,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Revalidated CI evidence for the latest RC385 branch head `39bf8aa1ee0aff029f7c6a2e2b0cabb0327ac6b6`.
 - Two relevant validation workflows completed successfully; no commit statuses are attached.
 - Production Pages deployment/runtime is still not evidenced for this branch head, so the homepage change remains unmerged and NOT VERIFIED in production.
+
+
+## RC388 update — 2026-10-07
+- Verified root cause of unchanged public homepage: RC385 exists only on the feature branch; Pages deployment is main-only.
+- Updated Pages workflow so validation runs on PRs while deployment remains main-only.
+- No production merge/deployment claimed; waiting for CI evidence before merge.
