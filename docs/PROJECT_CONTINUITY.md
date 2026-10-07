@@ -463,3 +463,13 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Live RPC smoke query returned four active HOME_SPONSORED global advertisements with valid creative URLs.
 - [x] No database mutation was required for this correction.
 - [ ] Current commit CI/browser/device evidence remains external/unverified.
+
+## RC391 — Sponsored-ad CI contract + production deployment verification — 2026-10-07
+- [x] Added `scripts/validate-home-sponsored-ads.mjs` to lock the homepage sponsored-ad contract to `advertisement_id`, `HOME_SPONSORED`, live side-rail rendering, and safe URL handling.
+- [x] Added the validator to `.github/workflows/pages.yml`.
+- [x] GitHub Actions Production Health Monitor for commit `00ad4b95aaecf6b5a1675d9ea008011154ace794` completed SUCCESS.
+- [x] Deploy MantiqatiX Web run #1978 completed SUCCESS; validate, deploy, and deployed-site verification all completed successfully.
+- [x] Live Supabase RPC smoke returned four active `HOME_SPONSORED` advertisements using `advertisement_id`; public RPC execution is intentional and hardened with `search_path=public, pg_temp`.
+- [x] `digital_page_payment_events` remains fail-closed: RLS enabled and zero direct anon/authenticated table grants.
+- [ ] Managed Supabase Auth Leaked Password Protection remains outside the available automation surface and is not claimed enabled.
+- [ ] Full browser/device adversarial E2E, backup/restore rehearsal, rollback rehearsal, Android signed/device E2E, and independent production acceptance remain required before declaring final certification.
