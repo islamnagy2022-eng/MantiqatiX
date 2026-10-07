@@ -455,3 +455,11 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Refreshed homepage asset cache versions to rc389.
 - [x] No production business/order/payment/financial records were mutated.
 - [ ] Browser/device production smoke remains required before claiming runtime verification.
+
+
+## RC390 — 2026-10-07 — Sponsored-ad RPC contract correction
+- [x] Live Supabase inspection confirmed `get_mnty_targeted_advertisements(...)` returns `advertisement_id`, not `id`.
+- [x] Homepage sponsored-card and side-rail rendering now use `advertisement_id` for stable activation and modal lookup.
+- [x] Live RPC smoke query returned four active HOME_SPONSORED global advertisements with valid creative URLs.
+- [x] No database mutation was required for this correction.
+- [ ] Current commit CI/browser/device evidence remains external/unverified.
