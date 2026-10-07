@@ -1447,3 +1447,14 @@
 - PR #70 merged safely; merge commit: `edfad28dc991022a119462578761951965e8cf37`.
 - CI: Module Professionalization #198 SUCCESS; Backend-only Module Boundary #192 SUCCESS; Deploy validation #1964 SUCCESS.
 
+## RC530 — Production Invariants Verification
+- Status: **PASS for read-only production invariants**.
+- Verified directly against Production Supabase with a corrected expectation for `create_payment_intent_backend`: it is intentionally executable by `authenticated` for the user-scoped payment path, while remaining non-executable by `anon`; this is documented in the authorization/payment evidence.
+- Verified `upsert_catalog_settings_backend` backend privilege boundary.
+- Verified referral privileged functions are not executable by `anon` or `authenticated`.
+- Verified RLS and FORCE RLS on `orders`, `payment_intents`, `financial_obligations`, and `payout_destinations`.
+- Verified `process_verified_provider_payment` contains the required pricing/provider/replay mismatch guards.
+- Verified `trg_orders_financial_lock` exists.
+- No production data was mutated and no real payment was executed.
+- Note: the historical RC40 `supabase/tests/production_invariants.sql` expectation for `create_payment_intent_backend` is stale relative to the current documented architecture; production behavior itself was verified with the corrected invariant.
+
