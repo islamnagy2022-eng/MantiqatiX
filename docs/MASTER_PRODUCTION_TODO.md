@@ -1407,3 +1407,12 @@
 - PR #66 merged safely; merge commit: `72267c03cea5cb9a04b4a1023508945566911b22`.
 - CI: Module Professionalization #176 SUCCESS; Backend-only Module Boundary #170 SUCCESS; Deploy validation #1951 SUCCESS.
 
+## RC490 — Finance Control Workspace (DASH-120)
+- Status: **PASS for implementation + CI**; production financial E2E remains **NOT VERIFIED** and no real-money transaction was performed.
+- Added a tenant-scoped Finance Control Workspace over existing `journal_entries`, `commission_transactions`, `payment_intents`, `payment_financial_reconciliations`, `settlement_transactions`, and `wallet_accounts`.
+- Financial counts are loaded only for approved finance roles and remain subject to existing RLS.
+- Existing financial posting remains behind the current `post-financial-journal` Edge Function; no direct journal mutation was added.
+- No schema, RPC, Edge Function, or RLS policy changes.
+- PR #67 merged safely; merge commit: `b28490372941f41bac14df67784bcc90a33e9cc5`.
+- CI: Module Professionalization #181 SUCCESS; Backend-only Module Boundary #175 SUCCESS; Deploy validation #1954 SUCCESS.
+
