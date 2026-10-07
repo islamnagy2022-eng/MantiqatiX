@@ -40,23 +40,18 @@
    - tenant isolation.
    - GL posting/account mapping/reconciliation.
 
-5. Supabase Security Advisor — OPEN
-   - 7 جداول RLS بلا policies — REVIEWED: no direct anon/authenticated grants; backend-only isolation still requires access-path documentation.
-   - pg_net داخل public — CLOSED in RC107; moved to extensions and trigger dependency revalidated.
-   - create_payment_intent_backend SECURITY DEFINER قابل للتنفيذ من authenticated؛ الاستدعاء مقصود حالياً لكن يلزم إغلاق/توثيق الإنذار بأمان.
-   - تحذيرات anonymous policies تحتاج مراجعة حسب الجدول.
-   - leaked-password protection معطل.
+5. Supabase Security Advisor — OPEN / REVIEWED
+   - آخر فحص Production (2026-10-07): public.digital_page_payment_events هو الجدول الوحيد الظاهر كـ RLS enabled بدون policy؛ وهو backend-only/payment-event boundary ومقصود أن يبقى fail-closed.
+   - تحذير SECURITY DEFINER للـ anon: get_mnty_targeted_advertisements — endpoint إعلانات عام مقصود، ويظل يحتاج مراجعة موثقة لا تعطيلًا أعمى.
+   - 40 SECURITY DEFINER functions قابلة للتنفيذ من authenticated؛ تمت مراجعة حدود الممثل/العضوية في المسارات الحرجة، ولا يوجد حتى الآن P0 actor-spoofing defect مثبت، لكن التحذير لا يُعتبر مغلقًا حتى تكتمل المراجعة الفردية.
+   - تحذيرات anonymous-policy ما زالت تحتاج مراجعة سياقية؛ لا تُعتبر وحدها إثباتًا لوصول مجهول فعلي.
+   - leaked-password protection معطل — WAITING FOR OWNER / Dashboard action.
 
-6. RLS بلا Policies — TODO/P0
-   - private.platform_admins
-   - public.erp_purchase_orders
-   - public.erp_purchase_receipts
-   - public.erp_stock_transfers
-   - public.smm_admins
-   - public.smm_provider_credentials
-   - public.smm_providers
-   - Direct anon/authenticated grants: VERIFIED NONE.
-   - Next: map service-role/backend access paths; do not add broad policies merely to silence Advisor.
+6. RLS بلا Policies — PARTIAL / FAIL-CLOSED REVIEW
+   - Production الحالي: 128/128 public base tables عليها RLS.
+   - 1 table فقط بلا policy: public.digital_page_payment_events، وهو backend-only/payment-event boundary.
+   - لا يوجد مبرر حالي لإضافة broad policies لمجرد إسكات Advisor.
+   - يلزم توثيق/إثبات access-path الخاص بالـ backend/service-role قبل اعتبار البند مغلقًا.
 
 7. Leaked Password Protection — WAIT
    - تفعيلها من Supabase Auth.
@@ -1243,3 +1238,12 @@
 - لم يتم تغيير Backend أو قاعدة البيانات أو الصلاحيات أو APIs.
 - PR #57 تم التحقق منه عبر CI بنجاح، ثم دمجه في main بالـcommit 8347ed8bb22da2abf31ad43496406dfa1e355b01.
 - Pages workflow بعد الدمج لم يظهر له Run مرتبط بالـmerge commit في أداة GitHub حتى آخر تحقق؛ لذلك نشر النسخة الجديدة على الرابط العام ما زال NOT VERIFIED.
+
+
+## RC391 — Production baseline revalidation — 2026-10-07
+
+- GitHub main contains RC390 homepage/UI organization and documentation commit e3b55a3476148472798ad15079e0031d3d7d2974.
+- GitHub connector still returns no workflow run/status for the post-merge RC390 commits; Pages deployment and public browser runtime therefore remain NOT VERIFIED.
+- Production Supabase rechecked: PostgreSQL 17.6; 128/128 public base tables have RLS enabled.
+- Security Advisor rechecked: 1 RLS-enabled/no-policy finding (public.digital_page_payment_events), 1 intentional anonymous SECURITY DEFINER endpoint, 40 authenticated SECURITY DEFINER warnings, anonymous-policy warnings requiring contextual review, and leaked-password protection disabled.
+- No schema/policy change was made in RC391; no broad permissions were relaxed or added.
