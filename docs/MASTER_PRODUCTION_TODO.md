@@ -1086,3 +1086,13 @@
 - [x] Security Advisor authenticated SECURITY DEFINER findings decreased from 41 to 40; the rate-limit checker is no longer exposed.
 - [x] Existing trigger invocation remains intact because the function is SECURITY DEFINER/internal and does not require client EXECUTE.
 - [ ] Final production E2E / payment / restore / Android / external-device gates remain open.
+
+
+## RC376 — Critical Edge Function source/Production drift verification — 2026-10-07
+
+- [x] Exact source-content comparison completed between current `main` and live Production for `mantigo-payment-intent`, `paymob-webhook`, `payment-intent`, `order-create`, and `order-status-update`.
+- [x] All five functions matched exactly byte-for-byte at the fetched `index.ts` content level; no source/Production drift was found in these critical payment/order boundaries.
+- [x] Live `mantigo-payment-intent` uses custom Bearer-token validation with `auth.getUser`, rejects anonymous users, binds the ledger query to the authenticated customer, and keeps the Paymob secret key server-side.
+- [x] Live `paymob-webhook` verifies the provider HMAC with constant-time comparison before processing events and checks amount/currency correlation plus provider-event idempotency.
+- [x] No deployment or production data mutation was required for this verification cycle.
+- [ ] This evidence does not close real payment/settlement E2E, two-user/two-tenant adversarial E2E, backup/restore, Android/device release, or final production certification.
