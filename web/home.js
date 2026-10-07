@@ -189,7 +189,7 @@
       return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small><span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
     }).join('');
 
-    app.innerHTML=`<main class="mx-home mx-ref-home" dir="rtl">
+    app.innerHTML=`<div class="mx-home mx-ref-home" dir="rtl">
 <a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
 <header class="mx-ref-header"><div class="mx-ref-header__inner">
 <a class="mx-ref-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<span>MantiqatiX</span></a>
@@ -214,7 +214,7 @@
 </main>
 <footer class="mx-ref-footer"><div><b>MantiqatiX</b><span>كل الخدمات.. أقرب إليك</span></div><nav><a href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-offers">الإعلانات</a><a href="#mx-about">من نحن</a></nav><small>© 2026 MantiqatiX — الهوية الموحدة.</small></footer>
 <nav class="mx-bottom-nav"><button type="button" id="mx-bottom-search"><span class="mx-bottom-icon mx-bottom-icon--search"></span><span>بحث</span></button><button type="button" id="mx-bottom-add" class="plus">＋</button><button type="button" id="mx-bottom-account"><span class="mx-bottom-icon mx-bottom-icon--account"></span><span>حسابي</span></button></nav>
-</main>`;
+</div>`;
 
     const sideAd=document.getElementById('mx-side-ad');
     if(sideAd) sideAd.innerHTML='<div class="mx-side-banner__screen"><b>MantiqatiX</b><span>جارٍ تحميل الإعلان</span></div><div class="mx-side-banner__copy"><strong>مساحة إعلانية</strong><span>جارٍ التحقق من الإعلانات المنشورة</span></div>';
