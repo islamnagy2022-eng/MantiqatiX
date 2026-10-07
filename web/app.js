@@ -760,8 +760,8 @@ function enterpriseCommandCenter(){
   ['💰','المالية','العمولات والباقات','العمولات والباقات'],
   ['📊','التقارير','التحليلات والتقارير','التقارير والتحليلات'],
   ['🔔','الإشعارات','مركز التنبيهات','الإشعارات'],
-  ['⚙️','الموديولات','إدارة وحدات المنصة','الموديولات']
- ].filter(x=>x[3]==='التحكم الكامل'||visibleModules.some(m=>m[1]===x[3])||x[3]==='الرئيسية');
+  ['⚙️','الموديولات','إدارة وحدات المنصة','الموديولات'],['🛡️','الصحة والأمان','System Health & Security','مركز الصحة والأمان']
+ ].filter(x=>x[3]==='التحكم الكامل'||x[3]==='مركز الصحة والأمان'||visibleModules.some(m=>m[1]===x[3])||x[3]==='الرئيسية');
  const qid='mx-ec-search';
  return '<section class="mx-ec-hero"><div><span class="eyebrow">MantiqatiX · ENTERPRISE COMMAND CENTER</span><h2>مركز قيادة المنصة</h2><p>نظرة تشغيلية موحدة على الأعمال والعمليات والتنبيهات والموديولات، مع احترام نطاق العضوية والصلاحيات الفعلية.</p></div><div class="mx-ec-hero-meta"><span class="mx-ec-role">SUPER ADMIN</span><span>النطاق: '+esc(window.MNTY_RBAC?.scope(role)||'PLATFORM')+'</span></div></section>'+
  '<section class="mx-ec-search card"><label for="'+qid+'">البحث السريع داخل وحدات لوحة التحكم</label><div class="mx-ec-search-row"><input id="'+qid+'" type="search" autocomplete="off" placeholder="اكتب اسم الوحدة أو العميلة أو العملية…"><button class="btn btn-primary" id="mx-ec-search-btn">بحث</button></div><div id="mx-ec-search-results" class="mx-ec-search-results" aria-live="polite"></div></section>'+
@@ -987,8 +987,33 @@ function superAdminControlWorkspace(){
 }
 
 const MNTY_ADMIN_SHOWCASE_STYLE = '<style id="mnty-admin-showcase-style">.mnty-showcase-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.mnty-showcase-admin-card{border:1px solid rgba(24,100,171,.12);border-radius:16px;padding:14px;background:#fff}.mnty-showcase-admin-card small{display:block;color:#64748b;margin-top:5px}.mnty-admin-mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.mnty-admin-mini span{font-size:11px;background:#f1f5f9;border-radius:999px;padding:5px 8px}.mnty-admin-source{margin-top:10px;font-size:11px;color:#0b7285;font-weight:700}@media(max-width:900px){.mnty-showcase-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.mnty-showcase-admin-grid{grid-template-columns:1fr}}</style>';
+function systemHealthSecurityCenter(){
+ if(!canSuperAdmin())return workspaceHead('SYSTEM HEALTH','الصحة والأمان','هذه المساحة مخصصة لـ SUPER_ADMIN فقط.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية الوصول.</div>';
+ const verified=[
+  ['Supabase Database','VERIFIED','الاتصال بقاعدة الإنتاج ومصدر البيانات الحالي'],
+  ['RLS Coverage','VERIFIED','الفحص الحالي أظهر RLS على الجداول العامة المستخدمة'],
+  ['Anonymous Users','VERIFIED','0 حسابات anonymous في آخر فحص'],
+  ['Security Advisor','OPEN','توجد findings أمنية موثقة ولم يتم إخفاؤها'],
+  ['Edge Functions','PARTIAL','المسارات موجودة لكن E2E الإنتاجي ليس مكتملًا'],
+  ['Public Pages Runtime','NOT VERIFIED','لم يتم إثبات المتصفح الإنتاجي بشكل مستقل'],
+  ['Payment E2E','WAITING','لا توجد معاملة مالية حقيقية أثناء الاختبار'],
+  ['Tenant Isolation E2E','NOT VERIFIED','يتطلب جلسات متعددة حقيقية'],
+  ['Release / Device','WAITING','اختبار الإصدار والجهاز لم يُغلق بعد']
+ ];
+ const securityFindings=[
+  ['RLS Enabled No Policy','INFO','digital_page_payment_events','متعمد/Backend-only بحسب المراجعة الحالية'],
+  ['Anonymous SECURITY DEFINER','WARN','get_mnty_targeted_advertisements','مسار إعلان عام مقصود ويحتاج مراجعة مستمرة'],
+  ['Authenticated SECURITY DEFINER','WARN','40 functions','مراجعة فردية مطلوبة؛ لا يتم تعطيلها جماعيًا']
+ ];
+ return workspaceHead('SYSTEM HEALTH','مركز صحة النظام والأمان','لوحة رقابية للبوابات المثبتة فعليًا. لا تعرض هذه الشاشة حالة PASS لمجرد وجود كود أو إعداد.','SECURITY')
+ +workspaceCards([['Production Database','VERIFIED','مصدر Supabase الحالي'],['RLS','VERIFIED','التغطية الحالية مثبتة'],['Anonymous Users','0','آخر فحص إنتاجي'],['Security Findings','42','1 INFO + 1 anonymous WARN + 40 authenticated WARN'],['Production Runtime','NOT VERIFIED','متصفح الإنتاج يحتاج إثباتًا'],['E2E Release','WAITING','اختبارات الإصدار النهائية']])
+ +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">RELEASE GATES</span><h2>بوابات النظام</h2><p>الحالة هنا محافظة: ما لم يوجد دليل إنتاجي مباشر يبقى NOT VERIFIED أو WAITING.</p></div></div>'+recordsTable('حالة البوابات',verified,[['البوابة',r=>r[0]],['الحالة',r=>'<span class="status">'+esc(r[1])+'</span>'],['الدليل / الملاحظة',r=>r[2]]])+'</section>'
+ +'<section class="card" style="padding:18px"><div class="section-head"><div><span class="eyebrow">SECURITY ADVISOR</span><h2>الملاحظات الأمنية الحالية</h2><p>لا يتم إخفاء التحذيرات أو اعتبارها مغلقة دون معالجة موثقة.</p></div></div>'+recordsTable('Security Findings',securityFindings,[['الفئة',r=>r[0]],['المستوى',r=>r[1]],['المورد',r=>r[2]],['الملاحظة',r=>r[3]]])+'</section>'
+ +'<section class="card" style="margin-top:16px;padding:18px"><span class="eyebrow">OBSERVABILITY</span><h2>المراقبة</h2><p>السجلات متاحة في Supabase، لكن هذه اللوحة لا تحوّل وجود logs إلى صحة تلقائية. يجب إثبات معدلات الأخطاء والزمن والاستقرار من بيانات الرصد الفعلية قبل إعلان PASS.</p></section>';
+}
 function enhancedPageContent(){
  if(current==='التحكم الكامل')return superAdminControlWorkspace();
+ if(current==='مركز الصحة والأمان')return systemHealthSecurityCenter();
  if(current==='طلبات التسجيل')return registrationReviewWorkspace();
  if(domainModules.some(m=>m.name===current))return domainModuleWorkspace();
  switch(current){
