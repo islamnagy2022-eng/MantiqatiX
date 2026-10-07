@@ -38,7 +38,7 @@ for(const marker of [
   if(!verify.includes(marker)) throw new Error('RC337 verification contract marker missing: '+marker);
 }
 
-const rc340='supabase/migrations/20261005160000_rc340_live_security_boundary_assertions.sql';
+const rc340='supabase/migrations/20261007000102_rc340_live_security_boundary_assertions.sql';
 if(!fs.existsSync(rc340)) throw new Error('RC340 live security-boundary assertion migration is missing.');
 const rc340Sql=fs.readFileSync(rc340,'utf8');
 for(const marker of [
