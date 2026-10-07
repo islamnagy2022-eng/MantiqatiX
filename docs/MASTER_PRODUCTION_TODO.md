@@ -1044,3 +1044,14 @@
 - Performance Advisor found 105 unindexed foreign-key findings and 28 multiple-permissive-policy findings; these require workload/query-plan evidence before mass index or policy consolidation.
 - One exact duplicate index remains on `public.mantigo_bids`: `idx_mantigo_bids_ride_status_created` and `mantigo_bids_ride_status_idx`, both on `(ride_id,status,created_at DESC)`. No index was dropped in this cycle because the source/migration provenance was not safely established from the available repository interface.
 - Production Gate remains OPEN / NOT PRODUCTION READY.
+
+
+## RC372 — MantiGO duplicate-index cleanup — 2026-10-07
+
+- [x] Confirmed the canonical source index is `idx_mantigo_bids_ride_status_created` from `20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql`.
+- [x] Confirmed `mantigo_bids_ride_status_idx` was an exact duplicate on `(ride_id,status,created_at DESC)` and was not present in the current source migration set.
+- [x] Added source migration `20261007023000_remove_duplicate_mantigo_bids_index_v1.sql`.
+- [x] Applied the cleanup safely in Production and registered migration `remove_duplicate_mantigo_bids_index_v1` at live version `20261007022318`.
+- [x] Live verification shows only the canonical index remains.
+- [x] Performance Advisor no longer reports the duplicate-index finding.
+- [ ] This does not close the broader unindexed-FK or multiple-permissive-policy findings; those require workload/query-plan evidence and authorization review.
