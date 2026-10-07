@@ -415,3 +415,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a CI-enforced runtime/data contract check for all 28 catalog modules.
 - This advances every module from catalog-only presence toward an explicit executable runtime contract without fabricating production transactions.
 - Real customer/provider/payment/device E2E remains an external evidence gate.
+
+
+## RC385 update — 2026-10-07
+- Homepage visual rebuild is implemented on branch `feat/homepage-rebuild-rc385` and tracked by PR #56.
+- Scope is UI/CSS plus the matching rendering validator/cache contract; no database or payment behavior was changed.
+- A validator mismatch was found and corrected: the check now validates `home.css?v=rc385` rather than `home.js?v=rc385`.
+- Latest branch commit: `147e288617e9144b423f0ea065862e731afa0ae`.
+- Production Pages workflow supports `workflow_dispatch`, but the available connector cannot dispatch it. No deployment result for the corrected RC385 commit is therefore claimed.
+- RC385 remains NOT VERIFIED for production runtime. Do not merge until CI/deployment evidence exists.
+- Core production blockers remain: leaked-password protection, per-function SECURITY DEFINER review, real two-user/two-tenant E2E, payment/finance E2E, notification E2E, backup/restore, Android signed/device evidence, browser smoke, and final regression/release evidence.
