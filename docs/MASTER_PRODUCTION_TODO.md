@@ -1346,3 +1346,26 @@
 7. DASH-170/180 — Responsive/accessibility/performance evidence.
 8. DASH-190+ — multi-user RBAC/RLS/Tenant E2E.
 9. Post-merge GitHub Pages runtime verification.
+
+
+## RC430 — Unified Module Workspace Data Layer — 2026-10-07
+
+- **DASH-070 Reusable Module Workspace:** PASS — تم تقوية الطبقة المشتركة الحالية بدل إنشاء طبقات متكررة.
+- **DASH-071 Data Table System:** PASS — كل مستهلكي `recordsTable` أصبح لديهم بحث عربي، pagination بمعدل 12 سجل/صفحة، فرز للأعمدة، ودعم لوحة المفاتيح.
+- **DASH-072 Record Details System:** PARTIAL — أنظمة التفاصيل الحالية موجودة في الطلبات والتذاكر وCRM، لكنها لم تُوحّد بعد في مكوّن تفاصيل واحد.
+- **Responsive:** PASS على مستوى طبقة الجدول، مع تحسين mobile للـpager/search.
+- **Accessibility:** PASS جزئي — رؤوس الفرز قابلة للوحة المفاتيح و`aria-sort`؛ المراجعة الشاملة ما زالت مطلوبة.
+- **Database/RLS/RPC/Edge:** NONE — لا تغييرات backend.
+- **CI:** Module Professionalization #135 SUCCESS; Backend-only Boundary #129 SUCCESS; Deploy #1932 validation SUCCESS; deploy job SKIPPED because PR context.
+- **PR:** #61 merged; merge commit `dade94890c4aeaf51181fcbce006f4fdfe2e899d`.
+
+### What remains
+1. DASH-072 — توحيد Record Details/Side Panel كطبقة مشتركة.
+2. DASH-080 — Restaurant Workspace audit/completion.
+3. DASH-090/100/110/120 — CRM / Marketing / Operations / Finance deep workspaces.
+4. DASH-140 — Notification + Task + Attention unification.
+5. DASH-150 — Reporting/Analytics framework.
+6. DASH-160 — System Health/Security Center.
+7. DASH-170/180 — full responsive/accessibility/performance evidence.
+8. DASH-190+ — multi-user RBAC/RLS/Tenant E2E.
+9. Post-merge GitHub Pages runtime verification.
