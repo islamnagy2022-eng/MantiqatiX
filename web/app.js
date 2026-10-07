@@ -1292,7 +1292,48 @@ function operationsWorkspace(){
  +recordsTable('ملخص حالات الطلبات',statusRows,[['الحالة',r=>orderStatusLabel(r.status)],['العدد',r=>String(r.count)]]);
 }
 function ordersWorkspace(){return operationsWorkspace()}
-function analyticsWorkspace(){return workspaceHead('ANALYTICS','التقارير والتحليلات','مؤشرات موحدة للأداء والتحويلات والإيرادات والمخاطر.','LIVE')+workspaceCards([['نشاط المنصة','—','يُحسب من مؤشرات التشغيل الفعلية عند توفرها'],['التحويلات','—','تُحسب من بيانات التحويل الفعلية عند توفرها'],['الإيرادات','—','يُعرض من البيانات المالية الفعلية عند توفرها'],['مصادر العملاء','—','تُعرض من مصادر الإحالة والتسويق الفعلية عند توفرها'],['الاستثناءات','—','تُعرض من سجل الحالات الفعلي عند توفره'],['التدقيق','سليم','سجل قابل للمراجعة والتتبع']])}
+function analyticsWorkspace(){
+ const orders=Array.isArray(live.records.orders)?live.records.orders:[];
+ const leads=Array.isArray(live.records.leads)?live.records.leads:[];
+ const providers=Array.isArray(live.records.providers)?live.records.providers:[];
+ const projects=Array.isArray(live.records.projects)?live.records.projects:[];
+ const ads=Array.isArray(live.records.ads)?live.records.ads:[];
+ const notifications=Array.isArray(live.records.notifications)?live.records.notifications:[];
+ const delivered=orders.filter(o=>String(o.status||'').toUpperCase()==='DELIVERED').length;
+ const cancelled=orders.filter(o=>['CANCELLED','FAILED','EXPIRED'].includes(String(o.status||'').toUpperCase())).length;
+ const openLeads=leads.filter(l=>!['CLOSED','CONVERTED','REJECTED'].includes(String(l.status||'').toUpperCase())).length;
+ const activeProjects=projects.filter(p=>!['CLOSED','COMPLETED','CANCELLED'].includes(String(p.status||'').toUpperCase())).length;
+ const activeAds=ads.filter(a=>String(a.status||'').toUpperCase()==='ACTIVE'||String(a.approval_status||'').toUpperCase()==='APPROVED').length;
+ const unread=notifications.filter(n=>!n.read_at).length;
+ const orderValue=orders.reduce((n,o)=>n+(Number(o.total_amount)||0),0);
+ const currency=orders.find(o=>o.currency)?.currency||'';
+ const note='المؤشرات التالية محسوبة من السجلات التي تم تحميلها فعليًا لهذا الحساب، وليست إجماليًا تاريخيًا إلا إذا كان مصدر التحميل شاملًا.';
+ return workspaceHead('ANALYTICS','التقارير والتحليلات','لوحة تحليلية مبنية على بيانات التشغيل الفعلية المتاحة، مع منع الخلط بين العينة المحملة والإجمالي التاريخي.','LIVE')
+ +'<div class="notice">'+esc(note)+'</div>'
+ +workspaceCards([
+  ['الطلبات المحملة',String(orders.length),'مصدر orders الحالي'],
+  ['تم التسليم',String(delivered),'من الطلبات المحملة'],
+  ['ملغاة / فاشلة',String(cancelled),'من الطلبات المحملة'],
+  ['قيمة الطلبات المحملة',orders.length?(orderValue+' '+currency):'—','ليست إجمالي الإيرادات'],
+  ['Leads المفتوحة',String(openLeads),'من CRM المتاح'],
+  ['مشروعات نشطة',String(activeProjects),'من التسويق المتاح']
+ ])
+ +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">OPERATING SIGNALS</span><h2>إشارات الأداء</h2><p>قراءة تشغيلية فقط من البيانات الحالية؛ لا توجد نسب تحويل أو نمو مصطنعة بدون بيانات فترة مقارنة.</p></div></div><div class="grid3" style="margin-top:12px">'
+ +'<article class="card" style="padding:14px"><b>معدل التسليم</b><strong style="display:block;font-size:24px;margin-top:8px">'+(orders.length?((delivered/orders.length)*100).toFixed(1)+'%':'—')+'</strong><small class="muted">من الطلبات المحملة</small></article>'
+ +'<article class="card" style="padding:14px"><b>معدل الإلغاء/الفشل</b><strong style="display:block;font-size:24px;margin-top:8px">'+(orders.length?((cancelled/orders.length)*100).toFixed(1)+'%':'—')+'</strong><small class="muted">من الطلبات المحملة</small></article>'
+ +'<article class="card" style="padding:14px"><b>إعلانات فعالة</b><strong style="display:block;font-size:24px;margin-top:8px">'+String(activeAds)+'</strong><small class="muted">حسب الحالة المتاحة</small></article>'
+ +'</div></section>'
+ +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">DATA SOURCES</span><h2>مصادر التقرير</h2><p>كل رقم قابل للتتبع إلى مصدره؛ عند عدم توفر مصدر لا يتم اختراع قيمة بديلة.</p></div></div>'
+ +recordsTable('مصادر البيانات الحالية',[
+  {source:'orders',count:orders.length,note:'طلبات محملة'},
+  {source:'marketing_leads',count:leads.length,note:'Leads محملة'},
+  {source:'marketing_provider_profiles',count:providers.length,note:'مقدمو خدمة محملون'},
+  {source:'marketing_projects',count:projects.length,note:'مشروعات محملة'},
+  {source:'advertisements',count:ads.length,note:'إعلانات محملة'},
+  {source:'notifications',count:notifications.length,note:'إشعارات محملة'}
+ ],[['المصدر',r=>r.source],['السجلات',r=>String(r.count)],['الوصف',r=>r.note]])+'</section>'
+ +'<section class="card" style="padding:18px"><span class="eyebrow">FINANCE BOUNDARY</span><p>الإيرادات والتسويات والعمولات تُقرأ من النواة المالية المتخصصة عند توفر الصلاحية. لا يتم اشتقاق Revenue من قيمة الطلبات المحملة.</p></section>';
+}
 async function postFinancialJournal(){if(!user?.id||!live.tenantId)return authView();if(!['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE','FINANCE_MANAGER'].includes(String(live.role||'').toUpperCase()))return showToast('لا تملك صلاحية ترحيل قيد مالي.','error');const entryNumber=window.prompt('رقم القيد');if(!entryNumber?.trim())return;const debitAccount=window.prompt('معرف حساب المدين');const creditAccount=window.prompt('معرف حساب الدائن');const amount=Number(window.prompt('المبلغ','0'));if(!debitAccount?.trim()||!creditAccount?.trim()||!Number.isFinite(amount)||amount<=0)return showToast('بيانات القيد غير صحيحة.','error');const description=window.prompt('وصف القيد','')||'';const session=await sb.auth.getSession();const token=session?.data?.session?.access_token;if(!token)return showToast('انتهت الجلسة.','error');const entry={entry_number:entryNumber.trim(),business_id:live.businessId||null,branch_id:live.branchId||null,reference_type:'MANUAL',description,total_debit:amount,total_credit:amount};const lines=[{account_id:debitAccount.trim(),line_number:1,debit:amount,credit:0,description},{account_id:creditAccount.trim(),line_number:2,debit:0,credit:amount,description}];const {data,error}=await sb.functions.invoke('post-financial-journal',{body:{tenantId:live.tenantId,entry,lines},headers:{Authorization:'Bearer '+token}});if(error)return showToast('تعذر ترحيل القيد: '+error.message,'error');showToast('تم ترحيل القيد '+(data?.id||''),'success');live.moduleData={};await loadDomainModule(current);renderApp()}
 function financeWorkspace(){
  const f=live.finance||{};const allowed=Boolean(live.finance);const fmt=v=>v==null?'—':String(v);const note=allowed?'بيانات رقابية من النواة المالية الحالية وضمن Tenant العضوية.':'هذه المساحة تتطلب دورًا ماليًا معتمدًا.';
