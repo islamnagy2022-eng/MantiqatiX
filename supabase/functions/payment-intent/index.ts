@@ -92,8 +92,9 @@ Deno.serve(async (req) => {
   }
 
   const amountCents = Math.round(amount * 100);
-  const phone = String(order.customer_phone ?? user.phone ?? "");
-  const email = String(user.email ?? "");
+  const phone = String(order.customer_phone ?? user.phone ?? "").trim();
+  const email = String(user.email ?? "").trim();
+  if (!phone || !email) return json({ error: "CUSTOMER_BILLING_CONTACT_REQUIRED", requestId }, 422, requestId);
   const paymobPayload = {
     amount: amountCents, currency: String(order.currency || "EGP").toUpperCase(),
     payment_methods: [Number(PAYMOB_INTEGRATION_ID)],
@@ -101,8 +102,8 @@ Deno.serve(async (req) => {
     billing_data: {
       apartment: "NA", first_name: String(order.customer_name ?? user.email?.split("@")[0] ?? "Customer").split(" ")[0] || "Customer",
       last_name: String(order.customer_name ?? "Customer").split(" ").slice(1).join(" ") || "Customer",
-      street: String(order.delivery_address ?? "NA"), building: "NA", phone_number: phone || "NA", city: "Cairo", country: "EG",
-      email: email || "customer@example.com", floor: "NA", state: "Cairo"
+      street: String(order.delivery_address ?? "NA"), building: "NA", phone_number: phone || "NA", city: "NA", country: "EG",
+      email, floor: "NA", state: "NA"
     },
     special_reference: paymentIntentId, expiration: 3600, notification_url: PAYMOB_CALLBACK_URL
   };
