@@ -47,7 +47,11 @@ Deno.serve(async req=>{
   const parts=name.trim().split(/\s+/);
   const firstName=parts[0]||"Customer";
   const lastName=parts.slice(1).join(" ")||"Customer";
-  const phone=String(user.phone??"+201000000000");
+  const phone=String(user.phone??user.user_metadata?.phone??"").trim();
+  const email=String(user.email??"").trim();
+  if(!phone||!email)return json({error:"CUSTOMER_BILLING_CONTACT_REQUIRED"},422,requestId);
+  const city=String(user.user_metadata?.city??"NA").trim()||"NA";
+  const state=String(user.user_metadata?.state??city).trim()||"NA";
 
   const providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
     method:"POST",
@@ -55,7 +59,7 @@ Deno.serve(async req=>{
     body:JSON.stringify({
       amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],
       items:[{name:"MantiGO Ride",amount:amountCents,description:`MantiGO ride ${rideId}`,quantity:1}],
-      billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city:"Cairo",country:"EG",email:String(user.email??"customer@example.com"),floor:"NA",state:"Cairo"},
+      billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city,country:"EG",email,floor:"NA",state},
       special_reference:ledger.id,expiration:3600,notification_url:PAYMOB_CALLBACK_URL
     })
   });
