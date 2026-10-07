@@ -1105,3 +1105,13 @@
 - [x] Older TODO/security documents contain stale counts and older checkpoints (for example 9/10 authenticated SECURITY DEFINER findings). They are not treated as current evidence when they conflict with live SQL/Advisor results.
 - [x] Current live SQL shows the sensitive financial/ERP/SMM tables inspected remain fail-closed for direct client DML; Education remains subject to an explicit authenticated RLS update path and therefore requires workflow-level review rather than blanket privilege removal.
 - [ ] Migration canonicalization remains OPEN: source-to-history reconciliation for every historical duplicate requires repository-wide migration inventory/hash comparison and is not safely inferable from names alone.
+
+
+## RC378 — Live database/RLS/log baseline — 2026-10-07
+
+- [x] Live SQL confirms PostgreSQL 17.6 with 129 public tables.
+- [x] Live SQL confirms RLS is enabled on all 129 public tables; no public base table was found with RLS disabled.
+- [x] Live policy inventory found no public table with zero policies; fail-closed tables therefore require contextual review rather than generic policy creation.
+- [x] Live logs were queried for the current verification window; sources observed include edge, pgbouncer, PostgREST, storage, function, PostgreSQL, realtime, auth and auth-audit logs.
+- [ ] A clean error-rate metric could not be derived from the available log schema in this pass; the attempted aggregation was rejected by the log backend schema and is therefore **NOT VERIFIED**, not interpreted as zero errors.
+- [ ] Multiple permissive RLS policies remain open for workload-backed review; no blanket consolidation was applied because OR semantics may be intentional.
