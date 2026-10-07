@@ -1234,3 +1234,12 @@
 - Corrected `.github/workflows/pages.yml` on the feature branch to run validation on pull requests targeting `main`, while keeping actual Pages deployment restricted to pushes on `main`.
 - This improves pre-merge evidence without deploying feature branches or granting production deployment on PRs.
 - Latest workflow-trigger evidence is not yet available for the new workflow commit; therefore no merge was performed.
+
+
+## RC390 — تنظيم الشاشة الرئيسية والأزرار — 2026-10-07
+
+- أضيف قسم الإجراءات السريعة لتجميع أهم الإجراءات: البحث، استكشاف القطاعات، إضافة نشاط، والحساب.
+- تمت إعادة تنظيم الأولوية البصرية للأزرار والهيدر مع تحسين حالات التركيز والاستجابة للموبايل.
+- لم يتم تغيير Backend أو قاعدة البيانات أو الصلاحيات أو APIs.
+- PR #57 تم التحقق منه عبر CI بنجاح، ثم دمجه في main بالـcommit 8347ed8bb22da2abf31ad43496406dfa1e355b01.
+- Pages workflow بعد الدمج لم يظهر له Run مرتبط بالـmerge commit في أداة GitHub حتى آخر تحقق؛ لذلك نشر النسخة الجديدة على الرابط العام ما زال NOT VERIFIED.
