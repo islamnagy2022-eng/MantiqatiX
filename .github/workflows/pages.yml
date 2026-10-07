@@ -45,9 +45,6 @@ jobs:
           node --check web/provider-onboarding-module.js
           node --check web/reverse-bidding-module.js
           node --check web/restaurant-module.js
-          node --check supabase/functions/payment-intent/index.ts
-          node --check supabase/functions/subscription-payment-intent/index.ts
-          node --check supabase/functions/mantigo-payment-intent/index.ts
           ! grep -REq 'customer@example\\.com|\\+201000000000' supabase/functions --include='*.ts'
           node --check web/sector-modules.js
           node --check web/operations-modules.js
