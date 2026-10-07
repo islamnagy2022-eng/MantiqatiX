@@ -1096,3 +1096,12 @@
 - [x] Live `paymob-webhook` verifies the provider HMAC with constant-time comparison before processing events and checks amount/currency correlation plus provider-event idempotency.
 - [x] No deployment or production data mutation was required for this verification cycle.
 - [ ] This evidence does not close real payment/settlement E2E, two-user/two-tenant adversarial E2E, backup/restore, Android/device release, or final production certification.
+
+
+## RC377 — Live-state authority reconciliation — 2026-10-07
+
+- [x] Live Production migration history was re-read directly; current tail includes `20261006213657` through `20261007064228`, including the latest MantiGO rate-limit boundary.
+- [x] Historical duplicate migration names were confirmed in Production history (for example the two `job_application_backend_submit_v1`, two `reverse_bidding_server_authority_v1`, and two `cleanup_duplicate_job_application_index_v1` versions). No new duplicate migration was created.
+- [x] Older TODO/security documents contain stale counts and older checkpoints (for example 9/10 authenticated SECURITY DEFINER findings). They are not treated as current evidence when they conflict with live SQL/Advisor results.
+- [x] Current live SQL shows the sensitive financial/ERP/SMM tables inspected remain fail-closed for direct client DML; Education remains subject to an explicit authenticated RLS update path and therefore requires workflow-level review rather than blanket privilege removal.
+- [ ] Migration canonicalization remains OPEN: source-to-history reconciliation for every historical duplicate requires repository-wide migration inventory/hash comparison and is not safely inferable from names alone.
