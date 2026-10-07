@@ -1,0 +1,38 @@
+name: Module Professionalization Validation
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: JavaScript syntax
+        run: |
+          node --check web/app.js
+          node --check web/module-blueprints.js
+      - name: Module runtime contract
+        run: |
+          grep -q "window.MNTYModuleRuntime" web/app.js
+          grep -q "syncModuleRuntime" web/app.js
+          grep -q "MNTYModuleRuntime" web/module-blueprints.js
+      - name: Production security validators
+        run: |
+          node scripts/validate-production-security.mjs
+          node scripts/validate-rbac-contract.mjs
+          node scripts/validate-security-definer-contract.mjs
+          node scripts/validate-module-runtime-coverage.mjs
