@@ -209,11 +209,10 @@
           <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer"><span class="mx-menu-icon" aria-hidden="true"></span></button>
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
-            <a href="#mx-about">عن المنصة</a><a href="#mx-categories">التصنيفات</a>
-            <a href="#mx-services">الخدمات</a>
-            <a href="#mx-offers">العروض</a>
-            <a href="#mx-marketing">التسويق والإعلانات</a>
-            <a href="#mx-contact">تواصل معنا</a>
+            <a href="#mx-categories">التصنيفات</a>
+            <a href="#mx-offers">الإعلانات</a>
+            <a href="#mx-nearby">مقدمو الخدمات</a>
+            <a href="#mx-growth">لأصحاب الأنشطة</a>
             <button class="mx-add" id="mx-add" type="button">＋ إضافة نشاط</button>
           </nav>
         </div>
@@ -223,12 +222,10 @@
         <div class="mx-mobile-drawer__head"><strong>التنقل</strong><button id="mx-mobile-menu-close" type="button" aria-label="إغلاق القائمة">×</button></div>
         <nav>
           <a href="#mx-home" data-mobile-nav>الرئيسية</a>
-          <a href="#mx-about" data-mobile-nav>عن المنصة</a>
           <a href="#mx-categories" data-mobile-nav>التصنيفات</a>
-          <a href="#mx-services" data-mobile-nav>الخدمات</a>
-          <a href="#mx-offers" data-mobile-nav>العروض</a>
-          <a href="#mx-marketing" data-mobile-nav>التسويق والإعلانات</a>
-          <a href="#mx-contact" data-mobile-nav>تواصل معنا</a>
+          <a href="#mx-offers" data-mobile-nav>الإعلانات</a>
+          <a href="#mx-nearby" data-mobile-nav>مقدمو الخدمات</a>
+          <a href="#mx-growth" data-mobile-nav>لأصحاب الأنشطة</a>
           <button type="button" id="mx-mobile-add">＋ إضافة نشاط</button>
         </nav>
       </aside>
@@ -272,63 +269,6 @@
               <button type="button" class="mx-ad-plan mx-ad-plan--featured" data-ad-plan="SEMIANNUAL"><span>02</span><b>نصف سنوي</b><small>6 أشهر</small></button>
               <button type="button" class="mx-ad-plan" data-ad-plan="ANNUAL"><span>03</span><b>سنوي</b><small>12 شهرًا</small></button>
             </div>
-          </div>
-        </section>
-
-        <section class="mx-quick-actions" aria-label="الإجراءات السريعة">
-          <div class="mx-quick-actions__head">
-            <div><span class="mx-home-hero__eyebrow">ابدأ بسرعة</span><h2>ماذا تريد أن تفعل؟</h2><p>أهم الإجراءات في مكان واحد بدلًا من البحث داخل القوائم.</p></div>
-          </div>
-          <div class="mx-quick-actions__grid">
-            <button type="button" class="mx-quick-action mx-quick-action--primary" id="mx-quick-search">
-              <span class="mx-quick-action__icon">⌕</span><span><b>ابحث عن خدمة</b><small>اعثر على مقدم الخدمة المناسب</small></span><i>←</i>
-            </button>
-            <button type="button" class="mx-quick-action" id="mx-quick-categories">
-              <span class="mx-quick-action__icon">▦</span><span><b>استكشف القطاعات</b><small>تصفح جميع التصنيفات</small></span><i>←</i>
-            </button>
-            <button type="button" class="mx-quick-action" id="mx-quick-add">
-              <span class="mx-quick-action__icon">＋</span><span><b>أضف نشاطك</b><small>اعرض نشاطك على المنصة</small></span><i>←</i>
-            </button>
-            <button type="button" class="mx-quick-action" id="mx-quick-account">
-              <span class="mx-quick-action__icon mx-account-icon" aria-hidden="true"></span><span><b>حسابي</b><small>الدخول وإدارة حسابك</small></span><i>←</i>
-            </button>
-          </div>
-        </section>
-
-        <section class="mx-platform-notices" aria-label="إشعارات المنصة">
-          <div class="mx-platform-notices__label">تنبيهات MantiqatiX</div>
-          <div class="mx-platform-notices__viewport">
-            <div id="mx-platform-notice" class="mx-platform-notice" aria-live="polite"></div>
-          </div>
-          <span class="mx-platform-notices__timer">تتبدل تلقائيًا</span>
-        </section>
-
-        <section class="mx-section mx-about-section" id="mx-about">
-          <div class="mx-section__head">
-            <div><span class="mx-hero__eyebrow">عن MantiqatiX</span><h2>منصة رقمية لاكتشاف الخدمات وربط العملاء بمقدميها</h2><p>تجمع MantiqatiX بين اكتشاف الخدمة، الوصول إلى مقدم الخدمة، الطلب والمتابعة داخل تجربة رقمية موحدة.</p></div>
-          </div>
-          <div class="mx-about-grid">
-            <article class="mx-about-card"><span>01</span><h3>اكتشاف ومطابقة</h3><p>ابحث عن الخدمة أو النشاط المناسب، ثم استعرض البيانات المنشورة من الكتالوج العام عند توفرها.</p></article>
-            <article class="mx-about-card"><span>02</span><h3>طلب ومتابعة</h3><p>يمكن للعميل إنشاء الطلب ومتابعة حالته من حسابه، بينما يظل تنفيذ الخدمة مسؤولية مقدم الخدمة.</p></article>
-            <article class="mx-about-card"><span>03</span><h3>موقع عند الحاجة</h3><p>يُستخدم الموقع كعامل مساعد عند الحاجة التشغيلية وبإذن المستخدم، وليس كتتبع مستمر لمجرد تسجيل الدخول.</p></article>
-            <article class="mx-about-card"><span>04</span><h3>منظومة موحدة</h3><p>الموقع والتطبيق والإدارة تعتمد منطقًا وبيانات مشتركة، مع تجربة واجهة مناسبة لكل منصة.</p></article>
-          </div>
-          <div class="mx-about-note"><strong>دور المنصة</strong><span>MantiqatiX توفر البنية الرقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة، ولا تحل محل مقدم الخدمة في تنفيذ الخدمة ماديًا.</span></div>
-        </section>
-
-        <section class="mx-section mx-audience-section" id="mx-audiences">
-          <div class="mx-section__head">
-            <div><span class="mx-hero__eyebrow">ابدأ بالطريقة المناسبة لك</span><h2>مساران واضحان داخل MANTIQATIX</h2><p>المنصة تربط الطرفين رقميًا، مع بقاء تقديم الخدمة وتنفيذها مسؤولية مقدم الخدمة.</p></div>
-          </div>
-          <div class="mx-audience-grid">
-            <article class="mx-audience-card">
-              <div class="mx-audience-card__icon mx-audience-icon mx-audience-icon--customer" aria-hidden="true"></div>
-              <div><span>للعملاء</span><h3>ابحث عن الخدمة واطلبها</h3><p>اكتشف الخدمات ومقدميها، قارن الخيارات المتاحة، ثم أنشئ طلبك وتابع حالته من حسابك.</p><button type="button" class="mx-btn mx-btn--primary" data-register-role="CUSTOMER">إنشاء حساب عميل ←</button></div>
-            </article>
-            <article class="mx-audience-card mx-audience-card--provider">
-              <div class="mx-audience-card__icon mx-audience-icon mx-audience-icon--provider" aria-hidden="true"></div>
-              <div><span>لمقدمي الخدمات</span><h3>اعرض خدمتك وأدر نشاطك</h3><p>سجّل نشاطك، اعرض خدماتك وفق قواعد المنصة، واستقبل الطلبات وتابع تشغيلها من مساحة العمل المخصصة لك بعد الاعتماد.</p><button type="button" class="mx-btn mx-btn--light" data-register-role="SERVICE_PROVIDER">التسجيل كمقدم خدمة ←</button></div>
-            </article>
           </div>
         </section>
 
