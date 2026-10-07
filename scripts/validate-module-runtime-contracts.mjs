@@ -17,7 +17,7 @@ const modules=[
  ["JOBS","operations",["jobs","job_applications"]],
  ["SCHOOLS","operations",["school_profiles","teacher_profiles","education_requests"]],
  ["MAINTENANCE","reverse",["indrive_requests","indrive_bids","support_tickets"]],
- ["MARKETING","operations",["marketing_leads","marketing_provider_profiles","marketing_services","marketing_projects"]],
+ ["MARKETING","operations",["marketing_leads","marketing_provider_profiles","marketing_services","marketing_projects","marketing_plans","marketing_provider_subscriptions","marketing_project_participants","marketing_commission_rules"]],
  ["BUSINESS_ERP","operations",["businesses","erp_purchase_orders","erp_purchase_receipts","erp_stock_transfers","warehouses"]],
  ["ACCOUNTING","operations",["chart_of_accounts","journal_entries","general_ledger"]],
  ["LEGAL","operations",["legal_documents","legal_requirements","agreements"]],
@@ -38,6 +38,10 @@ const modules=[
  ["SOFTWARE_ERP","reverse",["indrive_requests","indrive_bids"]]
 ];
 const failures=[];
+const marketingSource=files.operations;
+const marketingKeyCount=(marketingSource.match(/'المزايدات — التسويق':/g)||[]).length;
+if(marketingKeyCount!==1) failures.push("MARKETING_DUPLICATE_DEFINITION");
+for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 for(const [code,owner,tables] of modules){
  const source=files[owner];
  const catalogEntry=catalog.includes("code:'"+code+"'");
