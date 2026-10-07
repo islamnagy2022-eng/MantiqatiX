@@ -1511,3 +1511,28 @@
 
 This checkpoint does not close the production release gate because runtime E2E evidence is still required.
 
+
+
+## RC440 — Unified Record Details / Side Panel — 2026-10-07
+- DASH-072: **IMPLEMENTED / PARTIAL verification**.
+- Consolidated CRM lead, order, support-ticket, and restaurant record details into the reusable RTL-aware Record Details / Side Panel layer.
+- Preserved existing data-loading and authorization paths; no database, RPC, Edge Function, or RLS changes.
+- PR #62 merged with squash; merge commit: `710daf2d37b5d8e068edab13e17cebbd336d8556`.
+- CI status for the RC440 head was not exposed by the workflow connector; therefore CI is **NOT VERIFIED** rather than PASS.
+
+## RC450 — Restaurant Workspace Audit & CRM Action Boundary — 2026-10-07
+- DASH-080: **PARTIAL / IMPLEMENTED**.
+- Existing restaurant workspace was verified against Production Supabase schema: `restaurant_menu_items`, `restaurant_orders`, `restaurant_tables`, `restaurant_inventory` all exist with tenant/business/branch fields.
+- Production RLS policies were inspected for all four restaurant tables; access is constrained by authenticated-session guards plus tenant/business/branch membership and owner/platform-admin policies.
+- Hardened the workspace so read failures are shown explicitly as **NOT AVAILABLE** instead of silently becoming healthy-looking empty tables.
+- Added per-source status cards and preserved unified Record Details behavior.
+- Tightened CRM/support action visibility and runtime guards to use the existing `MNTY_RBAC.can(...)` contract rather than a hard-coded role list for create/update actions.
+- No schema, RPC, Edge Function, or RLS changes.
+- PR #71 remains open because workflow runs are not currently exposed; merge/CI is **WAITING FOR VERIFICATION**.
+
+### RC450 remaining
+1. Verify CI for PR #71 and merge only after successful validation evidence.
+2. Perform authenticated Restaurant E2E with owner/manager/provider identities.
+3. Verify cross-tenant and cross-branch denial with independent sessions.
+4. Verify restaurant order/status/payment boundaries before production release.
+5. Continue CRM deep workspace and notification/task unification.
