@@ -1,32 +1,32 @@
 (function(){
   const TAXONOMY = [
-    ['🍔','مطاعم وكافيهات','مطاعم، كافيهات، حلويات','FOOD'],
-    ['🩺','أطباء وعيادات','تخصصات وحجوزات','HEALTH'],
-    ['💊','صيدليات','منتجات وخدمات','PHARMACY'],
-    ['🧪','معامل تحاليل','تحاليل وتشخيص','LABS'],
-    ['🩻','مراكز الأشعة','أشعة وتشخيص','RADIOLOGY'],
-    ['🦷','أطباء الأسنان','أسنان وعيادات تخصصية','DENTAL'],
-    ['🏥','المستشفيات','أقسام ورعاية وحجوزات','HOSPITAL'],
-    ['🩻','مراكز طبية','تشخيص ورعاية','MEDICAL'],
-    ['🏠','عقارات','بيع وإيجار وخدمات','REAL_ESTATE'],
-    ['🚗','سيارات ونقل','سيارات وخدمات نقل','AUTO'],
-    ['🔧','الصيانة والخدمات المنزلية','صيانة وإصلاح وخدمات منزلية','MAINTENANCE'],
-    ['🧾','المحاسبة ومكاتب المحاسبة','محاسبون ومكاتب وخدمات مالية','ACCOUNTING'],
-    ['⚖️','المحاماة والخدمات القانونية','محامون ومكاتب واستشارات قانونية','LEGAL'],
-    ['🏢','الشركات والموردون','شركات، مصانع، موردون وخدمات أعمال','COMPANIES'],
-    ['🎓','تعليم وتدريب','دورات ومدارس ومدرسون','EDU'],
-    ['📣','تسويق وإعلان','حملات ونمو وشركات تسويق','DIGITAL'],
-    ['💻','البرمجيات والخدمات الرقمية','برمجيات، مواقع وخدمات تقنية','TECH'],
-    ['💪','رياضة ولياقة','أندية ومدربون','FITNESS'],
-    ['✈️','سياحة وسفر','رحلات وحجوزات','TRAVEL'],
-    ['🚕','MantiGO والنقل عند الطلب','رحلات، سائقون ومقدمو عروض','MANTIGO'],
-    ['💼','الوظائف والتوظيف','وظائف، أصحاب أعمال ومتقدمون','JOBS'],
-    ['💍','الزواج والخدمات المرتبطة','خدمات وملفات وترشيحات','MATRIMONY'],
-    ['♻️','المستعمل','إعلانات وعروض وتفاوض','USED_ITEMS'],
-    ['👗','الأزياء والخياطة','متاجر، منتجات وخدمات تفصيل','FASHION'],
-    ['🛒','البقالة والسوبر ماركت','منتجات، مخزون وطلبات','GROCERY'],
-    ['🐾','العيادات والخدمات البيطرية','أطباء وخدمات للحيوانات','VETERINARY'],
-    ['🤝','المستقلون ومقدمو الخدمات','خدمات احترافية ومشروعات مستقلة','FREELANCER']
+    ['•','مطاعم وكافيهات','مطاعم، كافيهات، حلويات','FOOD'],
+    ['•','أطباء وعيادات','تخصصات وحجوزات','HEALTH'],
+    ['•','صيدليات','منتجات وخدمات','PHARMACY'],
+    ['•','معامل تحاليل','تحاليل وتشخيص','LABS'],
+    ['•','مراكز الأشعة','أشعة وتشخيص','RADIOLOGY'],
+    ['•','أطباء الأسنان','أسنان وعيادات تخصصية','DENTAL'],
+    ['•','المستشفيات','أقسام ورعاية وحجوزات','HOSPITAL'],
+    ['•','مراكز طبية','تشخيص ورعاية','MEDICAL'],
+    ['•','عقارات','بيع وإيجار وخدمات','REAL_ESTATE'],
+    ['•','سيارات ونقل','سيارات وخدمات نقل','AUTO'],
+    ['•','الصيانة والخدمات المنزلية','صيانة وإصلاح وخدمات منزلية','MAINTENANCE'],
+    ['•','المحاسبة ومكاتب المحاسبة','محاسبون ومكاتب وخدمات مالية','ACCOUNTING'],
+    ['•','المحاماة والخدمات القانونية','محامون ومكاتب واستشارات قانونية','LEGAL'],
+    ['•','الشركات والموردون','شركات، مصانع، موردون وخدمات أعمال','COMPANIES'],
+    ['•','تعليم وتدريب','دورات ومدارس ومدرسون','EDU'],
+    ['•','تسويق وإعلان','حملات ونمو وشركات تسويق','DIGITAL'],
+    ['•','البرمجيات والخدمات الرقمية','برمجيات، مواقع وخدمات تقنية','TECH'],
+    ['•','رياضة ولياقة','أندية ومدربون','FITNESS'],
+    ['•','سياحة وسفر','رحلات وحجوزات','TRAVEL'],
+    ['•','MantiGO والنقل عند الطلب','رحلات، سائقون ومقدمو عروض','MANTIGO'],
+    ['•','الوظائف والتوظيف','وظائف، أصحاب أعمال ومتقدمون','JOBS'],
+    ['•','الزواج والخدمات المرتبطة','خدمات وملفات وترشيحات','MATRIMONY'],
+    ['•','المستعمل','إعلانات وعروض وتفاوض','USED_ITEMS'],
+    ['•','الأزياء والخياطة','متاجر، منتجات وخدمات تفصيل','FASHION'],
+    ['•','البقالة والسوبر ماركت','منتجات، مخزون وطلبات','GROCERY'],
+    ['•','العيادات والخدمات البيطرية','أطباء وخدمات للحيوانات','VETERINARY'],
+    ['•','المستقلون ومقدمو الخدمات','خدمات احترافية ومشروعات مستقلة','FREELANCER']
   ];
   const SERVICE_ICONS = {DIGITAL:'📣',CONTENT:'✍️',CREATIVE:'🎨',BRANDING:'✨',TECH:'💻',PR:'📢'};
   const ACTIVITY_IMAGES = {FOOD:'food.svg',HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'medical.svg',DENTAL:'medical.svg',HOSPITAL:'medical.svg',MEDICAL:'medical.svg',REAL_ESTATE:'real-estate.svg',AUTO:'auto.svg',HOME:'home.svg',MAINTENANCE:'home.svg',ACCOUNTING:'digital.svg',LEGAL:'digital.svg',COMPANIES:'home.svg',EDU:'education.svg',DIGITAL:'digital.svg',TECH:'digital.svg',FITNESS:'fitness.svg',TRAVEL:'travel.svg',MANTIGO:'auto.svg',JOBS:'home.svg',MATRIMONY:'home.svg',USED_ITEMS:'home.svg',FASHION:'home.svg',GROCERY:'home.svg',VETERINARY:'medical.svg',FREELANCER:'digital.svg'};
@@ -163,7 +163,7 @@
             const pr=await sb.from('marketing_provider_profiles').select('name_ar,name_en').eq('owner_user_id',authUser.id).eq('status','ACTIVE').order('updated_at',{ascending:false}).limit(1).maybeSingle();
             activityName=pr?.data?.name_ar||pr?.data?.name_en||'';
           }catch(_){}
-          loginButton.innerHTML=(avatar?'<img class="mx-account-avatar" src="'+escapeHtml(avatar)+'" alt="">':'<span class="mx-account-icon" aria-hidden="true">♙</span>')+'<span class="mx-account-copy"><b>'+escapeHtml((activityName||name).slice(0,24))+'</b><small><i></i> '+escapeHtml(activityName?'نشاط نشط':'مسجل الدخول')+'</small></span>';
+          loginButton.innerHTML=(avatar?'<img class="mx-account-avatar" src="'+escapeHtml(avatar)+'" alt="">':'<span class="mx-account-icon" aria-hidden="true"></span>')+'<span class="mx-account-copy"><b>'+escapeHtml((activityName||name).slice(0,24))+'</b><small><i></i> '+escapeHtml(activityName?'نشاط نشط':'مسجل الدخول')+'</small></span>';
           loginButton.setAttribute('aria-label','فتح الملف الشخصي والحساب');
           loginButton.onclick=()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null;
         }
@@ -189,18 +189,18 @@
           <a class="mx-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<div><div class="mx-brand__name">MantiqatiX</div><span class="mx-brand__ar">منصة خدمات وتسويق متكاملة</span></div></a>
           <div class="mx-search-wrap">
             <label class="mx-search" aria-label="البحث في الخدمات ومقدميها">
-              <span class="mx-search__location">⌖ <span id="mx-location-label">الموقع عند الحاجة</span></span>
+              <span class="mx-search__location"><span class="mx-location-icon" aria-hidden="true"></span><span id="mx-location-label">الموقع عند الحاجة</span></span>
               <input id="mx-home-search" autocomplete="off" inputmode="search" enterkeyhint="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
               <button id="mx-search-clear" class="mx-search__clear" type="button" aria-label="مسح البحث" hidden>×</button>
-              <button id="mx-search-btn" type="button" aria-label="بحث">⌕</button>
+              <button id="mx-search-btn" type="button" aria-label="بحث"><span class="mx-search-icon" aria-hidden="true"></span></button>
             </label>
             <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
           </div>
           <button class="mx-header__login" id="mx-login" type="button" aria-label="تسجيل الدخول / فتح الحساب"><span class="mx-account-icon" aria-hidden="true">♙</span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button>
           <button class="mx-header-tool" id="mx-wallet" type="button" aria-label="المحفظة"><span>▣</span><small>المحفظة</small></button>
-          <button class="mx-header-tool" id="mx-cart" type="button" aria-label="السلة"><span>🛒</span><small>السلة <b id="mx-cart-count">0</b></small></button>
+          <button class="mx-header-tool" id="mx-cart" type="button" aria-label="السلة"><span class="mx-cart-icon" aria-hidden="true"></span><small>السلة <b id="mx-cart-count">0</b></small></button>
           ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
-          <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer">☰</button>
+          <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer"><span class="mx-menu-icon" aria-hidden="true"></span></button>
           <nav class="mx-nav">
             <a href="#mx-home">الرئيسية</a>
             <a href="#mx-about">عن المنصة</a><a href="#mx-categories">التصنيفات</a>
