@@ -1022,3 +1022,12 @@
 - [ ] Multi-user/two-tenant E2E remains NOT VERIFIED because current production fixture does not contain the required two independent active tenants/users.
 - [ ] Real payment/settlement E2E remains NOT VERIFIED/WAITING FOR OWNER.
 - [ ] Public browser smoke and real-device release remain NOT VERIFIED/WAITING.
+
+
+## RC371 — Education migration history reconciliation — 2026-10-07
+
+- [x] Reconciled the live Education server-authority function with its source migration contract.
+- [x] Verified the live function return type is `public.education_requests`; no function was dropped or recreated with a changed return type.
+- [x] Registered the existing production contract as migration `education_request_server_authority_v1` (live migration version `20261007021723`).
+- [x] Re-verified live privileges after migration: authenticated INSERT on `education_requests` = false; anon INSERT = false; authenticated EXECUTE on the backend RPC = true; anon EXECUTE = false.
+- [ ] Education real-user E2E remains NOT VERIFIED.
