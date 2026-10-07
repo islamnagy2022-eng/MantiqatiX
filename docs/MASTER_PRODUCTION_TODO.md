@@ -1247,3 +1247,12 @@
 - Production Supabase rechecked: PostgreSQL 17.6; 128/128 public base tables have RLS enabled.
 - Security Advisor rechecked: 1 RLS-enabled/no-policy finding (public.digital_page_payment_events), 1 intentional anonymous SECURITY DEFINER endpoint, 40 authenticated SECURITY DEFINER warnings, anonymous-policy warnings requiring contextual review, and leaked-password protection disabled.
 - No schema/policy change was made in RC391; no broad permissions were relaxed or added.
+
+
+## RC392 — E2E fixture readiness recheck — 2026-10-07
+
+- Production currently has 6 Auth users, 2 tenants, 48 ACTIVE memberships, and 0 anonymous users.
+- Independent test tenant `MNTY-TEST-B` currently has 2 distinct active users across 3 memberships, with roles CUSTOMER, BUSINESS_OWNER, and SUPER_ADMIN.
+- This is materially better than the older baseline that lacked an independent tenant fixture.
+- Runtime authorization E2E is still NOT VERIFIED: no authenticated session/token was used or impersonated, and no production data mutation was performed.
+- Required E2E remains: authenticated own-tenant access, cross-tenant denial, role separation, customer/provider order boundary, payment boundary, and anonymous denial.
