@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-const migration='supabase/migrations/20261005160000_rc340_live_security_boundary_assertions.sql';
+const migration='supabase/migrations/20261007000102_rc340_live_security_boundary_assertions.sql';
 const sql=fs.readFileSync(migration,'utf8');
 
 const required=[
