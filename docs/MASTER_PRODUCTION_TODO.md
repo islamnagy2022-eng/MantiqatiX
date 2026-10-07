@@ -984,3 +984,25 @@
 - [x] Added `docs/MODULE_RUNTIME_TEST_GATE.md` defining the boundary between automated contract testing and real transactional E2E.
 - [x] Wired the validator into `.github/workflows/pages.yml`.
 - [ ] Real authenticated/module transaction E2E remains NOT VERIFIED by design; no fake production data was created.
+
+
+## RC368 — Module runtime boundary consolidation — 2026-10-07
+
+- [x] Merged PR #50: backend-only ERP/SMM tables are no longer queried directly by the shared operations runtime.
+- [x] Merged PR #51: Marketing runtime definition consolidated; existing live plans, subscriptions, project participants and commission-rule sources are exposed without creating duplicate data models.
+- [x] Merged PR #52 and #53: duplicate module definitions in the shared operations runtime were consolidated/removed.
+- [x] Added CI regression coverage for duplicate module definitions and module-runtime contracts.
+- [x] Main verification after merge: 38 module definitions in the operations runtime, zero duplicate keys.
+- [x] No synthetic production data, payment transaction, or permission widening was used.
+- [ ] Real authenticated/module transaction E2E remains NOT VERIFIED.
+
+## RC369 — Education request server-authority boundary — 2026-10-07
+
+- [x] Added and live-verified `public.create_education_request_backend`.
+- [x] The function binds requester identity to `auth.uid()`, rejects anonymous users, validates target type/availability and input lengths, and is executable by `authenticated` only.
+- [x] Merged PR #54: Education runtime no longer performs direct browser INSERT into `education_requests`.
+- [x] Production `authenticated` INSERT privilege on `public.education_requests` was revoked after the application path was switched to the backend RPC.
+- [x] Live privilege verification: `authenticated_insert=false`, `anon_insert=false`; backend RPC `authenticated_exec=true`, `anon_exec=false`.
+- [x] Security Advisor was re-run. The new authenticated SECURITY DEFINER warning is intentional for this backend boundary and remains part of the documented warning set; search_path and auth.uid checks are present.
+- [ ] Real Education customer/provider transaction E2E remains NOT VERIFIED.
+- [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY.
