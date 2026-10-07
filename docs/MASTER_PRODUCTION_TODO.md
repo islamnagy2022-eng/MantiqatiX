@@ -1321,3 +1321,28 @@
 7. Responsive/accessibility/performance evidence.
 8. Multi-user RBAC/RLS/Tenant E2E.
 9. Post-merge GitHub Pages runtime verification.
+
+
+## RC420 — Global Entity Search — 2026-10-07
+
+- **DASH-050 Global Search Architecture:** PASS — تم تحويل البحث من أسماء الموديولات إلى كيانات فعلية.
+- **DASH-051 Search UX:** PASS — autocomplete-like dropdown، debounce، loading، empty state، Enter/Escape، responsive results.
+- **Entities:** PASS — businesses, provider profiles, orders, marketing services, catalog items, marketing leads, marketing projects, support tickets, advertisements, jobs.
+- **Authorization:** PASS للواجهة — مصادر البحث تُرشح عبر RBAC قبل الاستعلام، والاستعلامات تستخدم جلسة Supabase الحالية.
+- **Tenant isolation:** PASS by design / NOT VERIFIED E2E — لم يتم تجاوز RLS أو تمرير tenant_id من العميل لتوسيع النطاق؛ اختبار مستخدمين متعددين ما زال مطلوبًا.
+- **Sensitive data:** PASS — البحث لا يطلب auth.users أو كلمات مرور أو مفاتيح أو بيانات دفع حساسة.
+- **Database changes:** NONE — تم استخدام الجداول الحالية؛ لا migrations/RPC/Edge Functions.
+- **Production schema inspection:** تم التحقق من الأعمدة المطلوبة في Supabase Production قبل التنفيذ.
+- **CI:** Backend-only Boundary #122 SUCCESS; Module Professionalization #128 SUCCESS; Deploy #1929 validation SUCCESS; actual deploy step SKIPPED because run originated from PR.
+- **PR:** #60 merged; merge commit `d94b35f0d0221331679df821c8b6045e76a948f2`.
+
+### What remains
+1. DASH-070 — توحيد Module Workspace / Data Table / Record Details.
+2. DASH-080 — تدقيق واستكمال Restaurant Workspace.
+3. DASH-090/100/110/120 — CRM / Marketing / Operations / Finance deep workspaces.
+4. DASH-140 — Notification + Task + Attention unification.
+5. DASH-150 — Reporting/Analytics framework.
+6. DASH-160 — System Health/Security Center.
+7. DASH-170/180 — Responsive/accessibility/performance evidence.
+8. DASH-190+ — multi-user RBAC/RLS/Tenant E2E.
+9. Post-merge GitHub Pages runtime verification.
