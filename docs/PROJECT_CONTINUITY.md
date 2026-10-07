@@ -473,3 +473,12 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] `digital_page_payment_events` remains fail-closed: RLS enabled and zero direct anon/authenticated table grants.
 - [ ] Managed Supabase Auth Leaked Password Protection remains outside the available automation surface and is not claimed enabled.
 - [ ] Full browser/device adversarial E2E, backup/restore rehearsal, rollback rehearsal, Android signed/device E2E, and independent production acceptance remain required before declaring final certification.
+
+
+## RC394 — Homepage visual identity deployment checkpoint
+- 2026-10-07
+- Implemented the new homepage visual system against the supplied visual reference.
+- Reworked header, hero, module/category presentation, sponsored area, provider grid, business-growth presentation, footer, responsive behavior, and design-token overrides.
+- Preserved live search, sponsored-ad RPC contract, provider data, authentication, and existing backend boundaries.
+- Cache contract advanced to RC393.
+- Important: GitHub commits for RC393 exist on `main`, but no new GitHub Actions run/status was returned for the RC393 commits at verification time; therefore production Pages deployment is NOT VERIFIED yet.
