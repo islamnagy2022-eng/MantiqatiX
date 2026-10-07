@@ -1014,21 +1014,35 @@ async function initSuperAdminControlWorkspace(){
  document.getElementById('sa-showcase-refresh')?.addEventListener('click',loadOfficialShowcaseAdmin);
 }
 let recordsTableSeq=0;
-function filterRecordsTable(inputId,tableId){
- const input=document.getElementById(inputId), table=document.getElementById(tableId);
- if(!input||!table)return;
- const q=String(input.value||'').trim().toLocaleLowerCase('ar');
- table.querySelectorAll('tbody tr').forEach(row=>row.hidden=!!q&&!row.textContent.toLocaleLowerCase('ar').includes(q));
+const RECORDS_PAGE_SIZE=12;
+const recordsTableState=new Map();
+function recordsTableStateFor(id){if(!recordsTableState.has(id))recordsTableState.set(id,{page:1,query:'',sort:-1,dir:1});return recordsTableState.get(id)}
+function applyRecordsTable(tableId){
+ const table=document.getElementById(tableId), st=recordsTableStateFor(tableId);if(!table)return;
+ const rows=[...table.querySelectorAll('tbody tr')];
+ const q=String(st.query||'').trim().toLocaleLowerCase('ar');
+ const matches=rows.filter(row=>!q||row.textContent.toLocaleLowerCase('ar').includes(q));
+ if(st.sort>=0){matches.sort((x,y)=>{const av=x.children[st.sort]?.textContent?.trim()||'',bv=y.children[st.sort]?.textContent?.trim()||'';const an=Number(av.replace(/[^0-9.-]+/g,'')),bn=Number(bv.replace(/[^0-9.-]+/g,''));const cmp=Number.isFinite(an)&&Number.isFinite(bn)&&av!==''&&bv!==''?an-bn:av.localeCompare(bv,'ar',{numeric:true,sensitivity:'base'});return cmp*st.dir})}
+ rows.forEach(r=>{r.hidden=true});
+ const pages=Math.max(1,Math.ceil(matches.length/RECORDS_PAGE_SIZE));st.page=Math.min(Math.max(1,st.page),pages);
+ matches.slice((st.page-1)*RECORDS_PAGE_SIZE,st.page*RECORDS_PAGE_SIZE).forEach(r=>r.hidden=false);
+ const meta=document.getElementById(tableId+'-meta'),prev=document.getElementById(tableId+'-prev'),next=document.getElementById(tableId+'-next');
+ if(meta)meta.textContent=(matches.length?(((st.page-1)*RECORDS_PAGE_SIZE)+1)+'–'+Math.min(st.page*RECORDS_PAGE_SIZE,matches.length):'0')+' من '+matches.length;
+ if(prev)prev.disabled=st.page<=1;if(next)next.disabled=st.page>=pages;
+ table.querySelectorAll('th[data-sort-col]').forEach(th=>{const i=Number(th.dataset.sortCol);th.setAttribute('aria-sort',st.sort===i?(st.dir===1?'ascending':'descending'):'none')});
 }
-function renderRecordCell(value){
- const s=String(value??'—');
- return /<(button|a|div|span|select|input)\\b/i.test(s)?s:esc(s);
-}
+function filterRecordsTable(inputId,tableId){const input=document.getElementById(inputId);const st=recordsTableStateFor(tableId);st.query=String(input?.value||'');st.page=1;applyRecordsTable(tableId)}
+function sortRecordsTable(tableId,index){const st=recordsTableStateFor(tableId);if(st.sort===index)st.dir*=-1;else{st.sort=index;st.dir=1}st.page=1;applyRecordsTable(tableId)}
+function paginateRecordsTable(tableId,delta){const st=recordsTableStateFor(tableId);st.page=Math.max(1,st.page+delta);applyRecordsTable(tableId)}
+function renderRecordCell(value){const s=String(value??'—');return /<(button|a|div|span|select|input)\\b/i.test(s)?s:esc(s)}
 function recordsTable(title,rows,columns){
- const data=Array.isArray(rows)?rows:[]; const cols=Array.isArray(columns)?columns:[];
+ const data=Array.isArray(rows)?rows:[],cols=Array.isArray(columns)?columns:[];
  if(!data.length)return '<section class="records"><div class="section-head"><div><h3>'+esc(title)+'</h3><p class="muted">لا توجد بيانات فعلية متاحة حاليًا وفق الصلاحيات.</p></div></div><div class="empty-state">لا توجد سجلات للعرض</div></section>';
- const id='mx-records-'+(++recordsTableSeq), search='mx-search-'+recordsTableSeq;
- return '<section class="records" aria-labelledby="'+id+'-title"><div class="section-head"><div><span class="eyebrow">RECORDS</span><h3 id="'+id+'-title">'+esc(title)+'</h3><p class="muted">'+data.length+' سجل معروض</p></div><label class="search-field"><span>بحث داخل السجلات</span><input id="'+search+'" type="search" aria-controls="'+id+'" placeholder="ابحث داخل السجلات…" oninput="filterRecordsTable(\''+search+'\',\''+id+'\')"></label></div><div class="table-wrap" tabindex="0" role="region" aria-label="جدول '+esc(title)+'"><table id="'+id+'"><thead><tr>'+cols.map(c=>'<th scope="col">'+esc(c[0])+'</th>').join('')+'</tr></thead><tbody>'+data.map(r=>'<tr>'+cols.map(c=>'<td>'+renderRecordCell(c[1](r))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div></section>';
+ const seq=++recordsTableSeq,id='mx-records-'+seq,search='mx-search-'+seq;
+ recordsTableState.set(id,{page:1,query:'',sort:-1,dir:1});
+ const heads=cols.map((c,i)=>'<th scope="col" data-sort-col="'+i+'" aria-sort="none" tabindex="0" onclick="sortRecordsTable(\''+id+'\','+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();sortRecordsTable(\''+id+'\','+i+')}" title="فرز">'+esc(c[0])+' ↕</th>').join('');
+ const body=data.map(r=>'<tr>'+cols.map(c=>'<td>'+renderRecordCell(c[1](r))+'</td>').join('')+'</tr>').join('');
+ return '<section class="records" aria-labelledby="'+id+'-title"><div class="section-head"><div><span class="eyebrow">RECORDS</span><h3 id="'+id+'-title">'+esc(title)+'</h3><p class="muted">سجلات فعلية ضمن الصلاحيات الحالية · عرض '+RECORDS_PAGE_SIZE+' لكل صفحة</p></div><label class="search-field"><span>بحث داخل السجلات</span><input id="'+search+'" type="search" aria-controls="'+id+'" placeholder="ابحث داخل السجلات…" oninput="filterRecordsTable(\''+search+'\',\''+id+'\')"></label></div><div class="table-wrap" tabindex="0" role="region" aria-label="جدول '+esc(title)+'"><table id="'+id+'"><thead><tr>'+heads+'</tr></thead><tbody>'+body+'</tbody></table></div><div class="mx-table-pager" aria-label="تنقل الجدول"><button type="button" class="btn btn-outline" id="'+id+'-prev" onclick="paginateRecordsTable(\''+id+'\',-1)">السابق</button><span id="'+id+'-meta">—</span><button type="button" class="btn btn-outline" id="'+id+'-next" onclick="paginateRecordsTable(\''+id+'\',1)">التالي</button></div></section>';
 }
 function workspaceHead(kicker,title,desc,badge){return '<div class="section-head"><div><span class="eyebrow">'+kicker+'</span><h2>'+title+'</h2><p>'+desc+'</p></div>'+(badge?'<span class="count">'+badge+'</span>':'')+'</div>'}
 function workspaceCards(items){return '<div class="grid3">'+items.map(x=>{const pending=String(x[1])==='—';return '<article class="card mnty-kpi-card"><div class="row"><strong>'+x[0]+'</strong><span class="dot"></span></div><div class="kpi" style="font-size:24px">'+esc(x[1])+'</div><p class="muted">'+esc(x[2])+'</p><div class="mnty-card-state '+(pending?'mnty-card-state--pending':'')+'"><span class="mnty-status-dot"></span><span>'+(pending?'بانتظار مصدر بيانات فعلي':'بيانات فعلية ضمن مساحة العمل الحالية')+'</span></div></article>'}).join('')+'</div>'}
