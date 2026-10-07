@@ -206,7 +206,7 @@
 <article class="mx-ref-growth-mini" id="mx-growth"><span>روّج لخدمتك الآن</span><h2>أوصل إلى آلاف العملاء في منطقتك</h2><p>زِد الظهور، اعرض خدماتك وابدأ استقبال العملاء عبر الإعلانات الممولة.</p><button type="button" id="mx-growth-ads">ابدأ حملتك الإعلانية</button><div class="mx-ref-doctor-art">◉</div></article></section>
 <section class="mx-ref-provider-section"><div class="mx-ref-section-head"><div><span>مقدمو الخدمات</span><h2>خدمات من جهات منشورة على المنصة</h2></div><button type="button" class="mx-ref-text-btn">← عرض الكل</button></div><div class="mx-ref-provider-grid" id="mx-provider-grid"><div class="mx-ref-loading-card" aria-live="polite"><b>جارٍ تحميل مقدمي الخدمات</b><span>سيتم عرض الجهات المنشورة والفعالة فقط.</span></div></div></section>
 <section class="mx-ref-stats"><div><b>+</b><strong id="mx-stat-services">—</strong><span>خدمة منشورة</span></div><div><b>+</b><strong id="mx-stat-providers">—</strong><span>مقدم خدمة</span></div><div><b>27</b><strong id="mx-stat-sectors">27</strong><span>فئة وقطاع</span></div><div><b>+</b><strong id="mx-stat-ads">—</strong><span>إعلان معروض</span></div><div><b>24/7</b><strong>24/7</strong><span>دعم وتجربة رقمية</span></div></section>
-<section class="mx-ref-categories" id="mx-categories"><div class="mx-ref-section-head"><div><span>دليل القطاعات</span><h2>استكشف الخدمات حسب القطاع</h2><p>27 قطاعًا — بيانات حية عند توفرها، وبطاقات نموذجية عند عدم وجود بيانات منشورة.</p></div><strong class="mx-ref-count">27</strong></div><div class="mx-ref-category-grid" id="mx-category-grid">${initialCategoryTiles}</div><div class="mx-category-actions"><button type="button" class="mx-ref-outline" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات ←</button></div></section>
+<section class="mx-ref-categories" id="mx-categories"><div class="mx-ref-section-head"><div><span>دليل القطاعات</span><h2>استكشف الخدمات حسب القطاع</h2><p>27 قطاعًا — بيانات حية عند توفرها، وبطاقات نموذجية عند عدم وجود بيانات منشورة.</p></div><strong class="mx-ref-count" id="mx-sector-count">27</strong></div><div class="mx-ref-category-grid" id="mx-category-grid">${initialCategoryTiles}</div><div class="mx-category-actions"><button type="button" class="mx-ref-outline" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات ←</button></div></section>
 <section class="mx-ref-live-info" id="mx-about">
 <div class="mx-ref-section-head"><div><span>عن MantiqatiX</span><h2>منصة واحدة لاكتشاف الخدمات والتواصل معها</h2><p>نربط العملاء بمقدمي الخدمات والأنشطة المنشورة على المنصة، مع عرض البيانات الفعلية المتاحة فقط.</p></div></div>
 <div class="mx-ref-live-info__grid">
@@ -236,6 +236,10 @@
     if(quickAdd) quickAdd.addEventListener('click',()=>typeof openActivityRequestModal==='function'?openActivityRequestModal():typeof window.authView==='function'?window.authView('',false,'','login'):null);
     const quickAccount=document.getElementById('mx-quick-account');
     if(quickAccount) quickAccount.addEventListener('click',()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null);
+    const aboutSearch=document.getElementById('mx-about-search');
+    if(aboutSearch) aboutSearch.addEventListener('click',()=>document.getElementById('mx-home-search')?.focus());
+    const aboutAdd=document.getElementById('mx-about-add');
+    if(aboutAdd) aboutAdd.addEventListener('click',()=>typeof openActivityRequestModal==='function'?openActivityRequestModal():typeof window.authView==='function'?window.authView('',false,'','login'):null);
 
     document.querySelectorAll('[data-side-ad-book]').forEach(btn=>btn.addEventListener('click',()=>{try{localStorage.setItem('MNTYOpenAdBooking','1')}catch(_){};if(window.MNTYAuthState?.authenticated&&typeof window.selectModule==='function'){window.selectModule('التسويق والإعلان')}else if(typeof window.authView==='function'){window.authView('',false,'','login')}}));
 
@@ -851,7 +855,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
 
     const updateHomepageLiveStats=({services=[],providers=[],ads=[]}={})=>{
       const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value);};
-      set('mx-stat-sectors',document.querySelectorAll('#mx-category-grid .mx-category').length || TAXONOMY.length);
+      set('mx-stat-sectors',dynamicTaxonomy(services,providers).length || TAXONOMY.length);
       set('mx-stat-services',PUBLIC_DIRECTORY_TOTALS.services||services.length);
       set('mx-stat-providers',PUBLIC_DIRECTORY_TOTALS.providers||providers.length);
       set('mx-stat-ads',ads.length);
