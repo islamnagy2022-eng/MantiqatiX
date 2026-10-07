@@ -1006,3 +1006,19 @@
 - [x] Security Advisor was re-run. The new authenticated SECURITY DEFINER warning is intentional for this backend boundary and remains part of the documented warning set; search_path and auth.uid checks are present.
 - [ ] Real Education customer/provider transaction E2E remains NOT VERIFIED.
 - [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY.
+
+
+## RC370 — Continued P0/P1 execution evidence — 2026-10-07
+
+- [x] Backend-only table access paths mapped in live PostgreSQL:
+  - `erp_purchase_orders`: create_purchase_order_backend, update_purchase_order_status_backend.
+  - `erp_purchase_receipts`: receive_purchase_stock_backend.
+  - `erp_stock_transfers`: create_stock_transfer_backend, receive_stock_transfer_backend, update_stock_transfer_status_backend.
+  - `smm_admins`: smm_bootstrap_first_admin (trigger-only, EXECUTE not exposed to anon/authenticated).
+  - `smm_provider_credentials`: smm_get_provider_secret, smm_set_provider_secret (EXECUTE not exposed to anon/authenticated).
+  - `smm_providers`: smm_set_provider_secret.
+- [x] Verified `create_payment_intent_backend`: anonymous EXECUTE=false; authenticated EXECUTE=true by design; function binds actor to `auth.uid()`, validates order tenant, payable state, ownership/membership, pricing snapshot, amount, currency and idempotency conflict.
+- [x] Re-scanned selected frontend modules for direct writes. Remaining direct writes are limited to RLS-protected support-ticket/message and provider-profile paths; live policies bind requester/sender/tenant/role, so they were not widened or replaced unnecessarily.
+- [ ] Multi-user/two-tenant E2E remains NOT VERIFIED because current production fixture does not contain the required two independent active tenants/users.
+- [ ] Real payment/settlement E2E remains NOT VERIFIED/WAITING FOR OWNER.
+- [ ] Public browser smoke and real-device release remain NOT VERIFIED/WAITING.
