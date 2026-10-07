@@ -433,3 +433,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Security Advisor's anonymous-policy findings were sampled at policy level and are bound to `authenticated` with explicit non-anonymous guards; no broad policy rewrite was made.
 - Leaked-password protection is still disabled and requires managed Auth/dashboard action.
 - No production schema/data/payment mutation was performed.
+
+
+## RC387 update — 2026-10-07
+- Revalidated CI evidence for the latest RC385 branch head `39bf8aa1ee0aff029f7c6a2e2b0cabb0327ac6b6`.
+- Two relevant validation workflows completed successfully; no commit statuses are attached.
+- Production Pages deployment/runtime is still not evidenced for this branch head, so the homepage change remains unmerged and NOT VERIFIED in production.
