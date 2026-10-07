@@ -1055,3 +1055,12 @@
 - [x] Live verification shows only the canonical index remains.
 - [x] Performance Advisor no longer reports the duplicate-index finding.
 - [ ] This does not close the broader unindexed-FK or multiple-permissive-policy findings; those require workload/query-plan evidence and authorization review.
+
+
+## RC373 — Source-of-truth governance recheck — 2026-10-07
+
+- [x] Reconfirmed project source instructions: current code/database/API/Auth/Authz/TODO/risk state must be inspected before change; `DONE ≠ VERIFIED`.
+- [x] Reconfirmed release specification requires actual verification of Core, Auth, Authz, Database, Security, API, Website, App, Admin, Finance, CRM, Marketing, Regression, Backup, Monitoring, Production Config, Build, Signing, External Tests and Rollback before using `Production Ready`.
+- [x] Reconfirmed backup/restore cannot be certified from backup existence alone; an approved restore rehearsal is required.
+- [x] No source-derived evidence was promoted to runtime PASS without live verification.
+- [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY.
