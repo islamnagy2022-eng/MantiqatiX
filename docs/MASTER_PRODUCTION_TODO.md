@@ -1115,3 +1115,14 @@
 - [x] Live logs were queried for the current verification window; sources observed include edge, pgbouncer, PostgREST, storage, function, PostgreSQL, realtime, auth and auth-audit logs.
 - [ ] A clean error-rate metric could not be derived from the available log schema in this pass; the attempted aggregation was rejected by the log backend schema and is therefore **NOT VERIFIED**, not interpreted as zero errors.
 - [ ] Multiple permissive RLS policies remain open for workload-backed review; no blanket consolidation was applied because OR semantics may be intentional.
+
+
+## RC379 — Private trigger EXECUTE hardening — 2026-10-07
+
+- [x] Production Security Advisor review identified private.mnty_notify_order_status() as SECURITY DEFINER trigger-only code with no anon schema USAGE; it was not an externally callable client path.
+- [x] Hardened the boundary by revoking EXECUTE from public, anon, and authenticated.
+- [x] Source migration added: 20261007073000_harden_private_order_status_trigger_execute_v1.sql.
+- [x] Production migration registered at live version 20261007065754.
+- [x] Live verification: anon_exec=false, authenticated_exec=false, and anon_schema_usage=false for schema private.
+- [x] Trigger behavior was not altered; only direct EXECUTE privileges were reduced.
+- [ ] Remaining full SECURITY DEFINER source/body audit, migration canonicalization, adversarial E2E, real payment/settlement, backup/restore, browser/device, Android signing, and final production gate remain open.
