@@ -189,201 +189,31 @@
       return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small><span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
     }).join('');
 
-    app.innerHTML=`<main class="mx-home" dir="rtl"><a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
-      <header class="mx-header">
-        <div class="mx-header__inner">
-          <a class="mx-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<div><div class="mx-brand__name">MantiqatiX</div><span class="mx-brand__ar">منصة خدمات وتسويق متكاملة</span></div></a>
-          <div class="mx-search-wrap">
-            <label class="mx-search" aria-label="البحث في الخدمات ومقدميها">
-              <span class="mx-search__location"><span class="mx-location-icon" aria-hidden="true"></span><span id="mx-location-label">الموقع عند الحاجة</span></span>
-              <input id="mx-home-search" autocomplete="off" inputmode="search" enterkeyhint="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة، مقدم خدمة، نشاط...">
-              <button id="mx-search-clear" class="mx-search__clear" type="button" aria-label="مسح البحث" hidden>×</button>
-              <button id="mx-search-btn" type="button" aria-label="بحث"><span class="mx-search-icon" aria-hidden="true"></span></button>
-            </label>
-            <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
-          </div>
-          <button class="mx-header__login" id="mx-login" type="button" aria-label="تسجيل الدخول / فتح الحساب"><span class="mx-account-icon" aria-hidden="true"></span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button>
-          <button class="mx-header-tool mx-wallet-tool" id="mx-wallet" type="button" aria-label="المحفظة"><span class="mx-wallet-icon" aria-hidden="true"></span><small>المحفظة</small></button>
-          <button class="mx-header-tool" id="mx-cart" type="button" aria-label="السلة"><span class="mx-cart-icon" aria-hidden="true"></span><small>السلة <b id="mx-cart-count">0</b></small></button>
-          ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
-          <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer"><span class="mx-menu-icon" aria-hidden="true"></span></button>
-          <nav class="mx-nav">
-            <a href="#mx-home">الرئيسية</a>
-            <a href="#mx-categories">التصنيفات</a>
-            <a href="#mx-offers">الإعلانات</a>
-            <a href="#mx-nearby">مقدمو الخدمات</a>
-            <a href="#mx-growth">لأصحاب الأنشطة</a>
-            <button class="mx-add" id="mx-add" type="button">＋ إضافة نشاط</button>
-          </nav>
-        </div>
-      </header>
-      <div class="mx-mobile-drawer-backdrop" id="mx-mobile-drawer-backdrop" hidden></div>
-      <aside class="mx-mobile-drawer" id="mx-mobile-drawer" aria-hidden="true">
-        <div class="mx-mobile-drawer__head"><strong>التنقل</strong><button id="mx-mobile-menu-close" type="button" aria-label="إغلاق القائمة">×</button></div>
-        <nav>
-          <a href="#mx-home" data-mobile-nav>الرئيسية</a>
-          <a href="#mx-categories" data-mobile-nav>التصنيفات</a>
-          <a href="#mx-offers" data-mobile-nav>الإعلانات</a>
-          <a href="#mx-nearby" data-mobile-nav>مقدمو الخدمات</a>
-          <a href="#mx-growth" data-mobile-nav>لأصحاب الأنشطة</a>
-          <button type="button" id="mx-mobile-add">＋ إضافة نشاط</button>
-        </nav>
-      </aside>
-
-      <aside class="mx-side-banner mx-side-banner--right" id="mx-side-ad" aria-label="إعلان ممول جانبي" data-ad-state="loading">
-        <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
-        <div class="mx-side-banner__screen"><b>MantiqatiX</b><span>مساحة إعلانية</span></div>
-        <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
-      </aside>
-      <div class="mx-main" id="mx-home">
-        <section class="mx-home-hero" aria-label="اكتشاف الخدمات ومقدمي الخدمات">
-          <div class="mx-home-hero__copy">
-            <span class="mx-home-hero__eyebrow">منطقتك تبدأ من هنا</span>
-            <h1>كل الخدمات في مكان واحد</h1>
-            <p>اكتشف ... احجز ... تواصل ... بسهولة وأمان مع مقدمي الخدمات والأنشطة المسجلة على MantiqatiX.</p>
-            <div class="mx-home-hero__actions">
-              <button class="mx-btn mx-btn--primary" id="mx-hero-search" type="button">ابدأ البحث الآن ←</button>
-              <button class="mx-btn mx-btn--light" id="mx-ad-book" type="button">أعلن عن نشاطك</button>
-            </div>
-            <div class="mx-home-hero__trust">
-              <span>✓ مقدمو خدمات مسجلون</span>
-              <span>✓ بيانات منشورة عند توفرها</span>
-              <span>✓ الموقع عند الحاجة فقط</span>
-              <span>✓ تجربة رقمية موحدة</span>
-            </div>
-          </div>
-          <div class="mx-home-hero__visual" aria-label="كيف تعمل MantiqatiX">
-            <div class="mx-home-hero__glow"></div>
-            <div class="mx-home-hero__brand-card"><b>MantiqatiX</b><span>خدمات · مقدمو خدمات · طلبات</span></div>
-            <div class="mx-home-hero__steps">
-              <article><i>01</i><b>اكتشف</b><span>ابحث عن الخدمة أو النشاط</span></article>
-              <article><i>02</i><b>طابق</b><span>استعرض مقدم الخدمة المناسب</span></article>
-              <article><i>03</i><b>اطلب</b><span>أنشئ الطلب وتابع حالته</span></article>
-            </div>
-            <div class="mx-home-hero__provider">
-              <div><strong>لأصحاب الأنشطة</strong><span>اعرض نشاطك داخل المنصة</span></div>
-              <button id="mx-ad-plans" type="button">باقات الإعلان ←</button>
-            </div>
-            <div class="mx-home-hero__plans" id="mx-ad-plans-grid" aria-label="باقات الإعلان">
-              <button type="button" class="mx-ad-plan" data-ad-plan="QUARTERLY"><span>01</span><b>ربع سنوي</b><small>3 أشهر</small></button>
-              <button type="button" class="mx-ad-plan mx-ad-plan--featured" data-ad-plan="SEMIANNUAL"><span>02</span><b>نصف سنوي</b><small>6 أشهر</small></button>
-              <button type="button" class="mx-ad-plan" data-ad-plan="ANNUAL"><span>03</span><b>سنوي</b><small>12 شهرًا</small></button>
-            </div>
-          </div>
-        </section>
-
-        <section class="mx-section" id="mx-categories">
-          <div class="mx-section__head"><div><span class="mx-hero__eyebrow">دليل القطاعات</span><h2>استكشف القطاعات والأنشطة الحالية</h2><p>27 قطاعًا متاحة الآن. تظهر أسفل كل قطاع أعداد الخدمات والأنشطة المنشورة فعليًا عند توفر البيانات، ويمكنك فتح القطاع لرؤية التفاصيل.</p></div><div class="mx-sector-count" aria-label="عدد القطاعات"><strong id="mx-sector-count">27</strong><span>قطاعًا</span></div></div>
-          <div class="mx-categories" id="mx-category-grid">${initialCategoryTiles}</div>
-          <div class="mx-category-actions"><button type="button" class="mx-btn mx-btn--light" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات</button></div>
-        </section>
-
-        <section class="mx-home-stats" id="mx-home-stats" aria-label="مؤشرات المنصة">
-          <div class="mx-home-stats__intro">
-            <span class="mx-home-kicker">MantiqatiX LIVE</span>
-            <h2>منصة واحدة لاكتشاف الخدمة وإدارة الطلب</h2>
-            <p>المؤشرات التالية تُبنى من البيانات العامة المتاحة لحظة التحميل، ولا تُعرض أرقام افتراضية.</p>
-          </div>
-          <div class="mx-home-stats__grid">
-            <article><strong id="mx-stat-sectors">27</strong><span>قطاعًا</span></article>
-            <article><strong id="mx-stat-services">—</strong><span>إجمالي الخدمات المنشورة</span></article>
-            <article><strong id="mx-stat-providers">—</strong><span>إجمالي مقدمي الخدمات</span></article>
-            <article><strong id="mx-stat-ads">—</strong><span>إعلانات معروضة</span></article>
-          </div>
-        </section>
-
-        <section class="mx-home-discovery" id="mx-discovery" aria-label="اكتشاف الخدمات بالقرب منك">
-          <div class="mx-home-discovery__copy">
-            <span class="mx-home-kicker">اكتشاف ذكي</span>
-            <h2>اعثر على الخدمة الأقرب إلى احتياجك</h2>
-            <p>ابدأ بالبحث أو اسم النشاط، ثم فعّل الموقع فقط عندما تحتاج لترتيب مقدمي الخدمات حسب القرب.</p>
-            <div class="mx-home-discovery__actions">
-              <button class="mx-btn mx-btn--primary" id="mx-discovery-search" type="button">ابدأ البحث</button>
-              <button class="mx-btn mx-btn--light" id="mx-discovery-location" type="button">استخدم موقعي عند الحاجة</button>
-            </div>
-            <div class="mx-home-discovery__points">
-              <span>بحث مباشر</span><span>ترتيب حسب القرب</span><span>بيانات منشورة</span>
-            </div>
-          </div>
-          <div class="mx-home-discovery__visual" aria-hidden="true">
-            <div class="mx-map-grid"></div>
-            <div class="mx-map-road mx-map-road--one"></div>
-            <div class="mx-map-road mx-map-road--two"></div>
-            <div class="mx-map-pin mx-map-pin--one"></div>
-            <div class="mx-map-pin mx-map-pin--two"></div>
-            <div class="mx-map-pin mx-map-pin--three"></div>
-            <div class="mx-map-card"><b>اكتشاف حولك</b><span>يتم استخدام الموقع بإذن المستخدم فقط</span></div>
-          </div>
-        </section>
-
-        <section class="mx-home-growth" id="mx-growth" aria-label="نمو الأنشطة">
-          <div class="mx-home-growth__visual">
-            <span class="mx-growth-orb mx-growth-orb--one"></span><span class="mx-growth-orb mx-growth-orb--two"></span>
-            <div class="mx-growth-panel"><b>MantiqatiX</b><span>نشاطك أمام العملاء المناسبين</span><i></i><small>اكتشاف · ظهور · تواصل · طلبات</small></div>
-          </div>
-          <div class="mx-home-growth__copy">
-            <span class="mx-home-kicker">لأصحاب الأنشطة</span>
-            <h2>حوّل وجودك الرقمي إلى قناة نمو</h2>
-            <p>أنشئ حضورك على المنصة، اعرض خدماتك، واستفد من الظهور المميز والإعلانات وفق المسارات المعتمدة.</p>
-            <div class="mx-home-growth__actions">
-              <button class="mx-btn mx-btn--primary" id="mx-growth-add" type="button">أضف نشاطك</button>
-              <button class="mx-btn mx-btn--light" id="mx-growth-ads" type="button">استعرض الإعلان</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="mx-section" id="mx-services" hidden>
-          <div class="mx-section__head"><div><h2>نتائج البحث والخدمات</h2><p id="mx-search-context">بيانات منشورة من كتالوج المنصة، وليست بيانات وهمية.</p></div><div class="mx-search-result-tools"><span class="mx-live" id="mx-live-status">جارٍ التحميل...</span><button class="mx-link" id="mx-search-clear-results" type="button" hidden>مسح البحث</button></div></div>
-          <div class="mx-service-grid" id="mx-service-grid"><div class="mx-loading">جارٍ تحميل الخدمات...</div></div>
-        </section>
-
-        <section class="mx-section" id="mx-offers">
-          <div class="mx-section__head"><div><h2>إعلانات ممولة</h2><p>تظهر هنا الأنشطة المميزة المنشورة والفعالة فقط.</p></div><button class="mx-link" id="mx-ad-cta" type="button">أعلن عن نشاطك ←</button></div>
-          <div class="mx-sponsored" id="mx-sponsored"><div class="mx-empty">جارٍ التحقق من الإعلانات المنشورة...</div></div>
-        </section>
-
-        <section class="mx-section" id="mx-nearby">
-          <div class="mx-section__head"><div><h2>أنشطة ومقدمو خدمات</h2><p id="mx-location-help">نتائج موثقة من الكتالوج العام، وتُرتب حسب موقعك عند توفره.</p></div><button class="mx-link" id="mx-location-btn" type="button">تحديد موقعي</button></div>
-          <div id="mx-location-controls" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px">
-            <span id="mx-location-status" class="mx-live">الموقع عند الحاجة</span>
-            <span style="font-size:12px;color:#667085">نطاق البحث:</span>
-            <div id="mx-location-ranges" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-          </div>
-          <div class="mx-provider-grid" id="mx-provider-grid"><div class="mx-empty">جارٍ تحميل مقدمي الخدمات...</div></div>
-        </section>
-
-        <section class="mx-section mx-module-strip" id="mx-marketing" hidden>
-          <div><span class="mx-hero__eyebrow">وحدات المنصة</span><h2>من الاكتشاف إلى التشغيل</h2><p>واجهة واحدة تربط البحث والخدمات والتسويق وطلبات الخدمة مع الوحدات التشغيلية المخصصة للمستخدمين المسجلين.</p></div>
-          <div class="mx-module-grid">
-            <button data-module="CRM"><span class="mx-module-icon mx-module-icon--crm" aria-hidden="true"></span><b>CRM</b><small>إدارة العملاء والعلاقات</small></button>
-            <button data-module="MARKETING"><span class="mx-module-icon mx-module-icon--marketing" aria-hidden="true"></span><b>التسويق والإعلانات</b><small>الحملات والظهور المدفوع</small></button>
-            <button data-module="ANALYTICS"><span class="mx-module-icon mx-module-icon--analytics" aria-hidden="true"></span><b>التحليلات والتقارير</b><small>مؤشرات وقرارات تشغيلية</small></button>
-            <button data-module="OPERATIONS"><span class="mx-module-icon mx-module-icon--operations" aria-hidden="true"></span><b>العمليات والمهام</b><small>متابعة التنفيذ والخدمة</small></button>
-          </div>
-        </section>
-      </div>
-
-      <footer class="mx-footer" id="mx-contact">
-        <div class="mx-footer__inner">
-          <div><div class="mx-footer__brand">MantiqatiX</div><div class="mx-footer__sub">MantiqatiX · منصة رقمية متكاملة للخدمات ومقدميها</div><div class="mx-footer__sub">MANTIQATIX ليست وسيطًا ماديًا بين العميل ومقدم الخدمة، ولا تتولى تقديم الخدمة أو تنفيذها ماديًا نيابةً عن مقدم الخدمة؛ دورها منصة رقمية للاكتشاف والمطابقة والتواصل وإدارة الطلبات والمتابعة.</div><div class="mx-footer__sub">اكتشاف · مطابقة · طلب · تواصل · متابعة تنفيذ</div></div>
-          <div><h3>روابط سريعة</h3><a href="#mx-home">الرئيسية</a><a href="#mx-categories">التصنيفات</a><a href="#mx-services">الخدمات</a><a href="#mx-offers">الإعلانات</a></div>
-          <div><h3>عن MantiqatiX</h3><button type="button" class="mx-footer__link" data-footer-info="about">من نحن</button><button type="button" class="mx-footer__link" data-footer-info="legal">الشروط والأحكام</button><button type="button" class="mx-footer__link" data-footer-info="privacy">سياسة الخصوصية</button></div>
-          <div><h3>خدمة العملاء</h3><a class="mx-footer__support" href="tel:+201010171770" aria-label="الاتصال بخدمة العملاء 01010171770">01010171770</a><div class="mx-footer__sub">منصتك في كل مكان</div></div>
-        </div>
-        <div class="mx-footer__bar"><span>© MantiqatiX</span><span>بيانات حية عند توفرها · بدون بيانات وهمية</span></div>
-      </footer>
-      <a class="mx-whatsapp-float" href="https://wa.me/${window.MNTY_SUPPORT?.whatsapp||'201010171770'}?text=%D9%85%D8%B1%D8%AD%D8%A8%D9%8B%D8%A7%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D8%A5%D9%84%D9%89%20%D8%A7%D9%84%D8%AA%D9%88%D8%A7%D8%B5%D9%84%20%D9%85%D8%B9%20%D8%AE%D8%AF%D9%85%D8%A9%20%D8%B9%D9%85%D9%84%D8%A7%D8%A1%20Mantiqati%20X." target="_blank" rel="noopener noreferrer" aria-label="تواصل مع خدمة العملاء عبر واتساب" title="خدمة العملاء عبر واتساب">
-        <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.11 17.41c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.13-.42-2.15-1.33-.8-.71-1.34-1.58-1.5-1.85-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.47.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.01-.22-.53-.45-.46-.61-.47h-.52c-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27s.97 2.63 1.11 2.81c.14.18 1.91 2.92 4.63 4.09.65.28 1.16.44 1.56.56.65.21 1.24.18 1.7.11.52-.08 1.6-.66 1.82-1.3.23-.64.23-1.19.16-1.3-.07-.11-.25-.18-.52-.32zM16.02 5.33c-5.89 0-10.68 4.79-10.68 10.68 0 1.88.49 3.71 1.43 5.32L5.26 26.67l5.46-1.43a10.65 10.65 0 0 0 5.3 1.41h.01c5.89 0 10.67-4.79 10.67-10.67S21.91 5.33 16.02 5.33zm0 19.49h-.01a8.8 8.8 0 0 1-4.48-1.23l-.32-.19-3.24.85.87-3.16-.21-.32a8.82 8.82 0 1 1 7.39 4.05z"/></svg>
-        <span>خدمة العملاء</span>
-      </a>
-      <nav class="mx-bottom-nav">
-        <button class="active" type="button" data-scroll="mx-home"><span class="mx-bottom-icon mx-bottom-icon--home" aria-hidden="true"></span><span>الرئيسية</span></button>
-        <button type="button" id="mx-bottom-search"><span class="mx-bottom-icon mx-bottom-icon--search" aria-hidden="true"></span><span>بحث</span></button>
-        <button class="plus" id="mx-bottom-add" type="button">＋</button>
-        <button type="button" data-scroll="mx-offers"><span class="mx-bottom-icon mx-bottom-icon--offers" aria-hidden="true"></span><span>العروض</span></button>
-        <button type="button" id="mx-bottom-account"><span class="mx-bottom-icon mx-bottom-icon--account" aria-hidden="true"></span><span>حسابي</span></button>
-      </nav>
-    </main>`;
+    app.innerHTML=`<main class="mx-home mx-ref-home" dir="rtl">
+<a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
+<header class="mx-ref-header"><div class="mx-ref-header__inner">
+<a class="mx-ref-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<span>MantiqatiX</span></a>
+<nav class="mx-ref-nav" aria-label="التنقل الرئيسي"><a class="is-active" href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-nearby">مقدمو الخدمات</a><a href="#mx-offers">الإعلانات الممولة</a><a href="#mx-growth">لأصحاب الأنشطة</a><a href="#mx-about">من نحن</a></nav>
+<div class="mx-ref-actions"><button type="button" class="mx-ref-lang">◉ AR</button><button type="button" class="mx-ref-login" id="mx-login"><span class="mx-account-icon" aria-hidden="true"></span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button><button type="button" class="mx-ref-primary" id="mx-add">ابدأ الآن ←</button><button type="button" class="mx-ref-menu" id="mx-mobile-menu" aria-label="القائمة">☰</button></div>
+</div></header>
+<div class="mx-ref-hero"><div class="mx-ref-hero__overlay"></div><div class="mx-ref-hero__content"><div class="mx-ref-hero__copy"><span class="mx-ref-kicker">منصة الخدمات المحلية الذكية</span><h1>كل الخدمات.. أقرب إليك</h1><p>منصة موثوقة تربطك بمقدمي الخدمات المعتمدين في منطقتك وتساعدك على الاكتشاف والمقارنة والتواصل بسهولة.</p></div><div class="mx-ref-search-card"><div class="mx-ref-search"><span class="mx-search-icon" aria-hidden="true"></span><input id="mx-home-search" autocomplete="off" inputmode="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة (مثل: طبيب، صيدلية، مطعم...)"><button id="mx-search-clear" type="button" hidden aria-label="مسح">×</button><button id="mx-search-btn" type="button" aria-label="بحث">بحث</button></div><div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div><div class="mx-ref-search-meta"><button id="mx-location-btn" type="button"><span class="mx-location-icon" aria-hidden="true"></span><span id="mx-location-label">القاهرة، مصر</span>⌄</button><span>ابحث داخل منطقتك أو اختر موقعك عند الحاجة</span></div></div></div><div class="mx-ref-hero__phone" aria-hidden="true"><div class="mx-ref-phone-screen"><b>MantiqatiX</b><span>كل الخدمات في مكانك</span><i></i><i></i><i></i></div></div></div>
+<section class="mx-ref-category-bar" aria-label="أهم الخدمات"><button class="mx-ref-category is-more" data-category=""><span>•••</span><b>المزيد</b></button><button class="mx-ref-category" data-category="CONSULTING"><span>◌</span><b>الاستشارات</b></button><button class="mx-ref-category" data-category="REAL_ESTATE"><span>▦</span><b>العقارات</b></button><button class="mx-ref-category" data-category="EDUCATION"><span>◇</span><b>التعليم</b></button><button class="mx-ref-category" data-category="CARS"><span>▣</span><b>السيارات</b></button><button class="mx-ref-category" data-category="FOOD"><span>◈</span><b>المطاعم</b></button><button class="mx-ref-category" data-category="HOSPITALS"><span>✚</span><b>المستشفيات</b></button><button class="mx-ref-category" data-category="PHARMACY"><span>♧</span><b>الصيدليات</b></button><button class="mx-ref-category" data-category="MEDICAL"><span>⚕</span><b>الأطباء</b></button><button class="mx-ref-category" data-category="HOME_SERVICES"><span>⌂</span><b>الخدمات المنزلية</b></button></section>
+<main class="mx-ref-main" id="mx-home">
+<section class="mx-ref-ad-row" id="mx-offers"><article class="mx-ref-ad mx-ref-ad--wide"><span class="mx-ref-sponsored">إعلان ممول</span><div class="mx-ref-ad-art mx-ref-coffee-art"><b>OMAN COFFEE</b><strong>طعم الحياة في كل فنجان</strong><small>بن عمان .. جودة أصلية</small></div><button type="button" class="mx-ref-ad-btn">اكتشف الآن</button></article><article class="mx-ref-ad mx-ref-ad--small"><span class="mx-ref-sponsored">إعلان ممول</span><div class="mx-ref-ad-person">👩‍💼</div><div><b>ابتسامة أكثر إشراقًا</b><small>نموذج إعلاني</small></div><button type="button" class="mx-ref-ad-btn">احجز الآن</button></article><article class="mx-ref-ad mx-ref-ad--small mx-ref-ad--dark"><span class="mx-ref-sponsored">إعلان ممول</span><div class="mx-ref-ad-car">🚗</div><div><b>خدمات سيارات متكاملة</b><small>نموذج إعلاني</small></div><button type="button" class="mx-ref-ad-btn">احجز الآن</button></article></section>
+<section class="mx-ref-service-layout" id="mx-nearby"><article class="mx-ref-services-panel"><div class="mx-ref-section-head"><div><span>اكتشف الأقرب إليك</span><h2>خدمات مميزة بالقرب منك</h2></div><button type="button" class="mx-ref-text-btn" id="mx-quick-search">← عرض الكل</button></div><div class="mx-ref-service-grid" id="mx-home-services"><div class="mx-ref-mock-card"><b>نموذج عرض</b><span>سيتم استبدال البطاقة ببيانات الخدمات المنشورة فعليًا.</span></div><div class="mx-ref-mock-card"><b>نموذج عرض</b><span>بيانات مقدمي الخدمات ستظهر هنا.</span></div><div class="mx-ref-mock-card"><b>نموذج عرض</b><span>واجهة جاهزة للبيانات الحقيقية.</span></div></div></article>
+<article class="mx-ref-map-panel"><div class="mx-ref-section-head"><div><span>استكشاف محلي</span><h2>الخدمات القريبة منك</h2></div><button type="button" class="mx-ref-map-all" id="mx-discovery-location">عرض الخريطة بالكامل</button></div><div class="mx-ref-map"><div class="mx-ref-map__roads"></div><i style="--x:24%;--y:25%"></i><i style="--x:67%;--y:34%"></i><i style="--x:43%;--y:67%"></i><i style="--x:79%;--y:72%"></i><div class="mx-ref-map-card"><b>خريطة الاستكشاف</b><span>نموذج عرض — تُربط ببيانات الموقع المنشورة عند تفعيل الخريطة.</span></div></div></article>
+<article class="mx-ref-growth-mini" id="mx-growth"><span>روّج لخدمتك الآن</span><h2>أوصل إلى آلاف العملاء في منطقتك</h2><p>زِد الظهور، اعرض خدماتك وابدأ استقبال العملاء عبر الإعلانات الممولة.</p><button type="button" id="mx-growth-ads">ابدأ حملتك الإعلانية</button><div class="mx-ref-doctor-art">◉</div></article></section>
+<section class="mx-ref-stats"><div><b>+</b><strong id="mx-stat-services">—</strong><span>خدمة منشورة</span></div><div><b>+</b><strong id="mx-stat-providers">—</strong><span>مقدم خدمة</span></div><div><b>27</b><strong id="mx-stat-sectors">27</strong><span>فئة وقطاع</span></div><div><b>+</b><strong id="mx-stat-ads">—</strong><span>إعلان معروض</span></div><div><b>24/7</b><strong>24/7</strong><span>دعم وتجربة رقمية</span></div></section>
+<section class="mx-ref-categories" id="mx-categories"><div class="mx-ref-section-head"><div><span>دليل القطاعات</span><h2>استكشف الخدمات حسب القطاع</h2><p>27 قطاعًا — بيانات حية عند توفرها، وبطاقات نموذجية عند عدم وجود بيانات منشورة.</p></div><strong class="mx-ref-count">27</strong></div><div class="mx-ref-category-grid" id="mx-category-grid">${initialCategoryTiles}</div><div class="mx-category-actions"><button type="button" class="mx-ref-outline" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات ←</button></div></section>
+<section class="mx-ref-offers"><div class="mx-ref-section-head"><div><span>عروض وإعلانات مميزة</span><h2>فرص مميزة لعملائنا</h2></div><button type="button" class="mx-ref-text-btn">← عرض الكل</button></div><div class="mx-ref-offer-grid"><article><span>إعلان ممول</span><b>عروض نهاية الأسبوع</b><small>نموذج إعلاني تجريبي</small><button>احجز الآن</button></article><article><span>إعلان ممول</span><b>فحص شامل بأسعار خاصة</b><small>نموذج إعلاني تجريبي</small><button>احجز الآن</button></article><article><span>إعلان ممول</span><b>خصم 20%</b><small>نموذج إعلاني تجريبي</small><button>احجز الآن</button></article></div></section>
+<section class="mx-ref-app" id="mx-about"><div class="mx-ref-app__phones"><div class="mx-ref-mock-phone">MantiqatiX<br><small>اكتشف · تواصل · اطلب</small></div><div class="mx-ref-mock-phone mx-ref-mock-phone--two">MantiqatiX<br><small>الخدمات القريبة</small></div></div><div><span>تجربة موحدة على كل الأجهزة</span><h2>تطبيق MantiqatiX في جيبك</h2><p>نموذج عرض للهوية الموحدة. سيتم ربط روابط المتاجر والنسخة الأصلية عند اعتماد التطبيق النهائي.</p><div class="mx-ref-store-row"><button type="button">Google Play<br><small>نموذج</small></button><button type="button">App Store<br><small>نموذج</small></button></div></div></section>
+<section class="mx-ref-trust"><div class="mx-ref-section-head"><div><span>ثقة المجتمع</span><h2>آراء عملائنا</h2><p>نماذج تصميم فقط — ليست تقييمات حقيقية ولن تُعرض كبيانات فعلية.</p></div></div><div class="mx-ref-testimonials"><article><div>★★★★★</div><b>تقييم تجريبي</b><p>نموذج بصري لمكان تقييم العميل بعد تفعيل نظام التقييم.</p><small>بيانات تجريبية</small></article><article><div>★★★★★</div><b>تقييم تجريبي</b><p>نموذج بصري لمسار مراجعة الخدمة ومقدمها.</p><small>بيانات تجريبية</small></article><article><div>★★★★★</div><b>تقييم تجريبي</b><p>لن تظهر أي مراجعة حقيقية هنا إلا من مصدر قاعدة البيانات المعتمد.</p><small>بيانات تجريبية</small></article></div></section>
+<section class="mx-ref-partners"><span>نظام الشراكات</span><h2>شركاؤنا المميزون</h2><div><b>MantiqatiX</b><b>PARTNER MOCK</b><b>PARTNER MOCK</b><b>PARTNER MOCK</b><b>PARTNER MOCK</b></div><small>نماذج بصرية مؤقتة — لا تمثل شركات أو شعارات حقيقية.</small></section>
+<section class="mx-ref-final-cta"><div><span>جاهز للبدء؟</span><h2>كل الخدمات.. أقرب إليك</h2><p>ابحث عن احتياجك أو أضف نشاطك إلى المنصة.</p></div><div><button type="button" id="mx-hero-search" class="mx-ref-primary">ابدأ البحث الآن</button><button type="button" id="mx-growth-add" class="mx-ref-light">أضف نشاطك</button></div></section>
+</main>
+<footer class="mx-ref-footer"><div><b>MantiqatiX</b><span>كل الخدمات.. أقرب إليك</span></div><nav><a href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-offers">الإعلانات</a><a href="#mx-about">من نحن</a></nav><small>© 2026 MantiqatiX — الهوية الموحدة.</small></footer>
+<nav class="mx-bottom-nav"><button type="button" id="mx-bottom-search"><span class="mx-bottom-icon mx-bottom-icon--search"></span><span>بحث</span></button><button type="button" id="mx-bottom-add" class="plus">＋</button><button type="button" id="mx-bottom-account"><span class="mx-bottom-icon mx-bottom-icon--account"></span><span>حسابي</span></button></nav>
+</main>`;
 
     const sideAd=document.getElementById('mx-side-ad');
     if(sideAd) sideAd.innerHTML='<div class="mx-side-banner__screen"><b>MantiqatiX</b><span>جارٍ تحميل الإعلان</span></div><div class="mx-side-banner__copy"><strong>مساحة إعلانية</strong><span>جارٍ التحقق من الإعلانات المنشورة</span></div>';
