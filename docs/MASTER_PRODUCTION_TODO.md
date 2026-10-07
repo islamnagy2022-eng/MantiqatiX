@@ -1203,3 +1203,16 @@
 - Therefore RC385 status remains **IMPLEMENTED — NOT VERIFIED for production deployment/runtime** until the main Pages workflow validates and deploys the exact release candidate.
 - No production database migration, financial transaction, payment, credential rotation, or destructive operation was performed in RC385.
 - Final Production Gate remains OPEN.
+
+
+## RC386 — Live Supabase Security Advisor revalidation — 2026-10-07
+
+- Production project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.
+- Live structural query: 128/128 public tables have RLS enabled.
+- Live Auth query: anonymous user count = 0.
+- Live function privilege query: 1 public SECURITY DEFINER function is executable by `anon`; this matches the intentionally public sanitized advertisement projection `get_mnty_targeted_advertisements` already reviewed.
+- Current Security Advisor still reports: 1 RLS-enabled table without policy (`public.digital_page_payment_events`), 1 anonymous SECURITY DEFINER warning (the intentional advertisement projection), 40 authenticated SECURITY DEFINER warnings, and leaked-password protection disabled.
+- Reviewed representative Advisor `auth_allow_anonymous_sign_ins` findings directly in `pg_policies`: the affected policies are assigned to `authenticated`, not `anon`, and include explicit `auth.jwt()->>'is_anonymous' <> 'true'` guards where applicable. Therefore these findings are not evidence of anonymous-user access in the current project state and must not be mass-rewritten merely to silence Advisor.
+- No production mutation was made in RC386. No broad RLS policies were added. No financial/payment operation was executed.
+- Leaked-password protection remains a managed Auth setting requiring dashboard/owner action; it is still a release blocker.
+- Final Production Gate remains OPEN.
