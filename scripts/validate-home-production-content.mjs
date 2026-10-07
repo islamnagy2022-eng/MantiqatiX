@@ -26,6 +26,6 @@ const required=[
 for(const [needle,label] of required){
   if(!home.includes(needle) && !css.includes(needle)) throw new Error("FAIL: "+label+" ("+needle+")");
 }
-if(!home.includes("id="mx-sector-count"")) throw new Error("FAIL: live sector count mount missing");
+if(!home.includes('id="mx-sector-count"')) throw new Error("FAIL: live sector count mount missing");
 if(!home.includes("dynamicTaxonomy(services,providers).length")) throw new Error("FAIL: sector KPI must use canonical/live taxonomy count");
 console.log("PASS: homepage production-content contract contains no fabricated offers/reviews/partners/map and keeps live-data boundaries.");
