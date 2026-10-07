@@ -45,13 +45,20 @@
   const DATA_CATEGORY_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',FITNESS:'SPORTS',TRAVEL:'TRIPS',TECH:'ERP',FOOD:'FOOD'};
   const dataCategoryCode = code => DATA_CATEGORY_ALIASES[normCode(code)] || normCode(code);
   let PUBLIC_DIRECTORY_COUNTS = null;
+  let PUBLIC_DIRECTORY_TOTALS = {services:0,providers:0};
   const loadPublicDirectoryCounts = async sb => {
     try {
-      const [servicesRes,providersRes]=await Promise.all([
+      const [servicesRes,providersRes,servicesTotalRes,providersTotalRes]=await Promise.all([
         sb.from('marketing_services').select('category_code').eq('status','ACTIVE').limit(1000),
-        sb.from('marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').limit(1000)
+        sb.from('marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').limit(1000),
+        sb.from('marketing_services').select('id',{count:'exact',head:true}).eq('status','ACTIVE'),
+        sb.from('marketing_provider_profiles').select('id',{count:'exact',head:true}).eq('status','ACTIVE')
       ]);
-      if(servicesRes.error || providersRes.error) throw (servicesRes.error||providersRes.error);
+      if(servicesRes.error || providersRes.error || servicesTotalRes.error || providersTotalRes.error) throw (servicesRes.error||providersRes.error||servicesTotalRes.error||providersTotalRes.error);
+      PUBLIC_DIRECTORY_TOTALS={
+        services:Number(servicesTotalRes.count||0),
+        providers:Number(providersTotalRes.count||0)
+      };
       const counts={};
       (servicesRes.data||[]).forEach(x=>{const k=normCode(x?.category_code);if(k){counts[k]??={services:0,providers:0};counts[k].services++;}});
       (providersRes.data||[]).forEach(x=>{const k=normCode(x?.provider_kind);if(k){counts[k]??={services:0,providers:0};counts[k].providers++;}});
@@ -339,9 +346,9 @@
           </div>
           <div class="mx-home-stats__grid">
             <article><strong id="mx-stat-sectors">27</strong><span>قطاعًا</span></article>
-            <article><strong id="mx-stat-services">—</strong><span>خدمات منشورة</span></article>
-            <article><strong id="mx-stat-providers">—</strong><span>مقدمو خدمات</span></article>
-            <article><strong id="mx-stat-ads">—</strong><span>إعلانات فعالة</span></article>
+            <article><strong id="mx-stat-services">—</strong><span>إجمالي الخدمات المنشورة</span></article>
+            <article><strong id="mx-stat-providers">—</strong><span>إجمالي مقدمي الخدمات</span></article>
+            <article><strong id="mx-stat-ads">—</strong><span>إعلانات معروضة</span></article>
           </div>
         </section>
 
@@ -461,6 +468,13 @@ const categoryGrid=document.getElementById('mx-category-grid');
     };
     const reduceMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const scrollOptions=(block='start')=>({behavior:reduceMotion()?'auto':'smooth',block});
+    const categoryToggle=document.getElementById('mx-category-toggle');
+    categoryToggle?.addEventListener('click',()=>{
+      if(!categoryGrid)return;
+      categoryGrid.dataset.expanded=categoryGrid.dataset.expanded==='1'?'0':'1';
+      renderDynamicCategories(window.__MNTY_HOME_SERVICES||[],window.__MNTY_HOME_PROVIDERS||[]);
+      categoryGrid.scrollIntoView(scrollOptions('start'));
+    });
     const renderDynamicCategories=(services=[],providers=[])=>{
       const items=dynamicTaxonomy(services,providers);
       const count=document.getElementById('mx-sector-count');
@@ -1055,8 +1069,8 @@ const categoryGrid=document.getElementById('mx-category-grid');
     const updateHomepageLiveStats=({services=[],providers=[],ads=[]}={})=>{
       const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value);};
       set('mx-stat-sectors',TAXONOMY.length);
-      set('mx-stat-services',services.length);
-      set('mx-stat-providers',providers.length);
+      set('mx-stat-services',PUBLIC_DIRECTORY_TOTALS.services||services.length);
+      set('mx-stat-providers',PUBLIC_DIRECTORY_TOTALS.providers||providers.length);
       set('mx-stat-ads',ads.length);
     };
 
@@ -1183,9 +1197,12 @@ const categoryGrid=document.getElementById('mx-category-grid');
     const showSearchSuggestions=()=>{
       if(!searchSuggestions||!searchInput)return;
       const term=String(searchInput.value||'').trim().toLowerCase();
-      const suggestions=TAXONOMY.filter(x=>!term||String(x[1]).toLowerCase().includes(term)||String(x[2]).toLowerCase().includes(term)).slice(0,6);
-      if(!term||!suggestions.length){closeSearchSuggestions();return;}
-      searchSuggestions.innerHTML=suggestions.map(x=>'<button type="button" role="option" data-suggest="'+escapeHtml(x[1])+'"><span>'+escapeHtml(x[0])+'</span><b>'+escapeHtml(x[1])+'</b><small>'+escapeHtml(x[2])+'</small></button>').join('');
+      const categorySuggestions=TAXONOMY.filter(x=>!term||String(x[1]).toLowerCase().includes(term)||String(x[2]).toLowerCase().includes(term)).slice(0,4);
+      const liveSuggestions=[...(window.__MNTY_HOME_SERVICES||[]).map(x=>({label:x.name_ar||x.name_en||'',desc:'خدمة منشورة',type:'service'})),...(window.__MNTY_HOME_PROVIDERS||[]).map(x=>({label:x.name_ar||x.name_en||'',desc:'مقدم خدمة منشور',type:'provider'}))]
+        .filter(x=>x.label&&String(x.label).toLowerCase().includes(term)).slice(0,4);
+      if(!term||(!categorySuggestions.length&&!liveSuggestions.length)){closeSearchSuggestions();return;}
+      searchSuggestions.innerHTML=categorySuggestions.map(x=>'<button type="button" role="option" data-suggest="'+escapeHtml(x[1])+'"><span>'+escapeHtml(x[0])+'</span><b>'+escapeHtml(x[1])+'</b><small>'+escapeHtml(x[2])+'</small></button>').join('')
+        +liveSuggestions.map(x=>'<button type="button" role="option" data-suggest="'+escapeHtml(x.label)+'"><span class="mx-search-suggestion__type">'+(x.type==='service'?'خدمة':'نشاط')+'</span><b>'+escapeHtml(x.label)+'</b><small>'+escapeHtml(x.desc)+'</small></button>').join('');
       searchSuggestions.hidden=false;
       searchInput.setAttribute('aria-expanded','true');
       searchSuggestions.querySelectorAll('[data-suggest]').forEach(btn=>btn.addEventListener('click',()=>{searchInput.value=btn.dataset.suggest||'';runSearch();}));
@@ -1199,6 +1216,16 @@ const categoryGrid=document.getElementById('mx-category-grid');
     document.getElementById('mx-bottom-search').onclick=()=>{searchInput?.focus();searchInput?.scrollIntoView({behavior:'smooth',block:'center'});};
 
     document.getElementById('mx-location-btn').onclick=async()=>{const api=window.MNTYLocationAdapter;if(api){await api.requestLocation();loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'');}else goLogin();};
+    document.getElementById('mx-discovery-search')?.addEventListener('click',()=>{
+      const input=document.getElementById('mx-home-search');
+      input?.focus();
+      input?.scrollIntoView(scrollOptions('center'));
+    });
+    document.getElementById('mx-discovery-location')?.addEventListener('click',()=>{
+      document.getElementById('mx-location-btn')?.click();
+    });
+    document.getElementById('mx-growth-add')?.addEventListener('click',()=>typeof openActivityRequestModal==='function'?openActivityRequestModal():goLogin());
+    document.getElementById('mx-growth-ads')?.addEventListener('click',()=>{selectAdPlan('QUARTERLY');goAdvertise();});
     document.getElementById('mx-wallet')?.addEventListener('click',()=>typeof window.walletView==='function'?window.walletView():goLogin());
     document.getElementById('mx-cart')?.addEventListener('click',()=>typeof window.cartView==='function'?window.cartView():goLogin());
     if(typeof window.refreshMntiCartCount==='function')window.refreshMntiCartCount();
