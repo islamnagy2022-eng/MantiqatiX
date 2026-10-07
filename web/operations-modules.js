@@ -113,8 +113,7 @@ async function medicalBook(providerId){const p=medicalProviderRows().find(x=>x.i
 async function createEducationRequest(targetId,targetType,targetName){
  const student=prompt('اسم الطالب:',''); if(student===null)return;
  const subject=prompt(targetType==='TEACHER'?'المادة والصف المطلوبان:':'المرحلة الدراسية المطلوبة:',''); if(subject===null)return;
- const id=crypto.randomUUID();
- const r=await sb.from('education_requests').insert({id,requester_user_id:user.id,target_id:targetId,target_type:targetType,student_name:student.trim(),subject_or_grade:subject.trim(),status:'PENDING'});
+ const r=await sb.rpc('create_education_request_backend',{p_target_id:targetId,p_target_type:targetType,p_student_name:student.trim(),p_subject_or_grade:subject.trim()});
  if(r.error)return alert('تعذر إنشاء الطلب: '+r.error.message);
  await load(defs['مدارس خاصة']); tab='overview'; render();
 }
