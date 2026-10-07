@@ -1168,7 +1168,7 @@ async function openUnifiedRecordDetails(options={}){
  document.body.appendChild(overlay);const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey)};const onKey=e=>{if(e.key==='Escape')close()};
  overlay.querySelector('.mx-record-drawer__close')?.addEventListener('click',close);overlay.addEventListener('click',e=>{if(e.target===overlay)close()});document.addEventListener('keydown',onKey);return {overlay,close};
 }
-function openLeadDetails(leadId){
+async function openLeadDetails(leadId){
  if(!user?.id||!leadId)return authView();const lead=live.records.leads.find(x=>x.id===leadId);if(!lead)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
  const {data,error}=await sb.from('marketing_leads').select('id,title,description,budget_min,budget_max,currency,required_services,service_area,status,source,assigned_provider_id,created_at,updated_at').eq('id',leadId).eq('requester_user_id',user.id).maybeSingle();
  if(error)return showToast('تعذر تحميل تفاصيل الطلب: '+error.message,'error');if(!data)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
