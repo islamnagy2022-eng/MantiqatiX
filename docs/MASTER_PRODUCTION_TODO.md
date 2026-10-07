@@ -1256,3 +1256,46 @@
 - This is materially better than the older baseline that lacked an independent tenant fixture.
 - Runtime authorization E2E is still NOT VERIFIED: no authenticated session/token was used or impersonated, and no production data mutation was performed.
 - Required E2E remains: authenticated own-tenant access, cross-tenant denial, role separation, customer/provider order boundary, payment boundary, and anonymous denial.
+
+
+## RC400 — Enterprise Control Center foundation — 2026-10-07
+
+- **DASH-001 Dashboard Inventory:** PASS — تمت مراجعة shell الحالي، workspace routing، RBAC entry points، الموديولات، وملفات الواجهة الأساسية قبل التغيير.
+- **DASH-002 Navigation Audit:** PARTIAL — تم تثبيت اتجاه Enterprise Command Center وخريطة الوصول، بينما إعادة تنظيم كل عناصر التنقل ستتم في دفعات لاحقة.
+- **DASH-003 Module Inventory:** PASS — تم استخدام قائمة الموديولات الموجودة فعليًا في runtime بدل اختراع قائمة جديدة.
+- **DASH-010 RBAC Audit:** PASS للدفعة الحالية — الـCommand Center محمي بـcanSuperAdmin() ولا يغير نموذج الصلاحيات.
+- **DASH-011 Tenant Isolation:** NOT VERIFIED E2E — لم يتم إجراء E2E متعدد المستخدمين/المستأجرين في هذه الدفعة.
+- **DASH-020 Information Architecture:** PASS — أضيفت طبقات Command Center / KPI / Attention / Quick Actions / Module Map.
+- **DASH-040 Executive Dashboard:** PASS — أضيف مركز قيادة فعلي لـSUPER_ADMIN مع أرقام من الحالة التشغيلية المحملة فقط.
+- **DASH-041 KPI System:** PARTIAL — المكونات والبيانات الحالية مرتبطة بـlive records/counts؛ مصادر KPI المتقدمة والتاريخية تحتاج توسعة لاحقة.
+- **DASH-043 Attention Center:** PASS — يعرض التنبيهات المستخرجة من pending registrations / unread notifications / orders دون بيانات وهمية.
+- **DASH-044 Quick Actions:** PASS — إجراءات مرتبطة بمسارات الوحدات الحالية وتحترم صلاحيات فتح الوحدة.
+- **DASH-050/051 Global Search:** PARTIAL — تم تنفيذ بحث سريع للموديولات الحالية؛ البحث الموحد عبر جميع الكيانات يحتاج تذكرة مستقلة.
+- **DASH-070/071/072 Shared Workspace/Data Table/Record Details:** PARTIAL — البنية الحالية موجودة وقابلة لإعادة الاستخدام، والتوحيد الشامل لم يكتمل بعد.
+- **DASH-080 Restaurants:** NOT VERIFIED AS COMPLETE — موديول المطاعم موجود فعليًا في web/restaurant-module.js لكن اكتماله التشغيلي الكامل يبقى ضمن تدقيق الموديولات.
+- **DASH-180 Performance:** NOT VERIFIED — لم يتم إجراء قياس workload/query-plan خاص بالـCommand Center في هذه الدفعة.
+- **DASH-190..203 QA/Production:** CI validation PASS؛ Production browser runtime للـPR لم يُعتبر دليلًا على إطلاق main، لأن deploy job كان PR-skipped.
+
+### Implementation evidence
+- PR #58 merged safely via squash.
+- Merge commit: 853718963c405adf24d67b9932b4cc6be9cf9eb2.
+- Head validation commit: 6f2ec020f89bba6ffbc666d052107c2f5e6c4f2e.
+- Module Professionalization Validation #109: SUCCESS.
+- Backend-only Module Boundary #103: SUCCESS.
+- Deploy workflow #1922 validate job: SUCCESS; deploy job SKIPPED because PR context.
+- No Database/RLS/RPC/Edge Function changes were introduced by RC400.
+- A CI preflight failure exposed a landing-shell asset regression caused by an unsafe cache-busting replacement; it was corrected before merge and the corrected head passed the full validation job.
+
+### What remains for Enterprise Control Center
+1. DASH-050 full entity-aware global search.
+2. DASH-060 role-specific dashboards beyond SUPER_ADMIN.
+3. DASH-070 reusable workspace standardization across modules.
+4. DASH-080 restaurant workspace completion audit and implementation gaps.
+5. DASH-090 CRM, DASH-100 Marketing, DASH-110 Operations, DASH-120 Finance workspaces.
+6. DASH-140 Notification/Task/Attention unification.
+7. DASH-150 Reporting/Analytics framework.
+8. DASH-160 System Health/Security Center.
+9. DASH-170 responsive/accessibility deep verification.
+10. DASH-180 performance evidence.
+11. DASH-190+ E2E/RBAC/Tenant/production smoke verification.
+12. Actual GitHub Pages production deploy verification after the merged main commit.
