@@ -1126,3 +1126,15 @@
 - [x] Live verification: anon_exec=false, authenticated_exec=false, and anon_schema_usage=false for schema private.
 - [x] Trigger behavior was not altered; only direct EXECUTE privileges were reduced.
 - [ ] Remaining full SECURITY DEFINER source/body audit, migration canonicalization, adversarial E2E, real payment/settlement, backup/restore, browser/device, Android signing, and final production gate remain open.
+
+
+## RC380 — Post-hardening Advisor / CI baseline — 2026-10-07
+
+- [x] Security Advisor re-run after RC379.
+- [x] `private.mnty_notify_order_status()` no longer appears as a client-executable SECURITY DEFINER boundary; live EXECUTE is false for anon/authenticated.
+- [x] Remaining anonymous SECURITY DEFINER warning is `public.get_mnty_targeted_advertisements`, intentionally public for sponsored-ad delivery and constrained to active/approved targeting data.
+- [x] Remaining authenticated SECURITY DEFINER findings: 40; these are backend RPC boundaries and require per-function actor/tenant/role review, not blanket revocation.
+- [x] Remaining RLS-no-policy INFO finding: `public.digital_page_payment_events`, intentionally backend-only and still fail-closed for direct client access.
+- [x] Performance Advisor still reports 28 multiple-permissive-policy findings plus unused/unindexed-index findings; no mass changes were made without workload evidence.
+- [ ] GitHub Actions has no workflow run associated with commit `15a10884699253f00fd4b7804dbc5bfbfdc84cff` yet; CI evidence for this commit is therefore NOT VERIFIED.
+- [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY.
