@@ -1,0 +1,293 @@
+/* RC386 — Mobile homepage layout repair
+   Scope: presentation only. No data/API/business logic changes.
+   Fixes sponsored ads, mobile header/search/account actions and overflow.
+*/
+
+.mx-home,
+.mx-home *{box-sizing:border-box}
+
+.mx-home{width:100%;max-width:100%;overflow-x:hidden}
+.mx-home .mx-main{width:100%;max-width:1540px;min-width:0}
+
+/* Sponsored ads: stable desktop/tablet grid, real media box, no skinny cards. */
+.mx-home .mx-sponsored{
+  display:grid!important;
+  grid-template-columns:minmax(300px,1fr) minmax(0,2.05fr)!important;
+  gap:14px!important;
+  align-items:stretch!important;
+}
+.mx-home .mx-sponsored>.mx-feature-ad{
+  min-width:0!important;
+  min-height:250px!important;
+}
+.mx-home .mx-sponsored .mx-listing-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+  min-width:0!important;
+  overflow:visible!important;
+}
+.mx-home .mx-sponsored .mx-listing{
+  min-width:0!important;
+  width:100%!important;
+  overflow:hidden!important;
+}
+.mx-home .mx-sponsored .mx-listing__media{
+  position:relative!important;
+  width:100%!important;
+  aspect-ratio:16/9!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  background:#eaf4ff!important;
+}
+.mx-home .mx-sponsored .mx-listing__media img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}
+.mx-home .mx-sponsored .mx-listing__body{
+  min-width:0!important;
+  min-height:125px!important;
+  padding:11px!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+.mx-home .mx-sponsored .mx-listing__body h3,
+.mx-home .mx-sponsored .mx-listing__body p,
+.mx-home .mx-sponsored .mx-listing__body small{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.mx-home .mx-sponsored .mx-listing__body h3{
+  white-space:nowrap!important;
+}
+.mx-home .mx-sponsored .mx-listing__cta{
+  margin-top:auto!important;
+  align-self:flex-start!important;
+}
+
+/* Header: keep only the intended four mobile controls in one row.
+   Admin return remains available through the mobile drawer instead of
+   becoming an accidental extra grid item/overlay. */
+@media(max-width:800px){
+  .mx-home .mx-header{
+    position:sticky!important;
+    top:0!important;
+    z-index:500!important;
+    height:auto!important;
+    overflow:visible!important;
+  }
+  .mx-home .mx-header__inner{
+    position:relative!important;
+    display:grid!important;
+    grid-template-columns:44px minmax(0,1fr) auto 40px!important;
+    grid-template-areas:"brand search login menu"!important;
+    align-items:center!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:56px!important;
+    height:auto!important;
+    padding:7px 9px!important;
+    gap:6px!important;
+    margin:0!important;
+  }
+  .mx-home .mx-brand{
+    grid-area:brand!important;
+    position:static!important;
+    width:44px!important;
+    min-width:44px!important;
+    max-width:44px!important;
+    height:44px!important;
+    margin:0!important;
+    justify-self:center!important;
+  }
+  .mx-home .mx-brand .mark{
+    width:44px!important;
+    height:44px!important;
+    max-width:44px!important;
+    max-height:44px!important;
+  }
+  .mx-home .mx-search-wrap{
+    grid-area:search!important;
+    position:static!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  .mx-home .mx-search{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:42px!important;
+    min-height:42px!important;
+    margin:0!important;
+    padding:3px 4px!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:3px!important;
+  }
+  .mx-home .mx-search input{
+    min-width:0!important;
+    width:100%!important;
+    height:36px!important;
+    font-size:11px!important;
+    padding:7px 8px!important;
+  }
+  .mx-home .mx-search button{
+    flex:0 0 36px!important;
+    width:36px!important;
+    height:36px!important;
+    margin:0!important;
+  }
+  .mx-home .mx-search__clear{
+    flex:0 0 28px!important;
+    width:28px!important;
+    height:32px!important;
+  }
+  .mx-home .mx-header__login{
+    grid-area:login!important;
+    position:static!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:88px!important;
+    height:40px!important;
+    margin:0!important;
+    padding:0 8px!important;
+    border-radius:20px!important;
+    white-space:nowrap!important;
+  }
+  .mx-home .mx-header__login .mx-account-icon{display:none!important}
+  .mx-home .mx-header__login .mx-account-copy b{
+    max-width:70px!important;
+    font-size:9px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .mx-home .mx-header__login .mx-account-copy small{display:none!important}
+
+  .mx-home .mx-mobile-menu{
+    grid-area:menu!important;
+    position:static!important;
+    display:grid!important;
+    place-items:center!important;
+    width:40px!important;
+    min-width:40px!important;
+    max-width:40px!important;
+    height:40px!important;
+    margin:0!important;
+  }
+
+  .mx-home .mx-header-tool,
+  .mx-home .mx-nav,
+  .mx-home .mx-nav .mx-add,
+  .mx-home .mx-header__inner>.mx-add,
+  .mx-home .mx-admin-return{
+    display:none!important;
+  }
+
+  .mx-home .mx-main{
+    width:100%!important;
+    min-width:0!important;
+    padding:9px 10px 92px!important;
+    margin:0!important;
+  }
+
+  /* Do not place search/action controls over the hero. */
+  .mx-home .mx-home-hero{
+    position:relative!important;
+    top:auto!important;
+    left:auto!important;
+    right:auto!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0 0 10px!important;
+    border-radius:18px!important;
+  }
+
+  /* Sponsored ads become a true one-column mobile feed. */
+  .mx-home .mx-sponsored{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  .mx-home .mx-sponsored>.mx-feature-ad{
+    min-height:180px!important;
+  }
+  .mx-home .mx-sponsored .mx-listing-grid{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:10px!important;
+    width:100%!important;
+    min-width:0!important;
+    overflow:visible!important;
+  }
+  .mx-home .mx-sponsored .mx-listing{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+  .mx-home .mx-sponsored .mx-listing__media{
+    width:100%!important;
+    aspect-ratio:16/8!important;
+    min-height:0!important;
+  }
+  .mx-home .mx-sponsored .mx-listing__media img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+  }
+  .mx-home .mx-sponsored .mx-listing__body{
+    min-height:112px!important;
+  }
+
+  /* Section headings must not force horizontal overflow. */
+  .mx-home .mx-section__head{
+    min-width:0!important;
+    max-width:100%!important;
+    flex-wrap:wrap!important;
+  }
+  .mx-home .mx-section__head>div,
+  .mx-home .mx-section__head>p{
+    min-width:0!important;
+  }
+}
+
+@media(max-width:500px){
+  .mx-home .mx-header__inner{
+    grid-template-columns:40px minmax(0,1fr) 76px 38px!important;
+    gap:5px!important;
+    padding:6px 8px!important;
+  }
+  .mx-home .mx-brand,
+  .mx-home .mx-brand .mark{
+    width:40px!important;
+    min-width:40px!important;
+    max-width:40px!important;
+    height:40px!important;
+    max-height:40px!important;
+  }
+  .mx-home .mx-search{height:40px!important;min-height:40px!important}
+  .mx-home .mx-search input{font-size:10px!important}
+  .mx-home .mx-search button{width:34px!important;height:34px!important;flex-basis:34px!important}
+  .mx-home .mx-header__login{
+    width:76px!important;
+    max-width:76px!important;
+    height:38px!important;
+    padding:0 6px!important;
+  }
+  .mx-home .mx-mobile-menu{
+    width:38px!important;
+    min-width:38px!important;
+    max-width:38px!important;
+    height:38px!important;
+  }
+  .mx-home .mx-sponsored .mx-listing__media{
+    aspect-ratio:16/8.5!important;
+  }
+}
