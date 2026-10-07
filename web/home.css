@@ -4117,3 +4117,9 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
 @media(max-width:800px){.mx-mobile-drawer{display:block}.mx-ref-header__inner{min-height:62px}.mx-ref-main{width:100%}}
 @media(min-width:801px){.mx-mobile-drawer,.mx-mobile-drawer-backdrop{display:none!important}}
 @media(prefers-reduced-motion:reduce){.mx-mobile-drawer{transition:none}.mx-ref-category,.mx-ref-nav a{transition:none}}
+
+/* RC412 — truthful loading/empty states for live homepage data. */
+.mx-ref-loading-panel{min-height:118px;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:22px;border:1px dashed #cfd9e7;border-radius:18px;background:linear-gradient(180deg,#fff,#f7faff);text-align:right}
+.mx-ref-loading-panel strong{font-size:16px;color:#102a56}.mx-ref-loading-panel small{color:#667085}
+.mx-ref-loading-card{min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:1px dashed #cfd9e7;border-radius:16px;background:#fff;text-align:center;color:#667085}
+.mx-ref-loading-card b{color:#102a56;font-size:14px}.mx-ref-loading-card span{font-size:12px}
