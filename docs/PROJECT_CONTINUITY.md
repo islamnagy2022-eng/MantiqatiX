@@ -425,3 +425,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Production Pages workflow supports `workflow_dispatch`, but the available connector cannot dispatch it. No deployment result for the corrected RC385 commit is therefore claimed.
 - RC385 remains NOT VERIFIED for production runtime. Do not merge until CI/deployment evidence exists.
 - Core production blockers remain: leaked-password protection, per-function SECURITY DEFINER review, real two-user/two-tenant E2E, payment/finance E2E, notification E2E, backup/restore, Android signed/device evidence, browser smoke, and final regression/release evidence.
+
+
+## RC386 update — 2026-10-07
+- Revalidated Production Supabase security state before making any security change.
+- 128/128 public tables have RLS enabled; anonymous Auth users = 0; one intentional anonymous SECURITY DEFINER endpoint remains for sanitized advertisements.
+- Security Advisor's anonymous-policy findings were sampled at policy level and are bound to `authenticated` with explicit non-anonymous guards; no broad policy rewrite was made.
+- Leaked-password protection is still disabled and requires managed Auth/dashboard action.
+- No production schema/data/payment mutation was performed.
