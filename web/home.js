@@ -777,7 +777,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
     };
     const safeAdUrl=value=>{try{const u=new URL(String(value||''),window.location.origin);return ['http:','https:'].includes(u.protocol)?u.href:''}catch(_){return ''}};
     const renderTargetedAds=ads=>{
-      const el=document.getElementById('mx-ref-ad-row');
+      const el=document.querySelector('#mx-offers.mx-ref-ad-row, .mx-ref-ad-row');
       if(!el)return;
       const list=Array.isArray(ads)?ads.filter(Boolean):[];
       renderSideTargetedAd(list);
@@ -811,7 +811,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
     };
 
     const renderSponsored=(providers)=>{
-      const el=document.getElementById('mx-ref-ad-row');
+      const el=document.querySelector('#mx-offers.mx-ref-ad-row, .mx-ref-ad-row');
       if(!el)return;
       const featured=providers.filter(p=>p.is_featured).slice(0,4);
       if(!featured.length){renderSideTargetedAd([]);el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>كبّر ظهور نشاطك</h3><p>المساحة الإعلانية تُملأ تلقائيًا عند وجود إعلان منشور وفعال. يمكنك بدء طلب الإعلان من هنا.</p><button class="mx-btn mx-btn--primary" id="mx-feature-cta" type="button">ابدأ الإعلان الآن</button></div></div><div class="mx-empty mx-empty--dark">لا توجد إعلانات ممولة منشورة حاليًا.</div>';document.getElementById('mx-feature-cta').onclick=goAdvertise;return}
