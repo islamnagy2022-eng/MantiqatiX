@@ -1188,3 +1188,18 @@
 - **CI/CD — NOT VERIFIED:** the repository workflow is configured for push to `main` and manual dispatch and contains the production validation/deploy smoke gates, but the available commit-run connector did not provide a successful run for the latest documentation commits. Therefore CI execution remains unverified rather than assumed.
 - **PERFORMANCE ADVISOR — OPEN:** 28 multiple-permissive-policy findings remain, plus unused/unindexed-index findings. No mass policy merge or index changes were made because these can alter authorization semantics or workload performance without measured query plans.
 - **PAYMENT / CASH:** `confirm_mantigo_cash_payment_backend` correctly binds the caller to the ride customer and performs idempotent state handling. Real payment/settlement E2E is still WAIT/NOT VERIFIED and was not simulated with real money.
+
+
+## RC385 — Homepage rebuild / release evidence update — 2026-10-07
+
+- Rebuilt the public homepage presentation layer in `web/home.css` without changing database schema, Supabase RPC contracts, or business data paths.
+- Updated `web/index.html` to load `home.css?v=rc385`.
+- Added/updated sector rendering validation so the cache contract explicitly checks `home.css?v=rc385`.
+- Corrected a validator defect discovered during review: the previous RC385 check incorrectly looked for `home.js?v=rc385`; it now checks the actual changed asset `home.css?v=rc385`.
+- GitHub branch: `feat/homepage-rebuild-rc385`; PR #56 remains OPEN and unmerged.
+- Latest branch commit after validator correction: `147e288617e9144b423f0ea065862e731afa0ae`.
+- Existing GitHub validation runs inspected for the preceding RC385 commit were successful for Module Professionalization Validation and Backend-only Module Boundary.
+- No new main Pages deployment run exists for the corrected branch commit because the Pages workflow triggers on `main` push or manual dispatch; the available GitHub connector does not expose workflow dispatch.
+- Therefore RC385 status remains **IMPLEMENTED — NOT VERIFIED for production deployment/runtime** until the main Pages workflow validates and deploys the exact release candidate.
+- No production database migration, financial transaction, payment, credential rotation, or destructive operation was performed in RC385.
+- Final Production Gate remains OPEN.
