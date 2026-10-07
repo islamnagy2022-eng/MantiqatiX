@@ -20,27 +20,34 @@ const plans={
  USED_ITEMS:['الإعلانات','البحث والتصفية','العروض','التفاوض','المراسلات','التقارير']
 };
 const icons=['▣','◈','◌','◆','◇','◎'];
-function badge(kind){const map={LIVE:['متصل','live'],UI:['الواجهة مكتملة','ui'],PENDING:['الربط لاحقًا','pending'],PLANNED:['مخطط','planned']};const x=map[kind]||map.UI;return '<span class="mnty-badge mnty-badge--'+x[1]+'">'+x[0]+'</span>'}
+function runtime(m){
+ const tables=Object.keys(m?.tables||{});
+ const external=window.MNTYModuleRuntime?.[m?.key]?.tables||{};
+ const readable=tables.filter(t=>external[t]!==null&&external[t]!==undefined).length;
+ return {tables,readable,counts:external};
+}
+function badge(kind){
+ const map={LIVE:['بيانات فعلية','live'],PARTIAL:['قراءة جزئية','pending'],NOT_VERIFIED:['غير متحقق','planned'],SERVER:['تنفيذ خادمي','ui']};
+ const x=map[kind]||map.NOT_VERIFIED;
+ return '<span class="mnty-badge mnty-badge--'+x[1]+'">'+x[0]+'</span>';
+}
 function card(title,idx,m){
- const liveTables=Object.keys(m?.tables||{});
- const linked=liveTables.length>0;
- const kind=linked?'LIVE':'UI';
- return '<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+icons[idx%icons.length]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(title)+'</h3>'+badge(kind)+'</div><p>'+esc(idx===0?'واجهة تشغيلية جاهزة للتوسع وربط البيانات الفعلية.':idx===1?'مساحة إدارة واستعراض مع الحفاظ على الصلاحيات والنطاق.':'الهيكل البصري موجود ويمكن توصيل العمليات الخلفية تدريجيًا دون إعادة تصميم الشاشة.')+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div><button type="button" class="linkbtn mnty-blueprint-btn" data-blueprint="'+esc(title)+'">فتح مساحة العمل ←</button></div></article>';
+ const r=runtime(m),kind=!r.tables.length?'NOT_VERIFIED':r.readable===r.tables.length?'LIVE':'PARTIAL';
+ return '<article class="mnty-blueprint-card" data-module-card="'+idx+'"><div class="mnty-blueprint-icon">'+icons[idx%icons.length]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(title)+'</h3>'+badge(kind)+'</div><p>'+esc(['مساحة تشغيل أساسية مع عرض الحالة الحالية.','استعراض البيانات المتاحة ضمن نطاق الحساب والصلاحيات.','العمليات الحساسة تمر عبر المسار الخادمي المعتمد.','متابعة الحالات والطلبات دون إنشاء بيانات تجريبية.','المؤشرات تعتمد على البيانات التشغيلية المتاحة فقط.','الإعدادات والصلاحيات تخضع لـRBAC وRLS.'][idx]||'مساحة تشغيلية للموديول.')+'</p><div class="mnty-blueprint-source"><span>'+r.tables.length+' مصادر</span><span>'+r.readable+' مقروءة</span></div><button type="button" class="linkbtn mnty-blueprint-btn" data-blueprint="'+esc(title)+'">فتح القسم ←</button></div></article>';
 }
 function panel(name,m){
  const list=plans[m?.key]||['نظرة عامة','البيانات','العمليات','الطلبات','التقارير','الإعدادات'];
- const tableCount=Object.keys(m?.tables||{}).length;
- return '<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT UI / '+esc(m.key||'MODULE')+'</span><h2>مساحة العمل الكاملة — '+esc(name)+'</h2><p>هذه الطبقة تستكمل شكل المنتج النهائي حتى عندما تكون بعض الخدمات الخلفية أو البيانات غير موصولة بعد. لا يتم إنشاء بيانات وهمية.</p></div><div class="mnty-product-meta">'+badge(tableCount?'LIVE':'PENDING')+'<small>'+tableCount+' مصدر بيانات معروف</small></div></div><div class="mnty-module-tabs">'+list.map((x,i)=>'<button type="button" class="'+(i===0?'active':'')+'" data-blueprint-tab="'+i+'">'+esc(x)+'</button>').join('')+'</div><div class="mnty-blueprint-grid">'+list.map((x,i)=>card(x,i,m)).join('')+'</div><div class="mnty-future-panel"><div><span class="eyebrow">FUTURE CONNECTION</span><h3>جاهز للربط لاحقًا بدون تغيير التصميم</h3><p>عند اكتمال الـBackend، يتم استبدال طبقة العرض/الحالة فقط مع الحفاظ على نفس المكونات ومسارات المستخدم.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>READY</span></div><div><b>DATA</b><span>'+(tableCount?'CONNECTED':'PENDING')+'</span></div><div><b>WRITE</b><span>SERVER ONLY</span></div></div></div></section>';
+ const r=runtime(m),kind=!r.tables.length?'NOT_VERIFIED':r.readable===r.tables.length?'LIVE':'PARTIAL';
+ const rows=r.tables.map(t=>'<tr><td>'+esc(t.replace(/_/g,' '))+'</td><td>'+esc(r.counts[t]??'—')+'</td><td>'+badge(r.counts[t]==null?'NOT_VERIFIED':'LIVE')+'</td></tr>').join('');
+ return '<section class="mnty-product-shell" data-module-blueprint="'+esc(m?.key||'')+'"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCTION MODULE / '+esc(m?.key||'MODULE')+'</span><h2>مساحة العمل — '+esc(name)+'</h2><p>هذه الطبقة تعرض الحالة التشغيلية الفعلية للموديول ولا تعتبر وجود الواجهة دليلًا على اكتمال الخدمة.</p></div><div class="mnty-product-meta">'+badge(kind)+'<small>'+r.readable+' / '+r.tables.length+' مصادر مقروءة</small></div></div><div class="mnty-module-tabs" role="tablist">'+list.map((x,i)=>'<button type="button" class="'+(i===0?'active':'')+'" data-blueprint-tab="'+i+'" role="tab" aria-selected="'+(i===0?'true':'false')+'">'+esc(x)+'</button>').join('')+'</div><div class="mnty-blueprint-grid">'+list.map((x,i)=>card(x,i,m)).join('')+'</div><section class="mnty-runtime-panel"><div class="section-head"><div><span class="eyebrow">RUNTIME SOURCES</span><h3>مصادر البيانات الحالية</h3></div></div><div class="table-wrap"><table><thead><tr><th>المصدر</th><th>السجلات</th><th>الحالة</th></tr></thead><tbody>'+rows+'</tbody></table></div></section><div class="mnty-future-panel"><div><span class="eyebrow">SECURITY BOUNDARY</span><h3>الكتابات الحساسة عبر الخادم</h3><p>الواجهة لا تمنح صلاحيات إضافية ولا تنفذ عمليات حساسة مباشرة؛ المسار القائم هو مصدر الحقيقة.</p></div><div class="mnty-future-stats"><div><b>RLS</b><span>ENFORCED</span></div><div><b>RBAC</b><span>ENFORCED</span></div><div><b>WRITE</b><span>SERVER</span></div></div></div></section>';
 }
-window.MNTYModuleBlueprint=function(name,m){return panel(name,m)};
-window.MNTYBindModuleBlueprint=function(){
- document.querySelectorAll('[data-blueprint-tab]').forEach(btn=>btn.onclick=function(){
-  document.querySelectorAll('[data-blueprint-tab]').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
-  const cards=document.querySelectorAll('.mnty-blueprint-card');cards.forEach((x,i)=>x.style.outline=i===Number(btn.dataset.blueprintTab)?'2px solid rgba(141,13,22,.18)':'');
- });
- document.querySelectorAll('.mnty-blueprint-btn').forEach(btn=>btn.onclick=function(){
-  const t=btn.dataset.blueprint;
-  if(typeof window.showToast==='function')window.showToast('واجهة «'+t+'» جاهزة. الربط الخلفي يُستكمل لاحقًا دون تغيير التصميم.','success');
+window.MNTYModuleBlueprint=(name,m)=>panel(name,m);
+window.MNTYBindModuleBlueprint=()=>{
+ document.querySelectorAll('[data-module-blueprint]').forEach(root=>{
+  const tabs=[...root.querySelectorAll('[data-blueprint-tab]')],cards=[...root.querySelectorAll('[data-module-card]')];
+  tabs.forEach(btn=>btn.onclick=()=>{tabs.forEach(x=>{x.classList.remove('active');x.setAttribute('aria-selected','false')});btn.classList.add('active');btn.setAttribute('aria-selected','true');cards.forEach((c,i)=>c.hidden=i!==Number(btn.dataset.blueprintTab))});
+  cards.forEach((c,i)=>c.hidden=i!==0);
+  root.querySelectorAll('.mnty-blueprint-btn').forEach(btn=>btn.onclick=()=>window.showToast?.('تم فتح قسم «'+btn.dataset.blueprint+'».','success'));
  });
 };
 })();
