@@ -1369,3 +1369,24 @@
 7. DASH-170/180 — full responsive/accessibility/performance evidence.
 8. DASH-190+ — multi-user RBAC/RLS/Tenant E2E.
 9. Post-merge GitHub Pages runtime verification.
+
+## RC450 — Restaurant Workspace (DASH-080)
+- Status: **PASS for implementation + CI**; production browser/runtime and multi-user tenant E2E remain **NOT VERIFIED**.
+- Implemented on existing restaurant tables with existing RLS; no schema/RPC/Edge/policy changes.
+- Workspace uses tenant/business/branch scoping where available, real menu/order/table/inventory data, reusable records table, pagination/search/sort, and unified record details.
+- PR #63 merged safely after fixing a pre-existing regression in `openLeadDetails` where an async database call had lost the `async` function declaration.
+- CI after fix: Module Professionalization #160 SUCCESS; Backend-only Module Boundary #154 SUCCESS; Deploy validation #1942 SUCCESS.
+
+## RC460 — Unified CRM Workspace (DASH-090)
+- Status: **PASS for implementation + CI**; production browser/runtime and multi-user tenant E2E remain **NOT VERIFIED**.
+- Built on existing RLS-backed `marketing_leads`, `support_tickets`, `ticket_messages`, and notifications data.
+- Added unified CRM KPIs, real-data lead/ticket tables, permission-aware actions, and existing secure lead/ticket detail flows.
+- No schema, RPC, Edge Function, or RLS policy changes.
+- PR #64 merged safely; merge commit: `1bd45e7e1d0de14b52d5a99051a77010908c054d`.
+- CI: Module Professionalization #164 SUCCESS; Backend-only Module Boundary #158 SUCCESS; Deploy validation #1944 SUCCESS.
+
+### Current dashboard continuation after RC460
+- Next implementation target: **DASH-100 Marketing Workspace** and deeper CRM/security regression coverage.
+- Then DASH-110 Operations, DASH-120 Finance, DASH-140 Notifications/Tasks, DASH-150 Reporting/Analytics, DASH-160 System Health/Security.
+- Remaining cross-cutting gates: responsive/accessibility/performance evidence, multi-user RBAC/RLS/tenant E2E, public Pages runtime verification, release/device gates, payment/finance E2E, and remaining production security-advisor findings.
+
