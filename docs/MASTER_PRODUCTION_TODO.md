@@ -1483,3 +1483,31 @@
 - No order was created, mutated, cancelled, delivered, or financially settled during this verification pass.
 - Customer → Provider → Order → Status → Notification runtime E2E remains open until approved independent test identities/sessions are available.
 
+## RC550 — Production Order Lifecycle Boundary Verification — 2026-10-07
+
+### Result
+- **Order creation path:** VERIFIED at source + Production Edge Function metadata.
+- **Order status path:** VERIFIED at source + Production Edge Function metadata.
+- **Pricing authority:** VERIFIED server-side; client-supplied totals are not trusted by `create_order_backend`.
+- **Identity binding:** VERIFIED; `auth.uid()` must match the customer/user passed to backend RPCs.
+- **Tenant/business binding:** VERIFIED in `create_order_backend`; business, catalog, branch and pricing records are checked against the requested tenant/business.
+- **Status authorization:** VERIFIED in `update_order_status_backend`; customer may cancel own order, while provider/business roles are constrained by tenant/business scope and allowed state transitions.
+- **Paid-order cancellation protection:** VERIFIED; successful payment blocks cancellation until refund path is handled.
+- **Anonymous direct RPC access:** VERIFIED DENIED.
+- **Authenticated direct RPC access:** VERIFIED DENIED; privileged mutation is exposed through the authenticated Edge Function boundary using service-role internally.
+- **Orders RLS:** VERIFIED enabled + FORCE RLS.
+- **Order notification triggers:** VERIFIED for order creation and status-history/status-change notification paths.
+- **No production order/payment mutation was performed.**
+
+### Current gate
+**DASH-110 / order lifecycle security boundary: PASS for static + production invariant verification.**
+
+### Still NOT VERIFIED
+1. Real authenticated customer → provider order E2E.
+2. Provider-only visibility across two businesses/tenants.
+3. Real status transition → notification delivery/click-through.
+4. Finance/payment E2E after successful payment.
+5. Cross-tenant denial using two independent authenticated sessions.
+
+This checkpoint does not close the production release gate because runtime E2E evidence is still required.
+
