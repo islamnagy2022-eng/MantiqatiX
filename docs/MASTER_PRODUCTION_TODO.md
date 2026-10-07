@@ -1390,3 +1390,12 @@
 - Then DASH-110 Operations, DASH-120 Finance, DASH-140 Notifications/Tasks, DASH-150 Reporting/Analytics, DASH-160 System Health/Security.
 - Remaining cross-cutting gates: responsive/accessibility/performance evidence, multi-user RBAC/RLS/tenant E2E, public Pages runtime verification, release/device gates, payment/finance E2E, and remaining production security-advisor findings.
 
+## RC470 — Marketing Workspace (DASH-100)
+- Status: **PASS for implementation + CI**; production browser/runtime and end-to-end marketing/RBAC tenant verification remain **NOT VERIFIED**.
+- Upgraded the existing marketing area into a real-data operational workspace covering leads, projects, advertisements, marketing providers, and active marketing services.
+- Added calculated KPIs only from available records: active/pending ads, verified providers, project count/value.
+- Added unified record-detail access for marketing entities and retained existing booking/admin actions.
+- No schema, RPC, Edge Function, or RLS policy changes.
+- PR #65 merged safely; merge commit: `3e007a52cb2e2fde934ce5a9623efd253644a07e`.
+- CI after correction: Backend-only Module Boundary #165 SUCCESS; Module Professionalization #171 SUCCESS; Deploy validation #1948 SUCCESS.
+
