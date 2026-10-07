@@ -1167,3 +1167,14 @@
 - [ ] This source review is still not equivalent to two-user/two-tenant adversarial runtime E2E; that remains a release blocker.
 - [ ] CI for the latest main commit remains NOT VERIFIED through the available commit-run/status interfaces; the repository does contain .github/workflows/pages.yml with extensive production validation/deploy smoke gates.
 - [ ] ERP migration provenance, real payment/settlement E2E, backup/restore rehearsal, interactive browser E2E, Android signed/device evidence, leaked-password protection, rollback rehearsal, and final certification remain open.
+
+
+## RC383 — SECURITY DEFINER source evidence expansion — 2026-10-07
+
+- [x] Expanded source-level review across MantiGO and reverse-bidding backend RPCs. `create_indrive_request_backend` and `create_indrive_bid_backend` explicitly bind the supplied user to `auth.uid()`, require authenticated non-anonymous context, and enforce request ownership/bid constraints.
+- [x] `create_mantigo_ride_backend`, `create_mantigo_ride_backend_v2`, `create_mantigo_bid_backend`, `accept_mantigo_bid_backend`, `update_mantigo_trip_status_backend`, `match_mantigo_ride_backend`, and `list_mantigo_customer_rides_backend` contain explicit caller binding to `auth.uid()` plus workflow-specific ownership/state checks.
+- [x] `mantigo_rate_ride` derives the actor from `auth.uid()` and only permits rating a completed ride owned by that customer.
+- [x] `create_medical_appointment_backend` source evidence requires `p_user_id = auth.uid()` and active provider/tenant membership; `update_medical_appointment_status_backend` has corresponding identity and appointment-tenant membership checks.
+- [x] No new P0 authorization defect was evidenced in this expanded source review.
+- [ ] Runtime two-user/two-tenant adversarial execution remains necessary because source evidence cannot prove deployed behavior under hostile inputs.
+- [ ] Latest documentation commit `81971836d138c7e52905d148b6b2cb1c5eebaa35` has no workflow run returned by the available commit-run connector. CI therefore remains NOT VERIFIED.
