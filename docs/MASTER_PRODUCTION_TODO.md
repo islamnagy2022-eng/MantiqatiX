@@ -1031,3 +1031,16 @@
 - [x] Registered the existing production contract as migration `education_request_server_authority_v1` (live migration version `20261007021723`).
 - [x] Re-verified live privileges after migration: authenticated INSERT on `education_requests` = false; anon INSERT = false; authenticated EXECUTE on the backend RPC = true; anon EXECUTE = false.
 - [ ] Education real-user E2E remains NOT VERIFIED.
+
+
+## RC371 — Security/Performance Advisor revalidation — 2026-10-07
+
+- Security Advisor re-run at 2026-10-07 02:20 UTC.
+- `digital_page_payment_events`: RLS enabled with no policies remains intentional backend-only isolation.
+- Anonymous SECURITY DEFINER warning remains only for `get_mnty_targeted_advertisements`, the intentional public advertisement endpoint.
+- Authenticated SECURITY DEFINER warning count remains 41; these are existing backend RPC boundaries and were not blanket-revoked because several are required by authenticated workflows and contain actor/role/tenant checks.
+- The remaining leaked-password-protection warning is an Auth-managed owner setting and cannot be truthfully marked enabled from database inspection.
+- Anonymous-access advisor warnings were reviewed on representative sensitive tables; live policies are targeted to `authenticated`, with explicit anonymous-session guards where applicable. No broad policy deletion was performed merely to silence the advisor.
+- Performance Advisor found 105 unindexed foreign-key findings and 28 multiple-permissive-policy findings; these require workload/query-plan evidence before mass index or policy consolidation.
+- One exact duplicate index remains on `public.mantigo_bids`: `idx_mantigo_bids_ride_status_created` and `mantigo_bids_ride_status_idx`, both on `(ride_id,status,created_at DESC)`. No index was dropped in this cycle because the source/migration provenance was not safely established from the available repository interface.
+- Production Gate remains OPEN / NOT PRODUCTION READY.
