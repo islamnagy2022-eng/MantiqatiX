@@ -1073,3 +1073,16 @@
 - [x] This remains an intentional backend-only payment-event boundary; no broad policy was added.
 - [x] This supersedes older TODO wording that listed seven public no-policy tables as still open at the live baseline.
 - [ ] Final Payment/Finance E2E remains NOT VERIFIED because real provider transaction/replay/settlement evidence is still absent.
+
+
+## RC375 — MantiGO rate-limit internal boundary — 2026-10-07
+
+- [x] Identified `public.mantigo_rate_limit_check(text,uuid)` as an internal rate-limit checker used by the MantiGO trigger path, not a client API.
+- [x] Production direct `EXECUTE` revoked from `public`, `anon`, and `authenticated`.
+- [x] Live verification: `anon_exec=false`, `authenticated_exec=false`.
+- [x] Source migration added: `20261007064000_mantigo_rate_limit_internal_boundary_v1.sql`.
+- [x] PR #55 merged; merge commit `e5ba89d4f076f9d462f3fedf96f29cf552d3c05d`.
+- [x] Production migration history registered version `20261007064228`.
+- [x] Security Advisor authenticated SECURITY DEFINER findings decreased from 41 to 40; the rate-limit checker is no longer exposed.
+- [x] Existing trigger invocation remains intact because the function is SECURITY DEFINER/internal and does not require client EXECUTE.
+- [ ] Final production E2E / payment / restore / Android / external-device gates remain open.
