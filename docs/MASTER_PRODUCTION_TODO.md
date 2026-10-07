@@ -1225,3 +1225,12 @@
 - No GitHub commit statuses are attached to this head.
 - The production Pages workflow has not produced a verified deployment result for this head; therefore RC385 homepage production deployment/runtime remains NOT VERIFIED.
 - No merge to `main` was performed.
+
+
+## RC388 — Homepage deployment path correction — 2026-10-07
+
+- Confirmed user-visible homepage had not changed because RC385 remained on feature branch while GitHub Pages deploys from `main`.
+- Confirmed RC385 `web/index.html` references `home.css?v=rc385`, and PR #56 contains the homepage CSS rebuild.
+- Corrected `.github/workflows/pages.yml` on the feature branch to run validation on pull requests targeting `main`, while keeping actual Pages deployment restricted to pushes on `main`.
+- This improves pre-merge evidence without deploying feature branches or granting production deployment on PRs.
+- Latest workflow-trigger evidence is not yet available for the new workflow commit; therefore no merge was performed.
