@@ -905,7 +905,7 @@ function restaurantWorkspace(rows){
  const orderTable=recordsTable('الطلبات',orders,[['الطلب',r=>action('order',r,r.id)],['العميل',r=>r.customer_name],['الحالة',r=>r.status],['الإجمالي',r=>fmt(r.total_egp)+' EGP'],['التنفيذ',r=>r.fulfillment_type],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']]);
  const tableTable=recordsTable('الطاولات',tables,[['الطاولة',r=>action('table',r,'#'+r.table_number)],['السعة',r=>r.capacity_persons],['الحالة',r=>r.status],['الفاتورة',r=>fmt(r.current_bill_egp)+' EGP'],['الحجز',r=>r.reserved_customer_name||'—']]);
  const inventoryTable=recordsTable('المخزون',inventory,[['الصنف',r=>action('inventory',r,r.name_ar)],['الرصيد',r=>fmt(r.current_stock_qty)+' '+r.unit],['حد التنبيه',r=>fmt(r.min_stock_alert_threshold)],['التكلفة',r=>fmt(r.unit_cost_egp)+' EGP'],['المورد',r=>r.supplier_name]]);
- const host=document.createElement('div');
+ setTimeout(()=>document.querySelectorAll('[data-restaurant-kind]').forEach(btn=>btn.addEventListener('click',()=>window.openRestaurantRecord(btn.dataset.restaurantKind,btn.dataset.restaurantId))),0);
  return workspaceHead('RESTAURANT','المطاعم والمطابخ','Workspace موحد للقائمة والطلبات والطاولات والمخزون ضمن النشاط والفرع الحالي.','LIVE')+workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
 }
 
