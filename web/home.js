@@ -1100,7 +1100,6 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(providersRes.status!=='fulfilled' || providersRes.value?.error) throw (providersRes.status==='fulfilled'?providersRes.value.error:new Error('تعذر تحميل مقدمي الخدمات'));
         if(requestSequence!==homeLoadSequence)return;
         const services=servicesRes.value?.data||[];
-        updateHomepageLiveStats({services,providers:providersRes.value?.data||[],ads:adsRes.status==='fulfilled'&&!adsRes.value?.error?(adsRes.value?.data||[]):[]});
         window.__MNTY_HOME_SERVICES=services;
         window.__MNTY_HOME_PROVIDERS=providersRes.value?.data||[];
         const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.value?.data||[]):providersRes.value?.data||[];
@@ -1108,6 +1107,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         renderDynamicCategories(services,providers);
         renderServices(services,term);renderProviders(providers,term);
         const adsData=adsRes.status==='fulfilled' && !adsRes.value?.error ? (adsRes.value.data||[]) : [];
+        updateHomepageLiveStats({services,providers:providersRes.value?.data||[],ads:adsData});
         if(adsData.length) renderTargetedAds(adsData);
         else { renderSideTargetedAd([]); renderSponsored(providers); }
         if(adsRes.status!=='fulfilled' || adsRes.value?.error) console.warn('[MantiqatiX home] ads load failed; catalog results kept visible',adsRes.value?.error||adsRes.reason);
