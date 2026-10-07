@@ -4054,3 +4054,8 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
 @media(prefers-reduced-motion:reduce){
   .mx-home *, .mx-home *::before, .mx-home *::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
+
+/* RC398 — final homepage polish */
+.mx-home .mx-category__media img{content-visibility:auto}
+.mx-home .mx-search-suggestions{contain:layout paint}
+.mx-home .mx-live[aria-busy="true"]{opacity:.7}
