@@ -3815,3 +3815,107 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
 @media(prefers-reduced-motion:reduce){
   .mx-home .mx-quick-action{transition:none!important}
 }
+
+
+/* RC393 — Reference homepage visual system
+   Master reference: supplied MantiqatiX homepage artwork.
+   Functional DOM/data remain live; this layer controls presentation only. */
+.mx-home{background:#f6f9ff}
+.mx-header{background:rgba(255,255,255,.97);border-bottom:1px solid #e7eef8;box-shadow:0 3px 16px rgba(20,55,110,.07)}
+.mx-header__inner{max-width:1536px;display:grid;grid-template-columns:260px minmax(300px,520px) minmax(430px,1fr) auto;grid-template-rows:64px;align-items:center;gap:12px;padding:5px 18px}
+.mx-header__inner>.mx-brand{grid-column:1;grid-row:1;justify-self:start}
+.mx-header__inner>.mx-search-wrap{grid-column:2;grid-row:1}
+.mx-header__inner>.mx-nav{grid-column:3;grid-row:1;display:flex;justify-content:flex-start;align-items:center;gap:15px;white-space:nowrap;min-width:0}
+.mx-header__inner>.mx-header__login{grid-column:4;grid-row:1}
+.mx-header__inner>.mx-header-tool,.mx-header__inner>.mx-mobile-menu{display:none}
+.mx-brand__name{font-size:18px;color:#112b66;letter-spacing:.6px}
+.mx-brand__ar{font-size:8px;color:#58709a}
+.mx-search{height:42px;border:1px solid #dfe9f7;border-radius:18px;background:#f5f8fd;box-shadow:none}
+.mx-search__location{border-left:1px solid #d7e3f2;color:#173b80;font-weight:900;padding-inline:11px;white-space:nowrap}
+.mx-search input{font-size:12px;color:#18335f}
+.mx-search button{width:43px;height:36px;border-radius:14px;background:#1769e8;color:#fff}
+.mx-nav a{font-size:11px;font-weight:900;color:#10285a;padding:8px 0;border-bottom:2px solid transparent}
+.mx-nav a:first-child{color:#1262e7;border-bottom-color:#1262e7}
+.mx-nav .mx-add{order:-1;min-height:36px;padding:0 10px;border:0;border-radius:10px;background:#1769e8;color:#fff;font-size:10px}
+.mx-header__login{min-height:38px;border:0;background:transparent;color:#112b66;padding:0 3px}
+.mx-account-icon{font-size:21px;color:#1262e7}
+.mx-account-copy b{font-size:10px}
+
+.mx-main{max-width:1536px;padding:0 10px 28px}
+.mx-home-hero{min-height:285px;height:285px;margin:0 0 12px;border:0;border-radius:0 0 18px 18px;box-shadow:none;display:block;position:relative;overflow:hidden;background:#dceeff}
+.mx-home-hero__visual{position:absolute;inset:0;min-height:0;padding:0;background:url('assets/mantiqatix-cover.svg') center/cover no-repeat}
+.mx-home-hero__visual>*{display:none!important}
+.mx-home-hero__copy{position:relative;z-index:3;width:54%;height:100%;padding:35px 60px 28px;justify-content:center;background:linear-gradient(90deg,rgba(255,255,255,.96) 0%,rgba(255,255,255,.88) 62%,rgba(255,255,255,0) 100%)}
+.mx-home-hero__eyebrow{background:rgba(255,255,255,.84);border-color:#d8e6fb;color:#175cd3}
+.mx-home-hero h1{font-size:39px;color:#092b78;margin:8px 0}
+.mx-home-hero p{font-size:13px;max-width:620px;color:#263f67}
+.mx-home-hero__actions .mx-btn{border-radius:15px;min-height:43px}
+.mx-home-hero__trust span{background:#fff;border-color:#e0e9f7;color:#173b80}
+
+.mx-quick-actions,.mx-platform-notices,.mx-about-section,.mx-audience-section,.mx-module-strip{display:none!important}
+.mx-section{margin-top:12px}
+.mx-section__head{margin-bottom:8px}
+.mx-section__head h2{font-size:18px;color:#102c6d}
+.mx-section__head p{font-size:10px}
+#mx-categories .mx-section__head{display:flex;align-items:center;justify-content:space-between}
+#mx-categories .mx-category-actions{display:none}
+.mx-categories{display:grid;grid-template-columns:repeat(16,minmax(78px,1fr));gap:7px;overflow:hidden;padding:0}
+.mx-category{min-width:0;padding:4px;border:1px solid #e1e9f4;border-radius:9px;background:#fff;box-shadow:0 2px 8px rgba(16,54,100,.05)}
+.mx-category:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(16,54,100,.1)}
+.mx-category__media{height:68px;border-radius:7px;background:#eef5ff}
+.mx-category strong{font-size:9px;color:#102b64;margin-top:5px;line-height:1.25}
+.mx-category small,.mx-category__cta{display:none}
+
+#mx-offers{display:block}
+#mx-offers .mx-section__head p{display:none}
+#mx-offers .mx-section__head{display:flex;align-items:center;justify-content:space-between}
+.mx-sponsored{grid-template-columns:minmax(340px,1.15fr) minmax(0,2.85fr);gap:10px}
+.mx-feature-ad{min-height:205px;border-radius:12px;padding:18px;background:linear-gradient(135deg,#071f48,#1769e8 72%,#0aa6c7)}
+.mx-feature-ad h3{font-size:23px}
+.mx-feature-ad p{font-size:10px}
+.mx-listing-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.mx-listing{border-radius:10px}
+.mx-listing .mx-listing__media{height:105px}
+.mx-listing__body{padding:8px}
+.mx-listing h3{font-size:11px}
+.mx-listing__cta{font-size:9px;padding:5px 8px}
+
+#mx-nearby .mx-section__head p,#mx-location-controls{display:none!important}
+.mx-provider-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.mx-provider-card{border-radius:10px}
+.mx-provider-card .mx-photo{height:92px}
+.mx-provider-card__body{padding:8px}
+.mx-provider-card__body h3{font-size:11px}
+.mx-provider-card__body p,.mx-location{font-size:9px}
+.mx-chip{font-size:8px;padding:3px 6px}
+
+.mx-footer{margin-top:14px;background:#061a3a;padding:20px 22px}
+.mx-footer__inner{grid-template-columns:1.5fr 1fr 1fr 1fr;gap:18px}
+.mx-footer__brand{font-size:20px}
+.mx-footer h3{font-size:11px}
+.mx-footer a,.mx-footer__sub{font-size:9px}
+.mx-footer__support{font-size:18px}
+
+@media(max-width:1250px){
+ .mx-header__inner{grid-template-columns:220px minmax(260px,1fr) auto;grid-template-rows:56px}
+ .mx-header__inner>.mx-nav{grid-column:1/-1;grid-row:2;justify-content:center}
+ .mx-header__inner>.mx-header__login{grid-column:3;grid-row:1}
+ .mx-home-hero__copy{width:62%;padding-inline:38px}
+ .mx-categories{grid-template-columns:repeat(8,minmax(85px,1fr));overflow:auto}
+ .mx-provider-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:800px){
+ .mx-header__inner{display:grid!important;grid-template-columns:44px minmax(0,1fr) 76px 38px!important;grid-template-areas:"brand search login menu"!important;grid-template-rows:56px!important;padding:7px 9px!important}
+ .mx-header__inner>.mx-brand{grid-area:brand!important}
+ .mx-header__inner>.mx-search-wrap{grid-area:search!important}
+ .mx-header__inner>.mx-header__login{grid-area:login!important}
+ .mx-header__inner>.mx-mobile-menu{grid-area:menu!important;display:grid!important}
+ .mx-home-hero{height:250px;min-height:250px}
+ .mx-home-hero__copy{width:72%;padding:22px 18px}
+ .mx-home-hero h1{font-size:27px}
+ .mx-home-hero p{font-size:10px}
+ .mx-categories{grid-template-columns:repeat(8,92px);overflow-x:auto;padding-bottom:4px}
+ .mx-sponsored{grid-template-columns:1fr!important}
+ .mx-listing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .mx-provider-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
