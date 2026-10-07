@@ -1299,3 +1299,25 @@
 10. DASH-180 performance evidence.
 11. DASH-190+ E2E/RBAC/Tenant/production smoke verification.
 12. Actual GitHub Pages production deploy verification after the merged main commit.
+
+
+## RC410 — Role-specific Command Centers — 2026-10-07
+
+- **DASH-060 Role Dashboard Architecture:** PASS — تم فصل Command Center حسب الدور باستخدام RBAC الحالي دون إنشاء نظام صلاحيات جديد.
+- **Role-specific dashboards:** PASS — Finance, Marketing, Sales, Support, Provider Finance/Marketing/Operations/Support, Owner, Business Owner, Provider Owner, Admin, Manager, Employee, Staff, Branch Manager, Service Provider.
+- **Data integrity:** PASS — المؤشرات تعتمد على live.records/live.counts الموجودة أصلًا؛ لا توجد أرقام تجريبية.
+- **Authorization:** PASS للواجهة — فتح الوحدات يمر عبر MNTY_RBAC.can، والتحقق النهائي يظل RLS/RPC/Edge.
+- **Tenant isolation E2E:** NOT VERIFIED — لم يتم إنشاء جلسات مستخدمين متعددة أو إجراء mutation إنتاجي.
+- **CI:** Module Professionalization #119 SUCCESS؛ Backend-only Boundary #113 SUCCESS؛ Deploy #1926 validation SUCCESS، مع بقاء deploy الفعلي مرتبطًا بسياق main بعد الدمج.
+- **PR:** #59 merged; merge commit `ce4628cbad7f5e9f0c67d96ab479fef6f1d8cb43`.
+
+### What remains
+1. DASH-050 entity-aware Global Search.
+2. DASH-070 shared Module Workspace/Data Table/Record Details standardization.
+3. DASH-080 Restaurant workspace audit/completion.
+4. CRM / Marketing / Operations / Finance deep workspaces.
+5. Notification/Task/Audit unification.
+6. Reports/Analytics and System Health.
+7. Responsive/accessibility/performance evidence.
+8. Multi-user RBAC/RLS/Tenant E2E.
+9. Post-merge GitHub Pages runtime verification.
