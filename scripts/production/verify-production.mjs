@@ -4,7 +4,7 @@ import path from "node:path";
 const root=process.cwd(), results=[];
 const add=(id,category,status,evidence,severity="P1")=>results.push({id,category,status,severity,evidence});
 const exists=p=>fs.existsSync(path.join(root,p));
-const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+const read=p=>fs.readFileSync(path.isAbsolute(p)?p:path.join(root,p),"utf8");
 const walk=d=>{const o=[];if(!fs.existsSync(d))return o;for(const e of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory()&&!["node_modules",".git"].includes(e.name))o.push(...walk(p));else if(e.isFile())o.push(p)}return o};
 for(const p of [".github/workflows/pages.yml","web/app.js","web/rbac.js","supabase/functions/payment-intent/index.ts","supabase/functions/paymob-webhook/index.ts","supabase/migrations","scripts/validate-production-gate-contract.mjs","scripts/validate-finance-boundaries.mjs","scripts/validate-digital-pages-boundaries.mjs"])add("SRC-"+p.replace(/[^a-z0-9]+/gi,"_"),"SOURCE",exists(p)?"PASS":"FAIL",exists(p)?`exists: ${p}`:`missing: ${p}`,exists(p)?"P1":"P0");
 const files=walk(path.join(root,"supabase","functions")).filter(p=>p.endsWith(".ts")), joined=files.map(read).join("\n");
