@@ -1238,6 +1238,37 @@ async function postFinancialJournal(){if(!user?.id||!live.tenantId)return authVi
 function financeWorkspace(){return workspaceHead('FINANCE','العمولات والباقات','نماذج مجانية وعمولات وباقات احترافية مع قابلية تخصيص حسب المجال.','FINANCE')+workspaceCards([['الباقة المجانية','أساسي','وجود أساسي داخل المنصة'],['نظام العمولة','Usage','عمولة على العمليات المؤهلة'],['احترافي — 1','مخصص','مزايا إضافية وظهور أكبر'],['احترافي — 2','مخصص','تسويق وتقارير متقدمة'],['احترافي — 3','مخصص','إدارة متقدمة للمجالات'],['التسويات','مراجعة','الربط مع النواة المالية الفعلية']])+(['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE','FINANCE_MANAGER'].includes(String(live.role||'').toUpperCase())?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="postFinancialJournal()">+ ترحيل قيد مالي</button></div>':'')}
 
 
+function crmWorkspace(){
+ const leads=Array.isArray(live.records.leads)?live.records.leads:[];
+ const tickets=Array.isArray(live.records.supportTickets)?live.records.supportTickets:[];
+ const notifications=Array.isArray(live.records.notifications)?live.records.notifications:[];
+ const role=String(live.role||'').toUpperCase();
+ const manager=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER','SUPPORT','SUPPORT_MANAGER'].includes(role);
+ const openLeads=leads.filter(x=>!['CLOSED','CONVERTED','REJECTED'].includes(String(x.status||'').toUpperCase())).length;
+ const openTickets=tickets.filter(x=>!['CLOSED','RESOLVED'].includes(String(x.status||'').toUpperCase())).length;
+ const unread=notifications.filter(x=>!x.read_at).length;
+ const leadRows=leads.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="lead" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
+ const ticketRows=tickets.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="ticket" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
+ const actions='<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button><button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button></div>';
+ const note=manager?'عرض تشغيلي موسع حسب العضوية والصلاحيات الحالية؛ البيانات تأتي من RLS مباشرة.':'عرض سجلات حسابك فقط وفق سياسات الوصول الحالية.';
+ return workspaceHead('CRM','العملاء والعلاقات','مركز موحد لطلبات العملاء المحتملين وتذاكر الدعم والمراسلات والتنبيهات، بدون بيانات تجريبية.','CRM')
+  +'<div class="notice">'+esc(note)+'</div>'
+  +workspaceCards([
+   ['طلبات التسويق',String(leads.length),'سجلات مرئية وفق RLS'],
+   ['طلبات مفتوحة',String(openLeads),'ليست مغلقة أو محولة أو مرفوضة'],
+   ['تذاكر الدعم',String(tickets.length),'تذاكر مرئية وفق نطاق الحساب'],
+   ['تذاكر تحتاج متابعة',String(openTickets),'حالات مفتوحة أو قيد المعالجة'],
+   ['إشعارات غير مقروءة',String(unread),'تنبيهات الحساب الحالية'],
+   ['نطاق الحساب',esc(live.tenantId||'—'),'Tenant الحالي فقط']
+  ])
+  +actions
+  +recordsTable('طلبات التسويق',leadRows,[
+    ['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['منطقة الخدمة',r=>r.service_area||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r._action]
+  ])
+  +recordsTable('تذاكر الدعم',ticketRows,[
+    ['الموضوع',r=>r.subject||'—'],['الفئة',r=>r.category||'—'],['الأولوية',r=>r.priority||'—'],['الحالة',r=>r.status||'—'],['آخر تحديث',r=>r.updated_at?new Date(r.updated_at).toLocaleString('ar-EG'):(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')],['إجراء',r=>r._action]
+  ]);
+}
 function canManageSupport(){return ['ADMIN','SUPER_ADMIN','OWNER','BUSINESS_OWNER','SUPPORT','SUPPORT_MANAGER'].includes(String(live.role||'').toUpperCase())}
 const SUPPORT_STATUSES=['OPEN','IN_PROGRESS','RESOLVED','CLOSED'];
 async function updateTicketStatus(ticketId,status){
