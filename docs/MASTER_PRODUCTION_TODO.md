@@ -1458,3 +1458,13 @@
 - No production data was mutated and no real payment was executed.
 - Note: the historical RC40 `supabase/tests/production_invariants.sql` expectation for `create_payment_intent_backend` is stale relative to the current documented architecture; production behavior itself was verified with the corrected invariant.
 
+## RC540 — Production Tenant/RLS Gate Review
+- Status: **PARTIAL / NOT VERIFIED E2E**.
+- Production currently contains two active tenant contexts: `MNTY-PLATFORM` (10 distinct active users / 45 memberships) and `MNTY-TEST-B` (2 distinct active users / 3 memberships).
+- Active role coverage includes customer, provider/business roles, management, support, finance-related and platform administration roles.
+- Production auth snapshot: 6 auth users, 5 confirmed, 0 anonymous.
+- RLS no-policy inventory remains exactly one table: `public.digital_page_payment_events`, intentionally backend/payment-event scoped.
+- This evidence proves that independent test identities and multi-tenant fixtures exist, but it does **not** prove cross-tenant denial or role separation at runtime because no authenticated sessions were used in this verification pass.
+- No credentials were extracted, no user session was impersonated, and no production mutation was performed.
+- Final runtime E2E remains a release gate requiring owner-approved test identities/sessions.
+
