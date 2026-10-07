@@ -28,6 +28,8 @@ jobs:
           mkdir -p web/vendor
           npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
           test -s web/vendor/supabase.js
+      - name: Production verification engine
+        run: npm run verify:production
       - name: Syntax check
         run: |
           node --check web/rbac.js
@@ -73,6 +75,13 @@ jobs:
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
           node scripts/validate-module-runtime-coverage.mjs
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/production-verification/production-verification.json
+          if-no-files-found: warn
       - name: Required web files
         run: |
           test -f web/index.html

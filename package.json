@@ -2,10 +2,7 @@
   "private": true,
   "name": "mantiqatix-web-release",
   "version": "1.0.0",
-  "dependencies": {
-    "@supabase/supabase-js": "2.117.2"
-  },
-  "devDependencies": {
-    "esbuild": "0.25.9"
-  }
+  "scripts": {"verify:production": "node scripts/production/verify-production.mjs"},
+  "dependencies": {"@supabase/supabase-js": "2.117.2"},
+  "devDependencies": {"esbuild": "0.25.9"}
 }
