@@ -1068,7 +1068,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
 
     const updateHomepageLiveStats=({services=[],providers=[],ads=[]}={})=>{
       const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value);};
-      set('mx-stat-sectors',TAXONOMY.length);
+      set('mx-stat-sectors',document.querySelectorAll('#mx-category-grid .mx-category').length || TAXONOMY.length);
       set('mx-stat-services',PUBLIC_DIRECTORY_TOTALS.services||services.length);
       set('mx-stat-providers',PUBLIC_DIRECTORY_TOTALS.providers||providers.length);
       set('mx-stat-ads',ads.length);
