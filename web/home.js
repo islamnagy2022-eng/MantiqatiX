@@ -1,6 +1,6 @@
 (function(){
   const TAXONOMY = [
-    ['•','مطاعم وكافيهات','مطاعم، كافيهات، حلويات','FOOD'],
+    ['','مطاعم وكافيهات','مطاعم، كافيهات، حلويات','FOOD'],
     ['•','أطباء وعيادات','تخصصات وحجوزات','HEALTH'],
     ['•','صيدليات','منتجات وخدمات','PHARMACY'],
     ['•','معامل تحاليل','تحاليل وتشخيص','LABS'],
@@ -28,7 +28,6 @@
     ['•','العيادات والخدمات البيطرية','أطباء وخدمات للحيوانات','VETERINARY'],
     ['•','المستقلون ومقدمو الخدمات','خدمات احترافية ومشروعات مستقلة','FREELANCER']
   ];
-  const SERVICE_ICONS = {DIGITAL:'📣',CONTENT:'✍️',CREATIVE:'🎨',BRANDING:'✨',TECH:'💻',PR:'📢'};
   const ACTIVITY_IMAGES = {FOOD:'food.svg',HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'medical.svg',DENTAL:'medical.svg',HOSPITAL:'medical.svg',MEDICAL:'medical.svg',REAL_ESTATE:'real-estate.svg',AUTO:'auto.svg',HOME:'home.svg',MAINTENANCE:'home.svg',ACCOUNTING:'digital.svg',LEGAL:'digital.svg',COMPANIES:'home.svg',EDU:'education.svg',DIGITAL:'digital.svg',TECH:'digital.svg',FITNESS:'fitness.svg',TRAVEL:'travel.svg',MANTIGO:'auto.svg',JOBS:'home.svg',MATRIMONY:'home.svg',USED_ITEMS:'home.svg',FASHION:'home.svg',GROCERY:'home.svg',VETERINARY:'medical.svg',FREELANCER:'digital.svg'};
   const OFFICIAL_ACTIVITY_ASSETS = {HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'radiology.svg',HOSPITAL:'hospital.svg',DENTAL:'dental.svg',VETERINARY:'veterinary.svg',FOOD:'food.svg',GROCERY:'grocery.svg',FASHION:'fashion.svg',MAINTENANCE:'maintenance.svg',ACCOUNTING:'accounting.svg',LEGAL:'legal.svg',COMPANIES:'companies.svg',EDUCATION:'education.svg',ERP:'erp.svg',MARKETING:'marketing.svg',TRIPS:'trips.svg',MANTIGO:'mantigo.svg',JOBS:'jobs.svg',MATRIMONY:'matrimony.svg',USED_ITEMS:'used_items.svg',REAL_ESTATE:'real_estate.svg',AUTO:'auto.svg',SPORTS:'sports.svg'};
   const ACTIVITY_ASSET_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',TECH:'ERP',TRAVEL:'TRIPS',FITNESS:'SPORTS'};
@@ -101,7 +100,7 @@
         const key=normCode(code);
         if(!known.has(key) && homeFeatureEnabled(key)){
           const label=String(code).replace(/[_-]+/g,' ').trim();
-          known.set(key,['◉',label,'خدمات وأنشطة منشورة على المنصة',key]);
+          known.set(key,['',label,'خدمات وأنشطة منشورة على المنصة',key]);
         }
       });
     return [...known.values()];
@@ -196,8 +195,8 @@
             </label>
             <div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div>
           </div>
-          <button class="mx-header__login" id="mx-login" type="button" aria-label="تسجيل الدخول / فتح الحساب"><span class="mx-account-icon" aria-hidden="true">♙</span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button>
-          <button class="mx-header-tool" id="mx-wallet" type="button" aria-label="المحفظة"><span>▣</span><small>المحفظة</small></button>
+          <button class="mx-header__login" id="mx-login" type="button" aria-label="تسجيل الدخول / فتح الحساب"><span class="mx-account-icon" aria-hidden="true"></span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button>
+          <button class="mx-header-tool mx-wallet-tool" id="mx-wallet" type="button" aria-label="المحفظة"><span class="mx-wallet-icon" aria-hidden="true"></span><small>المحفظة</small></button>
           <button class="mx-header-tool" id="mx-cart" type="button" aria-label="السلة"><span class="mx-cart-icon" aria-hidden="true"></span><small>السلة <b id="mx-cart-count">0</b></small></button>
           ${window.MNTYAuthState?.authenticated&&adminReturnMembershipId?'<button class="mx-header__login mx-admin-return" id="mx-admin-return" type="button">لوحة الإدارة</button>':''}
           <button class="mx-mobile-menu" id="mx-mobile-menu" type="button" aria-label="فتح قائمة التنقل" aria-expanded="false" aria-controls="mx-mobile-drawer"><span class="mx-menu-icon" aria-hidden="true"></span></button>
@@ -284,7 +283,7 @@
               <span class="mx-quick-action__icon">＋</span><span><b>أضف نشاطك</b><small>اعرض نشاطك على المنصة</small></span><i>←</i>
             </button>
             <button type="button" class="mx-quick-action" id="mx-quick-account">
-              <span class="mx-quick-action__icon">♙</span><span><b>حسابي</b><small>الدخول وإدارة حسابك</small></span><i>←</i>
+              <span class="mx-quick-action__icon mx-account-icon" aria-hidden="true"></span><span><b>حسابي</b><small>الدخول وإدارة حسابك</small></span><i>←</i>
             </button>
           </div>
         </section>
@@ -316,11 +315,11 @@
           </div>
           <div class="mx-audience-grid">
             <article class="mx-audience-card">
-              <div class="mx-audience-card__icon">👤</div>
+              <div class="mx-audience-card__icon mx-audience-icon mx-audience-icon--customer" aria-hidden="true"></div>
               <div><span>للعملاء</span><h3>ابحث عن الخدمة واطلبها</h3><p>اكتشف الخدمات ومقدميها، قارن الخيارات المتاحة، ثم أنشئ طلبك وتابع حالته من حسابك.</p><button type="button" class="mx-btn mx-btn--primary" data-register-role="CUSTOMER">إنشاء حساب عميل ←</button></div>
             </article>
             <article class="mx-audience-card mx-audience-card--provider">
-              <div class="mx-audience-card__icon">🏢</div>
+              <div class="mx-audience-card__icon mx-audience-icon mx-audience-icon--provider" aria-hidden="true"></div>
               <div><span>لمقدمي الخدمات</span><h3>اعرض خدمتك وأدر نشاطك</h3><p>سجّل نشاطك، اعرض خدماتك وفق قواعد المنصة، واستقبل الطلبات وتابع تشغيلها من مساحة العمل المخصصة لك بعد الاعتماد.</p><button type="button" class="mx-btn mx-btn--light" data-register-role="SERVICE_PROVIDER">التسجيل كمقدم خدمة ←</button></div>
             </article>
           </div>
@@ -355,10 +354,10 @@
         <section class="mx-section mx-module-strip" id="mx-marketing" hidden>
           <div><span class="mx-hero__eyebrow">وحدات المنصة</span><h2>من الاكتشاف إلى التشغيل</h2><p>واجهة واحدة تربط البحث والخدمات والتسويق وطلبات الخدمة مع الوحدات التشغيلية المخصصة للمستخدمين المسجلين.</p></div>
           <div class="mx-module-grid">
-            <button data-module="CRM">👥<b>CRM</b><small>إدارة العملاء والعلاقات</small></button>
-            <button data-module="MARKETING">📣<b>التسويق والإعلانات</b><small>الحملات والظهور المدفوع</small></button>
-            <button data-module="ANALYTICS">📊<b>التحليلات والتقارير</b><small>مؤشرات وقرارات تشغيلية</small></button>
-            <button data-module="OPERATIONS">⚙️<b>العمليات والمهام</b><small>متابعة التنفيذ والخدمة</small></button>
+            <button data-module="CRM"><span class="mx-module-icon mx-module-icon--crm" aria-hidden="true"></span><b>CRM</b><small>إدارة العملاء والعلاقات</small></button>
+            <button data-module="MARKETING"><span class="mx-module-icon mx-module-icon--marketing" aria-hidden="true"></span><b>التسويق والإعلانات</b><small>الحملات والظهور المدفوع</small></button>
+            <button data-module="ANALYTICS"><span class="mx-module-icon mx-module-icon--analytics" aria-hidden="true"></span><b>التحليلات والتقارير</b><small>مؤشرات وقرارات تشغيلية</small></button>
+            <button data-module="OPERATIONS"><span class="mx-module-icon mx-module-icon--operations" aria-hidden="true"></span><b>العمليات والمهام</b><small>متابعة التنفيذ والخدمة</small></button>
           </div>
         </section>
       </div>
@@ -377,11 +376,11 @@
         <span>خدمة العملاء</span>
       </a>
       <nav class="mx-bottom-nav">
-        <button class="active" type="button" data-scroll="mx-home">⌂<span>الرئيسية</span></button>
-        <button type="button" id="mx-bottom-search">⌕<span>بحث</span></button>
+        <button class="active" type="button" data-scroll="mx-home"><span class="mx-bottom-icon mx-bottom-icon--home" aria-hidden="true"></span><span>الرئيسية</span></button>
+        <button type="button" id="mx-bottom-search"><span class="mx-bottom-icon mx-bottom-icon--search" aria-hidden="true"></span><span>بحث</span></button>
         <button class="plus" id="mx-bottom-add" type="button">＋</button>
-        <button type="button" data-scroll="mx-offers">☆<span>العروض</span></button>
-        <button type="button" id="mx-bottom-account">♙<span>حسابي</span></button>
+        <button type="button" data-scroll="mx-offers"><span class="mx-bottom-icon mx-bottom-icon--offers" aria-hidden="true"></span><span>العروض</span></button>
+        <button type="button" id="mx-bottom-account"><span class="mx-bottom-icon mx-bottom-icon--account" aria-hidden="true"></span><span>حسابي</span></button>
       </nav>
     </main>`;
 
@@ -736,7 +735,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         document.getElementById('mx-digital-type').textContent=page.page_type==='MENU'?'MENU':'PORTFOLIO';
         const theme=page.theme&&typeof page.theme==='object'?page.theme:{};
         const cover=theme.cover_url||theme.coverUrl||'';
-        document.getElementById('mx-digital-cover').innerHTML=cover?'<img src="'+escapeHtml(cover)+'" alt="'+escapeHtml(page.title||'')+'">':'<div class="mx-digital-page__cover-fallback">'+(page.page_type==='MENU'?'🍽️':'✦')+'</div>';
+        document.getElementById('mx-digital-cover').innerHTML=cover?'<img src="'+escapeHtml(cover)+'" alt="'+escapeHtml(page.title||'')+'">':'<div class="mx-digital-page__cover-fallback">'+(page.page_type==='MENU'?'MENU' :'*')+'</div>';
         const list=Array.isArray(sections)?sections:[];
         document.getElementById('mx-digital-sections').innerHTML=list.length?list.map(s=>{
           const data=s.data&&typeof s.data==='object'?s.data:{};
