@@ -12,14 +12,11 @@ const defs={
 'المزايدات — الصيانة':{key:'MAINTENANCE',tabs:['overview','requests','support','live'],tables:['indrive_requests','indrive_bids','support_tickets'],desc:'طلبات الصيانة والعروض والدعم.'},
 'MantiGO والنقل':{key:'MANTIGO',tabs:['overview','request','open','myrides','bids'],tables:['mantigo_rides','mantigo_bids','mantigo_ride_ratings'],desc:'النقل والرحلات والعروض والتتبع — عميل أو كابتن.'},
 'التجارة والأزياء':{key:'FASHION',tabs:['overview','live'],tables:['fashion_products','fashion_orders','fashion_tailor_services'],desc:'المنتجات والطلبات والخدمات الفعلية للأزياء.'},
-'البقالة والسوبر ماركت':{key:'GROCERY',tabs:['overview','catalog','prices','live'],tables:['catalog_items','catalog_item_prices','inventory_transactions','orders'],desc:'الكتالوج والأسعار والمخزون والطلبات الفعلية.'},
 'المزايدات — المحاسبة':{key:'ACCOUNTING',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries'],desc:'طلبات الخدمات المحاسبية والعروض والسجلات المحاسبية المصرح بها.'},
 'المزايدات — الشركات':{key:'COMPANIES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','businesses'],desc:'طلبات الشركات ومقدمو الخدمة والعروض والأنشطة.'},
 
 'المزايدات — المصانع':{key:'FACTORIES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses'],desc:'طلبات التصنيع والعروض والمخزون والمخازن.'},
 'المزايدات — الرحلات':{key:'TRIPS',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','mantigo_rides','mantigo_bids'],desc:'طلبات الرحلات والعروض والتنفيذ.'},
-'المزايدات — الصيانة':{key:'MAINTENANCE',tabs:['overview','requests','support','live'],tables:['indrive_requests','indrive_bids','support_tickets'],desc:'طلبات الصيانة والعروض والدعم.'},
-'المزايدات — الخدمات القانونية':{key:'LEGAL',tabs:['overview','documents','requirements','agreements','live'],tables:['legal_documents','legal_requirements','agreements'],desc:'الوثائق والمتطلبات والاتفاقيات القانونية.'},
 'المزايدات — البرمجيات ERP':{key:'ERP',tabs:['overview','live'],tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'],desc:'المشتريات والاستلام والتحويلات والمخازن.'},
 'برامج إدارة الأعمال ERP':{key:'BUSINESS_ERP',tabs:['overview','live'],tables:['businesses','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'],desc:'إدارة الأعمال والمشتريات والاستلام والتحويلات والمخازن الفعلية.'},
 
