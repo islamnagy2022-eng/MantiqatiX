@@ -174,7 +174,7 @@
 
     const adminReturnMembershipId=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId')||'';
     if(adminReturnMembershipId) window.MNTYAdminReturnMembershipId=adminReturnMembershipId;
-    const initialCategoryTiles=TAXONOMY.slice(0,8).map(c=>{
+    const initialCategoryTiles=TAXONOMY.slice(0,16).map(c=>{
       const icon=escapeHtml(c?.[0]||'◉');
       const label=escapeHtml(c?.[1]||'قطاع');
       const desc=escapeHtml(c?.[2]||'استكشف الأنشطة والخدمات');
@@ -337,7 +337,7 @@
           <div class="mx-service-grid" id="mx-service-grid"><div class="mx-loading">جارٍ تحميل الخدمات...</div></div>
         </section>
 
-        <section class="mx-section" id="mx-offers" hidden>
+        <section class="mx-section" id="mx-offers">
           <div class="mx-section__head"><div><h2>إعلانات ممولة</h2><p>تظهر هنا الأنشطة المميزة المنشورة والفعالة فقط.</p></div><button class="mx-link" id="mx-ad-cta" type="button">أعلن عن نشاطك ←</button></div>
           <div class="mx-sponsored" id="mx-sponsored"><div class="mx-empty">جارٍ التحقق من الإعلانات المنشورة...</div></div>
         </section>
