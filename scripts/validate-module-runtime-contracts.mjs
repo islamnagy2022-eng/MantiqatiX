@@ -38,7 +38,7 @@ const modules=[
  ["SOFTWARE_ERP","reverse",["indrive_requests","indrive_bids"]]
 ];
 const failures=[];
-const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\\{key:/gm)].map(m=>m[1]);
+const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\{key:/gm)].map(m=>m[1]);
 const duplicateOperationDefinitions=[...new Set(operationDefinitions.filter((name,i)=>operationDefinitions.indexOf(name)!==i))];
 if(duplicateOperationDefinitions.length) failures.push("DUPLICATE_MODULE_DEFINITIONS:"+duplicateOperationDefinitions.join(","));
 const marketingSource=files.operations;
