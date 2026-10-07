@@ -1138,3 +1138,17 @@
 - [x] Performance Advisor still reports 28 multiple-permissive-policy findings plus unused/unindexed-index findings; no mass changes were made without workload evidence.
 - [ ] GitHub Actions has no workflow run associated with commit `15a10884699253f00fd4b7804dbc5bfbfdc84cff` yet; CI evidence for this commit is therefore NOT VERIFIED.
 - [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY.
+
+
+## RC381 — Migration canonical mapping + SECURITY DEFINER structural audit — 2026-10-07
+
+- [x] Current source-of-truth migrations were located for three historical duplicate-name groups:
+  - job_application_backend_submit_v1 → source canonical migration `20261006235500_job_application_backend_submit_v1.sql`.
+  - cleanup_duplicate_job_application_index_v1 → source canonical migration `20261007030000_cleanup_duplicate_job_application_index_v1.sql`.
+  - reverse_bidding_server_authority_v1 → source canonical migration `20261007021500_reverse_bidding_server_authority_v1.sql`.
+- [x] The older Production history versions for those three names are not present as current source files under their historical versioned filenames. This establishes source/history divergence but does not justify editing Supabase migration history directly.
+- [ ] ERP `erp_purchase_order_authority_v1` has two historical Production versions (`20260926220351`, `20260926220729`) but those exact source files are not present on current `main`; backend authority functions are present, while exact historical SQL provenance remains NOT VERIFIED.
+- [x] Structural SECURITY DEFINER audit of current Production public functions: 40 functions are executable by `authenticated`; 36 directly reference `auth.uid()`, 3 are controlled helper/financial functions using membership/authorization helpers, and 1 is the intentional public advertisement projection.
+- [x] All 40 authenticated-executable public SECURITY DEFINER functions have an explicit `search_path` configuration; no public SECURITY DEFINER function in this audited set has an unset search_path.
+- [x] The intentional public advertisement function uses `search_path=public,pg_temp` and only returns active/approved targeted ads; it remains the sole anonymous SECURITY DEFINER boundary.
+- [ ] This structural audit is not a substitute for adversarial E2E/IDOR testing of each sensitive workflow.
