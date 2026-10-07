@@ -445,3 +445,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Verified root cause of unchanged public homepage: RC385 exists only on the feature branch; Pages deployment is main-only.
 - Updated Pages workflow so validation runs on PRs while deployment remains main-only.
 - No production merge/deployment claimed; waiting for CI evidence before merge.
+
+
+## RC389 — 2026-10-07 — Sponsored-ad and homepage control hardening
+- [x] Reworked the homepage sponsored-ad presentation to use the live targeted-ad payload for the side advertising rail instead of a permanently static placeholder.
+- [x] Added explicit live/empty states for the side sponsored-ad rail; empty state routes to the governed advertising flow.
+- [x] Hardened sponsored-card activation so nested CTA buttons do not double-fire the card handler.
+- [x] Featured-provider sponsored cards now open the provider profile directly instead of depending on a filtered provider-grid DOM element being present.
+- [x] Refreshed homepage asset cache versions to rc389.
+- [x] No production business/order/payment/financial records were mutated.
+- [ ] Browser/device production smoke remains required before claiming runtime verification.
