@@ -6,10 +6,10 @@ const cfg=window.MANTIQATIX_CONFIG;if(!cfg||!window.supabase)return;const sb=win
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>Number(v||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' ج.م';
 const defs={
-'البقالة والسوبر ماركت':{key:'GROCERY',tabs:['overview','catalog','prices'],tables:['catalog_items','catalog_item_prices'],desc:'كتالوج الأصناف والأسعار والطلبات من البنية المركزية.'},
+'البقالة والسوبر ماركت':{key:'GROCERY',tabs:['overview','catalog','prices','live'],tables:['catalog_items','catalog_item_prices','inventory_transactions','orders'],desc:'الكتالوج والأسعار والمخزون والطلبات الفعلية.'},
 'المزايدات — التسويق':{key:'MARKETING',tabs:['overview','providers','services','leads','projects','plans','subscriptions','participants','commissions'],tables:['marketing_provider_profiles','marketing_services','marketing_leads','marketing_projects','marketing_plans','marketing_provider_subscriptions','marketing_project_participants','marketing_commission_rules'],desc:'منظومة التسويق للشركة والعملاء ومقدمي الخدمات والمشروعات والخطط والاشتراكات والعمولات، باستخدام البيانات الحية فقط.'},
-'المزايدات — الخدمات القانونية':{key:'LEGAL',tabs:['overview','documents','requirements','agreements'],tables:['legal_documents','legal_requirements','agreements'],desc:'الوثائق والمتطلبات والاتفاقيات من سجل قانوني مركزي.'},
-'المزايدات — الصيانة':{key:'MAINTENANCE',tabs:['overview','requests','support'],tables:['indrive_requests','indrive_bids','support_tickets'],desc:'طلبات الصيانة والعروض والدعم التشغيلي.'},
+'المزايدات — الخدمات القانونية':{key:'LEGAL',tabs:['overview','documents','requirements','agreements','live'],tables:['legal_documents','legal_requirements','agreements'],desc:'الوثائق والمتطلبات والاتفاقيات القانونية.'},
+'المزايدات — الصيانة':{key:'MAINTENANCE',tabs:['overview','requests','support','live'],tables:['indrive_requests','indrive_bids','support_tickets'],desc:'طلبات الصيانة والعروض والدعم.'},
 'MantiGO والنقل':{key:'MANTIGO',tabs:['overview','request','open','myrides','bids'],tables:['mantigo_rides','mantigo_bids','mantigo_ride_ratings'],desc:'النقل والرحلات والعروض والتتبع — عميل أو كابتن.'},
 'التجارة والأزياء':{key:'FASHION',tabs:['overview','live'],tables:['fashion_products','fashion_orders','fashion_tailor_services'],desc:'المنتجات والطلبات والخدمات الفعلية للأزياء.'},
 'البقالة والسوبر ماركت':{key:'GROCERY',tabs:['overview','catalog','prices','live'],tables:['catalog_items','catalog_item_prices','inventory_transactions','orders'],desc:'الكتالوج والأسعار والمخزون والطلبات الفعلية.'},
@@ -22,7 +22,7 @@ const defs={
 'المزايدات — الخدمات القانونية':{key:'LEGAL',tabs:['overview','documents','requirements','agreements','live'],tables:['legal_documents','legal_requirements','agreements'],desc:'الوثائق والمتطلبات والاتفاقيات القانونية.'},
 'المزايدات — البرمجيات ERP':{key:'ERP',tabs:['overview','live'],tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'],desc:'المشتريات والاستلام والتحويلات والمخازن.'},
 'برامج إدارة الأعمال ERP':{key:'BUSINESS_ERP',tabs:['overview','live'],tables:['businesses','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'],desc:'إدارة الأعمال والمشتريات والاستلام والتحويلات والمخازن الفعلية.'},
-'الزواج':{key:'MATRIMONY',tabs:['overview','live'],tables:['matrimony_profiles','matrimony_requests','matrimony_contact_unlocks'],desc:'الملفات والطلبات وفتح التواصل وفق الصلاحيات.'},
+
 'الوظائف':{key:'JOBS',tabs:['overview','live'],tables:['jobs','job_applications'],desc:'الوظائف والتقديمات الفعلية.'},
 'التعليم':{key:'EDUCATION',tabs:['overview','live'],tables:['school_profiles','teacher_profiles','education_requests'],desc:'المدارس والمدرسون وطلبات التعليم.'},
 'المستعمل':{key:'USED_ITEMS',tabs:['overview','live'],tables:['used_item_ads'],desc:'إعلانات المستعمل الفعلية.'},
