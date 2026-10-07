@@ -227,7 +227,7 @@
         </nav>
       </aside>
 
-      <aside class="mx-side-banner mx-side-banner--right" aria-label="مساحة إعلانية جانبية يمين">
+      <aside class="mx-side-banner mx-side-banner--right" id="mx-side-ad" aria-label="إعلان ممول جانبي" data-ad-state="loading">
         <div class="mx-side-banner__cloud mx-side-banner__cloud--one"></div><div class="mx-side-banner__cloud mx-side-banner__cloud--two"></div>
         <div class="mx-side-banner__screen"><b>MantiqatiX</b><span>مساحة إعلانية</span></div>
         <div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مميز داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>
@@ -384,6 +384,9 @@
         <button type="button" id="mx-bottom-account">♙<span>حسابي</span></button>
       </nav>
     </main>`;
+
+    const sideAd=document.getElementById('mx-side-ad');
+    if(sideAd) sideAd.innerHTML='<div class="mx-side-banner__screen"><b>MantiqatiX</b><span>جارٍ تحميل الإعلان</span></div><div class="mx-side-banner__copy"><strong>مساحة إعلانية</strong><span>جارٍ التحقق من الإعلانات المنشورة</span></div>';
 
     const quickSearch=document.getElementById('mx-quick-search');
     if(quickSearch) quickSearch.addEventListener('click',()=>document.getElementById('mx-home-search')?.focus());
@@ -792,6 +795,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
       return callAuth();
     };
     const goAdvertise=async()=>{
+
       try{localStorage.removeItem('MNTYWorkspaceMode');localStorage.removeItem('MNTYWorkspaceCurrent');}catch(_){}
       if(await hydrateAuthenticatedSession()){
         const role=String(window.MNTYAuthState?.role||'').toUpperCase();
@@ -934,28 +938,53 @@ const categoryGrid=document.getElementById('mx-category-grid');
     const renderTargetedAds=ads=>{
       const el=document.getElementById('mx-sponsored');
       if(!el)return;
-      const list=Array.isArray(ads)?ads:[];
+      const list=Array.isArray(ads)?ads.filter(Boolean):[];
+      renderSideTargetedAd(list);
       if(!list.length){renderSponsored([]);return}
-      el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>إعلانات موجهة حسب موقعك</h3><p>يتم اختيار الإعلان على مستوى المركز أو المحافظة أو الدولة، ومع عدم وجود إعلان مطابق يتم عرض الأقرب.</p></div></div><div class="mx-listing-grid">'+list.map(a=>{
-        const creative=safeAdUrl(a.creative_url)||'assets/mnty-ad-space-booking-banner.svg'; return '<article class="mx-listing" tabindex="0" role="button" data-targeted-ad="'+escapeHtml(a.id||'')+'"><div class="mx-listing__media"><img src="'+escapeHtml(creative)+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+'<button type="button" class="mx-listing__cta">عرض الإعلان</button></div></article>';
+      el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>إعلانات موجهة حسب موقعك</h3><p>الإعلانات المعروضة هنا تأتي من خدمة الإعلانات المنشورة والفعالة فقط، مع وسم واضح للمحتوى المدفوع.</p></div></div><div class="mx-listing-grid">'+list.map(a=>{
+        const creative=safeAdUrl(a.creative_url)||'assets/mnty-ad-space-booking-banner.svg'; return '<article class="mx-listing" tabindex="0" role="button" data-targeted-ad="'+escapeHtml(a.id||'')+'"><div class="mx-listing__media"><img src="'+escapeHtml(creative)+'" alt="'+escapeHtml(a.title||'إعلان ممول')+'" loading="lazy"></div><div class="mx-listing__body"><span class="mx-sponsored-badge">ممول · '+escapeHtml(a.match_level||'TARGETED')+'</span><h3>'+escapeHtml(a.title||'إعلان ممول')+'</h3>'+(a.distance_km!=null?'<small>الأقرب · '+Number(a.distance_km).toFixed(1)+' كم</small>':'')+'<button type="button" class="mx-listing__cta" data-targeted-open>عرض الإعلان</button></div></article>';
       }).join('')+'</div>';
-      el.querySelectorAll('[data-targeted-ad]').forEach(card=>{const open=()=>{const item=list.find(x=>String(x.id||'')===String(card.dataset.targetedAd||''));if(item)openMantiqatiAdModal(item);};card.onclick=open;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}};});
+      el.querySelectorAll('[data-targeted-ad]').forEach(card=>{
+        const open=()=>{const item=list.find(x=>String(x.id||'')===String(card.dataset.targetedAd||''));if(item)openMantiqatiAdModal(item);};
+        card.onclick=open;
+        card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}};
+        card.querySelector('[data-targeted-open]')?.addEventListener('click',e=>{e.stopPropagation();open();});
+      });
+    };
+
+    const renderSideTargetedAd=ads=>{
+      const side=document.getElementById('mx-side-ad');
+      if(!side)return;
+      const list=Array.isArray(ads)?ads.filter(Boolean):[];
+      if(!list.length){
+        side.innerHTML='<div class="mx-side-banner__screen"><b>MantiqatiX</b><span>مساحة إعلانية</span></div><div class="mx-side-banner__copy"><strong>أعلن نشاطك</strong><span>ظهور مدفوع داخل المنصة</span><button type="button" data-side-ad-book="1">احجز الآن</button></div>';
+        side.dataset.adState='empty';
+        side.querySelector('[data-side-ad-book]')?.addEventListener('click',goAdvertise);
+        return;
+      }
+      const ad=list[0];
+      const creative=safeAdUrl(ad.creative_url)||'assets/mnty-ad-space-booking-banner.svg';
+      side.innerHTML='<div class="mx-side-banner__screen mx-side-banner__screen--live"><img src="'+escapeHtml(creative)+'" alt="'+escapeHtml(ad.title||'إعلان ممول')+'" loading="eager"><span>إعلان ممول</span></div><div class="mx-side-banner__copy"><strong>'+escapeHtml(ad.title||'إعلان ممول')+'</strong>'+(ad.distance_km!=null?'<span>على بعد '+Number(ad.distance_km).toFixed(1)+' كم</span>':'<span>إعلان منشور وفعال</span>')+'<button type="button" data-side-targeted-open>عرض الإعلان</button></div>';
+      side.dataset.adState='live';
+      side.querySelector('[data-side-targeted-open]')?.addEventListener('click',()=>openMantiqatiAdModal(ad));
     };
 
     const renderSponsored=(providers)=>{
       const el=document.getElementById('mx-sponsored');
       const featured=providers.filter(p=>p.is_featured).slice(0,4);
-      if(!featured.length){el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>كبّر ظهور نشاطك</h3><p>المساحة الإعلانية تُملأ تلقائيًا عند وجود نشاط منشور ومميز وفق قواعد المنصة.</p><button class="mx-btn mx-btn--primary" id="mx-feature-cta" type="button">ابدأ الإعلان الآن</button></div></div><div class="mx-empty mx-empty--dark">لا توجد إعلانات ممولة منشورة حاليًا.</div>';document.getElementById('mx-feature-cta').onclick=goLogin;return}
+      if(!featured.length){renderSideTargetedAd([]);el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>كبّر ظهور نشاطك</h3><p>المساحة الإعلانية تُملأ تلقائيًا عند وجود إعلان منشور وفعال. يمكنك بدء طلب الإعلان من هنا.</p><button class="mx-btn mx-btn--primary" id="mx-feature-cta" type="button">ابدأ الإعلان الآن</button></div></div><div class="mx-empty mx-empty--dark">لا توجد إعلانات ممولة منشورة حاليًا.</div>';document.getElementById('mx-feature-cta').onclick=goAdvertise;return}
       el.innerHTML='<div class="mx-feature-ad"><span class="mx-feature-ad__badge">إعلان ممول</span><div><h3>ظهور مميز أمام جمهورك</h3><p>نتائج مدفوعة موسومة بوضوح ضمن تجربة البحث.</p></div></div><div class="mx-listing-grid">'+featured.map(p=>'<article class="mx-listing" tabindex="0" role="button">'+providerMedia(p)+'<div class="mx-listing__body"><span class="mx-sponsored-badge">ممول</span><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'نشاط مميز على MantiqatiX.')+'</p><button class="mx-listing__cta" type="button" data-provider="'+escapeHtml(p.id)+'">عرض النشاط</button></div></article>').join('')+'</div>';
-      el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=()=>{
+      el.querySelectorAll('[data-provider]').forEach(b=>b.onclick=e=>{
+        e.stopPropagation();
         const id=b.dataset.provider;
         const item=featured.find(p=>String(p.id)===String(id));
-        if(item){
-          const card=document.querySelector('#mx-provider-grid [data-provider="'+escapeHtml(item.id)+'"]');
-          card?.click();
-        }
+        if(item) openProviderProfilePage(item,item.provider_kind||'');
       });
-      el.querySelectorAll('.mx-photo--provider').forEach(media=>media.onclick=()=>media.closest('.mx-listing')?.querySelector('[data-provider]')?.click());
+      el.querySelectorAll('.mx-listing').forEach(card=>{
+        const b=card.querySelector('[data-provider]');
+        if(b) card.onclick=()=>b.click();
+        card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b?.click();}};
+      });
     };
 
     const loadLocationUi=()=>{
@@ -1018,7 +1047,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         renderServices(services,term);renderProviders(providers,term);
         const adsData=adsRes.status==='fulfilled' && !adsRes.value?.error ? (adsRes.value.data||[]) : [];
         if(adsData.length) renderTargetedAds(adsData);
-        else renderSponsored(providers);
+        else { renderSideTargetedAd([]); renderSponsored(providers); }
         if(adsRes.status!=='fulfilled' || adsRes.value?.error) console.warn('[MantiqatiX home] ads load failed; catalog results kept visible',adsRes.value?.error||adsRes.reason);
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
         const activeTerm=String(term||'').trim();
