@@ -37,11 +37,11 @@ const modules=[
  ["HOME_MAINTENANCE","reverse",["indrive_requests","indrive_bids"]],
  ["SOFTWARE_ERP","reverse",["indrive_requests","indrive_bids"]]
 ];
+const failures=[];
 const marketingSource=files.operations;
 const marketingKeyCount=(marketingSource.match(/'المزايدات — التسويق':/g)||[]).length;
 if(marketingKeyCount!==1) failures.push("MARKETING_DUPLICATE_DEFINITION");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
-const failures=[];
 for(const [code,owner,tables] of modules){
  const source=files[owner];
  const catalogEntry=catalog.includes("code:'"+code+"'");
