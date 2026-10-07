@@ -1426,3 +1426,13 @@
 - PR #68 merged safely; merge commit: `2237ee769dc7321ee90bec21fae14ded40f0c22e`.
 - CI: Module Professionalization #188 SUCCESS; Backend-only Module Boundary #182 SUCCESS; Deploy validation #1958 SUCCESS.
 
+## RC510 — Real-Data Analytics Workspace (DASH-150/151)
+- Status: **PASS for implementation + CI**; production analytics validation remains **NOT VERIFIED**.
+- Replaced the placeholder analytics cards with traceable operational metrics from loaded `orders`, `marketing_leads`, `marketing_provider_profiles`, `marketing_projects`, `advertisements`, and `notifications`.
+- Explicitly labels metrics as loaded-record/sample metrics and does not present them as historical totals unless the source is comprehensive.
+- Added operational delivery/cancellation rates only when the loaded order sample is non-empty.
+- Revenue remains behind the Finance boundary; order value is explicitly not treated as total revenue.
+- No schema, RPC, Edge Function, or RLS policy changes.
+- PR #69 merged safely; merge commit: `a53f61ed0e714118d8c7bb154ddd87ae8e75d085`.
+- CI: Module Professionalization #193 SUCCESS; Backend-only Module Boundary #187 SUCCESS; Deploy validation #1961 SUCCESS.
+
