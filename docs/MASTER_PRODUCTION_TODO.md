@@ -1436,3 +1436,14 @@
 - PR #69 merged safely; merge commit: `a53f61ed0e714118d8c7bb154ddd87ae8e75d085`.
 - CI: Module Professionalization #193 SUCCESS; Backend-only Module Boundary #187 SUCCESS; Deploy validation #1961 SUCCESS.
 
+## RC520 — System Health & Security Center (DASH-160/161)
+- Status: **PASS for implementation + CI**; production runtime verification and final security remediation remain **NOT VERIFIED / OPEN**.
+- Added a Super Admin-only System Health & Security Center with conservative release-gate states.
+- Current security view preserves the live Security Advisor findings: 1 intentional RLS-enabled/no-policy table, 1 anonymous SECURITY DEFINER warning, and 40 authenticated SECURITY DEFINER warnings requiring individual review.
+- Explicitly shows Anonymous Users = 0 from the production check.
+- Does not expose secrets, API keys, service-role credentials, or internal sensitive payloads.
+- Does not convert missing evidence into PASS; public runtime, payment E2E, tenant E2E, and device/release gates remain unverified/waiting.
+- No schema, RPC, Edge Function, or RLS policy changes.
+- PR #70 merged safely; merge commit: `edfad28dc991022a119462578761951965e8cf37`.
+- CI: Module Professionalization #198 SUCCESS; Backend-only Module Boundary #192 SUCCESS; Deploy validation #1964 SUCCESS.
+
