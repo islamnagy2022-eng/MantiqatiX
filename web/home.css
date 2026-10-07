@@ -4029,3 +4029,28 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
  .mx-home-discovery__actions .mx-btn,.mx-home-growth__actions .mx-btn{width:100%}
  .mx-map-card{right:10px;bottom:10px}
 }
+
+
+/* RC397 — homepage functional polish: real totals, search, accessibility, mobile */
+.mx-category-actions{display:flex!important;justify-content:center;margin-top:12px}
+.mx-category-actions .mx-btn{min-width:180px}
+.mx-category__live{display:block;margin-top:5px;color:#1769e8;font-size:8px;font-weight:900}
+.mx-search-suggestion__type{font-size:8px!important;color:#1769e8!important;font-weight:900}
+.mx-search-suggestions [role="option"]{text-align:right}
+.mx-home .mx-btn:focus-visible,
+.mx-home button:focus-visible,
+.mx-home a:focus-visible,
+.mx-home input:focus-visible{outline:3px solid rgba(23,105,232,.35);outline-offset:2px}
+.mx-home .mx-location-controls{display:flex!important}
+.mx-home #mx-location-controls{background:#f8fafc;border:1px solid #e6edf6;border-radius:12px;padding:8px 10px}
+.mx-home #mx-location-controls .mx-link{min-height:34px}
+.mx-home .mx-search__clear{font-size:18px;line-height:1}
+.mx-home img{max-width:100%}
+@media(max-width:800px){
+  .mx-category-actions{margin-bottom:4px}
+  .mx-category-actions .mx-btn{width:100%;max-width:320px}
+  .mx-home #mx-location-controls{overflow:auto;flex-wrap:nowrap!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .mx-home *, .mx-home *::before, .mx-home *::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
