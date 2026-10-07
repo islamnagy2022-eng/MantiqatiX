@@ -44,6 +44,8 @@ if(duplicateOperationDefinitions.length) failures.push("DUPLICATE_MODULE_DEFINIT
 const marketingSource=files.operations;
 const marketingKeyCount=(marketingSource.match(/'المزايدات — التسويق':/g)||[]).length;
 if(marketingKeyCount!==1) failures.push("MARKETING_DUPLICATE_DEFINITION");
+if(files.operations.includes("sb.from('education_requests').insert")) failures.push("EDUCATION_DIRECT_INSERT_FORBIDDEN");
+if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 for(const [code,owner,tables] of modules){
  const source=files[owner];

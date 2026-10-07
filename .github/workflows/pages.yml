@@ -75,6 +75,8 @@ jobs:
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
           node scripts/validate-module-runtime-coverage.mjs
+          node scripts/validate-module-runtime-contracts.mjs
+          node scripts/validate-sensitive-module-writes.mjs
       - name: Upload verification evidence
         if: always()
         uses: actions/upload-artifact@v4
