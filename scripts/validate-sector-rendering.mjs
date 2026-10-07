@@ -22,7 +22,7 @@ const checks = [
   ['image failure cannot remove tile', home.includes('onerror="this.hidden=true"')],
   ['sector grid is final 7 columns', css.includes('#mx-category-grid.mx-categories{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))')],
   ['sector tile forced visible', css.includes('#mx-category-grid .mx-category{min-width:0;width:100%;visibility:visible;opacity:1}')],
-  ['home.js cache version rc384', index.includes('home.js?v=rc385')],
+  ['home.css cache version rc385', index.includes('home.css?v=rc385')],
   ['mobile header/search alignment rc382', css.includes('FINAL RC382') && css.includes('.mx-home .mx-search-wrap{') && css.includes('grid-template-areas:\n      "brand search login menu"')],
   ['visual identity photo layer rc383', css.includes('FINAL RC383') && css.includes('images.unsplash.com') && css.includes('.mx-home .mx-home-hero')],
   ['mobile header hides desktop add activity control', css.includes('.mx-nav .mx-add,.mx-header__inner>.mx-add{display:none!important}')],
