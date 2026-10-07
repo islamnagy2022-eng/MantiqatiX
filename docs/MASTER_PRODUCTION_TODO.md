@@ -1216,3 +1216,12 @@
 - No production mutation was made in RC386. No broad RLS policies were added. No financial/payment operation was executed.
 - Leaked-password protection remains a managed Auth setting requiring dashboard/owner action; it is still a release blocker.
 - Final Production Gate remains OPEN.
+
+
+## RC387 — CI / branch verification — 2026-10-07
+
+- Latest RC385 branch documentation head verified as `39bf8aa1ee0aff029f7c6a2e2b0cabb0327ac6b6`.
+- GitHub Actions evidence for this head currently contains two completed successful workflows: `Backend-only Module Boundary` run #76 and `Module Professionalization Validation` run #82.
+- No GitHub commit statuses are attached to this head.
+- The production Pages workflow has not produced a verified deployment result for this head; therefore RC385 homepage production deployment/runtime remains NOT VERIFIED.
+- No merge to `main` was performed.
