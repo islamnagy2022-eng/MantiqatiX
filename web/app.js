@@ -1080,7 +1080,7 @@ async function replyToTicket(ticketId){
 }
 async function markNotificationRead(notificationId){
  if(!notificationId)return;
- const {error}=await sb.from('notifications').update({read_at:new Date().toISOString()}).eq('id',notificationId).eq('user_id',user.id);
+ const {error}=await sb.rpc('mark_notifications_read_backend',{p_notification_id:notificationId});
  if(error)return showToast('تعذر تحديث الإشعار.','error');
  const n=live.records.notifications.find(x=>x.id===notificationId); if(n)n.read_at=new Date().toISOString();
  showToast('تم تعليم الإشعار كمقروء.','success'); renderApp();
