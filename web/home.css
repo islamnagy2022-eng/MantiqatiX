@@ -3197,3 +3197,39 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
   .mx-home #mx-category-grid.mx-categories{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .mx-home .mx-home-hero__copy h1{font-size:30px!important}
 }
+
+
+/* RC384 header normalization — one clear utility row + one navigation row on desktop. */
+@media(min-width:801px){
+  .mx-home .mx-header__inner{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    gap:10px!important;
+    padding:9px 18px 8px!important;
+  }
+  .mx-home .mx-brand{order:1!important;flex:0 0 auto!important}
+  .mx-home .mx-search-wrap{order:2!important;flex:1 1 420px!important;min-width:260px!important}
+  .mx-home .mx-search{max-width:none!important}
+  .mx-home .mx-header__login{order:3!important;flex:0 0 auto!important}
+  .mx-home .mx-header-tool{order:4!important;flex:0 0 auto!important}
+  .mx-home .mx-header__inner>.mx-admin-return{order:5!important}
+  .mx-home .mx-mobile-menu{display:none!important}
+  .mx-home .mx-nav{
+    order:10!important;
+    flex:1 0 100%!important;
+    width:100%!important;
+    justify-content:center!important;
+    border-top:1px solid #edf1f6!important;
+    padding-top:7px!important;
+    gap:18px!important;
+  }
+  .mx-home .mx-nav a{font-size:11px!important}
+  .mx-home .mx-nav .mx-add{margin-inline-start:auto!important}
+}
+@media(min-width:801px) and (max-width:1100px){
+  .mx-home .mx-brand__ar{display:none!important}
+  .mx-home .mx-header-tool small{display:none!important}
+  .mx-home .mx-header-tool{width:40px!important;height:40px!important}
+  .mx-home .mx-nav{gap:10px!important;overflow-x:auto!important;justify-content:flex-start!important}
+}
