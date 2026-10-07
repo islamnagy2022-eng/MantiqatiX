@@ -269,6 +269,26 @@
           </div>
         </section>
 
+        <section class="mx-quick-actions" aria-label="الإجراءات السريعة">
+          <div class="mx-quick-actions__head">
+            <div><span class="mx-home-hero__eyebrow">ابدأ بسرعة</span><h2>ماذا تريد أن تفعل؟</h2><p>أهم الإجراءات في مكان واحد بدلًا من البحث داخل القوائم.</p></div>
+          </div>
+          <div class="mx-quick-actions__grid">
+            <button type="button" class="mx-quick-action mx-quick-action--primary" id="mx-quick-search">
+              <span class="mx-quick-action__icon">⌕</span><span><b>ابحث عن خدمة</b><small>اعثر على مقدم الخدمة المناسب</small></span><i>←</i>
+            </button>
+            <button type="button" class="mx-quick-action" id="mx-quick-categories">
+              <span class="mx-quick-action__icon">▦</span><span><b>استكشف القطاعات</b><small>تصفح جميع التصنيفات</small></span><i>←</i>
+            </button>
+            <button type="button" class="mx-quick-action" id="mx-quick-add">
+              <span class="mx-quick-action__icon">＋</span><span><b>أضف نشاطك</b><small>اعرض نشاطك على المنصة</small></span><i>←</i>
+            </button>
+            <button type="button" class="mx-quick-action" id="mx-quick-account">
+              <span class="mx-quick-action__icon">♙</span><span><b>حسابي</b><small>الدخول وإدارة حسابك</small></span><i>←</i>
+            </button>
+          </div>
+        </section>
+
         <section class="mx-platform-notices" aria-label="إشعارات المنصة">
           <div class="mx-platform-notices__label">تنبيهات MantiqatiX</div>
           <div class="mx-platform-notices__viewport">
@@ -364,6 +384,15 @@
         <button type="button" id="mx-bottom-account">♙<span>حسابي</span></button>
       </nav>
     </main>`;
+
+    const quickSearch=document.getElementById('mx-quick-search');
+    if(quickSearch) quickSearch.addEventListener('click',()=>document.getElementById('mx-home-search')?.focus());
+    const quickCategories=document.getElementById('mx-quick-categories');
+    if(quickCategories) quickCategories.addEventListener('click',()=>document.getElementById('mx-categories')?.scrollIntoView(scrollOptions('start')));
+    const quickAdd=document.getElementById('mx-quick-add');
+    if(quickAdd) quickAdd.addEventListener('click',()=>typeof openActivityRequestModal==='function'?openActivityRequestModal():typeof window.authView==='function'?window.authView('',false,'','login'):null);
+    const quickAccount=document.getElementById('mx-quick-account');
+    if(quickAccount) quickAccount.addEventListener('click',()=>typeof window.accountView==='function'?window.accountView():typeof window.openPlatform==='function'?window.openPlatform():typeof window.authView==='function'?window.authView():null);
 
     document.querySelectorAll('[data-side-ad-book]').forEach(btn=>btn.addEventListener('click',()=>{try{localStorage.setItem('MNTYOpenAdBooking','1')}catch(_){};if(window.MNTYAuthState?.authenticated&&typeof window.selectModule==='function'){window.selectModule('التسويق والإعلان')}else if(typeof window.authView==='function'){window.authView('',false,'','login')}}));
 
