@@ -331,6 +331,60 @@
           <div class="mx-category-actions"><button type="button" class="mx-btn mx-btn--light" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات</button></div>
         </section>
 
+        <section class="mx-home-stats" id="mx-home-stats" aria-label="مؤشرات المنصة">
+          <div class="mx-home-stats__intro">
+            <span class="mx-home-kicker">MantiqatiX LIVE</span>
+            <h2>منصة واحدة لاكتشاف الخدمة وإدارة الطلب</h2>
+            <p>المؤشرات التالية تُبنى من البيانات العامة المتاحة لحظة التحميل، ولا تُعرض أرقام افتراضية.</p>
+          </div>
+          <div class="mx-home-stats__grid">
+            <article><strong id="mx-stat-sectors">27</strong><span>قطاعًا</span></article>
+            <article><strong id="mx-stat-services">—</strong><span>خدمات منشورة</span></article>
+            <article><strong id="mx-stat-providers">—</strong><span>مقدمو خدمات</span></article>
+            <article><strong id="mx-stat-ads">—</strong><span>إعلانات فعالة</span></article>
+          </div>
+        </section>
+
+        <section class="mx-home-discovery" id="mx-discovery" aria-label="اكتشاف الخدمات بالقرب منك">
+          <div class="mx-home-discovery__copy">
+            <span class="mx-home-kicker">اكتشاف ذكي</span>
+            <h2>اعثر على الخدمة الأقرب إلى احتياجك</h2>
+            <p>ابدأ بالبحث أو اسم النشاط، ثم فعّل الموقع فقط عندما تحتاج لترتيب مقدمي الخدمات حسب القرب.</p>
+            <div class="mx-home-discovery__actions">
+              <button class="mx-btn mx-btn--primary" id="mx-discovery-search" type="button">ابدأ البحث</button>
+              <button class="mx-btn mx-btn--light" id="mx-discovery-location" type="button">استخدم موقعي عند الحاجة</button>
+            </div>
+            <div class="mx-home-discovery__points">
+              <span>بحث مباشر</span><span>ترتيب حسب القرب</span><span>بيانات منشورة</span>
+            </div>
+          </div>
+          <div class="mx-home-discovery__visual" aria-hidden="true">
+            <div class="mx-map-grid"></div>
+            <div class="mx-map-road mx-map-road--one"></div>
+            <div class="mx-map-road mx-map-road--two"></div>
+            <div class="mx-map-pin mx-map-pin--one"></div>
+            <div class="mx-map-pin mx-map-pin--two"></div>
+            <div class="mx-map-pin mx-map-pin--three"></div>
+            <div class="mx-map-card"><b>اكتشاف حولك</b><span>يتم استخدام الموقع بإذن المستخدم فقط</span></div>
+          </div>
+        </section>
+
+        <section class="mx-home-growth" id="mx-growth" aria-label="نمو الأنشطة">
+          <div class="mx-home-growth__visual">
+            <span class="mx-growth-orb mx-growth-orb--one"></span><span class="mx-growth-orb mx-growth-orb--two"></span>
+            <div class="mx-growth-panel"><b>MantiqatiX</b><span>نشاطك أمام العملاء المناسبين</span><i></i><small>اكتشاف · ظهور · تواصل · طلبات</small></div>
+          </div>
+          <div class="mx-home-growth__copy">
+            <span class="mx-home-kicker">لأصحاب الأنشطة</span>
+            <h2>حوّل وجودك الرقمي إلى قناة نمو</h2>
+            <p>أنشئ حضورك على المنصة، اعرض خدماتك، واستفد من الظهور المميز والإعلانات وفق المسارات المعتمدة.</p>
+            <div class="mx-home-growth__actions">
+              <button class="mx-btn mx-btn--primary" id="mx-growth-add" type="button">أضف نشاطك</button>
+              <button class="mx-btn mx-btn--light" id="mx-growth-ads" type="button">استعرض الإعلان</button>
+            </div>
+          </div>
+        </section>
+
         <section class="mx-section" id="mx-services" hidden>
           <div class="mx-section__head"><div><h2>نتائج البحث والخدمات</h2><p id="mx-search-context">بيانات منشورة من كتالوج المنصة، وليست بيانات وهمية.</p></div><div class="mx-search-result-tools"><span class="mx-live" id="mx-live-status">جارٍ التحميل...</span><button class="mx-link" id="mx-search-clear-results" type="button" hidden>مسح البحث</button></div></div>
           <div class="mx-service-grid" id="mx-service-grid"><div class="mx-loading">جارٍ تحميل الخدمات...</div></div>
@@ -998,6 +1052,14 @@ const categoryGrid=document.getElementById('mx-category-grid');
       ranges.querySelectorAll('[data-radius]').forEach(b=>b.onclick=async()=>{api.setRadius(Number(b.dataset.radius));loadLocationUi();await loadData(document.getElementById('mx-home-search')?.value||'')});
     };
 
+    const updateHomepageLiveStats=({services=[],providers=[],ads=[]}={})=>{
+      const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value);};
+      set('mx-stat-sectors',TAXONOMY.length);
+      set('mx-stat-services',services.length);
+      set('mx-stat-providers',providers.length);
+      set('mx-stat-ads',ads.length);
+    };
+
     let homeLoadSequence=0;
     const loadData=async(searchText='',categoryCode='')=>{
       const requestSequence=++homeLoadSequence;
@@ -1038,6 +1100,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(providersRes.status!=='fulfilled' || providersRes.value?.error) throw (providersRes.status==='fulfilled'?providersRes.value.error:new Error('تعذر تحميل مقدمي الخدمات'));
         if(requestSequence!==homeLoadSequence)return;
         const services=servicesRes.value?.data||[];
+        updateHomepageLiveStats({services,providers:providersRes.value?.data||[],ads:adsRes.status==='fulfilled'&&!adsRes.value?.error?(adsRes.value?.data||[]):[]});
         window.__MNTY_HOME_SERVICES=services;
         window.__MNTY_HOME_PROVIDERS=providersRes.value?.data||[];
         const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.value?.data||[]):providersRes.value?.data||[];
