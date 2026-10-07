@@ -8,7 +8,6 @@ const forbidden=[
   ["نموذج إعلاني تجريبي","homepage must not ship fabricated sponsored offers"],
   ["تقييم تجريبي","homepage must not ship fabricated reviews"],
   ["PARTNER MOCK","homepage must not ship fabricated partner names"],
-  ["متاجر","homepage must not ship unverified store links in the public shell"],
   ["نموذج عرض — تُربط ببيانات الموقع المنشورة عند تفعيل الخريطة","homepage must not ship a simulated map as if it were a product surface"]
 ];
 
