@@ -1157,6 +1157,7 @@ async function requestAdBooking(duration='QUARTERLY'){
 }
 async function createMarketingLead(){
   if(!user?.id)return authView();
+  if(window.MNTY_RBAC?.can(String(live.role||''),'CRM','create',live.permissions)!==true)return showToast('لا تملك صلاحية إنشاء طلب تسويق في هذا النطاق.','error');
   const title=window.prompt('عنوان احتياج التسويق');
   if(!title?.trim())return;
   const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');
@@ -1382,7 +1383,9 @@ function crmWorkspace(){
  const unread=notifications.filter(x=>!x.read_at).length;
  const leadRows=leads.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="lead" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
  const ticketRows=tickets.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="ticket" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
- const actions='<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button><button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button></div>';
+ const canCreateLead=window.MNTY_RBAC?.can(role,'CRM','create',live.permissions)===true;
+ const canCreateTicket=window.MNTY_RBAC?.can(role,'SUPPORT','create',live.permissions)===true;
+ const actions='<div class="action-bar">'+(canCreateLead?'<button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button>':'')+(canCreateTicket?'<button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button>':'')+'</div>';
  const note=manager?'عرض تشغيلي موسع حسب العضوية والصلاحيات الحالية؛ البيانات تأتي من RLS مباشرة.':'عرض سجلات حسابك فقط وفق سياسات الوصول الحالية.';
  return workspaceHead('CRM','العملاء والعلاقات','مركز موحد لطلبات العملاء المحتملين وتذاكر الدعم والمراسلات والتنبيهات، بدون بيانات تجريبية.','CRM')
   +'<div class="notice">'+esc(note)+'</div>'
@@ -1402,7 +1405,7 @@ function crmWorkspace(){
     ['الموضوع',r=>r.subject||'—'],['الفئة',r=>r.category||'—'],['الأولوية',r=>r.priority||'—'],['الحالة',r=>r.status||'—'],['آخر تحديث',r=>r.updated_at?new Date(r.updated_at).toLocaleString('ar-EG'):(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')],['إجراء',r=>r._action]
   ]);
 }
-function canManageSupport(){return ['ADMIN','SUPER_ADMIN','OWNER','BUSINESS_OWNER','SUPPORT','SUPPORT_MANAGER'].includes(String(live.role||'').toUpperCase())}
+function canManageSupport(){return window.MNTY_RBAC?.can(String(live.role||''),'SUPPORT','update',live.permissions)===true}
 const SUPPORT_STATUSES=['OPEN','IN_PROGRESS','RESOLVED','CLOSED'];
 async function updateTicketStatus(ticketId,status){
  if(!user?.id||!ticketId)return authView();
@@ -1480,6 +1483,7 @@ async function disableCurrentPushSubscription(){
 }
 async function openSupportTicket(){
  if(!user?.id)return authView();
+ if(window.MNTY_RBAC?.can(String(live.role||''),'SUPPORT','create',live.permissions)!==true)return showToast('لا تملك صلاحية إنشاء تذكرة دعم في هذا النطاق.','error');
  const membership=live.memberships.find(m=>m.status==='ACTIVE'&&m.tenant_id);
  if(!membership){return showToast('لا توجد عضوية نشطة مرتبطة بمستأجر لإنشاء التذكرة.','error')}
  const subject=window.prompt('عنوان التذكرة'); if(!subject?.trim())return;
