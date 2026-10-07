@@ -1468,3 +1468,18 @@
 - No credentials were extracted, no user session was impersonated, and no production mutation was performed.
 - Final runtime E2E remains a release gate requiring owner-approved test identities/sessions.
 
+## RC550 — Order Lifecycle Production Gate Review
+- Status: **PARTIAL / IMPLEMENTED — NOT VERIFIED E2E**.
+- Production `orders`, `order_status_history`, and `notifications` all have RLS enabled and active policy coverage.
+- Backend-only order boundaries are confirmed: `create_order_backend` and `update_order_status_backend` are not executable by `anon` or `authenticated` directly; the application uses the controlled server/Edge path.
+- `mark_notifications_read_backend` is authenticated-only and remains authorization-gated.
+- Production triggers verified:
+  - order creation → server-side notification
+  - order status update → server-side notification
+  - order status history insert → server-side notification
+  - financial lock after payment
+  - legal order insert gate
+- Critical payment/order Edge Function source↔Production parity was previously verified byte-for-byte for `order-create` and `order-status-update`.
+- No order was created, mutated, cancelled, delivered, or financially settled during this verification pass.
+- Customer → Provider → Order → Status → Notification runtime E2E remains open until approved independent test identities/sessions are available.
+
