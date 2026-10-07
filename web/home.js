@@ -391,6 +391,12 @@ const categoryGrid=document.getElementById('mx-category-grid');
         return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><img src="'+escapeHtml(image)+'" alt="" loading="eager" decoding="async" onerror="this.hidden=true"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span></span><strong>'+label+'</strong><small>'+desc+'</small>'+liveMeta+'<span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
       }).join('');
       categoryGrid.innerHTML=tiles;
+      const toggle=document.getElementById('mx-category-toggle');
+      if(toggle){
+        toggle.hidden=items.length<=previewSize;
+        toggle.textContent=expanded?'عرض قطاعات أقل':'عرض جميع القطاعات';
+        toggle.setAttribute('aria-expanded',expanded?'true':'false');
+      }
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
     };
     const platformNotices=[
