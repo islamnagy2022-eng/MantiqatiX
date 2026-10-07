@@ -503,7 +503,7 @@ async function globalSearch(queryText){
    let queryBuilder=sb.from(source.table).select(source.select).limit(6);
    if(source.key==='businesses')queryBuilder=queryBuilder.or('name.ilike.'+needle+',code.ilike.'+needle);
    else if(source.key==='providers')queryBuilder=queryBuilder.or('name_ar.ilike.'+needle+',name_en.ilike.'+needle+',provider_kind.ilike.'+needle);
-   else if(source.key==='orders')queryBuilder=queryBuilder.or('id.ilike.'+needle+',status.ilike.'+needle+',customer_name.ilike.'+needle);
+   else if(source.key==='orders')queryBuilder=queryBuilder.or('status.ilike.'+needle+',customer_name.ilike.'+needle);
    else if(source.key==='services')queryBuilder=queryBuilder.or('code.ilike.'+needle+',name_ar.ilike.'+needle+',name_en.ilike.'+needle+',category_code.ilike.'+needle);
    else if(source.key==='catalog')queryBuilder=queryBuilder.or('name_ar.ilike.'+needle+',name_en.ilike.'+needle+',sku.ilike.'+needle+',item_type.ilike.'+needle);
    else if(source.key==='leads')queryBuilder=queryBuilder.or('title.ilike.'+needle+',status.ilike.'+needle+',source.ilike.'+needle+',service_area.ilike.'+needle);
