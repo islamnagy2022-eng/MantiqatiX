@@ -1064,3 +1064,12 @@
 - [x] Reconfirmed backup/restore cannot be certified from backup existence alone; an approved restore rehearsal is required.
 - [x] No source-derived evidence was promoted to runtime PASS without live verification.
 - [ ] Final Production Gate remains OPEN / NOT PRODUCTION READY.
+
+
+## RC374 — Live RLS baseline recheck — 2026-10-07
+
+- [x] Live Production currently has exactly 1 public RLS-enabled table with zero policies: `digital_page_payment_events`.
+- [x] No `anon` or `authenticated` table grants were returned for that table.
+- [x] This remains an intentional backend-only payment-event boundary; no broad policy was added.
+- [x] This supersedes older TODO wording that listed seven public no-policy tables as still open at the live baseline.
+- [ ] Final Payment/Finance E2E remains NOT VERIFIED because real provider transaction/replay/settlement evidence is still absent.
