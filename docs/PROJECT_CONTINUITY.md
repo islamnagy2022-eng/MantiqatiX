@@ -482,3 +482,5 @@ This status is intentional and must remain until the open gates above are indepe
 - Preserved live search, sponsored-ad RPC contract, provider data, authentication, and existing backend boundaries.
 - Cache contract advanced to RC393.
 - Important: GitHub commits for RC393 exist on `main`, but no new GitHub Actions run/status was returned for the RC393 commits at verification time; therefore production Pages deployment is NOT VERIFIED yet.
+
+- RC394: removed legacy emoji-style UI icons, added neutral CSS icon system, and advanced homepage cache to rc394. Production deployment remains NOT VERIFIED until a GitHub Pages workflow run is observed.
