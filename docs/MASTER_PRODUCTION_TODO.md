@@ -1152,3 +1152,18 @@
 - [x] All 40 authenticated-executable public SECURITY DEFINER functions have an explicit `search_path` configuration; no public SECURITY DEFINER function in this audited set has an unset search_path.
 - [x] The intentional public advertisement function uses `search_path=public,pg_temp` and only returns active/approved targeted ads; it remains the sole anonymous SECURITY DEFINER boundary.
 - [ ] This structural audit is not a substitute for adversarial E2E/IDOR testing of each sensitive workflow.
+
+
+## RC382 — SECURITY DEFINER actor-boundary + browser-write audit — 2026-10-07
+
+- [x] Reviewed the 40 authenticated-executable public SECURITY DEFINER functions beyond the structural count, focusing on actor identity, tenant membership, and privileged-role boundaries.
+- [x] High-risk user-context functions inspected include MantiGO customer/captain flows, payment-intent creation, digital-page payment claim/finalize/release, job application submission, medical appointment status, notification read, rating, commission preview, and platform/admin functions.
+- [x] No immediate actor-spoofing defect was evidenced in the inspected functions: user-scoped operations either compare the supplied actor UUID to auth.uid() or derive the actor from auth.uid(); privileged/admin operations use platform-admin, membership, or finance-role checks.
+- [x] get_mantigo_captain_earnings_backend was specifically verified to reject a p_user_id different from auth.uid() before returning financial aggregates.
+- [x] create_payment_intent_backend was specifically verified to require the order tenant to match the requested tenant and to require either the authenticated customer or an active membership/appropriate financial role for another actor.
+- [x] fulfill_digital_page_publish was specifically verified to require the authenticated actor to be a platform admin and to enforce paid-order, page-owner, and page-type correlation before publishing.
+- [x] preview_commission_backend was specifically verified to call assert_financial_membership(p_tenant_id) before reading the tenant commission rule.
+- [x] Frontend source search found no direct insert/update/upsert/delete calls for the prioritized sensitive tables in the searched main-branch results; the Pages workflow also contains explicit regression guards for direct browser writes to critical tables.
+- [ ] This source review is still not equivalent to two-user/two-tenant adversarial runtime E2E; that remains a release blocker.
+- [ ] CI for the latest main commit remains NOT VERIFIED through the available commit-run/status interfaces; the repository does contain .github/workflows/pages.yml with extensive production validation/deploy smoke gates.
+- [ ] ERP migration provenance, real payment/settlement E2E, backup/restore rehearsal, interactive browser E2E, Android signed/device evidence, leaked-password protection, rollback rehearsal, and final certification remain open.
