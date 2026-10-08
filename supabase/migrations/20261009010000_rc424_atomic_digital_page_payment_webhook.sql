@@ -107,3 +107,36 @@ revoke all on function public.process_verified_digital_page_payment_backend(uuid
 revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from anon;
 revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from authenticated;
 grant execute on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) to service_role;
+
+
+-- Harden the existing admin publish gate against cross-order page reuse.
+create or replace function public.fulfill_digital_page_publish(p_actor_user_id uuid,p_order_id uuid,p_page_id uuid)
+returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
+declare v_order public.digital_page_orders%rowtype; v_page public.digital_pages%rowtype;
+begin
+  if p_actor_user_id is null or p_actor_user_id <> auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
+  if not public.mnty_can_platform_admin() then raise exception 'PLATFORM_ADMIN_REQUIRED'; end if;
+  select * into v_order from public.digital_page_orders where id=p_order_id for update;
+  if not found then raise exception 'DIGITAL_PAGE_ORDER_NOT_FOUND'; end if;
+  if v_order.payment_status <> 'PAID' then raise exception 'PAYMENT_REQUIRED'; end if;
+  if v_order.fulfillment_status not in ('REQUESTED','IN_REVIEW','IN_PROGRESS') and v_order.fulfillment_status <> 'PUBLISHED' then raise exception 'INVALID_FULFILLMENT_STATE'; end if;
+  select * into v_page from public.digital_pages where id=p_page_id for update;
+  if not found then raise exception 'DIGITAL_PAGE_NOT_FOUND'; end if;
+  if v_page.created_by <> v_order.user_id then raise exception 'PAGE_OWNER_MISMATCH'; end if;
+  if v_page.page_type <> v_order.page_type then raise exception 'PAGE_TYPE_MISMATCH'; end if;
+  if v_order.target_business_id is not null and v_page.business_id is distinct from v_order.target_business_id then raise exception 'BUSINESS_SCOPE_MISMATCH'; end if;
+  if v_order.page_type = 'MENU' and (v_order.target_business_id is null or v_page.business_id is distinct from v_order.target_business_id) then raise exception 'MENU_BUSINESS_SCOPE_REQUIRED'; end if;
+  if v_page.digital_page_order_id is not null and v_page.digital_page_order_id <> v_order.id then raise exception 'PAGE_ALREADY_LINKED_TO_DIFFERENT_ORDER'; end if;
+  if v_page.status = 'PUBLISHED' then
+    if v_page.digital_page_order_id = v_order.id and v_order.fulfillment_status = 'PUBLISHED' then
+      return jsonb_build_object('page_id',v_page.id,'order_id',v_order.id,'status','PUBLISHED','replayed',true);
+    end if;
+    raise exception 'PUBLISHED_PAGE_NOT_LINKED_TO_ORDER';
+  end if;
+  update public.digital_pages set digital_page_order_id=v_order.id,status='PUBLISHED',published_at=coalesce(published_at,now()),version=version+1,updated_by=p_actor_user_id,updated_at=now() where id=v_page.id;
+  update public.digital_page_orders set fulfillment_status='PUBLISHED',updated_at=now() where id=v_order.id;
+  insert into public.audit_logs(id,tenant_id,actor_user_id,action,entity_type,entity_id,metadata,created_at)
+  values(gen_random_uuid(),'MNTY-PLATFORM',p_actor_user_id,'DIGITAL_PAGE_PUBLISHED','digital_page_order',v_order.id::text,jsonb_build_object('page_id',v_page.id,'page_type',v_page.page_type),now());
+  return jsonb_build_object('page_id',v_page.id,'order_id',v_order.id,'status','PUBLISHED','replayed',false);
+end;
+$function$;
