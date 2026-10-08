@@ -1580,6 +1580,8 @@ async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
 window.openDigitalPageOrderModal=openDigitalPageOrderModal;
 
 async function accountView(){
+ // Refresh membership state before rendering the account center; never grant roles client-side.
+ try{ await loadLiveData(); }catch(e){ live.error=e?.message||'تعذر تحديث العضويات'; }
  const memberships=(live.memberships||[]).filter(m=>m.status==='ACTIVE');
  let requests=[];
  if(user?.id){
