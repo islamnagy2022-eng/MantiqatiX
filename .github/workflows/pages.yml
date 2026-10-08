@@ -99,6 +99,12 @@ jobs:
           test -f web/app.js
           test -f web/home.js
           test -f web/smm.html
+          test -f web/digital-page.html
+          test -f web/digital-page.css
+          test -f web/digital-page.js
+          test -f web/digital-page-editor.html
+          test -f web/digital-page-editor.css
+          test -f web/digital-page-editor.js
           for asset in web/assets/activity/*.svg; do test -f "$asset"; done
           for asset in web/assets/activities/*.svg; do test -f "$asset"; done
           test -f web/smm.js
@@ -174,16 +180,25 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Fq "MantiqatiX" "$TMP_PAGE"
-          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js; do
+          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
           HOME_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/home.js")"
           CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js")"
+          DIGITAL_PAGE_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page.html")"
+          DIGITAL_PAGE_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page.js")"
+          DIGITAL_EDITOR_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.html")"
+          DIGITAL_EDITOR_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.js")"
           grep -Fq 'id="go-public-home"' <<<"$APP_JS"
           grep -Fq "mnty-customer-registration" <<<"$APP_JS"
           grep -Fq "tenant_id:'MNTY-PLATFORM'" <<<"$APP_JS"
           grep -Fq "openPlatform" <<<"$HOME_JS"
           grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"$CONFIG_JS"
           grep -Fq "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'" <<<"$CONFIG_JS"
+          grep -Fq 'digital-page.js' <<<"$DIGITAL_PAGE_HTML"
+          grep -Fq 'digital-page.css' <<<"$DIGITAL_PAGE_HTML"
+          grep -Fq "eq('status','PUBLISHED')" <<<"$DIGITAL_PAGE_JS"
+          grep -Fq 'fulfill_digital_page_publish' <<<"$DIGITAL_EDITOR_JS"
+          grep -Fq 'digital-page-editor.js' <<<"$DIGITAL_EDITOR_HTML"
           echo "Production smoke verification passed for $PAGE_URL"
