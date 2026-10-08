@@ -1582,6 +1582,12 @@ window.openDigitalPageOrderModal=openDigitalPageOrderModal;
 async function accountView(){
  // Refresh membership state before rendering the account center; never grant roles client-side.
  try{ await loadLiveData(); }catch(e){ live.error=e?.message||'تعذر تحديث العضويات'; }
+ if(live.error){
+  document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card mx-account-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>تعذر تحديث بيانات الحساب</h1><p class="muted">لم نتمكن من التحقق من العضويات الحالية، لذلك لن نعرض بيانات قديمة على أنها محدثة. تحقق من الاتصال ثم أعد المحاولة.</p><p class="msg">'+esc(live.error)+'</p><div class="action-bar"><button class="btn btn-primary" id="account-retry-load">إعادة المحاولة</button><button class="btn btn-outline" id="account-logout-safe">تسجيل الخروج</button></div></section></main>';
+  document.getElementById('account-retry-load')?.addEventListener('click',()=>accountView());
+  document.getElementById('account-logout-safe')?.addEventListener('click',()=>logout());
+  return;
+ }
  const memberships=(live.memberships||[]).filter(m=>m.status==='ACTIVE');
  let requests=[];
  if(user?.id){
