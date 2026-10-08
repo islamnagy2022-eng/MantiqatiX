@@ -53,6 +53,23 @@ for(const marker of [
   if(!rc340Sql.includes(marker)) throw new Error('RC340 security-boundary marker missing: '+marker);
 }
 
+
+const rc424='supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql';
+if(!fs.existsSync(rc424)) throw new Error('RC424 digital-page payment processor migration is missing.');
+const rc424Sql=fs.readFileSync(rc424,'utf8');
+const paymentProcessor='process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)';
+for(const marker of [
+  'revoke all on function public.'+paymentProcessor+' from public;',
+  'revoke all on function public.'+paymentProcessor+' from anon;',
+  'revoke all on function public.'+paymentProcessor+' from authenticated;',
+  'grant execute on function public.'+paymentProcessor+' to service_role;',
+  'DIGITAL_PAGE_SIGNATURE_REQUIRED',
+  'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH',
+  'DIGITAL_PAGE_EVENT_ORDER_MISMATCH'
+]){
+  if(!rc424Sql.includes(marker)) throw new Error('RC424 payment processor security/idempotency contract missing: '+marker);
+}
+
 const currentWorkflow=fs.readFileSync('.github/workflows/pages.yml','utf8');
 if(!currentWorkflow.includes('node scripts/validate-security-definer-contract.mjs')){
   throw new Error('SECURITY DEFINER validation is not wired into production CI.');
