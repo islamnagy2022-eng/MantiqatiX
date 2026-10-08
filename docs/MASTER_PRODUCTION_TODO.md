@@ -48,10 +48,10 @@
    - leaked-password protection معطل — WAITING FOR OWNER / Dashboard action.
 
 6. RLS بلا Policies — PARTIAL / FAIL-CLOSED REVIEW
-   - Production الحالي: 128/128 public base tables عليها RLS.
-   - 1 table فقط بلا policy: public.digital_page_payment_events، وهو backend-only/payment-event boundary.
-   - لا يوجد مبرر حالي لإضافة broad policies لمجرد إسكات Advisor.
-   - يلزم توثيق/إثبات access-path الخاص بالـ backend/service-role قبل اعتبار البند مغلقًا.
+   - Production inspection: `user_memberships`, `restaurant_inventory`, `restaurant_menu_items`, `restaurant_orders`, and `restaurant_tables` have RLS enabled and policies present (1 policy on memberships, 8 on each restaurant table).
+   - `digital_page_payment_events` has RLS enabled and 0 policies, remaining fail-closed. Production grant inspection showed no direct SELECT/INSERT/UPDATE/DELETE grants to `service_role` in information_schema (only REFERENCES/TRIGGER/TRUNCATE), so the backend access path still needs explicit verification before closing this gate.
+   - Prior full catalog check recorded 128/128 public base tables with RLS; repeat the full check before final release.
+   - Do not add broad policies just to silence Advisor; verify the intended Edge Function/service-role path and least-privilege grants first.
 
 7. Leaked Password Protection — WAIT
    - تفعيلها من Supabase Auth.
@@ -71,12 +71,10 @@
    - network loss/retry.
    - location permission عند الحاجة فقط.
 
-10. Public web browser smoke — NOT VERIFIED
-    - الصفحة العامة أولاً.
-    - auth/runtime/import.
-    - responsive/accessibility.
-    - PWA/service worker.
-    - production URL.
+10. Public web deployment smoke — PARTIAL / browser E2E NOT VERIFIED
+    - GitHub Pages deployment + automated `Verify deployed site`: PASS for commit `569f1245fcd57ab50f30abcb08599409e483392a` (run 37861633528).
+    - Production Health Monitor: PASS for the same commit (run 37861633606); checks GitHub Pages, Supabase health function, and public web assets.
+    - Still NOT VERIFIED: interactive authenticated browser session, responsive/accessibility manual audit, PWA/service-worker offline behavior, and end-user auth flow.
 
 # P1 — أولوية عالية
 
@@ -1540,3 +1538,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 4. Verify restaurant order/status/payment boundaries before production release.
 5. Continue CRM deep workspace and notification/task unification.
 6. Do not close P0 production release gates based on static CI alone.
+
+
+## Production evidence update — 2026-10-09
+- Main commit `569f1245fcd57ab50f30abcb08599409e483392a` includes RC450 restaurant/CRM RBAC regression validator; Module Professionalization Validation and Backend-only Module Boundary checks passed.
+- GitHub Pages deployment and automated deployed-site verification passed (run 37861633528); Production Health Monitor passed (run 37861633606).
+- Read-only live RLS spot-check confirmed the four restaurant tables listed above and `user_memberships` have RLS enabled and policy counts present.
+- Privileged digital-page payment processor remains non-executable by `anon` and `authenticated` in the live grant check; no payment transaction was generated.
+- Release gate remains OPEN until real authenticated cross-tenant tests, customer/provider order + notification E2E, Paymob payment E2E, finance settlement E2E, leaked-password protection owner action, and release-device tests have evidence.
