@@ -135,8 +135,8 @@ begin
   end if;
   update public.digital_pages set digital_page_order_id=v_order.id,status='PUBLISHED',published_at=coalesce(published_at,now()),version=version+1,updated_by=p_actor_user_id,updated_at=now() where id=v_page.id;
   update public.digital_page_orders set fulfillment_status='PUBLISHED',updated_at=now() where id=v_order.id;
-  insert into public.audit_logs(id,tenant_id,actor_user_id,action,entity_type,entity_id,metadata,created_at)
-  values(gen_random_uuid(),'MNTY-PLATFORM',p_actor_user_id,'DIGITAL_PAGE_PUBLISHED','digital_page_order',v_order.id::text,jsonb_build_object('page_id',v_page.id,'page_type',v_page.page_type),now());
+  insert into public.audit_logs(id,tenant_id,actor_user_id,action,entity_type,entity_id,new_values,result,created_at)
+  values(gen_random_uuid()::text,'MNTY-PLATFORM',p_actor_user_id,'DIGITAL_PAGE_PUBLISHED','digital_page_order',v_order.id::text,jsonb_build_object('page_id',v_page.id,'page_type',v_page.page_type),'SUCCESS',now());
   return jsonb_build_object('page_id',v_page.id,'order_id',v_order.id,'status','PUBLISHED','replayed',false);
 end;
 $function$;
