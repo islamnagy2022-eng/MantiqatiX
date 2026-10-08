@@ -839,6 +839,7 @@ async function loadRestaurantWorkspace(){
  const [menu,orders,tables,inventory]=await Promise.all(['restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory'].map(read));
  cache.rows={restaurant_menu_items:menu.error?[]:(menu.data||[]),restaurant_orders:orders.error?[]:(orders.data||[]),restaurant_tables:tables.error?[]:(tables.data||[]),restaurant_inventory:inventory.error?[]:(inventory.data||[])};
  cache.errors={restaurant_menu_items:menu.error?.message||null,restaurant_orders:orders.error?.message||null,restaurant_tables:tables.error?.message||null,restaurant_inventory:inventory.error?.message||null};
+ cache.rows.__errors=cache.errors;
  cache.rowsReady=true;cache.loading=false;renderApp()}
 async function updateMntTripStatus(rideId,targetStatus){
  if(!rideId||!targetStatus)return;
@@ -892,15 +893,17 @@ function medicalWorkspace(rows){
 }
 function restaurantWorkspace(rows){
  const menu=rows.restaurant_menu_items||[],orders=rows.restaurant_orders||[],tables=rows.restaurant_tables||[],inventory=rows.restaurant_inventory||[];
+ const errors=rows.__errors||{};
  const available=menu.filter(x=>x.is_available).length,activeOrders=orders.filter(x=>!['DELIVERED','CANCELLED','COMPLETED'].includes(String(x.status||'').toUpperCase())).length,lowStock=inventory.filter(x=>Number(x.current_stock_qty)<=Number(x.min_stock_alert_threshold)).length,occupiedTables=tables.filter(x=>String(x.status||'').toUpperCase()!=='AVAILABLE').length;
  const fmt=v=>v==null?'—':Number(v).toLocaleString('ar-EG',{maximumFractionDigits:2});
+ const sourceState=(key,label,count)=>errors[key]?'<div class="mx-source-status mx-source-status--error"><b>'+esc(label)+'</b><span>NOT AVAILABLE — '+esc(errors[key])+'</span></div>':'<div class="mx-source-status mx-source-status--ok"><b>'+esc(label)+'</b><span>'+esc(String(count))+' سجل مرئي وفق RLS</span></div>';
  window.openRestaurantRecord=(kind,id)=>{
   const map={menu:menu.find(x=>x.id===id),order:orders.find(x=>x.id===id),table:tables.find(x=>x.id===id),inventory:inventory.find(x=>x.id===id)},r=map[kind];if(!r)return;
   let sections=[];
   if(kind==='menu')sections=[{title:'بيانات الصنف',html:'<div class="mx-record-kv-grid"><div><span>الفئة</span><b>'+esc(r.category)+'</b></div><div><span>السعر</span><b>'+esc(fmt(r.base_price_egp))+' EGP</b></div><div><span>متاح</span><b>'+esc(r.is_available?'نعم':'لا')+'</b></div><div><span>الأكثر طلبًا</span><b>'+esc(r.is_popular?'نعم':'لا')+'</b></div></div>'},{title:'الوصف',html:'<div class="mx-record-prose">'+esc(r.description_ar||'—')+'</div>'}];
   if(kind==='order')sections=[{title:'بيانات الطلب',html:'<div class="mx-record-kv-grid"><div><span>العميل</span><b>'+esc(r.customer_name)+'</b></div><div><span>الهاتف</span><b>'+esc(r.customer_phone)+'</b></div><div><span>الحالة</span><b>'+esc(r.status)+'</b></div><div><span>نوع التنفيذ</span><b>'+esc(r.fulfillment_type)+'</b></div><div><span>الإجمالي</span><b>'+esc(fmt(r.total_egp))+' EGP</b></div><div><span>الطاولة</span><b>'+esc(r.table_number??'—')+'</b></div></div>'},{title:'ملاحظات العميل',html:'<div class="mx-record-prose">'+esc(r.notes_from_customer||'—')+'</div>'},{title:'العنوان',html:'<div class="mx-record-prose">'+esc(r.delivery_address||'—')+'</div>'}];
   if(kind==='table')sections=[{title:'بيانات الطاولة',html:'<div class="mx-record-kv-grid"><div><span>رقم الطاولة</span><b>'+esc(r.table_number)+'</b></div><div><span>السعة</span><b>'+esc(r.capacity_persons)+' أفراد</b></div><div><span>الحالة</span><b>'+esc(r.status)+'</b></div><div><span>الفاتورة الحالية</span><b>'+esc(fmt(r.current_bill_egp))+' EGP</b></div><div><span>الطلب النشط</span><b>'+esc(r.current_active_order_id||'—')+'</b></div><div><span>الحجز</span><b>'+esc(r.reserved_customer_name||'—')+'</b></div></div>'}];
-  if(kind==='inventory')sections=[{title:'بيانات المخزون',html:'<div class="mx-record-kv-grid"><div><span>الوحدة</span><b>'+esc(r.unit)+'</b></div><div><span>الرصيد</span><b>'+esc(fmt(r.current_stock_qty))+'</b></div><div><span>حد التنبيه</span><b>'+esc(fmt(r.min_stock_alert_threshold))+'</b></div><div><span>التكلفة</span><b>'+esc(fmt(r.unit_cost_egp))+' EGP</b></div><div><span>المورد</span><b>'+esc(r.supplier_name)+'</b></div></div>' }];
+  if(kind==='inventory')sections=[{title:'بيانات المخزون',html:'<div class="mx-record-kv-grid"><div><span>الوحدة</span><b>'+esc(r.unit)+'</b></div><div><span>الرصيد</span><b>'+esc(fmt(r.current_stock_qty))+'</b></div><div><span>حد التنبيه</span><b>'+esc(fmt(r.min_stock_alert_threshold))+'</b></div><div><span>التكلفة</span><b>'+esc(fmt(r.unit_cost_egp))+' EGP</b></div><div><span>المورد</span><b>'+esc(r.supplier_name)+'</b></div></div>'}];
   openUnifiedRecordDetails({kicker:'RESTAURANT',title:kind==='menu'?r.name_ar:kind==='order'?'طلب '+r.id:kind==='table'?'طاولة '+r.table_number:r.name_ar,desc:'السجل معروض من نطاق النشاط والفرع الحالي وفق RLS.',sections});
  };
  const action=(kind,r,label)=>'<button class="text-btn" type="button" data-restaurant-kind="'+esc(kind)+'" data-restaurant-id="'+esc(r.id)+'">'+esc(label)+'</button>';
@@ -909,7 +912,11 @@ function restaurantWorkspace(rows){
  const tableTable=recordsTable('الطاولات',tables,[['الطاولة',r=>action('table',r,'#'+r.table_number)],['السعة',r=>r.capacity_persons],['الحالة',r=>r.status],['الفاتورة',r=>fmt(r.current_bill_egp)+' EGP'],['الحجز',r=>r.reserved_customer_name||'—']]);
  const inventoryTable=recordsTable('المخزون',inventory,[['الصنف',r=>action('inventory',r,r.name_ar)],['الرصيد',r=>fmt(r.current_stock_qty)+' '+r.unit],['حد التنبيه',r=>fmt(r.min_stock_alert_threshold)],['التكلفة',r=>fmt(r.unit_cost_egp)+' EGP'],['المورد',r=>r.supplier_name]]);
  setTimeout(()=>document.querySelectorAll('[data-restaurant-kind]').forEach(btn=>btn.addEventListener('click',()=>window.openRestaurantRecord(btn.dataset.restaurantKind,btn.dataset.restaurantId))),0);
- return workspaceHead('RESTAURANT','المطاعم والمطابخ','Workspace موحد للقائمة والطلبات والطاولات والمخزون ضمن النشاط والفرع الحالي.','LIVE')+workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
+ const failed=Object.keys(errors).filter(k=>errors[k]);
+ return workspaceHead('RESTAURANT','المطاعم والمطابخ','Workspace موحد للقائمة والطلبات والطاولات والمخزون ضمن النشاط والفرع الحالي.','LIVE')
+ +'<section class="mx-restaurant-source-grid" aria-label="حالة مصادر المطعم">'+sourceState('restaurant_menu_items','قائمة الطعام',menu.length)+sourceState('restaurant_orders','الطلبات',orders.length)+sourceState('restaurant_tables','الطاولات',tables.length)+sourceState('restaurant_inventory','المخزون',inventory.length)+'</section>'
+ +(failed.length?'<div class="notice">بعض مصادر المطعم غير متاحة حاليًا. تم إبقاء الحالة <b>NOT AVAILABLE</b> بدل عرض قائمة فارغة على أنها سليمة.</div>':'')
+ +workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
 }
 
 function enterpriseRowsTable(m,rows){if(m.key==='ACCOUNTING'&&current==='المزايدات — المحاسبة')return recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])+recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['الحالة',r=>r.status]]);if(m.key==='ERP')return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'+recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':'—']])+recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>r.warehouse_id],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])+recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>r.from_warehouse_id],['إلى',r=>r.to_warehouse_id],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']]);if(m.key==='FACTORIES')return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])+recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>r.warehouse_id],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])+recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]]);if(m.key==='TRIPS')return mantigoWorkspace(rows);if(m.key==='MEDICAL')return medicalWorkspace(rows);if(m.key==='MATRIMONY')return '<div class="notice">بيانات الاتصال المباشر وبيانات الولي محجوبة من قائمة الملفات العامة.</div>'+recordsTable('الملفات المتاحة',rows.matrimony_profiles||[],[['الاسم المستعار',r=>r.pseudonym],['العمر',r=>r.age],['المدينة',r=>r.city],['التعليم',r=>r.education],['المهنة',r=>r.occupation],['الحالة',r=>r.marital_status],['موثق',r=>r.is_verified?'نعم':'لا']])+recordsTable('طلبات التواصل الخاصة بي',rows.matrimony_requests||[],[['الملف',r=>r.to_profile_id],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]]);return ''}
@@ -1150,6 +1157,7 @@ async function requestAdBooking(duration='QUARTERLY'){
 }
 async function createMarketingLead(){
   if(!user?.id)return authView();
+  if(window.MNTY_RBAC?.can(String(live.role||''),'CRM','create',live.permissions)!==true)return showToast('لا تملك صلاحية إنشاء طلب تسويق في هذا النطاق.','error');
   const title=window.prompt('عنوان احتياج التسويق');
   if(!title?.trim())return;
   const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');
@@ -1375,7 +1383,9 @@ function crmWorkspace(){
  const unread=notifications.filter(x=>!x.read_at).length;
  const leadRows=leads.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="lead" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
  const ticketRows=tickets.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="ticket" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
- const actions='<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button><button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button></div>';
+ const canCreateLead=window.MNTY_RBAC?.can(role,'CRM','create',live.permissions)===true;
+ const canCreateTicket=window.MNTY_RBAC?.can(role,'SUPPORT','create',live.permissions)===true;
+ const actions='<div class="action-bar">'+(canCreateLead?'<button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button>':'')+(canCreateTicket?'<button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button>':'')+'</div>';
  const note=manager?'عرض تشغيلي موسع حسب العضوية والصلاحيات الحالية؛ البيانات تأتي من RLS مباشرة.':'عرض سجلات حسابك فقط وفق سياسات الوصول الحالية.';
  return workspaceHead('CRM','العملاء والعلاقات','مركز موحد لطلبات العملاء المحتملين وتذاكر الدعم والمراسلات والتنبيهات، بدون بيانات تجريبية.','CRM')
   +'<div class="notice">'+esc(note)+'</div>'
@@ -1395,7 +1405,7 @@ function crmWorkspace(){
     ['الموضوع',r=>r.subject||'—'],['الفئة',r=>r.category||'—'],['الأولوية',r=>r.priority||'—'],['الحالة',r=>r.status||'—'],['آخر تحديث',r=>r.updated_at?new Date(r.updated_at).toLocaleString('ar-EG'):(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')],['إجراء',r=>r._action]
   ]);
 }
-function canManageSupport(){return ['ADMIN','SUPER_ADMIN','OWNER','BUSINESS_OWNER','SUPPORT','SUPPORT_MANAGER'].includes(String(live.role||'').toUpperCase())}
+function canManageSupport(){return window.MNTY_RBAC?.can(String(live.role||''),'SUPPORT','update',live.permissions)===true}
 const SUPPORT_STATUSES=['OPEN','IN_PROGRESS','RESOLVED','CLOSED'];
 async function updateTicketStatus(ticketId,status){
  if(!user?.id||!ticketId)return authView();
@@ -1473,6 +1483,7 @@ async function disableCurrentPushSubscription(){
 }
 async function openSupportTicket(){
  if(!user?.id)return authView();
+ if(window.MNTY_RBAC?.can(String(live.role||''),'SUPPORT','create',live.permissions)!==true)return showToast('لا تملك صلاحية إنشاء تذكرة دعم في هذا النطاق.','error');
  const membership=live.memberships.find(m=>m.status==='ACTIVE'&&m.tenant_id);
  if(!membership){return showToast('لا توجد عضوية نشطة مرتبطة بمستأجر لإنشاء التذكرة.','error')}
  const subject=window.prompt('عنوان التذكرة'); if(!subject?.trim())return;
