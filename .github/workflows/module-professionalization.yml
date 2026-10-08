@@ -36,3 +36,4 @@ jobs:
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-module-runtime-coverage.mjs
+          node scripts/validate-restaurant-rbac-contract.mjs
