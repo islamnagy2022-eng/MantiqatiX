@@ -74,6 +74,7 @@ jobs:
           node scripts/validate-production-gate-contract.mjs
           node scripts/validate-finance-boundaries.mjs
           node scripts/validate-digital-pages-boundaries.mjs
+          node scripts/test-digital-page-runtime.mjs
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
           node scripts/validate-module-runtime-coverage.mjs
