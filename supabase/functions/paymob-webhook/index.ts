@@ -29,16 +29,33 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  const digital=digitalByRef??digitalByOrder
  if(digital){
    if(Math.abs(Number(digital.amount)-amount)>0.01||String(digital.currency).toUpperCase()!==currency)return json({error:"DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
-   const {data:existingDigital}=await admin.from("digital_page_payment_events").select("id").eq("external_event_id",eventId).maybeSingle()
-   if(existingDigital)return json({ok:true,idempotent:true,requestId},200,requestId)
-   const {error:ee}=await admin.from("digital_page_payment_events").insert({digital_page_order_id:digital.id,provider:"PAYMOB",external_event_id:eventId,event_type:"TRANSACTION",status:success?"SUCCEEDED":"FAILED",signature_verified:true,raw_payload:raw})
-   if(ee)return json({error:"DIGITAL_PAGE_EVENT_PERSISTENCE",requestId},500,requestId)
-   const next=success?"PAID":"FAILED"
-   const fulfillment=success?"IN_REVIEW":"REQUESTED"
-   const {error:oe}=await admin.from("digital_page_orders").update({payment_status:next,fulfillment_status:fulfillment,provider_transaction_id:value(obj.id),provider_order_id:paymobOrderId,updated_at:new Date().toISOString()}).eq("id",digital.id).eq("payment_status","PENDING")
-   if(oe)return json({error:"DIGITAL_PAGE_ORDER_UPDATE_FAILED",requestId},500,requestId)
-   await admin.from("notifications").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",user_id:digital.user_id,type:"DIGITAL_PAGE_PAYMENT",title:success?"تم تأكيد الدفع":"تعذر تأكيد الدفع",body:success?"تم تأكيد طلب الصفحة الرقمية وسيبدأ فريق المنصة مراجعته.":"تعذر تأكيد عملية الدفع لطلب الصفحة الرقمية.",entity_type:"digital_page_order",entity_id:digital.id})
-   return json({ok:true,status:next,requestId},200,requestId)
+   const {data:processedDigital,error:processError}=await admin.rpc("process_verified_digital_page_payment_backend",{
+     p_order_id:digital.id,
+     p_external_event_id:eventId,
+     p_event_type:"TRANSACTION",
+     p_status:success?"SUCCEEDED":"FAILED",
+     p_signature_verified:true,
+     p_amount:amount,
+     p_currency:currency,
+     p_provider_transaction_id:value(obj.id),
+     p_provider_order_id:paymobOrderId,
+     p_raw_payload:raw
+   })
+   if(processError){
+     const message=String(processError.message??"")
+     if(message.includes("DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH"))return json({error:"DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
+     if(message.includes("DIGITAL_PAGE_ORDER_NOT_FOUND"))return json({error:"DIGITAL_PAGE_ORDER_NOT_FOUND",requestId},404,requestId)
+     if(message.includes("DIGITAL_PAGE_EVENT_ORDER_MISMATCH"))return json({error:"DIGITAL_PAGE_EVENT_ORDER_MISMATCH",requestId},409,requestId)
+     return json({error:"DIGITAL_PAGE_PAYMENT_PROCESSING_FAILED",requestId},500,requestId)
+   }
+   const result=processedDigital&&typeof processedDigital==="object"?processedDigital as Record<string,unknown>:{}
+   if(result.idempotent===true)return json({ok:true,idempotent:true,status:value(result.payment_status),requestId},200,requestId)
+   if(result.already_final!==true){
+     const paid=value(result.payment_status)==="PAID"
+     const {error:ne}=await admin.from("notifications").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",user_id:digital.user_id,type:"DIGITAL_PAGE_PAYMENT",title:paid?"تم تأكيد الدفع":"تعذر تأكيد الدفع",body:paid?"تم تأكيد طلب الصفحة الرقمية وسيبدأ فريق المنصة مراجعته.":"تعذر تأكيد عملية الدفع لطلب الصفحة الرقمية.",entity_type:"digital_page_order",entity_id:digital.id})
+     if(ne)console.error("DIGITAL_PAGE_PAYMENT_NOTIFICATION_FAILED",requestId,ne.message)
+   }
+   return json({ok:true,status:value(result.payment_status),fulfillmentStatus:value(result.fulfillment_status),requestId},200,requestId)
  }
  const {data:mantigo}=await admin.from("mantigo_financial_ledger").select("id,ride_id,customer_id,currency,gross_amount,payment_status,settlement_status").eq("id",merchantRef).maybeSingle();
  if(mantigo){
