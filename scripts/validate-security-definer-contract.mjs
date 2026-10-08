@@ -54,6 +54,26 @@ for(const marker of [
 }
 
 
+
+const rc340Tables=[
+  'orders','payment_intents','user_memberships','support_tickets',
+  'ticket_messages','notifications','financial_obligations',
+  'settlement_transactions','general_ledger'
+];
+for(const table of rc340Tables){
+  if(!rc340Sql.includes("('"+table+"')"))
+    throw new Error('RC340 live RLS assertion missing critical table: '+table);
+}
+for(const marker of [
+  "('public.mnty_active_membership(character varying,uuid,character varying)',false,true)",
+  "('public.mnty_can(text,character varying,uuid,character varying)',false,true)",
+  "('public.get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)',true,true)",
+  "if v_auth is distinct from v.expected_auth",
+  "if v_anon is distinct from v.expected_anon"
+]){
+  if(!rc340Sql.includes(marker)) throw new Error('RC340 expected privilege contract missing: '+marker);
+}
+
 const rc424='supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql';
 if(!fs.existsSync(rc424)) throw new Error('RC424 digital-page payment processor migration is missing.');
 const rc424Sql=fs.readFileSync(rc424,'utf8');
