@@ -1528,11 +1528,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Added per-source status cards and preserved unified Record Details behavior.
 - Tightened CRM/support action visibility and runtime guards to use the existing `MNTY_RBAC.can(...)` contract rather than a hard-coded role list for create/update actions.
 - No schema, RPC, Edge Function, or RLS changes.
-- PR #71 remains open because workflow runs are not currently exposed; merge/CI is **WAITING FOR VERIFICATION**.
+- PR #71 merged with squash; merge commit: `946d88f4fc12caed988a7a1bc3dda5cfcc481c9a`.
+- PR-head CI evidence: Deploy MantiqatiX Web, Backend-only Module Boundary, and Module Professionalization Validation all completed successfully for `c7b9f34a0b639daee42a5b0502b4fd7c39e30e44`.
+- Post-merge Production Health Monitor completed successfully for the merge commit.
+- Post-merge GitHub Pages deployment was queued at checkpoint time; production deploy success is not recorded in this entry until the run completes.
 
 ### RC450 remaining
-1. Verify CI for PR #71 and merge only after successful validation evidence.
+1. Confirm post-merge GitHub Pages deployment and deployed-site smoke verification.
 2. Perform authenticated Restaurant E2E with owner/manager/provider identities.
 3. Verify cross-tenant and cross-branch denial with independent sessions.
 4. Verify restaurant order/status/payment boundaries before production release.
 5. Continue CRM deep workspace and notification/task unification.
+6. Do not close P0 production release gates based on static CI alone.
