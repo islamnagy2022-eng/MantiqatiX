@@ -25,6 +25,7 @@ const checks = [
   ["Digital checkout requires provider order ID", digitalPayment.includes("!providerOrderId")],
   ["Digital checkout persists provider order ID through five-argument RPC", digitalPayment.includes("p_provider_order_id:providerOrderId") && digitalFinalizeMigration.includes("p_provider_order_id text")],
   ["Digital webhook rejects a mismatched provider order", webhook.includes("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH") && digitalMigration.includes("v_order.provider_order_id <> p_provider_order_id")],
+  ["Digital webhook returns retryable status while a claimed intent lacks provider-order persistence", webhook.includes("DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('payment_status,provider_order_id,metadata')],
   ["MantiGo claims the ledger before creating a Paymob intention", ridePayment.indexOf("paymob_intention_claim:requestId") > 0 && ridePayment.indexOf("paymob_intention_claim:requestId") < ridePayment.indexOf('fetch("https://accept.paymob.com/v1/intention/"')],
   ["MantiGo intention persistence must own the claim token", ridePayment.includes('.filter("metadata->>paymob_intention_claim","eq",requestId)')],
   ["MantiGo refuses retrying a pending ledger without a stored intention", ridePayment.includes('if(String(ledger.payment_status)==="PENDING")return json({error:"PAYMENT_INTENT_REQUIRES_RESTART"},409,requestId)')],
