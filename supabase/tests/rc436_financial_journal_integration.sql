@@ -10,6 +10,7 @@ declare
   n integer;
   rejected boolean;
 begin
+  insert into public.businesses(id,tenant_id,status) values(business,'tenant-a','ACTIVE');
   insert into public.user_memberships(id,user_id,tenant_id,business_id,role,status)
   values('membership-1',actor,'tenant-a',business,'ACCOUNTANT','ACTIVE');
   insert into public.chart_of_accounts(id,tenant_id,is_active)
