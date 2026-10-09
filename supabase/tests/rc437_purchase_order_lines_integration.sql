@@ -120,7 +120,7 @@ begin
   perform set_config('request.jwt.claim.sub',customer_actor::text,true);
   rejected:=false;
   begin
-    perform public.create_purchase_order_with_lines_backend('po-rc437-customer','tenant-a',business,'branch-a','PO-CUSTOMER','supplier-a',0,0,null,lines);
+    perform public.create_purchase_order_with_lines_backend('po-rc437-customer','tenant-a',business,'branch-a','PO-CUSTOMER','supplier-a',0,0,null,lines,customer_actor);
   exception when others then if sqlerrm='PURCHASE_ORDER_ROLE_REQUIRED' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'customer role must not create purchase orders'; end if;
@@ -128,7 +128,7 @@ begin
   perform set_config('request.jwt.claim.sub',other_actor::text,true);
   rejected:=false;
   begin
-    perform public.create_purchase_order_with_lines_backend('po-rc437-cross','tenant-a',business,'branch-a','PO-CROSS','supplier-a',0,0,null,lines,actor);
+    perform public.create_purchase_order_with_lines_backend('po-rc437-cross','tenant-a',business,'branch-a','PO-CROSS','supplier-a',0,0,null,lines,other_actor);
   exception when others then if sqlerrm='PURCHASE_ORDER_ROLE_REQUIRED' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'cross-tenant order creation must be rejected'; end if;
