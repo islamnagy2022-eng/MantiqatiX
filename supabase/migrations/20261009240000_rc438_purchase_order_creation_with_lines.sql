@@ -35,7 +35,8 @@ begin
   if found then
     if v_existing.tenant_id<>p_tenant_id or v_existing.business_id<>p_business_id or v_existing.order_number<>pg_catalog.btrim(p_order_number)
        or v_existing.supplier_id<>pg_catalog.btrim(p_supplier_id) or v_existing.branch_id is distinct from p_branch_id or v_existing.tax_amount is distinct from v_tax
-       or v_existing.discount_amount is distinct from v_discount or v_existing.reason is distinct from p_reason then
+       or v_existing.discount_amount is distinct from v_discount or v_existing.reason is distinct from p_reason
+       or v_existing.total_amount is distinct from round((select coalesce(sum(round(pol.ordered_quantity*pol.unit_cost,2)),0) from public.erp_purchase_order_lines pol where pol.purchase_order_id=p_id)+v_tax-v_discount,2) then
       raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT';
     end if;
     if (select count(*) from public.erp_purchase_order_lines pol where pol.purchase_order_id=p_id) <> pg_catalog.jsonb_array_length(p_lines) then
@@ -114,7 +115,7 @@ begin
   return pg_catalog.jsonb_build_object('success',true,'order',pg_catalog.to_jsonb(v_order));
 end;
 $function$;
-revoke all on function public.update_purchase_order_status_backend(varchar,varchar) from public,anon;
+revoke all on function public.update_purchase_order_status_backend(varchar,varchar) from public,anon,authenticated;
 grant execute on function public.update_purchase_order_status_backend(varchar,varchar) to authenticated;
 
 comment on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid) is
