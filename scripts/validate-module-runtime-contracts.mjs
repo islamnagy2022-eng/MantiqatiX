@@ -5,7 +5,9 @@ const files={
  app:read("web/app.js"),
  operations:read("web/operations-modules.js"),
  restaurant:read("web/restaurant-module.js"),
- reverse:read("web/reverse-bidding-module.js")
+ reverse:read("web/reverse-bidding-module.js"),
+ smm:read("web/smm.js"),
+ smmGateway:read("supabase/functions/smm-gateway/index.ts")
 };
 const modules=[
  ["RESTAURANTS","restaurant",["restaurant_menu_items","restaurant_orders","restaurant_tables"]],
@@ -45,6 +47,12 @@ const marketingSource=files.operations;
 const marketingKeyCount=(marketingSource.match(/'المزايدات — التسويق':/g)||[]).length;
 if(marketingKeyCount!==1) failures.push("MARKETING_DUPLICATE_DEFINITION");
 if(files.operations.includes("sb.from('education_requests').insert")) failures.push("EDUCATION_DIRECT_INSERT_FORBIDDEN");
+if(files.smm.includes("sb.from('smm_services')")||files.smm.includes("sb.from('smm_orders')")||files.smm.includes("sb.from('smm_wallets')")) failures.push("SMM_RESTRICTED_DIRECT_READ_FORBIDDEN");
+if(!files.smm.includes("fn({action:'catalog'})")||!files.smm.includes("fn({action:'my_data'})")) failures.push("SMM_GATEWAY_READS_MISSING");
+if(!files.smmGateway.includes('if(a==="catalog")')||!files.smmGateway.includes('if(a==="my_data")')) failures.push("SMM_GATEWAY_READ_ACTIONS_MISSING");
+if(!files.smmGateway.includes('is_admin:await isAdmin(user.id)')) failures.push("SMM_ADMIN_FLAG_NOT_SERVER_AUTHORIZED");
+if(!files.smmGateway.includes('role==="SUPER_ADMIN"&&p.scope==="PLATFORM"&&p.full_control===true')) failures.push("SMM_PLATFORM_ADMIN_SCOPE_REQUIRED");
+if(!files.smm.includes("loadError")||!files.smm.includes("حالة البيانات")) failures.push("SMM_READ_ERROR_STATE_MISSING");
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 for(const [code,owner,tables] of modules){
