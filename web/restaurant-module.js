@@ -26,7 +26,7 @@ async function membership(user){
  // Persisted membership ID is a selector only; the authenticated DB query is authoritative.
  const saved=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
  const {data,error}=await sb.from('user_memberships')
-  .select('id,tenant_id,business_id,branch_id,role,status')
+  .select('id,tenant_id,business_id,branch_id,role,permissions,status')
   .eq('user_id',user.id).eq('status','ACTIVE').limit(100);
  if(error)throw error;
  const active=Array.isArray(data)?data:[];
@@ -39,9 +39,10 @@ async function membership(user){
  if(active.length>1)throw new Error('ACTIVE_MEMBERSHIP_SELECTION_REQUIRED');
  return null;
 }
-function canOperate(){
- const r=String(state.membership?.role||'').toUpperCase();
- return ['OWNER','ADMIN','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER','STAFF'].includes(r);
+function canOperate(module='CATALOG',action='view'){
+ const m=state.membership;
+ if(!m||!window.MNTY_RBAC||typeof window.MNTY_RBAC.can!=='function')return false;
+ return window.MNTY_RBAC.can(m.role,module,action,m.permissions)===true;
 }
 function scope(){
  const m=state.membership;
@@ -68,7 +69,7 @@ async function load(){
  let ordersQ=sb.from('orders').select('id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,total,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
  let tablesQ=sb.from('restaurant_tables').select('id,owner_user_id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name').order('table_number').limit(100);
  let invQ=sb.from('restaurant_inventory').select('id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at').order('name_ar').limit(200);
- if(s&&canOperate()){
+ if(s&&(canOperate('CATALOG','view')||canOperate('ORDERS','view')||canOperate('OPERATIONS','view'))){
    menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
    ordersQ=ordersQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
    tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
@@ -103,28 +104,28 @@ function tabs(){
  }).join('')+'</div>';
 }
 function menuView(){
- const add=canOperate()?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
+ const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
  return shell('قائمة الطعام',tabs()+ '<div class="action-bar">'+add+'</div>'+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
- (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate()?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
+ (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function ordersView(){
  const statuses=['CONFIRMED','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
  return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
- (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount)+'</td><td>'+(canOperate()?'<select data-order-status="'+esc(x.id)+'">'+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
+ (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount)+'</td><td>'+(canOperate('ORDERS','update')?'<select data-order-status="'+esc(x.id)+'">'+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function tablesView(){
- const add=canOperate()?'<button class="btn btn-primary" id="rest-add-table">+ إضافة طاولة</button>':'';
+ const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-table">+ إضافة طاولة</button>':'';
  return shell('إدارة الطاولات',tabs()+'<div class="action-bar">'+add+'</div><div class="table-wrap"><table><thead><tr><th>رقم</th><th>السعة</th><th>الحالة</th><th>الفاتورة الحالية</th><th>حجز</th><th>إجراء</th></tr></thead><tbody>'+
- (state.tables.length?state.tables.map(x=>'<tr><td>'+x.table_number+'</td><td>'+x.capacity_persons+' أفراد</td><td>'+esc(x.status)+'</td><td>'+money(x.current_bill_egp)+'</td><td>'+esc(x.reserved_customer_name||'—')+'</td><td>'+(canOperate()?'<button class="linkbtn" data-table-edit="'+esc(x.id)+'">تعديل الحالة</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طاولات فعلية بعد.</td></tr>')+
+ (state.tables.length?state.tables.map(x=>'<tr><td>'+x.table_number+'</td><td>'+x.capacity_persons+' أفراد</td><td>'+esc(x.status)+'</td><td>'+money(x.current_bill_egp)+'</td><td>'+esc(x.reserved_customer_name||'—')+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-table-edit="'+esc(x.id)+'">تعديل الحالة</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طاولات فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function inventoryView(){
- const add=canOperate()?'<button class="btn btn-primary" id="rest-add-inv">+ إضافة صنف مخزون</button>':'';
+ const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-inv">+ إضافة صنف مخزون</button>':'';
  return shell('مخزون المطعم',tabs()+'<div class="action-bar">'+add+'</div><div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الوحدة</th><th>الرصيد</th><th>حد التنبيه</th><th>تكلفة الوحدة</th><th>المورد</th><th>إجراء</th></tr></thead><tbody>'+
- (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate()?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
+ (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function askQuantity(label='الكمية'){
@@ -137,7 +138,7 @@ function askQuantity(label='الكمية'){
  });
 }
 async function createRestaurantOrder(){
- if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
+ if(!state.user||!scope()||!canOperate('ORDERS','create'))return notify('لا تملك صلاحية إنشاء طلب ضمن نطاق المطعم الحالي.','error');
  const m=scope();
  try{
    const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
@@ -153,7 +154,7 @@ async function createRestaurantOrder(){
  }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
 }
 function dashboard(){
- return shell('لوحة المطعم',tabs()+'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>'+cards()+
+ return shell('لوحة المطعم',tabs()+(canOperate('ORDERS','create')?'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>':'')+cards()+
  '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
 }
@@ -171,7 +172,7 @@ function modal(title,html,onSave){
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
 function addMenu(existing){
- if(!canOperate())return;
+ if(!canOperate('CATALOG',existing?'update':'create'))return notify('لا تملك صلاحية إدارة القائمة.','error');
  const x=existing||{};
  modal(existing?'تعديل صنف':'إضافة صنف',
  field('name','اسم الصنف',x.name_ar)+field('desc','الوصف',x.description_ar)+field('cat','الفئة',x.category)+field('price','السعر بالجنيه',x.base_price_egp,'number','step="0.01" min="0" required')+
@@ -187,7 +188,7 @@ function addMenu(existing){
  });
 }
 function addTable(existing){
- if(!canOperate())return;
+ if(!canOperate('OPERATIONS',existing?'update':'create'))return notify('لا تملك صلاحية إدارة الطاولات.','error');
  const x=existing||{};
  modal(existing?'تعديل طاولة':'إضافة طاولة',
  field('num','رقم الطاولة',x.table_number,'number','min="1" step="1" required')+field('cap','السعة',x.capacity_persons||2,'number','min="1" step="1" required')+
@@ -202,7 +203,7 @@ function addTable(existing){
  });
 }
 function addInventory(existing){
- if(!canOperate())return;
+ if(!canOperate('CATALOG',existing?'update':'create'))return notify('لا تملك صلاحية إدارة المخزون.','error');
  const x=existing||{};
  modal(existing?'تعديل صنف مخزون':'إضافة صنف مخزون',
  field('name','اسم الصنف',x.name_ar)+field('unit','الوحدة',x.unit||'KG')+field('stock','الرصيد الحالي',x.current_stock_qty||0,'number','step="0.001" min="0"')+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0"')+field('cost','تكلفة الوحدة بالجنيه',x.unit_cost_egp||0,'number','step="0.01" min="0"')+field('supplier','المورد',x.supplier_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
@@ -215,7 +216,7 @@ function addInventory(existing){
  });
 }
 async function updateOrder(id,status){
- if(!canOperate())return;
+ if(!canOperate('ORDERS','update'))return notify('لا تملك صلاحية تحديث الطلبات.','error');
  const m=scope(); if(!m)return notify('لا يوجد نطاق نشاط/فرع نشط.');
  try{
   await invokeMntyFunction('order-status-update',{orderId:id,tenantId:m.tenant_id,newStatus:status});
