@@ -137,8 +137,11 @@ function askQuantity(label='الكمية'){
   });
  });
 }
+let creatingOrder=false;
 async function createRestaurantOrder(){
+ if(creatingOrder)return;
  if(!state.user||!scope()||!canOperate('ORDERS','create'))return notify('لا تملك صلاحية إنشاء طلب ضمن نطاق المطعم الحالي.','error');
+ creatingOrder=true;const createButton=document.getElementById('rest-create-order');if(createButton)createButton.disabled=true;
  const m=scope();
  try{
    const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
@@ -151,9 +154,9 @@ async function createRestaurantOrder(){
    const r=await invokeMntyFunction('order-create',payload);
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
    await load();
- }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
+ }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}finally{creatingOrder=false;if(createButton&&createButton.isConnected)createButton.disabled=false}
 }
-function dashboard(){
+function dashboard()
  return shell('لوحة المطعم',tabs()+(canOperate('ORDERS','create')?'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>':'')+cards()+
  '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
@@ -168,7 +171,7 @@ function render(){
 function modal(title,html,onSave){
  const o=document.createElement('div');o.className='mx-modal';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label',title);o.tabIndex=-1;o.innerHTML='<div class="mx-modal-card"><div class="workspace-head"><h2>'+title+'</h2><button class="btn btn-outline" id="rest-close">إغلاق</button></div><div class="modal-body">'+html+'</div></div>';
  const previousFocus=document.activeElement;document.body.appendChild(o);let closed=false;const close=()=>{if(closed)return;closed=true;o.remove();document.removeEventListener('keydown',onKey);if(previousFocus&&typeof previousFocus.focus==='function')requestAnimationFrame(()=>previousFocus.focus());};const focusables=()=>[...o.querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.offsetParent!==null);const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key!=='Tab')return;const list=focusables();if(!list.length)return;const first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}};o.querySelector('#rest-close').setAttribute('aria-label','إغلاق');o.querySelector('#rest-close').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});document.addEventListener('keydown',onKey);requestAnimationFrame(()=>o.querySelector('#rest-close')?.focus());
- o.querySelector('[data-save]')?.addEventListener('click',async()=>{await onSave(o)});
+ let saving=false;const save=o.querySelector('[data-save]');save?.addEventListener('click',async()=>{if(saving)return;saving=true;if(save)save.disabled=true;try{await onSave(o)}catch(e){notify('تعذر إتمام العملية: '+(e?.message||'خطأ غير متوقع'),'error')}finally{if(o.isConnected){saving=false;if(save)save.disabled=false}}});
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
 function addMenu(existing){
@@ -182,7 +185,7 @@ function addMenu(existing){
   const payload={name_ar:o.querySelector('#name').value.trim(),description_ar:o.querySelector('#desc').value.trim(),category:o.querySelector('#cat').value.trim(),base_price_egp:Number(o.querySelector('#price').value),is_available:o.querySelector('#available').checked,is_popular:o.querySelector('#popular').checked};
   if(!payload.name_ar||!payload.category||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0)return notify('أكمل الاسم والفئة والسعر بشكل صحيح.');
   let q;
-  if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id);
+  if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
   else q=sb.from('restaurant_menu_items').insert({...payload,id:uid(),owner_user_id:state.user.id,...s});
   const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
  });
@@ -198,7 +201,8 @@ function addTable(existing){
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={table_number:Number(o.querySelector('#num').value),capacity_persons:Number(o.querySelector('#cap').value),status:o.querySelector('#status').value,reserved_customer_name:o.querySelector('#reserved').value.trim()||null};
   if(!Number.isInteger(payload.table_number)||payload.table_number<1||!Number.isInteger(payload.capacity_persons)||payload.capacity_persons<1)return notify('أدخل رقم وسعة صحيحين.');
-  let q=existing?sb.from('restaurant_tables').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id):sb.from('restaurant_tables').insert({...payload,id:uid(),owner_user_id:state.user.id,current_active_order_id:null,current_bill_egp:0,...s});
+  if(!existing&&state.tables.some(t=>Number(t.table_number)===payload.table_number))return notify('رقم الطاولة مستخدم بالفعل ضمن الطاولات المعروضة.','error');
+  let q=existing?sb.from('restaurant_tables').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id):sb.from('restaurant_tables').insert({...payload,id:uid(),owner_user_id:state.user.id,current_active_order_id:null,current_bill_egp:0,...s});
   const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
  });
 }
@@ -211,7 +215,7 @@ function addInventory(existing){
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={name_ar:o.querySelector('#name').value.trim(),unit:o.querySelector('#unit').value.trim(),current_stock_qty:Number(o.querySelector('#stock').value),min_stock_alert_threshold:Number(o.querySelector('#min').value),unit_cost_egp:Number(o.querySelector('#cost').value),supplier_name:o.querySelector('#supplier').value.trim()};
   if(!payload.name_ar||!payload.unit||[payload.current_stock_qty,payload.min_stock_alert_threshold,payload.unit_cost_egp].some(v=>!Number.isFinite(v)||v<0))return notify('تحقق من بيانات المخزون.');
-  const q=existing?sb.from('restaurant_inventory').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id):sb.from('restaurant_inventory').insert({...payload,id:uid(),owner_user_id:state.user.id,...s});
+  const q=existing?sb.from('restaurant_inventory').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id):sb.from('restaurant_inventory').insert({...payload,id:uid(),owner_user_id:state.user.id,...s});
   const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
  });
 }
