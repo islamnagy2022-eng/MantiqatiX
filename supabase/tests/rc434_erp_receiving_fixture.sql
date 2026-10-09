@@ -74,3 +74,12 @@ create table public.inventory_transactions (
   created_by uuid,
   created_at timestamptz not null default now()
 );
+
+create function public.rc434_fail_inventory_insert() returns trigger language plpgsql as $trigger$
+begin
+  if new.reference_id='receipt-rollback' then raise exception 'RC434_FORCED_LEDGER_FAILURE'; end if;
+  return new;
+end;
+$trigger$;
+create trigger rc434_test_fail_inventory before insert on public.inventory_transactions
+  for each row execute function public.rc434_fail_inventory_insert();
