@@ -98,9 +98,9 @@ if(!currentWorkflow.includes('node scripts/validate-rbac-contract.mjs')){
   throw new Error('RBAC validation is not wired into production CI.');
 }
 
-const rc450='supabase/migrations/20261009130000_catalog_edge_service_role_boundary.sql';
-if(!fs.existsSync(rc450)) throw new Error('RC450 catalog/order Edge RPC boundary migration is missing.');
-const rc450Sql=fs.readFileSync(rc450,'utf8');
+const rc563='supabase/migrations/20261010035000_rc563_catalog_edge_service_role_boundary.sql';
+if(!fs.existsSync(rc563)) throw new Error('RC563 catalog/order Edge RPC boundary migration is missing.');
+const rc563Sql=fs.readFileSync(rc563,'utf8');
 for(const marker of [
   'set search_path=public,pg_temp',
   "coalesce(auth.role(),'') <> 'service_role'",
@@ -119,7 +119,7 @@ for(const marker of [
   'grant execute on function public.upsert_catalog_settings_backend',
   'grant execute on function public.create_order_backend'
 ]){
-  if(!rc450Sql.includes(marker)) throw new Error('RC450 catalog/order security contract missing: '+marker);
+  if(!rc563Sql.includes(marker)) throw new Error('RC563 catalog/order security contract missing: '+marker);
 }
 
 console.log('RC340 SECURITY DEFINER/RBAC release contract: PASS');
