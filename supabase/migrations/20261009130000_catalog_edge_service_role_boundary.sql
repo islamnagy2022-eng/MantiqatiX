@@ -114,6 +114,10 @@ begin
  if coalesce(auth.role(),'') <> 'service_role' and (auth.uid() is null or auth.uid()<>p_customer_id) then raise exception 'CUSTOMER_REQUIRED'; end if;
  if p_tenant_id is null or p_tenant_id='' or p_business_id is null or p_client_idempotency_key is null or length(trim(p_client_idempotency_key))<8 then raise exception 'INVALID_ORDER_REQUEST'; end if;
  if p_items_json is null or jsonb_typeof(p_items_json)<>'array' or jsonb_array_length(p_items_json)=0 then raise exception 'INVALID_ITEMS'; end if;
+ if nullif(trim(coalesce(p_customer_name,'')),'') is null or length(trim(p_customer_name))>200 then raise exception 'INVALID_CUSTOMER_NAME'; end if;
+ if length(regexp_replace(coalesce(p_customer_phone,''),'[^0-9]','','g'))<7 or length(regexp_replace(coalesce(p_customer_phone,''),'[^0-9]','','g'))>15 then raise exception 'INVALID_CUSTOMER_PHONE'; end if;
+ if upper(coalesce(p_metadata->>'order_type','DELIVERY')) not in ('DELIVERY','TAKEAWAY') then raise exception 'INVALID_ORDER_TYPE'; end if;
+ if upper(coalesce(p_metadata->>'order_type','DELIVERY'))='DELIVERY' and nullif(trim(coalesce(p_delivery_address,'')),'') is null then raise exception 'DELIVERY_ADDRESS_REQUIRED'; end if;
  select exists(select 1 from user_memberships m where m.user_id=p_customer_id and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE') into v_customer_member;
  if not v_customer_member and not exists(select 1 from user_memberships m where m.user_id=p_customer_id and coalesce(m.status,'ACTIVE')='ACTIVE' and upper(m.role)='CUSTOMER') then raise exception 'CUSTOMER_MEMBERSHIP_REQUIRED'; end if;
  if not exists(select 1 from businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id and coalesce(b.status,'ACTIVE')='ACTIVE') then raise exception 'BUSINESS_TENANT_MISMATCH'; end if;
