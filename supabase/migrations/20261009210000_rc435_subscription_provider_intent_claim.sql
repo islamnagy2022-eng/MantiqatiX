@@ -46,6 +46,10 @@ begin
     return pg_catalog.jsonb_build_object('claimed',false,'outcome_unknown',true,'intent',pg_catalog.to_jsonb(v_intent));
   end if;
 
+  if (v_intent.provider_intent_id is null) <> (v_intent.provider_order_id is null) then
+    return pg_catalog.jsonb_build_object('claimed',false,'outcome_unknown',true,'intent',pg_catalog.to_jsonb(v_intent));
+  end if;
+
   return pg_catalog.jsonb_build_object('claimed',false,'outcome_unknown',false,'intent',pg_catalog.to_jsonb(v_intent));
 end;
 $function$;
