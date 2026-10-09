@@ -38,6 +38,8 @@ assert.doesNotMatch(restaurant, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER','S
 
 assert.match(restaurant, /canOperate\('ORDERS','create'\)/, 'order creation must require central order create permission');
 assert.match(restaurant, /canOperate\('ORDERS','update'\)/, 'order status updates must require central order update permission');
+assert.match(restaurant, /window\.confirm\('هل تؤكد إلغاء الطلب/, 'order cancellation must require user confirmation');
+assert.match(restaurant, /s\.value=previous;s\.disabled=false/, 'failed status changes must restore the prior displayed status');
 
 assert.match(restaurant, /let saving=false;const save=o\.querySelector\('\[data-save\]'\)/, 'modal save actions must prevent repeated submissions while in flight');
 
