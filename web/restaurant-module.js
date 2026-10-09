@@ -147,13 +147,41 @@ function inventoryView(){
  (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
-function askQuantity(label='الكمية'){
+function askCart(items,options){
  return new Promise(resolve=>{
-  modal('إنشاء طلب',field('rest-qty','الكمية','1','number','min="1" step="1" required')+'<div class="action-bar"><button class="btn btn-primary" data-save>متابعة</button></div>',async o=>{
-   const value=Number(o.querySelector('#rest-qty')?.value);
-   if(!Number.isInteger(value)||value<1){notify('أدخل كمية صحيحة.','error');return;}
-   o.remove();resolve(value);
-  });
+  const rows=items.map(item=>{
+   const opts=(options||[]).filter(o=>String(o.catalog_item_id)===String(item.id));
+   const optionHtml=opts.length?'<label class="field"><span>إضافات '+esc(item.name_ar)+'</span><select multiple data-cart-options="'+esc(item.id)+'">'+opts.map(o=>'<option value="'+esc(o.id)+'">'+esc(o.name_ar||o.name_en||'خيار')+' (+'+money(o.price_delta||0)+')</option>').join('')+'</select></label>':'';
+   return '<div class="card" style="margin:10px 0;padding:12px"><label><input type="checkbox" data-cart-select="'+esc(item.id)+'"> <b>'+esc(item.name_ar)+'</b></label><div class="muted">'+(item.base_price_egp==null?'السعر حسب الكتالوج':money(item.base_price_egp))+'</div><label class="field"><span>الكمية</span><input data-cart-qty="'+esc(item.id)+'" type="number" min="1" max="1000" step="1" value="1" required></label>'+optionHtml+'</div>';
+  }).join('');
+  const html='<div class="notice">اختر صنفًا واحدًا أو أكثر. سيُعاد احتساب الأسعار والضرائب خادميًا من الكتالوج المركزي.</div>'+
+   '<div class="field"><label for="cart-customer-name">اسم العميل</label><input id="cart-customer-name" required></div>'+
+   '<div class="field"><label for="cart-customer-phone">هاتف العميل</label><input id="cart-customer-phone" type="tel" required></div>'+
+   '<div class="field"><label for="cart-order-type">نوع الطلب</label><select id="cart-order-type"><option value="TAKEAWAY">استلام من المطعم</option><option value="DELIVERY">توصيل</option></select></div>'+
+   '<div class="field"><label for="cart-address">عنوان التوصيل</label><input id="cart-address"></div>'+
+   '<div class="notice">ربط الطلب بالطاولة وتغيير حالتها تلقائيًا غير متاحين قبل اعتماد مسار خادمي ذري.</div>'+rows+
+   '<button class="btn btn-primary" data-save>إنشاء الطلب</button>';
+  modal('سلة طلب المطعم',html,async o=>{
+   const customerName=o.querySelector('#cart-customer-name').value.trim();
+   const customerPhone=o.querySelector('#cart-customer-phone').value.trim();
+   const orderType=o.querySelector('#cart-order-type').value;
+   const deliveryAddress=o.querySelector('#cart-address').value.trim();
+   const digits=customerPhone.replace(/[^0-9]/g,'');
+   if(!customerName)return notify('أدخل اسم العميل.','error');
+   if(digits.length<7||digits.length>15)return notify('أدخل رقم هاتف صحيحًا.','error');
+   if(orderType==='DELIVERY'&&!deliveryAddress)return notify('أدخل عنوان التوصيل.','error');
+   const selected=[...o.querySelectorAll('[data-cart-select]:checked')];
+   if(!selected.length)return notify('اختر صنفًا واحدًا على الأقل.','error');
+   const orderItems=[];
+   for(const checkbox of selected){
+    const id=checkbox.dataset.cartSelect;
+    const quantity=Number(o.querySelector('[data-cart-qty="'+id+'"]').value);
+    if(!Number.isInteger(quantity)||quantity<1||quantity>1000)return notify('تحقق من كميات الأصناف المختارة.','error');
+    const select=o.querySelector('[data-cart-options="'+id+'"]');
+    orderItems.push({catalogItemId:id,quantity,selectedOptionIds:select?[...select.selectedOptions].map(x=>x.value):[]});
+   }
+   o.remove();resolve({items:orderItems,customerName,customerPhone,deliveryAddress,orderType});
+  },()=>resolve(null));
  });
 }
 let creatingOrder=false;
