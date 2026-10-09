@@ -65,6 +65,8 @@ Deno.serve(async (req: Request) => {
     const businessId = String(body.businessId ?? "").trim();
     const branchId = body.branchId == null || body.branchId === "" ? null : String(body.branchId).trim();
     if (!tenantId || !businessId) return json({ error: "TENANT_BUSINESS_REQUIRED" }, 400);
+    const isUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+    if (!isUuid(businessId) || (branchId && !isUuid(branchId))) return json({ error: "INVALID_BUSINESS_OR_BRANCH_ID" }, 400);
     if (!["ITEM_UPSERT", "PRICE_UPSERT", "SETTINGS_UPSERT"].includes(action)) {
       return json({ error: "UNSUPPORTED_ACTION" }, 400);
     }
@@ -122,6 +124,7 @@ Deno.serve(async (req: Request) => {
       const nameAr = String(body.nameAr ?? "").trim();
       const taxRate = Number(body.taxRate ?? 0);
       if (!nameAr || nameAr.length > 300) return json({ error: "INVALID_ITEM_NAME" }, 400);
+      if (body.id != null && !isUuid(String(body.id))) return json({ error: "INVALID_CATALOG_ITEM_ID" }, 400);
       if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100) return json({ error: "INVALID_TAX_RATE" }, 400);
       const { data, error } = await admin.rpc("upsert_catalog_item_backend", {
         p_tenant_id: tenantId,
@@ -148,6 +151,7 @@ Deno.serve(async (req: Request) => {
       const effectiveFrom = body.effectiveFrom == null ? new Date().toISOString() : String(body.effectiveFrom);
       const effectiveTo = body.effectiveTo == null || body.effectiveTo === "" ? null : String(body.effectiveTo);
       if (!catalogItemId) return json({ error: "CATALOG_ITEM_REQUIRED" }, 400);
+      if (!isUuid(catalogItemId)) return json({ error: "INVALID_CATALOG_ITEM_ID" }, 400);
       if (!Number.isFinite(unitPrice) || unitPrice < 0) return json({ error: "INVALID_UNIT_PRICE" }, 400);
       if (currency !== "EGP") return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
       if (!Number.isFinite(Date.parse(effectiveFrom)) || (effectiveTo && !Number.isFinite(Date.parse(effectiveTo)))) {
