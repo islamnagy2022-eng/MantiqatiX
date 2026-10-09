@@ -33,7 +33,7 @@ begin
   select * into v_existing from public.erp_purchase_orders po where po.id=p_id for update;
   if found then
     if v_existing.tenant_id<>p_tenant_id or v_existing.business_id<>p_business_id or v_existing.order_number<>p_order_number
-       or v_existing.supplier_id<>p_supplier_id or v_existing.tax_amount is distinct from v_tax
+       or v_existing.supplier_id<>p_supplier_id or v_existing.branch_id is distinct from p_branch_id or v_existing.tax_amount is distinct from v_tax
        or v_existing.discount_amount is distinct from v_discount or v_existing.reason is distinct from p_reason then
       raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT';
     end if;
@@ -70,6 +70,9 @@ begin
   end loop;
   if v_subtotal<=0 or v_discount>v_subtotal+v_tax then raise exception 'INVALID_PURCHASE_ORDER_TOTALS'; end if;
   v_total:=round(v_subtotal+v_tax-v_discount,2);
+  if exists(select 1 from public.erp_purchase_orders po where po.business_id=p_business_id and po.order_number=p_order_number) then
+    raise exception 'PURCHASE_ORDER_NUMBER_CONFLICT';
+  end if;
 
   insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id,order_number,supplier_id,total_amount,tax_amount,discount_amount,status,reason,created_by)
   values(p_id,p_tenant_id,p_business_id,p_branch_id,p_order_number,p_supplier_id,v_total,v_tax,v_discount,'DRAFT',p_reason,u)
