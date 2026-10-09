@@ -112,14 +112,16 @@ Deno.serve(async (req) => {
     method: "POST", headers: { "Authorization": `Token ${PAYMOB_SECRET_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(paymobPayload)
   });
   const provider = await response.json().catch(() => ({}));
-  if (!response.ok || !provider?.id || !provider?.client_secret) {
+  const providerOrderId = String(provider?.intention_order_id ?? provider?.order_id ?? "");
+  if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId) {
     await admin.from("payment_intents").update({ status: "FAILED", updated_at: new Date().toISOString() }).eq("id", paymentIntentId);
     console.error(JSON.stringify({ requestId, stage: "paymob_intention", httpStatus: response.status }));
     return json({ error: "Payment provider rejected the payment intent", requestId }, 502, requestId);
   }
 
   const { error: updateError } = await admin.from("payment_intents").update({
-    provider_intent_id: String(provider.id), status: "PENDING", updated_at: new Date().toISOString()
+    provider_intent_id: String(provider.id), provider_order_id: providerOrderId,
+    status: "PENDING", updated_at: new Date().toISOString()
   }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion);
 
   if (updateError) {
