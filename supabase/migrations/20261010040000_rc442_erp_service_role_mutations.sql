@@ -29,7 +29,8 @@ begin
     and m.tenant_id=v_order.tenant_id
     and m.business_id=v_order.business_id
     and m.status='ACTIVE'
-  order by m.id
+    and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE')
+  order by case when upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN') then 0 else 1 end, m.id
   limit 1;
   if v_role is null then raise exception 'PURCHASE_ORDER_ROLE_REQUIRED'; end if;
 
@@ -74,6 +75,15 @@ begin
   end if;
   if p_from_warehouse_id=p_to_warehouse_id then raise exception 'SAME_WAREHOUSE'; end if;
 
+  -- Validate current membership before returning even an idempotent replay.
+  select upper(m.role) into v_role
+  from public.user_memberships m
+  where m.user_id=p_actor_user_id and m.tenant_id=p_tenant_id
+    and m.business_id=p_business_id and m.status='ACTIVE'
+    and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF')
+  order by m.id limit 1;
+  if v_role is null then raise exception 'ERP_INVENTORY_ROLE_REQUIRED'; end if;
+
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_id,0));
   select * into v_transfer from public.erp_stock_transfers t where t.id=p_id for update;
   if found then
@@ -88,14 +98,6 @@ begin
     end if;
     raise exception 'TRANSFER_IDEMPOTENCY_CONFLICT';
   end if;
-
-  select upper(m.role) into v_role
-  from public.user_memberships m
-  where m.user_id=p_actor_user_id and m.tenant_id=p_tenant_id
-    and m.business_id=p_business_id and m.status='ACTIVE'
-    and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF')
-  order by m.id limit 1;
-  if v_role is null then raise exception 'ERP_INVENTORY_ROLE_REQUIRED'; end if;
 
   if not exists(select 1 from public.warehouses w where w.id=p_from_warehouse_id and w.tenant_id=p_tenant_id and w.business_id=p_business_id and w.status='ACTIVE') then
     raise exception 'SOURCE_WAREHOUSE_INVALID';
@@ -200,6 +202,12 @@ begin
     return pg_catalog.jsonb_build_object('success',true,'transfer',pg_catalog.to_jsonb(v_transfer),'idempotent',true);
   end if;
   if v_transfer.status<>'IN_TRANSIT' then raise exception 'TRANSFER_NOT_IN_TRANSIT'; end if;
+  if not exists(select 1 from public.warehouses w where w.id=v_transfer.from_warehouse_id and w.tenant_id=v_transfer.tenant_id and w.business_id=v_transfer.business_id and w.status='ACTIVE') then
+    raise exception 'SOURCE_WAREHOUSE_INVALID';
+  end if;
+  if not exists(select 1 from public.warehouses w where w.id=v_transfer.to_warehouse_id and w.tenant_id=v_transfer.tenant_id and w.business_id=v_transfer.business_id and w.status='ACTIVE') then
+    raise exception 'TARGET_WAREHOUSE_INVALID';
+  end if;
 
   -- Serialize stock mutations for this product and warehouse pair; lock existing balances in stable order.
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(
