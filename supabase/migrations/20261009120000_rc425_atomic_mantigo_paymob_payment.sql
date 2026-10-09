@@ -90,7 +90,8 @@ begin
     );
   end if;
 
-  if v_ledger.payment_status <> 'PENDING' then
+  if v_ledger.payment_status <> 'PENDING'
+     and not (v_ledger.payment_status = 'FAILED' and p_status = 'PAID') then
     return jsonb_build_object(
       'ok', true,
       'idempotent', false,
@@ -144,7 +145,8 @@ begin
       payment_confirmed_at = case when p_status = 'PAID' then now() else null end,
       updated_at = now()
   where id = v_ledger.id
-    and payment_status = 'PENDING';
+    and (payment_status = 'PENDING'
+      or (payment_status = 'FAILED' and p_status = 'PAID'));
 
   if not found then
     raise exception 'MANTIGO_PAYMENT_STATE_CHANGED';
