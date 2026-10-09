@@ -10,6 +10,7 @@ const checks=[];
 function check(name,ok){checks.push({name,ok:Boolean(ok)});if(!ok)console.error("FAIL "+name);}
 check("order line table tracks ordered and received quantities",migration.includes("ordered_quantity")&&migration.includes("received_quantity")&&migration.includes("unique (purchase_order_id,product_id)"));
 check("only draft purchase orders can have their lines replaced",migration.includes("upper(v_order.status)<>'DRAFT'"));
+check("legacy draft line edits recalculate server-side order totals",migration.includes("set total_amount=round(v_total+tax_amount-discount_amount,2)")&&integration.includes("legacy draft total must be recalculated"));
 check("line creation validates active actor membership and tenant products",migration.includes("PURCHASE_ORDER_LINES_FORBIDDEN")&&migration.includes("ci.tenant_id=p_tenant_id")&&migration.includes("ci.business_id=p_business_id"));
 check("receiving requires a matching line and exact unit cost",migration.includes("PRODUCT_NOT_IN_PURCHASE_ORDER")&&migration.includes("PURCHASE_ORDER_UNIT_COST_MISMATCH"));
 check("cumulative receipt quantity cannot exceed ordered quantity",migration.includes("v_line.received_quantity+p_received_quantity>v_line.ordered_quantity"));
