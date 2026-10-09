@@ -102,7 +102,7 @@ Deno.serve(async (req: Request) => {
   const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
   const { data: catalogItems, error: itemError } = await admin
     .from("catalog_items")
-    .select("id,business_id,branch_id,name_ar,name_en,tax_rate,status")
+    .select("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata")
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .in("id", itemIds)
@@ -126,6 +126,7 @@ Deno.serve(async (req: Request) => {
   }
   const itemMap = new Map((catalogItems ?? [])
     .filter((x: any) => !branchId || !x.branch_id || String(x.branch_id) === branchId)
+    .filter((x: any) => x.metadata?.is_available !== false)
     .map((x: any) => [String(x.id), x]));
   if (itemMap.size !== itemIds.length) return json({ error: "CATALOG_ITEM_NOT_AVAILABLE" }, 409);
 
