@@ -12,7 +12,10 @@ assert.match(sql, /where current_subscription\.user_id = auth\.uid\(\)/i);
 assert.doesNotMatch(sql, /set user_id\s*=\s*excluded\.user_id/i);
 assert.match(sql, /if not found then[\s\S]*?PUSH_ENDPOINT_OWNERSHIP_CONFLICT/i);
 assert.match(sql, /using errcode = '42501'/i);
-assert.match(sql, /set search_path = public, pg_temp/i);
+assert.match(sql, /set search_path = ''/i);
+assert.doesNotMatch(sql, /set search_path = public/i);
+assert.match(sql, /pg_catalog\\.btrim/);
+assert.match(sql, /pg_catalog\\.now\\(\\)/);
 assert.match(sql, /left\(p_user_agent, 500\)/i);
 assert.match(sql, /left\(p_platform, 100\)/i);
 
