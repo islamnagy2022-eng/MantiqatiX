@@ -106,6 +106,8 @@ for(const marker of [
   "coalesce(auth.role(),'') <> 'service_role'",
   'IDEMPOTENCY_KEY_SCOPE_CONFLICT',
   'IDEMPOTENCY_PAYLOAD_CONFLICT',
+  'CATALOG_BRANCH_SCOPE_IMMUTABLE',
+  'CATALOG_BRANCH_SCOPE_MISMATCH',
   'DELIVERY_ADDRESS_REQUIRED',
   "lower(coalesce(ci.metadata->>'is_available','true')) <> 'false'",
   'revoke all on function public.upsert_catalog_item_backend',
