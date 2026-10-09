@@ -119,4 +119,36 @@ for(const marker of ['has_function_privilege','relrowsecurity','pg_policies','ro
   if(!fs.readFileSync(auditRunbook,'utf8').includes(marker)) throw new Error('Security audit runbook marker missing: '+marker);
 }
 
-console.log('RC340 SECURITY DEFINER/RBAC release contract: PASS');
+const rc441Path='supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql';
+if(!fs.existsSync(rc441Path)) throw new Error('RC441 platform-admin scope hardening migration is missing.');
+const rc441=fs.readFileSync(rc441Path,'utf8');
+for(const marker of [
+  "upper(m.role) = 'SUPER_ADMIN'",
+  "m.permissions ->> 'scope' = 'PLATFORM'",
+  "(m.permissions ->> 'full_control')::boolean",
+  "revoke all on function public.mnty_can_platform_admin() from public, anon",
+  "get_mantigo_admin_dashboard_backend",
+  "get_mantigo_admin_financial_report_backend",
+  "settle_mantigo_captain_backend",
+  "expire_stale_mantigo_rides_backend",
+  "PLATFORM_ADMIN_REQUIRED",
+  "set search_path = ''"
+]){
+  if(!rc441.includes(marker)) throw new Error('RC441 platform-admin boundary marker missing: '+marker);
+}
+const rc441Fixture='supabase/tests/rc441_platform_admin_fixture.sql';
+const rc441Test='supabase/tests/rc441_platform_admin_integration.sql';
+if(!fs.existsSync(rc441Fixture)||!fs.existsSync(rc441Test)) throw new Error('RC441 disposable PostgreSQL fixture/integration test is missing.');
+for(const marker of [
+  'tenant OWNER must not be treated as platform administrator',
+  'tenant ADMIN with admin permission',
+  'tenant OPERATIONS_MANAGER',
+  'tenant OWNER read platform-wide financial report',
+  'global settlement mutation',
+  'global ride expiration mutation',
+  'explicit platform SUPER_ADMIN'
+]){
+  if(!fs.readFileSync(rc441Test,'utf8').includes(marker)) throw new Error('RC441 behavioral regression marker missing: '+marker);
+}
+
+console.log('RC340/RC441 SECURITY DEFINER and platform RBAC source contract: PASS');
