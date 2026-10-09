@@ -9,7 +9,7 @@ select
 
 select reference_id,type,count(*)::int as duplicate_count
 from public.smm_wallet_transactions
-where reference_id is not null and type in ('DEBIT','REFUND')
+where reference_id is not null and type in ('DEBIT','REFUND','CREDIT')
 group by reference_id,type
 having count(*)>1;
 
