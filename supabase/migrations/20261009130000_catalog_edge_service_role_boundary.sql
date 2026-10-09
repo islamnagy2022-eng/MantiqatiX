@@ -7,7 +7,7 @@
 create or replace function public.upsert_catalog_item_backend(
   p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_legacy_ref varchar,p_item_type varchar,p_name_ar text,p_name_en text,p_description text,p_sku varchar,p_tax_rate numeric,p_metadata jsonb,p_id uuid default null
 ) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
-declare v_id uuid;
+declare v_id uuid; v_existing_branch varchar;
 begin
  if coalesce(auth.role(),'') <> 'service_role' then
    if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
@@ -21,9 +21,12 @@ begin
    values(p_tenant_id,p_business_id,p_branch_id,nullif(trim(p_legacy_ref),''),upper(coalesce(p_item_type,'PRODUCT')),trim(p_name_ar),p_name_en,p_description,p_sku,p_tax_rate,coalesce(p_metadata,'{}'))
    returning id into v_id;
  else
-   update catalog_items set branch_id=p_branch_id,legacy_ref=nullif(trim(p_legacy_ref),''),item_type=upper(coalesce(p_item_type,item_type)),name_ar=trim(p_name_ar),name_en=p_name_en,description=p_description,sku=p_sku,tax_rate=p_tax_rate,metadata=coalesce(p_metadata,metadata),updated_at=now()
+   select ci.branch_id into v_existing_branch from catalog_items ci
+    where ci.id=p_id and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id for update;
+   if not found then raise exception 'CATALOG_ITEM_NOT_FOUND'; end if;
+   if v_existing_branch is distinct from p_branch_id then raise exception 'CATALOG_BRANCH_SCOPE_IMMUTABLE'; end if;
+   update catalog_items set legacy_ref=nullif(trim(p_legacy_ref),''),item_type=upper(coalesce(p_item_type,item_type)),name_ar=trim(p_name_ar),name_en=p_name_en,description=p_description,sku=p_sku,tax_rate=p_tax_rate,metadata=coalesce(p_metadata,metadata),updated_at=now()
    where id=p_id and tenant_id=p_tenant_id and business_id=p_business_id returning id into v_id;
-   if v_id is null then raise exception 'CATALOG_ITEM_NOT_FOUND'; end if;
  end if;
  return jsonb_build_object('id',v_id);
 end $function$;
@@ -31,14 +34,16 @@ end $function$;
 create or replace function public.upsert_catalog_price_backend(
  p_tenant_id varchar,p_business_id uuid,p_catalog_item_id uuid,p_branch_id varchar,p_currency varchar,p_unit_price numeric,p_effective_from timestamptz default now(),p_effective_to timestamptz default null
 ) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
-declare v_id uuid; v_version bigint;
+declare v_id uuid; v_version bigint; v_item_branch varchar;
 begin
  if coalesce(auth.role(),'') <> 'service_role' then
    if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
    if not exists(select 1 from user_memberships m where m.user_id=auth.uid() and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE' and (upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER') or (upper(m.role)='SUPER_ADMIN' and coalesce(m.permissions->>'scope','')='PLATFORM' and coalesce((m.permissions->>'full_control')::boolean,false)=true))) then raise exception 'CATALOG_WRITE_FORBIDDEN'; end if;
  end if;
- if not exists(select 1 from catalog_items ci where ci.id=p_catalog_item_id and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id) then raise exception 'CATALOG_ITEM_NOT_FOUND'; end if;
- perform 1 from catalog_items ci where ci.id=p_catalog_item_id and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id for update;
+ select ci.branch_id into v_item_branch from catalog_items ci
+  where ci.id=p_catalog_item_id and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id for update;
+ if not found then raise exception 'CATALOG_ITEM_NOT_FOUND'; end if;
+ if v_item_branch is not null and v_item_branch is distinct from p_branch_id then raise exception 'CATALOG_BRANCH_SCOPE_MISMATCH'; end if;
  if p_unit_price is null or p_unit_price<0 then raise exception 'INVALID_PRICE'; end if;
  if upper(trim(coalesce(p_currency,'EGP'))) <> 'EGP' then raise exception 'UNSUPPORTED_CURRENCY'; end if;
  if p_effective_to is not null and p_effective_to<=coalesce(p_effective_from,now()) then raise exception 'INVALID_PRICE_EFFECTIVITY'; end if;
