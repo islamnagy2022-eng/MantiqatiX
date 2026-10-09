@@ -47,7 +47,7 @@ jobs:
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
           docker cp supabase/tests/rc564_financial_journal_fixture.sql "$pg_container:/tmp/rc564_fixture.sql"
-          docker cp supabase/migrations/20261009150000_rc564_financial_journal_service_role_boundary.sql "$pg_container:/tmp/rc564_migration.sql"
+          docker cp supabase/migrations/20261010050000_rc564_financial_journal_service_role_boundary.sql "$pg_container:/tmp/rc564_migration.sql"
           docker cp supabase/tests/rc564_financial_journal_integration.sql "$pg_container:/tmp/rc564_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc564_test -v ON_ERROR_STOP=1 -f /tmp/rc564_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc564_test -v ON_ERROR_STOP=1 -f /tmp/rc564_migration.sql
