@@ -1,0 +1,32 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
+const migration = fs.readFileSync(
+  "supabase/migrations/20261009150000_rc564_financial_journal_service_role_boundary.sql",
+  "utf8",
+);
+const edge = fs.readFileSync("supabase/functions/financial-journal/index.ts", "utf8");
+const backendEdge = fs.readFileSync("supabase/functions/post-financial-journal/index.ts", "utf8");
+
+assert.match(migration, /set search_path = public, pg_temp/i, "SECURITY DEFINER search_path must pin pg_temp last");
+assert.match(
+  migration,
+  /coalesce\(auth\.role\(\),'\'\)\s*<>\s*'service_role'\s+and\s+p_user_id\s*<>\s*auth\.uid\(\)/i,
+  "service-role actor context may bypass auth.uid only for the trusted server role",
+);
+assert.match(migration, /um\.user_id=p_user_id[\s\S]*?um\.status='ACTIVE'/i, "actor must have an ACTIVE membership");
+assert.match(migration, /FINANCIAL_MEMBERSHIP_REQUIRED/, "financial role check must fail closed");
+assert.match(migration, /revoke all on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) from public, anon, authenticated/i, "RPC must remain unavailable to direct client roles");
+assert.match(migration, /grant execute on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) to service_role/i, "trusted Edge Function role must be able to execute RPC");
+
+assert.match(edge, /admin\.auth\.getUser\(token\)/, "Edge Function must verify the bearer token");
+assert.match(edge, /user\.is_anonymous/, "anonymous sessions must be rejected");
+assert.match(edge, /admin\.rpc\(["']post_financial_journal_backend["']/i, "Edge Function must use the actor-checked backend RPC");
+assert.match(edge, /p_user_id:\s*user\.id/, "verified actor identity must be supplied to the RPC");
+assert.doesNotMatch(edge, /rpc\(["']post_financial_journal["']/i, "legacy auth.uid-only RPC must not be called");
+assert.doesNotMatch(edge, /Access-Control-Allow-Origin["']?\s*:\s*["']\*["']/i, "wildcard browser CORS is forbidden");
+assert.match(edge, /ORIGIN_NOT_ALLOWED/, "unapproved browser origins must be rejected");
+
+assert.match(backendEdge, /admin\.rpc\(["']post_financial_journal_backend["']/i, "canonical endpoint must call the backend RPC");
+assert.match(backendEdge, /p_user_id:\s*auth\.user\.id/, "canonical endpoint must pass its verified actor");
+console.log("RC564 financial journal service-role boundary PASS");
