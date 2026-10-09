@@ -107,7 +107,7 @@ begin
   v_reference_type:=nullif(p_entry->>'reference_type','');
   v_reference_id:=nullif(p_entry->>'reference_id','');
   v_description:=coalesce(p_entry->>'description','');
-  v_entry_date:=coalesce(nullif(p_entry->>'entry_date','')::date,pg_catalog.current_date);
+  v_entry_date:=coalesce(nullif(p_entry->>'entry_date','')::date,current_date);
   v_total_debit:=coalesce(nullif(p_entry->>'total_debit','')::numeric,0);
   v_total_credit:=coalesce(nullif(p_entry->>'total_credit','')::numeric,0);
 
