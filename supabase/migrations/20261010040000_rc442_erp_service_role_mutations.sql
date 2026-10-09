@@ -204,8 +204,8 @@ begin
   -- Serialize stock mutations for this product and warehouse pair; lock existing balances in stable order.
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(
     v_transfer.tenant_id||'|'||v_transfer.business_id::text||'|'||v_transfer.product_id::text||'|'||
-    least(v_transfer.from_warehouse_id,v_transfer.to_warehouse_id)||'|'||
-    greatest(v_transfer.from_warehouse_id,v_transfer.to_warehouse_id),0
+    (case when v_transfer.from_warehouse_id<v_transfer.to_warehouse_id then v_transfer.from_warehouse_id else v_transfer.to_warehouse_id end)||'|'||
+    (case when v_transfer.from_warehouse_id<v_transfer.to_warehouse_id then v_transfer.to_warehouse_id else v_transfer.from_warehouse_id end),0
   ));
   perform 1
   from public.stock_balances sb
