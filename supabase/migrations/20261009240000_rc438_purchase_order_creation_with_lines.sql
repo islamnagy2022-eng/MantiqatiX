@@ -83,7 +83,7 @@ begin
   v_line_count:=0;
   for v_line in select value from pg_catalog.jsonb_array_elements(p_lines) as t(value) loop
     v_line_count:=v_line_count+1;
-    v_product:=nullif(v_line->>'product_id','')::uuid; v_qty:=nullif(v_line->>'quantity','')::numeric; v_cost:=nullif(v_line->>'unit_cost','')::numeric;
+    v_product:=nullif(v_line->>'product_id','')::uuid; v_qty:=coalesce(nullif(v_line->>'quantity',''),nullif(v_line->>'ordered_quantity',''))::numeric; v_cost:=nullif(v_line->>'unit_cost','')::numeric;
     insert into public.erp_purchase_order_lines(id,tenant_id,business_id,purchase_order_id,line_number,product_id,ordered_quantity,received_quantity,unit_cost,description)
     values(p_id||'-line-'||v_line_count::text,p_tenant_id,p_business_id,p_id,v_line_count,v_product,v_qty,0,v_cost,nullif(pg_catalog.btrim(v_line->>'description'),''));
   end loop;
