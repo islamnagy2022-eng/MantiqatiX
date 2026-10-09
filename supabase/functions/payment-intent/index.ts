@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
   }
 
   const intent = (rpc.data ?? {}) as Record<string, unknown>;
-  if (intent.idempotent === true && String(intent.status ?? "").toUpperCase() === "PENDING") {
+  if (intent.idempotent === true && ["CREATED", "PENDING", "SUCCEEDED"].includes(String(intent.status ?? "").toUpperCase())) {
     return json({ error: "PAYMENT_INTENT_ALREADY_INITIALIZED", requestId }, 409, requestId);
   }
   const paymentIntentId = String(intent.id ?? "");
