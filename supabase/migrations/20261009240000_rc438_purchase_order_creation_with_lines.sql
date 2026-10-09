@@ -100,7 +100,7 @@ begin
   if v_role is null then raise exception 'PURCHASE_ORDER_ROLE_REQUIRED'; end if;
   if p_target_status='SUBMITTED' and v_order.status='DRAFT' then
     if not exists(select 1 from public.erp_purchase_order_lines pol where pol.purchase_order_id=v_order.id and pol.tenant_id=v_order.tenant_id and pol.business_id=v_order.business_id) then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
-    v_next:=case when v_order.total_amount>5000 then 'PENDING_APPROVAL' else 'SUBMITTED' end;
+    v_next:=case when v_order.total_amount>5000 then 'PENDING_APPROVAL' else 'APPROVED' end;
   elsif p_target_status='APPROVED' and v_order.status='PENDING_APPROVAL' and v_role in ('OWNER','BUSINESS_OWNER','ADMIN') then
     if not exists(select 1 from public.erp_purchase_order_lines pol where pol.purchase_order_id=v_order.id and pol.tenant_id=v_order.tenant_id and pol.business_id=v_order.business_id) then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
     v_next:='APPROVED';
