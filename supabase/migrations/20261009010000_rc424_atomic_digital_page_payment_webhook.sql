@@ -29,7 +29,7 @@ begin
   if p_external_event_id is null or length(trim(p_external_event_id)) = 0 then
     raise exception 'DIGITAL_PAGE_EVENT_ID_REQUIRED';
   end if;
-  if p_status not in ('SUCCEEDED', 'FAILED') then
+  if p_status is null or p_status not in ('SUCCEEDED', 'FAILED') then
     raise exception 'DIGITAL_PAGE_EVENT_STATUS_INVALID';
   end if;
   if p_amount is null or p_amount <= 0 or p_currency is null or length(trim(p_currency)) = 0 then
@@ -59,6 +59,9 @@ begin
   if found then
     if v_event.digital_page_order_id <> v_order.id then
       raise exception 'DIGITAL_PAGE_EVENT_ORDER_MISMATCH';
+    end if;
+    if v_event.status is distinct from p_status then
+      raise exception 'DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH';
     end if;
     return jsonb_build_object(
       'ok', true,
