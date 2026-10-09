@@ -11,7 +11,7 @@ declare v_id uuid; v_existing_branch varchar;
 begin
  if coalesce(auth.role(),'') <> 'service_role' then
    if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
-   if not exists(select 1 from user_memberships m where m.user_id=auth.uid() and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE' and (upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER') or (upper(m.role)='SUPER_ADMIN' and coalesce(m.permissions->>'scope','')='PLATFORM' and coalesce((m.permissions->>'full_control')::boolean,false)=true))) then raise exception 'CATALOG_WRITE_FORBIDDEN'; end if;
+   if not exists(select 1 from user_memberships m where m.user_id=auth.uid() and m.tenant_id=p_tenant_id and m.status='ACTIVE' and (upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER') or (upper(m.role)='SUPER_ADMIN' and coalesce(m.permissions->>'scope','')='PLATFORM' and coalesce((m.permissions->>'full_control')::boolean,false)=true))) then raise exception 'CATALOG_WRITE_FORBIDDEN'; end if;
  end if;
  if not exists(select 1 from businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id) then raise exception 'BUSINESS_TENANT_MISMATCH'; end if;
  if p_tax_rate is null or p_tax_rate<0 or p_tax_rate>100 or nullif(trim(p_name_ar),'') is null then raise exception 'INVALID_CATALOG_ITEM'; end if;
@@ -38,7 +38,7 @@ declare v_id uuid; v_version bigint; v_item_branch varchar;
 begin
  if coalesce(auth.role(),'') <> 'service_role' then
    if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
-   if not exists(select 1 from user_memberships m where m.user_id=auth.uid() and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE' and (upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER') or (upper(m.role)='SUPER_ADMIN' and coalesce(m.permissions->>'scope','')='PLATFORM' and coalesce((m.permissions->>'full_control')::boolean,false)=true))) then raise exception 'CATALOG_WRITE_FORBIDDEN'; end if;
+   if not exists(select 1 from user_memberships m where m.user_id=auth.uid() and m.tenant_id=p_tenant_id and m.status='ACTIVE' and (upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER') or (upper(m.role)='SUPER_ADMIN' and coalesce(m.permissions->>'scope','')='PLATFORM' and coalesce((m.permissions->>'full_control')::boolean,false)=true))) then raise exception 'CATALOG_WRITE_FORBIDDEN'; end if;
  end if;
  select ci.branch_id into v_item_branch from catalog_items ci
   where ci.id=p_catalog_item_id and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id for update;
