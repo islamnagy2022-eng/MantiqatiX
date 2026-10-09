@@ -19,6 +19,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  const {data:subByOrder}=subByRef?{data:null}:await admin.from("subscription_payment_intents").select("id,business_id,amount,currency,status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const sub=subByRef??subByOrder
  if(sub){
+   if(!sub.provider_order_id&&sub.status==="PENDING")return json({error:"SUBSCRIPTION_PROVIDER_CORRELATION_PENDING",retryable:true,requestId},503,requestId)
    if(!sub.provider_order_id||String(sub.provider_order_id)!==paymobOrderId)return json({error:"SUBSCRIPTION_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
    if(merchantRef&&merchantRef!==String(sub.id)&&merchantRef!=="MANTIQATIX-SUB-"+String(sub.id))return json({error:"SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH",requestId},409,requestId)
    if(Math.abs(Number(sub.amount)-amount)>0.01||String(sub.currency).toUpperCase()!==currency)return json({error:"SUBSCRIPTION_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
@@ -100,6 +101,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
 const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash,provider_order_id,provider").eq("id",merchantRef).eq("provider","PAYMOB").maybeSingle()
  const {data:intentByOrder}=intentByRef?{data:null}:await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash,provider_order_id,provider").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const intent=intentByRef??intentByOrder;if(!intent)return json({error:"PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId)
+ if(!intent.provider_order_id&&intent.status==="CREATED")return json({error:"PAYMENT_PROVIDER_CORRELATION_PENDING",retryable:true,requestId},503,requestId)
  if(!intent.provider_order_id||String(intent.provider_order_id)!==paymobOrderId)return json({error:"PAYMENT_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
  if(merchantRef&&merchantRef!==String(intent.id))return json({error:"PAYMENT_MERCHANT_REFERENCE_MISMATCH",requestId},409,requestId)
  if(Math.abs(Number(intent.amount)-amount)>0.01||String(intent.currency).toUpperCase()!==currency)return json({error:"PAYMENT_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
