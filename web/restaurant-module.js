@@ -136,15 +136,15 @@ function ordersView(){
  '</tbody></table></div>');
 }
 function tablesView(){
- const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-table">+ إضافة طاولة</button>':'';
- return shell('إدارة الطاولات',tabs()+'<div class="notice">تنبيه: سياسات الإنتاج الحالية قد تخفي طاولات لا يملكها حسابك مباشرة. لا تعتبر القائمة الفارغة دليلًا على عدم وجود طاولات.</div><div class="action-bar">'+add+'</div><div class="table-wrap"><table><thead><tr><th>رقم</th><th>السعة</th><th>الحالة</th><th>الفاتورة الحالية</th><th>حجز</th><th>إجراء</th></tr></thead><tbody>'+
- (state.tables.length?state.tables.map(x=>'<tr><td>'+x.table_number+'</td><td>'+x.capacity_persons+' أفراد</td><td>'+esc(x.status)+'</td><td>'+money(x.current_bill_egp)+'</td><td>'+esc(x.reserved_customer_name||'—')+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-table-edit="'+esc(x.id)+'">تعديل الحالة</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طاولات فعلية بعد.</td></tr>')+
+ const notice='<div class="notice">الطاولات للقراءة فقط حاليًا. سياسات RLS الحالية لا توفر قراءة موثوقة على مستوى المنشأة/الفرع لكل الأدوار، ولا يوجد بعد مسار خادمي ذري يفرض انتقال الحالة ويربطها بالطلب. تم تعطيل الكتابة حتى اعتماد هذا المسار.</div>';
+ return shell('إدارة الطاولات',tabs()+notice+'<div class="table-wrap"><table><thead><tr><th>رقم</th><th>السعة</th><th>الحالة</th><th>الفاتورة الحالية</th><th>الحجز</th></tr></thead><tbody>'+
+ (state.tables.length?state.tables.map(x=>'<tr><td>'+x.table_number+'</td><td>'+x.capacity_persons+' أفراد</td><td>'+esc(x.status)+'</td><td>'+money(x.current_bill_egp)+'</td><td>'+esc(x.reserved_customer_name||'—')+'</td></tr>').join(''):'<tr><td colspan="5">لا توجد طاولات ظاهرة ضمن صلاحيات القراءة الحالية.</td></tr>')+
  '</tbody></table></div>');
 }
 function inventoryView(){
- const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-inv">+ إضافة صنف مخزون</button>':'';
- return shell('مخزون المطعم',tabs()+'<div class="notice">تنبيه: سياسات الإنتاج الحالية قد تخفي أصناف مخزون لا يملكها حسابك مباشرة. لا تعتبر القائمة الفارغة دليلًا على عدم وجود مخزون.</div><div class="action-bar">'+add+'</div><div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الوحدة</th><th>الرصيد</th><th>حد التنبيه</th><th>تكلفة الوحدة</th><th>المورد</th><th>إجراء</th></tr></thead><tbody>'+
- (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
+ const notice='<div class="notice">المخزون للقراءة فقط حاليًا. الكتابة المباشرة إلى جدول قديم قد تنشئ أرصدة مكررة بين المستخدمين ولا تضمن سجل حركات أو خصمًا ذريًا. تم تعطيل الكتابة حتى ربطه بمسار المخزون المركزي المعتمد.</div>';
+ return shell('مخزون المطعم',tabs()+notice+'<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الوحدة</th><th>الرصيد</th><th>حد التنبيه</th><th>تكلفة الوحدة</th><th>المورد</th></tr></thead><tbody>'+
+ (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد سجلات مخزون ظاهرة ضمن صلاحيات القراءة الحالية.</td></tr>')+
  '</tbody></table></div>');
 }
 function askCart(items,options){
@@ -226,39 +226,7 @@ function modal(title,html,onSave,onCancel){
  let saving=false;const save=o.querySelector('[data-save]');save?.addEventListener('click',async()=>{if(saving)return;saving=true;if(save)save.disabled=true;try{await onSave(o)}catch(e){notify('تعذر إتمام العملية: '+(e?.message||'خطأ غير متوقع'),'error')}finally{if(o.isConnected){saving=false;if(save)save.disabled=false}}});
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
-const TABLE_TRANSITIONS={EMPTY:['OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'],OCCUPIED:['EMPTY','CLEANING','OUT_OF_SERVICE'],RESERVED:['EMPTY','OCCUPIED','CLEANING','OUT_OF_SERVICE'],CLEANING:['EMPTY','OUT_OF_SERVICE'],OUT_OF_SERVICE:['EMPTY','CLEANING']};
-function addTable(existing){
- if(!canOperate('OPERATIONS',existing?'update':'create'))return notify('لا تملك صلاحية إدارة الطاولات.','error');
- const x=existing||{};
- modal(existing?'تعديل طاولة':'إضافة طاولة',
- field('num','رقم الطاولة',x.table_number,'number','min="1" step="1" required')+field('cap','السعة',x.capacity_persons||2,'number','min="1" step="1" required')+
- '<label class="field"><span>الحالة</span><select id="status"><option '+((x.status||'EMPTY')==='EMPTY'?'selected':'')+'>EMPTY</option><option '+(x.status==='OCCUPIED'?'selected':'')+'>OCCUPIED</option><option '+(x.status==='RESERVED'?'selected':'')+'>RESERVED</option><option '+(x.status==='CLEANING'?'selected':'')+'>CLEANING</option><option '+(x.status==='OUT_OF_SERVICE'?'selected':'')+'>OUT_OF_SERVICE</option></select></label>'+
- field('reserved','اسم الحجز',x.reserved_customer_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
- async o=>{
-  const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
-  const payload={table_number:Number(o.querySelector('#num').value),capacity_persons:Number(o.querySelector('#cap').value),status:o.querySelector('#status').value,reserved_customer_name:o.querySelector('#reserved').value.trim()||null};
-  if(!Number.isInteger(payload.table_number)||payload.table_number<1||!Number.isInteger(payload.capacity_persons)||payload.capacity_persons<1)return notify('أدخل رقم وسعة صحيحين.');
-   if(existing&&payload.status!==existing.status&&!(TABLE_TRANSITIONS[existing.status]||[]).includes(payload.status))return notify('انتقال حالة الطاولة غير مسموح.','error');
-   if(existing?.current_active_order_id&&payload.status==='EMPTY')return notify('لا يمكن تحرير الطاولة قبل إغلاق الطلب النشط المرتبط بها.','error');
-  if(!existing&&state.tables.some(t=>Number(t.table_number)===payload.table_number))return notify('رقم الطاولة مستخدم بالفعل ضمن الطاولات المعروضة.','error');
-  let q=existing?sb.from('restaurant_tables').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id):sb.from('restaurant_tables').insert({...payload,id:uid(),owner_user_id:state.user.id,current_active_order_id:null,current_bill_egp:0,...s});
-  const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
- });
-}
-function addInventory(existing){
- if(!canOperate('CATALOG',existing?'update':'create'))return notify('لا تملك صلاحية إدارة المخزون.','error');
- const x=existing||{};
- modal(existing?'تعديل صنف مخزون':'إضافة صنف مخزون',
- field('name','اسم الصنف',x.name_ar)+field('unit','الوحدة',x.unit||'KG')+field('stock','الرصيد الحالي',x.current_stock_qty||0,'number','step="0.001" min="0"')+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0"')+field('cost','تكلفة الوحدة بالجنيه',x.unit_cost_egp||0,'number','step="0.01" min="0"')+field('supplier','المورد',x.supplier_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
- async o=>{
-  const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
-  const payload={name_ar:o.querySelector('#name').value.trim(),unit:o.querySelector('#unit').value.trim(),current_stock_qty:Number(o.querySelector('#stock').value),min_stock_alert_threshold:Number(o.querySelector('#min').value),unit_cost_egp:Number(o.querySelector('#cost').value),supplier_name:o.querySelector('#supplier').value.trim()};
-  if(!payload.name_ar||!payload.unit||[payload.current_stock_qty,payload.min_stock_alert_threshold,payload.unit_cost_egp].some(v=>!Number.isFinite(v)||v<0))return notify('تحقق من بيانات المخزون.');
-  const q=existing?sb.from('restaurant_inventory').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id):sb.from('restaurant_inventory').insert({...payload,id:uid(),owner_user_id:state.user.id,...s});
-  const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
- });
-}
-async function updateOrder(id,status){
+function updateOrder(id,status){
  if(!canOperate('ORDERS','update'))return notify('لا تملك صلاحية تحديث الطلبات.','error');
  const m=scope(); if(!m)return notify('لا يوجد نطاق نشاط/فرع نشط.');
  try{
