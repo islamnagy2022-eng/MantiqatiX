@@ -7,7 +7,7 @@ declare
   changed_count integer := 0;
 begin
   for fn in
-    select p.oid::regprocedure as signature
+    select pg_catalog.format('%I.%I(%s)',n.nspname,p.proname,pg_catalog.pg_get_function_identity_arguments(p.oid)) as signature
     from pg_catalog.pg_proc p
     join pg_catalog.pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public'
