@@ -50,8 +50,8 @@ create unique index if not exists journal_entries_tenant_entry_number_uidx
   on public.journal_entries(tenant_id,entry_number)
   where entry_number is not null and entry_number<>'';
 
-alter function public.post_financial_journal(jsonb,jsonb) set search_path = '';
-alter function public.post_financial_journal_backend(uuid,jsonb,jsonb) set search_path = '';
+alter function public.post_financial_journal(jsonb,jsonb) set search_path = public, pg_temp;
+alter function public.post_financial_journal_backend(uuid,jsonb,jsonb) set search_path = public, pg_temp;
 
 create or replace function public.post_financial_journal_atomic_backend(
   p_user_id uuid,
