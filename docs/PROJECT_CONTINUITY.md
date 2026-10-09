@@ -596,3 +596,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Branch is 30 commits ahead of main and 0 commits behind. PR #86 remains open and unmerged.
 - Production verification: migration 20261009130000 is not applied. catalog-admin remains version 3 and order-create remains version 6. No production DB writes, migration execution, or Edge Function deployments were performed.
 - The only safe next validation step is an isolated Supabase development branch and authenticated integration tests before coordinated migration/function rollout. No Supabase development branch currently exists. Branch creation requires organization selection and explicit cost confirmation; do not create billable resources without that confirmation.
+
+## Continuation checkpoint — 2026-10-09 — CI repair and RBAC alignment
+
+- Diagnosed the latest CI failure: the added RC450 security-definer validator contained an invalid JavaScript string around the SQL function marker. Fixed the marker to check the stable `set search_path=public,pg_temp` fragment. The validator now passes a syntax check.
+- Tightened `order-create` source authorization: only active CUSTOMER membership or scoped OWNER/BUSINESS_OWNER/ADMIN/MANAGER roles can use the business-side order creation path; branch-bound memberships must match the requested branch. Removed the unsupported SALES allowance so the Edge Function aligns with the backend RPC's accepted role model.
+- Expanded the restaurant contract validator to cover branch-scope immutability, branch-specific price scope, safe SECURITY DEFINER search_path, public/authenticated execute revocation, idempotency payload conflicts, and concurrent retry protection.
+- In-session verification at commit `a77f2e9fc59093e3c39fa7eac6c40f92ac6aa212`: restaurant/catalog/order contract PASS; security-definer validator syntax PASS; restaurant JavaScript syntax PASS; catalog backend-RPC structural checks PASS; order RBAC/service-RPC structural checks PASS.
+- GitHub Actions for `a77f2e9fc59093e3c39fa7eac6c40f92ac6aa212` were queued at the time of this checkpoint; do not mark CI green until the run concludes. A previous commit's CI exposed the validator syntax defect; the subsequent correction is source-only.
+- Production remains unchanged: no migration applied, no Edge Function deployed, no order/payment/data mutation executed. `catalog-admin` and `order-create` deployed versions remain unverified in this checkpoint and must be re-read before any release.
+- PR #86 remains OPEN/UNMERGED. The production gate remains BLOCKED pending CI confirmation, isolated authenticated integration tests, coordinated migration + Edge Function rollout, and runtime verification of customer/provider and tenant/branch boundaries.
