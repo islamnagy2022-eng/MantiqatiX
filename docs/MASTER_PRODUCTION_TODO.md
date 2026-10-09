@@ -1586,3 +1586,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The Edge Function now refuses to create a second Paymob intention when an idempotent request resolves to an already-PENDING intent, avoiding silent replacement of the provider-order binding.
 - Production read-only counts showed zero rows in `payment_intents`, so the current production dataset has no existing payment-intent rows to reconcile; this is not a substitute for validating a non-empty test database.
 - No production schema or data changed. CI must pass on the final head; then validate the migration on a disposable local PostgreSQL/Supabase test database before any rollout.
+
+
+## MantiGO stale-request operations check — 2026-10-09
+- Read-only production query found **2 OPEN rides** whose `updated_at` timestamps are older than 24 hours (oldest 2026-10-06, newest 2026-10-07); both have no accepted bid and no financial-ledger row, which is consistent with no fare being locked yet but leaves the requests stale.
+- The database has `pg_net` but no `pg_cron` extension, and repository search found no scheduled `cron.schedule` job for `expire_stale_mantigo_rides_backend`.
+- The expiration RPC currently requires an authenticated operations/admin user ID and defaults to 30 minutes, so it is not a service-role cron entry point as written.
+- **No ride was expired or otherwise changed.** Before live traffic, decide whether expiry is manual or automated; if automated, implement a narrowly scoped service-role-only scheduler/Edge Function and validate it in a test environment. Do not run the current admin RPC with guessed actor IDs.
