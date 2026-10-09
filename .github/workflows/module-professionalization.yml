@@ -9,6 +9,40 @@ on:
 permissions:
   contents: read
 jobs:
+  mantigo-paymob-atomicity-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_mantigo_paymob_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_mantigo_paymob_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Test RC425 atomic MantiGo Paymob processing
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc425_mantigo_paymob_fixture.sql "$pg_container:/tmp/rc425_fixture.sql"
+          docker cp supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql "$pg_container:/tmp/rc425_migration.sql"
+          docker cp supabase/tests/rc425_mantigo_paymob_integration.sql "$pg_container:/tmp/rc425_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -f /tmp/rc425_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -f /tmp/rc425_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -f /tmp/rc425_test.sql
+
   security-definer-search-path-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
