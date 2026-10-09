@@ -55,6 +55,8 @@
 
 - [ ] **MOD-P0-17 — عزل صلاحيات إدارة المنصة عن أدوار المؤسسات RC441.** كشف فحص Supabase الحي أن `mnty_can_platform_admin()` يستدعي `mnty_can('admin',NULL,NULL,NULL)`؛ وبحسب التعريف الفعلي، دور `OWNER` يمر من فرع صلاحيات `admin` في النطاق العام. كما أن لوحة MantiGO المالية/المؤشرات والتسوية وانتهاء الرحلات كانت تقبل أدوار مؤسسات دون حارس منصة صريح. أُضيف RC441 ليشترط `SUPER_ADMIN` نشطًا مع `permissions.scope=PLATFORM` و`full_control=true`، ويضيف الحارس إلى العمليات العامة الأربع. نجح validator المصدر الذي يتحقق من migration والاختبارات والـ runbook في [Deploy MantiqatiX Web validation run 37880159243](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/37880159243) على HEAD `0a6470019073adcd9b70f9d76c010937849ef4d0`. ملف اختبار PostgreSQL موجود، لكنه **لم يُشغّل في قاعدة معزولة ولم يُربط بعد بوظيفة CI**؛ لذلك الحالة `SOURCE_VERIFIED / INTEGRATION_PENDING / RELEASE_BLOCKED`. لم يُطبق RC441 على الإنتاج، ويلزم اختبار سلوكي ومراجعة أمنية ونشر معتمد.
 
+- [ ] **MOD-P0-18 — مطابقة دوال الدفع المنشورة مع RC425–RC439.** فحص Supabase الحي أثبت أن `paymob-webhook` المنشورة هي v8 ولا تتحقق في مسار MantiGO من مساواة `provider_order_id` المحلي مع `order.id` الوارد في callback الموقّع، وتكتب حالة دفتر MantiGO مباشرة بدل RPC الذري RC425. كما أن `subscription-payment-intent` المنشورة v2 لا تحتوي حجز RC435 ولا استعادة السر المشفر RC439. سجل ترحيلات الإنتاج يتوقف عند RC424؛ لذلك نجاح CI على المصدر لا يثبت أن الإصلاحات وصلت إلى الإنتاج. الحالة `RELEASE_BLOCKED / DEPLOYMENT_APPROVAL_REQUIRED`: اختبار Sandbox، مصالحة الترحيلات، ضبط الأسرار، نشر معتمد، ثم إثبات parity من Supabase بعد النشر.
+
 ## P1 — إكمال الوظائف الأساسية لكل موديول
 
 | ID | الموديول | نطاق الإكمال | معيار القبول | الحالة |
