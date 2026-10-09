@@ -1,7 +1,6 @@
 import { webcrypto } from "node:crypto";
 import { encryptCheckoutSecret, decryptCheckoutSecret } from "../supabase/functions/_shared/checkout-secret-crypto.mjs";
 
-globalThis.crypto = webcrypto;
 
 const rawKey = webcrypto.getRandomValues(new Uint8Array(32));
 const key = await webcrypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
