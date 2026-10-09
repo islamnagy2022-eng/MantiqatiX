@@ -1550,7 +1550,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 ## RC425 — Atomic MantiGo Paymob Webhook — 2026-10-09
 - **Status: IMPLEMENTED IN SOURCE / NOT YET RELEASED.**
-- Replaced separate provider-event insert, MantiGo ledger update, and payment notification insert requests with one service-role-only database RPC transaction.
+- Replaced separate provider-event insert, MantiGo ledger update, and payment notification insert requests with one service-role-only database RPC transaction. MantiGo events use a dedicated RLS-enabled/forced table referencing the MantiGo ledger, not `payment_provider_events.payment_intent_id` (which references the separate `payment_intents` table).
 - The RPC validates the verified-signature flag, event ID, payment status, provider, amount, and currency; locks the ledger row; binds replayed provider events to the same ledger; and atomically persists the event, ledger transition, and customer notification.
 - Added a CI contract validator and production source-verification checks to prevent regression to split writes.
 - No production migration was applied by this change and no real payment or production financial mutation was performed.
