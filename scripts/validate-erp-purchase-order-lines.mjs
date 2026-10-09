@@ -2,6 +2,7 @@ import fs from "node:fs";
 const migration=fs.readFileSync("supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql","utf8");
 const edge=fs.readFileSync("supabase/functions/erp-purchase-receive/index.ts","utf8");
 const linesEdge=fs.readFileSync("supabase/functions/erp-purchase-order-lines/index.ts","utf8");
+const createEdge=fs.readFileSync("supabase/functions/erp-purchase-order-create/index.ts","utf8");
 const ui=fs.readFileSync("web/app.js","utf8");
 const integration=fs.readFileSync("supabase/tests/rc437_purchase_order_lines_integration.sql","utf8");
 const checks=[];
@@ -15,6 +16,8 @@ check("receipt replay does not increment line quantity twice",migration.includes
 check("concurrent duplicate receipt result does not increment line quantity twice",migration.includes("v_result->>'idempotent'")&&migration.includes("do not increment the order line again"));
 check("service role cannot bypass the line-aware receiving wrapper",migration.includes("from public,anon,authenticated,service_role")&&integration.includes("service_role must not bypass order-line wrapper"));
 check("Edge Functions derive actor from validated Auth user",edge.includes("p_actor_user_id: user.id")&&linesEdge.includes("p_actor_user_id: user.id"));
+check("order creation Edge Function validates Auth and calls actor-bound service RPC",createEdge.includes("admin.auth.getUser()")&&createEdge.includes('rpc("create_purchase_order_with_lines_backend"')&&createEdge.includes("p_actor_user_id: user.id"));
+check("UI sends purchase order creation through authenticated Edge Function",ui.includes("sb.functions.invoke('erp-purchase-order-create'")&&!ui.includes("sb.rpc('create_purchase_order_with_lines_backend'"));
 check("ERP Edge Functions allow only the production web origin and handle OPTIONS",edge.includes("Access-Control-Allow-Origin")&&edge.includes("ORIGIN_NOT_ALLOWED")&&edge.includes("req.method === \"OPTIONS\"")&&linesEdge.includes("Access-Control-Allow-Origin")&&linesEdge.includes("ORIGIN_NOT_ALLOWED")&&linesEdge.includes("req.method === \"OPTIONS\""));
 check("UI provides order-line entry and calls line-aware receipt Edge Function",ui.includes("setPurchaseOrderLines")&&ui.includes("sb.functions.invoke('erp-purchase-receive'"));
 check("purchase order creation uses the authenticated Edge Function and stable retry ID",ui.includes("sb.functions.invoke('erp-purchase-order-create'")&&ui.includes("mantiqatix_po_attempt"));
