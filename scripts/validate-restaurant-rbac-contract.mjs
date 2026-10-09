@@ -75,6 +75,14 @@ assert.doesNotMatch(catalogAdmin, /Access-Control-Allow-Origin\": \"\*\"/, 'cata
 assert.match(catalogAdmin, /membershipBranchId === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
 assert.match(orderCreate, /x\.metadata\?\.is_available !== false/, 'server must reject unavailable catalog items');
+assert.match(orderCreate, /\["OWNER", "SALES"\]/, 'non-customer order creation must require a role with ORDERS:create capability');
+assert.match(orderCreate, /INVALID_CUSTOMER_PHONE/, 'order-create must validate customer phone server-side');
+assert.match(orderCreate, /DELIVERY_ADDRESS_REQUIRED/, 'delivery orders must require a server-validated delivery address');
+assert.match(orderCreate, /requestedBranchId && membershipBranchId === requestedBranchId/, 'branch-assigned order creators must be limited to their branch');
+assert.match(catalogMigration, /coalesce\(auth\.role\(\),''\) <> 'service_role' and \(auth\.uid\(\) is null or auth\.uid\(\)<>p_customer_id\)/, 'order RPC must permit only the verified Edge service-role path or matching user JWT');
+assert.match(catalogMigration, /IDEMPOTENCY_KEY_SCOPE_CONFLICT/, 'idempotency keys must not return another customer/business order');
+assert.match(catalogMigration, /v_delivery:=0/, 'takeaway orders must not be charged delivery fees');
+assert.match(catalogMigration, /lower\(coalesce\(ci\.metadata->>'is_available','true'\)\) <> 'false'/, 'order RPC must reject catalog items marked unavailable');
 assert.doesNotMatch(restaurant, /from\('restaurant_menu_items'\)\.(insert|update)/, 'legacy menu must not write prices that the canonical order path does not consume');
 assert.match(restaurant, /قائمة الطعام — الكتالوج المركزي/, 'restaurant menu must render the canonical catalog rather than legacy menu records');
 assert.match(restaurant, /إدارة الأصناف والأسعار متوقفة مؤقتًا/, 'menu writes must remain disabled until the secure canonical write path is deployed');
