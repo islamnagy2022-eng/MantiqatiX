@@ -50,6 +50,7 @@ if(files.operations.includes("sb.from('education_requests').insert")) failures.p
 if(files.smm.includes("sb.from('smm_services')")||files.smm.includes("sb.from('smm_orders')")||files.smm.includes("sb.from('smm_wallets')")) failures.push("SMM_RESTRICTED_DIRECT_READ_FORBIDDEN");
 if(!files.smm.includes("fn({action:'catalog'})")||!files.smm.includes("fn({action:'my_data'})")) failures.push("SMM_GATEWAY_READS_MISSING");
 if(!files.smmGateway.includes('if(a==="catalog")')||!files.smmGateway.includes('if(a==="my_data")')) failures.push("SMM_GATEWAY_READ_ACTIONS_MISSING");
+if(!files.smmGateway.includes('"Cache-Control":"no-store"')) failures.push("SMM_PERSONAL_DATA_NO_STORE_REQUIRED");
 if(!files.smmGateway.includes('is_admin:await isAdmin(user.id)')) failures.push("SMM_ADMIN_FLAG_NOT_SERVER_AUTHORIZED");
 if(!files.smmGateway.includes('role==="SUPER_ADMIN"&&p.scope==="PLATFORM"&&p.full_control===true')) failures.push("SMM_PLATFORM_ADMIN_SCOPE_REQUIRED");
 if(files.smmGateway.includes('["OWNER","ADMIN","SUPER_ADMIN"].includes(String(m.role).toUpperCase())')) failures.push("SMM_ADMIN_ROLE_SCOPE_TOO_BROAD");
