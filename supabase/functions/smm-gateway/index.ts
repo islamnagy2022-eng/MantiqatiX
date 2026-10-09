@@ -25,10 +25,10 @@ Deno.serve(async(req)=>{
  try{
   const b=await req.json(),a=b.action;
   if(a==="admin_access"){const r=await admin.from("smm_admins").select("user_id").eq("user_id",user.id).maybeSingle();if(r.error)return json({error:"ADMIN_CHECK_FAILED"},500);return json({is_admin:!!r.data});}
-  if(a==="configure_provider"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const r=await admin.rpc("smm_set_provider_secret",{p_provider_id:b.provider_id,p_actor_user_id:user.id,p_secret:b.api_key});if(r.error)return json({error:r.error.message},400);return json({ok:true});}
+  if(a==="configure_provider"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const r=await admin.rpc("smm_set_provider_secret",{p_provider_id:b.provider_id,p_actor_user_id:user.id,p_secret:b.api_key});if(r.error||r.data!==true)return json({error:r.error?.message||"PROVIDER_CREDENTIAL_NOT_SAVED"},400);return json({ok:true});}
   if(a==="sync_services"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const p=await admin.from("smm_providers").select("*").eq("id",b.provider_id).single();if(!p.data)return json({error:"PROVIDER_NOT_FOUND"},404);const r=await call(p.data,await secret(b.provider_id),"services");if(!Array.isArray(r))return json({error:"INVALID_PROVIDER_RESPONSE",result:r},502);let n=0;for(const s of r){const row={provider_id:b.provider_id,external_service_id:String(s.service||s.id||""),platform:String(s.platform||s.category||"Other"),category:String(s.category||"Other"),name:String(s.name||"Service"),description:String(s.description||""),provider_cost:Number(s.rate||0),selling_price:Number(s.rate||0),min_quantity:Number(s.min||1),max_quantity:Number(s.max||1000000),refill:!!s.refill,cancel:!!s.cancel,dripfeed:!!s.dripfeed,active:true,metadata:s};if(!row.external_service_id)continue;const u=await admin.from("smm_services").upsert(row,{onConflict:"provider_id,external_service_id"});if(!u.error)n++;}return json({ok:true,count:n});}
   if(a==="provider_status"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const p=await admin.from("smm_providers").select("*").eq("id",b.provider_id).single();if(!p.data)return json({error:"PROVIDER_NOT_FOUND"},404);return json({ok:true,provider:p.data.name,result:await call(p.data,await secret(b.provider_id),"balance")});}
-  if(a==="admin_credit"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const ok=await admin.rpc("smm_admin_credit_wallet",{p_actor:user.id,p_user:b.user_id,p_amount:Number(b.amount),p_description:b.description||"Manual admin credit"});if(ok.error)return json({error:ok.error.message},400);return json({ok:true});}
+  if(a==="admin_credit"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const ok=await admin.rpc("smm_admin_credit_wallet",{p_actor:user.id,p_user:b.user_id,p_amount:Number(b.amount),p_description:b.description||"Manual admin credit"});if(ok.error||ok.data!==true)return json({error:ok.error?.message||"WALLET_CREDIT_NOT_APPLIED"},400);return json({ok:true});}
   if(a==="admin_data"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const [p,s,o]=await Promise.all([admin.from("smm_providers").select("id,name,api_url,active,priority").order("priority"),admin.from("smm_services").select("id,provider_id,platform,category,name,provider_cost,selling_price,min_quantity,max_quantity,active").order("created_at",{ascending:false}).limit(200),admin.from("smm_orders").select("id,user_id,service_id,quantity,selling_price,profit,status,provider_order_id,created_at").order("created_at",{ascending:false}).limit(100)]);return json({providers:p.data||[],services:s.data||[],orders:o.data||[]});}
   if(a==="set_price"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const price=Number(b.selling_price);if(!Number.isFinite(price)||price<0)return json({error:"INVALID_PRICE"},400);const r=await admin.from("smm_services").update({selling_price:price,updated_at:new Date().toISOString()}).eq("id",b.service_id);if(r.error)return json({error:r.error.message},400);return json({ok:true});}
   if(a==="place_order"){
@@ -61,7 +61,7 @@ Deno.serve(async(req)=>{
    try{providerKey=await secret(v.provider_id);}
    catch{
     const refund=await admin.rpc("smm_refund_wallet",{p_user:user.id,p_amount:sell,p_reference:orderId,p_description:"Automatic refund before provider request"});
-    if(refund.error){await admin.from("smm_order_events").insert({order_id:orderId,event_type:"REFUND_OUTCOME_UNKNOWN",payload:{code:"REFUND_OUTCOME_UNKNOWN"}});return json({error:"REFUND_RECONCILIATION_REQUIRED",order_id:orderId,reconciliation_required:true},503);}
+    if(refund.error||refund.data!==true){await admin.from("smm_order_events").insert({order_id:orderId,event_type:"REFUND_OUTCOME_UNKNOWN",payload:{code:"REFUND_OUTCOME_UNKNOWN"}});return json({error:"REFUND_RECONCILIATION_REQUIRED",order_id:orderId,reconciliation_required:true},503);}
     const upd=await admin.from("smm_orders").update({status:"FAILED",error_message:"Provider credential unavailable before request",updated_at:new Date().toISOString()}).eq("id",orderId).select("id").maybeSingle();
     await admin.from("smm_order_events").insert({order_id:orderId,event_type:"PROVIDER_NOT_CONTACTED",payload:{code:"PROVIDER_CREDENTIAL_UNAVAILABLE"}});
     if(upd.error||!upd.data)return json({error:"ORDER_FINALIZATION_UNKNOWN",order_id:orderId,reconciliation_required:true},503);
@@ -77,7 +77,7 @@ Deno.serve(async(req)=>{
      return json({error:"PROVIDER_OUTCOME_UNKNOWN",order_id:orderId,reconciliation_required:true},503);
     }
     const refund=await admin.rpc("smm_refund_wallet",{p_user:user.id,p_amount:sell,p_reference:orderId,p_description:"Refund after explicit provider rejection"});
-    if(refund.error){
+    if(refund.error||refund.data!==true){
      await admin.from("smm_order_events").insert({order_id:orderId,event_type:"REFUND_OUTCOME_UNKNOWN",payload:{code:"REFUND_OUTCOME_UNKNOWN"}});
      return json({error:"REFUND_RECONCILIATION_REQUIRED",order_id:orderId,reconciliation_required:true},503);
     }
