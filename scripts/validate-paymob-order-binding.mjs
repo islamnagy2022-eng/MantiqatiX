@@ -9,6 +9,10 @@ const digitalMigration = read("supabase/migrations/20261009010000_rc424_atomic_d
 const rideMigration = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
 const digitalFinalizeMigration = read("supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql");
 const activeIntentMigration = read("supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql");
+const failureMigration = read("supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql");
+const failureStart = webhook.indexOf('if(!success){\n   const {data:failureResult,error:failureError}=await admin.rpc("process_verified_provider_payment_failure"');
+const failureEnd = failureStart < 0 ? -1 : webhook.indexOf('const {data:processed,error:e}=await admin.rpc("process_verified_provider_payment"', failureStart);
+const normalFailureBlock = failureStart >= 0 && failureEnd > failureStart ? webhook.slice(failureStart, failureEnd) : "";
 const workflow = read(".github/workflows/pages.yml");
 
 const checks = [
@@ -19,6 +23,9 @@ const checks = [
   ["Normal Paymob 5xx or incomplete responses do not release the active intent", orderPayment.includes("HTTP 5xx, malformed JSON, or missing provider identifiers are ambiguous") && orderPayment.includes("reconciliationRequired: true") && orderPayment.indexOf("if (response.status >= 400 && response.status < 500)") < orderPayment.indexOf("if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId)") && !orderPayment.slice(orderPayment.indexOf("if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId)")).includes("update({ status: \"FAILED\"")],
   ["Normal provider-intent persistence checks the state transition and affected row", orderPayment.includes('.eq("status", "CREATED").is("provider_intent_id", null)') && orderPayment.includes('.select("id").maybeSingle()') && orderPayment.includes("PAYMENT_INTENT_PERSISTENCE_UNKNOWN")],
   ["Normal webhook binds intent to signed provider order", webhook.includes("PAYMENT_PROVIDER_ORDER_MISMATCH") && webhook.includes('eq("provider_order_id",paymobOrderId)')],
+  ["Normal payment failure webhook uses the atomic backend RPC", normalFailureBlock.includes('admin.rpc("process_verified_provider_payment_failure"') && normalFailureBlock.includes("p_provider_order_id:paymobOrderId") && normalFailureBlock.includes("p_provider_transaction_id:value(obj.id)")],
+  ["Normal payment failure webhook contains no split event or intent writes", normalFailureBlock.length > 0 && !normalFailureBlock.includes('admin.from("payment_provider_events").insert(') && !normalFailureBlock.includes('admin.from("payment_intents").update(')],
+  ["RC428 failure RPC is service-role-only with an empty search path", failureMigration.includes("set search_path = ''") && failureMigration.includes("revoke all on function public.process_verified_provider_payment_failure") && failureMigration.includes("to service_role;")],
   ["Normal webhook rejects a mismatched merchant reference", webhook.includes("PAYMENT_MERCHANT_REFERENCE_MISMATCH")],
   ["Subscription webhook rejects a mismatched merchant reference", webhook.includes("SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH")],
   ["Digital-page webhook rejects a mismatched merchant reference", webhook.includes("DIGITAL_PAGE_MERCHANT_REFERENCE_MISMATCH")],
