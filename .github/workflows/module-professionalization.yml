@@ -9,6 +9,40 @@ on:
 permissions:
   contents: read
 jobs:
+  security-definer-search-path-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_security_path_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_security_path_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Verify exposed SECURITY DEFINER search paths
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc440_security_definer_fixture.sql "$pg_container:/tmp/rc440_fixture.sql"
+          docker cp supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql "$pg_container:/tmp/rc440_migration.sql"
+          docker cp supabase/tests/rc440_security_definer_integration.sql "$pg_container:/tmp/rc440_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_test.sql
+
   erp-purchase-order-lines-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -256,6 +290,7 @@ jobs:
           node scripts/validate-erp-receiving-contract.mjs
           node scripts/validate-subscription-intent-safety.mjs
           node scripts/test-checkout-secret-crypto.mjs
+          node scripts/validate-security-definer-search-path.mjs
           node scripts/validate-financial-journal-safety.mjs
           node scripts/validate-erp-purchase-order-lines.mjs
           node scripts/validate-checkout-recovery.mjs
