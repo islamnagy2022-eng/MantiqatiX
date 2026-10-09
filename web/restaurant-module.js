@@ -104,7 +104,7 @@ function tabs(){
  }).join('')+'</div>';
 }
 function menuView(){
- const notice='<div class="notice" role="status">عرض القائمة القديمة للقراءة فقط. الطلبات والأسعار الفعلية تعتمد على الكتالوج المركزي؛ تم إيقاف تعديل هذه السجلات مؤقتًا حتى ربط واجهة الإدارة بمسار الكتالوج الآمن.</div>';
+ const notice='<div class="notice" role="status">عرض القائمة القديمة للقراءة فقط. الطلبات والأسعار الفعلية تعتمد على الكتالوج المركزي؛ تم إيقاف تعديل هذه السجلات مؤقتًا حتى ربط واجهة الإدارة بمسار الكتالوج الآمن. تنبيه: سياسات الإنتاج الحالية قد تمنع المدير أو الموظف من رؤية سجلات لا يملكها مباشرة؛ القائمة الفارغة لا تثبت عدم وجود أصناف.</div>';
  return shell('قائمة الطعام',tabs()+notice+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر المسجل</th><th>التوفر المسجل</th><th>الأكثر طلباً</th><th>التحكم</th></tr></thead><tbody>'+
  (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+(x.is_available?'متاح':'غير متاح')+'</td><td>'+(x.is_popular?'نعم':'—')+'</td><td>قراءة فقط</td></tr>').join(''):'<tr><td colspan="6">لا توجد سجلات قائمة قديمة.</td></tr>')+
