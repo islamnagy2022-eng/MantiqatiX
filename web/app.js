@@ -1145,7 +1145,7 @@ async function createPurchaseOrder(){
  const created=await erpRpc('create_purchase_order_backend',{p_id:attempt.id,p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId.trim(),p_total_amount:subtotal,p_tax_amount:tax,p_discount_amount:discount,p_reason:reason});
  if(!created)return null;
  const {data,error}=await sb.functions.invoke('erp-purchase-order-lines',{body:{order_id:attempt.id,tenant_id:live.tenantId,business_id:live.businessId,lines:lines.map(line=>({product_id:line.product_id,ordered_quantity:line.quantity,unit_cost:line.unit_cost,description:line.description}))}});
- if(error||data?.success===false){showToast('تم إنشاء مسودة أمر الشراء لكن تعذر حفظ البنود؛ أعد محاولة حفظ البنود قبل الإرسال للاعتماد: '+(data?.error||error?.message||'خطأ غير معروف'),'error');return null;}
+ if(error||data?.success===false){showToast('تم إنشاء مسودة أمر الشراء ('+attempt.id+') لكن تعذر حفظ البنود؛ احتفظ برقم المسودة وأعد حفظ البنود قبل الإرسال للاعتماد: '+(data?.error||error?.message||'خطأ غير معروف'),'error');return null;}
  try{sessionStorage.removeItem('mantiqatix_po_attempt')}catch{}
  showToast('تم إنشاء أمر الشراء وحفظ '+(data?.line_count||lines.length)+' بندًا','success');
  live.moduleData={};await loadDomainModule(current);renderApp();return {order:created,lines:data};
