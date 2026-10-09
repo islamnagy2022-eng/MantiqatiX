@@ -47,6 +47,37 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc438_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc437_test.sql
 
+  checkout-recovery-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_checkout_recovery_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_checkout_recovery_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Test RC439 encrypted checkout recovery schema
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc435_subscription_intent_fixture.sql "$pg_container:/tmp/rc439_fixture.sql"
+          docker cp supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql "$pg_container:/tmp/rc439_migration.sql"
+          docker cp supabase/tests/rc439_checkout_recovery_integration.sql "$pg_container:/tmp/rc439_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_checkout_recovery_test -v ON_ERROR_STOP=1 -f /tmp/rc439_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_checkout_recovery_test -v ON_ERROR_STOP=1 -f /tmp/rc439_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_checkout_recovery_test -v ON_ERROR_STOP=1 -f /tmp/rc439_test.sql
+
   financial-journal-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -226,3 +257,4 @@ jobs:
           node scripts/validate-subscription-intent-safety.mjs
           node scripts/validate-financial-journal-safety.mjs
           node scripts/validate-erp-purchase-order-lines.mjs
+          node scripts/validate-checkout-recovery.mjs
