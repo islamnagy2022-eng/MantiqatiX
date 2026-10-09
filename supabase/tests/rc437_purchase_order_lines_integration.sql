@@ -37,6 +37,12 @@ begin
   if not rejected then raise exception 'changed lines on retry must be rejected'; end if;
   rejected:=false;
   begin
+    perform public.create_purchase_order_with_lines_backend('po-rc437-duplicate','tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines);
+  exception when others then if sqlerrm='PURCHASE_ORDER_NUMBER_CONFLICT' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'duplicate order number must be rejected'; end if;
+  rejected:=false;
+  begin
     perform public.create_purchase_order_with_lines_backend('po-rc437-no-lines','tenant-a',business,'branch-a','PO-EMPTY','supplier-a',0,0,null,'[]'::jsonb);
   exception when others then if sqlerrm='PURCHASE_ORDER_LINES_REQUIRED' then rejected:=true; else raise; end if;
   end;
