@@ -26,6 +26,8 @@ const checks = [
   ["Digital-page finalizer fails closed when provider correlation is absent", digitalFinalizeMigration.includes("PAYMOB_PROVIDER_CORRELATION_REQUIRED")],
   ["Digital-page payment RPC uses an empty search path", digitalMigration.includes("set search_path = ''")],
   ["Subscription webhook binds intent to signed provider order", webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("sub.provider_order_id")],
+  ["Subscription callback arriving before provider-order persistence is retryable", webhook.includes("SUBSCRIPTION_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('sub.status==="PENDING"')],
+  ["Normal payment callback arriving before provider-order persistence is retryable", webhook.includes("PAYMENT_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('intent.status==="CREATED"')],
   ["Digital checkout requires provider order ID", digitalPayment.includes("!providerOrderId")],
   ["Digital Paymob network ambiguity does not release the intention claim", digitalPayment.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN") && digitalPayment.includes("The provider may have created an intention") && !digitalPayment.includes('catch{await release();return json({error:"PAYMENT_PROVIDER_UNAVAILABLE"}') ],
   ["Digital Paymob incomplete or 5xx responses retain the claim for reconciliation", digitalPayment.includes("reconciliationRequired:true") && digitalPayment.includes("retain the claim for reconciliation")],
