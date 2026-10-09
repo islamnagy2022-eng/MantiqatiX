@@ -565,3 +565,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Deploy MantiqatiX Web run 37930594159: workflow SUCCESS; validation completed and deployment is skipped for the unmerged PR. This is not a production deployment.
 - Current branch includes a later documentation-only checkpoint commit 005b34f64a73cfabb76e745e06aa849a5361a0ba; no source code changed after f9ec95eb1712dc7f3e3c73defea40c11ac0706e1.
 - Source/CI gates are green. Runtime security, RLS/index migrations, catalog RPC execution design, Edge Function deployment, table/inventory lifecycle integration, and real authenticated E2E remain open. PR #85 must remain unmerged until those blockers are resolved or explicitly accepted by the owner.
+## Current E2E readiness re-check — 2026-10-09
+
+- Read-only production counts now show 26 ACTIVE businesses, 25 ACTIVE provider profiles, 11 ACTIVE catalog items, 11 ACTIVE catalog prices, and 2 ACTIVE branches. These are current counts, not proof of a complete booking flow.
+- The isolated tenant MNTY-TEST-B has one ACTIVE business, one branch, one active catalog item and one active price, but zero ACTIVE provider profiles. It therefore cannot pass order-create's active-provider requirement without a separately authorized setup action.
+- MNTY-PLATFORM has existing ACTIVE memberships across customer/provider/business roles and an active catalog chain, but no approved credentials/session bundle was used. No real order or user session was created/impersonated. Runtime customer→provider→order→notification E2E remains NOT VERIFIED.
+- This check confirms RC199's historical statement that no catalog chain existed is no longer globally accurate, but it does not close the E2E gate. Use only approved test identities and an isolated test business/provider chain.
