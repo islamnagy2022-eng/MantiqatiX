@@ -1,24 +1,5 @@
 -- Disposable PostgreSQL fixture for RC432 integration tests only.
 create extension if not exists pgcrypto;
-do $roles$
-begin
-  create role anon nologin;
-exception when duplicate_object then null;
-end
-$roles$;
-do $roles$
-begin
-  create role authenticated nologin;
-exception when duplicate_object then null;
-end
-$roles$;
-do $roles$
-begin
-  create role service_role nologin;
-exception when duplicate_object then null;
-end
-$roles$;
-
 create table public.smm_wallets (
   user_id uuid primary key,
   balance numeric not null default 0,
