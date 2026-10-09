@@ -221,7 +221,7 @@ Deno.serve(async req => {
 
     let encryptedSecret: { client_secret_ciphertext: string; client_secret_iv: string; client_secret_key_version: string };
     try {
-      encryptedSecret = await encryptCheckoutSecret(clientSecret, String(intent.id), businessId);
+      encryptedSecret = await encryptCheckoutSecret(clientSecret, String(intent.id), String(intent.business_id));
     } catch {
       await persistUnknownProviderCorrelation(String(intent.id), providerIntentId, providerOrderId);
       console.error(JSON.stringify({ requestId, stage: "checkout_secret_encryption_failed" }));
