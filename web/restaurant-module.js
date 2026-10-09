@@ -65,24 +65,43 @@ async function load(){
  if(!state.membership){state.error='لا توجد عضوية تشغيلية نشطة.';return render();}
  state.error=null; state.loading=true; render();
  const s=scope();
- let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
  let ordersQ=sb.from('orders').select('id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,total,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
- let tablesQ=sb.from('restaurant_tables').select('id,owner_user_id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name').order('table_number').limit(100);
- let invQ=sb.from('restaurant_inventory').select('id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at').order('name_ar').limit(200);
- if(s&&(canOperate('CATALOG','view')||canOperate('ORDERS','view')||canOperate('OPERATIONS','view'))){
-   menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
-   ordersQ=ordersQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
-   tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
-   invQ=invQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
+ let tablesQ=sb.from('restaurant_tables').select('id,owner_user_id,tenant_id,business_id,branch_id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name').order('table_number').limit(100);
+ let invQ=sb.from('restaurant_inventory').select('id,owner_user_id,tenant_id,business_id,branch_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at').order('name_ar').limit(200);
+ if(s){
+  ordersQ=ordersQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
+  tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
+  invQ=invQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
-   menuQ=menuQ.eq('is_available',true);
-   ordersQ=ordersQ.eq('customer_id',state.user.id);
-   tablesQ=tablesQ.eq('owner_user_id',state.user.id);
-   invQ=invQ.eq('owner_user_id',state.user.id);
+  ordersQ=ordersQ.eq('customer_id',state.user.id);
+  tablesQ=tablesQ.eq('owner_user_id',state.user.id);
+  invQ=invQ.eq('owner_user_id',state.user.id);
  }
- const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
- state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
- const errs=[a,b,c,d].filter(x=>x.error).map(x=>x.error.message);
+ const menuPromise=s&&canOperate('CATALOG','view')
+  ?invokeMntyApi('/api/v1/catalog?'+new URLSearchParams({tenantId:s.tenant_id,businessId:s.business_id,branchId:s.branch_id,limit:'100'}).toString())
+  :Promise.resolve({items:[],prices:[],options:[]});
+ const [menuResult,ordersResult,tablesResult,invResult]=await Promise.allSettled([menuPromise,ordersQ,tablesQ,invQ]);
+ const catalog=menuResult.status==='fulfilled'?menuResult.value:null;
+ const priceRows=(catalog?.prices||[]).filter(p=>String(p.currency||'').toUpperCase()==='EGP');
+ state.menu=(catalog?.items||[]).map(item=>{
+  const metadata=item.metadata&&typeof item.metadata==='object'?item.metadata:{};
+  const candidates=priceRows.filter(p=>String(p.catalog_item_id)===String(item.id)&&(!p.branch_id||String(p.branch_id)===String(s?.branch_id)));
+  candidates.sort((a,b)=>{
+   const score=x=>((String(x.branch_id||'')===String(s?.branch_id||''))?1000000:0)+Number(x.version||0);
+   return score(b)-score(a);
+  });
+  const price=candidates[0];
+  return {id:item.id,owner_user_id:state.user.id,tenant_id:item.tenant_id,business_id:item.business_id,branch_id:item.branch_id,name_ar:item.name_ar,description_ar:item.description||'',category:metadata.category||item.item_type||'عام',base_price_egp:price?Number(price.unit_price):null,is_available:metadata.is_available!==false,is_popular:Boolean(metadata.is_popular),tax_rate:Number(item.tax_rate||0),metadata};
+ });
+ state.orders=ordersResult.status==='fulfilled'?(ordersResult.value.data||[]):[];
+ state.tables=tablesResult.status==='fulfilled'?(tablesResult.value.data||[]):[];
+ state.inventory=invResult.status==='fulfilled'?(invResult.value.data||[]):[];
+ const errs=[];
+ if(menuResult.status==='rejected')errs.push('الكتالوج المركزي غير متاح: '+(menuResult.reason?.message||'خطأ في التحميل'));
+ for(const [name,result] of [['orders',ordersResult],['tables',tablesResult],['inventory',invResult]]){
+  if(result.status==='rejected')errs.push(name+': '+(result.reason?.message||'تعذر التحميل'));
+  else if(result.value.error)errs.push(name+': '+result.value.error.message);
+ }
  state.error=errs.length?errs.join(' | '):null;state.loading=false;render();
 }
 function shell(title,body){
