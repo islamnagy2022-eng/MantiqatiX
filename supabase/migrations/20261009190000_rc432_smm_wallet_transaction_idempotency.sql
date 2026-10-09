@@ -29,6 +29,7 @@ declare
   v_txn_id uuid;
   v_existing_user uuid;
   v_existing_amount numeric;
+  v_wallet_found boolean;
 begin
   if p_user is null or p_reference is null then
     raise exception 'INVALID_REFERENCE';
@@ -50,7 +51,18 @@ begin
   from public.smm_wallets w
   where w.user_id=p_user
   for update;
-  if not found or coalesce(v_balance,0)<p_amount then return false; end if;
+  v_wallet_found := found;
+
+  -- Recheck after acquiring the wallet lock so a concurrent retry sees the committed debit.
+  select wt.user_id,wt.amount into v_existing_user,v_existing_amount
+  from public.smm_wallet_transactions wt
+  where wt.reference_id=p_reference and wt.type='DEBIT'
+  limit 1;
+  if found then
+    if v_existing_user=p_user and v_existing_amount=-p_amount then return true; end if;
+    raise exception 'IDEMPOTENCY_CONFLICT';
+  end if;
+  if not v_wallet_found or coalesce(v_balance,0)<p_amount then return false; end if;
 
   insert into public.smm_wallet_transactions(user_id,amount,type,reference_id,description)
   values(p_user,-p_amount,'DEBIT',p_reference,'SMM order')
