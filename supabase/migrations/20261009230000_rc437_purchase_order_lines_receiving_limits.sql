@@ -179,6 +179,27 @@ begin
     and l.product_id=p_product_id
   for update;
   if not found then raise exception 'PRODUCT_NOT_IN_PURCHASE_ORDER'; end if;
+
+  -- Recheck after taking the order-line lock. A concurrent request with the same
+  -- receipt number may have committed while this request waited for that lock.
+  -- Replay must be resolved before checking the remaining quantity, or a valid
+  -- retry can be rejected after the first request fills the line.
+  select * into v_existing from public.erp_purchase_receipts r
+  where r.business_id=p_business_id and r.receipt_number=p_receipt_number for update;
+  if found then
+    v_result:=public.receive_purchase_stock_atomic_backend(
+      p_id,p_tenant_id,p_business_id,p_purchase_order_id,p_receipt_number,p_warehouse_id,p_product_id,
+      p_received_quantity,p_unit_cost,p_actor_user_id
+    );
+    if coalesce((v_result->>'success')::boolean,false) is not true
+       or coalesce((v_result->>'idempotent')::boolean,false) is not true then
+      raise exception 'PURCHASE_RECEIPT_REPLAY_NOT_IDEMPOTENT';
+    end if;
+    return v_result||pg_catalog.jsonb_build_object(
+      'order_line_id',v_line.id,'order_line_received_quantity',v_line.received_quantity
+    );
+  end if;
+
   if v_line.received_quantity+p_received_quantity>v_line.ordered_quantity then raise exception 'PURCHASE_ORDER_QUANTITY_EXCEEDED'; end if;
   if p_unit_cost is distinct from v_line.unit_cost then raise exception 'PURCHASE_ORDER_UNIT_COST_MISMATCH'; end if;
 
