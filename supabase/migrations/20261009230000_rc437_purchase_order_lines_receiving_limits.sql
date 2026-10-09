@@ -101,7 +101,9 @@ begin
       v_cost:=nullif(v_line->>'unit_cost','')::numeric;
     exception when others then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end;
     if v_product is null or v_qty is null or v_qty<=0 or v_qty::text in ('NaN','Infinity','-Infinity')
-       or v_cost is null or v_cost<0 or v_cost::text in ('NaN','Infinity','-Infinity') then
+       or v_cost is null or v_cost<0 or v_cost::text in ('NaN','Infinity','-Infinity')
+       or v_qty<>round(v_qty,4) or v_cost<>round(v_cost,4)
+       or length(coalesce(v_line->>'description',''))>500 then
       raise exception 'INVALID_PURCHASE_ORDER_LINE';
     end if;
     if v_product=any(v_seen) then raise exception 'DUPLICATE_PURCHASE_ORDER_PRODUCT'; end if;
@@ -109,9 +111,10 @@ begin
     if not exists(select 1 from public.catalog_items ci where ci.id=v_product and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id and ci.status='ACTIVE') then
       raise exception 'PRODUCT_INVALID';
     end if;
-    v_total:=v_total+(v_qty*v_cost);
+    v_total:=v_total+round(v_qty*v_cost,2);
   end loop;
 
+  if v_total<=0 or v_order.discount_amount>v_total+v_order.tax_amount then raise exception 'INVALID_PURCHASE_ORDER_TOTALS'; end if;
   delete from public.erp_purchase_order_lines where purchase_order_id=p_order_id;
   v_line_number:=0;
   for v_line in select value from pg_catalog.jsonb_array_elements(p_lines) as x(value) loop
@@ -125,7 +128,11 @@ begin
       nullif(pg_catalog.btrim(v_line->>'description'),'')
     );
   end loop;
-  return pg_catalog.jsonb_build_object('success',true,'order_id',p_order_id,'line_count',v_line_number,'line_subtotal',v_total);
+  update public.erp_purchase_orders
+  set total_amount=round(v_total+tax_amount-discount_amount,2),updated_at=pg_catalog.now()
+  where id=p_order_id and tenant_id=p_tenant_id and business_id=p_business_id;
+  return pg_catalog.jsonb_build_object('success',true,'order_id',p_order_id,'line_count',v_line_number,'line_subtotal',v_total,
+    'total_amount',round(v_total+v_order.tax_amount-v_order.discount_amount,2));
 end;
 $function$;
 
