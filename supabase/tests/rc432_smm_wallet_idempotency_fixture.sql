@@ -1,5 +1,7 @@
 -- Disposable PostgreSQL fixture for RC432 integration tests only.
 create extension if not exists pgcrypto;
+create table public.smm_admins (user_id uuid primary key);
+
 create table public.smm_wallets (
   user_id uuid primary key,
   balance numeric not null default 0,
