@@ -3,6 +3,7 @@ const decodeBase64 = (value) => Uint8Array.from(atob(value), char => char.charCo
 
 export async function encryptCheckoutSecret(secret, context) {
   const { key, version, intentId, businessId } = context ?? {};
+  if (typeof secret !== "string" || !secret) throw new Error("CHECKOUT_SECRET_INVALID");
   if (!key || !version || !intentId || !businessId) throw new Error("CHECKOUT_ENCRYPTION_CONTEXT_REQUIRED");
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const additionalData = new TextEncoder().encode("MantiqatiX:subscription-payment-intent:" + intentId + ":" + businessId);
