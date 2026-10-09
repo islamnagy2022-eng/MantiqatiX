@@ -1566,3 +1566,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Added a dedicated CI contract validator and P0 production-source checks.
 - No Supabase branch was created, no production migration/function was applied or deployed, and no real payment was attempted.
 - Outstanding: CI green on the final head, review migration order and existing pending payment compatibility, apply only through a separately approved rollout, and run signed Paymob sandbox cases including cross-order tampering and concurrent replay.
+
+
+## Read-only production audit snapshot — 2026-10-09
+- **Execution constraints respected:** no Supabase branch created; no production migration applied; no Edge Function deployed; no financial row changed.
+- **Membership integrity:** 48 ACTIVE membership rows; 28 OWNER/BUSINESS_OWNER role rows; 0 active owner memberships reference a missing Auth user; 0 active memberships reference a missing tenant or business. Four ACTIVE CUSTOMER memberships reference missing `auth.users` rows. They were not deleted automatically; review as stale identity records under a separate approved cleanup plan.
+- **Businesses:** 26 ACTIVE and 2 INACTIVE rows in `public.businesses`.
+- **Payment data:** no rows were returned by the payment-status aggregate for `public.digital_page_orders`; the current live data therefore does not provide an existing digital-page payment record for a non-destructive end-to-end replay test.
+- **RC425 / RC426 deployment check:** the new MantiGo atomic-payment RPC and event table are absent from production; the new five-argument digital-page finalizer is absent; the legacy four-argument finalizer remains. This is expected while the PR is open.
+- **Supabase Security Advisor (live snapshot):** one RLS-enabled/no-policy table (`digital_page_payment_events`, backend-only and fail-closed); one intentionally public ad-read SECURITY DEFINER function; 40 authenticated-callable SECURITY DEFINER functions; leaked-password protection remains disabled.
+- **Supabase Performance Advisor (live snapshot):** 375 RLS initplan warnings, 28 multiple-permissive-policy warnings, 105 unindexed-FK warnings, and 127 unused-index notices. These are a backlog for evidence-led triage; do not bulk-change policies/indexes without per-object workload and authorization review.
+- **Membership remediation gate:** identify the four stale CUSTOMER membership records against retention/audit policy, determine whether the Auth users were intentionally deleted, and only then decide whether to revoke or archive those rows. No mutation was performed.
+- **Release decision:** CI source validations pass on the latest reviewed branch head, but Paymob signed sandbox E2E, browser/mobile real-user E2E, migration execution in a disposable test database, Auth leaked-password setting, and the stale-membership decision remain open.
