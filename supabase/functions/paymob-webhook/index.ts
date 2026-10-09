@@ -26,10 +26,11 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    if(!success){const {error:e}=await admin.from("subscription_payment_intents").update({status:"FAILED",provider_transaction_id:value(obj.id),updated_at:new Date().toISOString()}).eq("id",sub.id).eq("status","PENDING");if(e)return json({error:"SUBSCRIPTION_FAILURE_PERSISTENCE",requestId},500,requestId);return json({ok:true,status:"FAILED",requestId},200,requestId)}
    const {data:processed,error:e}=await admin.rpc("process_verified_subscription_payment",{p_event_id:`paymob-sub:${value(obj.id)}`,p_external_event_id:eventId,p_subscription_payment_intent_id:sub.id,p_provider_transaction_id:value(obj.id),p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_signature_verified:true});if(e)return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);return json({ok:true,status:String(processed?.status??"ACTIVE"),result:processed,requestId},200,requestId)
  }
- const {data:digitalByRef}=await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
- const {data:digitalByOrder}=digitalByRef?{data:null}:await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
+ const {data:digitalByRef}=await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id,metadata").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
+ const {data:digitalByOrder}=digitalByRef?{data:null}:await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id,metadata").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const digital=digitalByRef??digitalByOrder
  if(digital){
+   if(!digital.provider_order_id&&digital.payment_status==="PENDING"&&digital.metadata&&typeof digital.metadata==="object"&&"payment_intent_claim" in (digital.metadata as Record<string,unknown>))return json({error:"DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING",retryable:true,requestId},503,requestId)
    if(!digital.provider_order_id||String(digital.provider_order_id)!==paymobOrderId)return json({error:"DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
    if(merchantRef&&merchantRef!==String(digital.id))return json({error:"DIGITAL_PAGE_MERCHANT_REFERENCE_MISMATCH",requestId},409,requestId)
    if(Math.abs(Number(digital.amount)-amount)>0.01||String(digital.currency).toUpperCase()!==currency)return json({error:"DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
