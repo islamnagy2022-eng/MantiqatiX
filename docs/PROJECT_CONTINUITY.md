@@ -645,3 +645,12 @@ This status is intentional and must remain until the open gates above are indepe
 - These are source/CI results only; PostgreSQL migration execution and authenticated runtime E2E remain unverified.
 - The Edge Function normalization change remains open because the repository safety layer blocked that write; do not bypass the control.
 - No production database mutation, migration, Edge Function deployment, or PR merge occurred.
+
+
+## RC563 update — 2026-10-09
+- Live SECURITY DEFINER grant inventory and contextual review recorded in `docs/RC563_SECURITY_DEFINER_REVIEW.md`.
+- Advisor snapshot: one intentionally public advertisement RPC remains callable by anon; 40 SECURITY DEFINER functions remain callable by authenticated users and require per-function caller-contract review, not blanket revocation.
+- A targeted scope question remains open for `preview_commission_backend`: its guard checks active financial membership at tenant scope; verify business/branch authorization expectations before changing it.
+- No production grants, migrations, data, or Edge Functions were changed.
+- Supabase test branch is still unavailable; branch listing contains only `main`. Migration runtime testing remains blocked until a supported isolated environment is available.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
