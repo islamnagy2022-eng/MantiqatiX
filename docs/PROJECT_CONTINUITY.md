@@ -571,3 +571,9 @@ This status is intentional and must remain until the open gates above are indepe
 - The isolated tenant MNTY-TEST-B has one ACTIVE business, one branch, one active catalog item and one active price, but zero ACTIVE provider profiles. It therefore cannot pass order-create's active-provider requirement without a separately authorized setup action.
 - MNTY-PLATFORM has existing ACTIVE memberships across customer/provider/business roles and an active catalog chain, but no approved credentials/session bundle was used. No real order or user session was created/impersonated. Runtime customer→provider→order→notification E2E remains NOT VERIFIED.
 - This check confirms RC199's historical statement that no catalog chain existed is no longer globally accurate, but it does not close the E2E gate. Use only approved test identities and an isolated test business/provider chain.
+## Consolidated PR checkpoint — 2026-10-09
+
+- The implementation was consolidated from the working branch into a clean branch based on main to avoid a 50-commit review history.
+- Clean branch: fix/restaurant-module-hardening-20261009. Base: f1f653d2112124dda85cc717d47127e03e1af541. Initial clean-branch head: 890ffa0955ab24fdd152a6137058296a28db5bb8. The five changed files are web/restaurant-module.js, scripts/validate-restaurant-rbac-contract.mjs, supabase/functions/catalog-admin/index.ts, supabase/functions/order-create/index.ts, and docs/PROJECT_CONTINUITY.md.
+- New review: PR #86 https://github.com/islamnagy2022-eng/MantiqatiX/pull/86 (OPEN, UNMERGED, five commits). Old PR #85 was CLOSED without merge to avoid duplicate competing PRs. PR #84 remains untouched and unmerged.
+- The passing CI evidence previously obtained applies to the same source content before consolidation; PR #86 requires its own CI validation before review/merge. Production release gate remains OPEN / NOT PRODUCTION READY.
