@@ -41,6 +41,7 @@ using (exists (
   select 1 from public.user_memberships m
   where m.user_id=auth.uid() and m.tenant_id=erp_purchase_order_lines.tenant_id
     and m.business_id=erp_purchase_order_lines.business_id and m.status='ACTIVE'
+    and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE')
 ));
 revoke all on public.erp_purchase_order_lines from anon,authenticated;
 grant select on public.erp_purchase_order_lines to authenticated;
