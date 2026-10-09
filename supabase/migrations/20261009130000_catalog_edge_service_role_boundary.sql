@@ -138,7 +138,7 @@ begin
          m.tenant_id=p_tenant_id
          and (
            (upper(m.role)='OWNER' and (m.business_id is null or m.business_id=p_business_id))
-           or (upper(m.role) in ('BUSINESS_OWNER','ADMIN','MANAGER') and m.business_id=p_business_id)
+           or (upper(m.role) in ('BUSINESS_OWNER','ADMIN','MANAGER','SALES') and m.business_id=p_business_id)
          )
          and (m.branch_id is null or m.branch_id=p_branch_id)
        )
