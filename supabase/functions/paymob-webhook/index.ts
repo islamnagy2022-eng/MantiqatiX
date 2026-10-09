@@ -85,6 +85,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
      const message=String(mantigoError.message??"");
      if(message.includes("MANTIGO_AMOUNT_CURRENCY_MISMATCH"))return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
      if(message.includes("MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH"))return json({error:"MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH",requestId},409,requestId);
+     if(message.includes("MANTIGO_PAYMENT_MERCHANT_REFERENCE_MISMATCH"))return json({error:"MANTIGO_PAYMENT_MERCHANT_REFERENCE_MISMATCH",requestId},409,requestId);
      if(message.includes("MANTIGO_PAYMENT_LEDGER_NOT_FOUND"))return json({error:"MANTIGO_PAYMENT_LEDGER_NOT_FOUND",requestId},404,requestId);
      return json({error:"MANTIGO_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
    }
