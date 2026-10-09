@@ -9,6 +9,40 @@ on:
 permissions:
   contents: read
 jobs:
+  subscription-intent-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_subscription_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_subscription_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run subscription claim integration tests inside disposable PostgreSQL
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc435_subscription_intent_fixture.sql "$pg_container:/tmp/rc435_fixture.sql"
+          docker cp supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql "$pg_container:/tmp/rc435_migration.sql"
+          docker cp supabase/tests/rc435_subscription_intent_integration.sql "$pg_container:/tmp/rc435_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_test.sql
+
   erp-receiving-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -115,3 +149,4 @@ jobs:
           node scripts/validate-membership-refresh-contract.mjs
           node scripts/validate-smm-payment-safety.mjs
           node scripts/validate-erp-receiving-contract.mjs
+          node scripts/validate-subscription-intent-safety.mjs
