@@ -39,6 +39,8 @@ check("RC432 refund path is idempotent", migration.includes("smm_refund_wallet")
 check("admin credit uses a stable retry idempotency key", source.includes("p_reference:b.reference_id") && web.includes("reference_id:referenceId") && web.includes("creditAttempt={fingerprint,id:crypto.randomUUID()}"));
 check("legacy non-idempotent admin credit RPC is disabled", migration.includes("smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated,service_role"));
 check("admin credit RPC checks the explicit SMM allowlist", migration.includes("public.smm_admins sa where sa.user_id=p_actor") && migration.includes("IDEMPOTENCY_CONFLICT"));
+check("admin wallet credit validates a finite positive amount", source.includes("Number.isFinite(amount)||amount<=0"));
+check("SMM gateway requires a live authenticated session token", web.includes("if(sessionError||!session?.access_token)throw new Error('AUTH_REQUIRED')"));
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("SMM provider/wallet safety contract PASS: " + checks.length + "/" + checks.length + " checks.");
