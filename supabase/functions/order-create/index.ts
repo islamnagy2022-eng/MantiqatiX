@@ -51,6 +51,19 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
+  const customerName = String(body.customerName).trim();
+  const customerPhone = String(body.customerPhone).trim();
+  const phoneDigits = customerPhone.replace(/\\D/g, "");
+  const deliveryAddress = String(body.deliveryAddress ?? "").trim();
+  const orderMetadata = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
+    ? body.metadata
+    : {};
+  const orderType = orderMetadata.order_type == null ? null : String(orderMetadata.order_type).toUpperCase();
+  if (!customerName || customerName.length > 200) return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
+  if (phoneDigits.length < 7 || phoneDigits.length > 15) return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
+  if (orderType && !["TAKEAWAY", "DELIVERY"].includes(orderType)) return json({ error: "INVALID_ORDER_TYPE" }, 400);
+  if (orderType === "DELIVERY" && !deliveryAddress) return json({ error: "DELIVERY_ADDRESS_REQUIRED" }, 400);
+
   const requestedBranchId = body.branchId ? String(body.branchId) : null;
   const { data: activeMemberships, error: membershipError } = await admin
     .from("user_memberships")
