@@ -121,7 +121,8 @@ begin
  if p_customer_id is null then raise exception 'CUSTOMER_REQUIRED'; end if;
  if coalesce(auth.role(),'') <> 'service_role' and (auth.uid() is null or auth.uid()<>p_customer_id) then raise exception 'CUSTOMER_REQUIRED'; end if;
  if p_tenant_id is null or p_tenant_id='' or p_business_id is null or p_client_idempotency_key is null or length(trim(p_client_idempotency_key))<8 then raise exception 'INVALID_ORDER_REQUEST'; end if;
- if p_items_json is null or jsonb_typeof(p_items_json)<>'array' or jsonb_array_length(p_items_json)=0 then raise exception 'INVALID_ITEMS'; end if;
+ if p_items_json is null or jsonb_typeof(p_items_json)<>'array' then raise exception 'INVALID_ITEMS'; end if;
+ if jsonb_array_length(p_items_json)=0 or jsonb_array_length(p_items_json)>100 then raise exception 'INVALID_ITEMS'; end if;
  if nullif(trim(coalesce(p_customer_name,'')),'') is null or length(trim(p_customer_name))>200 then raise exception 'INVALID_CUSTOMER_NAME'; end if;
  if length(regexp_replace(coalesce(p_customer_phone,''),'[^0-9]','','g'))<7 or length(regexp_replace(coalesce(p_customer_phone,''),'[^0-9]','','g'))>15 then raise exception 'INVALID_CUSTOMER_PHONE'; end if;
  if upper(coalesce(p_metadata->>'order_type','DELIVERY')) not in ('DELIVERY','TAKEAWAY') then raise exception 'INVALID_ORDER_TYPE'; end if;
@@ -129,7 +130,7 @@ begin
  select exists(
    select 1 from user_memberships m
    where m.user_id=p_customer_id
-     and coalesce(m.status,'ACTIVE')='ACTIVE'
+     and m.status='ACTIVE'
      and (
        upper(m.role)='CUSTOMER'
        or (
@@ -175,10 +176,14 @@ begin
    if v_existing.metadata->>'request_hash' is distinct from v_request_hash then raise exception 'IDEMPOTENCY_PAYLOAD_CONFLICT'; end if;
    return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true);
  end if;
- select * into v_settings from catalog_business_settings where business_id=p_business_id;
+ select * into v_settings from catalog_business_settings where business_id=p_business_id and tenant_id=p_tenant_id;
  if not found then
+   if exists(select 1 from catalog_business_settings where business_id=p_business_id) then
+     raise exception 'BUSINESS_SETTINGS_TENANT_MISMATCH';
+   end if;
    insert into catalog_business_settings(business_id,tenant_id) values(p_business_id,p_tenant_id) on conflict (business_id) do nothing;
-   select * into v_settings from catalog_business_settings where business_id=p_business_id;
+   select * into v_settings from catalog_business_settings where business_id=p_business_id and tenant_id=p_tenant_id;
+   if not found then raise exception 'BUSINESS_SETTINGS_UNAVAILABLE'; end if;
  end if;
  v_currency:=upper(coalesce(v_settings.currency,p_currency,'EGP'));
  if upper(coalesce(p_metadata->>'order_type','DELIVERY'))='DELIVERY' then
@@ -188,6 +193,7 @@ begin
  end if;
  if upper(coalesce(p_metadata->>'order_type','DELIVERY')) not in ('DELIVERY','TAKEAWAY') then raise exception 'INVALID_ORDER_TYPE'; end if;
  for v_item in select value from jsonb_array_elements(p_items_json) loop
+   if jsonb_typeof(coalesce(v_item->'selectedOptionIds','[]'::jsonb)) <> 'array' then raise exception 'INVALID_ITEM_OPTIONS'; end if;
    v_token:=coalesce(nullif(v_item->>'catalogItemId',''),nullif(v_item->>'productId',''));
    if v_token is null then raise exception 'CATALOG_ITEM_REQUIRED'; end if;
    select * into v_ci from catalog_items ci
