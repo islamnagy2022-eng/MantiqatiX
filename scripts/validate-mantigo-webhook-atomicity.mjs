@@ -28,6 +28,7 @@ const requiredMigration = [
   "from public.mantigo_payment_provider_events",
   "on conflict (provider, external_event_id) do nothing",
   "payment_status = 'PENDING'",
+  "payment_status = 'FAILED' and p_status = 'PAID'",
   "insert into public.notifications",
   "revoke all on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) from anon",
   "revoke all on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) from authenticated",
@@ -81,7 +82,7 @@ const requiredWebhook = [
   "p_ledger_id:mantigo.id",
   "p_external_event_id:eventId",
   'p_signature_verified:true',
-  "p_raw_payload:raw",
+  "p_raw_payload:mantigoPayload",
   "MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH",
   "MANTIGO_AMOUNT_CURRENCY_MISMATCH"
 ];
