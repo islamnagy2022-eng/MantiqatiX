@@ -67,7 +67,7 @@ assert.match(catalogAdmin, /INVALID_TAX_RATE/, 'catalog item tax rate must be bo
 assert.match(catalogAdmin, /INVALID_BUSINESS_OR_BRANCH_ID/, 'catalog writes must validate business and branch identifier formats');
 assert.doesNotMatch(catalogAdmin, /!isUuid\(branchId\)/, 'branch IDs are opaque varchar identifiers, not necessarily UUIDs');
 assert.match(catalogAdmin, /INVALID_CATALOG_ITEM_ID/, 'catalog writes must validate item identifier formats');
-const catalogMigration = fs.readFileSync('supabase/migrations/20261009130000_catalog_edge_service_role_boundary.sql', 'utf8');
+const catalogMigration = fs.readFileSync('supabase/migrations/20261010035000_rc563_catalog_edge_service_role_boundary.sql', 'utf8');
 assert.match(catalogMigration, /coalesce\(auth\.role\(\),''\) <> 'service_role'/, 'catalog RPC migration must permit trusted service-role execution without forwarding a user JWT');
 assert.match(catalogMigration, /revoke all on function public\.upsert_catalog_item_backend[\s\S]*?from public, anon, authenticated;/i, 'catalog RPCs must remain inaccessible to public/anon/authenticated callers');
 assert.match(catalogMigration, /grant execute on function public\.upsert_catalog_item_backend[\s\S]*?to service_role;/i, 'catalog RPCs must remain service-role-only');
