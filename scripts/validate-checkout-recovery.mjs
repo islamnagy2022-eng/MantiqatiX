@@ -6,7 +6,7 @@ const cryptoHelper=fs.readFileSync("supabase/functions/_shared/checkout-secret-c
 const cryptoTest=fs.readFileSync("scripts/test-checkout-secret-crypto.mjs","utf8");
 const checks=[];
 function check(name,ok){checks.push({name,ok:Boolean(ok)});if(!ok)console.error("FAIL "+name);}
-check("checkout secret uses AES-GCM with random 96-bit IV",edge.includes('name: "AES-GCM"')&&edge.includes("crypto.getRandomValues(new Uint8Array(12))"));
+check("checkout secret uses AES-GCM with random 96-bit IV",cryptoHelper.includes('name: "AES-GCM"')&&cryptoHelper.includes("crypto.getRandomValues(new Uint8Array(12))"));
 check("checkout ciphertext is authenticated to intent and business IDs",cryptoHelper.includes("MantiqatiX:subscription-payment-intent:")&&cryptoHelper.includes("additionalData"));
 check("encryption key is a server-side versioned secret and 256-bit",edge.includes("PAYMOB_CHECKOUT_ENCRYPTION_KEY_")&&edge.includes("raw.byteLength !== 32")&&edge.includes("client_secret_key_version"));
 check("plaintext client secret is not written to the database",cryptoHelper.includes("client_secret_ciphertext: encodeBase64")&&edge.includes("...encryptedSecret")&&!/update\(\{[^}]*client_secret\s*:/s.test(edge));
