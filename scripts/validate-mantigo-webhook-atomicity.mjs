@@ -61,7 +61,8 @@ const eventInsertStart = migration.indexOf("insert into public.mantigo_payment_p
 const eventColumnsStart = eventInsertStart < 0 ? -1 : migration.indexOf("(", eventInsertStart) + 1;
 const eventColumnsEnd = eventColumnsStart < 0 ? -1 : migration.indexOf(") values (", eventColumnsStart);
 const eventValuesStart = eventColumnsEnd < 0 ? -1 : eventColumnsEnd + ") values (".length;
-const eventValuesEnd = eventValuesStart < 0 ? -1 : migration.indexOf(") on conflict", eventValuesStart);
+const eventConflictStart = eventValuesStart < 0 ? -1 : migration.indexOf("on conflict (provider, external_event_id) do nothing", eventValuesStart);
+const eventValuesEnd = eventConflictStart < 0 ? -1 : migration.lastIndexOf(")", eventConflictStart);
 if (eventInsertStart < 0 || eventColumnsEnd < 0 || eventValuesEnd < 0) {
   throw new Error("Atomic MantiGo event insert statement was not found.");
 }
