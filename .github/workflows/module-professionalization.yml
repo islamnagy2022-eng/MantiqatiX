@@ -9,6 +9,42 @@ on:
 permissions:
   contents: read
 jobs:
+  smm-wallet-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: mantiqatix_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Create disposable SMM wallet schema
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/rc432_smm_wallet_idempotency_fixture.sql
+      - name: Apply RC432 only to disposable PostgreSQL
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql
+      - name: Verify wallet idempotency and privilege boundaries
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/rc432_smm_wallet_idempotency_integration.sql
+
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
