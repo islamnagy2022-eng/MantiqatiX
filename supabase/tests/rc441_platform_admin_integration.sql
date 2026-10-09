@@ -15,6 +15,12 @@ begin
     ('tenant-super',tenant_scoped_super_admin,'TENANT-D','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
     ('platform',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
 
+  insert into public.mantigo_rides(id,customer_id,status,updated_at) values
+    ('ride-stale-open',tenant_owner,'OPEN',pg_catalog.now()-interval '90 minutes'),
+    ('ride-stale-bids',tenant_admin,'OPEN_FOR_BIDS',pg_catalog.now()-interval '45 minutes'),
+    ('ride-recent-open',tenant_ops,'OPEN',pg_catalog.now()-interval '5 minutes'),
+    ('ride-stale-matching',tenant_ops,'MATCHING',pg_catalog.now()-interval '90 minutes');
+
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
     raise exception 'tenant OWNER must not be treated as platform administrator';
@@ -79,6 +85,33 @@ begin
   end if;
   if has_function_privilege('anon','public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)','EXECUTE') then
     raise exception 'anon must not execute platform financial report';
+  end if;
+
+  -- Stale ride expiration is idempotent, bounded to supported statuses, and audited.
+  result := public.expire_stale_mantigo_rides_backend(platform_admin,30);
+  if (result->>'expired_count')::integer <> 2 then
+    raise exception 'expected two stale rides to expire, got %',result->>'expired_count';
+  end if;
+  if (select status from public.mantigo_rides where id='ride-stale-open') <> 'EXPIRED'
+     or (select status from public.mantigo_rides where id='ride-stale-bids') <> 'EXPIRED' then
+    raise exception 'stale OPEN/OPEN_FOR_BIDS rides were not expired';
+  end if;
+  if (select status from public.mantigo_rides where id='ride-recent-open') <> 'OPEN'
+     or (select status from public.mantigo_rides where id='ride-stale-matching') <> 'MATCHING' then
+    raise exception 'expiration touched a recent ride or unsupported status';
+  end if;
+  if (select count(*) from public.audit_logs where action='MANTIGO_RIDE_EXPIRED') <> 2 then
+    raise exception 'expected one audit row per expired ride';
+  end if;
+  if (select count(*) from public.notifications where type='MANTIGO_EXPIRED') <> 2 then
+    raise exception 'expected customer notifications for expired rides';
+  end if;
+  result := public.expire_stale_mantigo_rides_backend(platform_admin,30);
+  if (result->>'expired_count')::integer <> 0 then
+    raise exception 'repeat expiration should be idempotent';
+  end if;
+  if (select count(*) from public.audit_logs where action='MANTIGO_RIDE_EXPIRED') <> 2 then
+    raise exception 'repeat expiration duplicated audit rows';
   end if;
 end;
 $test$;
