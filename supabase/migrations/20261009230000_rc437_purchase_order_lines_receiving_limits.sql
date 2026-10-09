@@ -288,6 +288,13 @@ begin
     p_received_quantity,p_unit_cost,p_actor_user_id
   );
   if coalesce((v_result->>'success')::boolean,false) is not true then raise exception 'PURCHASE_RECEIPT_FAILED'; end if;
+  -- Another transaction may have created the same receipt after our first lookup.
+  -- RC434 returns idempotent=true for that race; do not increment the order line again.
+  if coalesce((v_result->>'idempotent')::boolean,false) is true then
+    return v_result||pg_catalog.jsonb_build_object(
+      'order_line_id',v_line.id,'order_line_received_quantity',v_line.received_quantity
+    );
+  end if;
   update public.erp_purchase_order_lines
   set received_quantity=received_quantity+p_received_quantity,updated_at=pg_catalog.now()
   where id=v_line.id and received_quantity+p_received_quantity<=ordered_quantity;
