@@ -1140,7 +1140,7 @@ async function createPurchaseOrder(){
  const fingerprint=JSON.stringify([live.tenantId,live.businessId,live.branchId||null,orderNumber.trim(),supplierId.trim(),tax,discount,reason,lines]);
  let attempt=null;try{attempt=JSON.parse(sessionStorage.getItem('mantiqatix_po_attempt')||'null')}catch{}
  if(!attempt||attempt.fingerprint!==fingerprint){attempt={fingerprint,id:'po-'+crypto.randomUUID()};try{sessionStorage.setItem('mantiqatix_po_attempt',JSON.stringify(attempt))}catch{}}
- const {data,error}=await sb.functions.invoke('erp-purchase-order-create',{body:{id:attempt.id,tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,order_number:orderNumber.trim(),supplier_id:supplierId.trim(),tax_amount:tax,discount_amount:discount,reason,lines}});
+ const {data,error}=await sb.rpc('create_purchase_order_with_lines_backend',{p_id:attempt.id,p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId.trim(),p_tax_amount:tax,p_discount_amount:discount,p_reason:reason,p_lines:lines});
  if(error||data?.success===false){showToast('تعذر إنشاء أمر الشراء أو حفظ بنوده؛ احتفظ برقم المحاولة '+attempt.id+' وأعد المحاولة بنفس البيانات: '+(data?.error||error?.message||'خطأ غير معروف'),'error');return null;}
  try{sessionStorage.removeItem('mantiqatix_po_attempt')}catch{}
  showToast(data?.idempotent?'تم استرجاع أمر الشراء السابق دون تكرار':'تم إنشاء أمر الشراء وحفظ '+(data?.line_count||lines.length)+' بندًا','success');
