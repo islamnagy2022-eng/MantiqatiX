@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptCheckoutSecret as encryptCheckoutSecretPayload, decryptCheckoutSecret as decryptCheckoutSecretPayload } from "../_shared/checkout-secret-crypto.mjs";
 
 const url = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -8,39 +9,16 @@ const publicKey = Deno.env.get("PAYMOB_PUBLIC_KEY") ?? "";
 const integrationId = Deno.env.get("PAYMOB_INTEGRATION_ID") ?? "";
 const checkoutKeyVersion = Deno.env.get("PAYMOB_CHECKOUT_ENCRYPTION_KEY_VERSION") ?? "v1";
 const checkoutKeyEnvName = (version: string) => "PAYMOB_CHECKOUT_ENCRYPTION_KEY_" + version.toUpperCase();
-const encodeBase64 = (bytes: Uint8Array) => btoa(Array.from(bytes, value => String.fromCharCode(value)).join(""));
-const decodeBase64 = (value: string) => Uint8Array.from(atob(value), char => char.charCodeAt(0));
-
-async function importCheckoutKey(version: string): Promise<CryptoKey> {
-  if (!/^v[1-9][0-9]{0,2}$/.test(version)) throw new Error("CHECKOUT_KEY_VERSION_INVALID");
-  const encoded = Deno.env.get(checkoutKeyEnvName(version)) ?? "";
-  if (!encoded) throw new Error("CHECKOUT_KEY_MISSING");
-  const raw = decodeBase64(encoded);
-  if (raw.byteLength !== 32) throw new Error("CHECKOUT_KEY_LENGTH_INVALID");
-  return await crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
-}
-
 async function encryptCheckoutSecret(secret: string, intentId: string, businessId: string) {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await importCheckoutKey(checkoutKeyVersion);
-  const additionalData = new TextEncoder().encode("MantiqatiX:subscription-payment-intent:" + intentId + ":" + businessId);
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData }, key, new TextEncoder().encode(secret));
-  return {
-    client_secret_ciphertext: encodeBase64(new Uint8Array(ciphertext)),
-    client_secret_iv: encodeBase64(iv),
-    client_secret_key_version: checkoutKeyVersion,
-  };
+  return await encryptCheckoutSecretPayload(secret, { key, version: checkoutKeyVersion, intentId, businessId });
 }
 
 async function decryptCheckoutSecret(intent: Record<string, unknown>): Promise<string> {
   const version = String(intent.client_secret_key_version ?? "");
-  const ciphertext = String(intent.client_secret_ciphertext ?? "");
-  const iv = String(intent.client_secret_iv ?? "");
-  if (!version || !ciphertext || !iv) throw new Error("CHECKOUT_SECRET_NOT_STORED");
+  if (!version) throw new Error("CHECKOUT_SECRET_NOT_STORED");
   const key = await importCheckoutKey(version);
-  const additionalData = new TextEncoder().encode("MantiqatiX:subscription-payment-intent:" + String(intent.id) + ":" + String(intent.business_id));
-  const clear = await crypto.subtle.decrypt({ name: "AES-GCM", iv: decodeBase64(iv), additionalData }, key, decodeBase64(ciphertext));
-  return new TextDecoder().decode(clear);
+  return await decryptCheckoutSecretPayload(intent, { key });
 }
 
 function safePaymentIntent(intent: Record<string, unknown>) {
