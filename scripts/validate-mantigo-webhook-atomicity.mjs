@@ -57,10 +57,11 @@ function splitTopLevel(sql) {
   parts.push(sql.slice(start).trim());
   return parts;
 }
-const eventInsertStart = migration.indexOf("insert into public.mantigo_payment_provider_events(");
+const eventInsertStart = migration.indexOf("insert into public.mantigo_payment_provider_events");
+const eventValuesKeyword = eventInsertStart < 0 ? -1 : migration.indexOf("values (", eventInsertStart);
 const eventColumnsStart = eventInsertStart < 0 ? -1 : migration.indexOf("(", eventInsertStart) + 1;
-const eventColumnsEnd = eventColumnsStart < 0 ? -1 : migration.indexOf(") values (", eventColumnsStart);
-const eventValuesStart = eventColumnsEnd < 0 ? -1 : eventColumnsEnd + ") values (".length;
+const eventColumnsEnd = eventValuesKeyword < 0 ? -1 : migration.lastIndexOf(")", eventValuesKeyword);
+const eventValuesStart = eventValuesKeyword < 0 ? -1 : eventValuesKeyword + "values (".length;
 const eventConflictStart = eventValuesStart < 0 ? -1 : migration.indexOf("on conflict (provider, external_event_id) do nothing", eventValuesStart);
 const eventValuesEnd = eventConflictStart < 0 ? -1 : migration.lastIndexOf(")", eventConflictStart);
 if (eventInsertStart < 0 || eventColumnsEnd < 0 || eventValuesEnd < 0) {
