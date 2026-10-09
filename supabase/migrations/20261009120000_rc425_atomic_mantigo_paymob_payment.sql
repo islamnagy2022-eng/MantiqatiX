@@ -65,7 +65,6 @@ begin
      or p_raw_payload->>'transaction_id' is distinct from p_provider_transaction_id
      or p_raw_payload->>'merchant_order_id' is distinct from p_ledger_id
      or nullif(trim(coalesce(p_raw_payload->>'provider_order_id', '')), '') is null
-     or p_raw_payload->>'provider_order_id' is distinct from coalesce((select metadata->>'paymob_intention_order_id' from public.mantigo_financial_ledger where id=p_ledger_id), '')
      or p_raw_payload->>'currency' is distinct from upper(p_currency)
      or p_raw_payload->>'success' is distinct from (p_status = 'PAID')::text then
     raise exception 'MANTIGO_PAYMENT_PAYLOAD_BINDING_MISMATCH';
@@ -84,6 +83,10 @@ begin
   for update;
   if not found then
     raise exception 'MANTIGO_PAYMENT_LEDGER_NOT_FOUND';
+  end if;
+  -- Compare provider correlation only after acquiring the ledger lock, against the locked row.
+  if p_raw_payload->>'provider_order_id' is distinct from coalesce(v_ledger.metadata->>'paymob_intention_order_id', '') then
+    raise exception 'MANTIGO_PAYMENT_PAYLOAD_BINDING_MISMATCH';
   end if;
   if p_raw_payload->>'merchant_order_id' is distinct from v_ledger.id then
     raise exception 'MANTIGO_PAYMENT_MERCHANT_REFERENCE_MISMATCH';
