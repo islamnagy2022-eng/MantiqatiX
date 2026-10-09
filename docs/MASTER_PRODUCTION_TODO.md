@@ -1546,3 +1546,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Read-only live RLS spot-check confirmed the four restaurant tables listed above and `user_memberships` have RLS enabled and policy counts present.
 - Privileged digital-page payment processor remains non-executable by `anon` and `authenticated` in the live grant check; no payment transaction was generated.
 - Release gate remains OPEN until real authenticated cross-tenant tests, customer/provider order + notification E2E, Paymob payment E2E, finance settlement E2E, leaked-password protection owner action, and release-device tests have evidence.
+
+
+## RC425 — Atomic MantiGo Paymob Webhook — 2026-10-09
+- **Status: IMPLEMENTED IN SOURCE / NOT YET RELEASED.**
+- Replaced separate provider-event insert, MantiGo ledger update, and payment notification insert requests with one service-role-only database RPC transaction.
+- The RPC validates the verified-signature flag, event ID, payment status, provider, amount, and currency; locks the ledger row; binds replayed provider events to the same ledger; and atomically persists the event, ledger transition, and customer notification.
+- Added a CI contract validator and production source-verification checks to prevent regression to split writes.
+- No production migration was applied by this change and no real payment or production financial mutation was performed.
+- Required next gates: PR CI success; reviewed migration application to production; post-deploy live privilege/function checks; signed Paymob sandbox callback tests for success/failure/replay/amount mismatch/concurrent duplicate; then owner-authorized production payment E2E.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET** until all P0 runtime, security-setting, financial, and release-device evidence is collected.
