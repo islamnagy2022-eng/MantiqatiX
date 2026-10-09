@@ -120,38 +120,3 @@ if (!workflow.includes("node scripts/validate-mantigo-webhook-atomicity.mjs")) {
   throw new Error("Atomic MantiGo Paymob webhook validator is not wired into CI.");
 }
 console.log("RC425 atomic MantiGo Paymob webhook contract: PASS (source-only; production migration and real Paymob E2E still require separate verification).");
- then")) {
-  throw new Error("RC425 SQL must validate integer amount_cents before casting.");
-}
-const finalGrant = "grant execute on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) to service_role;";
-if (!migration.trimEnd().endsWith(finalGrant)) throw new Error("RC425 SQL must end at the service_role-only function grant.");
- 
-const requiredWebhook = [
-  'admin.rpc("process_verified_mantigo_payment_backend"',
-  "p_ledger_id:mantigo.id",
-  "p_external_event_id:eventId",
-  'p_signature_verified:true',
-  "p_raw_payload:mantigoPayload",
-  "MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH",
-  "MANTIGO_AMOUNT_CURRENCY_MISMATCH"
-];
-for (const marker of requiredWebhook) {
-  if (!mantigoBlock.includes(marker)) {
-    throw new Error("Paymob webhook does not use the atomic MantiGo payment contract: " + marker);
-  }
-}
-if (!webhook.includes("if(!value(obj.id)||amount<=0||!Number.isFinite(amount)||!currency)")) {
-  throw new Error("Paymob webhook must reject callbacks without a valid transaction ID, amount, and currency.");
-}
-const directWritePatterns = [
-  [/admin\.from\("mantigo_payment_provider_events"\)\.insert\(/, "direct provider-event insert"],
-  [/admin\.from\("mantigo_financial_ledger"\)\.update\(/, "direct MantiGo ledger update"],
-  [/admin\.from\("notifications"\)\.insert\(/, "out-of-transaction payment notification"]
-];
-for (const [pattern, label] of directWritePatterns) {
-  if (pattern.test(mantigoBlock)) throw new Error("MantiGo webhook still contains " + label);
-}
-if (!workflow.includes("node scripts/validate-mantigo-webhook-atomicity.mjs")) {
-  throw new Error("Atomic MantiGo Paymob webhook validator is not wired into CI.");
-}
-console.log("RC425 atomic MantiGo Paymob webhook contract: PASS (source-only; production migration and real Paymob E2E still require separate verification).");
