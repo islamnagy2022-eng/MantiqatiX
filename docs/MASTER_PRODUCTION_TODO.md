@@ -1585,3 +1585,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Remaining critical gates are unchanged: isolated PostgreSQL runtime validation of the proposed migration, authenticated owner/provider/customer E2E, cross-tenant/branch denial, and coordinated migration + Edge deployment after review.
 - Source-level follow-up identified legacy `coalesce(m.status,'ACTIVE')='ACTIVE'` checks in two proposed catalog RPC membership backstops. A source update attempt was blocked by the repository safety layer; it was not retried via an alternate write path. Resolve through the supported review/write path before release.
 - PR #86 remains open/unmerged; Production is unchanged.
+
+
+## RC563 — SECURITY DEFINER contextual review — 2026-10-09
+- [x] Rechecked live privileges and Advisor findings read-only: 1 public `anon`-callable ad-serving SECURITY DEFINER function and 40 `authenticated`-callable SECURITY DEFINER functions.
+- [x] Reviewed representative function definitions and confirmed that the presence of EXECUTE grants alone does not prove an authorization defect; several critical functions bind caller identity to `auth.uid()` or delegate to membership/admin checks.
+- [ ] `preview_commission_backend` uses `assert_financial_membership(p_tenant_id)`, which validates active financial membership at tenant scope. Confirm whether business/branch-level restrictions are required for commission-rule preview; no bypass is asserted without adversarial tests.
+- [ ] Continue per-function caller-contract review and map each direct RPC caller to its Edge/server boundary. No blanket REVOKE.
+- [ ] Leaked Password Protection remains an Auth Dashboard action and is not verified enabled.
+- [x] Added detailed evidence to `docs/RC563_SECURITY_DEFINER_REVIEW.md`.
+- [x] No production data, grants, migrations, or Edge Functions changed.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.
