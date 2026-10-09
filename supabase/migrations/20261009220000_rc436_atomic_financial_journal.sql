@@ -130,6 +130,9 @@ begin
   order by m.created_at asc
   limit 1;
   if v_role is null then raise exception 'FINANCIAL_MEMBERSHIP_REQUIRED'; end if;
+  if v_business_id is not null and not exists (
+    select 1 from public.businesses b where b.id=v_business_id and b.tenant_id=v_tenant and b.status='ACTIVE'
+  ) then raise exception 'BUSINESS_SCOPE_INVALID'; end if;
 
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_id,0));
 
