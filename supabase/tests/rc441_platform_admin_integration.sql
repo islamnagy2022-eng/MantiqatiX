@@ -5,13 +5,15 @@ declare
   tenant_admin uuid := '10000000-0000-4000-8000-000000000042';
   tenant_ops uuid := '10000000-0000-4000-8000-000000000043';
   platform_admin uuid := '10000000-0000-4000-8000-000000000044';
+  tenant_scoped_super_admin uuid := '10000000-0000-4000-8000-000000000045';
   rejected boolean;
 begin
-  insert into public.user_memberships(id,user_id,role,status,permissions) values
-    ('owner',tenant_owner,'OWNER','ACTIVE','{"admin":true}'::jsonb),
-    ('admin',tenant_admin,'ADMIN','ACTIVE','{"admin":true}'::jsonb),
-    ('ops',tenant_ops,'OPERATIONS_MANAGER','ACTIVE','{"admin":true}'::jsonb),
-    ('platform',platform_admin,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
+  insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions) values
+    ('owner',tenant_owner,'TENANT-A','OWNER','ACTIVE','{"admin":true}'::jsonb),
+    ('admin',tenant_admin,'TENANT-B','ADMIN','ACTIVE','{"admin":true}'::jsonb),
+    ('ops',tenant_ops,'TENANT-C','OPERATIONS_MANAGER','ACTIVE','{"admin":true}'::jsonb),
+    ('tenant-super',tenant_scoped_super_admin,'TENANT-D','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
+    ('platform',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
@@ -55,6 +57,11 @@ begin
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_ops::text,false);
   if public.mnty_can_platform_admin() then raise exception 'tenant OPERATIONS_MANAGER must not gain platform scope'; end if;
+
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_scoped_super_admin::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'tenant-scoped SUPER_ADMIN with PLATFORM permission must not gain platform access';
+  end if;
 
   perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
   if not public.mnty_can_platform_admin() then
