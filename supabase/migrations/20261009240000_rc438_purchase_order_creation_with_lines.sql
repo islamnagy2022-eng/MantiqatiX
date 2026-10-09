@@ -13,8 +13,10 @@ declare
   v_created public.erp_purchase_orders%rowtype; v_line_count integer:=0;
 begin
   if u is null then raise exception 'UNAUTHENTICATED'; end if;
-  if coalesce(length(pg_catalog.btrim(p_id)),0)<8 or coalesce(length(pg_catalog.btrim(p_order_number)),0)<1
-     or coalesce(length(pg_catalog.btrim(p_supplier_id)),0)<1 or p_business_id is null
+  if coalesce(length(pg_catalog.btrim(p_id)),0)<8 or length(p_id)>128
+     or coalesce(length(pg_catalog.btrim(p_order_number)),0)<1 or length(p_order_number)>128
+     or coalesce(length(pg_catalog.btrim(p_supplier_id)),0)<1 or length(p_supplier_id)>128
+     or (p_reason is not null and length(p_reason)>2000) or p_business_id is null
      or coalesce(length(pg_catalog.btrim(p_tenant_id)),0)<1 then raise exception 'INVALID_PURCHASE_ORDER'; end if;
   if v_tax<0 or v_discount<0 or v_tax::text in ('NaN','Infinity','-Infinity') or v_discount::text in ('NaN','Infinity','-Infinity') then
     raise exception 'INVALID_PURCHASE_ORDER_TOTALS';
@@ -62,7 +64,8 @@ begin
     exception when others then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end;
     if v_product is null or v_qty is null or v_qty<=0 or v_cost is null or v_cost<0
        or v_qty::text in ('NaN','Infinity','-Infinity') or v_cost::text in ('NaN','Infinity','-Infinity')
-       or v_qty<>round(v_qty,4) or v_cost<>round(v_cost,4) then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end if;
+       or v_qty<>round(v_qty,4) or v_cost<>round(v_cost,4)
+       or length(coalesce(v_line->>'description',''))>500 then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end if;
     if (select count(*) from pg_catalog.jsonb_array_elements(p_lines) as all_lines(value)
       where all_lines.value->>'product_id'=v_product::text)>1 then raise exception 'DUPLICATE_PURCHASE_ORDER_PRODUCT'; end if;
     if not exists(select 1 from public.catalog_items ci where ci.id=v_product and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id and ci.status='ACTIVE') then
