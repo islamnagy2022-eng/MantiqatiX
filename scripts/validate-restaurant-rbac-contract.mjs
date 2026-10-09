@@ -73,6 +73,11 @@ assert.match(catalogMigration, /revoke all on function public\.upsert_catalog_it
 assert.match(catalogMigration, /grant execute on function public\.upsert_catalog_item_backend[\s\S]*?to service_role;/i, 'catalog RPCs must remain service-role-only');
 assert.match(catalogMigration, /for update;/i, 'catalog price version allocation must serialize concurrent updates');
 assert.match(catalogMigration, /v_authorized_membership boolean:=false/, 'order RPC must apply a database-side membership authorization backstop');
+assert.match(catalogMigration, /where m\.user_id=p_customer_id\s+and m\.status='ACTIVE'/, 'order RPC membership backstop must require explicit ACTIVE status rather than treating NULL as active');
+assert.match(catalogMigration, /jsonb_array_length\(p_items_json\)>100/, 'order RPC must independently cap item count');
+assert.match(catalogMigration, /jsonb_typeof\(coalesce\(v_item->'selectedOptionIds','\[\]'::jsonb\)\) <> 'array'/, 'order RPC must reject malformed option selections');
+assert.match(catalogMigration, /where business_id=p_business_id and tenant_id=p_tenant_id/, 'order settings must be loaded within the requested tenant scope');
+assert.match(catalogMigration, /BUSINESS_SETTINGS_TENANT_MISMATCH/, 'order RPC must fail closed on cross-tenant settings mismatch');
 assert.match(catalogMigration, /upper\(m\.role\)='CUSTOMER'/, 'customer order authorization must require an active customer membership');
 assert.match(catalogMigration, /upper\(m\.role\) in \('BUSINESS_OWNER','ADMIN','MANAGER'\)/, 'business order authorization must restrict roles and scope to the target business');
 assert.match(catalogMigration, /IDEMPOTENCY_LEGACY_PAYLOAD_UNVERIFIABLE/, 'legacy idempotency rows without a request hash must fail closed');
