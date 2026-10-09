@@ -87,6 +87,9 @@ Deno.serve(async req => {
     const lastName = String(meta.last_name ?? meta.lastName ?? "Customer").slice(0, 50);
     if (!email || !phone) return json({ error: "CUSTOMER_BILLING_CONTACT_REQUIRED", requestId }, 422, requestId);
 
+    const amountMinor = Math.round(Number(intent.amount) * 100);
+    if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) return json({ error: "SUBSCRIPTION_AMOUNT_INVALID", requestId }, 409, requestId);
+
     // Claim the only provider-creation attempt before network I/O. A retry that sees
     // PENDING without provider correlation must reconcile; it must not create a second intention.
     const { data: claim, error: claimError } = await admin.rpc("claim_subscription_provider_intent_creation_backend", {
@@ -112,7 +115,7 @@ Deno.serve(async req => {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Token ${secretKey}` },
         body: JSON.stringify({
-          amount: Math.round(Number(intent.amount) * 100),
+          amount: amountMinor,
           currency: String(intent.currency),
           payment_methods: [Number(integrationId)],
           special_reference: `MANTIQATIX-SUB-${intent.id}`,
