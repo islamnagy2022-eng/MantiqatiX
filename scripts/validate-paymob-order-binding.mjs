@@ -8,6 +8,7 @@ const digitalPayment = read("supabase/functions/digital-page-payment-intent/inde
 const digitalMigration = read("supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql");
 const rideMigration = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
 const digitalFinalizeMigration = read("supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql");
+const activeIntentMigration = read("supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql");
 const workflow = read(".github/workflows/pages.yml");
 
 const checks = [
@@ -28,6 +29,8 @@ const checks = [
   ["MantiGo RPC binds merchant reference to ledger", rideMigration.includes("p_raw_payload->>'merchant_order_id' is distinct from p_ledger_id")],
   ["MantiGo RPC binds signed provider order to persisted intention order", rideMigration.includes("metadata->>'paymob_intention_order_id'")],
   ["RC426 revokes the legacy finalizer from authenticated", digitalFinalizeMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) from authenticated")],
+  ["Active payment intent migration rejects pre-existing duplicates", activeIntentMigration.includes("RC427_DUPLICATE_ACTIVE_PAYMENT_INTENTS_REQUIRE_RECONCILIATION") && activeIntentMigration.includes("uq_payment_intents_one_active_per_order")],
+  ["Payment endpoint refuses a second provider intention for a pending idempotent intent", orderPayment.includes("PAYMENT_INTENT_ALREADY_INITIALIZED") && orderPayment.includes('intent.idempotent === true')],
   ["Order-binding validator is part of CI", workflow.includes("node scripts/validate-paymob-order-binding.mjs")]
 ];
 const failed = checks.filter(([, ok]) => !ok);
