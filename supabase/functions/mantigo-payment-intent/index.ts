@@ -42,6 +42,9 @@ Deno.serve(async req=>{
     return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
   }
 
+  if(String(ledger.payment_status)==="PENDING")return json({error:"PAYMENT_INTENT_REQUIRES_RESTART"},409,requestId);
+  if(String(ledger.payment_status)!=="REQUIRED")return json({error:"RIDE_NOT_PAYABLE",paymentStatus:ledger.payment_status},409,requestId);
+
   const amount=Number(ledger.gross_amount);
   const currency=String(ledger.currency||"EGP").toUpperCase();
   if(!Number.isFinite(amount)||amount<=0)return json({error:"INVALID_FARE"},409,requestId);
@@ -55,6 +58,16 @@ Deno.serve(async req=>{
   if(!phone||!email)return json({error:"CUSTOMER_BILLING_CONTACT_REQUIRED"},422,requestId);
   const city=String(user.user_metadata?.city??"NA").trim()||"NA";
   const state=String(user.user_metadata?.state??city).trim()||"NA";
+
+  // Claim the ledger before calling Paymob so concurrent requests cannot create multiple intentions.
+  const claimMetadata={...metadata,paymob_intention_claim:requestId};
+  const {data:claimedLedger,error:claimError}=await admin.from("mantigo_financial_ledger").update({
+    payment_status:"PENDING",metadata:claimMetadata,updated_at:new Date().toISOString()
+  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider_intent_id",null).select("id").maybeSingle();
+  if(claimError||!claimedLedger){
+    console.error(JSON.stringify({requestId,stage:"paymob_intention_claim",databaseError:Boolean(claimError),stateConflict:!claimError&&!claimedLedger}));
+    return json({error:claimError?"PAYMENT_INTENT_CLAIM_FAILED":"PAYMENT_INTENT_STATE_CHANGED"},claimError?500:409,requestId);
+  }
 
   const providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
     method:"POST",
@@ -78,7 +91,7 @@ Deno.serve(async req=>{
   const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:providerOrderId,paymob_payment_methods:provider.payment_methods??null};
   const {data:updatedLedger,error:updateError}=await admin.from("mantigo_financial_ledger").update({
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).in("payment_status",["REQUIRED","PENDING"]).is("provider_intent_id",null).select("id").maybeSingle();
+  }).eq("id",ledger.id).eq("payment_status","PENDING").is("provider_intent_id",null).filter("metadata->>paymob_intention_claim","eq",requestId).select("id").maybeSingle();
   if(updateError||!updatedLedger){
     console.error(JSON.stringify({requestId,stage:"paymob_intention_persistence",databaseError:Boolean(updateError),stateConflict:!updateError&&!updatedLedger}));
     return json({error:updateError?"PAYMENT_INTENT_PERSISTENCE_FAILED":"PAYMENT_INTENT_STATE_CHANGED"},updateError?500:409,requestId);
