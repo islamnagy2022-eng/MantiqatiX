@@ -47,6 +47,15 @@
 
 - [ ] **P0-05 — جدولة انتهاء طلبات MantiGo القديمة.** فحص قراءة فقط حديث بتاريخ 2026-10-09 أكد أن `pg_cron` غير مثبت وأن هناك طلبَي `OPEN` قديمين أكثر من 24 ساعة (كلاهما أقدم من 30 دقيقة أيضًا). الدالة الحالية `expire_stale_mantigo_rides_backend` تتطلب `auth.uid()` وهوية تشغيل فعلية، وتكتب `actor_user_id` إلزاميًا في سجل التدقيق؛ لذلك لا يجوز تمرير مدير وهمي أو تخطي فحص الهوية. يلزم تحديد هوية نظام/نموذج تدقيق معتمد، وتمكين جدولة مدعومة بعد موافقة تشغيلية، ثم اختبار الانتهاء والإشعارات والتكرار والتراجع. لم تُعدّل بيانات الرحلات ولم يُفعّل أي مجدول.
 
+- [ ] **P0-15 — عزل صلاحيات المنصة عن أدوار المؤسسات (RC441).** فحص Supabase Security Advisor وقراءة تعريفات الدوال الحية بتاريخ 2026-10-09 أثبتا أن `mnty_can_platform_admin()` يستدعي `mnty_can('admin',NULL,NULL,NULL)`، وأن `mnty_can` يمنح دور `OWNER` صلاحية `admin` في نطاق عام عند عدم تحديد tenant/business. كما أن RPCs `get_mantigo_admin_dashboard_backend` و`get_mantigo_admin_financial_report_backend` و`settle_mantigo_captain_backend` و`expire_stale_mantigo_rides_backend` كانت تقبل أدوار مؤسسات دون فحص منصة صريح؛ هذه فجوة تفويض عالية الخطورة. أُضيف RC441 في المصدر ليشترط عضوية `SUPER_ADMIN` نشطة مع نطاق `PLATFORM` و`full_control=true`، ويقيد العمليات العامة الأربع. أُضيفت حالة اختبار PostgreSQL في `supabase/tests/rc441_platform_admin_integration.sql` وفحوص عقد في `scripts/validate-platform-admin-scope.mjs` و`scripts/validate-security-definer-contract.mjs`. **لم يُطبق RC441 على الإنتاج، واختبار SQL السلوكي لم يُنفذ بعد في قاعدة معزولة**؛ لا يُغلق البند قبل الاختبار، مراجعة جميع مستهلكي الحارس، ثم نشر معتمد وإعادة تشغيل Security Advisor.
+
+## آخر لقطة Security Advisor — 2026-10-09 03:33 UTC
+- تحذير `authenticated_security_definer_function_executable`: 40 دالة؛ يجب تصنيف كل دالة بحسب حدود التفويض الفعلية قبل سحب EXECUTE جماعيًا.
+- تحذير `anon_security_definer_function_executable`: دالة واحدة (`get_mnty_targeted_advertisements`)؛ قد تكون مقصودة كواجهة إعلانات عامة، لكنها تحتاج مراجعة مدخلات وحدود البيانات.
+- معلومة `rls_enabled_no_policy`: جدول `digital_page_payment_events` لديه RLS بلا سياسات؛ يجب مراجعة ما إذا كان الوصول المباشر مطلوبًا أصلًا، وعدم إضافة سياسة واسعة لمجرد إسكات التحذير.
+- تحذير حماية كلمات المرور المسرّبة ما زال ظاهرًا. تغييره يتطلب اعتمادًا تشغيليًا واختبار أثره على Auth.
+- نتائج الأداء الحالية تشمل 375 تحذير RLS initplan، و105 مفاتيح أجنبية بلا فهرس تغطية، و28 مجموعة سياسات permissive متعددة، و127 فهرسًا غير مستخدم. لا تُعالج هذه الأعداد بإصلاح جماعي دون تحليل وقياس؛ قد تكون بعض الفهارس غير مستخدمة بسبب حداثة البيانات.
+
 ## P1 — قبل الإطلاق العام
 
 - [ ] **P1-01 — إكمال اختبار End-to-End للشراء والاشتراك والصفحات الرقمية وMantiGo.**
