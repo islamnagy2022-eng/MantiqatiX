@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const migration = fs.readFileSync(
-  "supabase/migrations/20261009150000_rc564_financial_journal_service_role_boundary.sql",
+  "supabase/migrations/20261010050000_rc564_financial_journal_service_role_boundary.sql",
   "utf8",
 );
 const edge = fs.readFileSync("supabase/functions/financial-journal/index.ts", "utf8");
