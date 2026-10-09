@@ -47,7 +47,7 @@ Deno.serve(async (req: Request) => {
     // One server-side transaction validates the actor/order/scope and mutates receipt,
     // stock balance, and inventory ledger together. Never write these tables separately.
     const serviceClient = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data, error } = await serviceClient.rpc("receive_purchase_stock_atomic_backend", {
+    const { data, error } = await serviceClient.rpc("receive_purchase_stock_with_order_line_backend", {
       p_id: id,
       p_tenant_id: tenantId,
       p_business_id: businessId,
