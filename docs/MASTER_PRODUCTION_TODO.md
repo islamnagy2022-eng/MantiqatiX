@@ -1578,3 +1578,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Supabase Performance Advisor (live snapshot):** 375 RLS initplan warnings, 28 multiple-permissive-policy warnings, 105 unindexed-FK warnings, and 127 unused-index notices. These are a backlog for evidence-led triage; do not bulk-change policies/indexes without per-object workload and authorization review.
 - **Membership remediation gate:** identify the four stale CUSTOMER membership records against retention/audit policy, determine whether the Auth users were intentionally deleted, and only then decide whether to revoke or archive those rows. No mutation was performed.
 - **Release decision:** CI source validations pass on the latest reviewed branch head, but Paymob signed sandbox E2E, browser/mobile real-user E2E, migration execution in a disposable test database, Auth leaked-password setting, and the stale-membership decision remain open.
+
+
+## RC427 — One active payment intention per order — 2026-10-09
+- **Status: SOURCE-ONLY / PR REVIEW REQUIRED.**
+- Added a partial unique index to prevent more than one CREATED, PENDING, or SUCCEEDED payment intent for the same order; the migration aborts with a reconciliation error if pre-existing conflicts are found.
+- The Edge Function now refuses to create a second Paymob intention when an idempotent request resolves to an already-PENDING intent, avoiding silent replacement of the provider-order binding.
+- Production read-only counts showed zero rows in `payment_intents`, so the current production dataset has no existing payment-intent rows to reconcile; this is not a substitute for validating a non-empty test database.
+- No production schema or data changed. CI must pass on the final head; then validate the migration on a disposable local PostgreSQL/Supabase test database before any rollout.
