@@ -1120,7 +1120,30 @@ async function createMntRide(){const pickup=window.prompt('نقطة الانطل
 async function createMntBid(rideId){const price=Number(window.prompt('قيمة العرض','0'));if(!rideId||!Number.isFinite(price)||price<=0)return showToast('قيمة العرض غير صحيحة','error');return mntRpc('create_mantigo_bid_backend',{p_user_id:user.id,p_ride_id:rideId,p_captain_name:user.email||'Captain',p_captain_phone:'',p_captain_rating:null,p_vehicle_category:window.prompt('فئة المركبة','STANDARD')||'STANDARD',p_vehicle_model:window.prompt('موديل المركبة','')||null,p_vehicle_plate:window.prompt('رقم اللوحة','')||null,p_offered_price:price,p_eta_minutes:Number(window.prompt('ETA بالدقائق','15'))||15,p_captain_message:window.prompt('رسالة','')||null})}
 async function acceptMntBid(rideId,bidId){if(!rideId||!bidId)return;return mntRpc('accept_mantigo_bid_backend',{p_user_id:user.id,p_ride_id:rideId,p_bid_id:bidId})}
 async function erpRpc(fn,args){if(!user?.id)return authView();if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');const {data,error}=await sb.rpc(fn,args);if(error){showToast('تعذر تنفيذ العملية: '+error.message,'error');return null}showToast('تم تنفيذ العملية بنجاح','success');live.moduleData={};await loadDomainModule(current);renderApp();return data}
-async function createPurchaseOrder(){const orderNumber=window.prompt('رقم أمر الشراء');if(!orderNumber?.trim())return;const supplierId=window.prompt('معرف المورد');if(!supplierId?.trim())return;const total=Number(window.prompt('الإجمالي','0'));if(!Number.isFinite(total)||total<0)return showToast('قيمة إجمالي غير صحيحة','error');const tax=Number(window.prompt('الضريبة','0'));const discount=Number(window.prompt('الخصم','0'));if([tax,discount].some(v=>!Number.isFinite(v)||v<0))return showToast('قيمة ضريبة/خصم غير صحيحة','error');return erpRpc('create_purchase_order_backend',{p_id:'po-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId.trim(),p_total_amount:total,p_tax_amount:tax,p_discount_amount:discount,p_reason:window.prompt('سبب أمر الشراء','')||null})}
+async function createPurchaseOrder(){
+ const orderNumber=window.prompt('رقم أمر الشراء');if(!orderNumber?.trim())return;
+ const supplierId=window.prompt('معرف المورد');if(!supplierId?.trim())return;
+ const lines=[];const seen=new Set();
+ for(let n=1;n<=100;n++){
+  const productId=window.prompt(n===1?'معرف المنتج الأول (UUID)':'معرف المنتج التالي (اتركه فارغًا لإنهاء البنود)');if(!productId?.trim()){if(n===1)return;break}
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId.trim()))return showToast('معرف المنتج غير صحيح','error');
+  if(seen.has(productId.trim()))return showToast('لا تكرر المنتج نفسه في بنود الأمر','error');seen.add(productId.trim());
+  const quantity=Number(window.prompt('الكمية المطلوبة للمنتج '+productId.trim(),'1'));
+  const unit_cost=Number(window.prompt('تكلفة الوحدة للمنتج '+productId.trim(),'0'));
+  if(!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(unit_cost)||unit_cost<=0)return showToast('الكمية وتكلفة الوحدة يجب أن تكونا صحيحتين وأكبر من صفر','error');
+  lines.push({product_id:productId.trim(),quantity,unit_cost});
+ }
+ if(!lines.length)return showToast('أضف بند شراء واحدًا على الأقل','error');
+ const tax=Number(window.prompt('الضريبة','0'));const discount=Number(window.prompt('الخصم','0'));
+ if([tax,discount].some(v=>!Number.isFinite(v)||v<0))return showToast('قيمة ضريبة/خصم غير صحيحة','error');
+ const reason=window.prompt('سبب أمر الشراء','')||null;
+ const fingerprint=JSON.stringify([live.tenantId,live.businessId,live.branchId||null,orderNumber.trim(),supplierId.trim(),tax,discount,reason,lines]);
+ let attempt=null;try{attempt=JSON.parse(sessionStorage.getItem('mantiqatix_po_attempt')||'null')}catch{}
+ if(!attempt||attempt.fingerprint!==fingerprint){attempt={fingerprint,id:'po-'+crypto.randomUUID()};try{sessionStorage.setItem('mantiqatix_po_attempt',JSON.stringify(attempt))}catch{}}
+ const result=await erpRpc('create_purchase_order_with_lines_backend',{p_id:attempt.id,p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId.trim(),p_tax_amount:tax,p_discount_amount:discount,p_reason:reason,p_lines:lines});
+ if(result?.success){try{sessionStorage.removeItem('mantiqatix_po_attempt')}catch{}}
+ return result;
+}
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
 async function receivePurchaseStock(){const purchaseOrderId=window.prompt('معرف أمر الشراء');if(!purchaseOrderId?.trim())return;const receiptNumber=window.prompt('رقم الاستلام');if(!receiptNumber?.trim())return;const warehouseId=window.prompt('معرف المخزن');if(!warehouseId?.trim())return;const productId=window.prompt('معرف المنتج');if(!productId?.trim())return;const qty=Number(window.prompt('الكمية المستلمة','1'));const unitCost=Number(window.prompt('تكلفة الوحدة','0'));if(!Number.isFinite(qty)||qty<=0||!Number.isFinite(unitCost)||unitCost<0)return showToast('بيانات الاستلام غير صحيحة','error');return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId.trim(),p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId.trim(),p_product_id:productId.trim(),p_received_quantity:qty,p_unit_cost:unitCost})}
 async function createStockTransfer(){const transferNumber=window.prompt('رقم التحويل');if(!transferNumber?.trim())return;const from=window.prompt('معرف المخزن المصدر');const to=window.prompt('معرف المخزن الهدف');const product=window.prompt('معرف المنتج');const qty=Number(window.prompt('الكمية','1'));if(!from?.trim()||!to?.trim()||!product?.trim()||!Number.isFinite(qty)||qty<=0)return showToast('بيانات التحويل غير صحيحة','error');return erpRpc('create_stock_transfer_backend',{p_id:'tr-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_transfer_number:transferNumber.trim(),p_from_warehouse_id:from.trim(),p_to_warehouse_id:to.trim(),p_product_id:product.trim(),p_quantity:qty})}
