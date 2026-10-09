@@ -154,7 +154,7 @@ function askCart(items,options){
    '<div class="field"><label for="cart-customer-phone">هاتف العميل</label><input id="cart-customer-phone" type="tel" required></div>'+
    '<div class="field"><label for="cart-order-type">نوع الطلب</label><select id="cart-order-type"><option value="TAKEAWAY">استلام من المطعم</option><option value="DELIVERY">توصيل</option></select></div>'+
    '<div class="field"><label for="cart-address">عنوان التوصيل</label><input id="cart-address"></div>'+
-   '<div class="notice">ربط الطلب بالطاولة وتغيير حالتها تلقائيًا غير متاحين قبل اعتماد مسار خادمي ذري.</div>'+rows+
+   '<div class="notice">ربط الطلب بالطاولة وتغيير حالتها تلقائيًا غير متاحين قبل اعتماد مسار خادمي ذري. اختيار التوصيل يحفظ العنوان ونوع الطلب فقط ولا يعيّن مندوبًا أو يفعّل تتبعًا تلقائيًا.</div>'+rows+
    '<button class="btn btn-primary" data-save>إنشاء الطلب</button>';
   modal('سلة طلب المطعم',html,async o=>{
    const customerName=o.querySelector('#cart-customer-name').value.trim();
