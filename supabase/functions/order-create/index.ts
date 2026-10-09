@@ -91,14 +91,11 @@ Deno.serve(async (req: Request) => {
     if (role === "SUPER_ADMIN") {
       return permissions.scope === "PLATFORM" && permissions.full_control === true;
     }
-    const orderManagingRoles = new Set(["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"]);
-    if (!orderManagingRoles.has(role)) return false;
-    const roleDefaultCanManageOrders =
-      role === "OWNER" ||
-      role === "BUSINESS_OWNER" ||
-      role === "ADMIN" ||
-      role === "MANAGER";
-    if (permissions.manage_orders !== true && !roleDefaultCanManageOrders) return false;
+
+    // Keep server-side order creation aligned with web/rbac.js ROLE_DEFAULTS:
+    // OWNER and SALES have ORDERS:create; BUSINESS_OWNER/ADMIN/MANAGER do not.
+    const orderCreateRoles = new Set(["OWNER", "SALES"]);
+    if (!orderCreateRoles.has(role)) return false;
 
     const membershipBusinessId = membership.business_id == null ? null : String(membership.business_id);
     if (role === "OWNER") {
