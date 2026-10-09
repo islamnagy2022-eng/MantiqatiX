@@ -12,6 +12,7 @@ check("order line table tracks ordered and received quantities",migration.includ
 check("only draft purchase orders can have their lines replaced",migration.includes("upper(v_order.status)<>'DRAFT'"));
 check("legacy draft line edits recalculate server-side order totals",migration.includes("set total_amount=round(v_total+tax_amount-discount_amount,2)")&&integration.includes("legacy draft total must be recalculated"));
 check("line creation validates active actor membership and tenant products",migration.includes("PURCHASE_ORDER_LINES_FORBIDDEN")&&migration.includes("ci.tenant_id=p_tenant_id")&&migration.includes("ci.business_id=p_business_id"));
+check("purchase line RLS limits reads to operational roles",migration.includes("create policy erp_purchase_order_lines_read_member")&&migration.includes("auth.uid()")&&migration.includes("upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN'"));
 check("receiving requires a matching line and exact unit cost",migration.includes("PRODUCT_NOT_IN_PURCHASE_ORDER")&&migration.includes("PURCHASE_ORDER_UNIT_COST_MISMATCH"));
 check("cumulative receipt quantity cannot exceed ordered quantity",migration.includes("v_line.received_quantity+p_received_quantity>v_line.ordered_quantity"));
 check("receipt replay does not increment line quantity twice",migration.includes("Exact receipt replay is delegated to RC434")&&integration.includes("duplicate receipt must be idempotent"));
