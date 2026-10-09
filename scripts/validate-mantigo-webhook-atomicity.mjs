@@ -98,6 +98,7 @@ const requiredWebhook = [
   "p_external_event_id:eventId",
   'p_signature_verified:true',
   "p_raw_payload:mantigoPayload",
+  "provider_order_id:paymobOrderId",
   "MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH",
   "MANTIGO_AMOUNT_CURRENCY_MISMATCH"
 ];
