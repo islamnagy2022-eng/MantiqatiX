@@ -80,7 +80,7 @@ const maxBodyBytes = 24000;
 const admin = url && serviceRole ? createClient(url, serviceRole, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-supabase-api-version",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
 };
