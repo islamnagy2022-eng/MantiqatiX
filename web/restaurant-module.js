@@ -50,7 +50,17 @@ function scope(){
 async function load(){
  state.user=await session();
  if(!state.user){state.error='AUTH_REQUIRED';return render();}
- state.membership=await membership(state.user);
+ try{
+  state.membership=await membership(state.user);
+ }catch(e){
+  state.membership=null;state.loading=false;
+  state.error=e?.message==='ACTIVE_MEMBERSHIP_SELECTION_REQUIRED'
+   ?'لديك أكثر من عضوية نشطة. اختر العضوية المطلوبة من محدد العضويات ثم أعد المحاولة.'
+   :e?.message==='ACTIVE_MEMBERSHIP_SELECTION_INVALID'
+    ?'العضوية المحددة لم تعد نشطة أو لا تخص هذا المستخدم. حدّث اختيار العضوية ثم أعد المحاولة.'
+    :'تعذر التحقق من العضوية التشغيلية. أعد المحاولة.';
+  return render();
+ }
  if(!state.membership){state.error='لا توجد عضوية تشغيلية نشطة.';return render();}
  state.error=null; state.loading=true; render();
  const s=scope();
