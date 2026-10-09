@@ -19,6 +19,9 @@ assert.match(migration, /FINANCIAL_MEMBERSHIP_REQUIRED/, "financial role check m
 assert.match(migration, /v_insert_line_no int := 0/, "journal line numbering must use a per-line counter");
 assert.match(migration, /v_insert_line_no := v_insert_line_no \+ 1;/, "each inserted line must advance the line counter");
 assert.match(migration, /coalesce\(\(v_line->>'line_number'\)::int,v_insert_line_no\)/, "missing line numbers must default to the actual ordinal, not the total line count");
+assert.match(migration, /pg_advisory_xact_lock\(hashtextextended\(v_id, 0\)\)/, "journal ID operations must serialize under concurrent retries");
+assert.match(migration, /JOURNAL_ID_ALREADY_EXISTS/, "replayed journal IDs must fail closed instead of silently mixing lines");
+assert.doesNotMatch(migration, /on conflict\(id\) do nothing/i, "journal header/line inserts must not silently ignore ID conflicts");
 assert.match(migration, /revoke all on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) from public, anon, authenticated/i, "RPC must remain unavailable to direct client roles");
 assert.match(migration, /grant execute on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) to service_role/i, "trusted Edge Function role must be able to execute RPC");
 
