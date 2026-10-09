@@ -83,7 +83,6 @@ if (migration.includes("from public.payment_provider_events")) {
 
 const requiredWebhook = [
   'admin.rpc("process_verified_mantigo_payment_backend"',
-  "if(!value(obj.id)||amount<=0||!Number.isFinite(amount)||!currency)",
   "p_ledger_id:mantigo.id",
   "p_external_event_id:eventId",
   'p_signature_verified:true',
@@ -95,6 +94,9 @@ for (const marker of requiredWebhook) {
   if (!mantigoBlock.includes(marker)) {
     throw new Error("Paymob webhook does not use the atomic MantiGo payment contract: " + marker);
   }
+}
+if (!webhook.includes("if(!value(obj.id)||amount<=0||!Number.isFinite(amount)||!currency)")) {
+  throw new Error("Paymob webhook must reject callbacks without a valid transaction ID, amount, and currency.");
 }
 const directWritePatterns = [
   [/admin\.from\("mantigo_payment_provider_events"\)\.insert\(/, "direct provider-event insert"],
