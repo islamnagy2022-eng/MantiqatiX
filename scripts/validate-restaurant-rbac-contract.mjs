@@ -28,6 +28,10 @@ assert.doesNotMatch(restaurant, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER','S
 assert.match(restaurant, /canOperate\('OPERATIONS','update'\)/, 'table updates must require central operations update permission');
 assert.match(restaurant, /canOperate\('ORDERS','create'\)/, 'order creation must require central order create permission');
 assert.match(restaurant, /canOperate\('ORDERS','update'\)/, 'order status updates must require central order update permission');
+assert.match(restaurant, /update\(payload\)\.eq\('id',existing\.id\)\.eq\('owner_user_id',state\.user\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)/, 'legacy table mutations must be constrained to the active tenant/business/branch');
+assert.match(restaurant, /let saving=false;const save=o\.querySelector\('\[data-save\]'\)/, 'modal save actions must prevent repeated submissions while in flight');
+assert.match(restaurant, /if\(!existing&&state\.tables\.some\(t=>Number\(t\.table_number\)===payload\.table_number\)\)/, 'table creation must reject duplicate numbers in currently loaded scope');
+assert.match(restaurant, /let creatingOrder=false/, 'order creation must prevent repeated concurrent clicks');
 assert.match(restaurant, /x\.status==='OCCUPIED'\?'selected'/, 'editing an occupied table must preserve its current status');
 assert.match(restaurant, /x\.status==='RESERVED'\?'selected'/, 'editing a reserved table must preserve its current status');
 
