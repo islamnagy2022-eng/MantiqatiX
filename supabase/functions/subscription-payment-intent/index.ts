@@ -98,7 +98,10 @@ Deno.serve(async req => {
       return json({ error: "PAYMENT_PROVIDER_NOT_CONFIGURED" }, 503, requestId);
     }
 
-    const body = await req.json().catch(() => null) as Record<string, unknown> | null;
+    const rawBody = await req.text();
+    if (new TextEncoder().encode(rawBody).byteLength > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413, requestId);
+    let body: Record<string, unknown> | null;
+    try { body = JSON.parse(rawBody) as Record<string, unknown>; } catch { body = null; }
     if (!body || Array.isArray(body) || typeof body !== "object") return json({ error: "INVALID_JSON" }, 400, requestId);
     const businessId = String(body.businessId ?? "").trim();
     const tierCode = String(body.tierCode ?? "").trim().toUpperCase();
