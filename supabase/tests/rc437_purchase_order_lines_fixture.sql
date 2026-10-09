@@ -11,7 +11,7 @@ create table public.user_memberships (
   role varchar not null, status varchar not null, created_at timestamptz not null default now()
 );
 create table public.businesses (id uuid primary key,tenant_id varchar not null,status varchar not null);
-create table public.branches (id varchar primary key,business_id uuid not null);
+create table public.branches (id varchar primary key,tenant_id varchar not null,business_id uuid not null,status varchar not null default 'ACTIVE');
 create table public.warehouses (
   id varchar primary key,tenant_id varchar not null,business_id uuid not null,branch_id varchar,status varchar not null
 );
