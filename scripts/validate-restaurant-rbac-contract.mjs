@@ -16,4 +16,12 @@ assert.match(app, /MNTY_RBAC\?\.can\(role,\s*'CRM',\s*'create',\s*live\.permissi
 assert.match(app, /MNTY_RBAC\?\.can\(role,\s*'SUPPORT',\s*'create',\s*live\.permissions\)\s*===\s*true/, 'support create action must be RBAC-gated');
 assert.match(app, /function canManageSupport\(\)\s*\{\s*return window\.MNTY_RBAC\?\.can\(String\(live\.role\|\|''\),\s*'SUPPORT',\s*'update',\s*live\.permissions\)\s*===\s*true\s*\}/, 'support update must use canonical RBAC');
 
+// Restaurant membership must never fall back to an arbitrary ACTIVE row.
+const restaurant = fs.readFileSync('web/restaurant-module.js', 'utf8');
+assert.match(restaurant, /ACTIVE_MEMBERSHIP_SELECTION_REQUIRED/, 'multiple active memberships require explicit selection');
+assert.match(restaurant, /ACTIVE_MEMBERSHIP_SELECTION_INVALID/, 'stale or invalid saved membership selection must fail closed');
+assert.match(restaurant, /if\(active\.length===1\)return active\[0\]/, 'only one active membership may be auto-selected');
+assert.match(restaurant, /x\.status==='OCCUPIED'\?'selected'/, 'editing an occupied table must preserve its current status');
+assert.match(restaurant, /x\.status==='RESERVED'\?'selected'/, 'editing a reserved table must preserve its current status');
+
 console.log('RC450 restaurant source-state and CRM/support RBAC contract PASS');
