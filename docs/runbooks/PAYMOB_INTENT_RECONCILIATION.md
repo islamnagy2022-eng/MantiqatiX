@@ -12,6 +12,9 @@ Use this procedure when checkout returns one of these errors or an intention req
 - `PAYMENT_INTENT_PERSISTENCE_UNKNOWN`
 - `PAYMENT_PROVIDER_CORRELATION_PENDING`
 - `SUBSCRIPTION_PROVIDER_CORRELATION_PENDING`
+- `SUBSCRIPTION_FAILURE_BINDING_MISMATCH`
+- `SUBSCRIPTION_PAYMENT_BINDING_MISMATCH`
+- `SUBSCRIPTION_PAYMENT_EVENT_REPLAY_MISMATCH`
 - `DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING`
 - a verified callback repeatedly returns a retryable 5xx response
 
@@ -45,3 +48,10 @@ Before production rollout, run signed Paymob sandbox tests for:
 - recovery after an ambiguous provider response.
 
 Confirm the actual Paymob retry policy in sandbox/provider documentation. Returning HTTP 503 is only a retry signal; it is not proof that Paymob will redeliver the callback.
+
+
+## Subscription payment event binding (RC429–RC430)
+
+- Both successful and failed subscription callbacks now use backend RPCs that bind the signed provider order ID and transaction ID to the same subscription payment intent.
+- If a pre-existing event was created by the legacy success RPC without the subscription-intent binding fields, do not edit the event or retry by bypassing validation. Capture the event ID, transaction ID, subscription intent ID, provider order ID, amount, and currency; compare them against Paymob's authenticated transaction record and escalate for a reviewed compatibility resolution.
+- `PAID_PENDING_LEGAL` means provider payment was verified but the legal/owner activation gate did not complete. Do not create another subscription or mark the payment as failed; resolve the owner/legal gate and then use the approved activation workflow.
