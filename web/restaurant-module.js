@@ -23,18 +23,20 @@ async function session(){
  return data.session.user;
 }
 async function membership(user){
- // Persisted membership ID is a selector only; the authenticated DB query is authoritative.
+ // Persisted membership ID is a selector only; every path is revalidated against the authenticated user.
  const saved=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
- const {data,error}=await sb.from('user_memberships')
-  .select('id,tenant_id,business_id,branch_id,role,permissions,status')
-  .eq('user_id',user.id).eq('status','ACTIVE').limit(100);
+ const fields='id,tenant_id,business_id,branch_id,role,permissions,status';
+ if(saved){
+  const {data,error}=await sb.from('user_memberships').select(fields)
+   .eq('id',saved).eq('user_id',user.id).eq('status','ACTIVE').maybeSingle();
+  if(error)throw error;
+  if(!data)throw new Error('ACTIVE_MEMBERSHIP_SELECTION_INVALID');
+  return data;
+ }
+ const {data,error}=await sb.from('user_memberships').select(fields)
+  .eq('user_id',user.id).eq('status','ACTIVE').limit(2);
  if(error)throw error;
  const active=Array.isArray(data)?data:[];
- if(saved){
-  const selected=active.find(m=>m.id===saved);
-  if(!selected)throw new Error('ACTIVE_MEMBERSHIP_SELECTION_INVALID');
-  return selected;
- }
  if(active.length===1)return active[0];
  if(active.length>1)throw new Error('ACTIVE_MEMBERSHIP_SELECTION_REQUIRED');
  return null;
