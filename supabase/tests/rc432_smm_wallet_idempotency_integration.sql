@@ -5,6 +5,7 @@ declare
   other_u uuid := '10000000-0000-4000-8000-000000000002';
   r uuid := '20000000-0000-4000-8000-000000000001';
   r2 uuid := '20000000-0000-4000-8000-000000000002';
+  r3 uuid := '20000000-0000-4000-8000-000000000003';
   b numeric;
   n integer;
   conflict_seen boolean;
@@ -57,6 +58,40 @@ begin
   select balance into b from public.smm_wallets where user_id=other_u;
   if b <> 50 then raise exception 'cross-user conflict changed other wallet: %',b; end if;
 
+  insert into public.smm_admins(user_id) values(u);
+  if public.smm_admin_credit_wallet(u,other_u,20,'integration credit',r2) is distinct from true then
+    raise exception 'first admin credit should succeed';
+  end if;
+  if public.smm_admin_credit_wallet(u,other_u,20,'integration credit retry',r2) is distinct from true then
+    raise exception 'same admin credit retry should be idempotent';
+  end if;
+  select balance into b from public.smm_wallets where user_id=other_u;
+  if b <> 70 then raise exception 'duplicate admin credit changed balance: %',b; end if;
+  select count(*) into n from public.smm_wallet_transactions where reference_id=r2 and type='CREDIT';
+  if n <> 1 then raise exception 'expected one admin credit ledger entry, got %',n; end if;
+
+  conflict_seen := false;
+  begin
+    perform public.smm_admin_credit_wallet(u,other_u,10,'mismatched credit',r2);
+  exception when others then
+    if sqlerrm='IDEMPOTENCY_CONFLICT' then conflict_seen := true; else raise; end if;
+  end;
+  if not conflict_seen then raise exception 'admin credit amount mismatch was not rejected'; end if;
+
+  conflict_seen := false;
+  begin
+    perform public.smm_admin_credit_wallet(other_u,u,10,'unauthorized credit',r3);
+  exception when others then
+    if sqlerrm='NOT_AUTHORIZED' then conflict_seen := true; else raise; end if;
+  end;
+  if not conflict_seen then raise exception 'non-admin credit was not rejected'; end if;
+
+  if has_function_privilege('service_role','public.smm_admin_credit_wallet(uuid,uuid,numeric,text)','EXECUTE') then
+    raise exception 'legacy non-idempotent admin credit RPC must not be executable by service_role';
+  end if;
+  if not has_function_privilege('service_role','public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid)','EXECUTE') then
+    raise exception 'service_role must execute idempotent admin credit RPC';
+  end if;
   if has_function_privilege('anon','public.smm_debit_wallet(uuid,numeric,uuid)','EXECUTE') then
     raise exception 'anon must not execute smm_debit_wallet';
   end if;
