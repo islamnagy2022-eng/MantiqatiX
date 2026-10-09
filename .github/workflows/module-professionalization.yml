@@ -34,21 +34,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install PostgreSQL client
+      - name: Run migration tests inside disposable PostgreSQL service
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-      - name: Create isolated test roles
-        run: |
-          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
-          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
-          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
-      - name: Create disposable SMM wallet schema
-        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/rc432_smm_wallet_idempotency_fixture.sql
-      - name: Apply RC432 only to disposable PostgreSQL
-        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql
-      - name: Verify wallet idempotency and privilege boundaries
-        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/rc432_smm_wallet_idempotency_integration.sql
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc432_smm_wallet_idempotency_fixture.sql "$pg_container:/tmp/rc432_fixture.sql"
+          docker cp supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql "$pg_container:/tmp/rc432_migration.sql"
+          docker cp supabase/tests/rc432_smm_wallet_idempotency_integration.sql "$pg_container:/tmp/rc432_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -f /tmp/rc432_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -f /tmp/rc432_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -f /tmp/rc432_test.sql
 
   validate:
     runs-on: ubuntu-latest
