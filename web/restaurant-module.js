@@ -156,7 +156,7 @@ async function createRestaurantOrder(){
    await load();
  }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}finally{creatingOrder=false;if(createButton&&createButton.isConnected)createButton.disabled=false}
 }
-function dashboard()
+function dashboard(){
  return shell('لوحة المطعم',tabs()+(canOperate('ORDERS','create')?'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>':'')+cards()+
  '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
