@@ -21,6 +21,8 @@ const requiredMigration = [
   "MANTIGO_PAYMENT_SIGNATURE_REQUIRED",
   "MANTIGO_AMOUNT_CURRENCY_MISMATCH",
   "MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH",
+  "MANTIGO_PAYMENT_EVENT_REPLAY_STATUS_MISMATCH",
+  "from public.mantigo_payment_provider_events",
   "on conflict (provider, external_event_id) do nothing",
   "payment_status = 'PENDING'",
   "insert into public.notifications",
