@@ -85,14 +85,15 @@ assert.match(catalogMigration, /INVALID_CATALOG_TAX_RATE/, 'order RPC must rejec
 assert.match(catalogMigration, /INVALID_CATALOG_PRICE/, 'order RPC must reject invalid persisted unit prices');
 assert.match(catalogMigration, /\(v_price\.unit_price\+v_opt_total\)<0/, 'order RPC must prevent options from producing a negative unit price');
 assert.match(catalogMigration, /upper\(m\.role\)='CUSTOMER'/, 'customer order authorization must require an active customer membership');
-assert.match(catalogMigration, /upper\(m\.role\) in \('BUSINESS_OWNER','ADMIN','MANAGER'\)/, 'business order authorization must restrict roles and scope to the target business');
+assert.match(catalogMigration, /upper\(m\.role\) in \('BUSINESS_OWNER','ADMIN','MANAGER','SALES'\)/, 'database order authorization must include SALES for canonical ORDERS:create parity while retaining scoped membership checks');
 assert.match(catalogMigration, /IDEMPOTENCY_LEGACY_PAYLOAD_UNVERIFIABLE/, 'legacy idempotency rows without a request hash must fail closed');
 assert.doesNotMatch(catalogMigration, /if v_existing\.metadata \? 'request_hash' and/, 'idempotency must not silently accept existing keys with unverifiable payloads');
 assert.doesNotMatch(catalogAdmin, /Access-Control-Allow-Origin\": \"\*\"/, 'catalog-admin must not allow wildcard browser CORS');
 assert.match(catalogAdmin, /membershipBranchId === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
 assert.match(orderCreate, /x\.metadata\?\.is_available !== false/, 'server must reject unavailable catalog items');
-assert.match(orderCreate, /new Set\(\["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"\]\)/, 'non-customer order creation must require a supported business order-management role');
+assert.match(orderCreate, /const orderCreateRoles = new Set\(\["OWNER", "SALES"\]\)/, 'server order-create role set must match canonical RBAC roles with ORDERS:create');
+assert.doesNotMatch(orderCreate, /roleDefaultCanManageOrders/, 'server order-create must not override canonical role permissions with a broad role-default bypass');
 assert.match(orderCreate, /INVALID_CUSTOMER_PHONE/, 'order-create must validate customer phone server-side');
 assert.match(orderCreate, /DELIVERY_ADDRESS_REQUIRED/, 'delivery orders must require a server-validated delivery address');
 assert.match(orderCreate, /orderMetadata\.order_type == null \? "DELIVERY"/, 'unspecified order type must fail closed as delivery and require an address');
