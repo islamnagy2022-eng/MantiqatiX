@@ -19,14 +19,14 @@ for (const action of ["purchase-order-status", "stock-transfer-create", "stock-t
   assert.match(app, new RegExp("erpServerMutation\\(['\\\"]" + action + "['\\\"]"), `browser must route ${action} through the Edge boundary`);
   assert.match(edge, new RegExp(action), `Edge boundary must explicitly handle ${action}`);
 }
-assert.match(edge, /admin\\.auth\\.getUser\\(authorization\\.slice\\(7\\)\\.trim\\(\\)\\)/, "Edge must verify bearer token before using actor identity");
-assert.match(edge, /p_actor_user_id:\\s*user\\.id/g, "all service RPC calls must bind actor to verified user");
-assert.match(edge, /admin\\.rpc\\(rpc, args\\)/, "Edge calls the allowlisted service RPC");
-assert.doesNotMatch(edge, /rpc\\(String\\(|rpc\\(action/, "client input must not select arbitrary RPC names");
-assert.match(migration, /set search_path = ''/g, "every SECURITY DEFINER RPC must pin an empty search_path");
-assert.match(migration, /m\\.status='ACTIVE'/g, "all service RPCs must require active membership");
-assert.match(migration, /revoke all on function public\\.receive_stock_transfer_service_backend[\\s\\S]*?from public,anon,authenticated/i);
-assert.match(migration, /grant execute on function public\\.receive_stock_transfer_service_backend[\\s\\S]*?to service_role/i);
+assert.match(edge, /admin\.auth\.getUser\(authorization\.slice\(7\)\.trim\(\)\)/, "Edge must verify bearer token before using actor identity");
+assert.match(edge, /p_actor_user_id:\s*user\.id/g, "all service RPC calls must bind actor to verified user");
+assert.match(edge, /admin\.rpc\(rpc, args\)/, "Edge calls the allowlisted service RPC");
+assert.doesNotMatch(edge, /rpc\(String\(|rpc\(action/, "client input must not select arbitrary RPC names");
+assert.equal((migration.match(/set search_path = ''/g) || []).length, 4, "all four SECURITY DEFINER RPCs must pin an empty search_path");
+assert.equal((migration.match(/m\.status='ACTIVE'/g) || []).length, 4, "all four service RPCs must require active membership");
+assert.match(migration, /revoke all on function public\.receive_stock_transfer_service_backend[\s\S]*?from public,anon,authenticated/i);
+assert.match(migration, /grant execute on function public\.receive_stock_transfer_service_backend[\s\S]*?to service_role/i);
 assert.match(migration, /pg_advisory_xact_lock/, "transfer creation and stock mutation must be serialized");
 assert.match(migration, /TRANSFER_IDEMPOTENCY_CONFLICT/, "conflicting create replay must fail closed");
 assert.match(migration, /INSUFFICIENT_AVAILABLE_STOCK/, "transfer receipt must check available stock");
