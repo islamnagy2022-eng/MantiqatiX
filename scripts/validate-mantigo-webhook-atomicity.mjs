@@ -14,6 +14,9 @@ const mantigoBlock = webhook.slice(mantigoStart, mantigoEnd);
 const requiredMigration = [
   "create table if not exists public.mantigo_payment_provider_events",
   "references public.mantigo_financial_ledger(id)",
+  "revoke all on table public.mantigo_payment_provider_events from public, anon, authenticated, service_role",
+  "signature_verified boolean not null check (signature_verified is true)",
+  "if p_status is null or p_status not in ('PAID', 'FAILED') then",
   "enable row level security",
   "force row level security",
   "process_verified_mantigo_payment_backend",
