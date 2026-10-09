@@ -85,7 +85,13 @@ const delimiterCount = migration.split("$function$").length - 1;
 if (delimiterCount !== 2) throw new Error("RC425 SQL must contain exactly one complete function body.");
 const functionCount = migration.split("create or replace function public.process_verified_mantigo_payment_backend(").length - 1;
 if (functionCount !== 1) throw new Error("RC425 SQL must define the payment RPC exactly once.");
-if (!migration.includes("if coalesce(p_raw_payload->>'amount_cents', '') !~ '^[0-9]+
+if (!migration.includes("if coalesce(p_raw_payload->>'amount_cents', '') !~ '^[0-9]+$' then")) {
+  throw new Error("RC425 SQL must validate integer amount_cents before casting.");
+}
+const finalGrant = "grant execute on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) to service_role;";
+if (!migration.trimEnd().endsWith(finalGrant)) throw new Error("RC425 SQL must end at the service_role-only function grant.");
+
+const requiredWebhook = [
   'admin.rpc("process_verified_mantigo_payment_backend"',
   "p_ledger_id:mantigo.id",
   "p_external_event_id:eventId",
