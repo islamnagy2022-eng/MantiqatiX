@@ -23,12 +23,21 @@ async function session(){
  return data.session.user;
 }
 async function membership(user){
- const saved=localStorage.getItem('MNTYActiveMembershipId');
- let q=sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
- if(saved)q=q.eq('id',saved);
- let r=await q.maybeSingle();
- if(!r.data){r=await sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE').limit(1).maybeSingle()}
- return r.data||null;
+ // Persisted membership ID is a selector only; the authenticated DB query is authoritative.
+ const saved=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
+ const {data,error}=await sb.from('user_memberships')
+  .select('id,tenant_id,business_id,branch_id,role,status')
+  .eq('user_id',user.id).eq('status','ACTIVE').limit(100);
+ if(error)throw error;
+ const active=Array.isArray(data)?data:[];
+ if(saved){
+  const selected=active.find(m=>m.id===saved);
+  if(!selected)throw new Error('ACTIVE_MEMBERSHIP_SELECTION_INVALID');
+  return selected;
+ }
+ if(active.length===1)return active[0];
+ if(active.length>1)throw new Error('ACTIVE_MEMBERSHIP_SELECTION_REQUIRED');
+ return null;
 }
 function canOperate(){
  const r=String(state.membership?.role||'').toUpperCase();
@@ -172,7 +181,7 @@ function addTable(existing){
  const x=existing||{};
  modal(existing?'تعديل طاولة':'إضافة طاولة',
  field('num','رقم الطاولة',x.table_number,'number','min="1" step="1" required')+field('cap','السعة',x.capacity_persons||2,'number','min="1" step="1" required')+
- '<label class="field"><span>الحالة</span><select id="status"><option>EMPTY</option><option>OCCUPIED</option><option>RESERVED</option><option>CLEANING</option><option>OUT_OF_SERVICE</option></select></label>'+
+ '<label class="field"><span>الحالة</span><select id="status"><option '+((x.status||'EMPTY')==='EMPTY'?'selected':'')+'>EMPTY</option><option '+(x.status==='OCCUPIED'?'selected':'')+'>OCCUPIED</option><option '+(x.status==='RESERVED'?'selected':'')+'>RESERVED</option><option '+(x.status==='CLEANING'?'selected':'')+'>CLEANING</option><option '+(x.status==='OUT_OF_SERVICE'?'selected':'')+'>OUT_OF_SERVICE</option></select></label>'+
  field('reserved','اسم الحجز',x.reserved_customer_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
