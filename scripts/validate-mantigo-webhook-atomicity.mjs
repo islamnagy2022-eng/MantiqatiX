@@ -57,14 +57,20 @@ function splitTopLevel(sql) {
   parts.push(sql.slice(start).trim());
   return parts;
 }
-const eventInsert = migration.match(/insert into public\\.mantigo_payment_provider_events\\s*\\(([^)]*)\\)\\s*values\\s*\\(([\\s\\S]*?)\\)\\s*on conflict/i);
-if (!eventInsert) throw new Error("Atomic MantiGo event insert statement was not found.");
-const eventColumns = splitTopLevel(eventInsert[1]);
-const eventValues = splitTopLevel(eventInsert[2]);
+const eventInsertStart = migration.indexOf("insert into public.mantigo_payment_provider_events(");
+const eventColumnsStart = eventInsertStart < 0 ? -1 : migration.indexOf("(", eventInsertStart) + 1;
+const eventColumnsEnd = eventColumnsStart < 0 ? -1 : migration.indexOf(") values (", eventColumnsStart);
+const eventValuesStart = eventColumnsEnd < 0 ? -1 : eventColumnsEnd + ") values (".length;
+const eventValuesEnd = eventValuesStart < 0 ? -1 : migration.indexOf(") on conflict", eventValuesStart);
+if (eventInsertStart < 0 || eventColumnsEnd < 0 || eventValuesEnd < 0) {
+  throw new Error("Atomic MantiGo event insert statement was not found.");
+}
+const eventColumns = splitTopLevel(migration.slice(eventColumnsStart, eventColumnsEnd));
+const eventValues = splitTopLevel(migration.slice(eventValuesStart, eventValuesEnd));
 if (eventColumns.length !== eventValues.length) {
   throw new Error(`MantiGo provider event insert column/value mismatch: ${eventColumns.length} columns vs ${eventValues.length} values.`);
 }
-if (/from\\s+public\\.payment_provider_events/i.test(migration)) {
+if (migration.includes("from public.payment_provider_events")) {
   throw new Error("MantiGo ledger events must not be read from payment_provider_events.");
 }
 
