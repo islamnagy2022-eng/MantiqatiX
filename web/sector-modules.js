@@ -38,8 +38,8 @@ async function createEducationRequest(targetId,targetType,subjectOrGrade){
  if(!student)return;
  const subject=subjectOrGrade||window.prompt(targetType==='TEACHER'?'المادة':'الصف الدراسي','')?.trim();
  if(!subject)return;
- const r=await sb.from('education_requests').insert({id:crypto.randomUUID(),requester_user_id:state.user.id,target_id:targetId,target_type:targetType,student_name:student,subject_or_grade:subject,status:'PENDING'});
- if(r.error)return alert('تعذر إرسال الطلب: '+r.error.message);
+ const {error}=await sb.rpc('create_education_request_backend',{p_target_id:targetId,p_target_type:targetType,p_student_name:student,p_subject_or_grade:subject});
+ if(error)return alert('تعذر إرسال الطلب: '+error.message);
  alert('تم إرسال الطلب التعليمي بنجاح.');
  await load(defs[current]);
 }
