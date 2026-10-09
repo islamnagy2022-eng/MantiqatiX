@@ -71,7 +71,7 @@ for(const marker of [
 ]){
   if(!customerMigration.includes(marker))throw new Error('Customer membership activation safety marker missing: '+marker);
 }
-if(!/grant execute on function private\\.activate_customer_registration_atomic\\(uuid, varchar\\)[\\s\\S]*?to service_role/.test(customerMigration)){
+if(!/grant execute on function private\.activate_customer_registration_atomic\(uuid, varchar\)[\s\S]*?to service_role/.test(customerMigration)){
   throw new Error('Customer membership activation RPC must grant execution to service_role only.');
 }
 if(!customerEdge.includes('admin.auth.getUser(token)')||!customerEdge.includes('activate_customer_registration_atomic')||!customerEdge.includes('actor.id')){
