@@ -8,7 +8,7 @@ const publicKey = Deno.env.get("PAYMOB_PUBLIC_KEY") ?? "";
 const integrationId = Deno.env.get("PAYMOB_INTEGRATION_ID") ?? "";
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
 const maxBodyBytes = 24000;
-const admin = createClient(url, serviceRole, { auth: { persistSession: false, autoRefreshToken: false } });
+const admin = url && serviceRole ? createClient(url, serviceRole, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id",
@@ -30,6 +30,7 @@ Deno.serve(async req => {
   const contentLength = Number(req.headers.get("Content-Length") || 0);
   if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413, requestId);
 
+  if (!admin) return json({ error: "SERVER_CONFIGURATION_ERROR" }, 503, requestId);
   const authorization = req.headers.get("Authorization") ?? "";
   if (!authorization.startsWith("Bearer ")) return json({ error: "AUTH_REQUIRED" }, 401, requestId);
   try {
