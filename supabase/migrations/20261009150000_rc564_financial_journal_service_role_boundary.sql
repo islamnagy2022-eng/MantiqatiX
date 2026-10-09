@@ -33,9 +33,16 @@ begin
     v_line_debit:=v_line_debit+coalesce((v_line->>'debit')::numeric,0); v_line_credit:=v_line_credit+coalesce((v_line->>'credit')::numeric,0); v_line_count:=v_line_count+1;
   end loop;
   if v_line_count=0 or v_line_debit<=0 or v_line_debit<>v_total_debit or v_line_credit<>v_total_credit or v_line_debit<>v_line_credit then raise exception 'JOURNAL_LINE_TOTAL_MISMATCH'; end if;
+
+  -- Serialize the journal ID and fail closed on replay; silently ignoring a header conflict
+  -- while inserting new lines can corrupt the ledger.
+  perform pg_advisory_xact_lock(hashtextextended(v_id, 0));
+  if exists(select 1 from public.journal_entries where id=v_id) then
+    raise exception 'JOURNAL_ID_ALREADY_EXISTS';
+  end if;
   insert into public.journal_entries(id,tenant_id,organization_id,business_id,branch_id,entry_number,reference_type,reference_id,description,status,total_debit,total_credit,entry_date,posted_at,created_by)
   values(v_id,v_tenant,nullif(p_entry->>'organization_id',''),nullif(p_entry->>'business_id','')::uuid,nullif(p_entry->>'branch_id',''),coalesce(p_entry->>'entry_number',v_id),p_entry->>'reference_type',p_entry->>'reference_id',coalesce(p_entry->>'description',''),'POSTED',v_total_debit,v_total_credit,coalesce((p_entry->>'entry_date')::date,current_date),now(),p_user_id)
-  on conflict(id) do nothing;
+
   for v_line in select * from jsonb_array_elements(p_lines) loop
     v_insert_line_no := v_insert_line_no + 1;
     insert into public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
