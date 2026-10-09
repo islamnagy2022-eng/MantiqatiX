@@ -4,6 +4,7 @@ declare
   manager_id uuid := '10000000-0000-4000-8000-000000004420';
   owner_id uuid := '10000000-0000-4000-8000-000000004421';
   other_tenant_id uuid := '10000000-0000-4000-8000-000000004422';
+  customer_id uuid := '10000000-0000-4000-8000-000000004423';
   business uuid := '20000000-0000-4000-8000-000000004420';
   product uuid := '30000000-0000-4000-8000-000000004420';
   result jsonb;
@@ -38,10 +39,12 @@ begin
   insert into public.user_memberships(id,user_id,tenant_id,business_id,role,status) values
     ('mem-manager',manager_id,'tenant-a',business,'MANAGER','ACTIVE'),
     ('mem-owner',owner_id,'tenant-a',business,'OWNER','ACTIVE'),
-    ('mem-other',other_tenant_id,'tenant-b','20000000-0000-4000-8000-000000004429','MANAGER','ACTIVE');
+    ('mem-other',other_tenant_id,'tenant-b','20000000-0000-4000-8000-000000004429','MANAGER','ACTIVE'),
+    ('mem-customer',customer_id,'tenant-a',business,'CUSTOMER','ACTIVE');
   insert into public.erp_purchase_orders(id,tenant_id,business_id,order_number,supplier_id,total_amount,status,created_by)
   values ('po-low-rc442','tenant-a',business,'PO-RC442-LOW','supplier-a',100,'DRAFT',manager_id),
-         ('po-high-rc442','tenant-a',business,'PO-RC442-HIGH','supplier-a',6000,'DRAFT',manager_id);
+         ('po-high-rc442','tenant-a',business,'PO-RC442-HIGH','supplier-a',6000,'DRAFT',manager_id),
+         ('po-customer-rc442','tenant-a',business,'PO-RC442-CUSTOMER','supplier-a',100,'DRAFT',customer_id);
   insert into public.warehouses(id,tenant_id,business_id,name,code,status) values
     ('wh-source','tenant-a',business,'Source','SRC','ACTIVE'),
     ('wh-dest','tenant-a',business,'Destination','DST','ACTIVE'),
@@ -56,6 +59,16 @@ begin
   if result->'order'->>'status'<>'SUBMITTED' then raise exception 'small order was not submitted'; end if;
   result:=public.update_purchase_order_status_service_backend('po-high-rc442','SUBMITTED',manager_id);
   if result->'order'->>'status'<>'PENDING_APPROVAL' then raise exception 'large order did not require approval'; end if;
+
+  rejected:=false;
+  begin
+    perform public.update_purchase_order_status_service_backend('po-customer-rc442','SUBMITTED',customer_id);
+    raise exception 'TEST_FAILED: customer unexpectedly submitted a purchase order';
+  exception when others then
+    if sqlerrm<>'PURCHASE_ORDER_ROLE_REQUIRED' then raise; end if;
+    rejected:=true;
+  end;
+  if not rejected then raise exception 'customer purchase-order submission was not rejected'; end if;
 
   rejected:=false;
   begin
@@ -110,6 +123,18 @@ begin
   if result->'transfer'->>'status'<>'APPROVED' then raise exception 'transfer approval failed'; end if;
   result:=public.update_stock_transfer_status_service_backend('tr-rc442-0001','IN_TRANSIT',manager_id);
   if result->'transfer'->>'status'<>'IN_TRANSIT' then raise exception 'transfer dispatch failed'; end if;
+
+  update public.warehouses set status='INACTIVE' where id='wh-dest';
+  rejected:=false;
+  begin
+    perform public.receive_stock_transfer_service_backend('tr-rc442-0001',manager_id);
+    raise exception 'TEST_FAILED: receiving into an inactive warehouse unexpectedly succeeded';
+  exception when others then
+    if sqlerrm<>'TARGET_WAREHOUSE_INVALID' then raise; end if;
+    rejected:=true;
+  end;
+  if not rejected then raise exception 'inactive target warehouse was not rejected'; end if;
+  update public.warehouses set status='ACTIVE' where id='wh-dest';
 
   result:=public.receive_stock_transfer_service_backend('tr-rc442-0001',manager_id);
   if result->'transfer'->>'status'<>'COMPLETED' or result->>'idempotent'<>'false' then raise exception 'transfer receive failed'; end if;
