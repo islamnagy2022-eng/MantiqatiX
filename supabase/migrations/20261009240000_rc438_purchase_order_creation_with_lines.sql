@@ -2,12 +2,12 @@
 -- Depends on RC437's line schema and line-aware receiving wrapper.
 create or replace function public.create_purchase_order_with_lines_backend(
   p_id varchar,p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_order_number varchar,
-  p_supplier_id varchar,p_tax_amount numeric,p_discount_amount numeric,p_reason text,p_lines jsonb
+  p_supplier_id varchar,p_tax_amount numeric,p_discount_amount numeric,p_reason text,p_lines jsonb,p_actor_user_id uuid
 )
 returns jsonb language plpgsql security definer set search_path = ''
 as $function$
 declare
-  u uuid:=auth.uid(); v_role text; v_line jsonb; v_product uuid; v_qty numeric; v_cost numeric;
+  u uuid:=p_actor_user_id; v_role text; v_line jsonb; v_product uuid; v_qty numeric; v_cost numeric;
   v_subtotal numeric:=0; v_total numeric; v_tax numeric:=coalesce(p_tax_amount,0);
   v_discount numeric:=coalesce(p_discount_amount,0); v_existing public.erp_purchase_orders%rowtype;
   v_created public.erp_purchase_orders%rowtype; v_line_count integer:=0;
@@ -45,7 +45,7 @@ begin
       where not exists (
         select 1 from public.erp_purchase_order_lines pol
         where pol.purchase_order_id=p_id and pol.product_id=(incoming.value->>'product_id')::uuid
-          and pol.ordered_quantity=(incoming.value->>'quantity')::numeric
+          and pol.ordered_quantity=coalesce((incoming.value->>'quantity')::numeric,(incoming.value->>'ordered_quantity')::numeric)
           and pol.unit_cost=(incoming.value->>'unit_cost')::numeric
           and pol.description is not distinct from nullif(pg_catalog.btrim(incoming.value->>'description'),'')
       )
@@ -56,7 +56,7 @@ begin
   for v_line in select value from pg_catalog.jsonb_array_elements(p_lines) as t(value) loop
     if pg_catalog.jsonb_typeof(v_line)<>'object' then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end if;
     begin
-      v_product:=nullif(v_line->>'product_id','')::uuid; v_qty:=nullif(v_line->>'quantity','')::numeric; v_cost:=nullif(v_line->>'unit_cost','')::numeric;
+      v_product:=nullif(v_line->>'product_id','')::uuid; v_qty:=coalesce(nullif(v_line->>'quantity',''),nullif(v_line->>'ordered_quantity',''))::numeric; v_cost:=nullif(v_line->>'unit_cost','')::numeric;
     exception when others then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end;
     if v_product is null or v_qty is null or v_qty<=0 or v_cost is null or v_cost<0
        or v_qty::text in ('NaN','Infinity','-Infinity') or v_cost::text in ('NaN','Infinity','-Infinity')
@@ -88,8 +88,8 @@ begin
   return pg_catalog.jsonb_build_object('success',true,'idempotent',false,'order',pg_catalog.to_jsonb(v_created),'line_count',v_line_count);
 end;
 $function$;
-revoke all on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb) from public,anon;
-grant execute on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb) to authenticated;
+revoke all on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb) from public,anon,authenticated;
+grant execute on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid) to service_role;
 
 create or replace function public.update_purchase_order_status_backend(p_order_id varchar,p_target_status varchar)
 returns jsonb language plpgsql security definer set search_path = ''
@@ -116,5 +116,5 @@ $function$;
 revoke all on function public.update_purchase_order_status_backend(varchar,varchar) from public,anon;
 grant execute on function public.update_purchase_order_status_backend(varchar,varchar) to authenticated;
 
-comment on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb) is
+comment on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid) is
   'RC438: creates purchase order and line items atomically; totals are computed from validated products and quantities.';
