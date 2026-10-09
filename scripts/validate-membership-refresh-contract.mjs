@@ -47,7 +47,7 @@ for (const marker of [
 }
 
 const renderStart = app.indexOf('async function renderApp(options={})');
-const nextFunctionOffset = app.slice(renderStart + 1).search(/\n(?:async\\s+)?function\\s+[A-Za-z_$][\\w$]*\\s*\\(/);
+const nextFunctionOffset = app.slice(renderStart + 1).search(/\n(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\(/);
 const renderEnd = nextFunctionOffset < 0 ? -1 : renderStart + 1 + nextFunctionOffset;
 if (renderStart < 0 || renderEnd < 0) {
   throw new Error('Could not isolate renderApp implementation');
