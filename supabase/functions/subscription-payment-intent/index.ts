@@ -53,7 +53,7 @@ Deno.serve(async req => {
       return json({ error: "INVALID_REQUEST" }, 400, requestId);
     }
 
-    const { data: intent, error: intentError } = await admin.rpc("create_subscription_payment_intent_backend", {
+    const { data: intent, error: intentError } = await admin.rpc("create_subscription_payment_intent_claimable_backend", {
       p_business_id: businessId,
       p_tier_code: tierCode,
       p_billing_cycle: billingCycle,
@@ -66,7 +66,7 @@ Deno.serve(async req => {
       const status = code.includes("SUBSCRIPTION_FORBIDDEN") ? 403
         : code.includes("SUBSCRIPTION_TIER_UNAVAILABLE") ? 409
         : code.includes("SUBSCRIPTION_INVALID") || code.includes("IDEMPOTENCY_MISMATCH") ? 400 : 400;
-      console.error(JSON.stringify({ requestId, stage: "create_subscription_payment_intent_backend", code: intentError?.code }));
+      console.error(JSON.stringify({ requestId, stage: "create_subscription_payment_intent_claimable_backend", code: intentError?.code }));
       return json({ error: code.includes("SUBSCRIPTION_FORBIDDEN") ? "SUBSCRIPTION_FORBIDDEN" : "SUBSCRIPTION_PAYMENT_INTENT_REJECTED", requestId }, status, requestId);
     }
 
@@ -147,8 +147,8 @@ Deno.serve(async req => {
     }
 
     const { data: updated, error: updateError } = await admin.from("subscription_payment_intents")
-      .update({ status: "PENDING", provider_intent_id: providerIntentId, provider_order_id: providerOrderId, updated_at: new Date().toISOString() })
-      .eq("id", intent.id).eq("status", "PENDING").is("provider_intent_id", null).is("provider_order_id", null)
+      .update({ status: "PENDING", provider_intent_id: providerIntentId, provider_order_id: providerOrderId, provider_creation_state: "CORRELATED", updated_at: new Date().toISOString() })
+      .eq("id", intent.id).eq("status", "PENDING").eq("provider_creation_state", "CLAIMED").is("provider_intent_id", null).is("provider_order_id", null)
       .select().maybeSingle();
     if (updateError || !updated) {
       console.error(JSON.stringify({ requestId, stage: "subscription_intent_correlation_persistence_unknown", code: updateError?.code }));
