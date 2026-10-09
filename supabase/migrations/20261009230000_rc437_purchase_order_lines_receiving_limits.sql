@@ -51,7 +51,7 @@ begin
   if nullif(pg_catalog.btrim(p_order_id),'') is null or nullif(pg_catalog.btrim(p_tenant_id),'') is null or p_business_id is null then
     raise exception 'INVALID_PURCHASE_ORDER_SCOPE';
   end if;
-  if pg_catalog.jsonb_typeof(p_lines)<>'array' or pg_catalog.jsonb_array_length(p_lines)<1 or pg_catalog.jsonb_array_length(p_lines)>200 then
+  if coalesce(pg_catalog.jsonb_typeof(p_lines),'null')<>'array' or pg_catalog.jsonb_array_length(p_lines)<1 or pg_catalog.jsonb_array_length(p_lines)>200 then
     raise exception 'PURCHASE_ORDER_LINES_REQUIRED';
   end if;
   if not exists (
