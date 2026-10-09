@@ -1550,7 +1550,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 ## RC560 — Restaurant Order RPC Defense-in-Depth — 2026-10-09
 - Status: **SOURCE HARDENING IMPLEMENTED / CI AND RUNTIME NOT VERIFIED**.
-- Updated `20261009130000_catalog_edge_service_role_boundary.sql` to require explicit `ACTIVE` membership for the database authorization backstop, cap the order item array at 100 entries, reject non-array `selectedOptionIds`, and scope catalog business settings reads to the requested tenant.
+- Updated `20261010035000_rc563_catalog_edge_service_role_boundary.sql` to require explicit `ACTIVE` membership for the database authorization backstop, cap the order item array at 100 entries, reject non-array `selectedOptionIds`, and scope catalog business settings reads to the requested tenant.
 - The settings path now fails closed when a business-settings row exists under a mismatched tenant or cannot be reloaded after insert.
 - Added regression assertions in `scripts/validate-restaurant-rbac-contract.mjs` for the new guards. Static source assertions were checked against the committed migration and all passed.
 - Commits on `fix/restaurant-module-hardening-20261009`: migration hardening `e178d5256772a0ddb95f7f755524647d4472bf48`; regression assertions `9a29eb566a13cf718559ad9cbe4f8b3b9009a98b`.
