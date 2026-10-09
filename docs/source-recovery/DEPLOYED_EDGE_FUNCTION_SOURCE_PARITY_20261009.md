@@ -30,3 +30,7 @@
 - Function versions and source can change after this inspection; rerun the parity check before any release.
 - The repository source should remain the reviewed source of truth for subsequent changes.
 - Financial, subscription, legal, ERP, and onboarding paths still require behavior-level tests, permission-negative tests, and post-deployment smoke checks where applicable.
+
+## Subsequent source changes after the parity snapshot
+
+The parity table above is a point-in-time baseline from the read-only inspection. The current PR intentionally changes `subscription-payment-intent` (RC435 claim-before-network), `erp-purchase-receive` (RC434 atomic RPC), and `smm-gateway`/its wallet RPCs (RC432). Those deployed functions therefore **do not match the current branch head by design** until a reviewed, gated deployment occurs. Do not interpret the historical 16/16 match as current-head parity for these changed entrypoints.
