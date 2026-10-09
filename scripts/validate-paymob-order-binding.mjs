@@ -25,6 +25,8 @@ const checks = [
   ["Digital checkout requires provider order ID", digitalPayment.includes("!providerOrderId")],
   ["Digital checkout persists provider order ID through five-argument RPC", digitalPayment.includes("p_provider_order_id:providerOrderId") && digitalFinalizeMigration.includes("p_provider_order_id text")],
   ["Digital webhook rejects a mismatched provider order", webhook.includes("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH") && digitalMigration.includes("v_order.provider_order_id <> p_provider_order_id")],
+  ["MantiGo intent persistence checks the affected ledger row", ridePayment.includes(".select(\"id\").maybeSingle()") && ridePayment.includes("!updatedLedger")],
+  ["MantiGo intent persistence is compare-and-set to avoid overwriting a concurrent intent", ridePayment.includes('.in("payment_status",["REQUIRED","PENDING"]).is("provider_intent_id",null)')],
   ["MantiGo checkout requires and stores provider order ID", ridePayment.includes("!providerOrderId") && ridePayment.includes("paymob_intention_order_id:providerOrderId")],
   ["MantiGo RPC binds merchant reference to ledger", rideMigration.includes("p_raw_payload->>'merchant_order_id' is distinct from p_ledger_id")],
   ["MantiGo RPC binds signed provider order to persisted intention order", rideMigration.includes("metadata->>'paymob_intention_order_id'")],
