@@ -1558,3 +1558,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - An additional proposed `order-create` Edge Function normalization fix for malformed/duplicate option IDs was blocked by the repository safety layer. It was not retried through alternate write paths and is still open.
 - Production Supabase remains unchanged: no migration applied, no Edge Function deployed, no order/payment created, and PR #86 remains unmerged.
 - Next gates: resolve the blocked Edge Function change through the supported review path; obtain successful CI evidence; validate SQL on an isolated database; then perform owner-approved authenticated customer/provider and cross-tenant E2E before release.
+
+
+## RC561 — Restaurant Pricing/Idempotency Guards + CI — 2026-10-09
+- Status: **SOURCE VALIDATION PASS / PRODUCTION INTEGRATION OPEN**.
+- Extended the order RPC database guards: idempotency key length is capped at 200; input and persisted settings currency must remain EGP; invalid persisted tax rates and unit prices are rejected; selected options cannot reduce unit price below zero.
+- Extended `scripts/validate-restaurant-rbac-contract.mjs` with six assertions for the additional invariants.
+- GitHub Actions for the latest source head `c6c615b3db1465d428c0d5334b1fd3fb6a1fb1`:
+  - Module Professionalization Validation run **37935319134: SUCCESS**.
+  - Backend-only Module Boundary run **37935319156: SUCCESS**.
+  - Deploy MantiqatiX Web run **37935319261**: validation **SUCCESS**; deploy **SKIPPED** because PR #86 is unmerged.
+- CI passing confirms repository validators and source checks; it does not prove PostgreSQL runtime behavior, authenticated E2E, or production deployment.
+- The attempted Edge Function fix for malformed/duplicate option IDs remains blocked by the repository safety layer and was not bypassed.
+- Production remains unchanged; migration unapplied, Edge Functions undeployed, PR #86 open/unmerged.
