@@ -47,7 +47,7 @@ begin
     v_insert_line_no := v_insert_line_no + 1;
     insert into public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
     values(coalesce(v_line->>'id',gen_random_uuid()::text),v_id,v_line->>'account_id',coalesce((v_line->>'line_number')::int,v_insert_line_no),coalesce((v_line->>'debit')::numeric,0),coalesce((v_line->>'credit')::numeric,0),v_line->>'description')
-    on conflict(id) do nothing;
+
   end loop;
   insert into public.general_ledger(id,tenant_id,business_id,journal_entry_id,journal_line_id,account_id,debit,credit,running_balance,entry_date,posted_at)
   select gen_random_uuid()::text,v_tenant,je.business_id,je.id,jel.id,jel.account_id,jel.debit,jel.credit,jel.debit-jel.credit,je.entry_date,now()
