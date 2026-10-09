@@ -33,9 +33,12 @@ check("wallet debit RPC ambiguity does not trigger automatic refund", source.inc
 check("terminal order statuses cannot be downgraded by provider polling", source.includes('new Set(["COMPLETED","CANCELLED","FAILED","REFUNDED"])') && source.includes('if(!terminal.has(st))'));
 check("wallet RPC results are checked, including boolean false", source.includes("refund.error||refund.data!==true") && source.includes("ok.error||ok.data!==true") && source.includes("r.error||r.data!==true"));
 check("RC432 fails closed on existing duplicate references", migration.includes("duplicate SMM wallet transaction references require manual reconciliation"));
-check("RC432 enforces one DEBIT/REFUND per order reference", migration.includes("smm_wallet_transactions_reference_type_uidx") && migration.includes("on public.smm_wallet_transactions(reference_id,type)"));
+check("RC432 enforces one DEBIT/REFUND/CREDIT per operation reference", migration.includes("smm_wallet_transactions_reference_type_uidx") && migration.includes("on public.smm_wallet_transactions(reference_id,type)") && migration.includes("'DEBIT','REFUND','CREDIT'"));
 check("RC432 debit path is idempotent and rechecks after wallet lock", migration.includes("Recheck after acquiring the wallet lock") && migration.includes("IDEMPOTENCY_CONFLICT"));
 check("RC432 refund path is idempotent", migration.includes("smm_refund_wallet") && migration.includes("on conflict do nothing") && migration.includes("REFUND"));
+check("admin credit uses a stable retry idempotency key", source.includes("p_reference:b.reference_id") && web.includes("reference_id:referenceId") && web.includes("creditAttempt={fingerprint,id:crypto.randomUUID()}"));
+check("legacy non-idempotent admin credit RPC is disabled", migration.includes("smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated,service_role"));
+check("admin credit RPC checks the explicit SMM allowlist", migration.includes("public.smm_admins sa where sa.user_id=p_actor") && migration.includes("IDEMPOTENCY_CONFLICT"));
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("SMM provider/wallet safety contract PASS: " + checks.length + "/" + checks.length + " checks.");
