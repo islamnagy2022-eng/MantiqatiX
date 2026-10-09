@@ -2,7 +2,7 @@
 -- Run only after a separately approved rollout, against the intended Supabase project.
 -- Each SELECT is independent. This file performs no DDL or DML.
 
--- Read-only post-migration verification for RC424–RC428.
+-- Read-only post-migration verification for RC424–RC429.
 -- 1) Expected objects and function signatures.
 select
   to_regclass('public.digital_page_payment_events') as digital_page_payment_events,
@@ -10,6 +10,7 @@ select
   to_regprocedure('public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)') as digital_page_payment_rpc,
   to_regprocedure('public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)') as mantigo_payment_rpc,
   to_regprocedure('public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)') as normal_payment_failure_rpc,
+  to_regprocedure('public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)') as subscription_payment_failure_rpc,
   to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)') as digital_page_finalizer_v2;
 
 -- 2) Backend-only event-table RLS state.
@@ -35,6 +36,7 @@ where n.nspname = 'public'
     'process_verified_digital_page_payment_backend',
     'process_verified_mantigo_payment_backend',
     'process_verified_provider_payment_failure',
+    'process_verified_subscription_payment_failure',
     'finalize_digital_page_payment_intent_backend'
   )
 order by p.proname, p.oid::regprocedure::text;
