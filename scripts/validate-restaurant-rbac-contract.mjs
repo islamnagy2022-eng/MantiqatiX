@@ -76,7 +76,7 @@ assert.doesNotMatch(catalogAdmin, /Access-Control-Allow-Origin\": \"\*\"/, 'cata
 assert.match(catalogAdmin, /membershipBranchId === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
 assert.match(orderCreate, /x\.metadata\?\.is_available !== false/, 'server must reject unavailable catalog items');
-assert.match(orderCreate, /\["OWNER", "SALES"\]/, 'non-customer order creation must require a role with ORDERS:create capability');
+assert.match(orderCreate, /new Set\(\["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"\]\)/, 'non-customer order creation must require a supported business order-management role');
 assert.match(orderCreate, /INVALID_CUSTOMER_PHONE/, 'order-create must validate customer phone server-side');
 assert.match(orderCreate, /DELIVERY_ADDRESS_REQUIRED/, 'delivery orders must require a server-validated delivery address');
 assert.match(orderCreate, /requestedBranchId && membershipBranchId === requestedBranchId/, 'branch-assigned order creators must be limited to their branch');
