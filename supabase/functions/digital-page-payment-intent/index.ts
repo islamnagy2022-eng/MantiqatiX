@@ -55,9 +55,10 @@ Deno.serve(async req=>{
  try{
    const res=await fetch(PAYMOB_BASE_URL.replace(/\/$/,"")+"/v1/intention/",{method:"POST",headers:{"Authorization":"Token "+PAYMOB_SECRET_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload)});
    p=await res.json().catch(()=>({}));
-   if(!res.ok||!p?.id||!p?.client_secret){await release();return json({error:"PAYMENT_PROVIDER_REJECTED"},502);}
+   const providerOrderId=String(p?.intention_order_id??p?.order_id??"");
+   if(!res.ok||!p?.id||!p?.client_secret||!providerOrderId){await release();return json({error:"PAYMENT_PROVIDER_REJECTED"},502);}
  }catch{await release();return json({error:"PAYMENT_PROVIDER_UNAVAILABLE"},502);}
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id)});
+ const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
  if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
  const clientSecret=String(p.client_secret);
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
