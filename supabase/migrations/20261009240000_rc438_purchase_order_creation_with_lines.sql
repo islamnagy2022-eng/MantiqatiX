@@ -19,9 +19,8 @@ begin
   if v_tax<0 or v_discount<0 or v_tax::text in ('NaN','Infinity','-Infinity') or v_discount::text in ('NaN','Infinity','-Infinity') then
     raise exception 'INVALID_PURCHASE_ORDER_TOTALS';
   end if;
-  if pg_catalog.jsonb_typeof(p_lines)<>'array' or pg_catalog.jsonb_array_length(p_lines)<1 or pg_catalog.jsonb_array_length(p_lines)>200 then
-    raise exception 'PURCHASE_ORDER_LINES_REQUIRED';
-  end if;
+  if coalesce(pg_catalog.jsonb_typeof(p_lines),'null')<>'array' then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
+  if pg_catalog.jsonb_array_length(p_lines)<1 or pg_catalog.jsonb_array_length(p_lines)>200 then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
   select upper(m.role) into v_role from public.user_memberships m
   where m.user_id=u and m.tenant_id=p_tenant_id and m.business_id=p_business_id and m.status='ACTIVE' limit 1;
   if v_role is null or v_role not in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE') then
