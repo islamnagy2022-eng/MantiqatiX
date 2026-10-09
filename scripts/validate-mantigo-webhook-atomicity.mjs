@@ -29,7 +29,6 @@ const requiredMigration = [
   "MANTIGO_AMOUNT_CURRENCY_MISMATCH",
   "MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH",
   "MANTIGO_PAYMENT_EVENT_REPLAY_STATUS_MISMATCH",
-  "if(!value(obj.id)||amount<=0||!Number.isFinite(amount)||!currency)",
   "from public.mantigo_payment_provider_events",
   "on conflict (provider, external_event_id) do nothing",
   "payment_status = 'PENDING'",
@@ -84,6 +83,7 @@ if (migration.includes("from public.payment_provider_events")) {
 
 const requiredWebhook = [
   'admin.rpc("process_verified_mantigo_payment_backend"',
+  "if(!value(obj.id)||amount<=0||!Number.isFinite(amount)||!currency)",
   "p_ledger_id:mantigo.id",
   "p_external_event_id:eventId",
   'p_signature_verified:true',
