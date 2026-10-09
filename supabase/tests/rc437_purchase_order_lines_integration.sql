@@ -18,7 +18,7 @@ begin
     values(actor,'tenant-a',business,'OWNER','ACTIVE'),(other_actor,'tenant-b',business,'OWNER','ACTIVE');
   insert into public.catalog_items values(product,'tenant-a',business,'ACTIVE'),(other_product,'tenant-a',business,'ACTIVE');
   insert into public.warehouses values('warehouse-a','tenant-a',business,'branch-a','ACTIVE');
-  insert into public.branches values('branch-a',business);
+  insert into public.branches values('branch-a','tenant-a',business,'ACTIVE');
   lines:=pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',product,'quantity',10,'unit_cost',600));
 
   perform set_config('request.jwt.claim.sub',actor::text,true);
