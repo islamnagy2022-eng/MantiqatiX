@@ -21,3 +21,34 @@ jobs:
       - run: node scripts/validate-module-runtime-contracts.mjs
       - run: node scripts/validate-sensitive-module-writes.mjs
       - run: node scripts/validate-push-subscription-owner-boundary.mjs
+
+  push-subscription-ownership-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_push_owner_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_push_owner_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run RC89 ownership tests in disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc89_push_subscription_fixture.sql "$pg_container:/tmp/rc89_fixture.sql"
+          docker cp supabase/migrations/20261009144500_mnty_push_subscription_owner_conflict.sql "$pg_container:/tmp/rc89_migration.sql"
+          docker cp supabase/tests/rc89_push_subscription_integration.sql "$pg_container:/tmp/rc89_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_push_owner_test -v ON_ERROR_STOP=1 -f /tmp/rc89_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_push_owner_test -v ON_ERROR_STOP=1 -f /tmp/rc89_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_push_owner_test -v ON_ERROR_STOP=1 -f /tmp/rc89_test.sql
