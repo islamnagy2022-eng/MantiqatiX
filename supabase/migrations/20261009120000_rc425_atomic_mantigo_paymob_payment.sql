@@ -1,5 +1,27 @@
 -- RC425: atomically persist Paymob MantiGo events, ledger state, and customer notification.
 -- Source-only until merged and applied through the reviewed migration pipeline.
+
+-- Keep MantiGo ride-ledger events separate from payment_intents events:
+-- payment_provider_events.payment_intent_id is a FK to payment_intents(id), not the MantiGo ledger.
+create table if not exists public.mantigo_payment_provider_events (
+  id text primary key,
+  ledger_id text not null references public.mantigo_financial_ledger(id) on delete restrict,
+  provider text not null check (provider = 'PAYMOB'),
+  event_type text not null,
+  external_event_id text not null,
+  status text not null check (status in ('PAID','FAILED')),
+  signature_verified boolean not null check (signature_verified is true),
+  payload_hash text,
+  raw_payload jsonb not null default '{}'::jsonb,
+  processed_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint mantigo_payment_provider_events_provider_event_key unique(provider, external_event_id)
+);
+
+alter table public.mantigo_payment_provider_events enable row level security;
+alter table public.mantigo_payment_provider_events force row level security;
+revoke all on table public.mantigo_payment_provider_events from public, anon, authenticated, service_role;
+
 create or replace function public.process_verified_mantigo_payment_backend(
   p_ledger_id text,
   p_external_event_id text,
@@ -13,11 +35,11 @@ create or replace function public.process_verified_mantigo_payment_backend(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $function$
 declare
   v_ledger public.mantigo_financial_ledger%rowtype;
-  v_event public.payment_provider_events%rowtype;
+  v_event public.mantigo_payment_provider_events%rowtype;
   v_inserted_id varchar;
 begin
   if coalesce(p_signature_verified, false) is not true then
@@ -49,12 +71,12 @@ begin
   end if;
 
   select * into v_event
-  from public.payment_provider_events
+  from public.mantigo_payment_provider_events
   where provider = 'PAYMOB'
     and external_event_id = p_external_event_id
   limit 1;
   if found then
-    if v_event.payment_intent_id is distinct from v_ledger.id then
+    if v_event.ledger_id is distinct from v_ledger.id then
       raise exception 'MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH';
     end if;
     return jsonb_build_object(
@@ -75,12 +97,12 @@ begin
     );
   end if;
 
-  insert into public.payment_provider_events(
-    id, tenant_id, provider, event_type, payment_intent_id,
-    external_event_id, status, signature_verified, raw_payload, processed_at
+  insert into public.mantigo_payment_provider_events(
+    id, ledger_id, provider, event_type, external_event_id,
+    status, signature_verified, raw_payload, processed_at
   ) values (
     'paymob-mantigo:' || p_external_event_id,
-    'MNTY-PLATFORM',
+    v_ledger.id,
     'PAYMOB',
     'MANTIGO_RIDE_PAYMENT',
     v_ledger.id,
@@ -99,7 +121,7 @@ begin
     where provider = 'PAYMOB'
       and external_event_id = p_external_event_id
     limit 1;
-    if not found or v_event.payment_intent_id is distinct from v_ledger.id then
+    if not found or v_event.ledger_id is distinct from v_ledger.id then
       raise exception 'MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH';
     end if;
     return jsonb_build_object(
