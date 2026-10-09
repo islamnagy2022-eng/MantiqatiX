@@ -1,5 +1,5 @@
 -- RC432: make SMM wallet debit/refund ledger entries idempotent by order reference.
--- This migration intentionally fails closed if legacy duplicate DEBIT/REFUND references exist.
+-- This migration intentionally fails closed if legacy duplicate DEBIT/REFUND/CREDIT references exist.
 do $migration$
 begin
   if exists (
