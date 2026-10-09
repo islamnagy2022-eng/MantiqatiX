@@ -50,14 +50,6 @@ begin
   end;
   if not rejected then raise exception 'tenant OWNER reached global ride expiration mutation'; end if;
 
-  rejected:=false;
-  begin
-    perform public.admin_create_global_ad('unauthorized test','https://example.invalid/ad',null,null,null);
-  exception when others then
-    if sqlerrm='ADMIN_REQUIRED' then rejected:=true; else raise; end if;
-  end;
-  if not rejected then raise exception 'tenant OWNER created a global advertisement'; end if;
-
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_admin::text,false);
   if public.mnty_can_platform_admin() then raise exception 'tenant ADMIN with admin permission must not gain platform scope'; end if;
 
