@@ -16,8 +16,8 @@ assert.match(sql, /set search_path = ''/i);
 assert.doesNotMatch(sql, /set search_path = public/i);
 assert.match(sql, /pg_catalog\.btrim/);
 assert.match(sql, /pg_catalog\.now\(\)/);
-assert.match(sql, /pg_catalog\\.left\\(p_user_agent, 500\\)/i);
-assert.match(sql, /pg_catalog\\.left\\(p_platform, 100\\)/i);
+assert.match(sql, /pg_catalog\.left\(p_user_agent, 500\)/i);
+assert.match(sql, /pg_catalog\.left\(p_platform, 100\)/i);
 
 console.log("Push subscription ownership boundary: PASS (14 source-contract assertions)");
 console.log("Disposable PostgreSQL two-user integration tests must pass before production rollout.");
