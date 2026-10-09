@@ -176,7 +176,7 @@
                   sb.from('businesses').select('name').eq('id',businessId).maybeSingle(),
                   sb.from('marketing_provider_profiles').select('name_ar,name_en').eq('owner_user_id',authUser.id).eq('business_id',businessId).eq('status','ACTIVE').order('updated_at',{ascending:false}).limit(1).maybeSingle()
                 ]);
-                activityName=businessResult?.data?.name||profileResult?.data?.name_ar||profileResult?.data?.name_en||'';
+                activityName=profileResult?.data?.name_ar||profileResult?.data?.name_en||businessResult?.data?.name||'';
               }
             }
           }catch(_){}
