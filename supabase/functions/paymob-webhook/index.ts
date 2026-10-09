@@ -61,6 +61,16 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  if(mantigo){
    if(Math.abs(Number(mantigo.gross_amount)-amount)>0.01||String(mantigo.currency).toUpperCase()!==currency)return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
    const nextStatus=success?"PAID":"FAILED";
+   const mantigoPayload={
+     provider:"PAYMOB",
+     transaction_id:value(obj.id),
+     merchant_order_id:merchantRef,
+     provider_order_id:paymobOrderId,
+     amount_cents:value(obj.amount_cents),
+     currency,
+     success,
+     created_at:value(obj.created_at)
+   };
    const {data:processedMantigo,error:mantigoError}=await admin.rpc("process_verified_mantigo_payment_backend",{
      p_ledger_id:mantigo.id,
      p_external_event_id:eventId,
@@ -69,7 +79,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
      p_amount:amount,
      p_currency:currency,
      p_provider_transaction_id:value(obj.id),
-     p_raw_payload:raw
+     p_raw_payload:mantigoPayload
    });
    if(mantigoError){
      const message=String(mantigoError.message??"");
