@@ -22,28 +22,28 @@ begin
   lines:=pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',product,'quantity',10,'unit_cost',600));
 
   perform set_config('request.jwt.claim.sub',actor::text,true);
-  result:=public.create_purchase_order_with_lines_backend(order_id,'tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines);
+  result:=public.create_purchase_order_with_lines_backend(order_id,'tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines,actor);
   if result->>'success'<>'true' or result->>'idempotent'<>'false' then raise exception 'purchase order should be created with line items'; end if;
   if (result->'order'->>'total_amount')::numeric<>6000 then raise exception 'server must calculate order total from lines'; end if;
   if (select count(*) from public.erp_purchase_order_lines where purchase_order_id=order_id)<>1 then raise exception 'order line was not persisted'; end if;
-  result:=public.create_purchase_order_with_lines_backend(order_id,'tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines);
+  result:=public.create_purchase_order_with_lines_backend(order_id,'tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines,actor);
   if result->>'idempotent'<>'true' then raise exception 'identical create retry must be idempotent'; end if;
   rejected:=false;
   begin
     perform public.create_purchase_order_with_lines_backend(order_id,'tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',
-      pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',product,'quantity',9,'unit_cost',600)));
+      pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',product,'quantity',9,'unit_cost',600)),actor);
   exception when others then if sqlerrm='PURCHASE_ORDER_IDEMPOTENCY_CONFLICT' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'changed lines on retry must be rejected'; end if;
   rejected:=false;
   begin
-    perform public.create_purchase_order_with_lines_backend('po-rc437-duplicate','tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines);
+    perform public.create_purchase_order_with_lines_backend('po-rc437-duplicate','tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines,actor);
   exception when others then if sqlerrm='PURCHASE_ORDER_NUMBER_CONFLICT' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'duplicate order number must be rejected'; end if;
   rejected:=false;
   begin
-    perform public.create_purchase_order_with_lines_backend('po-rc437-no-lines','tenant-a',business,'branch-a','PO-EMPTY','supplier-a',0,0,null,'[]'::jsonb);
+    perform public.create_purchase_order_with_lines_backend('po-rc437-no-lines','tenant-a',business,'branch-a','PO-EMPTY','supplier-a',0,0,null,'[]'::jsonb,actor);
   exception when others then if sqlerrm='PURCHASE_ORDER_LINES_REQUIRED' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'empty purchase order lines must be rejected'; end if;
@@ -93,7 +93,7 @@ begin
 
   -- Low-value order must auto-approve so the receipt flow cannot strand it in SUBMITTED.
   result:=public.create_purchase_order_with_lines_backend('po-rc437-rollback','tenant-a',business,'branch-a','PO-ROLLBACK','supplier-a',0,0,null,
-    pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',other_product,'quantity',1,'unit_cost',10)));
+    pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',other_product,'quantity',1,'unit_cost',10)),actor);
   perform public.update_purchase_order_status_backend('po-rc437-rollback','SUBMITTED');
   select * into v from public.erp_purchase_orders where id='po-rc437-rollback';
   if v.status<>'APPROVED' then raise exception 'low-value order must auto-approve'; end if;
@@ -111,11 +111,13 @@ begin
   perform set_config('request.jwt.claim.sub',other_actor::text,true);
   rejected:=false;
   begin
-    perform public.create_purchase_order_with_lines_backend('po-rc437-cross','tenant-a',business,'branch-a','PO-CROSS','supplier-a',0,0,null,lines);
+    perform public.create_purchase_order_with_lines_backend('po-rc437-cross','tenant-a',business,'branch-a','PO-CROSS','supplier-a',0,0,null,lines,actor);
   exception when others then if sqlerrm='PURCHASE_ORDER_ROLE_REQUIRED' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'cross-tenant order creation must be rejected'; end if;
-  if has_function_privilege('anon','public.create_purchase_order_with_lines_backend(character varying,character varying,uuid,character varying,character varying,character varying,numeric,numeric,text,jsonb)','EXECUTE') then raise exception 'anon must not execute order creation'; end if;
+  if has_function_privilege('anon','public.create_purchase_order_with_lines_backend(character varying,character varying,uuid,character varying,character varying,character varying,numeric,numeric,text,jsonb,uuid)','EXECUTE') then raise exception 'anon must not execute order creation'; end if;
+  if has_function_privilege('authenticated','public.create_purchase_order_with_lines_backend(character varying,character varying,uuid,character varying,character varying,character varying,numeric,numeric,text,jsonb,uuid)','EXECUTE') then raise exception 'authenticated must not execute service-role order creation RPC'; end if;
+  if not has_function_privilege('service_role','public.create_purchase_order_with_lines_backend(character varying,character varying,uuid,character varying,character varying,character varying,numeric,numeric,text,jsonb,uuid)','EXECUTE') then raise exception 'service_role must execute order creation RPC'; end if;
   if has_function_privilege('anon','public.receive_purchase_stock_with_order_line_backend(character varying,character varying,uuid,character varying,character varying,character varying,uuid,numeric,numeric,uuid)','EXECUTE') then raise exception 'anon must not execute line-aware receipt'; end if;
   if has_function_privilege('authenticated','public.receive_purchase_stock_with_order_line_backend(character varying,character varying,uuid,character varying,character varying,character varying,uuid,numeric,numeric,uuid)','EXECUTE') then raise exception 'authenticated must not execute line-aware receipt'; end if;
   if has_function_privilege('service_role','public.receive_purchase_stock_atomic_backend(character varying,character varying,uuid,character varying,character varying,character varying,uuid,numeric,numeric,uuid)','EXECUTE') then raise exception 'service_role must not bypass order-line wrapper'; end if;
