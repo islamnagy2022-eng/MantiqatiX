@@ -52,12 +52,26 @@ Deno.serve(async req=>{
  const amountCents=Math.round(amount*100);
  const payload={amount:amountCents,currency:String(row.currency||"EGP").toUpperCase(),payment_methods:[Number(PAYMOB_INTEGRATION_ID)],items:[{name:row.title,amount:amountCents,description:"MantiqaTix "+row.page_type+" page",quantity:1}],billing_data:{apartment:"NA",first_name:String(user.user_metadata?.full_name||email).split(" ")[0]||"Customer",last_name:"MantiqaTix",street:"NA",building:"NA",phone_number:phone,city:"NA",country:"EG",email,floor:"NA",state:"NA"},special_reference:row.id,expiration:3600,notification_url:CALLBACK};
  let p:Record<string,unknown>={};
+ let providerResponseStatus=0;
  try{
    const res=await fetch(PAYMOB_BASE_URL.replace(/\/$/,"")+"/v1/intention/",{method:"POST",headers:{"Authorization":"Token "+PAYMOB_SECRET_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload)});
+   providerResponseStatus=res.status;
    p=await res.json().catch(()=>({}));
-   const providerOrderId=String(p?.intention_order_id??p?.order_id??"");
-   if(!res.ok||!p?.id||!p?.client_secret||!providerOrderId){await release();return json({error:"PAYMENT_PROVIDER_REJECTED"},502);}
- }catch{await release();return json({error:"PAYMENT_PROVIDER_UNAVAILABLE"},502);}
+ }catch{
+   // The provider may have created an intention even when the network response was lost.
+   // Keep the claim; do not release it and risk creating a duplicate on retry.
+   return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
+ }
+ const providerOrderId=String(p?.intention_order_id??p?.order_id??"");
+ if(providerResponseStatus>=400&&providerResponseStatus<500){
+   // A definitive provider-side client rejection is safe to release for a fresh attempt.
+   await release();
+   return json({error:"PAYMENT_PROVIDER_REJECTED"},502);
+ }
+ if(providerResponseStatus<200||providerResponseStatus>=300||!p?.id||!p?.client_secret||!providerOrderId){
+   // 5xx, malformed, or incomplete responses are ambiguous: retain the claim for reconciliation.
+   return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
+ }
  const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
  if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
  const clientSecret=String(p.client_secret);
