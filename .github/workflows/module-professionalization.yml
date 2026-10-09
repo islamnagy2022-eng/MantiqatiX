@@ -255,6 +255,7 @@ jobs:
           node scripts/validate-smm-payment-safety.mjs
           node scripts/validate-erp-receiving-contract.mjs
           node scripts/validate-subscription-intent-safety.mjs
+          node scripts/test-checkout-secret-crypto.mjs
           node scripts/validate-financial-journal-safety.mjs
           node scripts/validate-erp-purchase-order-lines.mjs
           node scripts/validate-checkout-recovery.mjs
