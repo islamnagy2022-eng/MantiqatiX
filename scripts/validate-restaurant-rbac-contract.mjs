@@ -79,6 +79,7 @@ assert.match(orderCreate, /x\.metadata\?\.is_available !== false/, 'server must 
 assert.match(orderCreate, /new Set\(\["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"\]\)/, 'non-customer order creation must require a supported business order-management role');
 assert.match(orderCreate, /INVALID_CUSTOMER_PHONE/, 'order-create must validate customer phone server-side');
 assert.match(orderCreate, /DELIVERY_ADDRESS_REQUIRED/, 'delivery orders must require a server-validated delivery address');
+assert.match(orderCreate, /orderMetadata\.order_type == null \? "DELIVERY"/, 'unspecified order type must fail closed as delivery and require an address');
 assert.match(orderCreate, /requestedBranchId && membershipBranchId === requestedBranchId/, 'branch-assigned order creators must be limited to their branch');
 assert.match(catalogMigration, /coalesce\(auth\.role\(\),''\) <> 'service_role' and \(auth\.uid\(\) is null or auth\.uid\(\)<>p_customer_id\)/, 'order RPC must permit only the verified Edge service-role path or matching user JWT');
 assert.match(catalogMigration, /IDEMPOTENCY_KEY_SCOPE_CONFLICT/, 'idempotency keys must not return another customer/business order');
