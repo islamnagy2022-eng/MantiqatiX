@@ -82,6 +82,12 @@ assert.match(orderCreate, /DELIVERY_ADDRESS_REQUIRED/, 'delivery orders must req
 assert.match(orderCreate, /requestedBranchId && membershipBranchId === requestedBranchId/, 'branch-assigned order creators must be limited to their branch');
 assert.match(catalogMigration, /coalesce\(auth\.role\(\),''\) <> 'service_role' and \(auth\.uid\(\) is null or auth\.uid\(\)<>p_customer_id\)/, 'order RPC must permit only the verified Edge service-role path or matching user JWT');
 assert.match(catalogMigration, /IDEMPOTENCY_KEY_SCOPE_CONFLICT/, 'idempotency keys must not return another customer/business order');
+assert.match(catalogMigration, /IDEMPOTENCY_PAYLOAD_CONFLICT/, 'idempotency keys must reject changed retry payloads');
+assert.match(catalogMigration, /CATALOG_BRANCH_SCOPE_IMMUTABLE/, 'catalog item updates must not silently move an item across branch scope');
+assert.match(catalogMigration, /CATALOG_BRANCH_SCOPE_MISMATCH/, 'branch-scoped price writes must match the catalog item branch');
+assert.match(catalogMigration, /set search_path=public,pg_temp as \$function\$/, 'all new SECURITY DEFINER RPCs must pin a safe search_path');
+assert.match(catalogMigration, /revoke all on function public\.create_order_backend[\s\S]*?from public, anon, authenticated;/i, 'order RPC must remain inaccessible to direct public/authenticated callers');
+assert.match(catalogMigration, /on conflict \(tenant_id,client_idempotency_key\)[\s\S]*?do nothing/i, 'order idempotency insert must handle concurrent requests without duplicate creation');
 assert.match(catalogMigration, /v_delivery:=0/, 'takeaway orders must not be charged delivery fees');
 assert.match(catalogMigration, /lower\(coalesce\(ci\.metadata->>'is_available','true'\)\) <> 'false'/, 'order RPC must reject catalog items marked unavailable');
 assert.doesNotMatch(restaurant, /from\('restaurant_menu_items'\)\.(insert|update)/, 'legacy menu must not write prices that the canonical order path does not consume');
