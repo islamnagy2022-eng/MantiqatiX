@@ -504,3 +504,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Restaurant module remains **PARTIAL / NOT VERIFIED**. Still required: confirm current branch/tenant scope in all mutation paths; review direct client writes for table and inventory lifecycle invariants; verify canonical catalog/order/status APIs; authenticated owner/manager/provider E2E; cross-tenant and cross-branch denial; concurrency/idempotency; kitchen/table/order synchronization; and regression/runtime tests.
 - Main production release gate remains **OPEN**. The master TODO still requires independent authenticated multi-tenant tests, customer→provider→order→status→notification E2E, Paymob/payment and settlement E2E, managed leaked-password protection, release-device tests, and backup/restore/rollback evidence.
 - Next step: obtain CI evidence for PR #85 and review the complete restaurant mutation boundary before further code changes. Keep PR unmerged until tests and review establish safety. Then continue the first still-open P0 item in `docs/MASTER_PRODUCTION_TODO.md` using the current source as authority.
+
+
+## Follow-up checkpoint — 2026-10-09 — Restaurant RBAC convergence
+
+- Additional source finding: `web/restaurant-module.js` used a hard-coded role allowlist for all restaurant actions, despite the project having a canonical `window.MNTY_RBAC.can(role,module,action,permissions)` contract.
+- Changed membership read to include the persisted `permissions` field and replaced the hard-coded allowlist with central RBAC checks.
+- Menu/inventory actions now check `CATALOG` create/update permissions; table actions check `OPERATIONS` create/update permissions; order creation and status changes check `ORDERS` create/update permissions. UI controls and mutation entry points both use these guards. Server/RLS remains the ultimate authorization boundary.
+- Extended `scripts/validate-restaurant-rbac-contract.mjs` to assert permissions are loaded, the central RBAC contract is used, hard-coded role allowlists are absent, and order/table actions are permission-gated.
+- Current implementation commit: `e21559769cda967e6d3324b040b19353817c25ad`.
+- Static source inspection still does not equal an executed Node validator or authenticated runtime test. CI evidence remains pending; no deployment or production mutation is claimed.
+- Continue by validating syntax and contract tests through CI; inspect table/menu/inventory mutation scoping and double-submit/idempotency behavior next. Keep PR #85 unmerged until the full test result and review support merge.
