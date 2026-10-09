@@ -12,6 +12,7 @@ $function$;
 create table public.user_memberships (
   id text primary key,
   user_id uuid not null,
+  tenant_id text not null,
   role text not null,
   status text not null,
   permissions jsonb not null default '{}'::jsonb,
