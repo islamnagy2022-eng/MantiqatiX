@@ -165,7 +165,7 @@ async function createRestaurantOrder(){
  try{
    const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
    const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE');
+   const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE'&&x.metadata?.is_available!==false);
    if(!item)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
    const qty=await askQuantity('الكمية');
    if(!Number.isInteger(qty)||qty<1)return;
