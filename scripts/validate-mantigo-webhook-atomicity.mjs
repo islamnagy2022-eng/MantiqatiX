@@ -6,6 +6,10 @@ const workflowPath = ".github/workflows/pages.yml";
 const migration = fs.readFileSync(migrationPath, "utf8");
 const webhook = fs.readFileSync(webhookPath, "utf8");
 const workflow = fs.readFileSync(workflowPath, "utf8");
+const mantigoStart = webhook.indexOf("if(mantigo){");
+const mantigoEnd = webhook.indexOf("const {data:intentByRef}", mantigoStart);
+if (mantigoStart < 0 || mantigoEnd < 0) throw new Error("Could not isolate MantiGo payment handler.");
+const mantigoBlock = webhook.slice(mantigoStart, mantigoEnd);
 
 const requiredMigration = [
   "process_verified_mantigo_payment_backend",
@@ -36,7 +40,7 @@ const requiredWebhook = [
   "MANTIGO_AMOUNT_CURRENCY_MISMATCH"
 ];
 for (const marker of requiredWebhook) {
-  if (!webhook.includes(marker)) {
+  if (!mantigoBlock.includes(marker)) {
     throw new Error("Paymob webhook does not use the atomic MantiGo payment contract: " + marker);
   }
 }
@@ -46,7 +50,7 @@ const directWritePatterns = [
   [/admin\.from\("notifications"\)\.insert\(/, "out-of-transaction payment notification"]
 ];
 for (const [pattern, label] of directWritePatterns) {
-  if (pattern.test(webhook)) throw new Error("MantiGo webhook still contains " + label);
+  if (pattern.test(mantigoBlock)) throw new Error("MantiGo webhook still contains " + label);
 }
 if (!workflow.includes("node scripts/validate-mantigo-webhook-atomicity.mjs")) {
   throw new Error("Atomic MantiGo Paymob webhook validator is not wired into CI.");
