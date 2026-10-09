@@ -6,6 +6,75 @@ const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const secretKey = Deno.env.get("PAYMOB_SECRET_KEY") ?? "";
 const publicKey = Deno.env.get("PAYMOB_PUBLIC_KEY") ?? "";
 const integrationId = Deno.env.get("PAYMOB_INTEGRATION_ID") ?? "";
+const checkoutKeyVersion = Deno.env.get("PAYMOB_CHECKOUT_ENCRYPTION_KEY_VERSION") ?? "v1";
+const checkoutKeyEnvName = (version: string) => "PAYMOB_CHECKOUT_ENCRYPTION_KEY_" + version.toUpperCase();
+const encodeBase64 = (bytes: Uint8Array) => btoa(Array.from(bytes, value => String.fromCharCode(value)).join(""));
+const decodeBase64 = (value: string) => Uint8Array.from(atob(value), char => char.charCodeAt(0));
+
+async function importCheckoutKey(version: string): Promise<CryptoKey> {
+  if (!/^v[1-9][0-9]{0,2}$/.test(version)) throw new Error("CHECKOUT_KEY_VERSION_INVALID");
+  const encoded = Deno.env.get(checkoutKeyEnvName(version)) ?? "";
+  if (!encoded) throw new Error("CHECKOUT_KEY_MISSING");
+  const raw = decodeBase64(encoded);
+  if (raw.byteLength !== 32) throw new Error("CHECKOUT_KEY_LENGTH_INVALID");
+  return await crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+}
+
+async function encryptCheckoutSecret(secret: string) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await importCheckoutKey(checkoutKeyVersion);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(secret));
+  return {
+    client_secret_ciphertext: encodeBase64(new Uint8Array(ciphertext)),
+    client_secret_iv: encodeBase64(iv),
+    client_secret_key_version: checkoutKeyVersion,
+  };
+}
+
+async function decryptCheckoutSecret(intent: Record<string, unknown>): Promise<string> {
+  const version = String(intent.client_secret_key_version ?? "");
+  const ciphertext = String(intent.client_secret_ciphertext ?? "");
+  const iv = String(intent.client_secret_iv ?? "");
+  if (!version || !ciphertext || !iv) throw new Error("CHECKOUT_SECRET_NOT_STORED");
+  const key = await importCheckoutKey(version);
+  const clear = await crypto.subtle.decrypt({ name: "AES-GCM", iv: decodeBase64(iv) }, key, decodeBase64(ciphertext));
+  return new TextDecoder().decode(clear);
+}
+
+function safePaymentIntent(intent: Record<string, unknown>) {
+  const {
+    client_secret_ciphertext: _ciphertext,
+    client_secret_iv: _iv,
+    client_secret_key_version: _version,
+    pricing_hash: _pricingHash,
+    idempotency_key: _idempotencyKey,
+    created_by: _createdBy,
+    ...safe
+  } = intent;
+  return safe;
+}
+
+async function recoverExistingCheckout(intent: Record<string, unknown>, requestId: string): Promise<Response> {
+  try {
+    const clientSecret = await decryptCheckoutSecret(intent);
+    const checkoutUrl = "https://accept.paymob.com/unifiedcheckout/?publicKey=" + encodeURIComponent(publicKey) + "&clientSecret=" + encodeURIComponent(clientSecret);
+    return json({ paymentIntent: safePaymentIntent(intent), clientSecret, checkoutUrl, requestId }, 200, requestId);
+  } catch {
+    console.error(JSON.stringify({ requestId, stage: "checkout_secret_recovery_unavailable" }));
+    return json({ error: "CHECKOUT_RECOVERY_UNAVAILABLE", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
+  }
+}
+
+async function persistUnknownProviderCorrelation(intentId: string, providerIntentId: string, providerOrderId: string) {
+  if (!admin || (!providerIntentId && !providerOrderId)) return;
+  await admin.from("subscription_payment_intents").update({
+    ...(providerIntentId ? { provider_intent_id: providerIntentId } : {}),
+    ...(providerOrderId ? { provider_order_id: providerOrderId } : {}),
+    provider_creation_state: "RECONCILIATION_REQUIRED",
+    updated_at: new Date().toISOString(),
+  }).eq("id", intentId).eq("status", "PENDING").eq("provider_creation_state", "CLAIMED")
+    .is("provider_intent_id", null).is("provider_order_id", null);
+}
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
 const maxBodyBytes = 24000;
 const admin = url && serviceRole ? createClient(url, serviceRole, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
@@ -39,6 +108,11 @@ Deno.serve(async req => {
     if (!secretKey || !publicKey || !integrationId || !Number.isSafeInteger(Number(integrationId)) || Number(integrationId) <= 0) {
       return json({ error: "PAYMENT_PROVIDER_NOT_CONFIGURED" }, 503, requestId);
     }
+    try {
+      await importCheckoutKey(checkoutKeyVersion);
+    } catch {
+      return json({ error: "PAYMENT_CHECKOUT_ENCRYPTION_NOT_CONFIGURED" }, 503, requestId);
+    }
 
     const body = await req.json().catch(() => null) as Record<string, unknown> | null;
     if (!body || Array.isArray(body) || typeof body !== "object") return json({ error: "INVALID_JSON" }, 400, requestId);
@@ -70,8 +144,11 @@ Deno.serve(async req => {
       return json({ error: code.includes("SUBSCRIPTION_FORBIDDEN") ? "SUBSCRIPTION_FORBIDDEN" : "SUBSCRIPTION_PAYMENT_INTENT_REJECTED", requestId }, status, requestId);
     }
 
-    if (intent.status === "SUCCEEDED" || (["PENDING", "PAID_PENDING_LEGAL"].includes(String(intent.status)) && intent.provider_order_id && intent.provider_intent_id)) {
-      return json({ paymentIntent: intent, requestId }, 200, requestId);
+    if (intent.status === "SUCCEEDED" || intent.status === "PAID_PENDING_LEGAL") {
+      return json({ paymentIntent: safePaymentIntent(intent), requestId }, 200, requestId);
+    }
+    if (intent.status === "PENDING" && intent.provider_order_id && intent.provider_intent_id) {
+      return await recoverExistingCheckout(intent as Record<string, unknown>, requestId);
     }
     if (intent.status === "PENDING" && (!intent.provider_order_id || !intent.provider_intent_id)) {
       return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
@@ -106,8 +183,11 @@ Deno.serve(async req => {
       if (claimData.outcome_unknown === true || (claimedIntent?.status === "PENDING" && (!claimedIntent.provider_order_id || !claimedIntent.provider_intent_id))) {
         return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
       }
-      if (claimedIntent?.status === "SUCCEEDED" || (["PENDING", "PAID_PENDING_LEGAL"].includes(String(claimedIntent?.status)) && claimedIntent?.provider_order_id && claimedIntent?.provider_intent_id)) {
-        return json({ paymentIntent: claimedIntent, requestId }, 200, requestId);
+      if (claimedIntent?.status === "SUCCEEDED" || claimedIntent?.status === "PAID_PENDING_LEGAL") {
+        return json({ paymentIntent: safePaymentIntent(claimedIntent), requestId }, 200, requestId);
+      }
+      if (claimedIntent?.status === "PENDING" && claimedIntent?.provider_order_id && claimedIntent?.provider_intent_id) {
+        return await recoverExistingCheckout(claimedIntent, requestId);
       }
       return json({ error: "SUBSCRIPTION_INTENT_NOT_RETRYABLE", paymentIntentId: intent.id, status: claimedIntent?.status ?? intent.status, requestId }, 409, requestId);
     }
@@ -142,12 +222,22 @@ Deno.serve(async req => {
     const providerOrderId = String(paymob.intention_order_id ?? paymob.order_id ?? "");
     const clientSecret = String(paymob.client_secret ?? "");
     if (!providerIntentId || !providerOrderId || !clientSecret) {
+      await persistUnknownProviderCorrelation(String(intent.id), providerIntentId, providerOrderId);
       console.error(JSON.stringify({ requestId, stage: "paymob_intention_correlation_unknown" }));
       return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
     }
 
+    let encryptedSecret: { client_secret_ciphertext: string; client_secret_iv: string; client_secret_key_version: string };
+    try {
+      encryptedSecret = await encryptCheckoutSecret(clientSecret);
+    } catch {
+      await persistUnknownProviderCorrelation(String(intent.id), providerIntentId, providerOrderId);
+      console.error(JSON.stringify({ requestId, stage: "checkout_secret_encryption_failed" }));
+      return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
+    }
+
     const { data: updated, error: updateError } = await admin.from("subscription_payment_intents")
-      .update({ status: "PENDING", provider_intent_id: providerIntentId, provider_order_id: providerOrderId, provider_creation_state: "CORRELATED", updated_at: new Date().toISOString() })
+      .update({ status: "PENDING", provider_intent_id: providerIntentId, provider_order_id: providerOrderId, provider_creation_state: "CORRELATED", ...encryptedSecret, updated_at: new Date().toISOString() })
       .eq("id", intent.id).eq("status", "PENDING").eq("provider_creation_state", "CLAIMED").is("provider_intent_id", null).is("provider_order_id", null)
       .select().maybeSingle();
     if (updateError || !updated) {
@@ -156,7 +246,7 @@ Deno.serve(async req => {
     }
 
     const checkoutUrl = `https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(publicKey)}&clientSecret=${encodeURIComponent(clientSecret)}`;
-    return json({ paymentIntent: updated, clientSecret, checkoutUrl, requestId }, 200, requestId);
+    return json({ paymentIntent: safePaymentIntent(updated as Record<string, unknown>), clientSecret, checkoutUrl, requestId }, 200, requestId);
   } catch {
     console.error(JSON.stringify({ requestId, stage: "unhandled" }));
     return json({ error: "SUBSCRIPTION_PAYMENT_FAILED", requestId }, 500, requestId);
