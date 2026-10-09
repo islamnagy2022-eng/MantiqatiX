@@ -19,12 +19,12 @@ begin
     raise exception 'AUTH_REQUIRED' using errcode = '28000';
   end if;
 
-  if coalesce(pg_catalog.length(pg_catalog.bpg_catalog.btrim(p_endpoint)), 0) < 20 then
+  if coalesce(pg_catalog.length(pg_catalog.btrim(p_endpoint)), 0) < 20 then
     raise exception 'INVALID_ENDPOINT' using errcode = '22023';
   end if;
 
-  if coalesce(pg_catalog.length(pg_catalog.bpg_catalog.btrim(p_p256dh)), 0) < 20
-     or coalesce(pg_catalog.length(pg_catalog.bpg_catalog.btrim(p_auth)), 0) < 10 then
+  if coalesce(pg_catalog.length(pg_catalog.btrim(p_p256dh)), 0) < 20
+     or coalesce(pg_catalog.length(pg_catalog.btrim(p_auth)), 0) < 10 then
     raise exception 'INVALID_SUBSCRIPTION_KEYS' using errcode = '22023';
   end if;
 
