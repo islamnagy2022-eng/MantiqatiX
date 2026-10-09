@@ -484,3 +484,23 @@ This status is intentional and must remain until the open gates above are indepe
 - Important: GitHub commits for RC393 exist on `main`, but no new GitHub Actions run/status was returned for the RC393 commits at verification time; therefore production Pages deployment is NOT VERIFIED yet.
 
 - RC394: removed legacy emoji-style UI icons, added neutral CSS icon system, and advanced homepage cache to rc394. Production deployment remains NOT VERIFIED until a GitHub Pages workflow run is observed.
+
+
+## Session checkpoint — 2026-10-09 — Restaurant membership/table-state hardening
+
+- Baseline inspected: `main` at `f1f653d2112124dda85cc717d47127e03e1af541` (latest commit visible in repository history at checkpoint time).
+- Working branch: `fix/restaurant-membership-table-state-20261009`.
+- Pull request: #85 — `https://github.com/islamnagy2022-eng/MantiqatiX/pull/85`; OPEN, NOT MERGED. PR #84 was not merged or modified.
+- Source reviewed: `web/restaurant-module.js`, `web/app.js`, `scripts/validate-restaurant-rbac-contract.mjs`, `docs/PROJECT_CONTINUITY.md`, `docs/MASTER_PRODUCTION_TODO.md`, and `docs/RC337_CURRENT_SECURITY_RELEASE_GATE.md`.
+- Changes proposed on the working branch:
+  1. Membership selection resolves only against ACTIVE rows belonging to the authenticated user.
+  2. If no selector exists, automatic selection is permitted only when exactly one ACTIVE membership exists; multiple memberships fail closed.
+  3. Invalid/stale saved membership selection and membership query errors render explicit failure states.
+  4. Restaurant table edit modal preselects the row's current state rather than defaulting to EMPTY.
+  5. Static contract assertions were added for the above regressions.
+- Source-level checks executed against the branch content: membership ownership/status guard, ambiguity/invalid-selection fail-closed behavior, visible error state, all five table statuses preserving current selection, and existing CRM/support RBAC assertions. These checks passed after correcting the local inspection expression. This is **not** equivalent to running the Node validator, browser E2E, or authenticated production tests.
+- GitHub Actions/workflow-run connector returned no workflow runs and no commit status entries for PR head `bbc69395079fc75df680a02ce4c88e9b0c642f74` at this checkpoint. CI status: **NOT VERIFIED**.
+- No production database writes, migrations, Edge Function deployments, payment/refund/settlement transactions, or production data mutations were performed.
+- Restaurant module remains **PARTIAL / NOT VERIFIED**. Still required: confirm current branch/tenant scope in all mutation paths; review direct client writes for table and inventory lifecycle invariants; verify canonical catalog/order/status APIs; authenticated owner/manager/provider E2E; cross-tenant and cross-branch denial; concurrency/idempotency; kitchen/table/order synchronization; and regression/runtime tests.
+- Main production release gate remains **OPEN**. The master TODO still requires independent authenticated multi-tenant tests, customer→provider→order→status→notification E2E, Paymob/payment and settlement E2E, managed leaked-password protection, release-device tests, and backup/restore/rollback evidence.
+- Next step: obtain CI evidence for PR #85 and review the complete restaurant mutation boundary before further code changes. Keep PR unmerged until tests and review establish safety. Then continue the first still-open P0 item in `docs/MASTER_PRODUCTION_TODO.md` using the current source as authority.
