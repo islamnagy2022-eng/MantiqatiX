@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
 
   const customerName = String(body.customerName).trim();
   const customerPhone = String(body.customerPhone).trim();
-  const phoneDigits = customerPhone.replace(/\\D/g, "");
+  const phoneDigits = customerPhone.replace(/\D/g, "");
   const deliveryAddress = String(body.deliveryAddress ?? "").trim();
   const orderMetadata = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
     ? body.metadata
