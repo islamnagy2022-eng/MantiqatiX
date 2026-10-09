@@ -71,6 +71,36 @@ begin
   end;
   if not rejected then raise exception 'NULL status was not rejected'; end if;
 
+  -- Correct order ID is not enough: amount and currency must also match the stored order.
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      order_one,'paymob:tx-wrong-amount','TRANSACTION','SUCCEEDED',true,126.00,'EGP',
+      'tx-wrong-amount','paymob-order-one','{}'::jsonb
+    );
+    raise exception 'TEST_FAILED: wrong amount unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'wrong amount was not rejected'; end if;
+
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      order_one,'paymob:tx-wrong-currency','TRANSACTION','SUCCEEDED',true,125.00,'USD',
+      'tx-wrong-currency','paymob-order-one','{}'::jsonb
+    );
+    raise exception 'TEST_FAILED: wrong currency unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'wrong currency was not rejected'; end if;
+  if exists(select 1 from public.digital_page_payment_events where external_event_id in ('paymob:tx-wrong-amount','paymob:tx-wrong-currency')) then
+    raise exception 'amount/currency mismatch persisted a payment event';
+  end if;
+
   -- Correct order + amount/currency + event ID transitions atomically.
   result := public.process_verified_digital_page_payment_backend(
     order_one,'paymob:tx-one','TRANSACTION','SUCCEEDED',true,125.00,'EGP',
