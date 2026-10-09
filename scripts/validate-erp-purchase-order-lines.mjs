@@ -3,7 +3,7 @@ const migration=fs.readFileSync("supabase/migrations/20261009230000_rc437_purcha
 const edge=fs.readFileSync("supabase/functions/erp-purchase-receive/index.ts","utf8");
 const linesEdge=fs.readFileSync("supabase/functions/erp-purchase-order-lines/index.ts","utf8");
 const createEdge=fs.readFileSync("supabase/functions/erp-purchase-order-create/index.ts","utf8");
-const createEdge=fs.readFileSync("supabase/functions/erp-purchase-order-create/index.ts","utf8");
+
 const ui=fs.readFileSync("web/app.js","utf8");
 const integration=fs.readFileSync("supabase/tests/rc437_purchase_order_lines_integration.sql","utf8");
 const checks=[];
