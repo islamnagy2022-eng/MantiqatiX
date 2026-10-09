@@ -1556,3 +1556,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - No production migration was applied by this change and no real payment or production financial mutation was performed.
 - Required next gates: PR CI success; reviewed migration application to production; post-deploy live privilege/function checks; signed Paymob sandbox callback tests for success/failure/replay/amount mismatch/concurrent duplicate; then owner-authorized production payment E2E.
 - Final Production Gate remains **OPEN / NOT PRODUCTION READY YET** until all P0 runtime, security-setting, financial, and release-device evidence is collected.
+
+
+## RC426 — Paymob signed order correlation — 2026-10-09
+- **Status: SOURCE-ONLY / PR REVIEW REQUIRED.**
+- Hardened normal orders, subscriptions, digital-page orders, and MantiGo so a signed Paymob `order.id` must match the provider order ID persisted when checkout intent was created.
+- Normal and MantiGo checkout now fail closed if Paymob does not return a provider order ID; digital-page finalization persists the ID through a new authenticated, ownership-bound RPC signature.
+- Digital-page atomic payment RPC rejects provider-order mismatches; MantiGo RPC additionally binds merchant reference and signed provider order to the ledger and stored intention metadata.
+- Added a dedicated CI contract validator and P0 production-source checks.
+- No Supabase branch was created, no production migration/function was applied or deployed, and no real payment was attempted.
+- Outstanding: CI green on the final head, review migration order and existing pending payment compatibility, apply only through a separately approved rollout, and run signed Paymob sandbox cases including cross-order tampering and concurrent replay.
