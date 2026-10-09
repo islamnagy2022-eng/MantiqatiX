@@ -14,6 +14,10 @@ const workflow = read(".github/workflows/pages.yml");
 const checks = [
   ["HMAC covers Paymob order.id", webhook.includes("order.id") && webhook.includes("obj.owner")],
   ["Normal checkout persists provider order ID", orderPayment.includes("provider_order_id: providerOrderId") && orderPayment.includes("!providerOrderId")],
+  ["Normal Paymob network ambiguity preserves the active intent for reconciliation", orderPayment.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN") && orderPayment.includes("outcome: \"UNKNOWN\"") && orderPayment.includes("Keep the DB intent active")],
+  ["Normal Paymob checkout marks an intent FAILED only after explicit HTTP 4xx rejection", orderPayment.includes("response.status >= 400 && response.status < 500") && orderPayment.includes("PAYMENT_PROVIDER_REJECTED") && orderPayment.includes("persist_definitive_provider_rejection")],
+  ["Normal Paymob 5xx or incomplete responses do not release the active intent", orderPayment.includes("HTTP 5xx, malformed JSON, or missing provider identifiers are ambiguous") && orderPayment.includes("reconciliationRequired: true") && !orderPayment.includes("if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId) {\\n    await admin.from(\"payment_intents\").update({ status: \"FAILED\"")],
+  ["Normal provider-intent persistence checks the state transition and affected row", orderPayment.includes('.eq("status", "CREATED").is("provider_intent_id", null)') && orderPayment.includes('.select("id").maybeSingle()') && orderPayment.includes("PAYMENT_INTENT_PERSISTENCE_UNKNOWN")],
   ["Normal webhook binds intent to signed provider order", webhook.includes("PAYMENT_PROVIDER_ORDER_MISMATCH") && webhook.includes('eq("provider_order_id",paymobOrderId)')],
   ["Normal webhook rejects a mismatched merchant reference", webhook.includes("PAYMENT_MERCHANT_REFERENCE_MISMATCH")],
   ["Subscription webhook rejects a mismatched merchant reference", webhook.includes("SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH")],
