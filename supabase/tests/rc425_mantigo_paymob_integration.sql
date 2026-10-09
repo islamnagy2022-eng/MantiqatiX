@@ -6,6 +6,7 @@ declare
   v_ledger public.mantigo_financial_ledger%rowtype;
   v_notifications integer;
   v_events integer;
+  v_status text;
 begin
   if has_function_privilege('anon','public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)','EXECUTE') then
     raise exception 'anon must not execute MantiGo payment processor';
@@ -107,8 +108,8 @@ begin
   end;
 
   select count(*) into v_events from public.mantigo_payment_provider_events where ledger_id='ledger-binding';
-  select payment_status into v_ledger.payment_status from public.mantigo_financial_ledger where id='ledger-binding';
-  if v_events <> 0 or v_ledger.payment_status <> 'PENDING' then
+  select payment_status into v_status from public.mantigo_financial_ledger where id='ledger-binding';
+  if v_events <> 0 or v_status <> 'PENDING' then
     raise exception 'rejected callback mutated event ledger or payment state';
   end if;
 
