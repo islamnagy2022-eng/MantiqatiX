@@ -142,7 +142,7 @@ try{
    }catch(_){}
  }
  const savedId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
- const active=live.memberships.find(m=>m.id===savedId)||live.memberships[0];
+ const active=savedId?live.memberships.find(m=>m.id===savedId):live.memberships[0];
  if(active){window.MNTYActiveMembershipId=active.id;localStorage.setItem('MNTYActiveMembershipId',active.id);}
  live.activeMembershipId=active?.id||null;
  live.role=String(active?.role||'CUSTOMER').toUpperCase();
