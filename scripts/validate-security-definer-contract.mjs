@@ -98,6 +98,9 @@ if(!currentWorkflow.includes('node scripts/validate-rbac-contract.mjs')){
   throw new Error('RBAC validation is not wired into production CI.');
 }
 
+const rc440=fs.readFileSync('supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql','utf8');
+if(!rc440.includes("pg_catalog.format('%I.%I(%s)'")) throw new Error('RC440 must schema-qualify dynamic ALTER FUNCTION targets.');
+if(!rc440.includes("cfg='search_path=public'")||!rc440.includes("has_function_privilege('anon'")||!rc440.includes("has_function_privilege('authenticated'")) throw new Error('RC440 must remain limited to exposed SECURITY DEFINER functions.');
 const rc436=fs.readFileSync('supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql','utf8');
 const rc437=fs.readFileSync('supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql','utf8');
 const rc438=fs.readFileSync('supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql','utf8');
