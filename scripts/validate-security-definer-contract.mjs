@@ -98,4 +98,22 @@ if(!currentWorkflow.includes('node scripts/validate-rbac-contract.mjs')){
   throw new Error('RBAC validation is not wired into production CI.');
 }
 
+const rc436=fs.readFileSync('supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql','utf8');
+const rc437=fs.readFileSync('supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql','utf8');
+const rc438=fs.readFileSync('supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql','utf8');
+for(const [name,source,markers] of [
+  ['RC436 atomic financial journal',rc436,['set search_path = \'\'','revoke all on function public.post_financial_journal_atomic_backend(uuid,jsonb,jsonb) from public,anon,authenticated','to service_role']],
+  ['RC437 line-aware purchase receipt',rc437,['set search_path = \'\'','PRODUCT_NOT_IN_PURCHASE_ORDER','PURCHASE_ORDER_QUANTITY_EXCEEDED','from public,anon,authenticated,service_role']],
+  ['RC438 actor-bound order creation',rc438,['set search_path = \'\'','p_actor_user_id uuid','revoke all on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid) from public,anon,authenticated','to service_role']]
+]){
+  for(const marker of markers){
+    if(!source.includes(marker)) throw new Error(name+' security marker missing: '+marker);
+  }
+}
+const auditRunbook='docs/runbooks/SECURITY_DEFINER_RLS_AUDIT.sql';
+if(!fs.existsSync(auditRunbook)) throw new Error('Read-only SECURITY DEFINER/RLS audit runbook is missing.');
+for(const marker of ['has_function_privilege','relrowsecurity','pg_policies','role_table_grants']){
+  if(!fs.readFileSync(auditRunbook,'utf8').includes(marker)) throw new Error('Security audit runbook marker missing: '+marker);
+}
+
 console.log('RC340 SECURITY DEFINER/RBAC release contract: PASS');
