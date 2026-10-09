@@ -5,10 +5,10 @@ const migration=fs.readFileSync("supabase/migrations/20261009210000_rc435_subscr
 const integration=fs.readFileSync("supabase/tests/rc435_subscription_intent_integration.sql","utf8");
 const checks=[];
 function check(name,ok){checks.push({name,ok:Boolean(ok)});if(!ok)console.error("FAIL "+name);}
-check("subscription provider claim occurs before Paymob network call",edge.indexOf("claim_subscription_provider_intent_creation_backend")>=0&&edge.indexOf("claim_subscription_provider_intent_creation_backend")<edge.indexOf('fetch("https://accept.paymob.com/v1/intention/")'));
+check("subscription provider claim occurs before Paymob network call",edge.indexOf('admin.rpc("claim_subscription_provider_intent_creation_backend"')>=0&&edge.indexOf('admin.rpc("claim_subscription_provider_intent_creation_backend"')<edge.indexOf('fetch("https://accept.paymob.com/v1/intention/")'));
 check("provider request has bounded timeout",edge.includes("AbortSignal.timeout(15000)"));
 check("uncorrelated PENDING intent fails closed",edge.includes('intent.status === "PENDING" && (!intent.provider_order_id || !intent.provider_intent_id)')&&edge.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"));
-check("provider correlation persistence is conditional",edge.includes('.eq("status", "PENDING").is("provider_intent_id", null).is("provider_order_id", null)'));
+check("provider correlation persistence is conditional",edge.includes('.eq("status", "PENDING").eq("provider_creation_state", "CLAIMED").is("provider_intent_id", null).is("provider_order_id", null)'));
 check("unknown provider result is not retried automatically",edge.includes("reconciliation_required: true")&&migration.includes("must be reconciled, not retried"));
 check("claim RPC serializes and locks the intent",migration.includes("for update")&&migration.includes("set status='PENDING'"));
 check("new intent creation uses explicit READY state",edge.includes("create_subscription_payment_intent_claimable_backend")&&migration.includes("provider_creation_state"));
