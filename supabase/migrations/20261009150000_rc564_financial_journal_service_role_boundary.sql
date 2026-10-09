@@ -14,7 +14,7 @@ declare
   v_total_debit numeric := coalesce((p_entry->>'total_debit')::numeric,0);
   v_total_credit numeric := coalesce((p_entry->>'total_credit')::numeric,0);
   v_line jsonb; v_line_count int := 0; v_line_debit numeric := 0; v_line_credit numeric := 0;
-  v_account varchar; v_role text;
+  v_account varchar; v_role text; v_insert_line_no int := 0;
 begin
   if p_user_id is null or (coalesce(auth.role(),'') <> 'service_role' and p_user_id <> auth.uid()) then raise exception 'USER_CONTEXT_MISMATCH'; end if;
   if v_tenant is null or v_tenant='' then raise exception 'TENANT_REQUIRED'; end if;
@@ -37,8 +37,9 @@ begin
   values(v_id,v_tenant,nullif(p_entry->>'organization_id',''),nullif(p_entry->>'business_id','')::uuid,nullif(p_entry->>'branch_id',''),coalesce(p_entry->>'entry_number',v_id),p_entry->>'reference_type',p_entry->>'reference_id',coalesce(p_entry->>'description',''),'POSTED',v_total_debit,v_total_credit,coalesce((p_entry->>'entry_date')::date,current_date),now(),p_user_id)
   on conflict(id) do nothing;
   for v_line in select * from jsonb_array_elements(p_lines) loop
+    v_insert_line_no := v_insert_line_no + 1;
     insert into public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-    values(coalesce(v_line->>'id',gen_random_uuid()::text),v_id,v_line->>'account_id',coalesce((v_line->>'line_number')::int,v_line_count+1),coalesce((v_line->>'debit')::numeric,0),coalesce((v_line->>'credit')::numeric,0),v_line->>'description')
+    values(coalesce(v_line->>'id',gen_random_uuid()::text),v_id,v_line->>'account_id',coalesce((v_line->>'line_number')::int,v_insert_line_no),coalesce((v_line->>'debit')::numeric,0),coalesce((v_line->>'credit')::numeric,0),v_line->>'description')
     on conflict(id) do nothing;
   end loop;
   insert into public.general_ledger(id,tenant_id,business_id,journal_entry_id,journal_line_id,account_id,debit,credit,running_balance,entry_date,posted_at)
