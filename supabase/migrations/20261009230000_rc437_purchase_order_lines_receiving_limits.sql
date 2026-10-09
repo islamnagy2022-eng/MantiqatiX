@@ -18,6 +18,18 @@ create table if not exists public.erp_purchase_order_lines (
   unique (purchase_order_id,product_id)
 );
 
+do $order_number_guard$
+begin
+  if exists (
+    select 1 from public.erp_purchase_orders
+    group by business_id,order_number having count(*)>1
+  ) then raise exception 'RC437 blocked: duplicate order numbers per business require reconciliation'; end if;
+end;
+$order_number_guard$;
+
+create unique index if not exists erp_purchase_orders_business_order_number_uidx
+  on public.erp_purchase_orders(business_id,order_number);
+
 create index if not exists erp_purchase_order_lines_scope_idx
   on public.erp_purchase_order_lines(tenant_id,business_id,purchase_order_id);
 
