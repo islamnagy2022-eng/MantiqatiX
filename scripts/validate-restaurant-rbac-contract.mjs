@@ -20,6 +20,8 @@ assert.match(app, /function canManageSupport\(\)\s*\{\s*return window\.MNTY_RBAC
 const restaurant = fs.readFileSync('web/restaurant-module.js', 'utf8');
 assert.match(restaurant, /ACTIVE_MEMBERSHIP_SELECTION_REQUIRED/, 'multiple active memberships require explicit selection');
 assert.match(restaurant, /ACTIVE_MEMBERSHIP_SELECTION_INVALID/, 'stale or invalid saved membership selection must fail closed');
+assert.match(restaurant, /\.eq\('id',saved\)\.eq\('user_id',user\.id\)\.eq\('status','ACTIVE'\)\.maybeSingle\(\)/, 'saved membership selection must be checked by ID, authenticated owner, and ACTIVE status');
+assert.match(restaurant, /\.eq\('user_id',user\.id\)\.eq\('status','ACTIVE'\)\.limit\(2\)/, 'ambiguous membership detection must not depend on an arbitrary first-row choice');
 assert.match(restaurant, /if\(!scope\(\)\)\{state\.error='العضوية النشطة لا تحدد منشأة وفرعًا صالحين/, 'restaurant module must fail closed when tenant/business/branch scope is missing');
 assert.match(restaurant, /تعذر التحقق من العضوية التشغيلية/, 'membership lookup failures must render an explicit error state');
 assert.match(restaurant, /if\(active\.length===1\)return active\[0\]/, 'only one active membership may be auto-selected');
