@@ -25,6 +25,7 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/module-blueprints.js
+          node --check web/smm.js
       - name: Module runtime contract
         run: |
           grep -q "window.MNTYModuleRuntime" web/app.js
