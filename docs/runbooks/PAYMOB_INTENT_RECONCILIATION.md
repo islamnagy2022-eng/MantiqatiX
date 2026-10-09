@@ -8,7 +8,10 @@ Use this procedure when checkout returns one of these errors or an intention req
 
 - `PAYMENT_INTENT_REQUIRES_RESTART`
 - `PAYMENT_INTENT_PERSISTENCE_FAILED`
-- `PAYMENT_PROVIDER_REJECTED_INTENT` after an unclear provider response
+- `PAYMENT_PROVIDER_OUTCOME_UNKNOWN`
+- `PAYMENT_INTENT_PERSISTENCE_UNKNOWN`
+- `PAYMENT_PROVIDER_CORRELATION_PENDING`
+- `SUBSCRIPTION_PROVIDER_CORRELATION_PENDING`
 - `DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING`
 - a verified callback repeatedly returns a retryable 5xx response
 
@@ -22,9 +25,9 @@ Use this procedure when checkout returns one of these errors or an intention req
 
 ## Reconciliation steps
 
-1. **Identify the affected record.** Locate the digital-page order ID or MantiGo ledger ID and capture its current payment status, provider fields, metadata claim marker, amount, and currency using read-only access.
+1. **Identify the affected record.** Locate the normal `payment_intents` row, subscription payment intent, digital-page order, or MantiGo ledger row. Capture its current payment status, provider fields, metadata claim marker where applicable, amount, and currency using read-only access.
 2. **Inspect Paymob.** Search the provider dashboard/API using the merchant reference (`special_reference`), amount, currency, and approximate creation time. Do not search by customer name alone.
-3. **If an intention exists:** compare the provider intention ID and provider order ID with the application record. If the callback arrived before persistence, confirm the provider's delivery/retry history and whether a verified callback has been accepted. Escalate any mismatch; do not overwrite the stored correlation.
+3. **If an intention exists:** compare the provider intention ID and provider order ID with the application record. If the callback arrived before persistence, the webhook returns retryable HTTP 503 for recognized normal, subscription, and digital-page correlation gaps; confirm Paymob's delivery/retry history and whether a verified callback has been accepted. Escalate any mismatch; do not overwrite the stored correlation.
 4. **If a transaction exists:** validate its final provider status and match transaction ID, merchant reference, provider order ID, amount, and currency. Use the normal signed webhook/replay path where possible. If manual repair is required, obtain separate financial-owner approval and use an audited, reviewed procedure.
 5. **If no intention exists:** retain evidence that the provider confirms no intention was created. Only then may an authorized operator approve a claim recovery or new attempt through a reviewed, conditional procedure. Do not improvise an UPDATE in the production console.
 6. **Verify completion read-only.** Confirm the provider event is recorded once, the payment status matches the provider's final status, any required notification exists, and no second active intention was created.
