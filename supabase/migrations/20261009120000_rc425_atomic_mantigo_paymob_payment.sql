@@ -51,7 +51,7 @@ begin
   if nullif(trim(p_provider_transaction_id), '') is null then
     raise exception 'MANTIGO_PAYMENT_TRANSACTION_ID_REQUIRED';
   end if;
-  if p_external_event_id <> 'paymob:' || p_provider_transaction_id then
+  if p_external_event_id <> ('paymob:' || p_provider_transaction_id) then
     raise exception 'MANTIGO_PAYMENT_EVENT_TRANSACTION_MISMATCH';
   end if;
   if p_raw_payload->>'provider' is distinct from 'PAYMOB'
