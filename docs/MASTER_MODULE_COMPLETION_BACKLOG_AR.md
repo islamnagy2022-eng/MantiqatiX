@@ -5,7 +5,7 @@
 **المستودع:** `islamnagy2022-eng/MantiqatiX`  
 **مرجع الحواجز الإنتاجية:** [MASTER_PRODUCTION_TODO.md](./MASTER_PRODUCTION_TODO.md) و[MASTER_PRODUCTION_BACKLOG_AR.md](./MASTER_PRODUCTION_BACKLOG_AR.md).
 
-## تعريف الحالات
+## دليل الحالة الحالي\n- **Edge Function source parity:** فُحصت 16 دالة إنتاجية محددة قراءةً فقط، وتطابق ملف `index.ts` في المستودع مع المصدر المنشور حرفيًا في 16/16 حالة. الدليل: [DEPLOYED_EDGE_FUNCTION_SOURCE_PARITY_20261009.md](./source-recovery/DEPLOYED_EDGE_FUNCTION_SOURCE_PARITY_20261009.md). هذا يغلق انجراف المصدر لهذه القائمة فقط؛ لا يغلق اختبارات السلوك أو E2E أو إطلاق الإنتاج.\n\n## تعريف الحالات
 
 - `TODO`: لم ينفذ.
 - `IN_PROGRESS`: قيد التنفيذ.
