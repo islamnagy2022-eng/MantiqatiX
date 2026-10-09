@@ -23,6 +23,14 @@ begin
   lines:=pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',product,'quantity',10,'unit_cost',600));
 
   perform set_config('request.jwt.claim.sub',actor::text,true);
+  insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id,order_number,supplier_id,total_amount,tax_amount,discount_amount,status,reason,created_by)
+  values('purchase-order-legacy','tenant-a',business,'branch-a','PO-LEGACY','supplier-a',0,2,1,'DRAFT','legacy draft',actor);
+  result:=public.set_purchase_order_lines_backend('purchase-order-legacy','tenant-a',business,
+    pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('product_id',other_product,'ordered_quantity',2,'unit_cost',10,'description','legacy line')),actor);
+  if (result->>'line_count')::integer<>1 then raise exception 'legacy draft line replacement failed'; end if;
+  if (select total_amount from public.erp_purchase_orders where id='purchase-order-legacy')<>21 then
+    raise exception 'legacy draft total must be recalculated from line subtotal, tax and discount';
+  end if;
   result:=public.create_purchase_order_with_lines_backend(order_id,'tenant-a',business,'branch-a','PO-437-001','supplier-a',0,0,'test purchase',lines,actor);
   if result->>'success'<>'true' or result->>'idempotent'<>'false' then raise exception 'purchase order should be created with line items'; end if;
   if (result->'order'->>'total_amount')::numeric<>6000 then raise exception 'server must calculate order total from lines'; end if;
