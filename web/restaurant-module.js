@@ -226,7 +226,7 @@ function modal(title,html,onSave,onCancel){
  let saving=false;const save=o.querySelector('[data-save]');save?.addEventListener('click',async()=>{if(saving)return;saving=true;if(save)save.disabled=true;try{await onSave(o)}catch(e){notify('تعذر إتمام العملية: '+(e?.message||'خطأ غير متوقع'),'error')}finally{if(o.isConnected){saving=false;if(save)save.disabled=false}}});
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
-function updateOrder(id,status){
+async function updateOrder(id,status){
  if(!canOperate('ORDERS','update'))return notify('لا تملك صلاحية تحديث الطلبات.','error');
  const m=scope(); if(!m)return notify('لا يوجد نطاق نشاط/فرع نشط.');
  try{
