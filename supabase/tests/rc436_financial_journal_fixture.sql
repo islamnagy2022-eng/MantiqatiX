@@ -1,3 +1,4 @@
+create table public.businesses (id uuid primary key,tenant_id varchar not null,status varchar not null);
 -- Disposable fixture for RC436 financial journal integration tests.
 create table public.user_memberships (
   id varchar primary key,
