@@ -63,6 +63,9 @@ begin
   if p_raw_payload is null
      or p_raw_payload->>'provider' is distinct from 'PAYMOB'
      or p_raw_payload->>'transaction_id' is distinct from p_provider_transaction_id
+     or p_raw_payload->>'merchant_order_id' is distinct from p_ledger_id
+     or nullif(trim(coalesce(p_raw_payload->>'provider_order_id', '')), '') is null
+     or p_raw_payload->>'provider_order_id' is distinct from coalesce((select metadata->>'paymob_intention_order_id' from public.mantigo_financial_ledger where id=p_ledger_id), '')
      or p_raw_payload->>'currency' is distinct from upper(p_currency)
      or p_raw_payload->>'success' is distinct from (p_status = 'PAID')::text then
     raise exception 'MANTIGO_PAYMENT_PAYLOAD_BINDING_MISMATCH';
