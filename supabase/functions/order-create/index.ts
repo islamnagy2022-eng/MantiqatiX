@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
   const orderMetadata = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
     ? body.metadata
     : {};
-  const orderType = orderMetadata.order_type == null ? null : String(orderMetadata.order_type).toUpperCase();
+  const orderType = orderMetadata.order_type == null ? "DELIVERY" : String(orderMetadata.order_type).toUpperCase();
   if (!customerName || customerName.length > 200) return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
   if (phoneDigits.length < 7 || phoneDigits.length > 15) return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
   if (orderType && !["TAKEAWAY", "DELIVERY"].includes(orderType)) return json({ error: "INVALID_ORDER_TYPE" }, 400);
