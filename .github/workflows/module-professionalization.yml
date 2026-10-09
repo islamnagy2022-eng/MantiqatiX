@@ -36,13 +36,15 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
-          docker cp supabase/tests/rc434_erp_receiving_fixture.sql "$pg_container:/tmp/rc437_fixture.sql"
+          docker cp supabase/tests/rc437_purchase_order_lines_fixture.sql "$pg_container:/tmp/rc437_fixture.sql"
           docker cp supabase/migrations/20261009200000_rc434_atomic_erp_purchase_receiving.sql "$pg_container:/tmp/rc434_migration.sql"
           docker cp supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql "$pg_container:/tmp/rc437_migration.sql"
+          docker cp supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql "$pg_container:/tmp/rc438_migration.sql"
           docker cp supabase/tests/rc437_purchase_order_lines_integration.sql "$pg_container:/tmp/rc437_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc437_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc434_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc437_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc438_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc437_test.sql
 
   financial-journal-integration:
