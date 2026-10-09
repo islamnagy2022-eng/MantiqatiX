@@ -20,10 +20,11 @@ async function importCheckoutKey(version: string): Promise<CryptoKey> {
   return await crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
 
-async function encryptCheckoutSecret(secret: string) {
+async function encryptCheckoutSecret(secret: string, intentId: string, businessId: string) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await importCheckoutKey(checkoutKeyVersion);
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(secret));
+  const additionalData = new TextEncoder().encode("MantiqatiX:subscription-payment-intent:" + intentId + ":" + businessId);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData }, key, new TextEncoder().encode(secret));
   return {
     client_secret_ciphertext: encodeBase64(new Uint8Array(ciphertext)),
     client_secret_iv: encodeBase64(iv),
@@ -37,7 +38,8 @@ async function decryptCheckoutSecret(intent: Record<string, unknown>): Promise<s
   const iv = String(intent.client_secret_iv ?? "");
   if (!version || !ciphertext || !iv) throw new Error("CHECKOUT_SECRET_NOT_STORED");
   const key = await importCheckoutKey(version);
-  const clear = await crypto.subtle.decrypt({ name: "AES-GCM", iv: decodeBase64(iv) }, key, decodeBase64(ciphertext));
+  const additionalData = new TextEncoder().encode("MantiqatiX:subscription-payment-intent:" + String(intent.id) + ":" + String(intent.business_id));
+  const clear = await crypto.subtle.decrypt({ name: "AES-GCM", iv: decodeBase64(iv), additionalData }, key, decodeBase64(ciphertext));
   return new TextDecoder().decode(clear);
 }
 
@@ -229,7 +231,7 @@ Deno.serve(async req => {
 
     let encryptedSecret: { client_secret_ciphertext: string; client_secret_iv: string; client_secret_key_version: string };
     try {
-      encryptedSecret = await encryptCheckoutSecret(clientSecret);
+      encryptedSecret = await encryptCheckoutSecret(clientSecret, String(intent.id), businessId);
     } catch {
       await persistUnknownProviderCorrelation(String(intent.id), providerIntentId, providerOrderId);
       console.error(JSON.stringify({ requestId, stage: "checkout_secret_encryption_failed" }));
