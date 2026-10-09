@@ -39,6 +39,35 @@ for (const marker of requiredMigration) {
   }
 }
 
+function splitTopLevel(sql) {
+  const parts = [];
+  let start = 0, depth = 0, quote = null;
+  for (let i = 0; i < sql.length; i++) {
+    const ch = sql[i];
+    if (quote) {
+      if (ch === quote && sql[i + 1] === quote) { i++; continue; }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"') { quote = ch; continue; }
+    if (ch === "(") depth++;
+    else if (ch === ")") depth--;
+    else if (ch === "," && depth === 0) { parts.push(sql.slice(start, i).trim()); start = i + 1; }
+  }
+  parts.push(sql.slice(start).trim());
+  return parts;
+}
+const eventInsert = migration.match(/insert into public\\.mantigo_payment_provider_events\\s*\\(([^)]*)\\)\\s*values\\s*\\(([\\s\\S]*?)\\)\\s*on conflict/i);
+if (!eventInsert) throw new Error("Atomic MantiGo event insert statement was not found.");
+const eventColumns = splitTopLevel(eventInsert[1]);
+const eventValues = splitTopLevel(eventInsert[2]);
+if (eventColumns.length !== eventValues.length) {
+  throw new Error(`MantiGo provider event insert column/value mismatch: ${eventColumns.length} columns vs ${eventValues.length} values.`);
+}
+if (/from\\s+public\\.payment_provider_events/i.test(migration)) {
+  throw new Error("MantiGo ledger events must not be read from payment_provider_events.");
+}
+
 const requiredWebhook = [
   'admin.rpc("process_verified_mantigo_payment_backend"',
   "p_ledger_id:mantigo.id",
