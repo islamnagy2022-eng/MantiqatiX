@@ -1,7 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const cors = { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" };
+const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const cors = { "Content-Type": "application/json", "Access-Control-Allow-Origin": allowedOrigin, "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS", "Vary": "Origin" };
 Deno.serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  if (origin && origin !== allowedOrigin) return new Response(JSON.stringify({ error: "ORIGIN_NOT_ALLOWED" }), { status: 403, headers: cors });
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "METHOD_NOT_ALLOWED" }), { status: 405, headers: cors });
   try {
