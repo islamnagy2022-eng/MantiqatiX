@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 const home = fs.readFileSync("web/home.js", "utf8");
 const app = fs.readFileSync("web/app.js", "utf8");
 
-assert.match(home, /const selectedMembershipId=String\(window\.MNTYActiveMembershipId\|\|localStorage\.getItem\('MNTYActiveMembershipId'\)\|\|' '\)\.trim\(\)/);
+assert.match(home, /const selectedMembershipId=String\\(window\\.MNTYActiveMembershipId\\|\\|localStorage\\.getItem\\('MNTYActiveMembershipId'\\)\\|\\|''\\)\\.trim\\(\\)/);
 assert.match(home, /from\('user_memberships'\)\.select\('id,business_id'\)\.eq\('id',selectedMembershipId\)\.eq\('user_id',authUser\.id\)\.eq\('status','ACTIVE'\)\.maybeSingle\(\)/);
 assert.match(home, /from\('marketing_provider_profiles'\)[\s\S]{0,260}\.eq\('business_id',selectedBusinessId\)/);
 assert.match(home, /from\('businesses'\)\.select\('name'\)\.eq\('id',selectedBusinessId\)/);
