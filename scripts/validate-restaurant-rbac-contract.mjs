@@ -64,6 +64,13 @@ assert.doesNotMatch(catalogAdmin, /client\.rpc\(/, 'catalog-admin must not forwa
 assert.match(catalogAdmin, /BRANCH_SCOPED_ROLES/, 'branch-scoped catalog roles must be restricted to their assigned branch');
 assert.match(catalogAdmin, /INVALID_UNIT_PRICE/, 'catalog price input must reject negative or non-finite amounts');
 assert.match(catalogAdmin, /INVALID_TAX_RATE/, 'catalog item tax rate must be bounded and finite');
+assert.match(catalogAdmin, /INVALID_BUSINESS_OR_BRANCH_ID/, 'catalog writes must validate business and branch identifier formats');
+assert.match(catalogAdmin, /INVALID_CATALOG_ITEM_ID/, 'catalog writes must validate item identifier formats');
+const catalogMigration = fs.readFileSync('supabase/migrations/20261009130000_catalog_edge_service_role_boundary.sql', 'utf8');
+assert.match(catalogMigration, /coalesce\(auth\.role\(\),''\) <> 'service_role'/, 'catalog RPC migration must permit trusted service-role execution without forwarding a user JWT');
+assert.match(catalogMigration, /revoke all on function public\.upsert_catalog_item_backend[\s\S]*?from public, anon, authenticated;/i, 'catalog RPCs must remain inaccessible to public/anon/authenticated callers');
+assert.match(catalogMigration, /grant execute on function public\.upsert_catalog_item_backend[\s\S]*?to service_role;/i, 'catalog RPCs must remain service-role-only');
+assert.match(catalogMigration, /for update;/i, 'catalog price version allocation must serialize concurrent updates');
 assert.doesNotMatch(catalogAdmin, /Access-Control-Allow-Origin\": \"\*\"/, 'catalog-admin must not allow wildcard browser CORS');
 assert.match(catalogAdmin, /membershipBranchId === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
