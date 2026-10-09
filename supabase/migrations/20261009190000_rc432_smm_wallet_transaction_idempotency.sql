@@ -201,8 +201,8 @@ begin
 end;
 $function$;
 
--- The legacy four-argument RPC has no idempotency reference; prevent new service-role callers from using it.
-revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated,service_role;
+-- Staged rollout compatibility: keep service_role execution on the legacy four-argument RPC until the new smm-gateway is deployed and smoke-tested. Ordinary client roles remain denied; revoke service_role in a later release after confirming no legacy callers remain.
+revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated;
 revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid) from public,anon,authenticated;
 grant execute on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid) to service_role;
 
