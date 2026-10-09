@@ -132,10 +132,10 @@ begin
     raise exception 'IDEMPOTENCY_CONFLICT';
   end if;
 
-  insert into public.smm_wallets(user_id,balance)
+  insert into public.smm_wallets as wallet(user_id,balance)
   values(p_user,p_amount)
   on conflict(user_id) do update
-    set balance=public.smm_wallets.balance+excluded.balance,updated_at=pg_catalog.now();
+    set balance=wallet.balance+excluded.balance,updated_at=pg_catalog.now();
 
   return true;
 end;
