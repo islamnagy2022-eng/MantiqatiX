@@ -615,3 +615,14 @@ This status is intentional and must remain until the open gates above are indepe
 - GitHub Actions for code commit `9750dc606abd3ed59ab2a7f6fb8d4a72c46ff4e7`: Module Professionalization Validation run 37933712857 SUCCESS; Backend-only Module Boundary run 37933713040 SUCCESS; Pages workflow run 37933712978 SUCCESS, with the `deploy` job SKIPPED because PR #86 remains unmerged.
 - Live Supabase was re-read: `catalog-admin` is still deployed version 3 with wildcard CORS and the old JWT-forwarding RPC path; `order-create` is still deployed version 6 with the previous membership/catalog validation. Neither updated source nor migration has reached production.
 - Current production gate remains BLOCKED / NOT PRODUCTION READY. Next safe step is isolated integration testing of the migration + both Edge Functions, then a coordinated authorized release; do not apply the migration or deploy the Edge Functions without release authorization and rollback readiness.
+
+
+
+## Verification checkpoint — 2026-10-09 — Order authorization and idempotency defense-in-depth
+
+- Hardened `create_order_backend` in the proposed migration with a database-side membership backstop: an active CUSTOMER membership, or a business-side OWNER/BUSINESS_OWNER/ADMIN/MANAGER membership scoped to the target business and branch, or a platform SUPER_ADMIN membership with explicit full-control permission is required.
+- Hardened idempotent retries: existing orders whose metadata lacks a verifiable `request_hash` now fail closed with `IDEMPOTENCY_LEGACY_PAYLOAD_UNVERIFIABLE`; existing keys are no longer accepted merely because customer/business/branch match.
+- Added regression assertions to `scripts/validate-restaurant-rbac-contract.mjs` for the membership backstop and legacy idempotency behavior. Static source-pattern checks for the new authorization and idempotency invariants pass.
+- Latest source commit: `903d1e1d4ffc34693e2df51a0a4f6002eb8a9746`. GitHub Actions runs 37934254082 (Pages validation), 37934254010 (Module Professionalization Validation), and 37934254016 (Backend-only Module Boundary) were still in progress at the last check; do not report them green until completion.
+- Supabase security advisors currently warn about anonymous-role policies on multiple tables, including restaurant tables/menu/orders, and report that leaked-password protection is disabled. These findings require policy-by-policy review; do not globally remove policies without understanding legitimate public-read flows.
+- Production remains unchanged: no migration applied, no Edge Function deployed, no production writes, and no PR merge. The proposed migration and Edge Function changes still require SQL/runtime validation and isolated authenticated integration tests before any release.
