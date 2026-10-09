@@ -30,7 +30,7 @@ const checks = [
   ["MantiGo RPC binds signed provider order to persisted intention order", rideMigration.includes("metadata->>'paymob_intention_order_id'")],
   ["RC426 revokes the legacy finalizer from authenticated", digitalFinalizeMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) from authenticated")],
   ["Active payment intent migration rejects pre-existing duplicates", activeIntentMigration.includes("RC427_DUPLICATE_ACTIVE_PAYMENT_INTENTS_REQUIRE_RECONCILIATION") && activeIntentMigration.includes("uq_payment_intents_one_active_per_order")],
-  ["Payment endpoint refuses a second provider intention for a pending idempotent intent", orderPayment.includes("PAYMENT_INTENT_ALREADY_INITIALIZED") && orderPayment.includes('intent.idempotent === true')],
+  ["Payment endpoint refuses a second provider intention for a pending idempotent intent", orderPayment.includes("PAYMENT_INTENT_ALREADY_INITIALIZED") && orderPayment.includes('intent.idempotent === true') && orderPayment.includes('["CREATED", "PENDING", "SUCCEEDED"]')],
   ["Order-binding validator is part of CI", workflow.includes("node scripts/validate-paymob-order-binding.mjs")]
 ];
 const failed = checks.filter(([, ok]) => !ok);
