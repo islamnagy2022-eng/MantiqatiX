@@ -6,6 +6,7 @@ const orderPayment = read("supabase/functions/payment-intent/index.ts");
 const ridePayment = read("supabase/functions/mantigo-payment-intent/index.ts");
 const digitalPayment = read("supabase/functions/digital-page-payment-intent/index.ts");
 const digitalMigration = read("supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql");
+const digitalHardeningMigration = read("supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql");
 const rideMigration = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
 const digitalFinalizeMigration = read("supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql");
 const activeIntentMigration = read("supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql");
@@ -45,6 +46,9 @@ const checks = [
   ["MantiGo refuses to reuse an intent without stored order correlation", ridePayment.includes("PAYMENT_INTENT_REQUIRES_RESTART")],
   ["Digital-page finalizer fails closed when provider correlation is absent", digitalFinalizeMigration.includes("PAYMOB_PROVIDER_CORRELATION_REQUIRED")],
   ["Digital-page payment RPC uses an empty search path", digitalMigration.includes("set search_path = ''")],
+  ["RC431 hardens the already-deployed digital payment RPC", digitalHardeningMigration.includes("RC431") && digitalHardeningMigration.includes("set search_path = ''")],
+  ["RC431 validates stored provider-order binding", digitalHardeningMigration.includes("v_order.provider_order_id <> p_provider_order_id")],
+  ["RC431 rejects NULL status and conflicting replay status", digitalHardeningMigration.includes("if p_status is null or p_status not in ('SUCCEEDED', 'FAILED')") && digitalHardeningMigration.includes("DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH")],
   ["Digital-page payment RPC rejects a null status", digitalMigration.includes("if p_status is null or p_status not in ('SUCCEEDED', 'FAILED')")],
   ["Digital-page callback rejects conflicting status on replay", digitalMigration.includes("DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH") && digitalMigration.includes("v_event.status is distinct from p_status")],
   ["Subscription webhook binds intent to signed provider order", webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("sub.provider_order_id")],
