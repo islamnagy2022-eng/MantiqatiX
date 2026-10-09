@@ -108,11 +108,6 @@ Deno.serve(async req => {
     if (!secretKey || !publicKey || !integrationId || !Number.isSafeInteger(Number(integrationId)) || Number(integrationId) <= 0) {
       return json({ error: "PAYMENT_PROVIDER_NOT_CONFIGURED" }, 503, requestId);
     }
-    try {
-      await importCheckoutKey(checkoutKeyVersion);
-    } catch {
-      return json({ error: "PAYMENT_CHECKOUT_ENCRYPTION_NOT_CONFIGURED" }, 503, requestId);
-    }
 
     const body = await req.json().catch(() => null) as Record<string, unknown> | null;
     if (!body || Array.isArray(body) || typeof body !== "object") return json({ error: "INVALID_JSON" }, 400, requestId);
@@ -166,6 +161,11 @@ Deno.serve(async req => {
 
     const amountMinor = Math.round(Number(intent.amount) * 100);
     if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) return json({ error: "SUBSCRIPTION_AMOUNT_INVALID", requestId }, 409, requestId);
+    try {
+      await importCheckoutKey(checkoutKeyVersion);
+    } catch {
+      return json({ error: "PAYMENT_CHECKOUT_ENCRYPTION_NOT_CONFIGURED" }, 503, requestId);
+    }
 
     // Claim the only provider-creation attempt before network I/O. A retry that sees
     // PENDING without provider correlation must reconcile; it must not create a second intention.
