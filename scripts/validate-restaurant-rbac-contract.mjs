@@ -35,4 +35,15 @@ assert.match(restaurant, /let creatingOrder=false/, 'order creation must prevent
 assert.match(restaurant, /x\.status==='OCCUPIED'\?'selected'/, 'editing an occupied table must preserve its current status');
 assert.match(restaurant, /x\.status==='RESERVED'\?'selected'/, 'editing a reserved table must preserve its current status');
 
+
+// Canonical catalog/order boundaries must fail closed.
+const catalogAdmin = fs.readFileSync('supabase/functions/catalog-admin/index.ts', 'utf8');
+const orderCreate = fs.readFileSync('supabase/functions/order-create/index.ts', 'utf8');
+assert.match(catalogAdmin, /CATALOG_SCOPE_FORBIDDEN/, 'catalog writes must verify tenant/business/branch authorization at the Edge boundary');
+assert.match(catalogAdmin, /m\.branch_id && String\(m\.branch_id\) === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
+assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
+assert.match(orderCreate, /x\.metadata\?\.is_available !== false/, 'server must reject unavailable catalog items');
+assert.doesNotMatch(restaurant, /from\('restaurant_menu_items'\)\.(insert|update)/, 'legacy menu must not write prices that the canonical order path does not consume');
+assert.match(restaurant, /عرض القائمة القديمة للقراءة فقط/, 'legacy menu UI must disclose read-only status until canonical catalog integration is deployed');
+
 console.log('RC450 restaurant source-state and CRM/support RBAC contract PASS');
