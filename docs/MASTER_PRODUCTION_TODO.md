@@ -1571,3 +1571,17 @@ This checkpoint does not close the production release gate because runtime E2E e
 - CI passing confirms repository validators and source checks; it does not prove PostgreSQL runtime behavior, authenticated E2E, or production deployment.
 - The attempted Edge Function fix for malformed/duplicate option IDs remains blocked by the repository safety layer and was not bypassed.
 - Production remains unchanged; migration unapplied, Edge Functions undeployed, PR #86 open/unmerged.
+
+
+## RC562 — Restaurant Live Schema / RLS / RPC Read-Only Audit — 2026-10-09
+- Status: **READ-ONLY LIVE CHECK PASS / RELEASE STILL BLOCKED**.
+- Queried the live Production schema without modifying data:
+  - `catalog_business_settings` has a primary key on `business_id`, a business FK, tenant FK, uppercase-currency check, and non-negative delivery-fee check.
+  - `catalog_item_options.price_delta` has a non-negative check and an FK to `catalog_items`; the observed query returned zero duplicate active option IDs. The option-to-item/tenant orphan count returned zero.
+  - The live `catalog_business_settings` query returned one row; it had no observed business/tenant mismatch, non-EGP currency, or negative delivery fee.
+  - Live grants confirm `create_order_backend` and the three catalog backend RPCs are not executable by `anon` or `authenticated`, and are executable by `service_role`.
+  - The reviewed catalog/restaurant tables have no policies explicitly assigned to `anon` or `public`. The anonymous-session guard policies returned by `pg_policies` are **RESTRICTIVE**, not permissive; retain policy-by-policy review rather than treating their presence as proof of public access.
+- No writes, policy edits, migrations, test orders, or payments were made.
+- Remaining critical gates are unchanged: isolated PostgreSQL runtime validation of the proposed migration, authenticated owner/provider/customer E2E, cross-tenant/branch denial, and coordinated migration + Edge deployment after review.
+- Source-level follow-up identified legacy `coalesce(m.status,'ACTIVE')='ACTIVE'` checks in two proposed catalog RPC membership backstops. A source update attempt was blocked by the repository safety layer; it was not retried via an alternate write path. Resolve through the supported review/write path before release.
+- PR #86 remains open/unmerged; Production is unchanged.
