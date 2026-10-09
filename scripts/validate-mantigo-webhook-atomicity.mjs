@@ -12,6 +12,10 @@ if (mantigoStart < 0 || mantigoEnd < 0) throw new Error("Could not isolate Manti
 const mantigoBlock = webhook.slice(mantigoStart, mantigoEnd);
 
 const requiredMigration = [
+  "create table if not exists public.mantigo_payment_provider_events",
+  "references public.mantigo_financial_ledger(id)",
+  "enable row level security",
+  "force row level security",
   "process_verified_mantigo_payment_backend",
   "for update",
   "MANTIGO_PAYMENT_SIGNATURE_REQUIRED",
@@ -45,7 +49,7 @@ for (const marker of requiredWebhook) {
   }
 }
 const directWritePatterns = [
-  [/admin\.from\("payment_provider_events"\)\.insert\(/, "direct provider-event insert"],
+  [/admin\.from\("mantigo_payment_provider_events"\)\.insert\(/, "direct provider-event insert"],
   [/admin\.from\("mantigo_financial_ledger"\)\.update\(/, "direct MantiGo ledger update"],
   [/admin\.from\("notifications"\)\.insert\(/, "out-of-transaction payment notification"]
 ];
