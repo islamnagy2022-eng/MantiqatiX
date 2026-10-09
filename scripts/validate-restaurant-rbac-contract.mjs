@@ -73,10 +73,10 @@ assert.match(catalogMigration, /revoke all on function public\.upsert_catalog_it
 assert.match(catalogMigration, /grant execute on function public\.upsert_catalog_item_backend[\s\S]*?to service_role;/i, 'catalog RPCs must remain service-role-only');
 assert.match(catalogMigration, /for update;/i, 'catalog price version allocation must serialize concurrent updates');
 assert.match(catalogMigration, /v_authorized_membership boolean:=false/, 'order RPC must apply a database-side membership authorization backstop');
-assert.match(catalogMigration, /upper\\(m\\.role\\)='CUSTOMER'/, 'customer order authorization must require an active customer membership');
-assert.match(catalogMigration, /upper\\(m\\.role\\) in \\('BUSINESS_OWNER','ADMIN','MANAGER'\\)/, 'business order authorization must restrict roles and scope to the target business');
+assert.match(catalogMigration, /upper\(m\.role\)='CUSTOMER'/, 'customer order authorization must require an active customer membership');
+assert.match(catalogMigration, /upper\(m\.role\) in \('BUSINESS_OWNER','ADMIN','MANAGER'\)/, 'business order authorization must restrict roles and scope to the target business');
 assert.match(catalogMigration, /IDEMPOTENCY_LEGACY_PAYLOAD_UNVERIFIABLE/, 'legacy idempotency rows without a request hash must fail closed');
-assert.doesNotMatch(catalogMigration, /if v_existing\\.metadata \\? 'request_hash' and/, 'idempotency must not silently accept existing keys with unverifiable payloads');
+assert.doesNotMatch(catalogMigration, /if v_existing\.metadata \? 'request_hash' and/, 'idempotency must not silently accept existing keys with unverifiable payloads');
 assert.doesNotMatch(catalogAdmin, /Access-Control-Allow-Origin\": \"\*\"/, 'catalog-admin must not allow wildcard browser CORS');
 assert.match(catalogAdmin, /membershipBranchId === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
