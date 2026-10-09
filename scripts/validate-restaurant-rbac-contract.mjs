@@ -78,6 +78,12 @@ assert.match(catalogMigration, /jsonb_array_length\(p_items_json\)>100/, 'order 
 assert.match(catalogMigration, /jsonb_typeof\(coalesce\(v_item->'selectedOptionIds','\[\]'::jsonb\)\) <> 'array'/, 'order RPC must reject malformed option selections');
 assert.match(catalogMigration, /where business_id=p_business_id and tenant_id=p_tenant_id/, 'order settings must be loaded within the requested tenant scope');
 assert.match(catalogMigration, /BUSINESS_SETTINGS_TENANT_MISMATCH/, 'order RPC must fail closed on cross-tenant settings mismatch');
+assert.match(catalogMigration, /length\(trim\(p_client_idempotency_key\)\)>200/, 'order RPC must cap idempotency key length');
+assert.match(catalogMigration, /upper\(trim\(coalesce\(p_currency,'EGP'\)\)\) <> 'EGP'/, 'order RPC must enforce the supported currency at the database boundary');
+assert.match(catalogMigration, /if v_currency <> 'EGP' then raise exception 'UNSUPPORTED_CURRENCY'/, 'order RPC must reject unsupported currency in persisted business settings');
+assert.match(catalogMigration, /INVALID_CATALOG_TAX_RATE/, 'order RPC must reject invalid persisted tax rates');
+assert.match(catalogMigration, /INVALID_CATALOG_PRICE/, 'order RPC must reject invalid persisted unit prices');
+assert.match(catalogMigration, /\(v_price\.unit_price\+v_opt_total\)<0/, 'order RPC must prevent options from producing a negative unit price');
 assert.match(catalogMigration, /upper\(m\.role\)='CUSTOMER'/, 'customer order authorization must require an active customer membership');
 assert.match(catalogMigration, /upper\(m\.role\) in \('BUSINESS_OWNER','ADMIN','MANAGER'\)/, 'business order authorization must restrict roles and scope to the target business');
 assert.match(catalogMigration, /IDEMPOTENCY_LEGACY_PAYLOAD_UNVERIFIABLE/, 'legacy idempotency rows without a request hash must fail closed');
