@@ -10,6 +10,16 @@ declare
   rejected boolean;
   n integer;
 begin
+  if has_function_privilege('authenticated','public.post_financial_journal_backend(uuid,jsonb,jsonb)','EXECUTE') then
+    raise exception 'authenticated role must not execute the backend journal RPC directly';
+  end if;
+  if has_function_privilege('anon','public.post_financial_journal_backend(uuid,jsonb,jsonb)','EXECUTE') then
+    raise exception 'anon role must not execute the backend journal RPC';
+  end if;
+  if has_function_privilege('service_role','public.post_financial_journal_backend(uuid,jsonb,jsonb)','EXECUTE') is not true then
+    raise exception 'service_role must be able to execute the backend journal RPC';
+  end if;
+
   insert into public.user_memberships(user_id,tenant_id,role,status)
   values (actor,'tenant-a','ACCOUNTANT','ACTIVE'),
          (other_actor,'tenant-b','ACCOUNTANT','ACTIVE');
