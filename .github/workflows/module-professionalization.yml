@@ -110,9 +110,11 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
           docker cp supabase/tests/rc435_subscription_intent_fixture.sql "$pg_container:/tmp/rc435_fixture.sql"
           docker cp supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql "$pg_container:/tmp/rc435_migration.sql"
+          docker cp supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql "$pg_container:/tmp/rc439_migration.sql"
           docker cp supabase/tests/rc435_subscription_intent_integration.sql "$pg_container:/tmp/rc435_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc439_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_test.sql
 
   erp-receiving-integration:
