@@ -484,3 +484,90 @@ This status is intentional and must remain until the open gates above are indepe
 - Important: GitHub commits for RC393 exist on `main`, but no new GitHub Actions run/status was returned for the RC393 commits at verification time; therefore production Pages deployment is NOT VERIFIED yet.
 
 - RC394: removed legacy emoji-style UI icons, added neutral CSS icon system, and advanced homepage cache to rc394. Production deployment remains NOT VERIFIED until a GitHub Pages workflow run is observed.
+
+
+## Session checkpoint — 2026-10-09 — Restaurant membership/table-state hardening
+
+- Baseline inspected: `main` at `f1f653d2112124dda85cc717d47127e03e1af541` (latest commit visible in repository history at checkpoint time).
+- Working branch: `fix/restaurant-membership-table-state-20261009`.
+- Pull request: #85 — `https://github.com/islamnagy2022-eng/MantiqatiX/pull/85`; OPEN, NOT MERGED. PR #84 was not merged or modified.
+- Source reviewed: `web/restaurant-module.js`, `web/app.js`, `scripts/validate-restaurant-rbac-contract.mjs`, `docs/PROJECT_CONTINUITY.md`, `docs/MASTER_PRODUCTION_TODO.md`, and `docs/RC337_CURRENT_SECURITY_RELEASE_GATE.md`.
+- Changes proposed on the working branch:
+  1. Membership selection resolves only against ACTIVE rows belonging to the authenticated user.
+  2. If no selector exists, automatic selection is permitted only when exactly one ACTIVE membership exists; multiple memberships fail closed.
+  3. Invalid/stale saved membership selection and membership query errors render explicit failure states.
+  4. Restaurant table edit modal preselects the row's current state rather than defaulting to EMPTY.
+  5. Static contract assertions were added for the above regressions.
+- Source-level checks executed against the branch content: membership ownership/status guard, ambiguity/invalid-selection fail-closed behavior, visible error state, all five table statuses preserving current selection, and existing CRM/support RBAC assertions. These checks passed after correcting the local inspection expression. This is **not** equivalent to running the Node validator, browser E2E, or authenticated production tests.
+- GitHub Actions/workflow-run connector returned no workflow runs and no commit status entries for PR head `bbc69395079fc75df680a02ce4c88e9b0c642f74` at this checkpoint. CI status: **NOT VERIFIED**.
+- No production database writes, migrations, Edge Function deployments, payment/refund/settlement transactions, or production data mutations were performed.
+- Restaurant module remains **PARTIAL / NOT VERIFIED**. Still required: confirm current branch/tenant scope in all mutation paths; review direct client writes for table and inventory lifecycle invariants; verify canonical catalog/order/status APIs; authenticated owner/manager/provider E2E; cross-tenant and cross-branch denial; concurrency/idempotency; kitchen/table/order synchronization; and regression/runtime tests.
+- Main production release gate remains **OPEN**. The master TODO still requires independent authenticated multi-tenant tests, customer→provider→order→status→notification E2E, Paymob/payment and settlement E2E, managed leaked-password protection, release-device tests, and backup/restore/rollback evidence.
+- Next step: obtain CI evidence for PR #85 and review the complete restaurant mutation boundary before further code changes. Keep PR unmerged until tests and review establish safety. Then continue the first still-open P0 item in `docs/MASTER_PRODUCTION_TODO.md` using the current source as authority.
+
+
+## Follow-up checkpoint — 2026-10-09 — Restaurant RBAC convergence
+
+- Additional source finding: `web/restaurant-module.js` used a hard-coded role allowlist for all restaurant actions, despite the project having a canonical `window.MNTY_RBAC.can(role,module,action,permissions)` contract.
+- Changed membership read to include the persisted `permissions` field and replaced the hard-coded allowlist with central RBAC checks.
+- Menu/inventory actions now check `CATALOG` create/update permissions; table actions check `OPERATIONS` create/update permissions; order creation and status changes check `ORDERS` create/update permissions. UI controls and mutation entry points both use these guards. Server/RLS remains the ultimate authorization boundary.
+- Extended `scripts/validate-restaurant-rbac-contract.mjs` to assert permissions are loaded, the central RBAC contract is used, hard-coded role allowlists are absent, and order/table actions are permission-gated.
+- Current implementation commit: `e21559769cda967e6d3324b040b19353817c25ad`.
+- Static source inspection still does not equal an executed Node validator or authenticated runtime test. CI evidence remains pending; no deployment or production mutation is claimed.
+- Continue by validating syntax and contract tests through CI; inspect table/menu/inventory mutation scoping and double-submit/idempotency behavior next. Keep PR #85 unmerged until the full test result and review support merge.
+
+## Follow-up checkpoint — 2026-10-09 — Live Supabase restaurant policy/index review
+
+- Read-only Supabase inspection was performed against project moyhiluyhjsujhwlyeuu; no SQL writes, migrations, data changes, function deployments, or payment actions were performed.
+- Live pg_policies confirms restaurant_menu_items, restaurant_tables, and restaurant_inventory have restrictive authenticated-session/non-anonymous/scope boundaries, but their permissive legacy SELECT/UPDATE policies still depend on owner_user_id = auth.uid() or is_platform_admin(). Insert policies require owner_user_id = auth.uid(). Therefore central UI RBAC for manager/staff roles does not itself grant those roles database access. This is a BLOCKED_SECURITY / database-policy mismatch requiring an approved least-privilege RLS migration and separate authenticated test identities before manager/staff workflow can be certified. Do not apply policy changes from this session without explicit authorization.
+- Live restaurant_tables_owner_user_id_table_number_key is unique on (owner_user_id, table_number), not (tenant_id, business_id, branch_id, table_number). The current client can reject a duplicate among currently loaded rows, but this cannot prevent concurrent duplicate table numbers across different owners. Correct branch-scoped uniqueness requires an approved database design/migration and duplicate-data audit; no index was changed.
+- Source hardening adds tenant/business/branch equality filters to legacy update calls, prevents concurrent modal-save clicks, prevents concurrent order-create clicks, and rejects table numbers duplicated in the currently loaded view. These are defensive client safeguards, not substitutes for database enforcement.
+- Canonical catalog mismatch remains open: restaurant menu editing writes restaurant_menu_items, while restaurant order creation reads the central catalog API and creates through order-create. Until the menu is converged on catalog-admin/catalog_items/catalog_item_prices, editing the legacy restaurant menu may not affect what the order flow can actually sell. Do not claim catalog/order consistency until this path is migrated and tested.
+- Current PR #85 remains open/unmerged. The CI connector has returned no workflow-run/status entries for the checked branch head, so Node validator/build/browser tests remain NOT VERIFIED.
+- Next: inspect and document the canonical catalog RPC contracts and the existing catalog-management UI flow; prepare a minimal source-only convergence proposal without touching production schema. Then validate through CI. Obtain owner authorization for RLS/unique-index migrations and independent test identities before claiming full operational completion.
+
+## Follow-up checkpoint — 2026-10-09 — Canonical restaurant catalog/cart and CI
+
+- Restaurant module now reads menu items and effective EGP prices from the canonical /api/v1/catalog API rather than restaurant_menu_items. The legacy menu write path has been removed; menu editing remains read-only until an approved, executable, least-privilege catalog write path exists.
+- Added multi-item cart selection, per-item quantity, catalog options, customer name/phone, TAKEAWAY/DELIVERY selection, required delivery address for DELIVERY, server-side pricing authority, and reuse of the same idempotency key when retrying an identical request payload.
+- Added UI transition matrix for table states, prevents setting EMPTY while current_active_order_id exists, checks duplicates in currently loaded tables, and disables repeated saves/order-create clicks. These are client-side guards only; they do not replace server-side transition enforcement or branch-scoped uniqueness.
+- Added source changes in supabase/functions/catalog-admin/index.ts to check tenant/business/branch membership and in supabase/functions/order-create/index.ts to reject metadata.is_available=false. These Edge Function changes are source-only and have NOT been deployed to Supabase.
+- Important live finding: upsert_catalog_item_backend and upsert_catalog_price_backend are EXECUTE-granted to service_role only (not anon/authenticated). The current catalog-admin Edge Function forwards the user's JWT when calling these RPCs; therefore a safe executable write route still needs a coordinated server-side authorization/grant design. Do not enable catalog editing or deploy this path until that is resolved.
+- Source-level JavaScript syntax and the complete restaurant contract validator assertions passed in-session against the fetched branch files. This is not a substitute for GitHub Actions; latest CI for commit 5586c90c6d8c4174bba5175e090d887f8af32141 exposed a stale validator expectation, which was corrected in commit d904e9f5e8e59efa7232012db19cc1df3f4e6343; further canonical catalog/cart/table assertions were then added.
+- Current branch head at checkpoint: b9b978c21ab9cd1a68dd74a27fd7f4a164ca5d28. PR #85 remains OPEN and UNMERGED. Latest Module Professionalization Validation, Backend-only Module Boundary, and Pages validation runs are queued/pending at checkpoint time; deployment job must remain skipped for PR validation and no production deploy is claimed.
+- Production blockers: manager/staff access is constrained by owner_user_id-based permissive RLS policies; table uniqueness is owner-scoped, not branch-scoped; server-side table transition/order-link lifecycle is absent; catalog writes cannot be enabled until RPC execution model is corrected; no authenticated adversarial E2E/test identities were used; no database writes, migrations, Edge Function deployments, payments, refunds, or settlement operations were performed.
+- Next action: verify CI results for the latest PR head and repair any failing assertions. Then continue only source-safe work until an approved backend execution design and RLS/index migrations can be applied and verified. Keep PR #85 unmerged and the production release gate OPEN until runtime E2E and deployment evidence exists.
+- CI resolution update: commit b9b978c21ab9cd1a68dd74a27fd7f4a164ca5d28 passed Module Professionalization Validation run 37929975879 and Backend-only Module Boundary run 37929975820. Pages validation run 37929975834 also passed its validate job; deploy job was SKIPPED because this is a pull request. The earlier validator failure was caused by the old legacy-menu notice assertion; it was updated to assert the canonical catalog read-only notice. The later commit 615559cd3efca0d944c5cae056a12416d0a14c6c only appends this continuity checkpoint; no source code changed after the passing b9b code head. No production deployment is claimed.
+
+## CI result update — 2026-10-09 — Restaurant hardening PR #85
+
+- Code head ce698dc9795b653b07255ad9e91f2a7a5c75d451 passed Module Professionalization Validation (run 37930090426), Backend-only Module Boundary (run 37930090685), and the Deploy MantiqatiX Web workflow's validation job (run 37930090804). The deployment job was SKIPPED because the changes are in an unmerged pull request.
+- The earlier Module Professionalization failure at run 37929783453 was caused by a stale validator expectation for the legacy-menu notice. The assertion was updated to the canonical catalog read-only state, and the later run passed.
+- This is CI/source-contract evidence only. No Edge Function TypeScript build/deploy, live browser E2E, authenticated cross-tenant E2E, RLS migration, branch-unique index, or production deployment has been performed.
+- PR #85 remains OPEN / UNMERGED. Production gate remains OPEN / NOT PRODUCTION READY. The next step is to resolve the service_role-only catalog RPC execution design and obtain approval for the required RLS/unique-index changes, then run approved independent-session E2E before any release decision.
+## Follow-up checkpoint — 2026-10-09 — Read-only safety boundary and scope guard
+
+- After live policy review, direct browser mutations to restaurant_tables and restaurant_inventory were removed. Both views are now read-only with explicit explanation: table writes need server-side transition/order-link enforcement; inventory writes need a canonical stock ledger and atomic event lifecycle.
+- The module now fails closed when the selected ACTIVE membership does not contain a valid tenant/business/branch scope. It no longer falls back to owner_user_id reads when the operational scope is missing.
+- Multi-item cart remains implemented for catalog items, quantities and options; customer name/phone and takeaway/delivery are collected; order-create receives a stable idempotency key for an identical retry payload. Dining-table linkage remains explicitly unavailable and is not claimed.
+- JavaScript syntax and all assertions in scripts/validate-restaurant-rbac-contract.mjs passed in-session against current branch files. CI for code commit a20eb0ae60b6d9aea97ff86762002f6eed037e73: Module Professionalization Validation run 37930336948 PASS; Backend-only Module Boundary run 37930336922 PASS; Pages validation run 37930336925 was still IN PROGRESS at checkpoint. Deployment remains skipped for PRs.
+- This code head is not deployed. RLS read/write policy mismatch, branch-scoped table uniqueness, server-side table lifecycle, catalog RPC execute model, inventory ledger integration, independent-session E2E, and Edge Function deployment remain blockers. PR #85 remains unmerged.
+## Read-only production data-integrity check — 2026-10-09
+
+- Read-only count on Production Supabase returned 0 rows in restaurant_tables, 0 in restaurant_menu_items, and 0 in restaurant_inventory at the time of inspection.
+- A grouped duplicate check returned no existing duplicate (tenant_id,business_id,branch_id,table_number) groups. The scope-null check returned zero missing-scope rows because the three tables are empty.
+- This reduces immediate migration/data-cleanup risk but does not remove the concurrency defect: the current unique index is owner-scoped, not branch-scoped. No schema/index migration was created or applied in this step because schema changes remain authorization-gated.
+- Latest source head after deterministic membership query changes is f9ec95eb1712dc7f3e3c73defea40c11ac0706e1. The source-level syntax and contract assertions pass in-session; Module Professionalization Validation and Backend-only Module Boundary passed for that head; Pages validation was still running at last check.
+## CI final update for source head f9ec95eb1712dc7f3e3c73defea40c11ac0706e1
+
+- Module Professionalization Validation run 37930594151: SUCCESS.
+- Backend-only Module Boundary run 37930594157: SUCCESS.
+- Deploy MantiqatiX Web run 37930594159: workflow SUCCESS; validation completed and deployment is skipped for the unmerged PR. This is not a production deployment.
+- Current branch includes a later documentation-only checkpoint commit 005b34f64a73cfabb76e745e06aa849a5361a0ba; no source code changed after f9ec95eb1712dc7f3e3c73defea40c11ac0706e1.
+- Source/CI gates are green. Runtime security, RLS/index migrations, catalog RPC execution design, Edge Function deployment, table/inventory lifecycle integration, and real authenticated E2E remain open. PR #85 must remain unmerged until those blockers are resolved or explicitly accepted by the owner.
+## Current E2E readiness re-check — 2026-10-09
+
+- Read-only production counts now show 26 ACTIVE businesses, 25 ACTIVE provider profiles, 11 ACTIVE catalog items, 11 ACTIVE catalog prices, and 2 ACTIVE branches. These are current counts, not proof of a complete booking flow.
+- The isolated tenant MNTY-TEST-B has one ACTIVE business, one branch, one active catalog item and one active price, but zero ACTIVE provider profiles. It therefore cannot pass order-create's active-provider requirement without a separately authorized setup action.
+- MNTY-PLATFORM has existing ACTIVE memberships across customer/provider/business roles and an active catalog chain, but no approved credentials/session bundle was used. No real order or user session was created/impersonated. Runtime customer→provider→order→notification E2E remains NOT VERIFIED.
+- This check confirms RC199's historical statement that no catalog chain existed is no longer globally accurate, but it does not close the E2E gate. Use only approved test identities and an isolated test business/provider chain.
