@@ -21,8 +21,8 @@ where n.nspname = 'public'
   and c.relname in ('digital_page_payment_events', 'mantigo_payment_provider_events')
 order by c.relname;
 
--- 3) Critical function privilege boundary. Expected: service_role can execute the atomic
--- payment RPCs; anon/authenticated cannot execute the service-role-only processors.
+-- 3) Critical function privilege boundary. Expected: payment processors are service_role-only;
+-- the five-argument digital-page finalizer is authenticated-only and checks auth.uid() ownership.
 select p.oid::regprocedure as function_signature,
        has_function_privilege('anon', p.oid, 'EXECUTE') as anon_can_execute,
        has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated_can_execute,
