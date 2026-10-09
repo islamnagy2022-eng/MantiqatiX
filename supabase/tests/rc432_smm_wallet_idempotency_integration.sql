@@ -86,8 +86,8 @@ begin
   end;
   if not conflict_seen then raise exception 'non-admin credit was not rejected'; end if;
 
-  if has_function_privilege('service_role','public.smm_admin_credit_wallet(uuid,uuid,numeric,text)','EXECUTE') then
-    raise exception 'legacy non-idempotent admin credit RPC must not be executable by service_role';
+  if not has_function_privilege('service_role','public.smm_admin_credit_wallet(uuid,uuid,numeric,text)','EXECUTE') then
+    raise exception 'legacy RPC must remain available during staged Edge Function rollout';
   end if;
   if not has_function_privilege('service_role','public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid)','EXECUTE') then
     raise exception 'service_role must execute idempotent admin credit RPC';
