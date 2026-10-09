@@ -606,3 +606,12 @@ This status is intentional and must remain until the open gates above are indepe
 - GitHub Actions for `a77f2e9fc59093e3c39fa7eac6c40f92ac6aa212` were queued at the time of this checkpoint; do not mark CI green until the run concludes. A previous commit's CI exposed the validator syntax defect; the subsequent correction is source-only.
 - Production remains unchanged: no migration applied, no Edge Function deployed, no order/payment/data mutation executed. `catalog-admin` and `order-create` deployed versions remain unverified in this checkpoint and must be re-read before any release.
 - PR #86 remains OPEN/UNMERGED. The production gate remains BLOCKED pending CI confirmation, isolated authenticated integration tests, coordinated migration + Edge Function rollout, and runtime verification of customer/provider and tenant/branch boundaries.
+
+
+## Verification checkpoint — 2026-10-09 — Order-type default and CI recovery
+
+- Follow-up review found a fail-open edge case: an omitted `metadata.order_type` could be treated as delivery for pricing while skipping the delivery-address check. Fixed both `order-create` and the proposed RPC migration to default an unspecified order type to `DELIVERY` and require a non-empty delivery address. The restaurant UI explicitly sends `TAKEAWAY` or `DELIVERY`.
+- Added a regression assertion for this default behavior. In-session tests at code commit `9750dc606abd3ed59ab2a7f6fb8d4a72c46ff4e7`: 6 checks PASS (restaurant/catalog/order contract, security-validator syntax, restaurant syntax, catalog service-role boundary, order role/branch/address guards, migration grants/search_path/idempotency invariants).
+- GitHub Actions for code commit `9750dc606abd3ed59ab2a7f6fb8d4a72c46ff4e7`: Module Professionalization Validation run 37933712857 SUCCESS; Backend-only Module Boundary run 37933713040 SUCCESS; Pages workflow run 37933712978 SUCCESS, with the `deploy` job SKIPPED because PR #86 remains unmerged.
+- Live Supabase was re-read: `catalog-admin` is still deployed version 3 with wildcard CORS and the old JWT-forwarding RPC path; `order-create` is still deployed version 6 with the previous membership/catalog validation. Neither updated source nor migration has reached production.
+- Current production gate remains BLOCKED / NOT PRODUCTION READY. Next safe step is isolated integration testing of the migration + both Edge Functions, then a coordinated authorized release; do not apply the migration or deploy the Edge Functions without release authorization and rollback readiness.
