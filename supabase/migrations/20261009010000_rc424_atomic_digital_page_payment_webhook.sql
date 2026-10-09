@@ -43,6 +43,11 @@ begin
   if not found then
     raise exception 'DIGITAL_PAGE_ORDER_NOT_FOUND';
   end if;
+  if nullif(trim(p_provider_order_id), '') is null
+     or v_order.provider_order_id is null
+     or v_order.provider_order_id <> p_provider_order_id then
+    raise exception 'DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH';
+  end if;
   if abs(v_order.amount - p_amount) > 0.01
      or upper(v_order.currency) <> upper(p_currency) then
     raise exception 'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH';
