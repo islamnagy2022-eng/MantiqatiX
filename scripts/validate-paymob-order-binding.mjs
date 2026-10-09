@@ -29,7 +29,7 @@ const checks = [
   ["MantiGo intention persistence must own the claim token", ridePayment.includes('.filter("metadata->>paymob_intention_claim","eq",requestId)')],
   ["MantiGo refuses retrying a pending ledger without a stored intention", ridePayment.includes('if(String(ledger.payment_status)==="PENDING")return json({error:"PAYMENT_INTENT_REQUIRES_RESTART"},409,requestId)')],
   ["MantiGo intent persistence checks the affected ledger row", ridePayment.includes(".select(\"id\").maybeSingle()") && ridePayment.includes("!updatedLedger")],
-  ["MantiGo intent persistence is compare-and-set to avoid overwriting a concurrent intent", ridePayment.includes('.in("payment_status",["REQUIRED","PENDING"]).is("provider_intent_id",null)')],
+  ["MantiGo intent persistence is compare-and-set to avoid overwriting a concurrent intent", ridePayment.includes('.eq("payment_status","REQUIRED").is("provider_intent_id",null)')],
   ["MantiGo checkout requires and stores provider order ID", ridePayment.includes("!providerOrderId") && ridePayment.includes("paymob_intention_order_id:providerOrderId")],
   ["MantiGo RPC binds merchant reference to ledger", rideMigration.includes("p_raw_payload->>'merchant_order_id' is distinct from p_ledger_id")],
   ["MantiGo provider-order correlation is checked against the locked ledger row", rideMigration.includes("p_raw_payload->>'provider_order_id' is distinct from coalesce(v_ledger.metadata->>'paymob_intention_order_id', '')") && rideMigration.indexOf("for update") < rideMigration.indexOf("p_raw_payload->>'provider_order_id' is distinct from coalesce(v_ledger.metadata->>'paymob_intention_order_id', '')")],
