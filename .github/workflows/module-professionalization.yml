@@ -9,6 +9,42 @@ on:
 permissions:
   contents: read
 jobs:
+  erp-purchase-order-lines-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_erp_lines_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_erp_lines_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run RC437 purchase order line integration tests
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc434_erp_receiving_fixture.sql "$pg_container:/tmp/rc437_fixture.sql"
+          docker cp supabase/migrations/20261009200000_rc434_atomic_erp_purchase_receiving.sql "$pg_container:/tmp/rc434_migration.sql"
+          docker cp supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql "$pg_container:/tmp/rc437_migration.sql"
+          docker cp supabase/tests/rc437_purchase_order_lines_integration.sql "$pg_container:/tmp/rc437_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc437_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc434_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc437_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_lines_test -v ON_ERROR_STOP=1 -f /tmp/rc437_test.sql
+
   financial-journal-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -185,3 +221,4 @@ jobs:
           node scripts/validate-erp-receiving-contract.mjs
           node scripts/validate-subscription-intent-safety.mjs
           node scripts/validate-financial-journal-safety.mjs
+          node scripts/validate-erp-purchase-order-lines.mjs
