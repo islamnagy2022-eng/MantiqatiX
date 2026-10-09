@@ -120,7 +120,8 @@ declare
 begin
  if p_customer_id is null then raise exception 'CUSTOMER_REQUIRED'; end if;
  if coalesce(auth.role(),'') <> 'service_role' and (auth.uid() is null or auth.uid()<>p_customer_id) then raise exception 'CUSTOMER_REQUIRED'; end if;
- if p_tenant_id is null or p_tenant_id='' or p_business_id is null or p_client_idempotency_key is null or length(trim(p_client_idempotency_key))<8 then raise exception 'INVALID_ORDER_REQUEST'; end if;
+ if p_tenant_id is null or p_tenant_id='' or p_business_id is null or p_client_idempotency_key is null or length(trim(p_client_idempotency_key))<8 or length(trim(p_client_idempotency_key))>200 then raise exception 'INVALID_ORDER_REQUEST'; end if;
+ if upper(trim(coalesce(p_currency,'EGP'))) <> 'EGP' then raise exception 'UNSUPPORTED_CURRENCY'; end if;
  if p_items_json is null or jsonb_typeof(p_items_json)<>'array' then raise exception 'INVALID_ITEMS'; end if;
  if jsonb_array_length(p_items_json)=0 or jsonb_array_length(p_items_json)>100 then raise exception 'INVALID_ITEMS'; end if;
  if nullif(trim(coalesce(p_customer_name,'')),'') is null or length(trim(p_customer_name))>200 then raise exception 'INVALID_CUSTOMER_NAME'; end if;
@@ -185,9 +186,11 @@ begin
    select * into v_settings from catalog_business_settings where business_id=p_business_id and tenant_id=p_tenant_id;
    if not found then raise exception 'BUSINESS_SETTINGS_UNAVAILABLE'; end if;
  end if;
- v_currency:=upper(coalesce(v_settings.currency,p_currency,'EGP'));
+ v_currency:=upper(trim(coalesce(nullif(trim(v_settings.currency),''),p_currency,'EGP')));
+ if v_currency <> 'EGP' then raise exception 'UNSUPPORTED_CURRENCY'; end if;
  if upper(coalesce(p_metadata->>'order_type','DELIVERY'))='DELIVERY' then
    v_delivery:=coalesce(v_settings.delivery_fee,0);
+   if v_delivery<0 then raise exception 'INVALID_DELIVERY_FEE'; end if;
  else
    v_delivery:=0;
  end if;
@@ -203,6 +206,7 @@ begin
       and (ci.branch_id is null or ci.branch_id=p_branch_id)
     order by (ci.branch_id is not null) desc limit 1;
    if not found then raise exception 'CATALOG_ITEM_NOT_FOUND:%',v_token; end if;
+   if v_ci.tax_rate is null or v_ci.tax_rate<0 or v_ci.tax_rate>100 then raise exception 'INVALID_CATALOG_TAX_RATE'; end if;
    v_qty:=coalesce(nullif(v_item->>'quantity','')::numeric,0);
    if v_qty<=0 or v_qty>1000 or v_qty<>trunc(v_qty) then raise exception 'INVALID_QUANTITY'; end if;
    select * into v_price from catalog_item_prices cp
@@ -211,11 +215,12 @@ begin
       and (cp.branch_id is null or cp.branch_id=p_branch_id)
     order by (cp.branch_id is not null) desc,cp.effective_from desc,cp.version desc limit 1;
    if not found then raise exception 'CATALOG_PRICE_NOT_FOUND:%',v_ci.id; end if;
+   if v_price.unit_price is null or v_price.unit_price<0 then raise exception 'INVALID_CATALOG_PRICE'; end if;
    select coalesce(sum(o.price_delta),0),count(o.id) into v_opt_total,v_opt_count
     from catalog_item_options o where o.catalog_item_id=v_ci.id and o.tenant_id=p_tenant_id and o.status='ACTIVE'
       and o.id::text in (select jsonb_array_elements_text(coalesce(v_item->'selectedOptionIds','[]'::jsonb)));
    v_requested_opts:=jsonb_array_length(coalesce(v_item->'selectedOptionIds','[]'::jsonb));
-   if v_opt_count<>v_requested_opts then raise exception 'INVALID_ITEM_OPTIONS'; end if;
+   if v_opt_count<>v_requested_opts or (v_price.unit_price+v_opt_total)<0 then raise exception 'INVALID_ITEM_OPTIONS'; end if;
    v_line:=round((v_price.unit_price+v_opt_total)*v_qty,2);
    v_line_tax:=case when coalesce(v_settings.tax_inclusive,false) then 0 else round(v_line*v_ci.tax_rate/100,2) end;
    v_subtotal:=v_subtotal+v_line;
