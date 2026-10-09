@@ -70,7 +70,7 @@ Deno.serve(async req => {
       return json({ error: code.includes("SUBSCRIPTION_FORBIDDEN") ? "SUBSCRIPTION_FORBIDDEN" : "SUBSCRIPTION_PAYMENT_INTENT_REJECTED", requestId }, status, requestId);
     }
 
-    if (intent.status === "SUCCEEDED" || (intent.provider_order_id && intent.provider_intent_id)) {
+    if (intent.status === "SUCCEEDED" || (["PENDING", "PAID_PENDING_LEGAL"].includes(String(intent.status)) && intent.provider_order_id && intent.provider_intent_id)) {
       return json({ paymentIntent: intent, requestId }, 200, requestId);
     }
     if (intent.status === "PENDING" && (!intent.provider_order_id || !intent.provider_intent_id)) {
@@ -106,7 +106,10 @@ Deno.serve(async req => {
       if (claimData.outcome_unknown === true || (claimedIntent?.status === "PENDING" && (!claimedIntent.provider_order_id || !claimedIntent.provider_intent_id))) {
         return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
       }
-      return json({ paymentIntent: claimedIntent ?? intent, requestId }, 200, requestId);
+      if (claimedIntent?.status === "SUCCEEDED" || (["PENDING", "PAID_PENDING_LEGAL"].includes(String(claimedIntent?.status)) && claimedIntent?.provider_order_id && claimedIntent?.provider_intent_id)) {
+        return json({ paymentIntent: claimedIntent, requestId }, 200, requestId);
+      }
+      return json({ error: "SUBSCRIPTION_INTENT_NOT_RETRYABLE", paymentIntentId: intent.id, status: claimedIntent?.status ?? intent.status, requestId }, 409, requestId);
     }
 
     let paymobResp: Response;
