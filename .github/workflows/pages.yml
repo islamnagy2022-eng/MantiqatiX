@@ -79,6 +79,7 @@ jobs:
           node scripts/validate-sector-rendering.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-module-runtime-contracts.mjs
+          node scripts/validate-enterprise-domain-readiness.mjs
           node scripts/validate-sensitive-module-writes.mjs
           node scripts/validate-home-sponsored-ads.mjs
           node scripts/validate-home-production-content.mjs
