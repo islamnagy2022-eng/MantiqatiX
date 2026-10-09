@@ -88,7 +88,7 @@ begin
   return pg_catalog.jsonb_build_object('success',true,'idempotent',false,'order',pg_catalog.to_jsonb(v_created),'line_count',v_line_count);
 end;
 $function$;
-revoke all on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb) from public,anon,authenticated;
+revoke all on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid) from public,anon,authenticated;
 grant execute on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid) to service_role;
 
 create or replace function public.update_purchase_order_status_backend(p_order_id varchar,p_target_status varchar)
