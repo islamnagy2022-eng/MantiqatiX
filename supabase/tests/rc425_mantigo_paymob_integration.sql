@@ -63,6 +63,17 @@ begin
     if sqlerrm not like '%MANTIGO_PAYMENT_EVENT_REPLAY_STATUS_MISMATCH%' then raise; end if;
   end;
 
+  -- A provider event already bound to one ledger cannot be replayed against another ledger.
+  begin
+    perform public.process_verified_mantigo_payment_backend(
+      'ledger-binding','paymob:TX-SUCCESS','PAID',true,50,'EGP','TX-SUCCESS',
+      '{"provider":"PAYMOB","transaction_id":"TX-SUCCESS","merchant_order_id":"ledger-binding","provider_order_id":"9003","amount_cents":"5000","currency":"EGP","success":true}'::jsonb
+    );
+    raise exception 'cross-ledger event replay unexpectedly succeeded';
+  exception when others then
+    if sqlerrm not like '%MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH%' then raise; end if;
+  end;
+
   -- Signature must be verified by the Edge Function before any state mutation.
   begin
     perform public.process_verified_mantigo_payment_backend(
