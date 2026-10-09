@@ -151,4 +151,10 @@ for(const marker of [
   if(!fs.readFileSync(rc441Test,'utf8').includes(marker)) throw new Error('RC441 behavioral regression marker missing: '+marker);
 }
 
+const rc441Runbook='docs/runbooks/VERIFY_RC441_PLATFORM_ADMIN_SCOPE.sql';
+if(!fs.existsSync(rc441Runbook)) throw new Error('RC441 read-only rollout verification runbook is missing.');
+for(const marker of ['mnty_can_platform_admin','checks_platform_admin','has_function_privilege','READ ONLY']){
+  if(!fs.readFileSync(rc441Runbook,'utf8').includes(marker)) throw new Error('RC441 runbook verification marker missing: '+marker);
+}
+
 console.log('RC340/RC441 SECURITY DEFINER and platform RBAC source contract: PASS');
