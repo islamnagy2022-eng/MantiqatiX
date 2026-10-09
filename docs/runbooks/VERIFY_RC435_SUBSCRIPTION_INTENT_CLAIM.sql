@@ -16,7 +16,7 @@ group by status
 order by status;
 
 -- Any PENDING intent without both provider IDs requires reconciliation, not another Paymob create call.
-select id,business_id,status,provider_intent_id,provider_order_id,created_at,updated_at
+select id,business_id,status,provider_creation_state,provider_creation_claimed_at,provider_intent_id,provider_order_id,created_at,updated_at
 from public.subscription_payment_intents
 where status='PENDING' and (provider_intent_id is null or provider_order_id is null)
 order by created_at;
