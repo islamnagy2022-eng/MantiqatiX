@@ -5,7 +5,7 @@ const migration = fs.readFileSync("supabase/migrations/20261009200000_rc434_atom
 const integration = fs.readFileSync("supabase/tests/rc434_erp_receiving_integration.sql", "utf8");
 const checks = [];
 function check(name, ok) { checks.push({name,ok:Boolean(ok)}); if(!ok) console.error("FAIL "+name); }
-check("Edge Function calls atomic backend RPC", edge.includes('rpc("receive_purchase_stock_atomic_backend"'));
+check("Edge Function calls atomic backend RPC", edge.includes('rpc("receive_purchase_stock_with_order_line_backend"'));
 check("Edge Function contains no direct stock balance mutation", !edge.includes('.from("stock_balances").update') && !edge.includes('.from("stock_balances").insert'));
 check("Edge Function contains no direct receipt or inventory ledger writes", !edge.includes('.from("erp_purchase_receipts").insert') && !edge.includes('.from("inventory_transactions").insert'));
 check("RPC validates actor membership in tenant/business scope", migration.includes("m.user_id=p_actor_user_id") && migration.includes("m.tenant_id=p_tenant_id") && migration.includes("m.business_id=p_business_id"));
