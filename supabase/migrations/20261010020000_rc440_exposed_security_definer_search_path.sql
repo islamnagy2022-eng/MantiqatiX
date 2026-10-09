@@ -24,6 +24,3 @@ begin
   raise notice 'RC440 fixed search_path for % exposed SECURITY DEFINER functions',changed_count;
 end;
 $rc440$;
-
-comment on schema public is
-  'RC440 security hardening: exposed SECURITY DEFINER functions use an explicit public, pg_temp search_path to prevent temporary-schema shadowing.';
