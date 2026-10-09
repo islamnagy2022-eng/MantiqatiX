@@ -20,3 +20,4 @@ jobs:
       - run: node scripts/validate-backend-only-module-boundary.mjs
       - run: node scripts/validate-module-runtime-contracts.mjs
       - run: node scripts/validate-sensitive-module-writes.mjs
+      - run: node scripts/validate-push-subscription-owner-boundary.mjs
