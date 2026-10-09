@@ -36,7 +36,7 @@ check("RC432 fails closed on existing duplicate references", migration.includes(
 check("RC432 enforces one DEBIT/REFUND/CREDIT per operation reference", migration.includes("smm_wallet_transactions_reference_type_uidx") && migration.includes("on public.smm_wallet_transactions(reference_id,type)") && migration.includes("'DEBIT','REFUND','CREDIT'"));
 check("RC432 debit path is idempotent and rechecks after wallet lock", migration.includes("Recheck after acquiring the wallet lock") && migration.includes("IDEMPOTENCY_CONFLICT"));
 check("RC432 refund path is idempotent", migration.includes("smm_refund_wallet") && migration.includes("on conflict do nothing") && migration.includes("REFUND"));
-check("admin credit uses a stable retry idempotency key", source.includes("p_reference:b.reference_id") && web.includes("reference_id:referenceId") && web.includes("creditAttempt={fingerprint,id:crypto.randomUUID()}"));
+check("admin credit uses a stable retry idempotency key", source.includes("p_reference:b.reference_id") && web.includes("reference_id:referenceId") && web.includes("function getCreditAttempt(fingerprint)") && web.includes("sessionStorage.setItem('mnty_smm_credit_attempt'") && web.includes("sessionStorage.removeItem('mnty_smm_credit_attempt'"));
 check("legacy non-idempotent admin credit RPC is disabled", migration.includes("smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated,service_role"));
 check("admin credit RPC checks the explicit SMM allowlist", migration.includes("public.smm_admins sa where sa.user_id=p_actor") && migration.includes("IDEMPOTENCY_CONFLICT"));
 check("admin wallet credit validates a finite positive amount", source.includes("Number.isFinite(amount)||amount<=0"));
