@@ -69,7 +69,124 @@ begin
      or p_raw_payload->>'success' is distinct from (p_status = 'PAID')::text then
     raise exception 'MANTIGO_PAYMENT_PAYLOAD_BINDING_MISMATCH';
   end if;
-  if coalesce(p_raw_payload->>'amount_cents', '') !~ '^[0-9]+([.][0-9]+)?$' then
+  if coalesce(p_raw_payload->>'amount_cents', '') !~ '^[0-9]+ then
+    raise exception 'MANTIGO_PAYMENT_PAYLOAD_AMOUNT_MISMATCH';
+  end if;
+  v_payload_amount := (p_raw_payload->>'amount_cents')::numeric / 100;
+  if abs(v_payload_amount - p_amount) > 0.01 then
+    raise exception 'MANTIGO_PAYMENT_PAYLOAD_AMOUNT_MISMATCH';
+  end if;
+
+  select * into v_ledger
+  from public.mantigo_financial_ledger
+  where id = p_ledger_id
+  for update;
+  if not found then
+    raise exception 'MANTIGO_PAYMENT_LEDGER_NOT_FOUND';
+  end if;
+  if v_ledger.provider is not null and upper(v_ledger.provider) <> 'PAYMOB' then
+    raise exception 'MANTIGO_PAYMENT_PROVIDER_MISMATCH';
+  end if;
+  if abs(v_ledger.gross_amount - p_amount) > 0.01
+     or upper(v_ledger.currency) <> upper(p_currency) then
+    raise exception 'MANTIGO_AMOUNT_CURRENCY_MISMATCH';
+  end if;
+
+  select * into v_event
+  from public.mantigo_payment_provider_events
+  where provider = 'PAYMOB'
+    and external_event_id = p_external_event_id
+  limit 1;
+  if found then
+    if v_event.ledger_id is distinct from v_ledger.id then
+      raise exception 'MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH';
+    end if;
+    if v_event.status is distinct from p_status then
+      raise exception 'MANTIGO_PAYMENT_EVENT_REPLAY_STATUS_MISMATCH';
+    end if;
+    return jsonb_build_object(
+      'ok', true, 'idempotent', true,
+      'status', v_ledger.payment_status, 'ledger_id', v_ledger.id
+    );
+  end if;
+
+  -- A failed attempt may later be replaced by a different verified successful transaction.
+  -- A paid ledger is immutable here: later distinct callbacks cannot rewrite its payment state.
+  if v_ledger.payment_status <> 'PENDING'
+     and not (v_ledger.payment_status = 'FAILED' and p_status = 'PAID') then
+    return jsonb_build_object(
+      'ok', true, 'idempotent', false, 'already_final', true,
+      'status', v_ledger.payment_status, 'ledger_id', v_ledger.id
+    );
+  end if;
+
+  insert into public.mantigo_payment_provider_events(
+    id, ledger_id, provider, event_type, external_event_id,
+    status, signature_verified, raw_payload, processed_at
+  ) values (
+    'paymob-mantigo:' || p_external_event_id,
+    v_ledger.id, 'PAYMOB', 'MANTIGO_RIDE_PAYMENT', p_external_event_id,
+    p_status, true, p_raw_payload, now()
+  )
+  on conflict (provider, external_event_id) do nothing
+  returning id into v_inserted_id;
+
+  if v_inserted_id is null then
+    select * into v_event
+    from public.mantigo_payment_provider_events
+    where provider = 'PAYMOB'
+      and external_event_id = p_external_event_id
+    limit 1;
+    if not found or v_event.ledger_id is distinct from v_ledger.id then
+      raise exception 'MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH';
+    end if;
+    if v_event.status is distinct from p_status then
+      raise exception 'MANTIGO_PAYMENT_EVENT_REPLAY_STATUS_MISMATCH';
+    end if;
+    return jsonb_build_object(
+      'ok', true, 'idempotent', true,
+      'status', v_ledger.payment_status, 'ledger_id', v_ledger.id
+    );
+  end if;
+
+  update public.mantigo_financial_ledger
+  set payment_status = p_status,
+      payment_reference = p_external_event_id,
+      provider_transaction_id = p_provider_transaction_id,
+      payment_confirmed_at = case when p_status = 'PAID' then now() else null end,
+      updated_at = now()
+  where id = v_ledger.id
+    and (payment_status = 'PENDING'
+      or (payment_status = 'FAILED' and p_status = 'PAID'));
+  if not found then
+    raise exception 'MANTIGO_PAYMENT_STATE_CHANGED';
+  end if;
+
+  insert into public.notifications(
+    id, tenant_id, user_id, type, title, body, entity_type, entity_id
+  ) values (
+    gen_random_uuid()::text, 'MNTY-PLATFORM', v_ledger.customer_id,
+    'MANTIGO_PAYMENT',
+    case when p_status = 'PAID' then 'تم تأكيد الدفع' else 'تعذر تأكيد الدفع' end,
+    case when p_status = 'PAID'
+      then 'تم تأكيد الدفع الإلكتروني للرحلة.'
+      else 'تعذر تأكيد الدفع الإلكتروني للرحلة.'
+    end,
+    'MANTIGO_RIDE', v_ledger.ride_id
+  );
+
+  return jsonb_build_object(
+    'ok', true, 'idempotent', false, 'already_final', false,
+    'status', p_status, 'ledger_id', v_ledger.id
+  );
+end;
+$function$;
+
+revoke all on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) from public;
+revoke all on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) from anon;
+revoke all on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) from authenticated;
+grant execute on function public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb) to service_role;
+ then
     raise exception 'MANTIGO_PAYMENT_PAYLOAD_AMOUNT_MISMATCH';
   end if;
   v_payload_amount := (p_raw_payload->>'amount_cents')::numeric / 100;
