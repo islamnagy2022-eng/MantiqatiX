@@ -51,29 +51,47 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  const requestedBranchId = body.branchId ? String(body.branchId) : null;
+  const { data: activeMemberships, error: membershipError } = await admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,business_id,branch_id,permissions")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
-    .eq("business_id", body.businessId)
+    .eq("status", "ACTIVE");
+  if (membershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+
+  const { data: customerMembership, error: customerMembershipError } = await admin
+    .from("user_memberships")
+    .select("id")
+    .eq("user_id", user.id)
     .eq("status", "ACTIVE")
+    .eq("role", "CUSTOMER")
     .limit(1)
     .maybeSingle();
-  if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+  if (customerMembershipError) return json({ error: "CUSTOMER_MEMBERSHIP_READ_FAILED" }, 500);
 
-  if (!targetMembership) {
-    const { data: customerMembership, error: customerMembershipError } = await admin
-      .from("user_memberships")
-      .select("id,role,status")
-      .eq("user_id", user.id)
-      .eq("status", "ACTIVE")
-      .eq("role", "CUSTOMER")
-      .limit(1)
-      .maybeSingle();
-    if (customerMembershipError) return json({ error: "CUSTOMER_MEMBERSHIP_READ_FAILED" }, 500);
-    if (!customerMembership) return json({ error: "FORBIDDEN" }, 403);
-  }
+  const businessRoleAuthorized = (activeMemberships ?? []).some((membership: any) => {
+    const role = String(membership.role ?? "").toUpperCase();
+    const permissions = membership.permissions && typeof membership.permissions === "object"
+      ? membership.permissions
+      : {};
+    if (role === "SUPER_ADMIN") {
+      return permissions.scope === "PLATFORM" && permissions.full_control === true;
+    }
+    if (!["OWNER", "SALES"].includes(role)) return false;
+    const membershipBusinessId = membership.business_id == null ? null : String(membership.business_id);
+    if (role === "OWNER") {
+      if (membershipBusinessId && membershipBusinessId !== String(body.businessId)) return false;
+    } else if (membershipBusinessId !== String(body.businessId)) {
+      return false;
+    }
+    const membershipBranchId = membership.branch_id == null ? null : String(membership.branch_id);
+    return !membershipBranchId || (requestedBranchId && membershipBranchId === requestedBranchId);
+  });
+
+  // A customer may order from any active business. Staff/business roles may
+  // create orders only when their canonical ORDERS:create capability and scope allow it.
+  if (!customerMembership && !businessRoleAuthorized) return json({ error: "FORBIDDEN" }, 403);
 
   const { data: business, error: businessError } = await admin
     .from("businesses")
@@ -109,7 +127,7 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
+  const branchId = requestedBranchId;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
