@@ -36,7 +36,7 @@ Deno.serve(async req => {
   try {
     const { data: { user }, error: userError } = await admin.auth.getUser(authorization.slice(7));
     if (userError || !user || user.is_anonymous) return json({ error: "AUTH_REQUIRED" }, 401, requestId);
-    if (!url || !serviceRole || !secretKey || !publicKey || !integrationId) {
+    if (!secretKey || !publicKey || !integrationId || !Number.isSafeInteger(Number(integrationId)) || Number(integrationId) <= 0) {
       return json({ error: "PAYMENT_PROVIDER_NOT_CONFIGURED" }, 503, requestId);
     }
 
