@@ -109,6 +109,9 @@ declare
  v_hash text;
  v_pricing_version bigint:=0;
  v_customer_member boolean:=false;
+ v_request_items jsonb:='[]'::jsonb;
+ v_request_hash text;
+ v_inserted_id uuid;
 begin
  if p_customer_id is null then raise exception 'CUSTOMER_REQUIRED'; end if;
  if coalesce(auth.role(),'') <> 'service_role' and (auth.uid() is null or auth.uid()<>p_customer_id) then raise exception 'CUSTOMER_REQUIRED'; end if;
@@ -123,11 +126,27 @@ begin
  if not exists(select 1 from businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id and coalesce(b.status,'ACTIVE')='ACTIVE') then raise exception 'BUSINESS_TENANT_MISMATCH'; end if;
  if not exists(select 1 from marketing_provider_profiles pp where pp.business_id=p_business_id and pp.status='ACTIVE') then raise exception 'PROVIDER_NOT_AVAILABLE'; end if;
  if p_branch_id is not null and not exists(select 1 from branches br where br.id::text=p_branch_id and br.business_id=p_business_id and br.tenant_id=p_tenant_id and coalesce(br.status,'ACTIVE')='ACTIVE') then raise exception 'BRANCH_BUSINESS_MISMATCH'; end if;
+ select coalesce(jsonb_agg(jsonb_build_object(
+   'catalogItemId',coalesce(x.value->>'catalogItemId',x.value->>'productId'),
+   'quantity',x.value->'quantity',
+   'selectedOptionIds',coalesce(x.value->'selectedOptionIds','[]'::jsonb)
+ ) order by x.ordinality),'[]'::jsonb)
+ into v_request_items
+ from jsonb_array_elements(p_items_json) with ordinality as x(value,ordinality);
+ v_request_hash:=encode(digest(jsonb_build_object(
+   'items',v_request_items,
+   'order_type',upper(coalesce(p_metadata->>'order_type','DELIVERY')),
+   'customer_name',trim(p_customer_name),
+   'customer_phone',trim(p_customer_phone),
+   'delivery_address',trim(coalesce(p_delivery_address,'')),
+   'notes',coalesce(p_notes,'')
+ )::text,'sha256'),'hex');
  select * into v_existing from orders where tenant_id=p_tenant_id and client_idempotency_key=trim(p_client_idempotency_key) for update;
  if found then
    if v_existing.customer_id is distinct from p_customer_id or v_existing.business_id is distinct from p_business_id or coalesce(v_existing.branch_id,'')<>coalesce(p_branch_id,'') then
      raise exception 'IDEMPOTENCY_KEY_SCOPE_CONFLICT';
    end if;
+   if v_existing.metadata ? 'request_hash' and v_existing.metadata->>'request_hash' is distinct from v_request_hash then raise exception 'IDEMPOTENCY_PAYLOAD_CONFLICT'; end if;
    return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true);
  end if;
  select * into v_settings from catalog_business_settings where business_id=p_business_id;
@@ -175,7 +194,16 @@ begin
  v_total:=round(v_subtotal-v_discount+v_tax+v_delivery,2);
  v_hash:=encode(digest(v_snapshot::text||'|'||v_currency||'|'||v_total::text||'|'||v_delivery::text||'|'||v_tax::text||'|'||v_discount::text,'sha256'),'hex');
  insert into orders(id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,currency,customer_name,customer_phone,delivery_address,items_json,notes,metadata,client_idempotency_key,pricing_version,pricing_snapshot,pricing_hash,pricing_authority)
- values(p_order_id,p_tenant_id,p_business_id,p_branch_id,p_customer_id,'PENDING',v_subtotal,v_discount,v_tax,v_delivery,v_total,v_currency,p_customer_name,p_customer_phone,p_delivery_address,v_snapshot,p_notes,coalesce(p_metadata,'{}')||jsonb_build_object('pricing_server_authoritative',true),trim(p_client_idempotency_key),v_pricing_version,v_snapshot,v_hash,'catalog_v1');
+ values(p_order_id,p_tenant_id,p_business_id,p_branch_id,p_customer_id,'PENDING',v_subtotal,v_discount,v_tax,v_delivery,v_total,v_currency,p_customer_name,p_customer_phone,p_delivery_address,v_snapshot,p_notes,coalesce(p_metadata,'{}')||jsonb_build_object('pricing_server_authoritative',true,'request_hash',v_request_hash),trim(p_client_idempotency_key),v_pricing_version,v_snapshot,v_hash,'catalog_v1')
+ on conflict (tenant_id,client_idempotency_key) where client_idempotency_key is not null do nothing
+ returning id into v_inserted_id;
+ if v_inserted_id is null then
+   select * into v_existing from orders where tenant_id=p_tenant_id and client_idempotency_key=trim(p_client_idempotency_key) for update;
+   if not found then raise exception 'IDEMPOTENCY_RETRY_CONFLICT'; end if;
+   if v_existing.customer_id is distinct from p_customer_id or v_existing.business_id is distinct from p_business_id or coalesce(v_existing.branch_id,'')<>coalesce(p_branch_id,'') then raise exception 'IDEMPOTENCY_KEY_SCOPE_CONFLICT'; end if;
+   if v_existing.metadata ? 'request_hash' and v_existing.metadata->>'request_hash' is distinct from v_request_hash then raise exception 'IDEMPOTENCY_PAYLOAD_CONFLICT'; end if;
+   return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true);
+ end if;
  return jsonb_build_object('id',p_order_id,'status','PENDING','subtotal',v_subtotal,'discount',v_discount,'tax',v_tax,'delivery_fee',v_delivery,'total_amount',v_total,'currency',v_currency,'pricing_version',v_pricing_version,'pricing_hash',v_hash,'pricing_snapshot',v_snapshot,'idempotent',false);
 end $function$;
 
