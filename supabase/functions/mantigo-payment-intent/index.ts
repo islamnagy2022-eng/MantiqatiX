@@ -35,6 +35,9 @@ Deno.serve(async req=>{
   if(!["REQUIRED","PENDING"].includes(String(ledger.payment_status)))return json({error:"RIDE_NOT_PAYABLE",paymentStatus:ledger.payment_status},409,requestId);
 
   const metadata=(ledger.metadata&&typeof ledger.metadata==="object"?ledger.metadata:{}) as Record<string,unknown>;
+  if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret&&!metadata.paymob_intention_order_id){
+    return json({error:"PAYMENT_INTENT_REQUIRES_RESTART",requestId},409,requestId);
+  }
   if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret){
     return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
   }
