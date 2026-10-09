@@ -14,7 +14,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  const obj=(raw.obj&&typeof raw.obj==="object"?raw.obj:raw) as Record<string,unknown>;const order=(obj.order&&typeof obj.order==="object"?obj.order:{}) as Record<string,unknown>;const source=(obj.source_data&&typeof obj.source_data==="object"?obj.source_data:{}) as Record<string,unknown>
  if(!(await verify(obj,order,source,value(raw.hmac??obj.hmac))))return json({error:"INVALID_PROVIDER_SIGNATURE",requestId},401,requestId)
  const eventId=`paymob:${value(obj.id)}`;const merchantRef=value(order.merchant_order_id);const paymobOrderId=value(order.id);const amount=Number(obj.amount_cents??0)/100;const currency=value(obj.currency).toUpperCase();const success=obj.success===true||value(obj.success).toLowerCase()==="true"
- if(!eventId||amount<=0||!currency)return json({error:"INVALID_PROVIDER_EVENT",requestId},400,requestId)
+ if(!value(obj.id)||amount<=0||!Number.isFinite(amount)||!currency)return json({error:"INVALID_PROVIDER_EVENT",requestId},400,requestId)
  const {data:subByRef}=await admin.from("subscription_payment_intents").select("id,business_id,amount,currency,status,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
  const {data:subByOrder}=subByRef?{data:null}:await admin.from("subscription_payment_intents").select("id,business_id,amount,currency,status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const sub=subByRef??subByOrder
