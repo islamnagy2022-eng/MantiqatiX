@@ -11,7 +11,7 @@ const backendEdge = fs.readFileSync("supabase/functions/post-financial-journal/i
 assert.match(migration, /set search_path = public, pg_temp/i, "SECURITY DEFINER search_path must pin pg_temp last");
 assert.match(
   migration,
-  /coalesce\(auth\.role\(\),'\'\)\s*<>\s*'service_role'\s+and\s+p_user_id\s*<>\s*auth\.uid\(\)/i,
+  /coalesce\(auth\.role\(\),''\)\s*<>\s*'service_role'\s+and\s+p_user_id\s*<>\s*auth\.uid\(\)/i,
   "service-role actor context may bypass auth.uid only for the trusted server role",
 );
 assert.match(migration, /um\.user_id=p_user_id[\s\S]*?um\.status='ACTIVE'/i, "actor must have an ACTIVE membership");
