@@ -9,6 +9,15 @@ const publicKey = Deno.env.get("PAYMOB_PUBLIC_KEY") ?? "";
 const integrationId = Deno.env.get("PAYMOB_INTEGRATION_ID") ?? "";
 const checkoutKeyVersion = Deno.env.get("PAYMOB_CHECKOUT_ENCRYPTION_KEY_VERSION") ?? "v1";
 const checkoutKeyEnvName = (version: string) => "PAYMOB_CHECKOUT_ENCRYPTION_KEY_" + version.toUpperCase();
+
+async function importCheckoutKey(version: string): Promise<CryptoKey> {
+  if (!/^v[1-9][0-9]{0,2}$/.test(version)) throw new Error("CHECKOUT_KEY_VERSION_INVALID");
+  const encoded = Deno.env.get(checkoutKeyEnvName(version)) ?? "";
+  if (!encoded) throw new Error("CHECKOUT_KEY_MISSING");
+  const raw = Uint8Array.from(atob(encoded), char => char.charCodeAt(0));
+  if (raw.byteLength !== 32) throw new Error("CHECKOUT_KEY_LENGTH_INVALID");
+  return await crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+}
 async function encryptCheckoutSecret(secret: string, intentId: string, businessId: string) {
   const key = await importCheckoutKey(checkoutKeyVersion);
   return await encryptCheckoutSecretPayload(secret, { key, version: checkoutKeyVersion, intentId, businessId });
