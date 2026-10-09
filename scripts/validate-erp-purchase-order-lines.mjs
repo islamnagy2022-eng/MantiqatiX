@@ -12,6 +12,7 @@ check("line creation validates active actor membership and tenant products",migr
 check("receiving requires a matching line and exact unit cost",migration.includes("PRODUCT_NOT_IN_PURCHASE_ORDER")&&migration.includes("PURCHASE_ORDER_UNIT_COST_MISMATCH"));
 check("cumulative receipt quantity cannot exceed ordered quantity",migration.includes("v_line.received_quantity+p_received_quantity>v_line.ordered_quantity"));
 check("receipt replay does not increment line quantity twice",migration.includes("Exact receipt replay is delegated to RC434")&&integration.includes("duplicate receipt must be idempotent"));
+check("concurrent duplicate receipt result does not increment line quantity twice",migration.includes("v_result->>'idempotent'")&&migration.includes("do not increment the order line again"));
 check("service role cannot bypass the line-aware receiving wrapper",migration.includes("from public,anon,authenticated,service_role")&&integration.includes("service_role must not bypass order-line wrapper"));
 check("Edge Functions derive actor from validated Auth user",edge.includes("p_actor_user_id: user.id")&&linesEdge.includes("p_actor_user_id: user.id"));
 check("ERP Edge Functions allow only the production web origin and handle OPTIONS",edge.includes("Access-Control-Allow-Origin")&&edge.includes("ORIGIN_NOT_ALLOWED")&&edge.includes("req.method === \"OPTIONS\"")&&linesEdge.includes("Access-Control-Allow-Origin")&&linesEdge.includes("ORIGIN_NOT_ALLOWED")&&linesEdge.includes("req.method === \"OPTIONS\""));
