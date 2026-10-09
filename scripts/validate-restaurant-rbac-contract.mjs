@@ -75,7 +75,7 @@ assert.match(catalogMigration, /for update;/i, 'catalog price version allocation
 assert.match(catalogMigration, /v_authorized_membership boolean:=false/, 'order RPC must apply a database-side membership authorization backstop');
 assert.match(catalogMigration, /where m\.user_id=p_customer_id\s+and m\.status='ACTIVE'/, 'order RPC membership backstop must require explicit ACTIVE status rather than treating NULL as active');
 assert.doesNotMatch(catalogMigration, /coalesce\(m\.status,\s*'ACTIVE'\)\s*=\s*'ACTIVE'/i, 'catalog admin RPCs must never treat NULL membership status as ACTIVE');
-assert.equal((catalogMigration.match(/m\.tenant_id=p_tenant_id and m\.status='ACTIVE'/g) || []).length, 2, 'both catalog admin RPCs must require explicit ACTIVE tenant membership');
+assert.equal((catalogMigration.match(/m\.tenant_id=p_tenant_id and m\.status='ACTIVE'/g) || []).length, 4, 'all catalog role checks must require explicit ACTIVE tenant membership');
 assert.match(catalogMigration, /jsonb_array_length\(p_items_json\)>100/, 'order RPC must independently cap item count');
 assert.match(catalogMigration, /jsonb_typeof\(coalesce\(v_item->'selectedOptionIds','\[\]'::jsonb\)\) <> 'array'/, 'order RPC must reject malformed option selections');
 assert.match(catalogMigration, /where business_id=p_business_id and tenant_id=p_tenant_id/, 'order settings must be loaded within the requested tenant scope');
