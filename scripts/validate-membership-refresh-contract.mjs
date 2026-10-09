@@ -47,12 +47,10 @@ for (const marker of [
 }
 
 const renderStart = app.indexOf('async function renderApp(options={})');
-const nextFunctionOffset = app.slice(renderStart + 1).search(/\n(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\(/);
-const renderEnd = nextFunctionOffset < 0 ? -1 : renderStart + 1 + nextFunctionOffset;
-if (renderStart < 0 || renderEnd < 0) {
-  throw new Error('Could not isolate renderApp implementation');
+if (renderStart < 0) {
+  throw new Error('Could not locate renderApp implementation');
 }
-const render = app.slice(renderStart, renderEnd);
+const render = app.slice(renderStart, renderStart + 2500);
 if (!/await loadLiveData\(\);if\(live\.error\)\{showAppError\(live\.error\);return\}/.test(render)) {
   throw new Error('Main app render must stop and show a safe error state when membership loading fails');
 }
