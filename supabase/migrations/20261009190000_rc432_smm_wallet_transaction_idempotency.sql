@@ -5,7 +5,7 @@ begin
   if exists (
     select 1
     from public.smm_wallet_transactions
-    where reference_id is not null and type in ('DEBIT','REFUND')
+    where reference_id is not null and type in ('DEBIT','REFUND','CREDIT')
     group by reference_id,type
     having count(*) > 1
   ) then
@@ -14,9 +14,10 @@ begin
 end
 $migration$;
 
-create unique index if not exists smm_wallet_transactions_reference_type_uidx
+drop index if exists public.smm_wallet_transactions_reference_type_uidx;
+create unique index smm_wallet_transactions_reference_type_uidx
   on public.smm_wallet_transactions(reference_id,type)
-  where reference_id is not null and type in ('DEBIT','REFUND');
+  where reference_id is not null and type in ('DEBIT','REFUND','CREDIT');
 
 create or replace function public.smm_debit_wallet(p_user uuid,p_amount numeric,p_reference uuid)
 returns boolean
@@ -141,10 +142,74 @@ begin
 end;
 $function$;
 
+create or replace function public.smm_admin_credit_wallet(
+  p_actor uuid,
+  p_user uuid,
+  p_amount numeric,
+  p_description text,
+  p_reference uuid
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_txn_id uuid;
+  v_existing_user uuid;
+  v_existing_amount numeric;
+begin
+  if p_actor is null or p_user is null or p_reference is null then
+    raise exception 'INVALID_REFERENCE';
+  end if;
+  if not exists(select 1 from public.smm_admins sa where sa.user_id=p_actor) then
+    raise exception 'NOT_AUTHORIZED';
+  end if;
+  if p_amount is null or p_amount <= 0 or p_amount::text in ('NaN','Infinity','-Infinity') then
+    raise exception 'INVALID_AMOUNT';
+  end if;
+
+  select wt.user_id,wt.amount into v_existing_user,v_existing_amount
+  from public.smm_wallet_transactions wt
+  where wt.reference_id=p_reference and wt.type='CREDIT'
+  limit 1;
+  if found then
+    if v_existing_user=p_user and v_existing_amount=p_amount then return true; end if;
+    raise exception 'IDEMPOTENCY_CONFLICT';
+  end if;
+
+  insert into public.smm_wallet_transactions(user_id,amount,type,reference_id,description)
+  values(p_user,p_amount,'CREDIT',p_reference,coalesce(p_description,'Manual admin credit'))
+  on conflict do nothing
+  returning id into v_txn_id;
+
+  if v_txn_id is null then
+    select wt.user_id,wt.amount into v_existing_user,v_existing_amount
+    from public.smm_wallet_transactions wt
+    where wt.reference_id=p_reference and wt.type='CREDIT'
+    limit 1;
+    if found and v_existing_user=p_user and v_existing_amount=p_amount then return true; end if;
+    raise exception 'IDEMPOTENCY_CONFLICT';
+  end if;
+
+  insert into public.smm_wallets as wallet(user_id,balance)
+  values(p_user,p_amount)
+  on conflict(user_id) do update
+    set balance=wallet.balance+excluded.balance,updated_at=pg_catalog.now();
+
+  return true;
+end;
+$function$;
+
+-- The legacy four-argument RPC has no idempotency reference; prevent new service-role callers from using it.
+revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated,service_role;
+revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid) from public,anon,authenticated;
+grant execute on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid) to service_role;
+
 revoke all on function public.smm_debit_wallet(uuid,numeric,uuid) from public,anon,authenticated;
 revoke all on function public.smm_refund_wallet(uuid,numeric,uuid,text) from public,anon,authenticated;
 grant execute on function public.smm_debit_wallet(uuid,numeric,uuid) to service_role;
 grant execute on function public.smm_refund_wallet(uuid,numeric,uuid,text) to service_role;
 
 comment on index public.smm_wallet_transactions_reference_type_uidx is
-  'RC432: one DEBIT and one REFUND ledger entry per SMM order reference; prevents duplicate balance mutations.';
+  'RC432: one DEBIT, REFUND, or CREDIT ledger entry per SMM operation reference; prevents duplicate balance mutations.';
