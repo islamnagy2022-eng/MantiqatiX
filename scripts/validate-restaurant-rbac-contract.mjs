@@ -44,6 +44,7 @@ assert.match(catalogAdmin, /m\.branch_id && String\(m\.branch_id\) === branchId/
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
 assert.match(orderCreate, /x\.metadata\?\.is_available !== false/, 'server must reject unavailable catalog items');
 assert.doesNotMatch(restaurant, /from\('restaurant_menu_items'\)\.(insert|update)/, 'legacy menu must not write prices that the canonical order path does not consume');
-assert.match(restaurant, /عرض القائمة القديمة للقراءة فقط/, 'legacy menu UI must disclose read-only status until canonical catalog integration is deployed');
+assert.match(restaurant, /قائمة الطعام — الكتالوج المركزي/, 'restaurant menu must render the canonical catalog rather than legacy menu records');
+assert.match(restaurant, /إدارة الأصناف والأسعار متوقفة مؤقتًا/, 'menu writes must remain disabled until the secure canonical write path is deployed');
 
 console.log('RC450 restaurant source-state and CRM/support RBAC contract PASS');
