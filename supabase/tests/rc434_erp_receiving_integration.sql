@@ -58,15 +58,6 @@ begin
   if not rejected then raise exception 'unapproved purchase order was not rejected'; end if;
   update public.erp_purchase_orders set status='APPROVED' where id='purchase-order-1';
 
-  create function public.rc434_fail_inventory_insert() returns trigger language plpgsql as $trigger$
-  begin
-    if new.reference_id='receipt-rollback' then raise exception 'RC434_FORCED_LEDGER_FAILURE'; end if;
-    return new;
-  end;
-  $trigger$;
-  create trigger rc434_test_fail_inventory before insert on public.inventory_transactions
-    for each row execute function public.rc434_fail_inventory_insert();
-
   rejected := false;
   begin
     perform public.receive_purchase_stock_atomic_backend('receipt-rollback','tenant-a',business,'purchase-order-1','GRN-ROLLBACK','warehouse-1',product,7,2,actor);
