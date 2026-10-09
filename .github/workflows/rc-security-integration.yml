@@ -1,0 +1,58 @@
+name: RC Security Integration
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  rc440-rc441-postgres16:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Create isolated test databases and least-privilege roles
+        run: |
+          psql --dbname=postgres --set=ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE ROLE service_role NOLOGIN;
+          SQL
+          createdb rc440
+          createdb rc441
+      - name: RC440 exposed SECURITY DEFINER search_path integration
+        run: |
+          psql --dbname=rc440 --set=ON_ERROR_STOP=1 --file=supabase/tests/rc440_security_definer_fixture.sql
+          psql --dbname=rc440 --set=ON_ERROR_STOP=1 --file=supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql
+          psql --dbname=rc440 --set=ON_ERROR_STOP=1 --file=supabase/tests/rc440_security_definer_integration.sql
+      - name: RC441 platform-admin scope integration
+        run: |
+          psql --dbname=rc441 --set=ON_ERROR_STOP=1 --file=supabase/tests/rc441_platform_admin_fixture.sql
+          psql --dbname=rc441 --set=ON_ERROR_STOP=1 --file=supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql
+          psql --dbname=rc441 --set=ON_ERROR_STOP=1 --file=supabase/tests/rc441_platform_admin_integration.sql
