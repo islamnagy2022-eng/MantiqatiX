@@ -49,6 +49,8 @@ assert.match(restaurant, /x\.status==='RESERVED'\?'selected'/, 'editing a reserv
 const catalogAdmin = fs.readFileSync('supabase/functions/catalog-admin/index.ts', 'utf8');
 const orderCreate = fs.readFileSync('supabase/functions/order-create/index.ts', 'utf8');
 assert.match(catalogAdmin, /CATALOG_SCOPE_FORBIDDEN/, 'catalog writes must verify tenant/business/branch authorization at the Edge boundary');
+assert.match(catalogAdmin, /ORIGIN_NOT_ALLOWED/, 'catalog-admin must reject unapproved browser origins');
+assert.doesNotMatch(catalogAdmin, /Access-Control-Allow-Origin\": \"\*\"/, 'catalog-admin must not allow wildcard browser CORS');
 assert.match(catalogAdmin, /m\.branch_id && String\(m\.branch_id\) === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
 assert.match(orderCreate, /x\.metadata\?\.is_available !== false/, 'server must reject unavailable catalog items');
