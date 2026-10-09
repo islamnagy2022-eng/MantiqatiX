@@ -15,7 +15,7 @@ check("journal schema aligns totals, entry number, posted time and line number",
 check("journal RPC validates balanced totals and tenant account scope",migration.includes("UNBALANCED_JOURNAL")&&migration.includes("ACCOUNT_NOT_ACTIVE_FOR_TENANT"));
 check("journal posting uses advisory lock and idempotency conflict detection",migration.includes("pg_advisory_xact_lock")&&migration.includes("JOURNAL_IDEMPOTENCY_CONFLICT"));
 check("journal and ledger writes are atomic",migration.includes("insert into public.journal_entries")&&migration.includes("insert into public.journal_entry_lines")&&migration.includes("insert into public.general_ledger"));
-check("legacy security-definer functions receive empty search_path",migration.includes("alter function public.post_financial_journal(jsonb,jsonb) set search_path = ''")&&migration.includes("alter function public.post_financial_journal_backend(uuid,jsonb,jsonb) set search_path = ''"));
+check("legacy security-definer functions receive empty search_path",migration.includes("alter function public.post_financial_journal(jsonb,jsonb) set search_path = public, pg_temp")&&migration.includes("alter function public.post_financial_journal_backend(uuid,jsonb,jsonb) set search_path = public, pg_temp"));
 check("integration test covers retry, authorization, imbalance and rollback",integration.includes("same journal retry must be idempotent")&&integration.includes("FINANCIAL_MEMBERSHIP_REQUIRED")&&integration.includes("UNBALANCED_JOURNAL")&&integration.includes("RC436_FORCED_LEDGER_FAILURE"));
 const failed=checks.filter(x=>!x.ok);if(failed.length)process.exit(1);
 console.log("Financial journal safety contract PASS: "+checks.length+"/"+checks.length+" checks.");
