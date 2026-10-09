@@ -48,6 +48,12 @@ begin
   end;
   if not rejected then raise exception 'cross-user claim for CREATED intent was not rejected'; end if;
 
+  update public.subscription_payment_intents set provider_intent_id='partial-intent',provider_order_id=null,status='CREATED' where id=intent_id_2;
+  result := public.claim_subscription_provider_intent_creation_backend(intent_id_2,actor);
+  if (result->>'claimed')::boolean is distinct from false or (result->>'outcome_unknown')::boolean is distinct from true then
+    raise exception 'partial provider correlation must require reconciliation';
+  end if;
+
   update public.subscription_payment_intents set status='FAILED' where id=intent_id_2;
   result := public.claim_subscription_provider_intent_creation_backend(intent_id_2,actor);
   if (result->>'claimed')::boolean is distinct from false then raise exception 'terminal intent must not be claimed'; end if;
