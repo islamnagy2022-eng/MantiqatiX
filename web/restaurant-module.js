@@ -226,6 +226,7 @@ function modal(title,html,onSave,onCancel){
  let saving=false;const save=o.querySelector('[data-save]');save?.addEventListener('click',async()=>{if(saving)return;saving=true;if(save)save.disabled=true;try{await onSave(o)}catch(e){notify('تعذر إتمام العملية: '+(e?.message||'خطأ غير متوقع'),'error')}finally{if(o.isConnected){saving=false;if(save)save.disabled=false}}});
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
+const TABLE_TRANSITIONS={EMPTY:['OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'],OCCUPIED:['EMPTY','CLEANING','OUT_OF_SERVICE'],RESERVED:['EMPTY','OCCUPIED','CLEANING','OUT_OF_SERVICE'],CLEANING:['EMPTY','OUT_OF_SERVICE'],OUT_OF_SERVICE:['EMPTY','CLEANING']};
 function addTable(existing){
  if(!canOperate('OPERATIONS',existing?'update':'create'))return notify('لا تملك صلاحية إدارة الطاولات.','error');
  const x=existing||{};
@@ -237,6 +238,8 @@ function addTable(existing){
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={table_number:Number(o.querySelector('#num').value),capacity_persons:Number(o.querySelector('#cap').value),status:o.querySelector('#status').value,reserved_customer_name:o.querySelector('#reserved').value.trim()||null};
   if(!Number.isInteger(payload.table_number)||payload.table_number<1||!Number.isInteger(payload.capacity_persons)||payload.capacity_persons<1)return notify('أدخل رقم وسعة صحيحين.');
+   if(existing&&payload.status!==existing.status&&!(TABLE_TRANSITIONS[existing.status]||[]).includes(payload.status))return notify('انتقال حالة الطاولة غير مسموح.','error');
+   if(existing?.current_active_order_id&&payload.status==='EMPTY')return notify('لا يمكن تحرير الطاولة قبل إغلاق الطلب النشط المرتبط بها.','error');
   if(!existing&&state.tables.some(t=>Number(t.table_number)===payload.table_number))return notify('رقم الطاولة مستخدم بالفعل ضمن الطاولات المعروضة.','error');
   let q=existing?sb.from('restaurant_tables').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id):sb.from('restaurant_tables').insert({...payload,id:uid(),owner_user_id:state.user.id,current_active_order_id:null,current_bill_egp:0,...s});
   const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
