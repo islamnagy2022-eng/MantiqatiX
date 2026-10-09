@@ -57,6 +57,52 @@
 | MOD-P1-22 | الأتمتة والمهام | انتهاء المهلات وإعادة المحاولة والمصالحة والتنبيهات | idempotency، dead-letter، تنبيه عند التعثر واختبار استعادة | TODO |
 | MOD-P1-23 | الواجهة والموبايل/PWA | RTL، الشاشات الصغيرة، الدخول، offline، الوصولية | Browser/device E2E وسلوك واضح عند انقطاع الشبكة | BLOCKED_EXTERNAL |
 
+## سجل الوحدات القطاعية المسجلة في runtime (28/28)
+
+فحص CI الحالي يثبت وجود إدخال كتالوج ومسار runtime وربط مصادر البيانات المعلنة لكل وحدة. هذا **إثبات عقد مصدر فقط**، وليس إثباتًا لتدفق E2E أو سلامة كل عملية إنتاجية.
+
+| الكود | الوحدة | حالة المصدر | حالة E2E |
+|---|---|---|---|
+| RESTAURANTS | المطاعم | VERIFIED_SOURCE | NOT VERIFIED |
+| CAFES | الكافيهات | VERIFIED_SOURCE | NOT VERIFIED |
+| SUPERMARKET | البقالة والسوبر ماركت | VERIFIED_SOURCE | NOT VERIFIED |
+| CLOTHING | الملابس والأزياء | VERIFIED_SOURCE | NOT VERIFIED |
+| MANTIGO | MantiGo والنقل | VERIFIED_SOURCE | NOT VERIFIED |
+| MARRIAGE | الزواج | VERIFIED_SOURCE | NOT VERIFIED |
+| JOBS | الوظائف | VERIFIED_SOURCE | NOT VERIFIED |
+| SCHOOLS | المدارس والتعليم | VERIFIED_SOURCE | NOT VERIFIED |
+| MAINTENANCE | الصيانة | VERIFIED_SOURCE | NOT VERIFIED |
+| MARKETING | التسويق والخدمات التسويقية | VERIFIED_SOURCE | NOT VERIFIED |
+| BUSINESS_ERP | إدارة الأعمال ERP | VERIFIED_SOURCE | NOT VERIFIED |
+| ACCOUNTING | المحاسبة | VERIFIED_SOURCE | NOT VERIFIED |
+| LEGAL | الخدمات القانونية | VERIFIED_SOURCE | NOT VERIFIED |
+| PARTNERS | الشركاء والإحالات | VERIFIED_SOURCE | NOT VERIFIED |
+| ADS | الإعلانات | VERIFIED_SOURCE | NOT VERIFIED |
+| TRAVEL | السفر والرحلات | VERIFIED_SOURCE | NOT VERIFIED |
+| USED_ITEMS | المستعمل | VERIFIED_SOURCE | NOT VERIFIED |
+| PHYSIOTHERAPY | العلاج الطبيعي | VERIFIED_SOURCE | NOT VERIFIED |
+| PHARMACIES | الصيدليات | VERIFIED_SOURCE | NOT VERIFIED |
+| CLINICS | العيادات | VERIFIED_SOURCE | NOT VERIFIED |
+| HOSPITALS | المستشفيات | VERIFIED_SOURCE | NOT VERIFIED |
+| LABS | المعامل والأشعة | VERIFIED_SOURCE | NOT VERIFIED |
+| ACCOUNTING_SERVICES | الخدمات المحاسبية | VERIFIED_SOURCE | NOT VERIFIED |
+| COMPANIES | خدمات الشركات | VERIFIED_SOURCE | NOT VERIFIED |
+| FACTORIES | المصانع والخدمات الصناعية | VERIFIED_SOURCE | NOT VERIFIED |
+| FLIGHTS_TRIPS | الرحلات والسفر | VERIFIED_SOURCE | NOT VERIFIED |
+| HOME_MAINTENANCE | خدمات المنزل والصيانة | VERIFIED_SOURCE | NOT VERIFIED |
+| SOFTWARE_ERP | البرمجيات وERP | VERIFIED_SOURCE | NOT VERIFIED |
+
+### معيار الإغلاق لكل وحدة قطاعية
+
+- [ ] اكتشاف عام وتفاصيل مقدم الخدمة/المنتج.
+- [ ] إنشاء طلب أو حجز فعلي واختبار دورة الحالة.
+- [ ] اختبار سلبي لعزل المستأجر والمنشأة والفرع والدور.
+- [ ] اختبار الإشعارات والنقر على الرابط وعزل المستلم.
+- [ ] الدفع/الإلغاء/الاسترداد عند انطباقها.
+- [ ] سجل تدقيق وتقارير مبنية على مصادر حقيقة موثوقة.
+- [ ] اختبارات متصفح وجهاز محمول وانقطاع شبكة.
+- [ ] توثيق أدلة الاختبار والمخاطر المتبقية.
+
 ## P2 — جودة المعمارية والموثوقية
 
 - [ ] استكمال تصنيف جميع الكتابات المباشرة ونقل الحساسة إلى Edge/RPC خادمية.
