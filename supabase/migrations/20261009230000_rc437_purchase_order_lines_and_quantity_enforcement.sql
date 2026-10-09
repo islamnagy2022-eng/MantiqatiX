@@ -64,10 +64,22 @@ begin
     if v_existing.tenant_id<>p_tenant_id or v_existing.business_id<>p_business_id or v_existing.order_number<>p_order_number or v_existing.supplier_id<>p_supplier_id then
       raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT';
     end if;
-    if exists(select 1 from public.erp_purchase_order_lines pol where pol.purchase_order_id=p_id) then
-      return pg_catalog.jsonb_build_object('success',true,'idempotent',true,'order',pg_catalog.to_jsonb(v_existing));
+    if v_existing.tax_amount is distinct from v_tax or v_existing.discount_amount is distinct from v_discount
+       or v_existing.reason is distinct from p_reason then raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT'; end if;
+    if (select count(*) from public.erp_purchase_order_lines pol where pol.purchase_order_id=p_id) <> pg_catalog.jsonb_array_length(p_lines) then
+      raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT';
     end if;
-    raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT';
+    if exists (
+      select 1 from pg_catalog.jsonb_array_elements(p_lines) as incoming(value)
+      where not exists (
+        select 1 from public.erp_purchase_order_lines pol
+        where pol.purchase_order_id=p_id
+          and pol.product_id=(incoming.value->>'product_id')::uuid
+          and pol.ordered_quantity=(incoming.value->>'quantity')::numeric
+          and pol.unit_cost=(incoming.value->>'unit_cost')::numeric
+      )
+    ) then raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT'; end if;
+    return pg_catalog.jsonb_build_object('success',true,'idempotent',true,'order',pg_catalog.to_jsonb(v_existing));
   end if;
   for v_line in select value from pg_catalog.jsonb_array_elements(p_lines) as t(value) loop
     if pg_catalog.jsonb_typeof(v_line)<>'object' then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end if;
