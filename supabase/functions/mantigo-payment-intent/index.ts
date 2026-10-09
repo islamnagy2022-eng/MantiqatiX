@@ -66,12 +66,13 @@ Deno.serve(async req=>{
   const provider=await providerResponse.json().catch(()=>({})) as Record<string,unknown>;
   const clientSecret=String(provider.client_secret??"");
   const providerIntentId=String(provider.id??"");
-  if(!providerResponse.ok||!clientSecret||!providerIntentId){
+  const providerOrderId=String(provider.intention_order_id??provider.order_id??"");
+  if(!providerResponse.ok||!clientSecret||!providerIntentId||!providerOrderId){
     console.error(JSON.stringify({requestId,stage:"paymob_intention",httpStatus:providerResponse.status}));
     return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT"},502,requestId);
   }
 
-  const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:provider.intention_order_id??null,paymob_payment_methods:provider.payment_methods??null};
+  const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:providerOrderId,paymob_payment_methods:provider.payment_methods??null};
   const {error:updateError}=await admin.from("mantigo_financial_ledger").update({
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
   }).eq("id",ledger.id).eq("payment_status","REQUIRED");
