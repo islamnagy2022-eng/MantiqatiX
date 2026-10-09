@@ -25,6 +25,8 @@ const checks = [
   ["MantiGo refuses to reuse an intent without stored order correlation", ridePayment.includes("PAYMENT_INTENT_REQUIRES_RESTART")],
   ["Digital-page finalizer fails closed when provider correlation is absent", digitalFinalizeMigration.includes("PAYMOB_PROVIDER_CORRELATION_REQUIRED")],
   ["Digital-page payment RPC uses an empty search path", digitalMigration.includes("set search_path = ''")],
+  ["Digital-page payment RPC rejects a null status", digitalMigration.includes("if p_status is null or p_status not in ('SUCCEEDED', 'FAILED')")],
+  ["Digital-page callback rejects conflicting status on replay", digitalMigration.includes("DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH") && digitalMigration.includes("v_event.status is distinct from p_status")],
   ["Subscription webhook binds intent to signed provider order", webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("sub.provider_order_id")],
   ["Subscription callback arriving before provider-order persistence is retryable", webhook.includes("SUBSCRIPTION_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('sub.status==="PENDING"')],
   ["Normal payment callback arriving before provider-order persistence is retryable", webhook.includes("PAYMENT_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('intent.status==="CREATED"')],
