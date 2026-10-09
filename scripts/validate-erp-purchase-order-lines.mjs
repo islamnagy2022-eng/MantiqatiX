@@ -1,0 +1,20 @@
+import fs from "node:fs";
+const migration=fs.readFileSync("supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql","utf8");
+const edge=fs.readFileSync("supabase/functions/erp-purchase-receive/index.ts","utf8");
+const linesEdge=fs.readFileSync("supabase/functions/erp-purchase-order-lines/index.ts","utf8");
+const ui=fs.readFileSync("web/app.js","utf8");
+const integration=fs.readFileSync("supabase/tests/rc437_purchase_order_lines_integration.sql","utf8");
+const checks=[];
+function check(name,ok){checks.push({name,ok:Boolean(ok)});if(!ok)console.error("FAIL "+name);}
+check("order line table tracks ordered and received quantities",migration.includes("ordered_quantity")&&migration.includes("received_quantity")&&migration.includes("unique (purchase_order_id,product_id)"));
+check("only draft purchase orders can have their lines replaced",migration.includes("upper(v_order.status)<>'DRAFT'"));
+check("line creation validates active actor membership and tenant products",migration.includes("PURCHASE_ORDER_LINES_FORBIDDEN")&&migration.includes("ci.tenant_id=p_tenant_id")&&migration.includes("ci.business_id=p_business_id"));
+check("receiving requires a matching line and exact unit cost",migration.includes("PRODUCT_NOT_IN_PURCHASE_ORDER")&&migration.includes("PURCHASE_ORDER_UNIT_COST_MISMATCH"));
+check("cumulative receipt quantity cannot exceed ordered quantity",migration.includes("v_line.received_quantity+p_received_quantity>v_line.ordered_quantity"));
+check("receipt replay does not increment line quantity twice",migration.includes("Exact receipt replay is delegated to RC434")&&integration.includes("replay incremented received quantity twice"));
+check("service role cannot bypass the line-aware receiving wrapper",migration.includes("from public,anon,authenticated,service_role")&&integration.includes("legacy receiving RPC must not be callable by service_role"));
+check("Edge Functions derive actor from validated Auth user",edge.includes("p_actor_user_id: user.id")&&linesEdge.includes("p_actor_user_id: user.id"));
+check("UI provides order-line entry and calls line-aware receipt Edge Function",ui.includes("setPurchaseOrderLines")&&ui.includes("sb.functions.invoke('erp-purchase-receive'"));
+check("integration covers over-receipt, wrong product/cost, replay and permissions",integration.includes("over-receipt was not rejected")&&integration.includes("product absent from purchase order was accepted")&&integration.includes("unit cost mismatch was accepted")&&integration.includes("exact receipt replay was not idempotent"));
+const failed=checks.filter(x=>!x.ok);if(failed.length)process.exit(1);
+console.log("ERP purchase-order line safety contract PASS: "+checks.length+"/"+checks.length+" checks.");
