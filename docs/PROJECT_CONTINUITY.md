@@ -636,3 +636,12 @@ This status is intentional and must remain until the open gates above are indepe
 - A proposed Edge Function fix was blocked by the repository safety layer; do not bypass that control. The source fix remains open for the supported review path.
 - No production migration, Edge Function deployment, data write, or PR merge was performed.
 - Restaurant module remains **PARTIAL / NOT PRODUCTION READY** until SQL/runtime validation, successful CI, authenticated customer/provider E2E, cross-tenant/branch denial, and notification/payment lifecycle tests are evidenced.
+
+
+## RC561 continuation update — 2026-10-09
+- Added database-side EGP enforcement, a 200-character idempotency-key limit, persisted tax/price validation, and a non-negative selected-option unit-price invariant to the restaurant order RPC migration.
+- Added matching regression assertions to the restaurant RBAC/order contract validator.
+- Latest source-head CI: Module Professionalization Validation `37935319134` **SUCCESS**; Backend-only Module Boundary `37935319156` **SUCCESS**; Pages run `37935319261` validation **SUCCESS**, deploy **SKIPPED** because PR #86 remains unmerged.
+- These are source/CI results only; PostgreSQL migration execution and authenticated runtime E2E remain unverified.
+- The Edge Function normalization change remains open because the repository safety layer blocked that write; do not bypass the control.
+- No production database mutation, migration, Edge Function deployment, or PR merge occurred.
