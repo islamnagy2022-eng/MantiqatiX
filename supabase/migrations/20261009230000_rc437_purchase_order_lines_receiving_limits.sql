@@ -22,7 +22,16 @@ create index if not exists erp_purchase_order_lines_scope_idx
   on public.erp_purchase_order_lines(tenant_id,business_id,purchase_order_id);
 
 alter table public.erp_purchase_order_lines enable row level security;
+drop policy if exists erp_purchase_order_lines_read_member on public.erp_purchase_order_lines;
+create policy erp_purchase_order_lines_read_member on public.erp_purchase_order_lines
+for select to authenticated
+using (exists (
+  select 1 from public.user_memberships m
+  where m.user_id=auth.uid() and m.tenant_id=erp_purchase_order_lines.tenant_id
+    and m.business_id=erp_purchase_order_lines.business_id and m.status='ACTIVE'
+));
 revoke all on public.erp_purchase_order_lines from anon,authenticated;
+grant select on public.erp_purchase_order_lines to authenticated;
 grant select,insert,update,delete on public.erp_purchase_order_lines to service_role;
 
 create or replace function public.set_purchase_order_lines_backend(
