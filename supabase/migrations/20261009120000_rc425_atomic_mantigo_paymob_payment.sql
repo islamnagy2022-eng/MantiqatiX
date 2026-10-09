@@ -82,6 +82,9 @@ begin
   if not found then
     raise exception 'MANTIGO_PAYMENT_LEDGER_NOT_FOUND';
   end if;
+  if p_raw_payload->>'merchant_order_id' is distinct from v_ledger.id then
+    raise exception 'MANTIGO_PAYMENT_MERCHANT_REFERENCE_MISMATCH';
+  end if;
   if v_ledger.provider is not null and upper(v_ledger.provider) <> 'PAYMOB' then
     raise exception 'MANTIGO_PAYMENT_PROVIDER_MISMATCH';
   end if;
