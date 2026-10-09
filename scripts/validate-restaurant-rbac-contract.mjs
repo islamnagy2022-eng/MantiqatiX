@@ -25,12 +25,12 @@ assert.match(restaurant, /if\(active\.length===1\)return active\[0\]/, 'only one
 assert.match(restaurant, /function askCart\(items,options\)/, 'restaurant order UI must support a multi-item cart');
 assert.match(restaurant, /selectedOptionIds:select\?\[\.\.\.select\.selectedOptions\]/, 'restaurant cart must pass selected catalog options to server pricing');
 assert.match(restaurant, /pendingOrderAttempt\.key/, 'order retry must reuse an idempotency key for an identical payload');
-assert.match(restaurant, /const TABLE_TRANSITIONS=/, 'table state transitions must be constrained in the UI');
-assert.match(restaurant, /current_active_order_id&&payload\.status==='EMPTY'/, 'table cannot be released while an active order is linked');
+assert.match(restaurant, /الطاولات للقراءة فقط حاليًا/, 'table mutations must remain disabled until server-side lifecycle enforcement exists');
+assert.match(restaurant, /المخزون للقراءة فقط حاليًا/, 'inventory mutations must remain disabled until the canonical stock ledger is wired');
 assert.match(restaurant, /invokeMntyApi\('\/api\/v1\/catalog\?'/, 'restaurant menu must read from the canonical catalog API');
 assert.match(restaurant, /clientIdempotencyKey:pendingOrderAttempt\.key/, 'order creation must send the stable idempotency key');
-assert.match(restaurant, /سياسات الإنتاج الحالية قد تخفي طاولات/, 'table view must disclose the live RLS visibility limitation');
-assert.match(restaurant, /سياسات الإنتاج الحالية قد تخفي أصناف مخزون/, 'inventory view must disclose the live RLS visibility limitation');
+assert.doesNotMatch(restaurant, /from\('restaurant_tables'\)\.(insert|update|delete)/, 'restaurant tables must not be mutated directly from the browser');
+assert.doesNotMatch(restaurant, /from\('restaurant_inventory'\)\.(insert|update|delete)/, 'restaurant inventory must not be mutated directly from the browser');
 assert.match(restaurant, /select\('id,tenant_id,business_id,branch_id,role,permissions,status'\)/, 'membership permissions must be loaded from the authenticated membership row');
 assert.match(restaurant, /window\.MNTY_RBAC\.can\(m\.role,module,action,m\.permissions\)===true/, 'restaurant actions must use the central RBAC contract');
 assert.doesNotMatch(restaurant, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER','STAFF'\]/, 'restaurant must not authorize via a hard-coded role allowlist');
