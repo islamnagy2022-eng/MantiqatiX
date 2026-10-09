@@ -25,7 +25,7 @@ if (platformScopeChecks.length !== 3) {
 if ((migration.match(/SET search_path TO 'public', 'pg_temp'/g) || []).length !== 3) {
   throw new Error('All three SECURITY DEFINER RPCs must pin search_path');
 }
-if ((migration.match(/p_admin_user_id <> auth\.uid\(\)/g) || []).length !== 2) {
+if (!migration.includes('v_user <> p_admin_user_id') || !migration.includes('p_admin_user_id <> auth.uid()')) {
   throw new Error('Human actor binding missing from dashboard/expiration RPCs');
 }
 if (!migration.includes('v_auth <> p_admin_user_id')) {
