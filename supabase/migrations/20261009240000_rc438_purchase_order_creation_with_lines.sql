@@ -48,6 +48,7 @@ begin
         where pol.purchase_order_id=p_id and pol.product_id=(incoming.value->>'product_id')::uuid
           and pol.ordered_quantity=(incoming.value->>'quantity')::numeric
           and pol.unit_cost=(incoming.value->>'unit_cost')::numeric
+          and pol.description is not distinct from nullif(pg_catalog.btrim(incoming.value->>'description'),'')
       )
     ) then raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT'; end if;
     return pg_catalog.jsonb_build_object('success',true,'idempotent',true,'order',pg_catalog.to_jsonb(v_existing));
@@ -59,9 +60,10 @@ begin
       v_product:=nullif(v_line->>'product_id','')::uuid; v_qty:=nullif(v_line->>'quantity','')::numeric; v_cost:=nullif(v_line->>'unit_cost','')::numeric;
     exception when others then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end;
     if v_product is null or v_qty is null or v_qty<=0 or v_cost is null or v_cost<0
-       or v_qty::text in ('NaN','Infinity','-Infinity') or v_cost::text in ('NaN','Infinity','-Infinity') then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end if;
-    if exists(select 1 from pg_catalog.jsonb_array_elements(p_lines) as all_lines(value)
-      where all_lines.value->>'product_id'=v_product::text and all_lines.value<>v_line) then raise exception 'DUPLICATE_PURCHASE_ORDER_PRODUCT'; end if;
+       or v_qty::text in ('NaN','Infinity','-Infinity') or v_cost::text in ('NaN','Infinity','-Infinity')
+       or v_qty<>round(v_qty,4) or v_cost<>round(v_cost,4) then raise exception 'INVALID_PURCHASE_ORDER_LINE'; end if;
+    if (select count(*) from pg_catalog.jsonb_array_elements(p_lines) as all_lines(value)
+      where all_lines.value->>'product_id'=v_product::text)>1 then raise exception 'DUPLICATE_PURCHASE_ORDER_PRODUCT'; end if;
     if not exists(select 1 from public.catalog_items ci where ci.id=v_product and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id and ci.status='ACTIVE') then
       raise exception 'PRODUCT_INVALID';
     end if;
