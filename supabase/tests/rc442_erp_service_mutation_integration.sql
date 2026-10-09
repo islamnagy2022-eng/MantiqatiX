@@ -83,6 +83,19 @@ begin
   if result->>'success'<>'true' or result->'transfer'->>'status'<>'REQUESTED' then raise exception 'transfer creation failed'; end if;
   result:=public.create_stock_transfer_service_backend('tr-rc442-0001','tenant-a',business,'TR-RC442-001','wh-source','wh-dest',product,10,manager_id);
   if result->>'idempotent'<>'true' then raise exception 'exact transfer replay was not idempotent'; end if;
+
+  -- Idempotency must not bypass current active-membership checks.
+  update public.user_memberships set status='SUSPENDED' where user_id=manager_id and tenant_id='tenant-a' and business_id=business;
+  rejected:=false;
+  begin
+    perform public.create_stock_transfer_service_backend('tr-rc442-0001','tenant-a',business,'TR-RC442-001','wh-source','wh-dest',product,10,manager_id);
+    raise exception 'TEST_FAILED: suspended member replay unexpectedly succeeded';
+  exception when others then
+    if sqlerrm<>'ERP_INVENTORY_ROLE_REQUIRED' then raise; end if;
+    rejected:=true;
+  end;
+  if not rejected then raise exception 'suspended member replay was not rejected'; end if;
+  update public.user_memberships set status='ACTIVE' where user_id=manager_id and tenant_id='tenant-a' and business_id=business;
   rejected:=false;
   begin
     perform public.create_stock_transfer_service_backend('tr-rc442-0001','tenant-a',business,'TR-RC442-001','wh-source','wh-dest',product,11,manager_id);
