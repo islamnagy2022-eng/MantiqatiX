@@ -56,6 +56,14 @@ const catalogAdmin = fs.readFileSync('supabase/functions/catalog-admin/index.ts'
 const orderCreate = fs.readFileSync('supabase/functions/order-create/index.ts', 'utf8');
 assert.match(catalogAdmin, /CATALOG_SCOPE_FORBIDDEN/, 'catalog writes must verify tenant/business/branch authorization at the Edge boundary');
 assert.match(catalogAdmin, /ORIGIN_NOT_ALLOWED/, 'catalog-admin must reject unapproved browser origins');
+assert.match(catalogAdmin, /const CATALOG_ACTIONS:/, 'catalog-admin must enforce action-specific catalog permissions');
+assert.match(catalogAdmin, /admin\.rpc\("upsert_catalog_item_backend"/, 'catalog RPCs must run with service role only after Edge authorization');
+assert.match(catalogAdmin, /admin\.rpc\("upsert_catalog_price_backend"/, 'catalog price RPC must use the authorized backend client');
+assert.match(catalogAdmin, /admin\.rpc\("upsert_catalog_settings_backend"/, 'catalog settings RPC must use the authorized backend client');
+assert.doesNotMatch(catalogAdmin, /client\.rpc\(/, 'catalog-admin must not forward user JWT context into service-role-only catalog RPCs');
+assert.match(catalogAdmin, /BRANCH_SCOPED_ROLES/, 'branch-scoped catalog roles must be restricted to their assigned branch');
+assert.match(catalogAdmin, /INVALID_UNIT_PRICE/, 'catalog price input must reject negative or non-finite amounts');
+assert.match(catalogAdmin, /INVALID_TAX_RATE/, 'catalog item tax rate must be bounded and finite');
 assert.doesNotMatch(catalogAdmin, /Access-Control-Allow-Origin\": \"\*\"/, 'catalog-admin must not allow wildcard browser CORS');
 assert.match(catalogAdmin, /m\.branch_id && String\(m\.branch_id\) === branchId/, 'branch-scoped managers must be constrained to their assigned branch');
 assert.match(orderCreate, /select\("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata"\)/, 'order-create must read catalog availability metadata');
