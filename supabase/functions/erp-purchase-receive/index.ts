@@ -20,7 +20,10 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user || user.is_anonymous) return json({ success: false, error: "UNAUTHENTICATED" }, 401);
 
-    const raw = await req.text();\n    if (new TextEncoder().encode(raw).byteLength > 65536) return json({ success: false, error: "PAYLOAD_TOO_LARGE" }, 413);\n    let body: Record<string, unknown> | null;\n    try { body = JSON.parse(raw) as Record<string, unknown>; } catch { body = null; }
+    const raw = await req.text();
+    if (new TextEncoder().encode(raw).byteLength > 65536) return json({ success: false, error: "PAYLOAD_TOO_LARGE" }, 413);
+    let body: Record<string, unknown> | null;
+    try { body = JSON.parse(raw) as Record<string, unknown>; } catch { body = null; }
     if (!body || Array.isArray(body) || typeof body !== "object") return json({ success: false, error: "INVALID_JSON" }, 400);
 
     const id = String(body.id ?? "").trim();
