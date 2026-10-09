@@ -35,7 +35,7 @@ assert.match(restaurant, /invokeMntyApi\('\/api\/v1\/catalog\?'/, 'restaurant me
 assert.match(restaurant, /clientIdempotencyKey:pendingOrderAttempt\.key/, 'order creation must send the stable idempotency key');
 assert.doesNotMatch(restaurant, /from\('restaurant_tables'\)\.(insert|update|delete)/, 'restaurant tables must not be mutated directly from the browser');
 assert.doesNotMatch(restaurant, /from\('restaurant_inventory'\)\.(insert|update|delete)/, 'restaurant inventory must not be mutated directly from the browser');
-assert.match(restaurant, /select\('id,tenant_id,business_id,branch_id,role,permissions,status'\)/, 'membership permissions must be loaded from the authenticated membership row');
+assert.match(restaurant, /const fields='id,tenant_id,business_id,branch_id,role,permissions,status'/, 'membership permissions must be loaded from the authenticated membership row');
 assert.match(restaurant, /window\.MNTY_RBAC\.can\(m\.role,module,action,m\.permissions\)===true/, 'restaurant actions must use the central RBAC contract');
 assert.doesNotMatch(restaurant, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER','STAFF'\]/, 'restaurant must not authorize via a hard-coded role allowlist');
 
