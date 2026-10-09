@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
     const branchId = body.branchId == null || body.branchId === "" ? null : String(body.branchId).trim();
     if (!tenantId || !businessId) return json({ error: "TENANT_BUSINESS_REQUIRED" }, 400);
     const isUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-    if (!isUuid(businessId) || (branchId && !isUuid(branchId))) return json({ error: "INVALID_BUSINESS_OR_BRANCH_ID" }, 400);
+    if (!isUuid(businessId) || (branchId && (branchId.length > 128 || /[\\u0000-\\u001f]/.test(branchId)))) return json({ error: "INVALID_BUSINESS_OR_BRANCH_ID" }, 400);
     if (!["ITEM_UPSERT", "PRICE_UPSERT", "SETTINGS_UPSERT"].includes(action)) {
       return json({ error: "UNSUPPORTED_ACTION" }, 400);
     }
