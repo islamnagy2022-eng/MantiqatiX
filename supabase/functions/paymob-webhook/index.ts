@@ -106,6 +106,29 @@ const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_i
  if(merchantRef&&merchantRef!==String(intent.id))return json({error:"PAYMENT_MERCHANT_REFERENCE_MISMATCH",requestId},409,requestId)
  if(Math.abs(Number(intent.amount)-amount)>0.01||String(intent.currency).toUpperCase()!==currency)return json({error:"PAYMENT_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
  const {data:existing}=await admin.from("payment_provider_events").select("id,payment_intent_id").eq("provider","PAYMOB").eq("external_event_id",eventId).maybeSingle();if(existing)return json({ok:true,idempotent:true,requestId},200,requestId)
- if(!success){const {error:e}=await admin.from("payment_provider_events").insert({id:crypto.randomUUID(),tenant_id:intent.tenant_id,provider:"PAYMOB",event_type:"TRANSACTION",payment_intent_id:intent.id,external_event_id:eventId,status:"FAILED",signature_verified:true,raw_payload:raw,processed_at:new Date().toISOString()});if(e)return json({error:"PAYMENT_FAILURE_PERSISTENCE",requestId},500,requestId);await admin.from("payment_intents").update({status:"FAILED",updated_at:new Date().toISOString()}).eq("id",intent.id);return json({ok:true,status:"FAILED",requestId},200,requestId)}
+ if(!success){
+   const {data:failureResult,error:failureError}=await admin.rpc("process_verified_provider_payment_failure",{
+     p_event_id:crypto.randomUUID(),
+     p_tenant_id:intent.tenant_id,
+     p_provider:"PAYMOB",
+     p_external_event_id:eventId,
+     p_payment_intent_id:intent.id,
+     p_event_type:"TRANSACTION",
+     p_signature_verified:true,
+     p_provider_confirmed_amount:amount,
+     p_provider_confirmed_currency:currency,
+     p_provider_transaction_id:value(obj.id),
+     p_provider_order_id:paymobOrderId,
+     p_raw_payload:raw
+   });
+   if(failureError){
+     const message=String(failureError.message??"");
+     if(message.includes("PAYMENT_PROVIDER_ORDER_MISMATCH")||message.includes("PROVIDER_FINANCIAL_MISMATCH"))return json({error:"PAYMENT_FAILURE_BINDING_MISMATCH",requestId},409,requestId);
+     if(message.includes("PAYMENT_INTENT_NOT_FOUND"))return json({error:"PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId);
+     return json({error:"PAYMENT_FAILURE_PROCESSING_FAILED",requestId},500,requestId);
+   }
+   const result=failureResult&&typeof failureResult==="object"?failureResult as Record<string,unknown>:{};
+   return json({ok:true,status:value(result.status),idempotent:result.idempotent===true,alreadyFinal:result.already_final===true,requestId},200,requestId);
+ }
  const {data:processed,error:e}=await admin.rpc("process_verified_provider_payment",{p_event_id:eventId,p_tenant_id:intent.tenant_id,p_provider:"PAYMOB",p_external_event_id:eventId,p_payment_intent_id:intent.id,p_event_type:"TRANSACTION",p_signature_verified:true,p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_platform_received_amount:amount});if(e)return json({error:"PAYMENT_PROCESSING_FAILED",requestId},500,requestId);return json({ok:true,status:"SUCCEEDED",result:processed,requestId},200,requestId)
 }catch(e){return json({error:"CALLBACK_FAILED",requestId},500,requestId)}})
