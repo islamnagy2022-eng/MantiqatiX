@@ -38,6 +38,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
+      - name: Create isolated test roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
       - name: Create disposable SMM wallet schema
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/rc432_smm_wallet_idempotency_fixture.sql
       - name: Apply RC432 only to disposable PostgreSQL
