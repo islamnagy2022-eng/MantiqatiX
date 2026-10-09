@@ -6,7 +6,7 @@
 
 create or replace function public.upsert_catalog_item_backend(
   p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_legacy_ref varchar,p_item_type varchar,p_name_ar text,p_name_en text,p_description text,p_sku varchar,p_tax_rate numeric,p_metadata jsonb,p_id uuid default null
-) returns jsonb language plpgsql security definer set search_path=public as $function$
+) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
 declare v_id uuid;
 begin
  if coalesce(auth.role(),'') <> 'service_role' then
@@ -30,7 +30,7 @@ end $function$;
 
 create or replace function public.upsert_catalog_price_backend(
  p_tenant_id varchar,p_business_id uuid,p_catalog_item_id uuid,p_branch_id varchar,p_currency varchar,p_unit_price numeric,p_effective_from timestamptz default now(),p_effective_to timestamptz default null
-) returns jsonb language plpgsql security definer set search_path=public as $function$
+) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
 declare v_id uuid; v_version bigint;
 begin
  if coalesce(auth.role(),'') <> 'service_role' then
@@ -52,7 +52,7 @@ end $function$;
 
 create or replace function public.upsert_catalog_settings_backend(
  p_tenant_id varchar,p_business_id uuid,p_currency varchar default 'EGP',p_delivery_fee numeric default 0,p_tax_inclusive boolean default false,p_allow_discounts boolean default false
-) returns jsonb language plpgsql security definer set search_path=public as $function$
+) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
 declare v_uid uuid:=auth.uid(); v_role text; v_row public.catalog_business_settings%rowtype;
 begin
  if coalesce(auth.role(),'') <> 'service_role' then
@@ -85,7 +85,7 @@ create or replace function public.create_order_backend(
  p_order_id uuid,p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_customer_id uuid,p_client_idempotency_key varchar,
  p_subtotal numeric,p_discount numeric,p_tax numeric,p_delivery_fee numeric,p_total_amount numeric,p_currency varchar,
  p_customer_name text,p_customer_phone text,p_delivery_address text,p_items_json jsonb,p_notes text default null,p_metadata jsonb default '{}'
-) returns jsonb language plpgsql security definer set search_path=public as $function$
+) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
 declare
  v_existing orders;
  v_settings catalog_business_settings;
