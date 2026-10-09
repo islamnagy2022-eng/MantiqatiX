@@ -1,0 +1,33 @@
+import fs from "node:fs";
+
+const read = (p) => fs.readFileSync(p, "utf8");
+const webhook = read("supabase/functions/paymob-webhook/index.ts");
+const orderPayment = read("supabase/functions/payment-intent/index.ts");
+const ridePayment = read("supabase/functions/mantigo-payment-intent/index.ts");
+const digitalPayment = read("supabase/functions/digital-page-payment-intent/index.ts");
+const digitalMigration = read("supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql");
+const rideMigration = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
+const digitalFinalizeMigration = read("supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql");
+const workflow = read(".github/workflows/pages.yml");
+
+const checks = [
+  ["HMAC covers Paymob order.id", webhook.includes("order.id") && webhook.includes("obj.owner")],
+  ["Normal checkout persists provider order ID", orderPayment.includes("provider_order_id: providerOrderId") && orderPayment.includes("!providerOrderId")],
+  ["Normal webhook binds intent to signed provider order", webhook.includes("PAYMENT_PROVIDER_ORDER_MISMATCH") && webhook.includes('eq("provider_order_id",paymobOrderId)')],
+  ["Subscription webhook binds intent to signed provider order", webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("sub.provider_order_id")],
+  ["Digital checkout requires provider order ID", digitalPayment.includes("!providerOrderId")],
+  ["Digital checkout persists provider order ID through five-argument RPC", digitalPayment.includes("p_provider_order_id:providerOrderId") && digitalFinalizeMigration.includes("p_provider_order_id text")],
+  ["Digital webhook rejects a mismatched provider order", webhook.includes("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH") && digitalMigration.includes("v_order.provider_order_id <> p_provider_order_id")],
+  ["MantiGo checkout requires and stores provider order ID", ridePayment.includes("!providerOrderId") && ridePayment.includes("paymob_intention_order_id:providerOrderId")],
+  ["MantiGo RPC binds merchant reference to ledger", rideMigration.includes("p_raw_payload->>'merchant_order_id' is distinct from p_ledger_id")],
+  ["MantiGo RPC binds signed provider order to persisted intention order", rideMigration.includes("metadata->>'paymob_intention_order_id'")],
+  ["RC426 revokes the legacy finalizer from authenticated", digitalFinalizeMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) from authenticated")],
+  ["Order-binding validator is part of CI", workflow.includes("node scripts/validate-paymob-order-binding.mjs")]
+];
+const failed = checks.filter(([, ok]) => !ok);
+for (const [name, ok] of checks) console.log((ok ? "PASS " : "FAIL ") + name);
+if (failed.length) {
+  console.error("Paymob order-binding contract failed: " + failed.map(([name]) => name).join("; "));
+  process.exit(1);
+}
+console.log("Paymob signed-order binding contract: PASS (" + checks.length + " checks; source-only, no production mutations).");
