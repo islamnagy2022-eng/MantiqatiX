@@ -14,7 +14,7 @@ with line_totals as (
 update public.journal_entries je
 set total_debit=coalesce(lt.total_debit,0),
     total_credit=coalesce(lt.total_credit,0),
-    posted_at=coalesce(je.posted_at,je.created_at)
+    posted_at=case when upper(je.status)='POSTED' then coalesce(je.posted_at,je.created_at) else je.posted_at end
 from (select je2.id,lt2.total_debit,lt2.total_credit from public.journal_entries je2 left join line_totals lt2 on lt2.journal_entry_id=je2.id) lt
 where je.id=lt.id;
 
@@ -44,7 +44,7 @@ begin
 end;
 $index_guard$;
 
-create unique index if not exists journal_entry_lines_entry_number_uidx
+create unique index if not exists journal_entry_lines_entry_line_uidx
   on public.journal_entry_lines(journal_entry_id,line_number);
 create unique index if not exists journal_entries_tenant_entry_number_uidx
   on public.journal_entries(tenant_id,entry_number)
