@@ -113,7 +113,7 @@ declare
  v_token text;
  v_hash text;
  v_pricing_version bigint:=0;
- v_customer_member boolean:=false;
+ v_authorized_membership boolean:=false;
  v_request_items jsonb:='[]'::jsonb;
  v_request_hash text;
  v_inserted_id uuid;
@@ -126,8 +126,28 @@ begin
  if length(regexp_replace(coalesce(p_customer_phone,''),'[^0-9]','','g'))<7 or length(regexp_replace(coalesce(p_customer_phone,''),'[^0-9]','','g'))>15 then raise exception 'INVALID_CUSTOMER_PHONE'; end if;
  if upper(coalesce(p_metadata->>'order_type','DELIVERY')) not in ('DELIVERY','TAKEAWAY') then raise exception 'INVALID_ORDER_TYPE'; end if;
  if upper(coalesce(p_metadata->>'order_type','DELIVERY'))='DELIVERY' and nullif(trim(coalesce(p_delivery_address,'')),'') is null then raise exception 'DELIVERY_ADDRESS_REQUIRED'; end if;
- select exists(select 1 from user_memberships m where m.user_id=p_customer_id and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE') into v_customer_member;
- if not v_customer_member and not exists(select 1 from user_memberships m where m.user_id=p_customer_id and coalesce(m.status,'ACTIVE')='ACTIVE' and upper(m.role)='CUSTOMER') then raise exception 'CUSTOMER_MEMBERSHIP_REQUIRED'; end if;
+ select exists(
+   select 1 from user_memberships m
+   where m.user_id=p_customer_id
+     and coalesce(m.status,'ACTIVE')='ACTIVE'
+     and (
+       upper(m.role)='CUSTOMER'
+       or (
+         m.tenant_id=p_tenant_id
+         and (
+           (upper(m.role)='OWNER' and (m.business_id is null or m.business_id=p_business_id))
+           or (upper(m.role) in ('BUSINESS_OWNER','ADMIN','MANAGER') and m.business_id=p_business_id)
+         )
+         and (m.branch_id is null or m.branch_id=p_branch_id)
+       )
+       or (
+         m.tenant_id=p_tenant_id and upper(m.role)='SUPER_ADMIN'
+         and coalesce(m.permissions->>'scope','')='PLATFORM'
+         and coalesce((m.permissions->>'full_control')::boolean,false)=true
+       )
+     )
+ ) into v_authorized_membership;
+ if not v_authorized_membership then raise exception 'CUSTOMER_MEMBERSHIP_REQUIRED'; end if;
  if not exists(select 1 from businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id and coalesce(b.status,'ACTIVE')='ACTIVE') then raise exception 'BUSINESS_TENANT_MISMATCH'; end if;
  if not exists(select 1 from marketing_provider_profiles pp where pp.business_id=p_business_id and pp.status='ACTIVE') then raise exception 'PROVIDER_NOT_AVAILABLE'; end if;
  if p_branch_id is not null and not exists(select 1 from branches br where br.id::text=p_branch_id and br.business_id=p_business_id and br.tenant_id=p_tenant_id and coalesce(br.status,'ACTIVE')='ACTIVE') then raise exception 'BRANCH_BUSINESS_MISMATCH'; end if;
@@ -151,7 +171,8 @@ begin
    if v_existing.customer_id is distinct from p_customer_id or v_existing.business_id is distinct from p_business_id or coalesce(v_existing.branch_id,'')<>coalesce(p_branch_id,'') then
      raise exception 'IDEMPOTENCY_KEY_SCOPE_CONFLICT';
    end if;
-   if v_existing.metadata ? 'request_hash' and v_existing.metadata->>'request_hash' is distinct from v_request_hash then raise exception 'IDEMPOTENCY_PAYLOAD_CONFLICT'; end if;
+   if nullif(v_existing.metadata->>'request_hash','') is null then raise exception 'IDEMPOTENCY_LEGACY_PAYLOAD_UNVERIFIABLE'; end if;
+   if v_existing.metadata->>'request_hash' is distinct from v_request_hash then raise exception 'IDEMPOTENCY_PAYLOAD_CONFLICT'; end if;
    return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true);
  end if;
  select * into v_settings from catalog_business_settings where business_id=p_business_id;
@@ -206,7 +227,8 @@ begin
    select * into v_existing from orders where tenant_id=p_tenant_id and client_idempotency_key=trim(p_client_idempotency_key) for update;
    if not found then raise exception 'IDEMPOTENCY_RETRY_CONFLICT'; end if;
    if v_existing.customer_id is distinct from p_customer_id or v_existing.business_id is distinct from p_business_id or coalesce(v_existing.branch_id,'')<>coalesce(p_branch_id,'') then raise exception 'IDEMPOTENCY_KEY_SCOPE_CONFLICT'; end if;
-   if v_existing.metadata ? 'request_hash' and v_existing.metadata->>'request_hash' is distinct from v_request_hash then raise exception 'IDEMPOTENCY_PAYLOAD_CONFLICT'; end if;
+   if nullif(v_existing.metadata->>'request_hash','') is null then raise exception 'IDEMPOTENCY_LEGACY_PAYLOAD_UNVERIFIABLE'; end if;
+   if v_existing.metadata->>'request_hash' is distinct from v_request_hash then raise exception 'IDEMPOTENCY_PAYLOAD_CONFLICT'; end if;
    return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true);
  end if;
  return jsonb_build_object('id',p_order_id,'status','PENDING','subtotal',v_subtotal,'discount',v_discount,'tax',v_tax,'delivery_fee',v_delivery,'total_amount',v_total,'currency',v_currency,'pricing_version',v_pricing_version,'pricing_hash',v_hash,'pricing_snapshot',v_snapshot,'idempotent',false);
