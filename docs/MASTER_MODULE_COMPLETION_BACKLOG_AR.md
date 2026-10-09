@@ -183,3 +183,27 @@
 5. المخاطر المتبقية والإجراء الخارجي المطلوب.
 
 لا تُحوّل أي بند `BLOCKED_EXTERNAL` إلى مكتمل بسبب عدم توفر الصلاحية أو البيئة. تبقى بوابة الإطلاق العامة مفتوحة حتى اجتياز حواجز P0 في سجل الإنتاج.
+
+
+## استكمال أمني متحقق — 2026-10-09 (RC441 / صلاحيات MantiGO)
+
+- اكتُشف أثناء مراجعة PR #84 أن حارس `mnty_can_platform_admin()` كان يشترط الدور `SUPER_ADMIN` و`scope=PLATFORM` و`full_control` لكنه لا يربط العضوية بمستأجر المنصة نفسه.
+- عُدّل RC441 ليشترط أيضًا `tenant_id = 'MNTY-PLATFORM'`، وأُضيفت حالة سلبية لمستخدم `SUPER_ADMIN` تابع لمستأجر آخر ويحمل قيم `PLATFORM/full_control`؛ يجب أن يُرفض.
+- أُضيفت جداول تشغيلية اصطناعية دنيا إلى fixture كي تُنفّذ ترحيلات PostgreSQL المعزولة فعليًا، وأُضيفت مهمة CI مستقلة لاختبار RC441 على PostgreSQL 16.
+- التحقق الفعلي: `RC441 platform-admin scope integration: PASS` في [Module Professionalization Validation run 37948326046](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/37948326046)، مع نجاح وظائف التكامل المعزولة الأخرى في نفس التشغيل.
+- الحالة: `SOURCE_FIXED / ISOLATED_DB_VERIFIED / CI_VERIFIED` على الفرع `fix/mantigo-atomic-paymob-webhook`، commit التحقق `3e5fe291d91249f32e4bbc9b8d58aa557d036432`.
+- لم تُطبق RC441 على الإنتاج، ولم تُجرَ كتابة إنتاجية. لا يزال اختلاف سجل ترحيل RC424 بين الإنتاج والمصدر مانعًا من أي نشر جماعي؛ يلزم تسوية تاريخ الترحيلات ومراجعتها وتجربة ترتيبها في بيئة معزولة قبل طلب اعتماد نافذة نشر.
+
+## استكمال أمني متحقق — 2026-10-09 (RC89 / ملكية اشتراك الإشعارات)
+
+- أُضيف fixture واختبار سلوكي بقاعدة PostgreSQL معزولة للتحقق من تسجيل endpoint جديد، وتحديث مفاتيح المالك نفسه، ورفض الاستيلاء من مستخدم آخر، وبقاء المالك والمفاتيح الأصلية دون تغيير، ورفض المستخدم غير المصادق، والسماح لمستخدم ثانٍ بتسجيل endpoint مستقل.
+- أُضيفت مهمة `push-subscription-ownership-integration` إلى CI في PR #97.
+- التحقق الفعلي: `RC89 push subscription ownership integration: PASS` في [Backend-only Module Boundary run 37948471510](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/37948471510).
+- الحالة: `SOURCE_FIXED / ISOLATED_DB_VERIFIED / CI_VERIFIED` على الفرع `fix/push-subscription-owner-conflict-20261009`، commit `f0c6b7accc148a6b4fd74d4694f1c3f95cef49c9`. بقيت الموافقة على نشر الترحيل والتحقق بعد النشر؛ الإنتاج لم يتغير.
+
+## استكمال أمني متحقق — 2026-10-09 (مطاعم / حالة العضوية)
+
+- أُزيلت معاملتا `coalesce(m.status,'ACTIVE')='ACTIVE'` من ترحيل الكتالوج؛ جميع فحوص العضوية ذات الصلة تتطلب `m.status='ACTIVE'` صراحةً.
+- أُضيفت عقود تحقق مصدر تمنع عودة قاعدة `NULL = ACTIVE`، وتتحقق من حالات العضوية النشطة الأربع في الترحيل.
+- التحقق الفعلي: فحوص Module Professionalization Validation وBackend-only Module Boundary وWeb workflow نجحت على commit `de6cc9020370ce0c3f52765bdaf3e1abc2ab155d`.
+- الحالة: `SOURCE_FIXED / CI_VERIFIED`. لا تزال اختبارات قاعدة بيانات/تزامن الكتالوج والتطبيق المنسق للترحيل ووظائف Edge على الإنتاج غير منفذة.
