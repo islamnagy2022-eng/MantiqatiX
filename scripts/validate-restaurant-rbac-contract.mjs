@@ -65,6 +65,7 @@ assert.match(catalogAdmin, /BRANCH_SCOPED_ROLES/, 'branch-scoped catalog roles m
 assert.match(catalogAdmin, /INVALID_UNIT_PRICE/, 'catalog price input must reject negative or non-finite amounts');
 assert.match(catalogAdmin, /INVALID_TAX_RATE/, 'catalog item tax rate must be bounded and finite');
 assert.match(catalogAdmin, /INVALID_BUSINESS_OR_BRANCH_ID/, 'catalog writes must validate business and branch identifier formats');
+assert.doesNotMatch(catalogAdmin, /!isUuid\(branchId\)/, 'branch IDs are opaque varchar identifiers, not necessarily UUIDs');
 assert.match(catalogAdmin, /INVALID_CATALOG_ITEM_ID/, 'catalog writes must validate item identifier formats');
 const catalogMigration = fs.readFileSync('supabase/migrations/20261009130000_catalog_edge_service_role_boundary.sql', 'utf8');
 assert.match(catalogMigration, /coalesce\(auth\.role\(\),''\) <> 'service_role'/, 'catalog RPC migration must permit trusted service-role execution without forwarding a user JWT');
