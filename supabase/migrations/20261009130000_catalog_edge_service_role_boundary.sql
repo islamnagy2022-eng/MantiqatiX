@@ -38,6 +38,7 @@ begin
    if not exists(select 1 from user_memberships m where m.user_id=auth.uid() and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE' and (upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER') or (upper(m.role)='SUPER_ADMIN' and coalesce(m.permissions->>'scope','')='PLATFORM' and coalesce((m.permissions->>'full_control')::boolean,false)=true))) then raise exception 'CATALOG_WRITE_FORBIDDEN'; end if;
  end if;
  if not exists(select 1 from catalog_items ci where ci.id=p_catalog_item_id and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id) then raise exception 'CATALOG_ITEM_NOT_FOUND'; end if;
+ perform 1 from catalog_items ci where ci.id=p_catalog_item_id and ci.tenant_id=p_tenant_id and ci.business_id=p_business_id for update;
  if p_unit_price is null or p_unit_price<0 then raise exception 'INVALID_PRICE'; end if;
  if upper(trim(coalesce(p_currency,'EGP'))) <> 'EGP' then raise exception 'UNSUPPORTED_CURRENCY'; end if;
  if p_effective_to is not null and p_effective_to<=coalesce(p_effective_from,now()) then raise exception 'INVALID_PRICE_EFFECTIVITY'; end if;
