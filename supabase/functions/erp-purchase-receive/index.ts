@@ -20,7 +20,7 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user || user.is_anonymous) return json({ success: false, error: "UNAUTHENTICATED" }, 401);
 
-    const body = await req.json().catch(() => null) as Record<string, unknown> | null;
+    const raw = await req.text();\n    if (new TextEncoder().encode(raw).byteLength > 65536) return json({ success: false, error: "PAYLOAD_TOO_LARGE" }, 413);\n    let body: Record<string, unknown> | null;\n    try { body = JSON.parse(raw) as Record<string, unknown>; } catch { body = null; }
     if (!body || Array.isArray(body) || typeof body !== "object") return json({ success: false, error: "INVALID_JSON" }, 400);
 
     const id = String(body.id ?? "").trim();
@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
       const code = String(error.message ?? "");
       const status = code.includes("PURCHASE_RECEIVING_ROLE_REQUIRED") ? 403
         : code.includes("PURCHASE_ORDER_NOT_FOUND") ? 404
-        : code.includes("PURCHASE_ORDER_NOT_APPROVED") || code.includes("IDEMPOTENCY_CONFLICT") || code.includes("STOCK_BALANCE_SCOPE_CONFLICT") ? 409
+        : code.includes("PURCHASE_ORDER_NOT_APPROVED") || code.includes("IDEMPOTENCY_CONFLICT") || code.includes("STOCK_BALANCE_SCOPE_CONFLICT") || code.includes("PURCHASE_ORDER_QUANTITY_EXCEEDED") || code.includes("PURCHASE_ORDER_UNIT_COST_MISMATCH") || code.includes("PRODUCT_NOT_IN_PURCHASE_ORDER") ? 409
         : code.includes("INVALID_") || code.includes("WAREHOUSE_INVALID") || code.includes("PRODUCT_INVALID") || code.includes("BUSINESS_SCOPE_INVALID") ? 400
         : 500;
       const safeCode = /^(UNAUTHENTICATED|PURCHASE_RECEIVING_ROLE_REQUIRED|PURCHASE_ORDER_NOT_FOUND|PURCHASE_ORDER_NOT_APPROVED|RECEIPT_IDEMPOTENCY_CONFLICT|STOCK_BALANCE_SCOPE_CONFLICT|INVALID_RECEIPT_INPUT|WAREHOUSE_INVALID|PRODUCT_INVALID|BUSINESS_SCOPE_INVALID)$/.exec(code)?.[0] ?? "PURCHASE_RECEIPT_FAILED";
