@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 const source = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
+const web = fs.readFileSync("web/smm.js", "utf8");
 const checks = [];
 function check(name, ok) {
   checks.push({ name, ok: Boolean(ok) });
@@ -22,6 +23,13 @@ check("provider accepted but persistence failed is not auto-refunded", persisten
 check("provider order id missing is treated as ambiguous", source.includes('PROVIDER_ORDER_ID_MISSING') && source.includes('reconciliation_required:true'));
 check("order status is scoped to requesting user", source.includes('.eq("id",b.order_id).eq("user_id",user.id)'));
 check("admin-only operations verify server-side admin status", (source.match(/await isAdmin\(user\.id\)/g)||[]).length >= 5);
+const adminGuardStart = source.indexOf("async function isAdmin");
+const adminGuardEnd = source.indexOf("async function secret", adminGuardStart);
+const adminGuard = adminGuardStart >= 0 && adminGuardEnd >= 0 ? source.slice(adminGuardStart, adminGuardEnd) : "";
+check("SMM admin guard uses explicit backend-only allowlist", adminGuard.includes('from("smm_admins")') && !adminGuard.includes("user_memberships"));
+check("admin UI visibility is derived from backend admin check", web.includes("action:'admin_access'") && !web.includes("from('user_memberships')"));
+check("wallet debit RPC ambiguity does not trigger automatic refund", source.includes('if(debit.error){') && source.includes("WALLET_DEBIT_OUTCOME_UNKNOWN") && source.indexOf('if(debit.error){') < source.indexOf('if(debit.data!==true)'));
+check("terminal order statuses cannot be downgraded by provider polling", source.includes('new Set(["COMPLETED","CANCELLED","FAILED","REFUNDED"])') && source.includes('if(!terminal.has(st))'));
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("SMM provider/wallet safety contract PASS: " + checks.length + "/" + checks.length + " checks.");
