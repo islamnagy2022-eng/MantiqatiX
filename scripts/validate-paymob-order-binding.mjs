@@ -17,6 +17,10 @@ const failureStart = webhook.indexOf('if(!success){\n   const {data:failureResul
 const failureEnd = failureStart < 0 ? -1 : webhook.indexOf('const {data:processed,error:e}=await admin.rpc("process_verified_provider_payment"', failureStart);
 const normalFailureBlock = failureStart >= 0 && failureEnd > failureStart ? webhook.slice(failureStart, failureEnd) : "";
 const workflow = read(".github/workflows/pages.yml");
+const subscriptionBlockStart = webhook.indexOf("const sub=subByRef??subByOrder");
+const subscriptionMutationStart = webhook.indexOf('admin.rpc("process_verified_subscription_payment_failure"', subscriptionBlockStart);
+const digitalBlockStart = webhook.indexOf("const digital=digitalByRef??digitalByOrder");
+const digitalMutationStart = webhook.indexOf('admin.rpc("process_verified_digital_page_payment_backend"', digitalBlockStart);
 
 const checks = [
   ["HMAC covers Paymob order.id", webhook.includes("order.id") && webhook.includes("obj.owner")],
@@ -60,6 +64,8 @@ const checks = [
   ["Digital Paymob claim is released only for explicit 4xx rejection", digitalPayment.includes("providerResponseStatus>=400&&providerResponseStatus<500") && digitalPayment.includes("await release();")],
   ["Digital checkout persists provider order ID through five-argument RPC", digitalPayment.includes("p_provider_order_id:providerOrderId") && digitalFinalizeMigration.includes("p_provider_order_id text")],
   ["Digital webhook rejects a mismatched provider order", webhook.includes("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH") && digitalMigration.includes("v_order.provider_order_id <> p_provider_order_id")],
+  ["Digital provider-order and merchant-reference binding run before payment mutation", digitalBlockStart >= 0 && digitalMutationStart > digitalBlockStart && webhook.indexOf("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH", digitalBlockStart) < digitalMutationStart && webhook.slice(digitalBlockStart, digitalMutationStart).includes("String(digital.provider_order_id)!==paymobOrderId") && webhook.slice(digitalBlockStart, digitalMutationStart).includes("DIGITAL_PAGE_MERCHANT_REFERENCE_MISMATCH")],
+  ["Subscription provider-order and merchant-reference binding run before payment mutation", subscriptionBlockStart >= 0 && subscriptionMutationStart > subscriptionBlockStart && webhook.indexOf("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH", subscriptionBlockStart) < subscriptionMutationStart && webhook.slice(subscriptionBlockStart, subscriptionMutationStart).includes("String(sub.provider_order_id)!==paymobOrderId") && webhook.slice(subscriptionBlockStart, subscriptionMutationStart).includes("SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH")],
   ["Digital webhook returns retryable status while a claimed intent lacks provider-order persistence", webhook.includes("DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('payment_status,provider_order_id,metadata')],
   ["MantiGo claims the ledger before creating a Paymob intention", ridePayment.indexOf("paymob_intention_claim:requestId") > 0 && ridePayment.indexOf("paymob_intention_claim:requestId") < ridePayment.indexOf('fetch("https://accept.paymob.com/v1/intention/"')],
   ["MantiGo intention persistence must own the claim token", ridePayment.includes('.filter("metadata->>paymob_intention_claim","eq",requestId)')],
