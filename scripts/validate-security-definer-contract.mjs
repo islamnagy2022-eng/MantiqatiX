@@ -102,8 +102,7 @@ const rc450='supabase/migrations/20261009130000_catalog_edge_service_role_bounda
 if(!fs.existsSync(rc450)) throw new Error('RC450 catalog/order Edge RPC boundary migration is missing.');
 const rc450Sql=fs.readFileSync(rc450,'utf8');
 for(const marker of [
-  'set search_path=public,pg_temp as $function
-,
+  'set search_path=public,pg_temp as',
   "coalesce(auth.role(),'') <> 'service_role'",
   'IDEMPOTENCY_KEY_SCOPE_CONFLICT',
   'IDEMPOTENCY_PAYLOAD_CONFLICT',
