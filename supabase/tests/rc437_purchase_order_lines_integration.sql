@@ -3,6 +3,7 @@ do $test$
 declare
   actor uuid := '10000000-0000-4000-8000-000000000001';
   other_actor uuid := '10000000-0000-4000-8000-000000000002';
+  customer_actor uuid := '10000000-0000-4000-8000-000000000003';
   business uuid := '20000000-0000-4000-8000-000000000001';
   product uuid := '30000000-0000-4000-8000-000000000001';
   other_product uuid := '30000000-0000-4000-8000-000000000002';
@@ -15,7 +16,7 @@ declare
 begin
   insert into public.businesses values(business,'tenant-a','ACTIVE');
   insert into public.user_memberships(user_id,tenant_id,business_id,role,status)
-    values(actor,'tenant-a',business,'OWNER','ACTIVE'),(other_actor,'tenant-b',business,'OWNER','ACTIVE');
+    values(actor,'tenant-a',business,'OWNER','ACTIVE'),(other_actor,'tenant-b',business,'OWNER','ACTIVE'),(customer_actor,'tenant-a',business,'CUSTOMER','ACTIVE');
   insert into public.catalog_items values(product,'tenant-a',business,'ACTIVE'),(other_product,'tenant-a',business,'ACTIVE');
   insert into public.warehouses values('warehouse-a','tenant-a',business,'branch-a','ACTIVE');
   insert into public.branches values('branch-a','tenant-a',business,'ACTIVE');
@@ -107,6 +108,14 @@ begin
   if n<>0 then raise exception 'failed receipt must not update received quantity'; end if;
   if exists(select 1 from public.erp_purchase_receipts where id='receipt-rollback')
      or exists(select 1 from public.inventory_transactions where reference_id='receipt-rollback') then raise exception 'failed receipt left partial state'; end if;
+
+  perform set_config('request.jwt.claim.sub',customer_actor::text,true);
+  rejected:=false;
+  begin
+    perform public.create_purchase_order_with_lines_backend('po-rc437-customer','tenant-a',business,'branch-a','PO-CUSTOMER','supplier-a',0,0,null,lines);
+  exception when others then if sqlerrm='PURCHASE_ORDER_ROLE_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'customer role must not create purchase orders'; end if;
 
   perform set_config('request.jwt.claim.sub',other_actor::text,true);
   rejected:=false;
