@@ -72,6 +72,18 @@ begin
   result := public.claim_subscription_provider_intent_creation_backend(intent_id_2,actor);
   if (result->>'claimed')::boolean is distinct from false then raise exception 'terminal intent must not be claimed'; end if;
 
+  if not exists(select 1 from information_schema.columns where table_schema='public' and table_name='subscription_payment_intents' and column_name='client_secret_ciphertext')
+     or not exists(select 1 from information_schema.columns where table_schema='public' and table_name='subscription_payment_intents' and column_name='client_secret_iv')
+     or not exists(select 1 from information_schema.columns where table_schema='public' and table_name='subscription_payment_intents' and column_name='client_secret_key_version') then
+    raise exception 'RC439 encrypted checkout columns are missing';
+  end if;
+  rejected := false;
+  begin
+    update public.subscription_payment_intents set client_secret_ciphertext='ciphertext-only' where id=intent_id_2;
+  exception when check_violation then rejected := true;
+  end;
+  if not rejected then raise exception 'partial encrypted checkout secret must be rejected'; end if;
+
   if has_function_privilege('anon','public.claim_subscription_provider_intent_creation_backend(uuid,uuid)','EXECUTE') then
     raise exception 'anon must not execute RC435 claim RPC';
   end if;
