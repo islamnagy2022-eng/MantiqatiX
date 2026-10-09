@@ -15,7 +15,7 @@ create or replace function public.finalize_digital_page_payment_intent_backend(
 returns boolean
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $function$
 begin
   if auth.uid() is null or auth.uid() <> p_user_id then
