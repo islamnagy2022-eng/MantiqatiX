@@ -24,6 +24,7 @@ assert.match(restaurant, /if\(!scope\(\)\)\{state\.error='العضوية الن�
 assert.match(restaurant, /تعذر التحقق من العضوية التشغيلية/, 'membership lookup failures must render an explicit error state');
 assert.match(restaurant, /if\(active\.length===1\)return active\[0\]/, 'only one active membership may be auto-selected');
 assert.match(restaurant, /function askCart\(items,options\)/, 'restaurant order UI must support a multi-item cart');
+assert.match(restaurant, /لا يعيّن مندوبًا أو يفعّل تتبعًا تلقائيًا/, 'delivery UI must disclose that courier dispatch/tracking is not integrated');
 assert.match(restaurant, /selectedOptionIds:select\?\[\.\.\.select\.selectedOptions\]/, 'restaurant cart must pass selected catalog options to server pricing');
 assert.match(restaurant, /pendingOrderAttempt\.key/, 'order retry must reuse an idempotency key for an identical payload');
 assert.match(restaurant, /الطاولات للقراءة فقط حاليًا/, 'table mutations must remain disabled until server-side lifecycle enforcement exists');
