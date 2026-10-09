@@ -184,7 +184,7 @@ function askCart(items,options){
   },()=>resolve(null));
  });
 }
-let creatingOrder=false;
+let creatingOrder=false,pendingOrderAttempt=null;
 async function createRestaurantOrder(){
  if(creatingOrder)return;
  if(!state.user||!scope()||!canOperate('ORDERS','create'))return notify('لا تملك صلاحية إنشاء طلب ضمن نطاق المطعم الحالي.','error');
@@ -193,13 +193,18 @@ async function createRestaurantOrder(){
  try{
    const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
    const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE'&&x.metadata?.is_available!==false);
-   if(!item)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const qty=await askQuantity('الكمية');
-   if(!Number.isInteger(qty)||qty<1)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
-   const r=await invokeMntyFunction('order-create',payload);
-   notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
+   const available=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE'&&x.metadata?.is_available!==false)
+    .map(x=>({...x,base_price_egp:state.menu.find(m=>String(m.id)===String(x.id))?.base_price_egp}));
+   if(!available.length)return notify('لا توجد أصناف متاحة في الكتالوج المركزي.');
+   const cart=await askCart(available,catalog?.options||[]);
+   if(!cart)return;
+   const intent={tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,currency:'EGP',customerName:cart.customerName,customerPhone:cart.customerPhone,deliveryAddress:cart.deliveryAddress,items:cart.items,notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true,order_type:cart.orderType}};
+   const fingerprint=JSON.stringify(intent);
+   if(!pendingOrderAttempt||pendingOrderAttempt.fingerprint!==fingerprint)pendingOrderAttempt={fingerprint,orderId:crypto.randomUUID(),key:'MNTY-REST-'+crypto.randomUUID()};
+   const payload={...intent,orderId:pendingOrderAttempt.orderId,clientIdempotencyKey:pendingOrderAttempt.key};
+   const result=await invokeMntyFunction('order-create',payload);
+   notify('تم تأكيد إنشاء الطلب '+(result?.id||payload.orderId)+'. الأسعار والضرائب محسوبة خادميًا.');
+   pendingOrderAttempt=null;
    await load();
  }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}finally{creatingOrder=false;if(createButton&&createButton.isConnected)createButton.disabled=false}
 }
