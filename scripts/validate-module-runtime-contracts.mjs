@@ -52,6 +52,7 @@ if(!files.smm.includes("fn({action:'catalog'})")||!files.smm.includes("fn({actio
 if(!files.smmGateway.includes('if(a==="catalog")')||!files.smmGateway.includes('if(a==="my_data")')) failures.push("SMM_GATEWAY_READ_ACTIONS_MISSING");
 if(!files.smmGateway.includes('is_admin:await isAdmin(user.id)')) failures.push("SMM_ADMIN_FLAG_NOT_SERVER_AUTHORIZED");
 if(!files.smmGateway.includes('role==="SUPER_ADMIN"&&p.scope==="PLATFORM"&&p.full_control===true')) failures.push("SMM_PLATFORM_ADMIN_SCOPE_REQUIRED");
+if(files.smmGateway.includes('["OWNER","ADMIN","SUPER_ADMIN"].includes(String(m.role).toUpperCase())')) failures.push("SMM_ADMIN_ROLE_SCOPE_TOO_BROAD");
 if(!files.smm.includes("loadError")||!files.smm.includes("حالة البيانات")) failures.push("SMM_READ_ERROR_STATE_MISSING");
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
