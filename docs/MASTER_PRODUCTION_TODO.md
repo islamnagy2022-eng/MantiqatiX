@@ -1546,3 +1546,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Read-only live RLS spot-check confirmed the four restaurant tables listed above and `user_memberships` have RLS enabled and policy counts present.
 - Privileged digital-page payment processor remains non-executable by `anon` and `authenticated` in the live grant check; no payment transaction was generated.
 - Release gate remains OPEN until real authenticated cross-tenant tests, customer/provider order + notification E2E, Paymob payment E2E, finance settlement E2E, leaked-password protection owner action, and release-device tests have evidence.
+
+
+## RC560 — Restaurant Order RPC Defense-in-Depth — 2026-10-09
+- Status: **SOURCE HARDENING IMPLEMENTED / CI AND RUNTIME NOT VERIFIED**.
+- Updated `20261009130000_catalog_edge_service_role_boundary.sql` to require explicit `ACTIVE` membership for the database authorization backstop, cap the order item array at 100 entries, reject non-array `selectedOptionIds`, and scope catalog business settings reads to the requested tenant.
+- The settings path now fails closed when a business-settings row exists under a mismatched tenant or cannot be reloaded after insert.
+- Added regression assertions in `scripts/validate-restaurant-rbac-contract.mjs` for the new guards. Static source assertions were checked against the committed migration and all passed.
+- Commits on `fix/restaurant-module-hardening-20261009`: migration hardening `e178d5256772a0ddb95f7f755524647d4472bf48`; regression assertions `9a29eb566a13cf718559ad9cbe4f8b3b9009a98b`.
+- Full GitHub Actions CI is **NOT VERIFIED** for these latest commits; the workflow lookup returned no runs/statuses for the documentation/source head.
+- An additional proposed `order-create` Edge Function normalization fix for malformed/duplicate option IDs was blocked by the repository safety layer. It was not retried through alternate write paths and is still open.
+- Production Supabase remains unchanged: no migration applied, no Edge Function deployed, no order/payment created, and PR #86 remains unmerged.
+- Next gates: resolve the blocked Edge Function change through the supported review path; obtain successful CI evidence; validate SQL on an isolated database; then perform owner-approved authenticated customer/provider and cross-tenant E2E before release.
