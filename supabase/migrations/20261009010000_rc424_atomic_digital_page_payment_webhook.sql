@@ -15,7 +15,7 @@ create or replace function public.process_verified_digital_page_payment_backend(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $function$
 declare
   v_order public.digital_page_orders%rowtype;
@@ -116,7 +116,7 @@ grant execute on function public.process_verified_digital_page_payment_backend(u
 
 -- Harden the existing admin publish gate against cross-order page reuse.
 create or replace function public.fulfill_digital_page_publish(p_actor_user_id uuid,p_order_id uuid,p_page_id uuid)
-returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
+returns jsonb language plpgsql security definer set search_path='' as $function$
 declare v_order public.digital_page_orders%rowtype; v_page public.digital_pages%rowtype;
 begin
   if p_actor_user_id is null or p_actor_user_id <> auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
