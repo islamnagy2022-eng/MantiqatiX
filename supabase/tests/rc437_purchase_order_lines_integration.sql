@@ -51,6 +51,12 @@ begin
 
   result:=public.receive_purchase_stock_with_order_line_backend('receipt-001','tenant-a',business,order_id,'RC-001','warehouse-a',product,6,600,actor);
   if result->>'success'<>'true' or result->>'idempotent'<>'false' then raise exception 'first partial receipt failed'; end if;
+  rejected:=false;
+  begin
+    perform public.receive_purchase_stock_with_order_line_backend('receipt-cost-mismatch','tenant-a',business,order_id,'RC-COST','warehouse-a',product,1,500,actor);
+  exception when others then if sqlerrm='PURCHASE_ORDER_UNIT_COST_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'unit cost mismatch must be rejected'; end if;
   result:=public.receive_purchase_stock_with_order_line_backend('receipt-001','tenant-a',business,order_id,'RC-001','warehouse-a',product,6,600,actor);
   if result->>'idempotent'<>'true' then raise exception 'duplicate receipt must be idempotent'; end if;
   result:=public.receive_purchase_stock_with_order_line_backend('receipt-002','tenant-a',business,order_id,'RC-002','warehouse-a',product,4,600,actor);
