@@ -7,6 +7,7 @@ declare
   platform_admin uuid := '10000000-0000-4000-8000-000000000044';
   tenant_scoped_super_admin uuid := '10000000-0000-4000-8000-000000000045';
   rejected boolean;
+  result jsonb;
 begin
   insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions) values
     ('owner',tenant_owner,'TENANT-A','OWNER','ACTIVE','{"admin":true}'::jsonb),
