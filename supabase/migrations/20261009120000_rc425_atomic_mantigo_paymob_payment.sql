@@ -48,7 +48,7 @@ begin
   if nullif(trim(p_external_event_id), '') is null then
     raise exception 'MANTIGO_PAYMENT_EVENT_ID_REQUIRED';
   end if;
-  if p_status not in ('PAID', 'FAILED') then
+  if p_status is null or p_status not in ('PAID', 'FAILED') then
     raise exception 'MANTIGO_PAYMENT_STATUS_INVALID';
   end if;
   if p_amount is null or p_amount <= 0 or nullif(trim(p_currency), '') is null then
@@ -79,6 +79,9 @@ begin
     if v_event.ledger_id is distinct from v_ledger.id then
       raise exception 'MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH';
     end if;
+    if v_event.status is distinct from p_status then
+      raise exception 'MANTIGO_PAYMENT_EVENT_REPLAY_STATUS_MISMATCH';
+    end if;
     return jsonb_build_object(
       'ok', true,
       'idempotent', true,
@@ -105,7 +108,6 @@ begin
     v_ledger.id,
     'PAYMOB',
     'MANTIGO_RIDE_PAYMENT',
-    v_ledger.id,
     p_external_event_id,
     p_status,
     true,
@@ -117,12 +119,15 @@ begin
 
   if v_inserted_id is null then
     select * into v_event
-    from public.payment_provider_events
+    from public.mantigo_payment_provider_events
     where provider = 'PAYMOB'
       and external_event_id = p_external_event_id
     limit 1;
     if not found or v_event.ledger_id is distinct from v_ledger.id then
       raise exception 'MANTIGO_PAYMENT_EVENT_ORDER_MISMATCH';
+    end if;
+    if v_event.status is distinct from p_status then
+      raise exception 'MANTIGO_PAYMENT_EVENT_REPLAY_STATUS_MISMATCH';
     end if;
     return jsonb_build_object(
       'ok', true,
