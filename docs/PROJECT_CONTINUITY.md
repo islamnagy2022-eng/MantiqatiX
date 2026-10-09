@@ -626,3 +626,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Latest source commit: `903d1e1d4ffc34693e2df51a0a4f6002eb8a9746`. GitHub Actions runs 37934254010 (Module Professionalization Validation) and 37934254016 (Backend-only Module Boundary) completed SUCCESS; Pages workflow 37934254082 completed SUCCESS with validation SUCCESS and deployment SKIPPED because PR #86 remains unmerged.
 - Supabase security advisors warn about anonymous access policies on multiple tables, including restaurant tables/menu/orders, and report that leaked-password protection is disabled. A read-only `pg_policies` check found no policies explicitly granted to `anon` or `public` on the reviewed restaurant/catalog/order tables; the listed restaurant policies target `authenticated` and include restrictive non-anonymous guards. Treat the advisor findings as requiring policy-by-policy validation, not proof of direct anonymous access; do not globally remove policies without understanding legitimate access flows.
 - Production remains unchanged: no migration applied, no Edge Function deployed, no production writes, and no PR merge. The proposed migration and Edge Function changes still require SQL/runtime validation and isolated authenticated integration tests before any release.
+
+
+## RC560 continuation update — 2026-10-09
+- Current work branch: `fix/restaurant-module-hardening-20261009`; PR #86 remains open and unmerged.
+- Restaurant order RPC migration and regression assertions were hardened as recorded in `docs/MASTER_PRODUCTION_TODO.md` RC560.
+- Source-level checks for strict ACTIVE membership, order item cap, selected-option array shape, tenant-scoped settings, and mismatch failure all passed.
+- CI for the newest source commits is not verified; a GitHub workflow lookup returned no associated runs/statuses. Do not label this a green CI release.
+- A proposed Edge Function fix was blocked by the repository safety layer; do not bypass that control. The source fix remains open for the supported review path.
+- No production migration, Edge Function deployment, data write, or PR merge was performed.
+- Restaurant module remains **PARTIAL / NOT PRODUCTION READY** until SQL/runtime validation, successful CI, authenticated customer/provider E2E, cross-tenant/branch denial, and notification/payment lifecycle tests are evidenced.
