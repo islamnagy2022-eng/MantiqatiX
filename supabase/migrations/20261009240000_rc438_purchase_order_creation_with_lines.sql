@@ -8,8 +8,8 @@ returns jsonb language plpgsql security definer set search_path = ''
 as $function$
 declare
   u uuid:=p_actor_user_id; v_role text; v_line jsonb; v_product uuid; v_qty numeric; v_cost numeric;
-  v_subtotal numeric:=0; v_total numeric; v_tax numeric:=coalesce(p_tax_amount,0);
-  v_discount numeric:=coalesce(p_discount_amount,0); v_existing public.erp_purchase_orders%rowtype;
+  v_subtotal numeric:=0; v_total numeric; v_tax numeric:=round(coalesce(p_tax_amount,0),2);
+  v_discount numeric:=round(coalesce(p_discount_amount,0),2); v_existing public.erp_purchase_orders%rowtype;
   v_created public.erp_purchase_orders%rowtype; v_line_count integer:=0;
 begin
   if u is null then raise exception 'UNAUTHENTICATED'; end if;
@@ -22,18 +22,19 @@ begin
   if coalesce(pg_catalog.jsonb_typeof(p_lines),'null')<>'array' then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
   if pg_catalog.jsonb_array_length(p_lines)<1 or pg_catalog.jsonb_array_length(p_lines)>200 then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
   select upper(m.role) into v_role from public.user_memberships m
-  where m.user_id=u and m.tenant_id=p_tenant_id and m.business_id=p_business_id and m.status='ACTIVE' limit 1;
-  if v_role is null or v_role not in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE') then
+  where m.user_id=u and m.tenant_id=p_tenant_id and m.business_id=p_business_id and m.status='ACTIVE'
+    and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE') limit 1;
+  if v_role is null then
     raise exception 'PURCHASE_ORDER_ROLE_REQUIRED';
   end if;
   if not exists(select 1 from public.businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id and b.status='ACTIVE') then raise exception 'BUSINESS_INVALID'; end if;
-  if p_branch_id is not null and not exists(select 1 from public.branches b where b.id=p_branch_id and b.business_id=p_business_id) then raise exception 'BRANCH_INVALID'; end if;
+  if p_branch_id is not null and not exists(select 1 from public.branches b where b.id=p_branch_id and b.tenant_id=p_tenant_id and b.business_id=p_business_id and b.status='ACTIVE') then raise exception 'BRANCH_INVALID'; end if;
 
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_id,438));
   select * into v_existing from public.erp_purchase_orders po where po.id=p_id for update;
   if found then
-    if v_existing.tenant_id<>p_tenant_id or v_existing.business_id<>p_business_id or v_existing.order_number<>p_order_number
-       or v_existing.supplier_id<>p_supplier_id or v_existing.branch_id is distinct from p_branch_id or v_existing.tax_amount is distinct from v_tax
+    if v_existing.tenant_id<>p_tenant_id or v_existing.business_id<>p_business_id or v_existing.order_number<>pg_catalog.btrim(p_order_number)
+       or v_existing.supplier_id<>pg_catalog.btrim(p_supplier_id) or v_existing.branch_id is distinct from p_branch_id or v_existing.tax_amount is distinct from v_tax
        or v_existing.discount_amount is distinct from v_discount or v_existing.reason is distinct from p_reason then
       raise exception 'PURCHASE_ORDER_IDEMPOTENCY_CONFLICT';
     end if;
@@ -75,7 +76,7 @@ begin
   end if;
 
   insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id,order_number,supplier_id,total_amount,tax_amount,discount_amount,status,reason,created_by)
-  values(p_id,p_tenant_id,p_business_id,p_branch_id,p_order_number,p_supplier_id,v_total,v_tax,v_discount,'DRAFT',p_reason,u)
+  values(p_id,p_tenant_id,p_business_id,p_branch_id,pg_catalog.btrim(p_order_number),pg_catalog.btrim(p_supplier_id),v_total,v_tax,v_discount,'DRAFT',p_reason,u)
   returning * into v_created;
 
   v_line_count:=0;
@@ -101,7 +102,7 @@ begin
   if not found then raise exception 'PURCHASE_ORDER_NOT_FOUND'; end if;
   select upper(m.role) into v_role from public.user_memberships m
   where m.user_id=u and m.tenant_id=v_order.tenant_id and m.business_id=v_order.business_id and m.status='ACTIVE' limit 1;
-  if v_role is null then raise exception 'PURCHASE_ORDER_ROLE_REQUIRED'; end if;
+  if v_role is null or v_role not in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE') then raise exception 'PURCHASE_ORDER_ROLE_REQUIRED'; end if;
   if p_target_status='SUBMITTED' and v_order.status='DRAFT' then
     if not exists(select 1 from public.erp_purchase_order_lines pol where pol.purchase_order_id=v_order.id and pol.tenant_id=v_order.tenant_id and pol.business_id=v_order.business_id) then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
     v_next:=case when v_order.total_amount>5000 then 'PENDING_APPROVAL' else 'APPROVED' end;
