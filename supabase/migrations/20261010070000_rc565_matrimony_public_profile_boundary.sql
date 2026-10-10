@@ -30,7 +30,7 @@ AS $function$
 DECLARE
   v_user_id uuid := auth.uid();
   v_is_anonymous boolean := coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false);
-  v_limit integer := pg_catalog.least(pg_catalog.greatest(coalesce(p_limit, 50), 1), 100);
+  v_limit integer := least(greatest(coalesce(p_limit, 50), 1), 100);
 BEGIN
   IF v_user_id IS NULL OR v_is_anonymous THEN
     RAISE EXCEPTION 'AUTHENTICATED_USER_REQUIRED';
