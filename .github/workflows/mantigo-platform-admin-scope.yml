@@ -1,0 +1,55 @@
+name: MantiGO Platform Admin Scope Hardening
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
+      - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
+      - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "scripts/validate-mantigo-platform-admin-scope.mjs"
+      - ".github/workflows/mantigo-platform-admin-scope.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
+      - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
+      - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "scripts/validate-mantigo-platform-admin-scope.mjs"
+      - ".github/workflows/mantigo-platform-admin-scope.yml"
+
+jobs:
+  platform-admin-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_platform_admin_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_platform_admin_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Static platform-admin contract
+        run: node scripts/validate-mantigo-platform-admin-scope.mjs
+      - name: Apply disposable fixture, migration, and behavioral tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc449_mantigo_platform_admin_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449.sql"
+          docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/rc449-test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449-test.sql
