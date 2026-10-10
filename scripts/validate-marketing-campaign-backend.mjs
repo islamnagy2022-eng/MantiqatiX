@@ -7,6 +7,8 @@ const integration = fs.readFileSync("supabase/tests/rc453_marketing_campaign_int
 
 assert.match(migration, /create table public\.marketing_campaigns/);
 assert.match(migration, /create table public\.marketing_campaign_participants/);
+assert.match(migration, /idempotency_key text not null/);
+assert.match(migration, /MARKETING_IDEMPOTENCY_KEY_INVALID/);
 assert.match(migration, /alter table public\.marketing_campaigns enable row level security/);
 assert.match(migration, /alter table public\.marketing_campaign_participants enable row level security/);
 assert.match(migration, /um\.business_id = b\.id or um\.business_id is null/);
@@ -31,4 +33,4 @@ assert.match(integration, /authenticated role has direct campaign INSERT/);
 assert.match(integration, /campaign creation replay was not idempotent/);
 assert.match(integration, /campaign creation replay duplicated audit/);
 
-console.log("RC453 marketing campaign backend contract: PASS (25 assertions)");
+console.log("RC453 marketing campaign backend contract: PASS (27 assertions)");
