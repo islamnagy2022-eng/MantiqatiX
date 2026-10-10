@@ -1,7 +1,28 @@
 const {createClient}=window.supabase;const cfg=window.MANTIQATIX_CONFIG;const sb=createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true,flowType:'pkce'}});const FN=cfg.supabaseUrl+'/functions/v1/smm-gateway';let user=null,services=[],orders=[],wallet=0,isAdmin=false,tab='services',selected=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const money=n=>Number(n||0).toFixed(4);
 async function fn(body){const {data:{session}}=await sb.auth.getSession();const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':cfg.supabaseKey},body:JSON.stringify(body)});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||d.error||'حدث خطأ');return d}
-async function load(){const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(!user)return renderAuth();const [sv,ord,w,mem]=await Promise.all([sb.from('smm_services').select('*').eq('active',true).order('platform').order('category'),sb.from('smm_orders').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(50),sb.from('smm_wallets').select('balance').eq('user_id',user.id).maybeSingle(),sb.from('user_memberships').select('role,status').eq('user_id',user.id).eq('status','ACTIVE')]);services=sv.data||[];orders=ord.data||[];wallet=Number(w.data?.balance||0);isAdmin=(mem.data||[]).some(x=>['OWNER','ADMIN','SUPER_ADMIN'].includes(String(x.role).toUpperCase()));render()}
+async function load(){
+ const {data:{session}}=await sb.auth.getSession();
+ user=session?.user||null;
+ if(!user)return renderAuth();
+ try{
+  const [catalog,account]=await Promise.all([fn({action:'catalog'}),fn({action:'my_data'})]);
+  services=Array.isArray(catalog.services)?catalog.services:[];
+  orders=Array.isArray(account.orders)?account.orders:[];
+  wallet=Number(account.balance);
+  if(!Number.isFinite(wallet))throw new Error('INVALID_WALLET_RESPONSE');
+  isAdmin=account.is_admin===true;
+  render();
+ }catch(error){
+  console.warn('[MNTY SMM] trusted read gateway unavailable',error?.message||'READ_FAILED');
+  renderReadError();
+ }
+}
+function renderReadError(){
+ document.getElementById('app').innerHTML='<div class="app"><header class="top"><div class="brand"><span class="logo">M</span>MantiqatiX SMM</div><button class="btn outline" id="read-retry">إعادة المحاولة</button></header><main class="wrap"><section class="card"><h2>بيانات خدمات التسويق غير متاحة حاليًا</h2><p class="muted">تعذر تحميل الكتالوج أو بيانات الحساب من الخادم. لم نعرض قائمة خدمات فارغة أو رصيدًا صفريًا على أنهما بيانات مؤكدة.</p><button class="btn primary" id="read-retry-main">إعادة المحاولة</button></section></main></div>';
+ document.getElementById('read-retry').onclick=load;
+ document.getElementById('read-retry-main').onclick=load;
+}
 function renderAuth(){document.getElementById('app').innerHTML='<div class="modal"><div><div class="brand"><span class="logo">M</span>MantiqatiX SMM</div><h2 id="at">تسجيل الدخول</h2><p class="muted">استخدم حساب Google للدخول إلى خدمات MantiqatiX SMM. ستعود إلى هذه الصفحة بعد التحقق من هويتك.</p><div id="am"></div><div class="form"><button class="btn primary" id="google-auth" type="button">🔐 الدخول بحساب Google</button><a class="btn outline" href="./">العودة إلى MantiqatiX</a></div></div></div>';document.getElementById('google-auth').onclick=async()=>{const btn=document.getElementById('google-auth');btn.disabled=true;document.getElementById('am').innerHTML='<div class="notice">جاري تحويلك إلى Google للتحقق من الهوية...</div>';const redirectTo=window.location.origin+window.location.pathname;const r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{access_type:'online',prompt:'select_account'}}});if(r.error){btn.disabled=false;document.getElementById('am').innerHTML='<div class="notice">'+esc(r.error.message)+'</div>';}}}
 function render(){document.getElementById('app').innerHTML='<div class="app"><header class="top"><div class="brand"><span class="logo">M</span>MantiqaTix SMM</div><div class="top-actions"><span class="small">'+esc(user.email)+'</span><button class="btn outline" id="logout">خروج</button></div></header><main class="wrap"><section class="hero"><div><span class="badge">SMM WHOLESALE ENGINE</span><h1>بيع الخدمات الرقمية تحت علامتك</h1><p>واجهة مستقلة، كتالوج خدمات، رصيد، طلبات، ومتابعة حالة التنفيذ. الربط بالمزود يتم من الخادم ولا يظهر مفتاح الـAPI للعميل.</p></div><div class="stats"><div class="stat"><small>رصيدك</small><strong>$'+money(wallet)+'</strong></div><div class="stat"><small>الخدمات</small><strong>'+services.length+'</strong></div><div class="stat"><small>طلباتك</small><strong>'+orders.length+'</strong></div></div></section><div class="tabs"><button class="tab '+(tab==='services'?'active':'')+'" data-tab="services">الخدمات</button><button class="tab '+(tab==='orders'?'active':'')+'" data-tab="orders">طلباتي</button>'+(isAdmin?'<button class="tab '+(tab==='admin'?'active':'')+'" data-tab="admin">لوحة الإدارة</button>':'')+'</div><section id="view"></section></main></div>';document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});document.getElementById('logout').onclick=async()=>{await sb.auth.signOut();user=null;renderAuth()};drawView()}
 function drawView(){const v=document.getElementById('view');if(tab==='services'){v.innerHTML='<div class="card"><div class="form"><input class="input" id="filter" placeholder="ابحث عن Instagram / TikTok / YouTube / الخدمة..."></div></div><div class="grid" id="services"></div>';drawServices();document.getElementById('filter').oninput=drawServices;}else if(tab==='orders')drawOrders(v);else drawAdmin(v)}
