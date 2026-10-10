@@ -134,6 +134,8 @@ begin
 end;
 $function$;
 
+revoke all on function private.guard_matrimony_profile_verification() from public,anon,authenticated;
+
 drop trigger if exists matrimony_profile_verification_guard on public.matrimony_profiles;
 create trigger matrimony_profile_verification_guard
 before insert or update on public.matrimony_profiles
