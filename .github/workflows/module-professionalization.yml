@@ -359,6 +359,7 @@ jobs:
           node scripts/validate-subscription-intent-safety.mjs
           node scripts/test-checkout-secret-crypto.mjs
           node scripts/validate-security-definer-search-path.mjs
+          node scripts/validate-platform-admin-scope.mjs
           node scripts/validate-financial-journal-safety.mjs
           node scripts/validate-erp-purchase-order-lines.mjs
           node scripts/validate-checkout-recovery.mjs
