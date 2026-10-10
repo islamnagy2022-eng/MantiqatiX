@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20261010130000_rc443_matrimony_profile_privacy_boundary.sql", "utf8");
 const app = fs.readFileSync("web/app.js", "utf8");
+const operations = fs.readFileSync("web/operations-modules.js", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc443_matrimony_privacy_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc443_matrimony_privacy_integration.sql", "utf8");
 const loaderStart = app.indexOf("async function loadEnterpriseDomainData(m)");
@@ -24,7 +25,8 @@ assert.doesNotMatch(discover, /wali_contact_phone|direct_contact_phone|financial
 assert.match(migration, /function public\.matrimony_get_unlocked_contact_backend/i);
 assert.match(migration, /guard_matrimony_profile_verification/i, "profile owners must not self-assert verification");
 assert.match(migration, /MATRIMONY_VERIFICATION_SERVER_ONLY/);
-const contact = migration.slice(contactStart);
+const contactEnd = migration.indexOf("-- Keep one active request", contactStart);
+const contact = migration.slice(contactStart, contactEnd > contactStart ? contactEnd : undefined);
 assert.match(contact, /v_request\.status <> 'ACCEPTED_MUTUAL'/);
 assert.match(contact, /is_anonymous/, "contact retrieval must reject anonymous Auth sessions");
 assert.match(contact, /matrimony_contact_unlocks u[\s\S]*?u\.request_id=v_request\.id/);
@@ -33,5 +35,19 @@ assert.match(migration, /revoke all on function public\.matrimony_discover_profi
 assert.match(migration, /revoke all on function public\.matrimony_get_unlocked_contact_backend\(uuid\) from public,anon/i);
 assert.match(loader, /sb\.rpc\('matrimony_discover_profiles_backend'/);
 assert.doesNotMatch(loader, /q\.or\('is_verified\.eq\.true,owner_user_id\.eq\.'/);
+
+assert.match(migration, /function public\.matrimony_create_request_backend/i);
+assert.match(migration, /function public\.matrimony_respond_request_backend/i);
+assert.match(migration, /function public\.matrimony_unlock_contact_backend/i);
+assert.match(migration, /revoke insert,update,delete on public\.matrimony_requests from authenticated,anon/i);
+assert.match(migration, /revoke insert,update,delete on public\.matrimony_contact_unlocks from authenticated,anon/i);
+assert.match(app, /sb\.rpc\('matrimony_discover_profiles_backend'/, "enterprise workspace must use the public-safe discovery projection");
+assert.doesNotMatch(app, /sb\.from\('matrimony_contact_unlocks'\)/, "enterprise workspace must not read unlock records directly");
+assert.match(operations, /sb\.rpc\('matrimony_create_request_backend'/, "request creation must use the authorized RPC");
+assert.match(operations, /sb\.rpc\('matrimony_respond_request_backend'/, "request response must use the authorized RPC");
+assert.match(operations, /sb\.rpc\('matrimony_unlock_contact_backend'/, "contact unlock must use the authorized RPC");
+assert.match(operations, /sb\.rpc\('matrimony_get_unlocked_contact_backend'/, "contact retrieval must use the authorized RPC");
+assert.doesNotMatch(operations, /sb\.from\(['"]matrimony_requests['"]\)\.(insert|update|delete)/, "requests must not be written directly from the browser");
+assert.doesNotMatch(operations, /sb\.from\(['"]matrimony_contact_unlocks['"]\)\.(insert|update|delete)/, "contact unlocks must not be written directly from the browser");
 
 console.log("Matrimony privacy boundary source contract: PASS");
