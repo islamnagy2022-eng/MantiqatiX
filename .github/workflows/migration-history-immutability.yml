@@ -1,0 +1,30 @@
+name: Migration History Immutability
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/validate-migration-history-immutability.mjs"
+      - ".github/workflows/migration-history-immutability.yml"
+permissions:
+  contents: read
+jobs:
+  migration-history-immutability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Test migration immutability guard
+        run: node scripts/validate-migration-history-immutability.mjs --self-test
+      - name: Reject edits to existing migrations
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: node scripts/validate-migration-history-immutability.mjs
