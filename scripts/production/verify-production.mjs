@@ -15,9 +15,34 @@ const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabas
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
-const md=path.join(root,"supabase","migrations"), mf=exists("supabase/migrations")?fs.readdirSync(md).filter(x=>x.endsWith(".sql")):[];
-const dup=[...new Set(mf.filter((f,i,a)=>a.indexOf(f)!==i))];
-add("DB-MIGRATION-UNIQUE","DATABASE",dup.length?"FAIL":"PASS",dup.length?JSON.stringify(dup):`checked ${mf.length} migration filenames`,dup.length?"P0":"P1");
+const md=path.join(root,"supabase","migrations");
+const mf=exists("supabase/migrations")?fs.readdirSync(md).filter(x=>/^\\d{14}_.+\\.sql$/.test(x)).sort():[];
+const byMigrationVersion=new Map();
+for(const file of mf){
+  const version=file.slice(0,14);
+  if(!byMigrationVersion.has(version))byMigrationVersion.set(version,[]);
+  byMigrationVersion.get(version).push(file);
+}
+const knownLegacyMigrationCollisions=new Map([
+  ["20260928020000",["20260928020000_rc101_g6_rls_permissive_policy_hardening.sql","20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql"]],
+  ["20260928060000",["20260928060000_rc109_harden_order_support_tenant_boundaries.sql","20260928060000_restore_registration_request_dml_grants.sql"]],
+  ["20260928190000",["20260928190000_rc162_mantigo_trip_state_machine.sql","20260928190000_rc200_cross_tenant_customer_payment_authorization.sql"]],
+  ["20260928200000",["20260928200000_rc164_mantigo_direct_delete_lockdown.sql","20260928200000_rc164_retire_legacy_mantigo_mutator.sql","20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql"]],
+  ["20260928210000",["20260928210000_rc172_restore_medical_booking_contract.sql","20260928210000_rc207_official_global_mnty_cover_ads.sql"]]
+]);
+const migrationVersionFailures=[];
+for(const [version,names] of byMigrationVersion){
+  if(names.length<2)continue;
+  const actual=[...names].sort();
+  const allowed=knownLegacyMigrationCollisions.get(version);
+  if(!allowed||JSON.stringify(actual)!==JSON.stringify([...allowed].sort())){
+    migrationVersionFailures.push({version,files:actual,reason:allowed?"known collision changed":"new migration-version collision"});
+  }
+}
+const migrationVersionEvidence=migrationVersionFailures.length
+  ?JSON.stringify(migrationVersionFailures)
+  :`checked ${mf.length} migration files; only exact, pre-existing legacy version collisions allowed`;
+add("DB-MIGRATION-UNIQUE","DATABASE",migrationVersionFailures.length?"FAIL":"PASS",migrationVersionEvidence,migrationVersionFailures.length?"P0":"P1");
 const paymobWebhook=exists("supabase/functions/paymob-webhook/index.ts")?read("supabase/functions/paymob-webhook/index.ts"):"";
 const mantigoStart=paymobWebhook.indexOf("if(mantigo){");
 const mantigoEnd=paymobWebhook.indexOf("const {data:intentByRef}",mantigoStart);
