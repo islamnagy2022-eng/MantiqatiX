@@ -24,6 +24,12 @@ assert.doesNotMatch(discover, /wali_contact_phone|direct_contact_phone|financial
 assert.match(migration, /function public\.matrimony_get_unlocked_contact_backend/i);
 assert.match(migration, /guard_matrimony_profile_verification/i, "profile owners must not self-assert verification");
 assert.match(migration, /MATRIMONY_VERIFICATION_SERVER_ONLY/);
+assert.match(migration, /guard_matrimony_request_status_transition/i, "request acceptance must be server-authoritative");
+assert.match(migration, /MATRIMONY_REQUEST_STATUS_RECIPIENT_ONLY/, "request sender cannot self-accept");
+assert.match(fixture, /create policy matrimony_requests_update/i, "fixture must model live request update access");
+assert.match(fixture, /create policy matrimony_unlocks_insert/i, "fixture must model live unlock insertion policy");
+assert.match(integration, /requester self-acceptance unexpectedly succeeded/, "sender self-acceptance must be rejected in integration tests");
+assert.match(integration, /target profile owner could not accept request/, "recipient acceptance must continue to work");
 const contact = migration.slice(contactStart);
 assert.match(contact, /v_request\.status <> 'ACCEPTED_MUTUAL'/);
 assert.match(contact, /is_anonymous/, "contact retrieval must reject anonymous Auth sessions");
