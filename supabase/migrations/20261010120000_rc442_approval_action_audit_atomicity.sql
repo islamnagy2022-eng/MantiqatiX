@@ -17,6 +17,7 @@ declare
   v_action text := upper(trim(p_action));
   v_now timestamptz := now();
   v_updated integer := 0;
+  v_existing_role text;
 begin
   if p_actor_user_id is null or p_approval_request_id is null then
     raise exception 'required';
@@ -54,13 +55,20 @@ begin
       raise exception 'business_not_found';
     end if;
 
-    if not exists (
-      select 1 from public.user_memberships m
-      where m.user_id=r.requested_by
-        and m.tenant_id=r.tenant_id
-        and m.business_id=r.business_id
-        and m.status='ACTIVE'
-    ) then
+    select m.role into v_existing_role
+    from public.user_memberships m
+    where m.user_id=r.requested_by
+      and m.tenant_id=r.tenant_id
+      and m.business_id=r.business_id
+      and m.branch_id is not distinct from r.branch_id
+      and m.status='ACTIVE'
+    for update;
+
+    if found then
+      if upper(coalesce(v_existing_role,'')) <> 'BUSINESS_OWNER' then
+        raise exception 'requester_membership_role_conflict';
+      end if;
+    else
       insert into public.user_memberships(
         id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status
       ) values (
