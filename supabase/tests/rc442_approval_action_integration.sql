@@ -5,6 +5,7 @@ declare
   owner_id uuid := '20000000-0000-4000-8000-000000000002';
   outsider_id uuid := '20000000-0000-4000-8000-000000000003';
   v_business_id uuid := '30000000-0000-4000-8000-000000000001';
+  v_business_id2 uuid := '30000000-0000-4000-8000-000000000002';
   result jsonb;
   rejected boolean;
   actions_before integer;
@@ -23,14 +24,19 @@ begin
     raise exception 'TEST_FAILED: approval RPC execution ACL is incorrect';
   end if;
 
-  insert into public.businesses(id,tenant_id,status) values (v_business_id,'TENANT-A','PENDING');
+  insert into public.businesses(id,tenant_id,status) values
+    (v_business_id,'TENANT-A','PENDING'),
+    (v_business_id2,'TENANT-A','PENDING');
   insert into public.user_memberships(id,user_id,tenant_id,role,status)
     values ('MEM-ADMIN',admin_id,'TENANT-A','ADMIN','ACTIVE');
+  insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status)
+    values ('MEM-CUSTOMER-EXISTING',owner_id,'TENANT-A',v_business_id2,null,'CUSTOMER','ACTIVE');
   insert into public.approval_requests(id,tenant_id,business_id,request_type,entity_type,entity_id,requested_by,status)
     values
       ('APR-APPROVE','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING'),
       ('APR-REJECT','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING'),
-      ('APR-OUTSIDER','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING');
+      ('APR-OUTSIDER','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING'),
+      ('APR-EXISTING-ROLE','TENANT-A',v_business_id2,'CREATE','BUSINESS',v_business_id2::text,owner_id,'PENDING');
 
   result := private.review_business_approval_atomic(admin_id,'APR-APPROVE','APPROVE');
   if result->>'status' <> 'APPROVED' then raise exception 'TEST_FAILED: approved transition result incorrect'; end if;
@@ -77,6 +83,23 @@ begin
   end;
   if not rejected or (select count(*) from public.approval_actions where approval_request_id='APR-APPROVE') <> 1 then
     raise exception 'TEST_FAILED: duplicate resolution must not create another audit row';
+  end if;
+
+  -- An existing non-owner membership must not suppress the required owner membership or allow activation.
+  rejected := false;
+  begin
+    perform private.review_business_approval_atomic(admin_id,'APR-EXISTING-ROLE','APPROVE');
+    raise exception 'TEST_FAILED: approval with conflicting requester membership unexpectedly succeeded';
+  exception when others then
+    if sqlerrm='TEST_FAILED: approval with conflicting requester membership unexpectedly succeeded' then raise; end if;
+    if sqlerrm <> 'requester_membership_role_conflict' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected
+     or (select status from public.approval_requests where id='APR-EXISTING-ROLE') <> 'PENDING'
+     or (select status from public.businesses where id=v_business_id2) <> 'PENDING'
+     or exists(select 1 from public.approval_actions where approval_request_id='APR-EXISTING-ROLE') then
+    raise exception 'TEST_FAILED: conflicting requester membership must fail closed without activation or audit';
   end if;
 end;
 $test$;
