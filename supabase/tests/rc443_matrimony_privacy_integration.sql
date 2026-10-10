@@ -14,8 +14,9 @@ values
  ('50000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','ACCEPTED_MUTUAL','test'),
  ('50000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000003','ACCEPTED_MUTUAL','test');
 
-insert into public.matrimony_contact_unlocks(id,request_id)
-values ('60000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001');
+insert into public.matrimony_contact_unlocks(id,request_id) values
+ ('60000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001'),
+ ('60000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000002');
 
 do $acl$
 begin
@@ -68,10 +69,10 @@ begin
  if v_phone <> '01000000003' then raise exception 'TEST_FAILED: unlocked contact for requester is incorrect'; end if;
  begin
   perform * from public.matrimony_get_unlocked_contact_backend('50000000-0000-4000-8000-000000000002');
-  raise exception 'TEST_FAILED: contact without unlock unexpectedly succeeded';
+  raise exception 'TEST_FAILED: contact for unverified profile unexpectedly succeeded';
  exception when others then
-  if sqlerrm='TEST_FAILED: contact without unlock unexpectedly succeeded' then raise; end if;
-  if sqlerrm<>'CONTACT_NOT_UNLOCKED' then raise; end if;
+  if sqlerrm='TEST_FAILED: contact for unverified profile unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'PROFILE_NOT_AVAILABLE' then raise; end if;
  end;
 end;
 $user_a$;
