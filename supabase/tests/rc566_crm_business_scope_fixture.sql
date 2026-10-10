@@ -13,6 +13,7 @@ GRANT USAGE ON SCHEMA auth TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION auth.uid() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION auth.jwt() TO PUBLIC;
 GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT SELECT ON public.user_memberships TO authenticated;
 
 CREATE TABLE public.user_memberships (
   id text PRIMARY KEY,
