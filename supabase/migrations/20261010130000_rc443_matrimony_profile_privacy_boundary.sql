@@ -103,6 +103,12 @@ begin
     raise exception 'CONTACT_PROFILE_NOT_FOUND' using errcode = 'P0002';
   end if;
   if not exists (
+    select 1 from public.matrimony_profiles p
+    where p.id=v_target_profile_id and p.is_verified is true
+  ) then
+    raise exception 'PROFILE_NOT_AVAILABLE' using errcode = 'P0002';
+  end if;
+  if not exists (
     select 1 from public.matrimony_contact_unlocks u
     where u.request_id=v_request.id
   ) then
