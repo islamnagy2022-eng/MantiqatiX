@@ -1,0 +1,66 @@
+name: SMM Service Role Access Boundary
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/smm-gateway/index.ts"
+      - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
+      - "supabase/tests/rc456_smm_service_role_*.sql"
+      - "scripts/validate-smm-service-role-boundary.mjs"
+      - ".github/workflows/smm-service-role-access-boundary.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/smm-gateway/index.ts"
+      - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
+      - "supabase/tests/rc456_smm_service_role_*.sql"
+      - "scripts/validate-smm-service-role-boundary.mjs"
+      - ".github/workflows/smm-service-role-access-boundary.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: node scripts/validate-smm-service-role-boundary.mjs
+      - run: deno check --no-lock supabase/functions/smm-gateway/index.ts
+
+  smm-service-role-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc456_smm_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc456_smm_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply fixture, migration, and ACL integration test
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc456_smm_service_role_fixture.sql "$pg_container:/tmp/rc456_fixture.sql"
+          docker cp supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql "$pg_container:/tmp/rc456_migration.sql"
+          docker cp supabase/tests/rc456_smm_service_role_integration.sql "$pg_container:/tmp/rc456_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_test.sql
