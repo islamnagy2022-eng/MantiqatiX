@@ -10,6 +10,8 @@ create table public.businesses(id uuid primary key,tenant_id text not null,name 
 create table public.user_memberships(id text primary key,user_id uuid not null,tenant_id text not null,business_id uuid,role text not null,status text not null,permissions jsonb not null default '{}'::jsonb);
 alter table public.user_memberships enable row level security;
 create policy memberships_select_self on public.user_memberships for select to authenticated using(auth.uid()=user_id);
+alter table public.businesses enable row level security;
+create policy businesses_member_select on public.businesses for select to authenticated using(exists(select 1 from public.user_memberships um where um.user_id=auth.uid() and um.tenant_id=businesses.tenant_id and um.status='ACTIVE'));
 create table public.marketing_provider_profiles(id uuid primary key,business_id uuid,owner_user_id uuid,name_ar text not null,status text not null);
 alter table public.marketing_provider_profiles enable row level security;
 create policy "CRM managers view marketing providers" on public.marketing_provider_profiles for select to authenticated using(exists(select 1 from public.user_memberships um where um.user_id=auth.uid() and um.status='ACTIVE' and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')));
