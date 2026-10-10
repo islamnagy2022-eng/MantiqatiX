@@ -1,0 +1,55 @@
+name: Financial Journal Schema Prerequisites
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261010175000_rc449a_financial_journal_schema_prerequisites.sql"
+      - "supabase/tests/rc449a_financial_journal_schema_fixture.sql"
+      - "supabase/tests/rc449a_financial_journal_schema_integration.sql"
+      - "scripts/validate-financial-journal-schema-prerequisites.mjs"
+      - ".github/workflows/financial-journal-schema-prerequisites.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261010175000_rc449a_financial_journal_schema_prerequisites.sql"
+      - "supabase/tests/rc449a_financial_journal_schema_fixture.sql"
+      - "supabase/tests/rc449a_financial_journal_schema_integration.sql"
+      - "scripts/validate-financial-journal-schema-prerequisites.mjs"
+      - ".github/workflows/financial-journal-schema-prerequisites.yml"
+
+jobs:
+  schema-prerequisites-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc449a_schema_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc449a_schema_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Static schema prerequisite contract
+        run: node scripts/validate-financial-journal-schema-prerequisites.mjs
+      - name: Apply legacy fixture, forward migration, and backfill tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc449a_financial_journal_schema_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261010175000_rc449a_financial_journal_schema_prerequisites.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc449a_financial_journal_schema_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc449a_schema_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc449a_schema_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc449a_schema_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
