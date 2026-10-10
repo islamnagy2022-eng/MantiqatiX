@@ -1,17 +1,17 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 14:15 UTC
+Last updated: 2026-10-10 14:32 UTC
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
 
 ## Safety/actions taken
 - All live Supabase queries in this execution cycle were read-only.
-- No production database migrations, grants, RLS/Auth settings, financial data, payments, or payment Edge Functions were changed/deployed. Static GitHub Pages deployment did occur on the latest main commit and passed smoke verification.
+- No production database migrations, grants, RLS/Auth settings, financial data, payments, or payment Edge Functions were changed/deployed. Static GitHub Pages smoke verification passed on checkpoint `ca5924b6f5852b0cfc9ad77ebb331116e1163f65` (workflow `38057596069`). PR #128 and #102 merged afterward; the latest post-merge Pages deployment has not yet been independently rechecked.
 - Source/CI-only PRs #124 (cross-PR migration collision guard), #132 (canonical module aliases), and #133 (local migration-version uniqueness guard) were merged after passing CI.
 - No changes were merged that apply database migrations or modify production configuration.
 
 ## Current main
-- Latest main SHA at the time of this update: `412605e77446978f586dba5557603db2bb025d7d` (documentation-only PR #138).
+- Latest main SHA at the time of this update: `3863f800720d7bd7cc68e41a559f77574bc4f52c` (PR #102).
 - PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
 - PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
 - PR #133 was merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`, adding local migration-version uniqueness validation alongside the cross-PR guard. Main-commit checks passed, including `validate-migration-versions` run `38053072649`, health run `38053072662`, and Pages deploy run `38053072656`; deploy logs reported smoke verification passed.
@@ -104,6 +104,33 @@ RC441 source hardens these RPCs behind an active `MNTY-PLATFORM` membership with
 - The Supabase security advisor still includes an Auth warning that leaked-password protection is disabled, plus `auth_allow_anonymous_sign_ins` notices for policies targeting `authenticated`. Many inspected tables have restrictive anonymous-session guards, so do not interpret every advisor notice as a proven vulnerability and do not bulk-revoke policies/grants. Confirm the Auth setting through authorized project configuration and test representative anonymous and normal-user sessions.
 - The same live catalog query reconfirmed that the four platform-wide MantiGO RPCs (`get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, `expire_stale_mantigo_rides_backend`) remain SECURITY DEFINER, executable by `authenticated`, and do not call `mnty_can_platform_admin()`.
 - All checks in this recheck were read-only. No production writes, migrations, grant/RLS/Auth changes, Edge Function deployments, or financial operations were performed.
+
+## Continuation update — 2026-10-10 14:32 UTC
+
+### Source-only merges since the previous report
+- PR #128 merged as `650572eaf1ec4c7cd125e0e2b0035eb9424dab6a`: RC442 approval audit atomicity. Its disposable PostgreSQL integration passed, including direct-write revocation, atomic state/audit transition, unauthorized actor denial, duplicate resolution denial, role-conflict fail-closed behavior, and `search_path=pg_catalog`. Migration is in source only; production was not migrated.
+- PR #102 merged as `3863f800720d7bd7cc68e41a559f77574bc4f52c`: MantiGO open-ride location privacy. Its RC446 disposable PostgreSQL integration passed; migration is in source only; production was not migrated.
+- PR #138 merged as `412605e77446978f586dba5557603db2bb025d7d` and PR #139 merged as `44d020fa7f3dcfaae09f861d5fe9f543d0469dbc`; both are documentation-only.
+
+### Current source-candidate coordination
+- PR #127 SMM trusted-read gateway: latest head `ef2dc590cad968e270626de9e6b12d97f45f7311` passed Backend-only Module Boundary, Module Professionalization Validation (including SMM gateway contract), and web workflow validation. The Pages deploy job is skipped on a PR. **Do not merge yet**: production `smm-gateway` is still v6, so publishing the new web client before a coordinated Edge Function rollout would break SMM reads. No production Edge Function deployment was performed.
+- PR #129 is now a combined candidate targeting `main`: enterprise read-error visibility + dedicated MEDICAL workspace + matrimony privacy boundary. Latest source edits reject anonymous Auth sessions in both matrimony RPCs, retain the production-style restrictive anonymous-session guard in the disposable fixture, and test anonymous raw reads, discovery, and contact denial. Source-level assertions passed in-session; latest-head CI evidence is still required before merge.
+- PR #111 and #126 overlap the read-error/MEDICAL changes now being carried by #129. Keep them unmerged; close as superseded only after the combined candidate passes latest-head CI.
+- PR #101 ERP server-mutation candidate was relabeled RC445 because RC442 is now used by merged approval-audit work. Its workflow was reconciled with the current main workflow to retain both the approval-audit and ERP integration jobs. Latest-head CI and mergeability still need rechecking.
+- PR #87 financial-journal service-role boundary remains open; review must resolve business/branch scope binding before merge.
+- PR #84 remains blocked by the immutable RC424 source/ledger mismatch and payment runtime parity. Do not merge or deploy it as-is.
+
+### Release-candidate migration labels
+Migration version prefixes remain unique; the labels are now disambiguated for the new source candidates:
+- RC442 — approval audit atomicity (merged source; not applied to production).
+- RC443 — matrimony privacy (PR #129; unmerged).
+- RC444 — CRM business-scope RLS (PR #130; unmerged).
+- RC445 — ERP service mutations (PR #101; unmerged).
+- RC446 — MantiGO open-ride privacy (PR #102; merged source; not applied to production).
+- RC563/RC564/RC565/RC566 remain separate candidates in their respective open PRs; review dependencies before selecting a single ordered migration batch.
+
+### Safety boundary for this continuation
+All Supabase production queries were read-only. No production migrations, table writes, grants, RLS/Auth settings, Edge Function deployments, payments, wallet changes, or financial operations were performed. Source merges and isolated PostgreSQL tests do not certify production readiness.
 
 ## Status vocabulary
 - SOURCE_FIXED: source changed, not yet validated.
