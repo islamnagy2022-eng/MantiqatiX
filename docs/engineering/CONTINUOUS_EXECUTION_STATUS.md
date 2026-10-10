@@ -14,6 +14,7 @@ Last updated: 2026-10-10 13:00 UTC
 - Latest main SHA: `7dd8dc4b480f69b1314e9b5b883f3146f367f146`.
 - PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
 - PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
+- PR #133 was merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`, adding local migration-version uniqueness validation alongside the cross-PR guard. Main-commit checks passed, including `validate-migration-versions` run `38053072649`, health run `38053072662`, and Pages deploy run `38053072656`; deploy logs reported smoke verification passed.
 - Main branch metadata reports branch protection disabled and no required status checks. No branch-protection write tool was available in this cycle; this remains a governance risk.
 
 ## Relevant PRs
@@ -24,7 +25,8 @@ Last updated: 2026-10-10 13:00 UTC
 - #123 — CLOSED without merge due stale-base workflow conflict; replaced by #132, now merged.
 - #124 — CLOSED, merged as above.
 - #125 — CLOSED without merge in favor of #124.
-- #131 — OPEN, unmerged. This status document is maintained on branch `chore/continuous-execution-status-20261010`; its base predates recent main merges, so refresh/reconcile before merging.
+- #131 — OPEN, stale and superseded by documentation-only PR #134; do not merge #131.
+- #133 — CLOSED, merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`; adds local migration-version uniqueness validation and its CI workflow.
 
 ## Migration collision remediation
 - The real conflict was version `20261009170000`: RC430 subscription success webhook in #84 vs duplicate MantiGO admin migration in #95.
