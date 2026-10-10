@@ -1,24 +1,41 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 — account membership and SMM follow-up
+Last updated: 2026-10-10 — RC447 backend privacy gate and staged UI rollout
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
 
+## Latest verified continuation — 2026-10-10
+
+- Current main checkpoint: `c475092cb7b498ea6155a8633a6434e3cc2ba0f8` (backend-only RC447 privacy gate, PR #154).
+- Main Pages deployment after PR #154: [workflow 38063841084](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38063841084) passed both validation and deployment; the `Verify deployed site` step succeeded. PR #154 contained no web assets, so this was a deployment of the unchanged UI.
+- RC447 migration `20261010150000_rc447_matrimony_profile_privacy_boundary.sql` is now on main with PostgreSQL 16 fixture/integration tests and a rollout runbook. **It has not been applied to production.** The read-only Supabase migration ledger still ends at RC424 version `20261008222845`; RC447 is absent.
+- Production privacy boundary confirmed by read-only inspection: `matrimony_profiles` has RLS and FORCE RLS enabled, `authenticated` has SELECT, `anon` does not, and the live permissive `matrimony_profiles_select` policy only excludes anonymous sessions rather than restricting rows to their owners.
+- Production schema matches RC447's referenced columns; `matrimony_profiles.owner_user_id` is unique and `matrimony_requests.status` is NOT NULL. The generic `public.is_platform_admin()` helper only checks active ADMIN/SUPER_ADMIN roles without platform-scope binding, so RC447 does not trust it for verification; the trigger permits only trusted server/database roles.
+- RC447 source-contract checks, migration-history/version/collision guards, and PostgreSQL 16 privacy integration passed on the backend-only PR head. This is isolated-test evidence, not production certification.
+- UI PR #156 is open and intentionally unmerged. It must not be merged/published until RC447 is approved and applied to production and the live policy/RPC acceptance tests pass. The UI calls the new discovery RPC.
+- PR #153 was closed in favor of the staged rollout. Duplicate/stale PRs #129, #119, #126, #111 and stacked UI PR #155 were closed as superseded. Do not merge old alternatives.
+- No production migration, RLS/Auth/grant change, customer data mutation, payment, or Edge Function deployment occurred in this continuation. Release state remains **NOT CERTIFIED**.
+
+
 ## Safety/actions taken
 - All live Supabase queries in this execution cycle were read-only.
-- No production database migrations, grants, RLS/Auth settings, financial data, payments, or payment Edge Functions were changed/deployed. Static GitHub Pages smoke verification passed on checkpoint `ca5924b6f5852b0cfc9ad77ebb331116e1163f65` (workflow `38057596069`). PR #128 and #102 merged afterward; the latest post-merge Pages deployment has not yet been independently rechecked.
+- No production database migrations, grants, RLS/Auth settings, financial data, payments, or payment Edge Functions were changed/deployed. The latest post-PR #154 Pages deployment was independently verified in workflow `38063841084`, including the deployed-site smoke check.
 - Source/CI-only PRs #124 (cross-PR migration collision guard), #132 (canonical module aliases), and #133 (local migration-version uniqueness guard) were merged after passing CI.
 - No changes were merged that apply database migrations or modify production configuration.
 
 ## Current main
-- Latest main SHA at the time of this update: `da679e10186d0fa0ec4dc74401516203f7f92d96` (SMM rollout runbook docs).
+- Latest main SHA at the time of this update: `c475092cb7b498ea6155a8633a6434e3cc2ba0f8` (PR #154 backend-only RC447 privacy gate).
 - PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
 - PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
 - PR #133 was merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`, adding local migration-version uniqueness validation alongside the cross-PR guard. Main-commit checks passed, including `validate-migration-versions` run `38053072649`, health run `38053072662`, and Pages deploy run `38053072656`; deploy logs reported smoke verification passed.
 - Main branch metadata reports branch protection disabled and no required status checks. No branch-protection write tool was available in this cycle; this remains a governance risk.
 
 ## Relevant PRs
-- #84 — OPEN, unmerged. Latest observed head: `934f2fc28ec61bdfc5023479b0e796e743244eb1`. Latest Module Professionalization Validation run `38053053450` completed successfully with all 12 jobs, including payment, checkout recovery, search-path, and MantiGO platform-admin integration. Cross-PR collision guard run `38053053434` passed. This is source/isolated-test evidence only; see the live Edge Function parity audit below. Do not merge until RC424 historical migration immutability and source/production parity are resolved.
+
+- #154 — CLOSED, merged as `c475092cb7b498ea6155a8633a6434e3cc2ba0f8`. Adds the RC447 forward-only matrimony privacy migration, source contract, disposable PostgreSQL 16 integration tests, and rollout runbook. No web assets or production database changes were included; all required checks on the merge head passed.
+- #156 — OPEN, unmerged UI release gate. Calls the RC447 discovery RPC and adds explicit read-error handling. Do not merge until RC447 is applied in production and live acceptance tests pass.
+- #153 — CLOSED without merge; replaced by backend-only #154 and UI #156 to avoid deploying frontend code before its database dependency.
+- #129, #119, #126, #111, #155 — CLOSED without merge as stale/superseded by the staged RC447 candidate.- #84 — OPEN, unmerged. Latest observed head: `934f2fc28ec61bdfc5023479b0e796e743244eb1`. Latest Module Professionalization Validation run `38053053450` completed successfully with all 12 jobs, including payment, checkout recovery, search-path, and MantiGO platform-admin integration. Cross-PR collision guard run `38053053434` passed. This is source/isolated-test evidence only; see the live Edge Function parity audit below. Do not merge until RC424 historical migration immutability and source/production parity are resolved.
 - #95 — CLOSED without merge; duplicate migration and migration-specific validator/workflow were removed from its branch. No duplicate migration is retained in the active PR set.
 - #121 — CLOSED without merge as superseded by the canonical RC441 integration suite in #84.
 - #122 — CLOSED without merge; superseded by #133.
