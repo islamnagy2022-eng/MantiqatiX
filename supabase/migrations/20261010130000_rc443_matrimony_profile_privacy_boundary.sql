@@ -342,9 +342,9 @@ revoke all on function public.matrimony_discover_profiles_backend(integer,text,t
 grant execute on function public.matrimony_discover_profiles_backend(integer,text,text) to authenticated;
 revoke all on function public.matrimony_get_unlocked_contact_backend(uuid) from public,anon;
 grant execute on function public.matrimony_get_unlocked_contact_backend(uuid) to authenticated;
-revoke insert,update,delete on public.matrimony_requests from authenticated,anon;
+revoke insert,update,delete on public.matrimony_requests from public,authenticated,anon;
 grant select on public.matrimony_requests to authenticated;
-revoke insert,update,delete on public.matrimony_contact_unlocks from authenticated,anon;
+revoke insert,update,delete on public.matrimony_contact_unlocks from public,authenticated,anon;
 grant select on public.matrimony_contact_unlocks to authenticated;
 
 revoke all on function public.matrimony_create_request_backend(uuid,text) from public,anon;
