@@ -54,9 +54,9 @@ create table public.branches (
   status varchar not null
 );
 insert into public.businesses(id,tenant_id,organization_id,status) values
- ('20000000-0000-4000-8000-000000000564','tenant-a',null,'ACTIVE'),
- ('20000000-0000-4000-8000-000000000566','tenant-a',null,'ACTIVE'),
- ('20000000-0000-4000-8000-000000000565','tenant-b',null,'ACTIVE');
+ ('20000000-0000-4000-8000-000000000564','tenant-a','org-a','ACTIVE'),
+ ('20000000-0000-4000-8000-000000000566','tenant-a','org-a','ACTIVE'),
+ ('20000000-0000-4000-8000-000000000565','tenant-b','org-b','ACTIVE');
 insert into public.branches(id,tenant_id,organization_id,business_id,status) values
  ('branch-a','tenant-a',null,'20000000-0000-4000-8000-000000000564','ACTIVE'),
  ('branch-b','tenant-a',null,'20000000-0000-4000-8000-000000000564','ACTIVE');
