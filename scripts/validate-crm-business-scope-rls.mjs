@@ -11,7 +11,7 @@ for (const policy of [leads, providers]) {
   assert.match(policy, /um\.status='ACTIVE'/);
   assert.match(policy, /um\.tenant_id='MNTY-PLATFORM'/);
   assert.match(policy, /um\.permissions->>'scope',''\)='PLATFORM'/);
-  assert.match(policy, /um\.permissions->>'full_control'\)::boolean,false\) = true/);
+  assert.match(policy, /um\.permissions->>'full_control'\)::boolean,false\)\s*=\s*true/);
   assert.match(policy, /um\.business_id=marketing_/);
 }
 assert.match(leads, /requester_business_id is not null/);
