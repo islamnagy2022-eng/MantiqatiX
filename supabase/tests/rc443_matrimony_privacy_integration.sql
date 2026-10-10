@@ -23,9 +23,24 @@ begin
     or has_function_privilege('anon','public.matrimony_get_unlocked_contact_backend(uuid)','EXECUTE') then
    raise exception 'TEST_FAILED: anonymous role can execute matrimony privacy RPCs';
  end if;
+ if has_function_privilege('anon','public.matrimony_create_request_backend(uuid,text)','EXECUTE')
+    or has_function_privilege('anon','public.matrimony_respond_request_backend(uuid,boolean)','EXECUTE')
+    or has_function_privilege('anon','public.matrimony_unlock_contact_backend(uuid)','EXECUTE') then
+   raise exception 'TEST_FAILED: anonymous role can execute request/contact transition RPCs';
+ end if;
  if not has_function_privilege('authenticated','public.matrimony_discover_profiles_backend(integer,text,text)','EXECUTE')
     or not has_function_privilege('authenticated','public.matrimony_get_unlocked_contact_backend(uuid)','EXECUTE') then
    raise exception 'TEST_FAILED: authenticated role cannot execute matrimony privacy RPCs';
+ end if;
+ if not has_function_privilege('authenticated','public.matrimony_create_request_backend(uuid,text)','EXECUTE')
+    or not has_function_privilege('authenticated','public.matrimony_respond_request_backend(uuid,boolean)','EXECUTE')
+    or not has_function_privilege('authenticated','public.matrimony_unlock_contact_backend(uuid)','EXECUTE') then
+   raise exception 'TEST_FAILED: authenticated role cannot execute safe request/contact transition RPCs';
+ end if;
+ if has_table_privilege('authenticated','public.matrimony_requests','INSERT')
+    or has_table_privilege('authenticated','public.matrimony_requests','UPDATE')
+    or has_table_privilege('authenticated','public.matrimony_contact_unlocks','INSERT') then
+   raise exception 'TEST_FAILED: authenticated direct request/unlock writes must be revoked';
  end if;
  if (select pg_get_function_result('public.matrimony_discover_profiles_backend(integer,text,text)'::regprocedure)) ilike '%contact_phone%'
     or (select pg_get_function_result('public.matrimony_discover_profiles_backend(integer,text,text)'::regprocedure)) ilike '%financial_status%' then
