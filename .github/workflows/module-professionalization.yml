@@ -25,6 +25,8 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/module-blueprints.js
+      - name: SMM trusted read gateway contract
+        run: node scripts/validate-smm-trusted-read-gateway.mjs
       - name: Module runtime contract
         run: |
           grep -q "window.MNTYModuleRuntime" web/app.js
