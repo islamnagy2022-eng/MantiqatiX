@@ -28,6 +28,10 @@ grant usage on schema auth to public;
 grant execute on function auth.uid() to public;
 grant execute on function auth.jwt() to public;
 
+create or replace function public.is_platform_admin()
+returns boolean language sql stable as $function$ select false $function$;
+grant execute on function public.is_platform_admin() to authenticated;
+
 create table public.matrimony_profiles(
   id uuid primary key,
   owner_user_id uuid not null,
@@ -69,7 +73,12 @@ create table public.matrimony_contact_unlocks(
 alter table public.matrimony_profiles enable row level security;
 alter table public.matrimony_requests enable row level security;
 alter table public.matrimony_contact_unlocks enable row level security;
-grant select on public.matrimony_profiles,public.matrimony_requests,public.matrimony_contact_unlocks to authenticated;
+grant select,insert,update on public.matrimony_profiles to authenticated;
+grant select on public.matrimony_requests,public.matrimony_contact_unlocks to authenticated;
+create policy matrimony_profiles_insert on public.matrimony_profiles
+  for insert to authenticated with check (owner_user_id=auth.uid());
+create policy matrimony_profiles_update on public.matrimony_profiles
+  for update to authenticated using (owner_user_id=auth.uid()) with check (owner_user_id=auth.uid());
 create policy matrimony_profiles_select on public.matrimony_profiles
   for select to authenticated
   using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
