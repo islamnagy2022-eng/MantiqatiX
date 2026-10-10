@@ -28,5 +28,7 @@ assert.match(integration, /provider saw unassigned campaign in own business/);
 assert.match(integration, /provider changed client campaign status/);
 assert.match(integration, /non-management business member created a campaign/);
 assert.match(integration, /authenticated role has direct campaign INSERT/);
+assert.match(integration, /campaign creation replay was not idempotent/);
+assert.match(integration, /campaign creation replay duplicated audit/);
 
-console.log("RC453 marketing campaign backend contract: PASS (21 assertions)");
+console.log("RC453 marketing campaign backend contract: PASS (25 assertions)");
