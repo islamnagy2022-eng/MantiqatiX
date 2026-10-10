@@ -74,6 +74,24 @@ for(const marker of [
   if(!rc340Sql.includes(marker)) throw new Error('RC340 expected privilege contract missing: '+marker);
 }
 
+const rc449='supabase/migrations/20261010200000_rc449_targeted_ads_empty_search_path.sql';
+if(!fs.existsSync(rc449)) throw new Error('RC449 targeted-ad SECURITY DEFINER search_path migration is missing.');
+const rc449Sql=fs.readFileSync(rc449,'utf8');
+if(!/alter function public\\.get_mnty_targeted_advertisements\\([\\s\\S]*?\\) set search_path = '';/i.test(rc449Sql)){
+  throw new Error('RC449 must pin the intentionally public targeted-ad RPC to an empty search_path.');
+}
+for(const marker of [
+  'a.config in (\'search_path=""\',\'search_path=\')',
+  'RC449 targeted ads empty search_path integration'
+]){
+  if(!verify.includes(marker) && marker==='RC449 targeted ads empty search_path integration'){
+    const integration=fs.readFileSync('supabase/tests/rc449_targeted_ads_search_path_integration.sql','utf8');
+    if(!integration.includes(marker)) throw new Error('RC449 integration contract missing: '+marker);
+  } else if(marker!=='RC449 targeted ads empty search_path integration' && !verify.includes(marker)){
+    throw new Error('RC449 verification query does not allow the empty targeted-ad search_path.');
+  }
+}
+
 const rc424='supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql';
 if(!fs.existsSync(rc424)) throw new Error('RC424 digital-page payment processor migration is missing.');
 const rc424Sql=fs.readFileSync(rc424,'utf8');
