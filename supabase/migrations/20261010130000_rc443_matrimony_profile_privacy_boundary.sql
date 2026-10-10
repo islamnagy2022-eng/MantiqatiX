@@ -139,6 +139,45 @@ create trigger matrimony_profile_verification_guard
 before insert or update on public.matrimony_profiles
 for each row execute function private.guard_matrimony_profile_verification();
 
+-- Request status is consent state: only the owner of the target profile may change it.
+-- The sender cannot self-promote a request to ACCEPTED_MUTUAL and unlock the recipient's contacts.
+create or replace function private.guard_matrimony_request_status_transition()
+returns trigger
+language plpgsql
+set search_path = ''
+as $function$
+begin
+  if current_user not in ('postgres','service_role') and not coalesce(public.is_platform_admin(),false) then
+    if new.id is distinct from old.id
+       or new.from_user_id is distinct from old.from_user_id
+       or new.to_profile_id is distinct from old.to_profile_id
+       or new.created_at is distinct from old.created_at then
+      raise exception 'MATRIMONY_REQUEST_IDENTITY_IMMUTABLE' using errcode = '42501';
+    end if;
+
+    if new.status is distinct from old.status then
+      if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
+        raise exception 'AUTH_REQUIRED' using errcode = '28000';
+      end if;
+      if not exists (
+        select 1
+        from public.matrimony_profiles p
+        where p.id = old.to_profile_id
+          and p.owner_user_id = auth.uid()
+      ) then
+        raise exception 'MATRIMONY_REQUEST_STATUS_RECIPIENT_ONLY' using errcode = '42501';
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists matrimony_request_status_transition_guard on public.matrimony_requests;
+create trigger matrimony_request_status_transition_guard
+before update on public.matrimony_requests
+for each row execute function private.guard_matrimony_request_status_transition();
+
 revoke all on function public.matrimony_discover_profiles_backend(integer,text,text) from public,anon;
 grant execute on function public.matrimony_discover_profiles_backend(integer,text,text) to authenticated;
 revoke all on function public.matrimony_get_unlocked_contact_backend(uuid) from public,anon;
