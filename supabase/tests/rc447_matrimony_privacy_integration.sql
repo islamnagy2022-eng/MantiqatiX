@@ -109,6 +109,13 @@ begin
  if not rejected or (select is_verified from public.matrimony_profiles where id='40000000-0000-4000-8000-000000000003') is true then
   raise exception 'TEST_FAILED: unverified profile was self-verified';
  end if;
+ begin
+  perform * from public.matrimony_get_unlocked_contact_backend('50000000-0000-4000-8000-000000000001');
+  raise exception 'TEST_FAILED: unrelated user contact retrieval unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: unrelated user contact retrieval unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'FORBIDDEN' then raise; end if;
+ end;
 end;
 $user_c$;
 reset role;
