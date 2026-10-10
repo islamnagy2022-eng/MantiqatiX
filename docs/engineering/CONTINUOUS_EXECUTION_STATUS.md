@@ -104,3 +104,11 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 - PR #84 head `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8`: Module Professionalization Validation run `38052631687` **SUCCESS**, all 12 jobs completed successfully. Backend-only Module Boundary run `38052631721` **SUCCESS**. Pages validation run `38052631639` **SUCCESS**, but the `deploy` job was skipped.
 - RC441 integration now includes ACL assertions for anon denial on expiration and intended authenticated grants across all four global RPCs; both source validator and disposable PostgreSQL integration passed on the same PR head.
 - Production parity recheck found the live digital-page payment processor lacks the RC424 source's provider-order binding guard and replay-status guard, despite a recent ledger row named RC424 under a different version. This discrepancy is not resolved by CI and remains a release blocker.
+
+
+## RLS advisor triage — read-only, 2026-10-10
+- Inspected live policies and table privileges for `refund_transactions`, `settlement_attempts`, `settlement_transactions`, `wallet_accounts`, `wallet_transactions`, `tenant_modules`, and `digital_page_payment_events`.
+- Supabase advisor's `auth_allow_anonymous_sign_ins` label did not correspond to actual `anon` policies in the inspected cases; the listed policies are scoped to `authenticated`. Direct `anon` SELECT/INSERT privileges were false for all seven inspected tables.
+- `refund_transactions` and `settlement_attempts` denied direct SELECT to authenticated in table ACLs; `settlement_transactions`, `wallet_accounts`, `wallet_transactions`, and `tenant_modules` allowed authenticated SELECT subject to RLS. `digital_page_payment_events` has RLS enabled, no policies, and direct SELECT/INSERT denied to anon/authenticated, consistent with backend-only access but still needing an explicit documented contract.
+- FORCE RLS was enabled on the five inspected finance tables above except `digital_page_payment_events` and `tenant_modules` (the latter did have FORCE RLS true in catalog; maintainers should check the exact row when re-running the audit).
+- No grants or policies changed. These observations refine advisor triage but do not clear the MantiGO RPC or payment source/production parity blockers.
