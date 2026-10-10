@@ -53,7 +53,7 @@ const domainModules=[
 {key:'MAINTENANCE',name:'المزايدات — الصيانة',icon:'🔧',desc:'طلبات الصيانة والعروض والمتابعة.',tables:['indrive_requests','indrive_bids','support_tickets']},
 {key:'LEGAL',name:'المزايدات — الخدمات القانونية',icon:'⚖️',desc:'الوثائق والمتطلبات والاتفاقيات القانونية.',tables:['legal_documents','legal_requirements','agreements']},
 {key:'ERP',name:'المزايدات — البرمجيات ERP',icon:'💻',desc:'المشتريات والاستلام والتحويلات والمخازن.',tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses']},
-{key:'MATRIMONY',name:'الزواج',icon:'💍',desc:'الملفات والطلبات وفتح وسائل التواصل وفق النظام.',tables:['matrimony_profiles','matrimony_requests','matrimony_contact_unlocks']},
+{key:'MATRIMONY',name:'الزواج',icon:'💍',desc:'الملفات والطلبات وفتح وسائل التواصل وفق النظام.',tables:['matrimony_profiles','matrimony_requests']},
 {key:'JOBS',name:'الوظائف',icon:'💼',desc:'الوظائف والتقديمات ومتابعة المرشحين.',tables:['jobs','job_applications']},
 {key:'MEDICAL',name:'المنظومة الطبية',icon:'🩺',desc:'اكتشاف مقدمي الخدمة والحجز الطبي ومتابعة المواعيد.',tables:['marketing_provider_profiles','medical_appointments']},
 {key:'RESTAURANTS',name:'المطاعم والمطابخ',icon:'🍽️',desc:'القائمة والطلبات والطاولات والمخزون.',tables:['restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory']},
@@ -838,6 +838,19 @@ async function loadEnterpriseDomainData(m){
  cache.loading=true;live.moduleData[m.key]=cache;
  const rows={},errors={};
  try{
+  if(m.key==='MATRIMONY'){
+   try{
+    const discovery=await sb.rpc('matrimony_discover_profiles_backend',{p_limit:50,p_city:null,p_gender:null});
+    if(discovery.error){rows.matrimony_profiles=[];errors.matrimony_profiles={code:discovery.error.code||'READ_FAILED'};}
+    else{rows.matrimony_profiles=(discovery.data||[]).map(p=>({...p,id:p.profile_id}));errors.matrimony_profiles=null;}
+   }catch(error){rows.matrimony_profiles=[];errors.matrimony_profiles={code:error?.code||'QUERY_FAILED'};}
+   try{
+    const requests=await sb.from('matrimony_requests').select('id,from_user_id,to_profile_id,status,message_text,created_at').limit(100).order('created_at',{ascending:false});
+    if(requests.error){rows.matrimony_requests=[];errors.matrimony_requests={code:requests.error.code||'READ_FAILED'};}
+    else{rows.matrimony_requests=requests.data||[];errors.matrimony_requests=null;}
+   }catch(error){rows.matrimony_requests=[];errors.matrimony_requests={code:error?.code||'QUERY_FAILED'};}
+   cache.rows=rows;cache.errors=errors;cache.rowsReady=true;return;
+  }
   for(const table of m.tables){
    try{
     let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});
