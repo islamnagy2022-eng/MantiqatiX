@@ -174,4 +174,28 @@ begin
 end
 $test$;
 
+do $balance_test$
+declare
+  actor uuid := '10000000-0000-4000-8000-000000000564';
+  entry jsonb;
+  lines jsonb;
+  v_cash numeric;
+  v_revenue numeric;
+begin
+  perform set_config('request.jwt.claim.role','service_role',false);
+  perform set_config('request.jwt.claim.sub','',false);
+  entry := jsonb_build_object('id','rc448-journal-002','tenant_id','tenant-a','business_id','20000000-0000-4000-8000-000000000564','entry_number','RC448-002','status','POSTED','total_debit',50,'total_credit',50);
+  lines := jsonb_build_array(
+    jsonb_build_object('account_id','cash','debit',50,'credit',0),
+    jsonb_build_object('account_id','revenue','debit',0,'credit',50)
+  );
+  perform public.post_financial_journal_backend(actor,entry,lines);
+  select running_balance into v_cash from public.general_ledger where tenant_id='tenant-a' and account_id='cash' order by posted_at desc,id desc limit 1;
+  select running_balance into v_revenue from public.general_ledger where tenant_id='tenant-a' and account_id='revenue' order by posted_at desc,id desc limit 1;
+  if v_cash <> 150 or v_revenue <> -150 then
+    raise exception 'TEST_FAILED: running balances are not cumulative (cash %, revenue %)',v_cash,v_revenue;
+  end if;
+end;
+$balance_test$;
+
 select 'RC448 financial journal integration: PASS' as result;
