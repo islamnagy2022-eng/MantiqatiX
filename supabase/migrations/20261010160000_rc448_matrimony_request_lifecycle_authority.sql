@@ -235,8 +235,8 @@ begin
     return;
   end if;
 
-  insert into public.matrimony_contact_unlocks as u(request_id)
-  values(v_request.id)
+  insert into public.matrimony_contact_unlocks as u(id,request_id)
+  values(pg_catalog.gen_random_uuid(),v_request.id)
   returning u.unlocked_at into v_unlocked_at;
 
   return query select v_request.id,v_unlocked_at;
