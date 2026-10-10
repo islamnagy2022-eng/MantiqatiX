@@ -84,25 +84,25 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: mantiqatix_rc449_test
+          POSTGRES_DB: mantiqatix_rc451_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d mantiqatix_rc449_test"
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc451_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
-      - name: Apply RC449 fixture, migration, and assertions
+      - name: Apply RC451 fixture, migration, and assertions
         shell: bash
         run: |
           set -euo pipefail
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
-          docker cp supabase/tests/rc449_targeted_ads_search_path_fixture.sql "$pg_container:/tmp/rc449_fixture.sql"
-          docker cp supabase/migrations/20261010200000_rc449_targeted_ads_empty_search_path.sql "$pg_container:/tmp/rc449_migration.sql"
-          docker cp supabase/tests/rc449_targeted_ads_search_path_integration.sql "$pg_container:/tmp/rc449_test.sql"
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc449_test -v ON_ERROR_STOP=1 -f /tmp/rc449_fixture.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc449_test -v ON_ERROR_STOP=1 -f /tmp/rc449_migration.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc449_test -v ON_ERROR_STOP=1 -f /tmp/rc449_test.sql
+          docker cp supabase/tests/rc451_targeted_ads_search_path_fixture.sql "$pg_container:/tmp/rc451_fixture.sql"
+          docker cp supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql "$pg_container:/tmp/rc451_migration.sql"
+          docker cp supabase/tests/rc451_targeted_ads_search_path_integration.sql "$pg_container:/tmp/rc451_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_test.sql
