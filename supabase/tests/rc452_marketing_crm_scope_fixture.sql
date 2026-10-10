@@ -23,6 +23,8 @@ create policy "CRM managers view marketing leads" on public.marketing_leads for 
 create policy "Users view own marketing leads" on public.marketing_leads for select to authenticated using(requester_user_id=auth.uid());
 create policy "Users create marketing leads" on public.marketing_leads for insert to authenticated with check(requester_user_id=auth.uid());
 grant select on public.businesses,public.user_memberships,public.marketing_provider_profiles,public.marketing_leads to authenticated;
+grant insert on public.marketing_leads to authenticated;
+grant insert, update on public.marketing_provider_profiles to authenticated;
 insert into public.businesses(id,tenant_id,name) values
 ('30000000-0000-4000-8000-000000000001','TENANT-A','Agency A'),
 ('30000000-0000-4000-8000-000000000002','TENANT-A','Client A2'),
