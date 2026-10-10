@@ -20,7 +20,11 @@ begin
     ('ride-stale-open',tenant_owner,'OPEN',pg_catalog.now()-interval '90 minutes'),
     ('ride-stale-bids',tenant_admin,'OPEN_FOR_BIDS',pg_catalog.now()-interval '45 minutes'),
     ('ride-recent-open',tenant_ops,'OPEN',pg_catalog.now()-interval '5 minutes'),
-    ('ride-stale-matching',tenant_ops,'MATCHING',pg_catalog.now()-interval '90 minutes');
+    ('ride-stale-matching',tenant_ops,'MATCHING',pg_catalog.now()-interval '90 minutes'),
+    ('ride-rc441',tenant_owner,'COMPLETED',pg_catalog.now()-interval '1 hour');
+
+  insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference,amount,captain_amount)
+  values ('ledger-rc441','ride-rc441',tenant_owner,100,10,90,0.10,'PAID','READY',null,100,90);
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
@@ -86,6 +90,31 @@ begin
   end if;
   if has_function_privilege('anon','public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)','EXECUTE') then
     raise exception 'anon must not execute platform financial report';
+  end if;
+  if has_function_privilege('anon','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE') then
+    raise exception 'anon must not execute platform settlement';
+  end if;
+
+  -- Authorized platform-admin settlement is persisted and replay-safe.
+  result := public.settle_mantigo_captain_backend(platform_admin,'ride-rc441','BANK_TRANSFER');
+  if result->>'settlement_status' <> 'SETTLED' or coalesce((result->>'idempotent')::boolean,true) then
+    raise exception 'authorized platform admin settlement failed: %',result;
+  end if;
+  if (select settlement_status from public.mantigo_financial_ledger where ride_id='ride-rc441') <> 'SETTLED'
+     or (select settlement_reference from public.mantigo_financial_ledger where ride_id='ride-rc441') <> 'MGO-SET-ride-rc441' then
+    raise exception 'authorized platform admin settlement did not persist ledger transition';
+  end if;
+  if (select count(*) from public.audit_logs where action='MANTIGO_CAPTAIN_SETTLED' and entity_id='ledger-rc441') <> 1
+     or (select count(*) from public.notifications where type='MANTIGO_SETTLEMENT' and entity_id='ride-rc441') <> 1 then
+    raise exception 'authorized platform admin settlement audit/notification missing';
+  end if;
+  result := public.settle_mantigo_captain_backend(platform_admin,'ride-rc441','BANK_TRANSFER');
+  if coalesce((result->>'idempotent')::boolean,false) is not true then
+    raise exception 'settlement replay did not return idempotent success';
+  end if;
+  if (select count(*) from public.audit_logs where action='MANTIGO_CAPTAIN_SETTLED' and entity_id='ledger-rc441') <> 1
+     or (select count(*) from public.notifications where type='MANTIGO_SETTLEMENT' and entity_id='ride-rc441') <> 1 then
+    raise exception 'settlement replay duplicated audit or notification';
   end if;
 
   -- Stale ride expiration is idempotent, bounded to supported statuses, and audited.
