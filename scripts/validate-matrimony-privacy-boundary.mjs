@@ -28,6 +28,7 @@ assert.match(migration, /MATRIMONY_VERIFICATION_SERVER_ONLY/);
 const contactEnd = migration.indexOf("-- Keep one active request", contactStart);
 const contact = migration.slice(contactStart, contactEnd > contactStart ? contactEnd : undefined);
 assert.match(contact, /v_request\.status <> 'ACCEPTED_MUTUAL'/);
+assert.match(contact, /p\.is_verified is true/, "contact retrieval must require a currently verified profile");
 assert.match(contact, /is_anonymous/, "contact retrieval must reject anonymous Auth sessions");
 assert.match(contact, /matrimony_contact_unlocks u[\s\S]*?u\.request_id=v_request\.id/);
 assert.match(contact, /raise exception 'FORBIDDEN'/i);
@@ -39,6 +40,7 @@ assert.doesNotMatch(loader, /q\.or\('is_verified\.eq\.true,owner_user_id\.eq\.'/
 assert.match(migration, /function public\.matrimony_create_request_backend/i);
 assert.match(migration, /function public\.matrimony_respond_request_backend/i);
 assert.match(migration, /function public\.matrimony_unlock_contact_backend/i);
+assert.match(migration, /v_is_verified is not true/, "request response and contact unlock must fail closed for unverified profiles");
 assert.match(migration, /revoke insert,update,delete on public\.matrimony_requests from authenticated,anon/i);
 assert.match(migration, /revoke insert,update,delete on public\.matrimony_contact_unlocks from authenticated,anon/i);
 assert.match(app, /sb\.rpc\('matrimony_discover_profiles_backend'/, "enterprise workspace must use the public-safe discovery projection");
