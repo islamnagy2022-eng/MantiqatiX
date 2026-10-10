@@ -225,18 +225,18 @@ All Supabase production queries were read-only. No production migrations, table 
 ### RC443 matrimony/workspace — PR #141
 - Clean-main candidate PR #141: https://github.com/islamnagy2022-eng/MantiqatiX/pull/141. Source-contract and migration-history/uniqueness checks have passed on prior checkpoints, but the latest observed disposable PostgreSQL run failed in `matrimony_unlock_contact_backend(uuid)`: `RETURNING unlocked_at` is ambiguous with the output parameter of the same name. The safe correction is to alias the INSERT target and return `inserted_unlock.unlocked_at`. A direct SQL-file update was blocked by repository safety controls; no bypass was attempted.
 - A separate prior check failed because the static validator expected an outdated medical-workspace string; that validator was updated afterward, but fresh CI on the exact newest head is still required.
-- The cross-PR collision guard previously flagged duplicate RC443 files in PRs #129 and #130. #130 is now closed; #129 remains open and stale/unmergeable. Re-run the guard after reconciling #129; do not merge RC443 while the integration failure remains.
-- The RC443 candidate also revokes direct authenticated writes to request/unlock tables and provides server RPCs for request creation, response, and unlock. The disposable test covers anonymous denial, raw profile owner-only reads, verified discovery, contact gating, idempotency, and self-verification denial. These are source/isolated-test checks, not production proof.
+- The cross-PR collision guard previously flagged duplicate RC443 files in PRs #129 and #130. Both stale candidates are now closed without merge; the clean staged candidates are RC447 in PR #154 and RC448 in PR #160. Do not reopen or merge duplicate RC443 migration branches.
+- RC448 is the forward-only server-authority migration that revokes direct authenticated DML on request/unlock tables and exposes scoped RPCs for request creation, recipient response, and contact unlock. Its disposable PostgreSQL tests are source/isolated-test evidence, not production proof.
 
 ### Other reviewed authorization gates
 - PR #87 financial-journal candidate: review comment `6098613000` requires explicit business/branch scope binding and negative cross-business/cross-branch tests.
 - PR #101 ERP service-mutation candidate: review comment `6098667875` requires a branch-scope contract and cross-branch negative tests for order and stock-transfer operations.
-- PR #129 remains open only as a stale/duplicate candidate pending reconciliation; PR #119, #111, and #126 remain unmerged backup candidates while the consolidated PR #141 has not passed its full release gate.
+- PR #129, #141, #119, #111, and #126 are closed or superseded; the staged replacements are RC447 (#154), RC448 (#160), and the dependent UI candidate (#158). Keep the UI gated until the approved backend rollout and live acceptance checks complete.
 - No production migrations, grants, RLS/Auth settings, Edge Function deployments, payments, or financial data were changed during this continuation.
 
 ### RC443 latest failure detail
-- The latest observed RC443 PostgreSQL integration failed at `matrimony_unlock_contact_backend(uuid)` with `column reference "unlocked_at" is ambiguous` in `INSERT ... RETURNING unlocked_at`. The correct source correction is to alias the inserted table and return `inserted_unlock.unlocked_at`; the direct migration-file update was blocked by repository safety checks and was not bypassed.
-- The privacy source-contract validator passed after the contact-verification guard was added, but a separate enterprise workspace validator failed on an outdated MEDICAL assertion. The validator was updated in commit `437d95966adc430645eaa746d51385f1f1b35f69`; fresh CI on that exact head has not been confirmed. RC443 remains blocked.
+- Historical RC443 integration failed at `matrimony_unlock_contact_backend(uuid)` with an ambiguous `RETURNING unlocked_at` reference. That stale candidate was superseded and closed; the clean RC448 lifecycle migration uses an aliased INSERT target and has its own PostgreSQL integration evidence. Do not treat the old RC443 failure as the current RC448 test result.
+- The old RC443 candidate's validator/test results are historical only. RC447 and RC448 must be judged by their exact-head CI runs and the current migration collision/immutability gates.
 - RC444's merge adds only the migration/test/validator source to main. It does not mean the policy is live; production migration approval, ordered batch rehearsal, and read-only post-rollout verification remain required.
 
 ## SMM trusted-read gateway — PR #145
@@ -257,6 +257,12 @@ All Supabase production queries were read-only. No production migrations, table 
 ### Current release boundary
 - PR #143's RC444 CRM source is merged in main but has not been applied to production.
 - PR #145's SMM trusted-read gateway is ready for review but unmerged; deploy the Edge Function first, smoke-test it, then deploy the web bundle under the runbook in `docs/runbooks/SMM_TRUSTED_READ_GATEWAY_ROLLOUT.md`.
-- PR #141 remains blocked by the ambiguous `RETURNING unlocked_at` SQL expression in `matrimony_unlock_contact_backend(uuid)`. Repository safety controls blocked a direct migration-file update; no bypass was attempted. PR #129 remains stale/unmergeable and continues to conflict with the RC443 migration collision guard.
+- PR #141 and PR #129 are closed without merge because they carried duplicate/stale RC443 work. The replacement RC447/RC448 candidates are in main source; they remain unapplied to production. Do not merge or reopen the stale branches.
 - No production migrations, RLS/grant/Auth changes, Edge Function deployments, wallet changes, payments, or financial mutations were performed in this continuation.
 
+## Continuation reconciliation — matrimony candidates (2026-10-10)
+
+- Closed stale PR #129 without merge; it duplicated the RC443 migration version and was superseded by staged RC447/RC448 and UI PR #158. No migration from #129 was applied to production.
+- RC447 (PR #154) and RC448 (PR #160) are in main source but are not applied to production. RC448 revokes direct authenticated request/unlock DML and routes request lifecycle transitions through backend RPCs, addressing the reviewed risk of sender self-acceptance through direct table updates.
+- UI PR #158 remains gated until RC447 and RC448 are approved/applied in order, production policies/RPCs are verified read-only, and authenticated browser acceptance tests pass.
+- No production schema, data, RLS/grants/Auth settings, Edge Functions, payments, or financial records were changed during this continuation.
