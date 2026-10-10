@@ -58,7 +58,7 @@ create table public.matrimony_profiles(
   created_at timestamptz not null default now()
 );
 create table public.matrimony_requests(
-  id uuid primary key,
+  id uuid primary key default gen_random_uuid(),
   from_user_id uuid not null,
   to_profile_id uuid not null references public.matrimony_profiles(id),
   status text not null,
@@ -66,7 +66,7 @@ create table public.matrimony_requests(
   created_at timestamptz not null default now()
 );
 create table public.matrimony_contact_unlocks(
-  id uuid primary key,
+  id uuid primary key default gen_random_uuid(),
   request_id uuid not null references public.matrimony_requests(id),
   unlocked_at timestamptz not null default now()
 );
@@ -75,7 +75,8 @@ alter table public.matrimony_profiles enable row level security;
 alter table public.matrimony_requests enable row level security;
 alter table public.matrimony_contact_unlocks enable row level security;
 grant select,insert,update on public.matrimony_profiles to authenticated;
-grant select on public.matrimony_requests,public.matrimony_contact_unlocks to authenticated;
+grant select,insert,update on public.matrimony_requests to authenticated;
+grant select,insert on public.matrimony_contact_unlocks to authenticated;
 create policy matrimony_profiles_insert on public.matrimony_profiles
   for insert to authenticated with check (owner_user_id=auth.uid());
 create policy matrimony_profiles_update on public.matrimony_profiles
