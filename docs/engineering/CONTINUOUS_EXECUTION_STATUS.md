@@ -260,6 +260,13 @@ All Supabase production queries were read-only. No production migrations, table 
 - PR #141 and PR #129 are closed without merge because they carried duplicate/stale RC443 work. The replacement RC447/RC448 candidates are in main source; they remain unapplied to production. Do not merge or reopen the stale branches.
 - No production migrations, RLS/grant/Auth changes, Edge Function deployments, wallet changes, payments, or financial mutations were performed in this continuation.
 
+## RC450 integration assertion correction (2026-10-10)
+
+- PR #169 merged as `3d7669ca0043db847dfe14fe1b81b86329c4377f`. It fixes a test query that selected the final cash balance by UUID order rather than journal line order; the preceding ordered line assertions had already shown the expected cumulative values `[130,150]`.
+- Exact PR-head checks on `372d29efffc6ef338e0c1ab4d3f1b350ce39625b`: Backend-only Module Boundary passed (including `financial-journal-rc450-integration` and approval-audit integration), Module Professionalization Validation passed (including matrimony privacy PostgreSQL integration), MantiGO Open Ride Privacy passed, and Pages validation passed. The PR Pages deploy job was not a production deployment.
+- The merge changes the test only; no live schema, grants, Edge Functions, or financial data changed. Post-merge main-commit workflow outcomes have not been independently confirmed in this check.
+- RC450 and the RC449/RC449A prerequisites remain source-only and unapplied to production; release status remains **NOT CERTIFIED**.
+
 ## Continuation reconciliation — matrimony candidates (2026-10-10)
 
 - Closed stale PR #129 without merge; it duplicated the RC443 migration version and was superseded by staged RC447/RC448 and UI PR #158. No migration from #129 was applied to production.
