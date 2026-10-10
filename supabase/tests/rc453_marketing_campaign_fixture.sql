@@ -32,6 +32,8 @@ create table public.notifications(
  id varchar primary key,tenant_id varchar not null,user_id uuid not null,type varchar not null default 'GENERAL',title varchar not null,body text not null,entity_type varchar,entity_id varchar,read_at timestamptz,created_at timestamptz not null default now()
 );
 grant select on public.businesses,public.user_memberships,public.marketing_provider_profiles to authenticated;
+-- Test-only read grants let assertions verify atomic audit/notification writes; never used by the production migration.
+grant select on public.audit_logs,public.notifications to authenticated;
 
 insert into public.businesses(id,tenant_id,organization_id,name,code,status) values
 ('30000000-0000-4000-8000-000000000001','TENANT-A','ORG-A','Agency A','AG-A','ACTIVE'),
