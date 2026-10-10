@@ -831,7 +831,49 @@ function accountStatusPanel(){
 function providerProfileWorkspace(){const p=live.myProviderProfile;if(!p)return workspaceHead('PROFILE','ملف نشاطي','لا يوجد ملف نشاط مرتبط بالحساب الحالي.','NOT FOUND')+'<div class="empty-state">سجل نشاطك كمقدم خدمة أولًا ليظهر هنا.</div>';const image=providerImageUrl(p.profile_image_path,p.updated_at);const activityLogoPath=p?.settings?.branding?.logo_path||'';const activityLogo=activityLogoPath?providerImageUrl(activityLogoPath,p.updated_at):'';const services=live.records.providerServices||[];let areas=[];try{areas=Array.isArray(p.service_areas)?p.service_areas:typeof p.service_areas==='string'?JSON.parse(p.service_areas||'[]'):[]}catch(_){areas=[]}const areaNames=areas.map(a=>a.center_name_ar||a.governorate_name_ar||a.name_ar).filter(Boolean);const activeServices=services.filter(s=>String(s.status||'ACTIVE').toUpperCase()==='ACTIVE');const serviceCards=services.length?services.slice(0,12).map(s=>'<article class="card mnty-provider-service-card"><div class="row"><strong>'+esc(s.service_description||'خدمة مقدمة')+'</strong><span class="mnty-badge">'+esc(String(s.status||'ACTIVE'))+'</span></div><p class="muted">'+(s.pricing_from!=null?'من '+esc(s.pricing_from)+' '+esc(s.currency||'EGP'):'السعر حسب الاتفاق')+(s.pricing_to!=null?' · حتى '+esc(s.pricing_to)+' '+esc(s.currency||'EGP'):'')+'</p></article>').join(''):'<div class="empty-state">لا توجد خدمات مسجلة في ملف النشاط حتى الآن.</div>';return workspaceHead('MY ACTIVITY','ملف نشاطي','لوحة إدارة واجهة النشاط والبيانات الظاهرة في الكتالوج العام. البيانات هنا من ملف النشاط الفعلي فقط.','OWNER')+'<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">ACTIVITY PROFILE</span><h2>'+esc(p.name_ar||p.name_en||'نشاطي')+'</h2><p>'+esc(p.provider_kind||'مقدم خدمة')+' · '+esc(p.status||'—')+'</p></div><span class="mnty-badge '+(p.is_verified?'mnty-badge--live':'')+'">'+esc(p.is_verified?'موثق':'قيد التحقق')+'</span></div><div class="mnty-stat-strip"><div><b>'+services.length+'</b><span>خدمات مسجلة</span></div><div><b>'+activeServices.length+'</b><span>خدمات نشطة</span></div><div><b>'+areaNames.length+'</b><span>مناطق خدمة</span></div><div><b>'+esc(p.is_featured?'نعم':'—')+'</b><span>ظهور مميز</span></div></div><div class="mnty-screen-note">'+esc(p.description||'لا يوجد وصف نشاط مسجل حاليًا.')+'</div></section><section class="card provider-profile-editor"><div class="row"><div><h3>الصورة العامة</h3><p class="muted">تظهر في الكتالوج العام بعد تحديث الملف.</p></div>'+(image?'<img class="provider-profile-preview" src="'+esc(image)+'" alt="صورة النشاط">':'<div class="provider-profile-preview provider-profile-preview--empty">صورة افتراضية</div>')+'</div><div class="field"><label>صورة النشاط</label><input id="provider-image-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB · يتم تجهيزها كـWebP قبل الحفظ.</small><div id="provider-image-preview" class="provider-image-preview-note" aria-live="polite">اختر صورة لمعاينتها قبل الحفظ.</div></div><div class="action-bar"><button class="btn btn-primary" id="provider-image-save" style="width:auto">حفظ صورة النشاط</button></div></section><section class="card provider-profile-editor mnty-provider-logo-editor"><div class="row"><div><h3>لوجو النشاط</h3><p class="muted">اللوجو مستقل عن صورة النشاط والأيقونة الأصلية. تغييره لا يستبدل الأصل ويمكن الرجوع إليه في أي وقت.</p></div>'+(activityLogo?'<img class="provider-profile-preview" src="'+esc(activityLogo)+'" alt="لوجو النشاط الحالي">':'<div class="provider-profile-preview provider-profile-preview--empty">الهوية الأصلية</div>')+'</div><div class="field"><label>لوجو جديد للنشاط</label><input id="provider-logo-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB.</small></div><div class="action-bar"><button class="btn btn-primary" id="provider-logo-save" style="width:auto">حفظ لوجو النشاط</button><button class="btn btn-outline" id="provider-logo-reset" style="width:auto">الرجوع للأصل</button></div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICES</span><h3>الخدمات الفعلية</h3><p class="muted">يتم عرض الخدمات الموجودة في قاعدة البيانات فقط.</p></div></div><div class="grid3">'+serviceCards+'</div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICE AREAS</span><h3>مناطق تقديم الخدمة</h3></div></div><div class="request-list">'+(areaNames.length?areaNames.map(a=>'<div class="request-row"><span>'+esc(a)+'</span><b>محددة</b></div>').join(''):'<div class="empty-state">لا توجد مناطق خدمة مسجلة حاليًا.</div>')+'</div></section>'}
 
 
-async function loadEnterpriseDomainData(m){if(!user||!m.tables?.length)return;const cache=live.moduleData[m.key]||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData[m.key]=cache;const rows={};for(const table of m.tables){let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);if(table==='mantigo_rides')q=q.eq('customer_id',user.id);if(table==='mantigo_bids')q=q.limit(100);if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);const r=await q;rows[table]=r.error?[]:(r.data||[])}cache.rows=rows;cache.rowsReady=true;cache.loading=false;renderApp()}
+async function loadEnterpriseDomainData(m){
+ if(!user||!m.tables?.length)return;
+ const cache=live.moduleData[m.key]||{};
+ if(cache.rowsReady||cache.loading)return;
+ cache.loading=true;live.moduleData[m.key]=cache;
+ const rows={},errors={};
+ try{
+  for(const table of m.tables){
+   try{
+    let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});
+    if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+    if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
+    if(table==='mantigo_bids')q=q.limit(100);
+    if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);
+    if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);
+    const result=await q;
+    if(result.error){
+     rows[table]=[];
+     errors[table]={code:result.error.code||'READ_FAILED'};
+     console.warn('[MNTY domain read] source unavailable:',table,errors[table].code);
+    }else{
+     rows[table]=result.data||[];
+     errors[table]=null;
+    }
+   }catch(error){
+    rows[table]=[];
+    errors[table]={code:error?.code||'QUERY_FAILED'};
+    console.warn('[MNTY domain read] query failed:',table,errors[table].code);
+   }
+  }
+  cache.rows=rows;
+  cache.errors=errors;
+  cache.rowsReady=true;
+ }finally{
+  cache.loading=false;
+  renderApp();
+ }
+}
+function enterpriseReadErrorPanel(errors){
+ const failed=Object.entries(errors||{}).filter(([,error])=>Boolean(error));
+ if(!failed.length)return '';
+ return '<section class="card" role="status" aria-live="polite"><h3>بعض مصادر البيانات غير متاحة</h3><p>تعذر تحميل المصادر التالية. عدم ظهور سجلات هنا لا يعني أن المصدر خالٍ من البيانات.</p><ul>'+failed.map(([table])=>'<li><strong>'+esc(table)+'</strong> — غير متاح حاليًا</li>').join('')+'</ul></section>';
+}
 async function loadRestaurantWorkspace(){
  if(!user?.id)return;const cache=live.moduleData.RESTAURANTS||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData.RESTAURANTS=cache;
  const scope={tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId};
@@ -889,7 +931,7 @@ function medicalWorkspace(rows){
  const role=String(live.role||'').toUpperCase();
  const providerCards=providers.map(p=>'<article class="card"><div class="row"><strong>'+esc(p.name_ar||p.name_en||'مقدم طبي')+'</strong><span>'+esc(p.is_verified?'موثق':'متاح')+'</span></div><p class="muted">'+esc(p.provider_kind||'عيادة/طبيب')+'</p><p>'+esc(p.description||'')+'</p>'+(isCustomerMode()&&p.business_id?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMedicalAppointment(\''+esc(p.id)+'\',\''+esc(p.business_id)+'\')">حجز موعد</button></div>':'')+'</article>').join('')||'<div class="empty-state">لا يوجد مقدم طبي نشط ظاهر وفق البيانات الحالية.</div>';
  const apptCards=appointments.map(a=>'<article class="card"><div class="row"><strong>'+esc(a.id)+'</strong><span>'+esc(a.status||'—')+'</span></div><p><b>الموعد:</b> '+esc(a.date_time?new Date(Number(a.date_time)).toLocaleString('ar-EG'):'—')+'<br><b>الاستشارة:</b> '+esc(a.reason||'—')+'</p><div class="action-bar">'+(a.status==='BOOKED'&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CONFIRMED\')">تأكيد</button>':'')+(a.status==='CONFIRMED'&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'COMPLETED\')">إكمال</button>':'')+(['BOOKED','CONFIRMED'].includes(a.status)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CANCELLED\')">إلغاء</button>':'')+'</div></article>').join('')||'<div class="empty-state">لا توجد مواعيد مرئية وفق صلاحيات الحساب.</div>';
- return workspaceHead('MEDICAL','المنظومة الطبية','اكتشاف مقدمي الخدمة، حجز المواعيد ومتابعة الحالة. السجلات السريرية الحساسة خارج هذا المسار.','LIVE')+'<section class="records"><div class="section-head"><div><h3>الأطباء والعيادات</h3><p class="muted">'+providers.length+' مقدم طبي نشط</p></div></div><div class="grid3">'+providerCards+'</div></section><section class="records"><div class="section-head"><div><h3>المواعيد</h3><p class="muted">'+appointments.length+' موعد مرئي وفق RLS</p></div></div><div class="grid3">'+apptCards+'</div></section>';
+ return workspaceHead('MEDICAL','المنظومة الطبية','اكتشاف مقدمي الخدمة، حجز المواعيد ومتابعة الحالة. السجلات السريرية الحساسة خارج هذا المسار.','MODULE')+'<section class="records"><div class="section-head"><div><h3>الأطباء والعيادات</h3><p class="muted">'+providers.length+' مقدم طبي نشط</p></div></div><div class="grid3">'+providerCards+'</div></section><section class="records"><div class="section-head"><div><h3>المواعيد</h3><p class="muted">'+appointments.length+' موعد مرئي وفق RLS</p></div></div><div class="grid3">'+apptCards+'</div></section>';
 }
 function restaurantWorkspace(rows){
  const menu=rows.restaurant_menu_items||[],orders=rows.restaurant_orders||[],tables=rows.restaurant_tables||[],inventory=rows.restaurant_inventory||[];
@@ -927,10 +969,12 @@ function domainModuleWorkspace(){
   if(!d.rowsReady){loadRestaurantWorkspace();return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل بيانات المطعم الفعلية وفق نطاق النشاط والفرع والصلاحيات…</div>'}
   return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
 }
-if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
+if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY','MEDICAL'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
+  if(m.key==='MEDICAL')return enterpriseReadErrorPanel(d.errors)+medicalWorkspace(d.rows||{})+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
   return workspaceHead(m.key,m.name,m.desc,'MODULE')
-   +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق RLS']))
+   +enterpriseReadErrorPanel(d.errors)
+   +workspaceCards(m.tables.map(t=>[t,d.errors?.[t]?'غير متاح':String((d.rows?.[t]||[]).length),d.errors?.[t]?'تعذر التحقق من عدد السجلات':'سجلات مرئية وفق RLS']))
    +enterpriseRowsTable(m,d.rows||{})
    +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
    +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
