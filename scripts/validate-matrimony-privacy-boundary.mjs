@@ -15,6 +15,7 @@ assert.match(migration, /using \(owner_user_id = auth\.uid\(\)\)/i, "raw profile
 assert.match(fixture, /authenticated_sessions_only on public\.matrimony_profiles as restrictive/i, "fixture must model the production restrictive anonymous-session guard");
 assert.match(integration, /anonymous raw profile SELECT unexpectedly succeeded/, "anonymous raw table reads must be tested");
 assert.match(integration, /pending request contact unexpectedly succeeded/, "pending requests must not reveal contact details");
+assert.match(integration, /unrelated user contact retrieval unexpectedly succeeded/, "contact retrieval must deny users outside the request");
 assert.match(migration, /function public\.matrimony_discover_profiles_backend/i);
 const discoverStart = migration.indexOf("function public.matrimony_discover_profiles_backend");
 const contactStart = migration.indexOf("function public.matrimony_get_unlocked_contact_backend");
