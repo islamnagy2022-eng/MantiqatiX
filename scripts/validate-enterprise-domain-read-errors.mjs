@@ -22,6 +22,6 @@ assert.match(source.slice(source.indexOf("function domainModuleWorkspace()")), /
 
 assert.match(source, /\['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY','MEDICAL'\]\.includes\(m\.key\)/, "medical module must use the same honest read-error loader");
 assert.match(source, /if\(m\.key==='MEDICAL'\)return readErrorNotice\+medicalWorkspace\(d\.rows\|\|\{\}\)/, "medical module must render its dedicated workspace");
-assert.match(index, /app\.js\?v=rc451/, "main app cache key must be bumped for the workspace changes");
+assert.match(index, /app\.js\?v=rc452/, "main app cache key must be bumped for the workspace changes");
 
 console.log("Enterprise domain read error visibility contract: PASS");
