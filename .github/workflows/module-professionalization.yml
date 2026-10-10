@@ -25,6 +25,7 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/module-blueprints.js
+          node --check web/operations-modules.js
       - name: Module runtime contract
         run: |
           grep -q "window.MNTYModuleRuntime" web/app.js
@@ -32,6 +33,10 @@ jobs:
           grep -q "MNTYModuleRuntime" web/module-blueprints.js
       - name: Matrimony privacy boundary source contract
         run: node scripts/validate-matrimony-privacy-boundary.mjs
+      - name: Enterprise domain read error contract
+        run: node scripts/validate-enterprise-domain-read-errors.mjs
+      - name: Matrimony request UI backend boundary
+        run: node scripts/validate-matrimony-request-ui.mjs
       - name: Canonical module feature-flag codes
         run: node scripts/validate-module-feature-flag-codes.mjs
       - name: Cross-PR migration collision detector self-test
