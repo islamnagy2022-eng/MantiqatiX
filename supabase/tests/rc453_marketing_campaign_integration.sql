@@ -19,6 +19,18 @@ declare
   rejected boolean;
 begin
   perform set_config('request.jwt.claim.sub',manager_a::text,false);
+  perform set_config('request.jwt.claims',pg_catalog.jsonb_build_object('sub',manager_a::text,'is_anonymous',true)::text,false);
+  rejected:=false;
+  begin
+    perform public.create_marketing_campaign_backend(
+      manager_a,business_a,'Anonymous Campaign','LEADS',array['META'],100,'anonymous-key-0001','EGP',null,null,'{}'::jsonb,null
+    );
+  exception when others then
+    if sqlerrm='AUTH_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'anonymous Auth session created a campaign'; end if;
+  perform set_config('request.jwt.claims',pg_catalog.jsonb_build_object('sub',manager_a::text,'is_anonymous',false)::text,false);
+
   result := public.create_marketing_campaign_backend(
     manager_a,business_a,'Cairo Launch','LEADS',array['meta','Google'],1000,'campaign-a-key-0001','egp',
     pg_catalog.now()+interval '1 day',pg_catalog.now()+interval '10 days',
