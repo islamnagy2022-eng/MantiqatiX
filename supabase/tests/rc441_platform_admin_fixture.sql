@@ -67,3 +67,34 @@ create table public.notifications (
   entity_type text,
   entity_id text
 );
+
+-- Test-only stand-in for the ledger/journal writer called by RC441.
+-- It deliberately performs no real accounting writes; the integration test checks
+-- authorization, the RPC's ledger state transition, audit row, notification, and replay.
+create or replace function public.create_settlement_and_post_journal(
+  p_settlement_id character varying,
+  p_tenant_id character varying,
+  p_party_type character varying,
+  p_party_id character varying,
+  p_gross_amount numeric,
+  p_commission_amount numeric,
+  p_net_amount numeric,
+  p_tax_amount numeric,
+  p_channel character varying,
+  p_ride_id character varying,
+  p_payment_method_id uuid,
+  p_description text,
+  p_actor_user_id uuid
+)
+returns jsonb
+language sql
+set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object(
+    'settlement_id', p_settlement_id,
+    'tenant_id', p_tenant_id,
+    'ride_id', p_ride_id,
+    'actor_user_id', p_actor_user_id,
+    'test_fixture', true
+  )
+$function$;
