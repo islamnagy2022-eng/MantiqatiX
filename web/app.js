@@ -94,7 +94,7 @@ const sectors=Object.freeze((window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS||[]).m
  return [p[0],p[1],p[2],s.code,s.backend];
 }));
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
-const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
+const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},marketingCampaigns:[],marketingCampaignParticipants:[],marketingCampaignProviders:[],marketingCampaignErrors:[],myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){
@@ -1024,7 +1024,7 @@ function enhancedPageContent(){
  if(current==='طلبات التسجيل')return registrationReviewWorkspace();
  if(domainModules.some(m=>m.name===current))return domainModuleWorkspace();
  switch(current){
-  case 'التسويق والإعلان': return marketingWorkspace();
+  case 'التسويق والإعلان': return marketingCampaignWorkspace();
   case 'المستخدمون وCRM': return crmWorkspace();
   case 'الطلبات والعمليات': return ordersWorkspace();
   case 'ملف نشاطي': return providerProfileWorkspace();
@@ -1224,6 +1224,185 @@ function marketingWorkspace(){
  +recordsTable('مقدمو خدمات التسويق',providers,[['الاسم',r=>r.name_ar||'—'],['النوع',r=>r.provider_kind||'—'],['الحالة',r=>r.status||'—'],['موثق',r=>r.is_verified?'نعم':'لا'],['إجراء',r=>detail('provider',r.id)]])
  +recordsTable('الخدمات التسويقية النشطة',services,[['الخدمة',r=>r.name_ar||r.name_en||'—'],['الكود',r=>r.code||'—'],['الفئة',r=>r.category_code||'—'],['الحالة',r=>r.status||'—'],['إجراء',r=>detail('service',r.id)]])
 }
+
+async function loadMarketingCampaignData(){
+ live.marketingCampaignErrors=[];
+ const [campaigns,participants,providers]=await Promise.all([
+  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,created_by').order('created_at',{ascending:false}).limit(50),
+  sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by,responded_at,created_at').order('created_at',{ascending:false}).limit(100),
+  sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).limit(100)
+ ]);
+ live.marketingCampaigns=campaigns.error?[]:(campaigns.data||[]);
+ live.marketingCampaignParticipants=participants.error?[]:(participants.data||[]);
+ live.marketingCampaignProviders=providers.error?[]:(providers.data||[]);
+ if(campaigns.error)live.marketingCampaignErrors.push('marketing_campaigns');
+ if(participants.error)live.marketingCampaignErrors.push('marketing_campaign_participants');
+ if(providers.error)live.marketingCampaignErrors.push('marketing_provider_profiles');
+}
+function marketingCampaignWorkspace(){
+ const campaigns=Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[];
+ const participants=Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[];
+ const providers=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).filter(p=>!live.businessId||String(p.business_id||'')!==String(live.businessId));
+ const role=String(live.role||'').toUpperCase();
+ const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role));
+ const myProviderId=live.myProviderProfile?.id?String(live.myProviderProfile.id):'';
+ const fmtMoney=(value,currency)=>esc(value==null?'—':Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' '+String(currency||'EGP'));
+ const fmtDate=value=>value?esc(String(value).slice(0,10)):'—';
+ const statusAr=v=>({DRAFT:'مسودة',PLANNED:'مخططة',IN_REVIEW:'قيد المراجعة',APPROVED:'معتمدة داخليًا',PAUSED:'متوقفة مؤقتًا',COMPLETED:'مكتملة',CANCELLED:'ملغاة',INVITED:'دعوة مرسلة',ACCEPTED:'مقبولة',DECLINED:'مرفوضة',ACTIVE:'نشطة',REMOVED:'مستبعدة'}[String(v||'').toUpperCase()]||String(v||'—'));
+ const objectiveAr=v=>({AWARENESS:'الوعي بالعلامة',TRAFFIC:'زيارات',LEADS:'عملاء محتملون',SALES:'مبيعات',ENGAGEMENT:'تفاعل',APP_INSTALLS:'تثبيت التطبيق'}[String(v||'').toUpperCase()]||String(v||'—'));
+ const channelAr=v=>({META:'Meta',TIKTOK:'TikTok',GOOGLE:'Google',YOUTUBE:'YouTube',LINKEDIN:'LinkedIn',SNAPCHAT:'Snapchat',OTHER:'أخرى'}[String(v||'').toUpperCase()]||String(v||''));
+ const campaignById=new Map(campaigns.map(c=>[String(c.id),c]));
+ const campaignOptions=campaigns.filter(c=>canManage&&String(c.business_id)===String(live.businessId));
+ const providerOptions=providers.filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
+ const validNext=c=>({DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[String(c.status||'').toUpperCase()]||[]);
+ const errorPanel=(live.marketingCampaignErrors||[]).length
+  ?'<div class="notice" role="status">تعذر قراءة بعض مصادر الحملات: '+esc(live.marketingCampaignErrors.join('، '))+'؛ لا تُعرض هذه المصادر على أنها خالية من البيانات.</div>':'';
+ const createForm=canManage?(
+  '<section class="card" style="padding:18px;margin:16px 0"><div class="section-head"><div><span class="eyebrow">CAMPAIGN PLANNING</span><h3>إنشاء حملة داخلية</h3><p class="muted">تُحفظ الخطة داخل MantiqatiX فقط. لا يتم نشر إعلان على منصة خارجية من هذا النموذج.</p></div></div>'+
+  '<form id="marketing-campaign-create-form" class="grid2">'+
+  '<div class="field"><label for="mc-title">اسم الحملة</label><input id="mc-title" name="title" required minlength="3" maxlength="160" placeholder="مثال: حملة افتتاح الفرع"/></div>'+
+  '<div class="field"><label for="mc-objective">الهدف</label><select id="mc-objective" name="objective" required><option value="AWARENESS">الوعي بالعلامة</option><option value="TRAFFIC">زيارات</option><option value="LEADS" selected>عملاء محتملون</option><option value="SALES">مبيعات</option><option value="ENGAGEMENT">تفاعل</option><option value="APP_INSTALLS">تثبيت التطبيق</option></select></div>'+
+  '<div class="field"><label for="mc-channels">القنوات (افصل بينها بفاصلة)</label><input id="mc-channels" name="channels" required value="META, TIKTOK" placeholder="META, TIKTOK, GOOGLE"/><small class="muted">القنوات المتاحة: META, TIKTOK, GOOGLE, YOUTUBE, LINKEDIN, SNAPCHAT, OTHER.</small></div>'+
+  '<div class="field"><label for="mc-budget">الميزانية المخططة</label><input id="mc-budget" name="budget" type="number" min="0" max="1000000000" step="0.01" required value="0"/></div>'+
+  '<div class="field"><label for="mc-currency">العملة</label><select id="mc-currency" name="currency"><option value="EGP" selected>EGP — جنيه مصري</option><option value="USD">USD — دولار</option><option value="SAR">SAR — ريال سعودي</option><option value="AED">AED — درهم إماراتي</option></select></div>'+
+  '<div class="field"><label for="mc-region">الجمهور / المنطقة</label><input id="mc-region" name="region" maxlength="120" placeholder="مثال: القاهرة الكبرى"/></div>'+
+  '<div class="field"><label for="mc-start">تاريخ البداية (اختياري)</label><input id="mc-start" name="start_at" type="date"/></div>'+
+  '<div class="field"><label for="mc-end">تاريخ النهاية (اختياري)</label><input id="mc-end" name="end_at" type="date"/></div>'+
+  '<div class="field" style="grid-column:1/-1"><label for="mc-brief">ملخص الحملة</label><textarea id="mc-brief" name="brief" rows="3" maxlength="5000" placeholder="الجمهور المستهدف، الرسالة، العرض، ومؤشرات النجاح المقترحة."></textarea></div>'+
+  '<div class="action-bar" style="grid-column:1/-1"><button class="btn btn-primary" id="mc-create-submit" type="submit" style="width:auto">حفظ خطة الحملة</button><span class="muted">يتم التحقق من صلاحية النشاط في قاعدة البيانات.</span></div>'+
+  '</form></section>'
+ ):(
+  '<section class="card" style="padding:16px;margin:16px 0"><h3>إنشاء الحملات متاح لمديري النشاط</h3><p class="muted">اختر عضوية نشطة مرتبطة بنشاط تجاري مخول لإدارة التسويق. الوصول الفعلي يُتحقق منه في الخادم.</p></section>'
+ );
+ const campaignCards=campaigns.length?campaigns.map(c=>{
+  const mine=canManage&&String(c.business_id)===String(live.businessId);
+  const next=validNext(c);
+  const statusForm=mine&&next.length?'<div class="action-bar"><label class="sr-only" for="mc-status-'+esc(c.id)+'">الحالة التالية</label><select id="mc-status-'+esc(c.id)+'" data-mc-status-select="'+esc(c.id)+'">'+next.map(s=>'<option value="'+esc(s)+'">'+esc(statusAr(s))+'</option>').join('')+'</select><button type="button" class="btn btn-outline" data-mc-status="'+esc(c.id)+'" style="width:auto">تحديث الحالة</button></div>':'';
+  const inviteButton=mine&&providerOptions.length?'<div class="muted">يمكن إسناد شريك من نموذج التعاون أدناه.</div>':'';
+  return '<article class="card" style="padding:16px;margin:10px 0"><div class="row"><div><span class="eyebrow">'+esc(objectiveAr(c.objective))+'</span><h3>'+esc(c.title)+'</h3></div><span class="mnty-badge">'+esc(statusAr(c.status))+'</span></div>'+
+   '<p class="muted">القنوات: '+esc((c.channels||[]).map(channelAr).join('، '))+' · الميزانية: '+fmtMoney(c.budget,c.currency)+'</p>'+
+   '<p class="muted">الفترة: '+fmtDate(c.start_at)+' — '+fmtDate(c.end_at)+' · أُنشئت: '+fmtDate(c.created_at)+'</p>'+
+   (c.brief?'<p>'+esc(c.brief)+'</p>':'')+statusForm+inviteButton+'</article>';
+ }).join(''):'<div class="empty-state">لا توجد حملات مرئية ضمن صلاحيات العضوية الحالية.</div>';
+ const inviteForm=canManage&&campaignOptions.length&&providerOptions.length?(
+  '<section class="card" style="padding:18px;margin:16px 0"><div class="section-head"><div><span class="eyebrow">PARTNER COLLABORATION</span><h3>دعوة شركة تسويق شريكة</h3><p class="muted">تظهر الشركات النشطة والموثقة فقط. قبول الدعوة لا ينشر إعلانًا خارجيًا.</p></div></div>'+
+  '<form id="marketing-partner-invite-form" class="grid2">'+
+  '<div class="field"><label for="mc-invite-campaign">الحملة</label><select id="mc-invite-campaign" required>'+campaignOptions.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.title)+'</option>').join('')+'</select></div>'+
+  '<div class="field"><label for="mc-invite-provider">الشركة الشريكة / المستقل</label><select id="mc-invite-provider" required>'+providerOptions.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name_ar||p.provider_kind)+' — '+esc(p.provider_kind)+'</option>').join('')+'</select></div>'+
+  '<div class="field"><label for="mc-invite-role">دور الشريك</label><select id="mc-invite-role"><option value="CREATIVE">التصميم والإبداع</option><option value="CONTENT">المحتوى</option><option value="MEDIA_BUYING">إدارة الإعلانات</option><option value="ANALYTICS">التحليلات</option><option value="ACCOUNT_MANAGER">إدارة الحساب</option><option value="REFERRAL">الإحالات</option></select></div>'+
+  '<div class="field"><label for="mc-invite-allocation">نسبة التخصيص (%)</label><input id="mc-invite-allocation" type="number" min="0" max="100" step="0.01" value="0" required/></div>'+
+  '<div class="field"><label for="mc-invite-value">القيمة المتفق عليها (إن وجدت)</label><input id="mc-invite-value" type="number" min="0" max="1000000000" step="0.01" value="0" required/></div>'+
+  '<div class="action-bar" style="grid-column:1/-1"><button class="btn btn-primary" id="mc-invite-submit" type="submit" style="width:auto">إرسال الدعوة</button></div></form></section>'
+ ):(
+  canManage?'<section class="card" style="padding:16px;margin:16px 0"><h3>التعاون مع الشركاء</h3><p class="muted">'+(campaignOptions.length?'لا توجد ملفات شركات/مستقلين موثقة ومتاحة خارج النشاط الحالي.':'أنشئ حملة داخلية أولًا، ثم يمكنك دعوة شريك موثق.')+'</p></section>':''
+ );
+ const visibleParticipants=participants.filter(p=>{
+  if(canManage&&String(p.business_id)===String(live.businessId))return true;
+  return myProviderId&&String(p.provider_id)===myProviderId;
+ });
+ const participantCards=visibleParticipants.length?visibleParticipants.map(p=>{
+  const c=campaignById.get(String(p.campaign_id));
+  const provider=providers.find(x=>String(x.id)===String(p.provider_id));
+  const mayRespond=Boolean(myProviderId&&String(p.provider_id)===myProviderId&&String(p.status).toUpperCase()==='INVITED');
+  return '<article class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
+   '<p class="muted">التخصيص: '+esc(p.allocation_percent)+'% · القيمة: '+fmtMoney(p.agreed_value,c?.currency||'EGP')+'</p>'+
+   (mayRespond?'<div class="action-bar"><button type="button" class="btn btn-primary" data-mc-respond="'+esc(p.id)+'" data-mc-decision="ACCEPTED" style="width:auto">قبول الدعوة</button><button type="button" class="btn btn-outline" data-mc-respond="'+esc(p.id)+'" data-mc-decision="DECLINED" style="width:auto">رفض الدعوة</button></div>':'')+'</article>';
+ }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
+ return marketingWorkspace()+
+  '<section class="records" data-marketing-campaign-workspace><div class="section-head"><div><span class="eyebrow">INTERNAL CAMPAIGN WORKFLOW</span><h2>الحملات والتعاون مع الشركاء</h2><p class="muted">إدارة داخلية للخطط والدعوات. لا يوجد نشر خارجي تلقائي أو اتصال مباشر بمنصات الإعلانات.</p></div><span class="mnty-badge">RC453</span></div>'+
+  '<div class="mini-actions"><button type="button" data-marketing-action="خدمات التسويق الرقمي SMM">فتح خدمات التسويق الرقمي SMM</button><button type="button" data-marketing-action="المستخدمون وCRM">فتح CRM</button></div>'+
+  errorPanel+createForm+
+  '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div>'+campaignCards+'</section>'+
+  inviteForm+
+  '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div>'+participantCards+'</section></section>';
+}
+async function refreshMarketingCampaignWorkspace(){
+ await loadMarketingCampaignData();
+ const page=document.getElementById('page');
+ if(page)page.innerHTML=enhancedPageContent();
+ bindMarketingCampaignWorkspace();
+}
+function bindMarketingCampaignWorkspace(){
+ const createForm=document.getElementById('marketing-campaign-create-form');
+ if(createForm)createForm.onsubmit=async event=>{
+  event.preventDefault();
+  const button=document.getElementById('mc-create-submit');
+  if(button?.disabled)return;
+  const title=String(document.getElementById('mc-title')?.value||'').trim();
+  const objective=String(document.getElementById('mc-objective')?.value||'LEADS');
+  const channels=String(document.getElementById('mc-channels')?.value||'').split(/[،,]/).map(x=>x.trim()).filter(Boolean);
+  const budget=Number(document.getElementById('mc-budget')?.value);
+  const currency=String(document.getElementById('mc-currency')?.value||'EGP').trim().toUpperCase();
+  const region=String(document.getElementById('mc-region')?.value||'').trim();
+  const brief=String(document.getElementById('mc-brief')?.value||'').trim();
+  const startValue=String(document.getElementById('mc-start')?.value||'');
+  const endValue=String(document.getElementById('mc-end')?.value||'');
+  if(!live.businessId)return showToast('اختر عضوية نشاط تجاري نشطة قبل إنشاء الحملة.','error');
+  if(!title||title.length<3||!channels.length||!Number.isFinite(budget)||budget<0)return showToast('راجع اسم الحملة والقنوات والميزانية.','error');
+  if(Boolean(startValue)!==Boolean(endValue)||(startValue&&new Date(startValue)>=new Date(endValue)))return showToast('أدخل تاريخ البداية والنهاية معًا، على أن تكون النهاية بعد البداية.','error');
+  const key=window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
+  const targetAudience=region?{region:region}:{};
+  button.disabled=true;button.textContent='جارٍ الحفظ...';
+  try{
+   const {data,error}=await sb.rpc('create_marketing_campaign_backend',{
+    p_actor:user.id,p_business_id:live.businessId,p_title:title,p_objective:objective,p_channels:channels,p_budget:budget,p_idempotency_key:key,p_currency:currency,
+    p_start_at:startValue?new Date(startValue+'T00:00:00').toISOString():null,p_end_at:endValue?new Date(endValue+'T23:59:59').toISOString():null,p_target_audience:targetAudience,p_brief:brief||null
+   });
+   if(error)throw error;
+   showToast(data?.idempotent?'تم التحقق من طلب الحفظ السابق.':'تم حفظ خطة الحملة داخليًا.','success');
+   await refreshMarketingCampaignWorkspace();
+  }catch(error){showToast('تعذر حفظ الحملة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
+  finally{if(button.isConnected){button.disabled=false;button.textContent='حفظ خطة الحملة';}}
+ };
+ const inviteForm=document.getElementById('marketing-partner-invite-form');
+ if(inviteForm)inviteForm.onsubmit=async event=>{
+  event.preventDefault();
+  const button=document.getElementById('mc-invite-submit');
+  if(button?.disabled)return;
+  const campaignId=String(document.getElementById('mc-invite-campaign')?.value||'');
+  const providerId=String(document.getElementById('mc-invite-provider')?.value||'');
+  const role=String(document.getElementById('mc-invite-role')?.value||'CONTENT');
+  const allocation=Number(document.getElementById('mc-invite-allocation')?.value);
+  const agreed=Number(document.getElementById('mc-invite-value')?.value);
+  if(!campaignId||!providerId||!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0)return showToast('راجع بيانات دعوة الشريك ونسبة التخصيص والقيمة.','error');
+  button.disabled=true;button.textContent='جارٍ إرسال الدعوة...';
+  try{
+   const {data,error}=await sb.rpc('invite_marketing_campaign_partner_backend',{p_actor:user.id,p_campaign_id:campaignId,p_provider_id:providerId,p_role:role,p_allocation_percent:allocation,p_agreed_value:agreed});
+   if(error)throw error;
+   showToast(data?.idempotent?'الدعوة موجودة بالفعل بنفس البيانات.':'تم إرسال دعوة الشراكة.','success');
+   await refreshMarketingCampaignWorkspace();
+  }catch(error){showToast('تعذر إرسال الدعوة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
+  finally{if(button.isConnected){button.disabled=false;button.textContent='إرسال الدعوة';}}
+ };
+ document.querySelectorAll('[data-mc-respond]').forEach(button=>button.addEventListener('click',async()=>{
+  if(button.disabled)return;
+  button.disabled=true;
+  const decision=button.dataset.mcDecision;
+  try{
+   const {data,error}=await sb.rpc('respond_marketing_campaign_invitation_backend',{p_actor:user.id,p_participant_id:button.dataset.mcRespond,p_decision:decision});
+   if(error)throw error;
+   showToast(data?.idempotent?'تم تسجيل الرد مسبقًا.':(decision==='ACCEPTED'?'تم قبول الدعوة.':'تم رفض الدعوة.'),'success');
+   await refreshMarketingCampaignWorkspace();
+  }catch(error){showToast('تعذر الرد على الدعوة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
+  finally{if(button.isConnected)button.disabled=false;}
+ }));
+ document.querySelectorAll('[data-mc-status]').forEach(button=>button.addEventListener('click',async()=>{
+  if(button.disabled)return;
+  const campaignId=button.dataset.mcStatus;
+  const target=document.getElementById('mc-status-'+campaignId)?.value;
+  if(!target)return;
+  button.disabled=true;
+  try{
+   const {data,error}=await sb.rpc('update_marketing_campaign_status_backend',{p_actor:user.id,p_campaign_id:campaignId,p_status:target});
+   if(error)throw error;
+   showToast(data?.idempotent?'الحملة على الحالة المطلوبة بالفعل.':'تم تحديث حالة الحملة داخليًا.','success');
+   await refreshMarketingCampaignWorkspace();
+  }catch(error){showToast('تعذر تحديث الحالة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
+  finally{if(button.isConnected)button.disabled=false;}
+ }));
+ document.querySelectorAll('[data-marketing-action]').forEach(button=>button.addEventListener('click',()=>selectModule(button.dataset.marketingAction)));
+}
+
 async function openUnifiedRecordDetails(options={}){
  if(!user?.id)return authView();
  const o=options||{}, title=String(o.title||'تفاصيل السجل'), kicker=String(o.kicker||'RECORD DETAILS'), desc=String(o.desc||'التفاصيل المتاحة ضمن الصلاحيات الحالية.'), sections=Array.isArray(o.sections)?o.sections:[], actions=String(o.actions||'');
@@ -1974,8 +2153,8 @@ try{
    localStorage.removeItem('MNTYWorkspaceCurrent');
  }
 }catch(_){}
-if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" value="${esc(query)}" autocomplete="off" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
- if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindGenericWorkspaceTabs();document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
+if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}if(current==='التسويق والإعلان')await loadMarketingCampaignData();await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" value="${esc(query)}" autocomplete="off" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
+ if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();bindMarketingCampaignWorkspace();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindGenericWorkspaceTabs();document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
  const gsi=document.getElementById('mx-global-search-input'),gso=document.getElementById('mx-global-search-results');let globalSearchTimer=null,globalSearchSeq=0;
  const runGlobalSearch=async()=>{const value=String(gsi?.value||'').trim();if(!gso)return;if(value.length<2){gso.innerHTML='';gso.classList.remove('is-open');return}const seq=++globalSearchSeq;gso.innerHTML='<div class="mx-global-search-loading">جاري البحث في البيانات المتاحة…</div>';gso.classList.add('is-open');const results=await globalSearch(value);if(seq!==globalSearchSeq)return;gso.innerHTML=globalSearchResultHtml(results);gso.querySelectorAll('[data-search-index]').forEach(el=>el.addEventListener('click',()=>{const hit=results[Number(el.dataset.searchIndex)];if(hit?.source?.route)selectModule(hit.source.route);gso.classList.remove('is-open')}))};
  gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280)});
