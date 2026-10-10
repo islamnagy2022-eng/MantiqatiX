@@ -857,8 +857,6 @@ async function loadEnterpriseDomainData(m){
     if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
     if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
     if(table==='mantigo_bids')q=q.limit(100);
-    if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);
-    if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);
     const result=await q;
     if(result.error){
      rows[table]=[];
