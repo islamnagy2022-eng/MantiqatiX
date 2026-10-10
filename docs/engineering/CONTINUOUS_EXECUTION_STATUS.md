@@ -13,7 +13,7 @@ Last updated: 2026-10-10 (UTC)
 - PR #95: CLOSED without merge as superseded after removing its duplicate migration, migration-specific validator, and workflow step from its branch. The branch now has no changed files against `main`; canonical RC441 remains in PR #84. The close is not used to hide a still-present duplicate migration.
 - PR #121: CLOSED without merge as superseded; its workflow/test targeted the closed PR #95 migration path. Canonical RC441 integration coverage remains in PR #84.
 - PR #122: OPEN, not merged.
-- PR #123: OPEN, not merged.
+- PR #123: CLOSED without merge after creating a clean main-based replacement, PR #132.
 - PR #125: CLOSED without merge; its discussion says it was closed in favor of PR #124.
 - PR #124: OPEN, not merged. Head SHA `d7892eab7ed539b16a5c9e360abdfdaf43d738fe` after updating the collision detector.
 - Relevant links: #84 https://github.com/islamnagy2022-eng/MantiqatiX/pull/84 ; #95 https://github.com/islamnagy2022-eng/MantiqatiX/pull/95 ; #124 https://github.com/islamnagy2022-eng/MantiqatiX/pull/124 ; #125 https://github.com/islamnagy2022-eng/MantiqatiX/pull/125
@@ -112,3 +112,11 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 - `refund_transactions` and `settlement_attempts` denied direct SELECT to authenticated in table ACLs; `settlement_transactions`, `wallet_accounts`, `wallet_transactions`, and `tenant_modules` allowed authenticated SELECT subject to RLS. `digital_page_payment_events` has RLS enabled, no policies, and direct SELECT/INSERT denied to anon/authenticated, consistent with backend-only access but still needing an explicit documented contract.
 - FORCE RLS was enabled on `refund_transactions`, `settlement_attempts`, `settlement_transactions`, `wallet_accounts`, `wallet_transactions`, and `tenant_modules`; it was false on `digital_page_payment_events`.
 - No grants or policies changed. These observations refine advisor triage but do not clear the MantiGO RPC or payment source/production parity blockers.
+
+
+## Main branch guard merged — 2026-10-10 12:40 UTC
+- PR #124 was squash-merged into `main` as `cb0b0a594f64def5b55488b0229369473091f495`. The cross-PR migration collision guard and its deleted-file regression test are now present on `main`. This change contains CI/workflow, script, and runbook files only; it did not apply migrations or deploy application code.
+- PR #123 was closed without merge because its branch conflicted with the newly merged main workflow. A clean main-based replacement was created as PR #132.
+- PR #132 corrects the module alias mapping so `ACCOUNTING_SERVICES` belongs to professional services and not MantiGO; the validator checks that boundary. An over-escaped regex in the validator was caught during source review and corrected before CI completion.
+- PR #132 latest head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4`; Module Professionalization Validation, Deploy MantiqatiX Web, and Backend-only Module Boundary were queued at the last check. Do not merge until the validator and all CI jobs pass.
+- Main branch metadata reports branch protection disabled and no required status checks. This is a governance risk; no branch-protection changes were made in this cycle.
