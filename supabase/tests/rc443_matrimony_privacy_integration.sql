@@ -114,6 +114,9 @@ do $anonymous$
 declare
  rejected boolean := false;
 begin
+ if (select count(*) from public.matrimony_profiles) <> 0 then
+  raise exception 'TEST_FAILED: anonymous raw profile SELECT unexpectedly succeeded';
+ end if;
  begin
   perform * from public.matrimony_discover_profiles_backend(50,null,null);
   raise exception 'TEST_FAILED: anonymous discovery unexpectedly succeeded';
