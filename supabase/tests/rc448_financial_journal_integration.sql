@@ -3,7 +3,11 @@ do $test$
 declare
   actor uuid := '10000000-0000-4000-8000-000000000564';
   other_actor uuid := '10000000-0000-4000-8000-000000000565';
+  same_tenant_other_business_actor uuid := '10000000-0000-4000-8000-000000000566';
+  branch_actor uuid := '10000000-0000-4000-8000-000000000567';
   business uuid := '20000000-0000-4000-8000-000000000564';
+  other_business uuid := '20000000-0000-4000-8000-000000000566';
+  other_tenant_business uuid := '20000000-0000-4000-8000-000000000565';
   entry jsonb;
   lines jsonb;
   result jsonb;
@@ -20,9 +24,11 @@ begin
     raise exception 'service_role must be able to execute the backend journal RPC';
   end if;
 
-  insert into public.user_memberships(user_id,tenant_id,role,status)
-  values (actor,'tenant-a','ACCOUNTANT','ACTIVE'),
-         (other_actor,'tenant-b','ACCOUNTANT','ACTIVE');
+  insert into public.user_memberships(user_id,tenant_id,organization_id,business_id,branch_id,role,status)
+  values (actor,'tenant-a',null,business,null,'ACCOUNTANT','ACTIVE'),
+         (other_actor,'tenant-b',null,other_tenant_business,null,'ACCOUNTANT','ACTIVE'),
+         (same_tenant_other_business_actor,'tenant-a',null,other_business,null,'ACCOUNTANT','ACTIVE'),
+         (branch_actor,'tenant-a',null,business,'branch-a','ACCOUNTANT','ACTIVE');
   insert into public.chart_of_accounts(id,tenant_id,is_active)
   values ('cash','tenant-a',true),('revenue','tenant-a',true),('inactive','tenant-a',false);
 
@@ -47,6 +53,30 @@ begin
   if n <> 2 then raise exception 'expected exactly two journal lines, got %',n; end if;
   select count(*) into n from public.general_ledger where journal_entry_id='rc448-journal-001';
   if n <> 2 then raise exception 'expected exactly two ledger rows, got %',n; end if;
+
+  -- A membership for another business in the same tenant must not post to this business.
+  rejected := false;
+  begin
+    perform public.post_financial_journal_backend(same_tenant_other_business_actor,
+      jsonb_set(entry,'{id}','"rc448-journal-business-scope-001"'),lines);
+    raise exception 'TEST_FAILED: same-tenant cross-business actor unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'FINANCIAL_MEMBERSHIP_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'same-tenant cross-business actor was not rejected'; end if;
+
+  -- A branch-scoped membership cannot post against another branch, even within its business.
+  rejected := false;
+  begin
+    perform public.post_financial_journal_backend(branch_actor,
+      jsonb_set(jsonb_set(entry,'{id}','"rc448-journal-branch-scope-001"'),'{branch_id}','"branch-b"'),lines);
+    raise exception 'TEST_FAILED: branch-scoped actor unexpectedly posted to another branch';
+  exception when others then
+    if sqlerrm <> 'FINANCIAL_MEMBERSHIP_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'branch-scoped actor was not rejected'; end if;
 
   -- Replayed journal IDs fail closed and must not append duplicate lines.
   rejected := false;
