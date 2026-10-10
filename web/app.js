@@ -840,13 +840,17 @@ async function loadEnterpriseDomainData(m){
  try{
   for(const table of m.tables){
    try{
-    let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});
-    if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
-    if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
-    if(table==='mantigo_bids')q=q.limit(100);
-    if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);
-    if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);
-    const result=await q;
+    let result;
+    if(table==='matrimony_profiles'){
+     result=await sb.rpc('matrimony_discover_profiles_backend',{p_limit:50});
+    }else{
+     let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});
+     if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+     if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
+     if(table==='mantigo_bids')q=q.limit(100);
+     if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);
+     result=await q;
+    }
     if(result.error){
      rows[table]=[];
      errors[table]={code:result.error.code||'READ_FAILED'};
