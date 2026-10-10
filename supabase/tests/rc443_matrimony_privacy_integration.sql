@@ -72,6 +72,33 @@ begin
  if (select status from public.matrimony_requests where id='50000000-0000-4000-8000-000000000003') <> 'PENDING' then
   raise exception 'TEST_FAILED: denied self-acceptance changed request status';
  end if;
+
+ -- Sender must not be able to rebind the request to another sender.
+ begin
+  update public.matrimony_requests
+  set from_user_id='20000000-0000-4000-8000-000000000003'
+  where id='50000000-0000-4000-8000-000000000003';
+  raise exception 'TEST_FAILED: request sender identity mutation unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: request sender identity mutation unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'MATRIMONY_REQUEST_IDENTITY_IMMUTABLE' then raise; end if;
+ end;
+
+ -- Sender must not be able to rebind the request to a different target profile.
+ begin
+  update public.matrimony_requests
+  set to_profile_id='40000000-0000-4000-8000-000000000003'
+  where id='50000000-0000-4000-8000-000000000003';
+  raise exception 'TEST_FAILED: request target identity mutation unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: request target identity mutation unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'MATRIMONY_REQUEST_IDENTITY_IMMUTABLE' then raise; end if;
+ end;
+
+ if (select from_user_id from public.matrimony_requests where id='50000000-0000-4000-8000-000000000003') <> '20000000-0000-4000-8000-000000000001'
+    or (select to_profile_id from public.matrimony_requests where id='50000000-0000-4000-8000-000000000003') <> '40000000-0000-4000-8000-000000000002' then
+  raise exception 'TEST_FAILED: denied request identity mutation changed stored identity';
+ end if;
 end;
 $user_a$;
 reset role;
