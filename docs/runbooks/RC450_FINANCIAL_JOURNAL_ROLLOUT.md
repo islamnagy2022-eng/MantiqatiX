@@ -15,16 +15,17 @@
 ## Preflight — read-only
 
 1. Confirm project ID `moyhiluyhjsujhwlyeuu` and the approved change window.
-2. Confirm migration version `20261010160000` is absent from the live migration ledger. Do not rename or replay an applied migration.
+2. Confirm migration version `20261010180000` is absent from the live migration ledger. Do not rename or replay an applied migration.
 3. Re-read the live function signature and ACLs. Confirm `service_role` still lacks EXECUTE before the change, while `PUBLIC`, `anon`, and `authenticated` must remain denied afterward.
-4. Confirm `businesses`, `branches`, `user_memberships`, `chart_of_accounts`, `journal_entries`, `journal_entry_lines`, and `general_ledger` have the columns used by RC450.
+4. Confirm RC449A (`20261010175000_rc449a_financial_journal_schema_prerequisites.sql`) is included in the approved pending migration chain and is ordered before RC450. It adds/backfills the missing journal header and line fields (`entry_number`, `total_debit`, `total_credit`, `posted_at`, `updated_at`, `reversed_by_entry_id`, and `line_number`). Re-read `businesses`, `branches`, `user_memberships`, `chart_of_accounts`, `journal_entries`, `journal_entry_lines`, and `general_ledger` before proceeding.
 5. Confirm the latest RC450 source-contract test, PostgreSQL 16 integration job, backend-only module boundary, migration-history immutability, migration-version uniqueness, and cross-PR collision checks all pass on the exact release head.
 6. Use a disposable database or approved staging tenant for posting tests. Never create synthetic journal entries or ledger rows in production merely to test deployment.
 
 ## Approved rollout order
 
-1. Apply RC450 once through the approved migration pipeline. The migration must fail closed if required journal schema columns are missing.
-2. Verify the ledger records the exact version and filename.
+1. Apply RC449A once through the approved migration pipeline; verify the backfill, defaults, and line-number assignment read-only.
+2. Apply RC450 only after RC449A succeeds. RC450 must fail closed if required journal schema columns are still missing.
+3. Verify the ledger records the exact RC449A and RC450 versions/filenames in order.
 3. Verify the RPC body includes the verified-role claim guard, active financial membership, business/branch/organization scope, balanced detail lines, active tenant accounts, advisory lock, and duplicate-ID rejection.
 4. Verify function privileges: `service_role` can execute `post_financial_journal_backend`; `PUBLIC`, `anon`, and `authenticated` cannot execute it directly.
 5. Deploy the matching `financial-journal` Edge Function only after the migration is confirmed applied. Edge Function source is not automatically deployed by merging this PR.
