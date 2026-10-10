@@ -41,7 +41,7 @@ assert.match(migration, /function public\.matrimony_create_request_backend/i);
 assert.match(migration, /function public\.matrimony_respond_request_backend/i);
 assert.match(migration, /function public\.matrimony_unlock_contact_backend/i);
 assert.match(migration, /v_is_verified is not true/, "request response and contact unlock must fail closed for unverified profiles");
-assert.match(migration, /revoke insert,update,delete on public\.matrimony_requests from authenticated,anon/i);
+assert.match(migration, /revoke insert,update,delete on public\.matrimony_requests from public,authenticated,anon/i);
 assert.match(migration, /revoke insert,update,delete on public\.matrimony_contact_unlocks from authenticated,anon/i);
 assert.match(app, /sb\.rpc\('matrimony_discover_profiles_backend'/, "enterprise workspace must use the public-safe discovery projection");
 assert.doesNotMatch(app, /sb\.from\('matrimony_contact_unlocks'\)/, "enterprise workspace must not read unlock records directly");
