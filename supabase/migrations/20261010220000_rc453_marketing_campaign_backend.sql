@@ -9,7 +9,7 @@ create table public.marketing_campaigns (
   objective character varying(32) not null check (objective in ('AWARENESS','TRAFFIC','LEADS','SALES','ENGAGEMENT','APP_INSTALLS')),
   channels text[] not null check (pg_catalog.cardinality(channels) between 1 and 8),
   budget numeric(14,2) not null check (budget >= 0),
-  idempotency_key text not null check (pg_catalog.length(idempotency_key) between 8 and 100 and idempotency_key ~ '^[A-Za-z0-9:_-]+
+  idempotency_key text not null check (pg_catalog.length(idempotency_key) between 8 and 100),
   currency character varying(3) not null check (currency ~ '^[A-Z]{3}$'),
   start_at timestamp with time zone,
   end_at timestamp with time zone,
@@ -181,7 +181,7 @@ begin
   if p_budget is null or p_budget < 0 or p_budget > 1000000000 then raise exception 'MARKETING_BUDGET_INVALID'; end if;
   v_budget := round(p_budget,2);
   v_idempotency_key := pg_catalog.btrim(coalesce(p_idempotency_key,''));
-  if pg_catalog.length(v_idempotency_key) < 8 or pg_catalog.length(v_idempotency_key) > 100 or v_idempotency_key !~ '^[A-Za-z0-9:_-]+
+  if pg_catalog.length(v_idempotency_key) < 8 or pg_catalog.length(v_idempotency_key) > 100 or pg_catalog.translate(v_idempotency_key,'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:_-','') <> '' then raise exception 'MARKETING_IDEMPOTENCY_KEY_INVALID'; end if;
   if v_currency !~ '^[A-Z]{3}$' then raise exception 'MARKETING_CURRENCY_INVALID'; end if;
   if (p_start_at is null) <> (p_end_at is null) or (p_start_at is not null and p_start_at >= p_end_at) then raise exception 'MARKETING_SCHEDULE_INVALID'; end if;
   v_audience := coalesce(p_target_audience,'{}'::jsonb);
