@@ -23,6 +23,10 @@ begin
      or not has_function_privilege('service_role','private.review_business_approval_atomic(uuid,character varying,character varying)','EXECUTE') then
     raise exception 'TEST_FAILED: approval RPC execution ACL is incorrect';
   end if;
+  if (select coalesce(array_to_string(proconfig,','),'') not like '%search_path=pg_catalog%'
+      from pg_proc where oid='private.review_business_approval_atomic(uuid,character varying,character varying)'::regprocedure) then
+    raise exception 'TEST_FAILED: approval RPC must pin search_path to pg_catalog';
+  end if;
 
   insert into public.businesses(id,tenant_id,status) values
     (v_business_id,'TENANT-A','PENDING'),
