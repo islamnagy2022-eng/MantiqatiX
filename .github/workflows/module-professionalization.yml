@@ -30,6 +30,8 @@ jobs:
           grep -q "window.MNTYModuleRuntime" web/app.js
           grep -q "syncModuleRuntime" web/app.js
           grep -q "MNTYModuleRuntime" web/module-blueprints.js
+      - name: Canonical module feature-flag codes
+        run: node scripts/validate-module-feature-flag-codes.mjs
       - name: Cross-PR migration collision detector self-test
         run: node scripts/validate-open-pr-migration-collisions.mjs --self-test
       - name: Production security validators
