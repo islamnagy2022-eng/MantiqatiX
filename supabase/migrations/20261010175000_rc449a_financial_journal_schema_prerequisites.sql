@@ -56,6 +56,7 @@ where updated_at is null;
 
 alter table public.journal_entries alter column total_debit set default 0;
 alter table public.journal_entries alter column total_credit set default 0;
+alter table public.journal_entries alter column entry_number set not null;
 alter table public.journal_entries alter column total_debit set not null;
 alter table public.journal_entries alter column total_credit set not null;
 alter table public.journal_entries alter column posted_at set default pg_catalog.now();
