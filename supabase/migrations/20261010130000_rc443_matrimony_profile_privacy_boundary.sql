@@ -45,7 +45,7 @@ begin
       and (p_city is null or pg_catalog.lower(p.city)=pg_catalog.lower(pg_catalog.btrim(p_city)))
       and (p_gender is null or pg_catalog.upper(p.gender)=pg_catalog.upper(pg_catalog.btrim(p_gender)))
     order by p.created_at desc,p.id
-    limit pg_catalog.greatest(1,pg_catalog.least(pg_catalog.coalesce(p_limit,50),50));
+    limit GREATEST(1,LEAST(COALESCE(p_limit,50),50));
 end;
 $function$;
 
