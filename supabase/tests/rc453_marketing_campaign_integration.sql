@@ -48,6 +48,21 @@ begin
 
   rejected:=false;
   begin
+    perform public.create_marketing_campaign_backend(
+      manager_a,business_a,'Changed Launch','LEADS',array['META','GOOGLE'],1500,'campaign-a-key-0001','EGP',
+      pg_catalog.now()+interval '1 day',pg_catalog.now()+interval '10 days',
+      '{"region":"Cairo","language":"ar"}'::jsonb,'Campaign brief'
+    );
+  exception when others then
+    if sqlerrm='MARKETING_IDEMPOTENCY_KEY_CONFLICT' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'same idempotency key with a different payload was accepted'; end if;
+  if (select count(*) from public.marketing_campaigns where business_id=business_a and idempotency_key='campaign-a-key-0001') <> 1 then
+    raise exception 'idempotency conflict created a duplicate campaign';
+  end if;
+
+  rejected:=false;
+  begin
     perform public.create_marketing_campaign_backend(manager_a,business_b,'Cross Tenant','LEADS',array['META'],100,'cross-tenant-key-01','EGP',null,null,'{}'::jsonb,null);
   exception when others then
     if sqlerrm='MARKETING_BUSINESS_SCOPE_REQUIRED' then rejected:=true; else raise; end if;
