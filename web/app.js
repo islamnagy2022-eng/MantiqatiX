@@ -1228,8 +1228,8 @@ function marketingWorkspace(){
 async function loadMarketingCampaignData(){
  live.marketingCampaignErrors=[];
  const [campaigns,participants,providers]=await Promise.all([
-  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,created_by').order('created_at',{ascending:false}).limit(50),
-  sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by,responded_at,created_at').order('created_at',{ascending:false}).limit(100),
+  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').order('created_at',{ascending:false}).limit(50),
+  sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').order('created_at',{ascending:false}).limit(100),
   sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).limit(100)
  ]);
  live.marketingCampaigns=campaigns.error?[]:(campaigns.data||[]);
