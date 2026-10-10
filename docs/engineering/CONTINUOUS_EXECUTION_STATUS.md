@@ -4,6 +4,17 @@ Last updated: 2026-10-10 — RC448 request lifecycle candidate and staged UI rol
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
 
+## Latest verified continuation — RC448 lifecycle gate (2026-10-10 16:05 UTC)
+
+- Current main checkpoint before this documentation update: `7c2e2efa157e330b1d4fbb738ff91df5cc59664a`.
+- PR #160 was merged as `17cb67aba1b025cecf936d8c21db86b1341b92ab` after fixing the disposable integration test: the test had counted unlock rows while still running as `authenticated`, whose RLS correctly hides direct rows. The row-cardinality assertion now runs as the fixture/database owner; the RPC idempotency timestamps remain checked under the authenticated role.
+- Exact-head validation on commit `4defe8966362883dc700457b7a1b1d4f0424e23b`: [RC448 PostgreSQL lifecycle integration](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604601) **passed**; [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604621) **passed**; [Backend-only Module Boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604635) **passed**; [MantiGO Open Ride Privacy Boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604598) **passed**; [Approval Action Audit Atomicity](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604658) **passed**; [Migration History Immutability](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604655), [Migration Version Uniqueness](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604656), and [Open PR Migration Collision Guard](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604586) **passed**.
+- The Pages workflow on the RC448 PR passed web validation, while its actual deploy job was skipped. No production UI or database deployment occurred as part of PR #160.
+- Read-only production RC448 preflight: `active_requests=0`, `duplicate_active_request_pairs=0`, `unlock_rows=0`, `duplicate_unlock_request_ids=0`. RLS and FORCE RLS are enabled on the three matrimony tables. Existing unique indexes include `matrimony_profiles_owner_user_id_key` and `matrimony_contact_unlocks_request_id_key`. This is a clean count snapshot, not rollout approval.
+- The production migration ledger remains at RC424 version `20261008222845`; **RC447 and RC448 remain unapplied**. Production `authenticated` still has direct DML grants on request/unlock tables until the approved RC448 rollout; do not revoke them manually outside the migration.
+- UI PR #158 remains open and unmerged. Its latest source/contract workflows passed, but its Pages workflow was cancelled; it must remain gated until RC447 and RC448 are applied in order and live policy/RPC acceptance tests pass.
+- Production DB/Auth/RLS/grants, Edge Functions, user data, payments, and web assets were not changed in this continuation. Release remains **NOT CERTIFIED**.
+
 ## Latest verified continuation — 2026-10-10
 
 - Current main checkpoint: `ac8979a17862000d545d90df90f972b8e0f2bcdc` (`docs: reconcile RC447 privacy and staged rollout status`).
