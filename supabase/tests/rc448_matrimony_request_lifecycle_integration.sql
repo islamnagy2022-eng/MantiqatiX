@@ -4,6 +4,9 @@ insert into public.matrimony_profiles(
  religiosity_level,housing_status,financial_status,about_me,partner_requirements,wali_contact_name,
  wali_contact_phone,direct_contact_phone,is_verified,compatibility_tags,created_at
 ) values
+ ('40000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','F','Profile A',29,'Cairo','EG','EG','University','Engineer','Single','PRIVATE','PRIVATE','PRIVATE','PRIVATE','PRIVATE','Wali A','01000000001','01000000002',true,'["reading"]',now()-interval '2 days'),
+ ('40000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000002','M','Profile B',31,'Giza','EG','EG','University','Teacher','Single','PRIVATE','PRIVATE','PRIVATE','PRIVATE','PRIVATE','Wali B','01000000003','01000000004',true,'["family"]',now()-interval '1 day'),
+ ('40000000-0000-4000-8000-000000000003','20000000-0000-4000-8000-000000000003','M','Unverified C',34,'Alexandria','EG','EG','University','Accountant','Single','PRIVATE','PRIVATE','PRIVATE','PRIVATE','PRIVATE','Wali C','01000000005','01000000006',false,'[]',now()),
  ('40000000-0000-4000-8000-000000000004','20000000-0000-4000-8000-000000000004','F','Profile D',27,'Tanta','EG','EG','University','Doctor','Single','PRIVATE','PRIVATE','PRIVATE','PRIVATE','PRIVATE','Wali D','01000000007','01000000008',true,'["family"]',now())
 on conflict (id) do nothing;
 
