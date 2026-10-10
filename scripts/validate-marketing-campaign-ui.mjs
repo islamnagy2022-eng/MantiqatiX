@@ -25,6 +25,8 @@ assert.match(app, /MARKETING_IDEMPOTENCY_KEY_CONFLICT|create_marketing_campaign_
 assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaigns['"]\)\.(insert|update|delete)/, "browser must not mutate campaign rows directly");
 assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaign_participants['"]\)\.(insert|update|delete)/, "browser must not mutate participant rows directly");
 assert.match(app, /data-marketing-action="خدمات التسويق الرقمي SMM"/, "marketing workspace must link to the SMM module");
+assert.match(app, /MARKETING:[\\s\\S]{0,500}خدمات التسويق الرقمي SMM/, "marketing role homepage must expose the SMM shortcut");
+assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose the SMM quick-access card");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
 assert.match(index, /app\.js\?v=rc455-marketing-campaign-ui-20261011/, "browser cache key must be updated");
 
