@@ -28,6 +28,6 @@ assert.match(app, /data-marketing-action="خدمات التسويق الرقمي
 assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خدمات التسويق الرقمي SMM/, "marketing role homepage must expose the SMM shortcut");
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose the SMM quick-access card");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
-assert.match(index, /app\.js\?v=rc455-marketing-campaign-ui-20261011/, "browser cache key must be updated");
+assert.match(index, /app\.js\?v=rc458-marketing-campaign-ui-20261011/, "browser cache key must be updated");
 
 console.log("Marketing campaign UI contract: PASS (16 assertions)");
