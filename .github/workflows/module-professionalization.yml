@@ -30,6 +30,8 @@ jobs:
           grep -q "window.MNTYModuleRuntime" web/app.js
           grep -q "syncModuleRuntime" web/app.js
           grep -q "MNTYModuleRuntime" web/module-blueprints.js
+      - name: Canonical module feature-flag codes
+        run: node scripts/validate-module-feature-flag-codes.mjs
       - name: Production security validators
         run: |
           node scripts/validate-production-security.mjs
