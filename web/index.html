@@ -130,4 +130,43 @@
   }
   boot();
 })();
+</script>
+<script>
+(function(){
+  var deferredPrompt=null;
+  var standalone=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
+  if(standalone||window.navigator.standalone===true)return;
+  var style=document.createElement('style');
+  style.textContent='#mnty-install-launch{position:fixed;z-index:9998;right:16px;bottom:86px;border:0;border-radius:999px;padding:13px 17px;background:#0750C9;color:#fff;font:700 14px system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.22);cursor:pointer}#mnty-install-panel{position:fixed;z-index:9999;inset:auto 12px 12px 12px;max-width:480px;margin:auto;padding:20px;border:1px solid #e7d9bd;border-radius:18px;background:#fff;color:#241113;box-shadow:0 14px 40px rgba(0,0,0,.24);font:15px/1.7 system-ui,sans-serif;direction:rtl}#mnty-install-panel[hidden]{display:none}#mnty-install-panel h2{font-size:19px;margin:0 0 8px}#mnty-install-panel p{margin:8px 0}#mnty-install-panel button{border:0;border-radius:10px;padding:10px 14px;margin:8px 0 0 8px;font:700 14px system-ui,sans-serif;cursor:pointer}#mnty-install-close{background:#eee;color:#222}#mnty-install-go{background:#0750C9;color:#fff}';
+  document.head.appendChild(style);
+  var launch=document.createElement('button');
+  launch.id='mnty-install-launch';launch.type='button';launch.textContent='＋ إضافة للشاشة الرئيسية';launch.setAttribute('aria-haspopup','dialog');launch.setAttribute('aria-controls','mnty-install-panel');
+  var panel=document.createElement('section');
+  panel.id='mnty-install-panel';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','mnty-install-title');
+  panel.innerHTML='<h2 id="mnty-install-title">إضافة MantiqatiX إلى الشاشة الرئيسية</h2><p id="mnty-install-instructions">يمكنك تثبيت المنصة كاختصار على هاتفك لفتحها بسرعة مثل التطبيقات.</p><p><strong>Android (Chrome):</strong> افتح قائمة ⋮ أعلى المتصفح، ثم اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية» واتبع التعليمات.</p><p><strong>iPhone (Safari):</strong> اضغط «مشاركة» ثم «إضافة إلى الشاشة الرئيسية».</p><button id="mnty-install-go" type="button">محاولة التثبيت الآن</button><button id="mnty-install-close" type="button">إغلاق</button>';
+  document.body.appendChild(launch);document.body.appendChild(panel);
+  function close(){panel.hidden=true;launch.focus()}
+  launch.addEventListener('click',async function(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      try{await deferredPrompt.userChoice}catch(_){}
+      deferredPrompt=null;
+      return;
+    }
+    panel.hidden=false;
+  });
+  panel.querySelector('#mnty-install-close').addEventListener('click',close);
+  panel.querySelector('#mnty-install-go').addEventListener('click',async function(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      try{await deferredPrompt.userChoice}catch(_){}
+      deferredPrompt=null;
+    }else{
+      panel.querySelector('#mnty-install-instructions').textContent='لم يظهر طلب التثبيت التلقائي في هذا المتصفح. استخدم قائمة المتصفح واتبع الخطوات الموضحة أعلاه.';
+    }
+  });
+  panel.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;launch.textContent='＋ تثبيت MantiqatiX'});
+  window.addEventListener('appinstalled',function(){launch.remove();panel.remove()});
+})();
 </script></body></html>
