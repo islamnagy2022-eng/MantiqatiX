@@ -1,8 +1,19 @@
 -- Read-only post-migration verification for RC424–RC431.
 -- Run only after a separately approved rollout, against the intended Supabase project.
 -- Each SELECT is independent. This file performs no DDL or DML.
+--
+-- STOP condition: the repository's canonical RC424 file is named
+-- 20261009010000_rc424_atomic_digital_page_payment_webhook.sql. If production
+-- records the same migration name under another version, do not rename/replay
+-- either version. Reconcile deployment history and live function definitions first.
 
--- Read-only post-migration verification for RC424–RC431.
+-- 0) RC424 ledger/version reconciliation. Any unexpected row needs investigation.
+select version, name
+from supabase_migrations.schema_migrations
+where name ilike '%rc424_atomic_digital_page_payment_webhook%'
+   or version in ('20261008222845', '20261009010000')
+order by version;
+
 -- 1) Expected objects and function signatures.
 select
   to_regclass('public.digital_page_payment_events') as digital_page_payment_events,
@@ -12,7 +23,8 @@ select
   to_regprocedure('public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)') as normal_payment_failure_rpc,
   to_regprocedure('public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)') as subscription_payment_failure_rpc,
   to_regprocedure('public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)') as subscription_payment_success_rpc,
-  to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)') as digital_page_finalizer_v2;
+  to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)') as digital_page_finalizer_v2,
+  to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)') as legacy_four_argument_finalizer;
 
 -- 2) Live digital-page payment RPC must have the hardened contract (RC431).
 select
