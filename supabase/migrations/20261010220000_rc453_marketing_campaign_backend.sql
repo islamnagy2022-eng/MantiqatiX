@@ -430,8 +430,7 @@ grant execute on function public.create_marketing_campaign_backend(uuid,uuid,tex
 grant execute on function public.invite_marketing_campaign_partner_backend(uuid,uuid,uuid,character varying,numeric,numeric) to authenticated;
 grant execute on function public.respond_marketing_campaign_invitation_backend(uuid,uuid,character varying) to authenticated;
 grant execute on function public.update_marketing_campaign_status_backend(uuid,uuid,character varying) to authenticated;
-),
-  currency character varying(3) not null check (currency ~ '^[A-Z]{3}$'),
+
   start_at timestamp with time zone,
   end_at timestamp with time zone,
   target_audience jsonb not null default '{}'::jsonb check (pg_catalog.jsonb_typeof(target_audience) = 'object'),
