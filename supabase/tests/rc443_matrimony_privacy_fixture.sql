@@ -83,3 +83,7 @@ create policy matrimony_profiles_update on public.matrimony_profiles
 create policy matrimony_profiles_select on public.matrimony_profiles
   for select to authenticated
   using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
+create policy authenticated_sessions_only on public.matrimony_profiles as restrictive
+  for all to authenticated
+  using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false)
+  with check (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
