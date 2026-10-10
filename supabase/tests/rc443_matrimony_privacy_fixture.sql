@@ -88,3 +88,34 @@ create policy authenticated_sessions_only on public.matrimony_profiles as restri
   for all to authenticated
   using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false)
   with check (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
+
+create policy matrimony_requests_insert on public.matrimony_requests
+  for insert to authenticated with check (from_user_id=auth.uid());
+create policy matrimony_requests_select on public.matrimony_requests
+  for select to authenticated using (
+    from_user_id=auth.uid()
+    or exists(select 1 from public.matrimony_profiles p where p.id=to_profile_id and p.owner_user_id=auth.uid())
+    or public.is_platform_admin()
+  );
+create policy matrimony_requests_update on public.matrimony_requests
+  for update to authenticated using (
+    from_user_id=auth.uid()
+    or exists(select 1 from public.matrimony_profiles p where p.id=to_profile_id and p.owner_user_id=auth.uid())
+    or public.is_platform_admin()
+  ) with check (
+    from_user_id=auth.uid()
+    or exists(select 1 from public.matrimony_profiles p where p.id=to_profile_id and p.owner_user_id=auth.uid())
+    or public.is_platform_admin()
+  );
+create policy matrimony_unlocks_insert on public.matrimony_contact_unlocks
+  for insert to authenticated with check (
+    exists(select 1 from public.matrimony_requests r join public.matrimony_profiles p on p.id=r.to_profile_id
+      where r.id=request_id and r.status='ACCEPTED_MUTUAL' and (r.from_user_id=auth.uid() or p.owner_user_id=auth.uid()))
+  );
+create policy matrimony_unlocks_select on public.matrimony_contact_unlocks
+  for select to authenticated using (
+    exists(select 1 from public.matrimony_requests r join public.matrimony_profiles p on p.id=r.to_profile_id
+      where r.id=request_id and (r.from_user_id=auth.uid() or p.owner_user_id=auth.uid()))
+    or public.is_platform_admin()
+  );
+
