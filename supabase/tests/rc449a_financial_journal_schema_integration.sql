@@ -35,8 +35,8 @@ begin
     raise exception 'TEST_FAILED: draft timestamps were not preserved correctly';
   end if;
 
-  insert into public.journal_entries(id,tenant_id,status,entry_date,created_by)
-  values('new-posted','tenant-a','POSTED',current_date,null);
+  insert into public.journal_entries(id,tenant_id,entry_number,status,entry_date,created_by)
+  values('new-posted','tenant-a','NEW-POSTED','POSTED',current_date,null);
   if (select posted_at from public.journal_entries where id='new-posted') is null then
     raise exception 'TEST_FAILED: posted_at default must support legacy posted inserts';
   end if;
