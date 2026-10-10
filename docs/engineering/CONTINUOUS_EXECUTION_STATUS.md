@@ -10,12 +10,12 @@ Last updated: 2026-10-10 (UTC)
 
 ## Latest inspected source / PR state
 - PR #84: OPEN, not merged. Head branch `fix/mantigo-atomic-paymob-webhook`; inspected head SHA `3df3d1f675ae8296fac94fda54789ba8962b814e`.
-- PR #95: OPEN, not merged. Head branch `fix/mantigo-platform-admin-scope-20261009`; inspected head SHA `4ca5e5f2f34a8b7233ce2e95476cd1884ca205d5`.
+- PR #95: CLOSED without merge as superseded after removing its duplicate migration, migration-specific validator, and workflow step from its branch. The branch now has no changed files against `main`; canonical RC441 remains in PR #84. The close is not used to hide a still-present duplicate migration.
 - PR #121: OPEN, not merged.
 - PR #122: OPEN, not merged.
 - PR #123: OPEN, not merged.
 - PR #125: CLOSED without merge; its discussion says it was closed in favor of PR #124.
-- PR #124: OPEN, not merged. Head SHA `b4e13830c2785fdb322bcc3fbe3b657919840e0e`.
+- PR #124: OPEN, not merged. Head SHA `d7892eab7ed539b16a5c9e360abdfdaf43d738fe` after updating the collision detector.
 - Relevant links: #84 https://github.com/islamnagy2022-eng/MantiqatiX/pull/84 ; #95 https://github.com/islamnagy2022-eng/MantiqatiX/pull/95 ; #124 https://github.com/islamnagy2022-eng/MantiqatiX/pull/124 ; #125 https://github.com/islamnagy2022-eng/MantiqatiX/pull/125
 
 ## Verified evidence in current cycle
@@ -28,8 +28,9 @@ Last updated: 2026-10-10 (UTC)
 ## Blocking migration collision
 - PR #84 contains `supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql`.
 - PR #95 contains `supabase/migrations/20261009170000_mantigo_platform_admin_scope_hardening.sql`.
-- Both claim version `20261009170000`. Do not disable or bypass the collision guard.
-- Recommended reconciliation for review: retain a single canonical platform-admin hardening implementation (RC441 in #84 currently contains the broader integration and test coverage), then remove/split the duplicate migration from #95 while preserving any unique validator/workflow value. Re-check the full diff and run the global collision guard after changes. Do not merge automatically.
+- The conflict was real. The duplicate migration was removed from the PR #95 branch; its migration-specific validator/workflow step was also removed because it validated only that superseded migration. PR #95 was then closed without merge as superseded; the broader canonical RC441 implementation remains in #84.
+- PR #124's guard was updated to ignore migration files whose GitHub changed-file status is `removed`, because a deletion does not remain an active candidate migration. A self-test was added for this case. This prevents false positives from deleted paths while still detecting added/modified migrations and divergent content at the same path.
+- The workflow run for PR #124 head `d7892eab7ed539b16a5c9e360abdfdaf43d738fe` was in progress at the last check; the collision-guard result is not yet verified. Do not merge PR #124 or PR #84 until the run completes and the remaining gates are satisfied.
 - Never renumber a migration already recorded in production. Establish the final ordering against the actual ledger before any approved release.
 
 ## Live Supabase read-only ledger check
@@ -41,7 +42,7 @@ No RC430, RC440, or RC441 row appeared in this returned latest-version window. T
 Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `search_path=public` and authenticated execution. Treat as a release blocker until current catalog definitions, grants, and authorization are independently rechecked after an approved deployment.
 
 ## Remaining risks / release gates
-1. Resolve #84/#95 migration version collision without weakening the guard.
+1. Verify the updated PR #124 collision guard finishes successfully and detects true collisions while ignoring removed files.
 2. Reconcile all candidate migration versions with the production migration ledger and actual live schema; specifically investigate RC424 source/ledger version mismatch (`20261009010000` in source vs `20261008222845` in production) without replaying or rewriting historical migrations.
 3. Re-run RC440 and RC441 validator + isolated PostgreSQL integration tests against the final canonical migration files after reconciliation.
 4. Review RC430 payment/webhook atomicity, signature/order/amount/currency binding, replay behavior, and sandbox E2E; do not use live payment credentials or real payments.
@@ -51,7 +52,7 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 
 ## Actions / next steps
 - Keep #124's collision guard enabled and failing on the real conflict until the migration set is reconciled.
-- Prepare a reviewable #95 split/removal of the duplicate migration, preserving useful unique checks, then run CI and the open-PR collision guard.
+- Confirm PR #124's updated CI and self-test results, including the removed-file case.
 - Run RC440 and RC441 integration tests in disposable PostgreSQL against the final migration chain.
 - Re-query production catalog and ledger read-only; do not change production until explicit approval.
 - Record each follow-up commit SHA and exact CI job result here. Do not label source fixes as production verified.
@@ -62,3 +63,9 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 - ISOLATED_DB_VERIFIED: disposable PostgreSQL integration passed.
 - PRODUCTION_VERIFIED: production state checked after approved rollout.
 - NOT VERIFIED: no adequate evidence yet.
+
+
+## Execution update — 2026-10-10
+- PR #95 duplicate migration removal commit: `91004fd856842380e4ddf41a56e11554aa3d9e35`; PR #95 closed without merge after verifying it had no remaining changed files.
+- PR #124 collision-guard correction commit: `d7892eab7ed539b16a5c9e360abdfdaf43d738fe`; self-test/guard workflow was still running at the last observation, so status remains NOT VERIFIED pending completion.
+- Status record branch/PR: `chore/continuous-execution-status-20261010`, PR #131. Documentation commit: `1f558d31049002b082aa242f83f62c914c92c0fd` (subsequent documentation updates may produce a newer SHA).
