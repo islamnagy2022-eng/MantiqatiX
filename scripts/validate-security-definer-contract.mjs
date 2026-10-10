@@ -74,21 +74,21 @@ for(const marker of [
   if(!rc340Sql.includes(marker)) throw new Error('RC340 expected privilege contract missing: '+marker);
 }
 
-const rc449='supabase/migrations/20261010200000_rc449_targeted_ads_empty_search_path.sql';
-if(!fs.existsSync(rc449)) throw new Error('RC449 targeted-ad SECURITY DEFINER search_path migration is missing.');
-const rc449Sql=fs.readFileSync(rc449,'utf8');
-if(!rc449Sql.toLowerCase().includes('alter function public.get_mnty_targeted_advertisements(') || !rc449Sql.includes("set search_path = '';")){
-  throw new Error('RC449 must pin the intentionally public targeted-ad RPC to an empty search_path.');
+const rc451='supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql';
+if(!fs.existsSync(rc451)) throw new Error('RC451 targeted-ad SECURITY DEFINER search_path migration is missing.');
+const rc451Sql=fs.readFileSync(rc451,'utf8');
+if(!rc451Sql.toLowerCase().includes('alter function public.get_mnty_targeted_advertisements(') || !rc451Sql.includes("set search_path = '';")){
+  throw new Error('RC451 must pin the intentionally public targeted-ad RPC to an empty search_path.');
 }
 for(const marker of [
   'a.config in (\'search_path=""\',\'search_path=\')',
-  'RC449 targeted ads empty search_path integration'
+  'RC451 targeted ads empty search_path integration'
 ]){
-  if(!verify.includes(marker) && marker==='RC449 targeted ads empty search_path integration'){
-    const integration=fs.readFileSync('supabase/tests/rc449_targeted_ads_search_path_integration.sql','utf8');
-    if(!integration.includes(marker)) throw new Error('RC449 integration contract missing: '+marker);
-  } else if(marker!=='RC449 targeted ads empty search_path integration' && !verify.includes(marker)){
-    throw new Error('RC449 verification query does not allow the empty targeted-ad search_path.');
+  if(!verify.includes(marker) && marker==='RC451 targeted ads empty search_path integration'){
+    const integration=fs.readFileSync('supabase/tests/rc451_targeted_ads_search_path_integration.sql','utf8');
+    if(!integration.includes(marker)) throw new Error('RC451 integration contract missing: '+marker);
+  } else if(marker!=='RC451 targeted ads empty search_path integration' && !verify.includes(marker)){
+    throw new Error('RC451 verification query does not allow the empty targeted-ad search_path.');
   }
 }
 
