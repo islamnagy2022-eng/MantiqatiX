@@ -19,6 +19,8 @@ assert.match(migration, /um\.user_id=p_user_id[\s\S]*?um\.status='ACTIVE'/i, "ac
 assert.match(migration, /um\.business_id is null or um\.business_id=v_business_id/i, "business-scoped memberships must not cross businesses");
 assert.match(migration, /um\.branch_id is null or um\.branch_id=v_branch_id/i, "branch-scoped memberships must not cross branches");
 assert.match(migration, /BUSINESS_NOT_ACTIVE_FOR_TENANT/);
+assert.match(migration, /v_org_id := coalesce\(v_org_id,v_business_org_id\)/i, "business organization must be derived and bound when omitted");
+assert.match(migration, /BUSINESS_ORGANIZATION_MISMATCH/);
 assert.match(migration, /BRANCH_NOT_ACTIVE_FOR_BUSINESS/);
 assert.match(migration, /FINANCIAL_MEMBERSHIP_REQUIRED/, "financial role check must fail closed");
 assert.match(migration, /v_insert_line_no int := 0/, "journal line numbering must use a per-line counter");
@@ -44,4 +46,5 @@ assert.match(backendEdge, /admin\.rpc\(["']post_financial_journal_backend["']/i,
 assert.match(backendEdge, /p_user_id:\s*auth\.user\.id/, "canonical endpoint must pass its verified actor");
 assert.match(integration, /same-tenant cross-business actor unexpectedly succeeded/);
 assert.match(integration, /branch-scoped actor unexpectedly posted to another branch/);
+assert.match(integration, /organization mismatch unexpectedly succeeded/);
 console.log("RC448 financial journal service-role boundary PASS");
