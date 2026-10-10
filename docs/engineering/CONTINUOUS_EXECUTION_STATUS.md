@@ -76,7 +76,7 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 - Status record branch/PR: `chore/continuous-execution-status-20261010`, PR #131. Documentation commit: `1f558d31049002b082aa242f83f62c914c92c0fd` (subsequent documentation updates may produce a newer SHA).
 
 
-## Latest evidence delta — 2026-10-10 12:34 UTC
+## Latest evidence delta — 2026-10-10 12:40 UTC
 - Collision conflict remediation: PR #95 is closed without merge; its branch contains no changed files against `main`. PR #84 remains open and carries canonical RC441; PR #124 remains open with the corrected guard.
 - Live MantiGO catalog remains vulnerable to insufficient platform-scope enforcement until RC441 is deployed with approval. Exact function catalog query is read-only and returned all four platform-wide RPCs as `SECURITY DEFINER`, `search_path=public`, `authenticated_execute=true`, and `checks_platform_admin=false`.
 - Security-advisor triage totals: 1 anon-executable SECURITY DEFINER RPC; 40 authenticated-executable SECURITY DEFINER RPCs; leaked-password protection disabled. These do not by themselves prove exploitability for every function, but require per-function authorization review. No production changes performed.
@@ -88,5 +88,13 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 - Read-only Supabase ledger query again returned only `20261008222845 / rc424_atomic_digital_page_payment_webhook` and `20261008125422 / rc423_convert_authenticated_guard_policies_to_restrictive` in the requested recent range.
 - Live catalog recheck found `process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)` with `search_path=public, pg_temp` but without the RC431 provider-order-binding marker. The live finalizer signature is the older four-argument `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)`, not the five-argument signature expected by RC431 runbook/source. Subscription checkout encryption columns are absent from `subscription_payment_intents`. These are direct signs RC431/RC439 source has not converged to production; do not apply blindly due the RC424 version discrepancy and pending migration chain reconciliation.
 - Live MantiGO platform-wide RPCs remain unguarded as previously documented. No production writes were performed.
-- PR #84 latest inspected head remains `3df3d1f675ae8296fac94fda54789ba8962b814e`; PR #84 is open/unmerged. Its currently visible CI runs passed for Module Professionalization Validation and Backend-only Module Boundary; the Pages workflow's deploy job was skipped in the inspected run, so this is not evidence of a fresh production deployment.
+- PR #84 latest inspected head is `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8`; PR #84 is open/unmerged. The new Backend-only Module Boundary run passed. Module Professionalization Validation run `38052631687` was queued at last check; Pages deploy run `38052631639` was pending. No fresh production deployment is claimed.
 - PR #123 module feature-flag alias validation has successful CI on head `d4491f0fb8bb37d1a73380dcaf9d18914100e0be`; it remains open/unmerged.
+
+
+## Additional test hardening — 2026-10-10
+- RC441 integration assertions were expanded to verify that `anon` cannot execute the stale-ride expiration RPC and that `authenticated` retains the intended entrypoint grants for all four RPCs, while authorization remains enforced inside the functions.
+- Commit `35cbb88b7e481c40a041357e489269d174deb003` updated `supabase/tests/rc441_platform_admin_integration.sql`.
+- Commit `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8` updated `scripts/validate-platform-admin-scope.mjs` to require those ACL assertions.
+- On this head, Backend-only Module Boundary passed; the full Module Professionalization Validation workflow was queued at last check. Do not mark the latest test changes CI_VERIFIED until that workflow completes successfully.
+- PR #121 was closed without merge as superseded by PR #84's canonical RC441 integration workflow.
