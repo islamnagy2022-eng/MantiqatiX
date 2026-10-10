@@ -68,6 +68,7 @@ jobs:
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-mantigo-high-risk-definers.mjs
+          node scripts/validate-platform-admin-scope.mjs
           node scripts/validate-mantigo-rate-limits.mjs
           node scripts/validate-mantigo-security-test-contract.mjs
           node scripts/validate-mantigo-webhook-atomicity.mjs
