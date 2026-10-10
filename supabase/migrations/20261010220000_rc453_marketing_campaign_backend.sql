@@ -10,6 +10,7 @@ create table public.marketing_campaigns (
   channels text[] not null check (pg_catalog.cardinality(channels) between 1 and 8),
   budget numeric(14,2) not null check (budget >= 0),
   idempotency_key text not null check (pg_catalog.length(idempotency_key) between 8 and 100),
+  request_fingerprint text not null check (pg_catalog.length(request_fingerprint) = 32),
   currency character varying(3) not null check (pg_catalog.length(currency)=3 and pg_catalog.translate(currency,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','')=''),
   start_at timestamp with time zone,
   end_at timestamp with time zone,
@@ -152,6 +153,8 @@ declare
   v_budget numeric;
   v_currency character varying;
   v_idempotency_key text;
+  v_request_fingerprint text;
+  v_brief text;
   v_existing public.marketing_campaigns%rowtype;
   v_audience jsonb;
   v_tenant character varying;
@@ -188,9 +191,18 @@ begin
   v_audience := coalesce(p_target_audience,'{}'::jsonb);
   if pg_catalog.jsonb_typeof(v_audience) <> 'object' or pg_catalog.octet_length(v_audience::text) > 4000 then raise exception 'MARKETING_AUDIENCE_INVALID'; end if;
   if p_brief is not null and pg_catalog.length(p_brief) > 5000 then raise exception 'MARKETING_BRIEF_TOO_LONG'; end if;
+  v_brief := nullif(pg_catalog.btrim(coalesce(p_brief,'')), '');
+  v_request_fingerprint := pg_catalog.md5(pg_catalog.jsonb_build_object(
+    'title',v_title,'objective',v_objective,'channels',v_channels,'budget',v_budget,
+    'currency',v_currency,'start_at',p_start_at,'end_at',p_end_at,
+    'target_audience',v_audience,'brief',v_brief
+  )::text);
 
   select * into v_existing from public.marketing_campaigns where business_id=p_business_id and idempotency_key=v_idempotency_key;
   if found then
+    if v_existing.request_fingerprint is distinct from v_request_fingerprint then
+      raise exception 'MARKETING_IDEMPOTENCY_KEY_CONFLICT';
+    end if;
     return pg_catalog.jsonb_build_object('campaign_id',v_existing.id,'title',v_existing.title,'status',v_existing.status,'idempotent',true);
   end if;
 
@@ -199,12 +211,16 @@ begin
   if v_tenant is null then raise exception 'MARKETING_BUSINESS_INACTIVE'; end if;
 
   insert into public.marketing_campaigns(
-    tenant_id,business_id,created_by,title,objective,channels,budget,idempotency_key,currency,start_at,end_at,target_audience,brief,status
+    tenant_id,business_id,created_by,title,objective,channels,budget,idempotency_key,request_fingerprint,currency,start_at,end_at,target_audience,brief,status
   ) values (
-    v_tenant,p_business_id,auth.uid(),v_title,v_objective,v_channels,v_budget,v_idempotency_key,v_currency,p_start_at,p_end_at,v_audience,nullif(pg_catalog.btrim(coalesce(p_brief,'')),''),'DRAFT'
+    v_tenant,p_business_id,auth.uid(),v_title,v_objective,v_channels,v_budget,v_idempotency_key,v_request_fingerprint,v_currency,p_start_at,p_end_at,v_audience,v_brief,'DRAFT'
   ) on conflict (business_id,idempotency_key) do nothing returning id into v_campaign_id;
   if v_campaign_id is null then
     select * into v_existing from public.marketing_campaigns where business_id=p_business_id and idempotency_key=v_idempotency_key;
+    if not found then raise exception 'MARKETING_IDEMPOTENCY_RETRY'; end if;
+    if v_existing.request_fingerprint is distinct from v_request_fingerprint then
+      raise exception 'MARKETING_IDEMPOTENCY_KEY_CONFLICT';
+    end if;
     return pg_catalog.jsonb_build_object('campaign_id',v_existing.id,'title',v_existing.title,'status',v_existing.status,'idempotent',true);
   end if;
 
