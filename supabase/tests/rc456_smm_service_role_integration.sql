@@ -5,7 +5,7 @@ declare
 begin
  if not has_table_privilege('service_role','public.smm_admins','SELECT') then raise exception 'RC456_FAIL: service_role cannot read explicit SMM admin allowlist'; end if;
  if not has_table_privilege('service_role','public.smm_providers','SELECT') then raise exception 'RC456_FAIL: service_role cannot read providers'; end if;
- if not has_table_privilege('service_role','public.smm_wallets','SELECT') then raise exception 'RC456_FAIL: service_role cannot read the verified user's wallet'; end if;
+ if not has_table_privilege('service_role','public.smm_wallets','SELECT') then raise exception 'RC456_FAIL: service_role cannot read the verified user wallet'; end if;
 
  foreach t in array array['smm_services','smm_orders'] loop
   if not has_table_privilege('service_role','public.'||t,'SELECT')
