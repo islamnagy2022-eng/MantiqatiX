@@ -22,4 +22,15 @@ assert.match(account, /select\("id,service_id,quantity,selling_price,status,prov
 assert.match(account, /if\(o\.error\|\|w\.error\)/, "read failures must return an error, not a successful empty/zero response");
 assert.match(account, /is_admin:await isAdmin\(user\.id\)/, "admin capability must be derived server-side");
 
+const adminStart = gateway.indexOf("async function isAdmin");
+const secretStart = gateway.indexOf("async function secret");
+assert.ok(adminStart >= 0 && secretStart > adminStart, "server-side SMM admin guard must exist");
+const adminGuard = gateway.slice(adminStart, secretStart);
+assert.match(adminGuard, /smm_admins/, "explicit SMM admin allowlist must be supported");
+assert.match(adminGuard, /MNTY-PLATFORM/, "membership-based SMM admin must be platform scoped");
+assert.match(adminGuard, /p\.scope==="PLATFORM"/, "membership-based SMM admin must carry PLATFORM scope");
+assert.match(adminGuard, /p\.full_control===true/, "membership-based SMM admin must have full control");
+assert.doesNotMatch(adminGuard, /OWNER.*ADMIN.*SUPER_ADMIN|includes\(String\(m\.role\)\.toUpperCase\(\)\)/, "tenant OWNER/ADMIN roles must not grant global SMM administration");
+assert.match(gateway, /user\.is_anonymous\?null:user/, "anonymous Auth sessions must be rejected by the trusted gateway");
+
 console.log("SMM trusted read gateway contract: PASS");
