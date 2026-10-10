@@ -71,7 +71,7 @@ financial-journal-rc448-integration:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
-      - name: Apply RC564 to disposable PostgreSQL and run behavioral tests
+      - name: Apply RC448 to disposable PostgreSQL and run behavioral tests
         shell: bash
         run: |
           set -euo pipefail
