@@ -282,6 +282,12 @@ begin
   ) then
     raise exception 'CONTACT_NOT_UNLOCKED' using errcode='42501';
   end if;
+  if not exists(
+    select 1 from public.matrimony_profiles p
+    where p.id=v_request.to_profile_id and p.is_verified is true
+  ) then
+    raise exception 'PROFILE_NOT_AVAILABLE' using errcode='42501';
+  end if;
 
   if auth.uid()=v_request.from_user_id then
     v_target_profile_id:=v_request.to_profile_id;
