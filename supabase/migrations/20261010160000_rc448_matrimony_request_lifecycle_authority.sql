@@ -12,8 +12,18 @@ begin
   ) then
     raise exception 'MATRIMONY_ACTIVE_REQUEST_DUPLICATES_REQUIRE_RECONCILIATION';
   end if;
+  if exists (
+    select 1 from public.matrimony_contact_unlocks
+    group by request_id
+    having count(*) > 1
+  ) then
+    raise exception 'MATRIMONY_DUPLICATE_CONTACT_UNLOCKS_REQUIRE_RECONCILIATION';
+  end if;
 end;
 $preflight$;
+
+create unique index if not exists matrimony_contact_unlocks_request_id_key
+  on public.matrimony_contact_unlocks(request_id);
 
 create unique index if not exists matrimony_requests_active_pair_unique
   on public.matrimony_requests(from_user_id,to_profile_id)
