@@ -30,6 +30,9 @@ assert.match(fixture, /create policy matrimony_requests_update/i, "fixture must 
 assert.match(fixture, /create policy matrimony_unlocks_insert/i, "fixture must model live unlock insertion policy");
 assert.match(integration, /requester self-acceptance unexpectedly succeeded/, "sender self-acceptance must be rejected in integration tests");
 assert.match(integration, /target profile owner could not accept request/, "recipient acceptance must continue to work");
+assert.match(migration, /MATRIMONY_REQUEST_IDENTITY_IMMUTABLE/, "request identity fields must be immutable");
+assert.match(integration, /request sender identity mutation unexpectedly succeeded/, "sender identity mutation must be denied");
+assert.match(integration, /request target identity mutation unexpectedly succeeded/, "target profile rebinding must be denied");
 const contact = migration.slice(contactStart);
 assert.match(contact, /v_request\.status <> 'ACCEPTED_MUTUAL'/);
 assert.match(contact, /is_anonymous/, "contact retrieval must reject anonymous Auth sessions");
