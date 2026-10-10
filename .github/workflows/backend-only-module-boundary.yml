@@ -99,8 +99,8 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres -d mantiqatix_push_owner_test"
           --health-interval 10s
-          --timeout 5s
-          --retries 5
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v6
       - name: Run RC89 ownership tests in disposable PostgreSQL
