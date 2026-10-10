@@ -1245,6 +1245,7 @@ function marketingCampaignWorkspace(){
  const providers=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).filter(p=>!live.businessId||String(p.business_id||'')!==String(live.businessId));
  const role=String(live.role||'').toUpperCase();
  const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role));
+ const campaignIdempotencyKey=window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
  const myProviderId=live.myProviderProfile?.id?String(live.myProviderProfile.id):'';
  const fmtMoney=(value,currency)=>esc(value==null?'—':Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' '+String(currency||'EGP'));
  const fmtDate=value=>value?esc(String(value).slice(0,10)):'—';
@@ -1259,7 +1260,7 @@ function marketingCampaignWorkspace(){
   ?'<div class="notice" role="status">تعذر قراءة بعض مصادر الحملات: '+esc(live.marketingCampaignErrors.join('، '))+'؛ لا تُعرض هذه المصادر على أنها خالية من البيانات.</div>':'';
  const createForm=canManage?(
   '<section class="card" style="padding:18px;margin:16px 0"><div class="section-head"><div><span class="eyebrow">CAMPAIGN PLANNING</span><h3>إنشاء حملة داخلية</h3><p class="muted">تُحفظ الخطة داخل MantiqatiX فقط. لا يتم نشر إعلان على منصة خارجية من هذا النموذج.</p></div></div>'+
-  '<form id="marketing-campaign-create-form" class="grid2">'+
+  '<form id="marketing-campaign-create-form" class="grid2"><input type="hidden" id="mc-idempotency-key" value="'+esc(campaignIdempotencyKey)+'"/>'+
   '<div class="field"><label for="mc-title">اسم الحملة</label><input id="mc-title" name="title" required minlength="3" maxlength="160" placeholder="مثال: حملة افتتاح الفرع"/></div>'+
   '<div class="field"><label for="mc-objective">الهدف</label><select id="mc-objective" name="objective" required><option value="AWARENESS">الوعي بالعلامة</option><option value="TRAFFIC">زيارات</option><option value="LEADS" selected>عملاء محتملون</option><option value="SALES">مبيعات</option><option value="ENGAGEMENT">تفاعل</option><option value="APP_INSTALLS">تثبيت التطبيق</option></select></div>'+
   '<div class="field"><label for="mc-channels">القنوات (افصل بينها بفاصلة)</label><input id="mc-channels" name="channels" required value="META, TIKTOK" placeholder="META, TIKTOK, GOOGLE"/><small class="muted">القنوات المتاحة: META, TIKTOK, GOOGLE, YOUTUBE, LINKEDIN, SNAPCHAT, OTHER.</small></div>'+
@@ -1340,7 +1341,8 @@ function bindMarketingCampaignWorkspace(){
   if(!live.businessId)return showToast('اختر عضوية نشاط تجاري نشطة قبل إنشاء الحملة.','error');
   if(!title||title.length<3||!channels.length||!Number.isFinite(budget)||budget<0)return showToast('راجع اسم الحملة والقنوات والميزانية.','error');
   if(Boolean(startValue)!==Boolean(endValue)||(startValue&&new Date(startValue)>=new Date(endValue)))return showToast('أدخل تاريخ البداية والنهاية معًا، على أن تكون النهاية بعد البداية.','error');
-  const key=window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
+  const key=String(document.getElementById('mc-idempotency-key')?.value||'').trim();
+  if(key.length<8)return showToast('تعذر تجهيز مفتاح آمن لإرسال الحملة؛ أعد تحميل مساحة العمل.','error');
   const targetAudience=region?{region:region}:{};
   button.disabled=true;button.textContent='جارٍ الحفظ...';
   try{
