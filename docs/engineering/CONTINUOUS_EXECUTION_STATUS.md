@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 — RC444 merge and RC443 gate update
+Last updated: 2026-10-10 — SMM trusted-read review
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
@@ -11,7 +11,7 @@ Last updated: 2026-10-10 — RC444 merge and RC443 gate update
 - No changes were merged that apply database migrations or modify production configuration.
 
 ## Current main
-- Latest main SHA at the time of this update: `e9d44f90c80b543ce1109ad469f1b27bf77bc95f` (RC444 CRM source merge).
+- Latest main SHA at the time of this update: `fda2d49141a8874465645fa8cd3095ace5445ec7` (RC444 CRM source and release-evidence docs).
 - PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
 - PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
 - PR #133 was merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`, adding local migration-version uniqueness validation alongside the cross-PR guard. Main-commit checks passed, including `validate-migration-versions` run `38053072649`, health run `38053072662`, and Pages deploy run `38053072656`; deploy logs reported smoke verification passed.
@@ -182,4 +182,13 @@ All Supabase production queries were read-only. No production migrations, table 
 - The latest observed RC443 PostgreSQL integration failed at `matrimony_unlock_contact_backend(uuid)` with `column reference "unlocked_at" is ambiguous` in `INSERT ... RETURNING unlocked_at`. The correct source correction is to alias the inserted table and return `inserted_unlock.unlocked_at`; the direct migration-file update was blocked by repository safety checks and was not bypassed.
 - The privacy source-contract validator passed after the contact-verification guard was added, but a separate enterprise workspace validator failed on an outdated MEDICAL assertion. The validator was updated in commit `437d95966adc430645eaa746d51385f1f1b35f69`; fresh CI on that exact head has not been confirmed. RC443 remains blocked.
 - RC444's merge adds only the migration/test/validator source to main. It does not mean the policy is live; production migration approval, ordered batch rehearsal, and read-only post-rollout verification remain required.
+
+## SMM trusted-read gateway — PR #145
+
+- Clean-main PR #145 is ready for review and remains unmerged: https://github.com/islamnagy2022-eng/MantiqatiX/pull/145
+- Exact head `32bfaa39b4d204f10aefa79cefc043f4b805cb8a` passed Module Professionalization Validation (`38061291329`), Backend-only Module Boundary (`38061291372`), Pages validation (`38061291362`; deploy skipped because this is a PR), MantiGO Open Ride Privacy integration (`38061291344`), and associated validation/integration jobs.
+- The candidate routes SMM catalog and personal order/wallet reads through authenticated `smm-gateway` actions, rejects anonymous sessions, restricts membership-based SMM administration to active platform-scoped full-control SUPER_ADMIN, and renders an explicit unavailable state instead of falsely showing an empty catalog or zero wallet on read failure.
+- PRs #127 and #113 were closed as superseded by #145. No production Edge Function was deployed. The Pages web deployment and SMM gateway deployment must be coordinated; do not enable the new UI in production until the gateway actions are deployed and smoke-tested together.
+- This is CI/source verification only. It does not establish that the live SMM gateway version supports `catalog` and `my_data`.
+
 
