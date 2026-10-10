@@ -96,7 +96,7 @@ RC441 source hardens these RPCs behind an active `MNTY-PLATFORM` membership with
 
 ## Fresh production recheck — read-only, 2026-10-10 14:12 UTC
 
-- Supabase migration listing returned **283 migrations**. The final four entries remain RC422 (`20261007223944`), RC423 (`20261008125422`), and RC424 (`20261008222845`) after the earlier entries; no RC425+ migration is recorded as applied.
+- Supabase migration listing returned **283 migrations**. The latest entries include RC422 (`20261007223944`), RC423 (`20261008125422`), and RC424 (`20261008222845`); no RC425+ migration is recorded as applied.
 - Deployed Edge Function inventory still reports: `paymob-webhook` v8, `payment-intent` v6, `subscription-payment-intent` v2, `digital-page-payment-intent` v3, and `mantigo-payment-intent` v3. Inventory versions are not evidence that source/production parity has been restored.
 - The live `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)` is SECURITY DEFINER with `search_path=public, pg_temp`; `anon` cannot execute it, while `authenticated` can. Its body checks `auth.uid()`, but it remains the legacy four-argument finalizer and does not mention provider-order binding. Review whether authenticated EXECUTE is intended for this claim-token-bound flow; do not revoke it blindly without tracing the client/Edge call contract.
 - The live digital-page payment processor remains SECURITY DEFINER with `search_path=public, pg_temp`; `anon` and `authenticated` cannot execute it directly. The inspected source/production gaps remain: provider-order binding and replay-status comparison are absent from its live body.
