@@ -982,7 +982,7 @@ if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY','MEDICAL'].includes(m.key
    +enterpriseReadErrorPanel(d.errors)
    +workspaceCards(m.tables.map(t=>[t,d.errors?.[t]?'غير متاح':String((d.rows?.[t]||[]).length),d.errors?.[t]?'تعذر التحقق من عدد السجلات':'سجلات مرئية وفق RLS']))
    +enterpriseRowsTable(m,d.rows||{})
-   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\\'الموديولات\\')">← العودة للموديولات</button></div>'
+   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>'
    +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
  }
  const cards=m.tables.map(t=>[t,d.tables?.[t]==null?'—':String(d.tables[t]),'عدد السجلات المتاحة وفق RLS']);
