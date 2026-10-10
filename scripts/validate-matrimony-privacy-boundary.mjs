@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20261010130000_rc443_matrimony_profile_privacy_boundary.sql", "utf8");
 const app = fs.readFileSync("web/app.js", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc443_matrimony_privacy_fixture.sql", "utf8");
+const integration = fs.readFileSync("supabase/tests/rc443_matrimony_privacy_integration.sql", "utf8");
 const loaderStart = app.indexOf("async function loadEnterpriseDomainData(m)");
 const loaderEnd = app.indexOf("function enterpriseReadErrorPanel", loaderStart);
 assert.ok(loaderStart >= 0 && loaderEnd > loaderStart, "enterprise domain loader must exist");
@@ -10,6 +12,8 @@ const loader = app.slice(loaderStart, loaderEnd);
 
 assert.match(migration, /drop policy if exists matrimony_profiles_select/i);
 assert.match(migration, /using \(owner_user_id = auth\.uid\(\)\)/i, "raw profile SELECT must be owner-only");
+assert.match(fixture, /authenticated_sessions_only on public\.matrimony_profiles as restrictive/i, "fixture must model the production restrictive anonymous-session guard");
+assert.match(integration, /anonymous raw profile SELECT unexpectedly succeeded/, "anonymous raw table reads must be tested");
 assert.match(migration, /function public\.matrimony_discover_profiles_backend/i);
 const discoverStart = migration.indexOf("function public.matrimony_discover_profiles_backend");
 const contactStart = migration.indexOf("function public.matrimony_get_unlocked_contact_backend");
