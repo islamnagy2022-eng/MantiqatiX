@@ -181,17 +181,26 @@ declare
   lines jsonb;
   v_cash numeric;
   v_revenue numeric;
+  v_cash_steps numeric[];
 begin
   perform set_config('request.jwt.claim.role','service_role',false);
   perform set_config('request.jwt.claim.sub','',false);
   entry := jsonb_build_object('id','rc448-journal-002','tenant_id','tenant-a','business_id','20000000-0000-4000-8000-000000000564','entry_number','RC448-002','status','POSTED','total_debit',50,'total_credit',50);
   lines := jsonb_build_array(
-    jsonb_build_object('account_id','cash','debit',50,'credit',0),
+    jsonb_build_object('account_id','cash','debit',30,'credit',0),
+    jsonb_build_object('account_id','cash','debit',20,'credit',0),
     jsonb_build_object('account_id','revenue','debit',0,'credit',50)
   );
   perform public.post_financial_journal_backend(actor,entry,lines);
   select running_balance into v_cash from public.general_ledger where tenant_id='tenant-a' and account_id='cash' order by posted_at desc,id desc limit 1;
+  select array_agg(gl.running_balance order by jel.line_number) into v_cash_steps
+  from public.general_ledger gl
+  join public.journal_entry_lines jel on jel.id=gl.journal_line_id
+  where gl.journal_entry_id='rc448-journal-002' and gl.account_id='cash';
   select running_balance into v_revenue from public.general_ledger where tenant_id='tenant-a' and account_id='revenue' order by posted_at desc,id desc limit 1;
+  if v_cash_steps is distinct from array[130::numeric,150::numeric] then
+    raise exception 'TEST_FAILED: repeated-account lines did not accumulate in line order: %',v_cash_steps;
+  end if;
   if v_cash <> 150 or v_revenue <> -150 then
     raise exception 'TEST_FAILED: running balances are not cumulative (cash %, revenue %)',v_cash,v_revenue;
   end if;
