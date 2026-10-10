@@ -1,0 +1,30 @@
+name: Marketing Campaign UI
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "web/app.js"
+      - "web/index.html"
+      - "scripts/validate-marketing-campaign-ui.mjs"
+      - ".github/workflows/marketing-campaign-ui.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/app.js"
+      - "web/index.html"
+      - "scripts/validate-marketing-campaign-ui.mjs"
+      - ".github/workflows/marketing-campaign-ui.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node --check web/app.js
+      - run: node scripts/validate-marketing-campaign-ui.mjs
