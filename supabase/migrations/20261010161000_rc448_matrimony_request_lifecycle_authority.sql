@@ -94,8 +94,8 @@ begin
     return;
   end if;
 
-  insert into public.matrimony_requests(from_user_id,to_profile_id,status,message_text)
-  values(auth.uid(),p_profile_id, 'PENDING',pg_catalog.btrim(v_message))
+  insert into public.matrimony_requests(id,from_user_id,to_profile_id,status,message_text)
+  values(pg_catalog.gen_random_uuid(),auth.uid(),p_profile_id,'PENDING',pg_catalog.btrim(v_message))
   returning * into v_request;
 
   return query select v_request.id,v_request.status,v_request.created_at;
