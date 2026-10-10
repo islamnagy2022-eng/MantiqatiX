@@ -142,7 +142,7 @@ All Supabase production queries were read-only. No production migrations, table 
 ## Continuation security review — 2026-10-10
 
 ### Candidate freshness and overlap
-- Read-only GitHub compare found the combined matrimony/workspace candidate PR #129's branch `fix/matrimony-profile-privacy-20261010` is behind/diverged from current main (main checkpoint `e9a42941a6b99c9b67017458ab51dea612ee6ea0)); PR #129's latest observed head `738f06c733af5ee0ca0c14342a91af8ae1ecadb7` had no fresh workflow runs returned by the current check. PR #129 currently reports `mergeable=false`. Do not merge until rebuilt against current main, conflicts resolved, and latest-head CI/integration evidence passes.
+- Read-only GitHub compare found the combined matrimony/workspace candidate PR #129's branch `fix/matrimony-profile-privacy-20261010` is behind/diverged from current main (main checkpoint `e9a42941a6b99c9b67017458ab51dea612ee6ea0`); PR #129's latest observed head `738f06c733af5ee0ca0c14342a91af8ae1ecadb7` had no fresh workflow runs returned by the current check. PR #129 currently reports `mergeable=false`. Do not merge until rebuilt against current main, conflicts resolved, and latest-head CI/integration evidence passes.
 - The separate older matrimony candidate PR #119 had passing source-contract and disposable-PostgreSQL runs on head `3abe4e10560e061df23c77b6d5802f731dea8d8e` (runs `38060226500`, `38060226557`, with migration guards `38060226503`, `38060226524` successful). This is not proof that PR #129's distinct combined head passes.
 - PRs #111, #126, #119, and #120 were reopened as backup review candidates after a premature closure, because the consolidated replacements have not yet been proven mergeable and current-head verified. Keep overlapping candidates unmerged; select one canonical implementation per domain and reconcile migration order before release.
 - PR #130's RC444 CRM migration is also a source candidate, not production state. It is stacked on the matrimony/workspace work; refresh its base and validate the final combined candidate before merge. PR #120 is a duplicate/alternate RC566 CRM candidate and remains open only as a backup.
@@ -158,4 +158,23 @@ All Supabase production queries were read-only. No production migrations, table 
 - This continuation used read-only Supabase catalog/privilege queries and GitHub source/CI review only.
 - No production migrations, data writes, grants, RLS/Auth settings, Edge Function deployments, payments, wallet changes, or financial operations were performed.
 - The latest post-merge GitHub Pages deployment was not independently rechecked during this review; prior Pages smoke verification remains limited to its recorded commit/run.
+
+## Follow-up verification — RC443 / RC444 candidates
+
+### RC444 CRM business scope — PR #143
+- Clean-main CRM-only candidate PR #143 is ready for review and remains unmerged: https://github.com/islamnagy2022-eng/MantiqatiX/pull/143
+- Exact head `68c5fae13ec7e9be4154c5ed5817448f2a07d299` passed the RC444 source-contract and disposable PostgreSQL integration jobs (run `38060878977`). Migration-history immutability (`38060878837`), migration-version uniqueness (`38060878850`), cross-PR migration collision guard (`38060878832`), Module Professionalization Validation (`38060878852`), Backend-only Module Boundary (`38060878874`), and the other associated checks passed. The Pages workflow validation passed but the deploy job was skipped because this is a PR.
+- PR #130 was closed as a duplicate stacked candidate because it included both RC443 and RC444, causing an avoidable migration collision. PR #120 was closed as superseded by the clean RC444-only candidate. No production migration was applied.
+
+### RC443 matrimony/workspace — PR #141
+- Clean-main candidate PR #141: https://github.com/islamnagy2022-eng/MantiqatiX/pull/141. Source-contract and migration-history/uniqueness checks have passed on prior checkpoints, but the latest observed disposable PostgreSQL run failed in `matrimony_unlock_contact_backend(uuid)`: `RETURNING unlocked_at` is ambiguous with the output parameter of the same name. The safe correction is to alias the INSERT target and return `inserted_unlock.unlocked_at`. A direct SQL-file update was blocked by repository safety controls; no bypass was attempted.
+- A separate prior check failed because the static validator expected an outdated medical-workspace string; that validator was updated afterward, but fresh CI on the exact newest head is still required.
+- The cross-PR collision guard previously flagged duplicate RC443 files in PRs #129 and #130. #130 is now closed; #129 remains open and stale/unmergeable. Re-run the guard after reconciling #129; do not merge RC443 while the integration failure remains.
+- The RC443 candidate also revokes direct authenticated writes to request/unlock tables and provides server RPCs for request creation, response, and unlock. The disposable test covers anonymous denial, raw profile owner-only reads, verified discovery, contact gating, idempotency, and self-verification denial. These are source/isolated-test checks, not production proof.
+
+### Other reviewed authorization gates
+- PR #87 financial-journal candidate: review comment `6098613000` requires explicit business/branch scope binding and negative cross-business/cross-branch tests.
+- PR #101 ERP service-mutation candidate: review comment `6098667875` requires a branch-scope contract and cross-branch negative tests for order and stock-transfer operations.
+- PR #129 remains open only as a stale/duplicate candidate pending reconciliation; PR #119, #111, and #126 remain unmerged backup candidates while the consolidated PR #141 has not passed its full release gate.
+- No production migrations, grants, RLS/Auth settings, Edge Function deployments, payments, or financial data were changed during this continuation.
 
