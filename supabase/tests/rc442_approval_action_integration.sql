@@ -28,7 +28,7 @@ begin
     values ('MEM-ADMIN',admin_id,'TENANT-A','ADMIN','ACTIVE');
   insert into public.approval_requests(id,tenant_id,business_id,request_type,entity_type,entity_id,requested_by,status)
     values
-      ('APR-APPROVE','TENANT-A',v_business_id,'CREATE','BUSINESS',v_v_business_id::text,owner_id,'PENDING'),
+      ('APR-APPROVE','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING'),
       ('APR-REJECT','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING'),
       ('APR-OUTSIDER','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING');
 
