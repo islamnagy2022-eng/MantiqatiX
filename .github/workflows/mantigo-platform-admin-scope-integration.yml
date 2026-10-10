@@ -1,0 +1,50 @@
+name: MantiGO Platform Admin Scope Integration
+on:
+  push:
+    branches:
+      - "fix/mantigo-platform-admin-scope-integration-tests"
+  pull_request:
+    branches:
+      - "fix/mantigo-platform-admin-scope-20261009"
+permissions:
+  contents: read
+jobs:
+  platform-admin-scope-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mnt_platform_admin_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mnt_platform_admin_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Wait for PostgreSQL
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for attempt in $(seq 1 30); do
+            if pg_isready -h 127.0.0.1 -p 5432 -U postgres -d mnt_platform_admin_test; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Create isolated fixture
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -U postgres -d mnt_platform_admin_test -v ON_ERROR_STOP=1 -f supabase/tests/mantigo_platform_admin_fixture.sql
+      - name: Apply platform-admin migration to disposable database
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -U postgres -d mnt_platform_admin_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261009170000_mantigo_platform_admin_scope_hardening.sql
+      - name: Run positive and negative authorization tests
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -U postgres -d mnt_platform_admin_test -v ON_ERROR_STOP=1 -f supabase/tests/mantigo_platform_admin_integration.sql
