@@ -3,7 +3,7 @@ import fs from "node:fs";
 
 const app = fs.readFileSync("web/app.js", "utf8");
 const edge = fs.readFileSync("supabase/functions/erp-mutation/index.ts", "utf8");
-const migration = fs.readFileSync("supabase/migrations/20261010040000_rc442_erp_service_role_mutations.sql", "utf8");
+const migration = fs.readFileSync("supabase/migrations/20261010040000_rc445_erp_service_role_mutations.sql", "utf8");
 
 for (const name of [
   "update_purchase_order_status_backend",
@@ -30,4 +30,4 @@ assert.match(migration, /TRANSFER_IDEMPOTENCY_CONFLICT/, "conflicting create rep
 assert.match(migration, /INSUFFICIENT_AVAILABLE_STOCK/, "transfer receipt must check available stock");
 assert.match(migration, /TRANSFER_OUT/);
 assert.match(migration, /TRANSFER_IN/);
-console.log("RC442 ERP server mutation boundary PASS");
+console.log("RC445 ERP server mutation boundary PASS");
