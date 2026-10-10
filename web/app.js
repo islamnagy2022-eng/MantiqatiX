@@ -1245,7 +1245,16 @@ function marketingCampaignWorkspace(){
  const providers=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).filter(p=>!live.businessId||String(p.business_id||'')!==String(live.businessId));
  const role=String(live.role||'').toUpperCase();
  const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role));
- const campaignIdempotencyKey=window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
+ const campaignIdempotencyStorageKey='MNTYMarketingCampaignIdempotencyKey:'+String(live.businessId||'none');
+ const campaignIdempotencyKey=(()=>{
+  try{
+   const saved=sessionStorage.getItem(campaignIdempotencyStorageKey);
+   if(saved)return saved;
+   const key=window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
+   sessionStorage.setItem(campaignIdempotencyStorageKey,key);
+   return key;
+  }catch(_){return window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);}
+ })();
  const myProviderId=live.myProviderProfile?.id?String(live.myProviderProfile.id):'';
  const fmtMoney=(value,currency)=>esc(value==null?'—':Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' '+String(currency||'EGP'));
  const fmtDate=value=>value?esc(String(value).slice(0,10)):'—';
@@ -1351,6 +1360,7 @@ function bindMarketingCampaignWorkspace(){
     p_start_at:startValue?new Date(startValue+'T00:00:00').toISOString():null,p_end_at:endValue?new Date(endValue+'T23:59:59').toISOString():null,p_target_audience:targetAudience,p_brief:brief||null
    });
    if(error)throw error;
+   try{sessionStorage.removeItem('MNTYMarketingCampaignIdempotencyKey:'+String(live.businessId||'none'))}catch(_){}
    showToast(data?.idempotent?'تم التحقق من طلب الحفظ السابق.':'تم حفظ خطة الحملة داخليًا.','success');
    await refreshMarketingCampaignWorkspace();
   }catch(error){showToast('تعذر حفظ الحملة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
