@@ -219,6 +219,7 @@ as $function$
 declare
   v_request public.matrimony_requests%rowtype;
   v_owner_user_id uuid;
+  v_is_verified boolean;
   v_status text;
 begin
   if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
@@ -236,10 +237,10 @@ begin
     raise exception 'REQUEST_NOT_FOUND' using errcode = 'P0002';
   end if;
 
-  select p.owner_user_id into v_owner_user_id
+  select p.owner_user_id,p.is_verified into v_owner_user_id,v_is_verified
   from public.matrimony_profiles p
   where p.id=v_request.to_profile_id;
-  if not found or v_owner_user_id is distinct from auth.uid() then
+  if not found or v_is_verified is not true or v_owner_user_id is distinct from auth.uid() then
     raise exception 'FORBIDDEN' using errcode = '42501';
   end if;
 
@@ -270,6 +271,8 @@ as $function$
 declare
   v_request public.matrimony_requests%rowtype;
   v_unlocked_at timestamptz;
+  v_owner_user_id uuid;
+  v_is_verified boolean;
 begin
   if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
     raise exception 'AUTH_REQUIRED' using errcode = '28000';
@@ -288,10 +291,12 @@ begin
   if v_request.status <> 'ACCEPTED_MUTUAL' then
     raise exception 'CONTACT_NOT_UNLOCKED' using errcode = '42501';
   end if;
-  if auth.uid() <> v_request.from_user_id and not exists (
-    select 1 from public.matrimony_profiles p
-    where p.id=v_request.to_profile_id and p.owner_user_id=auth.uid()
-  ) then
+  select p.owner_user_id,p.is_verified into v_owner_user_id,v_is_verified
+  from public.matrimony_profiles p where p.id=v_request.to_profile_id;
+  if not found or v_is_verified is not true then
+    raise exception 'PROFILE_NOT_AVAILABLE' using errcode = 'P0002';
+  end if;
+  if auth.uid() <> v_request.from_user_id and v_owner_user_id is distinct from auth.uid() then
     raise exception 'FORBIDDEN' using errcode = '42501';
   end if;
 
