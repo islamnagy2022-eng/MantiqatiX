@@ -28,15 +28,15 @@ begin
     values ('MEM-ADMIN',admin_id,'TENANT-A','ADMIN','ACTIVE');
   insert into public.approval_requests(id,tenant_id,business_id,request_type,entity_type,entity_id,requested_by,status)
     values
-      ('APR-APPROVE','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING'),
-      ('APR-REJECT','TENANT-A',v_business_id,'CREATE','BUSINESS',business_id::text,owner_id,'PENDING'),
-      ('APR-OUTSIDER','TENANT-A',v_business_id,'CREATE','BUSINESS',business_id::text,owner_id,'PENDING');
+      ('APR-APPROVE','TENANT-A',v_business_id,'CREATE','BUSINESS',v_v_business_id::text,owner_id,'PENDING'),
+      ('APR-REJECT','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING'),
+      ('APR-OUTSIDER','TENANT-A',v_business_id,'CREATE','BUSINESS',v_business_id::text,owner_id,'PENDING');
 
   result := private.review_business_approval_atomic(admin_id,'APR-APPROVE','APPROVE');
   if result->>'status' <> 'APPROVED' then raise exception 'TEST_FAILED: approved transition result incorrect'; end if;
   if (select status from public.approval_requests where id='APR-APPROVE') <> 'APPROVED'
      or (select status from public.businesses where id=v_business_id) <> 'ACTIVE'
-     or not exists(select 1 from public.user_memberships where user_id=owner_id and public.user_memberships.business_id=v_business_id and role='BUSINESS_OWNER' and status='ACTIVE') then
+     or not exists(select 1 from public.user_memberships m where m.user_id=owner_id and m.business_id=v_business_id and m.role='BUSINESS_OWNER' and m.status='ACTIVE') then
     raise exception 'TEST_FAILED: approval state changes were not applied';
   end if;
   if (select count(*) from public.approval_actions where approval_request_id='APR-APPROVE' and action='APPROVE' and acted_by=admin_id) <> 1 then
