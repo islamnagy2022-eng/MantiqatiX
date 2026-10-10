@@ -14,6 +14,8 @@ assert.match(app, /sb\.rpc\('invite_marketing_campaign_partner_backend'/, "partn
 assert.match(app, /sb\.rpc\('respond_marketing_campaign_invitation_backend'/, "partner responses must use the authorized backend RPC");
 assert.match(app, /sb\.rpc\('update_marketing_campaign_status_backend'/, "campaign status changes must use the authorized backend RPC");
 assert.match(app, /p_actor:user\.id/, "the actor identity must be derived from the authenticated session");
+assert.match(app, /id="mc-idempotency-key"/, "campaign form must retain its idempotency key for retries");
+assert.match(app, /document\.getElementById\('mc-idempotency-key'\)\?\.value/, "campaign retries must reuse the same key until the form succeeds");
 assert.match(app, /MARKETING_IDEMPOTENCY_KEY_CONFLICT|create_marketing_campaign_backend/, "campaign creation must call the idempotent backend contract");
 assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaigns['"]\)\.(insert|update|delete)/, "browser must not mutate campaign rows directly");
 assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaign_participants['"]\)\.(insert|update|delete)/, "browser must not mutate participant rows directly");
