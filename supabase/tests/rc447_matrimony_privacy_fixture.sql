@@ -29,7 +29,8 @@ grant usage on schema auth to public;
 grant execute on function auth.uid() to public;
 grant execute on function auth.jwt() to public;
 
--- Deliberately returns true: the trigger must not trust this generic admin helper.\ncreate or replace function public.is_platform_admin()
+-- Deliberately returns true: the trigger must not trust this generic admin helper.\n-- Deliberately returns true: the trigger must not trust this generic admin helper.
+create or replace function public.is_platform_admin()
 returns boolean language sql stable as $function$ select true $function$;
 grant execute on function public.is_platform_admin() to authenticated;
 
