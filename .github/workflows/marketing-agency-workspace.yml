@@ -1,0 +1,33 @@
+name: Marketing Agency Workspace
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "web/app.js"
+      - "web/index.html"
+      - "scripts/validate-marketing-agency-workspace.mjs"
+      - ".github/workflows/marketing-agency-workspace.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/app.js"
+      - "web/index.html"
+      - "scripts/validate-marketing-agency-workspace.mjs"
+      - ".github/workflows/marketing-agency-workspace.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate application syntax and marketing workspace contract
+        run: |
+          set -euo pipefail
+          node --check web/app.js
+          node scripts/validate-marketing-agency-workspace.mjs
