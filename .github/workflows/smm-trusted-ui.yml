@@ -1,0 +1,35 @@
+name: SMM Trusted UI
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "web/smm.js"
+      - "web/smm.html"
+      - "web/app.js"
+      - "web/index.html"
+      - "scripts/validate-smm-trusted-read-gateway.mjs"
+      - ".github/workflows/smm-trusted-ui.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/smm.js"
+      - "web/smm.html"
+      - "web/app.js"
+      - "web/index.html"
+      - "scripts/validate-smm-trusted-read-gateway.mjs"
+      - ".github/workflows/smm-trusted-ui.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node --check web/app.js
+      - run: node --check web/smm.js
+      - run: node scripts/validate-smm-trusted-read-gateway.mjs
