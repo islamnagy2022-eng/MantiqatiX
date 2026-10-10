@@ -10,7 +10,7 @@ create or replace function private.review_business_approval_atomic(
 ) returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = pg_catalog
 as $$
 declare
   r public.approval_requests%rowtype;
