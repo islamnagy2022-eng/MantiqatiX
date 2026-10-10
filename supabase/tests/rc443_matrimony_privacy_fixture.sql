@@ -1,6 +1,7 @@
 -- Disposable RC443 matrimony privacy fixture.
 create extension if not exists pgcrypto;
 create schema if not exists auth;
+create schema if not exists private;
 
 do $roles$
 begin
