@@ -53,7 +53,7 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_approval_audit_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_approval_audit_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
 
-financial-journal-rc448-integration:
+  financial-journal-rc448-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     services:
