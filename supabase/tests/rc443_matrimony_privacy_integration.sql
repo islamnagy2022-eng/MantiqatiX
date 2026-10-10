@@ -105,4 +105,37 @@ end;
 $user_c$;
 reset role;
 
+
+-- Anonymous Auth users have a non-null UID and the authenticated DB role; both RPCs must reject them.
+set role authenticated;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',false);
+select set_config('request.jwt.claims','{"sub":"20000000-0000-4000-8000-000000000001","is_anonymous":true}',false);
+do $anonymous$
+declare
+ rejected boolean := false;
+begin
+ begin
+  perform * from public.matrimony_discover_profiles_backend(50,null,null);
+  raise exception 'TEST_FAILED: anonymous discovery unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: anonymous discovery unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'AUTH_REQUIRED' then raise; end if;
+  rejected := true;
+ end;
+ if not rejected then raise exception 'TEST_FAILED: anonymous discovery was not denied'; end if;
+
+ rejected := false;
+ begin
+  perform * from public.matrimony_get_unlocked_contact_backend('50000000-0000-4000-8000-000000000001');
+  raise exception 'TEST_FAILED: anonymous contact retrieval unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: anonymous contact retrieval unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'AUTH_REQUIRED' then raise; end if;
+  rejected := true;
+ end;
+ if not rejected then raise exception 'TEST_FAILED: anonymous contact retrieval was not denied'; end if;
+end;
+$anonymous$;
+reset role;
+
 select 'RC443 matrimony privacy boundary integration: PASS' as result;
