@@ -1,7 +1,7 @@
 # RC448 — Matrimony Request Lifecycle Authority
 
 **Status:** review candidate only; **not approved for production execution**.  
-**Migration:** `supabase/migrations/20261010160000_rc448_matrimony_request_lifecycle_authority.sql`  
+**Migration:** `supabase/migrations/20261010161000_rc448_matrimony_request_lifecycle_authority.sql`  
 **Dependency:** RC447 must be reviewed/applied first, and a matching UI release must be ready. Do not apply this migration while any shipped client still depends on direct request/unlock writes.
 
 ## Risk addressed
