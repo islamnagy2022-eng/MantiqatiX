@@ -11,7 +11,7 @@ Last updated: 2026-10-10 (UTC)
 ## Latest inspected source / PR state
 - PR #84: OPEN, not merged. Head branch `fix/mantigo-atomic-paymob-webhook`; inspected head SHA `3df3d1f675ae8296fac94fda54789ba8962b814e`.
 - PR #95: CLOSED without merge as superseded after removing its duplicate migration, migration-specific validator, and workflow step from its branch. The branch now has no changed files against `main`; canonical RC441 remains in PR #84. The close is not used to hide a still-present duplicate migration.
-- PR #121: OPEN, not merged.
+- PR #121: CLOSED without merge as superseded; its workflow/test targeted the closed PR #95 migration path. Canonical RC441 integration coverage remains in PR #84.
 - PR #122: OPEN, not merged.
 - PR #123: OPEN, not merged.
 - PR #125: CLOSED without merge; its discussion says it was closed in favor of PR #124.
@@ -57,8 +57,7 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 7. Recheck RLS/tenant isolation, Auth/OTP, financial/inventory regression, backup restoration on an isolated environment, monitoring/alerts, rollback, and Android/build/signing gates.
 
 ## Actions / next steps
-- Keep #124's collision guard enabled and failing on the real conflict until the migration set is reconciled.
-- Collision-guard self-test and cross-PR scan are now CI-verified on PR #124 head `d7892eab7ed539b16a5c9e360abdfdaf43d738fe`.
+- Keep #124's collision guard enabled. The #84/#95 duplicate migration path was removed by closing #95 as superseded; #124 guard CI now passes on the corrected candidate set.
 - Run RC440 and RC441 integration tests in disposable PostgreSQL against the final migration chain.
 - Re-query production catalog and ledger read-only; do not change production until explicit approval.
 - Record each follow-up commit SHA and exact CI job result here. Do not label source fixes as production verified.
@@ -73,7 +72,7 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 
 ## Execution update — 2026-10-10
 - PR #95 duplicate migration removal commit: `91004fd856842380e4ddf41a56e11554aa3d9e35`; PR #95 closed without merge after verifying it had no remaining changed files.
-- PR #124 collision-guard correction commit: `d7892eab7ed539b16a5c9e360abdfdaf43d738fe`; self-test/guard workflow was still running at the last observation, so status remains NOT VERIFIED pending completion.
+- PR #124 collision-guard correction commit: `d7892eab7ed539b16a5c9e360abdfdaf43d738fe`; guard workflow run `38052383301` passed, including self-test and cross-PR scan.
 - Status record branch/PR: `chore/continuous-execution-status-20261010`, PR #131. Documentation commit: `1f558d31049002b082aa242f83f62c914c92c0fd` (subsequent documentation updates may produce a newer SHA).
 
 
@@ -82,3 +81,12 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 - Live MantiGO catalog remains vulnerable to insufficient platform-scope enforcement until RC441 is deployed with approval. Exact function catalog query is read-only and returned all four platform-wide RPCs as `SECURITY DEFINER`, `search_path=public`, `authenticated_execute=true`, and `checks_platform_admin=false`.
 - Security-advisor triage totals: 1 anon-executable SECURITY DEFINER RPC; 40 authenticated-executable SECURITY DEFINER RPCs; leaked-password protection disabled. These do not by themselves prove exploitability for every function, but require per-function authorization review. No production changes performed.
 - PR #131 documentation update commit will be the latest source for this status file; PR #131 is open and not merged.
+
+
+## Continued execution — 2026-10-10 12:40 UTC
+- PR #121 was closed without merge after documenting that its test/workflow depended on the superseded PR #95 migration. The canonical RC441 test fixture and integration suite are present in PR #84 and wired into its validation workflow.
+- Read-only Supabase ledger query again returned only `20261008222845 / rc424_atomic_digital_page_payment_webhook` and `20261008125422 / rc423_convert_authenticated_guard_policies_to_restrictive` in the requested recent range.
+- Live catalog recheck found `process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)` with `search_path=public, pg_temp` but without the RC431 provider-order-binding marker. The live finalizer signature is the older four-argument `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)`, not the five-argument signature expected by RC431 runbook/source. Subscription checkout encryption columns are absent from `subscription_payment_intents`. These are direct signs RC431/RC439 source has not converged to production; do not apply blindly due the RC424 version discrepancy and pending migration chain reconciliation.
+- Live MantiGO platform-wide RPCs remain unguarded as previously documented. No production writes were performed.
+- PR #84 latest inspected head remains `3df3d1f675ae8296fac94fda54789ba8962b814e`; PR #84 is open/unmerged. Its currently visible CI runs passed for Module Professionalization Validation and Backend-only Module Boundary; the Pages workflow's deploy job was skipped in the inspected run, so this is not evidence of a fresh production deployment.
+- PR #123 module feature-flag alias validation has successful CI on head `d4491f0fb8bb37d1a73380dcaf9d18914100e0be`; it remains open/unmerged.
