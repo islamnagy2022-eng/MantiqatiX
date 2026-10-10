@@ -1,18 +1,20 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 — RC447 backend privacy gate and staged UI rollout
+Last updated: 2026-10-10 — RC448 request lifecycle candidate and staged UI rollout
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
 
 ## Latest verified continuation — 2026-10-10
 
-- Current main checkpoint: `c475092cb7b498ea6155a8633a6434e3cc2ba0f8` (backend-only RC447 privacy gate, PR #154).
+- Current main checkpoint: `ac8979a17862000d545d90df90f972b8e0f2bcdc` (`docs: reconcile RC447 privacy and staged rollout status`).
 - Main Pages deployment after PR #154: [workflow 38063841084](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38063841084) passed both validation and deployment; the `Verify deployed site` step succeeded. PR #154 contained no web assets, so this was a deployment of the unchanged UI.
 - RC447 migration `20261010150000_rc447_matrimony_profile_privacy_boundary.sql` is now on main with PostgreSQL 16 fixture/integration tests and a rollout runbook. **It has not been applied to production.** The read-only Supabase migration ledger still ends at RC424 version `20261008222845`; RC447 is absent.
 - Production privacy boundary confirmed by read-only inspection: `matrimony_profiles` has RLS and FORCE RLS enabled, `authenticated` has SELECT, `anon` does not, and the live permissive `matrimony_profiles_select` policy only excludes anonymous sessions rather than restricting rows to their owners.
 - Production schema matches RC447's referenced columns; `matrimony_profiles.owner_user_id` is unique and `matrimony_requests.status` is NOT NULL. The generic `public.is_platform_admin()` helper only checks active ADMIN/SUPER_ADMIN roles without platform-scope binding, so RC447 does not trust it for verification; the trigger permits only trusted server/database roles.
 - RC447 source-contract checks, migration-history/version/collision guards, and PostgreSQL 16 privacy integration passed on the backend-only PR head. This is isolated-test evidence, not production certification.
-- UI PR #156 is open and intentionally unmerged. It must not be merged/published until RC447 is approved and applied to production and the live policy/RPC acceptance tests pass. The UI calls the new discovery RPC.
+- UI PR #158 is open and intentionally unmerged; it now routes discovery and request/contact actions through RC447/RC448 RPCs. It must not be merged/published until RC447 and RC448 are approved/applied in order and the live policy/RPC acceptance tests pass.
+- PR #160 is the forward-only RC448 request-lifecycle authority candidate. Migration version `20261010161000` is unique and the cross-PR migration collision guard passed after resolving a version collision with PR #159. The latest observed PostgreSQL 16 run (`38064635895`) failed the contact-unlock idempotency assertion; do not merge or apply RC448 until that test failure is fixed and a fresh exact-head integration run passes.
+- PR #141 was closed as stale/superseded. Do not reopen it; its duplicate RC443 migration and older lifecycle integration test are replaced by the staged candidates.
 - PR #153 was closed in favor of the staged rollout. Duplicate/stale PRs #129, #119, #126, #111 and stacked UI PR #155 were closed as superseded. Do not merge old alternatives.
 - No production migration, RLS/Auth/grant change, customer data mutation, payment, or Edge Function deployment occurred in this continuation. Release state remains **NOT CERTIFIED**.
 
@@ -33,9 +35,14 @@ Last updated: 2026-10-10 — RC447 backend privacy gate and staged UI rollout
 ## Relevant PRs
 
 - #154 — CLOSED, merged as `c475092cb7b498ea6155a8633a6434e3cc2ba0f8`. Adds the RC447 forward-only matrimony privacy migration, source contract, disposable PostgreSQL 16 integration tests, and rollout runbook. No web assets or production database changes were included; all required checks on the merge head passed.
-- #156 — OPEN, unmerged UI release gate. Calls the RC447 discovery RPC and adds explicit read-error handling. Do not merge until RC447 is applied in production and live acceptance tests pass.
-- #153 — CLOSED without merge; replaced by backend-only #154 and UI #156 to avoid deploying frontend code before its database dependency.
-- #129, #119, #126, #111, #155 — CLOSED without merge as stale/superseded by the staged RC447 candidate.- #84 — OPEN, unmerged. Latest observed head: `934f2fc28ec61bdfc5023479b0e796e743244eb1`. Latest Module Professionalization Validation run `38053053450` completed successfully with all 12 jobs, including payment, checkout recovery, search-path, and MantiGO platform-admin integration. Cross-PR collision guard run `38053053434` passed. This is source/isolated-test evidence only; see the live Edge Function parity audit below. Do not merge until RC424 historical migration immutability and source/production parity are resolved.
+- #158 — OPEN, unmerged UI release gate. Calls RC447 discovery and RC448 request/contact RPCs, adds explicit read-error handling, and keeps revealed contact details in memory only. Do not merge until both backend migrations are approved/applied in order and live acceptance tests pass.
+- #160 — OPEN, unmerged RC448 backend candidate. Adds server-authoritative request creation, recipient-only accept/reject, idempotent contact unlock, contact retrieval, and revokes direct client DML. Migration collision guard passed after selecting version `20261010161000`; PostgreSQL 16 integration currently fails at the contact-unlock idempotency assertion (run `38064635895`). Fix and rerun before any merge/rollout.
+- #154 — CLOSED, merged as `c475092cb7b498ea6155a8633a6434e3cc2ba0f8`; backend-only RC447 privacy migration is on main but not production.
+- #156 — CLOSED without merge; superseded by expanded UI PR #158.
+- #153 — CLOSED without merge; replaced by backend-only #154 and staged UI #158 to avoid deploying frontend code before its database dependency.
+- #141 — CLOSED without merge; stale duplicate RC443 branch with failed PostgreSQL integration, replaced by #154, #158, and #160.
+- #129, #119, #126, #111, #155 — CLOSED without merge as stale/superseded by the staged RC447/RC448 candidates.
+- #84 — OPEN, unmerged. Latest observed head: `934f2fc28ec61bdfc5023479b0e796e743244eb1`. Latest Module Professionalization Validation run `38053053450` completed successfully with all 12 jobs, including payment, checkout recovery, search-path, and MantiGO platform-admin integration. Cross-PR collision guard run `38053053434` passed. This is source/isolated-test evidence only; see the live Edge Function parity audit below. Do not merge until RC424 historical migration immutability and source/production parity are resolved.
 - #95 — CLOSED without merge; duplicate migration and migration-specific validator/workflow were removed from its branch. No duplicate migration is retained in the active PR set.
 - #121 — CLOSED without merge as superseded by the canonical RC441 integration suite in #84.
 - #122 — CLOSED without merge; superseded by #133.
