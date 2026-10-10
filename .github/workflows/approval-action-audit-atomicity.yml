@@ -1,26 +1,22 @@
-name: Backend-only Module Boundary
+name: Approval Action Audit Atomicity
 on:
   push:
     branches:
       - "**"
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/rc442_approval_action_*"
+      - ".github/workflows/approval-action-audit-atomicity.yml"
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/rc442_approval_action_*"
+      - ".github/workflows/approval-action-audit-atomicity.yml"
 permissions:
   contents: read
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-      - run: node --check web/app.js
-      - run: node scripts/validate-backend-only-module-boundary.mjs
-      - run: node scripts/validate-module-runtime-contracts.mjs
-      - run: node scripts/validate-sensitive-module-writes.mjs
-
   approval-action-audit-postgres:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -38,9 +34,9 @@ jobs:
           --health-timeout 5s
           --health-retries 12
     steps:
-      - uses: actions/checkout@v6
-      - name: Apply fixture, migration, and behavioral tests
-        shell: bash
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Apply disposable fixture
         run: |
           set -euo pipefail
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
