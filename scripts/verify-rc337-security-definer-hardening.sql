@@ -33,7 +33,12 @@ select e.signature,
          when a.security_definer
           and a.anon_execute=e.expected_anon
           and a.authenticated_execute=e.expected_authenticated
-          and a.config in ('search_path=public, pg_temp','search_path=public,pg_temp')
+          and (
+            (e.signature = 'public.get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)'
+              and a.config in ('search_path=""','search_path='))
+            or (e.signature <> 'public.get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)'
+              and a.config in ('search_path=public, pg_temp','search_path=public,pg_temp'))
+          )
          then 'PASS'
          else 'FAIL'
        end status
