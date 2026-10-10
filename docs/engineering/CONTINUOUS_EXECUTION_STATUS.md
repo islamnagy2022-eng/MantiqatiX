@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 14:10 UTC
+Last updated: 2026-10-10 14:15 UTC
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
@@ -11,7 +11,7 @@ Last updated: 2026-10-10 14:10 UTC
 - No changes were merged that apply database migrations or modify production configuration.
 
 ## Current main
-- Latest main SHA at the time of this update: `5d3a9df1e6020b8cf1337fbc224dc9bfa34e977e`.
+- Latest main SHA at the time of this update: `412605e77446978f586dba5557603db2bb025d7d` (documentation-only PR #138).
 - PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
 - PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
 - PR #133 was merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`, adding local migration-version uniqueness validation alongside the cross-PR guard. Main-commit checks passed, including `validate-migration-versions` run `38053072649`, health run `38053072662`, and Pages deploy run `38053072656`; deploy logs reported smoke verification passed.
@@ -45,8 +45,8 @@ Project: `moyhiluyhjsujhwlyeuu`.
 
 ### Migration ledger/source parity
 The latest rows returned for versions >= `20261008000000` are:
-- `20261008222845 / rc424_atomic_digital_page_payment_webhook`
 - `20261008125422 / rc423_convert_authenticated_guard_policies_to_restrictive`
+- `20261008222845 / rc424_atomic_digital_page_payment_webhook`
 
 The canonical source file for RC424 is `20261009010000_rc424_atomic_digital_page_payment_webhook.sql`. This source/ledger version discrepancy is unresolved. Do not rename or replay historical migrations blindly.
 
@@ -93,6 +93,17 @@ RC441 source hardens these RPCs behind an active `MNTY-PLATFORM` membership with
 5. Triage all SECURITY DEFINER advisor findings per function; address leaked-password protection via authorized Supabase Auth settings.
 6. Continue two-user/two-tenant E2E, Auth/OTP, module source-of-truth and membership checks, finance/inventory regression, backup restore on an isolated environment, monitoring/alerts, rollback, and Android build/signing/device gates.
 7. Enable main branch protection/required checks through a controlled GitHub repository settings action; main is currently unprotected.
+
+## Fresh production recheck — read-only, 2026-10-10 14:12 UTC
+
+- Supabase migration listing returned **283 migrations**. The latest entries include RC422 (`20261007223944`), RC423 (`20261008125422`), and RC424 (`20261008222845`); no RC425+ migration is recorded as applied.
+- Deployed Edge Function inventory still reports: `paymob-webhook` v8, `payment-intent` v6, `subscription-payment-intent` v2, `digital-page-payment-intent` v3, and `mantigo-payment-intent` v3. Inventory versions are not evidence that source/production parity has been restored.
+- The live `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)` is SECURITY DEFINER with `search_path=public, pg_temp`; `anon` cannot execute it, while `authenticated` can. Its body checks `auth.uid()`, but it remains the legacy four-argument finalizer and does not mention provider-order binding. Review whether authenticated EXECUTE is intended for this claim-token-bound flow; do not revoke it blindly without tracing the client/Edge call contract.
+- The live digital-page payment processor remains SECURITY DEFINER with `search_path=public, pg_temp`; `anon` and `authenticated` cannot execute it directly. The inspected source/production gaps remain: provider-order binding and replay-status comparison are absent from its live body.
+- A read-only policy catalog comparison found 126 public tables with at least one policy targeting `authenticated`; 71 have a restrictive policy whose expression explicitly checks the `is_anonymous` JWT claim, while 55 do not have that particular guard. **This is a triage signal, not a confirmed exposure count**: each remaining table must be evaluated against its ownership/membership predicates, direct table grants, and actual anonymous-session behavior before any policy changes.
+- The Supabase security advisor still includes an Auth warning that leaked-password protection is disabled, plus `auth_allow_anonymous_sign_ins` notices for policies targeting `authenticated`. Many inspected tables have restrictive anonymous-session guards, so do not interpret every advisor notice as a proven vulnerability and do not bulk-revoke policies/grants. Confirm the Auth setting through authorized project configuration and test representative anonymous and normal-user sessions.
+- The same live catalog query reconfirmed that the four platform-wide MantiGO RPCs (`get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, `expire_stale_mantigo_rides_backend`) remain SECURITY DEFINER, executable by `authenticated`, and do not call `mnty_can_platform_admin()`.
+- All checks in this recheck were read-only. No production writes, migrations, grant/RLS/Auth changes, Edge Function deployments, or financial operations were performed.
 
 ## Status vocabulary
 - SOURCE_FIXED: source changed, not yet validated.
