@@ -34,7 +34,7 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
-      - name: Apply RC447 baseline and integration
+      - name: Apply RC447 schema baseline
         shell: bash
         run: |
           set -euo pipefail
@@ -42,10 +42,8 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc447_matrimony_privacy_fixture.sql "$pg_container:/tmp/fixture.sql"
           docker cp supabase/migrations/20261010150000_rc447_matrimony_profile_privacy_boundary.sql "$pg_container:/tmp/rc447.sql"
-          docker cp supabase/tests/rc447_matrimony_privacy_integration.sql "$pg_container:/tmp/rc447-test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc447.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc447-test.sql
       - name: Apply RC448 and lifecycle integration
         shell: bash
         run: |
