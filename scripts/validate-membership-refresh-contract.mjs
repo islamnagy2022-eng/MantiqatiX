@@ -59,4 +59,32 @@ if (!workflow.includes('node scripts/validate-membership-refresh-contract.mjs'))
   throw new Error('Membership refresh validator is not wired into CI');
 }
 
+
+const customerMigration=fs.readFileSync('supabase/migrations/20260929150000_rc213_customer_direct_activation.sql','utf8');
+const customerEdge=fs.readFileSync('supabase/functions/mnty-customer-registration/index.ts','utf8');
+const customerTest=fs.readFileSync('supabase/tests/rc213_customer_registration_integration.sql','utf8');
+for(const marker of [
+  'pg_advisory_xact_lock',
+  "upper(role) = 'CUSTOMER'",
+  'CUSTOMER_REGISTRATION_ACTIVATED',
+  'revoke execute on function private.activate_customer_registration_atomic(uuid, varchar)'
+]){
+  if(!customerMigration.includes(marker))throw new Error('Customer membership activation safety marker missing: '+marker);
+}
+if(!/grant execute on function private\.activate_customer_registration_atomic\(uuid, varchar\)[\s\S]*?to service_role/.test(customerMigration)){
+  throw new Error('Customer membership activation RPC must grant execution to service_role only.');
+}
+if(!customerEdge.includes('admin.auth.getUser(token)')||!customerEdge.includes('activate_customer_registration_atomic')||!customerEdge.includes('actor.id')){
+  throw new Error('Customer registration Edge Function must validate Auth and bind activation to the actor.');
+}
+if(!app.includes("sb.functions.invoke('mnty-customer-registration'")||!app.includes("roleOption('CUSTOMER'")){
+  throw new Error('Account UI must provide the safe customer activation path when no active membership exists.');
+}
+if(!customerTest.includes('repeat activation created duplicate customer membership')||!customerTest.includes('inactive tenant activation must be rejected')){
+  throw new Error('Customer registration integration test is missing idempotency or inactive-tenant assertions.');
+}
+if(!workflow.includes('customer-registration-integration')){
+  throw new Error('Customer membership activation integration test is not wired into CI.');
+}
+
 console.log('Membership refresh/failure-state/UI contract: PASS');

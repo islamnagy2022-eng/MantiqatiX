@@ -1,0 +1,32 @@
+import fs from "node:fs";
+const migration=fs.readFileSync("supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql","utf8");
+const edge=fs.readFileSync("supabase/functions/erp-purchase-receive/index.ts","utf8");
+const linesEdge=fs.readFileSync("supabase/functions/erp-purchase-order-lines/index.ts","utf8");
+const createEdge=fs.readFileSync("supabase/functions/erp-purchase-order-create/index.ts","utf8");
+
+const ui=fs.readFileSync("web/app.js","utf8");
+const integration=fs.readFileSync("supabase/tests/rc437_purchase_order_lines_integration.sql","utf8");
+const checks=[];
+function check(name,ok){checks.push({name,ok:Boolean(ok)});if(!ok)console.error("FAIL "+name);}
+check("order line table tracks ordered and received quantities",migration.includes("ordered_quantity")&&migration.includes("received_quantity")&&migration.includes("unique (purchase_order_id,product_id)"));
+check("only draft purchase orders can have their lines replaced",migration.includes("upper(v_order.status)<>'DRAFT'"));
+check("legacy draft line edits recalculate server-side order totals",migration.includes("set total_amount=round(v_total+tax_amount-discount_amount,2)")&&integration.includes("legacy draft total must be recalculated"));
+check("line creation validates active actor membership and tenant products",migration.includes("PURCHASE_ORDER_LINES_FORBIDDEN")&&migration.includes("ci.tenant_id=p_tenant_id")&&migration.includes("ci.business_id=p_business_id"));
+check("purchase line RLS limits reads to operational roles",migration.includes("create policy erp_purchase_order_lines_read_member")&&migration.includes("auth.uid()")&&migration.includes("upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN'"));
+check("receiving requires a matching line and exact unit cost",migration.includes("PRODUCT_NOT_IN_PURCHASE_ORDER")&&migration.includes("PURCHASE_ORDER_UNIT_COST_MISMATCH"));
+check("cumulative receipt quantity cannot exceed ordered quantity",migration.includes("v_line.received_quantity+p_received_quantity>v_line.ordered_quantity"));
+check("receipt replay does not increment line quantity twice",migration.includes("Exact receipt replay is delegated to RC434")&&integration.includes("duplicate receipt must be idempotent"));
+check("concurrent duplicate receipt result does not increment line quantity twice",migration.includes("v_result->>'idempotent'")&&migration.includes("do not increment the order line again"));
+check("receipt replay is rechecked after line lock before quantity cap",migration.includes("Recheck after taking the order-line lock")&&migration.indexOf("select * into v_line")<migration.indexOf("Recheck after taking the order-line lock")&&migration.indexOf("Recheck after taking the order-line lock")<migration.indexOf("v_line.received_quantity+p_received_quantity>v_line.ordered_quantity"));
+check("service role cannot bypass the line-aware receiving wrapper",migration.includes("from public,anon,authenticated,service_role")&&integration.includes("service_role must not bypass order-line wrapper"));
+check("Edge Functions derive actor from validated Auth user",edge.includes("p_actor_user_id: user.id")&&linesEdge.includes("p_actor_user_id: user.id"));
+check("order creation Edge Function validates Auth and calls actor-bound service RPC",createEdge.includes("userClient.auth.getUser()")&&createEdge.includes('rpc("create_purchase_order_with_lines_backend"')&&createEdge.includes("p_actor_user_id: user.id"));
+check("UI sends purchase order creation through authenticated Edge Function",ui.includes("sb.functions.invoke('erp-purchase-order-create'")&&!ui.includes("sb.rpc('create_purchase_order_with_lines_backend'"));
+check("ERP Edge Functions allow only the production web origin and handle OPTIONS",edge.includes("Access-Control-Allow-Origin")&&edge.includes("ORIGIN_NOT_ALLOWED")&&edge.includes("req.method === \"OPTIONS\"")&&linesEdge.includes("Access-Control-Allow-Origin")&&linesEdge.includes("ORIGIN_NOT_ALLOWED")&&linesEdge.includes("req.method === \"OPTIONS\"")&&createEdge.includes("Access-Control-Allow-Origin")&&createEdge.includes("ORIGIN_NOT_ALLOWED")&&createEdge.includes("req.method === \"OPTIONS\""));
+check("UI provides order-line entry and calls line-aware receipt Edge Function",ui.includes("setPurchaseOrderLines")&&ui.includes("sb.functions.invoke('erp-purchase-receive'"));
+check("purchase order creation uses the authenticated Edge Function and stable retry ID",ui.includes("sb.functions.invoke('erp-purchase-order-create'")&&ui.includes("mantiqatix_po_attempt"));
+check("integration covers over-receipt, wrong product/cost, replay and permissions",integration.includes("receiving over ordered quantity must be rejected")&&integration.includes("product absent from purchase order must be rejected")&&integration.includes("unit cost mismatch must be rejected")&&integration.includes("duplicate receipt must be idempotent"));
+check("purchase order creation RPC is service-role-only and actor-bound",fs.readFileSync("supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql","utf8").includes("p_actor_user_id uuid")&&fs.readFileSync("supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql","utf8").includes("to service_role")&&integration.includes("service_role must execute order creation RPC"));
+check("duplicate business order numbers are rejected",fs.readFileSync("supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql","utf8").includes("PURCHASE_ORDER_NUMBER_CONFLICT")&&integration.includes("duplicate order number must be rejected"));
+const failed=checks.filter(x=>!x.ok);if(failed.length)process.exit(1);
+console.log("ERP purchase-order line safety contract PASS: "+checks.length+"/"+checks.length+" checks.");

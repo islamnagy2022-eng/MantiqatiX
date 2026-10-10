@@ -98,4 +98,63 @@ if(!currentWorkflow.includes('node scripts/validate-rbac-contract.mjs')){
   throw new Error('RBAC validation is not wired into production CI.');
 }
 
-console.log('RC340 SECURITY DEFINER/RBAC release contract: PASS');
+const rc440=fs.readFileSync('supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql','utf8');
+if(!rc440.includes("pg_catalog.format('%I.%I(%s)'")) throw new Error('RC440 must schema-qualify dynamic ALTER FUNCTION targets.');
+if(!rc440.includes("cfg='search_path=public'")||!rc440.includes("has_function_privilege('anon'")||!rc440.includes("has_function_privilege('authenticated'")) throw new Error('RC440 must remain limited to exposed SECURITY DEFINER functions.');
+const rc436=fs.readFileSync('supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql','utf8');
+const rc437=fs.readFileSync('supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql','utf8');
+const rc438=fs.readFileSync('supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql','utf8');
+for(const [name,source,markers] of [
+  ['RC436 atomic financial journal',rc436,['set search_path = \'\'','revoke all on function public.post_financial_journal_atomic_backend(uuid,jsonb,jsonb) from public,anon,authenticated','to service_role']],
+  ['RC437 line-aware purchase receipt',rc437,['set search_path = \'\'','PRODUCT_NOT_IN_PURCHASE_ORDER','PURCHASE_ORDER_QUANTITY_EXCEEDED','from public,anon,authenticated,service_role']],
+  ['RC438 actor-bound order creation',rc438,['set search_path = \'\'','p_actor_user_id uuid','revoke all on function public.create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid) from public,anon,authenticated','to service_role']]
+]){
+  for(const marker of markers){
+    if(!source.includes(marker)) throw new Error(name+' security marker missing: '+marker);
+  }
+}
+const auditRunbook='docs/runbooks/SECURITY_DEFINER_RLS_AUDIT.sql';
+if(!fs.existsSync(auditRunbook)) throw new Error('Read-only SECURITY DEFINER/RLS audit runbook is missing.');
+for(const marker of ['has_function_privilege','relrowsecurity','pg_policies','role_table_grants']){
+  if(!fs.readFileSync(auditRunbook,'utf8').includes(marker)) throw new Error('Security audit runbook marker missing: '+marker);
+}
+
+const rc441Path='supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql';
+if(!fs.existsSync(rc441Path)) throw new Error('RC441 platform-admin scope hardening migration is missing.');
+const rc441=fs.readFileSync(rc441Path,'utf8');
+for(const marker of [
+  "upper(m.role) = 'SUPER_ADMIN'",
+  "m.permissions ->> 'scope' = 'PLATFORM'",
+  "(m.permissions ->> 'full_control')::boolean",
+  "revoke all on function public.mnty_can_platform_admin() from public, anon",
+  "get_mantigo_admin_dashboard_backend",
+  "get_mantigo_admin_financial_report_backend",
+  "settle_mantigo_captain_backend",
+  "expire_stale_mantigo_rides_backend",
+  "PLATFORM_ADMIN_REQUIRED",
+  "set search_path = ''"
+]){
+  if(!rc441.includes(marker)) throw new Error('RC441 platform-admin boundary marker missing: '+marker);
+}
+const rc441Fixture='supabase/tests/rc441_platform_admin_fixture.sql';
+const rc441Test='supabase/tests/rc441_platform_admin_integration.sql';
+if(!fs.existsSync(rc441Fixture)||!fs.existsSync(rc441Test)) throw new Error('RC441 disposable PostgreSQL fixture/integration test is missing.');
+for(const marker of [
+  'tenant OWNER must not be treated as platform administrator',
+  'tenant ADMIN with admin permission',
+  'tenant OPERATIONS_MANAGER',
+  'tenant OWNER read platform-wide financial report',
+  'global settlement mutation',
+  'global ride expiration mutation',
+  'explicit platform SUPER_ADMIN'
+]){
+  if(!fs.readFileSync(rc441Test,'utf8').includes(marker)) throw new Error('RC441 behavioral regression marker missing: '+marker);
+}
+
+const rc441Runbook='docs/runbooks/VERIFY_RC441_PLATFORM_ADMIN_SCOPE.sql';
+if(!fs.existsSync(rc441Runbook)) throw new Error('RC441 read-only rollout verification runbook is missing.');
+for(const marker of ['mnty_can_platform_admin','checks_platform_admin','has_function_privilege','READ ONLY']){
+  if(!fs.readFileSync(rc441Runbook,'utf8').includes(marker)) throw new Error('RC441 runbook verification marker missing: '+marker);
+}
+
+console.log('RC340/RC441 SECURITY DEFINER and platform RBAC source contract: PASS');

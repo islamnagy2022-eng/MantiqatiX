@@ -1546,3 +1546,50 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Read-only live RLS spot-check confirmed the four restaurant tables listed above and `user_memberships` have RLS enabled and policy counts present.
 - Privileged digital-page payment processor remains non-executable by `anon` and `authenticated` in the live grant check; no payment transaction was generated.
 - Release gate remains OPEN until real authenticated cross-tenant tests, customer/provider order + notification E2E, Paymob payment E2E, finance settlement E2E, leaked-password protection owner action, and release-device tests have evidence.
+
+
+## RC425 — Atomic MantiGo Paymob Webhook — 2026-10-09
+- **Status: IMPLEMENTED IN SOURCE / NOT YET RELEASED.**
+- Replaced separate provider-event insert, MantiGo ledger update, and payment notification insert requests with one service-role-only database RPC transaction. MantiGo events use a dedicated RLS-enabled/forced table referencing the MantiGo ledger, not `payment_provider_events.payment_intent_id` (which references the separate `payment_intents` table).
+- The RPC validates the verified-signature flag, event ID, payment status, provider, amount, and currency; locks the ledger row; binds replayed provider events to the same ledger; and atomically persists the event, ledger transition, and customer notification.
+- Added a CI contract validator and production source-verification checks to prevent regression to split writes.
+- No production migration was applied by this change and no real payment or production financial mutation was performed.
+- Required next gates: PR CI success; reviewed migration application to production; post-deploy live privilege/function checks; signed Paymob sandbox callback tests for success/failure/replay/amount mismatch/concurrent duplicate; then owner-authorized production payment E2E.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET** until all P0 runtime, security-setting, financial, and release-device evidence is collected.
+
+
+## RC426 — Paymob signed order correlation — 2026-10-09
+- **Status: SOURCE-ONLY / PR REVIEW REQUIRED.**
+- Hardened normal orders, subscriptions, digital-page orders, and MantiGo so a signed Paymob `order.id` must match the provider order ID persisted when checkout intent was created.
+- Normal and MantiGo checkout now fail closed if Paymob does not return a provider order ID; digital-page finalization persists the ID through a new authenticated, ownership-bound RPC signature.
+- Digital-page atomic payment RPC rejects provider-order mismatches; MantiGo RPC additionally binds merchant reference and signed provider order to the ledger and stored intention metadata.
+- Added a dedicated CI contract validator and P0 production-source checks.
+- No Supabase branch was created, no production migration/function was applied or deployed, and no real payment was attempted.
+- Outstanding: CI green on the final head, review migration order and existing pending payment compatibility, apply only through a separately approved rollout, and run signed Paymob sandbox cases including cross-order tampering and concurrent replay.
+
+
+## Read-only production audit snapshot — 2026-10-09
+- **Execution constraints respected:** no Supabase branch created; no production migration applied; no Edge Function deployed; no financial row changed.
+- **Membership integrity:** 48 ACTIVE membership rows; 28 OWNER/BUSINESS_OWNER role rows; 0 active owner memberships reference a missing Auth user; 0 active memberships reference a missing tenant or business. Four ACTIVE CUSTOMER memberships reference missing `auth.users` rows. They were not deleted automatically; review as stale identity records under a separate approved cleanup plan.
+- **Businesses:** 26 ACTIVE and 2 INACTIVE rows in `public.businesses`.
+- **Payment data:** read-only counts are zero for `digital_page_orders`, `payment_intents`, `subscription_payment_intents`, and `mantigo_financial_ledger`; production therefore has no existing payment rows for a non-destructive end-to-end replay test.
+- **RC425 / RC426 deployment check:** the new MantiGo atomic-payment RPC and event table are absent from production; the new five-argument digital-page finalizer is absent; the legacy four-argument finalizer remains. This is expected while the PR is open.
+- **Supabase Security Advisor (live snapshot):** one RLS-enabled/no-policy table (`digital_page_payment_events`, backend-only and fail-closed); one intentionally public ad-read SECURITY DEFINER function; 40 authenticated-callable SECURITY DEFINER functions; leaked-password protection remains disabled.
+- **Supabase Performance Advisor (live snapshot):** 375 RLS initplan warnings, 28 multiple-permissive-policy warnings, 105 unindexed-FK warnings, and 127 unused-index notices. These are a backlog for evidence-led triage; do not bulk-change policies/indexes without per-object workload and authorization review.
+- **Membership remediation gate:** identify the four stale CUSTOMER membership records against retention/audit policy, determine whether the Auth users were intentionally deleted, and only then decide whether to revoke or archive those rows. No mutation was performed.
+- **Release decision:** CI source validations pass on the latest reviewed branch head, but Paymob signed sandbox E2E, browser/mobile real-user E2E, migration execution in a disposable test database, Auth leaked-password setting, and the stale-membership decision remain open.
+
+
+## RC427 — One active payment intention per order — 2026-10-09
+- **Status: SOURCE-ONLY / PR REVIEW REQUIRED.**
+- Added a partial unique index to prevent more than one CREATED, PENDING, or SUCCEEDED payment intent for the same order; the migration aborts with a reconciliation error if pre-existing conflicts are found.
+- The Edge Function now refuses to create a second Paymob intention when an idempotent request resolves to an already-PENDING intent, avoiding silent replacement of the provider-order binding.
+- Production read-only counts showed zero rows in `payment_intents`, so the current production dataset has no existing payment-intent rows to reconcile; this is not a substitute for validating a non-empty test database.
+- No production schema or data changed. CI must pass on the final head; then validate the migration on a disposable local PostgreSQL/Supabase test database before any rollout.
+
+
+## MantiGO stale-request operations check — 2026-10-09
+- Read-only production query found **2 OPEN rides** whose `updated_at` timestamps are older than 24 hours (oldest 2026-10-06, newest 2026-10-07); both have no accepted bid and no financial-ledger row, which is consistent with no fare being locked yet but leaves the requests stale.
+- The database has `pg_net` but no `pg_cron` extension, and repository search found no scheduled `cron.schedule` job for `expire_stale_mantigo_rides_backend`.
+- The expiration RPC currently requires an authenticated operations/admin user ID and defaults to 30 minutes, so it is not a service-role cron entry point as written.
+- **No ride was expired or otherwise changed.** Before live traffic, decide whether expiry is manual or automated; if automated, implement a narrowly scoped service-role-only scheduler/Edge Function and validate it in a test environment. Do not run the current admin RPC with guessed actor IDs.

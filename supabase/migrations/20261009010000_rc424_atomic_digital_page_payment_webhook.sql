@@ -15,7 +15,7 @@ create or replace function public.process_verified_digital_page_payment_backend(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $function$
 declare
   v_order public.digital_page_orders%rowtype;
@@ -29,7 +29,7 @@ begin
   if p_external_event_id is null or length(trim(p_external_event_id)) = 0 then
     raise exception 'DIGITAL_PAGE_EVENT_ID_REQUIRED';
   end if;
-  if p_status not in ('SUCCEEDED', 'FAILED') then
+  if p_status is null or p_status not in ('SUCCEEDED', 'FAILED') then
     raise exception 'DIGITAL_PAGE_EVENT_STATUS_INVALID';
   end if;
   if p_amount is null or p_amount <= 0 or p_currency is null or length(trim(p_currency)) = 0 then
@@ -43,6 +43,11 @@ begin
   if not found then
     raise exception 'DIGITAL_PAGE_ORDER_NOT_FOUND';
   end if;
+  if nullif(trim(p_provider_order_id), '') is null
+     or v_order.provider_order_id is null
+     or v_order.provider_order_id <> p_provider_order_id then
+    raise exception 'DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH';
+  end if;
   if abs(v_order.amount - p_amount) > 0.01
      or upper(v_order.currency) <> upper(p_currency) then
     raise exception 'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH';
@@ -54,6 +59,9 @@ begin
   if found then
     if v_event.digital_page_order_id <> v_order.id then
       raise exception 'DIGITAL_PAGE_EVENT_ORDER_MISMATCH';
+    end if;
+    if v_event.status is distinct from p_status then
+      raise exception 'DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH';
     end if;
     return jsonb_build_object(
       'ok', true,
@@ -111,7 +119,7 @@ grant execute on function public.process_verified_digital_page_payment_backend(u
 
 -- Harden the existing admin publish gate against cross-order page reuse.
 create or replace function public.fulfill_digital_page_publish(p_actor_user_id uuid,p_order_id uuid,p_page_id uuid)
-returns jsonb language plpgsql security definer set search_path=public,pg_temp as $function$
+returns jsonb language plpgsql security definer set search_path='' as $function$
 declare v_order public.digital_page_orders%rowtype; v_page public.digital_pages%rowtype;
 begin
   if p_actor_user_id is null or p_actor_user_id <> auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
