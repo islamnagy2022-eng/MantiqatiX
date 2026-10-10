@@ -93,7 +93,10 @@ begin
   raise exception 'TEST_FAILED: second user can read another raw profile';
  end if;
  select count(*) into v_count from public.matrimony_discover_profiles_backend(50,null,null);
- if v_count <> 1 or not exists(select 1 from public.matrimony_discover_profiles_backend(50,null,null) where profile_id='40000000-0000-4000-8000-000000000001') then
+ if v_count <> 2
+    or not exists(select 1 from public.matrimony_discover_profiles_backend(50,null,null) where profile_id='40000000-0000-4000-8000-000000000001')
+    or not exists(select 1 from public.matrimony_discover_profiles_backend(50,null,null) where profile_id='40000000-0000-4000-8000-000000000004')
+    or exists(select 1 from public.matrimony_discover_profiles_backend(50,null,null) where profile_id in ('40000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000003')) then
   raise exception 'TEST_FAILED: verified discovery results are not correctly scoped';
  end if;
  select direct_contact_phone into v_phone from public.matrimony_get_unlocked_contact_backend('50000000-0000-4000-8000-000000000001');
