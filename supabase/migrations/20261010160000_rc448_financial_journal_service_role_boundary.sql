@@ -22,7 +22,7 @@ begin
     where attrelid='public.journal_entry_lines'::regclass
       and attname='line_number' and not attisdropped
   ) then
-    raise exception 'RC448 prerequisite missing: apply RC436 journal schema migration first';
+    raise exception 'RC448 prerequisite missing: required journal schema columns are absent; apply the approved journal schema migration first';
   end if;
 end;
 $rc448_preflight$;
