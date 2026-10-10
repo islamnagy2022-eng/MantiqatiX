@@ -5,6 +5,9 @@ const app = fs.readFileSync("web/app.js", "utf8");
 const index = fs.readFileSync("web/index.html", "utf8");
 
 assert.match(app, /function marketingCampaignWorkspace\(\)/, "marketing campaign workspace must be rendered");
+assert.match(app, /function marketingAgencyWorkspace\(\)/, "agency workspace tabs must remain present");
+assert.match(app, /function bindMarketingAgencyWorkspace\(\)/, "agency tabs and SMM shortcuts must be interactive");
+assert.match(app, /data-marketing-tab-go/, "overview shortcuts must select the matching workspace tab");
 assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign data must load through a dedicated error-aware reader");
 assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
 assert.match(app, /marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'/, "participant reads must use an explicit field allowlist");
