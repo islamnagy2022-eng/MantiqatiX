@@ -274,6 +274,39 @@ begin
   rejected := true;
  end;
  if not rejected then raise exception 'TEST_FAILED: anonymous contact retrieval was not denied'; end if;
+
+ rejected := false;
+ begin
+  perform * from public.matrimony_create_request_backend('40000000-0000-4000-8000-000000000004','anonymous');
+  raise exception 'TEST_FAILED: anonymous request creation unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: anonymous request creation unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'AUTH_REQUIRED' then raise; end if;
+  rejected := true;
+ end;
+ if not rejected then raise exception 'TEST_FAILED: anonymous request creation was not denied'; end if;
+
+ rejected := false;
+ begin
+  perform * from public.matrimony_respond_request_backend('50000000-0000-4000-8000-000000000001',true);
+  raise exception 'TEST_FAILED: anonymous request response unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: anonymous request response unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'AUTH_REQUIRED' then raise; end if;
+  rejected := true;
+ end;
+ if not rejected then raise exception 'TEST_FAILED: anonymous request response was not denied'; end if;
+
+ rejected := false;
+ begin
+  perform * from public.matrimony_unlock_contact_backend('50000000-0000-4000-8000-000000000001');
+  raise exception 'TEST_FAILED: anonymous contact unlock unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: anonymous contact unlock unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'AUTH_REQUIRED' then raise; end if;
+  rejected := true;
+ end;
+ if not rejected then raise exception 'TEST_FAILED: anonymous contact unlock was not denied'; end if;
 end;
 $anonymous$;
 reset role;
