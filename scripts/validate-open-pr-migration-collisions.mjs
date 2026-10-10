@@ -42,41 +42,26 @@ function collisionsForPullRequest(collisions, prNumber) {
 
 if (process.argv.includes("--self-test")) {
   const candidates = [
-    {
-      prNumber: 10,
-      entries: migrationEntries(10, [
-        "supabase/migrations/20261009170000_rc430_payment.sql",
-        "docs/release.md"
-      ])
-    },
-    {
-      prNumber: 20,
-      entries: migrationEntries(20, [
-        "supabase/migrations/20261009170000_mantigo_scope.sql",
-        "supabase/migrations/20261010030000_rc441_scope.sql"
-      ])
-    },
-    {
-      prNumber: 30,
-      entries: migrationEntries(30, [
-        "supabase/migrations/20261010040000_rc442_erp.sql"
-      ])
-    }
+    { prNumber: 10, entries: migrationEntries(10, ["supabase/migrations/20261009170000_rc430_payment.sql"]) },
+    { prNumber: 20, entries: migrationEntries(20, ["supabase/migrations/20261009170000_mantigo_scope.sql", "supabase/migrations/20261010030000_rc441_scope.sql"]) },
+    { prNumber: 30, entries: migrationEntries(30, ["supabase/migrations/20261010040000_rc442_erp.sql"]) }
   ];
   const collisions = crossPullRequestCollisions(candidates);
-  assert.equal(collisions.length, 1, "one duplicated migration version should be detected");
+  assert.equal(collisions.length, 1);
   assert.equal(collisions[0].version, "20261009170000");
-  assert.deepEqual(collisionsForPullRequest(collisions, 10).length, 1);
-  assert.deepEqual(collisionsForPullRequest(collisions, 20).length, 1);
+  assert.equal(collisionsForPullRequest(collisions, 10).length, 1);
+  assert.equal(collisionsForPullRequest(collisions, 20).length, 1);
   assert.equal(collisionsForPullRequest(collisions, 30).length, 0);
+  assert.equal(collisionsForPullRequest(collisions, 99).length, 0);
+  assert.equal(crossPullRequestCollisions([candidates[0], candidates[2]]).length, 0);
   assert.equal(crossPullRequestCollisions([
     { prNumber: 40, entries: migrationEntries(40, [{ filename: "supabase/migrations/20261010050000_same.sql", sha: "same" }]) },
     { prNumber: 41, entries: migrationEntries(41, [{ filename: "supabase/migrations/20261010050000_same.sql", sha: "same" }]) }
-  ]).length, 0, "same path and same blob is not a collision");
+  ]).length, 0);
   assert.equal(crossPullRequestCollisions([
     { prNumber: 50, entries: migrationEntries(50, [{ filename: "supabase/migrations/20261010060000_same.sql", sha: "one" }]) },
     { prNumber: 51, entries: migrationEntries(51, [{ filename: "supabase/migrations/20261010060000_same.sql", sha: "two" }]) }
-  ]).length, 1, "same path with divergent content is a collision");
+  ]).length, 1);
   console.log("Cross-PR migration collision detector self-test: PASS");
   process.exit(0);
 }
@@ -121,23 +106,15 @@ try {
   const current = await githubGet("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber);
   const openPulls = await getAllPages("https://api.github.com/repos/" + repository + "/pulls?state=open");
   const comparable = openPulls.filter(pr =>
-    pr.number !== currentPrNumber &&
     pr.base?.ref === current.base?.ref &&
     pr.base?.repo?.full_name === current.base?.repo?.full_name
   );
 
-  const currentFiles = await getAllPages("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber + "/files");
-  const all = [{
-    prNumber: currentPrNumber,
-    url: current.html_url,
-    base: current.base,
-    entries: migrationEntries(currentPrNumber, currentFiles)
-  }];
-
+  const all = [];
   for (const pr of comparable) {
     const files = await getAllPages("https://api.github.com/repos/" + repository + "/pulls/" + pr.number + "/files");
     const entries = migrationEntries(pr.number, files);
-    if (entries.length) all.push({ prNumber: pr.number, url: pr.html_url, base: pr.base, entries });
+    if (entries.length) all.push({ prNumber: pr.number, title: pr.title, url: pr.html_url, base: pr.base, entries });
   }
 
   const collisions = crossPullRequestCollisions(all);
@@ -160,7 +137,7 @@ try {
   }
 
   if (collisions.length) {
-    console.warn("Known cross-PR migration collisions exist elsewhere, but the current PR does not introduce or modify a colliding migration; reporting as warnings.");
+    console.warn("Known cross-PR migration collisions exist elsewhere, but the current PR does not introduce or modify a colliding migration; not blocking this unrelated PR.");
     for (const collision of collisions) {
       console.warn("- version " + collision.version + " between PR #" + collision.leftPr + " and PR #" + collision.rightPr);
     }
