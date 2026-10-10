@@ -32,6 +32,10 @@ jobs:
           grep -q "MNTYModuleRuntime" web/module-blueprints.js
       - name: Canonical module feature-flag codes
         run: node scripts/validate-module-feature-flag-codes.mjs
+      - name: Matrimony privacy boundary source contract
+        run: node scripts/validate-matrimony-privacy-boundary.mjs
+      - name: Enterprise domain read error contract
+        run: node scripts/validate-enterprise-domain-read-errors.mjs
       - name: Cross-PR migration collision detector self-test
         run: node scripts/validate-open-pr-migration-collisions.mjs --self-test
       - name: Production security validators
@@ -42,3 +46,34 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
+
+  matrimony-privacy-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_matrimony_privacy_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_matrimony_privacy_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply fixture, migration, and privacy tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc443_matrimony_privacy_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261010130000_rc443_matrimony_profile_privacy_boundary.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc443_matrimony_privacy_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_privacy_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_privacy_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_privacy_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
