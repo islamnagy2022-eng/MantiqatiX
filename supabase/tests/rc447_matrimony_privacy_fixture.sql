@@ -29,8 +29,8 @@ grant usage on schema auth to public;
 grant execute on function auth.uid() to public;
 grant execute on function auth.jwt() to public;
 
-create or replace function public.is_platform_admin()
-returns boolean language sql stable as $function$ select false $function$;
+-- Deliberately returns true: the trigger must not trust this generic admin helper.\ncreate or replace function public.is_platform_admin()
+returns boolean language sql stable as $function$ select true $function$;
 grant execute on function public.is_platform_admin() to authenticated;
 
 create table public.matrimony_profiles(
