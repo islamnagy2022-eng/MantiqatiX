@@ -32,7 +32,7 @@ security definer
 set search_path = ''
 as $function$
 begin
-  if auth.uid() is null then
+  if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
     raise exception 'AUTH_REQUIRED' using errcode = '28000';
   end if;
 
@@ -66,7 +66,7 @@ declare
   v_request public.matrimony_requests%rowtype;
   v_target_profile_id uuid;
 begin
-  if auth.uid() is null then
+  if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
     raise exception 'AUTH_REQUIRED' using errcode = '28000';
   end if;
   if p_request_id is null then
