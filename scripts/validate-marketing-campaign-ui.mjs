@@ -6,8 +6,8 @@ const index = fs.readFileSync("web/index.html", "utf8");
 
 assert.match(app, /function marketingCampaignWorkspace\(\)/, "marketing campaign workspace must be rendered");
 assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign data must load through a dedicated error-aware reader");
-assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,created_by'/, "campaign reads must use an explicit field allowlist");
-assert.match(app, /marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by,responded_at,created_at'/, "participant reads must use an explicit field allowlist");
+assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
+assert.match(app, /marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'/, "participant reads must use an explicit field allowlist");
 assert.match(app, /live\.marketingCampaignErrors\.push\('marketing_campaigns'\)/, "failed campaign reads must be surfaced, not presented as empty");
 assert.match(app, /sb\.rpc\('create_marketing_campaign_backend'/, "campaign creation must use the authorized backend RPC");
 assert.match(app, /sb\.rpc\('invite_marketing_campaign_partner_backend'/, "partner invitations must use the authorized backend RPC");
