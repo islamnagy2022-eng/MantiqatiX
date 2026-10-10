@@ -64,6 +64,8 @@ security definer
 set search_path = ''
 as $function$
   select p_business_id is not null
+    and auth.uid() is not null
+    and not coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false)
     and exists (
       select 1
       from public.businesses b
@@ -159,7 +161,7 @@ declare
   v_organization character varying;
   v_campaign_id uuid;
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+  if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then raise exception 'AUTH_REQUIRED'; end if;
   if p_actor is distinct from auth.uid() then raise exception 'ACTOR_MISMATCH'; end if;
   if not public.mnty_can_manage_marketing_business(p_business_id) then raise exception 'MARKETING_BUSINESS_SCOPE_REQUIRED'; end if;
 
@@ -268,7 +270,7 @@ declare
   v_allocated numeric;
   v_reinvite boolean := false;
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+  if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then raise exception 'AUTH_REQUIRED'; end if;
   if p_actor is distinct from auth.uid() then raise exception 'ACTOR_MISMATCH'; end if;
   select * into v_campaign from public.marketing_campaigns where id=p_campaign_id for update;
   if not found then raise exception 'MARKETING_CAMPAIGN_NOT_FOUND'; end if;
@@ -359,7 +361,7 @@ declare
   v_campaign public.marketing_campaigns%rowtype;
   v_decision character varying;
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+  if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then raise exception 'AUTH_REQUIRED'; end if;
   if p_actor is distinct from auth.uid() then raise exception 'ACTOR_MISMATCH'; end if;
   v_decision := pg_catalog.upper(pg_catalog.btrim(coalesce(p_decision,'')));
   if v_decision not in ('ACCEPTED','DECLINED') then raise exception 'MARKETING_INVITATION_DECISION_INVALID'; end if;
@@ -415,7 +417,7 @@ declare
   v_old_status character varying;
   v_allowed boolean := false;
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
+  if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then raise exception 'AUTH_REQUIRED'; end if;
   if p_actor is distinct from auth.uid() then raise exception 'ACTOR_MISMATCH'; end if;
   v_status := pg_catalog.upper(pg_catalog.btrim(coalesce(p_status,'')));
   if v_status not in ('DRAFT','PLANNED','IN_REVIEW','APPROVED','PAUSED','COMPLETED','CANCELLED') then raise exception 'MARKETING_STATUS_INVALID'; end if;
