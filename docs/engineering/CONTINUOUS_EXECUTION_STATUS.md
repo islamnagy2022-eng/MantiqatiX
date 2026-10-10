@@ -1,8 +1,26 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 — RC449A journal schema prerequisite merged; production release not certified
+Last updated: 2026-10-11 — RC453 fixture failure recorded; production release not certified
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
+
+## Latest continuation — RC453 campaign CI and production evidence (2026-10-11)
+
+- Current main checkpoint at the start of this update: `15fc229961c1b3db77394eeec0f77121ee5d3442` (`fix(security): scope marketing CRM reads by tenant and business`).
+- RC453 marketing campaign backend exact-head run [38088438757](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38088438757): source-contract validation passed, but `marketing-campaign-postgres` failed before migration execution because the disposable fixture's `auth.jwt()` SQL body used an unmatched single-dollar delimiter (`as $ ... # MantiqatiX Continuous Execution Status
+Last updated: 2026-10-11 — RC453 fixture failure recorded; production release not certified
+
+## Release status
+**NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
+
+). This is a test-fixture syntax defect, not evidence that the migration passed.
+- Corrected the fixture to use a matching `$ ... $` delimiter and committed it as `fca03edbdc4006b23708a9cc07bc2a47e40c53f2` on `feat/marketing-campaign-backend-rc453-20261010`. A fresh workflow run for that corrected commit has **not yet been observed**; RC453 remains unverified until its PostgreSQL integration job passes on the corrected head.
+- Read-only production schema inspection confirmed that the RC453 references used by the migration exist in the live schema: `businesses.organization_id`, `user_memberships.permissions`, the marketing provider owner/status/verification fields, and the audit/notification columns. This is schema compatibility evidence only; the RC453 migration is not applied and no campaign data was created.
+- Read-only Supabase migration ledger still ends at RC424 version `20261008222845`. RC447/448/449/449A/450 and RC453 remain source-only; do not infer production deployment from branch CI.
+- Security Advisor snapshot observed at `2026-10-10T21:40Z`: one anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), 40 authenticated-executable SECURITY DEFINER functions, and an informational finding for `digital_page_payment_events` having RLS enabled without policies. These findings require function-by-function intent/ACL review; do not apply blanket revocations that may break intended endpoints.
+- No production migration, grant/RLS/Auth change, financial mutation, payment, Edge Function deployment, campaign creation, or external ad publishing occurred during this continuation.
+
+**Release remains NOT CERTIFIED.** Static checks and source-only migrations do not substitute for the corrected isolated PostgreSQL suite, ordered migration rehearsal, authenticated runtime tests, and explicit production rollout approval.
 
 ## Latest verified continuation — RC449A financial schema prerequisite (2026-10-10)
 
