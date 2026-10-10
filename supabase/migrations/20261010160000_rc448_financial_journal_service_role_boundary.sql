@@ -44,11 +44,31 @@ declare
   v_total_credit numeric := coalesce((p_entry->>'total_credit')::numeric,0);
   v_line jsonb; v_line_count int := 0; v_line_debit numeric := 0; v_line_credit numeric := 0;
   v_account varchar; v_role text; v_insert_line_no int := 0;
+  v_business_id uuid := nullif(p_entry->>'business_id','')::uuid;
+  v_branch_id varchar := nullif(p_entry->>'branch_id','');
+  v_org_id varchar := nullif(p_entry->>'organization_id','');
 begin
   if p_user_id is null or (coalesce(current_setting('request.jwt.claim.role', true),'') <> 'service_role' and p_user_id <> auth.uid()) then raise exception 'USER_CONTEXT_MISMATCH'; end if;
   if v_tenant is null or v_tenant='' then raise exception 'TENANT_REQUIRED'; end if;
+  if v_business_id is not null and not exists(
+    select 1 from public.businesses b
+    where b.id=v_business_id and b.tenant_id=v_tenant
+      and upper(b.status)='ACTIVE'
+      and b.organization_id is not distinct from v_org_id
+  ) then raise exception 'BUSINESS_NOT_ACTIVE_FOR_TENANT'; end if;
+  if v_branch_id is not null and (
+    v_business_id is null or not exists(
+      select 1 from public.branches b
+      where b.id=v_branch_id and b.tenant_id=v_tenant and b.business_id=v_business_id
+        and upper(b.status)='ACTIVE'
+        and b.organization_id is not distinct from v_org_id
+    )
+  ) then raise exception 'BRANCH_NOT_ACTIVE_FOR_BUSINESS'; end if;
   select upper(um.role) into v_role from public.user_memberships um
   where um.user_id=p_user_id and um.tenant_id::text=v_tenant and um.status='ACTIVE'
+    and (um.business_id is null or um.business_id=v_business_id)
+    and (um.branch_id is null or um.branch_id=v_branch_id)
+    and (um.organization_id is null or um.organization_id=v_org_id)
     and upper(um.role)=any(array['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE','FINANCE_MANAGER']) limit 1;
   if v_role is null then raise exception 'FINANCIAL_MEMBERSHIP_REQUIRED'; end if;
   if v_total_debit<=0 or v_total_debit<>v_total_credit then raise exception 'UNBALANCED_JOURNAL'; end if;
