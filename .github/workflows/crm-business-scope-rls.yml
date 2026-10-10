@@ -1,0 +1,53 @@
+name: CRM Business Scope RLS
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261010140000_rc444_crm_business_scope_rls.sql"
+      - "supabase/tests/rc444_crm_scope_fixture.sql"
+      - "supabase/tests/rc444_crm_scope_integration.sql"
+      - "scripts/validate-crm-business-scope-rls.mjs"
+      - ".github/workflows/crm-business-scope-rls.yml"
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Validate CRM business scope contract
+        run: node scripts/validate-crm-business-scope-rls.mjs
+  crm-business-scope-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc444_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc444_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run RC444 CRM business-scope tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc444_crm_scope_fixture.sql "$pg_container:/tmp/rc444_fixture.sql"
+          docker cp supabase/migrations/20261010140000_rc444_crm_business_scope_rls.sql "$pg_container:/tmp/rc444_migration.sql"
+          docker cp supabase/tests/rc444_crm_scope_integration.sql "$pg_container:/tmp/rc444_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc444_test -v ON_ERROR_STOP=1 -f /tmp/rc444_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc444_test -v ON_ERROR_STOP=1 -f /tmp/rc444_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc444_test -v ON_ERROR_STOP=1 -f /tmp/rc444_test.sql
