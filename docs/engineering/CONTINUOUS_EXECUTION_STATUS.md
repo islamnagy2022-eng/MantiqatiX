@@ -6,8 +6,8 @@ Last updated: 2026-10-10 13:00 UTC
 
 ## Safety/actions taken
 - All live Supabase queries in this execution cycle were read-only.
-- No production migrations, grants, RLS/Auth settings, data, payments, or deployments were changed.
-- Two source/CI-only PRs were merged after review and passing CI: #124 (cross-PR migration collision guard) and #132 (canonical module aliases).
+- No production database migrations, grants, RLS/Auth settings, financial data, payments, or payment Edge Functions were changed/deployed. Static GitHub Pages deployment did occur on the latest main commit and passed smoke verification.
+- Source/CI-only PRs #124 (cross-PR migration collision guard), #132 (canonical module aliases), and #133 (local migration-version uniqueness guard) were merged after passing CI.
 - No changes were merged that apply database migrations or modify production configuration.
 
 ## Current main
