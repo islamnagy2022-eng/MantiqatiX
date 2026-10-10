@@ -5,12 +5,14 @@ on:
     paths:
       - "supabase/migrations/20261010161000_rc448_matrimony_request_lifecycle_authority.sql"
       - "supabase/tests/rc448_matrimony_request_lifecycle_integration.sql"
+      - "supabase/tests/rc448_matrimony_request_lifecycle_grants_fixture.sql"
       - ".github/workflows/matrimony-request-lifecycle.yml"
   push:
     branches: [main]
     paths:
       - "supabase/migrations/20261010161000_rc448_matrimony_request_lifecycle_authority.sql"
       - "supabase/tests/rc448_matrimony_request_lifecycle_integration.sql"
+      - "supabase/tests/rc448_matrimony_request_lifecycle_grants_fixture.sql"
       - ".github/workflows/matrimony-request-lifecycle.yml"
 
 jobs:
