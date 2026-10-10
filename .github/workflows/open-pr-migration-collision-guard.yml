@@ -1,0 +1,29 @@
+name: Open PR Migration Collision Guard
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  cross-pr-migration-collisions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Test collision detector
+        run: node scripts/validate-open-pr-migration-collisions.mjs --self-test
+      - name: Compare changed migrations across open PRs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+        run: node scripts/validate-open-pr-migration-collisions.mjs
