@@ -30,6 +30,8 @@ jobs:
           grep -q "window.MNTYModuleRuntime" web/app.js
           grep -q "syncModuleRuntime" web/app.js
           grep -q "MNTYModuleRuntime" web/module-blueprints.js
+      - name: Enterprise domain read error contract
+        run: node scripts/validate-enterprise-domain-read-errors.mjs
       - name: Production security validators
         run: |
           node scripts/validate-production-security.mjs
