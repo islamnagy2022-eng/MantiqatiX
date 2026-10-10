@@ -5,6 +5,8 @@ on:
       - main
     paths:
       - "supabase/migrations/**"
+      - "scripts/validate-open-pr-migration-collisions.mjs"
+      - ".github/workflows/open-pr-migration-collision-guard.yml"
 permissions:
   contents: read
   pull-requests: read
