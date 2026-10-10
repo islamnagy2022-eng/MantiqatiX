@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 14:32 UTC
+Last updated: 2026-10-10 — security review continuation
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
@@ -138,3 +138,24 @@ All Supabase production queries were read-only. No production migrations, table 
 - ISOLATED_DB_VERIFIED: disposable PostgreSQL integration passed.
 - PRODUCTION_VERIFIED: production state checked after approved rollout.
 - NOT VERIFIED: no adequate evidence.
+
+## Continuation security review — 2026-10-10
+
+### Candidate freshness and overlap
+- Read-only GitHub compare found the combined matrimony/workspace candidate PR #129's branch `fix/matrimony-profile-privacy-20261010` is behind/diverged from current main (main checkpoint `e9a42941a6b99c9b67017458ab51dea612ee6ea0)); PR #129's latest observed head `738f06c733af5ee0ca0c14342a91af8ae1ecadb7` had no fresh workflow runs returned by the current check. PR #129 currently reports `mergeable=false`. Do not merge until rebuilt against current main, conflicts resolved, and latest-head CI/integration evidence passes.
+- The separate older matrimony candidate PR #119 had passing source-contract and disposable-PostgreSQL runs on head `3abe4e10560e061df23c77b6d5802f731dea8d8e` (runs `38060226500`, `38060226557`, with migration guards `38060226503`, `38060226524` successful). This is not proof that PR #129's distinct combined head passes.
+- PRs #111, #126, #119, and #120 were reopened as backup review candidates after a premature closure, because the consolidated replacements have not yet been proven mergeable and current-head verified. Keep overlapping candidates unmerged; select one canonical implementation per domain and reconcile migration order before release.
+- PR #130's RC444 CRM migration is also a source candidate, not production state. It is stacked on the matrimony/workspace work; refresh its base and validate the final combined candidate before merge. PR #120 is a duplicate/alternate RC566 CRM candidate and remains open only as a backup.
+- PR #138 and PR #139 are documented as merged documentation-only changes; their merges do not certify the production backend.
+
+### Read-only production authorization findings
+- `public.matrimony_profiles` currently has a permissive `matrimony_profiles_select` policy for authenticated non-anonymous sessions without an owner predicate. The proposed RC443 migration replaces that policy with `owner_user_id = auth.uid()`, but RC443 is not applied to production. Do not claim the matrimony privacy fix is live.
+- `public.matrimony_contact_unlocks` currently grants authenticated INSERT, with a permissive policy allowing either party to create an unlock row for an `ACCEPTED_MUTUAL` request. The proposed RC443 contact RPC treats row existence as the unlock gate. If unlocking is meant to require payment or server approval, this is a bypass risk; if mutual acceptance alone is intended, document that product contract and test it explicitly. Review note added to PR #129 (comment `6098584785`).
+- Live CRM policies `CRM managers view marketing leads` and `CRM managers view marketing providers` currently grant SELECT based on active role alone, without business binding. RC444 proposes business-scoped membership checks and explicit platform full-control checks; it has not been applied to production.
+- PR #87 / RC564 financial-journal source currently checks active finance membership by actor + tenant and chart account tenant, but does not bind the entry's business/branch scope to the actor or account. Review comment `6098613000` blocks merge pending an explicit scope contract and cross-business/cross-branch denial tests.
+
+### Safety boundary
+- This continuation used read-only Supabase catalog/privilege queries and GitHub source/CI review only.
+- No production migrations, data writes, grants, RLS/Auth settings, Edge Function deployments, payments, wallet changes, or financial operations were performed.
+- The latest post-merge GitHub Pages deployment was not independently rechecked during this review; prior Pages smoke verification remains limited to its recorded commit/run.
+
