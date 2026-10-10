@@ -123,5 +123,3 @@ begin
 end;
 $verify$;
 
-comment on table public.journal_entries is
-  'RC449A restores journal header fields required by the existing posting/reversal functions and the RC450 service-role boundary.';
