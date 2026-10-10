@@ -13,7 +13,6 @@ GRANT USAGE ON SCHEMA auth TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION auth.uid() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION auth.jwt() TO PUBLIC;
 GRANT USAGE ON SCHEMA public TO authenticated;
-GRANT SELECT ON public.user_memberships TO authenticated;
 
 CREATE TABLE public.user_memberships (
   id text PRIMARY KEY,
@@ -37,6 +36,8 @@ CREATE TABLE public.marketing_provider_profiles (
   name_ar text NOT NULL,
   status text NOT NULL
 );
+
+GRANT SELECT ON public.user_memberships TO authenticated;
 ALTER TABLE public.marketing_leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_provider_profiles ENABLE ROW LEVEL SECURITY;
 GRANT SELECT ON public.marketing_leads, public.marketing_provider_profiles TO authenticated;
