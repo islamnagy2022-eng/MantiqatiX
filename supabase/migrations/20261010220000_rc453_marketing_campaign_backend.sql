@@ -78,7 +78,7 @@ as $function$
                 um.business_id = b.id
                 or (
                   um.business_id is null
-                  and pg_catalog.upper(pg_catalog.coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+                  and pg_catalog.upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
                 )
               )
           )
@@ -376,6 +376,7 @@ as $function$
 declare
   v_campaign public.marketing_campaigns%rowtype;
   v_status character varying;
+  v_old_status character varying;
   v_allowed boolean := false;
 begin
   if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
@@ -387,6 +388,7 @@ begin
   if not found then raise exception 'MARKETING_CAMPAIGN_NOT_FOUND'; end if;
   if not public.mnty_can_manage_marketing_business(v_campaign.business_id) then raise exception 'MARKETING_BUSINESS_SCOPE_REQUIRED'; end if;
   if v_campaign.status=v_status then return pg_catalog.jsonb_build_object('campaign_id',v_campaign.id,'status',v_status,'idempotent',true); end if;
+  v_old_status := v_campaign.status;
 
   v_allowed := case v_campaign.status
     when 'DRAFT' then v_status in ('PLANNED','IN_REVIEW','CANCELLED')
@@ -405,7 +407,7 @@ begin
   insert into public.audit_logs(id,tenant_id,organization_id,business_id,actor_user_id,action,entity_type,entity_id,old_values,new_values,result)
   select 'MCA-'||pg_catalog.gen_random_uuid()::text,v_campaign.tenant_id,b.organization_id,v_campaign.business_id,auth.uid(),
          'MARKETING_CAMPAIGN_STATUS_CHANGED','MARKETING_CAMPAIGN',v_campaign.id::text,
-         pg_catalog.jsonb_build_object('status',case when v_status='DRAFT' then 'DRAFT' else 'PREVIOUS' end),
+         pg_catalog.jsonb_build_object('status',v_old_status),
          pg_catalog.jsonb_build_object('status',v_status),'SUCCESS'
   from public.businesses b where b.id=v_campaign.business_id;
 
