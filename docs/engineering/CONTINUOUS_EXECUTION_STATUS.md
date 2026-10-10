@@ -96,5 +96,11 @@ Earlier read-only PR discussion evidence reports exposed MantiGO RPCs with `sear
 - RC441 integration assertions were expanded to verify that `anon` cannot execute the stale-ride expiration RPC and that `authenticated` retains the intended entrypoint grants for all four RPCs, while authorization remains enforced inside the functions.
 - Commit `35cbb88b7e481c40a041357e489269d174deb003` updated `supabase/tests/rc441_platform_admin_integration.sql`.
 - Commit `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8` updated `scripts/validate-platform-admin-scope.mjs` to require those ACL assertions.
-- On this head, Backend-only Module Boundary passed; the full Module Professionalization Validation workflow was queued at last check. Do not mark the latest test changes CI_VERIFIED until that workflow completes successfully.
+- On this head, Backend-only Module Boundary and Module Professionalization Validation both passed. The full Module Professionalization Validation run `38052631687` completed successfully across all 12 jobs, including RC440 search-path integration, RC441 platform-admin integration, digital-page payment binding, subscription intent, financial journal, ERP receiving, and the source validators. CI evidence is commit-specific; it does not imply production convergence.
 - PR #121 was closed without merge as superseded by PR #84's canonical RC441 integration workflow.
+
+
+## CI completion — 2026-10-10 12:42 UTC
+- PR #84 head `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8`: Module Professionalization Validation run `38052631687` **SUCCESS**, all 12 jobs completed successfully. Backend-only Module Boundary run `38052631721` **SUCCESS**. Pages validation run `38052631639` **SUCCESS**, but the `deploy` job was skipped.
+- RC441 integration now includes ACL assertions for anon denial on expiration and intended authenticated grants across all four global RPCs; both source validator and disposable PostgreSQL integration passed on the same PR head.
+- Production parity recheck found the live digital-page payment processor lacks the RC424 source's provider-order binding guard and replay-status guard, despite a recent ledger row named RC424 under a different version. This discrepancy is not resolved by CI and remains a release blocker.
