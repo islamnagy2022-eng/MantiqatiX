@@ -116,6 +116,29 @@ begin
 end;
 $function$;
 
+-- Profile owners must not self-assert verification on insert or update.
+create or replace function private.guard_matrimony_profile_verification()
+returns trigger
+language plpgsql
+set search_path = ''
+as $function$
+begin
+  if not coalesce(public.is_platform_admin(),false) then
+    if tg_op='INSERT' and new.is_verified is true then
+      raise exception 'MATRIMONY_VERIFICATION_SERVER_ONLY' using errcode='42501';
+    elsif tg_op='UPDATE' and new.is_verified is distinct from old.is_verified then
+      raise exception 'MATRIMONY_VERIFICATION_SERVER_ONLY' using errcode='42501';
+    end if;
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists matrimony_profile_verification_guard on public.matrimony_profiles;
+create trigger matrimony_profile_verification_guard
+before insert or update on public.matrimony_profiles
+for each row execute function private.guard_matrimony_profile_verification();
+
 revoke all on function public.matrimony_discover_profiles_backend(integer,text,text) from public,anon;
 grant execute on function public.matrimony_discover_profiles_backend(integer,text,text) to authenticated;
 revoke all on function public.matrimony_get_unlocked_contact_backend(uuid) from public,anon;
