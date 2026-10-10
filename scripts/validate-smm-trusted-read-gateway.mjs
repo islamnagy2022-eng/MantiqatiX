@@ -2,12 +2,18 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const web = fs.readFileSync("web/smm.js", "utf8");
+const app = fs.readFileSync("web/app.js", "utf8");
+const index = fs.readFileSync("web/index.html", "utf8");
+const html = fs.readFileSync("web/smm.html", "utf8");
 const gateway = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
 
 assert.match(web, /fn\(\{action:'catalog'\}\)/, "SMM catalog must use the trusted gateway");
 assert.match(web, /fn\(\{action:'my_data'\}\)/, "SMM account reads must use the trusted gateway");
 assert.doesNotMatch(web, /sb\.from\(['"]smm_(services|orders|wallets|providers|provider_credentials|order_events|wallet_transactions)['"]\)/, "browser must not directly read restricted SMM tables");
 assert.doesNotMatch(web, /sb\.from\(['"]user_memberships['"]\)/, "SMM page should not read membership rows directly");
+assert.match(app, /iframe src="smm\.html\?v=smm9"/, "embedded SMM module must use the current cache key");
+assert.match(index, /app\.js\?v=rc452/, "main app bundle cache key must be bumped with this release");
+assert.match(html, /src="smm\.js\?v=smm9"/, "SMM module script must use the current cache key");
 
 const catalogStart = gateway.indexOf('if(a==="catalog")');
 const accountStart = gateway.indexOf('if(a==="my_data")');
