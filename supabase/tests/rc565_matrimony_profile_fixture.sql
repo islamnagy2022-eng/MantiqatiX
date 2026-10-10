@@ -29,6 +29,10 @@ AS $function$
   SELECT coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{}'::jsonb)
 $function$;
 
+GRANT USAGE ON SCHEMA auth TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION auth.uid() TO PUBLIC;
+GRANT EXECUTE ON FUNCTION auth.jwt() TO PUBLIC;
+
 CREATE TABLE public.matrimony_profiles (
   id uuid PRIMARY KEY,
   owner_user_id uuid NOT NULL,
