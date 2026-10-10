@@ -94,6 +94,15 @@ begin
   if has_function_privilege('anon','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE') then
     raise exception 'anon must not execute platform settlement';
   end if;
+  if has_function_privilege('anon','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE') then
+    raise exception 'anon must not execute platform ride expiration';
+  end if;
+  if not has_function_privilege('authenticated','public.get_mantigo_admin_dashboard_backend(uuid)','EXECUTE')
+     or not has_function_privilege('authenticated','public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)','EXECUTE')
+     or not has_function_privilege('authenticated','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE')
+     or not has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE') then
+    raise exception 'authenticated role must retain intended RPC entrypoint grants; authorization is enforced inside each RPC';
+  end if;
 
   -- Authorized platform-admin settlement is persisted and replay-safe.
   result := public.settle_mantigo_captain_backend(platform_admin,'ride-rc441','BANK_TRANSFER');
