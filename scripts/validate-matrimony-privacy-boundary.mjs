@@ -26,6 +26,8 @@ assert.doesNotMatch(discover, /wali_contact_phone|direct_contact_phone|financial
 assert.match(migration, /function public\.matrimony_get_unlocked_contact_backend/i);
 assert.match(migration, /guard_matrimony_profile_verification/i, "profile owners must not self-assert verification");
 assert.match(migration, /MATRIMONY_VERIFICATION_SERVER_ONLY/);
+assert.match(migration, /current_user not in \\(\x27postgres\x27,\x27service_role\x27\\)/i, "verification changes must be restricted to trusted server/database roles");
+assert.doesNotMatch(migration, /public\\.is_platform_admin\\(\\)/i, "generic admin helper must not bypass server-only verification");
 const contact = migration.slice(contactStart);
 assert.match(contact, /v_request[.]status IS DISTINCT FROM 'ACCEPTED_MUTUAL'/i, "contact release must fail closed for every non-mutual state");
 assert.match(contact, /is_anonymous/, "contact retrieval must reject anonymous Auth sessions");
