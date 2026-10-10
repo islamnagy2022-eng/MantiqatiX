@@ -11,7 +11,8 @@ insert into public.matrimony_profiles(
 insert into public.matrimony_requests(id,from_user_id,to_profile_id,status,message_text)
 values
  ('50000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','ACCEPTED_MUTUAL','test'),
- ('50000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000003','ACCEPTED_MUTUAL','test');
+ ('50000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000003','ACCEPTED_MUTUAL','test'),
+ ('50000000-0000-4000-8000-000000000003','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','PENDING','consent test');
 
 insert into public.matrimony_contact_unlocks(id,request_id)
 values ('60000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001');
@@ -57,6 +58,20 @@ begin
   if sqlerrm='TEST_FAILED: contact without unlock unexpectedly succeeded' then raise; end if;
   if sqlerrm<>'CONTACT_NOT_UNLOCKED' then raise; end if;
  end;
+
+ -- The sender has broad legacy UPDATE policy, but cannot self-accept the request.
+ begin
+  update public.matrimony_requests
+  set status='ACCEPTED_MUTUAL'
+  where id='50000000-0000-4000-8000-000000000003';
+  raise exception 'TEST_FAILED: requester self-acceptance unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: requester self-acceptance unexpectedly succeeded' then raise; end if;
+  if sqlerrm<>'MATRIMONY_REQUEST_STATUS_RECIPIENT_ONLY' then raise; end if;
+ end;
+ if (select status from public.matrimony_requests where id='50000000-0000-4000-8000-000000000003') <> 'PENDING' then
+  raise exception 'TEST_FAILED: denied self-acceptance changed request status';
+ end if;
 end;
 $user_a$;
 reset role;
@@ -68,6 +83,12 @@ declare
  v_count integer;
  v_phone text;
 begin
+ update public.matrimony_requests
+ set status='ACCEPTED_MUTUAL'
+ where id='50000000-0000-4000-8000-000000000003';
+ if (select status from public.matrimony_requests where id='50000000-0000-4000-8000-000000000003') <> 'ACCEPTED_MUTUAL' then
+  raise exception 'TEST_FAILED: target profile owner could not accept request';
+ end if;
  if (select count(*) from public.matrimony_profiles) <> 1
     or exists(select 1 from public.matrimony_profiles where id='40000000-0000-4000-8000-000000000001') then
   raise exception 'TEST_FAILED: second user can read another raw profile';
