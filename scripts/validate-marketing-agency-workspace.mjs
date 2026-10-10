@@ -15,6 +15,6 @@ assert.match(app, /bindMarketingAgencyWorkspace\(\);/);
 assert.match(app, /data-marketing-tab-go/);
 assert.match(app, /ADS API/);
 assert.match(app, /NOT CONNECTED/);
-assert.match(index, /app\\.js\\?v=rc454-marketing-workspace-20261010/);
+assert.match(index, /app\.js\?v=rc454-marketing-workspace-20261010/);
 
 console.log("Marketing agency workspace contract: PASS (12 assertions)");
