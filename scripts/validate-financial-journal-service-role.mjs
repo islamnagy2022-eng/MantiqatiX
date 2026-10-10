@@ -19,6 +19,7 @@ assert.match(migration, /um\.user_id=p_user_id[\s\S]*?um\.status='ACTIVE'/i, "ac
 assert.match(migration, /um\.business_id is null or um\.business_id=v_business_id/i, "business-scoped memberships must not cross businesses");
 assert.match(migration, /um\.branch_id is null or um\.branch_id=v_branch_id/i, "branch-scoped memberships must not cross branches");
 assert.match(migration, /BUSINESS_NOT_ACTIVE_FOR_TENANT/);
+assert.match(migration, /to_regclass\('public[.]businesses'\)[\s\S]*?to_regclass\('public[.]branches'\)/i, "business and branch schema must exist before migration");
 assert.match(migration, /v_org_id := coalesce\(v_org_id,v_business_org_id\)/i, "business organization must be derived and bound when omitted");
 assert.match(migration, /BUSINESS_ORGANIZATION_MISMATCH/);
 assert.match(migration, /BRANCH_NOT_ACTIVE_FOR_BUSINESS/);
