@@ -173,7 +173,7 @@ RC449 is now merged in main and hardens these RPCs behind an active `MNTY-PLATFO
 - PR #129 is now a combined candidate targeting `main`: enterprise read-error visibility + dedicated MEDICAL workspace + matrimony privacy boundary. Latest source edits reject anonymous Auth sessions in both matrimony RPCs, retain the production-style restrictive anonymous-session guard in the disposable fixture, and test anonymous raw reads, discovery, and contact denial. Source-level assertions passed in-session; latest-head CI evidence is still required before merge.
 - PR #111 and #126 overlap the read-error/MEDICAL changes now being carried by #129. Keep them unmerged; close as superseded only after the combined candidate passes latest-head CI.
 - PR #101 ERP server-mutation candidate was relabeled RC445 because RC442 is now used by merged approval-audit work. Its workflow was reconciled with the current main workflow to retain both the approval-audit and ERP integration jobs. Latest-head CI and mergeability still need rechecking.
-- PR #87 financial-journal service-role boundary remains open; review must resolve business/branch scope binding before merge.
+- PR #87 was closed without merge on 2026-10-10 as superseded by RC449A/RC450. Its RC564 RPC lacked business/branch binding; do not reopen or apply that migration.
 - PR #84 remains blocked by the immutable RC424 source/ledger mismatch and payment runtime parity. Do not merge or deploy it as-is.
 
 ### Release-candidate migration labels
@@ -208,7 +208,7 @@ All Supabase production queries were read-only. No production migrations, table 
 - `public.matrimony_profiles` currently has a permissive `matrimony_profiles_select` policy for authenticated non-anonymous sessions without an owner predicate. The proposed RC443 migration replaces that policy with `owner_user_id = auth.uid()`, but RC443 is not applied to production. Do not claim the matrimony privacy fix is live.
 - `public.matrimony_contact_unlocks` currently grants authenticated INSERT, with a permissive policy allowing either party to create an unlock row for an `ACCEPTED_MUTUAL` request. The proposed RC443 contact RPC treats row existence as the unlock gate. If unlocking is meant to require payment or server approval, this is a bypass risk; if mutual acceptance alone is intended, document that product contract and test it explicitly. Review note added to PR #129 (comment `6098584785`).
 - Live CRM policies `CRM managers view marketing leads` and `CRM managers view marketing providers` currently grant SELECT based on active role alone, without business binding. RC444 proposes business-scoped membership checks and explicit platform full-control checks; it has not been applied to production.
-- PR #87 / RC564 financial-journal source currently checks active finance membership by actor + tenant and chart account tenant, but does not bind the entry's business/branch scope to the actor or account. Review comment `6098613000` blocks merge pending an explicit scope contract and cross-business/cross-branch denial tests.
+- Historical PR #87 / RC564 financial-journal source checked active finance membership by actor + tenant and chart account tenant, but did not bind entry business/branch scope to the actor or account. PR #87 was closed without merge because RC450 supersedes it; its scope gap remains a reason not to reuse that stale branch.
 
 ### Safety boundary
 - This continuation used read-only Supabase catalog/privilege queries and GitHub source/CI review only.
@@ -229,7 +229,7 @@ All Supabase production queries were read-only. No production migrations, table 
 - RC448 is the forward-only server-authority migration that revokes direct authenticated DML on request/unlock tables and exposes scoped RPCs for request creation, recipient response, and contact unlock. Its disposable PostgreSQL tests are source/isolated-test evidence, not production proof.
 
 ### Other reviewed authorization gates
-- PR #87 financial-journal candidate: review comment `6098613000` requires explicit business/branch scope binding and negative cross-business/cross-branch tests.
+- PR #87 was closed without merge as superseded by RC450; use the mainline RC449A → RC450 chain and retain cross-business/cross-branch denial tests in the release acceptance suite.
 - PR #101 ERP service-mutation candidate: review comment `6098667875` requires a branch-scope contract and cross-branch negative tests for order and stock-transfer operations.
 - PR #129, #141, #119, #111, and #126 are closed or superseded; the staged replacements are RC447 (#154), RC448 (#160), and the dependent UI candidate (#158). Keep the UI gated until the approved backend rollout and live acceptance checks complete.
 - No production migrations, grants, RLS/Auth settings, Edge Function deployments, payments, or financial data were changed during this continuation.
@@ -273,3 +273,9 @@ All Supabase production queries were read-only. No production migrations, table 
 - RC447 (PR #154) and RC448 (PR #160) are in main source but are not applied to production. RC448 revokes direct authenticated request/unlock DML and routes request lifecycle transitions through backend RPCs, addressing the reviewed risk of sender self-acceptance through direct table updates.
 - UI PR #158 remains gated until RC447 and RC448 are approved/applied in order, production policies/RPCs are verified read-only, and authenticated browser acceptance tests pass.
 - No production schema, data, RLS/grants/Auth settings, Edge Functions, payments, or financial records were changed during this continuation.
+
+## Continuation reconciliation — financial-journal candidate (2026-10-10)
+
+- Closed stale PR #87 without merge. Its RC564 branch was superseded by RC449A/RC450 and lacked explicit business/branch binding; it must not be merged or deployed.
+- RC450 test assertion correction is merged as PR #169. The exact PR head passed the RC450 PostgreSQL integration and related validation suites; the main-commit workflow outcomes still require independent verification.
+- The supported source sequence remains RC449 → RC449A → RC450, all unapplied to production. Do not use RC564 as a substitute or apply any part of this sequence without the approved migration window.
