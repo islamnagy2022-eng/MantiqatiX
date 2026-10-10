@@ -129,6 +129,14 @@ begin
   ) then
     raise exception 'MATRIMONY_ACTIVE_REQUEST_DUPLICATES_REQUIRE_RECONCILIATION';
   end if;
+  if exists (
+    select 1
+    from public.matrimony_contact_unlocks
+    group by request_id
+    having count(*) > 1
+  ) then
+    raise exception 'MATRIMONY_DUPLICATE_CONTACT_UNLOCKS_REQUIRE_RECONCILIATION';
+  end if;
 end;
 $preflight$;
 
@@ -297,7 +305,7 @@ begin
 
   insert into public.matrimony_contact_unlocks(request_id)
   values (v_request.id)
-  returning public.matrimony_contact_unlocks.unlocked_at into v_unlocked_at;
+  returning unlocked_at into v_unlocked_at;
   return query select v_request.id,v_unlocked_at;
 end;
 $function$;
@@ -329,9 +337,9 @@ revoke all on function public.matrimony_discover_profiles_backend(integer,text,t
 grant execute on function public.matrimony_discover_profiles_backend(integer,text,text) to authenticated;
 revoke all on function public.matrimony_get_unlocked_contact_backend(uuid) from public,anon;
 grant execute on function public.matrimony_get_unlocked_contact_backend(uuid) to authenticated;
-revoke insert,update,delete on public.matrimony_requests from authenticated;
+revoke insert,update,delete on public.matrimony_requests from authenticated,anon;
 grant select on public.matrimony_requests to authenticated;
-revoke insert,update,delete on public.matrimony_contact_unlocks from authenticated;
+revoke insert,update,delete on public.matrimony_contact_unlocks from authenticated,anon;
 grant select on public.matrimony_contact_unlocks to authenticated;
 
 revoke all on function public.matrimony_create_request_backend(uuid,text) from public,anon;
