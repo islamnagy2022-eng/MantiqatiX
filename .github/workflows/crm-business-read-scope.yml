@@ -1,0 +1,48 @@
+name: CRM Business Read Scope
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: node scripts/validate-crm-business-read-scope.mjs
+  crm-business-read-scope-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc566_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc566_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run RC566 CRM business isolation tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc566_crm_business_scope_fixture.sql "$pg_container:/tmp/rc566_fixture.sql"
+          docker cp supabase/migrations/20261010080000_rc566_crm_business_read_scope.sql "$pg_container:/tmp/rc566_migration.sql"
+          docker cp supabase/tests/rc566_crm_business_scope_integration.sql "$pg_container:/tmp/rc566_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc566_test -v ON_ERROR_STOP=1 -f /tmp/rc566_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc566_test -v ON_ERROR_STOP=1 -f /tmp/rc566_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc566_test -v ON_ERROR_STOP=1 -f /tmp/rc566_test.sql
