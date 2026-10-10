@@ -1,0 +1,37 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+
+const migration = fs.readFileSync("supabase/migrations/20261010150000_rc447_matrimony_profile_privacy_boundary.sql", "utf8");
+const app = fs.readFileSync("web/app.js", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc443_matrimony_privacy_fixture.sql", "utf8");
+const integration = fs.readFileSync("supabase/tests/rc443_matrimony_privacy_integration.sql", "utf8");
+const loaderStart = app.indexOf("async function loadEnterpriseDomainData(m)");
+const loaderEnd = app.indexOf("function enterpriseReadErrorPanel", loaderStart);
+assert.ok(loaderStart >= 0 && loaderEnd > loaderStart, "enterprise domain loader must exist");
+const loader = app.slice(loaderStart, loaderEnd);
+
+assert.match(migration, /drop policy if exists matrimony_profiles_select/i);
+assert.match(migration, /using \(owner_user_id = auth\.uid\(\)\)/i, "raw profile SELECT must be owner-only");
+assert.match(fixture, /authenticated_sessions_only on public\.matrimony_profiles as restrictive/i, "fixture must model the production restrictive anonymous-session guard");
+assert.match(integration, /anonymous raw profile SELECT unexpectedly succeeded/, "anonymous raw table reads must be tested");
+assert.match(migration, /function public\.matrimony_discover_profiles_backend/i);
+const discoverStart = migration.indexOf("function public.matrimony_discover_profiles_backend");
+const contactStart = migration.indexOf("function public.matrimony_get_unlocked_contact_backend");
+const discover = migration.slice(discoverStart, contactStart);
+assert.match(discover, /p\.is_verified is true/);
+assert.match(discover, /is_anonymous/, "discovery must reject anonymous Auth sessions");
+assert.doesNotMatch(discover, /wali_contact_phone|direct_contact_phone|financial_status|housing_status|religiosity_level|about_me|partner_requirements/i);
+assert.match(migration, /function public\.matrimony_get_unlocked_contact_backend/i);
+assert.match(migration, /guard_matrimony_profile_verification/i, "profile owners must not self-assert verification");
+assert.match(migration, /MATRIMONY_VERIFICATION_SERVER_ONLY/);
+const contact = migration.slice(contactStart);
+assert.match(contact, /v_request\\.status IS DISTINCT FROM 'ACCEPTED_MUTUAL'/i, "contact release must fail closed for every non-mutual state");
+assert.match(contact, /is_anonymous/, "contact retrieval must reject anonymous Auth sessions");
+assert.match(contact, /matrimony_contact_unlocks u[\s\S]*?u\.request_id=v_request\.id/);
+assert.match(contact, /raise exception 'FORBIDDEN'/i);
+assert.match(migration, /revoke all on function public\.matrimony_discover_profiles_backend\(integer,text,text\) from public,anon/i);
+assert.match(migration, /revoke all on function public\.matrimony_get_unlocked_contact_backend\(uuid\) from public,anon/i);
+assert.match(loader, /sb\.rpc\('matrimony_discover_profiles_backend'/);
+assert.doesNotMatch(loader, /q\.or\('is_verified\.eq\.true,owner_user_id\.eq\.'/);
+
+console.log("Matrimony privacy boundary source contract: PASS");
