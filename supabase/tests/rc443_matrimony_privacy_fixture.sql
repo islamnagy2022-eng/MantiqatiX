@@ -75,7 +75,8 @@ alter table public.matrimony_profiles enable row level security;
 alter table public.matrimony_requests enable row level security;
 alter table public.matrimony_contact_unlocks enable row level security;
 grant select,insert,update on public.matrimony_profiles to authenticated;
-grant select on public.matrimony_requests,public.matrimony_contact_unlocks to authenticated;
+grant select,update on public.matrimony_requests to authenticated;
+grant select,insert on public.matrimony_contact_unlocks to authenticated;
 create policy matrimony_profiles_insert on public.matrimony_profiles
   for insert to authenticated with check (owner_user_id=auth.uid());
 create policy matrimony_profiles_update on public.matrimony_profiles
@@ -84,6 +85,49 @@ create policy matrimony_profiles_select on public.matrimony_profiles
   for select to authenticated
   using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
 create policy authenticated_sessions_only on public.matrimony_profiles as restrictive
+  for all to authenticated
+  using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false)
+  with check (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
+
+-- Match the live permissive request/unlock policies so negative tests reach the consent guard.
+create policy matrimony_requests_select on public.matrimony_requests
+  for select to authenticated
+  using (from_user_id=auth.uid() or exists(
+    select 1 from public.matrimony_profiles p
+    where p.id=matrimony_requests.to_profile_id and p.owner_user_id=auth.uid()
+  ) or public.is_platform_admin());
+create policy matrimony_requests_update on public.matrimony_requests
+  for update to authenticated
+  using (from_user_id=auth.uid() or exists(
+    select 1 from public.matrimony_profiles p
+    where p.id=matrimony_requests.to_profile_id and p.owner_user_id=auth.uid()
+  ) or public.is_platform_admin())
+  with check (from_user_id=auth.uid() or exists(
+    select 1 from public.matrimony_profiles p
+    where p.id=matrimony_requests.to_profile_id and p.owner_user_id=auth.uid()
+  ) or public.is_platform_admin());
+create policy matrimony_requests_non_anonymous on public.matrimony_requests as restrictive
+  for all to authenticated
+  using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false)
+  with check (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
+create policy matrimony_unlocks_select on public.matrimony_contact_unlocks
+  for select to authenticated
+  using (exists(
+    select 1 from public.matrimony_requests r
+    join public.matrimony_profiles p on p.id=r.to_profile_id
+    where r.id=matrimony_contact_unlocks.request_id
+      and (r.from_user_id=auth.uid() or p.owner_user_id=auth.uid())
+  ) or public.is_platform_admin());
+create policy matrimony_unlocks_insert on public.matrimony_contact_unlocks
+  for insert to authenticated
+  with check (exists(
+    select 1 from public.matrimony_requests r
+    join public.matrimony_profiles p on p.id=r.to_profile_id
+    where r.id=matrimony_contact_unlocks.request_id
+      and (r.from_user_id=auth.uid() or p.owner_user_id=auth.uid())
+      and r.status='ACCEPTED_MUTUAL'
+  ));
+create policy matrimony_unlocks_non_anonymous on public.matrimony_contact_unlocks as restrictive
   for all to authenticated
   using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false)
   with check (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
