@@ -74,13 +74,8 @@ as $function$
             where um.user_id = auth.uid()
               and um.status = 'ACTIVE'
               and um.tenant_id = b.tenant_id
-              and (
-                um.business_id = b.id
-                or (
-                  um.business_id is null
-                  and pg_catalog.upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
-                )
-              )
+              and pg_catalog.upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+              and (um.business_id = b.id or um.business_id is null)
           )
           or exists (
             select 1
