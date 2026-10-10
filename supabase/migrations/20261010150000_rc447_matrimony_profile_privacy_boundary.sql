@@ -123,7 +123,7 @@ language plpgsql
 set search_path = ''
 as $function$
 begin
-  if current_user not in ('postgres','service_role') and not coalesce(public.is_platform_admin(),false) then
+  if current_user not in ('postgres','service_role') then
     if tg_op='INSERT' and new.is_verified is true then
       raise exception 'MATRIMONY_VERIFICATION_SERVER_ONLY' using errcode='42501';
     elsif tg_op='UPDATE' and new.is_verified is distinct from old.is_verified then
