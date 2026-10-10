@@ -30,6 +30,52 @@ begin
 end;
 $rc448_preflight$;
 
+-- Post only after journal lines exist. Serialize by tenant/account and maintain a true cumulative balance.
+create or replace function public.trg_post_journal_to_general_ledger()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $trigger$
+declare
+  r_line record;
+  v_account varchar;
+  v_running numeric(14,4);
+  v_account_balances jsonb := '{}'::jsonb;
+begin
+  if new.status='POSTED' and (tg_op='INSERT' or old.status is distinct from 'POSTED') then
+    for v_account in
+      select distinct jel.account_id from public.journal_entry_lines jel
+      where jel.journal_entry_id=new.id order by jel.account_id
+    loop
+      perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(new.tenant_id || ':' || v_account, 0));
+    end loop;
+    for r_line in
+      select jel.* from public.journal_entry_lines jel
+      where jel.journal_entry_id=new.id order by jel.line_number asc
+    loop
+      if v_account_balances ? r_line.account_id then
+        v_running := (v_account_balances ->> r_line.account_id)::numeric;
+      else
+        select coalesce(gl.running_balance,0) into v_running
+        from public.general_ledger gl
+        where gl.tenant_id=new.tenant_id and gl.account_id=r_line.account_id
+        order by gl.posted_at desc,gl.id desc limit 1;
+        v_running := coalesce(v_running,0);
+      end if;
+      v_running := v_running + (r_line.debit-r_line.credit);
+      v_account_balances := pg_catalog.jsonb_set(v_account_balances,array[r_line.account_id],pg_catalog.to_jsonb(v_running),true);
+      insert into public.general_ledger(id,tenant_id,business_id,journal_entry_id,journal_line_id,account_id,debit,credit,running_balance,entry_date,posted_at)
+      values('gl_' || substring(replace(pg_catalog.gen_random_uuid()::text,'-',''),1,16),new.tenant_id,new.business_id,new.id,r_line.id,r_line.account_id,r_line.debit,r_line.credit,v_running,new.entry_date,new.posted_at);
+    end loop;
+  end if;
+  return new;
+end;
+$trigger$;
+
+drop trigger if exists trg_post_journal_to_gl on public.journal_entries;
+create trigger trg_post_journal_to_gl after insert or update on public.journal_entries
+for each row execute function public.trg_post_journal_to_general_ledger();
+
 -- RC448: the verified Edge Function supplies p_user_id after validating the bearer token.
 -- The RPC remains service_role-only; actor membership is revalidated in the function body.
 create or replace function public.post_financial_journal_backend(
@@ -96,7 +142,7 @@ begin
     raise exception 'JOURNAL_ID_ALREADY_EXISTS';
   end if;
   insert into public.journal_entries(id,tenant_id,organization_id,business_id,branch_id,entry_number,reference_type,reference_id,description,status,total_debit,total_credit,entry_date,posted_at,created_by)
-  values(v_id,v_tenant,v_org_id,nullif(p_entry->>'business_id','')::uuid,nullif(p_entry->>'branch_id',''),coalesce(p_entry->>'entry_number',v_id),p_entry->>'reference_type',p_entry->>'reference_id',coalesce(p_entry->>'description',''),'POSTED',v_total_debit,v_total_credit,coalesce((p_entry->>'entry_date')::date,current_date),now(),p_user_id);
+  values(v_id,v_tenant,v_org_id,nullif(p_entry->>'business_id','')::uuid,nullif(p_entry->>'branch_id',''),coalesce(p_entry->>'entry_number',v_id),p_entry->>'reference_type',p_entry->>'reference_id',coalesce(p_entry->>'description',''),'DRAFT',v_total_debit,v_total_credit,coalesce((p_entry->>'entry_date')::date,current_date),clock_timestamp(),p_user_id);
 
   for v_line in select * from jsonb_array_elements(p_lines) loop
     v_insert_line_no := v_insert_line_no + 1;
@@ -104,10 +150,10 @@ begin
     values(coalesce(v_line->>'id',gen_random_uuid()::text),v_id,v_line->>'account_id',coalesce((v_line->>'line_number')::int,v_insert_line_no),coalesce((v_line->>'debit')::numeric,0),coalesce((v_line->>'credit')::numeric,0),v_line->>'description');
 
   end loop;
-  insert into public.general_ledger(id,tenant_id,business_id,journal_entry_id,journal_line_id,account_id,debit,credit,running_balance,entry_date,posted_at)
-  select gen_random_uuid()::text,v_tenant,je.business_id,je.id,jel.id,jel.account_id,jel.debit,jel.credit,jel.debit-jel.credit,je.entry_date,now()
-  from public.journal_entries je join public.journal_entry_lines jel on jel.journal_entry_id=je.id
-  where je.id=v_id and not exists(select 1 from public.general_ledger gl where gl.journal_line_id=jel.id);
+  update public.journal_entries
+  set status='POSTED',posted_at=clock_timestamp()
+  where id=v_id and tenant_id=v_tenant and status='DRAFT';
+  if not found then raise exception 'JOURNAL_POST_TRANSITION_FAILED'; end if;
   return jsonb_build_object('id',v_id,'status','POSTED','line_count',v_line_count);
 end;
 $function$;
