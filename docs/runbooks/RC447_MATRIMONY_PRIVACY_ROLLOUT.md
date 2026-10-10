@@ -33,7 +33,7 @@ Production schema inspection confirmed the referenced columns exist and `matrimo
 - **Discovery projection:** signed-in non-anonymous users see verified profiles belonging to other users only. Returned fields must not include direct/wali phone numbers, biography free text, partner requirements, financial status, housing status, or religiosity details.
 - **Contact retrieval:** pending/rejected requests fail; accepted mutual requests without an unlock row fail; an accepted mutual request with an unlock row returns only the counterpart's allowed contact fields to one of the two participants.
 - **Request ownership:** an unrelated authenticated user cannot retrieve contacts using another user's request ID.
-- **Verification:** a profile owner cannot set `is_verified=true` on insert or update. Only the trusted server role or explicitly authorized platform admin path can perform verification.
+- **Verification:** a profile owner cannot set `is_verified=true` on insert or update. Only the trusted server/database path can perform verification. If platform-admin verification is needed, it must go through a separately scoped backend RPC; do not grant direct authenticated UPDATE as a shortcut.
 - **Frontend honesty:** failed/denied data sources render an explicit unavailable state rather than a zero-record claim.
 - **Regression:** run the complete module, backend-only, migration-history, migration-version, collision, and PostgreSQL privacy test suites.
 
