@@ -23,6 +23,9 @@ begin
     or has_function_privilege('anon','public.matrimony_get_unlocked_contact_backend(uuid)','EXECUTE') then
    raise exception 'TEST_FAILED: anonymous role can execute matrimony privacy RPCs';
  end if;
+ if has_function_privilege('authenticated','private.guard_matrimony_profile_verification()','EXECUTE') then
+   raise exception 'TEST_FAILED: authenticated role can execute private verification trigger function';
+ end if;
  if not has_function_privilege('authenticated','public.matrimony_discover_profiles_backend(integer,text,text)','EXECUTE')
     or not has_function_privilege('authenticated','public.matrimony_get_unlocked_contact_backend(uuid)','EXECUTE') then
    raise exception 'TEST_FAILED: authenticated role cannot execute matrimony privacy RPCs';
