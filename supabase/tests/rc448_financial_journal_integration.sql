@@ -25,10 +25,10 @@ begin
   end if;
 
   insert into public.user_memberships(user_id,tenant_id,organization_id,business_id,branch_id,role,status)
-  values (actor,'tenant-a',null,business,null,'ACCOUNTANT','ACTIVE'),
-         (other_actor,'tenant-b',null,other_tenant_business,null,'ACCOUNTANT','ACTIVE'),
-         (same_tenant_other_business_actor,'tenant-a',null,other_business,null,'ACCOUNTANT','ACTIVE'),
-         (branch_actor,'tenant-a',null,business,'branch-a','ACCOUNTANT','ACTIVE');
+  values (actor,'tenant-a','org-a',business,null,'ACCOUNTANT','ACTIVE'),
+         (other_actor,'tenant-b','org-b',other_tenant_business,null,'ACCOUNTANT','ACTIVE'),
+         (same_tenant_other_business_actor,'tenant-a','org-a',other_business,null,'ACCOUNTANT','ACTIVE'),
+         (branch_actor,'tenant-a','org-a',business,'branch-a','ACCOUNTANT','ACTIVE');
   insert into public.chart_of_accounts(id,tenant_id,is_active)
   values ('cash','tenant-a',true),('revenue','tenant-a',true),('inactive','tenant-a',false);
 
@@ -51,8 +51,23 @@ begin
   end if;
   select count(*) into n from public.journal_entry_lines where journal_entry_id='rc448-journal-001';
   if n <> 2 then raise exception 'expected exactly two journal lines, got %',n; end if;
+  if not exists(select 1 from public.journal_entries where id='rc448-journal-001' and organization_id='org-a') then
+    raise exception 'business organization must be derived when omitted from the request';
+  end if;
   select count(*) into n from public.general_ledger where journal_entry_id='rc448-journal-001';
   if n <> 2 then raise exception 'expected exactly two ledger rows, got %',n; end if;
+
+  -- A client-supplied organization cannot contradict the target business.
+  rejected := false;
+  begin
+    perform public.post_financial_journal_backend(actor,
+      jsonb_set(jsonb_set(entry,'{id}','"rc448-journal-org-scope-001"'),'{organization_id}','"org-b"'),lines);
+    raise exception 'TEST_FAILED: organization mismatch unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'BUSINESS_ORGANIZATION_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'organization mismatch was not rejected'; end if;
 
   -- A membership for another business in the same tenant must not post to this business.
   rejected := false;
