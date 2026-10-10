@@ -1,10 +1,10 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const cors={"Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
-const json=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json"}});
+const json=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const URL=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,admin=createClient(URL,KEY);
-async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);return r.error?null:r.data.user;}
-async function isAdmin(id:string){const a=await admin.from("smm_admins").select("user_id").eq("user_id",id).maybeSingle();if(a.data)return true;const r=await admin.from("user_memberships").select("role,status").eq("user_id",id).eq("status","ACTIVE");return (r.data||[]).some((m:any)=>["OWNER","ADMIN","SUPER_ADMIN"].includes(String(m.role).toUpperCase()));}
+async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);const user=r.error?null:r.data.user;return !user||user.is_anonymous?null:user;}
+async function isAdmin(id:string){const a=await admin.from("smm_admins").select("user_id").eq("user_id",id).maybeSingle();if(a.error)return false;if(a.data)return true;const r=await admin.from("user_memberships").select("tenant_id,role,status,business_id,permissions").eq("user_id",id).eq("status","ACTIVE");if(r.error)return false;return (r.data||[]).some((m:any)=>{const role=String(m.role||"").toUpperCase(),p=m.permissions&&typeof m.permissions==="object"?m.permissions:{};return role==="SUPER_ADMIN"&&String(m.tenant_id)==="MNTY-PLATFORM"&&m.business_id==null&&p.scope==="PLATFORM"&&p.full_control===true;});}
 async function secret(id:string){const r=await admin.rpc("smm_get_provider_secret",{p_provider_id:id});if(r.error||!r.data)throw new Error("Provider credential unavailable");return r.data as string;}
 async function call(p:any,k:string,a:string,x:any={}){const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));const r=await fetch(p.api_url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString()});const t=await r.text();let d:any;try{d=JSON.parse(t)}catch{d={raw:t}}if(!r.ok)throw new Error("Provider HTTP "+r.status);return d;}
 Deno.serve(async(req)=>{
@@ -12,6 +12,19 @@ Deno.serve(async(req)=>{
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const b=await req.json(),a=b.action;
+  if(a==="catalog"){
+   const r=await admin.from("smm_services").select("id,platform,category,name,description,selling_price,min_quantity,max_quantity,refill,cancel,dripfeed").eq("active",true).order("platform").order("category").limit(500);
+   if(r.error){console.error("[smm-gateway] catalog read failed",r.error.code||"DB_ERROR");return json({error:"CATALOG_READ_FAILED"},500);}
+   return json({services:r.data||[]});
+  }
+  if(a==="my_data"){
+   const [o,w]=await Promise.all([
+    admin.from("smm_orders").select("id,service_id,quantity,selling_price,status,provider_order_id,created_at,updated_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
+    admin.from("smm_wallets").select("balance").eq("user_id",user.id).maybeSingle()
+   ]);
+   if(o.error||w.error){console.error("[smm-gateway] account read failed",o.error?.code||w.error?.code||"DB_ERROR");return json({error:"ACCOUNT_DATA_READ_FAILED"},500);}
+   return json({orders:o.data||[],balance:Number(w.data?.balance||0),is_admin:await isAdmin(user.id)});
+  }
   if(a==="configure_provider"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const r=await admin.rpc("smm_set_provider_secret",{p_provider_id:b.provider_id,p_actor_user_id:user.id,p_secret:b.api_key});if(r.error)return json({error:r.error.message},400);return json({ok:true});}
   if(a==="sync_services"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const p=await admin.from("smm_providers").select("*").eq("id",b.provider_id).single();if(!p.data)return json({error:"PROVIDER_NOT_FOUND"},404);const r=await call(p.data,await secret(b.provider_id),"services");if(!Array.isArray(r))return json({error:"INVALID_PROVIDER_RESPONSE",result:r},502);let n=0;for(const s of r){const row={provider_id:b.provider_id,external_service_id:String(s.service||s.id||""),platform:String(s.platform||s.category||"Other"),category:String(s.category||"Other"),name:String(s.name||"Service"),description:String(s.description||""),provider_cost:Number(s.rate||0),selling_price:Number(s.rate||0),min_quantity:Number(s.min||1),max_quantity:Number(s.max||1000000),refill:!!s.refill,cancel:!!s.cancel,dripfeed:!!s.dripfeed,active:true,metadata:s};if(!row.external_service_id)continue;const u=await admin.from("smm_services").upsert(row,{onConflict:"provider_id,external_service_id"});if(!u.error)n++;}return json({ok:true,count:n});}
   if(a==="provider_status"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const p=await admin.from("smm_providers").select("*").eq("id",b.provider_id).single();if(!p.data)return json({error:"PROVIDER_NOT_FOUND"},404);return json({ok:true,provider:p.data.name,result:await call(p.data,await secret(b.provider_id),"balance")});}
