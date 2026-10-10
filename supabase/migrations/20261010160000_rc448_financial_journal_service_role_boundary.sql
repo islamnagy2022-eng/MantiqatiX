@@ -1,6 +1,9 @@
--- RC448 depends on RC436's journal schema columns; fail clearly if migrations are applied out of order.
+-- RC448 requires the journal, business, and branch schema; fail clearly if the migration order/schema is incomplete.
 do $rc448_preflight$
 begin
+  if to_regclass('public.businesses') is null or to_regclass('public.branches') is null then
+    raise exception 'RC448 prerequisite missing: businesses or branches table is absent';
+  end if;
   if not exists (
     select 1 from pg_catalog.pg_attribute
     where attrelid='public.journal_entries'::regclass
