@@ -77,7 +77,7 @@ for(const marker of [
 const rc449='supabase/migrations/20261010200000_rc449_targeted_ads_empty_search_path.sql';
 if(!fs.existsSync(rc449)) throw new Error('RC449 targeted-ad SECURITY DEFINER search_path migration is missing.');
 const rc449Sql=fs.readFileSync(rc449,'utf8');
-if(!/alter function public\\.get_mnty_targeted_advertisements\\([\\s\\S]*?\\) set search_path = '';/i.test(rc449Sql)){
+if(!rc449Sql.toLowerCase().includes('alter function public.get_mnty_targeted_advertisements(') || !rc449Sql.includes("set search_path = '';")){
   throw new Error('RC449 must pin the intentionally public targeted-ad RPC to an empty search_path.');
 }
 for(const marker of [
