@@ -46,22 +46,25 @@ declare
   v_account varchar; v_role text; v_insert_line_no int := 0;
   v_business_id uuid := nullif(p_entry->>'business_id','')::uuid;
   v_branch_id varchar := nullif(p_entry->>'branch_id','');
-  v_org_id varchar := nullif(p_entry->>'organization_id','');
+  v_org_id varchar := nullif(p_entry->>'organization_id',''); v_business_org_id varchar;
 begin
   if p_user_id is null or (coalesce(current_setting('request.jwt.claim.role', true),'') <> 'service_role' and p_user_id <> auth.uid()) then raise exception 'USER_CONTEXT_MISMATCH'; end if;
   if v_tenant is null or v_tenant='' then raise exception 'TENANT_REQUIRED'; end if;
-  if v_business_id is not null and not exists(
-    select 1 from public.businesses b
-    where b.id=v_business_id and b.tenant_id=v_tenant
-      and upper(b.status)='ACTIVE'
-      and b.organization_id is not distinct from v_org_id
-  ) then raise exception 'BUSINESS_NOT_ACTIVE_FOR_TENANT'; end if;
+  if v_business_id is not null then
+    select b.organization_id into v_business_org_id
+    from public.businesses b
+    where b.id=v_business_id and b.tenant_id=v_tenant and upper(b.status)='ACTIVE';
+    if not found then raise exception 'BUSINESS_NOT_ACTIVE_FOR_TENANT'; end if;
+    if v_org_id is not null and v_org_id is distinct from v_business_org_id then
+      raise exception 'BUSINESS_ORGANIZATION_MISMATCH';
+    end if;
+    v_org_id := coalesce(v_org_id,v_business_org_id);
+  end if;
   if v_branch_id is not null and (
     v_business_id is null or not exists(
       select 1 from public.branches b
       where b.id=v_branch_id and b.tenant_id=v_tenant and b.business_id=v_business_id
         and upper(b.status)='ACTIVE'
-        and b.organization_id is not distinct from v_org_id
     )
   ) then raise exception 'BRANCH_NOT_ACTIVE_FOR_BUSINESS'; end if;
   select upper(um.role) into v_role from public.user_memberships um
@@ -90,7 +93,7 @@ begin
     raise exception 'JOURNAL_ID_ALREADY_EXISTS';
   end if;
   insert into public.journal_entries(id,tenant_id,organization_id,business_id,branch_id,entry_number,reference_type,reference_id,description,status,total_debit,total_credit,entry_date,posted_at,created_by)
-  values(v_id,v_tenant,nullif(p_entry->>'organization_id',''),nullif(p_entry->>'business_id','')::uuid,nullif(p_entry->>'branch_id',''),coalesce(p_entry->>'entry_number',v_id),p_entry->>'reference_type',p_entry->>'reference_id',coalesce(p_entry->>'description',''),'POSTED',v_total_debit,v_total_credit,coalesce((p_entry->>'entry_date')::date,current_date),now(),p_user_id);
+  values(v_id,v_tenant,v_org_id,nullif(p_entry->>'business_id','')::uuid,nullif(p_entry->>'branch_id',''),coalesce(p_entry->>'entry_number',v_id),p_entry->>'reference_type',p_entry->>'reference_id',coalesce(p_entry->>'description',''),'POSTED',v_total_debit,v_total_credit,coalesce((p_entry->>'entry_date')::date,current_date),now(),p_user_id);
 
   for v_line in select * from jsonb_array_elements(p_lines) loop
     v_insert_line_no := v_insert_line_no + 1;
