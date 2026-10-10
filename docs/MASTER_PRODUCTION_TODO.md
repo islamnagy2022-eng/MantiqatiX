@@ -1546,3 +1546,53 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Read-only live RLS spot-check confirmed the four restaurant tables listed above and `user_memberships` have RLS enabled and policy counts present.
 - Privileged digital-page payment processor remains non-executable by `anon` and `authenticated` in the live grant check; no payment transaction was generated.
 - Release gate remains OPEN until real authenticated cross-tenant tests, customer/provider order + notification E2E, Paymob payment E2E, finance settlement E2E, leaked-password protection owner action, and release-device tests have evidence.
+
+
+## RC560 — Restaurant Order RPC Defense-in-Depth — 2026-10-09
+- Status: **SOURCE HARDENING IMPLEMENTED / CI AND RUNTIME NOT VERIFIED**.
+- Updated `20261010035000_rc563_catalog_edge_service_role_boundary.sql` to require explicit `ACTIVE` membership for the database authorization backstop, cap the order item array at 100 entries, reject non-array `selectedOptionIds`, and scope catalog business settings reads to the requested tenant.
+- The settings path now fails closed when a business-settings row exists under a mismatched tenant or cannot be reloaded after insert.
+- Added regression assertions in `scripts/validate-restaurant-rbac-contract.mjs` for the new guards. Static source assertions were checked against the committed migration and all passed.
+- Commits on `fix/restaurant-module-hardening-20261009`: migration hardening `e178d5256772a0ddb95f7f755524647d4472bf48`; regression assertions `9a29eb566a13cf718559ad9cbe4f8b3b9009a98b`.
+- Full GitHub Actions CI is **NOT VERIFIED** for these latest commits; the workflow lookup returned no runs/statuses for the documentation/source head.
+- An additional proposed `order-create` Edge Function normalization fix for malformed/duplicate option IDs was blocked by the repository safety layer. It was not retried through alternate write paths and is still open.
+- Production Supabase remains unchanged: no migration applied, no Edge Function deployed, no order/payment created, and PR #86 remains unmerged.
+- Next gates: resolve the blocked Edge Function change through the supported review path; obtain successful CI evidence; validate SQL on an isolated database; then perform owner-approved authenticated customer/provider and cross-tenant E2E before release.
+
+
+## RC561 — Restaurant Pricing/Idempotency Guards + CI — 2026-10-09
+- Status: **SOURCE VALIDATION PASS / PRODUCTION INTEGRATION OPEN**.
+- Extended the order RPC database guards: idempotency key length is capped at 200; input and persisted settings currency must remain EGP; invalid persisted tax rates and unit prices are rejected; selected options cannot reduce unit price below zero.
+- Extended `scripts/validate-restaurant-rbac-contract.mjs` with six assertions for the additional invariants.
+- GitHub Actions for the latest source head `c6c615b3db1465d428c0d5334b1fd3fb6a1fb1`:
+  - Module Professionalization Validation run **37935319134: SUCCESS**.
+  - Backend-only Module Boundary run **37935319156: SUCCESS**.
+  - Deploy MantiqatiX Web run **37935319261**: validation **SUCCESS**; deploy **SKIPPED** because PR #86 is unmerged.
+- CI passing confirms repository validators and source checks; it does not prove PostgreSQL runtime behavior, authenticated E2E, or production deployment.
+- The attempted Edge Function fix for malformed/duplicate option IDs remains blocked by the repository safety layer and was not bypassed.
+- Production remains unchanged; migration unapplied, Edge Functions undeployed, PR #86 open/unmerged.
+
+
+## RC562 — Restaurant Live Schema / RLS / RPC Read-Only Audit — 2026-10-09
+- Status: **READ-ONLY LIVE CHECK PASS / RELEASE STILL BLOCKED**.
+- Queried the live Production schema without modifying data:
+  - `catalog_business_settings` has a primary key on `business_id`, a business FK, tenant FK, uppercase-currency check, and non-negative delivery-fee check.
+  - `catalog_item_options.price_delta` has a non-negative check and an FK to `catalog_items`; the observed query returned zero duplicate active option IDs. The option-to-item/tenant orphan count returned zero.
+  - The live `catalog_business_settings` query returned one row; it had no observed business/tenant mismatch, non-EGP currency, or negative delivery fee.
+  - Live grants confirm `create_order_backend` and the three catalog backend RPCs are not executable by `anon` or `authenticated`, and are executable by `service_role`.
+  - The reviewed catalog/restaurant tables have no policies explicitly assigned to `anon` or `public`. The anonymous-session guard policies returned by `pg_policies` are **RESTRICTIVE**, not permissive; retain policy-by-policy review rather than treating their presence as proof of public access.
+- No writes, policy edits, migrations, test orders, or payments were made.
+- Remaining critical gates are unchanged: isolated PostgreSQL runtime validation of the proposed migration, authenticated owner/provider/customer E2E, cross-tenant/branch denial, and coordinated migration + Edge deployment after review.
+- Source-level follow-up identified legacy `coalesce(m.status,'ACTIVE')='ACTIVE'` checks in two proposed catalog RPC membership backstops. A source update attempt was blocked by the repository safety layer; it was not retried via an alternate write path. Resolve through the supported review/write path before release.
+- PR #86 remains open/unmerged; Production is unchanged.
+
+
+## RC563 — SECURITY DEFINER contextual review — 2026-10-09
+- [x] Rechecked live privileges and Advisor findings read-only: 1 public `anon`-callable ad-serving SECURITY DEFINER function and 40 `authenticated`-callable SECURITY DEFINER functions.
+- [x] Reviewed representative function definitions and confirmed that the presence of EXECUTE grants alone does not prove an authorization defect; several critical functions bind caller identity to `auth.uid()` or delegate to membership/admin checks.
+- [ ] `preview_commission_backend` uses `assert_financial_membership(p_tenant_id)`, which validates active financial membership at tenant scope. Confirm whether business/branch-level restrictions are required for commission-rule preview; no bypass is asserted without adversarial tests.
+- [ ] Continue per-function caller-contract review and map each direct RPC caller to its Edge/server boundary. No blanket REVOKE.
+- [ ] Leaked Password Protection remains an Auth Dashboard action and is not verified enabled.
+- [x] Added detailed evidence to `docs/RC563_SECURITY_DEFINER_REVIEW.md`.
+- [x] No production data, grants, migrations, or Edge Functions changed.
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**.

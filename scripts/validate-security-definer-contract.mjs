@@ -98,4 +98,28 @@ if(!currentWorkflow.includes('node scripts/validate-rbac-contract.mjs')){
   throw new Error('RBAC validation is not wired into production CI.');
 }
 
+const rc563='supabase/migrations/20261010035000_rc563_catalog_edge_service_role_boundary.sql';
+if(!fs.existsSync(rc563)) throw new Error('RC563 catalog/order Edge RPC boundary migration is missing.');
+const rc563Sql=fs.readFileSync(rc563,'utf8');
+for(const marker of [
+  'set search_path=public,pg_temp',
+  "coalesce(auth.role(),'') <> 'service_role'",
+  'IDEMPOTENCY_KEY_SCOPE_CONFLICT',
+  'IDEMPOTENCY_PAYLOAD_CONFLICT',
+  'CATALOG_BRANCH_SCOPE_IMMUTABLE',
+  'CATALOG_BRANCH_SCOPE_MISMATCH',
+  'DELIVERY_ADDRESS_REQUIRED',
+  "lower(coalesce(ci.metadata->>'is_available','true')) <> 'false'",
+  'revoke all on function public.upsert_catalog_item_backend',
+  'revoke all on function public.upsert_catalog_price_backend',
+  'revoke all on function public.upsert_catalog_settings_backend',
+  'revoke all on function public.create_order_backend',
+  'grant execute on function public.upsert_catalog_item_backend',
+  'grant execute on function public.upsert_catalog_price_backend',
+  'grant execute on function public.upsert_catalog_settings_backend',
+  'grant execute on function public.create_order_backend'
+]){
+  if(!rc563Sql.includes(marker)) throw new Error('RC563 catalog/order security contract missing: '+marker);
+}
+
 console.log('RC340 SECURITY DEFINER/RBAC release contract: PASS');

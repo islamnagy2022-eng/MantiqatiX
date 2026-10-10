@@ -51,29 +51,65 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  const customerName = String(body.customerName).trim();
+  const customerPhone = String(body.customerPhone).trim();
+  const phoneDigits = customerPhone.replace(/\D/g, "");
+  const deliveryAddress = String(body.deliveryAddress ?? "").trim();
+  const orderMetadata = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
+    ? body.metadata
+    : {};
+  const orderType = orderMetadata.order_type == null ? "DELIVERY" : String(orderMetadata.order_type).toUpperCase();
+  if (!customerName || customerName.length > 200) return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
+  if (phoneDigits.length < 7 || phoneDigits.length > 15) return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
+  if (orderType && !["TAKEAWAY", "DELIVERY"].includes(orderType)) return json({ error: "INVALID_ORDER_TYPE" }, 400);
+  if (orderType === "DELIVERY" && !deliveryAddress) return json({ error: "DELIVERY_ADDRESS_REQUIRED" }, 400);
+
+  const requestedBranchId = body.branchId ? String(body.branchId) : null;
+  const { data: activeMemberships, error: membershipError } = await admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,business_id,branch_id,permissions")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
-    .eq("business_id", body.businessId)
+    .eq("status", "ACTIVE");
+  if (membershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+
+  const { data: customerMembership, error: customerMembershipError } = await admin
+    .from("user_memberships")
+    .select("id")
+    .eq("user_id", user.id)
     .eq("status", "ACTIVE")
+    .eq("role", "CUSTOMER")
     .limit(1)
     .maybeSingle();
-  if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+  if (customerMembershipError) return json({ error: "CUSTOMER_MEMBERSHIP_READ_FAILED" }, 500);
 
-  if (!targetMembership) {
-    const { data: customerMembership, error: customerMembershipError } = await admin
-      .from("user_memberships")
-      .select("id,role,status")
-      .eq("user_id", user.id)
-      .eq("status", "ACTIVE")
-      .eq("role", "CUSTOMER")
-      .limit(1)
-      .maybeSingle();
-    if (customerMembershipError) return json({ error: "CUSTOMER_MEMBERSHIP_READ_FAILED" }, 500);
-    if (!customerMembership) return json({ error: "FORBIDDEN" }, 403);
-  }
+  const businessRoleAuthorized = (activeMemberships ?? []).some((membership: any) => {
+    const role = String(membership.role ?? "").toUpperCase();
+    const permissions = membership.permissions && typeof membership.permissions === "object"
+      ? membership.permissions
+      : {};
+    if (role === "SUPER_ADMIN") {
+      return permissions.scope === "PLATFORM" && permissions.full_control === true;
+    }
+
+    // Keep server-side order creation aligned with web/rbac.js ROLE_DEFAULTS:
+    // OWNER and SALES have ORDERS:create; BUSINESS_OWNER/ADMIN/MANAGER do not.
+    const orderCreateRoles = new Set(["OWNER", "SALES"]);
+    if (!orderCreateRoles.has(role)) return false;
+
+    const membershipBusinessId = membership.business_id == null ? null : String(membership.business_id);
+    if (role === "OWNER") {
+      if (membershipBusinessId && membershipBusinessId !== String(body.businessId)) return false;
+    } else if (membershipBusinessId !== String(body.businessId)) {
+      return false;
+    }
+    const membershipBranchId = membership.branch_id == null ? null : String(membership.branch_id);
+    return !membershipBranchId || (requestedBranchId && membershipBranchId === requestedBranchId);
+  });
+
+  // A customer may order from any active business. Staff/business roles may
+  // create orders only when their canonical ORDERS:create capability and scope allow it.
+  if (!customerMembership && !businessRoleAuthorized) return json({ error: "FORBIDDEN" }, 403);
 
   const { data: business, error: businessError } = await admin
     .from("businesses")
@@ -102,14 +138,14 @@ Deno.serve(async (req: Request) => {
   const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
   const { data: catalogItems, error: itemError } = await admin
     .from("catalog_items")
-    .select("id,business_id,branch_id,name_ar,name_en,tax_rate,status")
+    .select("id,business_id,branch_id,name_ar,name_en,tax_rate,status,metadata")
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .in("id", itemIds)
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
+  const branchId = requestedBranchId;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
@@ -126,6 +162,7 @@ Deno.serve(async (req: Request) => {
   }
   const itemMap = new Map((catalogItems ?? [])
     .filter((x: any) => !branchId || !x.branch_id || String(x.branch_id) === branchId)
+    .filter((x: any) => x.metadata?.is_available !== false)
     .map((x: any) => [String(x.id), x]));
   if (itemMap.size !== itemIds.length) return json({ error: "CATALOG_ITEM_NOT_AVAILABLE" }, 409);
 
