@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 — SMM trusted-read review
+Last updated: 2026-10-10 — account membership and SMM follow-up
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
@@ -11,7 +11,7 @@ Last updated: 2026-10-10 — SMM trusted-read review
 - No changes were merged that apply database migrations or modify production configuration.
 
 ## Current main
-- Latest main SHA at the time of this update: `fda2d49141a8874465645fa8cd3095ace5445ec7` (RC444 CRM source and release-evidence docs).
+- Latest main SHA at the time of this update: `da679e10186d0fa0ec4dc74401516203f7f92d96` (SMM rollout runbook docs).
 - PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
 - PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
 - PR #133 was merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`, adding local migration-version uniqueness validation alongside the cross-PR guard. Main-commit checks passed, including `validate-migration-versions` run `38053072649`, health run `38053072662`, and Pages deploy run `38053072656`; deploy logs reported smoke verification passed.
@@ -191,4 +191,16 @@ All Supabase production queries were read-only. No production migrations, table 
 - PRs #127 and #113 were closed as superseded by #145. No production Edge Function was deployed. The Pages web deployment and SMM gateway deployment must be coordinated; do not enable the new UI in production until the gateway actions are deployed and smoke-tested together.
 - This is CI/source verification only. It does not establish that the live SMM gateway version supports `catalog` and `my_data`.
 
+## Selected membership / activity profile — PR #148
+
+- Clean-main PR #148 is ready for review and remains unmerged: https://github.com/islamnagy2022-eng/MantiqatiX/pull/148
+- Exact head `4226a0df6bb96d5226c0a562092a7e00101b7728` passed Module Professionalization Validation (`38061600711`), Backend-only Module Boundary (`38061600716`), Pages validation (`38061600730`; deploy skipped because this is a PR), and associated integration jobs (`38061600740`).
+- The candidate no longer silently falls back to the first membership when a saved membership ID is stale; provider profile loading is bound to the selected active business, and the homepage activity label resolves only from the selected membership/business.
+- PRs #99 and #103 were closed as superseded by #148. Before merge/production rollout, test switching between two businesses in a deployed staging build; CI source assertions do not replace this browser E2E gate.
+
+### Current release boundary
+- PR #143's RC444 CRM source is merged in main but has not been applied to production.
+- PR #145's SMM trusted-read gateway is ready for review but unmerged; deploy the Edge Function first, smoke-test it, then deploy the web bundle under the runbook in `docs/runbooks/SMM_TRUSTED_READ_GATEWAY_ROLLOUT.md`.
+- PR #141 remains blocked by the ambiguous `RETURNING unlocked_at` SQL expression in `matrimony_unlock_contact_backend(uuid)`. Repository safety controls blocked a direct migration-file update; no bypass was attempted. PR #129 remains stale/unmergeable and continues to conflict with the RC443 migration collision guard.
+- No production migrations, RLS/grant/Auth changes, Edge Function deployments, wallet changes, payments, or financial mutations were performed in this continuation.
 
