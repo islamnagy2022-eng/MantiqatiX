@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 13:00 UTC
+Last updated: 2026-10-10 (UTC)
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
@@ -27,8 +27,11 @@ Last updated: 2026-10-10 13:00 UTC
 - #125 — CLOSED without merge in favor of #124.
 - #131 — OPEN, stale and superseded by documentation-only PR #134; do not merge #131.
 - #133 — CLOSED, merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`; adds local migration-version uniqueness validation and its CI workflow.
+- #134 — OPEN, documentation-only refresh. Module Professionalization Validation (`38057024896`), Backend-only Module Boundary (`38057024903`), and Pages validation (`38057024906`) passed; Pages deployment was correctly skipped for the PR.
+- #135 — OPEN, proposes a CI gate that rejects edits/deletions of existing migration files. Its self-test and all PR validation workflows passed (`38057071404`, `38057071370`, `38057071412`, `38057071431`; Pages deploy skipped). This guard is not yet merged and does not yet protect `main` or automatically block #84.
 
 ## Migration collision remediation
+- A separate migration-history immutability gate is proposed in #135 because #84 edits the historical RC424 file. It passed CI on its own branch, but until merged it is not an active protection; main also lacks required branch-protection checks.
 - The real conflict was version `20261009170000`: RC430 subscription success webhook in #84 vs duplicate MantiGO admin migration in #95.
 - The duplicate migration was removed from #95 and #95 closed without merge. No applied migration was renamed.
 - The #124 guard was fixed to ignore GitHub changed-file entries with status `removed`, with a regression self-test. The guard passed on the corrected PR head and is now on main.
