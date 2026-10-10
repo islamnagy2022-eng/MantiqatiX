@@ -25,6 +25,7 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/module-blueprints.js
+          node --check web/sector-modules.js
       - name: Module runtime contract
         run: |
           grep -q "window.MNTYModuleRuntime" web/app.js
@@ -42,6 +43,7 @@ jobs:
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-module-runtime-coverage.mjs
+          node scripts/validate-education-request-boundary.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
 
