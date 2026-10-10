@@ -16,6 +16,10 @@ assert.match(
 );
 assert.match(migration, /p_user_id <> auth\.uid\(\)/i, "non-service callers must bind the actor to auth.uid");
 assert.match(migration, /um\.user_id=p_user_id[\s\S]*?um\.status='ACTIVE'/i, "actor must have an ACTIVE membership");
+assert.match(migration, /um\.business_id is null or um\.business_id=v_business_id/i, "business-scoped memberships must not cross businesses");
+assert.match(migration, /um\.branch_id is null or um\.branch_id=v_branch_id/i, "branch-scoped memberships must not cross branches");
+assert.match(migration, /BUSINESS_NOT_ACTIVE_FOR_TENANT/);
+assert.match(migration, /BRANCH_NOT_ACTIVE_FOR_BUSINESS/);
 assert.match(migration, /FINANCIAL_MEMBERSHIP_REQUIRED/, "financial role check must fail closed");
 assert.match(migration, /v_insert_line_no int := 0/, "journal line numbering must use a per-line counter");
 assert.match(migration, /v_insert_line_no := v_insert_line_no \+ 1;/, "each inserted line must advance the line counter");
@@ -38,4 +42,6 @@ assert.match(edge, /ORIGIN_NOT_ALLOWED/, "unapproved browser origins must be rej
 
 assert.match(backendEdge, /admin\.rpc\(["']post_financial_journal_backend["']/i, "canonical endpoint must call the backend RPC");
 assert.match(backendEdge, /p_user_id:\s*auth\.user\.id/, "canonical endpoint must pass its verified actor");
+assert.match(integration, /same-tenant cross-business actor unexpectedly succeeded/);
+assert.match(integration, /branch-scoped actor unexpectedly posted to another branch/);
 console.log("RC448 financial journal service-role boundary PASS");
