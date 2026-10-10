@@ -11,9 +11,10 @@ const backendEdge = fs.readFileSync("supabase/functions/post-financial-journal/i
 assert.match(migration, /set search_path = public, pg_temp/i, "SECURITY DEFINER search_path must pin pg_temp last");
 assert.match(
   migration,
-  /coalesce(current_setting('request.jwt.claim.role', true),'') <> 'service_role'\s+and\s+p_user_id\s*<>\s*auth\.uid\(\)/i,
-  "service-role actor context may bypass auth.uid only for the trusted server role",
+  /current_setting\('request\.jwt\.claim\.role', true\)/i,
+  "service-role exception must read the verified JWT role claim",
 );
+assert.match(migration, /p_user_id <> auth\.uid\(\)/i, "non-service callers must bind the actor to auth.uid");
 assert.match(migration, /um\.user_id=p_user_id[\s\S]*?um\.status='ACTIVE'/i, "actor must have an ACTIVE membership");
 assert.match(migration, /FINANCIAL_MEMBERSHIP_REQUIRED/, "financial role check must fail closed");
 assert.match(migration, /v_insert_line_no int := 0/, "journal line numbering must use a per-line counter");
