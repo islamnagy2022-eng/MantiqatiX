@@ -37,6 +37,6 @@ assert.match(migration, /revoke all on function public\.matrimony_discover_profi
 assert.match(migration, /revoke all on function public\.matrimony_get_unlocked_contact_backend\(uuid\) from public,anon/i);
 assert.match(loader, /sb\.rpc\('matrimony_discover_profiles_backend'/);
 assert.doesNotMatch(loader, /q\.or\('is_verified\.eq\.true,owner_user_id\.eq\.'/);
-assert.doesNotMatch(app, /key:'MATRIMONY',[^\\n]*matrimony_contact_unlocks/, "client must not directly query contact unlock metadata");
+assert.doesNotMatch(app, /key:'MATRIMONY',.*matrimony_contact_unlocks/, "client must not directly query contact unlock metadata");
 
 console.log("Matrimony privacy boundary source contract: PASS");
