@@ -5,6 +5,10 @@ const migrationPattern = /^supabase\/migrations\/(\d{14})_.+\.sql$/;
 
 function migrationEntries(prNumber, files) {
   return files.flatMap(item => {
+    // GitHub lists deleted paths in a PR's changed-file list. A removed migration
+    // no longer participates in the candidate migration set and must not create
+    // a false-positive collision with a surviving migration in another PR.
+    if (typeof item !== "string" && item.status === "removed") return [];
     const file = typeof item === "string" ? item : item.filename;
     const match = migrationPattern.exec(file);
     return match ? [{ version: match[1], file, prNumber, sha: typeof item === "string" ? null : item.sha }] : [];
@@ -54,6 +58,12 @@ if (process.argv.includes("--self-test")) {
   assert.equal(collisionsForPullRequest(collisions, 30).length, 0);
   assert.equal(collisionsForPullRequest(collisions, 99).length, 0);
   assert.equal(crossPullRequestCollisions([candidates[0], candidates[2]]).length, 0);
+  // Deleted migration paths must not be treated as active candidate migrations.
+  assert.equal(migrationEntries(60, [{ filename: "supabase/migrations/20261009170000_removed.sql", status: "removed", sha: "deleted" }]).length, 0);
+  assert.equal(crossPullRequestCollisions([
+    { prNumber: 61, entries: migrationEntries(61, [{ filename: "supabase/migrations/20261009170000_removed.sql", status: "removed", sha: "deleted" }]) },
+    { prNumber: 62, entries: migrationEntries(62, ["supabase/migrations/20261009170000_rc430_payment.sql"]) }
+  ]).length, 0);
   assert.equal(crossPullRequestCollisions([
     { prNumber: 40, entries: migrationEntries(40, [{ filename: "supabase/migrations/20261010050000_same.sql", sha: "same" }]) },
     { prNumber: 41, entries: migrationEntries(41, [{ filename: "supabase/migrations/20261010050000_same.sql", sha: "same" }]) }
