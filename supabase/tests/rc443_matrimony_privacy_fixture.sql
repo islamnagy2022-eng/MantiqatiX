@@ -17,8 +17,16 @@ stable
 as $function$
   select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
 $function$;
+create or replace function auth.jwt()
+returns jsonb
+language sql
+stable
+as $function$
+  select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb
+$function$;
 grant usage on schema auth to public;
 grant execute on function auth.uid() to public;
+grant execute on function auth.jwt() to public;
 
 create table public.matrimony_profiles(
   id uuid primary key,
