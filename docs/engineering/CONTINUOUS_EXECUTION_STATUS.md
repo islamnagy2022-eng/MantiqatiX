@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 12:44 UTC
+Last updated: 2026-10-10 13:00 UTC
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
@@ -11,16 +11,16 @@ Last updated: 2026-10-10 12:44 UTC
 - No changes were merged that apply database migrations or modify production configuration.
 
 ## Current main
-- Latest main SHA: `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`.
+- Latest main SHA: `7dd8dc4b480f69b1314e9b5b883f3146f367f146`.
 - PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
 - PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
 - Main branch metadata reports branch protection disabled and no required status checks. No branch-protection write tool was available in this cycle; this remains a governance risk.
 
 ## Relevant PRs
-- #84 — OPEN, unmerged. Current head after test hardening and runbook diagnostics: `6aec05eb58a75c6a5292caa638fe467238d0bfaf`. The latest code/test commit `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8` passed Module Professionalization Validation (`38052631687`, all 12 jobs), Backend-only Module Boundary (`38052631721`), and Pages validation (`38052631639`, deploy skipped). The subsequent commit changed only a read-only verification runbook.
+- #84 — OPEN, unmerged. Latest observed head: `934f2fc28ec61bdfc5023479b0e796e743244eb1`. Latest Module Professionalization Validation run `38053053450` completed successfully with all 12 jobs, including payment, checkout recovery, search-path, and MantiGO platform-admin integration. Cross-PR collision guard run `38053053434` passed. This is source/isolated-test evidence only; see the live Edge Function parity audit below. Do not merge until RC424 historical migration immutability and source/production parity are resolved.
 - #95 — CLOSED without merge; duplicate migration and migration-specific validator/workflow were removed from its branch. No duplicate migration is retained in the active PR set.
 - #121 — CLOSED without merge as superseded by the canonical RC441 integration suite in #84.
-- #122 — OPEN, unmerged. Adds local migration-version uniqueness validation; CI on head `ae2bc1b63df3bf24b0c7b8150bfda78f3e78a1f6` passed. Keep distinct from #124's cross-PR guard.
+- #122 — OPEN, unmerged and superseded by #133, which merged the local migration-version uniqueness validation on a fresh main-based branch. Close/mark #122 superseded when the repository write path permits; do not merge the stale branch.
 - #123 — CLOSED without merge due stale-base workflow conflict; replaced by #132, now merged.
 - #124 — CLOSED, merged as above.
 - #125 — CLOSED without merge in favor of #124.
@@ -63,11 +63,19 @@ RC441 source hardens these RPCs behind an active `MNTY-PLATFORM` membership with
 - `refund_transactions`, `settlement_attempts`, `settlement_transactions`, `wallet_accounts`, `wallet_transactions`, and `tenant_modules` had FORCE RLS enabled. `digital_page_payment_events` had RLS enabled, no policies, and direct SELECT/INSERT denied to anon/authenticated; this is consistent with backend-only access but must remain an explicit contract.
 - Do not bulk-revoke SECURITY DEFINER grants based solely on advisor counts; review each function's intended exposure and authorization behavior.
 
+
+### Live payment Edge Function parity (read-only audit, 2026-10-10)
+- Deployed `paymob-webhook` (live version 8) does not contain the branch's atomic MantiGO/subscription payment RPC paths or the provider-order mismatch guards. It still has direct table writes for parts of the ledger/event/notification flow and an early return on existing events before full replay binding. The deployed source is behind the PR #84 source.
+- Deployed `subscription-payment-intent` (live version 2) lacks the RC439 checkout-encryption version/key handling and encrypt/decrypt recovery helpers. This confirms encrypted checkout recovery is not deployed; do not infer more than that from the audit.
+- Deployed `digital-page-payment-intent` (live version 3) still uses the legacy four-argument finalizer; the source chain expects the five-argument order-bound finalizer.
+- Deployed `payment-intent` (live version 6) lacks the provider-outcome-unknown / already-initialized guards and provider-order persistence expected by the branch.
+- No Edge Functions were deployed because the migration ledger, live RPC signatures, and source are not reconciled. A comment documenting these blockers was added to PR #84 (comment ID `6098132918`).
+
 ## CI evidence and limits
 - RC440 search-path integration passed on #84's tested code head; it tests anon/authenticated exposure, already-hardened and service-only exclusions, grant preservation, and temporary-table shadowing.
 - RC441 platform-admin integration passed on #84's tested code head, including positive platform-admin flow, tenant role denials, settlement replay/idempotency, stale-ride expiry/audit/notification, and ACL assertions.
 - #84's tested head: `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8`. Later head `6aec05eb58a75c6a5292caa638fe467238d0bfaf` only added read-only diagnostic SQL to `docs/runbooks/VERIFY_PAYMOB_RC424_RC431.sql`; no SQL runtime code changed after the passing tests.
-- CI passes do not establish production migration application, real Paymob sandbox E2E, or production deployment. The Pages workflow's deploy job was skipped on the inspected runs.
+- CI passes do not establish production migration application, real Paymob sandbox E2E, or payment Edge Function deployment. Main commit `7dd8dc4b480f69b1314e9b5b883f3146f367f146` did deploy the static GitHub Pages site and smoke verification passed; that does not certify payment/backend production readiness.
 
 ## Next actions, in order
 1. Reconcile RC424 source/ledger mismatch and actual live function definition without renumbering or replaying history blindly.
