@@ -3,13 +3,13 @@ name: Matrimony Request Lifecycle Authority
 on:
   pull_request:
     paths:
-      - "supabase/migrations/20261010160000_rc448_matrimony_request_lifecycle_authority.sql"
+      - "supabase/migrations/20261010161000_rc448_matrimony_request_lifecycle_authority.sql"
       - "supabase/tests/rc448_matrimony_request_lifecycle_integration.sql"
       - ".github/workflows/matrimony-request-lifecycle.yml"
   push:
     branches: [main]
     paths:
-      - "supabase/migrations/20261010160000_rc448_matrimony_request_lifecycle_authority.sql"
+      - "supabase/migrations/20261010161000_rc448_matrimony_request_lifecycle_authority.sql"
       - "supabase/tests/rc448_matrimony_request_lifecycle_integration.sql"
       - ".github/workflows/matrimony-request-lifecycle.yml"
 
@@ -50,7 +50,7 @@ jobs:
           set -euo pipefail
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
-          docker cp supabase/migrations/20261010160000_rc448_matrimony_request_lifecycle_authority.sql "$pg_container:/tmp/rc448.sql"
+          docker cp supabase/migrations/20261010161000_rc448_matrimony_request_lifecycle_authority.sql "$pg_container:/tmp/rc448.sql"
           docker cp supabase/tests/rc448_matrimony_request_lifecycle_integration.sql "$pg_container:/tmp/rc448-test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc448.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_matrimony_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc448-test.sql
