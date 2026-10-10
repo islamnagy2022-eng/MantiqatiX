@@ -20,7 +20,7 @@ declare
 begin
   perform set_config('request.jwt.claim.sub',manager_a::text,false);
   result := public.create_marketing_campaign_backend(
-    manager_a,business_a,'Cairo Launch','LEADS',array['meta','Google'],1000,'egp',
+    manager_a,business_a,'Cairo Launch','LEADS',array['meta','Google'],1000,'campaign-a-key-0001','egp',
     pg_catalog.now()+interval '1 day',pg_catalog.now()+interval '10 days',
     '{"region":"Cairo","language":"ar"}'::jsonb,'Campaign brief'
   );
@@ -34,10 +34,21 @@ begin
   if (select count(*) from public.audit_logs where action='MARKETING_CAMPAIGN_CREATED' and entity_id=campaign_a::text) <> 1 then
     raise exception 'campaign creation audit missing';
   end if;
+  result := public.create_marketing_campaign_backend(
+    manager_a,business_a,'Cairo Launch','LEADS',array['meta','Google'],1000,'campaign-a-key-0001','egp',
+    pg_catalog.now()+interval '1 day',pg_catalog.now()+interval '10 days',
+    '{"region":"Cairo","language":"ar"}'::jsonb,'Campaign brief'
+  );
+  if (result->>'campaign_id')::uuid <> campaign_a or coalesce((result->>'idempotent')::boolean,false) is not true then
+    raise exception 'campaign creation replay was not idempotent';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_CAMPAIGN_CREATED' and entity_id=campaign_a::text) <> 1 then
+    raise exception 'campaign creation replay duplicated audit';
+  end if;
 
   rejected:=false;
   begin
-    perform public.create_marketing_campaign_backend(manager_a,business_b,'Cross Tenant','LEADS',array['META'],100,'EGP',null,null,'{}'::jsonb,null);
+    perform public.create_marketing_campaign_backend(manager_a,business_b,'Cross Tenant','LEADS',array['META'],100,'cross-tenant-key-01','EGP',null,null,'{}'::jsonb,null);
   exception when others then
     if sqlerrm='MARKETING_BUSINESS_SCOPE_REQUIRED' then rejected:=true; else raise; end if;
   end;
@@ -45,7 +56,7 @@ begin
 
   rejected:=false;
   begin
-    perform public.create_marketing_campaign_backend(manager_b,business_a,'Spoof Actor','LEADS',array['META'],100,'EGP',null,null,'{}'::jsonb,null);
+    perform public.create_marketing_campaign_backend(manager_b,business_a,'Spoof Actor','LEADS',array['META'],100,'spoof-actor-key-01','EGP',null,null,'{}'::jsonb,null);
   exception when others then
     if sqlerrm='ACTOR_MISMATCH' then rejected:=true; else raise; end if;
   end;
@@ -53,7 +64,7 @@ begin
 
   rejected:=false;
   begin
-    perform public.create_marketing_campaign_backend(manager_a,business_a,'Bad Channel','LEADS',array['MALWARE'],100,'EGP',null,null,'{}'::jsonb,null);
+    perform public.create_marketing_campaign_backend(manager_a,business_a,'Bad Channel','LEADS',array['MALWARE'],100,'bad-channel-key-01','EGP',null,null,'{}'::jsonb,null);
   exception when others then
     if sqlerrm='MARKETING_CHANNEL_INVALID' then rejected:=true; else raise; end if;
   end;
@@ -61,7 +72,7 @@ begin
 
   perform set_config('request.jwt.claim.sub',manager_b::text,false);
   result := public.create_marketing_campaign_backend(
-    manager_b,business_b,'Agency B Campaign','AWARENESS',array['TIKTOK'],500,'EGP',
+    manager_b,business_b,'Agency B Campaign','AWARENESS',array['TIKTOK'],500,'campaign-b-key-0001','EGP',
     pg_catalog.now()+interval '2 days',pg_catalog.now()+interval '8 days','{}'::jsonb,null
   );
   campaign_b := (result->>'campaign_id')::uuid;
@@ -69,7 +80,7 @@ begin
   perform set_config('request.jwt.claim.sub',tenant_super_c::text,false);
   rejected:=false;
   begin
-    perform public.create_marketing_campaign_backend(tenant_super_c,business_a,'Tenant Super Spoof','LEADS',array['META'],100,'EGP',null,null,'{}'::jsonb,null);
+    perform public.create_marketing_campaign_backend(tenant_super_c,business_a,'Tenant Super Spoof','LEADS',array['META'],100,'tenant-super-key-001','EGP',null,null,'{}'::jsonb,null);
   exception when others then
     if sqlerrm='MARKETING_BUSINESS_SCOPE_REQUIRED' then rejected:=true; else raise; end if;
   end;
@@ -77,7 +88,7 @@ begin
 
   perform set_config('request.jwt.claim.sub',platform_admin::text,false);
   result := public.create_marketing_campaign_backend(
-    platform_admin,business_b,'Platform Campaign','TRAFFIC',array['GOOGLE'],250,'EGP',
+    platform_admin,business_b,'Platform Campaign','TRAFFIC',array['GOOGLE'],250,'platform-key-0001','EGP',
     pg_catalog.now()+interval '1 day',pg_catalog.now()+interval '3 days','{}'::jsonb,null
   );
   platform_campaign := (result->>'campaign_id')::uuid;
@@ -159,7 +170,7 @@ begin
   perform set_config('request.jwt.claim.sub',customer_b::text,false);
   rejected:=false;
   begin
-    perform public.create_marketing_campaign_backend(customer_b,business_b,'Customer Campaign','LEADS',array['META'],100,'EGP',null,null,'{}'::jsonb,null);
+    perform public.create_marketing_campaign_backend(customer_b,business_b,'Customer Campaign','LEADS',array['META'],100,'customer-key-0001','EGP',null,null,'{}'::jsonb,null);
   exception when others then
     if sqlerrm='MARKETING_BUSINESS_SCOPE_REQUIRED' then rejected:=true; else raise; end if;
   end;
@@ -167,8 +178,8 @@ begin
 
   if has_table_privilege('authenticated','public.marketing_campaigns','INSERT') then raise exception 'authenticated role has direct campaign INSERT'; end if;
   if has_table_privilege('authenticated','public.marketing_campaign_participants','INSERT') then raise exception 'authenticated role has direct participant INSERT'; end if;
-  if has_function_privilege('anon','public.create_marketing_campaign_backend(uuid,uuid,text,text,text[],numeric,character varying,timestamp with time zone,timestamp with time zone,jsonb,text)','EXECUTE') then raise exception 'anon can execute campaign creation'; end if;
-  if not has_function_privilege('authenticated','public.create_marketing_campaign_backend(uuid,uuid,text,text,text[],numeric,character varying,timestamp with time zone,timestamp with time zone,jsonb,text)','EXECUTE') then raise exception 'authenticated cannot execute campaign RPC'; end if;
+  if has_function_privilege('anon','public.create_marketing_campaign_backend(uuid,uuid,text,text,text[],numeric,text,character varying,timestamp with time zone,timestamp with time zone,jsonb,text)','EXECUTE') then raise exception 'anon can execute campaign creation'; end if;
+  if not has_function_privilege('authenticated','public.create_marketing_campaign_backend(uuid,uuid,text,text,text[],numeric,text,character varying,timestamp with time zone,timestamp with time zone,jsonb,text)','EXECUTE') then raise exception 'authenticated cannot execute campaign RPC'; end if;
 end;
 $test$;
 reset role;
