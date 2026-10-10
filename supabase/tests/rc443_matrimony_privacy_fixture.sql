@@ -1,0 +1,67 @@
+-- Disposable RC443 matrimony privacy fixture.
+create extension if not exists pgcrypto;
+create schema if not exists auth;
+
+do $roles$
+begin
+  if not exists(select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
+  if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if;
+  if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role nologin; end if;
+end;
+$roles$;
+
+create or replace function auth.uid()
+returns uuid
+language sql
+stable
+as $function$
+  select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
+$function$;
+grant usage on schema auth to public;
+grant execute on function auth.uid() to public;
+
+create table public.matrimony_profiles(
+  id uuid primary key,
+  owner_user_id uuid not null,
+  gender text not null,
+  pseudonym text not null,
+  age integer not null,
+  city text not null,
+  country text not null,
+  nationality text not null,
+  education text not null,
+  occupation text not null,
+  marital_status text not null,
+  religiosity_level text not null,
+  housing_status text not null,
+  financial_status text not null,
+  about_me text not null,
+  partner_requirements text not null,
+  wali_contact_name text not null,
+  wali_contact_phone text not null,
+  direct_contact_phone text not null,
+  is_verified boolean not null default false,
+  compatibility_tags jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now()
+);
+create table public.matrimony_requests(
+  id uuid primary key,
+  from_user_id uuid not null,
+  to_profile_id uuid not null references public.matrimony_profiles(id),
+  status text not null,
+  message_text text not null,
+  created_at timestamptz not null default now()
+);
+create table public.matrimony_contact_unlocks(
+  id uuid primary key,
+  request_id uuid not null references public.matrimony_requests(id),
+  unlocked_at timestamptz not null default now()
+);
+
+alter table public.matrimony_profiles enable row level security;
+alter table public.matrimony_requests enable row level security;
+alter table public.matrimony_contact_unlocks enable row level security;
+grant select on public.matrimony_profiles,public.matrimony_requests,public.matrimony_contact_unlocks to authenticated;
+create policy matrimony_profiles_select on public.matrimony_profiles
+  for select to authenticated
+  using (coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false);
