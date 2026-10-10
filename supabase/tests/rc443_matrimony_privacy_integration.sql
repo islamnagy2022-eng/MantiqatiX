@@ -122,6 +122,127 @@ $user_c$;
 reset role;
 
 
+
+-- A new request must be created by the server RPC, and only the target owner may accept it.
+set role authenticated;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',false);
+do $request_sender$
+declare
+ v_request_id uuid;
+ v_repeat_id uuid;
+ v_status text;
+begin
+ select request_id,status into v_request_id,v_status
+ from public.matrimony_create_request_backend('40000000-0000-4000-8000-000000000004','تعريف اختياري');
+ if v_request_id is null or v_status <> 'PENDING' then
+  raise exception 'TEST_FAILED: safe request creation did not create PENDING request';
+ end if;
+ perform set_config('test.matrimony_request_id',v_request_id::text,false);
+
+ select request_id,status into v_repeat_id,v_status
+ from public.matrimony_create_request_backend('40000000-0000-4000-8000-000000000004','retry');
+ if v_repeat_id is distinct from v_request_id or v_status <> 'PENDING'
+    or (select count(*) from public.matrimony_requests where from_user_id='20000000-0000-4000-8000-000000000001' and to_profile_id='40000000-0000-4000-8000-000000000004' and status='PENDING') <> 1 then
+  raise exception 'TEST_FAILED: duplicate request retry must be idempotent';
+ end if;
+
+ begin
+  perform * from public.matrimony_create_request_backend('40000000-0000-4000-8000-000000000001','self');
+  raise exception 'TEST_FAILED: self-request unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: self-request unexpectedly succeeded' then raise; end if;
+  if sqlerrm <> 'SELF_REQUEST_FORBIDDEN' then raise; end if;
+ end;
+
+ begin
+  perform * from public.matrimony_create_request_backend('40000000-0000-4000-8000-000000000003','unverified');
+  raise exception 'TEST_FAILED: request to unverified profile unexpectedly succeeded';
+ exception when others then
+  if sqlerrm='TEST_FAILED: request to unverified profile unexpectedly succeeded' then raise; end if;
+  if sqlerrm <> 'PROFILE_NOT_AVAILABLE' then raise; end if;
+ end;
+
+ begin
+  perform * from public.matrimony_respond_request_backend(v_request_id,true);
+  raise exception 'TEST_FAILED: sender unexpectedly accepted own request';
+ exception when others then
+  if sqlerrm='TEST_FAILED: sender unexpectedly accepted own request' then raise; end if;
+  if sqlerrm <> 'FORBIDDEN' then raise; end if;
+ end;
+
+ begin
+  perform * from public.matrimony_unlock_contact_backend(v_request_id);
+  raise exception 'TEST_FAILED: contact unlocked before acceptance';
+ exception when others then
+  if sqlerrm='TEST_FAILED: contact unlocked before acceptance' then raise; end if;
+  if sqlerrm <> 'CONTACT_NOT_UNLOCKED' then raise; end if;
+ end;
+end;
+$request_sender$;
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000004',false);
+do $request_recipient$
+declare
+ v_request_id uuid := current_setting('test.matrimony_request_id')::uuid;
+ v_status text;
+begin
+ select status into v_status from public.matrimony_respond_request_backend(v_request_id,true);
+ if v_status <> 'ACCEPTED_MUTUAL' then
+  raise exception 'TEST_FAILED: target owner could not accept request';
+ end if;
+end;
+$request_recipient$;
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000003',false);
+do $third_party$
+declare
+ v_request_id uuid := current_setting('test.matrimony_request_id')::uuid;
+begin
+ begin
+  perform * from public.matrimony_respond_request_backend(v_request_id,true);
+  raise exception 'TEST_FAILED: third party resolved a request';
+ exception when others then
+  if sqlerrm='TEST_FAILED: third party resolved a request' then raise; end if;
+  if sqlerrm <> 'FORBIDDEN' then raise; end if;
+ end;
+ begin
+  perform * from public.matrimony_unlock_contact_backend(v_request_id);
+  raise exception 'TEST_FAILED: third party unlocked contact';
+ exception when others then
+  if sqlerrm='TEST_FAILED: third party unlocked contact' then raise; end if;
+  if sqlerrm <> 'FORBIDDEN' then raise; end if;
+ end;
+end;
+$third_party$;
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',false);
+do $contact_unlock$
+declare
+ v_request_id uuid := current_setting('test.matrimony_request_id')::uuid;
+ v_phone text;
+ v_unlocked_at timestamptz;
+ v_repeat_at timestamptz;
+begin
+ select unlocked_at into v_unlocked_at from public.matrimony_unlock_contact_backend(v_request_id);
+ select unlocked_at into v_repeat_at from public.matrimony_unlock_contact_backend(v_request_id);
+ if v_unlocked_at is null or v_repeat_at is distinct from v_unlocked_at
+    or (select count(*) from public.matrimony_contact_unlocks where request_id=v_request_id) <> 1 then
+  raise exception 'TEST_FAILED: contact unlock must be idempotent';
+ end if;
+ select direct_contact_phone into v_phone from public.matrimony_get_unlocked_contact_backend(v_request_id);
+ if v_phone <> '01000000008' then
+  raise exception 'TEST_FAILED: newly accepted request returned incorrect contact';
+ end if;
+end;
+$contact_unlock$;
+reset role;
+
 -- Anonymous Auth users have a non-null UID and the authenticated DB role; both RPCs must reject them.
 set role authenticated;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',false);
