@@ -114,9 +114,8 @@ begin
  from public.matrimony_unlock_contact_backend(v_request_id) x;
  select x.unlocked_at into v_second
  from public.matrimony_unlock_contact_backend(v_request_id) x;
- if v_first is null or v_first is distinct from v_second
-    or (select count(*) from public.matrimony_contact_unlocks u where u.request_id=v_request_id) <> 1 then
-  raise exception 'TEST_FAILED: contact unlock must be idempotent';
+ if v_first is null or v_first is distinct from v_second then
+  raise exception 'TEST_FAILED: repeated contact unlock must return the same timestamp';
  end if;
 
  select x.direct_contact_phone into v_phone
@@ -127,6 +126,17 @@ begin
 end;
 $accept_and_unlock$;
 reset role;
+
+-- Verify row cardinality as the database owner, not as authenticated (whose RLS intentionally hides this table).
+do $unlock_cardinality$
+declare
+ v_request_id uuid := current_setting('test.rc448_request_id')::uuid;
+begin
+ if (select count(*) from public.matrimony_contact_unlocks u where u.request_id=v_request_id) <> 1 then
+  raise exception 'TEST_FAILED: repeated contact unlock must persist exactly one row';
+ end if;
+end;
+$unlock_cardinality$;
 
 -- Sender receives counterpart contact; an unrelated third party remains denied.
 set role authenticated;
