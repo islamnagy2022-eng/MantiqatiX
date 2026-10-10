@@ -11,6 +11,7 @@ for (const col of ["entry_number","total_debit","total_credit","posted_at","upda
   assert.match(migration, new RegExp("add column if not exists " + col, "i"), "schema migration must add " + col);
 }
 assert.match(migration, /journal_entry_lines add column line_number/i);
+assert.match(migration, /alter column entry_number set not null/i);
 assert.match(migration, /set total_debit=coalesce/i);
 assert.match(migration, /set total_credit=coalesce/i);
 assert.match(migration, /row_number\(\) over\(partition by l\.journal_entry_id order by l\.id\)/i);
