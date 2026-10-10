@@ -24,6 +24,7 @@ jobs:
       - name: JavaScript syntax
         run: |
           node --check web/app.js
+          node --check web/home.js
           node --check web/module-blueprints.js
       - name: Module runtime contract
         run: |
@@ -44,6 +45,7 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
+          node scripts/validate-selected-membership-activity-profile.mjs
 
   matrimony-privacy-postgres:
     runs-on: ubuntu-latest
