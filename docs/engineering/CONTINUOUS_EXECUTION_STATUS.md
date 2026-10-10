@@ -1,8 +1,21 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-10 — RC449A journal schema prerequisite merged; production release not certified
+Last updated: 2026-10-11 — RC453 source CI verified; production release not certified
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
+
+## Latest continuation — RC453 backend verified; campaign UI staged (2026-10-11)
+
+- Current main checkpoint: `c709348adbb03573c8209767c10e10c1df3be107`, which merged PR #184 (RC453 secure internal campaign and partner workflow). This is source-only; the migration was not applied to production.
+- The initial RC453 PostgreSQL job failed because the disposable fixture's `auth.jwt()` body used a malformed dollar delimiter. The fixture was corrected to matching `$ ... $` delimiters before merge. Corrected-head run [38088683549](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38088683549) passed both the source validator and the disposable PostgreSQL campaign/partner integration.
+- Read-only production schema inspection confirmed the existing columns referenced by RC453 are present in `businesses`, `user_memberships`, `marketing_provider_profiles`, `audit_logs`, and `notifications`. This is compatibility evidence only, not proof that the new RC453 tables/functions exist in production.
+- PR #186 adds the UI integration through the RC453 RPCs, explicit read-field allowlists, visible read-error handling, SMM/CRM shortcuts, and a per-session campaign idempotency key that is retained across ambiguous retries and cleared only after confirmed success. Its current-head checks passed: [Marketing Campaign UI 38089073226](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089073226), [Module Professionalization Validation 38089073397](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089073397), [Backend-only Module Boundary 38089073386](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089073386), and [MantiGO privacy 38089073296](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089073296). Pages validation [38089073228](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089073228) passed, but its `deploy` job was skipped because the change is still a PR.
+- PR #186 remains deliberately unmerged. The production migration ledger still ends at RC424 version `20261008222845`; deploying the UI before the ordered database rollout would expose a campaign screen whose backend is intentionally unavailable. No campaign UI deployment is claimed.
+- Production rollout order remains RC447 → RC448 → RC449 → RC449A → RC450 → RC453, subject to migration-ledger verification, explicit approval, and runtime acceptance tests. None of these migrations has been applied to production in this continuation.
+- Security Advisor snapshot observed at `2026-10-10T21:40Z`: one anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), 40 authenticated-executable SECURITY DEFINER functions, and an informational finding for `digital_page_payment_events` having RLS enabled without policies. These need function-by-function intent/ACL review; do not apply blanket revocations.
+- No production migration, data mutation, grant/RLS/Auth change, financial transaction, payment, Edge Function deployment, or external ad publishing occurred.
+
+**Release remains NOT CERTIFIED.** Passing isolated CI does not replace the approved production migration batch, authenticated runtime/browser acceptance, backup/restore rehearsal, and rollback verification.
 
 ## Latest verified continuation — RC449A financial schema prerequisite (2026-10-10)
 
