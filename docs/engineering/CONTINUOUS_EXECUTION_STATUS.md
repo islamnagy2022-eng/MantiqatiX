@@ -4,6 +4,19 @@ Last updated: 2026-10-11 — RC453 source CI verified; production release not ce
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
 
+## Latest continuation — RC456 SMM gateway access and trusted UI staging (2026-10-11)
+
+- Current main checkpoint at the start of this update: `5f832bb55f53a8d448d8771769b8a0c920eb7a7e`, which merged PR #188 (RC456 SMM service-role access boundary). RC456 is source-only and has not been applied to production.
+- A fresh read-only production ACL matrix found that `service_role` had no SELECT/INSERT/UPDATE/DELETE privileges on `smm_admins`, `smm_providers`, `smm_services`, `smm_orders`, `smm_wallets`, or `smm_order_events`. This explains why gateway reads/order writes could fail despite using the service-role client.
+- RC456 grants only the required privileges to `service_role`: SELECT on admin/provider/wallet tables; SELECT/INSERT/UPDATE on services/orders; INSERT-only on order events. Direct `anon`/`authenticated` access is revoked; no DELETE grants are added; provider credentials and wallet transactions remain RPC-only.
+- RC456 validation passed: [SMM Service Role Access Boundary 38089643157](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089643157) completed the disposable PostgreSQL ACL integration; the static contract and Deno type check passed in the same workflow. No production grants or migration were applied.
+- The deployed `smm-gateway` is still version 6. Draft PR #189 stages the SMM UI's trusted `catalog`/`my_data` reads and passes [SMM Trusted UI 38089783851](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089783851). Pages validation [38089783932](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089783932) passed and its `deploy` job was skipped. Keep PR #189 draft until the approved RC456 migration and updated Edge Function are deployed and smoke-tested.
+- Marketing campaign backend RC453 is merged as source-only. Draft PR #186 combines the agency workspace, SMM homepage quick access, and campaign RPC integration; its latest UI contract, module validation, backend-only checks, and MantiGO privacy checks passed. Keep it unmerged until the ordered production migration batch is approved/applied.
+- Read-only production migration ledger still ends at RC424 version `20261008222845`. RC447 → RC448 → RC449 → RC449A → RC450 → RC453 and RC456 remain unapplied in production.
+- No production migration, grants/RLS/Auth change, Edge Function deployment, payment, wallet mutation, SMM order, external ad publishing, or campaign creation occurred.
+
+**Release remains NOT CERTIFIED.** Source merge and disposable CI are not production rollout evidence. Required gates remain the approved ordered migration batch, coordinated Edge Function deployment, authenticated runtime/browser smoke tests, backup/restore rehearsal, and rollback verification.
+
 ## Latest continuation — RC453 backend verified; campaign UI staged (2026-10-11)
 
 - Current main checkpoint: `c709348adbb03573c8209767c10e10c1df3be107`, which merged PR #184 (RC453 secure internal campaign and partner workflow). This is source-only; the migration was not applied to production.
