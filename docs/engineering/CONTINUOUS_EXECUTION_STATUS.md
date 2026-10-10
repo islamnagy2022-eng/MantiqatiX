@@ -4,6 +4,13 @@ Last updated: 2026-10-11 — RC453 source CI verified; production release not ce
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
 
+## Latest continuation — explicit migration-chain gate (2026-10-11)
+
+- Draft PR [#193](https://github.com/islamnagy2022-eng/MantiqatiX/pull/193) strengthens `scripts/production/verify-production.mjs` to check 27 required forward-only migration source files across payment, SMM, ERP/finance, security, privacy, CRM, and marketing tracks.
+- Missing required migration sources now produce a P0 `BLOCKED` release-gate result instead of leaving the source verification result merely `NOT VERIFIED`. A companion contract validator is wired into Pages validation.
+- This gate intentionally does not claim that source migrations are applied to production. The live migration ledger remains at RC424, the RC424 source/ledger identity mismatch still needs reconciliation, and the RC425–RC441 payment/finance/security migration batch is not fully present on `main`.
+- No production schema, data, grants, Auth configuration, Edge Functions, payments, or wallet state was changed by this work.
+
 ## Latest continuation — RC456 SMM gateway access and trusted UI staging (2026-10-11)
 
 - Current main checkpoint at the start of this update: `5f832bb55f53a8d448d8771769b8a0c920eb7a7e`, which merged PR #188 (RC456 SMM service-role access boundary). RC456 is source-only and has not been applied to production.
