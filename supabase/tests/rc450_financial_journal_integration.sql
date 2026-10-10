@@ -192,7 +192,11 @@ begin
     jsonb_build_object('account_id','revenue','debit',0,'credit',50)
   );
   perform public.post_financial_journal_backend(actor,entry,lines);
-  select running_balance into v_cash from public.general_ledger where tenant_id='tenant-a' and account_id='cash' order by posted_at desc,id desc limit 1;
+  select gl.running_balance into v_cash
+  from public.general_ledger gl
+  join public.journal_entry_lines jel on jel.id=gl.journal_line_id
+  where gl.journal_entry_id='rc450-journal-002' and gl.account_id='cash'
+  order by jel.line_number desc limit 1;
   select array_agg(gl.running_balance order by jel.line_number) into v_cash_steps
   from public.general_ledger gl
   join public.journal_entry_lines jel on jel.id=gl.journal_line_id
