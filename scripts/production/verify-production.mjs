@@ -16,7 +16,7 @@ for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated 
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
 const md=path.join(root,"supabase","migrations");
-const mf=exists("supabase/migrations")?fs.readdirSync(md).filter(x=>/^\\d{14}_.+\\.sql$/.test(x)).sort():[];
+const mf=exists("supabase/migrations")?fs.readdirSync(md).filter(x=>/^\d{14}_.+\.sql$/.test(x)).sort():[];
 const byMigrationVersion=new Map();
 for(const file of mf){
   const version=file.slice(0,14);
