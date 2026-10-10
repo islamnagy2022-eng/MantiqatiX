@@ -32,5 +32,6 @@ assert.match(adminGuard, /p\.scope==="PLATFORM"/, "membership-based SMM admin mu
 assert.match(adminGuard, /p\.full_control===true/, "membership-based SMM admin must have full control");
 assert.doesNotMatch(adminGuard, /OWNER.*ADMIN.*SUPER_ADMIN|includes\(String\(m\.role\)\.toUpperCase\(\)\)/, "tenant OWNER/ADMIN roles must not grant global SMM administration");
 assert.match(gateway, /user\.is_anonymous\?null:user/, "anonymous Auth sessions must be rejected by the trusted gateway");
+assert.match(gateway, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
 
 console.log("SMM trusted read gateway contract: PASS");
