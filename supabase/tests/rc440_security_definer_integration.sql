@@ -1,10 +1,14 @@
--- RC440 behavioral catalog test; disposable PostgreSQL only.
+-- RC440 behavioral catalog and temp-schema shadowing test; disposable PostgreSQL only.
+create temporary table rc440_guarded_data(value integer not null);
+insert into pg_temp.rc440_guarded_data(value) values (99);
+
 do $test$
 declare
   exposed_config text[];
   authenticated_config text[];
   already_hardened_config text[];
   private_config text[];
+  probe_result integer;
 begin
   select p.proconfig into exposed_config from pg_catalog.pg_proc p
   where p.oid='public.rc440_exposed_probe()'::regprocedure;
@@ -13,6 +17,12 @@ begin
   end if;
   if pg_catalog.has_function_privilege('anon','public.rc440_exposed_probe()','EXECUTE') is not true then
     raise exception 'fixture exposed function should remain callable by anon; RC440 must not alter grants';
+  end if;
+
+  -- A same-named temporary table must not shadow the public object inside SECURITY DEFINER.
+  select public.rc440_exposed_probe() into probe_result;
+  if probe_result <> 10 then
+    raise exception 'temporary-schema shadowing was not prevented; expected public value 10, got %',probe_result;
   end if;
 
   select p.proconfig into authenticated_config from pg_catalog.pg_proc p
