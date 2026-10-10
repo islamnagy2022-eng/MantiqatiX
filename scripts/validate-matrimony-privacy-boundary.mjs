@@ -17,6 +17,8 @@ const discover = migration.slice(discoverStart, contactStart);
 assert.match(discover, /p\.is_verified is true/);
 assert.doesNotMatch(discover, /wali_contact_phone|direct_contact_phone|financial_status|housing_status|religiosity_level|about_me|partner_requirements/i);
 assert.match(migration, /function public\.matrimony_get_unlocked_contact_backend/i);
+assert.match(migration, /guard_matrimony_profile_verification/i, "profile owners must not self-assert verification");
+assert.match(migration, /MATRIMONY_VERIFICATION_SERVER_ONLY/);
 const contact = migration.slice(contactStart);
 assert.match(contact, /v_request\.status <> 'ACCEPTED_MUTUAL'/);
 assert.match(contact, /matrimony_contact_unlocks u[\s\S]*?u\.request_id=v_request\.id/);
