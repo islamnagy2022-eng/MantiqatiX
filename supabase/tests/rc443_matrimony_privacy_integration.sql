@@ -40,7 +40,10 @@ begin
  end if;
  if has_table_privilege('authenticated','public.matrimony_requests','INSERT')
     or has_table_privilege('authenticated','public.matrimony_requests','UPDATE')
-    or has_table_privilege('authenticated','public.matrimony_contact_unlocks','INSERT') then
+    or has_table_privilege('authenticated','public.matrimony_contact_unlocks','INSERT')
+    or has_table_privilege('anon','public.matrimony_requests','INSERT')
+    or has_table_privilege('anon','public.matrimony_requests','UPDATE')
+    or has_table_privilege('anon','public.matrimony_contact_unlocks','INSERT') then
    raise exception 'TEST_FAILED: authenticated direct request/unlock writes must be revoked';
  end if;
  if (select pg_get_function_result('public.matrimony_discover_profiles_backend(integer,text,text)'::regprocedure)) ilike '%contact_phone%'
