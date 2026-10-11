@@ -11,7 +11,8 @@
 - The Edge Function validates the bearer token, exact active tenant/business/branch membership, role, payload size, and allowed input fields.
 - `restaurant_workspace_mutate_backend` repeats the membership and active business/branch checks, updates the row and inserts its audit record in one database transaction.
 - Direct `INSERT`, `UPDATE`, and `DELETE` privileges on `restaurant_tables` and `restaurant_inventory` are revoked from `PUBLIC`, `anon`, and `authenticated`. The backend role retains its required access.
-- Reads continue through the existing RLS-protected read path.
+- Reads remain RLS-protected; explicit `SELECT` policies permit active, allowed-role members to read rows only for their exact tenant/business/branch. Existing restrictive session and workspace-scope policies continue to apply.
+- The PostgreSQL integration fixture enables RLS and checks that both branch-scoped read policies exist, while the static validator guards SQL quoting and the production `text` type of inventory IDs.
 
 ## Mandatory release order
 
@@ -22,7 +23,7 @@
 5. Verify the RC461 migration ledger entry and read-only privilege checks: direct DML denied to `anon` and `authenticated`; backend RPC executable by `service_role` only.
 6. Deploy `restaurant-workspace-mutate` to Supabase after the migration succeeds. GitHub Pages deployment does not deploy Edge Functions.
 7. Deploy the web bundle only after the Edge Function is confirmed active and the workspace RPC is present.
-8. Perform authorized staging/disposable-database tests for create/update table, create/update inventory, cross-branch denial, inactive business/branch denial, and audit atomicity. Verify production function version and ACLs read-only after deployment.
+8. Perform authorized staging/disposable-database tests for create/update table, create/update inventory, branch-member reads, cross-branch read/mutation denial, inactive business/branch denial, and audit atomicity. Verify production function version and ACLs read-only after deployment.
 
 ## Rollback constraints
 
