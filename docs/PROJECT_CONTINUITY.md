@@ -709,3 +709,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-037
 - Commits `a050badc2970b693c2a4d3a23aba5172d6e44d33` / `157518b2096be2c92b1810fbab8a5f9b52124ae5`: global campaign search jumps to the matching card and highlights it briefly.
+
+ 
+## Build progress — SESSION-038
+- Commit `d2f14278994a91c84cdfee634a1fce41393eeab0`: provider invitation response controls now require the user's own active, verified profile, matching the backend contract.
