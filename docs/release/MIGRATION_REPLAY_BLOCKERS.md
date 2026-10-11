@@ -247,3 +247,10 @@ The CI split is now committed on this draft branch:
 **Important:** this is not sufficient to certify launch. Production's `smm-gateway` Edge Function was observed active and has not been disabled or changed by this work. The static page does not disable the API. New P0 issue [#212](https://github.com/islamnagy2022-eng/MantiqatiX/issues/212) tracks the required reviewed server-side deny gate and production negative tests. Until this is completed under explicit deployment approval, the SMM API remains a separate production exposure to resolve before launch.
 
 The overall production gate remains **BLOCKED / NOT CERTIFIED** because historical migration replay is blocked by ten legacy function creation dependencies, live migration ledger reconciliation remains incomplete after RC424, and other global acceptance evidence remains unverified. SMM deferral does not waive these gates.
+
+
+## Correction to `mantigo_rate_ride` ACL interpretation — 2026-10-11
+
+Follow-up source-history review found a later explicit grant in `20261006133000_mantigo_p0_security_audit_notification_hardening.sql`: it first revokes `PUBLIC` and `anon`, then grants `EXECUTE` on `public.mantigo_rate_ride(text,integer,text)` to `authenticated`. The function body verifies `auth.uid()` is present, only permits the owner of a `COMPLETED` ride to rate it, validates the rating range, and prevents changing an existing rating. This explains the live `authenticated_execute=true` result and means the earlier note calling it an apparent exception to the September revoke was incomplete.
+
+Current conclusion: **do not classify this grant alone as a confirmed vulnerability or release blocker**. It appears to be a later intentional, authenticated customer-rating flow. Preserve the live ACL; no production permissions were changed. Include the function in the regular security review to validate its full current definition and ensure the negative tests cover unauthenticated calls, non-owner rides, non-completed rides, invalid rating values, and duplicate/changed ratings. The missing historical creation DDL for the ten functions remains a separate replay blocker.
