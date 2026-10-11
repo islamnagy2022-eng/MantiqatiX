@@ -21,3 +21,14 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+## 2026-10-11 — SESSION-002 — Make generic workspaces data-aware
+
+- **User decision:** continue building missing module functionality first; postpone broad reviews until after the build-out. Preserve the existing security boundaries and do not claim launch readiness.
+- **Branch:** `build/module-workspaces-functional-20261011-b`.
+- **Code change:** commit [949edb74a0051a4dcc14a7473ecfa68ad056a442](https://github.com/islamnagy2022-eng/MantiqaTix/commit/949edb74a0051a4dcc14a7473ecfa68ad056a442) updates `web/app.js`: generic workspaces now render live session-backed metrics/records for Users, Orders, Marketing, Commissions/Packages, and Reports; tabs for overview/data/operations/reports/settings are wired to contextual content; operational buttons navigate to existing module flows.
+- **Data integrity:** no fixture or synthetic records added. Missing source counts render as `—`; finance indicators are only shown when the existing role-gated finance snapshot exists. Configuration is read-only.
+- **Verification:** GitHub Actions checks were observed queued/in-progress immediately after push; no passing CI result is claimed yet. No production DB/function changes and no deployment.
+- **Known limitation:** this is an incremental functional improvement, not completion of every module. Domain-specific modules still need their own data/actions, and this branch must pass CI before proposing integration.
+- **Next build step:** extend contextual data/action coverage to remaining modules without routing unrelated records into them; then inspect CI outcomes and add focused tests where needed.
+- **Release status:** still **BLOCKED / NOT CERTIFIED**; this code commit is not a release approval.
