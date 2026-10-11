@@ -1735,3 +1735,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign search availability — SESSION-032
 - [x] Gate global campaign search on successful backend availability detection.
 - [ ] Verify campaign search appears after RC453 becomes available.
+
+ 
+## Campaign usability — SESSION-033
+- [x] Add local search and status filtering for visible campaigns.
+- [ ] Validate filtering against mixed statuses and Arabic text after backend tests.
