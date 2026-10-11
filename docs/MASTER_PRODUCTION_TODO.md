@@ -1662,3 +1662,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Domain module build — SESSION-019
 - [x] Add source/count/status CSV export to blueprint-backed domain modules.
 - [ ] Validate export values, encoding and availability for backend-only/unreadable sources after build completion.
+
+ 
+## Module scope handling — SESSION-020
+- [x] Clear cached module source state on membership switch and Auth sign-out.
+- [ ] Test cross-membership cache isolation and stale count labeling.
