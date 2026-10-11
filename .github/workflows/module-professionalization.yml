@@ -591,3 +591,15 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc459_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc460_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc459_test.sql
+      - name: Apply RC461 restaurant workspace mutation boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc461_restaurant_workspace_mutation_fixture.sql "$pg_container:/tmp/rc461_fixture.sql"
+          docker cp supabase/migrations/20261012030000_rc461_restaurant_workspace_mutation_authority.sql "$pg_container:/tmp/rc461_migration.sql"
+          docker cp supabase/tests/rc461_restaurant_workspace_mutation_integration.sql "$pg_container:/tmp/rc461_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc461_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc461_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc461_test.sql
