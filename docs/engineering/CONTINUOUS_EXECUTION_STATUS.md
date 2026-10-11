@@ -1,4 +1,18 @@
 # MantiqatiX Continuous Execution Status
+## Exact-head CI checkpoint — 2026-10-12, SMM frozen
+
+Candidate branch: `reconcile/rc425-458-current-main-20261011`
+Exact head: `df1ada71e3a15535388dc62b5caff05294606f2c`
+
+- Core source validation passed: Module Professionalization Validation [38178199559], Backend-only Module Boundary [38178199597], MantiGO Open Ride Privacy Boundary [38178199558], Approval Action Audit Atomicity [38178199601], Migration Version Uniqueness [38178199576], Migration History Immutability [38178199554], and Open PR Migration Collision Guard [38178199583].
+- The core validation log confirms the checkout-secret crypto regression tests passed (round-trip, fresh IV, authenticated-context binding, tamper rejection) and the payment/webhook source contracts passed. This is source/CI evidence only, not live payment E2E.
+- Pages workflow [38178199581] completed successfully as a workflow, but its deployment job was skipped for this draft PR. No production deployment is claimed.
+- SMM Deferred Module Validation [38178199561] remains failed. Per the owner's explicit instruction, do not continue SMM development or attempt to make its feature tests green during the initial-launch cycle. Preserve the failure record; do not weaken or delete tests. The SMM-specific implementation remains deferred until after actual launch and a separate explicit owner request.
+- The separate live-server SMM deny/containment issue remains a production risk gate; this documentation and source CI did not disable the live gateway. No production change is claimed.
+- The full chronological migration replay has not been evidenced on this exact head. The known historical SECURITY DEFINER creation dependencies, post-RC424 migration reconciliation, authenticated browser/tenant isolation, payment/finance E2E, backup/restore and rollback evidence remain release blockers.
+
+**Release status: BLOCKED / NOT CERTIFIED.** Do not merge to `main`, deploy, or apply production migrations on the basis of these CI results.
+
 ## Owner decision — SMM frozen until after production launch (2026-10-12)
 
 - **SMM implementation and feature work are paused by explicit owner instruction.** Do not continue SMM development, remediation, UI work, provider/payment/wallet work, or SMM-specific expansion until the owner explicitly requests resumption after the site has launched and is operating.
