@@ -50,5 +50,8 @@ assert.match(app, /recordsTable\('دعوات التعاون التسويقي'/, 
 assert.match(app, /MNTY_RBAC\?\.can\(String\(live\.role\|\|''\),'MARKETING','create'/, "campaign creation must check the frontend permission contract");
 assert.match(app, /MNTY_RBAC\?\.can\(String\(live\.role\|\|''\),'MARKETING','update'/, "campaign updates must check the frontend permission contract");
 assert.match(app, /recordsTable\('الحملات التسويقية',campaigns/, "campaigns must be visible in the marketing workspace");
+assert.ok(app.includes('plannedCampaignBudget'), "workspace reports planned campaign budgets");
+assert.ok(app.includes('invitedPartners') && app.includes('acceptedPartners'), "workspace reports partner invitation pipeline states");
+assert.ok(app.includes('ليست إنفاقًا فعليًا'), "planned budgets must not be mislabeled as actual spend");
 assert.doesNotMatch(app, /from\(['"]marketing_campaigns['"]\)\.(insert|update|delete)/, "browser must not directly mutate campaign rows");
-console.log("RC453 marketing campaign backend and workspace contract: PASS (37 assertions)");
+console.log("RC453 marketing campaign backend and workspace contract: PASS (40 assertions)");
