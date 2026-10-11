@@ -49,11 +49,18 @@ const requiredReleaseMigrations=[
   "20261011010000_rc456_smm_service_role_access_boundary.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
-add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",missingReleaseMigrations.length?"BLOCKED":"PASS",
-  missingReleaseMigrations.length
-    ? `Production rollout cannot be certified: missing forward-only migration sources: ${missingReleaseMigrations.join(", ")}. RC424 ledger/source identity and live application order still require independent reconciliation.`
-    : `All ${requiredReleaseMigrations.length} known post-RC424 release migrations are present in source; this does not prove they are applied in production.`,
-  missingReleaseMigrations.length?"P0":"P1");
+const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
+const migrationTimestampOrderViolations=[];
+for(let i=1;i<presentReleaseMigrations.length;i++){
+  const previous=presentReleaseMigrations[i-1].slice(0,14), current=presentReleaseMigrations[i].slice(0,14);
+  if(current<previous)migrationTimestampOrderViolations.push(`${presentReleaseMigrations[i-1]} -> ${presentReleaseMigrations[i]}`);
+}
+const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0;
+add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
+  migrationChainBlocked
+    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. RC424 ledger/source identity and live application order still require independent reconciliation.`
+    : `All ${requiredReleaseMigrations.length} known post-RC424 release migrations are present and timestamp-ordered in source; this does not prove they are applied in production.`,
+  migrationChainBlocked?"P0":"P1");
 const wf=exists(".github/workflows/pages.yml")?read(".github/workflows/pages.yml"):"";for(const v of ["validate-production-gate-contract.mjs","validate-finance-boundaries.mjs","validate-digital-pages-boundaries.mjs","validate-security-definer-contract.mjs"])add("CI-"+v,"CI/CD",wf.includes(v)?"PASS":"FAIL",wf.includes(v)?`workflow invokes ${v}`:`workflow missing ${v}`,"P1");
 const report={generated_at:new Date().toISOString(),mode:"source_contract",note:"Runtime/Production claims require live evidence and are never inferred from source presence.",results,summary:Object.fromEntries(["PASS","FAIL","PARTIAL","BLOCKED","NOT VERIFIED"].map(s=>[s,results.filter(r=>r.status===s).length])),production_gate:results.some(r=>(r.status==="FAIL"||r.status==="BLOCKED")&&r.severity==="P0")?"BLOCKED":"NOT VERIFIED"};
 const out=path.join(root,"artifacts","production-verification");fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,"production-verification.json"),JSON.stringify(report,null,2)+"\n");for(const r of results)console.log(`[${r.status}] [${r.category}] ${r.id} — ${r.evidence}`);console.log(`PRODUCTION_GATE=${report.production_gate}`);console.log("REPORT=artifacts/production-verification/production-verification.json");if(results.some(r=>r.status==="FAIL"&&r.severity==="P0"))process.exitCode=1;
