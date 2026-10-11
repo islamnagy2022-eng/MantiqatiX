@@ -621,3 +621,9 @@ This status is intentional and must remain until the open gates above are indepe
 - SMM gateway client now checks session retrieval and access-token presence before POSTing, and disables HTTP caching for those requests.
 - Order form rejects non-integer quantities and values outside the service bounds before sending the request.
 - Commit: `03649e71396f8f9bef4b0625cc1df8a9f2fd8ae8`; no production changes; runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-013
+- Education workspace now supports live text filtering across loaded school, teacher, and request rows, displays match counts, and exposes per-source CSV exports.
+- Filtering is presentation-only over current rows; data reads and authorization are unchanged.
+- Commit: `3aeedbc899b5da1f357c90160265de26a36c5491`; no production deployment or schema/security change.
