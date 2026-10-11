@@ -170,4 +170,4 @@ begin
     raise exception 'RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID';
   end if;
 end
-$;
+$$;
