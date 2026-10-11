@@ -549,16 +549,100 @@ function sectorsPage(){
 function genericPage(title,desc,items){
  const safe=Array.isArray(items)?items:[];
  const tabs=[['overview','نظرة عامة'],['data','البيانات'],['operations','العمليات'],['reports','التقارير'],['settings','الإعدادات']];
- const sections=safe.map((x,i)=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+['▣','◈','◌','◆','◇','◎'][i%6]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(x[0])+'</h3><span class="mnty-badge mnty-badge--ui">الواجهة مكتملة</span></div><p>'+esc(x[1])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div></div></article>').join('');
- const tabBody={
-  overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>مساحة العمل جاهزة</h3><p>الهيكل البصري والعمليات الأساسية لهذه الوحدة محددة. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',
-  data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>سيتم ربط الجداول وواجهات القراءة الفعلية هنا حسب نطاق الحساب والصلاحيات، دون إنشاء سجلات تجريبية.</p></div>',
-  operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>أزرار التنفيذ تُضاف فقط للعمليات التي لها مسار خادم معتمد وصلاحية واضحة. لا يتم تشغيل إجراء غير متصل.</p></div>',
-  reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات ستعتمد على بيانات تشغيلية حقيقية؛ لذلك تظل القيم غير المتاحة فارغة بدل عرض أرقام تقديرية.</p></div>',
-  settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>إعدادات الوحدة تظهر عند اكتمال مساراتها الخلفية والصلاحيات المرتبطة بها.</p></div>'
- };
- return '<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT WORKSPACE</span><h2>'+esc(title)+'</h2><p>'+esc(desc)+'</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--ui">UI READY</span><small>بيانات فعلية فقط عند توفر المصدر</small></div></div><div class="mnty-module-tabs" role="tablist" aria-label="أقسام مساحة العمل" data-workspace-tabs>'+tabs.map((t,i)=>'<button type="button" role="tab" aria-selected="'+(i===0?'true':'false')+'" class="'+(i===0?'active':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div><div class="mnty-tab-panel" id="mnty-generic-tab-panel" role="tabpanel" tabindex="0">'+tabBody.overview+'</div><div class="mnty-blueprint-grid">'+sections+'</div><div class="mnty-future-panel"><div><span class="eyebrow">CONNECTION LATER</span><h3>الشاشة جاهزة قبل اكتمال الخدمة الخلفية</h3><p>لن نعرض أرقامًا أو سجلات مصطنعة. عند اكتمال المصدر، يتم توصيله بهذه الواجهة مباشرة.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>READY</span></div><div><b>DATA</b><span>PENDING</span></div><div><b>SECURITY</b><span>SERVER</span></div></div></div></section>';
+ const sections=safe.map((x,i)=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+['▣','◈','◌','◆','◇','◎'][i%6]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(x[0])+'</h3><span class="mnty-badge mnty-badge--ui">مسار عمل</span></div><p>'+esc(x[1])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div></div></article>').join('');
+ return '<section class="mnty-product-shell mx-workspace" data-generic-workspace="'+esc(title)+'"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT WORKSPACE</span><h2>'+esc(title)+'</h2><p>'+esc(desc)+'</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--live">مساحة تشغيلية</span><small>تُعرض البيانات المتاحة وفق صلاحيات الحساب</small></div></div><div class="mx-workspace-toolbar"><div><strong>مساحة العمل الموحدة</strong><small>القراءة من البيانات المحمّلة وفق RLS؛ لا يتم إنشاء بيانات تجريبية.</small></div><button type="button" class="btn btn-secondary mx-workspace-refresh" data-workspace-action="refresh">تحديث البيانات</button></div><div class="mnty-module-tabs" role="tablist" aria-label="أقسام مساحة العمل" data-workspace-tabs>'+tabs.map((t,i)=>'<button type="button" role="tab" aria-selected="'+(i===0?'true':'false')+'" class="'+(i===0?'active':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div><div class="mnty-tab-panel mx-workspace-panel" id="mnty-generic-tab-panel" role="tabpanel" tabindex="0" data-workspace-panel>'+genericWorkspacePanelHtml(title,'overview')+'</div><div class="mnty-blueprint-grid">'+sections+'</div></section>';
 }
+function genericWorkspaceSources(title){
+ const t=String(title||'');
+ if(t==='المستخدمون')return [{label:'مقدمو الخدمة',key:'providers',rows:live.records.providers||[],fields:[['name_ar','الاسم'],['provider_kind','النشاط'],['status','الحالة'],['is_verified','موثق']]}];
+ if(t==='الطلبات')return [{label:'الطلبات المتاحة للحساب',key:'orders',rows:live.records.orders||[],fields:[['id','رقم الطلب'],['customer_name','العميل'],['status','الحالة'],['total_amount','الإجمالي'],['created_at','تاريخ الإنشاء']]}];
+ if(t==='التسويق والإعلان')return [
+  {label:'المشروعات التسويقية',key:'projects',rows:live.records.projects||[],fields:[['project_type','نوع المشروع'],['management_mode','الإدارة'],['status','الحالة'],['gross_value','القيمة'],['created_at','تاريخ الإنشاء']]},
+  {label:'الإعلانات',key:'ads',rows:live.records.ads||[],fields:[['title','الإعلان'],['status','الحالة'],['approval_status','الاعتماد'],['start_at','البداية'],['end_at','النهاية']]},
+  {label:'العملاء المحتملون',key:'leads',rows:live.records.leads||[],fields:[['title','العنوان'],['status','الحالة'],['source','المصدر'],['created_at','تاريخ الإنشاء']]}
+ ];
+ if(t==='العمولات والباقات')return [{label:'مشروعات وحسابات مالية متاحة',key:'projects',rows:live.records.projects||[],fields:[['project_type','نوع المشروع'],['status','الحالة'],['gross_value','القيمة الإجمالية'],['platform_commission','عمولة المنصة'],['currency','العملة']]}];
+ if(t==='التقارير')return [
+  {label:'الطلبات الحديثة',key:'orders',rows:live.records.orders||[],fields:[['id','رقم الطلب'],['status','الحالة'],['total_amount','الإجمالي'],['created_at','التاريخ']]},
+  {label:'المشروعات التسويقية الحديثة',key:'projects',rows:live.records.projects||[],fields:[['project_type','نوع المشروع'],['status','الحالة'],['gross_value','القيمة'],['platform_commission','العمولة']]},
+  {label:'العملاء المحتملون',key:'leads',rows:live.records.leads||[],fields:[['title','العنوان'],['status','الحالة'],['source','المصدر']]}
+ ];
+ return [{label:'بيانات الحساب الحالي',key:'membership',rows:live.memberships||[],fields:[['business_name','النشاط'],['role','الدور'],['status','الحالة'],['business_section','المجال']]}];
+}
+function genericWorkspaceStats(title){
+ const t=String(title||'');
+ const specs=t==='المستخدمون'?[['مقدمو الخدمة',live.counts.providers],['الأنشطة المرتبطة',live.memberships?.length],['طلبات الحساب',live.counts.orders]]:
+  t==='الطلبات'?[['الطلبات المتاحة',live.counts.orders],['إشعارات الحساب',live.counts.notifications],['تذاكر الدعم',live.counts.support]]:
+  t==='التسويق والإعلان'?[['مشروعات',live.counts.projects],['إعلانات',live.counts.ads],['عملاء محتملون',live.counts.leads]]:
+  t==='العمولات والباقات'?[['حسابات المحافظ',live.finance?.wallets],['التسويات',live.finance?.settlements],['القيود اليومية',live.finance?.journals]]:
+  t==='التقارير'?[['طلبات محمّلة',live.records.orders?.length],['مشروعات محمّلة',live.records.projects?.length],['عملاء محتملون محمّلون',live.records.leads?.length]]:
+  [['العضويات النشطة',live.memberships?.length],['الدور الحالي',live.role],['الإشعارات',live.counts.notifications]];
+ return specs.map(([label,value])=>'<article class="mx-workspace-stat"><span>'+esc(label)+'</span><strong>'+((value===null||value===undefined||value==='')?'—':esc(value))+'</strong></article>').join('');
+}
+function genericWorkspacePanelHtml(title,tab){
+ const t=String(title||'');
+ if(tab==='overview')return '<div class="mx-workspace-stats">'+genericWorkspaceStats(t)+'</div><div class="mx-workspace-note"><strong>ملخص مساحة العمل</strong><p>هذه المؤشرات مأخوذة من البيانات التي حمّلها النظام بالفعل، وقد تمثل أحدث السجلات المتاحة لا إجمالي قاعدة البيانات. الأرقام غير المتاحة تظهر كشرطة بدل اختلاق قيمة.</p></div><div class="mx-workspace-shortcuts"><button type="button" data-workspace-tab="data">عرض البيانات</button><button type="button" data-workspace-tab="reports">فتح التقارير</button><button type="button" data-workspace-tab="operations">العمليات المتاحة</button></div>';
+ if(tab==='data'){
+  const sources=genericWorkspaceSources(t);
+  return '<div class="mx-workspace-data-head"><div><h3>السجلات المتاحة</h3><p>تُعرض الحقول المعروفة فقط؛ ونتائج البحث داخل السجلات المحمّلة لا تتجاوز حدود صلاحيات الحساب.</p></div><label class="mx-workspace-search-label">بحث داخل النتائج<input type="search" data-workspace-filter placeholder="ابحث في السجلات الحالية" autocomplete="off"></label></div><div class="mx-workspace-data-groups">'+sources.map((source,si)=>'<section class="mx-workspace-data-group"><div class="mx-workspace-group-title"><h4>'+esc(source.label)+'</h4><span>'+source.rows.length+' سجل محمّل</span></div>'+(source.rows.length?'<div class="mx-workspace-table-wrap"><table class="mx-workspace-table"><thead><tr>'+source.fields.map(f=>'<th>'+esc(f[1])+'</th>').join('')+'<th>التفاصيل</th></tr></thead><tbody>'+source.rows.map((row,ri)=>'<tr data-workspace-row data-search-text="'+esc(source.fields.map(f=>String(row?.[f[0]]??'')).join(' '))+'">'+source.fields.map(f=>'<td>'+esc(genericWorkspaceDisplayValue(row?.[f[0]],f[0]))+'</td>').join('')+'<td><button type="button" class="mx-workspace-detail-btn" data-workspace-source="'+si+'" data-workspace-row-index="'+ri+'">عرض التفاصيل</button></td></tr>').join('')+'</tbody></table></div>':'<div class="mx-workspace-empty">لا توجد سجلات متاحة في البيانات المحمّلة لهذا القسم.</div>')+'</section>').join('')+'</div>';
+ }
+ if(tab==='operations'){
+  const actions=t==='المستخدمون'?[['المجالات والخدمات','فتح دليل المجالات'],['العمولات والباقات','الباقات والعمولات'],['الدعم','متابعة الدعم']]:
+   t==='الطلبات'?[['المستخدمون','العملاء ومقدمو الخدمة'],['التقارير','تقارير الطلبات'],['الإشعارات','مركز الإشعارات']]:
+   t==='التسويق والإعلان'?[['خدمات التسويق الرقمي SMM','إدارة SMM'],['المستخدمون وCRM','مساحة CRM'],['التقارير','تقارير التسويق']]:
+   t==='العمولات والباقات'?[['التقارير','التقارير المالية'],['الطلبات','الطلبات المرتبطة'],['الإعدادات','إعدادات الحساب']]:
+   t==='التقارير'?[['الطلبات','تفاصيل الطلبات'],['التسويق والإعلان','تفاصيل التسويق'],['العمولات والباقات','العمولات والباقات']]:
+   [['المستخدمون','إدارة الحسابات'],['الإشعارات','الإشعارات'],['الدعم','الدعم والحوكمة']];
+  return '<div class="mx-workspace-operations"><div><span class="eyebrow">WORKFLOW</span><h3>مسارات العمل</h3><p>هذه الإجراءات تنقل إلى وحدات تشغيلية موجودة. لا يظهر زر تنفيذ مالي أو تعديل بيانات ما لم يكن له مسار خادم وصلاحية معتمدة.</p></div><div class="mx-workspace-action-grid">'+actions.map(a=>'<button type="button" class="mx-workspace-action" data-workspace-nav="'+esc(a[0])+'"><strong>'+esc(a[1])+'</strong><span>فتح مساحة العمل ←</span></button>').join('')+'</div></div>';
+ }
+ if(tab==='reports'){
+  const sources=genericWorkspaceSources(t);
+  return '<div class="mx-workspace-report-head"><div><span class="eyebrow">OPERATIONAL SNAPSHOT</span><h3>التقارير والمؤشرات</h3><p>لقطة من البيانات التي حمّلها النظام في هذه الجلسة، وليست تقريرًا ماليًا معتمدًا أو إجماليًا تاريخيًا.</p></div><span class="mnty-badge mnty-badge--ui">بيانات فعلية محمّلة</span></div><div class="mx-workspace-report-grid">'+sources.map(source=>'<article><span>'+esc(source.label)+'</span><strong>'+source.rows.length+'</strong><small>سجلات محمّلة</small></article>').join('')+'</div><div class="mx-workspace-note"><strong>حدود التقرير</strong><p>القيم المحسوبة من عينات السجلات لا تمثل إجماليًا محاسبيًا أو مؤشرات أداء كاملة. التقارير المالية النهائية تحتاج مصدرًا محاسبيًا معتمدًا وفترة محددة.</p></div>';
+ }
+ return '<div class="mx-workspace-settings"><span class="eyebrow">ACTIVE CONTEXT</span><h3>سياق الحساب الحالي</h3><dl><div><dt>الدور</dt><dd>'+esc(live.role||'—')+'</dd></div><div><dt>عدد العضويات النشطة المحمّلة</dt><dd>'+esc(live.memberships?.length??0)+'</dd></div><div><dt>النشاط المحدد</dt><dd>'+esc(live.memberships?.find(m=>m.id===live.activeMembershipId)?.business_name||'غير مرتبط')+'</dd></div><div><dt>حالة البيانات</dt><dd>'+esc(live.error?'تعذر تحميل البيانات':'تم تحميل البيانات المتاحة')+'</dd></div></dl><p>إدارة الدور والعضوية تتم من المسارات المخصصة وبصلاحيات الخادم، ولا يتم تغيير صلاحيات الحساب من هذه الشاشة.</p></div>';
+}
+function genericWorkspaceDisplayValue(value,key){
+ if(value===null||value===undefined||value==='')return '—';
+ if(typeof value==='boolean')return value?'نعم':'لا';
+ if(/_at$|created_at|updated_at/.test(String(key))) {const d=new Date(value);if(!Number.isNaN(d.getTime()))return d.toLocaleString('ar-EG');}
+ if(typeof value==='object')return '[بيانات مركبة]';
+ return String(value);
+}
+function bindGenericWorkspaceTabs(){
+ const root=document.querySelector('[data-generic-workspace]');if(!root)return;
+ const title=root.getAttribute('data-generic-workspace')||'';
+ const panel=root.querySelector('[data-workspace-panel]');if(!panel)return;
+ const sources=genericWorkspaceSources(title);
+ root.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  root.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-selected',x===btn?'true':'false')});
+  panel.innerHTML=genericWorkspacePanelHtml(title,btn.dataset.tab);
+ }));
+ root.querySelectorAll('[data-workspace-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  const tab=btn.dataset.workspaceTab, target=root.querySelector('[data-workspace-tabs] button[data-tab="'+tab+'"]');target?.click();
+ }));
+ root.querySelectorAll('[data-workspace-nav]').forEach(btn=>btn.addEventListener('click',()=>selectModule(btn.dataset.workspaceNav)));
+ root.querySelector('[data-workspace-action="refresh"]')?.addEventListener('click',async e=>{
+  const btn=e.currentTarget;btn.disabled=true;btn.textContent='جارٍ التحديث…';
+  try{await renderApp({forceWorkspace:true});}finally{btn.disabled=false;btn.textContent='تحديث البيانات';}
+ });
+ root.addEventListener('input',e=>{
+  if(!e.target.matches('[data-workspace-filter]'))return;
+  const q=String(e.target.value||'').trim().toLocaleLowerCase();
+  root.querySelectorAll('[data-workspace-row]').forEach(row=>{row.hidden=Boolean(q)&&!String(row.dataset.searchText||'').toLocaleLowerCase().includes(q)});
+ });
+ root.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-workspace-source][data-workspace-row-index]');if(!btn)return;
+  const source=sources[Number(btn.dataset.workspaceSource)], row=source?.rows?.[Number(btn.dataset.workspaceRowIndex)];if(!row)return;
+  const fields=source.fields;
+  panel.innerHTML='<div class="mx-workspace-record"><button type="button" class="mx-workspace-back" data-workspace-back>← العودة إلى السجلات</button><span class="eyebrow">RECORD DETAILS</span><h3>'+esc(source.label)+'</h3><dl>'+fields.map(f=>'<div><dt>'+esc(f[1])+'</dt><dd>'+esc(genericWorkspaceDisplayValue(row?.[f[0]],f[0]))+'</dd></div>').join('')+'</dl><p>التفاصيل المعروضة مقتصرة على الحقول المحددة في هذه الوحدة.</p></div>';
+  panel.querySelector('[data-workspace-back]')?.addEventListener('click',()=>{panel.innerHTML=genericWorkspacePanelHtml(title,'data');bindGenericWorkspaceDataFilter(root);});
+ });
+}
+function bindGenericWorkspaceDataFilter(root){
+ const input=root.querySelector('[data-workspace-filter]');if(!input)return;
+ input.addEventListener('input',()=>{const q=String(input.value||'').trim().toLocaleLowerCase();root.querySelectorAll('[data-workspace-row]').forEach(row=>{row.hidden=Boolean(q)&&!String(row.dataset.searchText||'').toLocaleLowerCase().includes(q)});});
+}
+
 async function loadBusinessCatalog(businessId,branchId=null,tenantId=null){
  if(!businessId)throw new Error('CATALOG_CONTEXT_REQUIRED');
  const q=new URLSearchParams({businessId});
@@ -1945,13 +2029,8 @@ window.MXHomeLanding?MXHomeLanding():landingView();
 showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصفحة.','error');
 }
 }
-function bindGenericWorkspaceTabs(){
- const panels={overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>مساحة العمل جاهزة</h3><p>الهيكل البصري والعمليات الأساسية لهذه الوحدة محددة. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>سيتم ربط الجداول وواجهات القراءة الفعلية هنا حسب نطاق الحساب والصلاحيات، دون إنشاء سجلات تجريبية.</p></div>',operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>أزرار التنفيذ تُضاف فقط للعمليات التي لها مسار خادم معتمد وصلاحية واضحة. لا يتم تشغيل إجراء غير متصل.</p></div>',reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات ستعتمد على بيانات تشغيلية حقيقية؛ لذلك تظل القيم غير المتاحة فارغة بدل عرض أرقام تقديرية.</p></div>',settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>إعدادات الوحدة تظهر عند اكتمال مساراتها الخلفية والصلاحيات المرتبطة بها.</p></div>'};
- document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-selected',x===btn?'true':'false')});
-  const panel=document.getElementById('mnty-generic-tab-panel');if(panel)panel.innerHTML=panels[btn.dataset.tab]||panels.overview;
- }));
-}
+// Generic workspace bindings are implemented alongside genericWorkspacePanelHtml().
+
 function platformStateView(kind,title,description,actions=''){
  const icon=kind==='error'?'⚠️':kind==='empty'?'◌':'⏳';
  return '<main class="auth"><section class="auth-card mnty-state-card mnty-state-card--'+esc(kind)+'"><div class="mnty-state-icon" aria-hidden="true">'+icon+'</div><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p><div class="mnty-state-actions">'+actions+'</div></section></main>';
