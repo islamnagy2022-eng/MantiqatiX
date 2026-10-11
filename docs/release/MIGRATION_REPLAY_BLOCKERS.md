@@ -4,7 +4,7 @@
 
 **BLOCKED — do not apply the post-RC424 batch to production.**
 
-The production migration ledger currently ends at `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). Read-only comparison found matching bodies for two RC424 payment-related functions only; it did **not** compare the entire applied migration, so the RC424 source/ledger identity and the theory that the filename timestamp is a legacy alias remain NOT VERIFIED. Preserve the applied ledger history and do not rename or rewrite applied migrations.
+The production migration ledger currently ends at `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). A read-only exact comparison of `supabase_migrations.schema_migrations.statements[1]` against `supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql` returned `exactMatch=true`, with both values exactly 7,208 bytes. RC424 source/ledger statement identity is VERIFIED despite the different filename timestamp. Preserve the applied ledger version `20261008222845`; document source filename timestamp `20261009010000` as a legacy alias and do not rename or rewrite applied history.
 
 The full disposable Supabase replay previously failed at historical migration `20260927074200_harden_smm_table_api_privileges.sql`, because it references `public.smm_provider_credentials` before any committed migration in the repository creates that table. A newer replay attempt is tracked in [run 38135821672](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38135821672); its final outcome must be read from GitHub before changing this status.
 
@@ -51,3 +51,8 @@ No production schema, data, grants, RLS, secrets, Edge Functions, wallet balance
 - Exact-head GitHub Actions for `0dca6c86f109a6c67d38f34932165e3871b572e8` were queued at the time of this note. Earlier runs showed RC434 and RC437 disposable PostgreSQL integration jobs passing; payment order-binding checks failed before the function-source refresh and must be re-evaluated on the new head.
 - The full disposable Supabase replay remains NOT VERIFIED. Run `38135821672` failed while starting Supabase services (Docker image registry/service startup), before the full replay step; a retry was requested. The documented earlier historical migration blocker concerning `smm_provider_credentials` still requires authoritative original DDL and must not be bypassed by pre-seeding a test table or inventing a backdated migration.
 - No production migrations, Edge Function deployments, grants/RLS/Auth changes, wallet mutations, payments, or customer-data writes were performed.
+
+
+## RC424 statement parity confirmation — 2026-10-11
+
+A direct read-only query of the production migration ledger returned the full statement for version `20261008222845`. Its exact text matched the source file `supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql` byte-for-byte: **7,208 bytes in each, exactMatch=true**. This resolves the RC424 source/ledger identity question as a legacy filename timestamp alias. It does not resolve the missing legacy `smm_provider_credentials` creation DDL or prove post-RC424 migrations are applied.
