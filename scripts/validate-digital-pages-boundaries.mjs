@@ -5,6 +5,7 @@ const webhook=fs.readFileSync('supabase/functions/paymob-webhook/index.ts','utf8
 const atomicPayment=fs.readFileSync('supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql','utf8');
 const editor=fs.readFileSync('web/digital-page-editor.js','utf8');
 const editorHtml=fs.readFileSync('web/digital-page-editor.html','utf8');
+const renderer=fs.readFileSync('web/digital-page.js','utf8');
 for(const [src,marker,label] of [
  [order,'admin.auth.getUser','authenticated order creation'],[order,'idempotencyKey','order idempotency'],[order,'digital_page_products','server product pricing'],[order,'BUSINESS_SCOPE_FORBIDDEN','business scope check'],
  [payment,'p_user_id:user.id','authenticated order ownership binding'],[payment,'provider_intent_id','duplicate payment-intent guard'],[payment,'p_provider_intent_id:String(p.id)','provider correlation finalization'],
@@ -21,7 +22,8 @@ for(const [src,marker,label] of [
  [editor,"DUPLICATE_MENU_SECTIONS_REQUIRE_MANUAL_REVIEW",'duplicate menu section fail-closed behavior'],
  [editor,"الصفحة لم تُنشر تلقائيًا",'menu sync does not auto-publish'],
  [editorHtml,'id="menuSourceBranch"','explicit menu branch selection'],
- [editorHtml,'id="syncMenuItems"','menu sync action available in editor']
+ [editorHtml,'id="syncMenuItems"','menu sync action available in editor'],
+ [renderer,'esc(x.category)','menu category HTML escaping']
 ]) if(!src.includes(marker)) throw new Error('Digital page boundary marker missing: '+label);
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
