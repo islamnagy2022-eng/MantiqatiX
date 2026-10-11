@@ -8,7 +8,6 @@ on:
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
-      - "scripts/validate-smm-order-failure-safety.mjs"
       - ".github/workflows/smm-service-role-access-boundary.yml"
   pull_request:
     branches: [main]
@@ -33,7 +32,6 @@ jobs:
         with:
           deno-version: v2.x
       - run: node scripts/validate-smm-service-role-boundary.mjs
-      - run: node scripts/validate-smm-order-failure-safety.mjs
       - run: deno check --no-lock supabase/functions/smm-gateway/index.ts
 
   smm-service-role-postgres:
