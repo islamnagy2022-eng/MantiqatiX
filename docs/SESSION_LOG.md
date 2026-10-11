@@ -158,3 +158,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - SMM order submission now requires a safe integer quantity within the service's advertised minimum/maximum bounds.
 - Commit: `03649e71396f8f9bef4b0625cc1df8a9f2fd8ae8`.
 - These are client-side safeguards only; gateway-side validation remains authoritative and no gateway/payment/wallet backend was changed. Runtime verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-013 — Education workspace search/export
+- Added one live search across loaded school, teacher, and education-request tables, with matching/total counts.
+- Added explicit CSV export controls for the school, teacher, and education-request datasets using the existing allowlisted exporter.
+- Search only hides/shows rows already rendered from current RLS-visible data; it does not issue broader queries or change permissions.
+- Commit: `3aeedbc899b5da1f357c90160265de26a36c5491`.
+- Runtime/E2E and broad review remain deferred; no production changes.
