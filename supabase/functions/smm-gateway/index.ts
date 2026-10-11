@@ -75,7 +75,7 @@ Deno.serve(async(req)=>{
    if(!Number.isFinite(sell)||sell<=0||!Number.isFinite(cost)||cost<0)return json({error:"INVALID_SERVICE_PRICE"},409);
    const o=await admin.from("smm_orders").insert({user_id:user.id,service_id:b.service_id,target_url:b.target_url,quantity:q,selling_price:sell,provider_cost:cost,profit:sell-cost,status:"SUBMITTING"}).select("id").single();
    if(o.error||!o.data)return json({error:"ORDER_CREATE_FAILED"},500);
-   const debit=await admin.rpc("smm_debit_wallet",{p_user:user.id,p_amount:sell,p_reference:o.data.id});
+   const r=await admin.rpc("smm_debit_wallet",{p_user:user.id,p_amount:sell,p_reference:o.data.id});const debit=r;
    if(debit.error){
     await admin.from("smm_orders").update({status:"WALLET_DEBIT_OUTCOME_UNKNOWN",error_message:"Wallet debit outcome requires reconciliation",updated_at:new Date().toISOString()}).eq("id",o.data.id).eq("status","SUBMITTING");
     await admin.from("smm_order_events").insert({order_id:o.data.id,event_type:"WALLET_DEBIT_OUTCOME_UNKNOWN",payload:{reconciliation_required:true}});
