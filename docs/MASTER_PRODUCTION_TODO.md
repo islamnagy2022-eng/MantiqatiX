@@ -1640,3 +1640,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] SMM order form validates integer quantity and service min/max bounds client-side.
 - [ ] Gateway must remain the authoritative validation/security boundary; client checks do not replace backend validation.
 - [ ] Runtime/E2E verification outstanding; continue construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-013
+- [x] Education workspace search spans schools, teachers, and education requests in the currently rendered dataset.
+- [x] Added school/teacher/request CSV export shortcuts using existing allowlists.
+- [ ] Runtime/E2E verification remains outstanding; continue construction before broad review/testing.
