@@ -100,3 +100,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Production impact:** none until an authorized user explicitly uses the UI after deployment; no records were created by this build activity.
 - **Not yet verified:** the actual insert/apply flows have not been exercised against real test accounts or RLS policies; broad review remains deferred by user instruction.
 - **Next:** continue construction in other sector modules and workflows, then review and test after module construction is complete.
+
+
+## 2026-10-11 — SESSION-007 — Unified module directory and SMM quick access
+
+- **Implemented:**
+  - Reworked the Module Center into separate “Core Platform Modules” and “Sectors & Services” sections.
+  - Added explicit accessible “Open module” buttons, role/feature-flag visibility filtering, per-sector source counts, and a truthful loaded/not-yet-open state.
+  - Ensured the SMM module is visible as a first-class core module in the Module Center.
+  - Added a permission-aware SMM shortcut to the main dashboard hero and the Marketing role command center.
+- **Code commits:** `e4ea478a394fa58a4189267b7d4a71569232bbab`, `3817343fb24bbd2c2bb577792187725e9ac01293`, `9dc773db64003f6a848410a4c181d373818e09b5`.
+- **Production impact:** none; UI/source changes only.
+- **Not done:** no broad review, no CI/runtime/E2E verification, no deployment.
+- **Next:** continue constructing missing actions and workflows in remaining sector modules, then run reviews only after the build phase is complete.
