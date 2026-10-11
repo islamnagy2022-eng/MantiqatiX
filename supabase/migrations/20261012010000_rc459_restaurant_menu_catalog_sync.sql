@@ -36,6 +36,7 @@ declare
   v_price_id uuid;
   v_price_version bigint;
   v_next_effective_from timestamptz;
+  v_current_active_price_count integer;
 begin
   if p_actor_user_id is null then raise exception 'ACTOR_REQUIRED'; end if;
   if v_action not in ('CREATE','UPDATE') then raise exception 'INVALID_MENU_ACTION'; end if;
@@ -150,6 +151,19 @@ begin
       jsonb_build_object('source','restaurant_menu_items','restaurant_menu_item_id',v_id)
     ) returning * into v_catalog;
     v_catalog_changed := true;
+  end if;
+
+  select count(*) into v_current_active_price_count
+  from public.catalog_item_prices p
+  where p.tenant_id=v_tenant_id
+    and p.catalog_item_id=v_catalog.id
+    and p.branch_id=v_branch_id
+    and upper(p.currency)='EGP'
+    and p.status='ACTIVE'
+    and p.effective_from <= pg_catalog.now()
+    and (p.effective_to is null or p.effective_to > pg_catalog.now());
+  if v_current_active_price_count > 1 then
+    raise exception 'RESTAURANT_DUPLICATE_ACTIVE_PRICES';
   end if;
 
   select * into v_active_price
