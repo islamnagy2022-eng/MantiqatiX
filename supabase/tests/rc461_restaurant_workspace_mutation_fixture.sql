@@ -6,6 +6,17 @@ begin
 end
 $$;
 
+create table if not exists public.businesses (
+  id uuid primary key,
+  tenant_id varchar not null,
+  status varchar not null default 'ACTIVE'
+);
+create table if not exists public.branches (
+  id varchar primary key,
+  tenant_id varchar not null,
+  business_id uuid not null,
+  status varchar not null default 'ACTIVE'
+);
 create table if not exists public.user_memberships (
   id text primary key,
   user_id uuid not null,
