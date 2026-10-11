@@ -484,3 +484,12 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-global-record-drawer footer{display:flex;gap:10px;position:sticky;bottom:0;background:#fff;padding-top:16px}
 @keyframes mxRecordDrawerIn{from{transform:translateX(12px);opacity:.75}to{transform:translateX(0);opacity:1}}
 @media(max-width:540px){.mx-global-record-drawer{width:100%}.mx-global-record-drawer dl>div{grid-template-columns:1fr;gap:5px}}
+
+
+/* Analytics status distribution */
+.mx-analytics-status .mx-analytics-bar-row{display:grid;grid-template-columns:minmax(100px,1fr) minmax(120px,3fr) 36px;gap:12px;align-items:center;padding:9px 0}
+.mx-analytics-bar-row>span{font-size:13px}
+.mx-analytics-track{height:12px;border-radius:999px;background:#eef2f7;overflow:hidden}
+.mx-analytics-track>span{display:block;height:100%;border-radius:999px;background:var(--blue,#2563eb);min-width:0}
+.mx-analytics-bar-row>b{text-align:left;font-variant-numeric:tabular-nums}
+@media(max-width:560px){.mx-analytics-status .mx-analytics-bar-row{grid-template-columns:minmax(70px,1fr) minmax(70px,2fr) 28px;gap:8px}}
