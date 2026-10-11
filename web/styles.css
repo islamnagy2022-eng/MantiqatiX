@@ -486,6 +486,12 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 @media(max-width:540px){.mx-global-record-drawer{width:100%}.mx-global-record-drawer dl>div{grid-template-columns:1fr;gap:5px}}
 
 
+/* Data-backed sector module workspaces */
+.mx-domain-table-section{margin:16px 0;padding:16px;border:1px solid var(--border,#e4e7ec);border-radius:16px;background:#fff}
+.mx-domain-table-section .records{border:0;padding:0;margin:12px 0;background:transparent}
+.mx-domain-table-section .records .section-head{align-items:flex-start}
+.mx-domain-table-section .mx-workspace-shortcuts{margin:8px 0}
+.mx-domain-table-section .mx-workspace-shortcuts button{font-size:12px}
 /* Analytics status distribution */
 .mx-analytics-status .mx-analytics-bar-row{display:grid;grid-template-columns:minmax(100px,1fr) minmax(120px,3fr) 36px;gap:12px;align-items:center;padding:9px 0}
 .mx-analytics-bar-row>span{font-size:13px}
