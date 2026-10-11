@@ -1626,3 +1626,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Primary Analytics module — SESSION-012
 - [x] Add CSV export and refresh controls to the actual `التقارير والتحليلات` workspace.
 - [ ] Test CSV escaping/encoding, download, and ensure export stays within loaded data scope.
+
+ 
+## Primary workspace build — SESSION-013
+- [x] Add a shared refresh control to primary workspace headers.
+- [ ] Validate refresh behavior for role dashboards, domain modules, and asynchronous data loading.
