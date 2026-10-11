@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
     if (!entryId || entryId.length > 180) return out({ error: "JOURNAL_ID_REQUIRED", requestId }, 400, requestId);
     const entry = { ...sourceEntry, id: entryId, tenant_id: tenantId, status: "POSTED" };
 
-    const { data: result, error } = await admin.rpc("post_financial_journal_atomic_backend", {
+    const { data: result, error } = await admin.rpc("post_financial_journal_backend", {
       p_user_id: auth.user.id,
       p_entry: entry,
       p_lines: b.lines,
@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
       const status = code.includes("FINANCIAL_MEMBERSHIP_REQUIRED") ? 403
         : code.includes("IDEMPOTENCY_CONFLICT") || code.includes("LEDGER_INCONSISTENT") || error.code === "23505" ? 409
         : code.includes("NOT_ACTIVE") || code.includes("REQUIRED") || code.includes("UNBALANCED") || code.includes("INVALID") || code.includes("MISMATCH") ? 400 : 500;
-      console.error(JSON.stringify({ requestId, stage: "post_financial_journal_atomic_backend", code: error.code }));
+      console.error(JSON.stringify({ requestId, stage: "post_financial_journal_backend", code: error.code }));
       return out({ error: safeCode ?? "JOURNAL_POST_FAILED", requestId }, status, requestId);
     }
     return out({ ...(result && typeof result === "object" ? result as Record<string, unknown> : {}), requestId }, 200, requestId);
