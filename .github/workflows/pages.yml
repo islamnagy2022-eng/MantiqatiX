@@ -193,6 +193,8 @@ jobs:
           for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
+          SMM_JS_STATUS="$(curl --silent --show-error --location --retry 3 --retry-delay 2 -o /dev/null -w '%{http_code}' "$PAGE_URL/smm.js")"
+          test "$SMM_JS_STATUS" = "404"
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
           HOME_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/home.js")"
           CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js")"
