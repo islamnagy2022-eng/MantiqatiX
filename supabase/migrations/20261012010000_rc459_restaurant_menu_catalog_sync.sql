@@ -127,7 +127,7 @@ begin
     if v_catalog.item_type is distinct from 'PRODUCT'
        or v_catalog.name_ar is distinct from v_name
        or v_catalog.description is distinct from nullif(v_description,'')
-       or v_catalog.status is distinct from case when v_available then 'ACTIVE' else 'INACTIVE' end
+       or v_catalog.status is distinct from (case when v_available then 'ACTIVE' else 'INACTIVE' end)
        or v_catalog.tax_rate is distinct from 0::numeric
        or coalesce(v_catalog.metadata ->> 'restaurant_menu_item_id','') is distinct from v_id then
       update public.catalog_items
