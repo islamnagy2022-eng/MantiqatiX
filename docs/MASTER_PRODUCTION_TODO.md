@@ -1755,3 +1755,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Marketing export — SESSION-036
 - [x] Include loaded internal campaigns and partner assignments in Marketing CSV export.
 - [ ] Verify campaign export when RC453 is unavailable/available.
+
+ 
+## Campaign discoverability — SESSION-037
+- [x] Global search opens the matching campaign card in Marketing.
+- [ ] Validate jump/highlight after RC453 is available and across mobile viewport sizes.
