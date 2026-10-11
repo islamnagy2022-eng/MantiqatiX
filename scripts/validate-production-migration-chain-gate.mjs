@@ -58,6 +58,10 @@ assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment an
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
 assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
+assert.match(source, /reconciliation\.smm_acl_boundary==="PASS"/, "SMM table ACL boundary must pass");
+assert.match(source, /reconciliation\.smm_order_refund_safety==="PASS"/, "SMM wallet debit/refund safety must pass");
+assert.match(source, /reconciliation\.smm_provider_timeout_safety==="PASS"/, "SMM provider timeout and ambiguity handling must pass");
+assert.match(source, /reconciliation\.erp_atomic_receiving_e2e==="PASS"/, "ERP atomic receiving E2E must pass");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
 assert.match(source, /reconciliation\.security_definer_acl_review==="PASS"/, "all exposed SECURITY DEFINER ACLs must be reviewed");
 assert.match(source, /reconciliation\.rls_policy_audit==="PASS"/, "sensitive-table RLS policy review must pass");
