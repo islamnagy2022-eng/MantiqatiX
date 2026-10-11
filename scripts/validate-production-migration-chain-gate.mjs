@@ -47,5 +47,8 @@ assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered d
 assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
 assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
+assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
+assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
+assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
 assert.match(source, /!liveReconciliationVerified/, "missing live evidence must block release even when all migration files exist");
 console.log(`Production migration chain gate contract passed for ${required.length} required migration sources.`);
