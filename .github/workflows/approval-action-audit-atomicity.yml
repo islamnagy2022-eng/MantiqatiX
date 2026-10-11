@@ -1,8 +1,7 @@
 name: Approval Action Audit Atomicity
 on:
   push:
-    branches:
-      - "**"
+    branches: [main]
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/rc442_approval_action_*"
@@ -16,6 +15,10 @@ on:
       - ".github/workflows/approval-action-audit-atomicity.yml"
 permissions:
   contents: read
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   approval-action-audit-postgres:
     runs-on: ubuntu-latest

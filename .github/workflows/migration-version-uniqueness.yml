@@ -1,8 +1,7 @@
 name: Migration Version Uniqueness
 on:
   push:
-    branches:
-      - "**"
+    branches: [main]
     paths:
       - "supabase/migrations/**"
       - "scripts/validate-migration-version-uniqueness.mjs"
@@ -16,6 +15,10 @@ on:
       - ".github/workflows/migration-version-uniqueness.yml"
 permissions:
   contents: read
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-migration-versions:
     runs-on: ubuntu-latest

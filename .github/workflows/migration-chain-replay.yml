@@ -2,8 +2,14 @@ name: Disposable Supabase Migration Chain Replay
 
 on:
   push:
-    branches:
-      - "**"
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "scripts/validate-historical-schema-baseline.mjs"
+      - ".github/workflows/migration-chain-replay.yml"
+  pull_request:
+    branches: [main]
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/**"
