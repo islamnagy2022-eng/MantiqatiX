@@ -583,3 +583,9 @@ This status is intentional and must remain until the open gates above are indepe
 - `adecfa5cb95d0dc2388d0351ad5d46180c3f5f86`: role-gated finance snapshot counts included in Reports.
 - `8b5fdf712414720c78db63ce182d37a7b9bc14c6`: workspace records can open existing order/lead/support-ticket detail handlers where applicable.
 - Build branch remains unvalidated pending CI/post-build checks.
+
+ 
+## Correction — SESSION-009
+- Current corrected source commit: `bbd6804228ff29e60e603f1eb15eb4c641bacecb`.
+- SMM role entries added for MARKETING, PROVIDER_MARKETING and OWNER using the existing RBAC view filter.
+- The preceding commit temporarily introduced a duplicated prefix; this was corrected from its immediate parent. Structural check: one `function dashboard()`; CI/runtime tests remain pending.
