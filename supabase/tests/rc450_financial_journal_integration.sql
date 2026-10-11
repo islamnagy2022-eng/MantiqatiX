@@ -14,6 +14,9 @@ declare
   rejected boolean;
   n integer;
 begin
+  if to_regprocedure('public.post_financial_journal_atomic_backend(uuid,jsonb,jsonb)') is not null then
+    raise exception 'parallel RC436 journal RPC was not retired';
+  end if;
   if has_function_privilege('authenticated','public.post_financial_journal_backend(uuid,jsonb,jsonb)','EXECUTE') then
     raise exception 'authenticated role must not execute the backend journal RPC directly';
   end if;
