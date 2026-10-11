@@ -14,6 +14,7 @@ for(const [src,marker,label] of [
  [editor,"restaurant_menu_items",'menu source table integration'],
  [editor,".eq('business_id',businessId)",'menu source business scope'],
  [editor,".eq('is_available',true)",'menu source active-item filter'],
+ [editor,"MENU_SOURCE_LIMIT_EXCEEDED",'menu sync fails closed on truncated source data'],
  [editor,"String(item.branch_id)===branchId",'menu source branch isolation'],
  [editor,"DUPLICATE_MENU_SECTIONS_REQUIRE_MANUAL_REVIEW",'duplicate menu section fail-closed behavior'],
  [editor,"الصفحة لم تُنشر تلقائيًا",'menu sync does not auto-publish'],
