@@ -618,7 +618,7 @@ function downloadWorkspaceCsv(filename,rows,fields){
  const safeRows=Array.isArray(rows)?rows:[];
  if(!safeRows.length){showToast('لا توجد سجلات محمّلة للتصدير.','error');return;}
  const cell=value=>{let text=value==null?'':(typeof value==='object'?JSON.stringify(value):String(value));text=text.replace(/\r?\n/g,' ');return '"'+text.replace(/"/g,'""')+'"';};
- const csv='\\uFEFF'+[fields.map(f=>cell(f[1])).join(','),...safeRows.map(row=>fields.map(f=>cell(row?.[f[0]])).join(','))].join('\r\n');
+ const csv='\uFEFF'+[fields.map(f=>cell(f[1])).join(','),...safeRows.map(row=>fields.map(f=>cell(row?.[f[0]])).join(','))].join('\r\n');
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');
  link.href=url;link.download=filename.endsWith('.csv')?filename:filename+'.csv';link.style.display='none';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  showToast('تم تجهيز ملف CSV من السجلات المحمّلة فقط.','success');
