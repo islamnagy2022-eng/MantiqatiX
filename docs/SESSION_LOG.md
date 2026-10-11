@@ -91,3 +91,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Correction note:** the immediately preceding commit `2b03589babad6e06f14da241776be7b8a106259b` accidentally duplicated a source prefix while applying the role edit. This commit reconstructed `web/app.js` from its immediate valid parent and reapplied the intended change. A structural count confirmed exactly one `function dashboard()` in the corrected source. CI/runtime validation is still pending; the correction is not a claim of a passing test.
 - **Production impact:** none.
 - **Next:** continue build work; run the post-build validation batch after the feature set is complete.
+
+## 2026-10-11 — SESSION-010 — Expand SMM role entry points
+
+- **Code commit:** [89a071b647192c507c90ce083ea166dd6c789784](https://github.com/islamnagy2022-eng/MantiqaTix/commit/89a071b647192c507c90ce083ea166dd6c789784).
+- **Built:** SMM is also listed in the role dashboard configurations for `BUSINESS_OWNER`, `ADMIN`, and `SERVICE_PROVIDER`. Existing role permission filtering remains in place; listing a module does not grant access.
+- **Next:** continue building remaining domain workflows, then validate dashboard visibility against the actual RBAC matrix.
+- **Production impact:** none; frontend branch only.
