@@ -30,5 +30,9 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "security_definer_acl_review": "NOT VERIFIED",
+  "rls_policy_audit": "NOT VERIFIED",
+  "targeted_ads_search_path": "NOT VERIFIED",
+  "leaked_password_protection": "NOT VERIFIED"
 }
