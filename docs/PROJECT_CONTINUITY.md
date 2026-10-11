@@ -573,3 +573,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Existing specialized paths retained for Restaurant, Accounting, ERP, Factory, Trips, and Matrimony. Medical is now loaded through the safe field-map path while retaining its existing workspace UI.
 - Sensitive contact/health/job-application details are not included in generic display/export allowlists.
 - Continue build-only; defer broad review and verification until all module construction is complete.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-006
+- Jobs module now has role-gated job posting and customer-only application forms, with RLS-controlled writes and allowlisted job/application views and exports.
+- The code is in draft PR #205 on `build/module-workspaces-functional-20261011`.
+- The job write/application flows are implemented but **not runtime-verified**; do not claim they have passed RLS or end-to-end tests.
+- Continue building remaining sector workflows; defer broad reviews until construction is complete.
