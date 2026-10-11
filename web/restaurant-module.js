@@ -143,7 +143,7 @@ async function createRestaurantOrder(){
  try{
   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-  const rawItems=(catalog?.items||[]).filter(x=>String(x.status||'').toUpperCase()==='ACTIVE'&&String(x.item_type||'PRODUCT').toUpperCase()==='PRODUCT');
+  const rawItems=(catalog?.items||[]).filter(x=>String(x.status||'').toUpperCase()==='ACTIVE'&&String(x.item_type||'PRODUCT').toUpperCase()==='PRODUCT'&&(String(x.metadata?.source||'')==='restaurant_menu_items'||String(x.legacy_ref||'').startsWith('RESTAURANT_MENU:')));
   const prices=(catalog?.prices||[]).filter(p=>String(p.status||'ACTIVE').toUpperCase()==='ACTIVE'&&String(p.currency||'EGP').toUpperCase()==='EGP'&&(!p.branch_id||String(p.branch_id)===String(m.branch_id)));
   const priceFor=item=>{
    const matches=prices.filter(p=>String(p.catalog_item_id)===String(item.id));
