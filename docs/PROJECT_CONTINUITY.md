@@ -629,3 +629,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-018
 - Commit `a4cf08515904cd79824b4b002476c9d2764e6247`: finance workspace gained role-gated CSV export of source counts only; no transaction detail or balances.
+
+ 
+## Build progress — SESSION-019
+- Commit `f1d48225d21004444dedf5bb36dd3db6ef9af38a`: domain module blueprint pages gained source-map CSV export for visible table names/counts/statuses.
