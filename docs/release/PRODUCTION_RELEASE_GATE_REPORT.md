@@ -8,7 +8,7 @@
 
 - المستودع: `islamnagy2022-eng/MantiqaTix`
 - فرع الإنتاج: `main`
-- آخر SHA تمت مراجعته لفرع `main`: `36986b45f12591f975637264fce64513a50abdad`
+- آخر SHA لفرع `main` عند تحديث التقرير: `8a56358d505d2c12878440037f7f24ba65d2ea10` (تم التحقق منه عبر مقارنة الفرع الحالي)
 - مشروع Supabase: `moyhiluyhjsujhwlyeuu`
 - سجل Supabase الحي: 283 ترحيلًا؛ آخر إصدار هو `20261008222845` باسم `rc424_atomic_digital_page_payment_webhook`.
 - ملف المصدر المقابل: `20261009010000_rc424_atomic_digital_page_payment_webhook.sql`.
