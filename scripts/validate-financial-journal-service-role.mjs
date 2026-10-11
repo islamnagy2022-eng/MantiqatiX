@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
-const migration = fs.readFileSync("supabase/migrations/20261010180000_rc450_financial_journal_service_role_boundary.sql", "utf8");
+const migration = fs.readFileSync("supabase/migrations/20261011020000_rc457_financial_journal_idempotency_rpc_convergence.sql", "utf8");
+const stageMigration = fs.readFileSync("supabase/migrations/20261010180000_rc450_financial_journal_service_role_boundary.sql", "utf8");
 const edge = fs.readFileSync("supabase/functions/financial-journal/index.ts", "utf8");
 const backendEdge = fs.readFileSync("supabase/functions/post-financial-journal/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc450_financial_journal_fixture.sql", "utf8");
@@ -17,7 +18,7 @@ assert.match(migration, /BUSINESS_NOT_ACTIVE_FOR_TENANT/);
 assert.match(migration, /BRANCH_NOT_ACTIVE_FOR_BUSINESS/);
 assert.match(migration, /BUSINESS_ORGANIZATION_MISMATCH/);
 assert.match(migration, /v_org_id := coalesce\(v_org_id,v_business_org_id\)/i, "business organization must be derived and bound when omitted");
-assert.match(migration, /to_regclass\('public\.businesses'\)[\s\S]*?to_regclass\('public\.branches'\)/i, "business and branch schema must exist before migration");
+assert.match(stageMigration, /to_regclass\('public\.businesses'\)[\s\S]*?to_regclass\('public\.branches'\)/i, "business and branch schema must exist before RC450 scope checks");
 assert.match(migration, /FINANCIAL_MEMBERSHIP_REQUIRED/);
 assert.match(migration, /v_insert_line_no int := 0/);
 assert.match(migration, /v_insert_line_no := v_insert_line_no \+ 1;/);
@@ -52,5 +53,8 @@ assert.match(integration, /same-tenant cross-business actor unexpectedly succeed
 assert.match(integration, /branch-scoped actor unexpectedly posted to another branch/);
 assert.match(integration, /organization mismatch unexpectedly succeeded/);
 assert.match(integration, /running balances are not cumulative/);
+assert.match(integration, /identical journal retry was not idempotent/);
+assert.match(integration, /conflicting journal replay was not rejected/);
+assert.match(migration, /drop function public\\.post_financial_journal_atomic_backend\\(uuid,jsonb,jsonb\\)/i, "RC457 must remove the parallel RC436 RPC");
 
 console.log("RC450 financial journal service-role boundary PASS");
