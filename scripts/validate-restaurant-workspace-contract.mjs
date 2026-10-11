@@ -40,6 +40,7 @@ assert.match(menuEdge, /admin\.auth\.getUser\(token\)/, 'menu Edge Function auth
 assert.match(menuEdge, /p_actor_user_id:\s*actor\.id/, 'menu mutation actor is derived from the verified session');
 assert.match(menuEdge, /restaurant_menu_catalog_mutate_backend/, 'menu Edge Function calls the protected atomic RPC');
 assert.match(menuEdge, /maxBodyBytes/, 'menu Edge Function enforces a request size limit');
+assert.match(menuEdge, /new TextEncoder\(\)\.encode\(raw\)\.byteLength/, 'menu Edge Function enforces the UTF-8 byte limit for non-ASCII payloads');
 assert.match(menuMigration, /set search_path = ''/, 'menu RPC pins an empty search path');
 assert.match(menuMigration, /revoke all on function public\.restaurant_menu_catalog_mutate_backend/, 'menu RPC is not exposed to public client roles');
 assert.match(menuMigration, /insert into public\.audit_logs/, 'menu/catalog mutations are audited');
@@ -49,4 +50,4 @@ const menuUniqueMigration = fs.readFileSync('supabase/migrations/20261012020000_
 assert.match(menuUniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/, 'catalog uniqueness migration fails closed when legacy duplicates exist');
 assert.match(menuUniqueMigration, /v_has_equivalent_unique_index boolean/, 'existing equivalent unique indexes are reused');
 assert.match(menuUniqueMigration, /create unique index catalog_items_restaurant_menu_legacy_ref_uidx/, 'restaurant menu catalog references are uniquely indexed when needed');
-console.log('Restaurant workspace contract: PASS (42 assertions)');
+console.log('Restaurant workspace contract: PASS (43 assertions)');
