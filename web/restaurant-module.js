@@ -34,6 +34,10 @@ function canOperate(){
  const r=String(state.membership?.role||'').toUpperCase();
  return ['OWNER','ADMIN','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER','STAFF'].includes(r);
 }
+function canManageMenu(){
+ const r=String(state.membership?.role||'').toUpperCase();
+ return ['OWNER','ADMIN','MANAGER','BUSINESS_OWNER'].includes(r);
+}
 function scope(){
  const m=state.membership;
  return m?.tenant_id&&m?.business_id&&m?.branch_id?{tenant_id:m.tenant_id,business_id:m.business_id,branch_id:m.branch_id}:null;
@@ -84,10 +88,10 @@ function tabs(){
  }).join('')+'</div>';
 }
 function menuView(){
- const add=canOperate()?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
+ const add=canManageMenu()?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
  return shell('قائمة الطعام',tabs()+'<div class="notice" role="note" style="margin:12px 0">تنبيه تشغيلي: هذه الشاشة تحفظ القائمة المحلية في restaurant_menu_items، بينما الطلبات تستخدم catalog_items والأسعار الفعالة. الربط التلقائي بين المصدرين لم يكتمل بعد؛ إضافة صنف هنا وحدها لا تجعله قابلًا للطلب.</div>'+ '<div class="action-bar">'+add+'</div>'+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
- (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate()?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
+ (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canManageMenu()?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function nextOrderStatuses(order){
@@ -229,19 +233,22 @@ function modal(title,html,onSave){
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
 function addMenu(existing){
- if(!canOperate())return;
+ if(!canManageMenu())return notify('لا تملك صلاحية إدارة قائمة الطعام.','error');
  const x=existing||{};
+ const itemId=existing?.id||uid();
  modal(existing?'تعديل صنف':'إضافة صنف',
- field('name','اسم الصنف',x.name_ar)+field('desc','الوصف',x.description_ar)+field('cat','الفئة',x.category)+field('price','السعر بالجنيه',x.base_price_egp,'number','step="0.01" min="0" required')+
+ field('name','اسم الصنف',x.name_ar)+field('desc','الوصف',x.description_ar)+field('cat','الفئة',x.category)+field('price','السعر بالجنيه',x.base_price_egp,'number','step="0.01" min="0" max="1000000000" required')+
  '<div class="action-bar"><label><input id="available" type="checkbox" '+(x.is_available!==false?'checked':'')+'> متاح</label><label><input id="popular" type="checkbox" '+(x.is_popular?'checked':'')+'> الأكثر طلباً</label></div><button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
-  const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
+  const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
   const payload={name_ar:o.querySelector('#name').value.trim(),description_ar:o.querySelector('#desc').value.trim(),category:o.querySelector('#cat').value.trim(),base_price_egp:Number(o.querySelector('#price').value),is_available:o.querySelector('#available').checked,is_popular:o.querySelector('#popular').checked};
-  if(!payload.name_ar||!payload.category||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0)return notify('أكمل الاسم والفئة والسعر بشكل صحيح.');
-  let q;
-  if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id);
-  else q=sb.from('restaurant_menu_items').insert({...payload,id:uid(),owner_user_id:state.user.id,...s});
-  const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
+  if(!payload.name_ar||payload.name_ar.length>200||payload.description_ar.length>2000||!payload.category||payload.category.length>120||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0||payload.base_price_egp>1000000000)return notify('تحقق من الاسم والوصف والفئة والسعر (الحد الأقصى مليار جنيه).','error');
+  const save=o.querySelector('[data-save]');if(save.disabled)return;save.disabled=true;const oldLabel=save.textContent;save.textContent='جارٍ الحفظ والمزامنة…';
+  try{
+   const result=await invokeMntyFunction('restaurant-menu-save',{action:existing?'UPDATE':'CREATE',itemId,tenantId:s.tenant_id,businessId:s.business_id,branchId:s.branch_id,...payload});
+   if(result?.error)throw new Error(String(result.error));
+   o.remove();notify('تم حفظ الصنف ومزامنته مع كتالوج الطلبات.','success');await load();
+  }catch(e){save.disabled=false;save.textContent=oldLabel;notify('تعذر حفظ/مزامنة الصنف: '+(e?.message||'RESTAURANT_MENU_SAVE_FAILED'),'error')}
  });
 }
 function addTable(existing){
