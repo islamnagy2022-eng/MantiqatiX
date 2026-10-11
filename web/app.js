@@ -1163,6 +1163,12 @@ function jobsWorkspace(rows,errors={}){
  return '<section class="mx-jobs-workspace"><div class="mx-jobs-intro"><div><span class="eyebrow">JOBS & CAREERS</span><h3>الوظائف والتقديمات</h3><p>الوظائف المنشورة وطلبات التقديم التي تسمح بها صلاحيات الحساب الحالي.</p></div><div class="mx-jobs-actions">'+(canPost?'<button type="button" class="btn btn-primary" onclick="openJobPostForm()">+ إضافة وظيفة</button>':'')+'</div></div><div class="mx-workspace-shortcuts"><button type="button" data-domain-export-table="jobs">تصدير الوظائف CSV</button><button type="button" data-domain-export-table="job_applications">تصدير طلبات التقديم CSV</button></div>'+workspaceCards([['وظائف محمّلة',jobs.length,'ضمن نطاق الوصول الحالي'],['طلبات تقديم مرئية',applications.length,'حسب سياسات الوصول'],['وظائف نشطة',jobs.filter(j=>j.is_active===true).length,'من السجلات المحمّلة']])+(errors.jobs?'<div class="notice">مصدر الوظائف غير متاح: '+esc(errors.jobs)+'</div>':'')+recordsTable('الوظائف',jobRows,[['المسمى',r=>r.title||'—'],['الشركة',r=>r.company_name||'—'],['الفئة',r=>r.category||'—'],['الموقع',r=>r.location||'—'],['نوع العمل',r=>r.job_type||'—'],['الراتب',r=>r.salary_range||'—'],['نشطة',r=>r.is_active?'نعم':'لا'],['الإجراء',r=>r._job_action]])+recordsTable('طلبات التقديم المرئية',applications.map(a=>Object.assign({},a,{_application_action:'<button type="button" class="linkbtn" data-job-application-details="'+esc(a.id)+'">التفاصيل</button>'})),[['الوظيفة',r=>r.job_id||'—'],['المتقدم',r=>r.applicant_name||'—'],['تاريخ التقديم',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['عرض',r=>r._application_action]])+'</section>';
 }
 function bindDomainModuleActions(){
+ if(!window.__MNTYUsedItemsFilterBound){
+  window.__MNTYUsedItemsFilterBound=true;
+  document.addEventListener('input',e=>{if(e.target?.id==='mx-used-items-search')filterUsedItemsCards();});
+  document.addEventListener('change',e=>{if(e.target?.id==='mx-used-items-state')filterUsedItemsCards();});
+ }
+
  if(window.__MNTYDomainModuleActionsBound)return;
  window.__MNTYDomainModuleActionsBound=true;
  document.addEventListener('click',async e=>{
@@ -1170,6 +1176,14 @@ function bindDomainModuleActions(){
   if(restaurantRefresh){
    const cache=live.moduleData.RESTAURANTS||{};cache.rowsReady=false;cache.loading=false;live.moduleData.RESTAURANTS=cache;
    await loadRestaurantWorkspace();return;
+  }
+  const usedDetail=e.target.closest('[data-used-item-detail]');
+  if(usedDetail){
+   const item=(live.moduleData.USED_ITEMS?.rows?.used_item_ads||[]).find(x=>String(x.id)===String(usedDetail.dataset.usedItemDetail));
+   if(!item)return showToast('الإعلان غير متاح ضمن السجلات المحمّلة.','error');
+   const sold=item.is_sold===true;
+   openUnifiedRecordDetails({kicker:'USED MARKET LISTING',title:item.title||'إعلان مستعمل',desc:'تفاصيل الإعلان كما وردت في الحقول المسموح بعرضها، دون بيانات اتصال خاصة.',sections:[{title:'بيانات الإعلان',html:'<div class="mx-record-kv-grid"><div><span>الفئة</span><b>'+esc(item.category||'—')+'</b></div><div><span>السعر</span><b>'+esc(item.price===null||item.price===undefined?'—':String(item.price))+'</b></div><div><span>الموقع</span><b>'+esc(item.location||'—')+'</b></div><div><span>الحالة</span><b>'+(sold?'تم البيع':'غير معلن عن البيع')+'</b></div><div><span>تاريخ الإضافة</span><b>'+esc(item.created_at?new Date(item.created_at).toLocaleString('ar-EG'):'—')+'</b></div></div>'}]});
+   return;
   }
   const detail=e.target.closest('[data-domain-record-detail]');
   if(detail){
@@ -1302,6 +1316,31 @@ async function openJobPostForm(){
   }catch(error){showToast('تعذر حفظ الوظيفة: '+String(error?.message||'خطأ غير معروف'),'error');if(submit){submit.disabled=false;submit.textContent='حفظ الوظيفة'}}
  });
 }
+function usedItemsWorkspace(rows,errors={}){
+ const items=rows.used_item_ads||[];
+ const cards=items.map(item=>{
+  const title=String(item.title||'إعلان مستعمل');
+  const sold=item.is_sold===true;
+  const searchable=[title,item.category,item.location].filter(Boolean).join(' ').toLowerCase();
+  return '<article class="card mx-used-item-card" data-used-item-card="1" data-search="'+esc(searchable)+'" data-state="'+(sold?'sold':'available')+'" style="padding:16px;display:flex;flex-direction:column;gap:10px"><div class="row" style="justify-content:space-between;gap:8px"><span class="eyebrow">'+esc(item.category||'مستعمل')+'</span><span class="count">'+(sold?'تم البيع':'متاح حسب السجل')+'</span></div><h3>'+esc(title)+'</h3><p class="muted">'+esc(item.location||'الموقع غير محدد')+'</p><strong>'+esc(item.price===null||item.price===undefined?'السعر غير محدد':String(item.price))+'</strong><small class="muted">'+esc(item.created_at?new Date(item.created_at).toLocaleDateString('ar-EG'):'')+'</small><button type="button" class="linkbtn" data-used-item-detail="'+esc(item.id)+'">عرض التفاصيل</button></article>';
+ }).join('');
+ return workspaceHead('USED MARKET','سوق المستعمل','استعراض الإعلانات المحمّلة مع البحث والتصفية، دون إظهار بيانات اتصال أو تجاوز صلاحيات الوصول.','LIVE')
+ +'<section class="card" style="padding:16px;margin:14px 0"><div class="grid3"><label>ابحث في الإعلانات<input id="mx-used-items-search" type="search" placeholder="اسم المنتج أو الفئة أو الموقع" autocomplete="off"></label><label>حالة الإعلان<select id="mx-used-items-state"><option value="all">كل الحالات</option><option value="available">غير مباع</option><option value="sold">تم البيع</option></select></label><div class="action-bar" style="align-items:end"><button type="button" class="btn btn-outline" style="width:auto" data-domain-export-table="used_item_ads">تصدير CSV</button></div></div><p id="mx-used-items-count" class="muted" aria-live="polite">'+items.length+' إعلان محمّل ضمن نطاق الوصول الحالي</p></section>'
+ +(errors.used_item_ads?'<div class="notice">مصدر الإعلانات غير متاح: '+esc(errors.used_item_ads)+'</div>':'')
+ +'<div id="mx-used-items-grid" class="grid3">'+(cards||'<div class="empty-state">لا توجد إعلانات متاحة ضمن البيانات المحمّلة حاليًا.</div>')+'</div>';
+}
+function filterUsedItemsCards(){
+ const root=document.getElementById('mx-used-items-grid');if(!root)return;
+ const query=String(document.getElementById('mx-used-items-search')?.value||'').trim().toLowerCase();
+ const state=String(document.getElementById('mx-used-items-state')?.value||'all');
+ let shown=0;
+ root.querySelectorAll('[data-used-item-card]').forEach(card=>{
+  const matchesQuery=!query||String(card.dataset.search||'').includes(query);
+  const matchesState=state==='all'||card.dataset.state===state;
+  const visible=matchesQuery&&matchesState;card.hidden=!visible;if(visible)shown++;
+ });
+ const count=document.getElementById('mx-used-items-count');if(count)count.textContent='عدد الإعلانات المطابقة: '+shown;
+}
 function domainModuleWorkspace(){
  const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();
  const d=live.moduleData[m.key]||{tables:{},ready:false};
@@ -1326,7 +1365,7 @@ if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   +moduleActions
   +workspaceCards(cards)
   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
-  +(m.key==='MEDICAL'?enterpriseRowsTable(m,d.rows||{}):m.key==='JOBS'?jobsWorkspace(d.rows||{},d.errors||{}):m.key==='EDUCATION'?educationWorkspace(d.rows||{},d.errors||{}):domainModuleTablesHtml(m,d.rows||{},d.errors||{}))
+  +(m.key==='MEDICAL'?enterpriseRowsTable(m,d.rows||{}):m.key==='JOBS'?jobsWorkspace(d.rows||{},d.errors||{}):m.key==='EDUCATION'?educationWorkspace(d.rows||{},d.errors||{}):m.key==='USED_ITEMS'?usedItemsWorkspace(d.rows||{},d.errors||{}):domainModuleTablesHtml(m,d.rows||{},d.errors||{}))
   +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
 }
 
