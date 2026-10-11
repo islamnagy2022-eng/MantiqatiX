@@ -16,5 +16,5 @@ This stacked change adds authenticated `erp-purchase-order-create` and `erp-purc
 - These migration files were recovered from an unmerged/stale change set and must be reviewed against the complete current schema.
 - RC433 is absent from the known chain; RC425–RC441 reconciliation remains a separate blocker.
 - Do not apply these migrations or deploy the function to production independently. The complete migration chain must be reviewed and replayed in chronological order on disposable PostgreSQL first.
-- The purchase-order line editor and companion create/update Edge Functions are not included in this focused change. ERP UI integration remains unverified.
+- The UI remains prompt-driven rather than a full line-item modal/editor. Browser-to-Edge-to-database E2E with an authenticated tenant and seeded approved purchase order remains NOT VERIFIED.
 - Passing isolated fixture tests is not proof of full production compatibility.
