@@ -6,6 +6,8 @@ const createEdge=fs.readFileSync("supabase/functions/erp-purchase-order-create/i
 
 const ui=fs.readFileSync("web/app.js","utf8");
 const integration=fs.readFileSync("supabase/tests/rc437_purchase_order_lines_integration.sql","utf8");
+const branchMigration=fs.readFileSync("supabase/migrations/20261011030000_rc458_erp_branch_organization_scope.sql","utf8");
+const branchIntegration=fs.readFileSync("supabase/tests/rc458_erp_branch_scope_integration.sql","utf8");
 const checks=[];
 function check(name,ok){checks.push({name,ok:Boolean(ok)});if(!ok)console.error("FAIL "+name);}
 check("order line table tracks ordered and received quantities",migration.includes("ordered_quantity")&&migration.includes("received_quantity")&&migration.includes("unique (purchase_order_id,product_id)"));
@@ -28,5 +30,8 @@ check("purchase order creation uses the authenticated Edge Function and stable r
 check("integration covers over-receipt, wrong product/cost, replay and permissions",integration.includes("receiving over ordered quantity must be rejected")&&integration.includes("product absent from purchase order must be rejected")&&integration.includes("unit cost mismatch must be rejected")&&integration.includes("duplicate receipt must be idempotent"));
 check("purchase order creation RPC is service-role-only and actor-bound",fs.readFileSync("supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql","utf8").includes("p_actor_user_id uuid")&&fs.readFileSync("supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql","utf8").includes("to service_role")&&integration.includes("service_role must execute order creation RPC"));
 check("duplicate business order numbers are rejected",fs.readFileSync("supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql","utf8").includes("PURCHASE_ORDER_NUMBER_CONFLICT")&&integration.includes("duplicate order number must be rejected"));
+check("RC458 enforces branch and organization scope for create, status, line edits and receiving",branchMigration.includes("PURCHASE_ORDER_BRANCH_FORBIDDEN")&&branchMigration.includes("PURCHASE_ORDER_LINES_BRANCH_FORBIDDEN")&&branchMigration.includes("PURCHASE_ORDER_BRANCH_FORBIDDEN")&&branchMigration.includes("m.branch_id is null or m.branch_id=v_order.branch_id")&&branchMigration.includes("m.organization_id is null or m.organization_id=v_target_org"));
+check("receiving branch authorization is checked before idempotent receipt replay",branchMigration.indexOf("PURCHASE_RECEIVING_BRANCH_FORBIDDEN")>=0&&branchMigration.indexOf("PURCHASE_RECEIVING_BRANCH_FORBIDDEN")<branchMigration.indexOf("-- Exact receipt replay"));
+check("RC458 tests cross-branch create, line edit, status, receipt and replay denials",branchIntegration.includes("branch A created a branch B purchase order")&&branchIntegration.includes("branch A edited branch B order lines")&&branchIntegration.includes("branch A transitioned branch B order")&&branchIntegration.includes("branch A received into branch B warehouse")&&branchIntegration.includes("branch A replayed branch B receipt")&&branchIntegration.includes("mismatched organization edited purchase order"));
 const failed=checks.filter(x=>!x.ok);if(failed.length)process.exit(1);
 console.log("ERP purchase-order line safety contract PASS: "+checks.length+"/"+checks.length+" checks.");
