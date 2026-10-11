@@ -1641,3 +1641,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Primary CRM module — SESSION-015
 - [x] Add current-session CSV export for CRM leads, support tickets, and notifications.
 - [ ] Validate CSV encoding/escaping and role-scope behavior during post-build tests.
+
+ 
+## Primary Operations module — SESSION-016
+- [x] Add CSV export for currently loaded orders, status history and notifications.
+- [ ] Validate export and loaded-data boundaries in post-build tests.
