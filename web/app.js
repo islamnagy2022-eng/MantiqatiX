@@ -1309,7 +1309,7 @@ function marketingWorkspace(){
  +recordsTable('دعوات التعاون التسويقي',live.records.campaignParticipants||[],[['الحملة',r=>campaigns.find(c=>c.id===r.campaign_id)?.title||r.campaign_id],['الدور',r=>r.role||'—'],['نسبة التخصيص',r=>(r.allocation_percent??0)+'%'],['القيمة المتفق عليها',r=>(r.agreed_value??0)+' EGP'],['الحالة',r=>r.status||'—'],['الرد',r=>marketingParticipantActions(r)]])
  +'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ إنشاء طلب تسويقي</button></div>'
  +globalAdAdminPanel()
- +recordsTable('طلبات التسويق',leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['منطقة الخدمة',r=>r.service_area||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>detail('lead',r.id)]])
+ +recordsTable('طلبات التسويق',leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['منطقة الخدمة',r=>r.service_area||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>'<button type="button" class="linkbtn" onclick="openLeadDetails(\''+esc(r.id)+'\')">التفاصيل</button>']])
  +recordsTable('المشروعات التسويقية',projects,[['النوع',r=>r.project_type||'—'],['الحالة',r=>r.status||'—'],['القيمة',r=>r.gross_value!=null?(r.gross_value+' '+(r.currency||'')):'—'],['العمولة',r=>r.platform_commission!=null?(r.platform_commission+' '+(r.currency||'')):'—'],['إجراء',r=>detail('project',r.id)]])
  +recordsTable('الإعلانات',ads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['الموافقة',r=>r.approval_status||'—'],['البداية',r=>r.start_at?r.start_at:'—'],['النهاية',r=>r.end_at?r.end_at:'—'],['إجراء',r=>detail('ad',r.id)]])
  +recordsTable('مقدمو خدمات التسويق',providers,[['الاسم',r=>r.name_ar||'—'],['النوع',r=>r.provider_kind||'—'],['الحالة',r=>r.status||'—'],['موثق',r=>r.is_verified?'نعم':'لا'],['إجراء',r=>detail('provider',r.id)]])
@@ -1325,7 +1325,8 @@ async function openUnifiedRecordDetails(options={}){
 }
 async function openLeadDetails(leadId){
  if(!user?.id||!leadId)return authView();const lead=live.records.leads.find(x=>x.id===leadId);if(!lead)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
- const {data,error}=await sb.from('marketing_leads').select('id,title,description,budget_min,budget_max,currency,required_services,service_area,status,source,assigned_provider_id,created_at,updated_at').eq('id',leadId).eq('requester_user_id',user.id).maybeSingle();
+ if(window.MNTY_RBAC?.can(String(live.role||''),'CRM','view',live.permissions)!==true)return showToast('لا تملك صلاحية عرض تفاصيل طلب التسويق.','error');
+ const {data,error}=await sb.from('marketing_leads').select('id,title,description,budget_min,budget_max,currency,required_services,service_area,status,source,assigned_provider_id,created_at,updated_at').eq('id',leadId).maybeSingle();
  if(error)return showToast('تعذر تحميل تفاصيل الطلب: '+error.message,'error');if(!data)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
  const services=Array.isArray(data.required_services)?data.required_services.map(x=>typeof x==='string'?x:JSON.stringify(x)).join('، '):(data.required_services?JSON.stringify(data.required_services):'—');
  const budget=data.budget_min!=null||data.budget_max!=null?((data.budget_min??'—')+' — '+(data.budget_max??'—')+' '+(data.currency||'')):'—';
