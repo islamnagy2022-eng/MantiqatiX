@@ -662,10 +662,18 @@ function exportDomainWorkspaceTable(table){
  if(!config)return showToast('لا توجد خريطة تصدير لهذا المصدر.','error');
  downloadWorkspaceCsv('mantiqatix-'+table,rows,config.fields);
 }
+function exportRenderedRecordsTable(tableId){
+ const table=document.getElementById(tableId);if(!table)return;
+ const headers=[...table.querySelectorAll('thead th')].map(th=>String(th.textContent||'').replace(/↕/g,'').trim());
+ const body=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.cells].map(td=>String(td.innerText||td.textContent||'').trim()));
+ const fields=headers.map((label,i)=>[String(i),label||('حقل '+(i+1))]);
+ const rows=body.map(values=>Object.fromEntries(values.map((value,i)=>[String(i),value])));
+ downloadWorkspaceCsv('mantiqatix-table-'+tableId,rows,fields);
+}
 function bindWorkspaceExports(){
  if(window.__MNTYWorkspaceExportListener)return;
  window.__MNTYWorkspaceExportListener=true;
- document.addEventListener('click',e=>{const domainBtn=e.target.closest('[data-domain-export-table]');if(domainBtn){exportDomainWorkspaceTable(domainBtn.dataset.domainExportTable);return;}const btn=e.target.closest('[data-export-source]');if(btn)exportWorkspaceSource(btn.dataset.exportSource);});
+ document.addEventListener('click',e=>{const tableBtn=e.target.closest('[data-records-export]');if(tableBtn){exportRenderedRecordsTable(tableBtn.dataset.recordsExport);return;}const domainBtn=e.target.closest('[data-domain-export-table]');if(domainBtn){exportDomainWorkspaceTable(domainBtn.dataset.domainExportTable);return;}const btn=e.target.closest('[data-export-source]');if(btn)exportWorkspaceSource(btn.dataset.exportSource);});
 }
 function genericWorkspaceDisplayValue(value,key){
  if(value===null||value===undefined||value==='')return '—';
@@ -1438,7 +1446,7 @@ function recordsTable(title,rows,columns){
  recordsTableState.set(id,{page:1,query:'',sort:-1,dir:1});
  const heads=cols.map((c,i)=>'<th scope="col" data-sort-col="'+i+'" aria-sort="none" tabindex="0" onclick="sortRecordsTable(\''+id+'\','+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();sortRecordsTable(\''+id+'\','+i+')}" title="فرز">'+esc(c[0])+' ↕</th>').join('');
  const body=data.map(r=>'<tr data-record-status="'+esc(String(r.status||'غير محدد').toUpperCase())+'">'+cols.map(c=>'<td>'+renderRecordCell(c[1](r))+'</td>').join('')+'</tr>').join('');
- return '<section class="records" data-records-title="'+esc(title)+'" data-records-table="'+id+'" aria-labelledby="'+id+'-title"><div class="section-head"><div><span class="eyebrow">RECORDS</span><h3 id="'+id+'-title">'+esc(title)+'</h3><p class="muted">سجلات فعلية ضمن الصلاحيات الحالية · عرض '+RECORDS_PAGE_SIZE+' لكل صفحة</p></div><label class="search-field"><span>بحث داخل السجلات</span><input id="'+search+'" type="search" aria-controls="'+id+'" placeholder="ابحث داخل السجلات…" oninput="filterRecordsTable(\''+search+'\',\''+id+'\')"></label></div><div class="table-wrap" tabindex="0" role="region" aria-label="جدول '+esc(title)+'"><table id="'+id+'"><thead><tr>'+heads+'</tr></thead><tbody>'+body+'</tbody></table></div><div class="mx-table-pager" aria-label="تنقل الجدول"><button type="button" class="btn btn-outline" id="'+id+'-prev" onclick="paginateRecordsTable(\''+id+'\',-1)">السابق</button><span id="'+id+'-meta">—</span><button type="button" class="btn btn-outline" id="'+id+'-next" onclick="paginateRecordsTable(\''+id+'\',1)">التالي</button></div></section>';
+ return '<section class="records" data-records-title="'+esc(title)+'" data-records-table="'+id+'" aria-labelledby="'+id+'-title"><div class="section-head"><div><span class="eyebrow">RECORDS</span><h3 id="'+id+'-title">'+esc(title)+'</h3><p class="muted">سجلات فعلية ضمن الصلاحيات الحالية · عرض '+RECORDS_PAGE_SIZE+' لكل صفحة</p></div><div class="mx-records-toolbar"><label class="search-field"><span>بحث داخل السجلات</span><input id="'+search+'" type="search" aria-controls="'+id+'" placeholder="ابحث داخل السجلات…" oninput="filterRecordsTable(\''+search+'\',\''+id+'\')"></label><button type="button" class="btn btn-outline mx-records-export" data-records-export="'+id+'">تصدير الجدول CSV</button></div></div><div class="table-wrap" tabindex="0" role="region" aria-label="جدول '+esc(title)+'"><table id="'+id+'"><thead><tr>'+heads+'</tr></thead><tbody>'+body+'</tbody></table></div><div class="mx-table-pager" aria-label="تنقل الجدول"><button type="button" class="btn btn-outline" id="'+id+'-prev" onclick="paginateRecordsTable(\''+id+'\',-1)">السابق</button><span id="'+id+'-meta">—</span><button type="button" class="btn btn-outline" id="'+id+'-next" onclick="paginateRecordsTable(\''+id+'\',1)">التالي</button></div></section>';
 }
 function workspaceHead(kicker,title,desc,badge){return '<div class="section-head"><div><span class="eyebrow">'+kicker+'</span><h2>'+title+'</h2><p>'+desc+'</p></div>'+(badge?'<span class="count">'+badge+'</span>':'')+'</div>'}
 function workspaceCards(items){return '<div class="grid3">'+items.map(x=>{const pending=String(x[1])==='—';return '<article class="card mnty-kpi-card"><div class="row"><strong>'+x[0]+'</strong><span class="dot"></span></div><div class="kpi" style="font-size:24px">'+esc(x[1])+'</div><p class="muted">'+esc(x[2])+'</p><div class="mnty-card-state '+(pending?'mnty-card-state--pending':'')+'"><span class="mnty-status-dot"></span><span>'+(pending?'بانتظار مصدر بيانات فعلي':'بيانات فعلية ضمن مساحة العمل الحالية')+'</span></div></article>'}).join('')+'</div>'}
