@@ -50,3 +50,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Tests:** not yet claimed; build-first instruction means broad review is deferred, but this change must be covered by the later validation pass.
 - **Production impact:** none; frontend branch only.
 - **Next:** continue connecting remaining module actions and real data sources; later test export escaping, Arabic encoding, permissions and browser download behavior.
+
+## 2026-10-11 — SESSION-005 — Add filtering to module records
+
+- **Code commit:** [0a7838d142295fbb697fc632f0ed8475f819157a](https://github.com/islamnagy2022-eng/MantiqaTix/commit/0a7838d142295fbb697fc632f0ed8475f819157a).
+- **Built:** the generic workspace data tab can filter the records already rendered for the active module, without sending a new query or expanding the user's data scope.
+- **Scope:** local filtering only applies to the displayed current-session records; it is not a database-wide search.
+- **Verification:** full post-build tests remain pending.
+- **Next:** continue connecting remaining module workflows; later run the planned focused test/review batch.
