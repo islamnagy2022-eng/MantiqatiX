@@ -673,3 +673,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-028
 - Commit `d53fee1e5b8f9442015dea25419057948b76d6cf`: campaign platform-admin controls now check the exact platform tenant/scope/full_control claim and RBAC permission expected by RC453.
+
+ 
+## Build progress — SESSION-029
+- Commit `74b56f5372c0c213306bc503cbded9f18134015e`: campaign cards summarize invited/accepted/active partner allocation and agreed values, with remaining percentage.
