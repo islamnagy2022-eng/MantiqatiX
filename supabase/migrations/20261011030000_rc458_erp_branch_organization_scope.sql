@@ -155,10 +155,15 @@ begin
   end if;
   v_target_org:=coalesce(v_branch_org_id,v_business_org_id);
   select upper(m.role) into v_role from public.user_memberships m
-  where m.user_id=u and m.tenant_id=v_order.tenant_id and m.business_id=v_order.business_id and m.status='ACTIVE'
-    and (m.branch_id is null or m.branch_id=v_order.branch_id)
-    and (m.organization_id is null or m.organization_id=v_target_org) limit 1;
+  where m.user_id=u and m.tenant_id=v_order.tenant_id and m.business_id=v_order.business_id and m.status='ACTIVE' limit 1;
   if v_role is null or v_role not in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE') then raise exception 'PURCHASE_ORDER_ROLE_REQUIRED'; end if;
+  if not exists (
+    select 1 from public.user_memberships m
+    where m.user_id=u and m.tenant_id=v_order.tenant_id and m.business_id=v_order.business_id and m.status='ACTIVE'
+      and (m.branch_id is null or m.branch_id=v_order.branch_id)
+      and (m.organization_id is null or m.organization_id=v_target_org)
+      and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE')
+  ) then raise exception 'PURCHASE_ORDER_BRANCH_FORBIDDEN'; end if;
   if p_target_status='SUBMITTED' and v_order.status='DRAFT' then
     if not exists(select 1 from public.erp_purchase_order_lines pol where pol.purchase_order_id=v_order.id and pol.tenant_id=v_order.tenant_id and pol.business_id=v_order.business_id) then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
     v_next:=case when v_order.total_amount>5000 then 'PENDING_APPROVAL' else 'APPROVED' end;
