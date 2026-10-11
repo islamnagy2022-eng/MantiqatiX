@@ -111,7 +111,7 @@ function ordersView(){
  (state.orders.length?state.orders.map(x=>{
   const current=String(x.status||'UNKNOWN').toUpperCase();
   const next=nextOrderStatuses(x);
-  const statusControl=canOperate()&&next.length?'<select aria-label="تغيير حالة الطلب '+esc(x.id)+'" data-order-status="'+esc(x.id)+'"><option value="'+esc(current)+'" selected>'+esc(statusLabel[current]||current)+'</option>'+next.map(n=>'<option value="'+n+'">'+esc(statusLabel[n]||n)+'</option>').join('')+'</select>':esc(statusLabel[current]||current);
+  const statusControl=canOperate()&&next.length?'<select aria-label="تغيير حالة الطلب '+esc(x.id)+'" data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'"><option value="'+esc(current)+'" selected>'+esc(statusLabel[current]||current)+'</option>'+next.map(n=>'<option value="'+n+'">'+esc(statusLabel[n]||n)+'</option>').join('')+'</select>':esc(statusLabel[current]||current);
   return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>';
  }).join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
@@ -279,13 +279,19 @@ function addInventory(existing){
   const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
  });
 }
-async function updateOrder(id,status){
+async function updateOrder(id,status,control){
  if(!canOperate())return;
- const m=scope(); if(!m)return notify('لا يوجد نطاق نشاط/فرع نشط.');
+ const m=scope(); if(!m){if(control)control.value=control.dataset.currentStatus||'';return notify('لا يوجد نطاق نشاط/فرع نشط.');}
+ const previous=control?.dataset.currentStatus||'';
+ if(control)control.disabled=true;
  try{
-  await invokeMntyFunction('order-status-update',{orderId:id,tenantId:m.tenant_id,newStatus:status});
+  const result=await invokeMntyFunction('order-status-update',{orderId:id,tenantId:m.tenant_id,newStatus:status});
+  if(result?.error)throw new Error(String(result.error));
   await load();
- }catch(e){notify('تعذر تحديث حالة الطلب: '+(e?.message||'خطأ'),'error');await load()}
+ }catch(e){
+  if(control){control.value=previous;control.disabled=false;}
+  notify('تعذر تحديث حالة الطلب: '+(e?.message||'ORDER_STATUS_UPDATE_FAILED'),'error');
+ }
 }
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
@@ -297,7 +303,7 @@ function bind(){
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
  document.querySelectorAll('[data-table-edit]').forEach(b=>b.onclick=()=>addTable(state.tables.find(x=>x.id===b.dataset.tableEdit)));
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
- document.querySelectorAll('[data-order-status]').forEach(s=>s.onchange=async()=>{await updateOrder(s.dataset.orderStatus,s.value)});
+ document.querySelectorAll('[data-order-status]').forEach(s=>s.onchange=async()=>{const requested=s.value;await updateOrder(s.dataset.orderStatus,requested,s)});
 }
 function activeModule(){
  const h=document.querySelector('.breadcrumb');
