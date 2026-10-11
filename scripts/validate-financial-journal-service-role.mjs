@@ -6,7 +6,7 @@ const stageMigration = fs.readFileSync("supabase/migrations/20261010180000_rc450
 const edge = fs.readFileSync("supabase/functions/financial-journal/index.ts", "utf8");
 const backendEdge = fs.readFileSync("supabase/functions/post-financial-journal/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc450_financial_journal_fixture.sql", "utf8");
-const integration = fs.readFileSync("supabase/tests/rc450_financial_journal_integration.sql", "utf8");
+const integration = fs.readFileSync("supabase/tests/rc457_financial_journal_integration.sql", "utf8");
 
 assert.match(migration, /set search_path = ''/i, "SECURITY DEFINER search_path must be empty");
 assert.match(migration, /current_setting\('request\.jwt\.claim\.role', true\)/i, "service-role exception must read the verified JWT role claim");
@@ -55,6 +55,6 @@ assert.match(integration, /organization mismatch unexpectedly succeeded/);
 assert.match(integration, /running balances are not cumulative/);
 assert.match(integration, /identical journal retry was not idempotent/);
 assert.match(integration, /conflicting journal replay was not rejected/);
-assert.match(migration, /drop function public\\.post_financial_journal_atomic_backend\\(uuid,jsonb,jsonb\\)/i, "RC457 must remove the parallel RC436 RPC");
+assert.match(migration, /drop function public\.post_financial_journal_atomic_backend\(uuid,jsonb,jsonb\)/i, "RC457 must remove the parallel RC436 RPC");
 
 console.log("RC450 financial journal service-role boundary PASS");
