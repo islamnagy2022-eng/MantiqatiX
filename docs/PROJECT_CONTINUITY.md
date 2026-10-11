@@ -554,3 +554,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Generic workspace fallback no longer leaks unrelated record types into an unrelated module.
 - CI was queued when queried; check latest checks before treating the branch as validated.
 - Continue build-first on `build/module-workspaces-functional-20261011-b`; no production change, release remains BLOCKED / NOT CERTIFIED.
+
+ 
+## Build progress — SESSION-004
+- Commit `99c645402c51deb704a20f373b4a617301c0a6b3`: generic workspace data/reports tabs gained CSV export with UTF-8 BOM and formula-like value prefixing.
+- Export is intentionally limited to records/metrics already present in the current session; not a complete database or official finance export.
+- Later verification required: escaping, Arabic encoding, browser download, and data/permission boundaries.
