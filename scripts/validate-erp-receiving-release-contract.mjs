@@ -35,15 +35,4 @@ assert.ok(receivingBody.includes("'PURCHASING'"),"branch-scoped PURCHASING role 
 assert.match(test434,/RC434_FORCED_LEDGER_FAILURE/,"RC434 test must verify rollback on inventory failure");
 assert.match(test437,/receiving over ordered quantity must be rejected/,"RC437 test must reject over-receipt");
 assert.match(test437,/duplicate receipt must be idempotent/,"RC437 test must verify idempotent replay");
-const statusStart=rc458.indexOf("create or replace function public.update_purchase_order_status_backend");
-const statusEnd=rc458.indexOf("$function$;",statusStart);
-const statusBody=statusStart>=0&&statusEnd>statusStart?rc458.slice(statusStart,statusEnd):"";
-assert.ok(statusBody.includes("(m.branch_id is null or m.branch_id=v_order.branch_id)"),"status-transition role must be branch-scoped");
-assert.ok(statusBody.includes("(m.organization_id is null or m.organization_id=v_target_org)"),"status-transition role must be organization-scoped");
-assert.ok(statusBody.indexOf("(m.branch_id is null or m.branch_id=v_order.branch_id)")<statusBody.indexOf("limit 1"),"branch scope must be applied before role selection");
-assert.match(rc458,/v_role in \('OWNER','BUSINESS_OWNER','ADMIN'\)/,"only elevated roles may approve high-value purchase orders");
-const receivingStart=rc458.indexOf("create or replace function public.receive_purchase_stock_with_order_line_backend");
-const receivingEnd=rc458.indexOf("$function$;",receivingStart);
-const receivingBody=receivingStart>=0&&receivingEnd>receivingStart?rc458.slice(receivingStart,receivingEnd):"";
-assert.ok(receivingBody.includes("'PURCHASING'"),"branch-scoped PURCHASING role must retain RC437 receiving permission");
 console.log("ERP receiving release contract PASS.");
