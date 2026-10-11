@@ -2,6 +2,8 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const edge=fs.readFileSync("supabase/functions/erp-purchase-receive/index.ts","utf8");
+const orderEdge=fs.readFileSync("supabase/functions/erp-purchase-order-create/index.ts","utf8");
+const app=fs.readFileSync("web/app.js","utf8");
 const rc434=fs.readFileSync("supabase/migrations/20261009200000_rc434_atomic_erp_purchase_receiving.sql","utf8");
 const rc437=fs.readFileSync("supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql","utf8");
 const rc438=fs.readFileSync("supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql","utf8");
@@ -26,4 +28,12 @@ assert.match(rc438,/create_purchase_order_with_lines_backend/,"order creation mu
 assert.match(test434,/RC434_FORCED_LEDGER_FAILURE/,"RC434 test must verify rollback on inventory failure");
 assert.match(test437,/receiving over ordered quantity must be rejected/,"RC437 test must reject over-receipt");
 assert.match(test437,/duplicate receipt must be idempotent/,"RC437 test must verify idempotent replay");
+assert.match(orderEdge,/userClient\.auth\.getUser\(\)/,"purchase-order creation must authenticate the caller");
+assert.match(orderEdge,/rpc\("create_purchase_order_with_lines_backend"/,"purchase-order creation must use the line-aware server RPC");
+assert.match(orderEdge,/p_actor_user_id:\s*user\.id/,"purchase-order actor must come from validated Auth user");
+assert.match(orderEdge,/p_lines:\s*lines/,"purchase-order lines must be sent to the server for atomic validation");
+assert.match(app,/erpEdgeFunction\('erp-purchase-order-create'/,"ERP UI must use the secure order-creation Edge Function");
+assert.match(app,/erpEdgeFunction\('erp-purchase-receive'/,"ERP UI must use the atomic receiving Edge Function");
+assert.doesNotMatch(app,/erpRpc\('create_purchase_order_backend'/,"ERP UI must not create header-only orders through the legacy RPC");
+assert.doesNotMatch(app,/erpRpc\('receive_purchase_stock_backend'/,"ERP UI must not bypass atomic line-aware receiving");
 console.log("ERP receiving release contract PASS.");
