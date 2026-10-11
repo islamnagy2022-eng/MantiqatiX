@@ -95,7 +95,7 @@ const sectors=Object.freeze((window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS||[]).m
 }));
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
 const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],businesses:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
-let marketingCampaignState={loading:false,loaded:false,available:false,error:null,campaigns:[],participants:[],partners:[]};
+let marketingCampaignState={loading:false,loaded:false,available:false,error:null,campaigns:[],participants:[],partners:[],businesses:[]};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){
@@ -225,7 +225,7 @@ function membershipOptionLabel(m){
  return icon+' '+roleLabel(role)+' — '+activity+' — '+section;
 }
 async function switchMembership(membershipId){
- window.MNTYModuleRuntime={};marketingCampaignState={loading:false,loaded:false,available:false,error:null,campaigns:[],participants:[],partners:[]};
+ window.MNTYModuleRuntime={};marketingCampaignState={loading:false,loaded:false,available:false,error:null,campaigns:[],participants:[],partners:[],businesses:[]};
  const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
  if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
  if(membershipId===live.activeMembershipId)return;
@@ -1256,18 +1256,21 @@ function exportMarketingWorkspaceCsv(){
 }
 function marketingCampaignPanel(){
  const st=marketingCampaignState,role=String(live.role||'').toUpperCase();
- const canCreate=!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','create',live.permissions)===true;
- const canManage=!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true;
+ const backendManagers=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role);
+ const canCreate=backendManagers&&((role==='SUPER_ADMIN'&&canSuperAdmin())||(!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','create',live.permissions)===true))&&Boolean(live.businessId||(role==='SUPER_ADMIN'&&canSuperAdmin()&&st.businesses.length));
+ const canManage=backendManagers&&((role==='SUPER_ADMIN'&&canSuperAdmin())||(!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true));
  if(st.loading||!st.loaded)return '<section class="card" style="margin:16px 0;padding:18px"><h3>الحملات الداخلية والتعاون مع الشركاء</h3><p>جاري تحميل بيانات الحملات وفق صلاحيات الحساب…</p></section>';
  if(!st.available)return '<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">CAMPAIGN COLLABORATION</span><h2>الحملات الداخلية وشركات التسويق الشريكة</h2><p>واجهة التعاون مرتبطة بعقد خادمي محدد؛ لن يتم حفظ أي شيء مباشرة من المتصفح أو استخدام مسار بديل.</p></div><span class="count">غير متاح</span></div><div class="notice">خدمة الحملات الداخلية غير متاحة في بيئة التشغيل الحالية. يلزم توفر جداول ووظائف الخادم المعتمدة قبل تفعيل الإنشاء أو الدعوات.</div></section>';
  const objectives=[['AWARENESS','الوعي بالعلامة'],['TRAFFIC','زيارات الموقع'],['LEADS','جمع العملاء المحتملين'],['SALES','المبيعات'],['ENGAGEMENT','التفاعل'],['APP_INSTALLS','تثبيت التطبيق']];
  const channels=['META','TIKTOK','GOOGLE','YOUTUBE','LINKEDIN','SNAPCHAT','OTHER'];
- const campaignForm=canCreate?'<form id="mx-campaign-create-form" class="card" style="padding:16px;margin:14px 0"><h3>إنشاء خطة حملة داخلية</h3><p class="muted">هذه خطة تشغيل داخلية فقط؛ لا تنشر إعلانات تلقائيًا على منصات خارجية.</p><div class="grid3"><label class="field">اسم الحملة<input id="mx-campaign-title" required minlength="3" maxlength="160" placeholder="مثال: حملة إطلاق المنتج"></label><label class="field">الهدف<select id="mx-campaign-objective">'+objectives.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('')+'</select></label><label class="field">الميزانية<input id="mx-campaign-budget" type="number" min="0" max="1000000000" step="0.01" required value="0"></label><label class="field">القنوات (افصل بينها بفاصلة)<input id="mx-campaign-channels" required value="META,GOOGLE" placeholder="META,TIKTOK"></label><label class="field">العملة<input id="mx-campaign-currency" required minlength="3" maxlength="3" value="EGP"></label><label class="field">بداية الحملة<input id="mx-campaign-start" type="datetime-local"></label><label class="field">نهاية الحملة<input id="mx-campaign-end" type="datetime-local"></label><label class="field">الجمهور المستهدف JSON<input id="mx-campaign-audience" value="{}" placeholder=\'{"region":"Cairo"}\'></label></div><label class="field">ملخص الحملة<textarea id="mx-campaign-brief" maxlength="5000" rows="3" placeholder="الرسالة، العرض، مخرجات الحملة..."></textarea></label><button type="submit" class="btn btn-primary" style="width:auto">حفظ الخطة كمسودة</button></form>':'<div class="notice">إنشاء الحملات يتطلب صلاحية التسويق وإنشاء حملة ضمن نشاط محدد.</div>';
+ const businessSelector=!live.businessId&&role==='SUPER_ADMIN'?'<label class="field">النشاط المستهدف<select id="mx-campaign-business" required>'+st.businesses.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name||b.code||b.id)+'</option>').join('')+'</select></label>':'';
+ const campaignForm=canCreate?'<form id="mx-campaign-create-form" class="card" style="padding:16px;margin:14px 0"><h3>إنشاء خطة حملة داخلية</h3><p class="muted">هذه خطة تشغيل داخلية فقط؛ لا تنشر إعلانات تلقائيًا على منصات خارجية.</p><div class="grid3">'+businessSelector+'<label class="field">اسم الحملة<input id="mx-campaign-title" required minlength="3" maxlength="160" placeholder="مثال: حملة إطلاق المنتج"></label><label class="field">الهدف<select id="mx-campaign-objective">'+objectives.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('')+'</select></label><label class="field">الميزانية<input id="mx-campaign-budget" type="number" min="0" max="1000000000" step="0.01" required value="0"></label><label class="field">القنوات (افصل بينها بفاصلة)<input id="mx-campaign-channels" required value="META,GOOGLE" placeholder="META,TIKTOK"></label><label class="field">العملة<input id="mx-campaign-currency" required minlength="3" maxlength="3" value="EGP"></label><label class="field">بداية الحملة<input id="mx-campaign-start" type="datetime-local"></label><label class="field">نهاية الحملة<input id="mx-campaign-end" type="datetime-local"></label><label class="field">الجمهور المستهدف JSON<input id="mx-campaign-audience" value="{}" placeholder=\'{"region":"Cairo"}\'></label></div><label class="field">ملخص الحملة<textarea id="mx-campaign-brief" maxlength="5000" rows="3" placeholder="الرسالة، العرض، مخرجات الحملة..."></textarea></label><button type="submit" class="btn btn-primary" style="width:auto">حفظ الخطة كمسودة</button></form>':'<div class="notice">إنشاء الحملات يتطلب صلاحية التسويق وإنشاء حملة ضمن نشاط محدد.</div>';
  const campaigns=st.campaigns.map(c=>{
   const participants=st.participants.filter(p=>p.campaign_id===c.id);
   const next={DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[String(c.status||'').toUpperCase()]||[];
   const statusActions=canManage?next.map(x=>'<button type="button" class="btn btn-outline" style="width:auto" data-campaign-status="'+esc(x)+'" data-campaign-id="'+esc(c.id)+'">'+({'PLANNED':'تخطيط','IN_REVIEW':'إرسال للمراجعة','APPROVED':'اعتماد','PAUSED':'إيقاف مؤقت','COMPLETED':'إكمال','CANCELLED':'إلغاء','DRAFT':'إرجاع لمسودة'}[x]||x)+'</button>').join(''):'';
-  const invite=canManage?'<form class="mx-campaign-invite-form" data-campaign-invite="'+esc(c.id)+'" style="margin-top:12px;padding:12px;border:1px solid var(--border,#ddd);border-radius:12px"><h4>دعوة شركة تسويق شريكة</h4>'+(st.partners.length?'<div class="grid3"><label class="field">الشريك<select data-partner-id required>'+st.partners.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name_ar||p.name_en||p.id)+' · '+esc(p.provider_kind||'')+'</option>').join('')+'</select></label><label class="field">الدور<select data-partner-role><option value="CREATIVE">إبداع وتصميم</option><option value="CONTENT">محتوى</option><option value="MEDIA_BUYING">شراء إعلامي</option><option value="ANALYTICS">تحليلات</option><option value="ACCOUNT_MANAGER">إدارة حساب</option><option value="REFERRAL">إحالات</option></select></label><label class="field">نسبة التخصيص %<input data-partner-allocation type="number" min="0" max="100" step="0.01" value="0"></label><label class="field">القيمة المتفق عليها<input data-partner-value type="number" min="0" step="0.01" value="0"></label></div><button type="submit" class="btn btn-outline" style="width:auto">إرسال الدعوة</button>':'<p class="muted">لا توجد ملفات شريك مؤهل محملة حاليًا. يتطلب الشريك نشاطًا نشطًا وموثقًا من نوع شركة شريكة أو مستقل.</p>')+'</form>':'';
+  const campaignPartners=st.partners.filter(p=>!p.business_id||p.business_id!==c.business_id);
+  const invite=canManage?'<form class="mx-campaign-invite-form" data-campaign-invite="'+esc(c.id)+'" style="margin-top:12px;padding:12px;border:1px solid var(--border,#ddd);border-radius:12px"><h4>دعوة شركة تسويق شريكة</h4>'+(campaignPartners.length?'<div class="grid3"><label class="field">الشريك<select data-partner-id required>'+campaignPartners.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name_ar||p.name_en||p.id)+' · '+esc(p.provider_kind||'')+'</option>').join('')+'</select></label><label class="field">الدور<select data-partner-role><option value="CREATIVE">إبداع وتصميم</option><option value="CONTENT">محتوى</option><option value="MEDIA_BUYING">شراء إعلامي</option><option value="ANALYTICS">تحليلات</option><option value="ACCOUNT_MANAGER">إدارة حساب</option><option value="REFERRAL">إحالات</option></select></label><label class="field">نسبة التخصيص %<input data-partner-allocation type="number" min="0" max="100" step="0.01" value="0"></label><label class="field">القيمة المتفق عليها<input data-partner-value type="number" min="0" step="0.01" value="0"></label></div><button type="submit" class="btn btn-outline" style="width:auto">إرسال الدعوة</button>':'<p class="muted">لا توجد ملفات شريك مؤهل محملة حاليًا. يتطلب الشريك نشاطًا نشطًا وموثقًا من نوع شركة شريكة أو مستقل.</p>')+'</form>':'';
   const participantRows=participants.map(p=>{
    const own=live.myProviderProfile?.id&&p.provider_id===live.myProviderProfile.id&&p.status==='INVITED';
    const response=own?'<div class="action-bar"><button type="button" class="btn btn-primary" style="width:auto" data-campaign-response="ACCEPTED" data-participant-id="'+esc(p.id)+'">قبول الدعوة</button><button type="button" class="btn btn-outline" style="width:auto" data-campaign-response="DECLINED" data-participant-id="'+esc(p.id)+'">رفض الدعوة</button></div>':'';
@@ -1282,6 +1285,11 @@ async function loadMarketingCampaignWorkspace(force=false){
  if(st.loading||(!force&&st.loaded))return;
  st.loading=true;st.error=null;
  try{
+  st.businesses=[];
+  if(String(live.role||'').toUpperCase()==='SUPER_ADMIN'&&canSuperAdmin()&&!live.businessId){
+   const businessRes=await sb.from('businesses').select('id,name,code,status').eq('status','ACTIVE').order('name',{ascending:true}).limit(100);
+   st.businesses=businessRes.error?[]:(businessRes.data||[]);
+  }
   const campaignRes=await sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,start_at,end_at,status,created_at,updated_at').order('created_at',{ascending:false}).limit(50);
   if(campaignRes.error){st.available=false;st.error='CAMPAIGN_BACKEND_UNAVAILABLE';st.campaigns=[];st.participants=[];st.partners=[];}
   else{
@@ -1299,8 +1307,11 @@ async function loadMarketingCampaignWorkspace(force=false){
  finally{st.loading=false;st.loaded=true;}
 }
 async function submitMarketingCampaign(form){
- if(!user?.id||!live.businessId)return showToast('اختر نشاطًا نشطًا قبل إنشاء حملة.','error');
- if(window.MNTY_RBAC?.can(String(live.role||'').toUpperCase(),'MARKETING','create',live.permissions)!==true)return showToast('لا تملك صلاحية إنشاء حملة ضمن هذا النطاق.','error');
+ const role=String(live.role||'').toUpperCase(),businessId=document.getElementById('mx-campaign-business')?.value||live.businessId;
+ if(!user?.id||!businessId)return showToast('اختر نشاطًا نشطًا قبل إنشاء حملة.','error');
+ const platformAllowed=role==='SUPER_ADMIN'&&canSuperAdmin();
+ const roleAllowed=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(platformAllowed||window.MNTY_RBAC?.can(role,'MARKETING','create',live.permissions)===true);
+ if(!roleAllowed)return showToast('لا تملك صلاحية إنشاء حملة ضمن هذا النطاق.','error');
  const title=document.getElementById('mx-campaign-title')?.value?.trim()||'';
  const objective=document.getElementById('mx-campaign-objective')?.value||'';
  const channels=[...new Set((document.getElementById('mx-campaign-channels')?.value||'').split(/[,\u060c]/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
@@ -1316,7 +1327,7 @@ async function submitMarketingCampaign(form){
  const key=form.dataset.idempotencyKey||(window.crypto?.randomUUID?.()||('mnty-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,14)));form.dataset.idempotencyKey=key;
  const btn=form.querySelector('button[type="submit"]');if(btn){btn.disabled=true;btn.textContent='جاري الحفظ…'}
  try{
-  const {data,error}=await sb.rpc('create_marketing_campaign_backend',{p_actor:user.id,p_business_id:live.businessId,p_title:title,p_objective:objective,p_channels:channels,p_budget:budget,p_idempotency_key:key,p_currency:currency,p_start_at:startAt,p_end_at:endAt,p_target_audience:audience,p_brief:brief||null});
+  const {data,error}=await sb.rpc('create_marketing_campaign_backend',{p_actor:user.id,p_business_id:businessId,p_title:title,p_objective:objective,p_channels:channels,p_budget:budget,p_idempotency_key:key,p_currency:currency,p_start_at:startAt,p_end_at:endAt,p_target_audience:audience,p_brief:brief||null});
   if(error)throw error;
   showToast('تم حفظ مسودة الحملة عبر المسار الخادمي.','success');marketingCampaignState.loaded=false;await loadMarketingCampaignWorkspace(true);await renderApp({forceWorkspace:true});
  }catch(e){showToast('تعذر حفظ الحملة: '+(e?.message||'الخدمة غير متاحة'),'error')}
@@ -1327,12 +1338,12 @@ async function inviteMarketingPartner(form){
  const role=form.querySelector('[data-partner-role]')?.value;
  const allocation=Number(form.querySelector('[data-partner-allocation]')?.value||0),agreed=Number(form.querySelector('[data-partner-value]')?.value||0);
  if(!id||!providerId||!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0)return showToast('بيانات دعوة الشريك غير صحيحة.','error');
- if(window.MNTY_RBAC?.can(String(live.role||'').toUpperCase(),'MARKETING','update',live.permissions)!==true)return showToast('لا تملك صلاحية دعوة شريك.','error');
+ const role=String(live.role||'').toUpperCase();if(!(['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(role==='SUPER_ADMIN'&&canSuperAdmin()||!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true)))return showToast('لا تملك صلاحية دعوة شريك.','error');
  const btn=form.querySelector('button[type="submit"]');if(btn){btn.disabled=true;btn.textContent='جاري إرسال الدعوة…'}
  try{const {error}=await sb.rpc('invite_marketing_campaign_partner_backend',{p_actor:user.id,p_campaign_id:id,p_provider_id:providerId,p_role:role,p_allocation_percent:allocation,p_agreed_value:agreed});if(error)throw error;showToast('تم إرسال دعوة الشريك.','success');marketingCampaignState.loaded=false;await loadMarketingCampaignWorkspace(true);await renderApp({forceWorkspace:true})}catch(e){showToast('تعذر إرسال الدعوة: '+(e?.message||'الخدمة غير متاحة'),'error')}finally{if(btn){btn.disabled=false;btn.textContent='إرسال الدعوة'}}
 }
 async function updateMarketingCampaignStatus(campaignId,status){
- if(window.MNTY_RBAC?.can(String(live.role||'').toUpperCase(),'MARKETING','update',live.permissions)!==true)return showToast('لا تملك صلاحية تغيير حالة الحملة.','error');
+ const role=String(live.role||'').toUpperCase();if(!(['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(role==='SUPER_ADMIN'&&canSuperAdmin()||!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true)))return showToast('لا تملك صلاحية تغيير حالة الحملة.','error');
  try{const {error}=await sb.rpc('update_marketing_campaign_status_backend',{p_actor:user.id,p_campaign_id:campaignId,p_status:status});if(error)throw error;showToast('تم تحديث حالة الحملة.','success');marketingCampaignState.loaded=false;await loadMarketingCampaignWorkspace(true);await renderApp({forceWorkspace:true})}catch(e){showToast('تعذر تحديث الحملة: '+(e?.message||'الخدمة غير متاحة'),'error')}
 }
 async function respondMarketingCampaignInvitation(participantId,decision){
@@ -2200,7 +2211,7 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
  gsi?.addEventListener('keydown',e=>{if(e.key==='Escape'){gsi.value='';gso.innerHTML='';gso.classList.remove('is-open')}if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
  document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}
 sb.auth.onAuthStateChange((event,session)=>{
-if(event==='SIGNED_OUT'){window.MNTYModuleRuntime={};marketingCampaignState={loading:false,loaded:false,available:false,error:null,campaigns:[],participants:[],partners:[]};
+if(event==='SIGNED_OUT'){window.MNTYModuleRuntime={};marketingCampaignState={loading:false,loaded:false,available:false,error:null,campaigns:[],participants:[],partners:[],businesses:[]};
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';
 window.MXHomeLanding?MXHomeLanding():landingView();return;
 }
