@@ -57,4 +57,6 @@ assert.ok(app.includes('const service_area=String(window.prompt'), "lead creatio
 assert.ok(app.includes('invitedPartners') && app.includes('acceptedPartners'), "workspace reports partner invitation pipeline states");
 assert.ok(app.includes('ليست إنفاقًا فعليًا'), "planned budgets must not be mislabeled as actual spend");
 assert.doesNotMatch(app, /from\(['"]marketing_campaigns['"]\)\.(insert|update|delete)/, "browser must not directly mutate campaign rows");
-console.log("RC453 marketing campaign backend and workspace contract: PASS (43 assertions)");
+assert.ok(app.includes("'CRM','view',live.permissions)!==true"), "lead detail view checks CRM permission");
+assert.ok(app.includes("openLeadDetails(\\'"), "lead table opens scoped lead detail view");
+console.log("RC453 marketing campaign backend and workspace contract: PASS (45 assertions)");
