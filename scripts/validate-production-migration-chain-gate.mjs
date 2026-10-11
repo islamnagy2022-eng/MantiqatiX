@@ -57,10 +57,22 @@ assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant 
 assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
-assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
-assert.match(source, /reconciliation\.smm_acl_boundary==="PASS"/, "SMM table ACL boundary must pass");
-assert.match(source, /reconciliation\.smm_order_refund_safety==="PASS"/, "SMM wallet debit/refund safety must pass");
-assert.match(source, /reconciliation\.smm_provider_timeout_safety==="PASS"/, "SMM provider timeout and ambiguity handling must pass");
+assert.match(source, /evaluateSmmLaunchScope\(reconciliation\.smm_initial_launch_scope/, "SMM release gate must evaluate the explicit launch-scope decision");
+assert.match(source, /smmLaunchScope\.status==="PASS"/, "SMM must pass the mode-specific launch containment contract");
+const smmScope = fs.readFileSync("scripts/production/smm-launch-scope.mjs", "utf8");
+assert.match(smmScope, /scope\.decision === "DEFERRED_NOT_IN_INITIAL_LAUNCH"/, "deferred SMM must use the deferred launch path");
+for (const requiredField of [
+  /scope\.live_edge_function === "DISABLED_AND_VERIFIED"/,
+  /scope\.gateway_customer_access === "DENIED"/,
+  /scope\.negative_test === "PASS"/,
+  /scope\.live_function_version/,
+  /scope\.live_function_hash/,
+  /scope\.disable_evidence_ref/,
+]) assert.match(smmScope, requiredField, "deferred SMM must require live deny-gate evidence, version/hash, and negative testing");
+assert.match(smmScope, /requiredRuntimeGates = \[/, "active SMM must retain its own runtime safety gate list");
+for (const gate of ["smm_gateway_parity", "smm_acl_boundary", "smm_order_refund_safety", "smm_provider_timeout_safety"]) {
+  assert.ok(smmScope.includes(JSON.stringify(gate)), `active SMM must require ${gate}`);
+}
 assert.match(source, /reconciliation\.erp_atomic_receiving_e2e==="PASS"/, "ERP atomic receiving E2E must pass");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
 assert.match(source, /reconciliation\.security_definer_acl_review==="PASS"/, "all exposed SECURITY DEFINER ACLs must be reviewed");
