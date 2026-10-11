@@ -145,7 +145,7 @@ begin
     else
       v_id := pg_catalog.gen_random_uuid()::text;
       insert into public.restaurant_inventory as i(id,tenant_id,business_id,branch_id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at)
-      values(v_id::uuid,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,v_name,v_unit,v_stock,v_minimum,v_cost,coalesce(v_supplier,''),pg_catalog.now())
+      values(v_id,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,v_name,v_unit,v_stock,v_minimum,v_cost,coalesce(v_supplier,''),pg_catalog.now())
       returning pg_catalog.to_jsonb(i) into v_new;
     end if;
     insert into public.audit_logs(id,tenant_id,business_id,branch_id,actor_user_id,action,entity_type,entity_id,old_values,new_values)
