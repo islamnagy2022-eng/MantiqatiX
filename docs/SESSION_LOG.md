@@ -241,3 +241,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built/fixed:** platform-level campaign create/invite/status controls now require the platform tenant, `scope=PLATFORM`, `full_control=true`, and existing RBAC platform-control permission, matching the RC453 backend's platform-admin check.
 - **Purpose:** prevent the UI from offering platform-wide controls to a tenant-scoped SUPER_ADMIN who the backend intentionally rejects.
 - **Tests:** pending post-build validation.
+
+## 2026-10-11 — SESSION-029 — Show partner allocation totals
+
+- **Code commit:** [74b56f5372c0c213306bc503cbded9f18134015e](https://github.com/islamnagy2022-eng/MantiqaTix/commit/74b56f5372c0c213306bc503cbded9f18134015e).
+- **Built:** each campaign card summarizes allocation percentage and agreed values for participants in `INVITED`, `ACCEPTED`, or `ACTIVE` states, matching the RC453 allocation validation scope. It shows the remaining percentage out of 100%.
+- **Scope:** summary is calculated only from RLS-visible participant records loaded for the session; backend remains authoritative for allocation limits.
+- **Tests:** pending post-build validation.
