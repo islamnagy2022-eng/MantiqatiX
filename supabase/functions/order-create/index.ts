@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
   }
   if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 200
       || typeof body.customerPhone !== "string" || !body.customerPhone.trim() || body.customerPhone.trim().length > 40
-      || typeof body.deliveryAddress !== "string" || !body.deliveryAddress.trim() || body.deliveryAddress.trim().length > 1000) {
+      || typeof body.deliveryAddress !== "string" || body.deliveryAddress.length > 1000) {
     return json({ error: "INVALID_CUSTOMER_DETAILS" }, 400);
   }
   if (body.notes !== undefined && body.notes !== null && (typeof body.notes !== "string" || body.notes.length > 2000)) {
@@ -78,6 +78,9 @@ Deno.serve(async (req: Request) => {
   if (body.metadata !== undefined && body.metadata !== null && (typeof body.metadata !== "object" || Array.isArray(body.metadata))) {
     return json({ error: "INVALID_ORDER_METADATA" }, 400);
   }
+  const fulfillmentType = String((body.metadata as Record<string, unknown> | null)?.fulfillmentType ?? "DELIVERY").toUpperCase();
+  if (!["DELIVERY", "PICKUP", "DINE_IN"].includes(fulfillmentType)) return json({ error: "INVALID_FULFILLMENT_TYPE" }, 400);
+  if (fulfillmentType === "DELIVERY" && !body.deliveryAddress.trim()) return json({ error: "DELIVERY_ADDRESS_REQUIRED" }, 400);
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
