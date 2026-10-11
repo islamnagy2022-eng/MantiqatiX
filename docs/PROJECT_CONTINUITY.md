@@ -615,3 +615,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-015
 - Commit `654de7f87f9ba48482609e067118c1d163f55b3a`: primary CRM workspace gained CSV export for loaded leads, tickets and notifications. No query scope expansion.
+
+ 
+## Build progress — SESSION-016
+- Commit `b8e9d1e84e976f6bd2cb520f577f805e6063344d`: Operations workspace gained CSV export for loaded orders, status history and notifications; no new query scope.
