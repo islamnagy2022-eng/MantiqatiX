@@ -35,6 +35,7 @@ declare
   v_price_changed boolean := false;
   v_price_id uuid;
   v_price_version bigint;
+  v_next_effective_from timestamptz;
 begin
   if p_actor_user_id is null then raise exception 'ACTOR_REQUIRED'; end if;
   if v_action not in ('CREATE','UPDATE') then raise exception 'INVALID_MENU_ACTION'; end if;
@@ -168,20 +169,33 @@ begin
     v_price_id := v_active_price.id;
     v_price_version := v_active_price.version;
   else
+    select min(p.effective_from) into v_next_effective_from
+    from public.catalog_item_prices p
+    where p.tenant_id=v_tenant_id
+      and p.catalog_item_id=v_catalog.id
+      and p.branch_id=v_branch_id
+      and upper(p.currency)='EGP'
+      and p.status='ACTIVE'
+      and p.effective_from > pg_catalog.now()
+      and (p.effective_to is null or p.effective_to > p.effective_from);
+
     update public.catalog_item_prices p
     set status='INACTIVE',effective_to=pg_catalog.now()
     where p.tenant_id=v_tenant_id
       and p.catalog_item_id=v_catalog.id
       and p.branch_id=v_branch_id
       and upper(p.currency)='EGP'
-      and p.status='ACTIVE';
+      and p.status='ACTIVE'
+      and p.effective_from <= pg_catalog.now()
+      and (p.effective_to is null or p.effective_to > pg_catalog.now());
+
     select coalesce(max(p.version),0)+1 into v_price_version
     from public.catalog_item_prices p
     where p.catalog_item_id=v_catalog.id and p.branch_id=v_branch_id and upper(p.currency)='EGP';
     insert into public.catalog_item_prices(
       tenant_id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to
     ) values (
-      v_tenant_id,v_catalog.id,v_branch_id,'EGP',v_price,v_price_version,'ACTIVE',pg_catalog.now(),null
+      v_tenant_id,v_catalog.id,v_branch_id,'EGP',v_price,v_price_version,'ACTIVE',pg_catalog.now(),v_next_effective_from
     ) returning id into v_price_id;
     v_price_changed := true;
   end if;
