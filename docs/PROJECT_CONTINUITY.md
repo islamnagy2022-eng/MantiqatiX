@@ -633,3 +633,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-019
 - Commit `f1d48225d21004444dedf5bb36dd3db6ef9af38a`: domain module blueprint pages gained source-map CSV export for visible table names/counts/statuses.
+
+ 
+## Build progress — SESSION-020
+- Commit `dbe430529ba1922d6ea60d5c9b4e3ebd553a62fc`: module center uses cached module source counts and clears the cache on membership switch/sign-out to avoid showing stale prior-scope counts.
