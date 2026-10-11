@@ -20,6 +20,7 @@ checks.push([
   pagesWorkflow.includes("rsync -a --delete --exclude='smm.js' web/ artifacts/web-release/") &&
     pagesWorkflow.includes("path: ./artifacts/web-release") &&
     pagesWorkflow.includes("test ! -e artifacts/web-release/smm.js") &&
+    pagesWorkflow.includes(`test "$SMM_JS_STATUS" = "404"`) &&
     !pagesWorkflow.split("\n").some((line) => line.includes("for asset in") && line.includes("smm.js")),
 ]);
 
