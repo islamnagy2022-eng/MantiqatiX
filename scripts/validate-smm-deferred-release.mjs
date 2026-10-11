@@ -17,10 +17,10 @@ const checks = [
 
 checks.push([
   "launch Pages artifact excludes deferred SMM client JavaScript",
-  /rsync -a --delete --exclude=['"]smm\\.js['"] web\\/ artifacts\\/web-release\\//.test(pagesWorkflow) &&
-    /path: \.\\/artifacts\\/web-release/.test(pagesWorkflow) &&
-    /test ! -e artifacts\\/web-release\\/smm\\.js/.test(pagesWorkflow) &&
-    !/for asset in[^\\n]*\\bsmm\\.js\\b/.test(pagesWorkflow),
+  pagesWorkflow.includes("rsync -a --delete --exclude='smm.js' web/ artifacts/web-release/") &&
+    pagesWorkflow.includes("path: ./artifacts/web-release") &&
+    pagesWorkflow.includes("test ! -e artifacts/web-release/smm.js") &&
+    !pagesWorkflow.split("\n").some((line) => line.includes("for asset in") && line.includes("smm.js")),
 ]);
 
 const failed = checks.filter(([, ok]) => !ok);
