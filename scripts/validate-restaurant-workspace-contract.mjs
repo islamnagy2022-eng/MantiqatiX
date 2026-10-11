@@ -12,7 +12,7 @@ assert.match(source, /String\(x\.status\|\|'EMPTY'\)\.toUpperCase\(\)===status\?
 assert.match(source, /const rawItems=\(catalog\?\.items\|\|\[\]\)\.filter/, 'order creation uses active central catalog items');
 assert.match(source, /const prices=\(catalog\?\.prices\|\|\[\]\)\.filter/, 'order picker requires active catalog pricing');
 assert.match(source, /String\(x\.item_type\|\|'PRODUCT'\)\.toUpperCase\(\)==='PRODUCT'/, 'restaurant ordering must not present service catalog entries as food');
-assert.match(source, /الربط التلقائي بين المصدرين لم يكتمل بعد/, 'the local-menu/central-catalog gap must be disclosed in the workspace');
+assert.match(source, /الكتالوج المركزي وسعر الفرع في معاملة واحدة/, 'the workspace must disclose atomic local-menu/catalog/price synchronization');
 assert.match(source, /اختر صنفًا/, 'the user must explicitly select an item');
 assert.doesNotMatch(source, /const item=\(catalog\?\.items\|\|\[\]\)\.find\(x=>String\(x\.status\)\.toUpperCase\(\)==='ACTIVE'\)/, 'never silently order the first active catalog item');
 assert.match(source, /selectedOptionIds/, 'selected item options are passed to the server');
