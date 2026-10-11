@@ -64,6 +64,44 @@ if (!firstCredentialReference) {
   console.error("P0 BLOCKED: no migration references smm_provider_credentials; expected historical privilege migration was not found.");
   process.exit(1);
 }
+const legacyPrivilegeMigration = migrations.find(({ name }) =>
+  name === "20260927095000_revoke_unused_security_definer_execute.sql"
+);
+if (!legacyPrivilegeMigration) {
+  console.error("P0 BLOCKED: expected legacy SECURITY DEFINER privilege migration is missing.");
+  process.exit(1);
+}
+const legacyFunctionNames = [
+  "counter_offer_indrive_bid",
+  "fashion_erp_mutate",
+  "mantigo_accept_bid",
+  "mantigo_cancel_ride",
+  "mantigo_create_ride",
+  "mantigo_rate_ride",
+  "mantigo_submit_bid",
+  "mantigo_update_proposed_price",
+  "restaurant_erp_mutate",
+  "restaurant_table_mutate",
+];
+const legacyBaselinePath = "supabase/tests/baselines/legacy_security_definer_functions.sql";
+const legacyBaselineExists = fs.existsSync(legacyBaselinePath);
+const legacyBaseline = legacyBaselineExists ? fs.readFileSync(legacyBaselinePath, "utf8") : "";
+const unresolvedLegacyFunctions = legacyFunctionNames.filter((functionName) => {
+  const creation = migrations.find(({ name, sql }) =>
+    name.slice(0, 14) < legacyPrivilegeMigration.name.slice(0, 14) &&
+    new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + functionName + "\\s*\\(", "i").test(sql)
+  );
+  const inApprovedBaseline = legacyBaselineExists &&
+    /OWNER-APPROVED TEST-ONLY FUNCTION BASELINE/i.test(legacyBaseline) &&
+    new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + functionName + "\\s*\\(", "i").test(legacyBaseline);
+  return !creation && !inApprovedBaseline;
+});
+if (unresolvedLegacyFunctions.length) {
+  console.error("P0 BLOCKED: the chronological replay reaches " + legacyPrivilegeMigration.name + " before these legacy SECURITY DEFINER functions are created by any earlier committed migration or approved test-only function baseline:");
+  for (const functionName of unresolvedLegacyFunctions) console.error(" - public." + functionName);
+  console.error("Do not add placeholder functions or skip the historical privilege migration. Recover authoritative creation DDL/history or obtain explicit owner approval for a separate test-only baseline sourced from live definitions.");
+  process.exit(1);
+}
 if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
   console.error("P0 BLOCKED: test-only provider and credentials baselines must sort before the first migration that references them.");
   process.exit(1);
