@@ -1750,3 +1750,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign details — SESSION-035
 - [x] Display saved campaign brief to RLS-authorized participants/managers.
 - [ ] Validate brief rendering for long text and role visibility after RC453 deployment.
+
+ 
+## Marketing export — SESSION-036
+- [x] Include loaded internal campaigns and partner assignments in Marketing CSV export.
+- [ ] Verify campaign export when RC453 is unavailable/available.
