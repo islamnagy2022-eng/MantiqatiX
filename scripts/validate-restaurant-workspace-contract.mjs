@@ -89,6 +89,7 @@ assert.match(workspaceMigration, /insert into public\.audit_logs/, 'workspace ch
 assert.match(workspaceMigration, /set search_path = ''/, 'workspace mutation RPC pins an empty search path');
 assert.match(workspaceMigration, /from public\.branches br[\s\S]*?upper\(coalesce\(br\.status,'ACTIVE'\)\) = 'ACTIVE'/, 'workspace RPC rejects inactive or cross-business branches');
 assert.match(workspaceMigration, /grant execute on function public\.restaurant_workspace_mutate_backend[\s\S]*?to service_role/i, 'workspace mutation RPC is restricted to the service role');
+assert.match(workspaceMigration, /RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID/, 'migration aborts if the backend RPC execute boundary is not correct');
 
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
 assert.match(workspaceIntegration, /RC461_TABLE_AUDIT_NOT_ATOMIC/, 'integration verifies table audit records for each mutation');
@@ -96,4 +97,4 @@ assert.match(workspaceIntegration, /RC461_NON_MEMBER_WAS_ALLOWED/, 'integration 
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (82 assertions)');
+console.log('Restaurant workspace contract: PASS (83 assertions)');
