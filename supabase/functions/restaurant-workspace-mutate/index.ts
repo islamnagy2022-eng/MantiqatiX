@@ -16,7 +16,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const isUuid = (value: unknown) => typeof value === "string"
   && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 const isRecordId = (value: unknown) => typeof value === "string"
-  && value.trim().length > 0 && value.length <= 128 && !/[\\u0000-\\u001f]/.test(value);
+  && value.trim().length > 0 && value.length <= 128 && !/[\u0000-\u001f]/.test(value);
 const roles = new Set(["OWNER", "ADMIN", "MANAGER", "BUSINESS_OWNER", "SERVICE_PROVIDER", "STAFF"]);
 const tableStatuses = new Set(["EMPTY", "OCCUPIED", "RESERVED", "CLEANING", "OUT_OF_SERVICE"]);
 
