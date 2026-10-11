@@ -151,21 +151,22 @@ async function createRestaurantOrder(){
    return matches[0]||null;
   };
   const items=rawItems.map(item=>({...item,activePrice:priceFor(item)})).filter(item=>item.activePrice&&Number.isFinite(Number(item.activePrice.unit_price))&&Number(item.activePrice.unit_price)>=0);
-  if(!items.length)return notify('لا توجد منتجات طعام من نوع PRODUCT بأسعار سارية في هذا الفرع. قائمة المطعم المحلية لا تُزامَن تلقائيًا مع كتالوج الطلبات حتى يكتمل الربط الآمن.','error');
+  if(!items.length)return notify('لا توجد أصناف طعام بأسعار سارية في هذا الفرع. تأكد من حفظ الأصناف من قائمة المطعم ومزامنتها مع الكتالوج.','error');
   const orderId=crypto.randomUUID();
   const idempotencyKey='MNTY-REST-'+crypto.randomUUID();
   const optionRows=catalog?.options||[];
   const itemOptions=id=>optionRows.filter(x=>String(x.catalog_item_id)===String(id)&&String(x.status||'ACTIVE').toUpperCase()==='ACTIVE');
+  const itemById=id=>items.find(x=>String(x.id)===String(id));
   const optionsMarkup=id=>{
    const rows=itemOptions(id);
-   return rows.length?rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name_en||'إضافة')+' (+'+money(x.price_delta||0)+')</option>').join(''):'<option value="" disabled>لا توجد إضافات لهذا الصنف</option>';
+   return rows.length?rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name_en||'إضافة')+' (+'+money(x.price_delta||0)+')</option>').join(''):'';
   };
   const itemMarkup=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name_en||x.id)+' — '+money(x.activePrice.unit_price)+'</option>').join('');
   const dialog=modal('إنشاء طلب مطعم',
-   '<p class="muted">اختر الصنف والكمية بنفسك. الأسعار النهائية والإضافات يعيد الخادم التحقق منها قبل حفظ الطلب.</p>'+
-   '<label class="field"><span>الصنف</span><select id="rest-item" required><option value="" selected disabled>اختر صنفًا</option>'+itemMarkup+'</select></label>'+
-   '<label class="field"><span>الإضافات (اختياري — يمكن اختيار أكثر من إضافة)</span><select id="rest-options" multiple size="4" aria-label="إضافات الصنف"></select></label>'+
-   field('rest-qty','الكمية','1','number','min="1" max="1000" step="1" required')+
+   '<p class="muted">أضف صنفًا أو أكثر. المجموع الظاهر تقديري؛ السعر النهائي والتحقق من الأسعار والإضافات يتمان على الخادم.</p>'+
+   '<div id="rest-order-lines" class="cards" aria-live="polite"></div>'+
+   '<div class="action-bar"><button type="button" class="btn btn-outline" id="rest-add-line">+ إضافة صنف</button></div>'+
+   '<div class="notice" id="rest-estimated-total">المجموع التقديري: 0.00 ج.م</div>'+
    '<label class="field"><span>طريقة الاستلام</span><select id="rest-fulfillment"><option value="DELIVERY">توصيل</option><option value="PICKUP">استلام من المطعم</option><option value="DINE_IN">تناول داخل المطعم</option></select></label>'+
    field('rest-customer','اسم العميل',state.user.user_metadata?.full_name||state.user.email||'','text','maxlength="120" required')+
    field('rest-phone','رقم الهاتف','','tel','maxlength="40" autocomplete="tel" required')+
@@ -175,42 +176,79 @@ async function createRestaurantOrder(){
    async o=>{
     const save=o.querySelector('[data-save]');
     if(save.disabled)return;
-    const item=items.find(x=>String(x.id)===String(o.querySelector('#rest-item')?.value));
-    const quantity=Number(o.querySelector('#rest-qty')?.value);
+    const lineEls=[...o.querySelectorAll('[data-rest-order-line]')];
+    if(!lineEls.length)return notify('أضف صنفًا واحدًا على الأقل.','error');
+    const orderItems=[];
+    for(const line of lineEls){
+     const item=itemById(line.querySelector('.rest-line-item')?.value);
+     const quantity=Number(line.querySelector('.rest-line-qty')?.value);
+     const selectedOptionIds=[...(line.querySelector('.rest-line-options')?.selectedOptions||[])].map(x=>x.value).filter(Boolean);
+     if(!item)return notify('اختر صنفًا صالحًا في كل سطر.','error');
+     if(!Number.isInteger(quantity)||quantity<1||quantity>1000)return notify('الكمية في كل سطر يجب أن تكون بين 1 و1000.','error');
+     orderItems.push({catalogItemId:item.id,quantity,selectedOptionIds});
+    }
+    if(orderItems.length>20)return notify('الحد الأقصى 20 سطرًا في الطلب الواحد.','error');
     const customerName=o.querySelector('#rest-customer')?.value.trim()||'';
     const customerPhone=o.querySelector('#rest-phone')?.value.trim()||'';
     const fulfillmentType=o.querySelector('#rest-fulfillment')?.value||'DELIVERY';
     const deliveryAddress=o.querySelector('#rest-address')?.value.trim()||'';
     const notes=o.querySelector('#rest-notes')?.value.trim()||'';
-    const selectedOptionIds=[...(o.querySelector('#rest-options')?.selectedOptions||[])].map(x=>x.value).filter(Boolean);
-    if(!item)return notify('اختر صنفًا متاحًا أولًا.','error');
-    if(!Number.isInteger(quantity)||quantity<1||quantity>1000)return notify('أدخل كمية صحيحة بين 1 و1000.','error');
     if(!customerName||customerName.length>120||!customerPhone||customerPhone.length>40)return notify('أدخل اسم العميل ورقم هاتف صحيحين.','error');
     if(fulfillmentType==='DELIVERY'&&(!deliveryAddress||deliveryAddress.length>500))return notify('أدخل عنوان التوصيل أو اختر الاستلام من المطعم.','error');
     if(!['DELIVERY','PICKUP','DINE_IN'].includes(fulfillmentType))return notify('طريقة الاستلام غير صحيحة.','error');
     if(notes.length>1000)return notify('الملاحظات أطول من الحد المسموح.','error');
     save.disabled=true;const oldLabel=save.textContent;save.textContent='جارٍ إرسال الطلب…';
     try{
-     const payload={orderId,tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:idempotencyKey,currency:'EGP',customerName,customerPhone,deliveryAddress:fulfillmentType==='DELIVERY'?deliveryAddress:'',items:[{catalogItemId:item.id,quantity,selectedOptionIds}],notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true,fulfillmentType}};
+     const payload={orderId,tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:idempotencyKey,currency:'EGP',customerName,customerPhone,deliveryAddress:fulfillmentType==='DELIVERY'?deliveryAddress:'',items:orderItems,notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true,fulfillmentType}};
      const result=await invokeMntyFunction('order-create',payload);
      if(result?.error)throw new Error(String(result.error));
      o.remove();
-     notify('تم إنشاء الطلب '+(result?.id||orderId)+'. تم احتساب السعر والتحقق من الإضافات خادميًا.','success');
+     notify('تم إنشاء الطلب '+(result?.id||orderId)+'. تم احتساب الأسعار والتحقق من الإضافات خادميًا.','success');
      await load();
     }catch(e){
      save.disabled=false;save.textContent=oldLabel;
      notify('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error');
     }
    });
-  const itemSelect=dialog?.querySelector('#rest-item');
-  const optionsSelect=dialog?.querySelector('#rest-options');
-  const renderOptions=()=>{
-   if(!itemSelect||!optionsSelect)return;
-   optionsSelect.innerHTML=optionsMarkup(itemSelect.value);
-   optionsSelect.disabled=!itemSelect.value||itemOptions(itemSelect.value).length===0;
+  let lineCounter=0;
+  const linesRoot=dialog?.querySelector('#rest-order-lines');
+  const updateEstimate=()=>{
+   if(!dialog||!linesRoot)return;
+   let total=0;
+   for(const line of linesRoot.querySelectorAll('[data-rest-order-line]')){
+    const item=itemById(line.querySelector('.rest-line-item')?.value);
+    const qty=Number(line.querySelector('.rest-line-qty')?.value);
+    const selected=[...(line.querySelector('.rest-line-options')?.selectedOptions||[])].map(x=>x.value);
+    const extra=selected.reduce((sum,id)=>sum+Number(itemOptions(item?.id).find(x=>String(x.id)===String(id))?.price_delta||0),0);
+    if(item&&Number.isInteger(qty)&&qty>0)total+=(Number(item.activePrice.unit_price)+extra)*qty;
+   }
+   const target=dialog.querySelector('#rest-estimated-total');
+   if(target)target.textContent='المجموع التقديري قبل الضرائب والرسوم: '+money(total);
   };
-  itemSelect?.addEventListener('change',renderOptions);
-  renderOptions();
+  const addLine=()=>{
+   if(!linesRoot)return;
+   if(linesRoot.querySelectorAll('[data-rest-order-line]').length>=20)return notify('الحد الأقصى 20 صنفًا في الطلب.','error');
+   const id=++lineCounter;
+   const row=document.createElement('article');row.className='card';row.dataset.restOrderLine='true';
+   row.innerHTML='<div class="workspace-head"><strong>الصنف '+id+'</strong><button type="button" class="btn btn-outline rest-remove-line" aria-label="حذف الصنف '+id+'">حذف</button></div>'+
+    '<label class="field"><span>الصنف</span><select class="rest-line-item" required><option value="" selected disabled>اختر صنفًا</option>'+itemMarkup+'</select></label>'+
+    '<label class="field"><span>الإضافات (اختياري)</span><select class="rest-line-options" multiple size="3" aria-label="إضافات الصنف '+id+'"></select></label>'+
+    '<label class="field"><span>الكمية</span><input class="rest-line-qty" type="number" min="1" max="1000" step="1" value="1" required></label>';
+   linesRoot.appendChild(row);
+   const itemSelect=row.querySelector('.rest-line-item'),optionSelect=row.querySelector('.rest-line-options');
+   const refreshOptions=()=>{
+    optionSelect.innerHTML=optionsMarkup(itemSelect.value);
+    optionSelect.disabled=!itemSelect.value||itemOptions(itemSelect.value).length===0;
+    updateEstimate();
+   };
+   itemSelect.addEventListener('change',refreshOptions);
+   optionSelect.addEventListener('change',updateEstimate);
+   row.querySelector('.rest-line-qty').addEventListener('input',updateEstimate);
+   row.querySelector('.rest-remove-line').addEventListener('click',()=>{row.remove();updateEstimate();});
+   refreshOptions();
+  };
+  dialog?.querySelector('#rest-add-line')?.addEventListener('click',addLine);
+  addLine();
  }catch(e){notify('تعذر تحميل قائمة الطلبات: '+(e?.message||'CATALOG_LOAD_FAILED'),'error')}
 }
 function dashboard(){
