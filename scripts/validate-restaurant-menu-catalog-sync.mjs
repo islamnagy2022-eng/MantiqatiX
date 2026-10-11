@@ -17,7 +17,7 @@ assert.match(migration, /m\.branch_id = v_branch_id/);
 assert.match(migration, /upper\(m\.role\) in \('OWNER','ADMIN','MANAGER','BUSINESS_OWNER'\)/);
 assert.match(migration, /RESTAURANT_MENU_FORBIDDEN/);
 assert.match(migration, /RESTAURANT_BRANCH_UNAVAILABLE/);
-assert.match(migration, /RESTAURANT_MENU:\s*' \|\| v_id/);
+assert.match(migration, /v_legacy_ref := 'RESTAURANT_MENU:' \|\| v_id/);
 assert.match(migration, /item_type='PRODUCT'/);
 assert.match(migration, /catalog_item_prices/);
 assert.match(migration, /status='INACTIVE',effective_to=pg_catalog\.now\(\)/);
