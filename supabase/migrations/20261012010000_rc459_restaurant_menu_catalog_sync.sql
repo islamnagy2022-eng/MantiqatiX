@@ -25,6 +25,8 @@ declare
   v_legacy_ref text;
   v_menu public.restaurant_menu_items%rowtype;
   v_catalog public.catalog_items%rowtype;
+  v_old_menu jsonb := null;
+  v_old_catalog jsonb := null;
   v_active_price public.catalog_item_prices%rowtype;
   v_menu_exists boolean := false;
   v_catalog_exists boolean := false;
@@ -75,6 +77,7 @@ begin
   v_menu_exists := found;
 
   if v_menu_exists then
+    v_old_menu := pg_catalog.to_jsonb(v_menu);
     if v_menu.owner_user_id is distinct from p_actor_user_id
        or v_menu.tenant_id is distinct from v_tenant_id
        or v_menu.business_id is distinct from v_business_id
@@ -115,6 +118,7 @@ begin
   v_catalog_exists := found;
 
   if v_catalog_exists then
+    v_old_catalog := pg_catalog.to_jsonb(v_catalog);
     if v_catalog.tenant_id is distinct from v_tenant_id
        or v_catalog.branch_id is distinct from v_branch_id then
       raise exception 'RESTAURANT_CATALOG_SCOPE_CONFLICT';
@@ -191,8 +195,8 @@ begin
       'AUD-REST-' || replace(pg_catalog.gen_random_uuid()::text,'-',''),
       v_tenant_id,v_business_id,v_branch_id,p_actor_user_id,
       'RESTAURANT_MENU_CATALOG_' || v_action,'RESTAURANT_MENU_ITEM',v_id,
-      case when v_menu_exists then pg_catalog.to_jsonb(v_menu) else '{}'::jsonb end,
-      pg_catalog.to_jsonb(v_menu) || jsonb_build_object(
+      jsonb_build_object('menu_item',coalesce(v_old_menu,'{}'::jsonb),'catalog_item',coalesce(v_old_catalog,'{}'::jsonb)),
+      pg_catalog.to_jsonb(v_menu) || pg_catalog.jsonb_build_object(
         'catalog_item_id',v_catalog.id,'price_id',v_price_id,'price_version',v_price_version
       ),
       'SUCCESS',pg_catalog.now()
