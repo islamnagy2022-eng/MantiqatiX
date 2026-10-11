@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const migrationDirectory = "supabase/migrations";
-const baselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
+const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
+const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
 const files = fs.readdirSync(migrationDirectory)
   .filter((name) => name.endsWith(".sql"))
   .sort();
@@ -16,42 +17,64 @@ const firstCredentialReference = migrations.find(({ sql }) =>
 const createsCredentialsTable = migrations.some(({ sql }) =>
   /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_provider_credentials"?\b/i.test(sql)
 );
-const providerCreationMigration = migrations.find(({ sql }) =>
+const createsProvidersTable = migrations.some(({ sql }) =>
   /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_providers"?\b/i.test(sql)
 );
-const testBaselineVersion = "20260927074159";
+const providerBaselineVersion = "20260927074158";
+const credentialsBaselineVersion = "20260927074159";
 
-if (!fs.existsSync(baselinePath)) {
-  console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
-  process.exit(1);
+for (const baselinePath of [providerBaselinePath, credentialsBaselinePath]) {
+  if (!fs.existsSync(baselinePath)) {
+    console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
+    process.exit(1);
+  }
 }
-const baseline = fs.readFileSync(baselinePath, "utf8");
-const baselineChecks = [
-  ["provider_id UUID primary key", /provider_id\s+uuid\s+not\s+null/i.test(baseline) && /primary\s+key\s*\(\s*provider_id\s*\)/i.test(baseline)],
-  ["encrypted key remains nullable text", /api_key_ciphertext\s+text\s*,/i.test(baseline)],
-  ["configured defaults false", /configured\s+boolean\s+not\s+null\s+default\s+false/i.test(baseline)],
-  ["updated_at defaults now", /updated_at\s+timestamptz\s+not\s+null\s+default\s+now\(\)/i.test(baseline)],
-  ["FK references smm_providers with cascade", /foreign\s+key\s*\(\s*provider_id\s*\)[\s\S]*references\s+public\.smm_providers\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i.test(baseline)],
-  ["RLS is enabled", /enable\s+row\s+level\s+security/i.test(baseline)],
-  ["client access is denied by policy", /to\s+anon\s*,\s*authenticated[\s\S]*using\s*\(\s*false\s*\)[\s\S]*with\s+check\s*\(\s*false\s*\)/i.test(baseline)],
-  ["baseline is explicitly test-only", /TEST-ONLY SCHEMA BASELINE/i.test(baseline) && /Never apply this file to production/i.test(baseline)],
+
+const providerBaseline = fs.readFileSync(providerBaselinePath, "utf8");
+const providerChecks = [
+  ["observed provider columns and defaults", /id\s+uuid\s+not\s+null\s+default\s+gen_random_uuid\(\)/i.test(providerBaseline) && /name\s+text\s+not\s+null/i.test(providerBaseline) && /api_url\s+text\s+not\s+null/i.test(providerBaseline) && /api_style\s+text\s+not\s+null\s+default\s+'generic'/i.test(providerBaseline) && /active\s+boolean\s+not\s+null\s+default\s+false/i.test(providerBaseline) && /priority\s+integer\s+not\s+null\s+default\s+100/i.test(providerBaseline) && /created_at\s+timestamptz\s+not\s+null\s+default\s+now\(\)/i.test(providerBaseline) && /updated_at\s+timestamptz\s+not\s+null\s+default\s+now\(\)/i.test(providerBaseline)],
+  ["provider primary key and unique name", /primary\s+key\s*\(\s*id\s*\)/i.test(providerBaseline) && /unique\s*\(\s*name\s*\)/i.test(providerBaseline)],
+  ["provider RLS and deny-authenticated policy", /enable\s+row\s+level\s+security/i.test(providerBaseline) && /deny_direct_access_authenticated[\s\S]*to\s+authenticated[\s\S]*using\s*\(\s*false\s*\)[\s\S]*with\s+check\s*\(\s*false\s*\)/i.test(providerBaseline)],
+  ["provider service_role grants match observed snapshot", /grant\s+references\s*,\s*trigger\s*,\s*truncate[\s\S]*to\s+service_role/i.test(providerBaseline) && /revoke\s+all[\s\S]*from\s+public\s*,\s*anon\s*,\s*authenticated\s*,\s*service_role/i.test(providerBaseline)],
+  ["provider baseline has production source provenance and is test-only", /moyhiluyhjsujhwlyeuu/i.test(providerBaseline) && /read-only PostgreSQL catalog introspection/i.test(providerBaseline) && /TEST-ONLY SCHEMA BASELINE/i.test(providerBaseline) && /Never apply this file to production/i.test(providerBaseline)],
 ];
-const failed = baselineChecks.filter(([, ok]) => !ok);
+
+const credentialsBaseline = fs.readFileSync(credentialsBaselinePath, "utf8");
+const credentialsChecks = [
+  ["provider_id UUID primary key", /provider_id\s+uuid\s+not\s+null/i.test(credentialsBaseline) && /primary\s+key\s*\(\s*provider_id\s*\)/i.test(credentialsBaseline)],
+  ["encrypted key remains nullable text", /api_key_ciphertext\s+text\s*,/i.test(credentialsBaseline)],
+  ["configured defaults false", /configured\s+boolean\s+not\s+null\s+default\s+false/i.test(credentialsBaseline)],
+  ["updated_at defaults now", /updated_at\s+timestamptz\s+not\s+null\s+default\s+now\(\)/i.test(credentialsBaseline)],
+  ["FK references smm_providers with cascade", /foreign\s+key\s*\(\s*provider_id\s*\)[\s\S]*references\s+public\.smm_providers\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i.test(credentialsBaseline)],
+  ["credentials RLS is enabled", /enable\s+row\s+level\s+security/i.test(credentialsBaseline)],
+  ["credentials client access is denied by policy", /to\s+anon\s*,\s*authenticated[\s\S]*using\s*\(\s*false\s*\)[\s\S]*with\s+check\s*\(\s*false\s*\)/i.test(credentialsBaseline)],
+  ["credentials baseline is explicitly test-only", /TEST-ONLY SCHEMA BASELINE/i.test(credentialsBaseline) && /Never apply this file to production/i.test(credentialsBaseline)],
+];
+
+const failed = [...providerChecks, ...credentialsChecks].filter(([, ok]) => !ok);
 if (failed.length) {
   for (const [name] of failed) console.error("P0 BLOCKED: test baseline validation failed: " + name);
   process.exit(1);
 }
-if (createsCredentialsTable) {
-  console.error("P0 BLOCKED: do not add a guessed or backdated production migration for smm_provider_credentials; use the separately approved test-only baseline.");
+if (createsCredentialsTable || createsProvidersTable) {
+  console.error("P0 BLOCKED: do not add guessed/backdated production migrations for the SMM baseline tables; reconcile any authoritative historical creation migration before replay.");
   process.exit(1);
 }
 if (!firstCredentialReference) {
   console.error("P0 BLOCKED: no migration references smm_provider_credentials; expected historical privilege migration was not found.");
   process.exit(1);
 }
-if (!providerCreationMigration || providerCreationMigration.name.slice(0, 14) >= testBaselineVersion) {
-  console.error("P0 BLOCKED: the approved credentials baseline needs public.smm_providers before test-only migration version " + testBaselineVersion + ", but no earlier committed migration creates that table.");
-  console.error("Recover authoritative provider-table DDL or obtain separate explicit approval for a test-only provider baseline that can be ordered before the credentials baseline. Do not invent a minimal provider table or bypass the dependency.");
+if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
+  console.error("P0 BLOCKED: test-only provider and credentials baselines must sort before the first migration that references them.");
   process.exit(1);
 }
-console.log("Historical schema baseline preflight PASS: approved credentials baseline validated and provider table creation source found.");
+for (const [version, temporaryName] of [
+  [providerBaselineVersion, providerBaselineVersion + "_test_only_approved_smm_providers_baseline.sql"],
+  [credentialsBaselineVersion, credentialsBaselineVersion + "_test_only_approved_smm_provider_credentials_baseline.sql"],
+]) {
+  if (fs.existsSync(path.join(migrationDirectory, temporaryName))) {
+    console.error("P0 BLOCKED: temporary test-only migration filename already exists in repository: " + temporaryName);
+    process.exit(1);
+  }
+}
+console.log("Historical schema baseline preflight PASS: both owner-approved production-derived SMM schema baselines validated for isolated replay only.");
