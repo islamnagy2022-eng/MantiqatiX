@@ -71,3 +71,14 @@ Together with the repository migration scan and current catalog evidence, this c
 - RC458 review found that the purchase-order status RPC selected `v_role` from any active business membership before branch/organization filtering. A privileged role in one branch could elevate a lower-privilege membership in another branch. The query now selects the transition role only from branch/organization-compatible memberships.
 - RC458 integration coverage now includes the cross-branch role-escalation negative case and preserves the existing `PURCHASING` role for scoped receiving.
 - Exact-head CI is pending for the latest candidate commit; these changes are not yet marked PASS. Full release remains blocked on the historical SMM DDL and full migration replay.
+
+
+## Exact-head validation results — commit `831265d188af50281d2faa8aaa407edb3fdbb616`
+
+- Module Professionalization Validation: **PASS**, all 16 jobs completed successfully, including RC434 receiving, RC437 order-line caps, RC458 branch/organization scope, RC436/RC450/RC457 financial journal integration, Paymob atomicity, digital-page payment binding, subscription intent, SMM wallet idempotency, checkout recovery, platform-admin scope, security-definer search path, targeted ads, and matrimony privacy. Evidence: [run 38138919540](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138919540).
+- Backend-only Module Boundary: **PASS** [run 38138919560](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138919560).
+- MantiGO Open Ride Privacy: **PASS** [run 38138919656](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138919656).
+- Pages validation: **PASS** [run 38138922748](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922748); the deploy job was **SKIPPED** because this is a pull-request validation, not a production deployment.
+- Migration version uniqueness, migration history immutability, open-PR migration collision guard, and approval-action audit PostgreSQL integration: **PASS** [runs 38138922783](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922783), [38138922806](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922806), [38138922776](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922776), and [38138922771](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922771).
+- Full disposable migration replay: **BLOCKED**, fail-closed at `Fail closed if the historical schema baseline is missing` [run 38138919577](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138919577). This is an expected release blocker, not a passing replay.
+- These results verify the candidate source/tests at the cited commit only. No migration was applied to production and no Edge Function was deployed. Release remains **NOT CERTIFIED**.
