@@ -1,6 +1,9 @@
 # MantiqatiX — Project Continuity & Production Handoff
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
+
+> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
 > Do not repeat completed work. Continue from the first still-open gate, and append every material development to both this file and the Master TODO.
@@ -484,3 +487,55 @@ This status is intentional and must remain until the open gates above are indepe
 - Important: GitHub commits for RC393 exist on `main`, but no new GitHub Actions run/status was returned for the RC393 commits at verification time; therefore production Pages deployment is NOT VERIFIED yet.
 
 - RC394: removed legacy emoji-style UI icons, added neutral CSS icon system, and advanced homepage cache to rc394. Production deployment remains NOT VERIFIED until a GitHub Pages workflow run is observed.
+
+
+## Session record — 2026-10-11 — continuity system activated
+
+**Purpose:** establish a durable, chronological record so a new ChatGPT session can resume without asking the user to repeat decisions or re-auditing completed work.
+
+### Verified repository baseline
+- Repository: `islamnagy2022-eng/MantiqaTix`
+- Branch: `main`
+- Main HEAD at record time: `735f0451bf6dae9ed8cf681f83c4856a4b029041` (CI: cancel stale Pages deployments; this does not close production gates).
+- Supabase project: `moyhiluyhjsujhwlyeuu`
+- Production status previously read as `ACTIVE_HEALTHY`; health status alone does not mean release-ready.
+- Migration ledger: 283 production-applied migrations, latest `20261008222845` (RC424).
+- Release status: **BLOCKED / NOT CERTIFIED**. Production deployment must remain fail-closed.
+
+### Findings confirmed in the 2026-10-11 audit
+1. GitHub Actions production gate run [38108142127](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38108142127) failed closed; deployment was skipped.
+2. 16 migration source files are absent from `main` and not applied in production: RC425–RC432 and RC434–RC441. Do not apply a partial set or rewrite production migration history.
+3. PR [#202](https://github.com/islamnagy2022-eng/MantiqaTix/pull/202) and PR [#84](https://github.com/islamnagy2022-eng/MantiqaTix/pull/84) contain incompatible versions of migration `20261009200000_rc434_atomic_erp_purchase_receiving.sql`. The collision guard is correct and must not be disabled. PR #202 also had CI failures for missing `scripts/validate-smm-payment-safety.mjs` and `scripts/test-checkout-secret-crypto.mjs`.
+4. Live deployed Edge Function entrypoint comparison:
+   - `payment-intent` v6, `paymob-webhook` v8, `digital-page-payment-intent` v3, and `subscription-payment-intent` v2 exactly match `main` and PR #202, but not PR #84.
+   - `erp-purchase-receive` v1 matches neither PR #202 nor PR #84.
+   - `smm-gateway` v6 matches none of the three compared sources.
+   - Source equality does not prove runtime correctness.
+5. Live `subscription-payment-intent` returns Paymob `clientSecret` directly and does not implement the encrypted recovery path in PR #84. RC439's ciphertext/IV/key-version columns are not present in the live table schema and RC439 is not in the production migration ledger. Table row count was 0 at audit time. Do not deploy half of this contract.
+6. Live `smm-gateway` has actionable source-level risks: tenant OWNER/ADMIN/SUPER_ADMIN roles can pass the global admin fallback; provider calls have no explicit timeout; provider-response ambiguity may cause an unsafe automatic refund; persistence errors after provider acceptance are not consistently handled; provider-derived status updates lack a terminal-state guard. These are audit findings, not fixes.
+7. Supabase Security Advisor reported 94 lints overall (mixed severity): Auth leaked-password protection disabled; anon/authenticated-executable SECURITY DEFINER functions requiring per-function review; `digital_page_payment_events` has RLS enabled but no policies (could be deliberate deny-all); multiple public/anonymous policies need scoped review. No blanket grants/revokes or policies were changed.
+8. Comments documenting the findings were posted on PR #202 (including migration conflict/CI, SMM schema/authorization, RC439 recovery, Security Advisor, deployed Edge Function parity, and SMM gateway defects). Comments are evidence of communication only, not code fixes.
+9. PR #204's stale Pages deployment cancellation was merged as commit `735f0451bf6dae9ed8cf681f83c4856a4b029041`; it improves release safety but does not resolve the above blockers.
+
+### Work not performed
+- No production schema or data mutation.
+- No Edge Function deployment.
+- No PR #202/#84 merge.
+- No claim that the platform is production-ready.
+- A previous write attempt to add a missing crypto test script was rejected; the file was **not** added by that attempt.
+
+### Next action — continue from here, do not restart the audit
+1. Inspect authoritative history and exact diffs for RC434 in PR #202 versus PR #84; map dependencies across RC425–432 and RC434–441.
+2. Select a canonical migration sequence based on actual dependency/behavior evidence, then resolve the branch conflict without disabling the collision guard or rewriting production history.
+3. Restore missing CI test scripts only from authoritative existing source/contract; do not create fake tests merely to turn CI green.
+4. Replay the full migration sequence in an isolated disposable database and run relevant tests before any production application.
+5. Reconcile SMM and payment function source with live behavior and tenant/security contracts; deploy only after tested parity and explicit release gates.
+6. Re-run the production gate and record exact run IDs and outcomes.
+
+### Session continuity rules (binding)
+- Record every **material project decision, requirement, change, test, blocker, and next action** in `docs/SESSION_LOG.md` in chronological order. Do not log casual greetings; do log any decision that could change implementation.
+- After each work batch, update this log and update `docs/PROJECT_CONTINUITY.md` with the latest resume point/status. Update `docs/MASTER_PRODUCTION_TODO.md` when gate status or work status changes.
+- Every log item must separate **verified fact**, **inference**, **action performed**, **not performed**, and **next step**. Link commits, PRs, CI runs, migrations, and tests when available.
+- At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
+- Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
+- Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
