@@ -587,3 +587,10 @@ This status is intentional and must remain until the open gates above are indepe
 - SMM is exposed in the module center and as a permission-aware main-dashboard/Marketing-center shortcut.
 - Active branch remains `build/module-workspaces-functional-20261011`; draft PR #205.
 - Continue building; do not perform broad reviews until all modules are constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-008
+- Shared records tables now support CSV export of visible columns from currently loaded rows.
+- Generic sector workspaces have a refresh action that reloads their RLS-scoped records.
+- Active branch remains `build/module-workspaces-functional-20261011`; draft PR #205.
+- Continue build-only; defer broad reviews until all modules are constructed.
