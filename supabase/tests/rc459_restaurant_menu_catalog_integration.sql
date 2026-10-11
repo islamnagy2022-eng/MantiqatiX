@@ -77,6 +77,23 @@ begin
   if (select count(*) from public.catalog_item_prices where catalog_item_id=v_catalog_id)<>1 then raise exception 'replayed create duplicated price history'; end if;
   if (select count(*) from public.audit_logs where entity_id=v_item_id)<>1 then raise exception 'no-op replay duplicated audit'; end if;
 
+  -- Existing overlapping current prices must fail closed rather than be silently selected.
+  insert into public.catalog_item_prices(
+    tenant_id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to
+  ) values ('TENANT-A',v_catalog_id,'BRANCH-A','EGP',999,99,'ACTIVE',pg_catalog.now(),null);
+  begin
+    execute 'set role service_role';
+    perform public.restaurant_menu_catalog_mutate_backend(v_actor,'UPDATE',v_payload);
+    execute 'reset role';
+    raise exception 'duplicate current prices were accepted';
+  exception when others then
+    execute 'reset role';
+    if sqlerrm='duplicate current prices were accepted' then raise; end if;
+    if sqlerrm <> 'RESTAURANT_DUPLICATE_ACTIVE_PRICES' then raise; end if;
+  end;
+  delete from public.catalog_item_prices
+  where catalog_item_id=v_catalog_id and branch_id='BRANCH-A' and unit_price=999 and version=99;
+
   v_payload := v_payload || jsonb_build_object('name_ar','وجبة اختبار معدلة','base_price_egp',125);
   execute 'set role service_role';
   v_result := public.restaurant_menu_catalog_mutate_backend(v_actor,'UPDATE',v_payload);
