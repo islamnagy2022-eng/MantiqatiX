@@ -1559,3 +1559,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+ 
+## Build phase update — 2026-10-11
+- [x] Started dedicated build branch `build/module-workspaces-functional-20261011-b`.
+- [x] Connected generic workspaces to session-backed data and contextual tabs in commit `949edb74a0051a4dcc14a7473ecfa68ad056a442`.
+- [ ] Extend contextual workspaces to remaining modules; do not display unrelated fallback records.
+- [ ] Wait for/resolve CI results for commit `949edb74a0051a4dcc14a7473ecfa68ad056a442`.
+- [ ] Add module-focused behavior tests and confirm no regression before opening integration PR.
+- **No production deployment or schema mutation. Release gate remains BLOCKED / NOT CERTIFIED.**
