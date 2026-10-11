@@ -1636,3 +1636,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Primary Marketing module — SESSION-014
 - [x] Add CSV export for currently loaded Marketing workspace records.
 - [ ] Validate export encoding, escaping, and session-scope boundaries during post-build tests.
+
+ 
+## Primary CRM module — SESSION-015
+- [x] Add current-session CSV export for CRM leads, support tickets, and notifications.
+- [ ] Validate CSV encoding/escaping and role-scope behavior during post-build tests.
