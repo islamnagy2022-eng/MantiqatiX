@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const maxBodyBytes = 64 * 1024;
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -38,8 +39,18 @@ Deno.serve(async (req: Request) => {
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return json({ error: "UNAUTHORIZED" }, 401);
 
+  const contentLength = Number(req.headers.get("Content-Length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413);
+
   let body: any;
-  try { body = await req.json(); } catch { return json({ error: "INVALID_JSON" }, 400); }
+  try {
+    const raw = await req.text();
+    if (new TextEncoder().encode(raw).byteLength > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413);
+    body = JSON.parse(raw);
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "INVALID_BODY" }, 400);
+  } catch {
+    return json({ error: "INVALID_JSON" }, 400);
+  }
 
   const required = ["orderId", "tenantId", "businessId", "clientIdempotencyKey", "currency", "customerName", "customerPhone", "deliveryAddress", "items"];
   for (const key of required) {
