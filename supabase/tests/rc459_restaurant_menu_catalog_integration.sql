@@ -18,6 +18,16 @@ declare
     'is_popular',false
   );
 begin
+  if not exists (
+    select 1 from pg_indexes
+    where schemaname='public'
+      and tablename='catalog_items'
+      and indexname='catalog_items_restaurant_menu_legacy_ref_uidx'
+      and indexdef ilike '%UNIQUE INDEX%'
+  ) then
+    raise exception 'RC460 restaurant menu catalog uniqueness index missing';
+  end if;
+
   if has_function_privilege('anon','public.restaurant_menu_catalog_mutate_backend(uuid,text,jsonb)','EXECUTE')
      or has_function_privilege('authenticated','public.restaurant_menu_catalog_mutate_backend(uuid,text,jsonb)','EXECUTE') then
     raise exception 'menu catalog RPC must not be executable by anon/authenticated';
