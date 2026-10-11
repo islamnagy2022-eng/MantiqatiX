@@ -32,3 +32,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Known limitation:** this is an incremental functional improvement, not completion of every module. Domain-specific modules still need their own data/actions, and this branch must pass CI before proposing integration.
 - **Next build step:** extend contextual data/action coverage to remaining modules without routing unrelated records into them; then inspect CI outcomes and add focused tests where needed.
 - **Release status:** still **BLOCKED / NOT CERTIFIED**; this code commit is not a release approval.
+
+## 2026-10-11 — SESSION-003 — Complete search-to-detail and refresh affordances
+
+- **Code commits:** [8670c675902a4a6d90f5ed059ccfb025f3eeb36e](https://github.com/islamnagy2022-eng/MantiqaTix/commit/8670c675902a4a6d90f5ed059ccfb025f3eeb36e) and [6301782df8186582d7af447345735bbad4103c04](https://github.com/islamnagy2022-eng/MantiqaTix/commit/6301782df8186582d7af447345735bbad4103c04).
+- **Built:** global search now navigates and opens the existing detail surfaces for orders, leads, and support tickets when those handlers are available. Generic workspaces now include an explicit refresh action that reloads through the existing authenticated app data-loading flow.
+- **Data integrity:** removed the generic fallback that showed orders/providers inside unrelated modules. Unknown generic workspaces now show no unrelated records.
+- **Verification state:** GitHub Actions checks were queued for the code commits when queried; no green result is asserted. Full module review is intentionally deferred per the user's build-first instruction, while obvious unsafe/incorrect behavior is still avoided.
+- **Production impact:** none; no database mutation, Edge Function deployment, merge, or production release.
+- **Next:** keep implementing missing module capabilities, then run focused tests/review after the build phase; preserve release gate fail-closed.
