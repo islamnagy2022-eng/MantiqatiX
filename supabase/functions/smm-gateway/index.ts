@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const cors={"Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const json=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const URL=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,admin=createClient(URL,KEY);
+const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);const user=r.error?null:r.data.user;return !user||user.is_anonymous?null:user;}
 async function isAdmin(id:string){const a=await admin.from("smm_admins").select("user_id").eq("user_id",id).maybeSingle();if(a.error)throw new Error("SMM_ADMIN_CHECK_FAILED");return !!a.data;}
 async function secret(id:string){const r=await admin.rpc("smm_get_provider_secret",{p_provider_id:id});if(r.error||!r.data)throw new Error("Provider credential unavailable");return r.data as string;}
@@ -54,7 +55,8 @@ Deno.serve(async(req)=>{
   if(a==="admin_data"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const [p,s,o]=await Promise.all([admin.from("smm_providers").select("id,name,api_url,active,priority").order("priority"),admin.from("smm_services").select("id,provider_id,platform,category,name,provider_cost,selling_price,min_quantity,max_quantity,active").order("created_at",{ascending:false}).limit(200),admin.from("smm_orders").select("id,user_id,service_id,quantity,selling_price,profit,status,provider_order_id,created_at").order("created_at",{ascending:false}).limit(100)]);return json({providers:p.data||[],services:s.data||[],orders:o.data||[]});}
   if(a==="set_price"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const price=Number(b.selling_price);if(!Number.isFinite(price)||price<0)return json({error:"INVALID_PRICE"},400);const r=await admin.from("smm_services").update({selling_price:price,updated_at:new Date().toISOString()}).eq("id",b.service_id);if(r.error)return json({error:r.error.message},400);return json({ok:true});}
   if(a==="place_order"){
-   const q=Number(b.quantity),target=typeof b.target_url==="string"?b.target_url.trim():"";
+   const q=Number(b.quantity),target=typeof b.target_url==="string"?b.target_url.trim():"",requestId=typeof b.request_id==="string"?b.request_id.trim():"";
+   if(!uuidPattern.test(requestId))return json({error:"INVALID_IDEMPOTENCY_KEY"},400);
    if(!b.service_id||!target||target.length>2048||!Number.isInteger(q)||q<=0)return json({error:"INVALID_ORDER"},400);
    let targetUrl:URL;try{targetUrl=new URL(target)}catch{return json({error:"INVALID_TARGET_URL"},400)}
    if(!["https:","http:"].includes(targetUrl.protocol)||targetUrl.username||targetUrl.password)return json({error:"INVALID_TARGET_URL"},400);
@@ -66,9 +68,17 @@ Deno.serve(async(req)=>{
    if(!Number.isFinite(unitSell)||unitSell<0||!Number.isFinite(unitCost)||unitCost<0)return json({error:"SERVICE_PRICE_INVALID"},409);
    const sell=unitSell*q/1000,cost=unitCost*q/1000;
    if(!Number.isFinite(sell)||!Number.isFinite(cost)||sell<0||cost<0)return json({error:"ORDER_AMOUNT_INVALID"},400);
-   const o=await admin.from("smm_orders").insert({user_id:user.id,service_id:b.service_id,target_url:target,quantity:q,selling_price:sell,provider_cost:cost,profit:sell-cost,status:"SUBMITTING"}).select("id").single();
-   if(o.error||!o.data)return json({error:"ORDER_CREATE_FAILED"},500);
-   const orderId=o.data.id;
+   const o=await admin.from("smm_orders").insert({id:requestId,user_id:user.id,service_id:b.service_id,target_url:target,quantity:q,selling_price:sell,provider_cost:cost,profit:sell-cost,status:"SUBMITTING"}).select("id").single();
+   if(o.error||!o.data){
+    const existing=await admin.from("smm_orders").select("id,user_id,service_id,target_url,quantity,selling_price,status,provider_order_id").eq("id",requestId).maybeSingle();
+    if(existing.error||!existing.data)return json({error:"ORDER_CREATE_FAILED"},500);
+    const prior=existing.data,priorStatus=String(prior.status||"").toUpperCase();
+    if(String(prior.user_id)!==String(user.id)||String(prior.service_id)!==String(b.service_id)||String(prior.target_url)!==target||Number(prior.quantity)!==q)return json({error:"IDEMPOTENCY_CONFLICT"},409);
+    if(priorStatus==="SUBMITTING")return json({error:"ORDER_OUTCOME_UNKNOWN",order_id:requestId,reconciliation_required:true},503);
+    if(["FAILED","CANCELLED","REFUNDED"].includes(priorStatus))return json({error:"ORDER_ALREADY_FINALIZED",order_id:requestId,status:priorStatus,retryable:true},409);
+    return json({ok:true,order_id:requestId,provider_order_id:prior.provider_order_id||null,status:priorStatus,charged:Number(prior.selling_price||0),idempotent:true});
+   }
+   const orderId=requestId;
    const debit=await admin.rpc("smm_debit_wallet",{p_user:user.id,p_amount:sell,p_reference:orderId});
    if(debit.error){
     await admin.from("smm_order_events").insert({order_id:orderId,event_type:"WALLET_DEBIT_OUTCOME_UNKNOWN",payload:{code:"WALLET_DEBIT_OUTCOME_UNKNOWN"}});
