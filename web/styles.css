@@ -427,3 +427,41 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-account-card>h3{margin:26px 0 8px;color:#101828;font-size:17px}
 .mx-account-card .mx-profile-card{margin:12px 0}
 @media(max-width:760px){.mx-account-card{padding:22px 16px}}
+
+
+/* Functional generic module workspaces */
+.mx-workspace{display:block}
+.mx-workspace-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;margin:14px 0;border:1px solid var(--border,#e4e7ec);border-radius:14px;background:var(--white,#fff)}
+.mx-workspace-toolbar>div{display:grid;gap:4px}
+.mx-workspace-toolbar small,.mx-workspace-note p,.mx-workspace-data-head p,.mx-workspace-operations p,.mx-workspace-report-head p{color:var(--muted,#667085);font-size:13px;line-height:1.7;margin:0}
+.mx-workspace-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+.mx-workspace-stat,.mx-workspace-report-grid article{display:grid;gap:8px;padding:16px;border:1px solid var(--border,#e4e7ec);border-radius:15px;background:var(--white,#fff)}
+.mx-workspace-stat span,.mx-workspace-report-grid span{font-size:13px;color:var(--muted,#667085)}
+.mx-workspace-stat strong,.mx-workspace-report-grid strong{font-size:24px;overflow-wrap:anywhere}
+.mx-workspace-note{padding:16px;border-radius:14px;background:#f8fafc;border:1px solid var(--border,#e4e7ec);line-height:1.7}
+.mx-workspace-shortcuts,.mx-workspace-action-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.mx-workspace-shortcuts button,.mx-workspace-action,.mx-workspace-detail-btn,.mx-workspace-back{border:1px solid var(--border,#e4e7ec);border-radius:10px;padding:10px 13px;background:#fff;cursor:pointer;color:var(--dark,#0f172a)}
+.mx-workspace-data-head,.mx-workspace-report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px}
+.mx-workspace-data-head h3,.mx-workspace-report-head h3,.mx-workspace-operations h3,.mx-workspace-settings h3,.mx-workspace-record h3{margin:0 0 6px}
+.mx-workspace-search-label{display:grid;gap:6px;font-size:12px;min-width:min(100%,260px)}
+.mx-workspace-search-label input{border:1px solid var(--border,#e4e7ec);border-radius:10px;padding:10px 12px;min-width:0}
+.mx-workspace-data-group{margin:16px 0;padding:14px;border:1px solid var(--border,#e4e7ec);border-radius:15px;background:#fff}
+.mx-workspace-group-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.mx-workspace-group-title h4{margin:0}.mx-workspace-group-title span{font-size:12px;color:var(--muted,#667085)}
+.mx-workspace-table-wrap{overflow:auto;max-width:100%}
+.mx-workspace-table{width:100%;border-collapse:collapse;min-width:520px}
+.mx-workspace-table th,.mx-workspace-table td{padding:10px;text-align:right;border-bottom:1px solid #eef0f4;font-size:13px;white-space:nowrap}
+.mx-workspace-table th{background:#f8fafc;font-weight:700}
+.mx-workspace-table tr[hidden]{display:none}
+.mx-workspace-empty{padding:20px;text-align:center;color:var(--muted,#667085);background:#f8fafc;border-radius:10px}
+.mx-workspace-action{display:grid;gap:8px;text-align:right;min-width:180px;flex:1}
+.mx-workspace-action span{font-size:12px;color:var(--muted,#667085)}
+.mx-workspace-report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0}
+.mx-workspace-report-grid small{color:var(--muted,#667085)}
+.mx-workspace-settings dl,.mx-workspace-record dl{display:grid;gap:0;margin:16px 0}
+.mx-workspace-settings dl>div,.mx-workspace-record dl>div{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,2fr);gap:12px;padding:12px 0;border-bottom:1px solid #eef0f4}
+.mx-workspace-settings dt,.mx-workspace-record dt{color:var(--muted,#667085)}
+.mx-workspace-settings dd,.mx-workspace-record dd{margin:0;overflow-wrap:anywhere}
+.mx-workspace-record{max-width:900px;margin:0 auto;padding:8px}
+.mx-workspace-record>p{color:var(--muted,#667085);font-size:13px}
+@media(max-width:700px){.mx-workspace-toolbar,.mx-workspace-data-head,.mx-workspace-report-head{align-items:stretch;flex-direction:column}.mx-workspace-stats{grid-template-columns:1fr}.mx-workspace-search-label{min-width:0;width:100%}.mx-workspace-settings dl>div,.mx-workspace-record dl>div{grid-template-columns:1fr;gap:4px}.mx-workspace-toolbar .btn{width:100%}}
