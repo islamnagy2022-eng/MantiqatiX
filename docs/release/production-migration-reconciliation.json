@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "project": "moyhiluyhjsujhwlyeuu",
+  "status": "BLOCKED",
+  "verified": false,
+  "live_ledger_last_version": "20261008222845",
+  "live_ledger_last_name": "rc424_atomic_digital_page_payment_webhook",
+  "rc424_source_filename_version": "20261009010000",
+  "source_ledger_identity_reconciled": false,
+  "required_release_migrations_applied": false,
+  "chronological_replay": "NOT RUN",
+  "tenant_isolation_tests": "NOT VERIFIED",
+  "payment_finance_e2e": "NOT VERIFIED",
+  "backup_restore_rehearsal": "NOT VERIFIED",
+  "evidence_ref": null,
+  "checked_at": "2026-10-11",
+  "reason": "Live ledger ends at RC424 and the source filename timestamp differs from the applied ledger version. Required post-RC424 migrations are not proven applied. Do not certify or deploy until exact live/source reconciliation, complete ordered replay on disposable PostgreSQL, and required integration/security evidence are recorded."
+}
