@@ -72,13 +72,20 @@ serve(async (req) => {
     const tenantId = String(business.tenant_id);
     if (requestedTenantId && requestedTenantId !== tenantId) return json({ error: "Business tenant mismatch" }, 403);
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("id,role").eq("user_id", user.id).eq("tenant_id", tenantId).eq("status", "ACTIVE")
-      .limit(1).maybeSingle();
+    // A tenant membership alone must not grant access to another business's catalog.
+    // Customers may browse active provider catalogs; business staff must belong to the target business.
+    let membershipQuery = supabaseAdmin.from("user_memberships")
+      .select("id,role,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", tenantId)
+      .eq("business_id", businessId).eq("status", "ACTIVE");
+    if (branchId) membershipQuery = membershipQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+    const { data: membership, error: membershipError } = await membershipQuery.limit(1).maybeSingle();
+    if (membershipError) return json({ error: "Failed to verify catalog membership" }, 500);
     if (!membership) {
-      const { data: customerMembership } = await supabaseAdmin.from("user_memberships")
-        .select("id,role").eq("user_id", user.id).eq("status", "ACTIVE").eq("role", "CUSTOMER")
+      const { data: customerMembership, error: customerMembershipError } = await supabaseAdmin.from("user_memberships")
+        .select("id").eq("user_id", user.id).eq("status", "ACTIVE").eq("role", "CUSTOMER")
         .limit(1).maybeSingle();
+      if (customerMembershipError) return json({ error: "Failed to verify customer access" }, 500);
       if (!customerMembership) return json({ error: "Forbidden" }, 403);
     }
     const { data: provider } = await supabaseAdmin.from("marketing_provider_profiles")
