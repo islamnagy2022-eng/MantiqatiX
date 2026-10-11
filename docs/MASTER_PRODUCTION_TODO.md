@@ -1582,3 +1582,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Module build additions — SESSION-004
 - [x] Added CSV export to generic workspace data/reports tabs (current session data only).
 - [ ] Verify CSV formula-injection handling, Arabic encoding, browser download, and scoped data access during the planned post-build review.
+
+ 
+## Module build additions — SESSION-005
+- [x] Added local search/filter for loaded records in generic workspace data tabs.
+- [ ] Include the filter and CSV behaviors in the post-build test pass.
