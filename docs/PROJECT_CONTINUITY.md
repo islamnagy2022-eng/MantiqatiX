@@ -560,3 +560,8 @@ This status is intentional and must remain until the open gates above are indepe
 - Commit `99c645402c51deb704a20f373b4a617301c0a6b3`: generic workspace data/reports tabs gained CSV export with UTF-8 BOM and formula-like value prefixing.
 - Export is intentionally limited to records/metrics already present in the current session; not a complete database or official finance export.
 - Later verification required: escaping, Arabic encoding, browser download, and data/permission boundaries.
+
+ 
+## Build progress — SESSION-005
+- Commit `0a7838d142295fbb697fc632f0ed8475f819157a`: added local filtering in the generic workspace data tab for records already loaded and displayed.
+- Filtering does not widen query scope; post-build validation remains pending.
