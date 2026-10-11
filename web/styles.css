@@ -521,3 +521,10 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-analytics-track>span{display:block;height:100%;border-radius:999px;background:var(--blue,#2563eb);min-width:0}
 .mx-analytics-bar-row>b{text-align:left;font-variant-numeric:tabular-nums}
 @media(max-width:560px){.mx-analytics-status .mx-analytics-bar-row{grid-template-columns:minmax(70px,1fr) minmax(70px,2fr) 28px;gap:8px}}
+
+
+/* Shared records table export control */
+.mx-records-toolbar{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.mx-records-toolbar .search-field{flex:1;min-width:190px}
+.mx-records-export{width:auto;white-space:nowrap}
+@media(max-width:560px){.mx-records-toolbar{align-items:stretch;flex-direction:column}.mx-records-toolbar .search-field{min-width:0}.mx-records-export{width:100%}}
