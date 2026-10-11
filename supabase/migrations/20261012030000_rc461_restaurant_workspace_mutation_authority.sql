@@ -9,7 +9,13 @@ grant select, insert, update, delete on table public.restaurant_tables, public.r
 
 do $$
 begin
-  if has_table_privilege('authenticated', 'public.restaurant_tables', 'INSERT')
+  if has_table_privilege('anon', 'public.restaurant_tables', 'INSERT')
+     or has_table_privilege('anon', 'public.restaurant_tables', 'UPDATE')
+     or has_table_privilege('anon', 'public.restaurant_tables', 'DELETE')
+     or has_table_privilege('anon', 'public.restaurant_inventory', 'INSERT')
+     or has_table_privilege('anon', 'public.restaurant_inventory', 'UPDATE')
+     or has_table_privilege('anon', 'public.restaurant_inventory', 'DELETE')
+     or has_table_privilege('authenticated', 'public.restaurant_tables', 'INSERT')
      or has_table_privilege('authenticated', 'public.restaurant_tables', 'UPDATE')
      or has_table_privilege('authenticated', 'public.restaurant_tables', 'DELETE')
      or has_table_privilege('authenticated', 'public.restaurant_inventory', 'INSERT')
@@ -155,3 +161,13 @@ $function$;
 
 revoke all on function public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying) from PUBLIC, anon, authenticated;
 grant execute on function public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying) to service_role;
+
+do $
+begin
+  if has_function_privilege('anon','public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying)','EXECUTE')
+     or has_function_privilege('authenticated','public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying)','EXECUTE')
+     or not has_function_privilege('service_role','public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying)','EXECUTE') then
+    raise exception 'RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID';
+  end if;
+end
+$;
