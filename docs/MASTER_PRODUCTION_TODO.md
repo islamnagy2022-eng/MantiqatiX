@@ -1573,3 +1573,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Production migration ledger is still only reconciled through RC424; post-RC424 migrations are not proven applied.
 - [ ] Production P0 MantiGO global authorization, real cross-tenant/auth/payment/ERP E2E, Paymob sandbox end-to-end, backup restore/RPO/RTO, leaked-password protection, and enforced main branch protection remain unresolved.
 - **Release decision: BLOCKED / NOT CERTIFIED.** No merge, production deployment, migration, live Edge Function modification, financial mutation, or Auth/RLS/grant change was performed.
+
+## Internal Marketing & Advertising campaign workflow — 2026-10-12
+
+- [x] Candidate workspace reads `marketing_campaigns` and `marketing_campaign_participants` under RLS; missing/unavailable candidate tables degrade to empty arrays rather than breaking workspace rendering.
+- [x] Candidate campaign creation calls `create_marketing_campaign_backend` and checks the MARKETING create permission before submission.
+- [x] Candidate campaign status changes call `update_marketing_campaign_status_backend`; backend transition validation remains authoritative.
+- [x] Candidate provider invitations/responses call `invite_marketing_campaign_partner_backend` and `respond_marketing_campaign_invitation_backend`.
+- [x] Extended the marketing campaign validator with UI/RPC integration assertions and wired it into Module Professionalization Validation.
+- [ ] Verify JavaScript syntax and the new campaign UI contract at the newest exact head; CI evidence is still pending and earlier run IDs for the previous head were queued.
+- [ ] RC452/RC453 migrations remain unproven in production. Do not treat the new UI as live-ready until the approved chronological migration path and production rollout evidence are complete.
+- [ ] Complete marketing lead lifecycle (assignment, status transitions, notes/follow-ups, audit), then real provider/campaign E2E and role/tenant isolation checks.
+- [ ] Overall release remains **BLOCKED / NOT CERTIFIED**; no production deployment, schema change, campaign budget spend, or PR merge was performed in this batch.
