@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20261012010000_rc459_restaurant_menu_catalog_sync.sql', 'utf8');
+const uniqueMigration = fs.readFileSync('supabase/migrations/20261012020000_rc460_restaurant_menu_catalog_unique_ref.sql', 'utf8');
 const edge = fs.readFileSync('supabase/functions/restaurant-menu-save/index.ts', 'utf8');
 const app = fs.readFileSync('web/restaurant-module.js', 'utf8');
 const api = fs.readFileSync('supabase/functions/api/index.ts', 'utf8');
@@ -9,6 +10,8 @@ const fixture = fs.readFileSync('supabase/tests/rc459_restaurant_menu_catalog_fi
 const integration = fs.readFileSync('supabase/tests/rc459_restaurant_menu_catalog_integration.sql', 'utf8');
 
 assert.match(migration, /create or replace function public\.restaurant_menu_catalog_mutate_backend/);
+assert.match(uniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/);
+assert.match(uniqueMigration, /create unique index if not exists catalog_items_restaurant_menu_legacy_ref_uidx/);
 assert.match(migration, /security definer\s+set search_path = ''/i);
 assert.match(migration, /p_actor_user_id is null/);
 assert.match(migration, /m\.user_id = p_actor_user_id/);
