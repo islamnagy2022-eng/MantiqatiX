@@ -1688,3 +1688,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Add local search and CSV export for sector data tables.
 - [x] Correct CSV escaping/delimiter literals in follow-up commit.
 - [ ] Validate filter behavior, CSV output and Arabic filenames in browser/runtime tests.
+
+ 
+## Marketing campaigns and partner collaboration — SESSION-025
+- [x] Build UI flow using the RC453 backend contract: create draft, invite verified partner, status transition, accept/decline.
+- [x] Keep all writes behind RPCs; no direct client writes or external ad publishing.
+- [x] Add idempotency key and client-side input validation; backend remains source of truth.
+- [ ] Confirm RC453 migration is present in the intended release chain and deployed only through the approved migration gate.
+- [ ] Run `supabase/tests/rc453_marketing_campaign_integration.sql` in a disposable PostgreSQL environment and verify RLS/role flows.
+- [ ] Validate the UI unavailable state while backend tables/RPCs are absent.
