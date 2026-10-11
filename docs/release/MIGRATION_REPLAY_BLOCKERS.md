@@ -216,3 +216,19 @@ Evidence source: read-only catalog query run on 2026-10-11. No function definiti
 - Pages verification run [38155430108](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38155430108) reported `PRODUCTION_GATE=BLOCKED`; its deploy job was skipped. A green workflow-level conclusion here means the validation job ran successfully, not that production passed or deployed.
 - The legacy function baseline does not exist and has not been approved. Do not infer that the baseline path is ready merely because the absent-baseline preflight correctly blocks. If approval is later granted, validate a representative named-parameter function definition against the signature checker before trusting the baseline's positive path.
 - No production schema, data, grants, RLS, Edge Functions, Auth settings, wallets, or payments were changed.
+
+## Release scope decision — SMM deferred until after launch (2026-10-11)
+
+The owner has prioritized launching the other MantiqaTix modules first and continuing SMM after the initial production launch. The PR now implements a **UI-level release deferral**:
+
+- `web/app.js` excludes `خدمات التسويق الرقمي SMM` from enabled modules regardless of remote module flags, removes its landing navigation link, and renders a clear under-development message if the workspace route is requested.
+- `web/smm.html` is now a static `noindex,nofollow` under-development page. It does not load the SMM JavaScript or Supabase SDK.
+- `web/smm.js` and `web/smm.css` remain in source for post-launch development; no SMM implementation is deleted.
+- The separate internal `التسويق والإعلان` module remains in launch scope. This decision does not defer the internal marketing module or other platform modules.
+- `scripts/validate-smm-deferred-release.mjs` enforces the UI deferral and is wired into Module Professionalization Validation.
+
+**Important boundary:** this is not yet proof that SMM is disabled server-side. The production `smm-gateway` Edge Function is independently addressable, and UI hiding cannot prevent direct API requests. Before the platform is exposed publicly, the release owner must verify that the live gateway rejects SMM operations for the deferred phase, or approve a reviewed server-side disablement with tests. No Edge Function was deployed or changed as part of this UI deferral.
+
+**Launch priority:** continue resolving the non-SMM launch blockers first, but do not certify or expose production while the clean migration chain fails or critical production security/release gates remain unresolved. Current blockers include the missing historical creation DDL for ten legacy SECURITY DEFINER functions before `20260927095000_revoke_unused_security_definer_execute.sql`, the live `authenticated EXECUTE` exception for `mantigo_rate_ride(text,integer,text)`, and absent evidence of enforced `main` branch protection/rulesets. The SMM wallet integration test remains failing in CI; with SMM deferred, track it as a post-launch SMM acceptance gate rather than weakening or deleting its test.
+
+Re-enable SMM only in a separate post-launch change after gateway hardening, migration reconciliation, wallet/payment ambiguity safety, admin-scope checks, and integration tests all pass. Do not flip the UI flag alone to make the feature live.
