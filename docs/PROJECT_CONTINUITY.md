@@ -539,3 +539,14 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## Resume point — 2026-10-12 — exact-head CI checkpoint
+
+- Candidate branch: `reconcile/rc425-458-current-main-20261011`; documentation head is now `058a8ab9f4bf7fbbe3e0d49270688e77d7242124` (the prior exact-head CI evidence is for `95db1770bd89286bfadba9172b0c9409a68e0566`).
+- PR #207 remains draft/open/unmerged. The Pages workflow passed validation but skipped deployment. The core module validation and all listed non-SMM boundaries passed at the prior head; SMM Deferred Module Validation failed and remains intentionally untouched under the owner’s freeze.
+- Before making further code changes, query Actions for the latest documentation head and record fresh exact-head results. Do not assume prior-head results transfer to the new SHA.
+- Highest-priority non-SMM release blockers: ten missing historical SECURITY DEFINER creation dependencies block chronological replay; production ledger reconciles only through RC424; P0 global MantiGO authorization needs validated release fix; tenant/auth/payment/ERP runtime E2E and backup restore/RPO-RTO evidence remain incomplete; leaked-password protection and enforced branch protection remain unresolved.
+- Issue #212 is still open: the live SMM gateway has not been proven disabled. UI deferral does not disable the API. Do not deploy or modify the live gateway without explicit approval; keep SMM feature development and its tests frozen.
+- No production writes, migrations, function deployments, PR merge, financial mutations, or Auth/RLS/grant changes were made in this session. Release remains **BLOCKED / NOT CERTIFIED**.
+- The chronological append-only evidence is in `docs/SESSION_LOG.md` (SESSION-002).
