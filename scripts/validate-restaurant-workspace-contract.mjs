@@ -87,6 +87,11 @@ assert.ok(workspaceEdge.includes('!/' + '[' + String.fromCharCode(92) + 'u0000-'
 assert.match(workspaceMigration, /revoke insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory[\s\S]*?from PUBLIC, anon, authenticated/i, 'direct browser mutations are revoked from public client roles');
 assert.match(workspaceMigration, /grant select, insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory to service_role/i, 'backend mutation role retains the required table privileges');
 assert.match(workspaceMigration, /create or replace function public\.restaurant_workspace_mutate_backend/, 'workspace mutations use a single backend database function');
+assert.match(workspaceMigration, /create policy restaurant_tables_active_branch_member_select[\s\S]*?using \(exists \([\s\S]*?public\.user_memberships/, 'restaurant table reads include active branch membership');
+assert.match(workspaceMigration, /create policy restaurant_inventory_active_branch_member_select[\s\S]*?using \(exists \([\s\S]*?public\.user_memberships/, 'restaurant inventory reads include active branch membership');
+assert.match(workspaceIntegration, /RC461_RESTAURANT_RLS_NOT_ENABLED/, 'integration asserts RLS is enabled for both restaurant tables');
+assert.match(workspaceIntegration, /RC461_BRANCH_MEMBER_READ_POLICY_MISSING/, 'integration asserts branch-scoped read policies exist');
+
 assert.match(workspaceMigration, /insert into public\.audit_logs/, 'workspace changes and audit records are committed in the same transaction');
 assert.match(workspaceMigration, /set search_path = ''/, 'workspace mutation RPC pins an empty search path');
 assert.match(workspaceMigration, /from public\.branches br[\s\S]*?upper\(coalesce\(br\.status,'ACTIVE'\)\) = 'ACTIVE'/, 'workspace RPC rejects inactive or cross-business branches');
@@ -107,4 +112,4 @@ assert.match(workspaceIntegration, /RC461_CROSS_SCOPE_INVENTORY_UPDATE_WAS_ALLOW
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (92 assertions)');
+console.log('Restaurant workspace contract: PASS (96 assertions)');
