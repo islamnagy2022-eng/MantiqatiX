@@ -1190,22 +1190,27 @@ async function createMarketingLead(){
   if(!user?.id)return authView();
   if(window.MNTY_RBAC?.can(String(live.role||''),'CRM','create',live.permissions)!==true)return showToast('لا تملك صلاحية إنشاء طلب تسويق في هذا النطاق.','error');
   const title=window.prompt('عنوان احتياج التسويق');
-  if(!title?.trim())return;
+  if(title===null||!title.trim())return;
   const description=window.prompt('وصف الاحتياج والخدمة المطلوبة');
-  if(!description?.trim())return;
-  const {data,error}=await sb.functions.invoke('marketing-lead-create',{body:{
-    title:title.trim(),
-    description:description.trim(),
-    required_services:[],
-    service_area:'',
-    budget_min:0,
-    budget_max:0,
-    business_id:live.businessId||null
-  }});
-  if(error||data?.error)return showToast('تعذر إنشاء طلب التسويق: '+(error?.message||data?.error||'خطأ غير معروف'),'error');
-  live.counts.leads=(live.counts.leads||0)+1;
-  showToast('تم إنشاء طلب التسويق'+(data?.lead?.id?' #'+data.lead.id:''),'success');
-  renderApp();
+  if(description===null||!description.trim())return;
+  const serviceInput=window.prompt('الخدمات المطلوبة مفصولة بفواصل (اختياري، بحد أقصى 10)','إدارة حملات، تصميم محتوى')||'';
+  const required_services=[...new Set(serviceInput.split(',').map(x=>x.trim()).filter(Boolean))];
+  if(required_services.length>10||required_services.some(x=>x.length>80))return showToast('يمكن تحديد 10 خدمات كحد أقصى، بطول 80 حرفًا لكل خدمة.','error');
+  const service_area=String(window.prompt('المنطقة الجغرافية أو نطاق الخدمة (اختياري)','')||'').trim();
+  if(service_area.length>200)return showToast('نطاق الخدمة يتجاوز 200 حرف.','error');
+  const minInput=window.prompt('الحد الأدنى للميزانية بالجنيه المصري','0');if(minInput===null)return;
+  const maxInput=window.prompt('الحد الأقصى للميزانية بالجنيه المصري','0');if(maxInput===null)return;
+  const budget_min=Number(minInput),budget_max=Number(maxInput);
+  if(!Number.isFinite(budget_min)||!Number.isFinite(budget_max)||budget_min<0||budget_max<budget_min||budget_max>1000000000)return showToast('تحقق من نطاق الميزانية؛ يجب أن تكون القيم موجبة وبحد أقصى مليار جنيه، والحد الأدنى لا يتجاوز الأعلى.','error');
+  try{
+    const {data,error}=await sb.functions.invoke('marketing-lead-create',{body:{
+      title:title.trim(),description:description.trim(),required_services,service_area,budget_min,budget_max,business_id:live.businessId||null
+    }});
+    if(error||data?.error)throw new Error(error?.message||data?.error||'خطأ غير معروف');
+    live.counts.leads=(live.counts.leads||0)+1;
+    showToast('تم إنشاء طلب التسويق'+(data?.lead?.id?' #'+data.lead.id:''),'success');
+    await renderApp();
+  }catch(e){showToast('تعذر إنشاء طلب التسويق: '+(e?.message||'خطأ غير معروف'),'error')}
 }
 async function createGlobalAdFromAdmin(){
  if(!user?.id)return authView();
