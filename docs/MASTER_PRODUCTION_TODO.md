@@ -1594,3 +1594,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Include loaded active service catalog in Marketing workspace.
 - [x] Add permission- and feature-aware SMM shortcuts to dashboard and enterprise quick actions.
 - [ ] Validate SMM button visibility across role/feature-flag combinations during post-build testing.
+
+ 
+## Module build additions — SESSION-007
+- [x] Added sample-scoped status summaries to report tabs for supported generic workspaces.
+- [ ] Validate status labels/counts and avoid presenting sample distributions as totals during post-build review.
