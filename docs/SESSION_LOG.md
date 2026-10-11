@@ -288,3 +288,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** campaign reads now select the explicit `brief` field and show it on the campaign card for RLS-authorized campaign managers/participants.
 - **Scope:** explicit fields only; no broad `select(*)` and no additional query.
 - **Next:** continue building module features.
+
+## 2026-10-11 — SESSION-036 — Include campaigns and partner assignments in Marketing export
+
+- **Code commit:** [c47c96ac4aa0bcd9fa1dc4fe1c25552f7cf28720](https://github.com/islamnagy2022-eng/MantiqaTix/commit/c47c96ac4aa0bcd9fa1dc4fe1c25552f7cf28720).
+- **Built:** Marketing CSV export now includes the internal campaigns and partner assignment records already loaded into the campaign collaboration state, when RC453 is available.
+- **Scope:** existing loaded data only; no new query, transaction export, or write.
+- **Next:** continue build-out.
