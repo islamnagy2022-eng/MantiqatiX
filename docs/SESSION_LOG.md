@@ -302,3 +302,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** clicking a campaign result in global search opens the Marketing workspace, scrolls to the matching campaign card, and applies a brief visual focus cue.
 - **Scope:** only RLS-visible campaigns returned by the existing search query can be targeted.
 - **Next:** continue build-out.
+
+## 2026-10-11 — SESSION-038 — Match partner response controls to provider eligibility
+
+- **Code commit:** [d2f14278994a91c84cdfee634a1fce41393eeab0](https://github.com/islamnagy2022-eng/MantiqaTix/commit/d2f14278994a91c84cdfee634a1fce41393eeab0).
+- **Built/fixed:** accept/decline controls render only for the current user's own provider profile when it is active and verified, matching the RC453 response RPC's eligibility checks.
+- **Backend remains authoritative:** the RPC still rechecks ownership/status/verification.
+- **Next:** continue build work; verify through the RC453 integration test after the feature set is complete.
