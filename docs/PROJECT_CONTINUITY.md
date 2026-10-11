@@ -637,3 +637,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-020
 - Commit `dbe430529ba1922d6ea60d5c9b4e3ebd553a62fc`: module center uses cached module source counts and clears the cache on membership switch/sign-out to avoid showing stale prior-scope counts.
+
+ 
+## Build progress — SESSION-021
+- Commit `7fddb756fc9ee96a511152f39060d742dfb8b4f5`: marketing workspace separates a preliminary partner-agency discovery list using existing provider_kind classification; UI explicitly disclaims contractual partnership status.
