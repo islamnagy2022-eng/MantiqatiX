@@ -234,3 +234,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope:** the business list is queried only for a full-control SUPER_ADMIN; the backend remains the authoritative scope check. No direct table writes.
 - **Tests:** pending post-build validation.
 - **Next:** continue module build-out; RC453 deployment remains unverified in production.
+
+## 2026-10-11 — SESSION-028 — Match platform campaign UI gate to backend claims
+
+- **Code commit:** [d53fee1e5b8f9442015dea25419057948b76d6cf](https://github.com/islamnagy2022-eng/MantiqaTix/commit/d53fee1e5b8f9442015dea25419057948b76d6cf).
+- **Built/fixed:** platform-level campaign create/invite/status controls now require the platform tenant, `scope=PLATFORM`, `full_control=true`, and existing RBAC platform-control permission, matching the RC453 backend's platform-admin check.
+- **Purpose:** prevent the UI from offering platform-wide controls to a tenant-scoped SUPER_ADMIN who the backend intentionally rejects.
+- **Tests:** pending post-build validation.
