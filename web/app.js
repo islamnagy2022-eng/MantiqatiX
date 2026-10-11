@@ -1149,8 +1149,10 @@ function domainModuleTablesHtml(m,rows,errors={}){
   if(!config)return '<section class="card" style="margin:14px 0;padding:16px"><h3>'+esc(table)+'</h3><p class="muted">لم يتم تفعيل عرض السجلات لهذا المصدر بعد.</p></section>';
   const exportButton='<div class="mx-workspace-shortcuts"><button type="button" data-domain-export-table="'+esc(table)+'">تصدير CSV</button></div>';
   const statusFilters=config.fields.some(f=>f[0]==='status')?recordsStatusFilterHtml(table,data):'';
+  const detailRows=data.map(row=>Object.assign({},row,{_mx_detail_action:'<button type="button" class="linkbtn" data-domain-record-detail="'+esc(table)+'" data-domain-record-id="'+esc(row.id)+'">التفاصيل</button>'}));
   const fields=config.fields.map(([key,label])=>[label,row=>genericWorkspaceDisplayValue(row?.[key],key)]);
-  return '<section class="mx-domain-table-section"><div class="section-head"><div><h3>'+esc(table)+'</h3><p class="muted">'+(errors[table]?'NOT AVAILABLE — '+esc(errors[table]):data.length+' سجل محمّل وفق صلاحيات قاعدة البيانات')+'</p></div></div>'+exportButton+statusFilters+recordsTable(table,data,fields)+'</section>';
+  fields.push(['عرض',row=>row._mx_detail_action||'—']);
+  return '<section class="mx-domain-table-section"><div class="section-head"><div><h3>'+esc(table)+'</h3><p class="muted">'+(errors[table]?'NOT AVAILABLE — '+esc(errors[table]):data.length+' سجل محمّل وفق صلاحيات قاعدة البيانات')+'</p></div></div>'+exportButton+statusFilters+recordsTable(table,detailRows,fields)+'</section>';
  }).join('');
 }
 function jobsWorkspace(rows,errors={}){
@@ -1164,6 +1166,17 @@ function bindDomainModuleActions(){
  if(window.__MNTYDomainModuleActionsBound)return;
  window.__MNTYDomainModuleActionsBound=true;
  document.addEventListener('click',async e=>{
+  const detail=e.target.closest('[data-domain-record-detail]');
+  if(detail){
+   const table=String(detail.dataset.domainRecordDetail||''),id=String(detail.dataset.domainRecordId||'');
+   const module=domainModules.find(m=>m.tables.includes(table));
+   const config=DOMAIN_WORKSPACE_TABLES[table];
+   const row=module?(live.moduleData[module.key]?.rows?.[table]||[]).find(item=>String(item.id)===id):null;
+   if(!row||!config)return showToast('السجل غير متاح ضمن البيانات المحمّلة والصلاحيات الحالية.','error');
+   const detailFields=config.fields.filter(([key])=>key!=='id').map(([key,label])=>'<div class="mx-record-kv"><span>'+esc(label)+'</span><b>'+esc(genericWorkspaceDisplayValue(row[key],key))+'</b></div>').join('');
+   openUnifiedRecordDetails({kicker:String(table).toUpperCase(),title:String(row.title||row.name||row.name_ar||row.subject||row.code||'تفاصيل السجل'),desc:'عرض للقراءة فقط للحقول المسموح بها في مساحة العمل الحالية.',sections:[{title:'بيانات السجل',html:'<div class="mx-record-kv-grid">'+detailFields+'</div>'}]});
+   return;
+  }
   const btn=e.target.closest('[data-domain-refresh]');if(!btn)return;
   const m=domainModules.find(x=>x.key===btn.dataset.domainRefresh);if(!m)return;
   const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;
