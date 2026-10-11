@@ -79,6 +79,7 @@ create table public.journal_entries (
   total_debit numeric not null,
   total_credit numeric not null,
   entry_date date not null,
+  created_at timestamptz not null default current_timestamp,
   posted_at timestamptz not null,
   created_by uuid not null
 );
