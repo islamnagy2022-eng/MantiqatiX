@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
@@ -51,4 +52,15 @@ assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deploy
 assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
 assert.match(source, /!liveReconciliationVerified/, "missing live evidence must block release even when all migration files exist");
+const runVerifier = event => spawnSync(process.execPath, ["scripts/production/verify-production.mjs"], {
+  encoding: "utf8",
+  env: { ...process.env, GITHUB_EVENT_NAME: event, GITHUB_REF: event === "push" ? "refs/heads/main" : "refs/pull/193/merge" }
+});
+const prRun = runVerifier("pull_request");
+assert.equal(prRun.status, 0, "PR validation must allow remediation while preserving a BLOCKED report");
+assert.match(prRun.stdout, /PRODUCTION_GATE=BLOCKED/, "PR validation must still report the real blocked release state");
+const productionRun = runVerifier("push");
+assert.notEqual(productionRun.status, 0, "main push must exit non-zero while any P0 release gate is blocked");
+assert.match(productionRun.stdout, /PRODUCTION_GATE=BLOCKED/, "production-mode check must report the blocker before failing");
+console.log("Fail-closed production-mode execution test: PASS.");
 console.log(`Production migration chain gate contract passed for ${required.length} required migration sources.`);
