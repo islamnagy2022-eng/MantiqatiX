@@ -93,3 +93,18 @@ Candidate commit: `b4776f088204c87ec9e723030bd6a026e8a4cb44` (PR #207 remains dr
 However, SMM deferral is not permission to leave a risky API exposed. Before launch, the separately tracked P0 [#212](https://github.com/islamnagy2022-eng/MantiqatiX/issues/212) must prove the live SMM gateway is denied/disabled server-side, with negative tests showing no provider call, order mutation, or wallet change. This is a small launch containment requirement, not a requirement to finish SMM. No production deployment or SMM backend change is authorized or claimed by this document.
 
 Next execution order: (1) finish non-SMM core and integration gates; (2) reconcile migration history/ledger and full replay; (3) finish security, data isolation, backup/restore and production parity evidence; (4) under separate approval, contain SMM gateway before launch; (5) stage rollout only after every global gate passes. Keep PR #207 draft and release status BLOCKED / NOT CERTIFIED until then.
+
+### Exact latest candidate verification — `81968da66a2d3bba894def90f5071b8e99586f7d`
+
+Fresh workflows triggered by the latest scope/evidence update have completed:
+
+- Core Module Professionalization Validation [38158493757](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158493757): **success, 15/15 jobs passed** on the exact candidate SHA.
+- Migration Version Uniqueness [38158496914](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496914): **success**.
+- Migration History Immutability [38158496895](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496895): **success**.
+- Cross-PR Migration Collision Guard [38158496904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496904): **success**.
+- MantiGO Open Ride Privacy Boundary [38158496937](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496937): **success**.
+- Backend-only Module Boundary [38158496906](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496906): initial validator passed; integration jobs were still running at the last check, so this workflow is not yet recorded as a full pass.
+- SMM Deferred Module Validation [38158496938](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496938): **failed only in the SMM-specific security validator**; its wallet idempotency test and static holding-page quarantine test passed. This is intentionally separate from core acceptance, but the live server-side API containment issue #212 remains mandatory before launch.
+- Pages workflow [38158496932](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496932): validation passed; deploy job skipped. No production deployment is claimed.
+
+These results improve confidence in core modules but do not clear the full production gate: chronological migration replay, exact live ledger reconciliation after RC424, server-side SMM containment, backup/restore rehearsal, production parity and branch-protection evidence are still outstanding.
