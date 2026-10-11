@@ -1587,3 +1587,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Module build additions — SESSION-005
 - [x] Added local search/filter for loaded records in generic workspace data tabs.
 - [ ] Include the filter and CSV behaviors in the post-build test pass.
+
+ 
+## Module build additions — SESSION-006
+- [x] Surface membership-resolved business records and registration requests in Users workspace.
+- [x] Include loaded active service catalog in Marketing workspace.
+- [x] Add permission- and feature-aware SMM shortcuts to dashboard and enterprise quick actions.
+- [ ] Validate SMM button visibility across role/feature-flag combinations during post-build testing.
