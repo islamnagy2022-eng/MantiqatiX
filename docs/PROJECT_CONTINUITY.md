@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. User has directed **BUILD ONLY: finish missing functionality across modules first; defer broad reviews until construction is complete**. Active work branch: `build/module-workspaces-functional-20261011`. The release gate remains **BLOCKED / NOT CERTIFIED**; do not deploy or claim readiness. The main branch baseline at the start of this build batch was `8a56358d505d2c12878440037f7f24ba65d2ea10`.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -539,3 +539,12 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## BUILD TRACK — 2026-10-11 — Current resume point
+- User directive: build all modules and missing functionality first; postpone broad reviews until all module construction is done.
+- Active branch: `build/module-workspaces-functional-20261011`.
+- First build batch implemented functional generic workspaces and global-search record detail drawer. See `docs/SESSION_LOG.md` SESSION-002 for exact commits and scope.
+- Continue next with specialized Restaurant Workspace, then CRM, Marketing/SMM, Operations/Orders, Finance, Notifications/Tasks, Reports/Analytics, and remaining sector modules.
+- Do not repeat audits during this build phase. Keep using existing server-authoritative paths and RLS; do not invent database mutations or financial workflows where a supported backend contract is absent.
+- Once all modules are built, switch to the planned review/testing phase and close release gates with evidence.
