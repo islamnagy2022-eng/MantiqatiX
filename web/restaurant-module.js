@@ -278,7 +278,7 @@ async function updateOrder(id,status){
  try{
   await invokeMntyFunction('order-status-update',{orderId:id,tenantId:m.tenant_id,newStatus:status});
   await load();
- }catch(e){notify('تعذر تحديث حالة الطلب: '+(e?.message||'خطأ'))}
+ }catch(e){notify('تعذر تحديث حالة الطلب: '+(e?.message||'خطأ'),'error');await load()}
 }
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
