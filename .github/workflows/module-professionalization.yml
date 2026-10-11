@@ -464,7 +464,7 @@ jobs:
           deno-version: v2.x
       - name: Type-check protected restaurant Edge Functions
         run: >-
-          deno check
+          deno check --node-modules-dir=auto
           supabase/functions/restaurant-workspace-mutate/index.ts
           supabase/functions/restaurant-menu-save/index.ts
           supabase/functions/order-create/index.ts
