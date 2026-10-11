@@ -1720,3 +1720,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign collaboration — SESSION-029
 - [x] Display participant allocation totals and remaining percentage from RLS-visible records.
 - [ ] Verify summary consistency with RC453 allocation enforcement during integration tests.
+
+ 
+## Campaign discoverability — SESSION-030
+- [x] Add internal marketing campaigns to RBAC-filtered global search.
+- [ ] Validate search results after RC453 backend is available.
