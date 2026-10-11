@@ -195,3 +195,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The drawer displays only the already-loaded job ID, applicant name, and submission date; it does not query or reveal qualifications, CV summaries, or contact details.
 - Implementation commit: `f5522cad42215e392ef18cc9de4395468bf7ab3f`.
 - Runtime/E2E verification remains outstanding; no production changes.
+
+
+## 2026-10-11 — SESSION-018 — Searchable used-items workspace
+- Added a dedicated marketplace presentation for used-item ads using the existing allowlisted fields: title, category, price, location, sold flag, and creation date.
+- Added client-side search and availability/sold filtering over already-loaded records, a CSV export action, and a read-only details drawer.
+- No new database fields, migrations, or privileged writes were introduced; current authenticated queries and RLS remain the data boundary.
+- Implementation commit: `2c5f2c00888778dc82353b76d6aef7fcda5d6922`.
+- This is code construction only; browser/runtime/E2E verification remains outstanding.
