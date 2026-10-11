@@ -210,3 +210,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Customer education discovery now shows only schools and teachers explicitly marked available, so the UI does not offer service requests against records marked unavailable.
 - Implementation commits: `54947fad3de57b4584806eb2a8e238a987b20d67`, `e7c1413e7b5f325d3841f1c7875ac5937357f88b`.
 - These are client-side usability guardrails, not substitutes for server-side RLS/business validation; runtime/E2E remains unverified.
+
+
+## 2026-10-11 — SESSION-020 — Revalidate customer actions against loaded records
+- Job application form now re-checks that the selected job is present in the current loaded dataset and explicitly active before presenting/submitting the form.
+- Education request form now re-checks that the target is a loaded school/teacher marked available and that the target type is recognized.
+- These client-side checks reduce stale/direct UI actions but do not replace backend RLS and RPC validation.
+- Implementation commit: `02ae35ae66ea07abdf013544b4840950565cfa93`.
+- Runtime/E2E remains unverified; no production changes.
