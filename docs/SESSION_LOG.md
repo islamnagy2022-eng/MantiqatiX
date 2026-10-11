@@ -151,3 +151,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Order placement remains an explicit button action; clicking elsewhere on a service card no longer accidentally opens the order flow.
 - Commit: `f402b79cf7476fd8e4651a5036ee1cb4023fb9e7`.
 - No gateway, provider, wallet, payment, schema, or production changes. Runtime verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-012 — SMM order input safeguards
+- SMM gateway calls now fail with an explicit authentication-required error when there is no access token, and use `cache: no-store` for gateway POST requests.
+- SMM order submission now requires a safe integer quantity within the service's advertised minimum/maximum bounds.
+- Commit: `03649e71396f8f9bef4b0625cc1df8a9f2fd8ae8`.
+- These are client-side safeguards only; gateway-side validation remains authoritative and no gateway/payment/wallet backend was changed. Runtime verification remains outstanding.
