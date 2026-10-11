@@ -1134,6 +1134,31 @@ function domainModuleTablesHtml(m,rows,errors={}){
   return '<section class="mx-domain-table-section"><div class="section-head"><div><h3>'+esc(table)+'</h3><p class="muted">'+(errors[table]?'NOT AVAILABLE — '+esc(errors[table]):data.length+' سجل محمّل وفق صلاحيات قاعدة البيانات')+'</p></div></div>'+exportButton+statusFilters+recordsTable(table,data,fields)+'</section>';
  }).join('');
 }
+function canCreateJobPost(){
+ const role=String(live.role||'').toUpperCase();
+ return window.MNTY_RBAC?.can(role,'الوظائف','create',live.permissions)===true||['SUPER_ADMIN','OWNER','ADMIN','BUSINESS_OWNER'].includes(role);
+}
+async function openJobPostForm(){
+ if(!user?.id)return authView();
+ if(!canCreateJobPost())return showToast('إنشاء الوظائف غير متاح لهذا الدور.','error');
+ const view=await openUnifiedRecordDetails({kicker:'JOBS WORKSPACE',title:'إضافة وظيفة جديدة',desc:'سيتم حفظ الوظيفة بهوية الحساب الحالي، وتخضع الكتابة لسياسات قاعدة البيانات وصلاحيات الحساب.',sections:[{title:'بيانات الوظيفة',html:'<form id="mx-job-post-form" class="mx-job-post-form"><label>المسمى الوظيفي<input name="title" required maxlength="180" autocomplete="off"></label><label>اسم الشركة<input name="company_name" required maxlength="180" value="'+esc(live.memberships?.find(m=>m.id===live.activeMembershipId)?.business_name||'')+'" autocomplete="organization"></label><label>الفئة<input name="category" required maxlength="100" autocomplete="off"></label><label>الموقع<input name="location" maxlength="180" autocomplete="address-level2"></label><label>نوع العمل<select name="job_type" required><option value="FULL_TIME">دوام كامل</option><option value="PART_TIME">دوام جزئي</option><option value="CONTRACT">تعاقد</option><option value="REMOTE">عن بُعد</option><option value="INTERNSHIP">تدريب</option></select></label><label>نطاق الراتب<input name="salary_range" maxlength="100" placeholder="اختياري"></label><label>الوصف<textarea name="description" rows="4" maxlength="6000" required></textarea></label><label>المتطلبات<textarea name="requirements" rows="3" maxlength="6000"></textarea></label><div class="mx-job-form-actions"><button type="submit" class="btn btn-primary">حفظ الوظيفة</button><button type="button" class="btn btn-secondary" data-job-form-close>إلغاء</button></div><p class="muted">لا يتم نشر رقم هاتف أو بيانات تواصل من هذه الشاشة. إذا رفضت قاعدة البيانات العملية فلن يتم تجاوز RLS.</p></form>'}]});
+ const form=view.overlay.querySelector('#mx-job-post-form');if(!form)return;
+ view.overlay.querySelector('[data-job-form-close]')?.addEventListener('click',view.close);
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();if(!canCreateJobPost())return showToast('انتهت صلاحية إنشاء الوظائف لهذا الدور.','error');
+  const submit=form.querySelector('[type="submit"]');if(submit){submit.disabled=true;submit.textContent='جارٍ الحفظ…'}
+  const value=name=>String(new FormData(form).get(name)||'').trim();
+  const company=value('company_name'),title=value('title'),category=value('category');
+  if(!company||!title||!category){if(submit){submit.disabled=false;submit.textContent='حفظ الوظيفة'}return showToast('أكمل المسمى والشركة والفئة.','error')}
+  const payload={owner_user_id:user.id,tenant_id:live.tenantId||null,business_id:live.businessId||null,title,company_name:company,employer_name:company,category,location:value('location')||null,job_type:value('job_type'),salary_range:value('salary_range')||null,description:value('description'),requirements:value('requirements')||null,is_active:true};
+  try{
+   const {error}=await sb.from('jobs').insert(payload).select('id,title,is_active').single();
+   if(error)throw error;
+   view.close();showToast('تم حفظ الوظيفة بنجاح.','success');
+   const m=domainModules.find(x=>x.key==='JOBS');if(m){const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;await loadDomainWorkspaceRows(m);}
+  }catch(error){showToast('تعذر حفظ الوظيفة: '+String(error?.message||'خطأ غير معروف'),'error');if(submit){submit.disabled=false;submit.textContent='حفظ الوظيفة'}}
+ });
+}
 function domainModuleWorkspace(){
  const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();
  const d=live.moduleData[m.key]||{tables:{},ready:false};
@@ -1152,7 +1177,9 @@ if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
  if(!d.rowsReady){loadDomainWorkspaceRows(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل سجلات الوحدة الفعلية ضمن نطاق الحساب والصلاحيات…</div>';}
  const cards=m.tables.map(t=>[t,d.errors?.[t]?'غير متاح':String((d.rows?.[t]||[]).length),'سجلات محمّلة؛ لا تمثل بالضرورة إجمالي التاريخ']);
  if(!m.tables.length)cards.push(['حالة المخطط','—','لا توجد مصادر معرفة لهذه الوحدة']);
+ const moduleActions=m.key==='JOBS'&&canCreateJobPost()?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openJobPostForm()">+ إضافة وظيفة</button></div>':'';
  return workspaceHead(m.key,m.name,m.desc,'LIVE')
+  +moduleActions
   +workspaceCards(cards)
   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
   +(m.key==='MEDICAL'?enterpriseRowsTable(m,d.rows||{}):domainModuleTablesHtml(m,d.rows||{},d.errors||{}))
