@@ -16,9 +16,10 @@ const firstCredentialReference = migrations.find(({ sql }) =>
 const createsCredentialsTable = migrations.some(({ sql }) =>
   /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_provider_credentials"?\b/i.test(sql)
 );
-const createsProvidersTable = migrations.some(({ sql }) =>
+const providerCreationMigration = migrations.find(({ sql }) =>
   /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_providers"?\b/i.test(sql)
 );
+const testBaselineVersion = "20260927074159";
 
 if (!fs.existsSync(baselinePath)) {
   console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
@@ -48,9 +49,9 @@ if (!firstCredentialReference) {
   console.error("P0 BLOCKED: no migration references smm_provider_credentials; expected historical privilege migration was not found.");
   process.exit(1);
 }
-if (!createsProvidersTable) {
-  console.error("P0 BLOCKED: the approved credentials baseline has a foreign key to public.smm_providers(id), but no committed migration creates public.smm_providers.");
-  console.error("Recover authoritative provider-table DDL or obtain separate explicit approval for a test-only provider baseline. Do not invent a minimal provider table or bypass the dependency.");
+if (!providerCreationMigration || providerCreationMigration.name.slice(0, 14) >= testBaselineVersion) {
+  console.error("P0 BLOCKED: the approved credentials baseline needs public.smm_providers before test-only migration version " + testBaselineVersion + ", but no earlier committed migration creates that table.");
+  console.error("Recover authoritative provider-table DDL or obtain separate explicit approval for a test-only provider baseline that can be ordered before the credentials baseline. Do not invent a minimal provider table or bypass the dependency.");
   process.exit(1);
 }
 console.log("Historical schema baseline preflight PASS: approved credentials baseline validated and provider table creation source found.");
