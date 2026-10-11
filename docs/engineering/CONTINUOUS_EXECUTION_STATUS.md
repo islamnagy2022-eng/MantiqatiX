@@ -6,8 +6,8 @@ Last updated: 2026-10-11 — RC453 source CI verified; production release not ce
 
 ## Latest continuation — explicit migration-chain gate (2026-10-11)
 
-- Draft PR [#193](https://github.com/islamnagy2022-eng/MantiqatiX/pull/193) strengthens `scripts/production/verify-production.mjs` to check 27 required forward-only migration source files across payment, SMM, ERP/finance, security, privacy, CRM, and marketing tracks.
-- Missing required migration sources now produce a P0 `BLOCKED` release-gate result instead of leaving the source verification result merely `NOT VERIFIED`. A companion contract validator is wired into Pages validation.
+- Draft PR [#193](https://github.com/islamnagy2022-eng/MantiqatiX/pull/193) strengthens `scripts/production/verify-production.mjs` to check 28 required forward-only migration source files across payment, SMM, ERP/finance, security, privacy, CRM, and marketing tracks.
+- Missing required migration sources now produce a P0 `BLOCKED` release-gate result instead of leaving the source verification result merely `NOT VERIFIED`. A companion contract validator is wired into Pages validation. The verifier also blocks certification if the RC-number sequence conflicts with filename timestamp order, which is currently present around the RC442/RC444/RC446 sequence and must be reconciled before migration rehearsal.
 - This gate intentionally does not claim that source migrations are applied to production. The live migration ledger remains at RC424, the RC424 source/ledger identity mismatch still needs reconciliation, and the RC425–RC441 payment/finance/security migration batch is not fully present on `main`.
 - No production schema, data, grants, Auth configuration, Edge Functions, payments, or wallet state was changed by this work.
 
