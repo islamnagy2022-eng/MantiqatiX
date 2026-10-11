@@ -55,12 +55,28 @@ for(let i=1;i<presentReleaseMigrations.length;i++){
   const previous=presentReleaseMigrations[i-1].slice(0,14), current=presentReleaseMigrations[i].slice(0,14);
   if(current<previous)migrationTimestampOrderViolations.push(`${presentReleaseMigrations[i-1]} -> ${presentReleaseMigrations[i]}`);
 }
-const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0;
+const reconciliationPath="docs/release/production-migration-reconciliation.json";
+let reconciliation=null, reconciliationParseError=null;
+try { reconciliation=JSON.parse(read(reconciliationPath)); } catch (error) { reconciliationParseError=String(error); }
+const liveReconciliationVerified=Boolean(
+  reconciliation &&
+  reconciliation.status==="VERIFIED" &&
+  reconciliation.verified===true &&
+  reconciliation.source_ledger_identity_reconciled===true &&
+  reconciliation.required_release_migrations_applied===true &&
+  reconciliation.chronological_replay==="PASS" &&
+  reconciliation.tenant_isolation_tests==="PASS" &&
+  reconciliation.payment_finance_e2e==="PASS" &&
+  reconciliation.backup_restore_rehearsal==="PASS" &&
+  typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
+  typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
+);
+const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked
-    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. RC424 ledger/source identity and live application order still require independent reconciliation.`
-    : `All ${requiredReleaseMigrations.length} known post-RC424 release migrations are present and timestamp-ordered in source; this does not prove they are applied in production.`,
-  migrationChainBlocked?"P0":"P1");
+    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,payment_finance_e2e:reconciliation.payment_finance_e2e,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
+    : `All ${requiredReleaseMigrations.length} required source migrations are present and timestamp-ordered, and the live reconciliation manifest records completed ordered replay plus required runtime/security evidence at ${reconciliation.evidence_ref}.`,
+  "P0");
 const wf=exists(".github/workflows/pages.yml")?read(".github/workflows/pages.yml"):"";for(const v of ["validate-production-gate-contract.mjs","validate-finance-boundaries.mjs","validate-digital-pages-boundaries.mjs","validate-security-definer-contract.mjs"])add("CI-"+v,"CI/CD",wf.includes(v)?"PASS":"FAIL",wf.includes(v)?`workflow invokes ${v}`:`workflow missing ${v}`,"P1");
 const report={generated_at:new Date().toISOString(),mode:"source_contract",note:"Runtime/Production claims require live evidence and are never inferred from source presence.",results,summary:Object.fromEntries(["PASS","FAIL","PARTIAL","BLOCKED","NOT VERIFIED"].map(s=>[s,results.filter(r=>r.status===s).length])),production_gate:results.some(r=>(r.status==="FAIL"||r.status==="BLOCKED")&&r.severity==="P0")?"BLOCKED":"NOT VERIFIED"};
 const out=path.join(root,"artifacts","production-verification");fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,"production-verification.json"),JSON.stringify(report,null,2)+"\n");for(const r of results)console.log(`[${r.status}] [${r.category}] ${r.id} — ${r.evidence}`);console.log(`PRODUCTION_GATE=${report.production_gate}`);console.log("REPORT=artifacts/production-verification/production-verification.json");const nonProductionValidation=process.env.GITHUB_EVENT_NAME==="pull_request"||(process.env.GITHUB_EVENT_NAME==="push"&&process.env.GITHUB_REF!=="refs/heads/main");if(results.some(r=>(r.status==="FAIL"||r.status==="BLOCKED")&&r.severity==="P0")&&!nonProductionValidation)process.exitCode=1;
