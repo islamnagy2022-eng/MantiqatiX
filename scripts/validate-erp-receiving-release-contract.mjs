@@ -17,6 +17,8 @@ assert.match(edge,/const id = String\(body\.id \?\? ""\)\.trim\(\)/,"receipt ope
 assert.match(edge,/ORIGIN_NOT_ALLOWED/,"cross-origin requests must be rejected");
 assert.match(rc434,/insert into public\.erp_purchase_receipts[\s\S]*insert into public\.stock_balances[\s\S]*insert into public\.inventory_transactions/i,"receipt, stock and inventory ledger must be atomic");
 assert.match(rc434,/RECEIPT_IDEMPOTENCY_CONFLICT/,"conflicting receipt replay must fail closed");
+assert.match(rc434,/upper\(m\.role\) in \([^)]*\x27PURCHASING\x27/,"the atomic primitive and RC437 wrapper must accept the same purchasing role");
+assert.match(rc434,/RC437 wraps this primitive with approved purchase-order line and cumulative-quantity enforcement/,"RC434 must document that line-aware RC437 is the required release path");
 assert.match(rc437,/v_line\.received_quantity\+p_received_quantity>v_line\.ordered_quantity/,"cumulative receiving cannot exceed ordered quantity");
 assert.match(rc437,/receive_purchase_stock_atomic_backend[\s\S]*from public,anon,authenticated,service_role/i,"service role must not bypass the line-aware wrapper");
 assert.match(rc438,/create_purchase_order_with_lines_backend/,"order creation must be server-authoritative");
