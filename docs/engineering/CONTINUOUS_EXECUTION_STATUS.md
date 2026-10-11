@@ -360,3 +360,13 @@ All Supabase production queries were read-only. No production migrations, table 
 - At exact head `0d08e2a66f8c60eb7cf05d38e8ac1167cfc967c3`, Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy CI all passed. The isolated RC434 atomic-receiving and RC437 order-line PostgreSQL jobs passed, as did the static contract and JavaScript syntax checks.
 - This does not prove browser-to-live-Edge-to-production-database E2E. Do not deploy the functions until RC434/RC437/RC438 are reviewed as part of the complete chronological migration chain, and the base migration PR collision with PR #84 is resolved.
 - Redundant draft PR #200 was closed unmerged because it duplicated migration filenames; PR #201 replaces it as a stacked, non-migration-changing implementation PR.
+
+
+## Current-main reconciliation — release candidate 2026-10-11
+
+- Clean reconciliation is based on current `main` checkpoint `8a56358d505d2c12878440037f7f24ba65d2ea10`; it preserves the current main Pages workflow and adds the Paymob signed-order-binding validator to the validation gate.
+- Candidate source changes restore RC425–RC432, RC434–RC441, RC457 and RC458 migration sources, plus isolated PostgreSQL integration tests and scoped payment/finance/ERP Edge Function fixes. RC433 is not inferred to exist. These are source-only candidates and are not applied to production.
+- RC424 applied-ledger statement version `20261008222845` was verified byte-for-byte identical to the source statement (7,208 bytes); retain the immutable ledger version and treat the filename timestamp as a legacy alias.
+- Full disposable replay remains blocked: applied migration history and repository sources contain references to `public.smm_provider_credentials` but no authoritative create-table statement. Live catalog evidence is recorded separately; it is not substituted for historical DDL or silently pre-seeded into a replay fixture.
+- RC458 now scopes purchase-order approval role selection to the target branch and organization and preserves the existing branch-scoped `PURCHASING` receiving permission. Cross-branch privilege-escalation and positive purchasing-role cases are in the disposable integration suite; latest exact-head CI must pass before this candidate is considered verified.
+- No production migration, grant/RLS/Auth change, Edge Function deployment, payment, wallet mutation, or customer-data write was performed. Release remains **NOT CERTIFIED**.

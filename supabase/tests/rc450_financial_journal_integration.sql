@@ -93,7 +93,7 @@ begin
   end;
   if not rejected then raise exception 'branch-scoped actor was not rejected'; end if;
 
-  -- Replayed journal IDs fail closed and must not append duplicate lines.
+  -- RC450 stage still fails closed on a duplicate journal ID; RC457 adds exact-payload idempotency.
   rejected := false;
   begin
     perform public.post_financial_journal_backend(actor,entry,lines);

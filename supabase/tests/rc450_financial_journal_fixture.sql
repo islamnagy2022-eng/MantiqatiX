@@ -65,6 +65,16 @@ create table public.chart_of_accounts (
   tenant_id varchar not null,
   is_active boolean not null default true
 );
+-- Legacy RPC signatures that RC436 hardens before RC450 replaces the backend contract.
+create or replace function public.post_financial_journal(jsonb,jsonb)
+returns jsonb language sql security definer set search_path=public as $legacy$
+  select '{}'::jsonb;
+$legacy$;
+create or replace function public.post_financial_journal_backend(uuid,jsonb,jsonb)
+returns jsonb language sql security definer set search_path=public as $legacy$
+  select '{}'::jsonb;
+$legacy$;
+
 create table public.journal_entries (
   id varchar primary key,
   tenant_id varchar not null,
@@ -79,6 +89,7 @@ create table public.journal_entries (
   total_debit numeric not null,
   total_credit numeric not null,
   entry_date date not null,
+  created_at timestamptz not null default current_timestamp,
   posted_at timestamptz not null,
   created_by uuid not null
 );

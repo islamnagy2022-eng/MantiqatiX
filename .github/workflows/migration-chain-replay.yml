@@ -1,0 +1,111 @@
+name: Disposable Supabase Migration Chain Replay
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - ".github/workflows/migration-chain-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migration-chain-replay-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay-all-migrations:
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Fail closed if the historical schema baseline is missing
+        run: node scripts/validate-historical-schema-baseline.mjs
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create disposable local Supabase config
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > supabase/config.toml <<'TOML'
+          project_id = "mantiqatix-migration-ci"
+
+          [api]
+          enabled = true
+          port = 54321
+          schemas = ["public", "graphql_public"]
+          extra_search_path = ["public", "extensions"]
+          max_rows = 1000
+
+          [db]
+          port = 54322
+          shadow_port = 54320
+          major_version = 15
+
+          [db.migrations]
+          enabled = true
+          schema_paths = []
+
+          [db.seed]
+          enabled = false
+
+          [auth]
+          enabled = true
+          site_url = "http://127.0.0.1:3000"
+          additional_redirect_urls = ["http://127.0.0.1:3000"]
+          jwt_expiry = 3600
+          enable_signup = true
+
+          [studio]
+          enabled = false
+          TOML
+
+      - name: Login to Docker Hub when credentials are configured
+        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Start disposable Supabase services (retry on registry throttling)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4; do
+            if timeout --kill-after=15s 180s supabase start -x studio,edge-runtime,logflare,vector,supavisor; then
+              exit 0
+            fi
+            if [[ "$attempt" -lt 4 ]]; then
+              supabase stop --no-backup || true
+              sleep $((attempt * 30))
+            fi
+          done
+          echo "Supabase local stack failed after four attempts." >&2
+          exit 1
+
+      - name: Replay every migration in repository timestamp order
+        run: supabase db reset --local
+
+      - name: Record local migration ledger
+        run: supabase migration list --local
+
+      - name: Verify replay completed
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d supabase/migrations
+          test "$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)" -gt 0
+          echo "Full disposable Supabase migration replay completed."
