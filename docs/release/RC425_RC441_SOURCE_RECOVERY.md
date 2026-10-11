@@ -16,3 +16,12 @@ Recover the 16 migration source files that are referenced by the production rele
 - RC434–RC441
 
 RC433 is not part of this recovered set and must not be inferred to exist or be applied.
+
+ 
+## Follow-on ERP receiving work — 2026-10-11
+
+- Draft PR [#202](https://github.com/islamnagy2022-eng/MantiqatiX/pull/202) stacks ERP atomic receiving work on this migration recovery branch.
+- The candidate `erp-purchase-receive` function uses authenticated identity and a line-aware atomic RPC. RC434 and RC437/RC438 isolated PostgreSQL jobs passed on the initial implementation head; the first static validator failed because its regex did not allow the RPC argument list, and that validator was corrected.
+- A later full module workflow run exposed missing historical test fixtures/validators in the stacked branch. The full module-professionalization workflow has been restored (rather than reduced), and missing RC425/RC431/RC432/RC435/RC436/RC439/RC440/RC441 test assets and validators have been recovered from the same reviewed source branch.
+- Latest-head CI for `902806f98a23218fdc2490e927856b4992d56973` is queued. Do not claim it passed until the corresponding run and all jobs complete successfully.
+- PR #202 remains draft and non-mergeable while its base PR #194 and the production migration reconciliation remain open. No live Supabase writes or deployments occurred.
