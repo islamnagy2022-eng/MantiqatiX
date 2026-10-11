@@ -255,3 +255,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** global search now includes `marketing_campaigns` using explicit title/objective/status fields and the existing marketing-module RBAC filter. Database RLS remains in force.
 - **Compatibility:** if RC453 is absent, that search source fails closed to an empty result through the existing per-source error handling; no alternate direct-write/read path is added.
 - **Next:** continue module build-out.
+
+## 2026-10-11 — SESSION-031 — Improve campaign and partner identification
+
+- **Code commit:** [f32e3af061aaa1dfd11dbabe70d9aae47bfe52bc](https://github.com/islamnagy2022-eng/MantiqaTix/commit/f32e3af061aaa1dfd11dbabe70d9aae47bfe52bc).
+- **Built:** campaign cards show the associated business name when available; participant rows show partner display names from the loaded eligible partner profiles, falling back to provider ID if no display profile is available.
+- **Scope:** no new data query; names come from existing RLS-scoped business/partner results.
+- **Next:** continue module build-out.
