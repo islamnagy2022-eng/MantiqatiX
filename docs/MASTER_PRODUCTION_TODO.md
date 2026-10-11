@@ -1673,3 +1673,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## BUILD-ONLY continuation — 2026-10-11 — SESSION-018
 - [x] Added searchable Used Items marketplace workspace with available/sold filters, safe record details, and CSV export.
 - [ ] Browser/runtime and E2E verification remain deferred until construction is complete, per current instruction.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-019
+- [x] Customer job discovery now excludes inactive listings.
+- [x] Customer education discovery now excludes schools/teachers explicitly marked unavailable.
+- [ ] Confirm backend/RLS enforcement and E2E behavior after construction phase; client filters are not security controls.
