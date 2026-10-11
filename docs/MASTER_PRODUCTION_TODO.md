@@ -1600,3 +1600,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added tailored jobs/applications views and CSV exports.
 - [ ] Runtime/RLS verification is deferred until the planned post-construction review phase; no success claim yet.
 - [ ] Continue building remaining modules before broad reviews.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-007
+- [x] Unified Module Center now separates core modules from sectors and exposes explicit open actions.
+- [x] SMM added to Module Center and permission-aware main dashboard / Marketing command center shortcuts.
+- [ ] Continue completing remaining sector workflows and operational actions; defer broad reviews until construction is complete.
