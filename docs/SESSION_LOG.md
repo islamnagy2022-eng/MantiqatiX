@@ -56,3 +56,18 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Production impact:** none; no database or financial mutations and no deployment.
 - **Not done:** no broad review or end-to-end verification; this is not module completion.
 - **Next construction step:** continue adding functionality to specialized modules without repeating prior audits. After construction across all modules is complete, perform the requested reviews and verification phase.
+
+
+## 2026-10-11 — SESSION-004 — Build CRM, operations, and analytics workflows
+
+- **Implemented on the same build branch:**
+  - CRM lead list now has status filters generated from the statuses actually present in the loaded records; no assumed lifecycle values are inserted.
+  - Operations workspace order cards now have status filters generated from currently loaded order statuses.
+  - Marketing workspace has per-table status filters for leads, projects, and advertisements; filters are scoped to their corresponding table and preserve the shared pagination/search behavior.
+  - Analytics workspace now includes an accessible status-distribution visualization based on loaded order records and explicit CSV exports for available operational datasets.
+  - Shared table rendering now exposes normalized record status metadata to support exact status filters.
+  - Export functionality remains allowlisted and reads only loaded records; no mutation path was introduced.
+- **Code commits:** `abe5831712f81ababa9cf230992b8e349cc8f67c`, `348f4409b49702ab38f91bd5e902605eb8ee4c21`, `7f8b76728514d699085d64c09b593e87e364a42a`, `d58f249eb17fcfa566824e43e5e501477592a32b`, `b6bb8aeaec3c7e453c39dd2b8c8cf50636313f3d`, `658cdefb343900711e1ea1f415b9734924af3bf7`, `13345875befc34b217f1c260def77f147b434864`.
+- **Production impact:** none. No database or financial writes, no deployment.
+- **Review status:** broad reviews remain deferred per user instruction; no E2E or release verification is claimed.
+- **Next:** continue module construction. Add functionality using existing backend contracts; do not create speculative mutation endpoints or schema migrations while the existing migration sequence is unresolved.
