@@ -6,6 +6,31 @@ begin
 end
 $$;
 
+create table public.user_memberships (
+  id text primary key,
+  user_id uuid not null,
+  tenant_id varchar not null,
+  business_id uuid not null,
+  branch_id varchar not null,
+  role varchar not null,
+  status varchar not null default 'ACTIVE'
+);
+create table public.audit_logs (
+  id text primary key,
+  tenant_id varchar not null,
+  organization_id varchar,
+  business_id uuid,
+  branch_id varchar,
+  actor_user_id uuid not null,
+  action varchar not null,
+  entity_type varchar not null,
+  entity_id text not null,
+  old_values jsonb default '{}'::jsonb,
+  new_values jsonb default '{}'::jsonb,
+  result varchar not null default 'SUCCESS',
+  created_at timestamptz not null default now()
+);
+
 create table public.restaurant_tables (
   id text primary key,
   tenant_id text not null,
