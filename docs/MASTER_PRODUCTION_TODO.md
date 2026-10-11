@@ -1605,3 +1605,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Add finance counts to Reports only for sessions with the existing role-gated finance snapshot.
 - [x] Add detail actions for loaded orders, leads, and support tickets; unsupported record types remain read-only.
 - [ ] Validate detail handler invocation and finance visibility by role.
+
+ 
+## SMM role dashboard — SESSION-009
+- [x] Add SMM entry to MARKETING, PROVIDER_MARKETING, OWNER role dashboards with existing RBAC filtering.
+- [x] Correct an intermediate source-prefix duplication in the next commit.
+- [ ] Confirm CI and runtime behavior after the build phase.
