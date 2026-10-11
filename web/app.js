@@ -1216,16 +1216,24 @@ function educationWorkspace(rows,errors={}){
  const customer=String(live.role||'').toUpperCase()==='CUSTOMER';
  const schoolRows=schools.map(x=>Object.assign({},x,{_education_action:customer?'<button type="button" class="linkbtn" data-education-request="'+esc(x.id)+'" data-education-type="SCHOOL" data-education-label="'+esc(x.name||'مدرسة')+'">طلب خدمة</button>':'—'}));
  const teacherRows=teachers.map(x=>Object.assign({},x,{_education_action:customer?'<button type="button" class="linkbtn" data-education-request="'+esc(x.id)+'" data-education-type="TEACHER" data-education-label="'+esc(x.name||'مدرس')+'">طلب خدمة</button>':'—'}));
- return workspaceHead('EDUCATION','التعليم والتدريب','استكشاف المدارس والمدرسين وإنشاء طلب تعليمي مرتبط بحساب العميل.','LIVE')
+ return '<section class="mx-education-workspace">'+workspaceHead('EDUCATION','التعليم والتدريب','استكشاف المدارس والمدرسين وإنشاء طلب تعليمي مرتبط بحساب العميل.','LIVE')
+  +'<div class="card" style="margin:12px 0;padding:14px"><label for="mx-education-search">بحث داخل المدارس والمدرسين والطلبات المحمّلة</label><input id="mx-education-search" class="input" type="search" placeholder="اسم المدرسة أو المدرس أو المادة أو الموقع..."><p class="muted" id="mx-education-search-count">عرض السجلات المحمّلة وفق الصلاحيات.</p><div class="mx-workspace-shortcuts"><button type="button" data-domain-export-table="school_profiles">تصدير المدارس CSV</button><button type="button" data-domain-export-table="teacher_profiles">تصدير المدرسين CSV</button><button type="button" data-domain-export-table="education_requests">تصدير الطلبات CSV</button></div></div>'
   +workspaceCards([['مدارس محمّلة',schools.length,'السجلات المتاحة وفق RLS'],['مدرسون محمّلون',teachers.length,'السجلات المتاحة وفق RLS'],['طلبات تعليمية مرئية',requests.length,'طلبات يسمح بها نطاق الحساب']])
   +(errors.school_profiles||errors.teacher_profiles?'<div class="notice">بعض مصادر التعليم غير متاحة ضمن صلاحيات الحساب الحالية.</div>':'')
   +recordsTable('المدارس',schoolRows,[['المدرسة',r=>r.name||'—'],['النوع',r=>r.school_type||'—'],['الموقع',r=>r.location||'—'],['التقييم',r=>r.rating??'—'],['المراحل',r=>Array.isArray(r.available_grades)?r.available_grades.join('، '):(r.available_grades||'—')],['المصروفات',r=>r.tuition_fee??'—'],['متاحة',r=>r.is_available?'نعم':'لا'],['الإجراء',r=>r._education_action]])
   +recordsTable('المدرسون',teacherRows,[['المدرس',r=>r.name||'—'],['المادة',r=>r.subject||'—'],['التقييم',r=>r.rating??'—'],['سعر الساعة',r=>r.hourly_rate??'—'],['الخبرة',r=>r.experience_years??'—'],['الموقع',r=>r.location||'—'],['متاح',r=>r.is_available?'نعم':'لا'],['الإجراء',r=>r._education_action]])
-  +recordsTable('طلباتي التعليمية',requests,[['الجهة',r=>r.target_type||'—'],['المادة/المرحلة',r=>r.subject_or_grade||'—'],['الحالة',r=>r.status||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']]);
+  +recordsTable('طلباتي التعليمية',requests,[['الجهة',r=>r.target_type||'—'],['المادة/المرحلة',r=>r.subject_or_grade||'—'],['الحالة',r=>r.status||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']])+'</section>';
 }
 function bindEducationWorkspaceActions(){
  if(window.__MNTYEducationActionsBound)return;
  window.__MNTYEducationActionsBound=true;
+ document.addEventListener('input',e=>{
+  if(e.target?.id!=='mx-education-search')return;
+  const root=e.target.closest('.mx-education-workspace');if(!root)return;
+  const q=String(e.target.value||'').trim().toLowerCase();let visible=0,total=0;
+  root.querySelectorAll('table tbody tr').forEach(row=>{total++;const match=!q||String(row.innerText||row.textContent||'').toLowerCase().includes(q);row.hidden=!match;if(match)visible++;});
+  const count=root.querySelector('#mx-education-search-count');if(count)count.textContent=q?('السجلات المطابقة: '+visible+' من '+total):('كل السجلات المحمّلة: '+total);
+ });
  document.addEventListener('click',e=>{
   const btn=e.target.closest('[data-education-request]');if(!btn)return;
   openEducationRequestForm(btn.dataset.educationRequest,btn.dataset.educationType,btn.dataset.educationLabel);
