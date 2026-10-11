@@ -611,3 +611,7 @@ This status is intentional and must remain until the open gates above are indepe
 ## Build progress — SESSION-014
 - Commits `b33d3e3ba5b235de2bcdc76a93d7d57344e5be9f` / `7764e9725f622f65c02fa551e494da20d1ba9929`: primary Marketing workspace gained CSV export for session-loaded leads, projects, ads, providers and services.
 - Export is sample-scoped, Arabic-compatible, and prefixes spreadsheet formula-like cells; test after build.
+
+ 
+## Build progress — SESSION-015
+- Commit `654de7f87f9ba48482609e067118c1d163f55b3a`: primary CRM workspace gained CSV export for loaded leads, tickets and notifications. No query scope expansion.
