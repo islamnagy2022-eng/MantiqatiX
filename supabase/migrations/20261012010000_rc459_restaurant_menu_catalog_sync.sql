@@ -78,8 +78,7 @@ begin
 
   if v_menu_exists then
     v_old_menu := pg_catalog.to_jsonb(v_menu);
-    if v_menu.owner_user_id is distinct from p_actor_user_id
-       or v_menu.tenant_id is distinct from v_tenant_id
+    if v_menu.tenant_id is distinct from v_tenant_id
        or v_menu.business_id is distinct from v_business_id
        or v_menu.branch_id is distinct from v_branch_id then
       raise exception 'RESTAURANT_MENU_ITEM_FORBIDDEN';
