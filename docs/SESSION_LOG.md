@@ -202,3 +202,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **User impact:** reload can discard unsaved in-frame form values; the control is explicit and does not deploy or mutate backend state.
 - **Tests:** pending post-build validation.
 - **Next:** continue build-first work.
+
+## 2026-10-11 — SESSION-024 — Add search/export to sector data tables
+
+- **Code commits:** [e747965f0b2a0a416ff3c5ee2a9c63e4e5d7673b](https://github.com/islamnagy2022-eng/MantiqaTix/commit/e747965f0b2a0a416ff3c5ee2a9c63e4e5d7673b) and [e8f93175d7ffb120c7e7a6d62bb5e665fb114a10](https://github.com/islamnagy2022-eng/MantiqaTix/commit/e8f93175d7ffb120c7e7a6d62bb5e665fb114a10).
+- **Built:** shared table UI in sector modules (Fashion, Education, Jobs, Used Items) now has local search and CSV export limited to the displayed table's columns/rows.
+- **Correction:** the first helper write over-escaped regex and delimiter literals. The follow-up commit replaced the helper with correctly preserved JavaScript escapes for formula-prefixing, UTF-8 BOM, CRLF, and Arabic filename handling. Current source was inspected to confirm the intended literals are present; runtime tests are still pending.
+- **Next:** continue build-out and test the shared sector table behavior after the build phase.
