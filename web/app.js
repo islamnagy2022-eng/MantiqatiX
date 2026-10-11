@@ -1289,8 +1289,10 @@ async function loadMarketingCampaignWorkspace(force=false){
    if(participantRes.error){st.available=false;st.error='CAMPAIGN_PARTICIPANTS_UNAVAILABLE';st.campaigns=[];st.participants=[];st.partners=[];}
    else{
     st.available=true;st.campaigns=campaignRes.data||[];st.participants=participantRes.data||[];
-    const partnerRes=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).not('owner_user_id','is',null).limit(50);
-    st.partners=partnerRes.error?[]:(partnerRes.data||[]).filter(p=>!live.businessId||!p.business_id||p.business_id!==live.businessId);
+    let partnerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).not('owner_user_id','is',null).limit(50);
+    if(live.businessId)partnerQuery=partnerQuery.or('business_id.is.null,business_id.neq.'+live.businessId);
+    const partnerRes=await partnerQuery;
+    st.partners=partnerRes.error?[]:(partnerRes.data||[]);
    }
   }
  }catch(_){st.available=false;st.error='CAMPAIGN_BACKEND_UNAVAILABLE';st.campaigns=[];st.participants=[];st.partners=[];}
@@ -1311,7 +1313,7 @@ async function submitMarketingCampaign(form){
  let audience={};try{audience=JSON.parse(document.getElementById('mx-campaign-audience')?.value||'{}')}catch(_){return showToast('صيغة الجمهور المستهدف يجب أن تكون JSON صحيحة.','error')}
  if(!title||title.length<3||title.length>160||!['AWARENESS','TRAFFIC','LEADS','SALES','ENGAGEMENT','APP_INSTALLS'].includes(objective)||channels.length<1||channels.length>8||channels.some(x=>!['META','TIKTOK','GOOGLE','YOUTUBE','LINKEDIN','SNAPCHAT','OTHER'].includes(x))||!Number.isFinite(budget)||budget<0||budget>1000000000||!/^[A-Z]{3}$/.test(currency)||((startAt===null)!==(endAt===null))||(startAt&&endAt&&new Date(startAt)>=new Date(endAt))||!audience||typeof audience!=='object'||Array.isArray(audience)||JSON.stringify(audience).length>4000)return showToast('راجع اسم الحملة والميزانية والقنوات والتواريخ وبيانات الجمهور.','error');
  const brief=document.getElementById('mx-campaign-brief')?.value||'';
- const key=window.crypto?.randomUUID?.()||('mnty-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,14));
+ const key=form.dataset.idempotencyKey||(window.crypto?.randomUUID?.()||('mnty-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,14)));form.dataset.idempotencyKey=key;
  const btn=form.querySelector('button[type="submit"]');if(btn){btn.disabled=true;btn.textContent='جاري الحفظ…'}
  try{
   const {data,error}=await sb.rpc('create_marketing_campaign_backend',{p_actor:user.id,p_business_id:live.businessId,p_title:title,p_objective:objective,p_channels:channels,p_budget:budget,p_idempotency_key:key,p_currency:currency,p_start_at:startAt,p_end_at:endAt,p_target_audience:audience,p_brief:brief||null});
