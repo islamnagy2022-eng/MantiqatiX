@@ -1,6 +1,6 @@
 # SMM Trusted Read Gateway — Controlled Rollout Runbook
 
-**Status:** Planned only. PR #145 is source/CI-verified but not merged or deployed.  
+**Status:** BLOCKED — documentation only; no production rollout authorized. PR #145 is closed without merge. PR #188 merged the RC456 source migration, but RC456 is not confirmed applied in production. PR #189 is the current SMM UI candidate and remains a draft; its exact-head CI is not fresh against current main.  
 **Production safety:** No Edge Function deployment, secret change, wallet mutation, or payment is authorized by this document.
 
 ## Why the rollout must be coordinated
@@ -16,15 +16,20 @@ The gateway also tightens SMM administration: tenant OWNER/ADMIN roles alone no 
 3. Inventory the intended SMM administrators with an approved read-only review of `public.smm_admins` and active `user_memberships`. Do not print secrets or export unrelated user data.
 4. Confirm a dedicated authenticated test account exists for a non-admin, and an approved platform-admin test identity exists. Avoid real customer wallet changes and real provider transactions.
 5. Capture the currently deployed `smm-gateway` version and the current web asset/cache-key checkpoint for rollback.
-6. Confirm the deployment operator has explicit approval for the production Edge Function and web release. No production migration is needed for these two read actions.
+6. Confirm the deployment operator has separate explicit approval for the production migration batch, Edge Function release, and web publication. RC456 (`20261011010000_rc456_smm_service_role_access_boundary.sql`) changes production table privileges and is a required dependency for the reviewed gateway source; it is not confirmed applied. Do not proceed until the entire post-RC424 migration chain is reconciled, all migration-prefix collisions are resolved in the release plan, ordered replay passes on disposable PostgreSQL, and the migration batch has explicit approval. The connector must not apply this migration or deploy the function/web bundle.
 
-## Deployment order
+## Deployment order — blocked until authorized and reconciled
 
-1. **Deploy the updated `smm-gateway` Edge Function first.** Keep the web bundle on the previous version during this step.
-2. Run the gateway smoke tests below against the deployed function using test identities.
-3. If and only if the gateway tests pass, publish the matching web bundle containing `smm.js?v=smm9`, the embedded `smm.html?v=smm9` frame, and `app.js?v=rc452`.
-4. Verify the published asset URLs and exercise the SMM page in an authenticated browser.
-5. Record the deployed Edge Function version, web commit, test identity roles, timestamps, outcomes, and rollback decision.
+The source dependency is coordinated, not independently deployable. The following is a planning sequence only; this runbook does not grant authorization.
+
+1. Reconcile the live migration ledger against the exact ordered release batch beginning after RC424. Preserve the applied RC424 ledger version and its verified source alias; do not rewrite history. Resolve the five known duplicate timestamp-prefix groups and run full ordered replay plus required integration/security tests on disposable PostgreSQL/Supabase.
+2. Obtain explicit approval for the exact production migration batch, target project, and rollback/forward-repair plan. Apply no migration without that approval. RC456 changes service-role table privileges; verify its exact reviewed diff and least-privilege effect before approval.
+3. After the approved migration batch is verified, obtain separate explicit approval and deploy the matching `smm-gateway` Edge Function source that implements `catalog` and `my_data`. Keep the existing web bundle unchanged.
+4. Run all gateway smoke tests below using approved test identities; verify both positive and negative authorization cases and capture the deployed function version. If any test fails, stop before web publication.
+5. Only after gateway tests pass, obtain explicit web-publication approval and publish the matching reviewed SMM UI candidate. At the current checkpoint, PR #189 is a draft and behind main; refresh it to current main and obtain fresh CI before selecting a bundle. Confirm its exact cache keys from the reviewed head rather than reusing stale keys from PR #145.
+6. Verify published asset URLs and exercise the SMM page in an authenticated browser. Record the migration versions, function version, web commit, test identity roles, timestamps, outcomes, and rollback/forward-repair decision.
+
+**Hard stop:** if the migration ledger, chronological replay, gateway contract, or authorization evidence is incomplete, do not deploy any of the three layers.
 
 ## Gateway smoke tests
 
@@ -49,10 +54,11 @@ The gateway also tightens SMM administration: tenant OWNER/ADMIN roles alone no 
 
 ## Rollback
 
-1. If gateway tests fail before web deployment, leave the web bundle unchanged and roll back the Edge Function to its captured prior version.
-2. If web smoke tests fail after publication, restore the previous web bundle/cache keys first, verify the old UI works with the currently deployed gateway, then roll back the gateway if necessary.
-3. Do not “fix” rollout failures by broadening table grants, weakening RLS, adding tenant OWNER/ADMIN to the global allowlist, or logging credentials.
-4. Re-run the smoke tests after rollback and record the outcome.
+1. Before any approved production change, capture the exact currently deployed function/web versions, migration ledger, and backups required by the release plan.
+2. If gateway tests fail before web publication, leave the web bundle unchanged and execute only the pre-approved function rollback/forward-repair procedure.
+3. If web smoke tests fail after publication, restore the previous web bundle/cache keys according to the approved plan and verify compatibility with the currently deployed gateway. Do not assume the database privilege migration can be safely reversed without an explicitly reviewed plan.
+4. Do not “fix” rollout failures by broadening table grants, weakening RLS, adding tenant OWNER/ADMIN to the global allowlist, or logging credentials.
+5. Re-run the smoke tests after the approved recovery and record the outcome.
 
 ## Release boundary
 
