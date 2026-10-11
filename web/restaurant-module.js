@@ -85,7 +85,7 @@ function tabs(){
 }
 function menuView(){
  const add=canOperate()?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
- return shell('قائمة الطعام',tabs()+ '<div class="action-bar">'+add+'</div>'+
+ return shell('قائمة الطعام',tabs()+'<div class="notice" role="note" style="margin:12px 0">تنبيه تشغيلي: هذه الشاشة تحفظ القائمة المحلية في restaurant_menu_items، بينما الطلبات تستخدم catalog_items والأسعار الفعالة. الربط التلقائي بين المصدرين لم يكتمل بعد؛ إضافة صنف هنا وحدها لا تجعله قابلًا للطلب.</div>'+ '<div class="action-bar">'+add+'</div>'+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
  (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate()?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
@@ -139,7 +139,7 @@ async function createRestaurantOrder(){
  try{
   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-  const rawItems=(catalog?.items||[]).filter(x=>String(x.status||'').toUpperCase()==='ACTIVE');
+  const rawItems=(catalog?.items||[]).filter(x=>String(x.status||'').toUpperCase()==='ACTIVE'&&String(x.item_type||'PRODUCT').toUpperCase()==='PRODUCT');
   const prices=(catalog?.prices||[]).filter(p=>String(p.status||'ACTIVE').toUpperCase()==='ACTIVE'&&String(p.currency||'EGP').toUpperCase()==='EGP'&&(!p.branch_id||String(p.branch_id)===String(m.branch_id)));
   const priceFor=item=>{
    const matches=prices.filter(p=>String(p.catalog_item_id)===String(item.id));
@@ -147,7 +147,7 @@ async function createRestaurantOrder(){
    return matches[0]||null;
   };
   const items=rawItems.map(item=>({...item,activePrice:priceFor(item)})).filter(item=>item.activePrice&&Number.isFinite(Number(item.activePrice.unit_price))&&Number(item.activePrice.unit_price)>=0);
-  if(!items.length)return notify('لا توجد أصناف نشطة لها سعر ساري بالجنيه في هذا الفرع.');
+  if(!items.length)return notify('لا توجد منتجات طعام من نوع PRODUCT بأسعار سارية في هذا الفرع. قائمة المطعم المحلية لا تُزامَن تلقائيًا مع كتالوج الطلبات حتى يكتمل الربط الآمن.','error');
   const orderId=crypto.randomUUID();
   const idempotencyKey='MNTY-REST-'+crypto.randomUUID();
   const optionRows=catalog?.options||[];
