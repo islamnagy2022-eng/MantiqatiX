@@ -28,19 +28,16 @@ Constraints and security metadata:
 
 ## Why this does not resolve the blocker
 
-The catalog result proves the current live table shape, not the original creation migration, original creation timestamp, full historical DDL, or how existing production rows were populated. The owner-approved scope is limited to using this exact credentials-table snapshot in disposable testing; it is not permission to rewrite migration history or apply any schema change to production.
+The catalog results establish the current live table shapes and security metadata, but do not recover the original historical creation migrations or prove how production rows were populated. The owner has now approved both production-derived schema snapshots for disposable replay only, resolving the test bootstrap dependency without inventing a provider schema. The baselines remain outside `supabase/migrations` in committed source and are copied into the temporary CI workspace only.
 
-A second dependency remains unresolved: the credentials table's observed foreign key references `public.smm_providers(id)`, but repository inspection found no committed migration creating `public.smm_providers`. The live provider-table schema was captured read-only in draft [PR #211](https://github.com/islamnagy2022-eng/MantiqaTix/pull/211), explicitly as evidence only and not as an approved replay baseline. The credentials baseline cannot be applied exactly until that prerequisite is authoritatively recovered or separately approved for isolated testing.
-
-Do not invent a backdated migration, rewrite applied history, bypass the historical migration, or substitute a minimal guessed provider table. Any approved test baseline must be versioned outside `supabase/migrations`, documented as test-only, and injected only into disposable infrastructure.
+Do not invent a backdated production migration, rewrite applied history, bypass historical migrations, or apply either test baseline to production. The baselines are schema-only and contain no provider records, API URL values, credential ciphertext, or other production rows.
 
 ## Required next steps
 
-1. Recover the original DDL for `smm_providers`, or obtain explicit owner approval for a separately versioned provider-table baseline limited to disposable testing.
-2. Store and validate the already-approved credentials-table snapshot as a test-only baseline outside the production migration history.
-3. Re-run the complete repository migration chain on disposable Supabase/PostgreSQL from an empty database with only explicitly approved test baselines.
-4. Verify final schema, constraints, RLS, grants, functions, indexes, and migration ledger against read-only production evidence.
-5. Test rollback/data-preservation and staged deployment plans only after clean replay and all acceptance tests pass.
+1. Re-run the complete repository migration chain on disposable Supabase/PostgreSQL from an empty database with both approved schema baselines injected in timestamp order.
+2. Verify final schema, constraints, RLS, grants, functions, indexes, and migration ledger against read-only production evidence.
+3. Fix the currently failing SMM wallet/provider safety contract, then rerun the exact-head integration suite.
+4. Test rollback/data-preservation and staged deployment plans only after clean replay and all acceptance tests pass.
 
 No production schema, data, grants, RLS, secrets, Edge Functions, wallet balances, or payments were changed during this investigation.
 
@@ -84,3 +81,15 @@ Together with the repository migration scan and current catalog evidence, this c
 - Migration version uniqueness, migration history immutability, open-PR migration collision guard, and approval-action audit PostgreSQL integration: **PASS** [runs 38138922783](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922783), [38138922806](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922806), [38138922776](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922776), and [38138922771](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138922771).
 - Full disposable migration replay: **BLOCKED**, fail-closed at `Fail closed if the historical schema baseline is missing` [run 38138919577](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38138919577). This is an expected release blocker, not a passing replay.
 - These results verify the candidate source/tests at the cited commit only. No migration was applied to production and no Edge Function was deployed. Release remains **NOT CERTIFIED**.
+
+
+## Owner approval and exact production-derived baselines — 2026-10-11
+
+- Owner instruction: “اعتمد المصدر عندك مصدر فعلي”. Interpreted narrowly as approval to use the observed live `public.smm_providers` schema as an actual source for a **test-only baseline**, not as permission to alter production or rewrite history.
+- Read-only catalog introspection confirmed `smm_providers`: UUID PK, unique `name`, the nine observed columns/defaults, RLS enabled, `FORCE RLS` disabled, policy `deny_direct_access_authenticated` (`authenticated`, `USING false`, `WITH CHECK false`), no non-internal triggers, and `service_role` grants limited to `REFERENCES`, `TRIGGER`, `TRUNCATE` in the observed table-grant view.
+- Added `supabase/tests/baselines/smm_providers.sql` with the observed schema only; no provider rows or `api_url` values were queried or copied. Existing approved credentials baseline remains schema-only and references the provider table with `ON DELETE CASCADE`.
+- Updated `scripts/validate-historical-schema-baseline.mjs` to validate both snapshots, test-only provenance, RLS/policies/grants, dependency order, and to fail closed if guessed production creation migrations or conflicting temporary files appear.
+- Updated `.github/workflows/migration-chain-replay.yml` to inject provider baseline `20260927074158` followed by credentials baseline `20260927074159` into the disposable CI workspace only. Neither temporary migration is committed under `supabase/migrations`.
+- Prior replay run [38153774338](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38153774338) failed at the old preflight before these latest commits. It is not evidence for or against the updated baseline flow; a new exact-head run must pass before replay is considered verified.
+- The latest previously observed module-professionalization run [38153777787](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38153777787) passed the general validator and most integration jobs but **failed `smm-wallet-integration`**. This independent release blocker remains open.
+- Production remains untouched. Release remains **BLOCKED / NOT CERTIFIED** until the new full replay and all security/integration/release gates pass.
