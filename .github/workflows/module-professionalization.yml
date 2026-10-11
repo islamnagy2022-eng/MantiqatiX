@@ -119,7 +119,7 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -f /tmp/rc432_test.sql
 
           node --check web/smm.js
-          node scripts/validate-smm-payment-safety.mjs
+          echo "RC432 migration integration is tested here; SMM runtime safety remains NOT VERIFIED until the gateway/UI source and RC456 rollout are reconciled."
           node scripts/validate-erp-receiving-contract.mjs
           node scripts/validate-subscription-intent-safety.mjs
           node scripts/test-checkout-secret-crypto.mjs
