@@ -713,3 +713,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-038
 - Commit `d2f14278994a91c84cdfee634a1fce41393eeab0`: provider invitation response controls now require the user's own active, verified profile, matching the backend contract.
+
+ 
+## Build progress — SESSION-039
+- Commit `5982394e6b05aaf54a6242733cd0df6b5d9eb050`: partner agreed values and totals now include campaign currency.
