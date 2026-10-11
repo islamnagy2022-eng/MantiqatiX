@@ -121,3 +121,22 @@
 - المراجعة السابقة للوظائف الحية أشارت إلى أن صلاحيات بعض عمليات الإدارة المالية والتسوية العامة تعتمد على عضوية نشطة ودور إداري دون اشتراط نطاق منصة صريح. لا يُعد هذا إصلاحًا مطبقًا لمجرد وجود ترحيل مرشح في المستودع؛ تظل المراجعة الحية والتطبيق المرحلي مطلوبين.
 - اكتشفت مراجعة CI أن اختبار التكامل كان يطبق RC441 فقط، رغم أن RC449 يعيد تعريف حارس مسؤول المنصة ولوحة الإدارة والتقرير المالي والتسوية وانتهاء الرحلات القديمة. عُدّل مسار الاختبار ليطبق RC441 ثم RC449 ويشغل اختبار الرفض/السماح بعد الترحيل الأخير، كما وُسّع الفاحص الثابت ليتحقق من حدود RC449 و`search_path` الفارغ لكل RPC حساس.
 - هذا تحسين لتغطية الاختبار، وليس إثباتًا لنجاحه بعد. يجب انتظار نتيجة exact-head CI ومراجعة الاختبار، ثم إجراء إعادة التشغيل الكاملة قبل أي تطبيق إنتاجي. لا تُجرى تعديلات مباشرة على الوظائف الحية.
+
+## 8. Exact-head recheck — 2026-10-11
+
+**Candidate evaluated:** `5107ac977a0afa1ffbe65e309e77bb10b279411b` on draft PR #207. This is the exact head before this report-only update; a fresh CI run is required for the resulting documentation commit.
+
+### CI evidence
+- `Module Professionalization Validation`: **PASS** — all 15 listed integration/validation jobs completed successfully, including ERP branch scope RC458, financial journal RC450/RC457, checkout recovery, Paymob atomicity, RC434 receiving, RC437 order-line limits, RC449 platform-admin scope, targeted-ad search-path integration, and SECURITY DEFINER search-path integration.
+- Migration history immutability, migration version uniqueness, open-PR migration collision guard, backend-only module boundary, MantiGO open-ride privacy boundary, approval-action audit atomicity, and SMM service-role access boundary: **PASS**.
+- Pages workflow: validation **PASS**, deploy **SKIPPED**. No deployment occurred.
+- Separate SMM deferred validation: **FAIL** with 15 post-launch SMM functional-safety assertions. These include bounded provider timeout, typed ambiguous outcomes/reconciliation, no automatic refund for uncertain outcomes, conditional persistence, missing provider ID ambiguity, backend-derived admin visibility, wallet RPC result checking, terminal-state protection, idempotent/validated admin credits, and authenticated-session enforcement. These failures remain visible; they are not reclassified as core-launch passes.
+
+### Live-state recheck
+- Supabase project remains `ACTIVE_HEALTHY`; the live migration ledger contains 283 versions and ends at `20261008222845` / RC424. RC425+ remain **not proven applied**.
+- Live `smm-gateway` remains **ACTIVE v6**, SHA256 `ea4de98886b739ed5ce83c7f5909671fd00481a8f488849ffe58567e58be6cd6`. Its live source does not contain `MNTY_SMM_ENABLED` and still includes order, wallet-debit, and provider-call paths. Candidate source deferral therefore does not contain the live API; issue #212 remains a P0 launch blocker.
+- The clean chronological replay remains fail-closed before service startup because ten legacy SECURITY DEFINER function creation dependencies are missing from the committed historical migration source before `20260927095000_revoke_unused_security_definer_execute.sql`. The uploaded RC40 source archive was also checked and contains none of those ten function names in its SQL files; this does not establish historical DDL. No privileged-function baseline has been approved or added.
+- Security Advisor and Auth findings described above remain open for evidence-based review; no Auth setting was changed.
+
+### Release decision and boundary
+**`BLOCKED / NOT CERTIFIED`.** This is not an approval to merge or deploy. No production migration, Edge Function change, Auth setting change, wallet/payment/financial write, or repository protection change was performed. Before launch, require an explicitly approved server-side SMM disable/deny deployment and negative live test, authoritative or separately approved test-only replay dependency resolution, successful full disposable chronological replay, current exact-head CI, production migration reconciliation, tenant-isolation/payment-finance E2E, backup-restore rehearsal, and approved repository protection.
