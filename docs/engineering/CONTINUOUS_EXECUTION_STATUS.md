@@ -370,3 +370,18 @@ All Supabase production queries were read-only. No production migrations, table 
 - Full disposable replay remains blocked: applied migration history and repository sources contain references to `public.smm_provider_credentials` but no authoritative create-table statement. Live catalog evidence is recorded separately; it is not substituted for historical DDL or silently pre-seeded into a replay fixture.
 - RC458 now scopes purchase-order approval role selection to the target branch and organization and preserves the existing branch-scoped `PURCHASING` receiving permission. Cross-branch privilege-escalation and positive purchasing-role cases are in the disposable integration suite; latest exact-head CI must pass before this candidate is considered verified.
 - No production migration, grant/RLS/Auth change, Edge Function deployment, payment, wallet mutation, or customer-data write was performed. Release remains **NOT CERTIFIED**.
+
+
+## Automated 30-stage continuation cycle — 2026-10-11
+
+Completed a 30-check review pass across the current candidate PR, exact-head CI, candidate SMM gateway/validators, migration replay controls, and source inventory for restaurants, MantiGO, medical booking, pharmacy, marketing, CRM, tenant isolation, wallet/finance, payments, appointments, membership, and ERP/inventory.
+
+**Evidence at candidate SHA `06ce8d9c01613bdcaba381913de9841586ad34dc`:**
+- Core module validation passed; migration immutability, migration version uniqueness, collision guard, backend-only boundary, MantiGO privacy, approval audit atomicity, and SMM service-role boundary passed.
+- SMM-specific deferred validation failed; its failures remain recorded and are not waived.
+- Pages validation passed but deploy was skipped.
+- Live Supabase project reported `ACTIVE_HEALTHY`; live SMM gateway remains ACTIVE v6 without the candidate `MNTY_SMM_ENABLED` gate.
+- Live migration listing still reconciles through RC424 (`20261008222845`); chronological replay remains blocked by ten missing historical function definitions.
+- Module inventory is not equivalent to E2E acceptance: restaurant/menu, pharmacy, medical, marketing, CRM, tenant isolation, financial flows, and disaster recovery each retain explicit verification work.
+
+Next execution priority: close the live SMM containment gate only with approved production change control and a negative test; in parallel, recover authoritative historical DDL or obtain separate explicit approval for a test-only current-definition baseline, then continue module-specific E2E and recovery evidence. No production write, merge, or deploy was performed by this cycle.
