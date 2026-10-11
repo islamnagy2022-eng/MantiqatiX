@@ -43,7 +43,7 @@ begin
   if pg_catalog.jsonb_array_length(p_lines)<1 or pg_catalog.jsonb_array_length(p_lines)>200 then raise exception 'PURCHASE_ORDER_LINES_REQUIRED'; end if;
   select upper(m.role) into v_role from public.user_memberships m
   where m.user_id=u and m.tenant_id=p_tenant_id and m.business_id=p_business_id and m.status='ACTIVE'
-    and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE') limit 1;
+    and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','ACCOUNTANT','FINANCE_MANAGER','FINANCE') limit 1;
   if v_role is null then
     raise exception 'PURCHASE_ORDER_ROLE_REQUIRED';
   end if;

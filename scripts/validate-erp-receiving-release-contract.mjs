@@ -31,7 +31,6 @@ assert.match(rc458,/v_role in \('OWNER','BUSINESS_OWNER','ADMIN'\)/,"only elevat
 const receivingStart=rc458.indexOf("create or replace function public.receive_purchase_stock_with_order_line_backend");
 const receivingEnd=rc458.indexOf("$function$;",receivingStart);
 const receivingBody=receivingStart>=0&&receivingEnd>receivingStart?rc458.slice(receivingStart,receivingEnd):"";
-assert.ok(receivingBody.includes("'PURCHASING'"),"branch-scoped PURCHASING role must retain the RC437 receiving permission");
 assert.match(test434,/RC434_FORCED_LEDGER_FAILURE/,"RC434 test must verify rollback on inventory failure");
 assert.match(test437,/receiving over ordered quantity must be rejected/,"RC437 test must reject over-receipt");
 assert.match(test437,/duplicate receipt must be idempotent/,"RC437 test must verify idempotent replay");

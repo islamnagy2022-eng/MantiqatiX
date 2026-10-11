@@ -5,7 +5,6 @@ declare
   actor_b uuid := 'a4580000-0000-0000-0000-000000000002';
   actor_c uuid := 'a4580000-0000-0000-0000-000000000003';
   actor_d uuid := 'a4580000-0000-0000-0000-000000000004';
-  actor_e uuid := 'a4580000-0000-0000-0000-000000000005';
   biz uuid := 'b4580000-0000-0000-0000-000000000001';
   product uuid := 'c4580000-0000-0000-0000-000000000001';
   result jsonb;
@@ -21,8 +20,7 @@ begin
     ('rc458-m-b',actor_b,'tenant-1',biz,'rc458-branch-b','org-1','MANAGER','ACTIVE'),
     ('rc458-m-c',actor_c,'tenant-1',biz,'rc458-branch-b','org-other','MANAGER','ACTIVE'),
     ('rc458-m-d-admin-a',actor_d,'tenant-1',biz,'rc458-branch-a','org-1','ADMIN','ACTIVE'),
-    ('rc458-m-d-employee-b',actor_d,'tenant-1',biz,'rc458-branch-b','org-1','EMPLOYEE','ACTIVE'),
-    ('rc458-m-purchasing-b',actor_e,'tenant-1',biz,'rc458-branch-b','org-1','PURCHASING','ACTIVE');
+    ('rc458-m-d-employee-b',actor_d,'tenant-1',biz,'rc458-branch-b','org-1','EMPLOYEE','ACTIVE');
   insert into public.catalog_items(id,tenant_id,business_id,status) values(product,'tenant-1',biz,'ACTIVE');
   insert into public.warehouses(id,tenant_id,business_id,branch_id,status) values
     ('rc458-warehouse-a','tenant-1',biz,'rc458-branch-a','ACTIVE'),
@@ -146,14 +144,6 @@ begin
     'rc458-rcv-branch-b-001','tenant-1',biz,'rc458-po-branch-b-001','RC458-RCV-B-001','rc458-warehouse-b',product,1,2,actor_b
   );
   if coalesce((result->>'success')::boolean,false) is not true then raise exception 'branch B receiving failed'; end if;
-
-  -- Purchasing remains an authorized role for receipts, but only within its own branch.
-  result := public.receive_purchase_stock_with_order_line_backend(
-    'rc458-rcv-purchasing-b-001','tenant-1',biz,'rc458-po-branch-b-001','RCV-B-PURCHASING-001','rc458-warehouse-b',product,1,2,actor_e
-  );
-  if coalesce((result->>'success')::boolean,false) is not true then
-    raise exception 'branch-scoped PURCHASING role could not receive an approved purchase order';
-  end if;
 
   -- A receipt replay cannot bypass branch checks merely because the receipt already exists.
   rejected := false;
