@@ -1710,3 +1710,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Add RLS-filtered business selection for full-control platform admins without an active business context.
 - [x] Filter invitation options against the specific campaign business.
 - [ ] Validate platform-admin and tenant-manager flows against RC453 integration tests.
+
+ 
+## Campaign authorization — SESSION-028
+- [x] Align platform UI authorization gate with backend full-control claim requirements.
+- [ ] Validate tenant-scoped SUPER_ADMIN is denied platform-wide campaign controls.
