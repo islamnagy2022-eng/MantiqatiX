@@ -44,8 +44,9 @@ assert.match(menuMigration, /set search_path = ''/, 'menu RPC pins an empty sear
 assert.match(menuMigration, /revoke all on function public\.restaurant_menu_catalog_mutate_backend/, 'menu RPC is not exposed to public client roles');
 assert.match(menuMigration, /insert into public\.audit_logs/, 'menu/catalog mutations are audited');
 assert.match(orderCreate, /new Set\(item\.selectedOptionIds\)\.size !== item\.selectedOptionIds\.length/, 'duplicate selected options cannot inflate server-calculated order totals');
+assert.match(orderCreate, /effective_to\.gt\." \+ nowIso/, 'expired prices are excluded at the exact end of their effective interval');
 const menuUniqueMigration = fs.readFileSync('supabase/migrations/20261012020000_rc460_restaurant_menu_catalog_unique_ref.sql', 'utf8');
 assert.match(menuUniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/, 'catalog uniqueness migration fails closed when legacy duplicates exist');
 assert.match(menuUniqueMigration, /v_has_equivalent_unique_index boolean/, 'existing equivalent unique indexes are reused');
 assert.match(menuUniqueMigration, /create unique index catalog_items_restaurant_menu_legacy_ref_uidx/, 'restaurant menu catalog references are uniquely indexed when needed');
-console.log('Restaurant workspace contract: PASS (41 assertions)');
+console.log('Restaurant workspace contract: PASS (42 assertions)');
