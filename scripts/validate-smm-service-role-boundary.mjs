@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const edge = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
+const web = fs.readFileSync("web/smm.js", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc456_smm_service_role_integration.sql", "utf8");
 
@@ -10,16 +11,15 @@ const secretStart = edge.indexOf("async function secret", adminStart);
 assert.ok(adminStart >= 0 && secretStart > adminStart, "server-side SMM admin guard must exist");
 const adminGuard = edge.slice(adminStart, secretStart);
 assert.match(adminGuard, /smm_admins/, "explicit SMM admin allowlist must be supported");
-assert.match(adminGuard, /tenant_id,role,status,business_id,permissions/, "membership lookup must retrieve platform scope fields");
-assert.match(adminGuard, /role==="SUPER_ADMIN"/, "only SUPER_ADMIN may use membership-based platform access");
-assert.match(adminGuard, /MNTY-PLATFORM/, "membership-based admin must be platform tenant scoped");
-assert.match(adminGuard, /m\.business_id==null/, "platform admin membership must not be bound to a business");
-assert.match(adminGuard, /p\.scope==="PLATFORM"/, "membership must carry PLATFORM scope");
-assert.match(adminGuard, /p\.full_control===true/, "membership must have explicit full control");
-assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/, "tenant OWNER/ADMIN roles must not grant global SMM administration");
+assert.match(adminGuard, /from\("smm_admins"\)/, "SMM administration must use the dedicated allowlist");
+assert.match(adminGuard, /if\(a\.error\)throw new Error\("SMM_ADMIN_CHECK_FAILED"\)/, "admin lookup errors must fail closed");
+assert.match(adminGuard, /return !!a\.data/, "only an explicit SMM allowlist entry grants administration");
+assert.doesNotMatch(adminGuard, /user_memberships|SUPER_ADMIN|MNTY-PLATFORM/, "generic tenant roles must not grant global SMM administration");
 
-assert.match(edge, /user\.is_anonymous\?null:user/, "anonymous Auth sessions must be rejected");
-assert.match(edge, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
+assert.match(edge, /user\.is_anonymous/, "anonymous Auth sessions must be rejected");
+assert.match(edge, /["']cache-control["']\s*:\s*["']no-store["']/i, "personal account responses must not be cached");
+assert.match(web, /fn\(\{action:'my_data'\}\)/, "personal account reads must go through the trusted gateway");
+assert.doesNotMatch(web, /sb\.from\(['"]smm_(services|orders|wallets)['"]\)/, "browser must not directly query tables whose client grants are revoked");
 const catalogStart = edge.indexOf('if(a==="catalog")');
 const accountStart = edge.indexOf('if(a==="my_data")', catalogStart);
 const configureStart = edge.indexOf('if(a==="configure_provider")', accountStart);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const migration = fs.readFileSync("supabase/migrations/20261010180000_rc450_financial_journal_service_role_boundary.sql", "utf8");
+const atomicMigration = fs.readFileSync("supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql", "utf8");
 const edge = fs.readFileSync("supabase/functions/financial-journal/index.ts", "utf8");
 const backendEdge = fs.readFileSync("supabase/functions/post-financial-journal/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc450_financial_journal_fixture.sql", "utf8");
@@ -34,15 +35,19 @@ assert.match(migration, /v_account_balances jsonb := '\{\}'::jsonb/i, "same-acco
 assert.doesNotMatch(migration, /jel\.debit-jel\.credit/, "running balance must not be reduced to the current line net");
 assert.match(migration, /revoke all on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) from public, anon, authenticated/i);
 assert.match(migration, /grant execute on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) to service_role/i);
+assert.match(atomicMigration, /create or replace function public\.post_financial_journal_atomic_backend\(/i, "atomic posting RPC must exist in RC436");
+assert.match(atomicMigration, /set search_path = ''/i, "atomic posting RPC must pin an empty search_path");
+assert.match(atomicMigration, /revoke all on function public\.post_financial_journal_atomic_backend\(uuid,jsonb,jsonb\) from public,anon,authenticated/i, "atomic RPC must not be executable by client roles");
+assert.match(atomicMigration, /grant execute on function public\.post_financial_journal_atomic_backend\(uuid,jsonb,jsonb\) to service_role/i, "atomic RPC must be service-role-only");
 
-assert.match(edge, /admin\.auth\.getUser\(token\)/);
-assert.match(edge, /user\.is_anonymous/);
-assert.match(edge, /admin\.rpc\(["']post_financial_journal_backend["']/i);
-assert.match(edge, /p_user_id:\s*user\.id/);
+assert.match(edge, /admin\.auth\.getUser\(authorization\.slice\(7\)\.trim\(\)\)/, "edge must verify the bearer token with Supabase Auth");
+assert.match(edge, /auth\.user\.is_anonymous/, "anonymous users must not post financial journals");
+assert.match(edge, /admin\.rpc\(["']post_financial_journal_atomic_backend["']/i, "Edge Function must call the atomic posting RPC");
+assert.match(edge, /p_user_id:\s*auth\.user\.id/, "actor ID must come from the verified Auth user");
 assert.doesNotMatch(edge, /rpc\(["']post_financial_journal["']/i);
 assert.doesNotMatch(edge, /Access-Control-Allow-Origin["']?\s*:\s*["']\*["']/i);
 assert.match(edge, /ORIGIN_NOT_ALLOWED/);
-assert.match(backendEdge, /admin\.rpc\(["']post_financial_journal_backend["']/i);
+assert.match(backendEdge, /admin\.rpc\(["']post_financial_journal_atomic_backend["']/i);
 assert.match(backendEdge, /p_user_id:\s*auth\.user\.id/);
 
 assert.match(fixture, /trg_journal_line_immutability/);
