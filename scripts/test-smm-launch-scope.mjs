@@ -47,7 +47,7 @@ assert.equal(evaluateSmmLaunchScope({
 assert.equal(evaluateSmmLaunchScope({
   decision: "IN_INITIAL_LAUNCH",
 }, { ...allRuntimeGatesPass, smm_provider_timeout_safety: "NOT VERIFIED" }).status,
-"NOT VERIFIED", "active SMM must not pass with an unverified safety gate");
+"BLOCKED", "active SMM must not pass with an unverified safety gate");
 
 assert.equal(evaluateSmmLaunchScope(null).status, "BLOCKED",
   "missing scope must fail closed");
