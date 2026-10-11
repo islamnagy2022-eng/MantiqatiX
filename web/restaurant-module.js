@@ -90,10 +90,26 @@ function menuView(){
  (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate()?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
+function nextOrderStatuses(order){
+ if(!canOperate())return [];
+ const role=String(state.membership?.role||'').toUpperCase();
+ if(!['OWNER','ADMIN'].includes(role)&&String(state.membership?.business_id||'')!==String(order.business_id||''))return [];
+ const status=String(order.status||'').toUpperCase();
+ if(status==='PENDING'||status==='CREATED')return ['CONFIRMED','CANCELLED'];
+ if(status==='CONFIRMED')return ['PREPARING','CANCELLED'];
+ if(status==='PREPARING')return ['OUT_FOR_DELIVERY','CANCELLED'];
+ if(status==='OUT_FOR_DELIVERY')return ['DELIVERED'];
+ return [];
+}
 function ordersView(){
- const statuses=['CONFIRMED','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
+ const statusLabel={PENDING:'قيد الانتظار',CREATED:'تم الإنشاء',CONFIRMED:'مؤكد',PREPARING:'قيد التجهيز',OUT_FOR_DELIVERY:'خرج للتوصيل',DELIVERED:'تم التسليم',CANCELLED:'ملغي'};
  return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
- (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount)+'</td><td>'+(canOperate()?'<select data-order-status="'+esc(x.id)+'">'+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
+ (state.orders.length?state.orders.map(x=>{
+  const current=String(x.status||'UNKNOWN').toUpperCase();
+  const next=nextOrderStatuses(x);
+  const statusControl=canOperate()&&next.length?'<select aria-label="تغيير حالة الطلب '+esc(x.id)+'" data-order-status="'+esc(x.id)+'"><option value="'+esc(current)+'" selected>'+esc(statusLabel[current]||current)+'</option>'+next.map(n=>'<option value="'+n+'">'+esc(statusLabel[n]||n)+'</option>').join('')+'</select>':esc(statusLabel[current]||current);
+  return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>';
+ }).join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function tablesView(){
@@ -121,17 +137,77 @@ async function createRestaurantOrder(){
  if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
  const m=scope();
  try{
-   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
-   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE');
-   if(!item)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const qty=await askQuantity('الكمية');
-   if(!Number.isInteger(qty)||qty<1)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
-   const r=await invokeMntyFunction('order-create',payload);
-   notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
-   await load();
- }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
+  const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
+  const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
+  const rawItems=(catalog?.items||[]).filter(x=>String(x.status||'').toUpperCase()==='ACTIVE');
+  const prices=(catalog?.prices||[]).filter(p=>String(p.status||'ACTIVE').toUpperCase()==='ACTIVE'&&String(p.currency||'EGP').toUpperCase()==='EGP'&&(!p.branch_id||String(p.branch_id)===String(m.branch_id)));
+  const priceFor=item=>{
+   const matches=prices.filter(p=>String(p.catalog_item_id)===String(item.id));
+   matches.sort((a,b)=>((String(b.branch_id||'')===String(m.branch_id)?1000000:0)+Number(b.version||0))-((String(a.branch_id||'')===String(m.branch_id)?1000000:0)+Number(a.version||0)));
+   return matches[0]||null;
+  };
+  const items=rawItems.map(item=>({...item,activePrice:priceFor(item)})).filter(item=>item.activePrice&&Number.isFinite(Number(item.activePrice.unit_price))&&Number(item.activePrice.unit_price)>=0);
+  if(!items.length)return notify('لا توجد أصناف نشطة لها سعر ساري بالجنيه في هذا الفرع.');
+  const orderId=crypto.randomUUID();
+  const idempotencyKey='MNTY-REST-'+crypto.randomUUID();
+  const optionRows=catalog?.options||[];
+  const itemOptions=id=>optionRows.filter(x=>String(x.catalog_item_id)===String(id)&&String(x.status||'ACTIVE').toUpperCase()==='ACTIVE');
+  const optionsMarkup=id=>{
+   const rows=itemOptions(id);
+   return rows.length?rows.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name_en||'إضافة')+' (+'+money(x.price_delta||0)+')</option>').join(''):'<option value="" disabled>لا توجد إضافات لهذا الصنف</option>';
+  };
+  const itemMarkup=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name_en||x.id)+' — '+money(x.activePrice.unit_price)+'</option>').join('');
+  const dialog=modal('إنشاء طلب مطعم',
+   '<p class="muted">اختر الصنف والكمية بنفسك. الأسعار النهائية والإضافات يعيد الخادم التحقق منها قبل حفظ الطلب.</p>'+
+   '<label class="field"><span>الصنف</span><select id="rest-item" required><option value="" selected disabled>اختر صنفًا</option>'+itemMarkup+'</select></label>'+
+   '<label class="field"><span>الإضافات (اختياري — يمكن اختيار أكثر من إضافة)</span><select id="rest-options" multiple size="4" aria-label="إضافات الصنف"></select></label>'+
+   field('rest-qty','الكمية','1','number','min="1" max="1000" step="1" required')+
+   '<label class="field"><span>طريقة الاستلام</span><select id="rest-fulfillment"><option value="DELIVERY">توصيل</option><option value="PICKUP">استلام من المطعم</option><option value="DINE_IN">تناول داخل المطعم</option></select></label>'+
+   field('rest-customer','اسم العميل',state.user.user_metadata?.full_name||state.user.email||'','text','maxlength="120" required')+
+   field('rest-phone','رقم الهاتف','','tel','maxlength="40" autocomplete="tel" required')+
+   field('rest-address','عنوان التوصيل','','text','maxlength="500" autocomplete="street-address"')+
+   field('rest-notes','ملاحظات الطلب','','text','maxlength="1000"')+
+   '<div class="action-bar"><button type="button" class="btn btn-primary" data-save>تأكيد الطلب</button></div>',
+   async o=>{
+    const save=o.querySelector('[data-save]');
+    if(save.disabled)return;
+    const item=items.find(x=>String(x.id)===String(o.querySelector('#rest-item')?.value));
+    const quantity=Number(o.querySelector('#rest-qty')?.value);
+    const customerName=o.querySelector('#rest-customer')?.value.trim()||'';
+    const customerPhone=o.querySelector('#rest-phone')?.value.trim()||'';
+    const fulfillmentType=o.querySelector('#rest-fulfillment')?.value||'DELIVERY';
+    const deliveryAddress=o.querySelector('#rest-address')?.value.trim()||'';
+    const notes=o.querySelector('#rest-notes')?.value.trim()||'';
+    const selectedOptionIds=[...(o.querySelector('#rest-options')?.selectedOptions||[])].map(x=>x.value).filter(Boolean);
+    if(!item)return notify('اختر صنفًا متاحًا أولًا.','error');
+    if(!Number.isInteger(quantity)||quantity<1||quantity>1000)return notify('أدخل كمية صحيحة بين 1 و1000.','error');
+    if(!customerName||customerName.length>120||!customerPhone||customerPhone.length>40)return notify('أدخل اسم العميل ورقم هاتف صحيحين.','error');
+    if(fulfillmentType==='DELIVERY'&&(!deliveryAddress||deliveryAddress.length>500))return notify('أدخل عنوان التوصيل أو اختر الاستلام من المطعم.','error');
+    if(!['DELIVERY','PICKUP','DINE_IN'].includes(fulfillmentType))return notify('طريقة الاستلام غير صحيحة.','error');
+    if(notes.length>1000)return notify('الملاحظات أطول من الحد المسموح.','error');
+    save.disabled=true;const oldLabel=save.textContent;save.textContent='جارٍ إرسال الطلب…';
+    try{
+     const payload={orderId,tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:idempotencyKey,currency:'EGP',customerName,customerPhone,deliveryAddress:fulfillmentType==='DELIVERY'?deliveryAddress:'',items:[{catalogItemId:item.id,quantity,selectedOptionIds}],notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true,fulfillmentType}};
+     const result=await invokeMntyFunction('order-create',payload);
+     if(result?.error)throw new Error(String(result.error));
+     o.remove();
+     notify('تم إنشاء الطلب '+(result?.id||orderId)+'. تم احتساب السعر والتحقق من الإضافات خادميًا.','success');
+     await load();
+    }catch(e){
+     save.disabled=false;save.textContent=oldLabel;
+     notify('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error');
+    }
+   });
+  const itemSelect=dialog?.querySelector('#rest-item');
+  const optionsSelect=dialog?.querySelector('#rest-options');
+  const renderOptions=()=>{
+   if(!itemSelect||!optionsSelect)return;
+   optionsSelect.innerHTML=optionsMarkup(itemSelect.value);
+   optionsSelect.disabled=!itemSelect.value||itemOptions(itemSelect.value).length===0;
+  };
+  itemSelect?.addEventListener('change',renderOptions);
+  renderOptions();
+ }catch(e){notify('تعذر تحميل قائمة الطلبات: '+(e?.message||'CATALOG_LOAD_FAILED'),'error')}
 }
 function dashboard(){
  return shell('لوحة المطعم',tabs()+'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>'+cards()+
@@ -149,6 +225,7 @@ function modal(title,html,onSave){
  const o=document.createElement('div');o.className='mx-modal';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label',title);o.tabIndex=-1;o.innerHTML='<div class="mx-modal-card"><div class="workspace-head"><h2>'+title+'</h2><button class="btn btn-outline" id="rest-close">إغلاق</button></div><div class="modal-body">'+html+'</div></div>';
  const previousFocus=document.activeElement;document.body.appendChild(o);let closed=false;const close=()=>{if(closed)return;closed=true;o.remove();document.removeEventListener('keydown',onKey);if(previousFocus&&typeof previousFocus.focus==='function')requestAnimationFrame(()=>previousFocus.focus());};const focusables=()=>[...o.querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.offsetParent!==null);const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key!=='Tab')return;const list=focusables();if(!list.length)return;const first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}};o.querySelector('#rest-close').setAttribute('aria-label','إغلاق');o.querySelector('#rest-close').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});document.addEventListener('keydown',onKey);requestAnimationFrame(()=>o.querySelector('#rest-close')?.focus());
  o.querySelector('[data-save]')?.addEventListener('click',async()=>{await onSave(o)});
+ return o;
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
 function addMenu(existing){
@@ -172,7 +249,7 @@ function addTable(existing){
  const x=existing||{};
  modal(existing?'تعديل طاولة':'إضافة طاولة',
  field('num','رقم الطاولة',x.table_number,'number','min="1" step="1" required')+field('cap','السعة',x.capacity_persons||2,'number','min="1" step="1" required')+
- '<label class="field"><span>الحالة</span><select id="status"><option>EMPTY</option><option>OCCUPIED</option><option>RESERVED</option><option>CLEANING</option><option>OUT_OF_SERVICE</option></select></label>'+
+ '<label class="field"><span>الحالة</span><select id="status">'+['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'].map(status=>'<option value="'+status+'" '+(String(x.status||'EMPTY').toUpperCase()===status?'selected':'')+'>'+status+'</option>').join('')+(x.status&&!['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'].includes(String(x.status).toUpperCase())?'<option value="'+esc(x.status)+'" selected>'+esc(x.status)+'</option>':'')+'</select></label>'+
  field('reserved','اسم الحجز',x.reserved_customer_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
