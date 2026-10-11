@@ -580,3 +580,10 @@ This status is intentional and must remain until the open gates above are indepe
 - The code is in draft PR #205 on `build/module-workspaces-functional-20261011`.
 - The job write/application flows are implemented but **not runtime-verified**; do not claim they have passed RLS or end-to-end tests.
 - Continue building remaining sector workflows; defer broad reviews until construction is complete.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-007
+- Module Center now shows core platform modules and sector workspaces separately, with explicit open buttons and visibility checks.
+- SMM is exposed in the module center and as a permission-aware main-dashboard/Marketing-center shortcut.
+- Active branch remains `build/module-workspaces-functional-20261011`; draft PR #205.
+- Continue building; do not perform broad reviews until all modules are constructed.
