@@ -3,8 +3,11 @@ declare
   v_actor uuid := pg_catalog.gen_random_uuid();
   v_non_member uuid := pg_catalog.gen_random_uuid();
   v_business uuid := pg_catalog.gen_random_uuid();
+  v_other_business uuid := pg_catalog.gen_random_uuid();
   v_tenant varchar := 'rc461-test-tenant';
+  v_other_tenant varchar := 'rc461-other-tenant';
   v_branch varchar := 'rc461-test-branch';
+  v_other_branch varchar := 'rc461-other-branch';
   v_result jsonb;
   v_table_id text;
   v_inventory_id text;
@@ -36,10 +39,12 @@ begin
     raise exception 'RC461_RPC_EXECUTE_BOUNDARY_INVALID';
   end if;
 
-  insert into public.businesses(id,tenant_id,status) values(v_business,v_tenant,'ACTIVE');
-  insert into public.branches(id,tenant_id,business_id,status) values(v_branch,v_tenant,v_business,'ACTIVE');
+  insert into public.businesses(id,tenant_id,status) values(v_business,v_tenant,'ACTIVE'),(v_other_business,v_other_tenant,'ACTIVE');
+  insert into public.branches(id,tenant_id,business_id,status) values
+    (v_branch,v_tenant,v_business,'ACTIVE'),(v_other_branch,v_other_tenant,v_other_business,'ACTIVE');
   insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status)
-  values(pg_catalog.gen_random_uuid()::text,v_actor,v_tenant,v_business,v_branch,'MANAGER','ACTIVE');
+  values(pg_catalog.gen_random_uuid()::text,v_actor,v_tenant,v_business,v_branch,'MANAGER','ACTIVE'),
+        (pg_catalog.gen_random_uuid()::text,v_actor,v_other_tenant,v_other_business,v_other_branch,'MANAGER','ACTIVE');
 
   v_result := public.restaurant_workspace_mutate_backend('TABLE_SAVE',
     pg_catalog.jsonb_build_object('tableId',null,'tableNumber',12,'capacityPersons',4,'status','EMPTY','reservedCustomerName',null),
@@ -60,6 +65,15 @@ begin
     raise exception 'RC461_TABLE_AUDIT_SNAPSHOT_INVALID';
   end if;
 
+  begin
+    perform public.restaurant_workspace_mutate_backend('TABLE_SAVE',
+      pg_catalog.jsonb_build_object('tableId',v_table_id,'tableNumber',99,'capacityPersons',4,'status','EMPTY'),
+      v_actor,v_other_tenant,v_other_business,v_other_branch);
+    raise exception 'RC461_CROSS_SCOPE_TABLE_UPDATE_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm <> 'TABLE_NOT_FOUND_IN_SCOPE' then raise; end if;
+  end;
+
   v_result := public.restaurant_workspace_mutate_backend('INVENTORY_SAVE',
     pg_catalog.jsonb_build_object('inventoryId',null,'name','Flour','unit','KG','currentStockQty',12.5,'minStockAlertThreshold',2,'unitCostEgp',30,'supplierName','Test vendor'),
     v_actor,v_tenant,v_business,v_branch);
@@ -73,6 +87,15 @@ begin
   if (v_result #>> '{inventory,current_stock_qty}')::numeric <> 10 then raise exception 'RC461_INVENTORY_UPDATE_FAILED'; end if;
   select count(*) into v_audit_count from public.audit_logs where entity_type='restaurant_inventory' and entity_id=v_inventory_id and actor_user_id=v_actor;
   if v_audit_count <> 2 then raise exception 'RC461_INVENTORY_AUDIT_NOT_ATOMIC'; end if;
+
+  begin
+    perform public.restaurant_workspace_mutate_backend('INVENTORY_SAVE',
+      pg_catalog.jsonb_build_object('inventoryId',v_inventory_id,'name','Flour','unit','KG','currentStockQty',99,'minStockAlertThreshold',2,'unitCostEgp',31,'supplierName','Test vendor'),
+      v_actor,v_other_tenant,v_other_business,v_other_branch);
+    raise exception 'RC461_CROSS_SCOPE_INVENTORY_UPDATE_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm <> 'INVENTORY_NOT_FOUND_IN_SCOPE' then raise; end if;
+  end;
 
   begin
     perform public.restaurant_workspace_mutate_backend('TABLE_SAVE',
