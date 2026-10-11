@@ -1241,7 +1241,7 @@ if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
  if(!d.rowsReady){loadDomainWorkspaceRows(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل سجلات الوحدة الفعلية ضمن نطاق الحساب والصلاحيات…</div>';}
  const cards=m.tables.map(t=>[t,d.errors?.[t]?'غير متاح':String((d.rows?.[t]||[]).length),'سجلات محمّلة؛ لا تمثل بالضرورة إجمالي التاريخ']);
  if(!m.tables.length)cards.push(['حالة المخطط','—','لا توجد مصادر معرفة لهذه الوحدة']);
- const moduleActions='<div class="action-bar"><button class="btn btn-outline" style="width:auto" type="button" data-domain-refresh="'+esc(m.key)+'">تحديث بيانات الوحدة</button>'+(m.key==='JOBS'&&canCreateJobPost()?'<button class="btn btn-primary" style="width:auto" onclick="openJobPostForm()">+ إضافة وظيفة</button>':'')+'</div>';
+ const moduleActions='<div class="action-bar"><button class="btn btn-outline" style="width:auto" type="button" data-domain-refresh="'+esc(m.key)+'">تحديث بيانات الوحدة</button></div>';
  return workspaceHead(m.key,m.name,m.desc,'LIVE')
   +moduleActions
   +workspaceCards(cards)
