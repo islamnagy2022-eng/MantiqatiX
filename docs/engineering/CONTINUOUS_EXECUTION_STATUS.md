@@ -429,3 +429,13 @@ The following results were re-queried from GitHub Actions for the exact candidat
 3. Complete isolated tenant/auth/payment/ERP browser E2E and backup restore rehearsal; record evidence and actual RPO/RTO.
 4. Keep SMM feature implementation frozen. Any server-side SMM containment change remains a separate production change-control item; do not deploy or alter the live gateway without explicit approval.
 5. Do not merge or deploy until all release gates are independently evidenced and reviewed.
+
+
+## Internal marketing campaign workspace batch — 2026-10-12
+
+- Candidate UI work now connects the internal Marketing & Advertising workspace to the RC453 campaign backend: campaign listing, create via protected RPC, status transition via protected RPC, partner invitation, and provider response.
+- The frontend does not directly mutate `marketing_campaigns` or `marketing_campaign_participants`; server-side RPCs remain responsible for actor identity, tenant/business authorization, eligibility, allocation caps, audit, notification, and transition rules.
+- The campaign contract validator is wired into the core Module Professionalization Validation workflow.
+- Latest application commit: `bba4f7ade95ca448cc423beb73726fb670c5081d`. The latest documentation commit at this checkpoint is `8fa58ec5e9e7bc37ac72e27bb4c004cbdea2eb3f`. Do not transfer CI evidence from prior SHAs; query latest exact-head runs before claiming validation.
+- The RC452/RC453 schema remains candidate-only because production ledger reconciliation stops at RC424 and chronological replay remains blocked by missing historical SECURITY DEFINER creation DDL. No production changes were performed.
+- SMM freeze remains in force; this is internal marketing workspace work only. Full launch remains **BLOCKED / NOT CERTIFIED** pending the existing global production gates and real runtime evidence.
