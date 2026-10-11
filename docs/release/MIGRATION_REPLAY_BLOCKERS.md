@@ -122,3 +122,11 @@ The source presently refunds on any exception thrown after provider submission, 
 Run evidence: [Module Professionalization Validation 38154557541](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38154557541). Exact job: `smm-wallet-integration`; failing step: `Run migration tests inside disposable PostgreSQL service` (SQL RC432 passed before source-safety validation failed).
 
 Production remains untouched. The gateway source has not been changed in this continuation, and SMM runtime safety remains **NOT VERIFIED**.
+
+### Additional source inspection: admin UI authorization mismatch
+
+Read-only inspection of `web/smm.js` confirmed that `load()` directly queries `public.user_memberships` from the browser and sets `isAdmin` when any active membership role is `OWNER`, `ADMIN`, or `SUPER_ADMIN`. This differs from the stricter backend gate in `smm-gateway/index.ts`, which accepts explicit `smm_admins` entries or a platform-scoped `SUPER_ADMIN` membership with `tenant_id=MNTY-PLATFORM`, no `business_id`, `permissions.scope=PLATFORM`, and `permissions.full_control=true`. The backend still checks authorization for admin actions, so this is not evidence that the browser alone can authorize privileged writes; it is an inconsistent client-side visibility/data-access contract that should be removed by deriving admin visibility from a server response such as the authenticated `my_data` response.
+
+Also observed: the UI performs direct browser reads of `smm_services`, `smm_orders`, `smm_wallets`, and `user_memberships`, while the gateway already defines `catalog` and `my_data` routes. Before rollout, reconcile the UI with the gateway contract and verify RLS/tenant scope for each direct read. The current static validator correctly flags the membership lookup, but its `action:'admin_access'` expectation should be reviewed because the gateway's current response contract is `my_data` with an `is_admin` field; tests must assert a consistent real contract rather than a string pattern that does not exist in the implementation.
+
+Do not weaken the backend authorization rule to match the broad client-side role check. The safe direction is to make the UI consume the backend's narrower decision and add tests proving a branch/business-scoped admin is not exposed as a platform admin.
