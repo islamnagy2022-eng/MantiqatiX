@@ -601,3 +601,10 @@ This status is intentional and must remain until the open gates above are indepe
 - No direct privileged reads or mutations were added; missing records fail closed.
 - Commit: `4c46af60a11316a15d9e488d78e81372e6e904ad`; branch remains `build/module-workspaces-functional-20261011`, draft PR #205.
 - Continue construction; broad review/testing remains deferred until the user says module construction is complete.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-010
+- SMM “My Orders” now has client-side search/status filtering, visible counts, per-order refresh buttons, and allowlisted CSV export of the filtered subset of the authenticated user's loaded orders.
+- Export mitigates spreadsheet formula injection and does not add new data access.
+- Commit: `0d69612a945ffaa26a728f89ac7cc08eb2395e8d`; branch remains `build/module-workspaces-functional-20261011`, draft PR #205.
+- This is UI construction only; no SMM gateway, payment, wallet, or provider integration was changed. Runtime testing and broad review remain deferred.
