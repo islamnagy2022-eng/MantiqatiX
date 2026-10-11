@@ -35,7 +35,7 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
           docker cp supabase/tests/rc446_mantigo_open_ride_fixture.sql "$pg_container:/tmp/rc446_fixture.sql"
-          docker cp supabase/migrations/20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql "$pg_container:/tmp/rc446_migration.sql"
+          docker cp supabase/migrations/20261010145000_rc446_mantigo_open_ride_privacy_boundary.sql "$pg_container:/tmp/rc446_migration.sql"
           docker cp supabase/tests/rc446_mantigo_open_ride_integration.sql "$pg_container:/tmp/rc446_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -f /tmp/rc446_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -f /tmp/rc446_migration.sql
