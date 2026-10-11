@@ -7,7 +7,7 @@ end
 $$;
 
 create table public.restaurant_tables (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   tenant_id text not null,
   business_id uuid not null,
   branch_id text not null,
@@ -16,7 +16,7 @@ create table public.restaurant_tables (
   capacity_persons integer not null,
   status text not null,
   reserved_customer_name text,
-  current_active_order_id uuid,
+  current_active_order_id text,
   current_bill_egp numeric not null default 0
 );
 create table public.restaurant_inventory (
