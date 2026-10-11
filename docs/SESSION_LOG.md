@@ -188,3 +188,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Refresh clears only the current in-memory restaurant data cache and invokes the existing scoped loader for menu, orders, tables, and inventory; existing tenant/business/branch filters and RLS behavior are preserved.
 - Implementation commit: `936551530b7def8bb815cfbf458ad1b4874b8d0c`.
 - No production deployment or schema mutation; runtime/E2E verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-017 — Scoped job application details
+- Added a details action for loaded job applications in the Jobs workspace.
+- The drawer displays only the already-loaded job ID, applicant name, and submission date; it does not query or reveal qualifications, CV summaries, or contact details.
+- Implementation commit: `f5522cad42215e392ef18cc9de4395468bf7ab3f`.
+- Runtime/E2E verification remains outstanding; no production changes.
