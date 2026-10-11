@@ -53,6 +53,8 @@ assert.match(orderCreate, /PAYLOAD_TOO_LARGE/);
 assert.match(orderCreate, /INVALID_ITEM_OPTION_ID/);
 assert.match(orderCreate, /p_client_idempotency_key: idempotencyKey/, 'trimmed idempotency key is passed consistently to the database');
 assert.match(orderCreate, /const isUuid = \(value: unknown\)/, 'order scope and catalog identifiers are format-validated before database reads');
+assert.match(orderCreate, /select\("id,role,status,branch_id"\)/, 'order authorization reads membership branch scope');
+assert.match(orderCreate, /BRANCH_MEMBERSHIP_MISMATCH/, 'branch-scoped staff cannot create orders against a different branch');
 assert.match(orderCreate, /INVALID_CUSTOMER_DETAILS/);
 assert.match(orderCreate, /INVALID_ORDER_METADATA/);
 assert.match(orderCreate, /fulfillmentType === "DELIVERY" && !body\.deliveryAddress\.trim\(\)/, 'pickup and dine-in orders may omit delivery addresses');
@@ -68,4 +70,4 @@ const menuUniqueMigration = fs.readFileSync('supabase/migrations/20261012020000_
 assert.match(menuUniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/, 'catalog uniqueness migration fails closed when legacy duplicates exist');
 assert.match(menuUniqueMigration, /v_has_equivalent_unique_index boolean/, 'existing equivalent unique indexes are reused');
 assert.match(menuUniqueMigration, /create unique index catalog_items_restaurant_menu_legacy_ref_uidx/, 'restaurant menu catalog references are uniquely indexed when needed');
-console.log('Restaurant workspace contract: PASS (60 assertions)');
+console.log('Restaurant workspace contract: PASS (62 assertions)');
