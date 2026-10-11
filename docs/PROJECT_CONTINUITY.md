@@ -661,3 +661,7 @@ This status is intentional and must remain until the open gates above are indepe
 - No direct client table writes or external ad publishing. Invalid dates fail closed; campaign cache resets on membership change/sign-out and reloads on workspace refresh.
 - Production ledger was previously observed at RC424; RC453 is not proven deployed. UI remains unavailable until its tables are readable. No deployment was performed.
 - Run RC453 integration tests in disposable PostgreSQL after build completion.
+
+ 
+## Build progress — SESSION-026
+- Commits `af112ab3102fa36f1fc1d64a017cefb2e8d4f102` / `71568dc1015665d0fbed88589858b9971e4e461d`: partner query excludes current business before limiting; campaign form reuses idempotency key on retries; refresh preserves in-flight loading guard.
