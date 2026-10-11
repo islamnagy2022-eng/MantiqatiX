@@ -52,13 +52,21 @@ const cfg=window.MANTIQATIX_CONFIG;const sb=supabase.createClient(cfg.supabaseUr
   if(total.error)throw total.error;
   if((total.count||0)>500)throw new Error('MENU_SOURCE_LIMIT_EXCEEDED');
   menuSourceItems=result.data||[];
+  const requestedBranchIds=[...new Set(menuSourceItems.map(item=>item.branch_id?String(item.branch_id):'').filter(Boolean))];
+  const branchNames=new Map();
+  if(requestedBranchIds.length){
+   const branches=await sb.from('branches').select('id,name,code').eq('business_id',businessId).eq('status','ACTIVE').in('id',requestedBranchIds).order('name');
+   if(branches.error)throw branches.error;
+   (branches.data||[]).forEach(branch=>branchNames.set(String(branch.id),[branch.name,branch.code].filter(Boolean).join(' · ')||'فرع متاح'));
+  }
+  menuSourceItems=menuSourceItems.filter(item=>!item.branch_id||branchNames.has(String(item.branch_id)));
   const branchKeys=[...new Set(menuSourceItems.map(item=>item.branch_id?String(item.branch_id):'__NULL__'))];
   branchSelect.replaceChildren(new Option('اختر الفرع',''));
-  branchKeys.forEach(key=>branchSelect.add(new Option(key==='__NULL__'?'أصناف دون فرع محدد':'الفرع '+key,key)));
+  branchKeys.forEach(key=>branchSelect.add(new Option(key==='__NULL__'?'أصناف دون فرع محدد':(branchNames.get(key)||'فرع متاح'),key)));
   branchSelect.onchange=()=>{button.disabled=!branchSelect.value||menuSourceItems.length===0};
   button.disabled=menuSourceItems.length===0||branchKeys.length===0||!branchSelect.value;
   help.textContent=menuSourceItems.length
-   ? 'تم تحميل '+menuSourceItems.length+' صنفًا متاحًا من قاعدة البيانات ضمن النشاط. اختر فرعًا محددًا؛ المزامنة تحفظ الأسعار المسجلة ولا تنشر الصفحة تلقائيًا.'
+   ? 'تم تحميل '+menuSourceItems.length+' صنفًا متاحًا من قاعدة البيانات ضمن النشاط. اختر فرعًا نشطًا بالاسم؛ تُستبعد الأصناف المرتبطة بفروع غير نشطة أو غير معروفة، ولا تُنشر الصفحة تلقائيًا.'
    : 'لا توجد أصناف متاحة فعلية لهذا النشاط. لم يتم إنشاء أي بيانات تجريبية.';
  }catch(error){
   menuSourceItems=[];branchSelect.replaceChildren(new Option('تعذر تحميل الفروع',''));help.textContent=(error?.message==='MENU_SOURCE_LIMIT_EXCEEDED'?'القائمة تتجاوز حد 500 صنف في هذه العملية؛ لم تتم مزامنة قائمة ناقصة.':('تعذر تحميل القائمة ضمن الصلاحيات الحالية: '+(error?.message||'MENU_SOURCE_LOAD_FAILED')));button.disabled=true;
