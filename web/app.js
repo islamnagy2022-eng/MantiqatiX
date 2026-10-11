@@ -1129,8 +1129,9 @@ function domainModuleTablesHtml(m,rows,errors={}){
   const config=DOMAIN_WORKSPACE_TABLES[table],data=rows[table]||[];
   if(!config)return '<section class="card" style="margin:14px 0;padding:16px"><h3>'+esc(table)+'</h3><p class="muted">لم يتم تفعيل عرض السجلات لهذا المصدر بعد.</p></section>';
   const exportButton='<div class="mx-workspace-shortcuts"><button type="button" data-domain-export-table="'+esc(table)+'">تصدير CSV</button></div>';
+  const statusFilters=config.fields.some(f=>f[0]==='status')?recordsStatusFilterHtml(table,data):'';
   const fields=config.fields.map(([key,label])=>[label,row=>genericWorkspaceDisplayValue(row?.[key],key)]);
-  return '<section class="mx-domain-table-section"><div class="section-head"><div><h3>'+esc(table)+'</h3><p class="muted">'+(errors[table]?'NOT AVAILABLE — '+esc(errors[table]):data.length+' سجل محمّل وفق صلاحيات قاعدة البيانات')+'</p></div></div>'+exportButton+recordsTable(table,data,fields)+'</section>';
+  return '<section class="mx-domain-table-section"><div class="section-head"><div><h3>'+esc(table)+'</h3><p class="muted">'+(errors[table]?'NOT AVAILABLE — '+esc(errors[table]):data.length+' سجل محمّل وفق صلاحيات قاعدة البيانات')+'</p></div></div>'+exportButton+statusFilters+recordsTable(table,data,fields)+'</section>';
  }).join('');
 }
 function domainModuleWorkspace(){
