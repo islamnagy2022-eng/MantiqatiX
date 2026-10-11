@@ -631,11 +631,16 @@ function bindGenericWorkspaceTabs(){
   root.querySelectorAll('[data-workspace-row]').forEach(row=>{row.hidden=Boolean(q)&&!String(row.dataset.searchText||'').toLocaleLowerCase().includes(q)});
  });
  root.addEventListener('click',e=>{
+  const tabShortcut=e.target.closest('[data-workspace-tab]');
+  if(tabShortcut){const target=root.querySelector('[data-workspace-tabs] button[data-tab="'+tabShortcut.dataset.workspaceTab+'"]');target?.click();return;}
+  const nav=e.target.closest('[data-workspace-nav]');
+  if(nav){selectModule(nav.dataset.workspaceNav);return;}
+  const back=e.target.closest('[data-workspace-back]');
+  if(back){panel.innerHTML=genericWorkspacePanelHtml(title,'data');return;}
   const btn=e.target.closest('[data-workspace-source][data-workspace-row-index]');if(!btn)return;
   const source=sources[Number(btn.dataset.workspaceSource)], row=source?.rows?.[Number(btn.dataset.workspaceRowIndex)];if(!row)return;
   const fields=source.fields;
   panel.innerHTML='<div class="mx-workspace-record"><button type="button" class="mx-workspace-back" data-workspace-back>← العودة إلى السجلات</button><span class="eyebrow">RECORD DETAILS</span><h3>'+esc(source.label)+'</h3><dl>'+fields.map(f=>'<div><dt>'+esc(f[1])+'</dt><dd>'+esc(genericWorkspaceDisplayValue(row?.[f[0]],f[0]))+'</dd></div>').join('')+'</dl><p>التفاصيل المعروضة مقتصرة على الحقول المحددة في هذه الوحدة.</p></div>';
-  panel.querySelector('[data-workspace-back]')?.addEventListener('click',()=>{panel.innerHTML=genericWorkspacePanelHtml(title,'data');bindGenericWorkspaceDataFilter(root);});
  });
 }
 function bindGenericWorkspaceDataFilter(root){
