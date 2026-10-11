@@ -28,6 +28,10 @@ assert.ok(statusBody.includes("(m.branch_id is null or m.branch_id=v_order.branc
 assert.ok(statusBody.includes("(m.organization_id is null or m.organization_id=v_target_org)"),"status-transition role must be selected only from organization-compatible memberships");
 assert.ok(statusBody.indexOf("and (m.branch_id is null or m.branch_id=v_order.branch_id)")<statusBody.indexOf("limit 1"),"scope predicates must apply before selecting the transition role");
 assert.match(rc458,/v_role in \('OWNER','BUSINESS_OWNER','ADMIN'\)/,"only elevated roles may approve high-value purchase orders");
+const receivingStart=rc458.indexOf("create or replace function public.receive_purchase_stock_with_order_line_backend");
+const receivingEnd=rc458.indexOf("$function$;",receivingStart);
+const receivingBody=receivingStart>=0&&receivingEnd>receivingStart?rc458.slice(receivingStart,receivingEnd):"";
+assert.ok(receivingBody.includes("'PURCHASING'"),"branch-scoped PURCHASING role must retain the RC437 receiving permission");
 assert.match(test434,/RC434_FORCED_LEDGER_FAILURE/,"RC434 test must verify rollback on inventory failure");
 assert.match(test437,/receiving over ordered quantity must be rejected/,"RC437 test must reject over-receipt");
 assert.match(test437,/duplicate receipt must be idempotent/,"RC437 test must verify idempotent replay");
