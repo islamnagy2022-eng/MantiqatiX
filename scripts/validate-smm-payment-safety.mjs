@@ -48,7 +48,7 @@ check("duplicate in-flight order is not charged or submitted twice", duplicateBr
 check("SMM UI reuses request ID after ambiguous outcome", web.includes("function getOrderAttempt(fingerprint)") && web.includes("sessionStorage.setItem('mnty_smm_order_attempts'") && web.includes("request_id:attempt.id") && web.includes("reconciliation_required") && web.includes("delete attempts[fingerprint]"));
 check("SMM retry storage does not persist raw target URLs", web.includes("function orderFingerprint(serviceId,target,qty)") && !web.includes("JSON.stringify([selected.id,target,qty])"));
 check("SMM order retry fingerprint remains in catch scope", web.includes("const fingerprint=orderFingerprint(selected.id,target,qty);try{const attempt=getOrderAttempt(fingerprint)") && web.includes("clearOrderAttempt(fingerprint)"));
-check("SMM UI clears request ID only for definitive final outcomes", web.includes("clearOrderAttempt()") && web.includes("ORDER_ALREADY_FINALIZED") && web.includes("PROVIDER_EXECUTION_FAILED"));
+check("SMM UI clears request ID only for definitive final outcomes", web.includes("clearOrderAttempt(fingerprint)") && web.includes("ORDER_ALREADY_FINALIZED") && web.includes("PROVIDER_EXECUTION_FAILED"));
 check("legacy admin credit RPC remains available only for staged service-role rollout", migration.includes("smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated") && migration.includes("until the new smm-gateway is deployed"));
 check("admin credit RPC checks the explicit SMM allowlist", migration.includes("public.smm_admins sa where sa.user_id=p_actor") && migration.includes("IDEMPOTENCY_CONFLICT"));
 check("admin wallet credit validates a finite positive amount", source.includes("Number.isFinite(amount)||amount<=0"));
