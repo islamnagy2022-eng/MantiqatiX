@@ -1657,3 +1657,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Primary Finance module — SESSION-018
 - [x] Add count-only finance snapshot export guarded by the existing role-gated finance object.
 - [ ] Validate export visibility and count-only content in post-build tests.
+
+ 
+## Domain module build — SESSION-019
+- [x] Add source/count/status CSV export to blueprint-backed domain modules.
+- [ ] Validate export values, encoding and availability for backend-only/unreadable sources after build completion.
