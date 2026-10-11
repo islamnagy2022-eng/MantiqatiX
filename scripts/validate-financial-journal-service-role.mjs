@@ -39,9 +39,9 @@ assert.match(migration, /grant execute on function public\.post_financial_journa
 
 assert.match(edge, /authorization\.startsWith\(["']Bearer ["']\)/, "request must require a bearer token");
 assert.match(edge, /admin\.auth\.getUser\(authorization\.slice\(7\)\.trim\(\)\)/, "token must be validated by Supabase Auth before journal posting");
-assert.match(edge, /user\.is_anonymous/);
+assert.match(edge, /auth\.user\.is_anonymous/);
 assert.match(edge, /admin\.rpc\(["']post_financial_journal_backend["']/i);
-assert.match(edge, /p_user_id:\s*user\.id/);
+assert.match(edge, /p_user_id:\s*auth\.user\.id/);
 assert.doesNotMatch(edge, /rpc\(["']post_financial_journal["']/i);
 assert.doesNotMatch(edge, /Access-Control-Allow-Origin["']?\s*:\s*["']\*["']/i);
 assert.match(edge, /ORIGIN_NOT_ALLOWED/);
