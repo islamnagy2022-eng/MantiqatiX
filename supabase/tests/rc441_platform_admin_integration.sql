@@ -1,4 +1,4 @@
--- RC441 behavioral integration test. Run only in disposable PostgreSQL.
+-- RC441 baseline + RC449 final behavioral integration test. Run only in disposable PostgreSQL.
 do $test$
 declare
   tenant_owner uuid := '10000000-0000-4000-8000-000000000041';
