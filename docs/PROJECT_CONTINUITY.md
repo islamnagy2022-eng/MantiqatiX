@@ -548,3 +548,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Continue next with specialized Restaurant Workspace, then CRM, Marketing/SMM, Operations/Orders, Finance, Notifications/Tasks, Reports/Analytics, and remaining sector modules.
 - Do not repeat audits during this build phase. Keep using existing server-authoritative paths and RLS; do not invent database mutations or financial workflows where a supported backend contract is absent.
 - Once all modules are built, switch to the planned review/testing phase and close release gates with evidence.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-003
+- Active branch: `build/module-workspaces-functional-20261011`.
+- Draft PR: [#205](https://github.com/islamnagy2022-eng/MantiqaTix/pull/205).
+- Batch 2: allowlisted CSV exports across CRM, marketing, restaurant, operations, notifications and generic workspace records; bulk mark-read for loaded notifications via existing RPC; global details drawer keyboard/focus handling.
+- No production writes or deployment.
+- Continue build-only. Do not run broad reviews until all modules have been constructed.
