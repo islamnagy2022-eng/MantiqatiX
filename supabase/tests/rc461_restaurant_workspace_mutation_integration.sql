@@ -78,7 +78,7 @@ begin
       v_non_member,v_tenant,v_business,v_branch);
     raise exception 'RC461_NON_MEMBER_WAS_ALLOWED';
   exception when others then
-    if sqlerrm = 'RC461_NON_MEMBER_WAS_ALLOWED' then raise; end if;
+    if sqlerrm <> 'FORBIDDEN_WORKSPACE_SCOPE' then raise; end if;
   end;
 
   raise notice 'RC461 restaurant workspace mutation integration: PASS';
