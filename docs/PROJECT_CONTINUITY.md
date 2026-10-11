@@ -606,3 +606,8 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-013
 - Commit `2a2dc8b1af248d592feb0ccb3a93765881ce4c42`: shared primary workspace header includes refresh. Validate module restoration and async domain-module reload after build.
+
+ 
+## Build progress — SESSION-014
+- Commits `b33d3e3ba5b235de2bcdc76a93d7d57344e5be9f` / `7764e9725f622f65c02fa551e494da20d1ba9929`: primary Marketing workspace gained CSV export for session-loaded leads, projects, ads, providers and services.
+- Export is sample-scoped, Arabic-compatible, and prefixes spreadsheet formula-like cells; test after build.
