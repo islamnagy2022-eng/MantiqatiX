@@ -232,3 +232,18 @@ The owner has prioritized launching the other MantiqaTix modules first and conti
 **Launch priority:** continue resolving the non-SMM launch blockers first, but do not certify or expose production while the clean migration chain fails or critical production security/release gates remain unresolved. Current blockers include the missing historical creation DDL for ten legacy SECURITY DEFINER functions before `20260927095000_revoke_unused_security_definer_execute.sql`, the live `authenticated EXECUTE` exception for `mantigo_rate_ride(text,integer,text)`, and absent evidence of enforced `main` branch protection/rulesets. The SMM wallet integration test remains failing in CI; with SMM deferred, track it as a post-launch SMM acceptance gate rather than weakening or deleting its test.
 
 Re-enable SMM only in a separate post-launch change after gateway hardening, migration reconciliation, wallet/payment ambiguity safety, admin-scope checks, and integration tests all pass. Do not flip the UI flag alone to make the feature live.
+
+## Initial launch scope decision — SMM deferred
+
+The owner has now explicitly directed that the **internal Marketing & Advertising module remains in the initial launch scope**, while the separate SMM storefront/provider-order/wallet/admin product remains under development until after launch. Candidate UI evidence on this branch:
+- `web/home.js` labels the desktop and mobile SMM links as `خدمات SMM — قيد التطوير`.
+- `web/smm.html` is a static holding page and does not load `web/smm.js`.
+- `web/app.js` contains the internal Marketing & Advertising workspace separately from the deferred SMM workspace.
+
+The CI split is now committed on this draft branch:
+- `.github/workflows/module-professionalization.yml` no longer includes the SMM-only wallet/security job. The non-SMM validators formerly colocated in that job were moved into the core `validate` job.
+- `.github/workflows/smm-deferred-validation.yml` runs the SMM wallet idempotency integration and SMM-specific gateway/security checks separately. Its failures remain visible and must not be reported as passes; it is not an initial-launch required check while SMM is deferred.
+
+**Important:** this is not sufficient to certify launch. Production's `smm-gateway` Edge Function was observed active and has not been disabled or changed by this work. The static page does not disable the API. New P0 issue [#212](https://github.com/islamnagy2022-eng/MantiqatiX/issues/212) tracks the required reviewed server-side deny gate and production negative tests. Until this is completed under explicit deployment approval, the SMM API remains a separate production exposure to resolve before launch.
+
+The overall production gate remains **BLOCKED / NOT CERTIFIED** because historical migration replay is blocked by ten legacy function creation dependencies, live migration ledger reconciliation remains incomplete after RC424, and other global acceptance evidence remains unverified. SMM deferral does not waive these gates.
