@@ -134,3 +134,11 @@ Do not weaken the backend authorization rule to match the broad client-side role
 ## Repository release-control check — 2026-10-11
 
 Read-only GitHub API inspection returned `main.protected=false` and an empty repository rulesets list. This means the current evidence does not show an enforced branch-protection/ruleset policy for the production branch. Treat this as a release-governance blocker: repository administration must configure required PR reviews, required status checks for the release gates, and restrictions on direct pushes/force pushes before production release. This workflow did not change repository settings. Recheck the active protection/ruleset state after an administrator configures it.
+
+## Live SMM gateway deployment parity — read-only confirmation 2026-10-11
+
+Supabase's read-only Edge Function inventory and source retrieval confirm production `smm-gateway` is ACTIVE at version 6, updated `2026-09-28T07:42:47Z`, deployed source SHA-256 `ea4de98886b739ed5ce83c7f5909671fd00481a8f488849ffe58567e58be6cd6`. Its supported action list is `configure_provider`, `sync_services`, `provider_status`, `admin_credit`, `admin_data`, `set_price`, `place_order`, and `order_status`. It does **not** implement the candidate source's `catalog` or `my_data` actions, and it lacks the required timeout/ambiguous-outcome safety constructs. The candidate source in PR #207 is a different implementation and must not be treated as deployed.
+
+Production `erp-purchase-receive` remains ACTIVE at version 1, last updated `2026-09-26T21:54:23Z`; source parity and atomic RPC behavior remain unverified. The current deployment parity gate remains NOT VERIFIED. No Edge Function was deployed or changed during this read-only check.
+
+Do not deploy the candidate gateway simply to resolve parity: its current source fails the SMM wallet/provider safety contract. First resolve the source-safety failures and the UI/backend action-contract mismatch, pass the exact-head tests, then plan a staged rollout with rollback evidence and explicit release approval.
