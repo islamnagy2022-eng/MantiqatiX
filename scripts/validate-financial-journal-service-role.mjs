@@ -57,4 +57,4 @@ assert.match(integration, /identical journal retry was not idempotent/);
 assert.match(integration, /conflicting journal replay was not rejected/);
 assert.match(migration, /drop function public\.post_financial_journal_atomic_backend\(uuid,jsonb,jsonb\)/i, "RC457 must remove the parallel RC436 RPC");
 
-console.log("RC450 financial journal service-role boundary PASS");
+console.log("RC457 financial journal service-role boundary PASS");
