@@ -42,4 +42,7 @@ assert.match(menuEdge, /maxBodyBytes/, 'menu Edge Function enforces a request si
 assert.match(menuMigration, /set search_path = ''/, 'menu RPC pins an empty search path');
 assert.match(menuMigration, /revoke all on function public\.restaurant_menu_catalog_mutate_backend/, 'menu RPC is not exposed to public client roles');
 assert.match(menuMigration, /insert into public\.audit_logs/, 'menu/catalog mutations are audited');
-console.log('Restaurant workspace contract: PASS (37 assertions)');
+const menuUniqueMigration = fs.readFileSync('supabase/migrations/20261012020000_rc460_restaurant_menu_catalog_unique_ref.sql', 'utf8');
+assert.match(menuUniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/, 'catalog uniqueness migration fails closed when legacy duplicates exist');
+assert.match(menuUniqueMigration, /create unique index if not exists catalog_items_restaurant_menu_legacy_ref_uidx/, 'restaurant menu catalog references are uniquely indexed');
+console.log('Restaurant workspace contract: PASS (39 assertions)');
