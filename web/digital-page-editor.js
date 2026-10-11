@@ -22,7 +22,8 @@ const cfg=window.MANTIQATIX_CONFIG;const sb=supabase.createClient(cfg.supabaseUr
   branchSelect.replaceChildren(new Option('اختر الفرع',''));
   branchKeys.forEach(key=>branchSelect.add(new Option(key==='__NULL__'?'أصناف دون فرع محدد':'الفرع '+key,key)));
   if(branchKeys.length===1)branchSelect.value=branchKeys[0];
-  button.disabled=menuSourceItems.length===0||branchKeys.length===0;
+  branchSelect.onchange=()=>{button.disabled=!branchSelect.value||menuSourceItems.length===0};
+  button.disabled=menuSourceItems.length===0||branchKeys.length===0||!branchSelect.value;
   help.textContent=menuSourceItems.length
    ? 'تم تحميل '+menuSourceItems.length+' صنفًا متاحًا من قاعدة البيانات ضمن النشاط. اختر فرعًا محددًا؛ المزامنة تحفظ الأسعار المسجلة ولا تنشر الصفحة تلقائيًا.'
    : 'لا توجد أصناف متاحة فعلية لهذا النشاط. لم يتم إنشاء أي بيانات تجريبية.';
