@@ -183,9 +183,10 @@ try{
   sb.from('advertisements').select('id,title,status,approval_status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_projects').select('id,project_type,management_mode,status,gross_value,platform_commission,currency,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,status,created_at').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(20),
-  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(20)
+  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(20),
+  sb.from('marketing_campaign_participants').select('id,tenant_id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,created_at').order('created_at',{ascending:false}).limit(50)
  ]);
- live.records.leads=leadsRes.data||[];live.records.providers=providersRes.data||[];live.records.orders=ordersRes.data||[];live.records.notifications=notificationsRes.data||[];live.records.supportTickets=ticketsRes.data||[];live.records.ads=adsRes.data||[];live.records.projects=projectsRes.data||[];live.records.services=servicesRes.data||[];live.records.campaigns=campaignsRes.error?[]:(campaignsRes.data||[]);
+ live.records.leads=leadsRes.data||[];live.records.providers=providersRes.data||[];live.records.orders=ordersRes.data||[];live.records.notifications=notificationsRes.data||[];live.records.supportTickets=ticketsRes.data||[];live.records.ads=adsRes.data||[];live.records.projects=projectsRes.data||[];live.records.services=servicesRes.data||[];live.records.campaigns=campaignsRes.error?[]:(campaignsRes.data||[]);live.records.campaignParticipants=participantsRes.error?[]:(participantsRes.data||[]);
  if(['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())){
   const rr=await sb.from('account_registration_requests').select('id,user_id,requested_role,status,reason,created_at,reviewed_at').in('status',['PENDING','APPROVED','REJECTED']).order('created_at',{ascending:false}).limit(50);
   live.records.registrationRequests=rr.data||[];
