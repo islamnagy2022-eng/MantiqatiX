@@ -68,7 +68,8 @@ jobs:
           set -euo pipefail
           node --check web/smm.js
           grep -q "خارج نطاق الإطلاق الأول" web/smm.html
-          ! grep -Eq '<script[^>]+src=["'\'']smm\.js' web/smm.html
+          ! grep -q 'src="smm.js"' web/smm.html
+          ! grep -q "src='smm.js'" web/smm.html
           grep -q "خدمات التسويق الرقمي SMM — قيد التطوير" web/app.js
           echo "PASS: browser storefront is deferred; this does not disable the deployed Edge Function."
       - name: Run SMM-specific security checks (not a core-launch acceptance check)
