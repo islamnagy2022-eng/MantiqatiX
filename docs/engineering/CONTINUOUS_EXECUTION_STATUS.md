@@ -344,3 +344,11 @@ All Supabase production queries were read-only. No production migrations, table 
 - Main already contains RC451 `20261010200000_rc451_targeted_ads_empty_search_path.sql`, which changes only the function setting to `search_path = ''` and deliberately preserves anonymous execution for public ad discovery. The live setting has not changed; RC451 has **not** been applied to production. Apply only through the approved migration/release process after the migration ledger discrepancy and ordered replay gates are resolved.
 - Read-only catalog inspection also confirms `public.digital_page_payment_events` has RLS enabled and zero policies. Direct anon/authenticated SELECT/INSERT was previously verified denied; retain that deny-by-default boundary unless a documented feature requirement and negative tests justify a narrower policy.
 - No SQL, grants, RLS policies, function settings, Auth configuration, or production data were changed during this audit.
+
+ 
+## RC424 source/ledger reconciliation — 2026-10-11
+
+- Read-only query of `supabase_migrations.schema_migrations` shows the applied row `20261008222845 / rc424_atomic_digital_page_payment_webhook` contains one recorded SQL statement, 7,208 bytes.
+- The recorded statement matches `supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql` byte-for-byte (7,208 bytes; source blob `49f46e3e159e6306534adbf61f626901c2d73488`). The filename timestamp and applied ledger version differ, but the SQL content and migration name match exactly.
+- Resolution: document this as a legacy ledger-version alias; do not rewrite or delete the applied migration history. The release manifest records the exact-match evidence and immutable-history requirement.
+- This resolves only the RC424 content-identity question. The post-RC424 migration batch is not proven applied, the full chain has not yet been replayed on one disposable database, and release remains **NOT CERTIFIED**.
