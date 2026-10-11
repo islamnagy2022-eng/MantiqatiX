@@ -589,3 +589,8 @@ This status is intentional and must remain until the open gates above are indepe
 - Current corrected source commit: `bbd6804228ff29e60e603f1eb15eb4c641bacecb`.
 - SMM role entries added for MARKETING, PROVIDER_MARKETING and OWNER using the existing RBAC view filter.
 - The preceding commit temporarily introduced a duplicated prefix; this was corrected from its immediate parent. Structural check: one `function dashboard()`; CI/runtime tests remain pending.
+
+ 
+## Build progress — SESSION-010
+- Commit `89a071b647192c507c90ce083ea166dd6c789784`: added SMM shortcuts to BUSINESS_OWNER, ADMIN and SERVICE_PROVIDER dashboard configs, still subject to existing RBAC view checks.
+- RBAC visibility matrix tests are deferred to the post-build pass.
