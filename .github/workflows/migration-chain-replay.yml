@@ -22,7 +22,7 @@ permissions:
 
 concurrency:
   group: migration-chain-replay-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   replay-all-migrations:
