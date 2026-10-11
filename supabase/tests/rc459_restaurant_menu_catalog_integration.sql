@@ -81,6 +81,27 @@ begin
   end;
 
   if (select count(*) from public.audit_logs where entity_id=v_item_id)<>3 then raise exception 'create, price update, and availability update must each be audited'; end if;
+
+  -- A second active manager in the same business/branch can edit the shared menu.
+  v_actor := '20000000-0000-4000-8000-000000000003';
+  v_payload := jsonb_build_object(
+    'id',v_item_id,'tenant_id','TENANT-A',
+    'business_id','10000000-0000-4000-8000-000000000001','branch_id','BRANCH-A',
+    'name_ar','وجبة اختبار معدلة','description_ar','وصف اختبار','category','وجبات',
+    'base_price_egp',125,'is_available',false,'is_popular',true
+  );
+  execute 'set role service_role';
+  v_result := public.restaurant_menu_catalog_mutate_backend(v_actor,'UPDATE',v_payload);
+  execute 'reset role';
+  if coalesce((v_result->>'changed')::boolean,false) is not true then
+    raise exception 'same-scope manager could not update a shared menu item';
+  end if;
+  if not exists(select 1 from public.restaurant_menu_items where id=v_item_id and is_popular=true) then
+    raise exception 'same-scope manager menu update was not persisted';
+  end if;
+  if (select count(*) from public.audit_logs where entity_id=v_item_id)<>4 then
+    raise exception 'same-scope manager update must be audited';
+  end if;
 end;
 $test$;
 select 'RC459 restaurant menu/catalog atomic integration: PASS' as result;
