@@ -1672,3 +1672,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Marketing collaboration — SESSION-021
 - [x] Add preliminary discovery list for provider profiles classified as marketing/agency/digital/advertising.
 - [ ] Implement formal partner invitation/relationship only after the backend authorization contract is available and validated.
+
+ 
+## Governance module — SESSION-022
+- [x] Add CSV export for current-session support tickets and notifications.
+- [ ] Validate output and role-scope behavior after build completion.
