@@ -1256,7 +1256,7 @@ async function createMarketingCampaign(){
 }
 async function inviteMarketingCampaignPartner(campaignId){
  if(!user?.id||!campaignId)return authView();if(window.MNTY_RBAC?.can(String(live.role||''),'MARKETING','update',live.permissions)!==true)return showToast('لا تملك صلاحية دعوة شريك للحملة.','error');
- const eligible=(live.records.providers||[]).filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase())&&p.owner_user_id!==user.id&&p.business_id!==live.businessId);
+ const eligible=(live.records.providers||[]).filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase())&&p.id!==live.myProviderProfile?.id&&p.business_id!==live.businessId);
  if(!eligible.length)return showToast('لا توجد ملفات تسويق نشطة وموثقة مؤهلة للدعوة ضمن البيانات المحملة.','error');
  const choices=eligible.map((p,i)=>(i+1)+'. '+(p.name_ar||'مقدم تسويق')+' — '+p.provider_kind).join('\n');const choice=Number(window.prompt('اختر مقدم التسويق برقم من القائمة:\n'+choices,'1'));if(!Number.isInteger(choice)||choice<1||choice>eligible.length)return;
  const provider=eligible[choice-1],roles=['CREATIVE','CONTENT','MEDIA_BUYING','ANALYTICS','ACCOUNT_MANAGER','REFERRAL'];const role=String(window.prompt('دور الشريك: '+roles.join(' / '),'CONTENT')||'').trim().toUpperCase();if(!roles.includes(role))return showToast('دور الشريك غير صحيح.','error');
@@ -1275,7 +1275,7 @@ function marketingParticipantActions(row){
 }
 function marketingCampaignActions(row){
  const s=String(row.status||'').toUpperCase();const allowed={DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[s]||[];
- const transitions=allowed.map(next=>'<button type="button" class="btn btn-outline" style="width:auto;margin:2px" onclick="updateMarketingCampaignStatus(\''+esc(row.id)+'\',\''+next+'\')">'+esc(({PLANNED:'تخطيط',IN_REVIEW:'إرسال للمراجعة',APPROVED:'اعتماد',PAUSED:'إيقاف مؤقت',COMPLETED:'إكمال',CANCELLED:'إلغاء',DRAFT:'إرجاع لمسودة'})[next]||next)+'</button>').join(' ');const invite=['DRAFT','PLANNED','IN_REVIEW'].includes(s)?'<button type="button" class="btn btn-outline" style="width:auto;margin:2px" onclick="inviteMarketingCampaignPartner(\''+esc(row.id)+'\')">دعوة شريك</button>':'';return invite+transitions||'<span class="muted">لا توجد انتقالات متاحة</span>';
+ const transitions=allowed.map(next=>'<button type="button" class="btn btn-outline" style="width:auto;margin:2px" onclick="updateMarketingCampaignStatus(\''+esc(row.id)+'\',\''+next+'\')">'+esc(({PLANNED:'تخطيط',IN_REVIEW:'إرسال للمراجعة',APPROVED:'اعتماد',PAUSED:'إيقاف مؤقت',COMPLETED:'إكمال',CANCELLED:'إلغاء',DRAFT:'إرجاع لمسودة'})[next]||next)+'</button>').join(' ');const invite=['DRAFT','PLANNED','IN_REVIEW'].includes(s)&&window.MNTY_RBAC?.can(String(live.role||''),'MARKETING','update',live.permissions)===true?'<button type="button" class="btn btn-outline" style="width:auto;margin:2px" onclick="inviteMarketingCampaignPartner(\''+esc(row.id)+'\')">دعوة شريك</button>':'';return invite+transitions||'<span class="muted">لا توجد انتقالات متاحة</span>';
 }
 async function updateMarketingCampaignStatus(campaignId,nextStatus){
  if(!user?.id||!campaignId)return authView();if(window.MNTY_RBAC?.can(String(live.role||''),'MARKETING','update',live.permissions)!==true)return showToast('لا تملك صلاحية تحديث الحملة.','error');
