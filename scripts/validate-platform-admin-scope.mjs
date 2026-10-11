@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 const migration = fs.readFileSync("supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql", "utf8");
+const hardenedMigration = fs.readFileSync("supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc441_platform_admin_integration.sql", "utf8");
 const checks = [];
 function check(name, ok) {
@@ -8,6 +9,30 @@ function check(name, ok) {
   if (!ok) console.error("FAIL " + name);
 }
 check("platform-admin guard requires active SUPER_ADMIN membership", migration.includes("upper(m.role) = 'SUPER_ADMIN'") && migration.includes("m.status = 'ACTIVE'") && migration.includes("m.tenant_id = 'MNTY-PLATFORM'"));
+check("RC449 keeps the platform-admin guard limited to active platform SUPER_ADMIN membership",
+  hardenedMigration.includes("m.tenant_id = 'MNTY-PLATFORM'") &&
+  hardenedMigration.includes("m.status = 'ACTIVE'") &&
+  hardenedMigration.includes("upper(m.role) = 'SUPER_ADMIN'") &&
+  hardenedMigration.includes("m.permissions ->> 'scope' = 'PLATFORM'") &&
+  hardenedMigration.includes("(m.permissions ->> 'full_control')::boolean"));
+check("RC449 applies empty search_path to the guard and every global RPC",
+  (hardenedMigration.match(/set search_path = ''/g) || []).length >= 5);
+function rc449Function(name) {
+  const start = hardenedMigration.indexOf("create or replace function public." + name);
+  if (start < 0) return "";
+  const next = hardenedMigration.indexOf("\ncreate or replace function public.", start + 1);
+  return hardenedMigration.slice(start, next < 0 ? undefined : next);
+}
+for (const name of [
+  "get_mantigo_admin_dashboard_backend",
+  "get_mantigo_admin_financial_report_backend",
+  "settle_mantigo_captain_backend",
+  "expire_stale_mantigo_rides_backend",
+]) {
+  const body = rc449Function(name);
+  check("RC449 " + name + " enforces platform-only authorization",
+    body.includes("set search_path = ''") && body.includes("public.mnty_can_platform_admin()") && body.includes("PLATFORM_ADMIN_REQUIRED"));
+}
 check("platform-admin guard requires explicit PLATFORM scope and full control", migration.includes("m.permissions ->> 'scope' = 'PLATFORM'") && migration.includes("(m.permissions ->> 'full_control')::boolean"));
 check("guard uses empty search_path and is not public/anon executable", migration.includes("set search_path = ''") && migration.includes("revoke all on function public.mnty_can_platform_admin() from public, anon"));
 check("global dashboard checks the platform-admin guard", migration.includes("get_mantigo_admin_dashboard_backend") && migration.includes("if not public.mnty_can_platform_admin()"));
