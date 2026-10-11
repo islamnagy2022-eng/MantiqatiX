@@ -639,3 +639,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Specialized Accounting, ERP, Factory, Trips, and Matrimony workspaces now show a refresh button that invalidates only the active module's in-memory cache and calls its existing authenticated loader.
 - No data mutation or permission/schema changes were introduced by this control.
 - Implementation commit: `0e19464fadd67c5520b0cb6449218c50b9a17ba3`; runtime/E2E is not yet verified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-016
+- Restaurant workspace now includes a refresh action for menu, orders, tables, and inventory.
+- The action reuses the existing scoped loader and clears only the in-memory cache for the restaurant module; no data or permissions are changed.
+- Implementation commit: `936551530b7def8bb815cfbf458ad1b4874b8d0c`; runtime/E2E remains unverified.
