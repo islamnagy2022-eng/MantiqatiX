@@ -208,3 +208,11 @@ All ten have a function-level `search_path` setting. The observed values are `pu
 **Replay finding:** clean replay remains blocked at `20260927095000_revoke_unused_security_definer_execute.sql`, before later migrations. The prior approval covers only the two SMM table baselines; it does not authorize a test-only baseline containing ten privileged function bodies. Recover authoritative historical creation DDL or obtain explicit owner approval for a separate isolated test-only function baseline. Never copy the live definitions into production migrations or use a replay-only baseline as a substitute for a production remediation plan.
 
 Evidence source: read-only catalog query run on 2026-10-11. No function definitions/bodies, table rows, secrets, or provider data were copied into this document. Production remained unchanged.
+
+### Latest exact-head gate refresh — commit `329b08f353e543250707aaf75e3598bd8a2b5a3d`
+
+- Disposable replay run [38155671578](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38155671578) failed at the fail-closed preflight and did not start Docker/Supabase. The preflight enumerated the ten legacy function dependencies and stopped before any migration execution. This is expected until authoritative history or separately approved test-only function baseline exists.
+- Module Professionalization run [38155429958](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38155429958) completed with 15 SMM gateway safety-contract failures; all other jobs in that run passed. This remains a release blocker.
+- Pages verification run [38155430108](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38155430108) reported `PRODUCTION_GATE=BLOCKED`; its deploy job was skipped. A green workflow-level conclusion here means the validation job ran successfully, not that production passed or deployed.
+- The legacy function baseline does not exist and has not been approved. Do not infer that the baseline path is ready merely because the absent-baseline preflight correctly blocks. If approval is later granted, validate a representative named-parameter function definition against the signature checker before trusting the baseline's positive path.
+- No production schema, data, grants, RLS, Edge Functions, Auth settings, wallets, or payments were changed.
