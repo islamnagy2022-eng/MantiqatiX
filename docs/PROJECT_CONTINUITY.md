@@ -653,3 +653,11 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-024
 - Commits `e747965f0b2a0a416ff3c5ee2a9c63e4e5d7673b` / `e8f93175d7ffb120c7e7a6d62bb5e665fb114a10`: sector table UI gained local search and CSV export. Follow-up corrected over-escaped literals; runtime verification remains pending.
+
+ 
+## Build progress — SESSION-025 — Campaign collaboration
+- Commits `09dfe733c2c84eaaed7f66dc9fd535016c955a89` and `9c3b900e4197a13ccec3c5ccae458bb09175c80d`.
+- Marketing workspace now has internal campaign creation, RLS-visible campaign/participant lists, verified partner invitations, status transitions, and accept/decline responses using the existing RC453 backend RPC contract.
+- No direct client table writes or external ad publishing. Invalid dates fail closed; campaign cache resets on membership change/sign-out and reloads on workspace refresh.
+- Production ledger was previously observed at RC424; RC453 is not proven deployed. UI remains unavailable until its tables are readable. No deployment was performed.
+- Run RC453 integration tests in disposable PostgreSQL after build completion.
