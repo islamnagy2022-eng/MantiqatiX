@@ -170,7 +170,7 @@ jobs:
           rsync -a --delete --exclude='smm.js' web/ artifacts/web-release/
           test -f artifacts/web-release/smm.html
           test ! -e artifacts/web-release/smm.js
-          ! grep -R -E 'src=["'"']smm\.js["'"']' artifacts/web-release --include='*.html'
+          ! grep -R -E "src=['\"]smm\\.js['\"]" artifacts/web-release --include='*.html'
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4
         with:
