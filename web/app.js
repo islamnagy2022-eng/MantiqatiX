@@ -1509,7 +1509,10 @@ function analyticsWorkspace(){
  const orderValue=orders.reduce((n,o)=>n+(Number(o.total_amount)||0),0);
  const currency=orders.find(o=>o.currency)?.currency||'';
  const note='المؤشرات التالية محسوبة من السجلات التي تم تحميلها فعليًا لهذا الحساب، وليست إجماليًا تاريخيًا إلا إذا كان مصدر التحميل شاملًا.';
- return workspaceHead('ANALYTICS','التقارير والتحليلات','لوحة تحليلية مبنية على بيانات التشغيل الفعلية المتاحة، مع منع الخلط بين العينة المحملة والإجمالي التاريخي.','LIVE')
+ const orderStatusCounts={};orders.forEach(o=>{const status=String(o.status||'UNKNOWN').toUpperCase();orderStatusCounts[status]=(orderStatusCounts[status]||0)+1;});
+ const maxStatusCount=Math.max(1,...Object.values(orderStatusCounts));
+ const statusBars=Object.entries(orderStatusCounts).sort((a,b)=>b[1]-a[1]).map(([status,count])=>'<div class="mx-analytics-bar-row"><span>'+esc(orderStatusLabel(status))+'</span><div class="mx-analytics-track" role="progressbar" aria-label="'+esc(orderStatusLabel(status))+'" aria-valuemin="0" aria-valuemax="'+maxStatusCount+'" aria-valuenow="'+count+'"><span style="width:'+Math.round((count/maxStatusCount)*100)+'%"></span></div><b>'+count+'</b></div>').join('');
+ return workspaceHead('ANALYTICS','التقارير والتحليلات','لوحة تحليلية مبنية على بيانات التشغيل الفعلية المتاحة، مع منع الخلط بين العينة المحملة والإجمالي التاريخي.','LIVE')+'<div class="mx-workspace-shortcuts"><button type="button" data-export-source="orders">تصدير الطلبات CSV</button><button type="button" data-export-source="leads">تصدير العملاء المحتملين CSV</button><button type="button" data-export-source="projects">تصدير المشروعات CSV</button><button type="button" data-export-source="ads">تصدير الإعلانات CSV</button><button type="button" data-export-source="notifications">تصدير الإشعارات CSV</button></div>'
  +'<div class="notice">'+esc(note)+'</div>'
  +workspaceCards([
   ['الطلبات المحملة',String(orders.length),'مصدر orders الحالي'],
@@ -1519,7 +1522,7 @@ function analyticsWorkspace(){
   ['Leads المفتوحة',String(openLeads),'من CRM المتاح'],
   ['مشروعات نشطة',String(activeProjects),'من التسويق المتاح']
  ])
- +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">OPERATING SIGNALS</span><h2>إشارات الأداء</h2><p>قراءة تشغيلية فقط من البيانات الحالية؛ لا توجد نسب تحويل أو نمو مصطنعة بدون بيانات فترة مقارنة.</p></div></div><div class="grid3" style="margin-top:12px">'
+ +'<section class="card mx-analytics-status" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">ORDER STATUS</span><h2>توزيع حالات الطلبات المحمّلة</h2><p class="muted">توزيع السجلات المتاحة فقط، وليس كامل التاريخ التشغيلي.</p></div></div>'+(statusBars||'<div class="empty-state">لا توجد طلبات محمّلة لعرض التوزيع.</div>')+'</section>' +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">OPERATING SIGNALS</span><h2>إشارات الأداء</h2><p>قراءة تشغيلية فقط من البيانات الحالية؛ لا توجد نسب تحويل أو نمو مصطنعة بدون بيانات فترة مقارنة.</p></div></div><div class="grid3" style="margin-top:12px">'
  +'<article class="card" style="padding:14px"><b>معدل التسليم</b><strong style="display:block;font-size:24px;margin-top:8px">'+(orders.length?((delivered/orders.length)*100).toFixed(1)+'%':'—')+'</strong><small class="muted">من الطلبات المحملة</small></article>'
  +'<article class="card" style="padding:14px"><b>معدل الإلغاء/الفشل</b><strong style="display:block;font-size:24px;margin-top:8px">'+(orders.length?((cancelled/orders.length)*100).toFixed(1)+'%':'—')+'</strong><small class="muted">من الطلبات المحملة</small></article>'
  +'<article class="card" style="padding:14px"><b>إعلانات فعالة</b><strong style="display:block;font-size:24px;margin-top:8px">'+String(activeAds)+'</strong><small class="muted">حسب الحالة المتاحة</small></article>'
