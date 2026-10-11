@@ -602,3 +602,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-012
 - Commit `5bc89ea9a5c0bb9ecedbf6fe1a72f2de4237268a`: actual Analytics workspace gained CSV export for currently loaded orders/leads/providers/projects/ads/notifications and a refresh action. Export is a current-session sample, not full historical/accounting data.
+
+ 
+## Build progress — SESSION-013
+- Commit `2a2dc8b1af248d592feb0ccb3a93765881ce4c42`: shared primary workspace header includes refresh. Validate module restoration and async domain-module reload after build.
