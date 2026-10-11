@@ -307,7 +307,7 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v6
-      - name: Run RC441 platform-admin authorization integration tests in disposable PostgreSQL
+      - name: Run RC441 baseline then RC449 final platform-admin authorization tests in disposable PostgreSQL
         shell: bash
         run: |
           set -euo pipefail
@@ -318,10 +318,12 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
           docker cp supabase/tests/rc441_platform_admin_fixture.sql "$pg_container:/tmp/rc441_fixture.sql"
           docker cp supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc441_migration.sql"
-          docker cp supabase/tests/rc441_platform_admin_integration.sql "$pg_container:/tmp/rc441_test.sql"
+          docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449_migration.sql"
+          docker cp supabase/tests/rc441_platform_admin_integration.sql "$pg_container:/tmp/rc449_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_migration.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449_test.sql
 
   erp-branch-scope-integration:
     runs-on: ubuntu-latest
