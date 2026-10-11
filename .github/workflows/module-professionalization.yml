@@ -461,6 +461,8 @@ jobs:
           grep -q "window.MNTYModuleRuntime" web/app.js
           grep -q "syncModuleRuntime" web/app.js
           grep -q "MNTYModuleRuntime" web/module-blueprints.js
+      - name: Internal marketing campaign workspace contract
+        run: node scripts/validate-marketing-campaign-backend.mjs
       - name: SMM deferred launch scope
         run: node scripts/validate-smm-deferred-release.mjs
       - name: Matrimony privacy boundary source contract
