@@ -42,4 +42,4 @@ assert.match(menuEdge, /maxBodyBytes/, 'menu Edge Function enforces a request si
 assert.match(menuMigration, /set search_path = ''/, 'menu RPC pins an empty search path');
 assert.match(menuMigration, /revoke all on function public\.restaurant_menu_catalog_mutate_backend/, 'menu RPC is not exposed to public client roles');
 assert.match(menuMigration, /insert into public\.audit_logs/, 'menu/catalog mutations are audited');
-console.log('Restaurant workspace contract: PASS (28 assertions)');
+console.log('Restaurant workspace contract: PASS (37 assertions)');
