@@ -98,3 +98,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** SMM is also listed in the role dashboard configurations for `BUSINESS_OWNER`, `ADMIN`, and `SERVICE_PROVIDER`. Existing role permission filtering remains in place; listing a module does not grant access.
 - **Next:** continue building remaining domain workflows, then validate dashboard visibility against the actual RBAC matrix.
 - **Production impact:** none; frontend branch only.
+
+## 2026-10-11 — SESSION-011 — Show module source loading state
+
+- **Code commit:** [2f60bdb55338e901a2b7cea6c5fddeb4421aa31a](https://github.com/islamnagy2022-eng/MantiqaTix/commit/2f60bdb55338e901a2b7cea6c5fddeb4421aa31a).
+- **Built:** Module Center cards now show whether the module's existing source-count loading has occurred and how many sources returned a numeric count.
+- **Accuracy guard:** unopened modules are labeled as not yet loaded; the UI does not imply module readiness or successful source access solely from catalog presence.
+- **Tests:** pending post-build verification.
+- **Next:** continue filling module-specific gaps and later run the consolidated validation pass.
