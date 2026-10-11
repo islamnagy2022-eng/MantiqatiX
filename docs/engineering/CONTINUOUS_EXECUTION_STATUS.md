@@ -1,4 +1,12 @@
 # MantiqatiX Continuous Execution Status
+## Owner decision — SMM frozen until after production launch (2026-10-12)
+
+- **SMM implementation and feature work are paused by explicit owner instruction.** Do not continue SMM development, remediation, UI work, provider/payment/wallet work, or SMM-specific expansion until the owner explicitly requests resumption after the site has launched and is operating.
+- Keep the SMM module out of the initial launch scope. Do not weaken, delete, or rewrite existing SMM security tests to make CI green; retain their current results as recorded evidence, but do not spend the current release cycle implementing SMM fixes.
+- This freeze is a development-scope decision, not proof that any already-deployed SMM endpoint has been disabled. Do not change production Edge Functions, secrets, database grants, migrations, wallet/order state, or deployment configuration without a separately authorized production change and verified rollback plan.
+- Continue release work only on non-SMM launch-critical areas: migration-source/ledger reconciliation and chronological replay on disposable PostgreSQL, non-SMM security and tenant-isolation checks, authenticated browser acceptance, payment/finance acceptance, and backup/restore plus rollback evidence.
+- Release remains **NOT CERTIFIED** until all launch-critical gates outside the deferred SMM feature set are independently evidenced. If a shared security or production-risk gate depends on SMM being active, report it explicitly; do not silently waive it.
+
 Last updated: 2026-10-11 — RC453 source CI verified; production release not certified
 
 ## Release status
