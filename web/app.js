@@ -1254,11 +1254,12 @@ function exportMarketingWorkspaceCsv(){
  const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mantiqatix-marketing.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function canManagePlatformMarketing(){return String(live.role||'').toUpperCase()==='SUPER_ADMIN'&&String(live.tenantId||'')==='MNTY-PLATFORM'&&String(live.permissions?.scope||'')==='PLATFORM'&&String(live.permissions?.full_control||'')==='true'&&canSuperAdmin()}
 function marketingCampaignPanel(){
  const st=marketingCampaignState,role=String(live.role||'').toUpperCase();
  const backendManagers=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role);
- const canCreate=backendManagers&&((role==='SUPER_ADMIN'&&canSuperAdmin())||(!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','create',live.permissions)===true))&&Boolean(live.businessId||(role==='SUPER_ADMIN'&&canSuperAdmin()&&st.businesses.length));
- const canManage=backendManagers&&((role==='SUPER_ADMIN'&&canSuperAdmin())||(!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true));
+ const canCreate=backendManagers&&((canManagePlatformMarketing())||(!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','create',live.permissions)===true))&&Boolean(live.businessId||(canManagePlatformMarketing()&&st.businesses.length));
+ const canManage=backendManagers&&((canManagePlatformMarketing())||(!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true));
  if(st.loading||!st.loaded)return '<section class="card" style="margin:16px 0;padding:18px"><h3>الحملات الداخلية والتعاون مع الشركاء</h3><p>جاري تحميل بيانات الحملات وفق صلاحيات الحساب…</p></section>';
  if(!st.available)return '<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">CAMPAIGN COLLABORATION</span><h2>الحملات الداخلية وشركات التسويق الشريكة</h2><p>واجهة التعاون مرتبطة بعقد خادمي محدد؛ لن يتم حفظ أي شيء مباشرة من المتصفح أو استخدام مسار بديل.</p></div><span class="count">غير متاح</span></div><div class="notice">خدمة الحملات الداخلية غير متاحة في بيئة التشغيل الحالية. يلزم توفر جداول ووظائف الخادم المعتمدة قبل تفعيل الإنشاء أو الدعوات.</div></section>';
  const objectives=[['AWARENESS','الوعي بالعلامة'],['TRAFFIC','زيارات الموقع'],['LEADS','جمع العملاء المحتملين'],['SALES','المبيعات'],['ENGAGEMENT','التفاعل'],['APP_INSTALLS','تثبيت التطبيق']];
@@ -1286,7 +1287,7 @@ async function loadMarketingCampaignWorkspace(force=false){
  st.loading=true;st.error=null;
  try{
   st.businesses=[];
-  if(String(live.role||'').toUpperCase()==='SUPER_ADMIN'&&canSuperAdmin()&&!live.businessId){
+  if(canManagePlatformMarketing()&&!live.businessId){
    const businessRes=await sb.from('businesses').select('id,name,code,status').eq('status','ACTIVE').order('name',{ascending:true}).limit(100);
    st.businesses=businessRes.error?[]:(businessRes.data||[]);
   }
@@ -1309,7 +1310,7 @@ async function loadMarketingCampaignWorkspace(force=false){
 async function submitMarketingCampaign(form){
  const role=String(live.role||'').toUpperCase(),businessId=document.getElementById('mx-campaign-business')?.value||live.businessId;
  if(!user?.id||!businessId)return showToast('اختر نشاطًا نشطًا قبل إنشاء حملة.','error');
- const platformAllowed=role==='SUPER_ADMIN'&&canSuperAdmin();
+ const platformAllowed=canManagePlatformMarketing();
  const roleAllowed=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(platformAllowed||window.MNTY_RBAC?.can(role,'MARKETING','create',live.permissions)===true);
  if(!roleAllowed)return showToast('لا تملك صلاحية إنشاء حملة ضمن هذا النطاق.','error');
  const title=document.getElementById('mx-campaign-title')?.value?.trim()||'';
@@ -1338,12 +1339,12 @@ async function inviteMarketingPartner(form){
  const role=form.querySelector('[data-partner-role]')?.value;
  const allocation=Number(form.querySelector('[data-partner-allocation]')?.value||0),agreed=Number(form.querySelector('[data-partner-value]')?.value||0);
  if(!id||!providerId||!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0)return showToast('بيانات دعوة الشريك غير صحيحة.','error');
- const role=String(live.role||'').toUpperCase();if(!(['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(role==='SUPER_ADMIN'&&canSuperAdmin()||!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true)))return showToast('لا تملك صلاحية دعوة شريك.','error');
+ const role=String(live.role||'').toUpperCase();if(!(['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(canManagePlatformMarketing()||!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true)))return showToast('لا تملك صلاحية دعوة شريك.','error');
  const btn=form.querySelector('button[type="submit"]');if(btn){btn.disabled=true;btn.textContent='جاري إرسال الدعوة…'}
  try{const {error}=await sb.rpc('invite_marketing_campaign_partner_backend',{p_actor:user.id,p_campaign_id:id,p_provider_id:providerId,p_role:role,p_allocation_percent:allocation,p_agreed_value:agreed});if(error)throw error;showToast('تم إرسال دعوة الشريك.','success');marketingCampaignState.loaded=false;await loadMarketingCampaignWorkspace(true);await renderApp({forceWorkspace:true})}catch(e){showToast('تعذر إرسال الدعوة: '+(e?.message||'الخدمة غير متاحة'),'error')}finally{if(btn){btn.disabled=false;btn.textContent='إرسال الدعوة'}}
 }
 async function updateMarketingCampaignStatus(campaignId,status){
- const role=String(live.role||'').toUpperCase();if(!(['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(role==='SUPER_ADMIN'&&canSuperAdmin()||!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true)))return showToast('لا تملك صلاحية تغيير حالة الحملة.','error');
+ const role=String(live.role||'').toUpperCase();if(!(['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(role)&&(canManagePlatformMarketing()||!!live.businessId&&window.MNTY_RBAC?.can(role,'MARKETING','update',live.permissions)===true)))return showToast('لا تملك صلاحية تغيير حالة الحملة.','error');
  try{const {error}=await sb.rpc('update_marketing_campaign_status_backend',{p_actor:user.id,p_campaign_id:campaignId,p_status:status});if(error)throw error;showToast('تم تحديث حالة الحملة.','success');marketingCampaignState.loaded=false;await loadMarketingCampaignWorkspace(true);await renderApp({forceWorkspace:true})}catch(e){showToast('تعذر تحديث الحملة: '+(e?.message||'الخدمة غير متاحة'),'error')}
 }
 async function respondMarketingCampaignInvitation(participantId,decision){
