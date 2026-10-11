@@ -53,4 +53,4 @@ assert.match(integration, /new current price must end at the next scheduled pric
 assert.match(integration, /cross-tenant menu write was accepted/);
 assert.match(integration, /has_function_privilege\('authenticated'/);
 assert.match(fixture, /create table public\.catalog_item_prices/);
-console.log('RC459 restaurant menu/catalog sync source contract: PASS (39 assertions)');
+console.log('RC459 restaurant menu/catalog sync source contract: PASS (43 assertions)');
