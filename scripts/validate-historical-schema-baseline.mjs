@@ -71,29 +71,77 @@ if (!legacyPrivilegeMigration) {
   console.error("P0 BLOCKED: expected legacy SECURITY DEFINER privilege migration is missing.");
   process.exit(1);
 }
-const legacyFunctionNames = [
-  "counter_offer_indrive_bid",
-  "fashion_erp_mutate",
-  "mantigo_accept_bid",
-  "mantigo_cancel_ride",
-  "mantigo_create_ride",
-  "mantigo_rate_ride",
-  "mantigo_submit_bid",
-  "mantigo_update_proposed_price",
-  "restaurant_erp_mutate",
-  "restaurant_table_mutate",
+const legacyFunctionSignatures = [
+  { name: "counter_offer_indrive_bid", args: "uuid,uuid,numeric" },
+  { name: "fashion_erp_mutate", args: "text,jsonb,text" },
+  { name: "mantigo_accept_bid", args: "text,text" },
+  { name: "mantigo_cancel_ride", args: "text" },
+  { name: "mantigo_create_ride", args: "text,text,text,text,numeric,text" },
+  { name: "mantigo_rate_ride", args: "text,integer,text" },
+  { name: "mantigo_submit_bid", args: "text,numeric,text,text,text,text" },
+  { name: "mantigo_update_proposed_price", args: "text,numeric" },
+  { name: "restaurant_erp_mutate", args: "text,jsonb,text" },
+  { name: "restaurant_table_mutate", args: "text,jsonb,text" },
 ];
+const legacyFunctionNames = legacyFunctionSignatures.map(({ name }) => name);
 const legacyBaselinePath = "supabase/tests/baselines/legacy_security_definer_functions.sql";
 const legacyBaselineExists = fs.existsSync(legacyBaselinePath);
 const legacyBaseline = legacyBaselineExists ? fs.readFileSync(legacyBaselinePath, "utf8") : "";
-const unresolvedLegacyFunctions = legacyFunctionNames.filter((functionName) => {
-  const creation = migrations.find(({ name, sql }) =>
-    name.slice(0, 14) < legacyPrivilegeMigration.name.slice(0, 14) &&
-    new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + functionName + "\\s*\\(", "i").test(sql)
+if (legacyBaselineExists) {
+  const baselineLower = legacyBaseline.toLowerCase();
+  const normalizedBaseline = baselineLower.replace(/\\s+/g, "");
+  const baselineChecks = [];
+  baselineChecks.push([
+    "owner approval, test-only, source provenance, and production prohibition",
+    /owner-approved test-only function baseline/i.test(legacyBaseline) &&
+      /moyhiluyhjsujhwlyeuu/i.test(legacyBaseline) &&
+      /read-only/i.test(legacyBaseline) &&
+      /never apply this file to production/i.test(legacyBaseline),
+  ]);
+  for (const { name, args } of legacyFunctionSignatures) {
+    const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\\s+/g, "").toLowerCase();
+    baselineChecks.push([
+      "exact signature for " + name,
+      normalizedBaseline.includes(normalizedSignature),
+    ]);
+    const revoke = legacyBaseline.match(new RegExp(
+      "revoke\\s+(?:all|execute)\\s+on\\s+function\\s+public\\\\." + name +
+      "\\s*\\([^)]*\\)\\s+from\\s+([^;]+);", "i"
+    ));
+    const revokedRoles = revoke ? revoke[1].toLowerCase().split(",").map((role) => role.trim()) : [];
+    baselineChecks.push([
+      "client/service-role EXECUTE revoked for " + name,
+      Boolean(revoke) && ["public", "anon", "authenticated", "service_role"].every((role) => revokedRoles.includes(role)),
+    ]);
+  }
+  baselineChecks.push([
+    "all ten functions are SECURITY DEFINER",
+    (legacyBaseline.match(/\\bsecurity\\s+definer\\b/gi) || []).length >= legacyFunctionSignatures.length,
+  ]);
+  baselineChecks.push([
+    "all ten functions pin a function-level search_path",
+    (legacyBaseline.match(/\\bset\\s+search_path\\s*=/gi) || []).length >= legacyFunctionSignatures.length,
+  ]);
+  baselineChecks.push([
+    "baseline does not grant client EXECUTE",
+    !/\\bgrant\\s+(?:all|execute)\\s+on\\s+function\\b[^;]*\\bto\\s+(?:public|anon|authenticated)\\b/i.test(legacyBaseline),
+  ]);
+  const failedBaselineChecks = baselineChecks.filter(([, ok]) => !ok);
+  if (failedBaselineChecks.length) {
+    for (const [name] of failedBaselineChecks) console.error("P0 BLOCKED: legacy function baseline validation failed: " + name);
+    process.exit(1);
+  }
+}
+const unresolvedLegacyFunctions = legacyFunctionSignatures.filter(({ name, args }) => {
+  const creation = migrations.find(({ name: migrationName, sql }) =>
+    migrationName.slice(0, 14) < legacyPrivilegeMigration.name.slice(0, 14) &&
+    new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + name + "\\s*\\(", "i").test(sql) &&
+    sql.replace(/\\s+/g, "").toLowerCase().includes(("public." + name + "(" + args + ")").replace(/\\s+/g, "").toLowerCase())
   );
   const inApprovedBaseline = legacyBaselineExists &&
     /OWNER-APPROVED TEST-ONLY FUNCTION BASELINE/i.test(legacyBaseline) &&
-    new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + functionName + "\\s*\\(", "i").test(legacyBaseline);
+    new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + name + "\\s*\\(", "i").test(legacyBaseline) &&
+    legacyBaseline.replace(/\\s+/g, "").toLowerCase().includes(("public." + name + "(" + args + ")").replace(/\\s+/g, "").toLowerCase());
   return !creation && !inApprovedBaseline;
 });
 if (unresolvedLegacyFunctions.length) {
