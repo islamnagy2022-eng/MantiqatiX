@@ -67,3 +67,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Verification:** syntax/integration tests remain pending until the post-build phase; do not treat the current commits as validated.
 - **Production impact:** none.
 - **Next:** continue module-specific data/action wiring and then perform the deferred validation batch.
+
+## 2026-10-11 — SESSION-007 — Add module report status summaries
+
+- **Code commit:** [a2d5c76685a31381475175486f69ec8631673b6f](https://github.com/islamnagy2022-eng/MantiqaTix/commit/a2d5c76685a31381475175486f69ec8631673b6f).
+- **Built:** reports tabs now display status breakdowns from records already loaded in the current session for orders, marketing, users, support, and the combined reports view.
+- **Accuracy guard:** the UI explicitly says this is the loaded sample, not the full database total; no synthetic records or estimated counts are generated.
+- **Tests:** pending post-build validation.
+- **Next:** continue building module-specific workflows, then test the complete branch before integration.
