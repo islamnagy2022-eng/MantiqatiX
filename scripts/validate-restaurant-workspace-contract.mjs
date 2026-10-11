@@ -89,6 +89,9 @@ assert.match(workspaceMigration, /insert into public\.audit_logs/, 'workspace ch
 assert.match(workspaceMigration, /set search_path = ''/, 'workspace mutation RPC pins an empty search path');
 assert.match(workspaceMigration, /from public\.branches br[\s\S]*?upper\(coalesce\(br\.status,'ACTIVE'\)\) = 'ACTIVE'/, 'workspace RPC rejects inactive or cross-business branches');
 assert.match(workspaceMigration, /grant execute on function public\.restaurant_workspace_mutate_backend[\s\S]*?to service_role/i, 'workspace mutation RPC is restricted to the service role');
+assert.match(workspaceMigration, /where i\.id::text\s*=\s*v_id/, 'UUID inventory IDs are compared without text/uuid operator mismatch');
+assert.match(workspaceMigration, /values\(v_id::uuid,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,v_name/, 'new inventory records cast validated generated IDs to UUID');
+assert.match(workspaceIntegration, /where i\.id::text=v_inventory_id/, 'integration test handles inventory UUID identifiers explicitly');
 assert.match(workspaceMigration, /RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID/, 'migration aborts if the backend RPC execute boundary is not correct');
 
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
@@ -97,4 +100,4 @@ assert.match(workspaceIntegration, /RC461_NON_MEMBER_WAS_ALLOWED/, 'integration 
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (83 assertions)');
+console.log('Restaurant workspace contract: PASS (86 assertions)');
