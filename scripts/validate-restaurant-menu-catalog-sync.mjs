@@ -11,7 +11,8 @@ const integration = fs.readFileSync('supabase/tests/rc459_restaurant_menu_catalo
 
 assert.match(migration, /create or replace function public\.restaurant_menu_catalog_mutate_backend/);
 assert.match(uniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/);
-assert.match(uniqueMigration, /v_has_equivalent_unique_index boolean/);\nassert.match(uniqueMigration, /create unique index catalog_items_restaurant_menu_legacy_ref_uidx/);
+assert.match(uniqueMigration, /v_has_equivalent_unique_index boolean/);
+assert.match(uniqueMigration, /create unique index catalog_items_restaurant_menu_legacy_ref_uidx/);
 assert.match(migration, /security definer\s+set search_path = ''/i);
 assert.match(migration, /p_actor_user_id is null/);
 assert.match(migration, /m\.user_id = p_actor_user_id/);
