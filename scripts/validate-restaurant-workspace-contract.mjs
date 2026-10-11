@@ -94,6 +94,8 @@ assert.match(workspaceMigration, /where i\.id::text\s*=\s*v_id/, 'UUID inventory
 assert.match(workspaceMigration, /values\(v_id::uuid,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,v_name/, 'new inventory records cast validated generated IDs to UUID');
 assert.match(workspaceIntegration, /where i\.id::text=v_inventory_id/, 'integration test handles inventory UUID identifiers explicitly');
 assert.match(workspaceMigration, /RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID/, 'migration aborts if the backend RPC execute boundary is not correct');
+assert.equal((workspaceMigration.match(/^do \$\$/gm) || []).length, 2, 'migration DO blocks use valid dollar-quote delimiters');
+assert.doesNotMatch(workspaceMigration, /^do \$/m, 'migration cannot contain malformed single-dollar DO delimiters');
 
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
 assert.match(workspaceIntegration, /RC461_TABLE_AUDIT_NOT_ATOMIC/, 'integration verifies table audit records for each mutation');
@@ -103,4 +105,4 @@ assert.match(workspaceIntegration, /RC461_CROSS_SCOPE_INVENTORY_UPDATE_WAS_ALLOW
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (89 assertions)');
+console.log('Restaurant workspace contract: PASS (91 assertions)');
