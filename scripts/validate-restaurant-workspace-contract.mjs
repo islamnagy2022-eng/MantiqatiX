@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const source = fs.readFileSync('web/restaurant-module.js', 'utf8');
+assert.match(source, /function nextOrderStatuses\(order\)/, 'order status choices must be derived from current status');
+assert.match(source, /status==='PENDING'\|\|status==='CREATED'\)return \['CONFIRMED','CANCELLED'\]/, 'pending orders expose only valid next states');
+assert.match(source, /status==='CONFIRMED'\)return \['PREPARING','CANCELLED'\]/, 'confirmed orders expose only valid next states');
+assert.match(source, /status==='PREPARING'\)return \['OUT_FOR_DELIVERY','CANCELLED'\]/, 'preparing orders expose only valid next states');
+assert.match(source, /status==='OUT_FOR_DELIVERY'\)return \['DELIVERED'\]/, 'out-for-delivery orders expose only delivery completion');
+assert.match(source, /data-order-status=/, 'allowed order status selector is rendered');
+assert.match(source, /String\(x\.status\|\|'EMPTY'\)\.toUpperCase\(\)===status\?'selected'/, 'editing a table preserves its current status');
+assert.match(source, /const rawItems=\(catalog\?\.items\|\|\[\]\)\.filter/, 'order creation uses active central catalog items');
+assert.match(source, /const prices=\(catalog\?\.prices\|\|\[\]\)\.filter/, 'order picker requires active catalog pricing');
+assert.match(source, /اختر صنفًا/, 'the user must explicitly select an item');
+assert.doesNotMatch(source, /const item=\(catalog\?\.items\|\|\[\]\)\.find\(x=>String\(x\.status\)\.toUpperCase\(\)==='ACTIVE'\)/, 'never silently order the first active catalog item');
+assert.match(source, /selectedOptionIds/, 'selected item options are passed to the server');
+assert.match(source, /fulfillmentType/, 'pickup/dine-in/delivery intent is retained as order metadata');
+assert.match(source, /if\(save\.disabled\)return/, 'duplicate clicks are blocked while submitting');
+assert.match(source, /const idempotencyKey='MNTY-REST-'/, 'a stable idempotency key is retained for retries in the order dialog');
+assert.match(source, /invokeMntyFunction\('order-create',payload\)/, 'orders use the authenticated order Edge Function');
+assert.match(source, /invokeMntyFunction\('order-status-update'/, 'status updates use the authenticated status Edge Function');
+assert.match(source, /return o;/, 'accessible modal returns its dialog for scoped event wiring');
+console.log('Restaurant workspace contract: PASS (18 assertions)');
