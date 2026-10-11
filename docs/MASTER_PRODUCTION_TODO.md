@@ -1546,3 +1546,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Read-only live RLS spot-check confirmed the four restaurant tables listed above and `user_memberships` have RLS enabled and policy counts present.
 - Privileged digital-page payment processor remains non-executable by `anon` and `authenticated` in the live grant check; no payment transaction was generated.
 - Release gate remains OPEN until real authenticated cross-tenant tests, customer/provider order + notification E2E, Paymob payment E2E, finance settlement E2E, leaked-password protection owner action, and release-device tests have evidence.
+
+
+## Session update — 2026-10-11 — Release blockers and continuity
+- [x] Added append-only cross-session record: `docs/SESSION_LOG.md`; continuation instructions in `docs/PROJECT_CONTINUITY.md`.
+- [x] Confirmed main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041` (stale Pages deployment cancellation only; not a release fix).
+- [ ] BLOCKED: production gate run [38108142127](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38108142127) failed closed; deployment skipped.
+- [ ] BLOCKED: reconcile absent migration sources RC425–432 and RC434–441; production ledger currently ends at `20261008222845` (RC424). RC434 has conflicting definitions in PR #202 and PR #84; preserve the collision guard.
+- [ ] BLOCKED: restore missing CI scripts `scripts/validate-smm-payment-safety.mjs` and `scripts/test-checkout-secret-crypto.mjs` only from authoritative contracts/source; a prior write attempt was rejected and did not add the crypto test.
+- [ ] BLOCKED: live deployed payment/SMM function source does not converge with candidate branches; RC439 encrypted subscription checkout path is not deployed and required columns are absent in live schema.
+- [ ] BLOCKED: SMM gateway needs global admin authorization correction, bounded provider requests, safe ambiguous-provider handling, checked persistence, and terminal status guards with regression tests.
+- [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
+- [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
+- **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
