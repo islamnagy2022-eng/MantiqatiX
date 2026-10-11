@@ -138,3 +138,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Safeguards:** export does not issue wider database queries; it serializes only the existing session-loaded records, uses UTF-8 BOM, and prefixes formula-like cell values.
 - **Tests:** pending post-build validation.
 - **Next:** continue the build-first pass across remaining primary modules.
+
+## 2026-10-11 — SESSION-016 — Add export to Operations workspace
+
+- **Code commit:** [b8e9d1e84e976f6bd2cb520f577f805e6063344d](https://github.com/islamnagy2022-eng/MantiqaTix/commit/b8e9d1e84e976f6bd2cb520f577f805e6063344d).
+- **Built:** Operations workspace now exports currently loaded orders, order-status history, and notifications to CSV.
+- **Safeguards:** no additional query is executed; export is limited to session-loaded rows, with UTF-8 BOM and spreadsheet formula-like cell prefixing.
+- **Tests:** pending post-build validation.
+- **Next:** continue primary-module build-out.
