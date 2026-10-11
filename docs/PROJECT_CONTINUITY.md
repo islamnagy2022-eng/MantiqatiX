@@ -615,3 +615,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Service order modal opens only from the explicit “اطلب الخدمة” button, reducing accidental order initiation from card clicks.
 - Commit: `f402b79cf7476fd8e4651a5036ee1cb4023fb9e7`; branch `build/module-workspaces-functional-20261011`, draft PR #205.
 - No gateway/payment/provider backend changes; broad review and runtime tests remain deferred.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-012
+- SMM gateway client now checks session retrieval and access-token presence before POSTing, and disables HTTP caching for those requests.
+- Order form rejects non-integer quantities and values outside the service bounds before sending the request.
+- Commit: `03649e71396f8f9bef4b0625cc1df8a9f2fd8ae8`; no production changes; runtime/E2E remains unverified.
