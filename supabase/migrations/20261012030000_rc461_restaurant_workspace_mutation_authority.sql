@@ -2,7 +2,7 @@
 -- Reads remain available under existing RLS policies. Mutations now pass through
 -- restaurant-workspace-mutate, which verifies the actor's active tenant/business/branch membership.
 revoke insert, update, delete on table public.restaurant_tables, public.restaurant_inventory
-  from anon, authenticated;
+  from PUBLIC, anon, authenticated;
 
 -- The Edge Function uses the service role only after validating the actor and exact workspace scope.
 grant select, insert, update, delete on table public.restaurant_tables, public.restaurant_inventory to service_role;
