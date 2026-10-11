@@ -1740,3 +1740,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign usability — SESSION-033
 - [x] Add local search and status filtering for visible campaigns.
 - [ ] Validate filtering against mixed statuses and Arabic text after backend tests.
+
+ 
+## Campaign collaboration — SESSION-034
+- [x] Display invitation response timestamps/pending state.
+- [ ] Validate against accepted/declined participant rows after RC453 integration tests.
