@@ -1715,3 +1715,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign authorization — SESSION-028
 - [x] Align platform UI authorization gate with backend full-control claim requirements.
 - [ ] Validate tenant-scoped SUPER_ADMIN is denied platform-wide campaign controls.
+
+ 
+## Campaign collaboration — SESSION-029
+- [x] Display participant allocation totals and remaining percentage from RLS-visible records.
+- [ ] Verify summary consistency with RC453 allocation enforcement during integration tests.
