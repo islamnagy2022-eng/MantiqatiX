@@ -1576,3 +1576,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Improved global search details drawer keyboard dismissal and focus restoration.
 - [x] Work is tracked in draft PR [#205](https://github.com/islamnagy2022-eng/MantiqaTix/pull/205).
 - [ ] Continue module construction; broad reviews remain deferred by user instruction until all modules are built.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-004
+- [x] CRM lead filtering based on observed record statuses.
+- [x] Operations order filtering based on observed record statuses.
+- [x] Marketing lead/project/advertisement status filters.
+- [x] Analytics status-distribution visualization with explicit loaded-record scope and CSV exports.
+- [ ] Continue specialized module construction; defer broad review until all modules are built.
