@@ -53,6 +53,16 @@ begin
     raise exception 'INVALID_WORKSPACE_MUTATION';
   end if;
 
+  if not exists (
+    select 1 from public.businesses b
+    where b.id = p_business_id and b.tenant_id = p_tenant_id and upper(coalesce(b.status,'ACTIVE')) = 'ACTIVE'
+  ) then raise exception 'BUSINESS_NOT_AVAILABLE'; end if;
+  if not exists (
+    select 1 from public.branches br
+    where br.id = p_branch_id and br.tenant_id = p_tenant_id and br.business_id = p_business_id
+      and upper(coalesce(br.status,'ACTIVE')) = 'ACTIVE'
+  ) then raise exception 'BRANCH_NOT_AVAILABLE'; end if;
+
   select upper(m.role) into v_role
   from public.user_memberships m
   where m.user_id = p_actor_user_id
