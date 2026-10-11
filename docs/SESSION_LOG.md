@@ -106,3 +106,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Accuracy guard:** unopened modules are labeled as not yet loaded; the UI does not imply module readiness or successful source access solely from catalog presence.
 - **Tests:** pending post-build verification.
 - **Next:** continue filling module-specific gaps and later run the consolidated validation pass.
+
+## 2026-10-11 — SESSION-012 — Build export and refresh into actual Analytics module
+
+- **Code commit:** [5bc89ea9a5c0bb9ecedbf6fe1a72f2de4237268a](https://github.com/islamnagy2022-eng/MantiqaTix/commit/5bc89ea9a5c0bb9ecedbf6fe1a72f2de4237268a).
+- **Built:** the actual `التقارير والتحليلات` workspace (not only legacy generic pages) now provides a CSV export of the records already loaded for the current session across orders, leads, providers, projects, ads, and notifications, plus an explicit refresh control.
+- **Safeguards:** Arabic UTF-8 BOM; spreadsheet-formula-like cells are prefixed; the export is limited to the loaded sample and does not claim to be a complete historical or accounting report.
+- **Tests:** pending post-build validation.
+- **Next:** continue actual primary-workspace feature work.
