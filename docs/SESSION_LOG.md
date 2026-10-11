@@ -162,3 +162,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope guard:** the export checks that the role-gated finance snapshot exists and contains counts only; it does not export transaction rows, balances, tenant identifiers, or perform new queries.
 - **Tests:** pending post-build validation.
 - **Next:** continue module-specific work; keep financial mutation behind the existing approved server path.
+
+## 2026-10-11 — SESSION-019 — Add source-map export to domain modules
+
+- **Code commit:** [f1d48225d21004444dedf5bb36dd3db6ef9af38a](https://github.com/islamnagy2022-eng/MantiqaTix/commit/f1d48225d21004444dedf5bb36dd3db6ef9af38a).
+- **Built:** blueprint-backed domain modules now export their configured source names, currently visible row counts, and read-status labels to CSV.
+- **Scope:** this exports only the module metadata/counts already present in the page; it does not query extra records or export sensitive transaction details.
+- **Tests:** pending post-build validation.
+- **Next:** continue build-out across domain and operational modules.
