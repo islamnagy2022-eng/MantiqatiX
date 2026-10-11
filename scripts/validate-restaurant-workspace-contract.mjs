@@ -30,4 +30,4 @@ assert.match(source, /orderItems\.push\(\{catalogItemId:item\.id,quantity,select
 assert.match(source, /orderItems\.length>20/, 'restaurant order lines have a bounded maximum');
 assert.match(source, /rest-estimated-total/, 'estimated cart total is visible to the operator');
 assert.match(source, /updateEstimate\(\)/, 'cart estimate updates when item, option, or quantity changes');
-console.log('Restaurant workspace contract: PASS (20 assertions)');
+console.log('Restaurant workspace contract: PASS (28 assertions)');
