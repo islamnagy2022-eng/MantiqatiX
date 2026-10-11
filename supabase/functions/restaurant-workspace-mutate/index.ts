@@ -17,7 +17,6 @@ const isUuid = (value: unknown) => typeof value === "string"
   && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 const roles = new Set(["OWNER", "ADMIN", "MANAGER", "BUSINESS_OWNER", "SERVICE_PROVIDER", "STAFF"]);
 const tableStatuses = new Set(["EMPTY", "OCCUPIED", "RESERVED", "CLEANING", "OUT_OF_SERVICE"]);
-const fail = (code: string, status = 400) => ({ error: code, status });
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
