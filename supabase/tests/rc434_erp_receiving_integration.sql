@@ -11,7 +11,7 @@ declare
   rejected boolean;
 begin
   insert into public.businesses(id,tenant_id,status) values(business,'tenant-a','ACTIVE');
-  insert into public.user_memberships(user_id,tenant_id,business_id,role,status) values(actor,'tenant-a',business,'MANAGER','ACTIVE');
+  insert into public.user_memberships(user_id,tenant_id,business_id,role,status) values(actor,'tenant-a',business,'PURCHASING','ACTIVE');
   insert into public.warehouses(id,tenant_id,business_id,branch_id,status) values('warehouse-1','tenant-a',business,'branch-1','ACTIVE');
   insert into public.catalog_items(id,tenant_id,business_id,status) values(product,'tenant-a',business,'ACTIVE');
   insert into public.erp_purchase_orders(id,tenant_id,business_id,status,total_amount) values('purchase-order-1','tenant-a',business,'APPROVED',1000);
