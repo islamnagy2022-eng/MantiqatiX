@@ -465,3 +465,20 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-workspace-record{max-width:900px;margin:0 auto;padding:8px}
 .mx-workspace-record>p{color:var(--muted,#667085);font-size:13px}
 @media(max-width:700px){.mx-workspace-toolbar,.mx-workspace-data-head,.mx-workspace-report-head{align-items:stretch;flex-direction:column}.mx-workspace-stats{grid-template-columns:1fr}.mx-workspace-search-label{min-width:0;width:100%}.mx-workspace-settings dl>div,.mx-workspace-record dl>div{grid-template-columns:1fr;gap:4px}.mx-workspace-toolbar .btn{width:100%}}
+
+
+/* Unified record detail drawer for global search */
+.mx-global-record-overlay{position:fixed;inset:0;z-index:10050;display:flex;justify-content:flex-end}
+.mx-global-record-scrim{position:absolute;inset:0;border:0;background:rgba(15,23,42,.42);cursor:pointer}
+.mx-global-record-drawer{position:relative;width:min(520px,100%);height:100%;overflow:auto;background:#fff;box-shadow:-18px 0 50px rgba(15,23,42,.16);padding:clamp(18px,3vw,28px);animation:mxRecordDrawerIn .18s ease-out}
+.mx-global-record-drawer header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--border,#e4e7ec)}
+.mx-global-record-drawer h2{font-size:22px;margin:6px 0}
+.mx-global-record-drawer header p{margin:0;color:var(--muted,#667085);font-size:13px}
+.mx-global-record-close{width:38px;height:38px;border:1px solid var(--border,#e4e7ec);border-radius:10px;background:#fff;font-size:24px;cursor:pointer;flex-shrink:0}
+.mx-global-record-drawer dl{display:grid;gap:0;margin:16px 0}
+.mx-global-record-drawer dl>div{display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,1.5fr);gap:12px;padding:13px 0;border-bottom:1px solid #eef0f4}
+.mx-global-record-drawer dt{color:var(--muted,#667085);font-size:13px}
+.mx-global-record-drawer dd{margin:0;overflow-wrap:anywhere;font-size:14px}
+.mx-global-record-drawer footer{display:flex;gap:10px;position:sticky;bottom:0;background:#fff;padding-top:16px}
+@keyframes mxRecordDrawerIn{from{transform:translateX(12px);opacity:.75}to{transform:translateX(0);opacity:1}}
+@media(max-width:540px){.mx-global-record-drawer{width:100%}.mx-global-record-drawer dl>div{grid-template-columns:1fr;gap:5px}}
