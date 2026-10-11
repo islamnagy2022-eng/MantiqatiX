@@ -28,13 +28,19 @@ begin
       and tbl.relname = 'catalog_items'
       and i.indisunique
       and i.indisvalid
-      and i.indnkeyatts >= 2
+      and i.indnkeyatts = 2
       and a1.attname = 'business_id'
       and a2.attname = 'legacy_ref'
       and (
         i.indpred is null
-        or pg_catalog.pg_get_expr(i.indpred, i.indrelid) ilike '%legacy_ref IS NOT NULL%'
-        or pg_catalog.pg_get_expr(i.indpred, i.indrelid) ilike '%legacy_ref LIKE%'
+        or pg_catalog.regexp_replace(
+          pg_catalog.lower(pg_catalog.pg_get_expr(i.indpred, i.indrelid)),
+          '[[:space:]()]', '', 'g'
+        ) in (
+          'legacy_refisnotnull',
+          'legacy_ref~~''restaurant_menu:%''::text',
+          'legacy_reflike''restaurant_menu:%''::text'
+        )
       )
   ) into v_has_equivalent_unique_index;
 
