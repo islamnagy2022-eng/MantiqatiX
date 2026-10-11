@@ -165,8 +165,7 @@ begin
   order by
     case when upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN') then 0 else 1 end,
     case when m.branch_id=v_order.branch_id then 0 else 1 end,
-    case when m.organization_id=v_target_org then 0 else 1 end,
-    m.created_at asc
+    case when m.organization_id=v_target_org then 0 else 1 end
   limit 1;
   if v_role is null then raise exception 'PURCHASE_ORDER_BRANCH_FORBIDDEN'; end if;
   if p_target_status='SUBMITTED' and v_order.status='DRAFT' then
