@@ -38,5 +38,15 @@
   "erp_atomic_receiving_e2e": "NOT VERIFIED",
   "smm_acl_boundary": "NOT VERIFIED",
   "smm_order_refund_safety": "NOT VERIFIED",
-  "smm_provider_timeout_safety": "NOT VERIFIED"
+  "smm_provider_timeout_safety": "NOT VERIFIED",
+  "smm_initial_launch_scope": {
+    "decision": "DEFERRED_NOT_IN_INITIAL_LAUNCH",
+    "internal_marketing_and_advertising_module": "IN_SCOPE",
+    "browser_storefront": "STATIC_HOLDING_PAGE_IN_CANDIDATE_SOURCE",
+    "live_edge_function": "NOT_DISABLED_OR_VERIFIED_BY_THIS_CHANGE",
+    "server_side_disable_required_before_launch": true,
+    "gateway_safety": "NOT_VERIFIED",
+    "order_wallet_refund_operations_in_initial_launch": false,
+    "note": "This scope flag does not waive global migration, security, backup/restore, tenant-isolation, payment-finance, or production-ledger release gates."
+  }
 }
