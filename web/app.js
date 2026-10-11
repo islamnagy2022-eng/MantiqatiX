@@ -1353,7 +1353,7 @@ function marketingWorkspace(){
  const activeAds=ads.filter(x=>String(x.status||'').toUpperCase()==='ACTIVE').length;
  const pendingAds=ads.filter(x=>['PENDING','PENDING_APPROVAL'].includes(String(x.status||x.approval_status||'').toUpperCase())).length;
  const verifiedProviders=providers.filter(x=>x.is_verified===true).length;
- const partnerAgencies=providers.filter(x=>/MARKET|AGENCY|ADVERT|SOCIAL|DIGITAL|تسويق|دعاية|إعلان/i.test(String(x.provider_kind||'')));
+ const partnerAgencies=providers.filter(x=>/MARKET|AGENCY|ADVERT|SOCIAL|DIGITAL|PARTNER_COMPANY|FREELANCER|تسويق|دعاية|إعلان/i.test(String(x.provider_kind||'')));
  const projectValue=projects.reduce((n,x)=>n+(Number(x.gross_value)||0),0);
  const projectCurrency=projects.find(x=>x.currency)?.currency||'';
  const detail=(kind,id)=>"<button type=\"button\" class=\"linkbtn\" onclick=\"openMarketingRecordDetails('"+kind+"','"+esc(id)+"')\">التفاصيل</button>";
