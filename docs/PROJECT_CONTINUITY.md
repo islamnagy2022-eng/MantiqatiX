@@ -645,3 +645,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Restaurant workspace now includes a refresh action for menu, orders, tables, and inventory.
 - The action reuses the existing scoped loader and clears only the in-memory cache for the restaurant module; no data or permissions are changed.
 - Implementation commit: `936551530b7def8bb815cfbf458ad1b4874b8d0c`; runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-017
+- Job applications now have a read-only details drawer limited to the already-loaded job ID, applicant name, and submission date.
+- No additional sensitive fields are queried or displayed; implementation commit: `f5522cad42215e392ef18cc9de4395468bf7ab3f`.
+- Runtime/E2E remains unverified.
