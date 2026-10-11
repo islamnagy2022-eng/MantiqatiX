@@ -50,7 +50,7 @@
     "note": "SMM feature development is deferred. These launch-containment fields remain incomplete until an explicitly approved server-side disable/deny change is deployed and a live negative test proves no customer order, wallet, refund, or provider side effects. This does not waive global release gates.",
     "gateway_customer_access": "NOT VERIFIED",
     "negative_test": "NOT RUN",
-    "live_function_version": 6,
+    "live_function_version": "6",
     "live_function_hash": "ea4de98886b739ed5ce83c7f5909671fd00481a8f488849ffe58567e58be6cd6",
     "disable_evidence_ref": null,
     "live_function_observation": "Read-only Supabase Edge Function inspection on 2026-10-11; function remains ACTIVE and does not contain MNTY_SMM_ENABLED. This is evidence of the current live version/hash, not evidence of containment."
