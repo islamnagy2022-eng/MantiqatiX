@@ -71,3 +71,18 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Production impact:** none. No database or financial writes, no deployment.
 - **Review status:** broad reviews remain deferred per user instruction; no E2E or release verification is claimed.
 - **Next:** continue module construction. Add functionality using existing backend contracts; do not create speculative mutation endpoints or schema migrations while the existing migration sequence is unresolved.
+
+
+## 2026-10-11 — SESSION-005 — Data-backed sector workspaces
+
+- **Implemented on the build branch:**
+  - Added a safe column allowlist for sector-module tables rather than rendering every database column.
+  - Added a data loader for generic sector modules that uses the authenticated Supabase client, existing RLS, and explicit tenant/business/branch filters only where the schema supports those columns.
+  - Modules now load actual scoped rows with search/sort/pagination, field-level display mappings, per-table CSV exports, and status filters when the table exposes a status field.
+  - Added/connected read workspaces for Fashion, Grocery, Companies, Marketing (sector), Maintenance, Legal, Jobs, Medical, Education, and Used Items; existing specialized Restaurant, ERP, Accounting, Factory, Trips, and Matrimony workflows remain on their existing paths.
+  - Sensitive columns are intentionally excluded from generic display/export maps (e.g. job applicant phone/CV, seller/provider phone numbers, matrimony direct/wali contact, customer order phone/address). Medical appointments use a limited field selection for the existing medical workspace.
+  - Added the missing safe field mapping for support tickets and corrected the chronological sort field for matrimony contact-unlock records to use `unlocked_at`.
+- **Code commits:** `cde9293f2211f2ffa718e67d4cf0f7454b9dfd14`, `356eb57c734a0a4e47206bcc9f9a1d343812571a`, `c0c7d5320019577bd34f5990b5ca26d69c0c7b96`, `08a74008e30ee8069b58883712b0f0c2c1dd7b8e`, `ed3f7fdbc0f2bd98fdd4ad0fd69149f7286ed724`.
+- **Production impact:** none; read-only module loaders and frontend changes only, no DB writes/deployments.
+- **Important limitation:** implementation has not yet been broadly reviewed or runtime-tested. A table can legitimately show NOT AVAILABLE when the existing role/RLS contract denies reading it; this must not be worked around with broader privileges.
+- **Next:** continue construction across the remaining specialized workflows, then perform the requested review/testing phase after module construction is complete.
