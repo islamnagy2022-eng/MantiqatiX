@@ -219,3 +219,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Environment limitation:** the production migration ledger was previously observed at RC424, so RC453 is not yet proven deployed in production. The UI checks read availability and displays an unavailable state when the backend contract is absent; no migration or RPC was deployed from this change.
 - **Tests:** not run/claimed in this build step; RC453 integration test exists in source and must be run against a disposable database during the post-build review.
 - **Next:** continue module construction. Do not expose this workflow as production-ready until RC453 and its behavioral integration test are verified in the deployment environment.
+
+## 2026-10-11 — SESSION-026 — Harden campaign retries and refresh behavior
+
+- **Code commits:** [af112ab3102fa36f1fc1d64a017cefb2e8d4f102](https://github.com/islamnagy2022-eng/MantiqaTix/commit/af112ab3102fa36f1fc1d64a017cefb2e8d4f102) and [71568dc1015665d0fbed88589858b9971e4e461d](https://github.com/islamnagy2022-eng/MantiqaTix/commit/71568dc1015665d0fbed88589858b9971e4e461d).
+- **Built/fixed:** partner discovery excludes the current business in the query before the result limit; campaign creation reuses the form's idempotency key on retries; refresh no longer clears the in-flight load guard and starts overlapping requests.
+- **Tests:** pending post-build validation.
+- **Next:** continue building the remaining module workflows; campaign deployment remains gated on the RC453 migration and integration test.
