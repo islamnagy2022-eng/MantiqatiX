@@ -34,5 +34,9 @@
   "security_definer_acl_review": "NOT VERIFIED",
   "rls_policy_audit": "NOT VERIFIED",
   "targeted_ads_search_path": "NOT VERIFIED",
-  "leaked_password_protection": "NOT VERIFIED"
+  "leaked_password_protection": "NOT VERIFIED",
+  "erp_atomic_receiving_e2e": "NOT VERIFIED",
+  "smm_acl_boundary": "NOT VERIFIED",
+  "smm_order_refund_safety": "NOT VERIFIED",
+  "smm_provider_timeout_safety": "NOT VERIFIED"
 }
