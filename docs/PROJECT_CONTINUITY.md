@@ -565,3 +565,10 @@ This status is intentional and must remain until the open gates above are indepe
 ## Build progress — SESSION-005
 - Commit `0a7838d142295fbb697fc632f0ed8475f819157a`: added local filtering in the generic workspace data tab for records already loaded and displayed.
 - Filtering does not widen query scope; post-build validation remains pending.
+
+ 
+## Build progress — SESSION-006
+- `d022ab53e0d67e4f50e6d6ca64725131d0fcf559`: user workspace uses membership-resolved businesses and available registration requests.
+- `1e5519c2349e41905a8a1a98d7ef3fb491f62cc8`: marketing workspace includes active services already loaded by the app.
+- `930663f51002e1123c3e9850a4ca32e9dd1378ef`: permission/feature-aware SMM shortcut added to the main dashboard and enterprise quick actions.
+- Tests remain pending; no production changes; release blocked/not certified.
