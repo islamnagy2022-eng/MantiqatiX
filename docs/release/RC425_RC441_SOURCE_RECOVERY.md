@@ -16,3 +16,6 @@ Recover the 16 migration source files that are referenced by the production rele
 - RC434–RC441
 
 RC433 is not part of this recovered set and must not be inferred to exist or be applied.
+
+## Related RC436 runtime-source correction
+Read-only live comparison found both deployed financial-journal Edge Functions were calling legacy RPC names that have no EXECUTE grant for `service_role`, while the RC436 candidate migration creates and grants `post_financial_journal_atomic_backend(uuid,jsonb,jsonb)`. This branch now updates both source entrypoints to call that atomic RPC. The change is source-only; the live Edge Functions remain unchanged until RC436 and the full release chain are approved and applied. Exact-head CI is pending.
