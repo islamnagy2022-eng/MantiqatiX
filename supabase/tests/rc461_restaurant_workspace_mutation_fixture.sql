@@ -56,7 +56,7 @@ create table public.restaurant_tables (
   current_bill_egp numeric not null default 0
 );
 create table public.restaurant_inventory (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   tenant_id text not null,
   business_id uuid not null,
   branch_id text not null,
