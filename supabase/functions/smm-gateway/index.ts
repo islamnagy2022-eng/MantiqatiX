@@ -25,6 +25,28 @@ Deno.serve(async(req)=>{
  try{
   const b=await req.json(),a=b.action;
   if(a==="admin_access"){const r=await admin.from("smm_admins").select("user_id").eq("user_id",user.id).maybeSingle();if(r.error)return json({error:"ADMIN_CHECK_FAILED"},500);return json({is_admin:!!r.data});}
+  if(a==="catalog"){
+   const [s,p]=await Promise.all([
+    admin.from("smm_services").select("id,provider_id,platform,category,name,description,selling_price,min_quantity,max_quantity,refill,cancel,dripfeed").eq("active",true).order("platform").order("category").limit(500),
+    admin.from("smm_providers").select("id").eq("active",true).limit(500)
+   ]);
+   if(s.error||p.error){console.error("[smm-gateway] catalog read failed",s.error?.code||p.error?.code||"DB_ERROR");return json({error:"CATALOG_READ_FAILED"},500);}
+   const activeProviders=new Set((p.data||[]).map((x:any)=>String(x.id)));
+   const services=(s.data||[]).filter((x:any)=>activeProviders.has(String(x.provider_id))).map((x:any)=>({
+    id:x.id,platform:x.platform,category:x.category,name:x.name,description:x.description,
+    selling_price:x.selling_price,min_quantity:x.min_quantity,max_quantity:x.max_quantity,
+    refill:x.refill,cancel:x.cancel,dripfeed:x.dripfeed
+   }));
+   return json({services});
+  }
+  if(a==="my_data"){
+   const [o,w]=await Promise.all([
+    admin.from("smm_orders").select("id,service_id,quantity,selling_price,status,provider_order_id,created_at,updated_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
+    admin.from("smm_wallets").select("balance").eq("user_id",user.id).maybeSingle()
+   ]);
+   if(o.error||w.error){console.error("[smm-gateway] account read failed",o.error?.code||w.error?.code||"DB_ERROR");return json({error:"ACCOUNT_DATA_READ_FAILED"},500);}
+   return json({orders:o.data||[],balance:Number(w.data?.balance||0),is_admin:await isAdmin(user.id)});
+  }
   if(a==="configure_provider"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const r=await admin.rpc("smm_set_provider_secret",{p_provider_id:b.provider_id,p_actor_user_id:user.id,p_secret:b.api_key});if(r.error||r.data!==true)return json({error:r.error?.message||"PROVIDER_CREDENTIAL_NOT_SAVED"},400);return json({ok:true});}
   if(a==="sync_services"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const p=await admin.from("smm_providers").select("*").eq("id",b.provider_id).single();if(!p.data)return json({error:"PROVIDER_NOT_FOUND"},404);const r=await call(p.data,await secret(b.provider_id),"services");if(!Array.isArray(r))return json({error:"INVALID_PROVIDER_RESPONSE",result:r},502);let n=0;for(const s of r){const row={provider_id:b.provider_id,external_service_id:String(s.service||s.id||""),platform:String(s.platform||s.category||"Other"),category:String(s.category||"Other"),name:String(s.name||"Service"),description:String(s.description||""),provider_cost:Number(s.rate||0),selling_price:Number(s.rate||0),min_quantity:Number(s.min||1),max_quantity:Number(s.max||1000000),refill:!!s.refill,cancel:!!s.cancel,dripfeed:!!s.dripfeed,active:true,metadata:s};if(!row.external_service_id)continue;const u=await admin.from("smm_services").upsert(row,{onConflict:"provider_id,external_service_id"});if(!u.error)n++;}return json({ok:true,count:n});}
   if(a==="provider_status"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const p=await admin.from("smm_providers").select("*").eq("id",b.provider_id).single();if(!p.data)return json({error:"PROVIDER_NOT_FOUND"},404);return json({ok:true,provider:p.data.name,result:await call(p.data,await secret(b.provider_id),"balance")});}
