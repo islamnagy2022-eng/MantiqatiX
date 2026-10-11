@@ -406,7 +406,7 @@ jobs:
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
           node scripts/validate-erp-receiving-release-contract.mjs
-          node scripts/validate-erp-receiving-release-contract.mjs
+
           node scripts/validate-checkout-recovery.mjs
           node scripts/validate-financial-journal-safety.mjs
           node scripts/validate-paymob-order-binding.mjs
