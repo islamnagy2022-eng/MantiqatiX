@@ -9,6 +9,9 @@ const test434=fs.readFileSync("supabase/tests/rc434_erp_receiving_integration.sq
 const test437=fs.readFileSync("supabase/tests/rc437_purchase_order_lines_integration.sql","utf8");
 
 assert.match(edge,/userClient\.auth\.getUser\(\)/,"request must be tied to an authenticated user");
+assert.match(edge,/user\.is_anonymous/,"anonymous Auth sessions must be rejected");
+assert.match(edge,/ORIGIN_NOT_ALLOWED/,"cross-origin requests must be rejected");
+assert.match(edge,/cache-control.*no-store/i,"receiving responses must not be cached");
 assert.match(edge,/rpc\("receive_purchase_stock_with_order_line_backend"\s*,/,"receiving must use the line-aware atomic RPC");
 assert.doesNotMatch(edge,/\.from\("(stock_balances|erp_purchase_receipts|inventory_transactions)"\)\.(insert|update|upsert|delete)/,"Edge Function must not mutate stock/receipt/ledger tables directly");
 assert.match(edge,/p_actor_user_id:\s*user\.id/,"actor identity must come from validated Auth user");
