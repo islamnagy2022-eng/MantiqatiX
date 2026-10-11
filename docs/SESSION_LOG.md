@@ -226,3 +226,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built/fixed:** partner discovery excludes the current business in the query before the result limit; campaign creation reuses the form's idempotency key on retries; refresh no longer clears the in-flight load guard and starts overlapping requests.
 - **Tests:** pending post-build validation.
 - **Next:** continue building the remaining module workflows; campaign deployment remains gated on the RC453 migration and integration test.
+
+## 2026-10-11 — SESSION-027 — Support platform-admin business context for campaigns
+
+- **Code commit:** [75b9c11192964ac83c29f98c8d71358778ea7d19](https://github.com/islamnagy2022-eng/MantiqaTix/commit/75b9c11192964ac83c29f98c8d71358778ea7d19).
+- **Built:** full-control platform admins without an active business membership can choose an active business from the RLS-filtered business list when creating a campaign. Partner options are filtered against each campaign's business. UI create/invite/status role gates now align with the roles allowed by the RC453 backend.
+- **Scope:** the business list is queried only for a full-control SUPER_ADMIN; the backend remains the authoritative scope check. No direct table writes.
+- **Tests:** pending post-build validation.
+- **Next:** continue module build-out; RC453 deployment remains unverified in production.
