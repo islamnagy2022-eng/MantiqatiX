@@ -1621,3 +1621,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Module build additions — SESSION-011
 - [x] Add source-count load state to module center cards without claiming functional readiness.
 - [ ] Verify state display for unloaded modules, backend-only sources and query errors.
+
+ 
+## Primary Analytics module — SESSION-012
+- [x] Add CSV export and refresh controls to the actual `التقارير والتحليلات` workspace.
+- [ ] Test CSV escaping/encoding, download, and ensure export stays within loaded data scope.
