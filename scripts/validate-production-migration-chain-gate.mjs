@@ -33,6 +33,7 @@ const required = [
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql"
 ];
+assert.equal(required.length, 28, "release gate must track the complete 28-file migration source set");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
 assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrations or timestamp conflicts must block release certification");
 assert.match(source, /r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 blocked checks must set production_gate=BLOCKED");
