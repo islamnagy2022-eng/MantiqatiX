@@ -34,7 +34,8 @@ const required = [
   "20261011010000_rc456_smm_service_role_access_boundary.sql"
 ];
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
-assert.match(source, /missingReleaseMigrations\.length\?"BLOCKED":"PASS"/, "missing migrations must block release certification");
+assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrations or timestamp conflicts must block release certification");
 assert.match(source, /r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 blocked checks must set production_gate=BLOCKED");
 assert.ok(workflow.includes("node scripts/validate-production-migration-chain-gate.mjs"), "Pages validation must run the release-chain gate contract");
+assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 console.log(`Production migration chain gate contract passed for ${required.length} required migration sources.`);
