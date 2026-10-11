@@ -13,6 +13,32 @@ declare
   v_inventory_id text;
   v_audit_count integer;
 begin
+  if not exists (
+    select 1 from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname='public' and c.relname='restaurant_tables' and c.relrowsecurity
+  ) or not exists (
+    select 1 from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname='public' and c.relname='restaurant_inventory' and c.relrowsecurity
+  ) then
+    raise exception 'RC461_RESTAURANT_RLS_NOT_ENABLED';
+  end if;
+  if not exists (
+    select 1 from pg_catalog.pg_policies p
+    where p.schemaname='public' and p.tablename='restaurant_tables'
+      and p.policyname='restaurant_tables_active_branch_member_select'
+      and p.permissive='PERMISSIVE' and p.cmd='SELECT'
+      and p.qual ilike '%user_memberships%'
+  ) or not exists (
+    select 1 from pg_catalog.pg_policies p
+    where p.schemaname='public' and p.tablename='restaurant_inventory'
+      and p.policyname='restaurant_inventory_active_branch_member_select'
+      and p.permissive='PERMISSIVE' and p.cmd='SELECT'
+      and p.qual ilike '%user_memberships%'
+  ) then
+    raise exception 'RC461_BRANCH_MEMBER_READ_POLICY_MISSING';
+  end if;
   if has_table_privilege('anon', 'public.restaurant_tables', 'INSERT')
      or has_table_privilege('anon', 'public.restaurant_tables', 'UPDATE')
      or has_table_privilege('anon', 'public.restaurant_tables', 'DELETE')
