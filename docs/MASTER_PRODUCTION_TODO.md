@@ -1646,3 +1646,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Education workspace search spans schools, teachers, and education requests in the currently rendered dataset.
 - [x] Added school/teacher/request CSV export shortcuts using existing allowlists.
 - [ ] Runtime/E2E verification remains outstanding; continue construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-014
+- [x] Added read-only details drawer to allowlisted sector workspace tables, resolving records from already-loaded module rows only.
+- [x] Kept existing RLS, field allowlists, and data access behavior unchanged.
+- [ ] Runtime/E2E verification remains deferred until the construction phase is complete; do not mark this verified.
