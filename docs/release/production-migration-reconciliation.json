@@ -43,10 +43,15 @@
     "decision": "DEFERRED_NOT_IN_INITIAL_LAUNCH",
     "internal_marketing_and_advertising_module": "IN_SCOPE",
     "browser_storefront": "STATIC_HOLDING_PAGE_IN_CANDIDATE_SOURCE",
-    "live_edge_function": "NOT_DISABLED_OR_VERIFIED_BY_THIS_CHANGE",
+    "live_edge_function": "ACTIVE_NOT_DISABLED",
     "server_side_disable_required_before_launch": true,
     "gateway_safety": "NOT_VERIFIED",
     "order_wallet_refund_operations_in_initial_launch": false,
-    "note": "This scope flag does not waive global migration, security, backup/restore, tenant-isolation, payment-finance, or production-ledger release gates."
+    "note": "SMM feature development is deferred. These launch-containment fields remain incomplete until an explicitly approved server-side disable/deny change is deployed and a live negative test proves no customer order, wallet, refund, or provider side effects. This does not waive global release gates.",
+    "gateway_customer_access": "NOT VERIFIED",
+    "negative_test": "NOT RUN",
+    "live_function_version": null,
+    "live_function_hash": null,
+    "disable_evidence_ref": null
   }
 }
