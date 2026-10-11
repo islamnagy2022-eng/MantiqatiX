@@ -1679,3 +1679,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Customer job discovery now excludes inactive listings.
 - [x] Customer education discovery now excludes schools/teachers explicitly marked unavailable.
 - [ ] Confirm backend/RLS enforcement and E2E behavior after construction phase; client filters are not security controls.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-020
+- [x] Added client-side revalidation of active job and available school/teacher before customer form actions.
+- [ ] Verify backend/RLS rules independently during the later security and E2E phase.
