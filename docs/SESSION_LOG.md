@@ -170,3 +170,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope:** this exports only the module metadata/counts already present in the page; it does not query extra records or export sensitive transaction details.
 - **Tests:** pending post-build validation.
 - **Next:** continue build-out across domain and operational modules.
+
+## 2026-10-11 — SESSION-020 — Keep module source state scoped to membership
+
+- **Code commit:** [dbe430529ba1922d6ea60d5c9b4e3ebd553a62fc](https://github.com/islamnagy2022-eng/MantiqaTix/commit/dbe430529ba1922d6ea60d5c9b4e3ebd553a62fc).
+- **Built:** Module Center now reads cached source counts from modules visited in the active session and labels them as the last read. The cache is cleared when the active membership changes or Auth signs out.
+- **Reason:** the live module data object resets on each app render; using it for a cross-module status summary meant all cards appeared unloaded. A global cache without scope reset could show prior-membership counts, so the change clears it on membership/auth transitions.
+- **Tests:** pending post-build validation.
+- **Next:** continue feature construction and verify the role/membership transition behavior later.
