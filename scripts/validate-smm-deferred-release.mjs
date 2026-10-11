@@ -3,6 +3,7 @@ import fs from "node:fs";
 const app = fs.readFileSync("web/app.js", "utf8");
 const page = fs.readFileSync("web/smm.html", "utf8");
 const pagesWorkflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
+const gateway = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
 const checks = [
   ["SMM is explicitly in the release-deferred set", /RELEASE_DEFERRED_MODULES\s*=\s*new Set\(\[[^\]]*خدمات التسويق الرقمي SMM/.test(app)],
   ["deferred module cannot be enabled by a remote feature flag", /function moduleEnabled\(name\)\s*\{\s*if\(RELEASE_DEFERRED_MODULES\.has\(name\)\)return false;/.test(app)],
@@ -22,6 +23,18 @@ checks.push([
     pagesWorkflow.includes("test ! -e artifacts/web-release/smm.js") &&
     pagesWorkflow.includes(`test "$SMM_JS_STATUS" = "404"`) &&
     !pagesWorkflow.split("\n").some((line) => line.includes("for asset in") && line.includes("smm.js")),
+]);
+
+const handlerStart = gateway.indexOf("Deno.serve(async(req)=>{");
+const handler = handlerStart >= 0 ? gateway.slice(handlerStart) : "";
+const optionsIndex = handler.indexOf('if(req.method==="OPTIONS")');
+const gateIndex = handler.indexOf('if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_POST_LAUNCH_DEFERRED"},503);');
+const authIndex = handler.indexOf("const user=await getUser(req)");
+checks.push([
+  "SMM gateway fails closed before authentication and all actions unless explicitly enabled server-side",
+  optionsIndex >= 0 && gateIndex > optionsIndex && authIndex > gateIndex &&
+    handler.includes('error:"SMM_POST_LAUNCH_DEFERRED"') &&
+    handler.includes("},503);"),
 ]);
 
 const failed = checks.filter(([, ok]) => !ok);
