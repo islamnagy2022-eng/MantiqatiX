@@ -355,7 +355,7 @@ begin
       and m.status='ACTIVE'
       and (m.branch_id is null or m.branch_id=v_warehouse.branch_id)
       and (m.organization_id is null or m.organization_id=v_target_org)
-      and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','ACCOUNTANT','FINANCE_MANAGER','FINANCE')
+      and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE')
   ) then raise exception 'PURCHASE_RECEIVING_BRANCH_FORBIDDEN'; end if;
 
   -- Exact receipt replay is delegated to RC434, without incrementing the order line twice.
