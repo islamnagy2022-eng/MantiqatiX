@@ -1725,3 +1725,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign discoverability — SESSION-030
 - [x] Add internal marketing campaigns to RBAC-filtered global search.
 - [ ] Validate search results after RC453 backend is available.
+
+ 
+## Campaign usability — SESSION-031
+- [x] Show campaign business and partner display names where available.
+- [ ] Validate display fallback for hidden/unavailable provider profiles.
