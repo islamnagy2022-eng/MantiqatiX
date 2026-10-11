@@ -75,13 +75,14 @@ const published = await render({
     sort_order: 1,
     title: 'Drinks',
     active: true,
-    data: { items: [{ name: 'Tea <img src=x>', description: 'Hot drink', price: '30', currency: 'EGP' }] },
+    data: { items: [{ name: 'Tea <img src=x>', description: 'Hot drink', price: '30', currency: 'EGP', category: 'مشروبات <script>' }] },
   }],
 });
 assert.equal(published.title, 'Demo menu');
 assert.equal(published.meta, 'Safe description');
 assert.match(published.html, /Drinks/);
 assert.match(published.html, /30/);
+assert.match(published.html, /مشروبات &lt;script&gt;/, 'menu category is visible and HTML-escaped');
 assert.match(published.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
 assert.match(published.html, /Tea &lt;img src=x&gt;/);
 assert.ok(!published.html.includes('<script>alert(1)</script>'), 'page content must be HTML-escaped');
