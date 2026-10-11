@@ -4,6 +4,9 @@
 revoke insert, update, delete on table public.restaurant_tables, public.restaurant_inventory
   from anon, authenticated;
 
+-- The Edge Function uses the service role only after validating the actor and exact workspace scope.
+grant select, insert, update, delete on table public.restaurant_tables, public.restaurant_inventory to service_role;
+
 do $$
 begin
   if has_table_privilege('authenticated', 'public.restaurant_tables', 'INSERT')
