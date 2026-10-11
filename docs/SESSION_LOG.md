@@ -113,3 +113,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Production impact:** none; UI/source changes only.
 - **Not done:** no broad review, no CI/runtime/E2E verification, no deployment.
 - **Next:** continue constructing missing actions and workflows in remaining sector modules, then run reviews only after the build phase is complete.
+
+
+## 2026-10-11 — SESSION-008 — Shared table exports and sector refresh
+
+- **Implemented:**
+  - Added a CSV export action to every non-empty shared records table. The export includes only columns already displayed in that table and the currently loaded rows; it does not pull additional database columns.
+  - Added a data refresh action to the data-backed generic sector workspaces.
+  - Kept export event handling delegated so it works after dynamic module/tab rendering.
+- **Code commits:** `13f2ac4edf7c39b079aace085387248dc38e04c0`, `2b61e50566478c28fedf3b9f73464806a77ab60f`, `b4a0a1908098c903c5054f5703c5de26f7f41094`, `114f60fc7ea806f0fc7673808c19e704569416dd`.
+- **Production impact:** none.
+- **Not done:** no broad review or runtime verification.
+- **Next:** continue adding module-specific workflows; review remains deferred until construction is complete.
