@@ -608,3 +608,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Export mitigates spreadsheet formula injection and does not add new data access.
 - Commit: `0d69612a945ffaa26a728f89ac7cc08eb2395e8d`; branch remains `build/module-workspaces-functional-20261011`, draft PR #205.
 - This is UI construction only; no SMM gateway, payment, wallet, or provider integration was changed. Runtime testing and broad review remain deferred.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-011
+- SMM service catalog supports search plus platform/category filters, visible result counts, and allowlisted CSV export of the filtered list.
+- Service order modal opens only from the explicit “اطلب الخدمة” button, reducing accidental order initiation from card clicks.
+- Commit: `f402b79cf7476fd8e4651a5036ee1cb4023fb9e7`; branch `build/module-workspaces-functional-20261011`, draft PR #205.
+- No gateway/payment/provider backend changes; broad review and runtime tests remain deferred.
