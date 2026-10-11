@@ -254,3 +254,29 @@ The overall production gate remains **BLOCKED / NOT CERTIFIED** because historic
 Follow-up source-history review found a later explicit grant in `20261006133000_mantigo_p0_security_audit_notification_hardening.sql`: it first revokes `PUBLIC` and `anon`, then grants `EXECUTE` on `public.mantigo_rate_ride(text,integer,text)` to `authenticated`. The function body verifies `auth.uid()` is present, only permits the owner of a `COMPLETED` ride to rate it, validates the rating range, and prevents changing an existing rating. This explains the live `authenticated_execute=true` result and means the earlier note calling it an apparent exception to the September revoke was incomplete.
 
 Current conclusion: **do not classify this grant alone as a confirmed vulnerability or release blocker**. It appears to be a later intentional, authenticated customer-rating flow. Preserve the live ACL; no production permissions were changed. Include the function in the regular security review to validate its full current definition and ensure the negative tests cover unauthenticated calls, non-owner rides, non-completed rides, invalid rating values, and duplicate/changed ratings. The missing historical creation DDL for the ten functions remains a separate replay blocker.
+
+## Read-only legacy SECURITY DEFINER inventory — 2026-10-11
+
+The ten function signatures referenced by `20260927095000_revoke_unused_security_definer_execute.sql` were inspected through `pg_get_functiondef` in the live project. This is current live-state evidence only; it does **not** reconstruct the original historical CREATE statements that must precede that revoke migration in a chronological replay.
+
+| Function signature | Live definition bytes | MD5 of live definition | Live SECURITY DEFINER | Live `authenticated` EXECUTE |
+|---|---:|---|---|---|
+| `counter_offer_indrive_bid(uuid,uuid,numeric)` | 925 | `b0032d51962bddf93a74a679e8449644` | yes | no |
+| `fashion_erp_mutate(text,jsonb,text)` | 3,912 | `7934cd70736b660835cd643fdd8f3eaa` | yes | no |
+| `mantigo_accept_bid(text,text)` | 914 | `3c6aba598fafc3a83ac72ef5e2dada3d` | yes | no |
+| `mantigo_cancel_ride(text)` | 538 | `6608c9bfdae34733815f8426b9b470f9` | yes | no |
+| `mantigo_create_ride(text,text,text,text,numeric,text)` | 1,329 | `a40efca460a3615276aeb6cbae15f28c` | yes | no |
+| `mantigo_rate_ride(text,integer,text)` | 2,056 | `23b679c2df1d7650c1566c03aa36a240` | yes | yes |
+| `mantigo_submit_bid(text,numeric,text,text,text,text)` | 1,466 | `0ddbdafc35e35d3093f475346591cf4d` | yes | no |
+| `mantigo_update_proposed_price(text,numeric)` | 664 | `5add47479c0c94e93a31ef31b223d8b6` | yes | no |
+| `restaurant_erp_mutate(text,jsonb,text)` | 4,548 | `c70efe2767f74e96887c9b4cb3fc4d59` | yes | no |
+| `restaurant_table_mutate(text,jsonb,text)` | 3,374 | `fc70fb0ddcd355e996f0b0bc80920a28` | yes | no |
+
+The live query returned no `anon` EXECUTE grant for any of these functions. The `mantigo_rate_ride` function remains explicitly callable by `authenticated`; its body includes ownership, completed-ride, and rating-range checks, but this inventory is not a substitute for adversarial runtime tests.
+
+### Replay decision
+
+- Do not treat these live definitions as historical versions; several were changed after the revoke migration and the repository contains later hardening changes for some MantiGO RPCs.
+- Do not add a synthetic migration or placeholder function just to let replay continue.
+- Next safe path: recover the original definitions from a trusted Git history/backup, or obtain explicit owner approval to inject a clearly labeled, current-definition-only **test baseline outside `supabase/migrations`** for disposable replay. Such a baseline must preserve the current privilege boundary and must never be applied to production.
+- Until one of those paths is approved and the full chronological replay passes, `chronological_replay` stays `NOT RUN` and the release gate stays blocked.
