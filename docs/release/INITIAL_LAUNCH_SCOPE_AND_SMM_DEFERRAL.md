@@ -49,7 +49,29 @@ This decision does not claim the platform is production-ready, does not certify 
 ## Current execution evidence — 2026-10-11
 
 - Core module suite run [38157684756](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38157684756) completed **success** on candidate commit `4f6562b8b38ad43131c614e5838fa8ab24e535ba`. All 15 jobs in that run passed, including financial journal RC450/RC457, MantiGo Paymob atomicity and platform-admin scope, digital-page payment binding, subscription intent, ERP branch scope, checkout recovery, matrimony privacy, targeted ads search path, SECURITY DEFINER search path, receiving, and order-line integration. SMM-only wallet validation was intentionally separated from this core suite.
-- A newer core suite for candidate commit `8bc538e7f0802c57a6762f5bbc8448cba01d6249` is running as [38157693424](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38157693424); at the latest check, several jobs were still in progress/queued. Do not record it as passed until the run reaches a terminal success result.
+- The newer core suite [38157693424](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38157693424) completed **success** on candidate commit `8bc538e7f0802c57a6762f5bbc8448cba01d6249`; all 15 jobs passed, including the previously in-progress receiving, platform-admin scope, checkout recovery, and finance RC457 checks.
 - Migration version uniqueness and migration-history immutability checks passed on the newer candidate. The disposable full chronological migration replay remains **blocked** by the ten legacy SECURITY DEFINER function dependencies documented in `MIGRATION_REPLAY_BLOCKERS.md`.
 - GitHub Pages workflow [38157693453](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38157693453) passed its validation job, but its deploy job was skipped. This is not evidence of a completed production deployment.
 - Release remains **BLOCKED / NOT CERTIFIED**. The SMM deferral is a product-scope choice, not a waiver of the independent global release blockers. In particular, the live SMM gateway must be disabled or denied server-side under approved change control before launch; the static holding page alone is insufficient.
+
+### Read-only production migration ledger reconciliation
+
+Read-only query against the live Supabase migration ledger on 2026-10-11 returned **283 applied migrations**, latest version `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). The current `main` repository directory contains 139 SQL migration files. This difference must be reconciled through the project's established migration-history process; do not infer that a lower file count means applied migrations are missing or recreate historical files from guesses.
+
+Repository migrations with timestamps after the live ledger's latest version were observed as:
+
+- `20261009010000_rc424_atomic_digital_page_payment_webhook.sql` — same RC label, later timestamp; investigate as a distinct candidate migration and collision/history concern.
+- `20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql`.
+- `20261010120000_rc442_approval_action_audit_atomicity.sql`.
+- `20261010140000_rc444_crm_business_scope_rls.sql`.
+- `20261010150000_rc447_matrimony_profile_privacy_boundary.sql`.
+- `20261010161000_rc448_matrimony_request_lifecycle_authority.sql`.
+- `20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql`.
+- `20261010175000_rc449a_financial_journal_schema_prerequisites.sql`.
+- `20261010180000_rc450_financial_journal_service_role_boundary.sql`.
+- `20261010200000_rc451_targeted_ads_empty_search_path.sql`.
+- `20261010210000_rc452_marketing_crm_tenant_scope.sql`.
+- `20261010220000_rc453_marketing_campaign_backend.sql`.
+- `20261011010000_rc456_smm_service_role_access_boundary.sql` — SMM-specific; defer from initial-launch scope only after a dependency review confirms it is not a prerequisite for any core gate. Never skip or apply it by label alone.
+
+The full ordered replay is currently fail-closed before database startup because the earlier historical revoke migration references ten legacy SECURITY DEFINER functions whose authoritative creation DDL is absent from the chronological repository history. Consequently, the list above is an inventory, **not an approved production migration batch**. Before any production migration, reconcile the live ledger with exact SQL hashes/definitions, recover authoritative history, pass the full disposable replay, then obtain explicit rollout approval.
