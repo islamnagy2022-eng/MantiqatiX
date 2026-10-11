@@ -326,3 +326,13 @@ All Supabase production queries were read-only. No production migrations, table 
 
 - SMM order placement now requires a UUID request ID and uses it as the order primary key. Duplicate retries are bound to the same user/service/target/quantity; an in-flight ambiguous order returns a reconciliation-required response instead of charging or submitting to the provider again. The browser reuses the request ID for an ambiguous retry, clears it only after success or a definitive failure, and stores a hash rather than the raw target URL in session storage.
 - SMM UI static checks now require gateway-only catalog/account reads, no direct browser reads of SMM tables, request-level order idempotency, anonymous-session rejection, no-store responses, and Deno/JavaScript syntax checks. Exact-head CI for these latest changes is pending.
+
+ 
+## Payment, checkout recovery, and ERP receiving follow-up — 2026-10-11
+
+- Draft PR [#208](https://github.com/islamnagy2022-eng/MantiqaTix/pull/208) is stacked on the migration-source recovery branch. It restores the RC425 Paymob webhook source, RC435 subscription intent claim and correlation flow, RC439 AES-GCM checkout-secret recovery helper and tests, and the atomic RC434/RC437 ERP receiving function/tests. It does not merge stale PR #84 wholesale.
+- CI previously showed the RC434 and RC437 disposable PostgreSQL integration jobs passing, while the ERP static contract assertion failed due to an outdated RPC matcher. The matcher has been corrected on the combined branch. The latest combined exact-head CI has been queued; no passing result is claimed yet.
+- The latest PR #194 validation failure was traced to missing source validator/helper files and a mismatch between old deployed/main subscription-intent code and RC435/RC439 expectations. The combined branch restores the missing files and candidate source, but requires fresh CI evidence and code review.
+- The candidate subscription payment function returns the Paymob client secret to the authenticated caller only when creating/recovering that caller's checkout, while its safe intent projection strips ciphertext, IV, and key version from returned intent data. Secret encryption uses AES-GCM and binds ciphertext to the intent/business context. Actual provider E2E and key configuration remain NOT VERIFIED.
+- Do not copy the candidate `mantigo-payment-intent` implementation into release as-is: review found it still returns the provider client secret in response and existing-ledger recovery paths. That path remains outside this patch pending a safer API/secret-handling design.
+- No production migrations, Edge Function deployments, payment attempts, wallet writes, or Auth/RLS changes were performed. Release remains **NOT CERTIFIED**.
