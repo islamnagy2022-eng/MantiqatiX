@@ -135,3 +135,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Production impact:** none; no migrations, RLS/grants/Auth changes, Edge Function deployments, financial mutations, or payments.
 - **Verification status:** construction change recorded; runtime/E2E and broad review are still deferred by user instruction.
 - **Next:** continue module-specific build work before the deferred review phase.
+
+
+## 2026-10-11 — SESSION-010 — SMM order workspace usability
+- Added search and status filters to the SMM “My Orders” view, with visible result counts.
+- Added CSV export for the currently filtered subset of the authenticated user's already-loaded orders; the export uses an explicit column allowlist, UTF-8 BOM, CSV quoting, and spreadsheet-formula prefix protection.
+- Added delegated per-row status refresh buttons and escaped displayed values.
+- Commit: `0d69612a945ffaa26a728f89ac7cc08eb2395e8d`.
+- No payment, wallet, provider, gateway, database, or production changes were made. Runtime/E2E remains unverified; broad review remains deferred.
