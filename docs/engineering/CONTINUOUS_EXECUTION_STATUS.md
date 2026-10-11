@@ -323,3 +323,13 @@ All Supabase production queries were read-only. No production migrations, table 
 - PR #87 and PR #129 were closed without merge as stale candidates superseded by current-main release work.
 - PR #169 merged a test-only correction for RC450's repeated-account running-balance assertion. Exact PR-head integration/validation passed; post-merge main workflow outcomes are not independently confirmed in this check.
 - No production migration, grant/RLS/Auth change, Edge Function deployment, payment, settlement, or financial data mutation was performed in this continuation.
+
+ 
+## Live Edge Function parity and release acceptance gates — 2026-10-11
+
+- Read-only comparison against Supabase project `moyhiluyhjsujhwlyeuu`: `payment-intent` v6, `paymob-webhook` v8, `digital-page-payment-intent` v3, and `erp-purchase-receive` v1 match the `main` entrypoint source byte-for-byte.
+- `smm-gateway` live v6 does **not** match `main`: live entrypoint is 8,325 bytes, source is 10,256 bytes, and live v6 lacks `catalog` and `my_data` actions present in source. Do not deploy it independently of the RC456 least-privilege table boundary and post-deploy smoke tests.
+- RC456 migration and updated SMM function have not been applied/deployed. PR #188 is non-mergeable/stale; use its diff only as review context, not as a deployment instruction.
+- The release manifest now requires explicit PASS evidence for source/ledger reconciliation, full migration application, chronological disposable replay, tenant-isolation tests, payment/finance E2E, backup/restore rehearsal, Edge Function contract parity, SMM gateway parity, and critical Auth security settings. Source presence alone cannot satisfy these gates.
+- Draft PR [#194](https://github.com/islamnagy2022-eng/MantiqatiX/pull/194) restores 16 missing RC425–RC441 source files byte-for-byte from stale PR #84 onto current main base. Migration Version Uniqueness and Open PR Migration Collision Guard passed; Migration History Immutability passed. Other exact-head checks are still running, and full ordered replay against current schema has not been performed.
+- No production migration, Edge Function deployment, grant/RLS/Auth change, payment, wallet mutation, or customer-data write was performed. Release remains **NOT CERTIFIED**.
