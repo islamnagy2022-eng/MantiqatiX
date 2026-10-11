@@ -598,3 +598,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-011
 - Commit `2f60bdb55338e901a2b7cea6c5fddeb4421aa31a`: module center cards show whether source counts were loaded and how many were available; unloaded modules are not labeled ready.
+
+ 
+## Build progress — SESSION-012
+- Commit `5bc89ea9a5c0bb9ecedbf6fe1a72f2de4237268a`: actual Analytics workspace gained CSV export for currently loaded orders/leads/providers/projects/ads/notifications and a refresh action. Export is a current-session sample, not full historical/accounting data.
