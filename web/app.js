@@ -1227,6 +1227,9 @@ function bindJobWorkspaceActions(){
 async function openJobApplicationForm(job){
  if(!user?.id||!job?.id)return authView();
  if(String(live.role||'').toUpperCase()!=='CUSTOMER')return showToast('التقديم متاح من حساب العميل فقط.','error');
+ const currentJob=(live.moduleData.JOBS?.rows?.jobs||[]).find(x=>String(x.id)===String(job.id));
+ if(!currentJob||currentJob.is_active!==true)return showToast('الوظيفة غير نشطة أو غير متاحة ضمن السجلات المحمّلة.','error');
+ job=currentJob;
  const defaultName=String(user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split('@')[0]||'').trim();
  const view=await openUnifiedRecordDetails({kicker:'JOB APPLICATION',title:'التقديم على '+String(job.title||'وظيفة'),desc:'سيتم إرسال الطلب من حسابك الحالي. بيانات الاتصال الخاصة لا تُطلب في هذه الشاشة.',sections:[{title:'بيانات التقديم',html:'<form id="mx-job-application-form" class="mx-job-post-form"><label>اسم المتقدم<input name="applicant_name" required maxlength="160" value="'+esc(defaultName)+'" autocomplete="name"></label><label>المؤهلات<textarea name="qualifications" rows="3" maxlength="4000" placeholder="المؤهلات والخبرة ذات الصلة"></textarea></label><label>نبذة مختصرة<textarea name="cv_summary_text" rows="4" maxlength="5000" placeholder="ملخص مهني اختياري"></textarea></label><div class="mx-job-form-actions"><button type="submit" class="btn btn-primary">إرسال التقديم</button><button type="button" class="btn btn-secondary" data-job-application-close>إلغاء</button></div></form>'}]});
  const form=view.overlay.querySelector('#mx-job-application-form');if(!form)return;
@@ -1277,6 +1280,10 @@ function bindEducationWorkspaceActions(){
 async function openEducationRequestForm(targetId,targetType,targetLabel){
  if(!user?.id||!targetId)return authView();
  if(String(live.role||'').toUpperCase()!=='CUSTOMER')return showToast('إنشاء الطلبات التعليمية متاح لحساب العميل فقط.','error');
+ const type=String(targetType||'').toUpperCase();
+ const source=type==='SCHOOL'?'school_profiles':type==='TEACHER'?'teacher_profiles':null;
+ const target=source?(live.moduleData.EDUCATION?.rows?.[source]||[]).find(x=>String(x.id)===String(targetId)):null;
+ if(!target||target.is_available!==true)return showToast('الجهة التعليمية غير متاحة أو غير موجودة ضمن البيانات المحمّلة.','error');
  const defaultName=String(user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split('@')[0]||'').trim();
  const view=await openUnifiedRecordDetails({kicker:'EDUCATION REQUEST',title:'طلب خدمة من '+String(targetLabel||'الجهة التعليمية'),desc:'سيُربط الطلب بحسابك الحالي وتخضع الكتابة لسياسات الوصول الموجودة.',sections:[{title:'بيانات الطلب',html:'<form id="mx-education-request-form" class="mx-job-post-form"><label>اسم الطالب<input name="student_name" required maxlength="160" value="'+esc(defaultName)+'" autocomplete="name"></label><label>المادة أو المرحلة<input name="subject_or_grade" required maxlength="180" placeholder="مثال: الصف الثالث أو الرياضيات"></label><div class="mx-job-form-actions"><button type="submit" class="btn btn-primary">إرسال الطلب</button><button type="button" class="btn btn-secondary" data-education-close>إلغاء</button></div><p class="muted">لا تطلب هذه الشاشة رقم هاتف أو بيانات صحية. مشاركة اسم الطالب مطلوبة لإنشاء الطلب.</p></form>'}]});
  const form=view.overlay.querySelector('#mx-education-request-form');if(!form)return;
