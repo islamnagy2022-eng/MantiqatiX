@@ -5,6 +5,7 @@ on:
       - "**"
     paths:
       - "supabase/functions/smm-gateway/index.ts"
+      - "web/smm.js"
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
@@ -32,6 +33,7 @@ jobs:
         with:
           deno-version: v2.x
       - run: node scripts/validate-smm-service-role-boundary.mjs
+      - run: node --check web/smm.js
       - run: deno check --no-lock supabase/functions/smm-gateway/index.ts
 
   smm-service-role-postgres:
