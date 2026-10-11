@@ -214,19 +214,33 @@ Deno.serve(async (req: Request) => {
     if (optionMap.size !== optionIds.length) return json({ error: "OPTION_NOT_AVAILABLE" }, 409);
   }
 
+  if (normalizedItems.some((item: any) => {
+    const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
+    return optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId);
+  })) return json({ error: "OPTION_ITEM_MISMATCH" }, 409);
+
+  if (normalizedItems.some((item: any) => {
+    const price = priceMap.get(item.catalogItemId);
+    const catalog = itemMap.get(item.catalogItemId);
+    const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
+    const optionDelta = optionRows.reduce((sum: number, x: any) => sum + Number(x.price_delta ?? 0), 0);
+    const unitPrice = Number(price?.unit_price) + optionDelta;
+    const taxRate = Number(catalog?.tax_rate ?? 0);
+    return !Number.isFinite(Number(price?.unit_price)) || Number(price?.unit_price) < 0
+      || !Number.isFinite(optionDelta) || !Number.isFinite(unitPrice) || unitPrice < 0
+      || !Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100;
+  })) return json({ error: "INVALID_SERVER_PRICING_DATA" }, 409);
+
   let subtotal = 0;
   let tax = 0;
   const authoritativeItems = normalizedItems.map((item: any) => {
     const catalog = itemMap.get(item.catalogItemId);
     const price = priceMap.get(item.catalogItemId);
     const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
-    if (optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId)) throw new Error("OPTION_ITEM_MISMATCH");
     const optionDelta = optionRows.reduce((sum: number, x: any) => sum + Number(x.price_delta ?? 0), 0);
     const unitPrice = Number(price.unit_price) + optionDelta;
-    if (!Number.isFinite(optionDelta) || !Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("INVALID_SERVER_PRICE");
     const lineSubtotal = unitPrice * item.quantity;
     const taxRate = Number(catalog.tax_rate ?? 0);
-    if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100) throw new Error("INVALID_SERVER_TAX_RATE");
     const lineTax = lineSubtotal * (taxRate > 0 ? taxRate / 100 : 0);
     subtotal += lineSubtotal;
     tax += lineTax;
