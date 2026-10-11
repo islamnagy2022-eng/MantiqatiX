@@ -22,4 +22,7 @@ assert.match(source, /const idempotencyKey='MNTY-REST-'/, 'a stable idempotency 
 assert.match(source, /invokeMntyFunction\('order-create',payload\)/, 'orders use the authenticated order Edge Function');
 assert.match(source, /invokeMntyFunction\('order-status-update'/, 'status updates use the authenticated status Edge Function');
 assert.match(source, /return o;/, 'accessible modal returns its dialog for scoped event wiring');
+assert.match(source, /data-current-status=/, 'order status control retains its persisted status for recovery');
+assert.match(source, /control\.value=previous;control\.disabled=false/, 'rejected status updates restore the UI to the persisted state');
+assert.match(source, /if\(control\)control\.disabled=true/, 'duplicate status submissions are blocked while in flight');
 console.log('Restaurant workspace contract: PASS (20 assertions)');
