@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
   let body: Record<string, unknown>;
   try {
     const raw = await req.text();
-    if (raw.length > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413);
+    if (new TextEncoder().encode(raw).byteLength > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413);
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return json({ error: "INVALID_BODY" }, 400);
     body = parsed as Record<string, unknown>;
