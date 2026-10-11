@@ -36,6 +36,8 @@ begin
     raise exception 'RC461_RPC_EXECUTE_BOUNDARY_INVALID';
   end if;
 
+  insert into public.businesses(id,tenant_id,status) values(v_business,v_tenant,'ACTIVE');
+  insert into public.branches(id,tenant_id,business_id,status) values(v_branch,v_tenant,v_business,'ACTIVE');
   insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status)
   values(pg_catalog.gen_random_uuid()::text,v_actor,v_tenant,v_business,v_branch,'MANAGER','ACTIVE');
 
