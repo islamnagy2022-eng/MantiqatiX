@@ -77,3 +77,4 @@ create table public.restaurant_inventory (
 alter table public.restaurant_tables enable row level security;
 alter table public.restaurant_inventory enable row level security;
 grant select, insert, update, delete on public.restaurant_tables, public.restaurant_inventory to authenticated;
+grant select on public.user_memberships to authenticated;
