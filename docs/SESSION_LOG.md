@@ -83,3 +83,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope guard:** project/service/business records are displayed but no unsupported edit action was added. Detail buttons are only emitted for record kinds with known existing detail functions.
 - **Tests:** pending; do not infer passing tests from commits.
 - **Next:** continue module capability build-out and later validate event binding, authorization, and detail-view behavior.
+
+## 2026-10-11 — SESSION-009 — Correct SMM role dashboard integration
+
+- **Code commit:** [bbd6804228ff29e60e603f1eb15eb4c641bacecb](https://github.com/islamnagy2022-eng/MantiqaTix/commit/bbd6804228ff29e60e603f1eb15eb4c641bacecb).
+- **Built:** SMM is now included in the role dashboard configuration for `MARKETING`, `PROVIDER_MARKETING`, and `OWNER`; existing `allowed(name)` filtering continues to enforce the RBAC view predicate.
+- **Correction note:** the immediately preceding commit `2b03589babad6e06f14da241776be7b8a106259b` accidentally duplicated a source prefix while applying the role edit. This commit reconstructed `web/app.js` from its immediate valid parent and reapplied the intended change. A structural count confirmed exactly one `function dashboard()` in the corrected source. CI/runtime validation is still pending; the correction is not a claim of a passing test.
+- **Production impact:** none.
+- **Next:** continue build work; run the post-build validation batch after the feature set is complete.
