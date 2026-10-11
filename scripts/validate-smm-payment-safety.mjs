@@ -38,6 +38,14 @@ check("RC432 enforces one DEBIT/REFUND/CREDIT per operation reference", migratio
 check("RC432 debit path is idempotent and rechecks after wallet lock", migration.includes("Recheck after acquiring the wallet lock") && migration.includes("IDEMPOTENCY_CONFLICT"));
 check("RC432 refund path is idempotent", migration.includes("smm_refund_wallet") && migration.includes("on conflict do nothing") && migration.includes("REFUND"));
 check("admin credit uses a stable retry idempotency key", source.includes("p_reference:b.reference_id") && web.includes("reference_id:referenceId") && web.includes("function getCreditAttempt(fingerprint)") && web.includes("sessionStorage.setItem('mnty_smm_credit_attempt'") && web.includes("sessionStorage.removeItem('mnty_smm_credit_attempt'"));
+const duplicateStart=source.indexOf('if(o.error||!o.data){');
+const duplicateEnd=source.indexOf('const orderId=requestId;',duplicateStart);
+const duplicateBranch=duplicateStart>=0&&duplicateEnd>duplicateStart?source.slice(duplicateStart,duplicateEnd):"";
+check("SMM order creation requires a valid request UUID", source.includes("uuidPattern.test(requestId)") && source.includes('requestId=typeof b.request_id==="string"'));
+check("SMM order primary key is the idempotency key", source.includes('insert({id:requestId,user_id:user.id') && source.includes("IDEMPOTENCY_CONFLICT"));
+check("duplicate in-flight order is not charged or submitted twice", duplicateBranch.includes('priorStatus==="SUBMITTING"') && duplicateBranch.includes("ORDER_OUTCOME_UNKNOWN") && !duplicateBranch.includes("smm_debit_wallet") && !duplicateBranch.includes("call("));
+check("SMM UI reuses request ID after ambiguous outcome", web.includes("function getOrderAttempt(fingerprint)") && web.includes("sessionStorage.setItem('mnty_smm_order_attempt'") && web.includes("request_id:attempt.id") && web.includes("reconciliation_required"));
+check("SMM UI clears request ID only for definitive final outcomes", web.includes("clearOrderAttempt()") && web.includes("ORDER_ALREADY_FINALIZED") && web.includes("PROVIDER_EXECUTION_FAILED"));
 check("legacy admin credit RPC remains available only for staged service-role rollout", migration.includes("smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated") && migration.includes("until the new smm-gateway is deployed"));
 check("admin credit RPC checks the explicit SMM allowlist", migration.includes("public.smm_admins sa where sa.user_id=p_actor") && migration.includes("IDEMPOTENCY_CONFLICT"));
 check("admin wallet credit validates a finite positive amount", source.includes("Number.isFinite(amount)||amount<=0"));
