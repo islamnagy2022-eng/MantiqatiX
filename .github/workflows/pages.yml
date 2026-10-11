@@ -43,7 +43,6 @@ jobs:
           ! grep -Eq 'signInWithOtp|verifyOtp|sendOtp|resend-otp|one-time-code|رمز التحقق|رمز البريد' web/app.js
           grep -q 'signInWithGoogle' web/app.js
           grep -q 'id="google-auth"' web/app.js
-          node --check web/smm.js
           node --check web/home.js
           node --check web/android-parity-catalog.js
           node --check web/provider-onboarding-module.js
@@ -110,7 +109,6 @@ jobs:
           test -f web/digital-page-editor.js
           for asset in web/assets/activity/*.svg; do test -f "$asset"; done
           for asset in web/assets/activities/*.svg; do test -f "$asset"; done
-          test -f web/smm.js
           test -f web/manifest.webmanifest
           test -f web/sw.js
           test -f web/android-parity-catalog.js
@@ -164,11 +162,20 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Prepare initial-launch Pages artifact without deferred SMM client
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/web-release
+          rsync -a --delete --exclude='smm.js' web/ artifacts/web-release/
+          test -f artifacts/web-release/smm.html
+          test ! -e artifacts/web-release/smm.js
+          ! grep -R -E 'src=["'"']smm\.js["'"']' artifacts/web-release --include='*.html'
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4
         with:
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ./web
+          path: ./artifacts/web-release
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -183,7 +190,7 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Fq "MantiqatiX" "$TMP_PAGE"
-          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
+          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
