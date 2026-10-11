@@ -1559,3 +1559,17 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Exact-head release checkpoint — 2026-10-12
+
+- Candidate PR #207 current branch: `reconcile/rc425-458-current-main-20261011`. Latest documentation head at this checkpoint: `bbd3133979a6a2e84deaf14343d1e71d01a93a99`. Exact-head CI results recorded below refer to the previous code/documentation head `95db1770bd89286bfadba9172b0c9409a68e0566`; fresh checks are required for the new documentation head.
+- [x] Core module validation passed: [38178521555](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521555).
+- [x] Migration version uniqueness [38178521452](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521452), migration immutability [38178521625](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521625), open-PR migration collision guard [38178521533](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521533), backend-only boundary [38178521457](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521457), MantiGO privacy [38178521521](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521521), approval audit atomicity [38178521525](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521525), and SMM service-role boundary [38178521548](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521548) passed.
+- [x] Pages validation [38178521567](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521567) passed; deploy job was skipped because PR #207 is draft. This is not a production deployment.
+- [ ] SMM deferred validation [38178521468](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521468) failed. Do not weaken/delete/repair it during the owner’s SMM freeze; retain it as post-launch feature acceptance evidence.
+- [ ] P0 SMM server-side containment issue #212 remains open. The live gateway must not be treated as disabled based on UI quarantine. Any live change needs explicit production approval and negative runtime tests.
+- [ ] Full chronological migration replay remains blocked on ten missing historical SECURITY DEFINER function creation dependencies; no placeholders, skipped migrations, or synthetic historical DDL.
+- [ ] Production migration ledger is still only reconciled through RC424; post-RC424 migrations are not proven applied.
+- [ ] Production P0 MantiGO global authorization, real cross-tenant/auth/payment/ERP E2E, Paymob sandbox end-to-end, backup restore/RPO/RTO, leaked-password protection, and enforced main branch protection remain unresolved.
+- **Release decision: BLOCKED / NOT CERTIFIED.** No merge, production deployment, migration, live Edge Function modification, financial mutation, or Auth/RLS/grant change was performed.
