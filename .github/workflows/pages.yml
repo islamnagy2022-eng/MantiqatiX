@@ -71,6 +71,7 @@ jobs:
           node scripts/validate-mantigo-rate-limits.mjs
           node scripts/validate-mantigo-security-test-contract.mjs
           node scripts/validate-public-security-definer-search-path.mjs
+          node scripts/test-smm-launch-scope.mjs
           node scripts/validate-production-gate-contract.mjs
           node scripts/validate-production-migration-chain-gate.mjs
           node scripts/validate-finance-boundaries.mjs
