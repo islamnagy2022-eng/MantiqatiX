@@ -71,7 +71,7 @@ begin
     v_reserved := nullif(pg_catalog.btrim(p_payload->>'reservedCustomerName'), '');
     if v_table_number is null or v_table_number < 1 or v_table_number > 100000
        or v_capacity is null or v_capacity < 1 or v_capacity > 1000
-       or v_status not in ('EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE')
+       or v_status is null or v_status not in ('EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE')
        or pg_catalog.length(coalesce(v_reserved,'')) > 200 then
       raise exception 'INVALID_TABLE_DATA';
     end if;
@@ -89,9 +89,9 @@ begin
       returning pg_catalog.to_jsonb(t) into v_new;
     else
       v_id := pg_catalog.gen_random_uuid()::text;
-      insert into public.restaurant_tables(id,tenant_id,business_id,branch_id,owner_user_id,table_number,capacity_persons,status,reserved_customer_name,current_active_order_id,current_bill_egp)
+      insert into public.restaurant_tables as t(id,tenant_id,business_id,branch_id,owner_user_id,table_number,capacity_persons,status,reserved_customer_name,current_active_order_id,current_bill_egp)
       values(v_id,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,v_table_number,v_capacity,v_status,v_reserved,null,0)
-      returning pg_catalog.to_jsonb(restaurant_tables) into v_new;
+      returning pg_catalog.to_jsonb(t) into v_new;
     end if;
     insert into public.audit_logs(id,tenant_id,business_id,branch_id,actor_user_id,action,entity_type,entity_id,old_values,new_values)
     values(pg_catalog.gen_random_uuid()::text,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,
@@ -128,9 +128,9 @@ begin
       returning pg_catalog.to_jsonb(i) into v_new;
     else
       v_id := pg_catalog.gen_random_uuid()::text;
-      insert into public.restaurant_inventory(id,tenant_id,business_id,branch_id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at)
+      insert into public.restaurant_inventory as i(id,tenant_id,business_id,branch_id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at)
       values(v_id,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,v_name,v_unit,v_stock,v_minimum,v_cost,coalesce(v_supplier,''),pg_catalog.now())
-      returning pg_catalog.to_jsonb(restaurant_inventory) into v_new;
+      returning pg_catalog.to_jsonb(i) into v_new;
     end if;
     insert into public.audit_logs(id,tenant_id,business_id,branch_id,actor_user_id,action,entity_type,entity_id,old_values,new_values)
     values(pg_catalog.gen_random_uuid()::text,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,
