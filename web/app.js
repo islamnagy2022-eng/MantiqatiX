@@ -489,6 +489,7 @@ const GLOBAL_SEARCH_SOURCES=[
  {key:'catalog',label:'الخدمات والمنتجات',icon:'📦',module:'الموديولات',table:'catalog_items',select:'id,name_ar,name_en,sku,item_type,status,business_id',fields:['name_ar','name_en','sku','item_type'],route:'الموديولات'},
  {key:'leads',label:'العملاء المحتملون',icon:'🎯',module:'المستخدمون وCRM',table:'marketing_leads',select:'id,title,status,source,service_area,created_at',fields:['title','status','source','service_area'],route:'المستخدمون وCRM'},
  {key:'projects',label:'المشروعات التسويقية',icon:'📣',module:'التسويق والإعلان',table:'marketing_projects',select:'id,project_type,management_mode,status,currency,created_at',fields:['project_type','management_mode','status'],route:'التسويق والإعلان'},
+ {key:'campaigns',label:'الحملات التسويقية',icon:'🎯',module:'التسويق والإعلان',table:'marketing_campaigns',select:'id,title,objective,status,budget,currency,created_at',fields:['title','objective','status'],route:'التسويق والإعلان'},
  {key:'tickets',label:'تذاكر الدعم',icon:'🎫',module:'الدعم والحوكمة',table:'support_tickets',select:'id,subject,category,priority,status,created_at',fields:['id','subject','category','priority','status'],route:'الدعم والحوكمة'},
  {key:'ads',label:'الإعلانات',icon:'📢',module:'التسويق والإعلان',table:'advertisements',select:'id,title,status,approval_status,start_at,end_at,created_at',fields:['id','title','status','approval_status'],route:'التسويق والإعلان'},
  {key:'jobs',label:'الوظائف',icon:'💼',module:'الوظائف',table:'jobs',select:'id,title,company_name,category,location,job_type,is_active,created_at',fields:['title','company_name','category','location','job_type'],route:'الوظائف'}
@@ -514,6 +515,7 @@ async function globalSearch(queryText){
    else if(source.key==='catalog')queryBuilder=queryBuilder.or('name_ar.ilike.'+needle+',name_en.ilike.'+needle+',sku.ilike.'+needle+',item_type.ilike.'+needle);
    else if(source.key==='leads')queryBuilder=queryBuilder.or('title.ilike.'+needle+',status.ilike.'+needle+',source.ilike.'+needle+',service_area.ilike.'+needle);
    else if(source.key==='projects')queryBuilder=queryBuilder.or('project_type.ilike.'+needle+',management_mode.ilike.'+needle+',status.ilike.'+needle);
+   else if(source.key==='campaigns')queryBuilder=queryBuilder.or('title.ilike.'+needle+',objective.ilike.'+needle+',status.ilike.'+needle);
    else if(source.key==='tickets')queryBuilder=queryBuilder.or('id.ilike.'+needle+',subject.ilike.'+needle+',category.ilike.'+needle+',priority.ilike.'+needle+',status.ilike.'+needle);
    else if(source.key==='ads')queryBuilder=queryBuilder.or('id.ilike.'+needle+',title.ilike.'+needle+',status.ilike.'+needle+',approval_status.ilike.'+needle);
    else if(source.key==='jobs')queryBuilder=queryBuilder.or('title.ilike.'+needle+',company_name.ilike.'+needle+',category.ilike.'+needle+',location.ilike.'+needle+',job_type.ilike.'+needle);
