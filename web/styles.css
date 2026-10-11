@@ -440,6 +440,8 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-workspace-stat strong,.mx-workspace-report-grid strong{font-size:24px;overflow-wrap:anywhere}
 .mx-workspace-note{padding:16px;border-radius:14px;background:#f8fafc;border:1px solid var(--border,#e4e7ec);line-height:1.7}
 .mx-workspace-shortcuts,.mx-workspace-action-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.mx-workspace-shortcuts button.active{background:var(--blue,#2563eb);color:#fff;border-color:var(--blue,#2563eb)}
+.mx-workspace-shortcuts button[aria-pressed="true"]{background:var(--blue,#2563eb);color:#fff;border-color:var(--blue,#2563eb)}
 .mx-workspace-shortcuts button,.mx-workspace-action,.mx-workspace-detail-btn,.mx-workspace-back{border:1px solid var(--border,#e4e7ec);border-radius:10px;padding:10px 13px;background:#fff;cursor:pointer;color:var(--dark,#0f172a)}
 .mx-workspace-data-head,.mx-workspace-report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px}
 .mx-workspace-data-head h3,.mx-workspace-report-head h3,.mx-workspace-operations h3,.mx-workspace-settings h3,.mx-workspace-record h3{margin:0 0 6px}
