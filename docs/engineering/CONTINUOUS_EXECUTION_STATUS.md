@@ -407,3 +407,25 @@ Completed a 30-check review pass across the current candidate PR, exact-head CI,
 - Module inventory is not equivalent to E2E acceptance: restaurant/menu, pharmacy, medical, marketing, CRM, tenant isolation, financial flows, and disaster recovery each retain explicit verification work.
 
 Next execution priority: close the live SMM containment gate only with approved production change control and a negative test; in parallel, recover authoritative historical DDL or obtain separate explicit approval for a test-only current-definition baseline, then continue module-specific E2E and recovery evidence. No production write, merge, or deploy was performed by this cycle.
+
+
+## Exact-head verification checkpoint — 2026-10-12 (bae779e81760e7e76f048281db21c71f6e6cad48)
+
+The following results were re-queried from GitHub Actions for the exact candidate SHA above; these are repository CI results, not production smoke tests:
+
+- **Passed:** Migration History Immutability, Open PR Migration Collision Guard, MantiGO Open Ride Privacy Boundary, Migration Version Uniqueness, SMM Service Role Access Boundary, Backend-only Module Boundary, Approval Action Audit Atomicity, and Module Professionalization Validation.
+- **Pages workflow:** validation workflow completed successfully; the deploy job was skipped for this draft PR. No production deployment occurred.
+- **Failed:** SMM Deferred Module Validation. This is intentionally not repaired, weakened, deleted, or reclassified while the owner’s SMM feature freeze is in effect. Keep its provider/wallet acceptance failures visible for the separately deferred product.
+- PR #207 remains open and draft; it is not merged. GitHub reports the current PR as mergeable, but mergeability is not release approval and does not override any gate below.
+
+### Remaining release decision
+
+**BLOCKED / NOT CERTIFIED.** The passing core CI does not resolve the production P0 global MantiGO authorization finding, live migration ledger ending at RC424, failed chronological migration replay due to ten missing historical SECURITY DEFINER creation dependencies, missing full payment/tenant-isolation E2E, missing backup-restore/RPO-RTO evidence, leaked-password protection configuration, or absent enforced repository branch protection. The live smm-gateway was previously observed active; UI deferral does not prove server-side containment. No production action is authorized or claimed by this checkpoint.
+
+### Safe next steps
+
+1. Recover trusted historical creation DDL for the ten replay dependencies, or request explicit approval for a separate current-definition-only test baseline used solely in disposable replay. Do not invent historical migrations, placeholders, or skip the revoke migration.
+2. Obtain admin-controlled branch protection and required review/check settings before any release candidate is approved.
+3. Complete isolated tenant/auth/payment/ERP browser E2E and backup restore rehearsal; record evidence and actual RPO/RTO.
+4. Keep SMM feature implementation frozen. Any server-side SMM containment change remains a separate production change-control item; do not deploy or alter the live gateway without explicit approval.
+5. Do not merge or deploy until all release gates are independently evidenced and reviewed.
