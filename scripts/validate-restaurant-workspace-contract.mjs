@@ -61,8 +61,8 @@ assert.match(orderCreate, /fulfillmentType === "DELIVERY" && !body\.deliveryAddr
 assert.match(orderCreate, /AMBIGUOUS_ACTIVE_PRICE/, 'overlapping current prices are rejected rather than choosing by version');
 assert.match(orderCreate, /INVALID_SERVER_PRICING_DATA/, 'invalid prices, option deltas, and tax rates fail closed');
 assert.match(orderCreate, /branchSpecific\.length\s*\?\s*branchSpecific/, 'branch-specific pricing takes precedence over a generic price');
-assert.match(orderCreate, /AMBIGUOUS_ACTIVE_PRICE/, 'duplicate effective prices are rejected');
-assert.match(orderCreate, /INVALID_SERVER_PRICING_DATA/, 'invalid price, option delta, or tax values fail closed');
+assert.match(orderCreate, /if \(row\.branch_id && \(!branchId \|\| String\(row\.branch_id\) !== branchId\)\) return false/, 'price rows from another branch cannot be selected');
+assert.match(orderCreate, /!Number\.isFinite\(taxRate\) \|\| taxRate < 0 \|\| taxRate > 100/, 'tax rate must be finite and between zero and one hundred');
 assert.match(orderStatus, /const maxBodyBytes=16\*1024/, 'status mutation request size is bounded');
 assert.match(orderStatus, /INVALID_ORDER_STATUS/, 'status mutation validates target state before RPC');
 assert.match(orderStatus, /ORDER_STATUS_UPDATE_FAILED/, 'status mutation returns a bounded error instead of database internals');
