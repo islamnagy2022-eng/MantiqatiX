@@ -39,4 +39,4 @@ assert.match(integration, /price change must preserve the previous version/);
 assert.match(integration, /cross-tenant menu write was accepted/);
 assert.match(integration, /has_function_privilege\('authenticated'/);
 assert.match(fixture, /create table public\.catalog_item_prices/);
-console.log('RC459 restaurant menu/catalog sync source contract: PASS (29 assertions)');
+console.log('RC459 restaurant menu/catalog sync source contract: PASS (30 assertions)');
