@@ -78,7 +78,8 @@ assert.doesNotMatch(source, /sb\.from\('restaurant_(?:tables|inventory)'\)\.(?:i
 assert.match(workspaceEdge, /admin\.auth\.getUser\(token\)/, 'workspace mutation verifies the bearer token server-side');
 assert.match(workspaceEdge, /\.eq\("tenant_id", body\.tenantId\.trim\(\)\)[\s\S]*?\.eq\("business_id", body\.businessId\)[\s\S]*?\.eq\("branch_id", body\.branchId\.trim\(\)\)/, 'workspace mutation requires an exact active branch membership');
 assert.match(workspaceEdge, /FORBIDDEN_WORKSPACE_SCOPE/, 'workspace mutation rejects actors without an allowed active role');
+assert.match(workspaceEdge, /const isRecordId = \(value: unknown\)/, 'legacy text primary keys are validated without assuming UUID storage');
 assert.match(workspaceMigration, /revoke insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory[\s\S]*?from PUBLIC, anon, authenticated/i, 'direct browser mutations are revoked from public client roles');
 assert.match(workspaceMigration, /grant select, insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory to service_role/i, 'backend mutation role retains the required table privileges');
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
-console.log('Restaurant workspace contract: PASS (70 assertions)');
+console.log('Restaurant workspace contract: PASS (71 assertions)');
