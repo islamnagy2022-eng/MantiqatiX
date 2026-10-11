@@ -619,3 +619,9 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-016
 - Commit `b8e9d1e84e976f6bd2cb520f577f805e6063344d`: Operations workspace gained CSV export for loaded orders, status history and notifications; no new query scope.
+
+ 
+## Build progress — SESSION-017
+- Commits `0b670638ad5ceb278189a5f77ac5264c5de67bfa` and `52fe501a0c85ffebddc1d7c75980a94aea870896`: module blueprint buttons now open source-backed section details, with explicit table maps and no fake action success.
+- The first version assumed nonexistent runtime metadata; the second commit corrected this by storing actual module table names in the rendered root.
+- Table mappings still need schema validation in the planned post-build pass.
