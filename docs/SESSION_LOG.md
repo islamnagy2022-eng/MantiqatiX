@@ -143,3 +143,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added delegated per-row status refresh buttons and escaped displayed values.
 - Commit: `0d69612a945ffaa26a728f89ac7cc08eb2395e8d`.
 - No payment, wallet, provider, gateway, database, or production changes were made. Runtime/E2E remains unverified; broad review remains deferred.
+
+
+## 2026-10-11 — SESSION-011 — SMM catalog controls
+- Added platform/category filters and a visible result count to the SMM service catalog.
+- Added allowlisted CSV export for the filtered catalog (service id, platform, category, name, selling price per 1000, quantity bounds, refill flag), with the existing CSV quoting/formula-protection helper.
+- Order placement remains an explicit button action; clicking elsewhere on a service card no longer accidentally opens the order flow.
+- Commit: `f402b79cf7476fd8e4651a5036ee1cb4023fb9e7`.
+- No gateway, provider, wallet, payment, schema, or production changes. Runtime verification remains outstanding.
