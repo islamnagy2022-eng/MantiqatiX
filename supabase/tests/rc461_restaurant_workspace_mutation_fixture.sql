@@ -6,7 +6,7 @@ begin
 end
 $$;
 
-create table public.user_memberships (
+create table if not exists public.user_memberships (
   id text primary key,
   user_id uuid not null,
   tenant_id varchar not null,
@@ -15,7 +15,7 @@ create table public.user_memberships (
   role varchar not null,
   status varchar not null default 'ACTIVE'
 );
-create table public.audit_logs (
+create table if not exists public.audit_logs (
   id text primary key,
   tenant_id varchar not null,
   organization_id varchar,
