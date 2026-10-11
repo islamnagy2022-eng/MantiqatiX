@@ -556,3 +556,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Batch 2: allowlisted CSV exports across CRM, marketing, restaurant, operations, notifications and generic workspace records; bulk mark-read for loaded notifications via existing RPC; global details drawer keyboard/focus handling.
 - No production writes or deployment.
 - Continue build-only. Do not run broad reviews until all modules have been constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-004
+- Active branch: `build/module-workspaces-functional-20261011`; draft PR #205 remains open.
+- CRM: data-driven lead status filters.
+- Operations: data-driven order status filters.
+- Marketing: status filters for leads/projects/advertisements.
+- Analytics: accessible distribution of loaded order statuses and allowlisted exports.
+- Continue build-only; broad review is deferred until all modules have been constructed.
