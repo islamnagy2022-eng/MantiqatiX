@@ -19,13 +19,22 @@ declare
   );
 begin
   if not exists (
-    select 1 from pg_indexes
-    where schemaname='public'
-      and tablename='catalog_items'
-      and indexname='catalog_items_restaurant_menu_legacy_ref_uidx'
-      and indexdef ilike '%UNIQUE INDEX%'
+    select 1
+    from pg_catalog.pg_index i
+    join pg_catalog.pg_class tbl on tbl.oid=i.indrelid
+    join pg_catalog.pg_namespace ns on ns.oid=tbl.relnamespace
+    join pg_catalog.pg_attribute a1 on a1.attrelid=tbl.oid and a1.attnum=i.indkey[0]
+    join pg_catalog.pg_attribute a2 on a2.attrelid=tbl.oid and a2.attnum=i.indkey[1]
+    where ns.nspname='public' and tbl.relname='catalog_items'
+      and i.indisunique and i.indisvalid and i.indnkeyatts>=2
+      and a1.attname='business_id' and a2.attname='legacy_ref'
+      and (
+        i.indpred is null
+        or pg_catalog.pg_get_expr(i.indpred,i.indrelid) ilike '%legacy_ref IS NOT NULL%'
+        or pg_catalog.pg_get_expr(i.indpred,i.indrelid) ilike '%legacy_ref LIKE%'
+      )
   ) then
-    raise exception 'RC460 restaurant menu catalog uniqueness index missing';
+    raise exception 'RC460 equivalent unique business_id/legacy_ref index missing';
   end if;
 
   if has_function_privilege('anon','public.restaurant_menu_catalog_mutate_backend(uuid,text,jsonb)','EXECUTE')
