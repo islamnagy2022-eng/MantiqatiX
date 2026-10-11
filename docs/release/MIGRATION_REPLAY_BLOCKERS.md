@@ -93,3 +93,32 @@ Together with the repository migration scan and current catalog evidence, this c
 - Prior replay run [38153774338](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38153774338) failed at the old preflight before these latest commits. It is not evidence for or against the updated baseline flow; a new exact-head run must pass before replay is considered verified.
 - The latest previously observed module-professionalization run [38153777787](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38153777787) passed the general validator and most integration jobs but **failed `smm-wallet-integration`**. This independent release blocker remains open.
 - Production remains untouched. Release remains **BLOCKED / NOT CERTIFIED** until the new full replay and all security/integration/release gates pass.
+
+
+## SMM gateway safety contract — exact-head run 38154557541
+
+The `smm-wallet-integration` job failed in the source-safety validator on the candidate `supabase/functions/smm-gateway/index.ts`. The RC432 SQL idempotency integration itself passed, and the SMM service-role boundary validator passed; these do not prove provider-call runtime safety.
+
+Failed checks observed in job log (15):
+
+1. Provider call has bounded timeout (`call()` currently invokes `fetch()` without `AbortSignal.timeout`).
+2. Network/HTTP ambiguity has a typed non-definitive error.
+3. Ambiguous provider outcomes require reconciliation.
+4. Ambiguous provider outcomes never auto-refund.
+5. Refund branch requires explicit provider rejection.
+6. Accepted provider order is persisted conditionally (must only transition from `SUBMITTING`).
+7. Provider accepted but local persistence failed is not auto-refunded.
+8. Missing provider order ID is treated as ambiguous, not a definitive rejection.
+9. Admin UI visibility is derived from backend authorization.
+10. Wallet debit RPC ambiguity does not trigger automatic refund.
+11. Terminal order statuses cannot be downgraded by provider polling.
+12. Wallet RPC results are checked, including boolean `false`.
+13. Admin credit uses a stable retry idempotency key.
+14. Admin wallet credit validates a finite positive amount.
+15. SMM gateway requires a live authenticated session token.
+
+The source presently refunds on any exception thrown after provider submission, including network failures and missing order IDs; it ignores the result of the conditional order update, does not protect terminal states during status polling, and does not enforce a provider-call timeout. These are financially material failure modes. Do not weaken the validator or mark these checks as waived. Implement changes only through an authorized, reviewed source-change path, then add targeted tests for timeout, lost-response ambiguity, missing provider order ID, persistence failure after provider acceptance, refund idempotency, stale status polling, and invalid admin-credit amounts.
+
+Run evidence: [Module Professionalization Validation 38154557541](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38154557541). Exact job: `smm-wallet-integration`; failing step: `Run migration tests inside disposable PostgreSQL service` (SQL RC432 passed before source-safety validation failed).
+
+Production remains untouched. The gateway source has not been changed in this continuation, and SMM runtime safety remains **NOT VERIFIED**.
