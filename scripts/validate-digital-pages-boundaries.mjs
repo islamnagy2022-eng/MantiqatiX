@@ -18,7 +18,6 @@ for(const [src,marker,label] of [
  [editor,".in('provider_profile_id',providerIds).is('business_id',null)",'provider page reads are scoped at query time'],
  [editor,'const results=await Promise.all(queries)','owner-scoped queries are checked together'],
  [editor,'const byId=new Map()','owner-scoped page results are deduplicated'],
- [editor,".order('updated_at',{ascending:false});const businessIds", 'unscoped global page listing is not used'],
 
  [editor,".eq('business_id',businessId)",'menu source business scope'],
  [editor,".eq('is_available',true)",'menu source active-item filter'],
@@ -32,6 +31,7 @@ for(const [src,marker,label] of [
  [editorHtml,'id="syncMenuItems"','menu sync action available in editor'],
  [renderer,'esc(x.category)','menu category HTML escaping']
 ]) if(!src.includes(marker)) throw new Error('Digital page boundary marker missing: '+label);
+if(/sb\.from\('digital_pages'\)\.select\([^)]*\)\.order\('updated_at'/.test(editor)) throw new Error('Digital page editor must not fetch unscoped global page metadata');
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
 console.log('RC424 digital pages/payment boundary validation: PASS');
