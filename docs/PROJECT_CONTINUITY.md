@@ -627,3 +627,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Education workspace now supports live text filtering across loaded school, teacher, and request rows, displays match counts, and exposes per-source CSV exports.
 - Filtering is presentation-only over current rows; data reads and authorization are unchanged.
 - Commit: `3aeedbc899b5da1f357c90160265de26a36c5491`; no production deployment or schema/security change.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-014
+- Sector tables now expose a read-only details drawer for records already loaded into the current workspace.
+- Drawer fields are restricted to the corresponding table's configured allowlist; no extra database query, permission expansion, or mutation is introduced.
+- Documentation commit: `d8783dd5c3eac43878dccc604e8fbd07aedf1f9f`; the implementation is on the active build branch. Runtime/E2E remains unverified.
