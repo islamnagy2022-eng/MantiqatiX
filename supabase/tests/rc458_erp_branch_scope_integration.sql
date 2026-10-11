@@ -4,6 +4,8 @@ declare
   actor_a uuid := 'a4580000-0000-0000-0000-000000000001';
   actor_b uuid := 'a4580000-0000-0000-0000-000000000002';
   actor_c uuid := 'a4580000-0000-0000-0000-000000000003';
+  actor_d uuid := 'a4580000-0000-0000-0000-000000000004';
+  actor_e uuid := 'a4580000-0000-0000-0000-000000000005';
   biz uuid := 'b4580000-0000-0000-0000-000000000001';
   product uuid := 'c4580000-0000-0000-0000-000000000001';
   result jsonb;
@@ -17,7 +19,10 @@ begin
   insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,organization_id,role,status) values
     ('rc458-m-a',actor_a,'tenant-1',biz,'rc458-branch-a','org-1','MANAGER','ACTIVE'),
     ('rc458-m-b',actor_b,'tenant-1',biz,'rc458-branch-b','org-1','MANAGER','ACTIVE'),
-    ('rc458-m-c',actor_c,'tenant-1',biz,'rc458-branch-b','org-other','MANAGER','ACTIVE');
+    ('rc458-m-c',actor_c,'tenant-1',biz,'rc458-branch-b','org-other','MANAGER','ACTIVE'),
+    ('rc458-m-d-admin-a',actor_d,'tenant-1',biz,'rc458-branch-a','org-1','ADMIN','ACTIVE'),
+    ('rc458-m-d-employee-b',actor_d,'tenant-1',biz,'rc458-branch-b','org-1','EMPLOYEE','ACTIVE'),
+    ('rc458-m-purchasing-b',actor_e,'tenant-1',biz,'rc458-branch-b','org-1','PURCHASING','ACTIVE');
   insert into public.catalog_items(id,tenant_id,business_id,status) values(product,'tenant-1',biz,'ACTIVE');
   insert into public.warehouses(id,tenant_id,business_id,branch_id,status) values
     ('rc458-warehouse-a','tenant-1',biz,'rc458-branch-a','ACTIVE'),
@@ -89,7 +94,7 @@ begin
   -- A privileged role in branch A must not elevate a lower-privilege branch B membership.
   insert into public.erp_purchase_orders(
     id,tenant_id,business_id,branch_id,order_number,supplier_id,total_amount,tax_amount,discount_amount,status,created_by
-  ) values('po-approval-branch-b','tenant-1',biz,'branch-b','PO-B-APPROVAL','supplier-1',6000,0,0,'DRAFT',actor_b);
+  ) values('po-approval-branch-b','tenant-1',biz,'rc458-branch-b','PO-B-APPROVAL','supplier-1',6000,0,0,'DRAFT',actor_b);
   insert into public.erp_purchase_order_lines(
     id,tenant_id,business_id,purchase_order_id,line_number,product_id,ordered_quantity,received_quantity,unit_cost,description
   ) values('po-approval-branch-b-line-1','tenant-1',biz,'po-approval-branch-b',1,product,3000,0,2,'approval scope test');
@@ -144,7 +149,7 @@ begin
 
   -- Purchasing remains an authorized role for receipts, but only within its own branch.
   result := public.receive_purchase_stock_with_order_line_backend(
-    'rcv-purchasing-b-001','tenant-1',biz,'po-branch-b-001','RCV-B-PURCHASING-001','warehouse-b',product,1,2,actor_e
+    'rc458-rcv-purchasing-b-001','tenant-1',biz,'rc458-po-branch-b-001','RCV-B-PURCHASING-001','rc458-warehouse-b',product,1,2,actor_e
   );
   if coalesce((result->>'success')::boolean,false) is not true then
     raise exception 'branch-scoped PURCHASING role could not receive an approved purchase order';
