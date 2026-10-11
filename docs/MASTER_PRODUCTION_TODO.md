@@ -1599,3 +1599,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Module build additions — SESSION-007
 - [x] Added sample-scoped status summaries to report tabs for supported generic workspaces.
 - [ ] Validate status labels/counts and avoid presenting sample distributions as totals during post-build review.
+
+ 
+## Module build additions — SESSION-008
+- [x] Add finance counts to Reports only for sessions with the existing role-gated finance snapshot.
+- [x] Add detail actions for loaded orders, leads, and support tickets; unsupported record types remain read-only.
+- [ ] Validate detail handler invocation and finance visibility by role.
