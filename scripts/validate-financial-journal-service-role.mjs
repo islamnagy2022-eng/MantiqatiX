@@ -7,7 +7,7 @@ const backendEdge = fs.readFileSync("supabase/functions/post-financial-journal/i
 const fixture = fs.readFileSync("supabase/tests/rc450_financial_journal_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc450_financial_journal_integration.sql", "utf8");
 
-assert.match(migration, /set search_path = public, pg_temp/i, "SECURITY DEFINER search_path must pin pg_temp last");
+assert.match(migration, /set search_path = ''/i, "SECURITY DEFINER search_path must be empty");
 assert.match(migration, /current_setting\('request\.jwt\.claim\.role', true\)/i, "service-role exception must read the verified JWT role claim");
 assert.match(migration, /p_user_id <> auth\.uid\(\)/i, "non-service callers must bind the actor to auth.uid");
 assert.match(migration, /um\.user_id=p_user_id[\s\S]*?um\.status='ACTIVE'/i, "actor must have an ACTIVE membership");
@@ -21,12 +21,12 @@ assert.match(migration, /to_regclass\('public\.businesses'\)[\s\S]*?to_regclass\
 assert.match(migration, /FINANCIAL_MEMBERSHIP_REQUIRED/);
 assert.match(migration, /v_insert_line_no int := 0/);
 assert.match(migration, /v_insert_line_no := v_insert_line_no \+ 1;/);
-assert.match(migration, /coalesce\(\(v_line->>'line_number'\)::int,v_insert_line_no\)/);
-assert.match(migration, /pg_advisory_xact_lock\(hashtextextended\(v_id, 0\)\)/, "journal IDs must serialize under retries");
-assert.match(migration, /JOURNAL_ID_ALREADY_EXISTS/);
+assert.match(migration, /coalesce\(nullif\(v_line->>'line_number',''\)::int,v_insert_line_no\)/);
+assert.match(migration, /pg_catalog\.pg_advisory_xact_lock\(pg_catalog\.hashtextextended\(v_id,0\)\)/, "journal IDs must serialize under retries");
+assert.match(migration, /JOURNAL_IDEMPOTENCY_CONFLICT/);
 assert.doesNotMatch(migration, /on conflict\(id\) do nothing/i);
-assert.match(migration, /'DRAFT',v_total_debit[\s\S]*?clock_timestamp\(\),p_user_id\)/i, "header must start DRAFT while lines are inserted");
-assert.match(migration, /update public\.journal_entries[\s\S]*?set status='POSTED',posted_at=clock_timestamp\(\)/i, "posting must occur only after lines are inserted");
+assert.match(migration, /'DRAFT',v_total_debit[\s\S]*?pg_catalog\.clock_timestamp\(\),p_user_id\)/i, "header must start DRAFT while lines are inserted");
+assert.match(migration, /update public\.journal_entries[\s\S]*?set status='POSTED',posted_at=pg_catalog\.clock_timestamp\(\)/i, "posting must occur only after lines are inserted");
 assert.match(migration, /JOURNAL_POST_TRANSITION_FAILED/);
 assert.match(migration, /create or replace function public\.trg_post_journal_to_general_ledger/i);
 assert.match(migration, /pg_advisory_xact_lock[\s\S]*?hashtextextended\(new\.tenant_id \|\| ':' \|\| v_account, 0\)/i, "account balances must serialize by tenant and account");
