@@ -130,3 +130,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Safeguards:** Arabic-compatible UTF-8 BOM and formula-like cell prefixing. Export includes only data already loaded for this session and does not expand query scope.
 - **Tests:** pending post-build validation.
 - **Next:** continue adding workflow affordances to the primary workspaces.
+
+## 2026-10-11 — SESSION-015 — Add export to primary CRM workspace
+
+- **Code commit:** [654de7f87f9ba48482609e067118c1d163f55b3a](https://github.com/islamnagy2022-eng/MantiqaTix/commit/654de7f87f9ba48482609e067118c1d163f55b3a).
+- **Built:** CRM workspace now exports the currently loaded leads, support tickets, and notifications to CSV with source/status/date fields.
+- **Safeguards:** export does not issue wider database queries; it serializes only the existing session-loaded records, uses UTF-8 BOM, and prefixes formula-like cell values.
+- **Tests:** pending post-build validation.
+- **Next:** continue the build-first pass across remaining primary modules.
