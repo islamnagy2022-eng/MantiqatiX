@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const source = fs.readFileSync('web/restaurant-module.js', 'utf8');
+const menuEdge = fs.readFileSync('supabase/functions/restaurant-menu-save/index.ts', 'utf8');
+const menuMigration = fs.readFileSync('supabase/migrations/20261012010000_rc459_restaurant_menu_catalog_sync.sql', 'utf8');
 assert.match(source, /function nextOrderStatuses\(order\)/, 'order status choices must be derived from current status');
 assert.match(source, /status==='PENDING'\|\|status==='CREATED'\)return \['CONFIRMED','CANCELLED'\]/, 'pending orders expose only valid next states');
 assert.match(source, /status==='CONFIRMED'\)return \['PREPARING','CANCELLED'\]/, 'confirmed orders expose only valid next states');
@@ -30,4 +32,14 @@ assert.match(source, /orderItems\.push\(\{catalogItemId:item\.id,quantity,select
 assert.match(source, /orderItems\.length>20/, 'restaurant order lines have a bounded maximum');
 assert.match(source, /rest-estimated-total/, 'estimated cart total is visible to the operator');
 assert.match(source, /updateEstimate\(\)/, 'cart estimate updates when item, option, or quantity changes');
+
+assert.match(source, /invokeMntyFunction\('restaurant-menu-save'/, 'menu saves use the protected Edge Function');
+assert.doesNotMatch(source, /sb\.from\('restaurant_menu_items'\)\.(?:insert|update|upsert|delete)\(/, 'menu writes must not bypass the protected synchronization path');
+assert.match(menuEdge, /admin\.auth\.getUser\(token\)/, 'menu Edge Function authenticates the bearer token');
+assert.match(menuEdge, /p_actor_user_id:\s*actor\.id/, 'menu mutation actor is derived from the verified session');
+assert.match(menuEdge, /restaurant_menu_catalog_mutate_backend/, 'menu Edge Function calls the protected atomic RPC');
+assert.match(menuEdge, /maxBodyBytes/, 'menu Edge Function enforces a request size limit');
+assert.match(menuMigration, /set search_path = ''/, 'menu RPC pins an empty search path');
+assert.match(menuMigration, /revoke all on function public\.restaurant_menu_catalog_mutate_backend/, 'menu RPC is not exposed to public client roles');
+assert.match(menuMigration, /insert into public\.audit_logs/, 'menu/catalog mutations are audited');
 console.log('Restaurant workspace contract: PASS (28 assertions)');
