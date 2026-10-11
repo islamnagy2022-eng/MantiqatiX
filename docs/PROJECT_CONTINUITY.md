@@ -594,3 +594,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Generic sector workspaces have a refresh action that reloads their RLS-scoped records.
 - Active branch remains `build/module-workspaces-functional-20261011`; draft PR #205.
 - Continue build-only; defer broad reviews until all modules are constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-009
+- Generic sector workspaces now provide read-only detail drawers for configured rows (including jobs/education-adjacent tables and other generic sector tables), scoped to the already-loaded RLS-visible row and existing allowlisted fields.
+- No direct privileged reads or mutations were added; missing records fail closed.
+- Commit: `4c46af60a11316a15d9e488d78e81372e6e904ad`; branch remains `build/module-workspaces-functional-20261011`, draft PR #205.
+- Continue construction; broad review/testing remains deferred until the user says module construction is complete.
