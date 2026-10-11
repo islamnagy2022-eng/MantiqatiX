@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const migration = fs.readFileSync('supabase/migrations/20261012010000_rc459_restaurant_menu_catalog_sync.sql', 'utf8');
+const edge = fs.readFileSync('supabase/functions/restaurant-menu-save/index.ts', 'utf8');
+const app = fs.readFileSync('web/restaurant-module.js', 'utf8');
+const fixture = fs.readFileSync('supabase/tests/rc459_restaurant_menu_catalog_fixture.sql', 'utf8');
+const integration = fs.readFileSync('supabase/tests/rc459_restaurant_menu_catalog_integration.sql', 'utf8');
+
+assert.match(migration, /create or replace function public\.restaurant_menu_catalog_mutate_backend/);
+assert.match(migration, /security definer\s+set search_path = ''/i);
+assert.match(migration, /p_actor_user_id is null/);
+assert.match(migration, /m\.user_id = p_actor_user_id/);
+assert.match(migration, /m\.tenant_id = v_tenant_id/);
+assert.match(migration, /m\.business_id = v_business_id/);
+assert.match(migration, /m\.branch_id = v_branch_id/);
+assert.match(migration, /upper\(m\.role\) in \('OWNER','ADMIN','MANAGER','BUSINESS_OWNER'\)/);
+assert.match(migration, /RESTAURANT_MENU_FORBIDDEN/);
+assert.match(migration, /RESTAURANT_BRANCH_UNAVAILABLE/);
+assert.match(migration, /RESTAURANT_MENU:\s*' \|\| v_id/);
+assert.match(migration, /item_type='PRODUCT'/);
+assert.match(migration, /catalog_item_prices/);
+assert.match(migration, /status='INACTIVE',effective_to=pg_catalog\.now\(\)/);
+assert.match(migration, /public\.audit_logs/);
+assert.match(migration, /revoke all on function public\.restaurant_menu_catalog_mutate_backend\(uuid,text,jsonb\) from public, anon, authenticated/i);
+assert.match(migration, /grant execute on function public\.restaurant_menu_catalog_mutate_backend\(uuid,text,jsonb\) to service_role/i);
+
+assert.match(edge, /admin\.auth\.getUser\(token\)/);
+assert.match(edge, /actor\.is_anonymous/);
+assert.match(edge, /maxBodyBytes/);
+assert.match(edge, /admin\.rpc\("restaurant_menu_catalog_mutate_backend"/);
+assert.match(edge, /p_actor_user_id: actor\.id/);
+assert.match(edge, /restaurant-menu-save|INVALID_MENU_ACTION/);
+assert.match(app, /function canManageMenu\(\)/);
+assert.match(app, /invokeMntyFunction\('restaurant-menu-save'/);
+assert.doesNotMatch(app, /sb\.from\('restaurant_menu_items'\)\.(insert|update|delete)/);
+assert.match(integration, /replayed create duplicated catalog item/);
+assert.match(integration, /price change must preserve the previous version/);
+assert.match(integration, /cross-tenant menu write was accepted/);
+assert.match(integration, /has_function_privilege\('authenticated'/);
+assert.match(fixture, /create table public\.catalog_item_prices/);
+console.log('RC459 restaurant menu/catalog sync source contract: PASS (29 assertions)');
