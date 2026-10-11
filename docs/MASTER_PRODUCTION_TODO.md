@@ -1626,3 +1626,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] SMM export uses explicit columns, CSV quoting, UTF-8 BOM, and formula-injection mitigation.
 - [ ] Runtime/E2E verification is still outstanding; no production-readiness claim.
 - [ ] Continue module construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-011
+- [x] SMM service catalog has search, platform/category filters, result count, and filtered CSV export.
+- [x] Service ordering now requires an explicit order button rather than clicking anywhere on the service card.
+- [ ] Runtime/E2E verification remains outstanding.
+- [ ] Continue remaining module construction before broad review/testing.
