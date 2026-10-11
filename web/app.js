@@ -1177,6 +1177,12 @@ function bindDomainModuleActions(){
    openUnifiedRecordDetails({kicker:String(table).toUpperCase(),title:String(row.title||row.name||row.name_ar||row.subject||row.code||'تفاصيل السجل'),desc:'عرض للقراءة فقط للحقول المسموح بها في مساحة العمل الحالية.',sections:[{title:'بيانات السجل',html:'<div class="mx-record-kv-grid">'+detailFields+'</div>'}]});
    return;
   }
+  const enterprise=e.target.closest('[data-enterprise-refresh]');
+  if(enterprise){
+   const m=domainModules.find(x=>x.key===enterprise.dataset.enterpriseRefresh);if(!m)return;
+   const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;
+   await loadEnterpriseDomainData(m);return;
+  }
   const btn=e.target.closest('[data-domain-refresh]');if(!btn)return;
   const m=domainModules.find(x=>x.key===btn.dataset.domainRefresh);if(!m)return;
   const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;
@@ -1294,6 +1300,7 @@ function domainModuleWorkspace(){
 if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
   return workspaceHead(m.key,m.name,m.desc,'MODULE')
+   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" type="button" data-enterprise-refresh="'+esc(m.key)+'">تحديث بيانات الوحدة</button></div>'
    +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق RLS']))
    +enterpriseRowsTable(m,d.rows||{})
    +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
