@@ -94,7 +94,7 @@ const sectors=Object.freeze((window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS||[]).m
  return [p[0],p[1],p[2],s.code,s.backend];
 }));
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
-const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
+const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],businesses:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){
@@ -116,6 +116,7 @@ try{
      ]);
      if(!br.error){
        const businessMap=new Map((br.data||[]).map(b=>[String(b.id),b]));
+       live.records.businesses=br.data||[];
        const providerMap=new Map();
        (pr.error?[]:(pr.data||[])).forEach(p=>{const key=String(p.business_id||'');if(key&&!providerMap.has(key))providerMap.set(key,p);});
        const sectionName=(code,business,provider)=>{
@@ -352,7 +353,7 @@ function authView(msg='',emailValue='',mode=authIntent){
  };
  document.getElementById('switch-auth').onclick=()=>authView('', '',authIntent==='register'?'login':'register');
 }
-async function logout(){await disableCurrentPushSubscription();const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;localStorage.removeItem('MNTYActiveMembershipId');live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};window.MXHomeLanding?MXHomeLanding():landingView()}
+async function logout(){await disableCurrentPushSubscription();const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;localStorage.removeItem('MNTYActiveMembershipId');live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],businesses:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};window.MXHomeLanding?MXHomeLanding():landingView()}
 function setupInstallPrompt(){
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('install-app');if(b)b.hidden=false});
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true});
@@ -549,7 +550,7 @@ function sectorsPage(){
 function genericWorkspaceContext(title){
  const r=live.records||{},f=live.finance||null;
  const contexts={
- 'المستخدمون':{records:[...(r.providers||[]).map(x=>({title:x.name_ar||x.name_en||'مقدم خدمة',detail:[x.provider_kind,x.status,x.is_verified?'موثق':'غير موثق'].filter(Boolean).join(' · ')})),...(r.leads||[]).map(x=>({title:x.title||'عميل محتمل',detail:[x.source,x.status].filter(Boolean).join(' · ')}))],metrics:[['مقدمو الخدمة',live.counts.providers],['العملاء المحتملون',live.counts.leads]],actions:[['ملف نشاطي','ملف نشاطي'],['المجالات والخدمات','المجالات والخدمات'],['الدعم','الدعم']]},
+ 'المستخدمون':{records:[...(r.businesses||[]).map(x=>({title:x.name||'نشاط تجاري',detail:[x.code,x.status].filter(Boolean).join(' · ')})),...(r.providers||[]).map(x=>({title:x.name_ar||x.name_en||'مقدم خدمة',detail:[x.provider_kind,x.status,x.is_verified?'موثق':'غير موثق'].filter(Boolean).join(' · ')})),...(r.leads||[]).map(x=>({title:x.title||'عميل محتمل',detail:[x.source,x.status].filter(Boolean).join(' · ')})),...(r.registrationRequests||[]).map(x=>({title:'طلب تسجيل '+String(x.id||'').slice(0,8),detail:[x.requested_role,x.status,x.reason].filter(Boolean).join(' · ')}))],metrics:[['الأنشطة المرتبطة',r.businesses?.length??null],['مقدمو الخدمة',live.counts.providers],['العملاء المحتملون',live.counts.leads],['طلبات التسجيل',r.registrationRequests?.length??null]],actions:[['ملف نشاطي','ملف نشاطي'],['المجالات والخدمات','المجالات والخدمات'],['الدعم','الدعم']]},
  'الطلبات':{records:(r.orders||[]).map(x=>({title:'طلب '+String(x.id||'').slice(0,8),detail:[x.status,x.customer_name,x.total_amount!=null?String(x.total_amount)+' '+(x.currency||''):null].filter(Boolean).join(' · ')})),metrics:[['الطلبات الظاهرة',live.counts.orders]],actions:[['الطلبات والعمليات','الطلبات والعمليات'],['التقارير','التقارير'],['الدعم','الدعم']]},
  'التسويق والإعلان':{records:[...(r.projects||[]).map(x=>({title:x.project_type||'مشروع تسويقي',detail:[x.management_mode,x.status,x.gross_value!=null?String(x.gross_value)+' '+(x.currency||''):null].filter(Boolean).join(' · ')})),...(r.leads||[]).map(x=>({title:x.title||'عميل محتمل',detail:[x.source,x.status].filter(Boolean).join(' · ')})),...(r.ads||[]).map(x=>({title:x.title||'إعلان',detail:[x.status,x.approval_status].filter(Boolean).join(' · ')}))],metrics:[['المشروعات',live.counts.projects],['العملاء المحتملون',live.counts.leads],['الإعلانات',live.counts.ads]],actions:[['خدمات التسويق الرقمي SMM','خدمات التسويق الرقمي SMM'],['المستخدمون','المستخدمون'],['التقارير','التقارير']]},
  'العمولات والباقات':{records:[],metrics:[['القيود اليومية',f?.journals],['العمولات',f?.commissions],['التسويات',f?.settlements],['المحافظ',f?.wallets]],actions:[['التقارير','التقارير'],['الطلبات','الطلبات'],['الإعدادات','الإعدادات']]},
