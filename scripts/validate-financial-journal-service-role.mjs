@@ -26,7 +26,7 @@ assert.match(migration, /coalesce\(nullif\(v_line->>'line_number',''\)::int,v_in
 assert.match(migration, /pg_catalog\.pg_advisory_xact_lock\(pg_catalog\.hashtextextended\(v_id,0\)\)/, "journal IDs must serialize under retries");
 assert.match(migration, /JOURNAL_IDEMPOTENCY_CONFLICT/);
 assert.doesNotMatch(migration, /on conflict\(id\) do nothing/i);
-assert.match(migration, /'DRAFT',v_total_debit[\s\S]*?pg_catalog\.clock_timestamp\(\),p_user_id\)/i, "header must start DRAFT while lines are inserted");
+assert.match(migration, /'DRAFT',v_total_debit[\s\S]*?pg_catalog\.clock_timestamp\(\),p_user_id\s*\)/i, "header must start DRAFT while lines are inserted");
 assert.match(migration, /update public\.journal_entries[\s\S]*?set status='POSTED',posted_at=pg_catalog\.clock_timestamp\(\)/i, "posting must occur only after lines are inserted");
 assert.match(migration, /JOURNAL_POST_TRANSITION_FAILED/);
 assert.match(stageMigration, /create or replace function public\.trg_post_journal_to_general_ledger/i);
