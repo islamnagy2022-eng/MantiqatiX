@@ -534,10 +534,13 @@ function openGlobalSearchDetails(hit){
  document.getElementById('mx-global-record-overlay')?.remove();
  const fields=[...new Set([...(hit.source.fields||[]),...(hit.source.select||'').split(',').map(x=>x.trim()).filter(Boolean)])];
  const detailRows=fields.filter(k=>Object.prototype.hasOwnProperty.call(hit.row,k)).map(k=>'<div><dt>'+esc(k.replace(/_/g,' '))+'</dt><dd>'+esc(genericWorkspaceDisplayValue(hit.row[k],k))+'</dd></div>').join('');
+ const previousFocus=document.activeElement;
  const overlay=document.createElement('div');overlay.id='mx-global-record-overlay';overlay.className='mx-global-record-overlay';
  overlay.innerHTML='<button type="button" class="mx-global-record-scrim" data-global-record-close aria-label="إغلاق التفاصيل"></button><aside class="mx-global-record-drawer" role="dialog" aria-modal="true" aria-labelledby="mx-global-record-title"><header><div><span class="eyebrow">RECORD DETAILS</span><h2 id="mx-global-record-title">'+esc(hit.title||'تفاصيل السجل')+'</h2><p>'+esc(hit.source.label)+'</p></div><button type="button" class="mx-global-record-close" data-global-record-close aria-label="إغلاق">×</button></header><dl>'+detailRows+'</dl><footer><button type="button" class="btn btn-primary" data-global-record-route="'+esc(hit.source.route||'')+'">فتح الوحدة</button><button type="button" class="btn btn-secondary" data-global-record-close>إغلاق</button></footer></aside>';
  document.body.appendChild(overlay);
- const close=()=>overlay.remove();
+ const close=()=>{document.removeEventListener('keydown',onKey);overlay.remove();if(previousFocus?.isConnected)previousFocus.focus();};
+ const onKey=e=>{if(e.key==='Escape')close();};
+ document.addEventListener('keydown',onKey);
  overlay.querySelectorAll('[data-global-record-close]').forEach(b=>b.addEventListener('click',close));
  overlay.querySelector('[data-global-record-route]')?.addEventListener('click',e=>{const route=e.currentTarget.dataset.globalRecordRoute;close();if(route)selectModule(route)});
  overlay.querySelector('.mx-global-record-close')?.focus();
