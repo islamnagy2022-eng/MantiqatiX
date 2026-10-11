@@ -648,7 +648,9 @@ function exportWorkspaceSource(kind){
  const spec=map[kind];if(!spec)return showToast('مصدر التصدير غير متاح.','error');downloadWorkspaceCsv(spec.filename,spec.rows,spec.fields);
 }
 function bindWorkspaceExports(){
- document.querySelectorAll('[data-export-source]').forEach(btn=>{if(btn.dataset.exportBound==='1')return;btn.dataset.exportBound='1';btn.addEventListener('click',()=>exportWorkspaceSource(btn.dataset.exportSource));});
+ if(window.__MNTYWorkspaceExportListener)return;
+ window.__MNTYWorkspaceExportListener=true;
+ document.addEventListener('click',e=>{const btn=e.target.closest('[data-export-source]');if(btn)exportWorkspaceSource(btn.dataset.exportSource);});
 }
 function genericWorkspaceDisplayValue(value,key){
  if(value===null||value===undefined||value==='')return '—';
