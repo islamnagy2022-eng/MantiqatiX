@@ -1,5 +1,5 @@
 -- RC434: atomic, actor-bound ERP purchase receiving.
--- Replaces the Edge Function's multi-request stock/receipt/ledger mutation with one transaction.\n-- RC437 wraps this primitive with approved purchase-order line and cumulative-quantity enforcement; callers must use the line-aware wrapper.
+-- Replaces the Edge Function's multi-request stock/receipt/ledger mutation with one transaction.\n-- Release blocker: current schema has no purchase-order line table; do not mark ERP receiving RELEASE_READY until approved product/quantity lines are modeled and enforced.
 create or replace function public.receive_purchase_stock_atomic_backend(
   p_id varchar,
   p_tenant_id varchar,
@@ -45,7 +45,7 @@ begin
       and m.tenant_id=p_tenant_id
       and m.business_id=p_business_id
       and m.status='ACTIVE'
-      and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','PURCHASING','ACCOUNTANT','FINANCE_MANAGER','FINANCE')
+      and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','ACCOUNTANT','FINANCE_MANAGER','FINANCE')
   ) then
     raise exception 'PURCHASE_RECEIVING_ROLE_REQUIRED';
   end if;
