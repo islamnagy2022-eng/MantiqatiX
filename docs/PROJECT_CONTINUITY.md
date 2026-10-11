@@ -705,3 +705,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-036
 - Commit `c47c96ac4aa0bcd9fa1dc4fe1c25552f7cf28720`: Marketing CSV export includes loaded campaign and partner-assignment data when the backend is available.
+
+ 
+## Build progress — SESSION-037
+- Commits `a050badc2970b693c2a4d3a23aba5172d6e44d33` / `157518b2096be2c92b1810fbab8a5f9b52124ae5`: global campaign search jumps to the matching card and highlights it briefly.
