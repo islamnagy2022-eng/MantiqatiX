@@ -48,4 +48,5 @@ insert into public.branches(id,tenant_id,business_id,status) values
 ('BRANCH-B','TENANT-B','10000000-0000-4000-8000-000000000002','ACTIVE');
 insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status) values
 ('membership-a','20000000-0000-4000-8000-000000000001','TENANT-A','10000000-0000-4000-8000-000000000001','BRANCH-A','MANAGER','ACTIVE'),
+('membership-a2','20000000-0000-4000-8000-000000000003','TENANT-A','10000000-0000-4000-8000-000000000001','BRANCH-A','MANAGER','ACTIVE'),
 ('membership-b','20000000-0000-4000-8000-000000000002','TENANT-B','10000000-0000-4000-8000-000000000002','BRANCH-B','OWNER','ACTIVE');
