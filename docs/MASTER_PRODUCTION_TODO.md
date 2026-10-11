@@ -1619,3 +1619,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Detail rendering escapes labels/values and does not broaden database access or add mutation paths.
 - [ ] Continue module-specific construction before broad review/testing.
 - [ ] Runtime/E2E verification remains outstanding; do not mark this feature verified or production-ready.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-010
+- [x] SMM order list supports search, status filter, visible result count, per-order refresh, and CSV export of filtered loaded rows.
+- [x] SMM export uses explicit columns, CSV quoting, UTF-8 BOM, and formula-injection mitigation.
+- [ ] Runtime/E2E verification is still outstanding; no production-readiness claim.
+- [ ] Continue module construction before broad review/testing.
