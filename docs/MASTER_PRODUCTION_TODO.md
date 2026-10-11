@@ -1667,3 +1667,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Module scope handling — SESSION-020
 - [x] Clear cached module source state on membership switch and Auth sign-out.
 - [ ] Test cross-membership cache isolation and stale count labeling.
+
+ 
+## Marketing collaboration — SESSION-021
+- [x] Add preliminary discovery list for provider profiles classified as marketing/agency/digital/advertising.
+- [ ] Implement formal partner invitation/relationship only after the backend authorization contract is available and validated.
