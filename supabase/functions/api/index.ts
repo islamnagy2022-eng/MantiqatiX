@@ -63,7 +63,8 @@ serve(async (req) => {
     const branchId = url.searchParams.get("branchId");
     const parsedLimit = Number(url.searchParams.get("limit") ?? "100");
     const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 100, 1), 100);
-    if (!businessId) return json({ error: "businessId is required" }, 400);
+    if (!businessId || !/^[0-9a-f-]{36}$/i.test(businessId)) return json({ error: "Valid businessId is required" }, 400);
+    if (branchId && !/^[A-Za-z0-9_-]{1,120}$/.test(branchId)) return json({ error: "Invalid branchId" }, 400);
 
     const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
       .select("id,tenant_id,status").eq("id", businessId).single();
