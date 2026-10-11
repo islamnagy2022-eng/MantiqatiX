@@ -122,3 +122,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Tests:** pending post-build validation, especially the domain-module asynchronous load path and current-role workspace restoration.
 - **Production impact:** none.
 - **Next:** continue adding practical functionality to the primary marketing, CRM, orders, finance, analytics, and domain workspaces.
+
+## 2026-10-11 — SESSION-014 — Add export to primary Marketing workspace
+
+- **Code commits:** `b33d3e3ba5b235de2bcdc76a93d7d57344e5be9f` and `7764e9725f622f65c02fa551e494da20d1ba9929`.
+- **Built:** primary Marketing workspace now exports the currently loaded leads, projects, ads, providers, and services to CSV.
+- **Safeguards:** Arabic-compatible UTF-8 BOM and formula-like cell prefixing. Export includes only data already loaded for this session and does not expand query scope.
+- **Tests:** pending post-build validation.
+- **Next:** continue adding workflow affordances to the primary workspaces.
