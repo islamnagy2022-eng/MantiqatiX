@@ -21,3 +21,22 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-11 — SESSION-002 — Build phase requested; reviews deferred
+
+- **User decision:** stop reviews/audits for now. Continue building missing functionality across all modules first; perform the reviews after module construction is complete. Continue automatically without stopping between modules where safe.
+- **Execution mode:** BUILD ONLY. Do not run broad audits or repeat prior findings during this phase. Basic build/runtime checks may be used later at the planned review gate; do not claim untested code is verified.
+- **Implemented in branch `build/module-workspaces-functional-20261011`:**
+  - Replaced generic module-page placeholders for Users, Orders, Marketing & Advertising, Commissions & Packages, Reports, and Settings with working workspace tabs: overview, data, operations/navigation, reports, and account context.
+  - Workspace data panels use records already loaded by the application under the existing authenticated Supabase client/RLS context; they do not create or mutate operational/financial records.
+  - Added local search over the displayed rows and detail views for the explicitly selected fields.
+  - Added truthful workspace snapshots that label loaded sample counts and avoid representing recent loaded rows as full historical totals.
+  - Added a data refresh control and module navigation actions.
+  - Added a global-search record-details drawer that shows the matched row fields and provides a route to its module.
+  - Added responsive styles for workspace tables, summaries, details, and the global-search drawer.
+- **Code commits on build branch:** `a85e5a693734945b0d74346b00dae51aca65ed76`, `097b58da92ace28ff908c3d688cb2cb42516beb0`, `96ad14f02b6dabeafef1863835822d1cb8bfde74`, `bad07210289580593fe52c623185da09883539a6`, `cc9e2290bac5487dcd80cfde7f7519a43628cb92`.
+- **Production impact:** none. No database writes, Edge Function deployments, financial operations, or production deployments were performed.
+- **Not done yet:** no comprehensive module review, no browser/E2E claim, no CI success claim, and no release readiness claim. This is the first build batch, not completion of all modules.
+- **Next construction sequence:** specialized Restaurant Workspace → CRM → Marketing & SMM → Operations/Orders → Finance → Notifications/Tasks → Reports/Analytics → remaining sector modules → then review/testing after construction is complete.
+- **Release state:** **BLOCKED / NOT CERTIFIED** remains unchanged; build progress does not imply production readiness.
