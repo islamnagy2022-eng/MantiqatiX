@@ -313,3 +313,13 @@ All Supabase production queries were read-only. No production migrations, table 
 - PR #87 and PR #129 were closed without merge as stale candidates superseded by current-main release work.
 - PR #169 merged a test-only correction for RC450's repeated-account running-balance assertion. Exact PR-head integration/validation passed; post-merge main workflow outcomes are not independently confirmed in this check.
 - No production migration, grant/RLS/Auth change, Edge Function deployment, payment, settlement, or financial data mutation was performed in this continuation.
+
+ 
+## Follow-up integration fixes — 2026-10-11
+
+- SMM UI no longer queries `smm_services`, `smm_orders`, or `smm_wallets` directly from the browser. Catalog and personal account reads now use the authenticated `smm-gateway` actions `catalog` and `my_data`, with explicit response allowlists and per-user scoping. This is required before the RC456 direct-client table grants can be safely enforced.
+- SMM administration uses the dedicated `smm_admins` allowlist only; membership-based fallback roles do not grant global SMM admin access. The validator was updated to test this stricter contract.
+- Restored the missing `validate-erp-receiving-contract.mjs` and `test-checkout-secret-crypto.mjs` files referenced by the existing CI workflow.
+- Financial-journal validation now checks the RC436 `post_financial_journal_atomic_backend` RPC used by the current candidate Edge Functions, including empty `search_path`, client-role revocation, service-role-only execution, and verified actor identity. The separate RC450 backend function checks remain in place.
+- On the current PR #194 head `17e3c71763d09022d6f07966e344b795538be281`, migration uniqueness, migration history immutability, and open-PR collision checks have passed. The new exact-head SMM, module integration, backend boundary, and Pages validation runs are still queued/pending; no result is claimed until they complete.
+- No production migration, Auth/RLS/grant change, Edge Function deployment, payment, wallet mutation, or customer-data write was performed.
