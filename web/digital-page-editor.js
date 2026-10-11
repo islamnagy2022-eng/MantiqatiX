@@ -15,8 +15,13 @@ const cfg=window.MANTIQATIX_CONFIG;const sb=supabase.createClient(cfg.supabaseUr
   }
   if(!businessId){branchSelect.replaceChildren(new Option('لا يوجد نشاط مرتبط',''));help.textContent='لا يمكن مزامنة قائمة مطعم دون نشاط business_id مرتبط ومصرح به.';return;}
   menuSourceBusinessId=businessId;
-  const result=await sb.from('restaurant_menu_items').select('id,tenant_id,business_id,branch_id,name_ar,description_ar,base_price_egp,category,is_available,is_popular,updated_at').eq('business_id',businessId).eq('is_available',true).order('category').order('name_ar').limit(500);
+  const [result,total]=await Promise.all([
+   sb.from('restaurant_menu_items').select('id,tenant_id,business_id,branch_id,name_ar,description_ar,base_price_egp,category,is_available,is_popular,updated_at').eq('business_id',businessId).eq('is_available',true).order('category').order('name_ar').limit(500),
+   sb.from('restaurant_menu_items').select('id',{count:'exact',head:true}).eq('business_id',businessId).eq('is_available',true)
+  ]);
   if(result.error)throw result.error;
+  if(total.error)throw total.error;
+  if((total.count||0)>500)throw new Error('MENU_SOURCE_LIMIT_EXCEEDED');
   menuSourceItems=result.data||[];
   const branchKeys=[...new Set(menuSourceItems.map(item=>item.branch_id?String(item.branch_id):'__NULL__'))];
   branchSelect.replaceChildren(new Option('اختر الفرع',''));
@@ -28,7 +33,7 @@ const cfg=window.MANTIQATIX_CONFIG;const sb=supabase.createClient(cfg.supabaseUr
    ? 'تم تحميل '+menuSourceItems.length+' صنفًا متاحًا من قاعدة البيانات ضمن النشاط. اختر فرعًا محددًا؛ المزامنة تحفظ الأسعار المسجلة ولا تنشر الصفحة تلقائيًا.'
    : 'لا توجد أصناف متاحة فعلية لهذا النشاط. لم يتم إنشاء أي بيانات تجريبية.';
  }catch(error){
-  menuSourceItems=[];branchSelect.replaceChildren(new Option('تعذر تحميل الفروع',''));help.textContent='تعذر تحميل القائمة ضمن الصلاحيات الحالية: '+(error?.message||'MENU_SOURCE_LOAD_FAILED');button.disabled=true;
+  menuSourceItems=[];branchSelect.replaceChildren(new Option('تعذر تحميل الفروع',''));help.textContent=(error?.message==='MENU_SOURCE_LIMIT_EXCEEDED'?'القائمة تتجاوز حد 500 صنف في هذه العملية؛ لم تتم مزامنة قائمة ناقصة.':('تعذر تحميل القائمة ضمن الصلاحيات الحالية: '+(error?.message||'MENU_SOURCE_LOAD_FAILED')));button.disabled=true;
  }
 }
 async function loadSections(){if(!currentPage){$('sections').textContent='احفظ الصفحة أولًا.';return}const r=await sb.from('digital_page_sections').select('id,section_type,sort_order,title,content,data,active').eq('page_id',currentPage.id).order('sort_order').order('id');if(r.error)throw r.error;$('sections').replaceChildren(...(r.data||[]).map(s=>{const e=document.createElement('div');e.className='section-row';const text=document.createElement('span');text.textContent=s.sort_order+' · '+s.section_type+' · '+(s.title||'بدون عنوان');const del=document.createElement('button');del.textContent='حذف';del.type='button';del.onclick=async()=>{const x=await sb.from('digital_page_sections').delete().eq('id',s.id);if(x.error)return status(x.error.message);await loadSections()};e.append(text,del);return e}));await loadMenuSyncSources()}$('syncMenuItems').onclick=async()=>{
