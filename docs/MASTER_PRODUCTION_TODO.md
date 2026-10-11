@@ -1760,3 +1760,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign discoverability — SESSION-037
 - [x] Global search opens the matching campaign card in Marketing.
 - [ ] Validate jump/highlight after RC453 is available and across mobile viewport sizes.
+
+ 
+## Campaign invitation eligibility — SESSION-038
+- [x] Gate response buttons on active/verified own provider profile.
+- [ ] Verify owner/status/verification rejection cases in RC453 integration tests.
