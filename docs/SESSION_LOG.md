@@ -41,3 +41,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Verification state:** GitHub Actions checks were queued for the code commits when queried; no green result is asserted. Full module review is intentionally deferred per the user's build-first instruction, while obvious unsafe/incorrect behavior is still avoided.
 - **Production impact:** none; no database mutation, Edge Function deployment, merge, or production release.
 - **Next:** keep implementing missing module capabilities, then run focused tests/review after the build phase; preserve release gate fail-closed.
+
+## 2026-10-11 — SESSION-004 — Add workspace CSV export
+
+- **Code commit:** [99c645402c51deb704a20f373b4a617301c0a6b3](https://github.com/islamnagy2022-eng/MantiqaTix/commit/99c645402c51deb704a20f373b4a617301c0a6b3).
+- **Built:** generic module data/reports tabs now expose CSV export for the currently loaded contextual records and metrics. Export uses UTF-8 BOM for Arabic spreadsheet compatibility and prefixes formula-like cell values to reduce spreadsheet formula injection risk.
+- **Scope:** exports only the records already made available to the current session; this is not a full database export or official accounting statement.
+- **Tests:** not yet claimed; build-first instruction means broad review is deferred, but this change must be covered by the later validation pass.
+- **Production impact:** none; frontend branch only.
+- **Next:** continue connecting remaining module actions and real data sources; later test export escaping, Arabic encoding, permissions and browser download behavior.
