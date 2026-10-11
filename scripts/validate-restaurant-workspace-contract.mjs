@@ -46,5 +46,6 @@ assert.match(menuMigration, /insert into public\.audit_logs/, 'menu/catalog muta
 assert.match(orderCreate, /new Set\(item\.selectedOptionIds\)\.size !== item\.selectedOptionIds\.length/, 'duplicate selected options cannot inflate server-calculated order totals');
 const menuUniqueMigration = fs.readFileSync('supabase/migrations/20261012020000_rc460_restaurant_menu_catalog_unique_ref.sql', 'utf8');
 assert.match(menuUniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/, 'catalog uniqueness migration fails closed when legacy duplicates exist');
-assert.match(menuUniqueMigration, /create unique index if not exists catalog_items_restaurant_menu_legacy_ref_uidx/, 'restaurant menu catalog references are uniquely indexed');
-console.log('Restaurant workspace contract: PASS (40 assertions)');
+assert.match(menuUniqueMigration, /v_has_equivalent_unique_index boolean/, 'existing equivalent unique indexes are reused');
+assert.match(menuUniqueMigration, /create unique index catalog_items_restaurant_menu_legacy_ref_uidx/, 'restaurant menu catalog references are uniquely indexed when needed');
+console.log('Restaurant workspace contract: PASS (41 assertions)');
