@@ -11,6 +11,8 @@ assert.match(source, /data-order-status=/, 'allowed order status selector is ren
 assert.match(source, /String\(x\.status\|\|'EMPTY'\)\.toUpperCase\(\)===status\?'selected'/, 'editing a table preserves its current status');
 assert.match(source, /const rawItems=\(catalog\?\.items\|\|\[\]\)\.filter/, 'order creation uses active central catalog items');
 assert.match(source, /const prices=\(catalog\?\.prices\|\|\[\]\)\.filter/, 'order picker requires active catalog pricing');
+assert.match(source, /String\(x\.item_type\|\|'PRODUCT'\)\.toUpperCase\(\)==='PRODUCT'/, 'restaurant ordering must not present service catalog entries as food');
+assert.match(source, /الربط التلقائي بين المصدرين لم يكتمل بعد/, 'the local-menu/central-catalog gap must be disclosed in the workspace');
 assert.match(source, /اختر صنفًا/, 'the user must explicitly select an item');
 assert.doesNotMatch(source, /const item=\(catalog\?\.items\|\|\[\]\)\.find\(x=>String\(x\.status\)\.toUpperCase\(\)==='ACTIVE'\)/, 'never silently order the first active catalog item');
 assert.match(source, /selectedOptionIds/, 'selected item options are passed to the server');
@@ -20,4 +22,4 @@ assert.match(source, /const idempotencyKey='MNTY-REST-'/, 'a stable idempotency 
 assert.match(source, /invokeMntyFunction\('order-create',payload\)/, 'orders use the authenticated order Edge Function');
 assert.match(source, /invokeMntyFunction\('order-status-update'/, 'status updates use the authenticated status Edge Function');
 assert.match(source, /return o;/, 'accessible modal returns its dialog for scoped event wiring');
-console.log('Restaurant workspace contract: PASS (18 assertions)');
+console.log('Restaurant workspace contract: PASS (20 assertions)');
