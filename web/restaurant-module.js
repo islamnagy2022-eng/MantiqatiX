@@ -300,8 +300,8 @@ function addTable(existing){
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={table_number:Number(o.querySelector('#num').value),capacity_persons:Number(o.querySelector('#cap').value),status:o.querySelector('#status').value,reserved_customer_name:o.querySelector('#reserved').value.trim()||null};
   if(!Number.isInteger(payload.table_number)||payload.table_number<1||!Number.isInteger(payload.capacity_persons)||payload.capacity_persons<1)return notify('أدخل رقم وسعة صحيحين.');
-  let q=existing?sb.from('restaurant_tables').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id):sb.from('restaurant_tables').insert({...payload,id:uid(),owner_user_id:state.user.id,current_active_order_id:null,current_bill_egp:0,...s});
-  const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
+  const result=await invokeMntyFunction('restaurant-workspace-mutate',{action:'TABLE_SAVE',tableId:existing?.id||null,tenantId:s.tenant_id,businessId:s.business_id,branchId:s.branch_id,tableNumber:payload.table_number,capacityPersons:payload.capacity_persons,status:payload.status,reservedCustomerName:payload.reserved_customer_name});
+  if(result?.error)return notify('تعذر الحفظ: '+String(result.error),'error');o.remove();await load();
  });
 }
 function addInventory(existing){
@@ -313,8 +313,8 @@ function addInventory(existing){
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={name_ar:o.querySelector('#name').value.trim(),unit:o.querySelector('#unit').value.trim(),current_stock_qty:Number(o.querySelector('#stock').value),min_stock_alert_threshold:Number(o.querySelector('#min').value),unit_cost_egp:Number(o.querySelector('#cost').value),supplier_name:o.querySelector('#supplier').value.trim()};
   if(!payload.name_ar||!payload.unit||[payload.current_stock_qty,payload.min_stock_alert_threshold,payload.unit_cost_egp].some(v=>!Number.isFinite(v)||v<0))return notify('تحقق من بيانات المخزون.');
-  const q=existing?sb.from('restaurant_inventory').update(payload).eq('id',existing.id).eq('owner_user_id',state.user.id):sb.from('restaurant_inventory').insert({...payload,id:uid(),owner_user_id:state.user.id,...s});
-  const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');o.remove();await load();
+  const result=await invokeMntyFunction('restaurant-workspace-mutate',{action:'INVENTORY_SAVE',inventoryId:existing?.id||null,tenantId:s.tenant_id,businessId:s.business_id,branchId:s.branch_id,name:payload.name_ar,unit:payload.unit,currentStockQty:payload.current_stock_qty,minStockAlertThreshold:payload.min_stock_alert_threshold,unitCostEgp:payload.unit_cost_egp,supplierName:payload.supplier_name});
+  if(result?.error)return notify('تعذر الحفظ: '+String(result.error),'error');o.remove();await load();
  });
 }
 async function updateOrder(id,status,control){
