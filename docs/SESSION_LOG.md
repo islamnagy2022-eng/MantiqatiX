@@ -281,3 +281,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Code commit:** [91a5231a989e082d0c30c87bb3bda0a3ad3f29d6](https://github.com/islamnagy2022-eng/MantiqaTix/commit/91a5231a989e082d0c30c87bb3bda0a3ad3f29d6).
 - **Built:** partner participation cards now show the response timestamp when recorded, otherwise label the invitation as awaiting response.
 - **Next:** continue campaign and module build-out.
+
+## 2026-10-11 — SESSION-035 — Display campaign brief for collaborators
+
+- **Code commit:** [a60fbb97bea4c22a8498a304c907530ea90166fb](https://github.com/islamnagy2022-eng/MantiqaTix/commit/a60fbb97bea4c22a8498a304c907530ea90166fb).
+- **Built:** campaign reads now select the explicit `brief` field and show it on the campaign card for RLS-authorized campaign managers/participants.
+- **Scope:** explicit fields only; no broad `select(*)` and no additional query.
+- **Next:** continue building module features.
