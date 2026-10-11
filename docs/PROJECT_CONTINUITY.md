@@ -681,3 +681,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-030
 - Commit `57189fc4eaaeccefd54255db3bc75c9242ce461c`: global search includes RLS-governed marketing campaigns via explicit fields; missing RC453 remains fail-closed.
+
+ 
+## Build progress — SESSION-031
+- Commit `f32e3af061aaa1dfd11dbabe70d9aae47bfe52bc`: campaign cards display business names where available and partner names from already loaded eligible profiles.
