@@ -1663,3 +1663,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## BUILD-ONLY continuation — 2026-10-11 — SESSION-016
 - [x] Added restaurant workspace refresh for menu, orders, tables, and inventory using the existing scoped loader.
 - [ ] Runtime/E2E verification remains outstanding until the construction phase is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-017
+- [x] Added a read-only details drawer for job applications using only fields already loaded in the workspace.
+- [ ] Runtime/E2E verification remains outstanding until construction is complete.
