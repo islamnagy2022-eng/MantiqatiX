@@ -19,6 +19,8 @@ for(const [src,marker,label] of [
  [editor,".eq('is_available',true)",'menu source active-item filter'],
  [editor,"MENU_SOURCE_LIMIT_EXCEEDED",'menu sync fails closed on truncated source data'],
  [editor,"String(item.branch_id)===branchId",'menu source branch isolation'],
+ [editor,'MENU_BRANCH_REQUIRED','manual branch selection required'],
+ [editor,'branchSelect.onchange','branch selection controls sync button'],
  [editor,"DUPLICATE_MENU_SECTIONS_REQUIRE_MANUAL_REVIEW",'duplicate menu section fail-closed behavior'],
  [editor,"الصفحة لم تُنشر تلقائيًا",'menu sync does not auto-publish'],
  [editorHtml,'id="menuSourceBranch"','explicit menu branch selection'],
