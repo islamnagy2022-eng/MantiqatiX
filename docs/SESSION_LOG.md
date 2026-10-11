@@ -295,3 +295,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** Marketing CSV export now includes the internal campaigns and partner assignment records already loaded into the campaign collaboration state, when RC453 is available.
 - **Scope:** existing loaded data only; no new query, transaction export, or write.
 - **Next:** continue build-out.
+
+## 2026-10-11 — SESSION-037 — Navigate from global search to campaign card
+
+- **Code commits:** [a050badc2970b693c2a4d3a23aba5172d6e44d33](https://github.com/islamnagy2022-eng/MantiqaTix/commit/a050badc2970b693c2a4d3a23aba5172d6e44d33) and [157518b2096be2c92b1810fbab8a5f9b52124ae5](https://github.com/islamnagy2022-eng/MantiqaTix/commit/157518b2096be2c92b1810fbab8a5f9b52124ae5).
+- **Built:** clicking a campaign result in global search opens the Marketing workspace, scrolls to the matching campaign card, and applies a brief visual focus cue.
+- **Scope:** only RLS-visible campaigns returned by the existing search query can be targeted.
+- **Next:** continue build-out.
