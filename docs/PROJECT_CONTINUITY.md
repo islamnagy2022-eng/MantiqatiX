@@ -565,3 +565,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Marketing: status filters for leads/projects/advertisements.
 - Analytics: accessible distribution of loaded order statuses and allowlisted exports.
 - Continue build-only; broad review is deferred until all modules have been constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-005
+- Active branch: `build/module-workspaces-functional-20261011`; draft PR #205.
+- Added safe data-backed table views for the generic sector modules with allowlisted fields, scoped queries, per-table CSV exports, and status filters.
+- Existing specialized paths retained for Restaurant, Accounting, ERP, Factory, Trips, and Matrimony. Medical is now loaded through the safe field-map path while retaining its existing workspace UI.
+- Sensitive contact/health/job-application details are not included in generic display/export allowlists.
+- Continue build-only; defer broad review and verification until all module construction is complete.
