@@ -93,16 +93,21 @@ begin
   end;
   if not rejected then raise exception 'branch-scoped actor was not rejected'; end if;
 
-  -- Replayed journal IDs fail closed and must not append duplicate lines.
+  -- Identical retries are idempotent; a changed payload under the same ID must fail closed.
+  result := public.post_financial_journal_backend(actor,entry,lines);
+  if (result->>'idempotent')::boolean is distinct from true then
+    raise exception 'identical journal retry was not idempotent';
+  end if;
   rejected := false;
   begin
-    perform public.post_financial_journal_backend(actor,entry,lines);
-    raise exception 'TEST_FAILED: duplicate journal ID unexpectedly succeeded';
+    perform public.post_financial_journal_backend(actor,
+      jsonb_set(entry,'{description}','"different payload under same ID"'),lines);
+    raise exception 'TEST_FAILED: conflicting journal replay unexpectedly succeeded';
   exception when others then
-    if sqlerrm <> 'JOURNAL_ID_ALREADY_EXISTS' then raise; end if;
+    if sqlerrm <> 'JOURNAL_IDEMPOTENCY_CONFLICT' then raise; end if;
     rejected := true;
   end;
-  if not rejected then raise exception 'duplicate journal ID was not rejected'; end if;
+  if not rejected then raise exception 'conflicting journal replay was not rejected'; end if;
   select count(*) into n from public.journal_entry_lines where journal_entry_id='rc450-journal-001';
   if n <> 2 then raise exception 'duplicate replay changed existing journal lines'; end if;
 
