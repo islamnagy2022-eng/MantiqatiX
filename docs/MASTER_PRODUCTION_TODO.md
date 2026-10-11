@@ -1677,3 +1677,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Governance module — SESSION-022
 - [x] Add CSV export for current-session support tickets and notifications.
 - [ ] Validate output and role-scope behavior after build completion.
+
+ 
+## SMM workspace — SESSION-023
+- [x] Add reload and standalone launch controls to SMM iframe workspace.
+- [ ] Validate iframe auth continuity and reload behavior after build completion.
