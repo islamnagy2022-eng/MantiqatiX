@@ -1237,6 +1237,20 @@ function openMarketingRecordDetails(kind,id){
  const html='<div class="mx-record-kv-grid">'+entries.map(([k,v])=>'<div><span>'+esc(k)+'</span><b>'+esc(String(v))+'</b></div>').join('')+'</div>';
  return openUnifiedRecordDetails({kicker:labels[kind]||'MARKETING RECORD',title,desc:'بيانات السجل الحالية كما تسمح بها الصلاحيات وRLS.',sections:[{title:'بيانات السجل',html}]});
 }
+function exportMarketingWorkspaceCsv(){
+ const r=live.records||[],data=live.records||{};
+ const rows=[
+  ...(data.leads||[]).map(x=>({kind:'lead',id:x.id,title:x.title,status:x.status,category:x.source,amount:x.budget_max,currency:x.currency,created_at:x.created_at})),
+  ...(data.projects||[]).map(x=>({kind:'project',id:x.id,title:x.project_type,status:x.status,category:x.management_mode,amount:x.gross_value,currency:x.currency,created_at:x.created_at})),
+  ...(data.ads||[]).map(x=>({kind:'advertisement',id:x.id,title:x.title,status:x.status||x.approval_status,category:x.approval_status,amount:'',currency:'',created_at:x.created_at})),
+  ...(data.providers||[]).map(x=>({kind:'provider',id:x.id,title:x.name_ar||x.name_en,status:x.status,category:x.provider_kind,amount:'',currency:'',created_at:x.created_at})),
+  ...(data.services||[]).map(x=>({kind:'service',id:x.id,title:x.name_ar||x.name_en||x.code,status:x.status,category:x.category_code,amount:'',currency:'',created_at:x.created_at}))
+ ];
+ const safe=v=>{let x=String(v??'').replace(/[\r\n]+/g,' ').trim();if(/^[=+\-@\t]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"';};
+ const lines=[['النوع','المعرف','العنوان','الحالة','الفئة/المصدر','القيمة','العملة','تاريخ الإنشاء'],...rows.map(x=>[x.kind,x.id,x.title,x.status,x.category,x.amount,x.currency,x.created_at])];
+ const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mantiqatix-marketing.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function marketingWorkspace(){
  const leads=live.records.leads||[],projects=live.records.projects||[],ads=live.records.ads||[],providers=live.records.providers||[],services=live.records.services||[];
  const activeAds=ads.filter(x=>String(x.status||'').toUpperCase()==='ACTIVE').length;
@@ -1248,7 +1262,7 @@ function marketingWorkspace(){
  return workspaceHead('MANTIQATIX MARKETING','مركز التسويق والإعلان','Workspace تشغيلي موحد لإدارة العملاء المحتملين والمشروعات والإعلانات ومقدمي التسويق والخدمات من البيانات الفعلية.','MARKETING')
  +workspaceCards([['العملاء المحتملون',String(leads.length),'طلبات تسويق مرئية وفق RLS'],['المشروعات',String(projects.length),'مشروعات تسويق فعلية'],['الإعلانات النشطة',String(activeAds),'حالة فعلية فقط'],['إعلانات تحتاج متابعة',String(pendingAds),'تحتاج مراجعة أو اعتماد'],['مقدمو التسويق الموثقون',String(verifiedProviders),'ملفات موثقة فقط'],['قيمة المشروعات',projects.length?(projectValue+' '+projectCurrency):'—','مجموع gross_value المتاح فعلياً']])
  +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">MARKETING CONTROL</span><h2>مسار التشغيل</h2><p>البيانات المعروضة من الجداول الحالية؛ لا يتم توليد أرقام أو أداء إعلاني غير موجود في المصدر.</p></div></div><div class="grid3" style="margin-top:12px"><article class="card" style="padding:16px"><b>استقطاب العميل</b><p>طلبات التسويق والعملاء المحتملون.</p><button class="btn btn-outline" onclick="createMarketingLead()">إنشاء طلب</button></article><article class="card" style="padding:16px"><b>الظهور الإعلاني</b><p>حجز مبدئي ثم تحقق التوفر والمسار المالي.</p><button class="btn btn-primary" onclick="requestAdBooking(&quot;HALF_YEARLY&quot;)">طلب حجز</button></article><article class="card" style="padding:16px"><b>مقدمو التسويق</b><p>عرض الملفات والخدمات الفعلية المتاحة.</p><span class="muted">الموثقون: '+verifiedProviders+'</span></article></div></section>'
- +'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ إنشاء طلب تسويقي</button></div>'
+ +'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ إنشاء طلب تسويقي</button><button class="btn btn-outline" style="width:auto" onclick="exportMarketingWorkspaceCsv()">تصدير بيانات التسويق CSV</button></div>'
  +globalAdAdminPanel()
  +recordsTable('طلبات التسويق',leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['منطقة الخدمة',r=>r.service_area||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>detail('lead',r.id)]])
  +recordsTable('المشروعات التسويقية',projects,[['النوع',r=>r.project_type||'—'],['الحالة',r=>r.status||'—'],['القيمة',r=>r.gross_value!=null?(r.gross_value+' '+(r.currency||'')):'—'],['العمولة',r=>r.platform_commission!=null?(r.platform_commission+' '+(r.currency||'')):'—'],['إجراء',r=>detail('project',r.id)]])
