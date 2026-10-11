@@ -1357,6 +1357,20 @@ function operationsWorkspace(){
  +recordsTable('ملخص حالات الطلبات',statusRows,[['الحالة',r=>orderStatusLabel(r.status)],['العدد',r=>String(r.count)]]);
 }
 function ordersWorkspace(){return operationsWorkspace()}
+function exportAnalyticsCsv(){
+ const r=live.records||{},rows=[
+  ...(r.orders||[]).map(x=>({source:'orders',id:x.id,title:'طلب '+String(x.id||'').slice(0,8),status:x.status,amount:x.total_amount,currency:x.currency,created_at:x.created_at})),
+  ...(r.leads||[]).map(x=>({source:'marketing_leads',id:x.id,title:x.title,status:x.status,amount:'',currency:'',created_at:x.created_at})),
+  ...(r.providers||[]).map(x=>({source:'marketing_provider_profiles',id:x.id,title:x.name_ar||x.name_en||'',status:x.status,amount:'',currency:'',created_at:x.created_at})),
+  ...(r.projects||[]).map(x=>({source:'marketing_projects',id:x.id,title:x.project_type,status:x.status,amount:x.gross_value,currency:x.currency,created_at:x.created_at})),
+  ...(r.ads||[]).map(x=>({source:'advertisements',id:x.id,title:x.title,status:x.status||x.approval_status,amount:'',currency:'',created_at:x.created_at})),
+  ...(r.notifications||[]).map(x=>({source:'notifications',id:x.id,title:x.title,status:x.read_at?'READ':'UNREAD',amount:'',currency:'',created_at:x.created_at}))
+ ];
+ const safe=v=>{let x=String(v??'').replace(/[\r\n]+/g,' ').trim();if(/^[=+\-@\t]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"';};
+ const lines=[['المصدر','المعرف','العنوان','الحالة','القيمة','العملة','تاريخ الإنشاء'],...rows.map(x=>[x.source,x.id,x.title,x.status,x.amount,x.currency,x.created_at])];
+ const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mantiqatix-analytics.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function analyticsWorkspace(){
  const orders=Array.isArray(live.records.orders)?live.records.orders:[];
  const leads=Array.isArray(live.records.leads)?live.records.leads:[];
@@ -1375,6 +1389,7 @@ function analyticsWorkspace(){
  const note='المؤشرات التالية محسوبة من السجلات التي تم تحميلها فعليًا لهذا الحساب، وليست إجماليًا تاريخيًا إلا إذا كان مصدر التحميل شاملًا.';
  return workspaceHead('ANALYTICS','التقارير والتحليلات','لوحة تحليلية مبنية على بيانات التشغيل الفعلية المتاحة، مع منع الخلط بين العينة المحملة والإجمالي التاريخي.','LIVE')
  +'<div class="notice">'+esc(note)+'</div>'
+ +'<div class="action-bar"><button type="button" class="btn btn-primary" style="width:auto" onclick="exportAnalyticsCsv()">تصدير التقرير CSV</button><button type="button" class="btn btn-outline" style="width:auto" onclick="renderApp({forceWorkspace:true})">تحديث البيانات</button></div>'
  +workspaceCards([
   ['الطلبات المحملة',String(orders.length),'مصدر orders الحالي'],
   ['تم التسليم',String(delivered),'من الطلبات المحملة'],
