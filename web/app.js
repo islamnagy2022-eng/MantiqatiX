@@ -1235,8 +1235,36 @@ function openMarketingRecordDetails(kind,id){
  const html='<div class="mx-record-kv-grid">'+entries.map(([k,v])=>'<div><span>'+esc(k)+'</span><b>'+esc(String(v))+'</b></div>').join('')+'</div>';
  return openUnifiedRecordDetails({kicker:labels[kind]||'MARKETING RECORD',title,desc:'بيانات السجل الحالية كما تسمح بها الصلاحيات وRLS.',sections:[{title:'بيانات السجل',html}]});
 }
+async function createMarketingCampaign(){
+ if(!user?.id)return authView();
+ if(window.MNTY_RBAC?.can(String(live.role||''),'MARKETING','create',live.permissions)!==true)return showToast('لا تملك صلاحية إنشاء حملة تسويقية في هذا النطاق.','error');
+ if(!live.businessId)return showToast('اختر عضوية نشاط نشطة قبل إنشاء الحملة.','error');
+ const title=window.prompt('اسم الحملة التسويقية (3 إلى 160 حرفًا)');if(title===null)return;
+ const objectives=['AWARENESS','TRAFFIC','LEADS','SALES','ENGAGEMENT','APP_INSTALLS'];
+ const objective=String(window.prompt('هدف الحملة: '+objectives.join(' / '),'LEADS')||'').trim().toUpperCase();if(!objectives.includes(objective))return showToast('هدف الحملة غير صحيح.','error');
+ const channelInput=window.prompt('القنوات مفصولة بفواصل: META, GOOGLE, TIKTOK, YOUTUBE, LINKEDIN, SNAPCHAT, OTHER','META, GOOGLE');if(channelInput===null)return;
+ const channels=[...new Set(channelInput.split(',').map(x=>x.trim().toUpperCase()).filter(Boolean))];
+ const budgetInput=window.prompt('الميزانية الإجمالية بالجنيه المصري','0');if(budgetInput===null)return;const budget=Number(budgetInput);if(!Number.isFinite(budget)||budget<0||budget>1000000000)return showToast('الميزانية غير صحيحة.','error');
+ const startInput=window.prompt('موعد البداية ISO اختياري، مثال 2026-10-20T09:00:00+02:00','');if(startInput===null)return;
+ const endInput=window.prompt('موعد النهاية ISO اختياري، مثال 2026-10-30T18:00:00+02:00','');if(endInput===null)return;
+ const parseDate=v=>{if(!String(v||'').trim())return null;const d=new Date(v);return Number.isNaN(d.getTime())?false:d.toISOString()};
+ const startAt=parseDate(startInput),endAt=parseDate(endInput);if(startAt===false||endAt===false||(!!startAt!==!!endAt)||(startAt&&endAt&&new Date(startAt)>=new Date(endAt)))return showToast('تحقق من تاريخي البداية والنهاية؛ يجب إدخالهما معًا وبترتيب صحيح.','error');
+ const brief=window.prompt('ملخص الحملة (اختياري، حتى 5000 حرف)','')||'';const audienceInput=window.prompt('الجمهور المستهدف بصيغة JSON (اختياري)','{}');if(audienceInput===null)return;
+ let audience;try{audience=JSON.parse(audienceInput||'{}')}catch{return showToast('بيانات الجمهور يجب أن تكون JSON صحيحة.','error')}if(!audience||Array.isArray(audience)||typeof audience!=='object')return showToast('الجمهور المستهدف يجب أن يكون كائن JSON.','error');
+ try{const {data,error}=await sb.rpc('create_marketing_campaign_backend',{p_actor:user.id,p_business_id:live.businessId,p_title:title,p_objective:objective,p_channels:channels,p_budget:budget,p_idempotency_key:'mnty-marketing-'+crypto.randomUUID(),p_currency:'EGP',p_start_at:startAt,p_end_at:endAt,p_target_audience:audience,p_brief:brief||null});if(error)throw error;if(data?.error)throw new Error(data.error);showToast(data?.idempotent?'الحملة موجودة بالفعل؛ لم يتم إنشاء نسخة مكررة.':'تم إنشاء الحملة كمسودة.','success');await renderApp()}catch(e){showToast('تعذر إنشاء الحملة: '+(e?.message||'تحقق من تفعيل إصدار Backend المعتمد وصلاحيات النشاط.'),'error')}
+}
+function marketingCampaignActions(row){
+ const s=String(row.status||'').toUpperCase();const allowed={DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[s]||[];
+ return allowed.map(next=>'<button type="button" class="btn btn-outline" style="width:auto;margin:2px" onclick="updateMarketingCampaignStatus(\''+esc(row.id)+'\',\''+next+'\')">'+esc(({PLANNED:'تخطيط',IN_REVIEW:'إرسال للمراجعة',APPROVED:'اعتماد',PAUSED:'إيقاف مؤقت',COMPLETED:'إكمال',CANCELLED:'إلغاء',DRAFT:'إرجاع لمسودة'})[next]||next)+'</button>').join(' ')||'<span class="muted">لا توجد انتقالات متاحة</span>';
+}
+async function updateMarketingCampaignStatus(campaignId,nextStatus){
+ if(!user?.id||!campaignId)return authView();if(window.MNTY_RBAC?.can(String(live.role||''),'MARKETING','update',live.permissions)!==true)return showToast('لا تملك صلاحية تحديث الحملة.','error');
+ const allowed={DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']};const row=(live.records.campaigns||[]).find(x=>String(x.id)===String(campaignId));if(!row)return showToast('الحملة غير متاحة ضمن السجلات المحملة.','error');
+ if(!(allowed[String(row.status||'').toUpperCase()]||[]).includes(nextStatus))return showToast('انتقال الحالة غير مسموح به.','error');if(!window.confirm('تأكيد تغيير حالة الحملة إلى '+nextStatus+'؟'))return;
+ try{const {data,error}=await sb.rpc('update_marketing_campaign_status_backend',{p_actor:user.id,p_campaign_id:campaignId,p_status:nextStatus});if(error)throw error;if(data?.error)throw new Error(data.error);showToast('تم تحديث حالة الحملة.','success');await renderApp()}catch(e){showToast('تعذر تحديث الحالة: '+(e?.message||'تحقق من صلاحيات النشاط وشروط الانتقال.'),'error')}
+}
 function marketingWorkspace(){
- const leads=live.records.leads||[],projects=live.records.projects||[],ads=live.records.ads||[],providers=live.records.providers||[],services=live.records.services||[];
+ const leads=live.records.leads||[],projects=live.records.projects||[],ads=live.records.ads||[],providers=live.records.providers||[],services=live.records.services||[],campaigns=live.records.campaigns||[];
  const activeAds=ads.filter(x=>String(x.status||'').toUpperCase()==='ACTIVE').length;
  const pendingAds=ads.filter(x=>['PENDING','PENDING_APPROVAL'].includes(String(x.status||x.approval_status||'').toUpperCase())).length;
  const verifiedProviders=providers.filter(x=>x.is_verified===true).length;
@@ -1244,8 +1272,10 @@ function marketingWorkspace(){
  const projectCurrency=projects.find(x=>x.currency)?.currency||'';
  const detail=(kind,id)=>"<button type=\"button\" class=\"linkbtn\" onclick=\"openMarketingRecordDetails('"+kind+"','"+esc(id)+"')\">التفاصيل</button>";
  return workspaceHead('MANTIQATIX MARKETING','مركز التسويق والإعلان','Workspace تشغيلي موحد لإدارة العملاء المحتملين والمشروعات والإعلانات ومقدمي التسويق والخدمات من البيانات الفعلية.','MARKETING')
- +workspaceCards([['العملاء المحتملون',String(leads.length),'طلبات تسويق مرئية وفق RLS'],['المشروعات',String(projects.length),'مشروعات تسويق فعلية'],['الإعلانات النشطة',String(activeAds),'حالة فعلية فقط'],['إعلانات تحتاج متابعة',String(pendingAds),'تحتاج مراجعة أو اعتماد'],['مقدمو التسويق الموثقون',String(verifiedProviders),'ملفات موثقة فقط'],['قيمة المشروعات',projects.length?(projectValue+' '+projectCurrency):'—','مجموع gross_value المتاح فعلياً']])
+ +workspaceCards([['العملاء المحتملون',String(leads.length),'طلبات تسويق مرئية وفق RLS'],['الحملات',String(campaigns.length),'الحملات المحملة من قاعدة البيانات وفق RLS'],['المشروعات',String(projects.length),'مشروعات تسويق فعلية'],['الإعلانات النشطة',String(activeAds),'حالة فعلية فقط'],['إعلانات تحتاج متابعة',String(pendingAds),'تحتاج مراجعة أو اعتماد'],['مقدمو التسويق الموثقون',String(verifiedProviders),'ملفات موثقة فقط'],['قيمة المشروعات',projects.length?(projectValue+' '+projectCurrency):'—','مجموع gross_value المتاح فعلياً']])
  +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">MARKETING CONTROL</span><h2>مسار التشغيل</h2><p>البيانات المعروضة من الجداول الحالية؛ لا يتم توليد أرقام أو أداء إعلاني غير موجود في المصدر.</p></div></div><div class="grid3" style="margin-top:12px"><article class="card" style="padding:16px"><b>استقطاب العميل</b><p>طلبات التسويق والعملاء المحتملون.</p><button class="btn btn-outline" onclick="createMarketingLead()">إنشاء طلب</button></article><article class="card" style="padding:16px"><b>الظهور الإعلاني</b><p>حجز مبدئي ثم تحقق التوفر والمسار المالي.</p><button class="btn btn-primary" onclick="requestAdBooking(&quot;HALF_YEARLY&quot;)">طلب حجز</button></article><article class="card" style="padding:16px"><b>مقدمو التسويق</b><p>عرض الملفات والخدمات الفعلية المتاحة.</p><span class="muted">الموثقون: '+verifiedProviders+'</span></article></div></section>'
+ +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">CAMPAIGN WORKFLOW</span><h2>الحملات التسويقية</h2><p>تخطيط داخلي واعتماد ومتابعة حالة الحملة. لا يتم نشر إعلانات على منصات خارجية أو إنفاق ميزانية من هذه الشاشة.</p></div><button type="button" class="btn btn-primary" style="width:auto" onclick="createMarketingCampaign()">+ إنشاء حملة</button></div></section>'
+ +recordsTable('الحملات التسويقية',campaigns,[['الحملة',r=>r.title||'—'],['الهدف',r=>r.objective||'—'],['القنوات',r=>(r.channels||[]).join('، ')||'—'],['الميزانية',r=>(r.budget??'—')+' '+(r.currency||'')],['الحالة',r=>r.status||'—'],['البداية',r=>r.start_at?new Date(r.start_at).toLocaleString('ar-EG'):'—'],['إجراءات',r=>marketingCampaignActions(r)]])
  +'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ إنشاء طلب تسويقي</button></div>'
  +globalAdAdminPanel()
  +recordsTable('طلبات التسويق',leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['منطقة الخدمة',r=>r.service_area||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>detail('lead',r.id)]])
