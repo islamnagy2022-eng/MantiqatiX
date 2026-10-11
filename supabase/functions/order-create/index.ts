@@ -57,8 +57,27 @@ Deno.serve(async (req: Request) => {
     if (body[key] === undefined || body[key] === null) return json({ error: "MISSING_FIELD", field: key }, 400);
   }
 
-  if (!String(body.orderId).match(/^[0-9a-f-]{36}$/i)) return json({ error: "INVALID_ORDER_ID" }, 400);
-  if (!String(body.clientIdempotencyKey).trim() || String(body.clientIdempotencyKey).length > 200) return json({ error: "INVALID_IDEMPOTENCY_KEY" }, 400);
+  const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+  if (!isUuid(body.orderId)) return json({ error: "INVALID_ORDER_ID" }, 400);
+  const idempotencyKey = String(body.clientIdempotencyKey).trim();
+  if (!idempotencyKey || idempotencyKey.length > 200) return json({ error: "INVALID_IDEMPOTENCY_KEY" }, 400);
+  if (typeof body.tenantId !== "string" || !body.tenantId.trim() || body.tenantId.length > 120 || !isUuid(body.businessId)) {
+    return json({ error: "INVALID_ORDER_SCOPE" }, 400);
+  }
+  if (body.branchId !== undefined && body.branchId !== null && (typeof body.branchId !== "string" || body.branchId.length > 120)) {
+    return json({ error: "INVALID_BRANCH_ID" }, 400);
+  }
+  if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 200
+      || typeof body.customerPhone !== "string" || !body.customerPhone.trim() || body.customerPhone.trim().length > 40
+      || typeof body.deliveryAddress !== "string" || !body.deliveryAddress.trim() || body.deliveryAddress.trim().length > 1000) {
+    return json({ error: "INVALID_CUSTOMER_DETAILS" }, 400);
+  }
+  if (body.notes !== undefined && body.notes !== null && (typeof body.notes !== "string" || body.notes.length > 2000)) {
+    return json({ error: "INVALID_ORDER_NOTES" }, 400);
+  }
+  if (body.metadata !== undefined && body.metadata !== null && (typeof body.metadata !== "object" || Array.isArray(body.metadata))) {
+    return json({ error: "INVALID_ORDER_METADATA" }, 400);
+  }
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
@@ -106,8 +125,12 @@ Deno.serve(async (req: Request) => {
         : [],
   }));
 
-  if (normalizedItems.some((x: any) => !x.catalogItemId || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
+  if (normalizedItems.some((x: any) => !isUuid(x.catalogItemId) || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
     return json({ error: "INVALID_ITEM_QUANTITY" }, 400);
+  }
+
+  if (normalizedItems.some((item: any) => item.selectedOptionIds.some((id: string) => !isUuid(id)))) {
+    return json({ error: "INVALID_ITEM_OPTION_ID" }, 400);
   }
 
   if (normalizedItems.some((item: any) => new Set(item.selectedOptionIds).size !== item.selectedOptionIds.length)) {
