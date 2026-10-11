@@ -154,3 +154,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Correction:** first implementation expected a runtime `meta` object that does not exist; the follow-up commit stores the module's actual table list in the rendered root and reconstructs the section context from it.
 - **Tests:** pending post-build validation. The section-to-source mappings require later validation against the authoritative schema.
 - **Next:** continue domain-module read/write workflow build-out; no unverified write actions were added.
+
+## 2026-10-11 — SESSION-018 — Add authorized finance count export
+
+- **Code commit:** [a4cf08515904cd79824b4b002476c9d2764e6247](https://github.com/islamnagy2022-eng/MantiqaTix/commit/a4cf08515904cd79824b4b002476c9d2764e6247).
+- **Built:** finance-authorized sessions can export a CSV snapshot of counts for journals, commissions, payment intents, reconciliations, settlements, and wallets from the existing `live.finance` object.
+- **Scope guard:** the export checks that the role-gated finance snapshot exists and contains counts only; it does not export transaction rows, balances, tenant identifiers, or perform new queries.
+- **Tests:** pending post-build validation.
+- **Next:** continue module-specific work; keep financial mutation behind the existing approved server path.
