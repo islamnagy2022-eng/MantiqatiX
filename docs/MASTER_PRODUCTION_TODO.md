@@ -1658,3 +1658,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added explicit refresh controls for specialized Accounting, ERP, Factory, Trips, and Matrimony workspaces using existing module loaders.
 - [x] Refresh invalidates only that module's cached loaded data; no mutation, schema, or authorization changes.
 - [ ] Runtime/E2E verification remains outstanding and is deferred until the construction phase is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-016
+- [x] Added restaurant workspace refresh for menu, orders, tables, and inventory using the existing scoped loader.
+- [ ] Runtime/E2E verification remains outstanding until the construction phase is complete.
