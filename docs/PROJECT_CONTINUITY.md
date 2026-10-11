@@ -625,3 +625,7 @@ This status is intentional and must remain until the open gates above are indepe
 - Commits `0b670638ad5ceb278189a5f77ac5264c5de67bfa` and `52fe501a0c85ffebddc1d7c75980a94aea870896`: module blueprint buttons now open source-backed section details, with explicit table maps and no fake action success.
 - The first version assumed nonexistent runtime metadata; the second commit corrected this by storing actual module table names in the rendered root.
 - Table mappings still need schema validation in the planned post-build pass.
+
+ 
+## Build progress — SESSION-018
+- Commit `a4cf08515904cd79824b4b002476c9d2764e6247`: finance workspace gained role-gated CSV export of source counts only; no transaction detail or balances.
