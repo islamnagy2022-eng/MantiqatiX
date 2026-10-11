@@ -641,3 +641,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-021
 - Commit `7fddb756fc9ee96a511152f39060d742dfb8b4f5`: marketing workspace separates a preliminary partner-agency discovery list using existing provider_kind classification; UI explicitly disclaims contractual partnership status.
+
+ 
+## Build progress — SESSION-022
+- Commit `8734b11a45c71a16f05350a5605e5ff65e9bb753`: Governance workspace gained CSV export for loaded support tickets and notifications.
