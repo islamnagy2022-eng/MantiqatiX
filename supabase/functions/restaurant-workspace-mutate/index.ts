@@ -84,27 +84,16 @@ Deno.serve(async (req: Request) => {
         || !tableStatuses.has(status) || (reservedName && reservedName.length > 200)) {
       return json({ error: "INVALID_TABLE_DATA" }, 400);
     }
-    const payload = { table_number: tableNumber, capacity_persons: capacity, status, reserved_customer_name: reservedName || null };
-    if (body.tableId !== undefined && body.tableId !== null) {
-      if (!isRecordId(body.tableId)) return json({ error: "INVALID_TABLE_ID" }, 400);
-      const { data: existing, error: readError } = await admin.from("restaurant_tables")
-        .select("id,tenant_id,business_id,branch_id").eq("id", body.tableId).maybeSingle();
-      if (readError) return json({ error: "TABLE_READ_FAILED" }, 500);
-      if (!existing || existing.tenant_id !== scope.tenant_id || existing.business_id !== scope.business_id || existing.branch_id !== scope.branch_id) {
-        return json({ error: "TABLE_NOT_FOUND_IN_SCOPE" }, 404);
-      }
-      const { data, error } = await admin.from("restaurant_tables").update(payload)
-        .eq("id", body.tableId).eq("tenant_id", scope.tenant_id).eq("business_id", scope.business_id).eq("branch_id", scope.branch_id)
-        .select("id,table_number,capacity_persons,status,reserved_customer_name").maybeSingle();
-      if (error) return json({ error: "TABLE_UPDATE_FAILED" }, 409);
-      if (!data) return json({ error: "TABLE_NOT_UPDATED" }, 409);
-      return json({ ok: true, table: data });
-    }
-    const { data, error } = await admin.from("restaurant_tables").insert({
-      ...scope, ...payload, id: crypto.randomUUID(), owner_user_id: actor.id, current_active_order_id: null, current_bill_egp: 0,
-    }).select("id,table_number,capacity_persons,status,reserved_customer_name").single();
-    if (error) return json({ error: "TABLE_CREATE_FAILED" }, 409);
-    return json({ ok: true, table: data });
+    const { data, error } = await admin.rpc("restaurant_workspace_mutate_backend", {
+      p_action: "TABLE_SAVE",
+      p_payload: { tableId: body.tableId ?? null, tableNumber, capacityPersons: capacity, status, reservedCustomerName: reservedName || null },
+      p_actor_user_id: actor.id,
+      p_tenant_id: scope.tenant_id,
+      p_business_id: scope.business_id,
+      p_branch_id: scope.branch_id,
+    });
+    if (error) return json({ error: "TABLE_MUTATION_FAILED" }, 409);
+    return json(data);
   }
 
   const inventoryId = body.inventoryId;
@@ -120,28 +109,14 @@ Deno.serve(async (req: Request) => {
       || cost < 0 || cost > 1_000_000_000 || (supplier && supplier.length > 200)) {
     return json({ error: "INVALID_INVENTORY_DATA" }, 400);
   }
-  const payload = {
-    name_ar: name, unit, current_stock_qty: stock, min_stock_alert_threshold: minimum,
-    unit_cost_egp: cost, supplier_name: supplier || null,
-  };
-  if (inventoryId !== undefined && inventoryId !== null) {
-    if (!isRecordId(inventoryId)) return json({ error: "INVALID_INVENTORY_ID" }, 400);
-    const { data: existing, error: readError } = await admin.from("restaurant_inventory")
-      .select("id,tenant_id,business_id,branch_id").eq("id", inventoryId).maybeSingle();
-    if (readError) return json({ error: "INVENTORY_READ_FAILED" }, 500);
-    if (!existing || existing.tenant_id !== scope.tenant_id || existing.business_id !== scope.business_id || existing.branch_id !== scope.branch_id) {
-      return json({ error: "INVENTORY_NOT_FOUND_IN_SCOPE" }, 404);
-    }
-    const { data, error } = await admin.from("restaurant_inventory").update(payload)
-      .eq("id", inventoryId).eq("tenant_id", scope.tenant_id).eq("business_id", scope.business_id).eq("branch_id", scope.branch_id)
-      .select("id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at").maybeSingle();
-    if (error) return json({ error: "INVENTORY_UPDATE_FAILED" }, 409);
-    if (!data) return json({ error: "INVENTORY_NOT_UPDATED" }, 409);
-    return json({ ok: true, inventory: data });
-  }
-  const { data, error } = await admin.from("restaurant_inventory").insert({
-    ...scope, ...payload, id: crypto.randomUUID(), owner_user_id: actor.id,
-  }).select("id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at").single();
-  if (error) return json({ error: "INVENTORY_CREATE_FAILED" }, 409);
-  return json({ ok: true, inventory: data });
+  const { data, error } = await admin.rpc("restaurant_workspace_mutate_backend", {
+    p_action: "INVENTORY_SAVE",
+    p_payload: { inventoryId: inventoryId ?? null, name, unit, currentStockQty: stock, minStockAlertThreshold: minimum, unitCostEgp: cost, supplierName: supplier || null },
+    p_actor_user_id: actor.id,
+    p_tenant_id: scope.tenant_id,
+    p_business_id: scope.business_id,
+    p_branch_id: scope.branch_id,
+  });
+  if (error) return json({ error: "INVENTORY_MUTATION_FAILED" }, 409);
+  return json(data);
 });
