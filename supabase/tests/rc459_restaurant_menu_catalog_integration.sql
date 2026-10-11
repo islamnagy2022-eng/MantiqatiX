@@ -26,12 +26,18 @@ begin
     join pg_catalog.pg_attribute a1 on a1.attrelid=tbl.oid and a1.attnum=i.indkey[0]
     join pg_catalog.pg_attribute a2 on a2.attrelid=tbl.oid and a2.attnum=i.indkey[1]
     where ns.nspname='public' and tbl.relname='catalog_items'
-      and i.indisunique and i.indisvalid and i.indnkeyatts>=2
+      and i.indisunique and i.indisvalid and i.indnkeyatts=2
       and a1.attname='business_id' and a2.attname='legacy_ref'
       and (
         i.indpred is null
-        or pg_catalog.pg_get_expr(i.indpred,i.indrelid) ilike '%legacy_ref IS NOT NULL%'
-        or pg_catalog.pg_get_expr(i.indpred,i.indrelid) ilike '%legacy_ref LIKE%'
+        or pg_catalog.regexp_replace(
+          pg_catalog.lower(pg_catalog.pg_get_expr(i.indpred,i.indrelid)),
+          '[[:space:]()]', '', 'g'
+        ) in (
+          'legacy_refisnotnull',
+          'legacy_ref~~''restaurant_menu:%''::text',
+          'legacy_reflike''restaurant_menu:%''::text'
+        )
       )
   ) then
     raise exception 'RC460 equivalent unique business_id/legacy_ref index missing';
