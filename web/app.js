@@ -1342,6 +1342,17 @@ function orderCards(){
  if(!rows.length)return '<section class="mnty-empty-workspace"><div class="mnty-empty-icon">⌁</div><div><h3>لا توجد طلبات حاليًا</h3><p>ستظهر هنا الطلبات الفعلية المرتبطة بحسابك عندما يتم إنشاء طلب عبر المسار المعتمد.</p></div><div class="mnty-empty-actions"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'المجالات والخدمات\')">استكشف الخدمات</button></div></section>';
  return '<div class="mx-order-grid">'+rows.map(r=>'<article class="mx-order-card"><div class="mx-order-card__head"><span class="'+orderStatusClass(r.status)+'">'+esc(orderStatusLabel(r.status))+'</span><small>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</small></div><h3>طلب '+esc(String(r.id||'').slice(0,8))+'</h3><p>'+esc(r.customer_name||'طلب خدمة')+'</p><div class="mx-order-card__meta"><span>الإجمالي</span><b>'+esc(r.total_amount!=null?(r.total_amount+' '+(r.currency||'')):'—')+'</b></div><div class="mx-order-card__actions"><button class="text-btn" onclick="openOrderDetails(\''+esc(r.id)+'\')">التفاصيل</button>'+orderActions(r)+'</div></article>').join('')+'</div>';
 }
+function exportOperationsCsv(){
+ const r=live.records||{},rows=[
+  ...(r.orders||[]).map(x=>({kind:'order',id:x.id,status:x.status,detail:x.customer_name,amount:x.total_amount,currency:x.currency,date:x.created_at})),
+  ...(r.orderHistory||[]).map(x=>({kind:'status_transition',id:x.order_id,status:String(x.old_status||'')+' → '+String(x.new_status||''),detail:x.reason,amount:'',currency:'',date:x.created_at})),
+  ...(r.notifications||[]).map(x=>({kind:'notification',id:x.id,status:x.read_at?'READ':'UNREAD',detail:x.title,amount:'',currency:'',date:x.created_at}))
+ ];
+ const safe=v=>{let x=String(v??'').replace(/[\r\n]+/g,' ').trim();if(/^[=+\-@\t]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"';};
+ const lines=[['النوع','المعرف','الحالة/الانتقال','التفاصيل','القيمة','العملة','التاريخ'],...rows.map(x=>[x.kind,x.id,x.status,x.detail,x.amount,x.currency,x.date])];
+ const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mantiqatix-operations.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function operationsWorkspace(){
  const rows=Array.isArray(live.records.orders)?live.records.orders:[];
  const history=Array.isArray(live.records.orderHistory)?live.records.orderHistory:[];
@@ -1365,7 +1376,7 @@ function operationsWorkspace(){
   ['تنبيهات غير مقروءة',String(unread),'إشعارات الحساب الحالية']
  ])
  +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">OPERATIONS CONTROL</span><h2>لوحة الحالة</h2><p>كل تغيير حالة يمر عبر الوظيفة الحالية وصلاحيات الحساب؛ لا يوجد تغيير مباشر لصلاحيات العميل من الواجهة.</p></div></div><div class="grid3" style="margin-top:12px">'+Object.entries(byStatus).map(([s,n])=>'<article class="card" style="padding:14px"><span class="'+orderStatusClass(s)+'">'+esc(orderStatusLabel(s))+'</span><strong style="display:block;font-size:24px;margin-top:8px">'+esc(n)+'</strong><small class="muted">من السجلات المحملة</small></article>').join('')+'</div></section>'
- +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الطلبات والعمليات\')">فتح شاشة الطلبات</button><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الدعم والحوكمة\')">فتح الدعم</button></div>'
+ +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الطلبات والعمليات\')">فتح شاشة الطلبات</button><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الدعم والحوكمة\')">فتح الدعم</button><button class="btn btn-outline" style="width:auto" onclick="exportOperationsCsv()">تصدير العمليات CSV</button></div>'
  +orderCards()
  +recordsTable('آخر انتقالات الحالة',history,[['الطلب',r=>String(r.order_id||'').slice(0,8)],['من',r=>orderStatusLabel(r.old_status)],['إلى',r=>orderStatusLabel(r.new_status)],['السبب',r=>r.reason||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']])
  +recordsTable('ملخص حالات الطلبات',statusRows,[['الحالة',r=>orderStatusLabel(r.status)],['العدد',r=>String(r.count)]]);
