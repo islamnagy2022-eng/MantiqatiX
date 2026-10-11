@@ -86,3 +86,17 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Production impact:** none; read-only module loaders and frontend changes only, no DB writes/deployments.
 - **Important limitation:** implementation has not yet been broadly reviewed or runtime-tested. A table can legitimately show NOT AVAILABLE when the existing role/RLS contract denies reading it; this must not be worked around with broader privileges.
 - **Next:** continue construction across the remaining specialized workflows, then perform the requested review/testing phase after module construction is complete.
+
+
+## 2026-10-11 — SESSION-006 — Jobs posting and application workflow
+
+- **Implemented:**
+  - Added role-gated job creation UI with validation for title, company, category, job type, location, salary range, description, and requirements.
+  - Job posts are attributed to the current authenticated user and active tenant/business context; the write uses the existing RLS-controlled `jobs` table and does not request phone/contact data.
+  - Added customer-only application form for an individual job, attributing each application to the authenticated user and collecting applicant name plus optional qualifications/summary, without requesting phone number or exposing CV/contact fields in list views.
+  - Job and application lists now have tailored views, scoped fields, and allowlisted CSV exports.
+  - Reload after create/apply uses the data-backed module loader and existing RLS; no schema migration or privileged backend bypass was introduced.
+- **Code commits:** `c136abb17ebd6c97322a239d856c36ee93c6909b`, `e5bb130a0e260d2e4a9b6b001ad00ce15f76ac1d`, `ef961aee52b31f6a7cc2609ee5e2ac4bbae00c66`, `75d03ae6108e6b7b143ebe9f959abf72ebbdbfc7`, `548fbd5409951675040de1f52a7b40da3d04e744`, `c34ace1caee2a4317641564ed633f7ab976065f6`.
+- **Production impact:** none until an authorized user explicitly uses the UI after deployment; no records were created by this build activity.
+- **Not yet verified:** the actual insert/apply flows have not been exercised against real test accounts or RLS policies; broad review remains deferred by user instruction.
+- **Next:** continue construction in other sector modules and workflows, then review and test after module construction is complete.
