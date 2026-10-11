@@ -84,6 +84,7 @@ Deno.serve(async (req: Request) => {
         || !tableStatuses.has(status) || (reservedName && reservedName.length > 200)) {
       return json({ error: "INVALID_TABLE_DATA" }, 400);
     }
+    if (body.tableId !== undefined && body.tableId !== null && !isRecordId(body.tableId)) return json({ error: "INVALID_TABLE_ID" }, 400);
     const { data, error } = await admin.rpc("restaurant_workspace_mutate_backend", {
       p_action: "TABLE_SAVE",
       p_payload: { tableId: body.tableId ?? null, tableNumber, capacityPersons: capacity, status, reservedCustomerName: reservedName || null },
@@ -109,6 +110,7 @@ Deno.serve(async (req: Request) => {
       || cost < 0 || cost > 1_000_000_000 || (supplier && supplier.length > 200)) {
     return json({ error: "INVALID_INVENTORY_DATA" }, 400);
   }
+  if (inventoryId !== undefined && inventoryId !== null && !isRecordId(inventoryId)) return json({ error: "INVALID_INVENTORY_ID" }, 400);
   const { data, error } = await admin.rpc("restaurant_workspace_mutate_backend", {
     p_action: "INVENTORY_SAVE",
     p_payload: { inventoryId: inventoryId ?? null, name, unit, currentStockQty: stock, minStockAlertThreshold: minimum, unitCostEgp: cost, supplierName: supplier || null },
