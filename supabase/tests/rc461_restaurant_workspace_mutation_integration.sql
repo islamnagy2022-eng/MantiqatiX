@@ -64,7 +64,7 @@ begin
     pg_catalog.jsonb_build_object('inventoryId',null,'name','Flour','unit','KG','currentStockQty',12.5,'minStockAlertThreshold',2,'unitCostEgp',30,'supplierName','Test vendor'),
     v_actor,v_tenant,v_business,v_branch);
   v_inventory_id := v_result #>> '{inventory,id}';
-  if v_inventory_id is null or not exists(select 1 from public.restaurant_inventory i where i.id=v_inventory_id and i.owner_user_id=v_actor and i.tenant_id=v_tenant and i.business_id=v_business and i.branch_id=v_branch) then
+  if v_inventory_id is null or not exists(select 1 from public.restaurant_inventory i where i.id::text=v_inventory_id and i.owner_user_id=v_actor and i.tenant_id=v_tenant and i.business_id=v_business and i.branch_id=v_branch) then
     raise exception 'RC461_INVENTORY_SCOPE_INVALID';
   end if;
   v_result := public.restaurant_workspace_mutate_backend('INVENTORY_SAVE',
