@@ -1433,6 +1433,17 @@ function financeWorkspace(){
  const f=live.finance||{};const allowed=Boolean(live.finance);const fmt=v=>v==null?'—':String(v);const note=allowed?'بيانات رقابية من النواة المالية الحالية وضمن Tenant العضوية.':'هذه المساحة تتطلب دورًا ماليًا معتمدًا.';
  return workspaceHead('FINANCE','المركز المالي والرقابة','متابعة القيود والعمولات والدفع والتسويات والمحافظ من السجلات الحالية، دون تنفيذ حركة مالية مباشرة من واجهة المتصفح.','FINANCE')+'<div class="notice">'+esc(note)+'</div>'+workspaceCards([['القيود المحاسبية',fmt(f.journals),'journal_entries المرئية'],['عمليات العمولات',fmt(f.commissions),'commission_transactions'],['نوايا الدفع',fmt(f.paymentIntents),'payment_intents'],['المطابقات المالية',fmt(f.reconciliations),'financial reconciliations'],['التسويات',fmt(f.settlements),'settlement transactions'],['المحافظ',fmt(f.wallets),'wallet accounts']])+'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">FINANCIAL CONTROL</span><h2>بوابات الرقابة</h2><p>لا توجد أرقام إيرادات أو أرصدة مصطنعة. الحركة المالية تمر عبر المسارات المعتمدة فقط.</p></div></div><div class="grid3" style="margin-top:12px"><article class="card" style="padding:16px"><b>الترحيل</b><p>يمر عبر Edge Function الحالي ولا يوجد إدخال مباشر للقيد من الواجهة.</p></article><article class="card" style="padding:16px"><b>الدفع</b><p>عرض رقابي فقط؛ لا يتم تنفيذ دفعة حقيقية من هذه اللوحة.</p></article><article class="card" style="padding:16px"><b>التسوية</b><p>عرض رقابي فقط إلى حين اكتمال E2E المالي الإنتاجي.</p></article></div></section>'+(allowed?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="postFinancialJournal()">+ ترحيل قيد عبر المسار المعتمد</button><button class="btn btn-outline" style="width:auto" onclick="walletView()">عرض المحفظة</button></div>':'')+'<section class="card" style="margin-top:16px;padding:18px"><span class="eyebrow">SCOPE</span><p class="muted">Tenant: '+esc(live.tenantId||'—')+' · Business: '+esc(live.businessId||'—')+' · Role: '+esc(live.role||'—')+'</p></section>';}
 
+function exportCrmWorkspaceCsv(){
+ const r=live.records||{},rows=[
+  ...(r.leads||[]).map(x=>({kind:'lead',id:x.id,title:x.title,status:x.status,source:x.source,priority:'',created_at:x.created_at,updated_at:x.updated_at})),
+  ...(r.supportTickets||[]).map(x=>({kind:'ticket',id:x.id,title:x.subject,status:x.status,source:x.category,priority:x.priority,created_at:x.created_at,updated_at:x.updated_at})),
+  ...(r.notifications||[]).map(x=>({kind:'notification',id:x.id,title:x.title,status:x.read_at?'READ':'UNREAD',source:'notifications',priority:'',created_at:x.created_at,updated_at:''}))
+ ];
+ const safe=v=>{let x=String(v??'').replace(/[\r\n]+/g,' ').trim();if(/^[=+\-@\t]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"';};
+ const lines=[['النوع','المعرف','العنوان','الحالة','المصدر/الفئة','الأولوية','تاريخ الإنشاء','آخر تحديث'],...rows.map(x=>[x.kind,x.id,x.title,x.status,x.source,x.priority,x.created_at,x.updated_at])];
+ const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(safe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='mantiqatix-crm.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function crmWorkspace(){
  const leads=Array.isArray(live.records.leads)?live.records.leads:[];
  const tickets=Array.isArray(live.records.supportTickets)?live.records.supportTickets:[];
@@ -1446,7 +1457,7 @@ function crmWorkspace(){
  const ticketRows=tickets.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="ticket" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
  const canCreateLead=window.MNTY_RBAC?.can(role,'CRM','create',live.permissions)===true;
  const canCreateTicket=window.MNTY_RBAC?.can(role,'SUPPORT','create',live.permissions)===true;
- const actions='<div class="action-bar">'+(canCreateLead?'<button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button>':'')+(canCreateTicket?'<button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button>':'')+'</div>';
+ const actions='<div class="action-bar">'+(canCreateLead?'<button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button>':'')+(canCreateTicket?'<button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button>':'')+'<button class="btn btn-outline" style="width:auto" onclick="exportCrmWorkspaceCsv()">تصدير CRM CSV</button></div>';
  const note=manager?'عرض تشغيلي موسع حسب العضوية والصلاحيات الحالية؛ البيانات تأتي من RLS مباشرة.':'عرض سجلات حسابك فقط وفق سياسات الوصول الحالية.';
  return workspaceHead('CRM','العملاء والعلاقات','مركز موحد لطلبات العملاء المحتملين وتذاكر الدعم والمراسلات والتنبيهات، بدون بيانات تجريبية.','CRM')
   +'<div class="notice">'+esc(note)+'</div>'
