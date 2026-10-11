@@ -140,3 +140,30 @@
 
 ### Release decision and boundary
 **`BLOCKED / NOT CERTIFIED`.** This is not an approval to merge or deploy. No production migration, Edge Function change, Auth setting change, wallet/payment/financial write, or repository protection change was performed. Before launch, require an explicitly approved server-side SMM disable/deny deployment and negative live test, authoritative or separately approved test-only replay dependency resolution, successful full disposable chronological replay, current exact-head CI, production migration reconciliation, tenant-isolation/payment-finance E2E, backup-restore rehearsal, and approved repository protection.
+
+
+## Automated 30-stage continuation audit — 2026-10-11
+
+Candidate ref at start of this audit: `06ce8d9c01613bdcaba381913de9841586ad34dc` (PR #207, draft, not merged).
+
+### Verified in this 30-check cycle
+- PR state and exact-head workflow inventory refreshed.
+- Exact-head `Module Professionalization Validation`: **success**.
+- Exact-head migration history immutability, migration version uniqueness, open-PR migration collision guard, backend-only module boundary, MantiGO open-ride privacy boundary, approval-action audit atomicity, and SMM service-role access boundary: **success**.
+- Exact-head Pages validation: **success**; deploy job: **skipped**. This does not establish a new deployment.
+- Exact-head SMM deferred-module validation: **failure** in the SMM-specific runtime-safety assertions. The SMM page quarantine, disposable wallet idempotency test, and source-level deferred-scope checks passed; these do not replace the failed feature-safety suite.
+- Candidate SMM gateway source contains the `MNTY_SMM_ENABLED` fail-closed gate before business operations, and the source validator checks this gate.
+- Live Supabase project status was observed as `ACTIVE_HEALTHY`.
+- Live `smm-gateway` remains `ACTIVE`, version `6`, SHA256 `ea4de98886b739ed5ce83c7f5909671fd00481a8f488849ffe58567e58be6cd6`; live source does not contain `MNTY_SMM_ENABLED` and retains order, wallet debit, and provider-call paths. Live containment remains **NOT VERIFIED**.
+- Live migration listing was refreshed; the latest observed applied version remains `20261008222845` (RC424). Candidate migrations beyond this point are not proven applied.
+- Repository inventory searches found explicit open work for restaurant/menu ownership editing and sector-specific flows; MantiGO integration tests exist; a medical booking restoration baseline exists; no pharmacy-specific search result was found in this query; marketing/advertising remains partial; CRM scope integration tests exist; wallet/finance, payment webhook, appointment, membership, and inventory work each have relevant source/test artifacts but still require module-specific acceptance evidence.
+
+### Remaining blockers — not waived by this audit
+1. Live SMM server-side denial and a safe negative runtime test are not evidenced.
+2. SMM deferred validation still fails its post-launch feature-safety suite; keep this distinct from core launch gates.
+3. Full chronological disposable migration replay is blocked by missing historical creation DDL for ten legacy SECURITY DEFINER functions referenced by `20260927095000_revoke_unused_security_definer_execute.sql`. No placeholders or synthetic production migrations are authorized.
+4. Production migration reconciliation beyond RC424 is not verified.
+5. Cross-tenant/branch E2E, real provider/customer/order/payment E2E, backup-restore rehearsal, auth hardening, and repository protection remain release evidence requirements.
+6. Do not merge or deploy this draft. Do not alter production functions, schema, auth settings, financial data, or repository protections without the required explicit approval.
+
+This is a 30-check audit/triage cycle, **not** a declaration that 30 business modules are complete. Continue implementation in small reviewable changes and only mark a module complete after its acceptance tests and evidence pass. Release remains `BLOCKED / NOT CERTIFIED`.
