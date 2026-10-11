@@ -173,3 +173,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The details drawer resolves a record only from the current module's already-loaded rows and uses the existing allowlisted field labels; it does not perform a new broad query or expose unmapped columns.
 - This is read-only presentation functionality. Existing RLS and data loading remain unchanged.
 - Runtime/E2E verification and broad review remain deferred by user instruction; no production deployment or schema mutation.
+
+
+## 2026-10-11 — SESSION-015 — Refresh controls for specialized sector workspaces
+- Added an explicit refresh action to the specialized Accounting, ERP, Factory, Trips, and Matrimony workspace branch.
+- The action invalidates only the current module's in-memory loaded-data cache and reuses its existing authenticated loader; no direct database writes, schema changes, or privilege changes.
+- Existing Restaurant and generic sector workspaces retain their own paths.
+- Implementation commit: `0e19464fadd67c5520b0cb6449218c50b9a17ba3`.
+- Runtime/E2E verification remains outstanding; broad review deferred until construction is complete.
