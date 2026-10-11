@@ -143,7 +143,7 @@ const unresolvedLegacyFunctions = legacyFunctionSignatures.filter(({ name, args 
 });
 if (unresolvedLegacyFunctions.length) {
   console.error("P0 BLOCKED: the chronological replay reaches " + legacyPrivilegeMigration.name + " before these legacy SECURITY DEFINER functions are created by any earlier committed migration or approved test-only function baseline:");
-  for (const functionName of unresolvedLegacyFunctions) console.error(" - public." + functionName);
+  for (const { name, args } of unresolvedLegacyFunctions) console.error(" - public." + name + "(" + args + ")");
   console.error("Do not add placeholder functions or skip the historical privilege migration. Recover authoritative creation DDL/history or obtain explicit owner approval for a separate test-only baseline sourced from live definitions.");
   process.exit(1);
 }
