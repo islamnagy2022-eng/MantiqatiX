@@ -28,6 +28,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Fail closed if the historical schema baseline is missing
+        run: node scripts/validate-historical-schema-baseline.mjs
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
