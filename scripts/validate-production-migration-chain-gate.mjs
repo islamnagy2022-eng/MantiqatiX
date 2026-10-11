@@ -45,6 +45,8 @@ assert.ok(workflow.includes("node scripts/validate-production-migration-chain-ga
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(source, /reconciliation\.source_ledger_identity_reconciled===true/, "source/ledger identity must be reconciled");
+assert.match(source, /reconciliation\.rc424_reconciliation\?\.exact_statement_match===true/, "RC424 reconciliation must be backed by exact ledger statement equality");
+assert.match(source, /reconciliation\.rc424_reconciliation\?\.history_rewritten===false/, "applied migration history must remain immutable");
 assert.match(source, /reconciliation\.required_release_migrations_applied===true/, "all required migrations must be proven applied");
 assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered disposable replay must pass");
 assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
