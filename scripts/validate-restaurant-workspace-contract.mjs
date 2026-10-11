@@ -97,7 +97,9 @@ assert.match(workspaceMigration, /RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID/, 'mi
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
 assert.match(workspaceIntegration, /RC461_TABLE_AUDIT_NOT_ATOMIC/, 'integration verifies table audit records for each mutation');
 assert.match(workspaceIntegration, /RC461_NON_MEMBER_WAS_ALLOWED/, 'integration verifies non-members cannot mutate workspace records');
+assert.match(workspaceIntegration, /RC461_CROSS_SCOPE_TABLE_UPDATE_WAS_ALLOWED/, 'integration rejects table updates outside the supplied branch scope');
+assert.match(workspaceIntegration, /RC461_CROSS_SCOPE_INVENTORY_UPDATE_WAS_ALLOWED/, 'integration rejects inventory updates outside the supplied branch scope');
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (86 assertions)');
+console.log('Restaurant workspace contract: PASS (88 assertions)');
