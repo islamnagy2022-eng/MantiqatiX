@@ -8,6 +8,7 @@ const orderStatus = fs.readFileSync('supabase/functions/order-status-update/inde
 const workspaceEdge = fs.readFileSync('supabase/functions/restaurant-workspace-mutate/index.ts', 'utf8');
 const workspaceMigration = fs.readFileSync('supabase/migrations/20261012030000_rc461_restaurant_workspace_mutation_authority.sql', 'utf8');
 const workspaceIntegration = fs.readFileSync('supabase/tests/rc461_restaurant_workspace_mutation_integration.sql', 'utf8');
+const workspaceFixture = fs.readFileSync('supabase/tests/rc461_restaurant_workspace_mutation_fixture.sql', 'utf8');
 const pagesWorkflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const menuMigration = fs.readFileSync('supabase/migrations/20261012010000_rc459_restaurant_menu_catalog_sync.sql', 'utf8');
 assert.match(source, /function nextOrderStatuses\(order\)/, 'order status choices must be derived from current status');
@@ -90,9 +91,10 @@ assert.match(workspaceMigration, /insert into public\.audit_logs/, 'workspace ch
 assert.match(workspaceMigration, /set search_path = ''/, 'workspace mutation RPC pins an empty search path');
 assert.match(workspaceMigration, /from public\.branches br[\s\S]*?upper\(coalesce\(br\.status,'ACTIVE'\)\) = 'ACTIVE'/, 'workspace RPC rejects inactive or cross-business branches');
 assert.match(workspaceMigration, /grant execute on function public\.restaurant_workspace_mutate_backend[\s\S]*?to service_role/i, 'workspace mutation RPC is restricted to the service role');
-assert.match(workspaceMigration, /where i\.id::text\s*=\s*v_id/, 'UUID inventory IDs are compared without text/uuid operator mismatch');
-assert.match(workspaceMigration, /values\(v_id::uuid,p_tenant_id,p_business_id,p_branch_id,p_actor_user_id,v_name/, 'new inventory records cast validated generated IDs to UUID');
-assert.match(workspaceIntegration, /where i\.id::text=v_inventory_id/, 'integration test handles inventory UUID identifiers explicitly');
+assert.match(workspaceMigration, /where i\.id::text\s*=\s*v_id/, 'text inventory identifiers are compared consistently within the workspace scope');
+assert.doesNotMatch(workspaceMigration, /values\(v_id::uuid,/, 'new inventory records preserve the production text identifier type');
+assert.match(workspaceIntegration, /where i\.id::text=v_inventory_id/, 'integration test compares text inventory identifiers consistently');
+assert.match(workspaceFixture, /create table public\.restaurant_inventory\s*\(\s*id text primary key,/, 'RC461 fixture matches the production text inventory identifier schema');
 assert.match(workspaceMigration, /RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID/, 'migration aborts if the backend RPC execute boundary is not correct');
 assert.equal((workspaceMigration.match(/^do \$\$/gm) || []).length, 2, 'migration DO blocks use valid dollar-quote delimiters');
 assert.doesNotMatch(workspaceMigration, /^do \$/m, 'migration cannot contain malformed single-dollar DO delimiters');
@@ -105,4 +107,4 @@ assert.match(workspaceIntegration, /RC461_CROSS_SCOPE_INVENTORY_UPDATE_WAS_ALLOW
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (91 assertions)');
+console.log('Restaurant workspace contract: PASS (92 assertions)');
