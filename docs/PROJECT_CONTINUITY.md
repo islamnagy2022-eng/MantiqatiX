@@ -547,3 +547,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Generic workspaces now consume existing session-backed records/counts and render contextual tabs for users, orders, marketing, commissions/packages, and reports. No synthetic data and no production mutation.
 - CI was still queued/in-progress at the first observation; check current run results before declaring this batch green.
 - Continue feature construction module-by-module; do not restart the prior audit. Release remains blocked/not certified.
+
+ 
+## Build progress — 2026-10-11 (SESSION-003)
+- Commits: `8670c675902a4a6d90f5ed059ccfb025f3eeb36e` (search-to-detail for orders/leads/tickets) and `6301782df8186582d7af447345735bbad4103c04` (workspace refresh).
+- Generic workspace fallback no longer leaks unrelated record types into an unrelated module.
+- CI was queued when queried; check latest checks before treating the branch as validated.
+- Continue build-first on `build/module-workspaces-functional-20261011-b`; no production change, release remains BLOCKED / NOT CERTIFIED.
