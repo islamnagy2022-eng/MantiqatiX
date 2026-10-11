@@ -44,3 +44,12 @@ Before the initial launch, the release owner must ensure that the live SMM API i
 ## Non-goals
 
 This decision does not claim the platform is production-ready, does not certify SMM, does not authorize a production migration or Edge Function deployment, and does not turn any failed or unrun check into a pass.
+
+
+## Current execution evidence — 2026-10-11
+
+- Core module suite run [38157684756](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38157684756) completed **success** on candidate commit `4f6562b8b38ad43131c614e5838fa8ab24e535ba`. All 15 jobs in that run passed, including financial journal RC450/RC457, MantiGo Paymob atomicity and platform-admin scope, digital-page payment binding, subscription intent, ERP branch scope, checkout recovery, matrimony privacy, targeted ads search path, SECURITY DEFINER search path, receiving, and order-line integration. SMM-only wallet validation was intentionally separated from this core suite.
+- A newer core suite for candidate commit `8bc538e7f0802c57a6762f5bbc8448cba01d6249` is running as [38157693424](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38157693424); at the latest check, several jobs were still in progress/queued. Do not record it as passed until the run reaches a terminal success result.
+- Migration version uniqueness and migration-history immutability checks passed on the newer candidate. The disposable full chronological migration replay remains **blocked** by the ten legacy SECURITY DEFINER function dependencies documented in `MIGRATION_REPLAY_BLOCKERS.md`.
+- GitHub Pages workflow [38157693453](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38157693453) passed its validation job, but its deploy job was skipped. This is not evidence of a completed production deployment.
+- Release remains **BLOCKED / NOT CERTIFIED**. The SMM deferral is a product-scope choice, not a waiver of the independent global release blockers. In particular, the live SMM gateway must be disabled or denied server-side under approved change control before launch; the static holding page alone is insufficient.
