@@ -1606,3 +1606,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Unified Module Center now separates core modules from sectors and exposes explicit open actions.
 - [x] SMM added to Module Center and permission-aware main dashboard / Marketing command center shortcuts.
 - [ ] Continue completing remaining sector workflows and operational actions; defer broad reviews until construction is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-008
+- [x] Shared records tables can export displayed columns and currently loaded rows as CSV.
+- [x] Generic sector workspaces can refresh their loaded records.
+- [ ] Continue module-specific construction before broad review/testing.
