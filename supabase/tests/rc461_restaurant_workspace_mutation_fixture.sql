@@ -4,7 +4,12 @@ begin
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
   if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin; end if;
 end
-$$;
+$;
+
+create schema if not exists auth;
+create or replace function auth.uid() returns uuid language sql stable as $
+  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
+$;
 
 create table if not exists public.businesses (
   id uuid primary key,
@@ -69,4 +74,6 @@ create table public.restaurant_inventory (
   supplier_name text,
   updated_at timestamptz not null default now()
 );
+alter table public.restaurant_tables enable row level security;
+alter table public.restaurant_inventory enable row level security;
 grant select, insert, update, delete on public.restaurant_tables, public.restaurant_inventory to authenticated;
