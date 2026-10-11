@@ -55,8 +55,11 @@ assert.match(orderCreate, /const isUuid = \(value: unknown\)/, 'order scope and 
 assert.match(orderCreate, /INVALID_CUSTOMER_DETAILS/);
 assert.match(orderCreate, /INVALID_ORDER_METADATA/);
 assert.match(orderCreate, /fulfillmentType === "DELIVERY" && !body\.deliveryAddress\.trim\(\)/, 'pickup and dine-in orders may omit delivery addresses');
+assert.match(orderCreate, /AMBIGUOUS_ACTIVE_PRICE/, 'overlapping current prices are rejected rather than choosing by version');
+assert.match(orderCreate, /INVALID_SERVER_PRICING_DATA/, 'invalid prices, option deltas, and tax rates fail closed');
+assert.match(orderCreate, /branchSpecific\.length\s*\?\s*branchSpecific/, 'branch-specific pricing takes precedence over a generic price');
 const menuUniqueMigration = fs.readFileSync('supabase/migrations/20261012020000_rc460_restaurant_menu_catalog_unique_ref.sql', 'utf8');
 assert.match(menuUniqueMigration, /RC460_DUPLICATE_RESTAURANT_MENU_CATALOG_REFS/, 'catalog uniqueness migration fails closed when legacy duplicates exist');
 assert.match(menuUniqueMigration, /v_has_equivalent_unique_index boolean/, 'existing equivalent unique indexes are reused');
 assert.match(menuUniqueMigration, /create unique index catalog_items_restaurant_menu_legacy_ref_uidx/, 'restaurant menu catalog references are uniquely indexed when needed');
-console.log('Restaurant workspace contract: PASS (52 assertions)');
+console.log('Restaurant workspace contract: PASS (55 assertions)');
