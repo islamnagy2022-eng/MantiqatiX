@@ -1,6 +1,6 @@
 # SMM Providers — Live Schema Evidence
 
-**Status:** Read-only catalog evidence only. This document is not an authoritative historical creation migration and is **not approved as a replay baseline**.
+**Status:** Read-only catalog evidence from production. On 2026-10-11 the owner explicitly approved using this observed schema as a **test-only baseline for isolated disposable replay**. It is not a historical production migration and must never be applied to production.
 
 **Observed:** 2026-10-11, Supabase project `moyhiluyhjsujhwlyeuu`, using read-only PostgreSQL catalog introspection. No provider records or API URLs were queried.
 
@@ -37,6 +37,11 @@ The owner has approved use of the documented `smm_provider_credentials` snapshot
 
 ## Safety and next step
 
-Do not guess the original DDL, create a minimal fake provider table, modify already-applied migration history, or apply any baseline to production. Recover the original provider-table DDL from authoritative history or obtain explicit approval for a separately versioned test-only baseline, then validate the baseline and full ordered replay on disposable infrastructure.
+Do not guess the original historical DDL, modify already-applied migration history, or apply any baseline to production. The approved baseline reproduces the observed live schema for test replay only; validate the baseline and full ordered replay on disposable infrastructure before making any release decision.
 
 No production schema, grants, RLS, credentials, data, wallet balances, payment records, or Edge Functions were changed while collecting this evidence.
+
+
+## Owner approval update — 2026-10-11
+
+The owner explicitly instructed “اعتمد المصدر عندك مصدر فعلي”. This is recorded as approval to use the live catalog snapshot as a real schema source for a test-only baseline in disposable replay. It does not authorize production changes, table data export, or rewriting historical migration records. The release-reconciliation PR includes the baseline, validator checks, and CI injection plan; the replay must still pass on the exact current head.
