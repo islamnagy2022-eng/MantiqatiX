@@ -701,3 +701,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-035
 - Commit `a60fbb97bea4c22a8498a304c907530ea90166fb`: campaign cards show the saved brief using an explicit field projection.
+
+ 
+## Build progress — SESSION-036
+- Commit `c47c96ac4aa0bcd9fa1dc4fe1c25552f7cf28720`: Marketing CSV export includes loaded campaign and partner-assignment data when the backend is available.
