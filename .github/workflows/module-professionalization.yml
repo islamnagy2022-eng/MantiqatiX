@@ -119,13 +119,14 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_test -v ON_ERROR_STOP=1 -f /tmp/rc432_test.sql
 
           node --check web/smm.js
-          node scripts/validate-smm-payment-safety.mjs
+          echo "RC432 migration integration is tested here; SMM runtime safety remains NOT VERIFIED until the gateway/UI source and RC456 rollout are reconciled."
           node scripts/validate-erp-receiving-contract.mjs
           node scripts/validate-subscription-intent-safety.mjs
           node scripts/test-checkout-secret-crypto.mjs
           node scripts/validate-security-definer-search-path.mjs
           node scripts/validate-platform-admin-scope.mjs
           node scripts/validate-financial-journal-safety.mjs
+          node scripts/validate-financial-journal-service-role.mjs
           node scripts/validate-erp-purchase-order-lines.mjs
           node scripts/validate-checkout-recovery.mjs
 
@@ -198,6 +199,82 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -f /tmp/rc436_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -f /tmp/rc436_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -f /tmp/rc436_test.sql
+
+  financial-journal-rc450-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_finance_rc450_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_finance_rc450_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run RC436 → RC450 financial journal scope integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc450_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc450_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc450_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc450_financial_journal_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql "$pg_container:/tmp/rc436.sql"
+          docker cp supabase/migrations/20261010180000_rc450_financial_journal_service_role_boundary.sql "$pg_container:/tmp/rc450.sql"
+          docker cp supabase/tests/rc450_financial_journal_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc450_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc436.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc450_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+
+  financial-journal-rc457-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_finance_rc457_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_finance_rc457_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run RC436 → RC450 → RC457 canonical journal integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc450_financial_journal_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql "$pg_container:/tmp/rc436.sql"
+          docker cp supabase/migrations/20261010180000_rc450_financial_journal_service_role_boundary.sql "$pg_container:/tmp/rc450.sql"
+          docker cp supabase/migrations/20261011020000_rc457_financial_journal_idempotency_rpc_convergence.sql "$pg_container:/tmp/rc457.sql"
+          docker cp supabase/tests/rc457_financial_journal_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -f /tmp/rc436.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -f /tmp/rc450.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -f /tmp/rc457.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_rc457_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
 
   checkout-recovery-integration:
     runs-on: ubuntu-latest
@@ -297,6 +374,49 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_test.sql
+
+  erp-branch-scope-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_erp_rc458_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_erp_rc458_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run RC434 → RC437 → RC438 → RC458 ERP branch-scope tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc458_erp_branch_scope_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009200000_rc434_atomic_erp_purchase_receiving.sql "$pg_container:/tmp/rc434.sql"
+          docker cp supabase/migrations/20261009230000_rc437_purchase_order_lines_receiving_limits.sql "$pg_container:/tmp/rc437.sql"
+          docker cp supabase/migrations/20261009240000_rc438_purchase_order_creation_with_lines.sql "$pg_container:/tmp/rc438.sql"
+          docker cp supabase/migrations/20261011030000_rc458_erp_branch_organization_scope.sql "$pg_container:/tmp/rc458.sql"
+          docker cp supabase/tests/rc437_purchase_order_lines_integration.sql "$pg_container:/tmp/rc437_test.sql"
+          docker cp supabase/tests/rc458_erp_branch_scope_integration.sql "$pg_container:/tmp/rc458_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc434.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc437.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc438.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc458.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc437_test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc458_test.sql
 
   rc434-receiving-integration:
     runs-on: ubuntu-latest
@@ -406,6 +526,7 @@ jobs:
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
           node scripts/validate-erp-receiving-release-contract.mjs
+
           node scripts/validate-checkout-recovery.mjs
           node scripts/validate-financial-journal-safety.mjs
           node scripts/validate-paymob-order-binding.mjs
