@@ -26,7 +26,7 @@ assert.match(migration, /v_legacy_ref := 'RESTAURANT_MENU:' \|\| v_id/);
 assert.match(migration, /item_type='PRODUCT'/);
 assert.match(migration, /catalog_item_prices/);
 assert.match(migration, /v_next_effective_from timestamptz/);
-assert.match(migration, /effective_to=v_next_effective_from/);
+assert.match(migration, /effective_from,effective_to[\s\S]*?pg_catalog\.now\(\),v_next_effective_from/, 'the new price interval ends at the next scheduled price boundary');
 assert.match(migration, /RESTAURANT_DUPLICATE_ACTIVE_PRICES/);
 assert.match(migration, /status='INACTIVE',effective_to=pg_catalog\.now\(\)/);
 assert.match(migration, /public\.audit_logs/);
