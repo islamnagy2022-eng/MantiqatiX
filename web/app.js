@@ -1166,6 +1166,11 @@ function bindDomainModuleActions(){
  if(window.__MNTYDomainModuleActionsBound)return;
  window.__MNTYDomainModuleActionsBound=true;
  document.addEventListener('click',async e=>{
+  const restaurantRefresh=e.target.closest('[data-restaurant-refresh]');
+  if(restaurantRefresh){
+   const cache=live.moduleData.RESTAURANTS||{};cache.rowsReady=false;cache.loading=false;live.moduleData.RESTAURANTS=cache;
+   await loadRestaurantWorkspace();return;
+  }
   const detail=e.target.closest('[data-domain-record-detail]');
   if(detail){
    const table=String(detail.dataset.domainRecordDetail||''),id=String(detail.dataset.domainRecordId||'');
@@ -1295,7 +1300,7 @@ function domainModuleWorkspace(){
  const d=live.moduleData[m.key]||{tables:{},ready:false};
  if(m.key==='RESTAURANTS'){
   if(!d.rowsReady){loadRestaurantWorkspace();return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل بيانات المطعم الفعلية وفق نطاق النشاط والفرع والصلاحيات…</div>'}
-  return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
+  return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" type="button" data-restaurant-refresh="1">تحديث بيانات المطعم</button><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
 }
 if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
