@@ -1568,3 +1568,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Wait for/resolve CI results for commit `949edb74a0051a4dcc14a7473ecfa68ad056a442`.
 - [ ] Add module-focused behavior tests and confirm no regression before opening integration PR.
 - **No production deployment or schema mutation. Release gate remains BLOCKED / NOT CERTIFIED.**
+
+ 
+## Build phase — continued implementation
+- [x] Global search opens existing order/lead/support-ticket detail flows when supported.
+- [x] Generic workspaces have a refresh control that reloads via the existing app flow.
+- [x] Removed unrelated fallback records from unhandled generic module contexts.
+- [ ] Extend missing domain-module workflows and data connections.
+- [ ] Run focused module tests and complete review after the build phase.
+- [ ] Confirm current GitHub Actions checks before proposing integration.
