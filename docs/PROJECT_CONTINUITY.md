@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. User has directed **BUILD ONLY: finish missing functionality across modules first; defer broad reviews until construction is complete**. Active work branch: `build/module-workspaces-functional-20261011`. The release gate remains **BLOCKED / NOT CERTIFIED**; do not deploy or claim readiness. The main branch baseline at the start of this build batch was `8a56358d505d2c12878440037f7f24ba65d2ea10`.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -539,3 +539,133 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## BUILD TRACK — 2026-10-11 — Current resume point
+- User directive: build all modules and missing functionality first; postpone broad reviews until all module construction is done.
+- Active branch: `build/module-workspaces-functional-20261011`.
+- First build batch implemented functional generic workspaces and global-search record detail drawer. See `docs/SESSION_LOG.md` SESSION-002 for exact commits and scope.
+- Continue next with specialized Restaurant Workspace, then CRM, Marketing/SMM, Operations/Orders, Finance, Notifications/Tasks, Reports/Analytics, and remaining sector modules.
+- Do not repeat audits during this build phase. Keep using existing server-authoritative paths and RLS; do not invent database mutations or financial workflows where a supported backend contract is absent.
+- Once all modules are built, switch to the planned review/testing phase and close release gates with evidence.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-003
+- Active branch: `build/module-workspaces-functional-20261011`.
+- Draft PR: [#205](https://github.com/islamnagy2022-eng/MantiqaTix/pull/205).
+- Batch 2: allowlisted CSV exports across CRM, marketing, restaurant, operations, notifications and generic workspace records; bulk mark-read for loaded notifications via existing RPC; global details drawer keyboard/focus handling.
+- No production writes or deployment.
+- Continue build-only. Do not run broad reviews until all modules have been constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-004
+- Active branch: `build/module-workspaces-functional-20261011`; draft PR #205 remains open.
+- CRM: data-driven lead status filters.
+- Operations: data-driven order status filters.
+- Marketing: status filters for leads/projects/advertisements.
+- Analytics: accessible distribution of loaded order statuses and allowlisted exports.
+- Continue build-only; broad review is deferred until all modules have been constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-005
+- Active branch: `build/module-workspaces-functional-20261011`; draft PR #205.
+- Added safe data-backed table views for the generic sector modules with allowlisted fields, scoped queries, per-table CSV exports, and status filters.
+- Existing specialized paths retained for Restaurant, Accounting, ERP, Factory, Trips, and Matrimony. Medical is now loaded through the safe field-map path while retaining its existing workspace UI.
+- Sensitive contact/health/job-application details are not included in generic display/export allowlists.
+- Continue build-only; defer broad review and verification until all module construction is complete.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-006
+- Jobs module now has role-gated job posting and customer-only application forms, with RLS-controlled writes and allowlisted job/application views and exports.
+- The code is in draft PR #205 on `build/module-workspaces-functional-20261011`.
+- The job write/application flows are implemented but **not runtime-verified**; do not claim they have passed RLS or end-to-end tests.
+- Continue building remaining sector workflows; defer broad reviews until construction is complete.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-007
+- Module Center now shows core platform modules and sector workspaces separately, with explicit open buttons and visibility checks.
+- SMM is exposed in the module center and as a permission-aware main-dashboard/Marketing-center shortcut.
+- Active branch remains `build/module-workspaces-functional-20261011`; draft PR #205.
+- Continue building; do not perform broad reviews until all modules are constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-008
+- Shared records tables now support CSV export of visible columns from currently loaded rows.
+- Generic sector workspaces have a refresh action that reloads their RLS-scoped records.
+- Active branch remains `build/module-workspaces-functional-20261011`; draft PR #205.
+- Continue build-only; defer broad reviews until all modules are constructed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-009
+- Generic sector workspaces now provide read-only detail drawers for configured rows (including jobs/education-adjacent tables and other generic sector tables), scoped to the already-loaded RLS-visible row and existing allowlisted fields.
+- No direct privileged reads or mutations were added; missing records fail closed.
+- Commit: `4c46af60a11316a15d9e488d78e81372e6e904ad`; branch remains `build/module-workspaces-functional-20261011`, draft PR #205.
+- Continue construction; broad review/testing remains deferred until the user says module construction is complete.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-010
+- SMM “My Orders” now has client-side search/status filtering, visible counts, per-order refresh buttons, and allowlisted CSV export of the filtered subset of the authenticated user's loaded orders.
+- Export mitigates spreadsheet formula injection and does not add new data access.
+- Commit: `0d69612a945ffaa26a728f89ac7cc08eb2395e8d`; branch remains `build/module-workspaces-functional-20261011`, draft PR #205.
+- This is UI construction only; no SMM gateway, payment, wallet, or provider integration was changed. Runtime testing and broad review remain deferred.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-011
+- SMM service catalog supports search plus platform/category filters, visible result counts, and allowlisted CSV export of the filtered list.
+- Service order modal opens only from the explicit “اطلب الخدمة” button, reducing accidental order initiation from card clicks.
+- Commit: `f402b79cf7476fd8e4651a5036ee1cb4023fb9e7`; branch `build/module-workspaces-functional-20261011`, draft PR #205.
+- No gateway/payment/provider backend changes; broad review and runtime tests remain deferred.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-012
+- SMM gateway client now checks session retrieval and access-token presence before POSTing, and disables HTTP caching for those requests.
+- Order form rejects non-integer quantities and values outside the service bounds before sending the request.
+- Commit: `03649e71396f8f9bef4b0625cc1df8a9f2fd8ae8`; no production changes; runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-013
+- Education workspace now supports live text filtering across loaded school, teacher, and request rows, displays match counts, and exposes per-source CSV exports.
+- Filtering is presentation-only over current rows; data reads and authorization are unchanged.
+- Commit: `3aeedbc899b5da1f357c90160265de26a36c5491`; no production deployment or schema/security change.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-014
+- Sector tables now expose a read-only details drawer for records already loaded into the current workspace.
+- Drawer fields are restricted to the corresponding table's configured allowlist; no extra database query, permission expansion, or mutation is introduced.
+- Documentation commit: `d8783dd5c3eac43878dccc604e8fbd07aedf1f9f`; the implementation is on the active build branch. Runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-015
+- Specialized Accounting, ERP, Factory, Trips, and Matrimony workspaces now show a refresh button that invalidates only the active module's in-memory cache and calls its existing authenticated loader.
+- No data mutation or permission/schema changes were introduced by this control.
+- Implementation commit: `0e19464fadd67c5520b0cb6449218c50b9a17ba3`; runtime/E2E is not yet verified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-016
+- Restaurant workspace now includes a refresh action for menu, orders, tables, and inventory.
+- The action reuses the existing scoped loader and clears only the in-memory cache for the restaurant module; no data or permissions are changed.
+- Implementation commit: `936551530b7def8bb815cfbf458ad1b4874b8d0c`; runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-017
+- Job applications now have a read-only details drawer limited to the already-loaded job ID, applicant name, and submission date.
+- No additional sensitive fields are queried or displayed; implementation commit: `f5522cad42215e392ef18cc9de4395468bf7ab3f`.
+- Runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-018
+- The Used Items sector now has a dedicated read-only marketplace workspace with search, available/sold filtering, CSV export, and safe details drawer using the existing mapped fields.
+- Implementation commit: `2c5f2c00888778dc82353b76d6aef7fcda5d6922`.
+- No schema changes, production deployment, or runtime verification performed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-019
+- Customer job discovery filters to explicitly active jobs; customer education discovery filters to schools/teachers explicitly marked available.
+- Commits: `54947fad3de57b4584806eb2a8e238a987b20d67`, `e7c1413e7b5f325d3841f1c7875ac5937357f88b`.
+- UI filters do not replace RLS/server-side enforcement; runtime/E2E remains outstanding.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-020
+- Job application and education request entry points revalidate current loaded target status before opening the forms.
+- Implementation commit: `02ae35ae66ea07abdf013544b4840950565cfa93`.
+- Backend/RLS verification remains pending and must be part of the deferred review/testing phase.

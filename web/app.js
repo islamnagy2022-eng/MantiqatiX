@@ -529,8 +529,33 @@ function globalSearchResultHtml(results){
  if(!results.length)return '<div class="mx-global-search-empty">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
  return results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
 }
+function openGlobalSearchDetails(hit){
+ if(!hit?.source||!hit?.row)return;
+ document.getElementById('mx-global-record-overlay')?.remove();
+ const fields=[...new Set([...(hit.source.fields||[]),...(hit.source.select||'').split(',').map(x=>x.trim()).filter(Boolean)])];
+ const detailRows=fields.filter(k=>Object.prototype.hasOwnProperty.call(hit.row,k)).map(k=>'<div><dt>'+esc(k.replace(/_/g,' '))+'</dt><dd>'+esc(genericWorkspaceDisplayValue(hit.row[k],k))+'</dd></div>').join('');
+ const previousFocus=document.activeElement;
+ const overlay=document.createElement('div');overlay.id='mx-global-record-overlay';overlay.className='mx-global-record-overlay';
+ overlay.innerHTML='<button type="button" class="mx-global-record-scrim" data-global-record-close aria-label="إغلاق التفاصيل"></button><aside class="mx-global-record-drawer" role="dialog" aria-modal="true" aria-labelledby="mx-global-record-title"><header><div><span class="eyebrow">RECORD DETAILS</span><h2 id="mx-global-record-title">'+esc(hit.title||'تفاصيل السجل')+'</h2><p>'+esc(hit.source.label)+'</p></div><button type="button" class="mx-global-record-close" data-global-record-close aria-label="إغلاق">×</button></header><dl>'+detailRows+'</dl><footer><button type="button" class="btn btn-primary" data-global-record-route="'+esc(hit.source.route||'')+'">فتح الوحدة</button><button type="button" class="btn btn-secondary" data-global-record-close>إغلاق</button></footer></aside>';
+ document.body.appendChild(overlay);
+ const close=()=>{document.removeEventListener('keydown',onKey);overlay.remove();if(previousFocus?.isConnected)previousFocus.focus();};
+ const onKey=e=>{if(e.key==='Escape')close();};
+ document.addEventListener('keydown',onKey);
+ overlay.querySelectorAll('[data-global-record-close]').forEach(b=>b.addEventListener('click',close));
+ overlay.querySelector('[data-global-record-route]')?.addEventListener('click',e=>{const route=e.currentTarget.dataset.globalRecordRoute;close();if(route)selectModule(route)});
+ overlay.querySelector('.mx-global-record-close')?.focus();
+}
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
-function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>تحكم في الوحدات التي تظهر للمنصة والمشتركين.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>`<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span></article>`).join('')}</div>`}
+function modulePage(){
+ const q=String(query||'').trim().toLocaleLowerCase('ar');
+ const role=String(live.role||'').toUpperCase();
+ const sectorNames=new Set(domainModules.map(m=>m.name));
+ const core=modules.filter(m=>!['الرئيسية','الموديولات'].includes(m[1])&&!sectorNames.has(m[1])&&(m[1]!=='التحكم الكامل'||role==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!window.MNTY_RBAC?.ROLE_DEFAULTS?.[role]||window.MNTY_RBAC.can(role,m[1],'view',live.permissions))).filter(m=>!q||[m[1],m[2],m[0]].join(' ').toLocaleLowerCase('ar').includes(q));
+ const sectorsList=domainModules.filter(m=>moduleEnabled(m.name)&&(!window.MNTY_RBAC?.ROLE_DEFAULTS?.[role]||window.MNTY_RBAC.can(role,m.name,'view',live.permissions))).filter(m=>!q||[m.name,m.desc,m.key,...m.tables].join(' ').toLocaleLowerCase('ar').includes(q));
+ const coreCards=core.map(m=>'<article class="card module mx-module-directory-card"><div class="icon">'+esc(m[0])+'</div><h3>'+esc(m[1])+'</h3><div class="muted">'+esc(m[2])+'</div><span class="status">وحدة منصة</span><button type="button" class="btn btn-outline" onclick="selectModule(\''+esc(m[1])+'\')">فتح الوحدة</button></article>').join('');
+ const sectorCards=sectorsList.map(m=>{const state=live.moduleData[m.key]||{};const stateLabel=state.rowsReady?'تم تحميل السجلات':state.ready?'حالة المصادر محمّلة':'تُحمّل عند الفتح';return '<article class="card module mx-module-directory-card"><div class="icon">'+esc(m.icon)+'</div><h3>'+esc(m.name)+'</h3><div class="muted">'+esc(m.desc)+'</div><div class="mx-module-directory-meta"><span>'+m.tables.length+' مصادر بيانات</span><span>'+esc(stateLabel)+'</span></div><button type="button" class="btn btn-outline" onclick="selectModule(\''+esc(m.name)+'\')">فتح المجال</button></article>'}).join('');
+ return '<div class="section-head"><div><h2>مركز الموديولات</h2><p>الوحدات الأساسية والقطاعات التشغيلية المتاحة لحسابك.</p></div><span class="count">'+(core.length+sectorsList.length)+' وحدة</span></div><div class="mx-module-directory"><section><div class="section-head"><div><h3>وحدات المنصة الأساسية</h3><p class="muted">الإدارة، CRM، التسويق، SMM، العمليات، المالية والتقارير.</p></div></div><div class="modules">'+(coreCards||'<div class="empty-state">لا توجد وحدات أساسية مطابقة للبحث أو الصلاحيات.</div>')+'</div></section><section><div class="section-head"><div><h3>القطاعات والخدمات</h3><p class="muted">مساحات القطاع تعرض السجلات المتاحة وفق الصلاحيات وسياسات RLS.</p></div></div><div class="modules">'+(sectorCards||'<div class="empty-state">لا توجد قطاعات مطابقة للبحث أو الصلاحيات.</div>')+'</div></section></div>';
+}
 function sectorsPage(){
  const list=filtered(sectors);
  const sectorMap={
@@ -549,16 +574,154 @@ function sectorsPage(){
 function genericPage(title,desc,items){
  const safe=Array.isArray(items)?items:[];
  const tabs=[['overview','نظرة عامة'],['data','البيانات'],['operations','العمليات'],['reports','التقارير'],['settings','الإعدادات']];
- const sections=safe.map((x,i)=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+['▣','◈','◌','◆','◇','◎'][i%6]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(x[0])+'</h3><span class="mnty-badge mnty-badge--ui">الواجهة مكتملة</span></div><p>'+esc(x[1])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div></div></article>').join('');
- const tabBody={
-  overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>مساحة العمل جاهزة</h3><p>الهيكل البصري والعمليات الأساسية لهذه الوحدة محددة. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',
-  data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>سيتم ربط الجداول وواجهات القراءة الفعلية هنا حسب نطاق الحساب والصلاحيات، دون إنشاء سجلات تجريبية.</p></div>',
-  operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>أزرار التنفيذ تُضاف فقط للعمليات التي لها مسار خادم معتمد وصلاحية واضحة. لا يتم تشغيل إجراء غير متصل.</p></div>',
-  reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات ستعتمد على بيانات تشغيلية حقيقية؛ لذلك تظل القيم غير المتاحة فارغة بدل عرض أرقام تقديرية.</p></div>',
-  settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>إعدادات الوحدة تظهر عند اكتمال مساراتها الخلفية والصلاحيات المرتبطة بها.</p></div>'
- };
- return '<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT WORKSPACE</span><h2>'+esc(title)+'</h2><p>'+esc(desc)+'</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--ui">UI READY</span><small>بيانات فعلية فقط عند توفر المصدر</small></div></div><div class="mnty-module-tabs" role="tablist" aria-label="أقسام مساحة العمل" data-workspace-tabs>'+tabs.map((t,i)=>'<button type="button" role="tab" aria-selected="'+(i===0?'true':'false')+'" class="'+(i===0?'active':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div><div class="mnty-tab-panel" id="mnty-generic-tab-panel" role="tabpanel" tabindex="0">'+tabBody.overview+'</div><div class="mnty-blueprint-grid">'+sections+'</div><div class="mnty-future-panel"><div><span class="eyebrow">CONNECTION LATER</span><h3>الشاشة جاهزة قبل اكتمال الخدمة الخلفية</h3><p>لن نعرض أرقامًا أو سجلات مصطنعة. عند اكتمال المصدر، يتم توصيله بهذه الواجهة مباشرة.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>READY</span></div><div><b>DATA</b><span>PENDING</span></div><div><b>SECURITY</b><span>SERVER</span></div></div></div></section>';
+ const sections=safe.map((x,i)=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+['▣','◈','◌','◆','◇','◎'][i%6]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(x[0])+'</h3><span class="mnty-badge mnty-badge--ui">مسار عمل</span></div><p>'+esc(x[1])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div></div></article>').join('');
+ return '<section class="mnty-product-shell mx-workspace" data-generic-workspace="'+esc(title)+'"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT WORKSPACE</span><h2>'+esc(title)+'</h2><p>'+esc(desc)+'</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--live">مساحة تشغيلية</span><small>تُعرض البيانات المتاحة وفق صلاحيات الحساب</small></div></div><div class="mx-workspace-toolbar"><div><strong>مساحة العمل الموحدة</strong><small>القراءة من البيانات المحمّلة وفق RLS؛ لا يتم إنشاء بيانات تجريبية.</small></div><button type="button" class="btn btn-secondary mx-workspace-refresh" data-workspace-action="refresh">تحديث البيانات</button></div><div class="mnty-module-tabs" role="tablist" aria-label="أقسام مساحة العمل" data-workspace-tabs>'+tabs.map((t,i)=>'<button type="button" role="tab" aria-selected="'+(i===0?'true':'false')+'" class="'+(i===0?'active':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div><div class="mnty-tab-panel mx-workspace-panel" id="mnty-generic-tab-panel" role="tabpanel" tabindex="0" data-workspace-panel>'+genericWorkspacePanelHtml(title,'overview')+'</div><div class="mnty-blueprint-grid">'+sections+'</div></section>';
 }
+function genericWorkspaceSources(title){
+ const t=String(title||'');
+ if(t==='المستخدمون')return [{label:'مقدمو الخدمة',key:'providers',rows:live.records.providers||[],fields:[['name_ar','الاسم'],['provider_kind','النشاط'],['status','الحالة'],['is_verified','موثق']]}];
+ if(t==='الطلبات')return [{label:'الطلبات المتاحة للحساب',key:'orders',rows:live.records.orders||[],fields:[['id','رقم الطلب'],['customer_name','العميل'],['status','الحالة'],['total_amount','الإجمالي'],['created_at','تاريخ الإنشاء']]}];
+ if(t==='التسويق والإعلان')return [
+  {label:'المشروعات التسويقية',key:'projects',rows:live.records.projects||[],fields:[['project_type','نوع المشروع'],['management_mode','الإدارة'],['status','الحالة'],['gross_value','القيمة'],['created_at','تاريخ الإنشاء']]},
+  {label:'الإعلانات',key:'ads',rows:live.records.ads||[],fields:[['title','الإعلان'],['status','الحالة'],['approval_status','الاعتماد'],['start_at','البداية'],['end_at','النهاية']]},
+  {label:'العملاء المحتملون',key:'leads',rows:live.records.leads||[],fields:[['title','العنوان'],['status','الحالة'],['source','المصدر'],['created_at','تاريخ الإنشاء']]}
+ ];
+ if(t==='العمولات والباقات')return [{label:'مشروعات وحسابات مالية متاحة',key:'projects',rows:live.records.projects||[],fields:[['project_type','نوع المشروع'],['status','الحالة'],['gross_value','القيمة الإجمالية'],['platform_commission','عمولة المنصة'],['currency','العملة']]}];
+ if(t==='التقارير')return [
+  {label:'الطلبات الحديثة',key:'orders',rows:live.records.orders||[],fields:[['id','رقم الطلب'],['status','الحالة'],['total_amount','الإجمالي'],['created_at','التاريخ']]},
+  {label:'المشروعات التسويقية الحديثة',key:'projects',rows:live.records.projects||[],fields:[['project_type','نوع المشروع'],['status','الحالة'],['gross_value','القيمة'],['platform_commission','العمولة']]},
+  {label:'العملاء المحتملون',key:'leads',rows:live.records.leads||[],fields:[['title','العنوان'],['status','الحالة'],['source','المصدر']]}
+ ];
+ return [{label:'بيانات الحساب الحالي',key:'membership',rows:live.memberships||[],fields:[['business_name','النشاط'],['role','الدور'],['status','الحالة'],['business_section','المجال']]}];
+}
+function genericWorkspaceStats(title){
+ const t=String(title||'');
+ const specs=t==='المستخدمون'?[['مقدمو الخدمة',live.counts.providers],['الأنشطة المرتبطة',live.memberships?.length],['طلبات الحساب',live.counts.orders]]:
+  t==='الطلبات'?[['الطلبات المتاحة',live.counts.orders],['إشعارات الحساب',live.counts.notifications],['تذاكر الدعم',live.counts.support]]:
+  t==='التسويق والإعلان'?[['مشروعات',live.counts.projects],['إعلانات',live.counts.ads],['عملاء محتملون',live.counts.leads]]:
+  t==='العمولات والباقات'?[['حسابات المحافظ',live.finance?.wallets],['التسويات',live.finance?.settlements],['القيود اليومية',live.finance?.journals]]:
+  t==='التقارير'?[['طلبات محمّلة',live.records.orders?.length],['مشروعات محمّلة',live.records.projects?.length],['عملاء محتملون محمّلون',live.records.leads?.length]]:
+  [['العضويات النشطة',live.memberships?.length],['الدور الحالي',live.role],['الإشعارات',live.counts.notifications]];
+ return specs.map(([label,value])=>'<article class="mx-workspace-stat"><span>'+esc(label)+'</span><strong>'+((value===null||value===undefined||value==='')?'—':esc(value))+'</strong></article>').join('');
+}
+function genericWorkspacePanelHtml(title,tab){
+ const t=String(title||'');
+ if(tab==='overview')return '<div class="mx-workspace-stats">'+genericWorkspaceStats(t)+'</div><div class="mx-workspace-note"><strong>ملخص مساحة العمل</strong><p>هذه المؤشرات مأخوذة من البيانات التي حمّلها النظام بالفعل، وقد تمثل أحدث السجلات المتاحة لا إجمالي قاعدة البيانات. الأرقام غير المتاحة تظهر كشرطة بدل اختلاق قيمة.</p></div><div class="mx-workspace-shortcuts"><button type="button" data-workspace-tab="data">عرض البيانات</button><button type="button" data-workspace-tab="reports">فتح التقارير</button><button type="button" data-workspace-tab="operations">العمليات المتاحة</button></div>';
+ if(tab==='data'){
+  const sources=genericWorkspaceSources(t);
+  return '<div class="mx-workspace-data-head"><div><h3>السجلات المتاحة</h3><p>تُعرض الحقول المعروفة فقط؛ ونتائج البحث داخل السجلات المحمّلة لا تتجاوز حدود صلاحيات الحساب.</p></div><label class="mx-workspace-search-label">بحث داخل النتائج<input type="search" data-workspace-filter placeholder="ابحث في السجلات الحالية" autocomplete="off"></label></div><div class="mx-workspace-data-groups">'+sources.map((source,si)=>'<section class="mx-workspace-data-group"><div class="mx-workspace-group-title"><h4>'+esc(source.label)+'</h4><span>'+source.rows.length+' سجل محمّل</span><button type="button" class="mx-workspace-detail-btn" data-export-source="'+esc(source.key)+'">تصدير CSV</button></div>'+(source.rows.length?'<div class="mx-workspace-table-wrap"><table class="mx-workspace-table"><thead><tr>'+source.fields.map(f=>'<th>'+esc(f[1])+'</th>').join('')+'<th>التفاصيل</th></tr></thead><tbody>'+source.rows.map((row,ri)=>'<tr data-workspace-row data-search-text="'+esc(source.fields.map(f=>String(row?.[f[0]]??'')).join(' '))+'">'+source.fields.map(f=>'<td>'+esc(genericWorkspaceDisplayValue(row?.[f[0]],f[0]))+'</td>').join('')+'<td><button type="button" class="mx-workspace-detail-btn" data-workspace-source="'+si+'" data-workspace-row-index="'+ri+'">عرض التفاصيل</button></td></tr>').join('')+'</tbody></table></div>':'<div class="mx-workspace-empty">لا توجد سجلات متاحة في البيانات المحمّلة لهذا القسم.</div>')+'</section>').join('')+'</div>';
+ }
+ if(tab==='operations'){
+  const actions=t==='المستخدمون'?[['المجالات والخدمات','فتح دليل المجالات'],['العمولات والباقات','الباقات والعمولات'],['الدعم','متابعة الدعم']]:
+   t==='الطلبات'?[['المستخدمون','العملاء ومقدمو الخدمة'],['التقارير','تقارير الطلبات'],['الإشعارات','مركز الإشعارات']]:
+   t==='التسويق والإعلان'?[['خدمات التسويق الرقمي SMM','إدارة SMM'],['المستخدمون وCRM','مساحة CRM'],['التقارير','تقارير التسويق']]:
+   t==='العمولات والباقات'?[['التقارير','التقارير المالية'],['الطلبات','الطلبات المرتبطة'],['الإعدادات','إعدادات الحساب']]:
+   t==='التقارير'?[['الطلبات','تفاصيل الطلبات'],['التسويق والإعلان','تفاصيل التسويق'],['العمولات والباقات','العمولات والباقات']]:
+   [['المستخدمون','إدارة الحسابات'],['الإشعارات','الإشعارات'],['الدعم','الدعم والحوكمة']];
+  return '<div class="mx-workspace-operations"><div><span class="eyebrow">WORKFLOW</span><h3>مسارات العمل</h3><p>هذه الإجراءات تنقل إلى وحدات تشغيلية موجودة. لا يظهر زر تنفيذ مالي أو تعديل بيانات ما لم يكن له مسار خادم وصلاحية معتمدة.</p></div><div class="mx-workspace-action-grid">'+actions.map(a=>'<button type="button" class="mx-workspace-action" data-workspace-nav="'+esc(a[0])+'"><strong>'+esc(a[1])+'</strong><span>فتح مساحة العمل ←</span></button>').join('')+'</div></div>';
+ }
+ if(tab==='reports'){
+  const sources=genericWorkspaceSources(t);
+  return '<div class="mx-workspace-report-head"><div><span class="eyebrow">OPERATIONAL SNAPSHOT</span><h3>التقارير والمؤشرات</h3><p>لقطة من البيانات التي حمّلها النظام في هذه الجلسة، وليست تقريرًا ماليًا معتمدًا أو إجماليًا تاريخيًا.</p></div><span class="mnty-badge mnty-badge--ui">بيانات فعلية محمّلة</span></div><div class="mx-workspace-report-grid">'+sources.map(source=>'<article><span>'+esc(source.label)+'</span><strong>'+source.rows.length+'</strong><small>سجلات محمّلة</small></article>').join('')+'</div><div class="mx-workspace-note"><strong>حدود التقرير</strong><p>القيم المحسوبة من عينات السجلات لا تمثل إجماليًا محاسبيًا أو مؤشرات أداء كاملة. التقارير المالية النهائية تحتاج مصدرًا محاسبيًا معتمدًا وفترة محددة.</p></div>';
+ }
+ return '<div class="mx-workspace-settings"><span class="eyebrow">ACTIVE CONTEXT</span><h3>سياق الحساب الحالي</h3><dl><div><dt>الدور</dt><dd>'+esc(live.role||'—')+'</dd></div><div><dt>عدد العضويات النشطة المحمّلة</dt><dd>'+esc(live.memberships?.length??0)+'</dd></div><div><dt>النشاط المحدد</dt><dd>'+esc(live.memberships?.find(m=>m.id===live.activeMembershipId)?.business_name||'غير مرتبط')+'</dd></div><div><dt>حالة البيانات</dt><dd>'+esc(live.error?'تعذر تحميل البيانات':'تم تحميل البيانات المتاحة')+'</dd></div></dl><p>إدارة الدور والعضوية تتم من المسارات المخصصة وبصلاحيات الخادم، ولا يتم تغيير صلاحيات الحساب من هذه الشاشة.</p></div>';
+}
+function downloadWorkspaceCsv(filename,rows,fields){
+ const safeRows=Array.isArray(rows)?rows:[];
+ if(!safeRows.length){showToast('لا توجد سجلات محمّلة للتصدير.','error');return;}
+ const cell=value=>{let text=value==null?'':(typeof value==='object'?JSON.stringify(value):String(value));text=text.replace(/\r?\n/g,' ');return '"'+text.replace(/"/g,'""')+'"';};
+ const csv='\uFEFF'+[fields.map(f=>cell(f[1])).join(','),...safeRows.map(row=>fields.map(f=>cell(row?.[f[0]])).join(','))].join('\r\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=filename.endsWith('.csv')?filename:filename+'.csv';link.style.display='none';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ showToast('تم تجهيز ملف CSV من السجلات المحمّلة فقط.','success');
+}
+function exportWorkspaceSource(kind){
+ const map={
+  'crm-leads':{filename:'mantiqatix-crm-leads',rows:live.records.leads||[],fields:[['id','معرف السجل'],['title','العنوان'],['status','الحالة'],['source','المصدر'],['service_area','منطقة الخدمة'],['created_at','تاريخ الإنشاء']]},
+  'crm-tickets':{filename:'mantiqatix-support-tickets',rows:live.records.supportTickets||[],fields:[['id','معرف التذكرة'],['subject','الموضوع'],['category','الفئة'],['priority','الأولوية'],['status','الحالة'],['created_at','تاريخ الإنشاء'],['updated_at','آخر تحديث']]},
+  'marketing-projects':{filename:'mantiqatix-marketing-projects',rows:live.records.projects||[],fields:[['id','معرف المشروع'],['project_type','نوع المشروع'],['management_mode','نمط الإدارة'],['status','الحالة'],['gross_value','القيمة الإجمالية'],['platform_commission','عمولة المنصة'],['currency','العملة'],['created_at','تاريخ الإنشاء']]},
+  'marketing-ads':{filename:'mantiqatix-advertisements',rows:live.records.ads||[],fields:[['id','معرف الإعلان'],['title','العنوان'],['status','الحالة'],['approval_status','حالة الاعتماد'],['start_at','تاريخ البداية'],['end_at','تاريخ النهاية']]},
+  'marketing-leads':{filename:'mantiqatix-marketing-leads',rows:live.records.leads||[],fields:[['id','معرف السجل'],['title','العنوان'],['status','الحالة'],['source','المصدر'],['service_area','منطقة الخدمة'],['created_at','تاريخ الإنشاء']]},
+  'restaurant-menu':{filename:'mantiqatix-restaurant-menu',rows:window.__MNTYRestaurantRows?.menu||[],fields:[['id','معرف الصنف'],['name_ar','الصنف'],['category','الفئة'],['base_price_egp','السعر بالجنيه'],['is_available','متاح'],['is_popular','شائع']]},
+  'restaurant-orders':{filename:'mantiqatix-restaurant-orders',rows:window.__MNTYRestaurantRows?.orders||[],fields:[['id','معرف الطلب'],['customer_name','العميل'],['status','الحالة'],['total_egp','الإجمالي بالجنيه'],['fulfillment_type','نوع التنفيذ'],['created_at','تاريخ الإنشاء']]},
+  'restaurant-tables':{filename:'mantiqatix-restaurant-tables',rows:window.__MNTYRestaurantRows?.tables||[],fields:[['id','معرف الطاولة'],['table_number','رقم الطاولة'],['capacity_persons','السعة'],['status','الحالة'],['current_bill_egp','الفاتورة الحالية']]},
+  'restaurant-inventory':{filename:'mantiqatix-restaurant-inventory',rows:window.__MNTYRestaurantRows?.inventory||[],fields:[['id','معرف الصنف'],['name_ar','الصنف'],['unit','الوحدة'],['current_stock_qty','الرصيد'],['min_stock_alert_threshold','حد التنبيه'],['unit_cost_egp','التكلفة']]},
+  'orders':{filename:'mantiqatix-orders',rows:live.records.orders||[],fields:[['id','معرف الطلب'],['status','الحالة'],['total_amount','الإجمالي'],['currency','العملة'],['customer_name','العميل'],['created_at','تاريخ الإنشاء']]},
+  'projects':{filename:'mantiqatix-projects',rows:live.records.projects||[],fields:[['id','معرف المشروع'],['project_type','نوع المشروع'],['management_mode','نمط الإدارة'],['status','الحالة'],['gross_value','القيمة الإجمالية'],['platform_commission','عمولة المنصة'],['currency','العملة'],['created_at','تاريخ الإنشاء']]},
+  'ads':{filename:'mantiqatix-ads',rows:live.records.ads||[],fields:[['id','معرف الإعلان'],['title','العنوان'],['status','الحالة'],['approval_status','حالة الاعتماد'],['start_at','البداية'],['end_at','النهاية']]},
+  'leads':{filename:'mantiqatix-leads',rows:live.records.leads||[],fields:[['id','معرف السجل'],['title','العنوان'],['status','الحالة'],['source','المصدر'],['service_area','منطقة الخدمة'],['created_at','تاريخ الإنشاء']]},
+  'providers':{filename:'mantiqatix-providers',rows:live.records.providers||[],fields:[['id','معرف مقدم الخدمة'],['business_id','معرف النشاط'],['name_ar','الاسم'],['provider_kind','نوع النشاط'],['status','الحالة'],['is_verified','موثق']]},
+  'membership':{filename:'mantiqatix-active-membership',rows:live.memberships||[],fields:[['business_name','النشاط'],['business_section','المجال'],['role','الدور'],['status','الحالة']]},
+  'notifications':{filename:'mantiqatix-notifications',rows:live.records.notifications||[],fields:[['id','معرف الإشعار'],['title','العنوان'],['body','المحتوى'],['read_at','تاريخ القراءة'],['created_at','تاريخ الإنشاء']]},
+  'domain-table':{filename:'mantiqatix-domain-table',rows:[],fields:[]}
+ };
+ const spec=map[kind];if(!spec)return showToast('مصدر التصدير غير متاح.','error');downloadWorkspaceCsv(spec.filename,spec.rows,spec.fields);
+}
+function exportDomainWorkspaceTable(table){
+ const config=DOMAIN_WORKSPACE_TABLES[table],rows=live.moduleData[domainModules.find(m=>m.name===current)?.key]?.rows?.[table]||[];
+ if(!config)return showToast('لا توجد خريطة تصدير لهذا المصدر.','error');
+ downloadWorkspaceCsv('mantiqatix-'+table,rows,config.fields);
+}
+function exportRenderedRecordsTable(tableId){
+ const table=document.getElementById(tableId);if(!table)return;
+ const headers=[...table.querySelectorAll('thead th')].map(th=>String(th.textContent||'').replace(/↕/g,'').trim());
+ const body=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.cells].map(td=>String(td.innerText||td.textContent||'').trim()));
+ const fields=headers.map((label,i)=>[String(i),label||('حقل '+(i+1))]);
+ const rows=body.map(values=>Object.fromEntries(values.map((value,i)=>[String(i),value])));
+ downloadWorkspaceCsv('mantiqatix-table-'+tableId,rows,fields);
+}
+function bindWorkspaceExports(){
+ if(window.__MNTYWorkspaceExportListener)return;
+ window.__MNTYWorkspaceExportListener=true;
+ document.addEventListener('click',e=>{const tableBtn=e.target.closest('[data-records-export]');if(tableBtn){exportRenderedRecordsTable(tableBtn.dataset.recordsExport);return;}const domainBtn=e.target.closest('[data-domain-export-table]');if(domainBtn){exportDomainWorkspaceTable(domainBtn.dataset.domainExportTable);return;}const btn=e.target.closest('[data-export-source]');if(btn)exportWorkspaceSource(btn.dataset.exportSource);});
+}
+function genericWorkspaceDisplayValue(value,key){
+ if(value===null||value===undefined||value==='')return '—';
+ if(typeof value==='boolean')return value?'نعم':'لا';
+ if(/_at$|created_at|updated_at/.test(String(key))) {const d=new Date(value);if(!Number.isNaN(d.getTime()))return d.toLocaleString('ar-EG');}
+ if(typeof value==='object')return '[بيانات مركبة]';
+ return String(value);
+}
+function bindGenericWorkspaceTabs(){
+ const root=document.querySelector('[data-generic-workspace]');if(!root)return;
+ const title=root.getAttribute('data-generic-workspace')||'';
+ const panel=root.querySelector('[data-workspace-panel]');if(!panel)return;
+ const sources=genericWorkspaceSources(title);
+ root.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  root.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-selected',x===btn?'true':'false')});
+  panel.innerHTML=genericWorkspacePanelHtml(title,btn.dataset.tab);
+ }));
+ root.querySelectorAll('[data-workspace-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  const tab=btn.dataset.workspaceTab, target=root.querySelector('[data-workspace-tabs] button[data-tab="'+tab+'"]');target?.click();
+ }));
+ root.querySelectorAll('[data-workspace-nav]').forEach(btn=>btn.addEventListener('click',()=>selectModule(btn.dataset.workspaceNav)));
+ root.querySelector('[data-workspace-action="refresh"]')?.addEventListener('click',async e=>{
+  const btn=e.currentTarget;btn.disabled=true;btn.textContent='جارٍ التحديث…';
+  try{await renderApp({forceWorkspace:true});}finally{btn.disabled=false;btn.textContent='تحديث البيانات';}
+ });
+ root.addEventListener('input',e=>{
+  if(!e.target.matches('[data-workspace-filter]'))return;
+  const q=String(e.target.value||'').trim().toLocaleLowerCase();
+  root.querySelectorAll('[data-workspace-row]').forEach(row=>{row.hidden=Boolean(q)&&!String(row.dataset.searchText||'').toLocaleLowerCase().includes(q)});
+ });
+ root.addEventListener('click',e=>{
+  const tabShortcut=e.target.closest('[data-workspace-tab]');
+  if(tabShortcut){const target=root.querySelector('[data-workspace-tabs] button[data-tab="'+tabShortcut.dataset.workspaceTab+'"]');target?.click();return;}
+  const nav=e.target.closest('[data-workspace-nav]');
+  if(nav){selectModule(nav.dataset.workspaceNav);return;}
+  const back=e.target.closest('[data-workspace-back]');
+  if(back){panel.innerHTML=genericWorkspacePanelHtml(title,'data');return;}
+  const btn=e.target.closest('[data-workspace-source][data-workspace-row-index]');if(!btn)return;
+  const source=sources[Number(btn.dataset.workspaceSource)], row=source?.rows?.[Number(btn.dataset.workspaceRowIndex)];if(!row)return;
+  const fields=source.fields;
+  panel.innerHTML='<div class="mx-workspace-record"><button type="button" class="mx-workspace-back" data-workspace-back>← العودة إلى السجلات</button><span class="eyebrow">RECORD DETAILS</span><h3>'+esc(source.label)+'</h3><dl>'+fields.map(f=>'<div><dt>'+esc(f[1])+'</dt><dd>'+esc(genericWorkspaceDisplayValue(row?.[f[0]],f[0]))+'</dd></div>').join('')+'</dl><p>التفاصيل المعروضة مقتصرة على الحقول المحددة في هذه الوحدة.</p></div>';
+ });
+}
+function bindGenericWorkspaceDataFilter(root){
+ const input=root.querySelector('[data-workspace-filter]');if(!input)return;
+ input.addEventListener('input',()=>{const q=String(input.value||'').trim().toLocaleLowerCase();root.querySelectorAll('[data-workspace-row]').forEach(row=>{row.hidden=Boolean(q)&&!String(row.dataset.searchText||'').toLocaleLowerCase().includes(q)});});
+}
+
 async function loadBusinessCatalog(businessId,branchId=null,tenantId=null){
  if(!businessId)throw new Error('CATALOG_CONTEXT_REQUIRED');
  const q=new URLSearchParams({businessId});
@@ -666,7 +829,7 @@ function roleCommandCenter(){
  const canAct=(name,action)=>window.MNTY_RBAC?.can(role,name,action,live.permissions)===true;
  const cfgs={
   FINANCE:{eyebrow:'FINANCE COMMAND CENTER',title:'مركز القيادة المالية',desc:'المؤشرات المالية والطلبات ذات الصلة ضمن نطاق العضوية الحالية.',modules:[['💳','العمولات والباقات','FINANCE'],['📊','التقارير والتحليلات','ANALYTICS'],['🧾','الطلبات والعمليات','ORDERS']]},
-  MARKETING:{eyebrow:'MARKETING COMMAND CENTER',title:'مركز قيادة التسويق',desc:'الحملات والعملاء المحتملون والمشروعات التسويقية ضمن النطاق المصرح.',modules:[['📣','التسويق والإعلان','MARKETING'],['👥','المستخدمون وCRM','CRM'],['📊','التقارير والتحليلات','ANALYTICS']]},
+  MARKETING:{eyebrow:'MARKETING COMMAND CENTER',title:'مركز قيادة التسويق',desc:'الحملات والعملاء المحتملون والمشروعات التسويقية ضمن النطاق المصرح.',modules:[['📣','التسويق والإعلان','MARKETING'],['🚀','خدمات التسويق الرقمي SMM','SMM'],['👥','المستخدمون وCRM','CRM'],['📊','التقارير والتحليلات','ANALYTICS']]},
   SALES:{eyebrow:'SALES COMMAND CENTER',title:'مركز قيادة المبيعات',desc:'العملاء والطلبات ومتابعة التحويلات المتاحة لدور المبيعات.',modules:[['👥','المستخدمون وCRM','CRM'],['🧾','الطلبات والعمليات','ORDERS'],['📣','التسويق والإعلان','MARKETING']]},
   SUPPORT:{eyebrow:'SUPPORT COMMAND CENTER',title:'مركز قيادة الدعم',desc:'التذاكر والعملاء والطلبات التي يسمح بها نطاق الدعم.',modules:[['🎫','الدعم والحوكمة','SUPPORT'],['👥','المستخدمون وCRM','CRM'],['🧾','الطلبات والعمليات','ORDERS']]},
   SUPPORT_MANAGER:{eyebrow:'SUPPORT COMMAND CENTER',title:'مركز قيادة الدعم',desc:'إدارة الدعم والتذاكر والتصعيد ضمن نطاق العمل.',modules:[['🎫','الدعم والحوكمة','SUPPORT'],['👥','المستخدمون وCRM','CRM'],['📊','التقارير والتحليلات','ANALYTICS']]},
@@ -725,7 +888,9 @@ function roleWorkspaceDashboard(){
 function dashboard(){
  const visibleModules=modules.filter(m=>moduleEnabled(m[1]));
  const quick=filtered(visibleModules).slice(0,8);
- return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM</span><h2>منصة تسويق وربط الخدمات المحلية</h2><p>واجهة موحدة لاكتشاف الخدمات، إدارة الأنشطة، استقبال الطلبات، التسويق، المتابعة والتقارير. كل رقم تشغيلي يظهر من مصدر فعلي فقط.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الموديولات\')">إدارة الموديولات</button></div></div></section><section class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div><div><b>'+countOrDash('orders')+'</b><span>طلبات</span></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>ابدأ من المجال أو الوحدة المناسبة.</p></div><span class="count">'+quick.length+' مساحات</span></div><div class="modules">'+quick.map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div><span class="status">فتح مساحة العمل</span></article>').join('')+'</div><section class="mnty-product-shell" style="margin-top:18px"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT ROADMAP</span><h2>المنصة تُبنى كمنتج واحد</h2><p>الوحدات غير المكتملة خلفيًا لا تتوقف عن الظهور؛ نستكمل تجربة الاستخدام أولًا ثم نربط الخدمات الحقيقية تدريجيًا.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>EVOLVING</span></div><div><b>DATA</b><span>REAL ONLY</span></div><div><b>API</b><span>SERVER</span></div></div></div></section>';
+ const role=String(live.role||'').toUpperCase();
+ const smmShortcut=moduleEnabled('خدمات التسويق الرقمي SMM')&&(!window.MNTY_RBAC?.ROLE_DEFAULTS?.[role]||window.MNTY_RBAC.can(role,'خدمات التسويق الرقمي SMM','view',live.permissions))?'<button class="btn btn-primary" onclick="selectModule(\'خدمات التسويق الرقمي SMM\')">🚀 خدمات التسويق الرقمي SMM</button>':'';
+ return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM</span><h2>منصة تسويق وربط الخدمات المحلية</h2><p>واجهة موحدة لاكتشاف الخدمات، إدارة الأنشطة، استقبال الطلبات، التسويق، المتابعة والتقارير. كل رقم تشغيلي يظهر من مصدر فعلي فقط.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الموديولات\')">إدارة الموديولات</button>'+smmShortcut+'</div></div></section><section class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div><div><b>'+countOrDash('orders')+'</b><span>طلبات</span></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>ابدأ من المجال أو الوحدة المناسبة.</p></div><span class="count">'+quick.length+' مساحات</span></div><div class="modules">'+quick.map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div><span class="status">فتح مساحة العمل</span></article>').join('')+'</div><section class="mnty-product-shell" style="margin-top:18px"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT ROADMAP</span><h2>المنصة تُبنى كمنتج واحد</h2><p>الوحدات غير المكتملة خلفيًا لا تتوقف عن الظهور؛ نستكمل تجربة الاستخدام أولًا ثم نربط الخدمات الحقيقية تدريجيًا.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>EVOLVING</span></div><div><b>DATA</b><span>REAL ONLY</span></div><div><b>API</b><span>SERVER</span></div></div></div></section>';
 }
 function smmModulePage(){return `<div class="section-head"><div><h2>خدمات التسويق الرقمي SMM</h2><p>موديول MANTIQATIX لإدارة الخدمات الرقمية والطلبات والموردين من نفس الحساب.</p></div><span class="count">Module / SMM</span></div><div class="embedded-module"><iframe src="smm.html" title="MANTIQATIX SMM Module" loading="lazy"></iframe></div>`}
 function enterpriseCommandCenter(){
@@ -831,7 +996,7 @@ function accountStatusPanel(){
 function providerProfileWorkspace(){const p=live.myProviderProfile;if(!p)return workspaceHead('PROFILE','ملف نشاطي','لا يوجد ملف نشاط مرتبط بالحساب الحالي.','NOT FOUND')+'<div class="empty-state">سجل نشاطك كمقدم خدمة أولًا ليظهر هنا.</div>';const image=providerImageUrl(p.profile_image_path,p.updated_at);const activityLogoPath=p?.settings?.branding?.logo_path||'';const activityLogo=activityLogoPath?providerImageUrl(activityLogoPath,p.updated_at):'';const services=live.records.providerServices||[];let areas=[];try{areas=Array.isArray(p.service_areas)?p.service_areas:typeof p.service_areas==='string'?JSON.parse(p.service_areas||'[]'):[]}catch(_){areas=[]}const areaNames=areas.map(a=>a.center_name_ar||a.governorate_name_ar||a.name_ar).filter(Boolean);const activeServices=services.filter(s=>String(s.status||'ACTIVE').toUpperCase()==='ACTIVE');const serviceCards=services.length?services.slice(0,12).map(s=>'<article class="card mnty-provider-service-card"><div class="row"><strong>'+esc(s.service_description||'خدمة مقدمة')+'</strong><span class="mnty-badge">'+esc(String(s.status||'ACTIVE'))+'</span></div><p class="muted">'+(s.pricing_from!=null?'من '+esc(s.pricing_from)+' '+esc(s.currency||'EGP'):'السعر حسب الاتفاق')+(s.pricing_to!=null?' · حتى '+esc(s.pricing_to)+' '+esc(s.currency||'EGP'):'')+'</p></article>').join(''):'<div class="empty-state">لا توجد خدمات مسجلة في ملف النشاط حتى الآن.</div>';return workspaceHead('MY ACTIVITY','ملف نشاطي','لوحة إدارة واجهة النشاط والبيانات الظاهرة في الكتالوج العام. البيانات هنا من ملف النشاط الفعلي فقط.','OWNER')+'<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">ACTIVITY PROFILE</span><h2>'+esc(p.name_ar||p.name_en||'نشاطي')+'</h2><p>'+esc(p.provider_kind||'مقدم خدمة')+' · '+esc(p.status||'—')+'</p></div><span class="mnty-badge '+(p.is_verified?'mnty-badge--live':'')+'">'+esc(p.is_verified?'موثق':'قيد التحقق')+'</span></div><div class="mnty-stat-strip"><div><b>'+services.length+'</b><span>خدمات مسجلة</span></div><div><b>'+activeServices.length+'</b><span>خدمات نشطة</span></div><div><b>'+areaNames.length+'</b><span>مناطق خدمة</span></div><div><b>'+esc(p.is_featured?'نعم':'—')+'</b><span>ظهور مميز</span></div></div><div class="mnty-screen-note">'+esc(p.description||'لا يوجد وصف نشاط مسجل حاليًا.')+'</div></section><section class="card provider-profile-editor"><div class="row"><div><h3>الصورة العامة</h3><p class="muted">تظهر في الكتالوج العام بعد تحديث الملف.</p></div>'+(image?'<img class="provider-profile-preview" src="'+esc(image)+'" alt="صورة النشاط">':'<div class="provider-profile-preview provider-profile-preview--empty">صورة افتراضية</div>')+'</div><div class="field"><label>صورة النشاط</label><input id="provider-image-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB · يتم تجهيزها كـWebP قبل الحفظ.</small><div id="provider-image-preview" class="provider-image-preview-note" aria-live="polite">اختر صورة لمعاينتها قبل الحفظ.</div></div><div class="action-bar"><button class="btn btn-primary" id="provider-image-save" style="width:auto">حفظ صورة النشاط</button></div></section><section class="card provider-profile-editor mnty-provider-logo-editor"><div class="row"><div><h3>لوجو النشاط</h3><p class="muted">اللوجو مستقل عن صورة النشاط والأيقونة الأصلية. تغييره لا يستبدل الأصل ويمكن الرجوع إليه في أي وقت.</p></div>'+(activityLogo?'<img class="provider-profile-preview" src="'+esc(activityLogo)+'" alt="لوجو النشاط الحالي">':'<div class="provider-profile-preview provider-profile-preview--empty">الهوية الأصلية</div>')+'</div><div class="field"><label>لوجو جديد للنشاط</label><input id="provider-logo-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB.</small></div><div class="action-bar"><button class="btn btn-primary" id="provider-logo-save" style="width:auto">حفظ لوجو النشاط</button><button class="btn btn-outline" id="provider-logo-reset" style="width:auto">الرجوع للأصل</button></div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICES</span><h3>الخدمات الفعلية</h3><p class="muted">يتم عرض الخدمات الموجودة في قاعدة البيانات فقط.</p></div></div><div class="grid3">'+serviceCards+'</div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICE AREAS</span><h3>مناطق تقديم الخدمة</h3></div></div><div class="request-list">'+(areaNames.length?areaNames.map(a=>'<div class="request-row"><span>'+esc(a)+'</span><b>محددة</b></div>').join(''):'<div class="empty-state">لا توجد مناطق خدمة مسجلة حاليًا.</div>')+'</div></section>'}
 
 
-async function loadEnterpriseDomainData(m){if(!user||!m.tables?.length)return;const cache=live.moduleData[m.key]||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData[m.key]=cache;const rows={};for(const table of m.tables){let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);if(table==='mantigo_rides')q=q.eq('customer_id',user.id);if(table==='mantigo_bids')q=q.limit(100);if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);const r=await q;rows[table]=r.error?[]:(r.data||[])}cache.rows=rows;cache.rowsReady=true;cache.loading=false;renderApp()}
+async function loadEnterpriseDomainData(m){if(!user||!m.tables?.length)return;const cache=live.moduleData[m.key]||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData[m.key]=cache;const rows={};for(const table of m.tables){let q=sb.from(table).select('*').limit(100);const orderColumn=table==='matrimony_contact_unlocks'?'unlocked_at':'created_at';q=q.order(orderColumn,{ascending:false});if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);if(table==='mantigo_rides')q=q.eq('customer_id',user.id);if(table==='mantigo_bids')q=q.limit(100);if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);const r=await q;rows[table]=r.error?[]:(r.data||[])}cache.rows=rows;cache.rowsReady=true;cache.loading=false;renderApp()}
 async function loadRestaurantWorkspace(){
  if(!user?.id)return;const cache=live.moduleData.RESTAURANTS||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData.RESTAURANTS=cache;
  const scope={tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId};
@@ -893,6 +1058,7 @@ function medicalWorkspace(rows){
 }
 function restaurantWorkspace(rows){
  const menu=rows.restaurant_menu_items||[],orders=rows.restaurant_orders||[],tables=rows.restaurant_tables||[],inventory=rows.restaurant_inventory||[];
+ window.__MNTYRestaurantRows={menu,orders,tables,inventory};
  const errors=rows.__errors||{};
  const available=menu.filter(x=>x.is_available).length,activeOrders=orders.filter(x=>!['DELIVERED','CANCELLED','COMPLETED'].includes(String(x.status||'').toUpperCase())).length,lowStock=inventory.filter(x=>Number(x.current_stock_qty)<=Number(x.min_stock_alert_threshold)).length,occupiedTables=tables.filter(x=>String(x.status||'').toUpperCase()!=='AVAILABLE').length;
  const fmt=v=>v==null?'—':Number(v).toLocaleString('ar-EG',{maximumFractionDigits:2});
@@ -915,32 +1081,301 @@ function restaurantWorkspace(rows){
  const failed=Object.keys(errors).filter(k=>errors[k]);
  return workspaceHead('RESTAURANT','المطاعم والمطابخ','Workspace موحد للقائمة والطلبات والطاولات والمخزون ضمن النشاط والفرع الحالي.','LIVE')
  +'<section class="mx-restaurant-source-grid" aria-label="حالة مصادر المطعم">'+sourceState('restaurant_menu_items','قائمة الطعام',menu.length)+sourceState('restaurant_orders','الطلبات',orders.length)+sourceState('restaurant_tables','الطاولات',tables.length)+sourceState('restaurant_inventory','المخزون',inventory.length)+'</section>'
+ +'<div class="mx-workspace-shortcuts"><button type="button" data-export-source="restaurant-menu">تصدير قائمة الطعام CSV</button><button type="button" data-export-source="restaurant-orders">تصدير الطلبات CSV</button><button type="button" data-export-source="restaurant-tables">تصدير الطاولات CSV</button><button type="button" data-export-source="restaurant-inventory">تصدير المخزون CSV</button></div>'
  +(failed.length?'<div class="notice">بعض مصادر المطعم غير متاحة حاليًا. تم إبقاء الحالة <b>NOT AVAILABLE</b> بدل عرض قائمة فارغة على أنها سليمة.</div>':'')
  +workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
 }
 
 function enterpriseRowsTable(m,rows){if(m.key==='ACCOUNTING'&&current==='المزايدات — المحاسبة')return recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])+recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['الحالة',r=>r.status]]);if(m.key==='ERP')return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'+recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':'—']])+recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>r.warehouse_id],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])+recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>r.from_warehouse_id],['إلى',r=>r.to_warehouse_id],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']]);if(m.key==='FACTORIES')return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])+recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>r.warehouse_id],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])+recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]]);if(m.key==='TRIPS')return mantigoWorkspace(rows);if(m.key==='MEDICAL')return medicalWorkspace(rows);if(m.key==='MATRIMONY')return '<div class="notice">بيانات الاتصال المباشر وبيانات الولي محجوبة من قائمة الملفات العامة.</div>'+recordsTable('الملفات المتاحة',rows.matrimony_profiles||[],[['الاسم المستعار',r=>r.pseudonym],['العمر',r=>r.age],['المدينة',r=>r.city],['التعليم',r=>r.education],['المهنة',r=>r.occupation],['الحالة',r=>r.marital_status],['موثق',r=>r.is_verified?'نعم':'لا']])+recordsTable('طلبات التواصل الخاصة بي',rows.matrimony_requests||[],[['الملف',r=>r.to_profile_id],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]]);return ''}
+const DOMAIN_WORKSPACE_TABLES={
+ fashion_products:{columns:'id,name,category_name,store_name,price,stock_count,is_best_seller,created_at',orderBy:'created_at',scope:['tenant_id','business_id','branch_id'],fields:[['name','اسم المنتج'],['category_name','الفئة'],['store_name','المتجر'],['price','السعر'],['stock_count','المخزون'],['is_best_seller','الأكثر مبيعًا'],['created_at','تاريخ الإضافة']]},
+ fashion_orders:{columns:'order_id,product_name,size,color,quantity,total_price,status,date_formatted,created_at',orderBy:'created_at',scope:['tenant_id','business_id','branch_id'],fields:[['order_id','رقم الطلب'],['product_name','المنتج'],['size','المقاس'],['color','اللون'],['quantity','الكمية'],['total_price','الإجمالي'],['status','الحالة'],['created_at','التاريخ']]},
+ fashion_tailor_services:{columns:'id,tailor_name,service_type,price_estimate,delivery_days,rating,is_available,created_at',orderBy:'created_at',scope:[],fields:[['tailor_name','اسم مقدم الخدمة'],['service_type','نوع الخدمة'],['price_estimate','السعر التقديري'],['delivery_days','مدة التنفيذ بالأيام'],['rating','التقييم'],['is_available','متاح'],['created_at','تاريخ الإضافة']]},
+ catalog_items:{columns:'id,name_ar,name_en,sku,item_type,status,created_at',orderBy:'created_at',scope:['tenant_id','business_id','branch_id'],fields:[['name_ar','الاسم'],['name_en','الاسم الإنجليزي'],['sku','كود الصنف'],['item_type','نوع الصنف'],['status','الحالة'],['created_at','تاريخ الإضافة']]},
+ catalog_item_prices:{columns:'id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from',orderBy:'effective_from',scope:['tenant_id','branch_id'],fields:[['catalog_item_id','الصنف'],['branch_id','الفرع'],['currency','العملة'],['unit_price','سعر الوحدة'],['version','الإصدار'],['status','الحالة'],['effective_from','ساري من']]},
+ inventory_transactions:{columns:'id,warehouse_id,product_id,transaction_type,quantity,unit_cost,reference_id,created_at',orderBy:'created_at',scope:['tenant_id','business_id','branch_id'],fields:[['warehouse_id','المخزن'],['product_id','المنتج'],['transaction_type','نوع الحركة'],['quantity','الكمية'],['unit_cost','تكلفة الوحدة'],['reference_id','مرجع الحركة'],['created_at','التاريخ']]},
+ orders:{columns:'id,status,total_amount,currency,created_at',orderBy:'created_at',scope:['tenant_id','business_id','branch_id'],fields:[['id','رقم الطلب'],['status','الحالة'],['total_amount','الإجمالي'],['currency','العملة'],['created_at','التاريخ']]},
+ indrive_requests:{columns:'id,domain_type,category_name,title,user_proposed_price,target_provider_type,status,created_at',orderBy:'created_at',scope:[],fields:[['title','عنوان الطلب'],['domain_type','المجال'],['category_name','الفئة'],['user_proposed_price','السعر المقترح'],['target_provider_type','نوع مقدم الخدمة'],['status','الحالة'],['created_at','التاريخ']]},
+ indrive_bids:{columns:'id,request_id,provider_name,provider_type,provider_rating,offered_price,estimated_delivery_time,status,created_at',orderBy:'created_at',scope:[],fields:[['request_id','الطلب'],['provider_name','مقدم الخدمة'],['provider_type','التخصص'],['provider_rating','التقييم'],['offered_price','السعر المعروض'],['estimated_delivery_time','مدة التنفيذ'],['status','الحالة'],['created_at','التاريخ']]},
+ businesses:{columns:'id,name,code,status,created_at',orderBy:'created_at',scope:['tenant_id'],fields:[['name','اسم النشاط'],['code','الكود'],['status','الحالة'],['created_at','تاريخ الإنشاء']]},
+ marketing_leads:{columns:'id,title,status,source,service_area,created_at',orderBy:'created_at',scope:[],fields:[['title','العنوان'],['status','الحالة'],['source','المصدر'],['service_area','منطقة الخدمة'],['created_at','تاريخ الإنشاء']]},
+ marketing_provider_profiles:{columns:'id,business_id,name_ar,name_en,provider_kind,description,status,is_verified,is_featured,created_at',orderBy:'created_at',scope:['business_id'],fields:[['name_ar','الاسم'],['name_en','الاسم الإنجليزي'],['provider_kind','نوع مقدم الخدمة'],['status','الحالة'],['is_verified','موثق'],['is_featured','مميز'],['created_at','تاريخ الإنشاء']]},
+ marketing_services:{columns:'id,code,name_ar,name_en,category_code,status,created_at',orderBy:'created_at',scope:[],fields:[['code','الكود'],['name_ar','الخدمة'],['name_en','الاسم الإنجليزي'],['category_code','الفئة'],['status','الحالة'],['created_at','تاريخ الإنشاء']]},
+ marketing_projects:{columns:'id,project_type,management_mode,status,gross_value,platform_commission,currency,created_at',orderBy:'created_at',scope:['client_business_id'],fields:[['project_type','نوع المشروع'],['management_mode','الإدارة'],['status','الحالة'],['gross_value','القيمة الإجمالية'],['platform_commission','عمولة المنصة'],['currency','العملة'],['created_at','تاريخ الإنشاء']]},
+ support_tickets:{columns:'id,subject,category,priority,status,created_at,updated_at',orderBy:'created_at',scope:[],fields:[['subject','الموضوع'],['category','الفئة'],['priority','الأولوية'],['status','الحالة'],['created_at','تاريخ الإنشاء'],['updated_at','آخر تحديث']]},
+ warehouses:{columns:'id,name,code,status,created_at',orderBy:'created_at',scope:['tenant_id','business_id','branch_id'],fields:[['name','المخزن'],['code','الكود'],['status','الحالة'],['created_at','تاريخ الإنشاء']]},
+ mantigo_rides:{columns:'id,vehicle_category,ride_type,pickup_location,destination_location,proposed_price,status,created_at',orderBy:'created_at',scope:[],fields:[['vehicle_category','فئة المركبة'],['ride_type','نوع الرحلة'],['pickup_location','نقطة الانطلاق'],['destination_location','الوجهة'],['proposed_price','السعر المقترح'],['status','الحالة'],['created_at','التاريخ']]},
+ mantigo_bids:{columns:'id,ride_id,captain_name,vehicle_category,vehicle_model,offered_price,eta_minutes,status,created_at',orderBy:'created_at',scope:[],fields:[['ride_id','الرحلة'],['captain_name','السائق'],['vehicle_category','فئة المركبة'],['vehicle_model','الموديل'],['offered_price','السعر'],['eta_minutes','وقت الوصول بالدقائق'],['status','الحالة'],['created_at','التاريخ']]},
+ legal_documents:{columns:'id,document_type,title,status,published_at,effective_at,target_audience,locale,created_at',orderBy:'created_at',scope:['tenant_id'],fields:[['document_type','نوع الوثيقة'],['title','العنوان'],['status','الحالة'],['published_at','تاريخ النشر'],['effective_at','تاريخ السريان'],['target_audience','الفئة المستهدفة'],['locale','اللغة'],['created_at','تاريخ الإضافة']]},
+ legal_requirements:{columns:'id,action_key,document_type,target_audience,required,enabled,business_scoped,updated_at',orderBy:'updated_at',scope:[],fields:[['action_key','الإجراء'],['document_type','نوع الوثيقة'],['target_audience','الفئة المستهدفة'],['required','إلزامي'],['enabled','مفعّل'],['business_scoped','خاص بالنشاط'],['updated_at','آخر تحديث']]},
+ agreements:{columns:'id,agreement_type,document_id,business_id,status,effective_at,created_at',orderBy:'created_at',scope:['tenant_id','business_id'],fields:[['agreement_type','نوع الاتفاق'],['document_id','الوثيقة'],['business_id','النشاط'],['status','الحالة'],['effective_at','تاريخ السريان'],['created_at','تاريخ الإنشاء']]},
+ jobs:{columns:'id,title,company_name,category,location,job_type,salary_range,description,requirements,is_active,created_at',orderBy:'created_at',scope:['tenant_id','business_id'],fields:[['title','الوظيفة'],['company_name','الشركة'],['category','الفئة'],['location','الموقع'],['job_type','نوع العمل'],['is_active','نشطة'],['created_at','تاريخ النشر']]},
+ job_applications:{columns:'id,job_id,applicant_name,created_at',orderBy:'created_at',scope:[],fields:[['job_id','الوظيفة'],['applicant_name','المتقدم'],['created_at','تاريخ التقديم']]},
+ medical_appointments:{columns:'id,date_time,status,reason,created_at',orderBy:'created_at',scope:['tenant_id','business_id'],fields:[['date_time','موعد الزيارة'],['status','الحالة'],['created_at','تاريخ الإنشاء']]},
+ school_profiles:{columns:'id,name,school_type,location,rating,available_grades,tuition_fee,is_available,created_at',orderBy:'created_at',scope:[],fields:[['name','المدرسة'],['school_type','النوع'],['location','الموقع'],['rating','التقييم'],['available_grades','المراحل'],['tuition_fee','المصروفات'],['is_available','متاحة'],['created_at','تاريخ الإضافة']]},
+ teacher_profiles:{columns:'id,name,subject,rating,hourly_rate,is_available,location,experience_years,created_at',orderBy:'created_at',scope:[],fields:[['name','المدرس'],['subject','المادة'],['rating','التقييم'],['hourly_rate','سعر الساعة'],['is_available','متاح'],['location','الموقع'],['experience_years','الخبرة'],['created_at','تاريخ الإضافة']]},
+ education_requests:{columns:'id,target_type,subject_or_grade,status,created_at',orderBy:'created_at',scope:[],fields:[['target_type','نوع الجهة'],['subject_or_grade','المادة/المرحلة'],['status','الحالة'],['created_at','تاريخ الطلب']]},
+ used_item_ads:{columns:'id,title,category,price,location,is_sold,created_at',orderBy:'created_at',scope:['tenant_id','business_id'],fields:[['title','الإعلان'],['category','الفئة'],['price','السعر'],['location','الموقع'],['is_sold','تم البيع'],['created_at','تاريخ الإضافة']]}
+};
+async function loadDomainWorkspaceRows(m){
+ if(!user?.id||!m?.tables?.length)return;
+ const cache=live.moduleData[m.key]||{};
+ if(cache.rowsReady||cache.loading)return;
+ cache.loading=true;live.moduleData[m.key]=cache;
+ const rows={},errors={};
+ await Promise.all(m.tables.map(async table=>{
+  const config=DOMAIN_WORKSPACE_TABLES[table];
+  if(!config){rows[table]=[];errors[table]='لا توجد خريطة حقول آمنة لهذا المصدر بعد.';return;}
+  if(MNTY_BACKEND_ONLY_TABLES.has(table)){rows[table]=[];errors[table]='هذا المصدر مخصص للمسار الخلفي ولا يُقرأ مباشرة من المتصفح.';return;}
+  try{
+   let q=sb.from(table).select(config.columns).limit(50);
+   if(config.orderBy)q=q.order(config.orderBy,{ascending:false});
+   if(config.scope.includes('tenant_id')&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(config.scope.includes('business_id')&&live.businessId)q=q.eq('business_id',live.businessId);
+   if(config.scope.includes('branch_id')&&live.branchId)q=q.eq('branch_id',live.branchId);
+   if(config.scope.includes('client_business_id')&&live.businessId)q=q.eq('client_business_id',live.businessId);
+   const result=await q;
+   if(result.error)throw result.error;
+   rows[table]=result.data||[];
+  }catch(error){rows[table]=[];errors[table]=String(error?.message||'تعذر تحميل المصدر');}
+ }));
+ cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;live.moduleData[m.key]=cache;
+ const page=document.getElementById('page');
+ if(page&&current===m.name){page.innerHTML=domainModuleWorkspace();bindWorkspaceExports();bindRecordStatusFilters();bindJobWorkspaceActions();bindDomainModuleActions();bindEducationWorkspaceActions();}
+}
+function domainModuleTablesHtml(m,rows,errors={}){
+ return m.tables.map(table=>{
+  const config=DOMAIN_WORKSPACE_TABLES[table],data=rows[table]||[];
+  if(!config)return '<section class="card" style="margin:14px 0;padding:16px"><h3>'+esc(table)+'</h3><p class="muted">لم يتم تفعيل عرض السجلات لهذا المصدر بعد.</p></section>';
+  const exportButton='<div class="mx-workspace-shortcuts"><button type="button" data-domain-export-table="'+esc(table)+'">تصدير CSV</button></div>';
+  const statusFilters=config.fields.some(f=>f[0]==='status')?recordsStatusFilterHtml(table,data):'';
+  const detailRows=data.map(row=>Object.assign({},row,{_mx_detail_action:'<button type="button" class="linkbtn" data-domain-record-detail="'+esc(table)+'" data-domain-record-id="'+esc(row.id)+'">التفاصيل</button>'}));
+  const fields=config.fields.map(([key,label])=>[label,row=>genericWorkspaceDisplayValue(row?.[key],key)]);
+  fields.push(['عرض',row=>row._mx_detail_action||'—']);
+  return '<section class="mx-domain-table-section"><div class="section-head"><div><h3>'+esc(table)+'</h3><p class="muted">'+(errors[table]?'NOT AVAILABLE — '+esc(errors[table]):data.length+' سجل محمّل وفق صلاحيات قاعدة البيانات')+'</p></div></div>'+exportButton+statusFilters+recordsTable(table,detailRows,fields)+'</section>';
+ }).join('');
+}
+function jobsWorkspace(rows,errors={}){
+ const allJobs=rows.jobs||[],applications=rows.job_applications||[],role=String(live.role||'').toUpperCase();
+ const canApply=role==='CUSTOMER';
+ const jobs=canApply?allJobs.filter(j=>j.is_active===true):allJobs;
+ const canPost=canCreateJobPost();
+ const jobRows=jobs.map(j=>Object.assign({},j,{_job_action:canApply?'<button type="button" class="linkbtn" data-job-apply="'+esc(j.id)+'">تقديم</button>':'<button type="button" class="linkbtn" data-job-details="'+esc(j.id)+'">التفاصيل</button>'}));
+ return '<section class="mx-jobs-workspace"><div class="mx-jobs-intro"><div><span class="eyebrow">JOBS & CAREERS</span><h3>الوظائف والتقديمات</h3><p>الوظائف المنشورة وطلبات التقديم التي تسمح بها صلاحيات الحساب الحالي.</p></div><div class="mx-jobs-actions">'+(canPost?'<button type="button" class="btn btn-primary" onclick="openJobPostForm()">+ إضافة وظيفة</button>':'')+'</div></div><div class="mx-workspace-shortcuts"><button type="button" data-domain-export-table="jobs">تصدير الوظائف CSV</button><button type="button" data-domain-export-table="job_applications">تصدير طلبات التقديم CSV</button></div>'+workspaceCards([['وظائف محمّلة',jobs.length,'ضمن نطاق الوصول الحالي'],['طلبات تقديم مرئية',applications.length,'حسب سياسات الوصول'],['وظائف نشطة',jobs.filter(j=>j.is_active===true).length,'من السجلات المحمّلة']])+(errors.jobs?'<div class="notice">مصدر الوظائف غير متاح: '+esc(errors.jobs)+'</div>':'')+recordsTable('الوظائف',jobRows,[['المسمى',r=>r.title||'—'],['الشركة',r=>r.company_name||'—'],['الفئة',r=>r.category||'—'],['الموقع',r=>r.location||'—'],['نوع العمل',r=>r.job_type||'—'],['الراتب',r=>r.salary_range||'—'],['نشطة',r=>r.is_active?'نعم':'لا'],['الإجراء',r=>r._job_action]])+recordsTable('طلبات التقديم المرئية',applications.map(a=>Object.assign({},a,{_application_action:'<button type="button" class="linkbtn" data-job-application-details="'+esc(a.id)+'">التفاصيل</button>'})),[['الوظيفة',r=>r.job_id||'—'],['المتقدم',r=>r.applicant_name||'—'],['تاريخ التقديم',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['عرض',r=>r._application_action]])+'</section>';
+}
+function bindDomainModuleActions(){
+ if(!window.__MNTYUsedItemsFilterBound){
+  window.__MNTYUsedItemsFilterBound=true;
+  document.addEventListener('input',e=>{if(e.target?.id==='mx-used-items-search')filterUsedItemsCards();});
+  document.addEventListener('change',e=>{if(e.target?.id==='mx-used-items-state')filterUsedItemsCards();});
+ }
+
+ if(window.__MNTYDomainModuleActionsBound)return;
+ window.__MNTYDomainModuleActionsBound=true;
+ document.addEventListener('click',async e=>{
+  const restaurantRefresh=e.target.closest('[data-restaurant-refresh]');
+  if(restaurantRefresh){
+   const cache=live.moduleData.RESTAURANTS||{};cache.rowsReady=false;cache.loading=false;live.moduleData.RESTAURANTS=cache;
+   await loadRestaurantWorkspace();return;
+  }
+  const usedDetail=e.target.closest('[data-used-item-detail]');
+  if(usedDetail){
+   const item=(live.moduleData.USED_ITEMS?.rows?.used_item_ads||[]).find(x=>String(x.id)===String(usedDetail.dataset.usedItemDetail));
+   if(!item)return showToast('الإعلان غير متاح ضمن السجلات المحمّلة.','error');
+   const sold=item.is_sold===true;
+   openUnifiedRecordDetails({kicker:'USED MARKET LISTING',title:item.title||'إعلان مستعمل',desc:'تفاصيل الإعلان كما وردت في الحقول المسموح بعرضها، دون بيانات اتصال خاصة.',sections:[{title:'بيانات الإعلان',html:'<div class="mx-record-kv-grid"><div><span>الفئة</span><b>'+esc(item.category||'—')+'</b></div><div><span>السعر</span><b>'+esc(item.price===null||item.price===undefined?'—':String(item.price))+'</b></div><div><span>الموقع</span><b>'+esc(item.location||'—')+'</b></div><div><span>الحالة</span><b>'+(sold?'تم البيع':'غير معلن عن البيع')+'</b></div><div><span>تاريخ الإضافة</span><b>'+esc(item.created_at?new Date(item.created_at).toLocaleString('ar-EG'):'—')+'</b></div></div>'}]});
+   return;
+  }
+  const detail=e.target.closest('[data-domain-record-detail]');
+  if(detail){
+   const table=String(detail.dataset.domainRecordDetail||''),id=String(detail.dataset.domainRecordId||'');
+   const module=domainModules.find(m=>m.tables.includes(table));
+   const config=DOMAIN_WORKSPACE_TABLES[table];
+   const row=module?(live.moduleData[module.key]?.rows?.[table]||[]).find(item=>String(item.id)===id):null;
+   if(!row||!config)return showToast('السجل غير متاح ضمن البيانات المحمّلة والصلاحيات الحالية.','error');
+   const detailFields=config.fields.filter(([key])=>key!=='id').map(([key,label])=>'<div class="mx-record-kv"><span>'+esc(label)+'</span><b>'+esc(genericWorkspaceDisplayValue(row[key],key))+'</b></div>').join('');
+   openUnifiedRecordDetails({kicker:String(table).toUpperCase(),title:String(row.title||row.name||row.name_ar||row.subject||row.code||'تفاصيل السجل'),desc:'عرض للقراءة فقط للحقول المسموح بها في مساحة العمل الحالية.',sections:[{title:'بيانات السجل',html:'<div class="mx-record-kv-grid">'+detailFields+'</div>'}]});
+   return;
+  }
+  const enterprise=e.target.closest('[data-enterprise-refresh]');
+  if(enterprise){
+   const m=domainModules.find(x=>x.key===enterprise.dataset.enterpriseRefresh);if(!m)return;
+   const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;
+   await loadEnterpriseDomainData(m);return;
+  }
+  const btn=e.target.closest('[data-domain-refresh]');if(!btn)return;
+  const m=domainModules.find(x=>x.key===btn.dataset.domainRefresh);if(!m)return;
+  const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;
+  await loadDomainWorkspaceRows(m);
+ });
+}
+function bindJobWorkspaceActions(){
+ if(window.__MNTYJobWorkspaceActionsBound)return;
+ window.__MNTYJobWorkspaceActionsBound=true;
+ document.addEventListener('click',e=>{
+  const applicationDetail=e.target.closest('[data-job-application-details]');
+  if(applicationDetail){
+   const application=(live.moduleData.JOBS?.rows?.job_applications||[]).find(x=>String(x.id)===String(applicationDetail.dataset.jobApplicationDetails));
+   if(!application)return showToast('طلب التقديم غير متاح ضمن السجلات المحمّلة.','error');
+   openUnifiedRecordDetails({kicker:'JOB APPLICATION',title:'طلب تقديم',desc:'عرض محدود للحقول المحمّلة المسموح بها؛ لا تُحمّل بيانات الاتصال أو السيرة التفصيلية في هذه الشاشة.',sections:[{title:'بيانات الطلب',html:'<div class="mx-record-kv-grid"><div><span>معرّف الوظيفة</span><b>'+esc(application.job_id||'—')+'</b></div><div><span>اسم المتقدم</span><b>'+esc(application.applicant_name||'—')+'</b></div><div><span>تاريخ التقديم</span><b>'+esc(application.created_at?new Date(application.created_at).toLocaleString('ar-EG'):'—')+'</b></div></div>'}]});
+   return;
+  }
+  const apply=e.target.closest('[data-job-apply]');if(apply){const job=(live.moduleData.JOBS?.rows?.jobs||[]).find(x=>String(x.id)===String(apply.dataset.jobApply));if(job)openJobApplicationForm(job);return;}
+  const detail=e.target.closest('[data-job-details]');if(detail){const job=(live.moduleData.JOBS?.rows?.jobs||[]).find(x=>String(x.id)===String(detail.dataset.jobDetails));if(!job)return;openUnifiedRecordDetails({kicker:'JOB DETAILS',title:job.title||'وظيفة',desc:'تفاصيل الوظيفة المتاحة ضمن صلاحيات الحساب.',sections:[{title:'الوصف',html:'<p>'+esc(job.description||'لا يوجد وصف إضافي.')+'</p>'},{title:'المتطلبات',html:'<p>'+esc(job.requirements||'لا توجد متطلبات إضافية.')+'</p>'},{title:'التفاصيل',html:'<p>'+esc(job.company_name||'—')+' · '+esc(job.category||'—')+' · '+esc(job.location||'—')+' · '+esc(job.salary_range||'—')+'</p>'}]});}
+ });
+}
+async function openJobApplicationForm(job){
+ if(!user?.id||!job?.id)return authView();
+ if(String(live.role||'').toUpperCase()!=='CUSTOMER')return showToast('التقديم متاح من حساب العميل فقط.','error');
+ const currentJob=(live.moduleData.JOBS?.rows?.jobs||[]).find(x=>String(x.id)===String(job.id));
+ if(!currentJob||currentJob.is_active!==true)return showToast('الوظيفة غير نشطة أو غير متاحة ضمن السجلات المحمّلة.','error');
+ job=currentJob;
+ const defaultName=String(user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split('@')[0]||'').trim();
+ const view=await openUnifiedRecordDetails({kicker:'JOB APPLICATION',title:'التقديم على '+String(job.title||'وظيفة'),desc:'سيتم إرسال الطلب من حسابك الحالي. بيانات الاتصال الخاصة لا تُطلب في هذه الشاشة.',sections:[{title:'بيانات التقديم',html:'<form id="mx-job-application-form" class="mx-job-post-form"><label>اسم المتقدم<input name="applicant_name" required maxlength="160" value="'+esc(defaultName)+'" autocomplete="name"></label><label>المؤهلات<textarea name="qualifications" rows="3" maxlength="4000" placeholder="المؤهلات والخبرة ذات الصلة"></textarea></label><label>نبذة مختصرة<textarea name="cv_summary_text" rows="4" maxlength="5000" placeholder="ملخص مهني اختياري"></textarea></label><div class="mx-job-form-actions"><button type="submit" class="btn btn-primary">إرسال التقديم</button><button type="button" class="btn btn-secondary" data-job-application-close>إلغاء</button></div></form>'}]});
+ const form=view.overlay.querySelector('#mx-job-application-form');if(!form)return;
+ view.overlay.querySelector('[data-job-application-close]')?.addEventListener('click',view.close);
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();if(String(live.role||'').toUpperCase()!=='CUSTOMER')return showToast('التقديم متاح من حساب العميل فقط.','error');
+  const submit=form.querySelector('[type="submit"]');if(submit){submit.disabled=true;submit.textContent='جارٍ الإرسال…'}
+  const data=new FormData(form),applicantName=String(data.get('applicant_name')||'').trim();
+  if(!applicantName){if(submit){submit.disabled=false;submit.textContent='إرسال التقديم'}return showToast('اكتب اسم المتقدم.','error')}
+  try{
+   const {error}=await sb.from('job_applications').insert({job_id:job.id,applicant_user_id:user.id,applicant_name:applicantName,qualifications:String(data.get('qualifications')||'').trim()||null,cv_summary_text:String(data.get('cv_summary_text')||'').trim()||null});
+   if(error)throw error;
+   view.close();showToast('تم إرسال طلب التقديم.','success');
+   const m=domainModules.find(x=>x.key==='JOBS');if(m){const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;await loadDomainWorkspaceRows(m);}
+  }catch(error){showToast('تعذر إرسال طلب التقديم: '+String(error?.message||'خطأ غير معروف'),'error');if(submit){submit.disabled=false;submit.textContent='إرسال التقديم'}}
+ });
+}
+function educationWorkspace(rows,errors={}){
+ const allSchools=rows.school_profiles||[],allTeachers=rows.teacher_profiles||[],requests=rows.education_requests||[];
+ const customer=String(live.role||'').toUpperCase()==='CUSTOMER';
+ const schools=customer?allSchools.filter(x=>x.is_available===true):allSchools;
+ const teachers=customer?allTeachers.filter(x=>x.is_available===true):allTeachers;
+ const schoolRows=schools.map(x=>Object.assign({},x,{_education_action:customer?'<button type="button" class="linkbtn" data-education-request="'+esc(x.id)+'" data-education-type="SCHOOL" data-education-label="'+esc(x.name||'مدرسة')+'">طلب خدمة</button>':'—'}));
+ const teacherRows=teachers.map(x=>Object.assign({},x,{_education_action:customer?'<button type="button" class="linkbtn" data-education-request="'+esc(x.id)+'" data-education-type="TEACHER" data-education-label="'+esc(x.name||'مدرس')+'">طلب خدمة</button>':'—'}));
+ return '<section class="mx-education-workspace">'+workspaceHead('EDUCATION','التعليم والتدريب','استكشاف المدارس والمدرسين وإنشاء طلب تعليمي مرتبط بحساب العميل.','LIVE')
+  +'<div class="card" style="margin:12px 0;padding:14px"><label for="mx-education-search">بحث داخل المدارس والمدرسين والطلبات المحمّلة</label><input id="mx-education-search" class="input" type="search" placeholder="اسم المدرسة أو المدرس أو المادة أو الموقع..."><p class="muted" id="mx-education-search-count">عرض السجلات المحمّلة وفق الصلاحيات.</p><div class="mx-workspace-shortcuts"><button type="button" data-domain-export-table="school_profiles">تصدير المدارس CSV</button><button type="button" data-domain-export-table="teacher_profiles">تصدير المدرسين CSV</button><button type="button" data-domain-export-table="education_requests">تصدير الطلبات CSV</button></div></div>'
+  +workspaceCards([['مدارس محمّلة',schools.length,'السجلات المتاحة وفق RLS'],['مدرسون محمّلون',teachers.length,'السجلات المتاحة وفق RLS'],['طلبات تعليمية مرئية',requests.length,'طلبات يسمح بها نطاق الحساب']])
+  +(errors.school_profiles||errors.teacher_profiles?'<div class="notice">بعض مصادر التعليم غير متاحة ضمن صلاحيات الحساب الحالية.</div>':'')
+  +recordsTable('المدارس',schoolRows,[['المدرسة',r=>r.name||'—'],['النوع',r=>r.school_type||'—'],['الموقع',r=>r.location||'—'],['التقييم',r=>r.rating??'—'],['المراحل',r=>Array.isArray(r.available_grades)?r.available_grades.join('، '):(r.available_grades||'—')],['المصروفات',r=>r.tuition_fee??'—'],['متاحة',r=>r.is_available?'نعم':'لا'],['الإجراء',r=>r._education_action]])
+  +recordsTable('المدرسون',teacherRows,[['المدرس',r=>r.name||'—'],['المادة',r=>r.subject||'—'],['التقييم',r=>r.rating??'—'],['سعر الساعة',r=>r.hourly_rate??'—'],['الخبرة',r=>r.experience_years??'—'],['الموقع',r=>r.location||'—'],['متاح',r=>r.is_available?'نعم':'لا'],['الإجراء',r=>r._education_action]])
+  +recordsTable('طلباتي التعليمية',requests,[['الجهة',r=>r.target_type||'—'],['المادة/المرحلة',r=>r.subject_or_grade||'—'],['الحالة',r=>r.status||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']])+'</section>';
+}
+function bindEducationWorkspaceActions(){
+ if(window.__MNTYEducationActionsBound)return;
+ window.__MNTYEducationActionsBound=true;
+ document.addEventListener('input',e=>{
+  if(e.target?.id!=='mx-education-search')return;
+  const root=e.target.closest('.mx-education-workspace');if(!root)return;
+  const q=String(e.target.value||'').trim().toLowerCase();let visible=0,total=0;
+  root.querySelectorAll('table tbody tr').forEach(row=>{total++;const match=!q||String(row.innerText||row.textContent||'').toLowerCase().includes(q);row.hidden=!match;if(match)visible++;});
+  const count=root.querySelector('#mx-education-search-count');if(count)count.textContent=q?('السجلات المطابقة: '+visible+' من '+total):('كل السجلات المحمّلة: '+total);
+ });
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-education-request]');if(!btn)return;
+  openEducationRequestForm(btn.dataset.educationRequest,btn.dataset.educationType,btn.dataset.educationLabel);
+ });
+}
+async function openEducationRequestForm(targetId,targetType,targetLabel){
+ if(!user?.id||!targetId)return authView();
+ if(String(live.role||'').toUpperCase()!=='CUSTOMER')return showToast('إنشاء الطلبات التعليمية متاح لحساب العميل فقط.','error');
+ const type=String(targetType||'').toUpperCase();
+ const source=type==='SCHOOL'?'school_profiles':type==='TEACHER'?'teacher_profiles':null;
+ const target=source?(live.moduleData.EDUCATION?.rows?.[source]||[]).find(x=>String(x.id)===String(targetId)):null;
+ if(!target||target.is_available!==true)return showToast('الجهة التعليمية غير متاحة أو غير موجودة ضمن البيانات المحمّلة.','error');
+ const defaultName=String(user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split('@')[0]||'').trim();
+ const view=await openUnifiedRecordDetails({kicker:'EDUCATION REQUEST',title:'طلب خدمة من '+String(targetLabel||'الجهة التعليمية'),desc:'سيُربط الطلب بحسابك الحالي وتخضع الكتابة لسياسات الوصول الموجودة.',sections:[{title:'بيانات الطلب',html:'<form id="mx-education-request-form" class="mx-job-post-form"><label>اسم الطالب<input name="student_name" required maxlength="160" value="'+esc(defaultName)+'" autocomplete="name"></label><label>المادة أو المرحلة<input name="subject_or_grade" required maxlength="180" placeholder="مثال: الصف الثالث أو الرياضيات"></label><div class="mx-job-form-actions"><button type="submit" class="btn btn-primary">إرسال الطلب</button><button type="button" class="btn btn-secondary" data-education-close>إلغاء</button></div><p class="muted">لا تطلب هذه الشاشة رقم هاتف أو بيانات صحية. مشاركة اسم الطالب مطلوبة لإنشاء الطلب.</p></form>'}]});
+ const form=view.overlay.querySelector('#mx-education-request-form');if(!form)return;
+ view.overlay.querySelector('[data-education-close]')?.addEventListener('click',view.close);
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();if(String(live.role||'').toUpperCase()!=='CUSTOMER')return showToast('إنشاء الطلبات التعليمية متاح لحساب العميل فقط.','error');
+  const submit=form.querySelector('[type="submit"]');if(submit){submit.disabled=true;submit.textContent='جارٍ الإرسال…'}
+  const data=new FormData(form),studentName=String(data.get('student_name')||'').trim(),subject=String(data.get('subject_or_grade')||'').trim();
+  if(!studentName||!subject){if(submit){submit.disabled=false;submit.textContent='إرسال الطلب'}return showToast('أكمل اسم الطالب والمادة أو المرحلة.','error')}
+  try{
+   const {error}=await sb.from('education_requests').insert({requester_user_id:user.id,target_id:targetId,target_type:String(targetType||'').toUpperCase(),student_name:studentName,subject_or_grade:subject});
+   if(error)throw error;
+   view.close();showToast('تم إرسال الطلب التعليمي.','success');
+   const m=domainModules.find(x=>x.key==='EDUCATION');if(m){const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;await loadDomainWorkspaceRows(m);}
+  }catch(error){showToast('تعذر إرسال الطلب التعليمي: '+String(error?.message||'خطأ غير معروف'),'error');if(submit){submit.disabled=false;submit.textContent='إرسال الطلب'}}
+ });
+}
+function canCreateJobPost(){
+ const role=String(live.role||'').toUpperCase();
+ return window.MNTY_RBAC?.can(role,'الوظائف','create',live.permissions)===true||['SUPER_ADMIN','OWNER','ADMIN','BUSINESS_OWNER'].includes(role);
+}
+async function openJobPostForm(){
+ if(!user?.id)return authView();
+ if(!canCreateJobPost())return showToast('إنشاء الوظائف غير متاح لهذا الدور.','error');
+ const view=await openUnifiedRecordDetails({kicker:'JOBS WORKSPACE',title:'إضافة وظيفة جديدة',desc:'سيتم حفظ الوظيفة بهوية الحساب الحالي، وتخضع الكتابة لسياسات قاعدة البيانات وصلاحيات الحساب.',sections:[{title:'بيانات الوظيفة',html:'<form id="mx-job-post-form" class="mx-job-post-form"><label>المسمى الوظيفي<input name="title" required maxlength="180" autocomplete="off"></label><label>اسم الشركة<input name="company_name" required maxlength="180" value="'+esc(live.memberships?.find(m=>m.id===live.activeMembershipId)?.business_name||'')+'" autocomplete="organization"></label><label>الفئة<input name="category" required maxlength="100" autocomplete="off"></label><label>الموقع<input name="location" maxlength="180" autocomplete="address-level2"></label><label>نوع العمل<select name="job_type" required><option value="FULL_TIME">دوام كامل</option><option value="PART_TIME">دوام جزئي</option><option value="CONTRACT">تعاقد</option><option value="REMOTE">عن بُعد</option><option value="INTERNSHIP">تدريب</option></select></label><label>نطاق الراتب<input name="salary_range" maxlength="100" placeholder="اختياري"></label><label>الوصف<textarea name="description" rows="4" maxlength="6000" required></textarea></label><label>المتطلبات<textarea name="requirements" rows="3" maxlength="6000"></textarea></label><div class="mx-job-form-actions"><button type="submit" class="btn btn-primary">حفظ الوظيفة</button><button type="button" class="btn btn-secondary" data-job-form-close>إلغاء</button></div><p class="muted">لا يتم نشر رقم هاتف أو بيانات تواصل من هذه الشاشة. إذا رفضت قاعدة البيانات العملية فلن يتم تجاوز RLS.</p></form>'}]});
+ const form=view.overlay.querySelector('#mx-job-post-form');if(!form)return;
+ view.overlay.querySelector('[data-job-form-close]')?.addEventListener('click',view.close);
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();if(!canCreateJobPost())return showToast('انتهت صلاحية إنشاء الوظائف لهذا الدور.','error');
+  const submit=form.querySelector('[type="submit"]');if(submit){submit.disabled=true;submit.textContent='جارٍ الحفظ…'}
+  const value=name=>String(new FormData(form).get(name)||'').trim();
+  const company=value('company_name'),title=value('title'),category=value('category');
+  if(!company||!title||!category){if(submit){submit.disabled=false;submit.textContent='حفظ الوظيفة'}return showToast('أكمل المسمى والشركة والفئة.','error')}
+  const payload={owner_user_id:user.id,tenant_id:live.tenantId||null,business_id:live.businessId||null,title,company_name:company,employer_name:company,category,location:value('location')||null,job_type:value('job_type'),salary_range:value('salary_range')||null,description:value('description'),requirements:value('requirements')||null,is_active:true};
+  try{
+   const {error}=await sb.from('jobs').insert(payload);
+   if(error)throw error;
+   view.close();showToast('تم حفظ الوظيفة بنجاح.','success');
+   const m=domainModules.find(x=>x.key==='JOBS');if(m){const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;await loadDomainWorkspaceRows(m);}
+  }catch(error){showToast('تعذر حفظ الوظيفة: '+String(error?.message||'خطأ غير معروف'),'error');if(submit){submit.disabled=false;submit.textContent='حفظ الوظيفة'}}
+ });
+}
+function usedItemsWorkspace(rows,errors={}){
+ const items=rows.used_item_ads||[];
+ const cards=items.map(item=>{
+  const title=String(item.title||'إعلان مستعمل');
+  const sold=item.is_sold===true;
+  const searchable=[title,item.category,item.location].filter(Boolean).join(' ').toLowerCase();
+  return '<article class="card mx-used-item-card" data-used-item-card="1" data-search="'+esc(searchable)+'" data-state="'+(sold?'sold':'available')+'" style="padding:16px;display:flex;flex-direction:column;gap:10px"><div class="row" style="justify-content:space-between;gap:8px"><span class="eyebrow">'+esc(item.category||'مستعمل')+'</span><span class="count">'+(sold?'تم البيع':'متاح حسب السجل')+'</span></div><h3>'+esc(title)+'</h3><p class="muted">'+esc(item.location||'الموقع غير محدد')+'</p><strong>'+esc(item.price===null||item.price===undefined?'السعر غير محدد':String(item.price))+'</strong><small class="muted">'+esc(item.created_at?new Date(item.created_at).toLocaleDateString('ar-EG'):'')+'</small><button type="button" class="linkbtn" data-used-item-detail="'+esc(item.id)+'">عرض التفاصيل</button></article>';
+ }).join('');
+ return workspaceHead('USED MARKET','سوق المستعمل','استعراض الإعلانات المحمّلة مع البحث والتصفية، دون إظهار بيانات اتصال أو تجاوز صلاحيات الوصول.','LIVE')
+ +'<section class="card" style="padding:16px;margin:14px 0"><div class="grid3"><label>ابحث في الإعلانات<input id="mx-used-items-search" type="search" placeholder="اسم المنتج أو الفئة أو الموقع" autocomplete="off"></label><label>حالة الإعلان<select id="mx-used-items-state"><option value="all">كل الحالات</option><option value="available">غير مباع</option><option value="sold">تم البيع</option></select></label><div class="action-bar" style="align-items:end"><button type="button" class="btn btn-outline" style="width:auto" data-domain-export-table="used_item_ads">تصدير CSV</button></div></div><p id="mx-used-items-count" class="muted" aria-live="polite">'+items.length+' إعلان محمّل ضمن نطاق الوصول الحالي</p></section>'
+ +(errors.used_item_ads?'<div class="notice">مصدر الإعلانات غير متاح: '+esc(errors.used_item_ads)+'</div>':'')
+ +'<div id="mx-used-items-grid" class="grid3">'+(cards||'<div class="empty-state">لا توجد إعلانات متاحة ضمن البيانات المحمّلة حاليًا.</div>')+'</div>';
+}
+function filterUsedItemsCards(){
+ const root=document.getElementById('mx-used-items-grid');if(!root)return;
+ const query=String(document.getElementById('mx-used-items-search')?.value||'').trim().toLowerCase();
+ const state=String(document.getElementById('mx-used-items-state')?.value||'all');
+ let shown=0;
+ root.querySelectorAll('[data-used-item-card]').forEach(card=>{
+  const matchesQuery=!query||String(card.dataset.search||'').includes(query);
+  const matchesState=state==='all'||card.dataset.state===state;
+  const visible=matchesQuery&&matchesState;card.hidden=!visible;if(visible)shown++;
+ });
+ const count=document.getElementById('mx-used-items-count');if(count)count.textContent='عدد الإعلانات المطابقة: '+shown;
+}
 function domainModuleWorkspace(){
  const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();
  const d=live.moduleData[m.key]||{tables:{},ready:false};
  if(m.key==='RESTAURANTS'){
   if(!d.rowsReady){loadRestaurantWorkspace();return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل بيانات المطعم الفعلية وفق نطاق النشاط والفرع والصلاحيات…</div>'}
-  return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
+  return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" type="button" data-restaurant-refresh="1">تحديث بيانات المطعم</button><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
 }
 if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
   return workspaceHead(m.key,m.name,m.desc,'MODULE')
+   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" type="button" data-enterprise-refresh="'+esc(m.key)+'">تحديث بيانات الوحدة</button></div>'
    +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق RLS']))
    +enterpriseRowsTable(m,d.rows||{})
    +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
    +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
  }
- const cards=m.tables.map(t=>[t,d.tables?.[t]==null?'—':String(d.tables[t]),'عدد السجلات المتاحة وفق RLS']);
- if(!m.tables.length)cards.push(['حالة المخطط','NOT VERIFIED','لا يوجد جدول متخصص مثبت في المخطط الحالي']);
- return workspaceHead(m.key,m.name,m.desc,'MODULE')
+ if(!d.rowsReady){loadDomainWorkspaceRows(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل سجلات الوحدة الفعلية ضمن نطاق الحساب والصلاحيات…</div>';}
+ const cards=m.tables.map(t=>[t,d.errors?.[t]?'غير متاح':String((d.rows?.[t]||[]).length),'سجلات محمّلة؛ لا تمثل بالضرورة إجمالي التاريخ']);
+ if(!m.tables.length)cards.push(['حالة المخطط','—','لا توجد مصادر معرفة لهذه الوحدة']);
+ const moduleActions='<div class="action-bar"><button class="btn btn-outline" style="width:auto" type="button" data-domain-refresh="'+esc(m.key)+'">تحديث بيانات الوحدة</button></div>';
+ return workspaceHead(m.key,m.name,m.desc,'LIVE')
+  +moduleActions
   +workspaceCards(cards)
   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
-  +recordsTable('مصادر البيانات الموصولة',m.tables.map(t=>({table:t,count:d.tables?.[t]})),[['الجدول',r=>r.table],['السجلات',r=>r.count==null?'—':r.count],['الحالة',r=>r.count==null?'NOT VERIFIED':'READABLE']])
+  +(m.key==='MEDICAL'?enterpriseRowsTable(m,d.rows||{}):m.key==='JOBS'?jobsWorkspace(d.rows||{},d.errors||{}):m.key==='EDUCATION'?educationWorkspace(d.rows||{},d.errors||{}):m.key==='USED_ITEMS'?usedItemsWorkspace(d.rows||{},d.errors||{}):domainModuleTablesHtml(m,d.rows||{},d.errors||{}))
   +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
 }
 
@@ -1085,12 +1520,12 @@ async function initSuperAdminControlWorkspace(){
 let recordsTableSeq=0;
 const RECORDS_PAGE_SIZE=12;
 const recordsTableState=new Map();
-function recordsTableStateFor(id){if(!recordsTableState.has(id))recordsTableState.set(id,{page:1,query:'',sort:-1,dir:1});return recordsTableState.get(id)}
+function recordsTableStateFor(id){if(!recordsTableState.has(id))recordsTableState.set(id,{page:1,query:'',sort:-1,dir:1,status:''});return recordsTableState.get(id)}
 function applyRecordsTable(tableId){
  const table=document.getElementById(tableId), st=recordsTableStateFor(tableId);if(!table)return;
  const rows=[...table.querySelectorAll('tbody tr')];
  const q=String(st.query||'').trim().toLocaleLowerCase('ar');
- const matches=rows.filter(row=>!q||row.textContent.toLocaleLowerCase('ar').includes(q));
+ const matches=rows.filter(row=>(!q||row.textContent.toLocaleLowerCase('ar').includes(q))&&(!st.status||String(row.dataset.recordStatus||'').toUpperCase()===st.status));
  if(st.sort>=0){matches.sort((x,y)=>{const av=x.children[st.sort]?.textContent?.trim()||'',bv=y.children[st.sort]?.textContent?.trim()||'';const an=Number(av.replace(/[^0-9.-]+/g,'')),bn=Number(bv.replace(/[^0-9.-]+/g,''));const cmp=Number.isFinite(an)&&Number.isFinite(bn)&&av!==''&&bv!==''?an-bn:av.localeCompare(bv,'ar',{numeric:true,sensitivity:'base'});return cmp*st.dir})}
  rows.forEach(r=>{r.hidden=true});
  const pages=Math.max(1,Math.ceil(matches.length/RECORDS_PAGE_SIZE));st.page=Math.min(Math.max(1,st.page),pages);
@@ -1099,6 +1534,45 @@ function applyRecordsTable(tableId){
  if(meta)meta.textContent=(matches.length?(((st.page-1)*RECORDS_PAGE_SIZE)+1)+'–'+Math.min(st.page*RECORDS_PAGE_SIZE,matches.length):'0')+' من '+matches.length;
  if(prev)prev.disabled=st.page<=1;if(next)next.disabled=st.page>=pages;
  table.querySelectorAll('th[data-sort-col]').forEach(th=>{const i=Number(th.dataset.sortCol);th.setAttribute('aria-sort',st.sort===i?(st.dir===1?'ascending':'descending'):'none')});
+}
+function filterRecordsTableStatus(tableId,status){
+ const state=recordsTableStateFor(tableId);state.status=String(status||'').trim().toUpperCase();state.page=1;applyRecordsTable(tableId);
+}
+function bindOrderStatusFilters(){
+ if(window.__MNTYOrderStatusFiltersBound)return;
+ window.__MNTYOrderStatusFiltersBound=true;
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-order-status-filter]');if(!btn)return;
+  const status=String(btn.dataset.orderStatusFilter||'').toUpperCase();
+  document.querySelectorAll('.mx-order-grid .mx-order-card').forEach(card=>{card.hidden=Boolean(status)&&String(card.dataset.orderStatus||'').toUpperCase()!==status;});
+  btn.parentElement?.querySelectorAll('[data-order-status-filter]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-pressed',x===btn?'true':'false')});
+ });
+}
+function recordsStatusFilterHtml(title,rows){
+ const statuses=[...new Set((rows||[]).map(r=>String(r.status||'غير محدد').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+ return '<div class="mx-workspace-shortcuts" aria-label="تصفية '+esc(title)+'"><button type="button" data-record-status-filter-title="'+esc(title)+'" data-record-status-filter="" aria-pressed="true">كل الحالات ('+(rows||[]).length+')</button>'+statuses.map(status=>'<button type="button" data-record-status-filter-title="'+esc(title)+'" data-record-status-filter="'+esc(status.toUpperCase())+'" aria-pressed="false">'+esc(status)+' ('+(rows||[]).filter(r=>String(r.status||'غير محدد').toUpperCase()===status.toUpperCase()).length+')</button>').join('')+'</div>';
+}
+function bindRecordStatusFilters(){
+ if(window.__MNTYRecordStatusFiltersBound)return;
+ window.__MNTYRecordStatusFiltersBound=true;
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-record-status-filter-title]');if(!btn)return;
+  const title=btn.dataset.recordStatusFilterTitle||'';
+  const section=[...document.querySelectorAll('[data-records-title]')].find(x=>x.dataset.recordsTitle===title);
+  const tableId=section?.dataset.recordsTable;if(!tableId)return;
+  filterRecordsTableStatus(tableId,btn.dataset.recordStatusFilter||'');
+  btn.parentElement?.querySelectorAll('[data-record-status-filter-title]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-pressed',x===btn?'true':'false')});
+ });
+}
+function bindCrmLeadStatusFilters(){
+ if(window.__MNTYCrmStatusFiltersBound)return;
+ window.__MNTYCrmStatusFiltersBound=true;
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-crm-lead-filter]');if(!btn)return;
+  const section=document.querySelector('[data-records-title="طلبات التسويق"]');const tableId=section?.dataset.recordsTable;if(!tableId)return;
+  filterRecordsTableStatus(tableId,btn.dataset.crmLeadFilter||'');
+  btn.parentElement?.querySelectorAll('[data-crm-lead-filter]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-pressed',x===btn?'true':'false')});
+ });
 }
 function filterRecordsTable(inputId,tableId){const input=document.getElementById(inputId);const st=recordsTableStateFor(tableId);st.query=String(input?.value||'');st.page=1;applyRecordsTable(tableId)}
 function sortRecordsTable(tableId,index){const st=recordsTableStateFor(tableId);if(st.sort===index)st.dir*=-1;else{st.sort=index;st.dir=1}st.page=1;applyRecordsTable(tableId)}
@@ -1110,8 +1584,8 @@ function recordsTable(title,rows,columns){
  const seq=++recordsTableSeq,id='mx-records-'+seq,search='mx-search-'+seq;
  recordsTableState.set(id,{page:1,query:'',sort:-1,dir:1});
  const heads=cols.map((c,i)=>'<th scope="col" data-sort-col="'+i+'" aria-sort="none" tabindex="0" onclick="sortRecordsTable(\''+id+'\','+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();sortRecordsTable(\''+id+'\','+i+')}" title="فرز">'+esc(c[0])+' ↕</th>').join('');
- const body=data.map(r=>'<tr>'+cols.map(c=>'<td>'+renderRecordCell(c[1](r))+'</td>').join('')+'</tr>').join('');
- return '<section class="records" aria-labelledby="'+id+'-title"><div class="section-head"><div><span class="eyebrow">RECORDS</span><h3 id="'+id+'-title">'+esc(title)+'</h3><p class="muted">سجلات فعلية ضمن الصلاحيات الحالية · عرض '+RECORDS_PAGE_SIZE+' لكل صفحة</p></div><label class="search-field"><span>بحث داخل السجلات</span><input id="'+search+'" type="search" aria-controls="'+id+'" placeholder="ابحث داخل السجلات…" oninput="filterRecordsTable(\''+search+'\',\''+id+'\')"></label></div><div class="table-wrap" tabindex="0" role="region" aria-label="جدول '+esc(title)+'"><table id="'+id+'"><thead><tr>'+heads+'</tr></thead><tbody>'+body+'</tbody></table></div><div class="mx-table-pager" aria-label="تنقل الجدول"><button type="button" class="btn btn-outline" id="'+id+'-prev" onclick="paginateRecordsTable(\''+id+'\',-1)">السابق</button><span id="'+id+'-meta">—</span><button type="button" class="btn btn-outline" id="'+id+'-next" onclick="paginateRecordsTable(\''+id+'\',1)">التالي</button></div></section>';
+ const body=data.map(r=>'<tr data-record-status="'+esc(String(r.status||'غير محدد').toUpperCase())+'">'+cols.map(c=>'<td>'+renderRecordCell(c[1](r))+'</td>').join('')+'</tr>').join('');
+ return '<section class="records" data-records-title="'+esc(title)+'" data-records-table="'+id+'" aria-labelledby="'+id+'-title"><div class="section-head"><div><span class="eyebrow">RECORDS</span><h3 id="'+id+'-title">'+esc(title)+'</h3><p class="muted">سجلات فعلية ضمن الصلاحيات الحالية · عرض '+RECORDS_PAGE_SIZE+' لكل صفحة</p></div><div class="mx-records-toolbar"><label class="search-field"><span>بحث داخل السجلات</span><input id="'+search+'" type="search" aria-controls="'+id+'" placeholder="ابحث داخل السجلات…" oninput="filterRecordsTable(\''+search+'\',\''+id+'\')"></label><button type="button" class="btn btn-outline mx-records-export" data-records-export="'+id+'">تصدير الجدول CSV</button></div></div><div class="table-wrap" tabindex="0" role="region" aria-label="جدول '+esc(title)+'"><table id="'+id+'"><thead><tr>'+heads+'</tr></thead><tbody>'+body+'</tbody></table></div><div class="mx-table-pager" aria-label="تنقل الجدول"><button type="button" class="btn btn-outline" id="'+id+'-prev" onclick="paginateRecordsTable(\''+id+'\',-1)">السابق</button><span id="'+id+'-meta">—</span><button type="button" class="btn btn-outline" id="'+id+'-next" onclick="paginateRecordsTable(\''+id+'\',1)">التالي</button></div></section>';
 }
 function workspaceHead(kicker,title,desc,badge){return '<div class="section-head"><div><span class="eyebrow">'+kicker+'</span><h2>'+title+'</h2><p>'+desc+'</p></div>'+(badge?'<span class="count">'+badge+'</span>':'')+'</div>'}
 function workspaceCards(items){return '<div class="grid3">'+items.map(x=>{const pending=String(x[1])==='—';return '<article class="card mnty-kpi-card"><div class="row"><strong>'+x[0]+'</strong><span class="dot"></span></div><div class="kpi" style="font-size:24px">'+esc(x[1])+'</div><p class="muted">'+esc(x[2])+'</p><div class="mnty-card-state '+(pending?'mnty-card-state--pending':'')+'"><span class="mnty-status-dot"></span><span>'+(pending?'بانتظار مصدر بيانات فعلي':'بيانات فعلية ضمن مساحة العمل الحالية')+'</span></div></article>'}).join('')+'</div>'}
@@ -1207,6 +1681,10 @@ function openMarketingRecordDetails(kind,id){
 }
 function marketingWorkspace(){
  const leads=live.records.leads||[],projects=live.records.projects||[],ads=live.records.ads||[],providers=live.records.providers||[],services=live.records.services||[];
+ const exportToolbar='<div class="mx-workspace-shortcuts"><button type="button" data-export-source="marketing-projects">تصدير المشروعات CSV</button><button type="button" data-export-source="marketing-ads">تصدير الإعلانات CSV</button><button type="button" data-export-source="marketing-leads">تصدير العملاء المحتملين CSV</button></div>';
+ const leadStatusFilters=recordsStatusFilterHtml('طلبات التسويق',leads);
+ const projectStatusFilters=recordsStatusFilterHtml('المشروعات التسويقية',projects);
+ const adStatusFilters=recordsStatusFilterHtml('الإعلانات',ads);
  const activeAds=ads.filter(x=>String(x.status||'').toUpperCase()==='ACTIVE').length;
  const pendingAds=ads.filter(x=>['PENDING','PENDING_APPROVAL'].includes(String(x.status||x.approval_status||'').toUpperCase())).length;
  const verifiedProviders=providers.filter(x=>x.is_verified===true).length;
@@ -1214,12 +1692,16 @@ function marketingWorkspace(){
  const projectCurrency=projects.find(x=>x.currency)?.currency||'';
  const detail=(kind,id)=>"<button type=\"button\" class=\"linkbtn\" onclick=\"openMarketingRecordDetails('"+kind+"','"+esc(id)+"')\">التفاصيل</button>";
  return workspaceHead('MANTIQATIX MARKETING','مركز التسويق والإعلان','Workspace تشغيلي موحد لإدارة العملاء المحتملين والمشروعات والإعلانات ومقدمي التسويق والخدمات من البيانات الفعلية.','MARKETING')
+ +exportToolbar
  +workspaceCards([['العملاء المحتملون',String(leads.length),'طلبات تسويق مرئية وفق RLS'],['المشروعات',String(projects.length),'مشروعات تسويق فعلية'],['الإعلانات النشطة',String(activeAds),'حالة فعلية فقط'],['إعلانات تحتاج متابعة',String(pendingAds),'تحتاج مراجعة أو اعتماد'],['مقدمو التسويق الموثقون',String(verifiedProviders),'ملفات موثقة فقط'],['قيمة المشروعات',projects.length?(projectValue+' '+projectCurrency):'—','مجموع gross_value المتاح فعلياً']])
  +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">MARKETING CONTROL</span><h2>مسار التشغيل</h2><p>البيانات المعروضة من الجداول الحالية؛ لا يتم توليد أرقام أو أداء إعلاني غير موجود في المصدر.</p></div></div><div class="grid3" style="margin-top:12px"><article class="card" style="padding:16px"><b>استقطاب العميل</b><p>طلبات التسويق والعملاء المحتملون.</p><button class="btn btn-outline" onclick="createMarketingLead()">إنشاء طلب</button></article><article class="card" style="padding:16px"><b>الظهور الإعلاني</b><p>حجز مبدئي ثم تحقق التوفر والمسار المالي.</p><button class="btn btn-primary" onclick="requestAdBooking(&quot;HALF_YEARLY&quot;)">طلب حجز</button></article><article class="card" style="padding:16px"><b>مقدمو التسويق</b><p>عرض الملفات والخدمات الفعلية المتاحة.</p><span class="muted">الموثقون: '+verifiedProviders+'</span></article></div></section>'
  +'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ إنشاء طلب تسويقي</button></div>'
  +globalAdAdminPanel()
+ +leadStatusFilters
  +recordsTable('طلبات التسويق',leads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['منطقة الخدمة',r=>r.service_area||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>detail('lead',r.id)]])
+ +projectStatusFilters
  +recordsTable('المشروعات التسويقية',projects,[['النوع',r=>r.project_type||'—'],['الحالة',r=>r.status||'—'],['القيمة',r=>r.gross_value!=null?(r.gross_value+' '+(r.currency||'')):'—'],['العمولة',r=>r.platform_commission!=null?(r.platform_commission+' '+(r.currency||'')):'—'],['إجراء',r=>detail('project',r.id)]])
+ +adStatusFilters
  +recordsTable('الإعلانات',ads,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['الموافقة',r=>r.approval_status||'—'],['البداية',r=>r.start_at?r.start_at:'—'],['النهاية',r=>r.end_at?r.end_at:'—'],['إجراء',r=>detail('ad',r.id)]])
  +recordsTable('مقدمو خدمات التسويق',providers,[['الاسم',r=>r.name_ar||'—'],['النوع',r=>r.provider_kind||'—'],['الحالة',r=>r.status||'—'],['موثق',r=>r.is_verified?'نعم':'لا'],['إجراء',r=>detail('provider',r.id)]])
  +recordsTable('الخدمات التسويقية النشطة',services,[['الخدمة',r=>r.name_ar||r.name_en||'—'],['الكود',r=>r.code||'—'],['الفئة',r=>r.category_code||'—'],['الحالة',r=>r.status||'—'],['إجراء',r=>detail('service',r.id)]])
@@ -1294,7 +1776,7 @@ function openOrderDetails(orderId){
 function orderCards(){
  const rows=live.records.orders||[];
  if(!rows.length)return '<section class="mnty-empty-workspace"><div class="mnty-empty-icon">⌁</div><div><h3>لا توجد طلبات حاليًا</h3><p>ستظهر هنا الطلبات الفعلية المرتبطة بحسابك عندما يتم إنشاء طلب عبر المسار المعتمد.</p></div><div class="mnty-empty-actions"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'المجالات والخدمات\')">استكشف الخدمات</button></div></section>';
- return '<div class="mx-order-grid">'+rows.map(r=>'<article class="mx-order-card"><div class="mx-order-card__head"><span class="'+orderStatusClass(r.status)+'">'+esc(orderStatusLabel(r.status))+'</span><small>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</small></div><h3>طلب '+esc(String(r.id||'').slice(0,8))+'</h3><p>'+esc(r.customer_name||'طلب خدمة')+'</p><div class="mx-order-card__meta"><span>الإجمالي</span><b>'+esc(r.total_amount!=null?(r.total_amount+' '+(r.currency||'')):'—')+'</b></div><div class="mx-order-card__actions"><button class="text-btn" onclick="openOrderDetails(\''+esc(r.id)+'\')">التفاصيل</button>'+orderActions(r)+'</div></article>').join('')+'</div>';
+ return '<div class="mx-order-grid">'+rows.map(r=>'<article class="mx-order-card" data-order-status="'+esc(String(r.status||'UNKNOWN').toUpperCase())+'"><div class="mx-order-card__head"><span class="'+orderStatusClass(r.status)+'">'+esc(orderStatusLabel(r.status))+'</span><small>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</small></div><h3>طلب '+esc(String(r.id||'').slice(0,8))+'</h3><p>'+esc(r.customer_name||'طلب خدمة')+'</p><div class="mx-order-card__meta"><span>الإجمالي</span><b>'+esc(r.total_amount!=null?(r.total_amount+' '+(r.currency||'')):'—')+'</b></div><div class="mx-order-card__actions"><button class="text-btn" onclick="openOrderDetails(\''+esc(r.id)+'\')">التفاصيل</button>'+orderActions(r)+'</div></article>').join('')+'</div>';
 }
 function operationsWorkspace(){
  const rows=Array.isArray(live.records.orders)?live.records.orders:[];
@@ -1309,7 +1791,8 @@ function operationsWorkspace(){
  const unread=notifications.filter(n=>!n.read_at).length;
  const byStatus={};rows.forEach(r=>{const s=String(r.status||'UNKNOWN').toUpperCase();byStatus[s]=(byStatus[s]||0)+1});
  const statusRows=Object.entries(byStatus).map(([status,count])=>({status,count}));
- return workspaceHead('OPERATIONS','مركز العمليات','متابعة دورة الطلبات والحالات والتنبيهات وسجل الانتقالات ضمن نطاق العضوية الحالي، مع إبقاء التغييرات الحساسة خلف المسار المعتمد.','OPERATIONS')
+ const statusFilterHtml='<div class="mx-workspace-shortcuts" aria-label="تصفية الطلبات حسب الحالة"><button type="button" data-order-status-filter="" aria-pressed="true">كل الحالات ('+rows.length+')</button>'+Object.entries(byStatus).sort(([a],[b])=>a.localeCompare(b)).map(([status,count])=>'<button type="button" data-order-status-filter="'+esc(status)+'" aria-pressed="false">'+esc(orderStatusLabel(status))+' ('+count+')</button>').join('')+'</div>';
+ return workspaceHead('OPERATIONS','مركز العمليات','متابعة دورة الطلبات والحالات والتنبيهات وسجل الانتقالات ضمن نطاق العضوية الحالي، مع إبقاء التغييرات الحساسة خلف المسار المعتمد.','OPERATIONS')+'<div class="mx-workspace-shortcuts"><button type="button" data-export-source="orders">تصدير الطلبات CSV</button></div>'+statusFilterHtml+'<div class="mx-workspace-shortcuts"><button type="button" data-export-source="orders">تصدير الطلبات CSV</button></div>'
  +workspaceCards([
   ['إجمالي الطلبات',countOrDash('orders'),'إجمالي مرئي وفق نطاق الحساب'],
   ['نشطة الآن',String(active),'من آخر السجلات المحملة'],
@@ -1341,7 +1824,10 @@ function analyticsWorkspace(){
  const orderValue=orders.reduce((n,o)=>n+(Number(o.total_amount)||0),0);
  const currency=orders.find(o=>o.currency)?.currency||'';
  const note='المؤشرات التالية محسوبة من السجلات التي تم تحميلها فعليًا لهذا الحساب، وليست إجماليًا تاريخيًا إلا إذا كان مصدر التحميل شاملًا.';
- return workspaceHead('ANALYTICS','التقارير والتحليلات','لوحة تحليلية مبنية على بيانات التشغيل الفعلية المتاحة، مع منع الخلط بين العينة المحملة والإجمالي التاريخي.','LIVE')
+ const orderStatusCounts={};orders.forEach(o=>{const status=String(o.status||'UNKNOWN').toUpperCase();orderStatusCounts[status]=(orderStatusCounts[status]||0)+1;});
+ const maxStatusCount=Math.max(1,...Object.values(orderStatusCounts));
+ const statusBars=Object.entries(orderStatusCounts).sort((a,b)=>b[1]-a[1]).map(([status,count])=>'<div class="mx-analytics-bar-row"><span>'+esc(orderStatusLabel(status))+'</span><div class="mx-analytics-track" role="progressbar" aria-label="'+esc(orderStatusLabel(status))+'" aria-valuemin="0" aria-valuemax="'+maxStatusCount+'" aria-valuenow="'+count+'"><span style="width:'+Math.round((count/maxStatusCount)*100)+'%"></span></div><b>'+count+'</b></div>').join('');
+ return workspaceHead('ANALYTICS','التقارير والتحليلات','لوحة تحليلية مبنية على بيانات التشغيل الفعلية المتاحة، مع منع الخلط بين العينة المحملة والإجمالي التاريخي.','LIVE')+'<div class="mx-workspace-shortcuts"><button type="button" data-export-source="orders">تصدير الطلبات CSV</button><button type="button" data-export-source="leads">تصدير العملاء المحتملين CSV</button><button type="button" data-export-source="projects">تصدير المشروعات CSV</button><button type="button" data-export-source="ads">تصدير الإعلانات CSV</button><button type="button" data-export-source="notifications">تصدير الإشعارات CSV</button></div>'
  +'<div class="notice">'+esc(note)+'</div>'
  +workspaceCards([
   ['الطلبات المحملة',String(orders.length),'مصدر orders الحالي'],
@@ -1351,7 +1837,7 @@ function analyticsWorkspace(){
   ['Leads المفتوحة',String(openLeads),'من CRM المتاح'],
   ['مشروعات نشطة',String(activeProjects),'من التسويق المتاح']
  ])
- +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">OPERATING SIGNALS</span><h2>إشارات الأداء</h2><p>قراءة تشغيلية فقط من البيانات الحالية؛ لا توجد نسب تحويل أو نمو مصطنعة بدون بيانات فترة مقارنة.</p></div></div><div class="grid3" style="margin-top:12px">'
+ +'<section class="card mx-analytics-status" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">ORDER STATUS</span><h2>توزيع حالات الطلبات المحمّلة</h2><p class="muted">توزيع السجلات المتاحة فقط، وليس كامل التاريخ التشغيلي.</p></div></div>'+(statusBars||'<div class="empty-state">لا توجد طلبات محمّلة لعرض التوزيع.</div>')+'</section>' +'<section class="card" style="margin:16px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">OPERATING SIGNALS</span><h2>إشارات الأداء</h2><p>قراءة تشغيلية فقط من البيانات الحالية؛ لا توجد نسب تحويل أو نمو مصطنعة بدون بيانات فترة مقارنة.</p></div></div><div class="grid3" style="margin-top:12px">'
  +'<article class="card" style="padding:14px"><b>معدل التسليم</b><strong style="display:block;font-size:24px;margin-top:8px">'+(orders.length?((delivered/orders.length)*100).toFixed(1)+'%':'—')+'</strong><small class="muted">من الطلبات المحملة</small></article>'
  +'<article class="card" style="padding:14px"><b>معدل الإلغاء/الفشل</b><strong style="display:block;font-size:24px;margin-top:8px">'+(orders.length?((cancelled/orders.length)*100).toFixed(1)+'%':'—')+'</strong><small class="muted">من الطلبات المحملة</small></article>'
  +'<article class="card" style="padding:14px"><b>إعلانات فعالة</b><strong style="display:block;font-size:24px;margin-top:8px">'+String(activeAds)+'</strong><small class="muted">حسب الحالة المتاحة</small></article>'
@@ -1385,7 +1871,9 @@ function crmWorkspace(){
  const ticketRows=tickets.map(r=>Object.assign({},r,{_action:'<button type="button" class="linkbtn mx-crm-detail" data-crm-kind="ticket" data-crm-id="'+esc(r.id)+'">التفاصيل</button>'}));
  const canCreateLead=window.MNTY_RBAC?.can(role,'CRM','create',live.permissions)===true;
  const canCreateTicket=window.MNTY_RBAC?.can(role,'SUPPORT','create',live.permissions)===true;
- const actions='<div class="action-bar">'+(canCreateLead?'<button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button>':'')+(canCreateTicket?'<button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button>':'')+'</div>';
+ const actions='<div class="action-bar">'+(canCreateLead?'<button class="btn btn-primary" style="width:auto" onclick="createMarketingLead()">+ طلب تسويق</button>':'')+(canCreateTicket?'<button class="btn btn-outline" style="width:auto" onclick="openSupportTicket()">+ تذكرة دعم</button>':'')+'<button class="btn btn-outline" style="width:auto" data-export-source="crm-leads">تصدير العملاء المحتملين CSV</button><button class="btn btn-outline" style="width:auto" data-export-source="crm-tickets">تصدير تذاكر الدعم CSV</button></div>';
+ const leadStatuses=[...new Set(leads.map(r=>String(r.status||'غير محدد').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+ const leadStatusFilters='<div class="mx-workspace-shortcuts" aria-label="تصفية طلبات التسويق"><button type="button" data-crm-lead-filter="" aria-pressed="true">كل الحالات ('+leads.length+')</button>'+leadStatuses.map(status=>'<button type="button" data-crm-lead-filter="'+esc(status.toUpperCase())+'" aria-pressed="false">'+esc(status)+' ('+leads.filter(r=>String(r.status||'غير محدد').toUpperCase()===status.toUpperCase()).length+')</button>').join('')+'</div>';
  const note=manager?'عرض تشغيلي موسع حسب العضوية والصلاحيات الحالية؛ البيانات تأتي من RLS مباشرة.':'عرض سجلات حسابك فقط وفق سياسات الوصول الحالية.';
  return workspaceHead('CRM','العملاء والعلاقات','مركز موحد لطلبات العملاء المحتملين وتذاكر الدعم والمراسلات والتنبيهات، بدون بيانات تجريبية.','CRM')
   +'<div class="notice">'+esc(note)+'</div>'
@@ -1398,6 +1886,7 @@ function crmWorkspace(){
    ['نطاق الحساب',esc(live.tenantId||'—'),'Tenant الحالي فقط']
   ])
   +actions
+  +leadStatusFilters
   +recordsTable('طلبات التسويق',leadRows,[
     ['العنوان',r=>r.title||'—'],['الحالة',r=>r.status||'—'],['المصدر',r=>r.source||'—'],['منطقة الخدمة',r=>r.service_area||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—'],['إجراء',r=>r._action]
   ])
@@ -1447,6 +1936,16 @@ async function markNotificationRead(notificationId){
  if(error)return showToast('تعذر تحديث الإشعار.','error');
  const n=live.records.notifications.find(x=>x.id===notificationId); if(n)n.read_at=new Date().toISOString();
  showToast('تم تعليم الإشعار كمقروء.','success'); renderApp();
+}
+async function markLoadedNotificationsRead(){
+ const pending=(live.records.notifications||[]).filter(n=>!n.read_at);
+ if(!pending.length)return showToast('لا توجد إشعارات غير مقروءة ضمن السجلات المحمّلة.','success');
+ let updated=0;
+ for(const n of pending){
+  try{const {error}=await sb.rpc('mark_notifications_read_backend',{p_notification_id:n.id});if(!error){n.read_at=new Date().toISOString();updated++;}}catch(_){}
+ }
+ showToast('تم تحديث '+updated+' من '+pending.length+' إشعار محمّل.','success');
+ await renderApp();
 }
 function pushSupported(){return window.isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window&&!!window.MNTY_WEB_PUSH_PUBLIC_KEY}
 function pushButtonHtml(){return pushSupported()?'<button class="btn btn-outline" id="device-push-toggle" style="width:auto">🔔 تفعيل إشعارات الجهاز</button>':''}
@@ -1762,9 +2261,9 @@ function notificationsWorkspace(){
  const recent=sorted.slice(0,12);
  const unreadHtml=recent.filter(n=>!n.read_at).map(n=>'<article class="card mnty-notification-card"><div class="row"><div><span class="eyebrow">NEW</span><h3>'+esc(n.title||'إشعار')+'</h3></div><span class="mnty-badge mnty-badge--live">جديد</span></div><p>'+esc(n.body||n.message||'لا توجد تفاصيل إضافية.')+'</p><div class="row"><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small><button class="linkbtn" onclick="markNotificationRead(\''+esc(n.id)+'\')">تعليم كمقروء</button></div></article>').join('');
  const recentHtml=recent.map(n=>'<article class="card mnty-notification-card '+(n.read_at?'mnty-notification-card--read':'')+'"><div class="row"><div><span class="eyebrow">'+(n.read_at?'READ':'NOTIFICATION')+'</span><h3>'+esc(n.title||'إشعار')+'</h3></div><span class="mnty-badge">'+esc(n.read_at?'مقروء':'جديد')+'</span></div><p>'+esc(n.body||n.message||'لا توجد تفاصيل إضافية.')+'</p><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small></article>').join('');
- return workspaceHead('NOTIFICATIONS','مركز الإشعارات','الإشعارات مرتبطة بالحساب الحالي فقط، ولا تظهر أي بيانات غير مصرح بها.','LIVE')
+ return workspaceHead('NOTIFICATIONS','مركز الإشعارات','الإشعارات مرتبطة بالحساب الحالي فقط، ولا تظهر أي بيانات غير مصرح بها.','LIVE')+'<div class="mx-workspace-shortcuts"><button type="button" data-export-source="notifications">تصدير الإشعارات CSV</button></div>'
  +workspaceCards([['إجمالي الإشعارات',rows.length,'السجلات المتاحة للحساب'],['غير مقروء',unread,'تحتاج انتباهًا'],['آخر تحديث',recent.length?new Date(recent[0].created_at||Date.now()).toLocaleDateString('ar-EG'):'—','آخر سجل متاح'],['حالة الجهاز',pushSupported()?'متاح':'غير متاح','إشعارات المتصفح حسب الدعم والصلاحية']])
- +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="enableDevicePush()">🔔 إعداد إشعارات الجهاز</button></div>'
+ +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="enableDevicePush()">🔔 إعداد إشعارات الجهاز</button>'+(unread?'<button class="btn btn-primary" style="width:auto" id="mark-loaded-notifications-read">تعليم الإشعارات المحمّلة كمقروءة</button>':'')+'</div>'
  +(unread?'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">UNREAD</span><h3>تحتاج انتباهك</h3><p class="muted">الإشعارات غير المقروءة فقط.</p></div></div><div class="grid2">'+(unreadHtml||'<div class="empty-state">لا توجد إشعارات غير مقروءة.</div>')+'</div></section>':'')
  +'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">RECENT</span><h3>آخر الإشعارات</h3><p class="muted">أحدث السجلات الفعلية المتاحة للحساب.</p></div></div><div class="grid2">'+(recentHtml||'<div class="empty-state">لا توجد إشعارات فعلية حاليًا.</div>')+'</div></section>'
  +recordsTable('سجل الإشعارات',rows,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']]);
@@ -1945,13 +2444,8 @@ window.MXHomeLanding?MXHomeLanding():landingView();
 showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصفحة.','error');
 }
 }
-function bindGenericWorkspaceTabs(){
- const panels={overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>مساحة العمل جاهزة</h3><p>الهيكل البصري والعمليات الأساسية لهذه الوحدة محددة. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>سيتم ربط الجداول وواجهات القراءة الفعلية هنا حسب نطاق الحساب والصلاحيات، دون إنشاء سجلات تجريبية.</p></div>',operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>أزرار التنفيذ تُضاف فقط للعمليات التي لها مسار خادم معتمد وصلاحية واضحة. لا يتم تشغيل إجراء غير متصل.</p></div>',reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات ستعتمد على بيانات تشغيلية حقيقية؛ لذلك تظل القيم غير المتاحة فارغة بدل عرض أرقام تقديرية.</p></div>',settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>إعدادات الوحدة تظهر عند اكتمال مساراتها الخلفية والصلاحيات المرتبطة بها.</p></div>'};
- document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-selected',x===btn?'true':'false')});
-  const panel=document.getElementById('mnty-generic-tab-panel');if(panel)panel.innerHTML=panels[btn.dataset.tab]||panels.overview;
- }));
-}
+// Generic workspace bindings are implemented alongside genericWorkspacePanelHtml().
+
 function platformStateView(kind,title,description,actions=''){
  const icon=kind==='error'?'⚠️':kind==='empty'?'◌':'⏳';
  return '<main class="auth"><section class="auth-card mnty-state-card mnty-state-card--'+esc(kind)+'"><div class="mnty-state-icon" aria-hidden="true">'+icon+'</div><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>'+esc(title)+'</h1><p>'+esc(description)+'</p><div class="mnty-state-actions">'+actions+'</div></section></main>';
@@ -1975,9 +2469,9 @@ try{
  }
 }catch(_){}
 if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" value="${esc(query)}" autocomplete="off" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
- if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindGenericWorkspaceTabs();document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
+ if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindGenericWorkspaceTabs();bindWorkspaceExports();bindCrmLeadStatusFilters();bindOrderStatusFilters();bindRecordStatusFilters();bindJobWorkspaceActions();bindDomainModuleActions();bindEducationWorkspaceActions();document.getElementById('mark-loaded-notifications-read')?.addEventListener('click',markLoadedNotificationsRead);document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
  const gsi=document.getElementById('mx-global-search-input'),gso=document.getElementById('mx-global-search-results');let globalSearchTimer=null,globalSearchSeq=0;
- const runGlobalSearch=async()=>{const value=String(gsi?.value||'').trim();if(!gso)return;if(value.length<2){gso.innerHTML='';gso.classList.remove('is-open');return}const seq=++globalSearchSeq;gso.innerHTML='<div class="mx-global-search-loading">جاري البحث في البيانات المتاحة…</div>';gso.classList.add('is-open');const results=await globalSearch(value);if(seq!==globalSearchSeq)return;gso.innerHTML=globalSearchResultHtml(results);gso.querySelectorAll('[data-search-index]').forEach(el=>el.addEventListener('click',()=>{const hit=results[Number(el.dataset.searchIndex)];if(hit?.source?.route)selectModule(hit.source.route);gso.classList.remove('is-open')}))};
+ const runGlobalSearch=async()=>{const value=String(gsi?.value||'').trim();if(!gso)return;if(value.length<2){gso.innerHTML='';gso.classList.remove('is-open');return}const seq=++globalSearchSeq;gso.innerHTML='<div class="mx-global-search-loading">جاري البحث في البيانات المتاحة…</div>';gso.classList.add('is-open');const results=await globalSearch(value);if(seq!==globalSearchSeq)return;gso.innerHTML=globalSearchResultHtml(results);gso.querySelectorAll('[data-search-index]').forEach(el=>el.addEventListener('click',()=>{const hit=results[Number(el.dataset.searchIndex)];gso.classList.remove('is-open');openGlobalSearchDetails(hit)}))};
  gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280)});
  gsi?.addEventListener('keydown',e=>{if(e.key==='Escape'){gsi.value='';gso.innerHTML='';gso.classList.remove('is-open')}if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
  document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}

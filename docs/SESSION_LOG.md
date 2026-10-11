@@ -21,3 +21,200 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-11 — SESSION-002 — Build phase requested; reviews deferred
+
+- **User decision:** stop reviews/audits for now. Continue building missing functionality across all modules first; perform the reviews after module construction is complete. Continue automatically without stopping between modules where safe.
+- **Execution mode:** BUILD ONLY. Do not run broad audits or repeat prior findings during this phase. Basic build/runtime checks may be used later at the planned review gate; do not claim untested code is verified.
+- **Implemented in branch `build/module-workspaces-functional-20261011`:**
+  - Replaced generic module-page placeholders for Users, Orders, Marketing & Advertising, Commissions & Packages, Reports, and Settings with working workspace tabs: overview, data, operations/navigation, reports, and account context.
+  - Workspace data panels use records already loaded by the application under the existing authenticated Supabase client/RLS context; they do not create or mutate operational/financial records.
+  - Added local search over the displayed rows and detail views for the explicitly selected fields.
+  - Added truthful workspace snapshots that label loaded sample counts and avoid representing recent loaded rows as full historical totals.
+  - Added a data refresh control and module navigation actions.
+  - Added a global-search record-details drawer that shows the matched row fields and provides a route to its module.
+  - Added responsive styles for workspace tables, summaries, details, and the global-search drawer.
+- **Code commits on build branch:** `a85e5a693734945b0d74346b00dae51aca65ed76`, `097b58da92ace28ff908c3d688cb2cb42516beb0`, `96ad14f02b6dabeafef1863835822d1cb8bfde74`, `bad07210289580593fe52c623185da09883539a6`, `cc9e2290bac5487dcd80cfde7f7519a43628cb92`.
+- **Production impact:** none. No database writes, Edge Function deployments, financial operations, or production deployments were performed.
+- **Not done yet:** no comprehensive module review, no browser/E2E claim, no CI success claim, and no release readiness claim. This is the first build batch, not completion of all modules.
+- **Next construction sequence:** specialized Restaurant Workspace → CRM → Marketing & SMM → Operations/Orders → Finance → Notifications/Tasks → Reports/Analytics → remaining sector modules → then review/testing after construction is complete.
+- **Release state:** **BLOCKED / NOT CERTIFIED** remains unchanged; build progress does not imply production readiness.
+
+
+## 2026-10-11 — SESSION-003 — Continue module construction: exports and notification workflow
+
+- **Build work completed on the active construction branch:**
+  - Added UTF-8 CSV export utility with proper CSV quoting and fixed spreadsheet BOM handling.
+  - Added allowlisted CSV exports for restaurant menu/orders/tables/inventory; CRM leads/support tickets; marketing projects/ads/leads; generic workspace data groups; operations orders; and notifications.
+  - Export columns are explicitly allowlisted; restaurant exports exclude customer phone/address fields.
+  - Export actions use event delegation so controls created dynamically in workspace tabs remain functional.
+  - Added a bulk “mark loaded notifications read” action using the existing `mark_notifications_read_backend` RPC and only the currently loaded notifications. The action reports the number updated and refreshes the UI once.
+  - Improved global-search details drawer Escape handling and focus restoration.
+- **Code commits:** `d102cf231ee9dad0ca58dfbec1487fbf4bae4c51`, `1d32030b16d941ba1897ddc4b52a2a65c1bfc4d0`, `a7b5817b54b5654462e9fb1823dfd26c5e4e3c8d`, `00417890af7838f0077ba864604e4a14e38d04a0`, `999a187a1bb121934302929bc81dc92d07b06f0a`.
+- **Tracking:** draft PR [#205](https://github.com/islamnagy2022-eng/MantiqaTix/pull/205) contains the build-only batch and remains open as a draft.
+- **Production impact:** none; no database or financial mutations and no deployment.
+- **Not done:** no broad review or end-to-end verification; this is not module completion.
+- **Next construction step:** continue adding functionality to specialized modules without repeating prior audits. After construction across all modules is complete, perform the requested reviews and verification phase.
+
+
+## 2026-10-11 — SESSION-004 — Build CRM, operations, and analytics workflows
+
+- **Implemented on the same build branch:**
+  - CRM lead list now has status filters generated from the statuses actually present in the loaded records; no assumed lifecycle values are inserted.
+  - Operations workspace order cards now have status filters generated from currently loaded order statuses.
+  - Marketing workspace has per-table status filters for leads, projects, and advertisements; filters are scoped to their corresponding table and preserve the shared pagination/search behavior.
+  - Analytics workspace now includes an accessible status-distribution visualization based on loaded order records and explicit CSV exports for available operational datasets.
+  - Shared table rendering now exposes normalized record status metadata to support exact status filters.
+  - Export functionality remains allowlisted and reads only loaded records; no mutation path was introduced.
+- **Code commits:** `abe5831712f81ababa9cf230992b8e349cc8f67c`, `348f4409b49702ab38f91bd5e902605eb8ee4c21`, `7f8b76728514d699085d64c09b593e87e364a42a`, `d58f249eb17fcfa566824e43e5e501477592a32b`, `b6bb8aeaec3c7e453c39dd2b8c8cf50636313f3d`, `658cdefb343900711e1ea1f415b9734924af3bf7`, `13345875befc34b217f1c260def77f147b434864`.
+- **Production impact:** none. No database or financial writes, no deployment.
+- **Review status:** broad reviews remain deferred per user instruction; no E2E or release verification is claimed.
+- **Next:** continue module construction. Add functionality using existing backend contracts; do not create speculative mutation endpoints or schema migrations while the existing migration sequence is unresolved.
+
+
+## 2026-10-11 — SESSION-005 — Data-backed sector workspaces
+
+- **Implemented on the build branch:**
+  - Added a safe column allowlist for sector-module tables rather than rendering every database column.
+  - Added a data loader for generic sector modules that uses the authenticated Supabase client, existing RLS, and explicit tenant/business/branch filters only where the schema supports those columns.
+  - Modules now load actual scoped rows with search/sort/pagination, field-level display mappings, per-table CSV exports, and status filters when the table exposes a status field.
+  - Added/connected read workspaces for Fashion, Grocery, Companies, Marketing (sector), Maintenance, Legal, Jobs, Medical, Education, and Used Items; existing specialized Restaurant, ERP, Accounting, Factory, Trips, and Matrimony workflows remain on their existing paths.
+  - Sensitive columns are intentionally excluded from generic display/export maps (e.g. job applicant phone/CV, seller/provider phone numbers, matrimony direct/wali contact, customer order phone/address). Medical appointments use a limited field selection for the existing medical workspace.
+  - Added the missing safe field mapping for support tickets and corrected the chronological sort field for matrimony contact-unlock records to use `unlocked_at`.
+- **Code commits:** `cde9293f2211f2ffa718e67d4cf0f7454b9dfd14`, `356eb57c734a0a4e47206bcc9f9a1d343812571a`, `c0c7d5320019577bd34f5990b5ca26d69c0c7b96`, `08a74008e30ee8069b58883712b0f0c2c1dd7b8e`, `ed3f7fdbc0f2bd98fdd4ad0fd69149f7286ed724`.
+- **Production impact:** none; read-only module loaders and frontend changes only, no DB writes/deployments.
+- **Important limitation:** implementation has not yet been broadly reviewed or runtime-tested. A table can legitimately show NOT AVAILABLE when the existing role/RLS contract denies reading it; this must not be worked around with broader privileges.
+- **Next:** continue construction across the remaining specialized workflows, then perform the requested review/testing phase after module construction is complete.
+
+
+## 2026-10-11 — SESSION-006 — Jobs posting and application workflow
+
+- **Implemented:**
+  - Added role-gated job creation UI with validation for title, company, category, job type, location, salary range, description, and requirements.
+  - Job posts are attributed to the current authenticated user and active tenant/business context; the write uses the existing RLS-controlled `jobs` table and does not request phone/contact data.
+  - Added customer-only application form for an individual job, attributing each application to the authenticated user and collecting applicant name plus optional qualifications/summary, without requesting phone number or exposing CV/contact fields in list views.
+  - Job and application lists now have tailored views, scoped fields, and allowlisted CSV exports.
+  - Reload after create/apply uses the data-backed module loader and existing RLS; no schema migration or privileged backend bypass was introduced.
+- **Code commits:** `c136abb17ebd6c97322a239d856c36ee93c6909b`, `e5bb130a0e260d2e4a9b6b001ad00ce15f76ac1d`, `ef961aee52b31f6a7cc2609ee5e2ac4bbae00c66`, `75d03ae6108e6b7b143ebe9f959abf72ebbdbfc7`, `548fbd5409951675040de1f52a7b40da3d04e744`, `c34ace1caee2a4317641564ed633f7ab976065f6`.
+- **Production impact:** none until an authorized user explicitly uses the UI after deployment; no records were created by this build activity.
+- **Not yet verified:** the actual insert/apply flows have not been exercised against real test accounts or RLS policies; broad review remains deferred by user instruction.
+- **Next:** continue construction in other sector modules and workflows, then review and test after module construction is complete.
+
+
+## 2026-10-11 — SESSION-007 — Unified module directory and SMM quick access
+
+- **Implemented:**
+  - Reworked the Module Center into separate “Core Platform Modules” and “Sectors & Services” sections.
+  - Added explicit accessible “Open module” buttons, role/feature-flag visibility filtering, per-sector source counts, and a truthful loaded/not-yet-open state.
+  - Ensured the SMM module is visible as a first-class core module in the Module Center.
+  - Added a permission-aware SMM shortcut to the main dashboard hero and the Marketing role command center.
+- **Code commits:** `e4ea478a394fa58a4189267b7d4a71569232bbab`, `3817343fb24bbd2c2bb577792187725e9ac01293`, `9dc773db64003f6a848410a4c181d373818e09b5`.
+- **Production impact:** none; UI/source changes only.
+- **Not done:** no broad review, no CI/runtime/E2E verification, no deployment.
+- **Next:** continue constructing missing actions and workflows in remaining sector modules, then run reviews only after the build phase is complete.
+
+
+## 2026-10-11 — SESSION-008 — Shared table exports and sector refresh
+
+- **Implemented:**
+  - Added a CSV export action to every non-empty shared records table. The export includes only columns already displayed in that table and the currently loaded rows; it does not pull additional database columns.
+  - Added a data refresh action to the data-backed generic sector workspaces.
+  - Kept export event handling delegated so it works after dynamic module/tab rendering.
+- **Code commits:** `13f2ac4edf7c39b079aace085387248dc38e04c0`, `2b61e50566478c28fedf3b9f73464806a77ab60f`, `b4a0a1908098c903c5054f5703c5de26f7f41094`, `114f60fc7ea806f0fc7673808c19e704569416dd`.
+- **Production impact:** none.
+- **Not done:** no broad review or runtime verification.
+- **Next:** continue adding module-specific workflows; review remains deferred until construction is complete.
+
+
+## 2026-10-11 — SESSION-009 — Sector record detail views
+- Added a read-only “التفاصيل” action to configured generic sector data tables.
+- Details resolve only against rows already loaded into the current module cache and use the existing per-table allowlisted display fields; no extra query, privilege elevation, or write path was introduced.
+- Escaping is applied to field labels/values, and missing/out-of-scope rows fail closed with a toast.
+- Commit: `4c46af60a11316a15d9e488d78e81372e6e904ad`.
+- **Production impact:** none; no migrations, RLS/grants/Auth changes, Edge Function deployments, financial mutations, or payments.
+- **Verification status:** construction change recorded; runtime/E2E and broad review are still deferred by user instruction.
+- **Next:** continue module-specific build work before the deferred review phase.
+
+
+## 2026-10-11 — SESSION-010 — SMM order workspace usability
+- Added search and status filters to the SMM “My Orders” view, with visible result counts.
+- Added CSV export for the currently filtered subset of the authenticated user's already-loaded orders; the export uses an explicit column allowlist, UTF-8 BOM, CSV quoting, and spreadsheet-formula prefix protection.
+- Added delegated per-row status refresh buttons and escaped displayed values.
+- Commit: `0d69612a945ffaa26a728f89ac7cc08eb2395e8d`.
+- No payment, wallet, provider, gateway, database, or production changes were made. Runtime/E2E remains unverified; broad review remains deferred.
+
+
+## 2026-10-11 — SESSION-011 — SMM catalog controls
+- Added platform/category filters and a visible result count to the SMM service catalog.
+- Added allowlisted CSV export for the filtered catalog (service id, platform, category, name, selling price per 1000, quantity bounds, refill flag), with the existing CSV quoting/formula-protection helper.
+- Order placement remains an explicit button action; clicking elsewhere on a service card no longer accidentally opens the order flow.
+- Commit: `f402b79cf7476fd8e4651a5036ee1cb4023fb9e7`.
+- No gateway, provider, wallet, payment, schema, or production changes. Runtime verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-012 — SMM order input safeguards
+- SMM gateway calls now fail with an explicit authentication-required error when there is no access token, and use `cache: no-store` for gateway POST requests.
+- SMM order submission now requires a safe integer quantity within the service's advertised minimum/maximum bounds.
+- Commit: `03649e71396f8f9bef4b0625cc1df8a9f2fd8ae8`.
+- These are client-side safeguards only; gateway-side validation remains authoritative and no gateway/payment/wallet backend was changed. Runtime verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-013 — Education workspace search/export
+- Added one live search across loaded school, teacher, and education-request tables, with matching/total counts.
+- Added explicit CSV export controls for the school, teacher, and education-request datasets using the existing allowlisted exporter.
+- Search only hides/shows rows already rendered from current RLS-visible data; it does not issue broader queries or change permissions.
+- Commit: `3aeedbc899b5da1f357c90160265de26a36c5491`.
+- Runtime/E2E and broad review remain deferred; no production changes.
+
+
+## 2026-10-11 — SESSION-014 — Read-only details for sector workspace records
+- Added a per-record “التفاصيل” action to mapped sector-workspace tables.
+- The details drawer resolves a record only from the current module's already-loaded rows and uses the existing allowlisted field labels; it does not perform a new broad query or expose unmapped columns.
+- This is read-only presentation functionality. Existing RLS and data loading remain unchanged.
+- Runtime/E2E verification and broad review remain deferred by user instruction; no production deployment or schema mutation.
+
+
+## 2026-10-11 — SESSION-015 — Refresh controls for specialized sector workspaces
+- Added an explicit refresh action to the specialized Accounting, ERP, Factory, Trips, and Matrimony workspace branch.
+- The action invalidates only the current module's in-memory loaded-data cache and reuses its existing authenticated loader; no direct database writes, schema changes, or privilege changes.
+- Existing Restaurant and generic sector workspaces retain their own paths.
+- Implementation commit: `0e19464fadd67c5520b0cb6449218c50b9a17ba3`.
+- Runtime/E2E verification remains outstanding; broad review deferred until construction is complete.
+
+
+## 2026-10-11 — SESSION-016 — Restaurant workspace refresh
+- Added an explicit refresh control to the restaurant workspace.
+- Refresh clears only the current in-memory restaurant data cache and invokes the existing scoped loader for menu, orders, tables, and inventory; existing tenant/business/branch filters and RLS behavior are preserved.
+- Implementation commit: `936551530b7def8bb815cfbf458ad1b4874b8d0c`.
+- No production deployment or schema mutation; runtime/E2E verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-017 — Scoped job application details
+- Added a details action for loaded job applications in the Jobs workspace.
+- The drawer displays only the already-loaded job ID, applicant name, and submission date; it does not query or reveal qualifications, CV summaries, or contact details.
+- Implementation commit: `f5522cad42215e392ef18cc9de4395468bf7ab3f`.
+- Runtime/E2E verification remains outstanding; no production changes.
+
+
+## 2026-10-11 — SESSION-018 — Searchable used-items workspace
+- Added a dedicated marketplace presentation for used-item ads using the existing allowlisted fields: title, category, price, location, sold flag, and creation date.
+- Added client-side search and availability/sold filtering over already-loaded records, a CSV export action, and a read-only details drawer.
+- No new database fields, migrations, or privileged writes were introduced; current authenticated queries and RLS remain the data boundary.
+- Implementation commit: `2c5f2c00888778dc82353b76d6aef7fcda5d6922`.
+- This is code construction only; browser/runtime/E2E verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-019 — Customer-facing discovery guardrails
+- Customer job discovery now lists only jobs explicitly marked `is_active === true`; non-customer workspaces retain their broader visible records for management.
+- Customer education discovery now shows only schools and teachers explicitly marked available, so the UI does not offer service requests against records marked unavailable.
+- Implementation commits: `54947fad3de57b4584806eb2a8e238a987b20d67`, `e7c1413e7b5f325d3841f1c7875ac5937357f88b`.
+- These are client-side usability guardrails, not substitutes for server-side RLS/business validation; runtime/E2E remains unverified.
+
+
+## 2026-10-11 — SESSION-020 — Revalidate customer actions against loaded records
+- Job application form now re-checks that the selected job is present in the current loaded dataset and explicitly active before presenting/submitting the form.
+- Education request form now re-checks that the target is a loaded school/teacher marked available and that the target type is recognized.
+- These client-side checks reduce stale/direct UI actions but do not replace backend RLS and RPC validation.
+- Implementation commit: `02ae35ae66ea07abdf013544b4840950565cfa93`.
+- Runtime/E2E remains unverified; no production changes.

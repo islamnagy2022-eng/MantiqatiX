@@ -1559,3 +1559,128 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## BUILD-ONLY module construction — 2026-10-11
+- [x] User decision recorded: defer broad reviews until missing module functionality is built.
+- [x] Build batch 1 (branch `build/module-workspaces-functional-20261011`): generic Users/Orders/Marketing/Commissions/Reports/Settings pages now have working tabs, loaded-record views, local filtering, details, navigation, and honest loaded-data snapshots.
+- [x] Global search results now open a record details drawer and provide navigation to the owning module.
+- [ ] Continue construction: Restaurant Workspace → CRM → Marketing/SMM → Operations/Orders → Finance → Notifications/Tasks → Reports/Analytics → remaining sector modules.
+- [ ] After all module construction: run broad review, tests, security checks, integration/E2E, and release verification. Do not mark production ready before evidence.
+- [ ] Current work branch is not merged/deployed; production impact is none.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-003
+- [x] Added allowlisted CSV exports for CRM leads/support tickets, marketing projects/ads/leads, restaurant menu/orders/tables/inventory, operations orders, notifications, and generic module data groups.
+- [x] Added bulk mark-read for currently loaded notifications using the existing backend RPC; no new database mutation path.
+- [x] Improved global search details drawer keyboard dismissal and focus restoration.
+- [x] Work is tracked in draft PR [#205](https://github.com/islamnagy2022-eng/MantiqaTix/pull/205).
+- [ ] Continue module construction; broad reviews remain deferred by user instruction until all modules are built.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-004
+- [x] CRM lead filtering based on observed record statuses.
+- [x] Operations order filtering based on observed record statuses.
+- [x] Marketing lead/project/advertisement status filters.
+- [x] Analytics status-distribution visualization with explicit loaded-record scope and CSV exports.
+- [ ] Continue specialized module construction; defer broad review until all modules are built.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-005
+- [x] Added allowlisted, data-backed read tables for generic sector modules; queries use authenticated Supabase + existing RLS and only apply scope filters for columns that exist.
+- [x] Added table-level CSV exports and status filters to the generic sector workspaces.
+- [x] Kept contact and sensitive fields out of generic displays/exports.
+- [ ] Finish missing workflows for specialized modules and any module whose data source currently returns NOT AVAILABLE under the current contract.
+- [ ] Broad review, automated tests, tenant E2E and final release verification remain deferred until module construction is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-006
+- [x] Added role-gated job-post creation UI using existing `jobs` table and current user/tenant/business identity.
+- [x] Added customer job-application UI using existing `job_applications` table; omitted phone/contact fields from the application form and list exports.
+- [x] Added tailored jobs/applications views and CSV exports.
+- [ ] Runtime/RLS verification is deferred until the planned post-construction review phase; no success claim yet.
+- [ ] Continue building remaining modules before broad reviews.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-007
+- [x] Unified Module Center now separates core modules from sectors and exposes explicit open actions.
+- [x] SMM added to Module Center and permission-aware main dashboard / Marketing command center shortcuts.
+- [ ] Continue completing remaining sector workflows and operational actions; defer broad reviews until construction is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-008
+- [x] Shared records tables can export displayed columns and currently loaded rows as CSV.
+- [x] Generic sector workspaces can refresh their loaded records.
+- [ ] Continue module-specific construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-009
+- [x] Generic sector tables now expose read-only record details from existing loaded rows and allowlisted fields.
+- [x] Detail rendering escapes labels/values and does not broaden database access or add mutation paths.
+- [ ] Continue module-specific construction before broad review/testing.
+- [ ] Runtime/E2E verification remains outstanding; do not mark this feature verified or production-ready.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-010
+- [x] SMM order list supports search, status filter, visible result count, per-order refresh, and CSV export of filtered loaded rows.
+- [x] SMM export uses explicit columns, CSV quoting, UTF-8 BOM, and formula-injection mitigation.
+- [ ] Runtime/E2E verification is still outstanding; no production-readiness claim.
+- [ ] Continue module construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-011
+- [x] SMM service catalog has search, platform/category filters, result count, and filtered CSV export.
+- [x] Service ordering now requires an explicit order button rather than clicking anywhere on the service card.
+- [ ] Runtime/E2E verification remains outstanding.
+- [ ] Continue remaining module construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-012
+- [x] SMM client checks for a valid session token before gateway calls.
+- [x] SMM order form validates integer quantity and service min/max bounds client-side.
+- [ ] Gateway must remain the authoritative validation/security boundary; client checks do not replace backend validation.
+- [ ] Runtime/E2E verification outstanding; continue construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-013
+- [x] Education workspace search spans schools, teachers, and education requests in the currently rendered dataset.
+- [x] Added school/teacher/request CSV export shortcuts using existing allowlists.
+- [ ] Runtime/E2E verification remains outstanding; continue construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-014
+- [x] Added read-only details drawer to allowlisted sector workspace tables, resolving records from already-loaded module rows only.
+- [x] Kept existing RLS, field allowlists, and data access behavior unchanged.
+- [ ] Runtime/E2E verification remains deferred until the construction phase is complete; do not mark this verified.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-015
+- [x] Added explicit refresh controls for specialized Accounting, ERP, Factory, Trips, and Matrimony workspaces using existing module loaders.
+- [x] Refresh invalidates only that module's cached loaded data; no mutation, schema, or authorization changes.
+- [ ] Runtime/E2E verification remains outstanding and is deferred until the construction phase is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-016
+- [x] Added restaurant workspace refresh for menu, orders, tables, and inventory using the existing scoped loader.
+- [ ] Runtime/E2E verification remains outstanding until the construction phase is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-017
+- [x] Added a read-only details drawer for job applications using only fields already loaded in the workspace.
+- [ ] Runtime/E2E verification remains outstanding until construction is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-018
+- [x] Added searchable Used Items marketplace workspace with available/sold filters, safe record details, and CSV export.
+- [ ] Browser/runtime and E2E verification remain deferred until construction is complete, per current instruction.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-019
+- [x] Customer job discovery now excludes inactive listings.
+- [x] Customer education discovery now excludes schools/teachers explicitly marked unavailable.
+- [ ] Confirm backend/RLS enforcement and E2E behavior after construction phase; client filters are not security controls.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-020
+- [x] Added client-side revalidation of active job and available school/teacher before customer form actions.
+- [ ] Verify backend/RLS rules independently during the later security and E2E phase.
