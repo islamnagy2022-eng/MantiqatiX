@@ -478,6 +478,7 @@ jobs:
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
+          node scripts/validate-restaurant-workspace-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
           node scripts/validate-erp-receiving-release-contract.mjs
           node scripts/validate-erp-receiving-contract.mjs
