@@ -1631,3 +1631,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Primary workspace build — SESSION-013
 - [x] Add a shared refresh control to primary workspace headers.
 - [ ] Validate refresh behavior for role dashboards, domain modules, and asynchronous data loading.
+
+ 
+## Primary Marketing module — SESSION-014
+- [x] Add CSV export for currently loaded Marketing workspace records.
+- [ ] Validate export encoding, escaping, and session-scope boundaries during post-build tests.
