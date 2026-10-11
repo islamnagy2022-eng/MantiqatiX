@@ -1,12 +1,15 @@
 name: MantiGO Open Ride Privacy Boundary
 on:
   push:
-    branches:
-      - "**"
+    branches: [main]
   pull_request:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   mantigo-open-ride-privacy-integration:
     runs-on: ubuntu-latest

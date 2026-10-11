@@ -1,13 +1,16 @@
 name: Module Professionalization Validation
 on:
   push:
-    branches:
-      - "**"
+    branches: [main]
   pull_request:
     branches:
       - main
 permissions:
   contents: read
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   mantigo-paymob-atomicity-integration:
     runs-on: ubuntu-latest
