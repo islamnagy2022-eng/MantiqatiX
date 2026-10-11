@@ -1646,3 +1646,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Primary Operations module — SESSION-016
 - [x] Add CSV export for currently loaded orders, status history and notifications.
 - [ ] Validate export and loaded-data boundaries in post-build tests.
+
+ 
+## Domain module blueprints — SESSION-017
+- [x] Replace toast-only “open section” buttons with source-backed section details.
+- [x] Store module table metadata for section rendering; corrected the initial missing-meta assumption.
+- [ ] Validate every section-to-table mapping against authoritative schema and test tabs/buttons after the build phase.
