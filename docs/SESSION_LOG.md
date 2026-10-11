@@ -178,3 +178,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Reason:** the live module data object resets on each app render; using it for a cross-module status summary meant all cards appeared unloaded. A global cache without scope reset could show prior-membership counts, so the change clears it on membership/auth transitions.
 - **Tests:** pending post-build validation.
 - **Next:** continue feature construction and verify the role/membership transition behavior later.
+
+## 2026-10-11 — SESSION-021 — Add preliminary marketing agency discovery
+
+- **Code commit:** [7fddb756fc9ee96a511152f39060d742dfb8b4f5](https://github.com/islamnagy2022-eng/MantiqaTix/commit/7fddb756fc9ee96a511152f39060d742dfb8b4f5).
+- **Built:** Marketing workspace now includes a separate “potential marketing partners” list based on provider profiles whose existing `provider_kind` text matches marketing/agency/advertising/digital/social categories.
+- **Accuracy guard:** it is explicitly labeled as preliminary discovery from the loaded provider sample; it does not claim that a contractual partnership or authorization exists.
+- **Next:** build a real partner relationship/invitation flow only when an approved backend contract and authorization path are available.
+- **Tests:** pending post-build validation.
