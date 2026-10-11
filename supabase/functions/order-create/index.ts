@@ -84,16 +84,25 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  const requestedBranchId = typeof body.branchId === "string" && body.branchId.trim()
+    ? body.branchId.trim()
+    : null;
+  const { data: targetMemberships, error: targetMembershipError } = await admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,status,branch_id")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .eq("status", "ACTIVE")
-    .limit(1)
-    .maybeSingle();
+    .limit(100);
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+
+  const targetMembership = (targetMemberships ?? []).find((membership: any) =>
+    !membership.branch_id || (requestedBranchId && String(membership.branch_id) === requestedBranchId)
+  );
+  if (!targetMembership && (targetMemberships ?? []).length > 0) {
+    return json({ error: "BRANCH_MEMBERSHIP_MISMATCH" }, 403);
+  }
 
   if (!targetMembership) {
     const { data: customerMembership, error: customerMembershipError } = await admin
@@ -150,7 +159,7 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
+  const branchId = requestedBranchId;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
