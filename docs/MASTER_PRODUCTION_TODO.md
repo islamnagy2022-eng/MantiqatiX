@@ -1568,3 +1568,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Continue construction: Restaurant Workspace → CRM → Marketing/SMM → Operations/Orders → Finance → Notifications/Tasks → Reports/Analytics → remaining sector modules.
 - [ ] After all module construction: run broad review, tests, security checks, integration/E2E, and release verification. Do not mark production ready before evidence.
 - [ ] Current work branch is not merged/deployed; production impact is none.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-003
+- [x] Added allowlisted CSV exports for CRM leads/support tickets, marketing projects/ads/leads, restaurant menu/orders/tables/inventory, operations orders, notifications, and generic module data groups.
+- [x] Added bulk mark-read for currently loaded notifications using the existing backend RPC; no new database mutation path.
+- [x] Improved global search details drawer keyboard dismissal and focus restoration.
+- [x] Work is tracked in draft PR [#205](https://github.com/islamnagy2022-eng/MantiqaTix/pull/205).
+- [ ] Continue module construction; broad reviews remain deferred by user instruction until all modules are built.
