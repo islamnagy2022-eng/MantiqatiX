@@ -1,13 +1,16 @@
 do $$
 declare
-  v_actor uuid := pg_catalog.gen_random_uuid();
-  v_non_member uuid := pg_catalog.gen_random_uuid();
+  v_actor uuid := '80000000-0000-4000-8000-000000000001';
+  v_non_member uuid := '80000000-0000-4000-8000-000000000002';
   v_business uuid := pg_catalog.gen_random_uuid();
   v_other_business uuid := pg_catalog.gen_random_uuid();
+  v_unassigned_business uuid := pg_catalog.gen_random_uuid();
   v_tenant varchar := 'rc461-test-tenant';
   v_other_tenant varchar := 'rc461-other-tenant';
+  v_unassigned_tenant varchar := 'rc461-unassigned-tenant';
   v_branch varchar := 'rc461-test-branch';
   v_other_branch varchar := 'rc461-other-branch';
+  v_unassigned_branch varchar := 'rc461-unassigned-branch';
   v_result jsonb;
   v_table_id text;
   v_inventory_id text;
@@ -65,12 +68,18 @@ begin
     raise exception 'RC461_RPC_EXECUTE_BOUNDARY_INVALID';
   end if;
 
-  insert into public.businesses(id,tenant_id,status) values(v_business,v_tenant,'ACTIVE'),(v_other_business,v_other_tenant,'ACTIVE');
+  insert into public.businesses(id,tenant_id,status) values(v_business,v_tenant,'ACTIVE'),(v_other_business,v_other_tenant,'ACTIVE'),(v_unassigned_business,v_unassigned_tenant,'ACTIVE');
   insert into public.branches(id,tenant_id,business_id,status) values
-    (v_branch,v_tenant,v_business,'ACTIVE'),(v_other_branch,v_other_tenant,v_other_business,'ACTIVE');
+    (v_branch,v_tenant,v_business,'ACTIVE'),(v_other_branch,v_other_tenant,v_other_business,'ACTIVE'),(v_unassigned_branch,v_unassigned_tenant,v_unassigned_business,'ACTIVE');
   insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status)
   values(pg_catalog.gen_random_uuid()::text,v_actor,v_tenant,v_business,v_branch,'MANAGER','ACTIVE'),
         (pg_catalog.gen_random_uuid()::text,v_actor,v_other_tenant,v_other_business,v_other_branch,'MANAGER','ACTIVE');
+
+  -- Seed records in a branch for which the authenticated actor has no membership.
+  insert into public.restaurant_tables(id,tenant_id,business_id,branch_id,owner_user_id,table_number,capacity_persons,status)
+  values('rc461-unassigned-table',v_unassigned_tenant,v_unassigned_business,v_unassigned_branch,v_non_member,99,2,'EMPTY');
+  insert into public.restaurant_inventory(id,tenant_id,business_id,branch_id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name)
+  values('rc461-unassigned-inventory',v_unassigned_tenant,v_unassigned_business,v_unassigned_branch,v_non_member,'Private item','KG',1,0,1,'');
 
   v_result := public.restaurant_workspace_mutate_backend('TABLE_SAVE',
     pg_catalog.jsonb_build_object('tableId',null,'tableNumber',12,'capacityPersons',4,'status','EMPTY','reservedCustomerName',null),
@@ -135,3 +144,27 @@ begin
   raise notice 'RC461 restaurant workspace mutation integration: PASS';
 end
 $$;
+
+-- Exercise the real RLS SELECT policies as the authenticated role, not as the table owner.
+begin;
+select pg_catalog.set_config('request.jwt.claim.sub','80000000-0000-4000-8000-000000000001',true);
+set local role authenticated;
+do $$
+declare
+  v_visible_tables integer;
+  v_visible_inventory integer;
+begin
+  select count(*) into v_visible_tables from public.restaurant_tables
+    where tenant_id='rc461-test-tenant' and branch_id='rc461-test-branch';
+  select count(*) into v_visible_inventory from public.restaurant_inventory
+    where tenant_id='rc461-test-tenant' and branch_id='rc461-test-branch';
+  if v_visible_tables < 1 or v_visible_inventory < 1 then
+    raise exception 'RC461_ACTIVE_BRANCH_MEMBER_CANNOT_READ_WORKSPACE';
+  end if;
+  if exists(select 1 from public.restaurant_tables where id='rc461-unassigned-table')
+     or exists(select 1 from public.restaurant_inventory where id='rc461-unassigned-inventory') then
+    raise exception 'RC461_UNASSIGNED_BRANCH_DATA_LEAKED';
+  end if;
+end
+$$;
+rollback;
