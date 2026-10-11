@@ -142,7 +142,7 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE")
     .eq("currency", String(body.currency).toUpperCase())
     .lte("effective_from", nowIso)
-    .or("effective_to.is.null,effective_to.gte." + nowIso);
+    .or("effective_to.is.null,effective_to.gt." + nowIso);
   if (priceError) return json({ error: "PRICING_READ_FAILED" }, 500);
 
   const priceMap = new Map<string, any>();
