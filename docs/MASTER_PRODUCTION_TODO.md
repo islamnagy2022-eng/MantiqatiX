@@ -1730,3 +1730,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign usability — SESSION-031
 - [x] Show campaign business and partner display names where available.
 - [ ] Validate display fallback for hidden/unavailable provider profiles.
+
+ 
+## Campaign search availability — SESSION-032
+- [x] Gate global campaign search on successful backend availability detection.
+- [ ] Verify campaign search appears after RC453 becomes available.
