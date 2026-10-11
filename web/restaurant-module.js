@@ -89,7 +89,7 @@ function tabs(){
 }
 function menuView(){
  const add=canManageMenu()?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
- return shell('قائمة الطعام',tabs()+'<div class="notice" role="note" style="margin:12px 0">تنبيه تشغيلي: هذه الشاشة تحفظ القائمة المحلية في restaurant_menu_items، بينما الطلبات تستخدم catalog_items والأسعار الفعالة. الربط التلقائي بين المصدرين لم يكتمل بعد؛ إضافة صنف هنا وحدها لا تجعله قابلًا للطلب.</div>'+ '<div class="action-bar">'+add+'</div>'+
+ return shell('قائمة الطعام',tabs()+'<div class="notice" role="note" style="margin:12px 0">حفظ الصنف من هذه الشاشة يزامن قائمة المطعم مع الكتالوج المركزي وسعر الفرع في معاملة واحدة. الأصناف القديمة التي لم تُحفَظ عبر مسار المزامنة بعد قد لا تظهر في الطلبات؛ افتح الصنف واحفظه لمزامنته.</div>'+ '<div class="action-bar">'+add+'</div>'+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
  (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canManageMenu()?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
