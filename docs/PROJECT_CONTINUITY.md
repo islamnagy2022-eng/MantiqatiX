@@ -663,3 +663,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Customer job discovery filters to explicitly active jobs; customer education discovery filters to schools/teachers explicitly marked available.
 - Commits: `54947fad3de57b4584806eb2a8e238a987b20d67`, `e7c1413e7b5f325d3841f1c7875ac5937357f88b`.
 - UI filters do not replace RLS/server-side enforcement; runtime/E2E remains outstanding.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-020
+- Job application and education request entry points revalidate current loaded target status before opening the forms.
+- Implementation commit: `02ae35ae66ea07abdf013544b4840950565cfa93`.
+- Backend/RLS verification remains pending and must be part of the deferred review/testing phase.
