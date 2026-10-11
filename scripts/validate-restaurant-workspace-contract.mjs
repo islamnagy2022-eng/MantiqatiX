@@ -8,6 +8,7 @@ const orderStatus = fs.readFileSync('supabase/functions/order-status-update/inde
 const workspaceEdge = fs.readFileSync('supabase/functions/restaurant-workspace-mutate/index.ts', 'utf8');
 const workspaceMigration = fs.readFileSync('supabase/migrations/20261012030000_rc461_restaurant_workspace_mutation_authority.sql', 'utf8');
 const workspaceIntegration = fs.readFileSync('supabase/tests/rc461_restaurant_workspace_mutation_integration.sql', 'utf8');
+const pagesWorkflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const menuMigration = fs.readFileSync('supabase/migrations/20261012010000_rc459_restaurant_menu_catalog_sync.sql', 'utf8');
 assert.match(source, /function nextOrderStatuses\(order\)/, 'order status choices must be derived from current status');
 assert.match(source, /status==='PENDING'\|\|status==='CREATED'\)return \['CONFIRMED','CANCELLED'\]/, 'pending orders expose only valid next states');
@@ -93,4 +94,6 @@ assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/
 assert.match(workspaceIntegration, /RC461_TABLE_AUDIT_NOT_ATOMIC/, 'integration verifies table audit records for each mutation');
 assert.match(workspaceIntegration, /RC461_NON_MEMBER_WAS_ALLOWED/, 'integration verifies non-members cannot mutate workspace records');
 
-console.log('Restaurant workspace contract: PASS (80 assertions)');
+assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
+assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
+console.log('Restaurant workspace contract: PASS (82 assertions)');
