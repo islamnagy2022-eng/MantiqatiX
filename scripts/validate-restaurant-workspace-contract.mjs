@@ -82,7 +82,7 @@ assert.doesNotMatch(workspaceEdge, /admin\.from\("restaurant_(?:tables|inventory
 assert.match(workspaceEdge, /\.eq\("tenant_id", body\.tenantId\.trim\(\)\)[\s\S]*?\.eq\("business_id", body\.businessId\)[\s\S]*?\.eq\("branch_id", body\.branchId\.trim\(\)\)/, 'workspace mutation requires an exact active branch membership');
 assert.match(workspaceEdge, /FORBIDDEN_WORKSPACE_SCOPE/, 'workspace mutation rejects actors without an allowed active role');
 assert.match(workspaceEdge, /const isRecordId = \(value: unknown\)/, 'legacy text primary keys are validated without assuming UUID storage');
-assert.ok(workspaceEdge.includes('!/[ '+String.fromCharCode(92)+'u0000-'+String.fromCharCode(92)+'u001f]/.test(value)'.replace('[ ', '[')), 'record ID validation rejects control characters without rejecting ordinary UUID digits');
+assert.ok(workspaceEdge.includes('!/' + '[' + String.fromCharCode(92) + 'u0000-' + String.fromCharCode(92) + 'u001f' + ']/.test(value)'), 'record ID validation rejects control characters without rejecting ordinary UUID digits');
 assert.match(workspaceMigration, /revoke insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory[\s\S]*?from PUBLIC, anon, authenticated/i, 'direct browser mutations are revoked from public client roles');
 assert.match(workspaceMigration, /grant select, insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory to service_role/i, 'backend mutation role retains the required table privileges');
 assert.match(workspaceMigration, /create or replace function public\.restaurant_workspace_mutate_backend/, 'workspace mutations use a single backend database function');
