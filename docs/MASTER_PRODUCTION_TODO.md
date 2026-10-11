@@ -1652,3 +1652,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added read-only details drawer to allowlisted sector workspace tables, resolving records from already-loaded module rows only.
 - [x] Kept existing RLS, field allowlists, and data access behavior unchanged.
 - [ ] Runtime/E2E verification remains deferred until the construction phase is complete; do not mark this verified.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-015
+- [x] Added explicit refresh controls for specialized Accounting, ERP, Factory, Trips, and Matrimony workspaces using existing module loaders.
+- [x] Refresh invalidates only that module's cached loaded data; no mutation, schema, or authorization changes.
+- [ ] Runtime/E2E verification remains outstanding and is deferred until the construction phase is complete.
