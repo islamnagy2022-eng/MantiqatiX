@@ -142,3 +142,18 @@ Supabase's read-only Edge Function inventory and source retrieval confirm produc
 Production `erp-purchase-receive` remains ACTIVE at version 1, last updated `2026-09-26T21:54:23Z`; source parity and atomic RPC behavior remain unverified. The current deployment parity gate remains NOT VERIFIED. No Edge Function was deployed or changed during this read-only check.
 
 Do not deploy the candidate gateway simply to resolve parity: its current source fails the SMM wallet/provider safety contract. First resolve the source-safety failures and the UI/backend action-contract mismatch, pass the exact-head tests, then plan a staged rollout with rollback evidence and explicit release approval.
+
+## Supabase Security Advisor snapshot — 2026-10-11 16:20 UTC
+
+Read-only `get_advisors(type=security)` returned 94 advisor entries: 93 WARN and 1 INFO, totaling 133 reported finding instances. The repeated entries are table/function-specific findings and should not be described as 133 confirmed exploitable vulnerabilities without individual review.
+
+Observed categories:
+- 90 table-specific `auth_allow_anonymous_sign_ins` warnings: RLS policies on those tables include roles that can include anonymous sessions. Review each policy against intended public-read use and verify `anon` versus Supabase Auth's `authenticated` role semantics; do not blindly revoke public discovery that is intentional.
+- 40 `authenticated_security_definer_function_executable` warnings: review each SECURITY DEFINER function's body, caller identity checks, argument trust, `search_path`, and EXECUTE ACL. Presence of the warning alone does not establish a vulnerability, but caller-supplied actor IDs in a privileged function require particular scrutiny.
+- 1 `anon_security_definer_function_executable` warning for `public.get_mnty_targeted_advertisements(...)`; this appears to be an intentional public ad-discovery endpoint, and RC451 intentionally preserves its public EXECUTE boundary while hardening its search path. Verify the live search path and function body before clearing the warning.
+- 1 `auth_leaked_password_protection` warning: leaked-password protection is disabled and must be enabled/verified as part of the Auth release gate.
+- 1 INFO finding: `public.digital_page_payment_events` has RLS enabled without policies; confirm this is intentional deny-by-default behavior and not a missing service workflow policy.
+
+Advisor remediation reference for anonymous RLS findings: https://supabase.com/docs/guides/database/database-advisors?queryGroups=lint&lint=0012_auth_allow_anonymous_sign_ins. SECURITY DEFINER ACL guidance: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable. Leaked-password protection: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
+
+No changes were made from this advisor read. The existing release manifest remains fail-closed until the SECURITY DEFINER ACL review, RLS policy audit, leaked-password protection, and live targeted-ad search-path gates are backed by evidence.
