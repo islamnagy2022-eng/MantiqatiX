@@ -175,3 +175,9 @@ Read-only production inspection confirms `counter_offer_indrive_bid(uuid,uuid,nu
 Do not create placeholder functions, backdate a production migration, or skip the revoke migration. The safe next step is to recover authoritative creation DDL/history for all ten legacy signatures or obtain explicit approval for a separate **test-only function baseline** sourced from read-only live definitions and isolated to disposable replay. The prior approval covers only the two SMM table schema baselines and must not be silently expanded to privileged function definitions. Once authoritative DDL or explicit approval is available, add a validator for these pre-existing function dependencies and rerun the full chain.
 
 Evidence: [disposable replay run 38154806199](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38154806199). Supabase stopped before `supabase db reset` could complete; no production migration was applied.
+
+### Fail-fast preflight added and verified — run 38155389904
+
+To avoid repeatedly booting Supabase only to hit the same historical dependency gap, `scripts/validate-historical-schema-baseline.mjs` now checks the legacy SECURITY DEFINER function dependencies before service startup. It correctly fails closed and enumerates all ten unresolved function names before `supabase start` or `supabase db reset`. The replay workflow's path filter now includes this validator so future changes to the preflight automatically run the replay gate.
+
+Evidence: [run 38155389904](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38155389904). This is an intentional preflight blocker, not a test-infrastructure failure. The approved SMM table baseline checks remain separate and pass; function-baseline authorization is still not granted.
