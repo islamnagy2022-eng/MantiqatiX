@@ -4,6 +4,16 @@ Last updated: 2026-10-11 — RC453 source CI verified; production release not ce
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
 
+## Latest continuation — explicit migration-chain gate (2026-10-11)
+
+- Draft PR [#193](https://github.com/islamnagy2022-eng/MantiqatiX/pull/193) strengthens `scripts/production/verify-production.mjs` to check 28 required forward-only migration source files across payment, SMM, ERP/finance, security, privacy, CRM, and marketing tracks.
+- Missing required migration sources now produce a P0 `BLOCKED` release-gate result. The required sequence is evaluated in immutable filename-timestamp order (the RC446 filename predates RC442/RC444, so it is intentionally earlier in execution order; existing migration filenames are not rewritten). The companion contract validator checks the fail-closed gate behavior.
+- The gate reports `PRODUCTION_GATE=BLOCKED` while the post-RC424 batch is incomplete. Pull-request and non-main branch validation may pass so remediation can be merged; a `main` push or manual deployment dispatch fails closed while any P0 `FAIL`/`BLOCKED` result remains. The latest run before this guard refinement confirmed the missing-source block and uploaded a production-verification artifact; current-head CI is still pending.
+- The live migration ledger remains at RC424 version `20261008222845`, while the RC424 source filename carries timestamp `20261009010000`. Read-only comparison confirms the live bodies of `process_verified_digital_page_payment_backend` and `fulfill_digital_page_publish` match the RC424 source; this is partial function-parity evidence, not proof that the complete applied migration matches the source or that the ledger identity mismatch is resolved. The RC425–RC441 payment/finance/security migration batch is not fully present on `main`; dependency reconciliation and disposable-PostgreSQL rehearsal remain required.
+- Exact-head validation at `2fc91b36baa3a383dfd0f238ce020a061cd8c4f0`: Pages validation passed [run 38097730612](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097730612), printed `PRODUCTION_GATE=BLOCKED`, and skipped deployment; Backend-only Module Boundary passed [38097730614](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097730614), MantiGO privacy passed [38097730620](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097730620), and Module Professionalization Validation passed [38097727730](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097727730). These are PR/isolated validation results; no production deployment is claimed.
+- RC451's source sets `get_mnty_targeted_advertisements` to `search_path=''`, but the live function still has `search_path=public, pg_temp` and remains intentionally executable by `anon` for public ad discovery. Do not revoke public execution blindly; include RC451 in the complete reviewed migration batch. Supabase Advisor also reports leaked-password protection disabled, 40 authenticated-executable SECURITY DEFINER functions, and one anon-executable SECURITY DEFINER function; these require function-by-function/Auth-setting review rather than bulk revocations.
+- No production schema, data, grants, Auth configuration, Edge Functions, payments, or wallet state was changed by this work.
+
 ## Latest continuation — RC456 SMM gateway access and trusted UI staging (2026-10-11)
 
 - Current main checkpoint at the start of this update: `5f832bb55f53a8d448d8771769b8a0c920eb7a7e`, which merged PR #188 (RC456 SMM service-role access boundary). RC456 is source-only and has not been applied to production.
@@ -313,3 +323,40 @@ All Supabase production queries were read-only. No production migrations, table 
 - PR #87 and PR #129 were closed without merge as stale candidates superseded by current-main release work.
 - PR #169 merged a test-only correction for RC450's repeated-account running-balance assertion. Exact PR-head integration/validation passed; post-merge main workflow outcomes are not independently confirmed in this check.
 - No production migration, grant/RLS/Auth change, Edge Function deployment, payment, settlement, or financial data mutation was performed in this continuation.
+
+ 
+## Live Edge Function parity and release acceptance gates — 2026-10-11
+
+- Read-only comparison against Supabase project `moyhiluyhjsujhwlyeuu`: `payment-intent` v6, `paymob-webhook` v8, `digital-page-payment-intent` v3, and `erp-purchase-receive` v1 match the `main` entrypoint source byte-for-byte.
+- `smm-gateway` live v6 does **not** match `main`: live entrypoint is 8,325 bytes, source is 10,256 bytes, and live v6 lacks `catalog` and `my_data` actions present in source. Do not deploy it independently of the RC456 least-privilege table boundary and post-deploy smoke tests.
+- Read-only privilege inspection for all eight SMM tables (`smm_admins`, `smm_providers`, `smm_services`, `smm_orders`, `smm_wallets`, `smm_order_events`, `smm_provider_credentials`, `smm_wallet_transactions`) returned no direct table privileges for `service_role`, `anon`, or `authenticated` in the live database. This confirms the gateway's table-access contract must be validated together with RC456 and its RPC paths; no grants were changed.
+- Read-only live row-count preflight on 2026-10-11 found zero rows in `journal_entries`, `journal_entry_lines`, `erp_purchase_orders`, `erp_purchase_receipts`, `payment_intents`, `subscription_payment_intents`, `smm_orders`, and `smm_wallet_transactions`. This supports the current empty-table assumptions for some candidate migrations but does not replace migration replay, schema validation, or a reviewed rollout/rollback plan.
+- RC456 migration and updated SMM function have not been applied/deployed. PR #188 is non-mergeable/stale; use its diff only as review context, not as a deployment instruction.
+- The release manifest now requires explicit PASS evidence for source/ledger reconciliation, full migration application, chronological disposable replay, tenant-isolation tests, payment/finance E2E, backup/restore rehearsal, Edge Function contract parity, SMM gateway parity, and critical Auth security settings. Source presence alone cannot satisfy these gates.
+- Draft PR [#198](https://github.com/islamnagy2022-eng/MantiqatiX/pull/198) is the clean source-only migration recovery branch for 16 missing RC425–RC441 files (RC433 remains absent). Migration Version Uniqueness and Migration History Immutability pass, but the latest Open PR Migration Collision Guard fails because stale open PR #84 still proposes the same RC434 migration version. Do not merge #198 until this duplicate proposal is reconciled. Earlier PR #194 was closed unmerged because it contained unrelated changes from the stale branch.
+- No production migration, Edge Function deployment, grant/RLS/Auth change, payment, wallet mutation, or customer-data write was performed. Release remains **NOT CERTIFIED**.
+
+
+## Focused live SECURITY DEFINER audit — 2026-10-11
+
+- Read-only query against Supabase confirms the only `SECURITY DEFINER` function executable by `anon` is `public.get_mnty_targeted_advertisements(varchar,varchar,varchar,double precision,double precision,varchar,integer)`. Its live configuration is `search_path=public, pg_temp`.
+- The live function body schema-qualifies application tables (`public.advertisements`, `public.advertisement_target_locations`, `public.platform_geo_areas`, `public.platform_global_advertisements`); built-in math/time functions resolve from `pg_catalog`. This reduces immediate object-shadowing exposure, but the public-schema search path remains an avoidable SECURITY DEFINER risk.
+- Main already contains RC451 `20261010200000_rc451_targeted_ads_empty_search_path.sql`, which changes only the function setting to `search_path = ''` and deliberately preserves anonymous execution for public ad discovery. The live setting has not changed; RC451 has **not** been applied to production. Apply only through the approved migration/release process after the migration ledger discrepancy and ordered replay gates are resolved.
+- Read-only catalog inspection also confirms `public.digital_page_payment_events` has RLS enabled and zero policies. Direct anon/authenticated SELECT/INSERT was previously verified denied; retain that deny-by-default boundary unless a documented feature requirement and negative tests justify a narrower policy.
+- No SQL, grants, RLS policies, function settings, Auth configuration, or production data were changed during this audit.
+
+ 
+## RC424 source/ledger reconciliation — 2026-10-11
+
+- Read-only query of `supabase_migrations.schema_migrations` shows the applied row `20261008222845 / rc424_atomic_digital_page_payment_webhook` contains one recorded SQL statement, 7,208 bytes.
+- The recorded statement matches `supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql` byte-for-byte (7,208 bytes; source blob `49f46e3e159e6306534adbf61f626901c2d73488`). The filename timestamp and applied ledger version differ, but the SQL content and migration name match exactly.
+- Resolution: document this as a legacy ledger-version alias; do not rewrite or delete the applied migration history. The release manifest records the exact-match evidence and immutable-history requirement.
+- This resolves only the RC424 content-identity question. The post-RC424 migration batch is not proven applied, the full chain has not yet been replayed on one disposable database, and release remains **NOT CERTIFIED**.
+
+ 
+## ERP atomic receiving integration — 2026-10-11
+
+- Draft PR [#201](https://github.com/islamnagy2022-eng/MantiqatiX/pull/201) is stacked on migration-recovery PR #198 and does not duplicate migration files. It adds authenticated `erp-purchase-order-create` and `erp-purchase-receive` Edge Functions, routes the existing ERP UI away from legacy header-only/direct receiving RPCs, and adds bounded multi-line purchase-order input (up to 20 lines).
+- At exact head `0d08e2a66f8c60eb7cf05d38e8ac1167cfc967c3`, Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy CI all passed. The isolated RC434 atomic-receiving and RC437 order-line PostgreSQL jobs passed, as did the static contract and JavaScript syntax checks.
+- This does not prove browser-to-live-Edge-to-production-database E2E. Do not deploy the functions until RC434/RC437/RC438 are reviewed as part of the complete chronological migration chain, and the base migration PR collision with PR #84 is resolved.
+- Redundant draft PR #200 was closed unmerged because it duplicated migration filenames; PR #201 replaces it as a stacked, non-migration-changing implementation PR.
