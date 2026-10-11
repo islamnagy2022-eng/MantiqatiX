@@ -7,6 +7,14 @@ export function evaluateSmmLaunchScope(scope, runtimeGates = {}) {
     };
   }
 
+  if (!["DEFERRED_NOT_IN_INITIAL_LAUNCH", "IN_INITIAL_LAUNCH"].includes(scope.decision)) {
+    return {
+      status: "BLOCKED",
+      mode: "UNKNOWN",
+      evidence: "SMM launch decision is missing or invalid; fail closed.",
+    };
+  }
+
   if (scope.decision === "DEFERRED_NOT_IN_INITIAL_LAUNCH") {
     const required = [
       ["live_edge_function", scope.live_edge_function === "DISABLED_AND_VERIFIED"],
