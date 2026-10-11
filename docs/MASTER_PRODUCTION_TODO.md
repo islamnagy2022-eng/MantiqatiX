@@ -1612,3 +1612,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Shared records tables can export displayed columns and currently loaded rows as CSV.
 - [x] Generic sector workspaces can refresh their loaded records.
 - [ ] Continue module-specific construction before broad review/testing.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-009
+- [x] Generic sector tables now expose read-only record details from existing loaded rows and allowlisted fields.
+- [x] Detail rendering escapes labels/values and does not broaden database access or add mutation paths.
+- [ ] Continue module-specific construction before broad review/testing.
+- [ ] Runtime/E2E verification remains outstanding; do not mark this feature verified or production-ready.
