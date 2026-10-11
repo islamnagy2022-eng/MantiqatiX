@@ -1697,3 +1697,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Confirm RC453 migration is present in the intended release chain and deployed only through the approved migration gate.
 - [ ] Run `supabase/tests/rc453_marketing_campaign_integration.sql` in a disposable PostgreSQL environment and verify RLS/role flows.
 - [ ] Validate the UI unavailable state while backend tables/RPCs are absent.
+
+ 
+## Campaign workflow hardening — SESSION-026
+- [x] Scope partner lookup before limiting results.
+- [x] Reuse idempotency key across retry attempts.
+- [x] Prevent refresh from creating overlapping campaign data loads.
+- [ ] Validate retry and concurrent-refresh behavior in post-build tests.
