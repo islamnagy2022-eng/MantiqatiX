@@ -109,7 +109,7 @@ assert.match(workspaceIntegration, /where i\.id::text=v_inventory_id/, 'integrat
 assert.match(workspaceFixture, /create table public\.restaurant_inventory\s*\(\s*id text primary key,/, 'RC461 fixture matches the production text inventory identifier schema');
 assert.match(workspaceMigration, /RC461_WORKSPACE_MUTATION_RPC_ACL_INVALID/, 'migration aborts if the backend RPC execute boundary is not correct');
 assert.equal((workspaceMigration.match(/^do \$\$/gm) || []).length, 2, 'migration DO blocks use valid dollar-quote delimiters');
-assert.doesNotMatch(workspaceMigration, /^do \$/m, 'migration cannot contain malformed single-dollar DO delimiters');
+assert.doesNotMatch(workspaceMigration, /^do \$(?!\$)/m, 'migration cannot contain malformed single-dollar DO delimiters');
 
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
 assert.match(workspaceIntegration, /RC461_TABLE_AUDIT_NOT_ATOMIC/, 'integration verifies table audit records for each mutation');
