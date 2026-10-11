@@ -1652,3 +1652,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Replace toast-only “open section” buttons with source-backed section details.
 - [x] Store module table metadata for section rendering; corrected the initial missing-meta assumption.
 - [ ] Validate every section-to-table mapping against authoritative schema and test tabs/buttons after the build phase.
+
+ 
+## Primary Finance module — SESSION-018
+- [x] Add count-only finance snapshot export guarded by the existing role-gated finance object.
+- [ ] Validate export visibility and count-only content in post-build tests.
