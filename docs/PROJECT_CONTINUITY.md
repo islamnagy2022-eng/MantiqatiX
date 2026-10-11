@@ -697,3 +697,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-034
 - Commit `91a5231a989e082d0c30c87bb3bda0a3ad3f29d6`: partner invitation cards display response time or pending state.
+
+ 
+## Build progress — SESSION-035
+- Commit `a60fbb97bea4c22a8498a304c907530ea90166fb`: campaign cards show the saved brief using an explicit field projection.
