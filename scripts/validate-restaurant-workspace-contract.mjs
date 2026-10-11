@@ -87,6 +87,7 @@ assert.ok(workspaceEdge.includes('!/' + '[' + String.fromCharCode(92) + 'u0000-'
 assert.match(workspaceMigration, /revoke insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory[\s\S]*?from PUBLIC, anon, authenticated/i, 'direct browser mutations are revoked from public client roles');
 assert.match(workspaceMigration, /grant select, insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory to service_role/i, 'backend mutation role retains the required table privileges');
 assert.match(workspaceMigration, /create or replace function public\.restaurant_workspace_mutate_backend/, 'workspace mutations use a single backend database function');
+assert.match(workspaceMigration, /alter table public\.restaurant_tables enable row level security;[\s\S]*?alter table public\.restaurant_inventory enable row level security;/, 'migration explicitly keeps RLS enabled for both restaurant tables');
 assert.match(workspaceMigration, /create policy restaurant_tables_active_branch_member_select[\s\S]*?using \(exists \([\s\S]*?public\.user_memberships/, 'restaurant table reads include active branch membership');
 assert.match(workspaceMigration, /create policy restaurant_inventory_active_branch_member_select[\s\S]*?using \(exists \([\s\S]*?public\.user_memberships/, 'restaurant inventory reads include active branch membership');
 assert.match(workspaceIntegration, /RC461_RESTAURANT_RLS_NOT_ENABLED/, 'integration asserts RLS is enabled for both restaurant tables');
@@ -112,4 +113,4 @@ assert.match(workspaceIntegration, /RC461_CROSS_SCOPE_INVENTORY_UPDATE_WAS_ALLOW
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (96 assertions)');
+console.log('Restaurant workspace contract: PASS (97 assertions)');
