@@ -46,3 +46,29 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Obtain enforced main branch protection; complete tenant/auth/payment/ERP runtime E2E, Paymob sandbox flow, and backup restore/RPO/RTO evidence.
 - Keep SMM feature development frozen. Server-side containment remains a separately approved production change-control requirement before public launch.
 - Release remains **BLOCKED / NOT CERTIFIED**. Re-query exact-head CI after this documentation commit before treating checks as current.
+
+## 2026-10-12 — SESSION-003 — Internal marketing campaign workspace integration
+
+### Verified facts
+- The launch-scope internal Marketing & Advertising workspace already displayed live leads, marketing projects, advertisements, provider profiles, and services. The RC453 backend migration defines campaign and campaign-participant tables plus protected create, invite, respond, and status-transition RPCs.
+- The live production migration ledger still only reconciles through RC424. Therefore RC452/RC453 candidate schema/RPC behavior must not be treated as deployed or available in production.
+- SMM storefront/provider-order/wallet functionality remains frozen until after launch; this batch touched only the separate internal Marketing & Advertising workspace and its campaign backend validator.
+
+### Actions performed
+- Updated `web/app.js` on candidate branch to load campaign and participant records through existing authenticated Supabase client reads; failed/missing-table results degrade to empty lists rather than aborting the workspace.
+- Added campaign creation UI calling `create_marketing_campaign_backend`, with business-scope RBAC check, objective/channel/budget/date/audience validation, unique idempotency key, and no direct browser writes to campaign tables.
+- Added campaign lifecycle UI calling `update_marketing_campaign_status_backend`; transition options are constrained in the UI and authoritative state-transition checks remain server-side.
+- Added partner invitation and response controls calling `invite_marketing_campaign_partner_backend` and `respond_marketing_campaign_invitation_backend`; the backend remains responsible for partner eligibility, allocation caps, actor identity, and state enforcement.
+- Extended `scripts/validate-marketing-campaign-backend.mjs` with frontend contract checks and wired it into `.github/workflows/module-professionalization.yml`.
+- Candidate code commits in this batch: `b904899993c8c124ec0480551f06f1652540bdb7`, `2a0c7f8dd15bb02958c07b7f9762e5e33f14e35a`, `56fa7d5e861f5a0a40e105e0e784de2544d692b8`, `e2192c8c50c77a74db534d81ae68ec9737c423a8`, `67c151f34da0f89f620e43d86be5c3d17ec6b031`, `e96520f4155a4c1607e01e3512b57796df9d2643`, `bc5e1a3f466aa20f185c6431a25bcd211f2da055`, `8ab5b7ed59328f4513f7a22f6bdf5af123736df4`, `bba4f7ade95ca448cc423beb73726fb670c5081d`.
+- Latest application change at time of this entry: `bba4f7ade95ca448cc423beb73726fb670c5081d`. CI results for that exact head have not yet been verified; earlier runs on `8ab5b7ed59328f4513f7a22f6bdf5af123736df4` were queued at the last query.
+
+### Not performed
+- No production migration, Edge Function deployment, direct campaign/participant table mutation from the browser, external ad platform publishing, budget spend, financial/wallet change, PR merge, or production release.
+- No claim that the marketing module or platform is fully production-certified. Existing marketing leads lifecycle/CRM depth, provider marketplace breadth, external ad publishing, analytics attribution, and live end-to-end acceptance remain open.
+
+### Next steps
+1. Verify JavaScript syntax and the new marketing workspace contract on the newest exact commit; do not infer results from earlier queued runs.
+2. Add/edit campaign support only through reviewed backend RPCs and migrations if needed; avoid direct client writes.
+3. Complete lead assignment/status/follow-up workflow and role-scoped reporting as a separate tested slice.
+4. Keep the overall release gate **BLOCKED / NOT CERTIFIED** until migration replay, P0 authorization, live tenant/payment/ERP E2E, backup restore/RPO-RTO, Auth configuration, and branch protection evidence are resolved.
