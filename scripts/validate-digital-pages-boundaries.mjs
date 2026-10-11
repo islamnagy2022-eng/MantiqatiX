@@ -12,6 +12,8 @@ for(const [src,marker,label] of [
  [atomicPayment,'digital_page_payment_events','digital-page payment event ledger'],[webhook,'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH','amount/currency binding'],[webhook,'DIGITAL_PAGE_PAYMENT','payment notification'],[webhook,'process_verified_digital_page_payment_backend','atomic verified payment processor'],
  [atomicPayment,'for update','order row lock for payment state transition'],[atomicPayment,'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH','atomic amount/currency binding'],[atomicPayment,'DIGITAL_PAGE_EVENT_ORDER_MISMATCH','event/order correlation'],[atomicPayment,'to service_role','service-role-only payment processor'],[atomicPayment,'PAGE_ALREADY_LINKED_TO_DIFFERENT_ORDER','page cannot be reused across orders'],[atomicPayment,'MENU_BUSINESS_SCOPE_REQUIRED','menu fulfillment business ownership'],[atomicPayment,'PUBLISHED_PAGE_NOT_LINKED_TO_ORDER','published-page replay binding'],
  [editor,"restaurant_menu_items",'menu source table integration'],
+ [editor,'PAGE_OWNER_ROLES','eligible page-owner role allowlist'],
+ [editor,'visiblePages','editor page listing owner filter'],
  [editor,".eq('business_id',businessId)",'menu source business scope'],
  [editor,".eq('is_available',true)",'menu source active-item filter'],
  [editor,"MENU_SOURCE_LIMIT_EXCEEDED",'menu sync fails closed on truncated source data'],
