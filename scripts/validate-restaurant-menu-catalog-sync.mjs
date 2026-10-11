@@ -36,6 +36,7 @@ assert.match(migration, /grant execute on function public\.restaurant_menu_catal
 assert.match(edge, /admin\.auth\.getUser\(token\)/);
 assert.match(edge, /actor\.is_anonymous/);
 assert.match(edge, /maxBodyBytes/);
+assert.match(edge, /new TextEncoder\(\)\.encode\(raw\)\.byteLength/);
 assert.match(edge, /admin\.rpc\("restaurant_menu_catalog_mutate_backend"/);
 assert.match(edge, /p_actor_user_id: actor\.id/);
 assert.match(edge, /restaurant-menu-save|INVALID_MENU_ACTION/);
@@ -55,4 +56,4 @@ assert.match(integration, /duplicate current prices were accepted/);
 assert.match(integration, /cross-tenant menu write was accepted/);
 assert.match(integration, /has_function_privilege\('authenticated'/);
 assert.match(fixture, /create table public\.catalog_item_prices/);
-console.log('RC459 restaurant menu/catalog sync source contract: PASS (45 assertions)');
+console.log('RC459 restaurant menu/catalog sync source contract: PASS (46 assertions)');
