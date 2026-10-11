@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const migration = fs.readFileSync("supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc453_marketing_campaign_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc453_marketing_campaign_integration.sql", "utf8");
+const app = fs.readFileSync("web/app.js", "utf8");
 
 assert.match(migration, /create table public\.marketing_campaigns/);
 assert.match(migration, /create table public\.marketing_campaign_participants/);
@@ -40,4 +41,11 @@ assert.match(integration, /authenticated role has direct campaign INSERT/);
 assert.match(integration, /campaign creation replay was not idempotent/);
 assert.match(integration, /campaign creation replay duplicated audit/);
 
-console.log("RC453 marketing campaign backend contract: PASS (27 assertions)");
+assert.match(app, /from\('marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at'\)/, "workspace must read campaign records");
+assert.match(app, /sb\.rpc\('create_marketing_campaign_backend'/, "campaign creation must use the protected backend RPC");
+assert.match(app, /sb\.rpc\('update_marketing_campaign_status_backend'/, "campaign lifecycle must use the protected backend RPC");
+assert.match(app, /MNTY_RBAC\?\.can\(String\(live\.role\|\|''\),'MARKETING','create'/, "campaign creation must check the frontend permission contract");
+assert.match(app, /MNTY_RBAC\?\.can\(String\(live\.role\|\|''\),'MARKETING','update'/, "campaign updates must check the frontend permission contract");
+assert.match(app, /recordsTable\('الحملات التسويقية',campaigns/, "campaigns must be visible in the marketing workspace");
+assert.doesNotMatch(app, /from\(['"]marketing_campaigns['"]\)\.(insert|update|delete)/, "browser must not directly mutate campaign rows");
+console.log("RC453 marketing campaign backend and workspace contract: PASS (34 assertions)");
