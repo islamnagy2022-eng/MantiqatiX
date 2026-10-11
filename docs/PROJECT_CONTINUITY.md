@@ -550,3 +550,15 @@ This status is intentional and must remain until the open gates above are indepe
 - Issue #212 is still open: the live SMM gateway has not been proven disabled. UI deferral does not disable the API. Do not deploy or modify the live gateway without explicit approval; keep SMM feature development and its tests frozen.
 - No production writes, migrations, function deployments, PR merge, financial mutations, or Auth/RLS/grant changes were made in this session. Release remains **BLOCKED / NOT CERTIFIED**.
 - The chronological append-only evidence is in `docs/SESSION_LOG.md` (SESSION-002).
+
+## Resume point — 2026-10-12 — Internal marketing campaign workflow
+
+- Candidate branch remains `reconcile/rc425-458-current-main-20261011`, PR #207 draft/open/unmerged.
+- Internal Marketing & Advertising workspace now has candidate UI integration for campaign reads, campaign creation, allowed status transitions, partner invitations, and invitation responses using RC453 backend RPCs. The frontend uses business-scope RBAC checks and avoids direct INSERT/UPDATE/DELETE on campaign tables.
+- `scripts/validate-marketing-campaign-backend.mjs` now includes workspace/RPC contract assertions and is wired into `.github/workflows/module-professionalization.yml`.
+- Last app code commit: `bba4f7ade95ca448cc423beb73726fb670c5081d`. Session log update commit: `3b756de1c7affeef032cb398e5267dc3fc9eccf4`. Fresh exact-head CI has not yet been confirmed for the app change or subsequent documentation commit.
+- The RC452/RC453 schema and RPCs remain candidate source only; production migration ledger still reconciles only through RC424. Missing historical SECURITY DEFINER DDL still blocks chronological replay. Do not enable a feature that depends on unapplied schema in production.
+- No production migration/deploy, external ad publishing, campaign budget spend, wallet/payment mutation, PR merge, or live Auth/RLS/grant changes were performed.
+- SMM storefront/provider-order/wallet implementation remains frozen. This batch only changes the distinct internal Marketing & Advertising workspace.
+- Remaining marketing module gaps include lead assignment/status/follow-up workflow, broader verified provider discovery, attribution/analytics tied to real platform data, and authenticated browser E2E after the approved schema release.
+- Overall release remains **BLOCKED / NOT CERTIFIED**. Continue by querying latest exact-head Actions results, fix only source/test failures that are within the non-SMM launch scope, and keep all production changes behind explicit change approval.
