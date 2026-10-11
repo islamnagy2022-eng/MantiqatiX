@@ -486,6 +486,14 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 @media(max-width:540px){.mx-global-record-drawer{width:100%}.mx-global-record-drawer dl>div{grid-template-columns:1fr;gap:5px}}
 
 
+/* Job posting form */
+.mx-job-post-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:4px 0}
+.mx-job-post-form label{display:grid;gap:7px;font-size:13px;font-weight:700}
+.mx-job-post-form input,.mx-job-post-form select,.mx-job-post-form textarea{width:100%;min-width:0;border:1px solid var(--border,#e4e7ec);border-radius:10px;padding:11px 12px;background:#fff;color:var(--dark,#0f172a)}
+.mx-job-post-form label:has(textarea){grid-column:1/-1}
+.mx-job-post-form .mx-job-form-actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap}
+.mx-job-post-form>p{grid-column:1/-1}
+@media(max-width:600px){.mx-job-post-form{grid-template-columns:1fr}.mx-job-post-form label:has(textarea),.mx-job-post-form .mx-job-form-actions,.mx-job-post-form>p{grid-column:auto}}
 /* Data-backed sector module workspaces */
 .mx-domain-table-section{margin:16px 0;padding:16px;border:1px solid var(--border,#e4e7ec);border-radius:16px;background:#fff}
 .mx-domain-table-section .records{border:0;padding:0;margin:12px 0;background:transparent}
