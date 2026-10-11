@@ -546,7 +546,16 @@ function openGlobalSearchDetails(hit){
  overlay.querySelector('.mx-global-record-close')?.focus();
 }
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
-function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>تحكم في الوحدات التي تظهر للمنصة والمشتركين.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>`<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span></article>`).join('')}</div>`}
+function modulePage(){
+ const q=String(query||'').trim().toLocaleLowerCase('ar');
+ const role=String(live.role||'').toUpperCase();
+ const sectorNames=new Set(domainModules.map(m=>m.name));
+ const core=modules.filter(m=>!['الرئيسية','الموديولات'].includes(m[1])&&!sectorNames.has(m[1])&&(m[1]!=='التحكم الكامل'||role==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!window.MNTY_RBAC?.ROLE_DEFAULTS?.[role]||window.MNTY_RBAC.can(role,m[1],'view',live.permissions))).filter(m=>!q||[m[1],m[2],m[0]].join(' ').toLocaleLowerCase('ar').includes(q));
+ const sectorsList=domainModules.filter(m=>moduleEnabled(m.name)&&(!window.MNTY_RBAC?.ROLE_DEFAULTS?.[role]||window.MNTY_RBAC.can(role,m.name,'view',live.permissions))).filter(m=>!q||[m.name,m.desc,m.key,...m.tables].join(' ').toLocaleLowerCase('ar').includes(q));
+ const coreCards=core.map(m=>'<article class="card module mx-module-directory-card"><div class="icon">'+esc(m[0])+'</div><h3>'+esc(m[1])+'</h3><div class="muted">'+esc(m[2])+'</div><span class="status">وحدة منصة</span><button type="button" class="btn btn-outline" onclick="selectModule(\''+esc(m[1])+'\')">فتح الوحدة</button></article>').join('');
+ const sectorCards=sectorsList.map(m=>{const state=live.moduleData[m.key]||{};const stateLabel=state.rowsReady?'تم تحميل السجلات':state.ready?'حالة المصادر محمّلة':'تُحمّل عند الفتح';return '<article class="card module mx-module-directory-card"><div class="icon">'+esc(m.icon)+'</div><h3>'+esc(m.name)+'</h3><div class="muted">'+esc(m.desc)+'</div><div class="mx-module-directory-meta"><span>'+m.tables.length+' مصادر بيانات</span><span>'+esc(stateLabel)+'</span></div><button type="button" class="btn btn-outline" onclick="selectModule(\''+esc(m.name)+'\')">فتح المجال</button></article>'}).join('');
+ return '<div class="section-head"><div><h2>مركز الموديولات</h2><p>الوحدات الأساسية والقطاعات التشغيلية المتاحة لحسابك.</p></div><span class="count">'+(core.length+sectorsList.length)+' وحدة</span></div><div class="mx-module-directory"><section><div class="section-head"><div><h3>وحدات المنصة الأساسية</h3><p class="muted">الإدارة، CRM، التسويق، SMM، العمليات، المالية والتقارير.</p></div></div><div class="modules">'+(coreCards||'<div class="empty-state">لا توجد وحدات أساسية مطابقة للبحث أو الصلاحيات.</div>')+'</div></section><section><div class="section-head"><div><h3>القطاعات والخدمات</h3><p class="muted">مساحات القطاع تعرض السجلات المتاحة وفق الصلاحيات وسياسات RLS.</p></div></div><div class="modules">'+(sectorCards||'<div class="empty-state">لا توجد قطاعات مطابقة للبحث أو الصلاحيات.</div>')+'</div></section></div>';
+}
 function sectorsPage(){
  const list=filtered(sectors);
  const sectorMap={
