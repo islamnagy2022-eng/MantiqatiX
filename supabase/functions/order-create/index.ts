@@ -149,7 +149,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: "DUPLICATE_ITEM_OPTION" }, 400);
   }
 
-  const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
+  const itemIds: string[] = [...new Set<string>(normalizedItems.map((x: any) => String(x.catalogItemId)))];
   const { data: catalogItems, error: itemError } = await admin
     .from("catalog_items")
     .select("id,business_id,branch_id,name_ar,name_en,tax_rate,status")
