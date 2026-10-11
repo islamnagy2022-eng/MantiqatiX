@@ -21,3 +21,28 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-12 — SESSION-002 — Exact-head CI follow-up and safe continuation
+
+### Verified facts
+- Current candidate head before this documentation update was `95db1770bd89286bfadba9172b0c9409a68e0566` on branch `reconcile/rc425-458-current-main-20261011`; PR #207 remains open, draft, unmerged. GitHub reports mergeable, which is not production approval.
+- Exact-head CI: Module Professionalization Validation [38178521555], Backend-only Module Boundary [38178521457], MantiGO Open Ride Privacy Boundary [38178521521], Approval Action Audit Atomicity [38178521525], Migration Version Uniqueness [38178521452], Migration History Immutability [38178521625], Open PR Migration Collision Guard [38178521533], and SMM Service Role Access Boundary [38178521548] completed successfully.
+- Pages workflow [38178521567] passed validation; deploy job [114586045525] was skipped because this is a draft PR. No deployment occurred.
+- SMM Deferred Module Validation [38178521468] failed. This remains visible and is not weakened or repaired while the owner’s SMM feature freeze is active.
+- Issue [#212](https://github.com/islamnagy2022-eng/MantiqaTix/issues/212) remains open. It requires a separately approved server-side deny gate and live negative-test evidence; static UI deferral is not proof that the live gateway is disabled.
+- The isolated module validation workflow had all 15 listed jobs successful, including RC434 receiving, RC437 order lines, payment binding, checkout recovery, financial journal, RC449 platform-admin scope, and RC458 branch-scope integration. These remain isolated CI evidence, not production E2E.
+
+### Action performed
+- Added a documentation checkpoint to `docs/engineering/CONTINUOUS_EXECUTION_STATUS.md` on candidate branch, commit `95db1770bd89286bfadba9172b0c9409a68e0566`, recording the exact-head results and release blockers.
+
+### Not performed
+- No PR merge, production deployment, migration application, production Edge Function change, Auth/RLS/grant change, or payment/wallet/customer-data write.
+- No SMM implementation or SMM-only test changes.
+
+### Remaining blockers / next steps
+- Recover trusted historical CREATE DDL for ten legacy SECURITY DEFINER dependencies or obtain separate explicit approval for a current-definition-only test baseline in disposable replay; do not invent migrations or skip the revoke migration.
+- Resolve the P0 global MantiGO authorization finding through reviewed release controls and tested candidate evidence; do not hot-edit production.
+- Obtain enforced main branch protection; complete tenant/auth/payment/ERP runtime E2E, Paymob sandbox flow, and backup restore/RPO/RTO evidence.
+- Keep SMM feature development frozen. Server-side containment remains a separately approved production change-control requirement before public launch.
+- Release remains **BLOCKED / NOT CERTIFIED**. Re-query exact-head CI after this documentation commit before treating checks as current.
