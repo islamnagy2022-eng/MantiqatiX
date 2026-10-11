@@ -572,3 +572,8 @@ This status is intentional and must remain until the open gates above are indepe
 - `1e5519c2349e41905a8a1a98d7ef3fb491f62cc8`: marketing workspace includes active services already loaded by the app.
 - `930663f51002e1123c3e9850a4ca32e9dd1378ef`: permission/feature-aware SMM shortcut added to the main dashboard and enterprise quick actions.
 - Tests remain pending; no production changes; release blocked/not certified.
+
+ 
+## Build progress — SESSION-007
+- Commit `a2d5c76685a31381475175486f69ec8631673b6f`: report tabs show status summaries from session-loaded records, explicitly labeled as samples rather than database-wide totals.
+- Post-build tests remain pending; release remains blocked/not certified.
