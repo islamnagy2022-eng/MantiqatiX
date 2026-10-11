@@ -6,7 +6,7 @@
 
 The production migration ledger currently ends at `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). A read-only exact comparison of `supabase_migrations.schema_migrations.statements[1]` against `supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql` returned `exactMatch=true`, with both values exactly 7,208 bytes. RC424 source/ledger statement identity is VERIFIED despite the different filename timestamp. Preserve the applied ledger version `20261008222845`; document source filename timestamp `20261009010000` as a legacy alias and do not rename or rewrite applied history.
 
-The full disposable Supabase replay previously failed at historical migration `20260927074200_harden_smm_table_api_privileges.sql`, because it references `public.smm_provider_credentials` before any committed migration in the repository creates that table. A newer replay attempt is tracked in [run 38135821672](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38135821672); its final outcome must be read from GitHub before changing this status.
+The full disposable Supabase replay is still BLOCKED at the historical-schema preflight. The latest exact-head attempt [run 38142160896](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38142160896) failed before starting Supabase services or executing the migration chain. The owner has since explicitly approved the documented `public.smm_provider_credentials` snapshot as a baseline for an isolated test/replay environment only; this approval does not authorize production changes.
 
 ## Read-only production schema evidence
 
@@ -28,17 +28,19 @@ Constraints and security metadata:
 
 ## Why this does not resolve the blocker
 
-The catalog result proves the current live table shape, not the original creation migration, original creation timestamp, full historical DDL, or how existing production rows were populated. The RC456 test fixture now reflects the observed columns, but a test fixture is not an authoritative production migration baseline.
+The catalog result proves the current live table shape, not the original creation migration, original creation timestamp, full historical DDL, or how existing production rows were populated. The owner-approved scope is limited to using this exact credentials-table snapshot in disposable testing; it is not permission to rewrite migration history or apply any schema change to production.
 
-Do not invent a backdated migration, rewrite an applied migration, bypass the failing historical migration, or make the replay pass by pre-seeding an untracked table. Recover the original DDL from an authoritative source (repository history, approved database baseline, or an owner-approved schema export), then design a reviewed reconciliation that preserves migration history and safely handles the already-existing production table.
+A second dependency remains unresolved: the credentials table's observed foreign key references `public.smm_providers(id)`, but repository inspection found no committed migration creating `public.smm_providers`. The live provider-table schema was captured read-only in draft [PR #211](https://github.com/islamnagy2022-eng/MantiqaTix/pull/211), explicitly as evidence only and not as an approved replay baseline. The credentials baseline cannot be applied exactly until that prerequisite is authoritatively recovered or separately approved for isolated testing.
+
+Do not invent a backdated migration, rewrite applied history, bypass the historical migration, or substitute a minimal guessed provider table. Any approved test baseline must be versioned outside `supabase/migrations`, documented as test-only, and injected only into disposable infrastructure.
 
 ## Required next steps
 
-1. Recover and verify the authoritative original DDL for `smm_provider_credentials`.
-2. Decide, with a documented migration-history strategy, how clean installations and the already-provisioned production database converge without duplicate objects or data loss.
-3. Re-run the complete repository migration chain on a disposable Supabase instance from an empty database.
-4. Verify the final schema, constraints, RLS, grants, functions, and indexes against production read-only evidence.
-5. Test the rollback/data-preservation plan and only then review a staged production application plan.
+1. Recover the original DDL for `smm_providers`, or obtain explicit owner approval for a separately versioned provider-table baseline limited to disposable testing.
+2. Store and validate the already-approved credentials-table snapshot as a test-only baseline outside the production migration history.
+3. Re-run the complete repository migration chain on disposable Supabase/PostgreSQL from an empty database with only explicitly approved test baselines.
+4. Verify final schema, constraints, RLS, grants, functions, indexes, and migration ledger against read-only production evidence.
+5. Test rollback/data-preservation and staged deployment plans only after clean replay and all acceptance tests pass.
 
 No production schema, data, grants, RLS, secrets, Edge Functions, wallet balances, or payments were changed during this investigation.
 
