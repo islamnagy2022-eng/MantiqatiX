@@ -99,6 +99,10 @@ Deno.serve(async (req: Request) => {
     return json({ error: "INVALID_ITEM_QUANTITY" }, 400);
   }
 
+  if (normalizedItems.some((item: any) => new Set(item.selectedOptionIds).size !== item.selectedOptionIds.length)) {
+    return json({ error: "DUPLICATE_ITEM_OPTION" }, 400);
+  }
+
   const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
   const { data: catalogItems, error: itemError } = await admin
     .from("catalog_items")
