@@ -582,7 +582,9 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc459_restaurant_menu_catalog_fixture.sql "$pg_container:/tmp/rc459_fixture.sql"
           docker cp supabase/migrations/20261012010000_rc459_restaurant_menu_catalog_sync.sql "$pg_container:/tmp/rc459_migration.sql"
+          docker cp supabase/migrations/20261012020000_rc460_restaurant_menu_catalog_unique_ref.sql "$pg_container:/tmp/rc460_migration.sql"
           docker cp supabase/tests/rc459_restaurant_menu_catalog_integration.sql "$pg_container:/tmp/rc459_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc459_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc459_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc460_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_restaurant_catalog_test -v ON_ERROR_STOP=1 -f /tmp/rc459_test.sql
