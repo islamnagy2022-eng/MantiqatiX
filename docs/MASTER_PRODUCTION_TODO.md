@@ -1577,3 +1577,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Extend missing domain-module workflows and data connections.
 - [ ] Run focused module tests and complete review after the build phase.
 - [ ] Confirm current GitHub Actions checks before proposing integration.
+
+ 
+## Module build additions — SESSION-004
+- [x] Added CSV export to generic workspace data/reports tabs (current session data only).
+- [ ] Verify CSV formula-injection handling, Arabic encoding, browser download, and scoped data access during the planned post-build review.
