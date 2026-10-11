@@ -1245,8 +1245,10 @@ async function openJobApplicationForm(job){
  });
 }
 function educationWorkspace(rows,errors={}){
- const schools=rows.school_profiles||[],teachers=rows.teacher_profiles||[],requests=rows.education_requests||[];
+ const allSchools=rows.school_profiles||[],allTeachers=rows.teacher_profiles||[],requests=rows.education_requests||[];
  const customer=String(live.role||'').toUpperCase()==='CUSTOMER';
+ const schools=customer?allSchools.filter(x=>x.is_available===true):allSchools;
+ const teachers=customer?allTeachers.filter(x=>x.is_available===true):allTeachers;
  const schoolRows=schools.map(x=>Object.assign({},x,{_education_action:customer?'<button type="button" class="linkbtn" data-education-request="'+esc(x.id)+'" data-education-type="SCHOOL" data-education-label="'+esc(x.name||'مدرسة')+'">طلب خدمة</button>':'—'}));
  const teacherRows=teachers.map(x=>Object.assign({},x,{_education_action:customer?'<button type="button" class="linkbtn" data-education-request="'+esc(x.id)+'" data-education-type="TEACHER" data-education-label="'+esc(x.name||'مدرس')+'">طلب خدمة</button>':'—'}));
  return '<section class="mx-education-workspace">'+workspaceHead('EDUCATION','التعليم والتدريب','استكشاف المدارس والمدرسين وإنشاء طلب تعليمي مرتبط بحساب العميل.','LIVE')
