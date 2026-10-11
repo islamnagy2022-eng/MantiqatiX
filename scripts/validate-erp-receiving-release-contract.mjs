@@ -33,6 +33,8 @@ assert.match(orderEdge,/rpc\("create_purchase_order_with_lines_backend"/,"purcha
 assert.match(orderEdge,/p_actor_user_id:\s*user\.id/,"purchase-order actor must come from validated Auth user");
 assert.match(orderEdge,/p_lines:\s*lines/,"purchase-order lines must be sent to the server for atomic validation");
 assert.match(app,/erpEdgeFunction\('erp-purchase-order-create'/,"ERP UI must use the secure order-creation Edge Function");
+assert.match(app,/const lines=\[\];for\(let i=0;i<20;i\+\+\)/,"ERP UI must support multiple order lines with a bounded interactive loop");
+assert.match(app,/discount_amount:discount,reason,lines/,"ERP UI must send line items and totals to the server for authoritative calculation");
 assert.match(app,/erpEdgeFunction\('erp-purchase-receive'/,"ERP UI must use the atomic receiving Edge Function");
 assert.doesNotMatch(app,/erpRpc\('create_purchase_order_backend'/,"ERP UI must not create header-only orders through the legacy RPC");
 assert.doesNotMatch(app,/erpRpc\('receive_purchase_stock_backend'/,"ERP UI must not bypass atomic line-aware receiving");
