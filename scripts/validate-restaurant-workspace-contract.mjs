@@ -25,4 +25,9 @@ assert.match(source, /return o;/, 'accessible modal returns its dialog for scope
 assert.match(source, /data-current-status=/, 'order status control retains its persisted status for recovery');
 assert.match(source, /control\.value=previous;control\.disabled=false/, 'rejected status updates restore the UI to the persisted state');
 assert.match(source, /if\(control\)control\.disabled=true/, 'duplicate status submissions are blocked while in flight');
+assert.match(source, /data-rest-order-line/, 'restaurant orders support multiple item lines');
+assert.match(source, /orderItems\.push\(\{catalogItemId:item\.id,quantity,selectedOptionIds\}\)/, 'each selected item and options are sent to the canonical order backend');
+assert.match(source, /orderItems\.length>20/, 'restaurant order lines have a bounded maximum');
+assert.match(source, /rest-estimated-total/, 'estimated cart total is visible to the operator');
+assert.match(source, /updateEstimate\(\)/, 'cart estimate updates when item, option, or quantity changes');
 console.log('Restaurant workspace contract: PASS (20 assertions)');
