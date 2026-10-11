@@ -194,3 +194,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope:** existing session data only; no new query, data mutation, or extra access scope.
 - **Tests:** pending post-build validation.
 - **Next:** continue module build-out.
+
+## 2026-10-11 — SESSION-023 — Improve SMM launch controls
+
+- **Code commit:** [7c865cf11c774acce1d8a212973c8c9ca90bb127](https://github.com/islamnagy2022-eng/MantiqaTix/commit/7c865cf11c774acce1d8a212973c8c9ca90bb127).
+- **Built:** SMM workspace now has an embedded-frame reload control and a separate-tab launch link with `noopener noreferrer`.
+- **User impact:** reload can discard unsaved in-frame form values; the control is explicit and does not deploy or mutate backend state.
+- **Tests:** pending post-build validation.
+- **Next:** continue build-first work.
