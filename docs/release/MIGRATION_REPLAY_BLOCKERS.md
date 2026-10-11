@@ -181,3 +181,30 @@ Evidence: [disposable replay run 38154806199](https://github.com/islamnagy2022-e
 To avoid repeatedly booting Supabase only to hit the same historical dependency gap, `scripts/validate-historical-schema-baseline.mjs` now checks the legacy SECURITY DEFINER function dependencies before service startup. It correctly fails closed and enumerates all ten unresolved function names before `supabase start` or `supabase db reset`. The replay workflow's path filter now includes this validator so future changes to the preflight automatically run the replay gate.
 
 Evidence: [run 38155389904](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38155389904). This is an intentional preflight blocker, not a test-infrastructure failure. The approved SMM table baseline checks remain separate and pass; function-baseline authorization is still not granted.
+
+## Read-only live ACL evidence — legacy SECURITY DEFINER functions (2026-10-11)
+
+A read-only `pg_proc` / `has_function_privilege` query in production (`moyhiluyhjsujhwlyeuu`) inspected the ten function names listed in the chronological replay blocker. All ten exist live and are `SECURITY DEFINER`; the replay failure is because clean chronological source lacks their earlier creation DDL before the historical revoke migration, not because these functions are absent from production.
+
+Live client EXECUTE results:
+
+| Function | `anon` | `authenticated` | `service_role` |
+|---|---:|---:|---:|
+| `counter_offer_indrive_bid(uuid,uuid,numeric)` | false | false | false |
+| `fashion_erp_mutate(text,jsonb,text)` | false | false | false |
+| `mantigo_accept_bid(text,text)` | false | false | false |
+| `mantigo_cancel_ride(text)` | false | false | false |
+| `mantigo_create_ride(text,text,text,text,numeric,text)` | false | false | false |
+| `mantigo_rate_ride(text,integer,text)` | false | **true** | false |
+| `mantigo_submit_bid(text,numeric,text,text,text,text)` | false | false | false |
+| `mantigo_update_proposed_price(text,numeric)` | false | false | false |
+| `restaurant_erp_mutate(text,jsonb,text)` | false | false | false |
+| `restaurant_table_mutate(text,jsonb,text)` | false | false | false |
+
+All ten have a function-level `search_path` setting. The observed values are `public` or `public, pg_temp`; this query only establishes the current settings and grants, not whether each function body is safe against object-shadowing or authorization flaws.
+
+**Security finding:** `public.mantigo_rate_ride(text,integer,text)` currently reports `authenticated_execute=true`, despite the historical revoke migration's stated intent to keep these RPCs unavailable to client roles until an authenticated flow is introduced. No production ACL was changed. Before changing it, review the actual mobile/web client call paths and intended rating workflow, then use an approved, reviewed remediation migration and test both allowed/denied roles. Do not assume that revoking it immediately is behavior-neutral.
+
+**Replay finding:** clean replay remains blocked at `20260927095000_revoke_unused_security_definer_execute.sql`, before later migrations. The prior approval covers only the two SMM table baselines; it does not authorize a test-only baseline containing ten privileged function bodies. Recover authoritative historical creation DDL or obtain explicit owner approval for a separate isolated test-only function baseline. Never copy the live definitions into production migrations or use a replay-only baseline as a substitute for a production remediation plan.
+
+Evidence source: read-only catalog query run on 2026-10-11. No function definitions/bodies, table rows, secrets, or provider data were copied into this document. Production remained unchanged.
