@@ -1682,3 +1682,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## SMM workspace — SESSION-023
 - [x] Add reload and standalone launch controls to SMM iframe workspace.
 - [ ] Validate iframe auth continuity and reload behavior after build completion.
+
+ 
+## Sector module tables — SESSION-024
+- [x] Add local search and CSV export for sector data tables.
+- [x] Correct CSV escaping/delimiter literals in follow-up commit.
+- [ ] Validate filter behavior, CSV output and Arabic filenames in browser/runtime tests.
