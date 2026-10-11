@@ -42,6 +42,7 @@ const duplicateStart=source.indexOf('if(o.error||!o.data){');
 const duplicateEnd=source.indexOf('const orderId=requestId;',duplicateStart);
 const duplicateBranch=duplicateStart>=0&&duplicateEnd>duplicateStart?source.slice(duplicateStart,duplicateEnd):"";
 check("SMM order creation requires a valid request UUID", source.includes("uuidPattern.test(requestId)") && source.includes('requestId=typeof b.request_id==="string"'));
+check("SMM URL validation uses the native URL constructor", source.includes("new URL(target)") && !source.includes("const URL=Deno.env.get"));
 check("SMM order primary key is the idempotency key", source.includes('insert({id:requestId,user_id:user.id') && source.includes("IDEMPOTENCY_CONFLICT"));
 check("duplicate in-flight order is not charged or submitted twice", duplicateBranch.includes('priorStatus==="SUBMITTING"') && duplicateBranch.includes("ORDER_OUTCOME_UNKNOWN") && !duplicateBranch.includes("smm_debit_wallet") && !duplicateBranch.includes("call("));
 check("SMM UI reuses request ID after ambiguous outcome", web.includes("function getOrderAttempt(fingerprint)") && web.includes("sessionStorage.setItem('mnty_smm_order_attempts'") && web.includes("request_id:attempt.id") && web.includes("reconciliation_required") && web.includes("delete attempts[fingerprint]"));
