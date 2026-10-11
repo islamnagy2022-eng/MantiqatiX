@@ -181,3 +181,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Existing Restaurant and generic sector workspaces retain their own paths.
 - Implementation commit: `0e19464fadd67c5520b0cb6449218c50b9a17ba3`.
 - Runtime/E2E verification remains outstanding; broad review deferred until construction is complete.
+
+
+## 2026-10-11 — SESSION-016 — Restaurant workspace refresh
+- Added an explicit refresh control to the restaurant workspace.
+- Refresh clears only the current in-memory restaurant data cache and invokes the existing scoped loader for menu, orders, tables, and inventory; existing tenant/business/branch filters and RLS behavior are preserved.
+- Implementation commit: `936551530b7def8bb815cfbf458ad1b4874b8d0c`.
+- No production deployment or schema mutation; runtime/E2E verification remains outstanding.
