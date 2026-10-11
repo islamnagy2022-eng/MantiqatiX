@@ -459,6 +459,16 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/module-blueprints.js
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check protected restaurant Edge Functions
+        run: >-
+          deno check
+          supabase/functions/restaurant-workspace-mutate/index.ts
+          supabase/functions/restaurant-menu-save/index.ts
+          supabase/functions/order-create/index.ts
+          supabase/functions/order-status-update/index.ts
       - name: Module runtime contract
         run: |
           grep -q "window.MNTYModuleRuntime" web/app.js
