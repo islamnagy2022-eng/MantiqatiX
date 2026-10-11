@@ -127,7 +127,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: "BUSINESS_NOT_AVAILABLE" }, 409);
   }
 
-  const normalizedItems = body.items.map((raw: any) => ({
+  const normalizedItems: Array<{ catalogItemId: string; quantity: number; selectedOptionIds: string[] }> = body.items.map((raw: any) => ({
     catalogItemId: String(raw?.catalogItemId ?? ""),
     quantity: Number(raw?.quantity),
     selectedOptionIds: Array.isArray(raw?.selectedOptionIds)
