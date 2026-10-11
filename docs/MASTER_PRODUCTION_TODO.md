@@ -1559,3 +1559,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## BUILD-ONLY module construction — 2026-10-11
+- [x] User decision recorded: defer broad reviews until missing module functionality is built.
+- [x] Build batch 1 (branch `build/module-workspaces-functional-20261011`): generic Users/Orders/Marketing/Commissions/Reports/Settings pages now have working tabs, loaded-record views, local filtering, details, navigation, and honest loaded-data snapshots.
+- [x] Global search results now open a record details drawer and provide navigation to the owning module.
+- [ ] Continue construction: Restaurant Workspace → CRM → Marketing/SMM → Operations/Orders → Finance → Notifications/Tasks → Reports/Analytics → remaining sector modules.
+- [ ] After all module construction: run broad review, tests, security checks, integration/E2E, and release verification. Do not mark production ready before evidence.
+- [ ] Current work branch is not merged/deployed; production impact is none.
