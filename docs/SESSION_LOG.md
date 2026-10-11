@@ -125,3 +125,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Production impact:** none.
 - **Not done:** no broad review or runtime verification.
 - **Next:** continue adding module-specific workflows; review remains deferred until construction is complete.
+
+
+## 2026-10-11 — SESSION-009 — Sector record detail views
+- Added a read-only “التفاصيل” action to configured generic sector data tables.
+- Details resolve only against rows already loaded into the current module cache and use the existing per-table allowlisted display fields; no extra query, privilege elevation, or write path was introduced.
+- Escaping is applied to field labels/values, and missing/out-of-scope rows fail closed with a toast.
+- Commit: `4c46af60a11316a15d9e488d78e81372e6e904ad`.
+- **Production impact:** none; no migrations, RLS/grants/Auth changes, Edge Function deployments, financial mutations, or payments.
+- **Verification status:** construction change recorded; runtime/E2E and broad review are still deferred by user instruction.
+- **Next:** continue module-specific build work before the deferred review phase.
