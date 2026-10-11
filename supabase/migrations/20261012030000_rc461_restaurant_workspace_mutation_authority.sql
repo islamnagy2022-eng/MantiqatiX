@@ -6,6 +6,8 @@ revoke insert, update, delete on table public.restaurant_tables, public.restaura
 
 -- The Edge Function uses the service role only after validating the actor and exact workspace scope.
 grant select, insert, update, delete on table public.restaurant_tables, public.restaurant_inventory to service_role;
+alter table public.restaurant_tables enable row level security;
+alter table public.restaurant_inventory enable row level security;
 
 -- Preserve branch-scoped reads for authorized restaurant staff after the direct-write boundary.
 -- Existing restrictive RLS policies still enforce the active-session and exact workspace scope.
