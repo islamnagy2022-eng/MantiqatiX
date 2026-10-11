@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { evaluateSmmLaunchScope } from "./smm-launch-scope.mjs";
 const root=process.cwd(), results=[];
 const add=(id,category,status,evidence,severity="P1")=>results.push({id,category,status,severity,evidence});
 const exists=p=>fs.existsSync(path.join(root,p));
@@ -60,6 +61,15 @@ for(let i=1;i<presentReleaseMigrations.length;i++){
 const reconciliationPath="docs/release/production-migration-reconciliation.json";
 let reconciliation=null, reconciliationParseError=null;
 try { reconciliation=JSON.parse(read(reconciliationPath)); } catch (error) { reconciliationParseError=String(error); }
+const smmLaunchScope = reconciliation
+  ? evaluateSmmLaunchScope(reconciliation.smm_initial_launch_scope, {
+      smm_gateway_parity: reconciliation.smm_gateway_parity,
+      smm_acl_boundary: reconciliation.smm_acl_boundary,
+      smm_order_refund_safety: reconciliation.smm_order_refund_safety,
+      smm_provider_timeout_safety: reconciliation.smm_provider_timeout_safety,
+    })
+  : { status: "BLOCKED", evidence: "Production reconciliation manifest is unavailable; SMM launch scope cannot be verified." };
+add("SMM-INITIAL-LAUNCH-SCOPE", "SMM", smmLaunchScope.status, smmLaunchScope.evidence, "P0");
 const liveReconciliationVerified=Boolean(
   reconciliation &&
   reconciliation.status==="VERIFIED" &&
@@ -75,10 +85,7 @@ const liveReconciliationVerified=Boolean(
   reconciliation.payment_finance_e2e==="PASS" &&
   reconciliation.backup_restore_rehearsal==="PASS" &&
   reconciliation.edge_function_contracts==="PASS" &&
-  reconciliation.smm_gateway_parity==="PASS" &&
-  reconciliation.smm_acl_boundary==="PASS" &&
-  reconciliation.smm_order_refund_safety==="PASS" &&
-  reconciliation.smm_provider_timeout_safety==="PASS" &&
+  smmLaunchScope.status==="PASS" &&
   reconciliation.erp_atomic_receiving_e2e==="PASS" &&
   reconciliation.auth_security_settings==="PASS" &&
   reconciliation.security_definer_acl_review==="PASS" &&
