@@ -74,6 +74,7 @@ jobs:
           node scripts/test-smm-launch-scope.mjs
           node scripts/validate-production-gate-contract.mjs
           node scripts/validate-production-migration-chain-gate.mjs
+          node scripts/validate-smm-deferred-release.mjs
           node scripts/validate-finance-boundaries.mjs
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/test-digital-page-runtime.mjs
