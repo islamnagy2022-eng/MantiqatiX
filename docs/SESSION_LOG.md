@@ -203,3 +203,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No new database fields, migrations, or privileged writes were introduced; current authenticated queries and RLS remain the data boundary.
 - Implementation commit: `2c5f2c00888778dc82353b76d6aef7fcda5d6922`.
 - This is code construction only; browser/runtime/E2E verification remains outstanding.
+
+
+## 2026-10-11 — SESSION-019 — Customer-facing discovery guardrails
+- Customer job discovery now lists only jobs explicitly marked `is_active === true`; non-customer workspaces retain their broader visible records for management.
+- Customer education discovery now shows only schools and teachers explicitly marked available, so the UI does not offer service requests against records marked unavailable.
+- Implementation commits: `54947fad3de57b4584806eb2a8e238a987b20d67`, `e7c1413e7b5f325d3841f1c7875ac5937357f88b`.
+- These are client-side usability guardrails, not substitutes for server-side RLS/business validation; runtime/E2E remains unverified.
