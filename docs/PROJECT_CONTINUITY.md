@@ -577,3 +577,9 @@ This status is intentional and must remain until the open gates above are indepe
 ## Build progress — SESSION-007
 - Commit `a2d5c76685a31381475175486f69ec8631673b6f`: report tabs show status summaries from session-loaded records, explicitly labeled as samples rather than database-wide totals.
 - Post-build tests remain pending; release remains blocked/not certified.
+
+ 
+## Build progress — SESSION-008
+- `adecfa5cb95d0dc2388d0351ad5d46180c3f5f86`: role-gated finance snapshot counts included in Reports.
+- `8b5fdf712414720c78db63ce182d37a7b9bc14c6`: workspace records can open existing order/lead/support-ticket detail handlers where applicable.
+- Build branch remains unvalidated pending CI/post-build checks.
