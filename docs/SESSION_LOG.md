@@ -58,3 +58,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope:** local filtering only applies to the displayed current-session records; it is not a database-wide search.
 - **Verification:** full post-build tests remain pending.
 - **Next:** continue connecting remaining module workflows; later run the planned focused test/review batch.
+
+## 2026-10-11 — SESSION-006 — Expand user/marketing workspaces and surface SMM
+
+- **Code commits:** `d022ab53e0d67e4f50e6d6ca64725131d0fcf559` (membership-resolved businesses and registration requests in Users workspace), `1e5519c2349e41905a8a1a98d7ef3fb491f62cc8` (active services in Marketing workspace), and `930663f51002e1123c3e9850a4ca32e9dd1378ef` (permission-aware SMM shortcut).
+- **Built:** Users workspace now surfaces businesses resolved from the current user's active memberships and existing registration requests available to the account. Marketing workspace includes the already-loaded active service catalog. Main dashboard and enterprise command center now include SMM entry points only when RBAC and module feature enablement allow it.
+- **Security scope:** no broad business/customer query was added; business records come from the existing membership-derived business ID query. SMM shortcut does not bypass `selectModule` authorization or feature checks.
+- **Verification:** syntax/integration tests remain pending until the post-build phase; do not treat the current commits as validated.
+- **Production impact:** none.
+- **Next:** continue module-specific data/action wiring and then perform the deferred validation batch.
