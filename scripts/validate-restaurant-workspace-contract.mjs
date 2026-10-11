@@ -81,5 +81,13 @@ assert.match(workspaceEdge, /FORBIDDEN_WORKSPACE_SCOPE/, 'workspace mutation rej
 assert.match(workspaceEdge, /const isRecordId = \(value: unknown\)/, 'legacy text primary keys are validated without assuming UUID storage');
 assert.match(workspaceMigration, /revoke insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory[\s\S]*?from PUBLIC, anon, authenticated/i, 'direct browser mutations are revoked from public client roles');
 assert.match(workspaceMigration, /grant select, insert, update, delete on table public\.restaurant_tables, public\.restaurant_inventory to service_role/i, 'backend mutation role retains the required table privileges');
+assert.match(workspaceMigration, /create or replace function public\.restaurant_workspace_mutate_backend/, 'workspace mutations use a single backend database function');
+assert.match(workspaceMigration, /insert into public\.audit_logs/, 'workspace changes and audit records are committed in the same transaction');
+assert.match(workspaceMigration, /set search_path = ''/, 'workspace mutation RPC pins an empty search path');
+assert.match(workspaceMigration, /grant execute on function public\.restaurant_workspace_mutate_backend[\s\S]*?to service_role/i, 'workspace mutation RPC is restricted to the service role');
+
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
-console.log('Restaurant workspace contract: PASS (71 assertions)');
+assert.match(workspaceIntegration, /RC461_TABLE_AUDIT_NOT_ATOMIC/, 'integration verifies table audit records for each mutation');
+assert.match(workspaceIntegration, /RC461_NON_MEMBER_WAS_ALLOWED/, 'integration verifies non-members cannot mutate workspace records');
+
+console.log('Restaurant workspace contract: PASS (77 assertions)');
