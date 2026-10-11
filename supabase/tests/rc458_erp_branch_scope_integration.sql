@@ -42,6 +42,14 @@ begin
     rejected := true;
   end;
   if not rejected then raise exception 'branch A purchase-order creation was not blocked'; end if;
+  result := public.create_purchase_order_with_lines_backend(
+    'po-created-by-b-001','tenant-1',biz,'branch-b','PO-B-B-001','supplier-1',0,0,null,
+    jsonb_build_array(jsonb_build_object('product_id',product,'quantity',1,'unit_cost',2)),actor_b
+  );
+  if coalesce((result->>'success')::boolean,false) is not true
+     or result->'order'->>'branch_id' <> 'branch-b' then
+    raise exception 'branch B could not create a purchase order in its own branch';
+  end if;
 
   -- Branch A cannot change lines on branch B order; branch B can.
   rejected := false;
