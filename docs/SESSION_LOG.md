@@ -75,3 +75,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Accuracy guard:** the UI explicitly says this is the loaded sample, not the full database total; no synthetic records or estimated counts are generated.
 - **Tests:** pending post-build validation.
 - **Next:** continue building module-specific workflows, then test the complete branch before integration.
+
+## 2026-10-11 — SESSION-008 — Add contextual details and finance reporting
+
+- **Code commits:** `adecfa5cb95d0dc2388d0351ad5d46180c3f5f86` and `8b5fdf712414720c78db63ce182d37a7b9bc14c6`.
+- **Built:** the Reports workspace includes finance counts only when the existing role-gated finance snapshot is available. The workspace data tab now offers direct detail actions for loaded orders, leads, and support tickets using existing detail handlers.
+- **Scope guard:** project/service/business records are displayed but no unsupported edit action was added. Detail buttons are only emitted for record kinds with known existing detail functions.
+- **Tests:** pending; do not infer passing tests from commits.
+- **Next:** continue module capability build-out and later validate event binding, authorization, and detail-view behavior.
