@@ -1592,3 +1592,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Kept contact and sensitive fields out of generic displays/exports.
 - [ ] Finish missing workflows for specialized modules and any module whose data source currently returns NOT AVAILABLE under the current contract.
 - [ ] Broad review, automated tests, tenant E2E and final release verification remain deferred until module construction is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-006
+- [x] Added role-gated job-post creation UI using existing `jobs` table and current user/tenant/business identity.
+- [x] Added customer job-application UI using existing `job_applications` table; omitted phone/contact fields from the application form and list exports.
+- [x] Added tailored jobs/applications views and CSV exports.
+- [ ] Runtime/RLS verification is deferred until the planned post-construction review phase; no success claim yet.
+- [ ] Continue building remaining modules before broad reviews.
