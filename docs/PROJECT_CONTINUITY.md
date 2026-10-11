@@ -594,3 +594,7 @@ This status is intentional and must remain until the open gates above are indepe
 ## Build progress — SESSION-010
 - Commit `89a071b647192c507c90ce083ea166dd6c789784`: added SMM shortcuts to BUSINESS_OWNER, ADMIN and SERVICE_PROVIDER dashboard configs, still subject to existing RBAC view checks.
 - RBAC visibility matrix tests are deferred to the post-build pass.
+
+ 
+## Build progress — SESSION-011
+- Commit `2f60bdb55338e901a2b7cea6c5fddeb4421aa31a`: module center cards show whether source counts were loaded and how many were available; unloaded modules are not labeled ready.
