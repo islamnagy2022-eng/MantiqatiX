@@ -56,3 +56,18 @@ No production schema, data, grants, RLS, secrets, Edge Functions, wallet balance
 ## RC424 statement parity confirmation — 2026-10-11
 
 A direct read-only query of the production migration ledger returned the full statement for version `20261008222845`. Its exact text matched the source file `supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql` byte-for-byte: **7,208 bytes in each, exactMatch=true**. This resolves the RC424 source/ledger identity question as a legacy filename timestamp alias. It does not resolve the missing legacy `smm_provider_credentials` creation DDL or prove post-RC424 migrations are applied.
+
+
+## Applied-ledger source search — 2026-10-11
+
+A read-only search of `supabase_migrations.schema_migrations.statements` for `smm_provider_credentials` returned only:
+- `20260927074210 / harden_smm_table_api_privileges`: revokes client privileges on the table; it does not create it.
+- `20260929203603 / explicit_deny_policies_for_unexposed_sensitive_tables`: creates a deny-all client policy on the existing table; it does not create it.
+
+Together with the repository migration scan and current catalog evidence, this confirms that the applied migration ledger available to this project does not contain the original table-creation statement. Do not infer that the table was created by either of these migrations. The original DDL must be recovered from an authoritative external/repository-history source or replaced by an explicitly owner-approved, separately versioned schema baseline before replay can proceed.
+
+## Additional ERP authorization review — 2026-10-11
+
+- RC458 review found that the purchase-order status RPC selected `v_role` from any active business membership before branch/organization filtering. A privileged role in one branch could elevate a lower-privilege membership in another branch. The query now selects the transition role only from branch/organization-compatible memberships.
+- RC458 integration coverage now includes the cross-branch role-escalation negative case and preserves the existing `PURCHASING` role for scoped receiving.
+- Exact-head CI is pending for the latest candidate commit; these changes are not yet marked PASS. Full release remains blocked on the historical SMM DDL and full migration replay.
