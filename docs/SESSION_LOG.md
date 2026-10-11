@@ -262,3 +262,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** campaign cards show the associated business name when available; participant rows show partner display names from the loaded eligible partner profiles, falling back to provider ID if no display profile is available.
 - **Scope:** no new data query; names come from existing RLS-scoped business/partner results.
 - **Next:** continue module build-out.
+
+## 2026-10-11 — SESSION-032 — Avoid repeated campaign queries when backend is absent
+
+- **Code commit:** [01aed8081a33fb44a54f496ad568ea9fd14d264f](https://github.com/islamnagy2022-eng/MantiqaTix/commit/01aed8081a33fb44a54f496ad568ea9fd14d264f).
+- **Built/fixed:** global search only includes the campaign source after the marketing workspace has confirmed the RC453 campaign tables are readable. This avoids repeated failed missing-table queries in environments where the migration is not deployed.
+- **Next:** continue build work; after RC453 deployment, verify campaign search is activated and permission-filtered.
