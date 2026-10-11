@@ -633,3 +633,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Sector tables now expose a read-only details drawer for records already loaded into the current workspace.
 - Drawer fields are restricted to the corresponding table's configured allowlist; no extra database query, permission expansion, or mutation is introduced.
 - Documentation commit: `d8783dd5c3eac43878dccc604e8fbd07aedf1f9f`; the implementation is on the active build branch. Runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-015
+- Specialized Accounting, ERP, Factory, Trips, and Matrimony workspaces now show a refresh button that invalidates only the active module's in-memory cache and calls its existing authenticated loader.
+- No data mutation or permission/schema changes were introduced by this control.
+- Implementation commit: `0e19464fadd67c5520b0cb6449218c50b9a17ba3`; runtime/E2E is not yet verified.
