@@ -75,3 +75,21 @@ Repository migrations with timestamps after the live ledger's latest version wer
 - `20261011010000_rc456_smm_service_role_access_boundary.sql` — SMM-specific; defer from initial-launch scope only after a dependency review confirms it is not a prerequisite for any core gate. Never skip or apply it by label alone.
 
 The full ordered replay is currently fail-closed before database startup because the earlier historical revoke migration references ten legacy SECURITY DEFINER functions whose authoritative creation DDL is absent from the chronological repository history. Consequently, the list above is an inventory, **not an approved production migration batch**. Before any production migration, reconcile the live ledger with exact SQL hashes/definitions, recover authoritative history, pass the full disposable replay, then obtain explicit rollout approval.
+
+## Latest exact-head verification — 2026-10-11 17:08 UTC
+
+Candidate commit: `b4776f088204c87ec9e723030bd6a026e8a4cb44` (PR #207 remains draft).
+
+- Core Module Professionalization Validation [38158356144](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38158356144): **15/15 jobs passed**. This includes the core `validate` job, financial journal RC450/RC457, MantiGo Paymob atomicity/platform-admin scope, digital-page payment binding, subscription intent, ERP branch scope, checkout recovery, matrimony privacy, targeted-ads search path, SECURITY DEFINER search path, receiving, and order-line integration. The SMM-only wallet/gateway job is deliberately excluded from this core suite.
+- Migration Version Uniqueness [38158356140](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38158356140): passed.
+- Migration History Immutability [38158356121](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38158356121): passed.
+- Pages workflow [38158356081](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38158356081): workflow conclusion is success, but inspect the `deploy` job result before treating this as an actual publication. A green workflow can mean validation passed while deployment was skipped.
+- Full chronological Supabase replay is still not proven: preflight remains blocked on ten legacy SECURITY DEFINER creation dependencies. Production migration ledger reconciliation, backup/restore rehearsal, repository branch protection, exact production parity, and final end-to-end acceptance are outstanding.
+
+### Explicit launch scope confirmation
+
+**Yes: SMM product development is deferred until after the initial production launch.** Do not make provider ordering, SMM wallet, provider administration, or the SMM storefront a feature-completion prerequisite for initial launch. Keep the existing internal **Marketing & Advertising** module in launch scope; it is a different module.
+
+However, SMM deferral is not permission to leave a risky API exposed. Before launch, the separately tracked P0 [#212](https://github.com/islamnagy2022-eng/MantiqatiX/issues/212) must prove the live SMM gateway is denied/disabled server-side, with negative tests showing no provider call, order mutation, or wallet change. This is a small launch containment requirement, not a requirement to finish SMM. No production deployment or SMM backend change is authorized or claimed by this document.
+
+Next execution order: (1) finish non-SMM core and integration gates; (2) reconcile migration history/ledger and full replay; (3) finish security, data isolation, backup/restore and production parity evidence; (4) under separate approval, contain SMM gateway before launch; (5) stage rollout only after every global gate passes. Keep PR #207 draft and release status BLOCKED / NOT CERTIFIED until then.
