@@ -669,3 +669,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-027
 - Commit `75b9c11192964ac83c29f98c8d71358778ea7d19`: platform full-control admins can select an active business when no business membership is selected; partner list is filtered per campaign; UI role gates align with RC453 manager roles.
+
+ 
+## Build progress — SESSION-028
+- Commit `d53fee1e5b8f9442015dea25419057948b76d6cf`: campaign platform-admin controls now check the exact platform tenant/scope/full_control claim and RBAC permission expected by RC453.
