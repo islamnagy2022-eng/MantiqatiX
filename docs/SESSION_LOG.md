@@ -40,3 +40,19 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not done yet:** no comprehensive module review, no browser/E2E claim, no CI success claim, and no release readiness claim. This is the first build batch, not completion of all modules.
 - **Next construction sequence:** specialized Restaurant Workspace → CRM → Marketing & SMM → Operations/Orders → Finance → Notifications/Tasks → Reports/Analytics → remaining sector modules → then review/testing after construction is complete.
 - **Release state:** **BLOCKED / NOT CERTIFIED** remains unchanged; build progress does not imply production readiness.
+
+
+## 2026-10-11 — SESSION-003 — Continue module construction: exports and notification workflow
+
+- **Build work completed on the active construction branch:**
+  - Added UTF-8 CSV export utility with proper CSV quoting and fixed spreadsheet BOM handling.
+  - Added allowlisted CSV exports for restaurant menu/orders/tables/inventory; CRM leads/support tickets; marketing projects/ads/leads; generic workspace data groups; operations orders; and notifications.
+  - Export columns are explicitly allowlisted; restaurant exports exclude customer phone/address fields.
+  - Export actions use event delegation so controls created dynamically in workspace tabs remain functional.
+  - Added a bulk “mark loaded notifications read” action using the existing `mark_notifications_read_backend` RPC and only the currently loaded notifications. The action reports the number updated and refreshes the UI once.
+  - Improved global-search details drawer Escape handling and focus restoration.
+- **Code commits:** `d102cf231ee9dad0ca58dfbec1487fbf4bae4c51`, `1d32030b16d941ba1897ddc4b52a2a65c1bfc4d0`, `a7b5817b54b5654462e9fb1823dfd26c5e4e3c8d`, `00417890af7838f0077ba864604e4a14e38d04a0`, `999a187a1bb121934302929bc81dc92d07b06f0a`.
+- **Tracking:** draft PR [#205](https://github.com/islamnagy2022-eng/MantiqaTix/pull/205) contains the build-only batch and remains open as a draft.
+- **Production impact:** none; no database or financial mutations and no deployment.
+- **Not done:** no broad review or end-to-end verification; this is not module completion.
+- **Next construction step:** continue adding functionality to specialized modules without repeating prior audits. After construction across all modules is complete, perform the requested reviews and verification phase.
