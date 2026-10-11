@@ -1249,7 +1249,9 @@ function exportMarketingWorkspaceCsv(){
   ...(data.projects||[]).map(x=>({kind:'project',id:x.id,title:x.project_type,status:x.status,category:x.management_mode,amount:x.gross_value,currency:x.currency,created_at:x.created_at})),
   ...(data.ads||[]).map(x=>({kind:'advertisement',id:x.id,title:x.title,status:x.status||x.approval_status,category:x.approval_status,amount:'',currency:'',created_at:x.created_at})),
   ...(data.providers||[]).map(x=>({kind:'provider',id:x.id,title:x.name_ar||x.name_en,status:x.status,category:x.provider_kind,amount:'',currency:'',created_at:x.created_at})),
-  ...(data.services||[]).map(x=>({kind:'service',id:x.id,title:x.name_ar||x.name_en||x.code,status:x.status,category:x.category_code,amount:'',currency:'',created_at:x.created_at}))
+  ...(data.services||[]).map(x=>({kind:'service',id:x.id,title:x.name_ar||x.name_en||x.code,status:x.status,category:x.category_code,amount:'',currency:'',created_at:x.created_at})),
+  ...((marketingCampaignState?.campaigns)||[]).map(x=>({kind:'campaign',id:x.id,title:x.title,status:x.status,category:x.objective,amount:x.budget,currency:x.currency,created_at:x.created_at})),
+  ...((marketingCampaignState?.participants)||[]).map(x=>({kind:'campaign_partner',id:x.id,title:marketingCampaignState.partners.find(p=>p.id===x.provider_id)?.name_ar||x.provider_id,status:x.status,category:x.role,amount:x.agreed_value,currency:'',created_at:x.created_at}))
  ];
  const safe=v=>{let x=String(v??'').replace(/[\r\n]+/g,' ').trim();if(/^[=+\-@\t]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"';};
  const lines=[['النوع','المعرف','العنوان','الحالة','الفئة/المصدر','القيمة','العملة','تاريخ الإنشاء'],...rows.map(x=>[x.kind,x.id,x.title,x.status,x.category,x.amount,x.currency,x.created_at])];
