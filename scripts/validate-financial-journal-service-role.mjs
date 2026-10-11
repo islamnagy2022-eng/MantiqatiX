@@ -29,10 +29,11 @@ assert.doesNotMatch(migration, /on conflict\(id\) do nothing/i);
 assert.match(migration, /'DRAFT',v_total_debit[\s\S]*?pg_catalog\.clock_timestamp\(\),p_user_id\)/i, "header must start DRAFT while lines are inserted");
 assert.match(migration, /update public\.journal_entries[\s\S]*?set status='POSTED',posted_at=pg_catalog\.clock_timestamp\(\)/i, "posting must occur only after lines are inserted");
 assert.match(migration, /JOURNAL_POST_TRANSITION_FAILED/);
-assert.match(migration, /create or replace function public\.trg_post_journal_to_general_ledger/i);
-assert.match(migration, /pg_advisory_xact_lock[\s\S]*?hashtextextended\(new\.tenant_id \|\| ':' \|\| v_account, 0\)/i, "account balances must serialize by tenant and account");
-assert.match(migration, /v_account_balances jsonb := '\{\}'::jsonb/i, "same-account lines must accumulate in order");
-assert.doesNotMatch(migration, /jel\.debit-jel\.credit/, "running balance must not be reduced to the current line net");
+assert.match(stageMigration, /create or replace function public\.trg_post_journal_to_general_ledger/i);
+assert.match(migration, /alter function public\.trg_post_journal_to_general_ledger\(\) set search_path = ''/i, "RC457 must pin the ledger trigger search_path to empty");
+assert.match(stageMigration, /pg_advisory_xact_lock[\s\S]*?hashtextextended\(new\.tenant_id \|\| ':' \|\| v_account, 0\)/i, "account balances must serialize by tenant and account");
+assert.match(stageMigration, /v_account_balances jsonb := '\{\}'::jsonb/i, "same-account lines must accumulate in order");
+assert.doesNotMatch(stageMigration, /jel\.debit-jel\.credit/, "running balance must not be reduced to the current line net");
 assert.match(migration, /revoke all on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) from public, anon, authenticated/i);
 assert.match(migration, /grant execute on function public\.post_financial_journal_backend\(uuid,jsonb,jsonb\) to service_role/i);
 
