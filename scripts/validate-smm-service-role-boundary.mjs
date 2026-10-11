@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const edge = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
+const web = fs.readFileSync("web/smm.js", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc456_smm_service_role_integration.sql", "utf8");
 
@@ -17,6 +18,8 @@ assert.doesNotMatch(adminGuard, /user_memberships|SUPER_ADMIN|MNTY-PLATFORM/, "g
 
 assert.match(edge, /user\.is_anonymous/, "anonymous Auth sessions must be rejected");
 assert.match(edge, /["']cache-control["']\s*:\s*["']no-store["']/i, "personal account responses must not be cached");
+assert.match(web, /fn\(\{action:'my_data'\}\)/, "personal account reads must go through the trusted gateway");
+assert.doesNotMatch(web, /sb\.from\(['"]smm_(services|orders|wallets)['"]\)/, "browser must not directly query tables whose client grants are revoked");
 const catalogStart = edge.indexOf('if(a==="catalog")');
 const accountStart = edge.indexOf('if(a==="my_data")', catalogStart);
 const configureStart = edge.indexOf('if(a==="configure_provider")', accountStart);
