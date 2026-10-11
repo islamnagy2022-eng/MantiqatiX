@@ -1611,3 +1611,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Add SMM entry to MARKETING, PROVIDER_MARKETING, OWNER role dashboards with existing RBAC filtering.
 - [x] Correct an intermediate source-prefix duplication in the next commit.
 - [ ] Confirm CI and runtime behavior after the build phase.
+
+ 
+## SMM dashboard coverage — SESSION-010
+- [x] Add SMM shortcut entries to BUSINESS_OWNER, ADMIN and SERVICE_PROVIDER dashboard configurations without bypassing RBAC.
+- [ ] Test role-by-role visibility with feature flags on/off.
