@@ -649,3 +649,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-023
 - Commit `7c865cf11c774acce1d8a212973c8c9ca90bb127`: SMM workspace includes explicit iframe reload and standalone launch controls. Reload may discard unsaved form state.
+
+ 
+## Build progress — SESSION-024
+- Commits `e747965f0b2a0a416ff3c5ee2a9c63e4e5d7673b` / `e8f93175d7ffb120c7e7a6d62bb5e665fb114a10`: sector table UI gained local search and CSV export. Follow-up corrected over-escaped literals; runtime verification remains pending.
