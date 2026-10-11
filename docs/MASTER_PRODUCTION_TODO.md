@@ -1584,3 +1584,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Marketing lead/project/advertisement status filters.
 - [x] Analytics status-distribution visualization with explicit loaded-record scope and CSV exports.
 - [ ] Continue specialized module construction; defer broad review until all modules are built.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-005
+- [x] Added allowlisted, data-backed read tables for generic sector modules; queries use authenticated Supabase + existing RLS and only apply scope filters for columns that exist.
+- [x] Added table-level CSV exports and status filters to the generic sector workspaces.
+- [x] Kept contact and sensitive fields out of generic displays/exports.
+- [ ] Finish missing workflows for specialized modules and any module whose data source currently returns NOT AVAILABLE under the current contract.
+- [ ] Broad review, automated tests, tenant E2E and final release verification remain deferred until module construction is complete.
