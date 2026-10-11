@@ -176,7 +176,7 @@ begin
 end;
 $function$;
 
-revoke all on function public.update_purchase_order_status_backend(varchar,varchar) from public,anon;
+revoke all on function public.update_purchase_order_status_backend(varchar,varchar) from public,anon,authenticated;
 grant execute on function public.update_purchase_order_status_backend(varchar,varchar) to authenticated;
 
 create or replace function public.set_purchase_order_lines_backend(
