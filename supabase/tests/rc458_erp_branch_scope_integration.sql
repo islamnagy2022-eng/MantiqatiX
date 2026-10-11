@@ -86,6 +86,29 @@ begin
   result := public.update_purchase_order_status_backend('rc458-po-branch-b-001','SUBMITTED');
   if result->'order'->>'status' <> 'APPROVED' then raise exception 'branch B could not submit its own order'; end if;
 
+  -- A privileged role in branch A must not elevate a lower-privilege branch B membership.
+  insert into public.erp_purchase_orders(
+    id,tenant_id,business_id,branch_id,order_number,supplier_id,total_amount,tax_amount,discount_amount,status,created_by
+  ) values('po-approval-branch-b','tenant-1',biz,'branch-b','PO-B-APPROVAL','supplier-1',6000,0,0,'DRAFT',actor_b);
+  insert into public.erp_purchase_order_lines(
+    id,tenant_id,business_id,purchase_order_id,line_number,product_id,ordered_quantity,received_quantity,unit_cost,description
+  ) values('po-approval-branch-b-line-1','tenant-1',biz,'po-approval-branch-b',1,product,3000,0,2,'approval scope test');
+  perform pg_catalog.set_config('request.jwt.claim.sub',actor_b::text,true);
+  result := public.update_purchase_order_status_backend('po-approval-branch-b','SUBMITTED');
+  if result->'order'->>'status' <> 'PENDING_APPROVAL' then
+    raise exception 'high-value branch B order must require approval';
+  end if;
+  perform pg_catalog.set_config('request.jwt.claim.sub',actor_d::text,true);
+  rejected := false;
+  begin
+    perform public.update_purchase_order_status_backend('po-approval-branch-b','APPROVED');
+    raise exception 'TEST_FAILED: branch A ADMIN elevated branch B EMPLOYEE membership to approve';
+  exception when others then
+    if sqlerrm <> 'INVALID_STATUS_TRANSITION' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'cross-branch approval privilege escalation was not blocked'; end if;
+
   -- Organization mismatch is denied even when the branch ID matches.
   rejected := false;
   begin
