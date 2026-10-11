@@ -142,6 +142,14 @@ begin
   );
   if coalesce((result->>'success')::boolean,false) is not true then raise exception 'branch B receiving failed'; end if;
 
+  -- Purchasing remains an authorized role for receipts, but only within its own branch.
+  result := public.receive_purchase_stock_with_order_line_backend(
+    'rcv-purchasing-b-001','tenant-1',biz,'po-branch-b-001','RCV-B-PURCHASING-001','warehouse-b',product,1,2,actor_e
+  );
+  if coalesce((result->>'success')::boolean,false) is not true then
+    raise exception 'branch-scoped PURCHASING role could not receive an approved purchase order';
+  end if;
+
   -- A receipt replay cannot bypass branch checks merely because the receipt already exists.
   rejected := false;
   begin
