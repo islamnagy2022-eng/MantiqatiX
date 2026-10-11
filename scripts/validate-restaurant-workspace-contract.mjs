@@ -94,7 +94,7 @@ assert.match(workspaceIntegration, /RC461_RESTAURANT_RLS_NOT_ENABLED/, 'integrat
 assert.match(workspaceIntegration, /RC461_BRANCH_MEMBER_READ_POLICY_MISSING/, 'integration asserts branch-scoped read policies exist');
 assert.match(workspaceIntegration, /set local role authenticated[\s\S]*?RC461_ACTIVE_BRANCH_MEMBER_CANNOT_READ_WORKSPACE/, 'integration executes branch reads as authenticated role under RLS');
 assert.match(workspaceIntegration, /RC461_UNASSIGNED_BRANCH_DATA_LEAKED/, 'integration rejects reads from branches without membership');
-assert.match(workspaceFixture, /create or replace function auth\.uid\(\).*as \$\$/m, 'fixture auth.uid function uses valid dollar-quote opener');
+assert.match(workspaceFixture, /create or replace function auth\.uid\(\).*as \$auth_uid\$/m, 'fixture auth.uid function uses a valid tagged dollar-quote opener');
 assert.doesNotMatch(workspaceFixture, /^\$;$/m, 'fixture contains no malformed single-dollar closing delimiters');
 assert.match(workspaceMigration, /m\.branch_id = restaurant_tables\.branch_id/, 'table read policy is restricted to the active membership branch');
 assert.match(workspaceMigration, /m\.branch_id = restaurant_inventory\.branch_id/, 'inventory read policy is restricted to the active membership branch');
