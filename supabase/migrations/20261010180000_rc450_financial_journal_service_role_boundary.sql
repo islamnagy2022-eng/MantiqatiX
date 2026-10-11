@@ -166,7 +166,7 @@ begin
 
   for v_line in select value from pg_catalog.jsonb_array_elements(p_lines) as t(value) loop
     v_line_count:=v_line_count+1;
-    v_insert_line_no:=v_insert_line_no+1;
+    v_insert_line_no := v_insert_line_no + 1;
     if pg_catalog.jsonb_typeof(v_line)<>'object' then raise exception 'INVALID_JOURNAL_LINE'; end if;
     v_account:=nullif(pg_catalog.btrim(v_line->>'account_id'),'');
     if v_account is null then raise exception 'ACCOUNT_REQUIRED'; end if;
