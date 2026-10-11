@@ -657,3 +657,9 @@ This status is intentional and must remain until the open gates above are indepe
 - The Used Items sector now has a dedicated read-only marketplace workspace with search, available/sold filtering, CSV export, and safe details drawer using the existing mapped fields.
 - Implementation commit: `2c5f2c00888778dc82353b76d6aef7fcda5d6922`.
 - No schema changes, production deployment, or runtime verification performed.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-019
+- Customer job discovery filters to explicitly active jobs; customer education discovery filters to schools/teachers explicitly marked available.
+- Commits: `54947fad3de57b4584806eb2a8e238a987b20d67`, `e7c1413e7b5f325d3841f1c7875ac5937357f88b`.
+- UI filters do not replace RLS/server-side enforcement; runtime/E2E remains outstanding.
