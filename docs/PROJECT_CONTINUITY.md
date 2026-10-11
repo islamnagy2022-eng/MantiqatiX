@@ -677,3 +677,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-029
 - Commit `74b56f5372c0c213306bc503cbded9f18134015e`: campaign cards summarize invited/accepted/active partner allocation and agreed values, with remaining percentage.
+
+ 
+## Build progress — SESSION-030
+- Commit `57189fc4eaaeccefd54255db3bc75c9242ce461c`: global search includes RLS-governed marketing campaigns via explicit fields; missing RC453 remains fail-closed.
