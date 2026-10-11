@@ -665,3 +665,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-026
 - Commits `af112ab3102fa36f1fc1d64a017cefb2e8d4f102` / `71568dc1015665d0fbed88589858b9971e4e461d`: partner query excludes current business before limiting; campaign form reuses idempotency key on retries; refresh preserves in-flight loading guard.
+
+ 
+## Build progress — SESSION-027
+- Commit `75b9c11192964ac83c29f98c8d71358778ea7d19`: platform full-control admins can select an active business when no business membership is selected; partner list is filtered per campaign; UI role gates align with RC453 manager roles.
