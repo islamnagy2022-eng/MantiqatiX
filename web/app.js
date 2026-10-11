@@ -224,6 +224,7 @@ function membershipOptionLabel(m){
  return icon+' '+roleLabel(role)+' — '+activity+' — '+section;
 }
 async function switchMembership(membershipId){
+ window.MNTYModuleRuntime={};
  const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
  if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
  if(membershipId===live.activeMembershipId)return;
@@ -531,7 +532,7 @@ function globalSearchResultHtml(results){
  return results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
 }
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
-function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc,m.key]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>الوحدات حسب الكتالوج، مع عرض حالة تحميل المصادر التي سبق فتحها فقط.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>{const state=live.moduleData?.[m[3]],tableMap=state?.tables||{},checked=Object.values(tableMap).filter(v=>v!==null&&v!==undefined).length;const stateLabel=state?.ready?(checked+' مصادر لها قراءة عددية'):'لم تُحمّل بعد';return `<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span><small class="muted">${stateLabel}</small></article>`}).join('')}</div>`}
+function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc,m.key]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>الوحدات حسب الكتالوج، مع عرض حالة تحميل المصادر التي سبق فتحها فقط.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>{const state=window.MNTYModuleRuntime?.[m[3]],tableMap=state?.tables||{},checked=Object.values(tableMap).filter(v=>typeof v==='number').length;const stateLabel=state?.ready?('آخر قراءة: '+checked+' مصادر عددية'):'لم تُحمّل بعد';return `<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span><small class="muted">${stateLabel}</small></article>`}).join('')}</div>`}
 function sectorsPage(){
  const list=filtered(sectors);
  const sectorMap={
@@ -2089,7 +2090,7 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
  gsi?.addEventListener('keydown',e=>{if(e.key==='Escape'){gsi.value='';gso.innerHTML='';gso.classList.remove('is-open')}if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
  document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}
 sb.auth.onAuthStateChange((event,session)=>{
-if(event==='SIGNED_OUT'){
+if(event==='SIGNED_OUT'){window.MNTYModuleRuntime={};
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';
 window.MXHomeLanding?MXHomeLanding():landingView();return;
 }
