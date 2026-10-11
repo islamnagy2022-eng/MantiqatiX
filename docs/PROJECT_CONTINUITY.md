@@ -645,3 +645,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-022
 - Commit `8734b11a45c71a16f05350a5605e5ff65e9bb753`: Governance workspace gained CSV export for loaded support tickets and notifications.
+
+ 
+## Build progress — SESSION-023
+- Commit `7c865cf11c774acce1d8a212973c8c9ca90bb127`: SMM workspace includes explicit iframe reload and standalone launch controls. Reload may discard unsaved form state.
