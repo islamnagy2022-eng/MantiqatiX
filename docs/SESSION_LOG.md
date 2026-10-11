@@ -275,3 +275,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** Marketing campaign collaboration now has local search by campaign title/business/objective/channel and a status filter covering the backend-defined lifecycle states.
 - **Scope:** client-side filters only operate on campaigns already returned by RLS; no wider queries or additional access are introduced.
 - **Next:** continue module construction.
+
+## 2026-10-11 — SESSION-034 — Show partner invitation response timestamps
+
+- **Code commit:** [91a5231a989e082d0c30c87bb3bda0a3ad3f29d6](https://github.com/islamnagy2022-eng/MantiqaTix/commit/91a5231a989e082d0c30c87bb3bda0a3ad3f29d6).
+- **Built:** partner participation cards now show the response timestamp when recorded, otherwise label the invitation as awaiting response.
+- **Next:** continue campaign and module build-out.
