@@ -1152,7 +1152,7 @@ async function openJobPostForm(){
   if(!company||!title||!category){if(submit){submit.disabled=false;submit.textContent='حفظ الوظيفة'}return showToast('أكمل المسمى والشركة والفئة.','error')}
   const payload={owner_user_id:user.id,tenant_id:live.tenantId||null,business_id:live.businessId||null,title,company_name:company,employer_name:company,category,location:value('location')||null,job_type:value('job_type'),salary_range:value('salary_range')||null,description:value('description'),requirements:value('requirements')||null,is_active:true};
   try{
-   const {error}=await sb.from('jobs').insert(payload).select('id,title,is_active').single();
+   const {error}=await sb.from('jobs').insert(payload);
    if(error)throw error;
    view.close();showToast('تم حفظ الوظيفة بنجاح.','success');
    const m=domainModules.find(x=>x.key==='JOBS');if(m){const cache=live.moduleData[m.key]||{};cache.rowsReady=false;cache.loading=false;live.moduleData[m.key]=cache;await loadDomainWorkspaceRows(m);}
