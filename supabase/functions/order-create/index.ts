@@ -242,7 +242,7 @@ Deno.serve(async (req: Request) => {
     p_business_id: body.businessId,
     p_branch_id: branchId,
     p_customer_id: user.id,
-    p_client_idempotency_key: String(body.clientIdempotencyKey),
+    p_client_idempotency_key: idempotencyKey,
     p_subtotal: subtotal,
     p_discount: 0,
     p_tax: tax,
