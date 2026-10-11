@@ -22,7 +22,7 @@ const required = [
   "20261010030000_rc441_platform_admin_scope_hardening.sql",
   "20261010120000_rc442_approval_action_audit_atomicity.sql",
   "20261010140000_rc444_crm_business_scope_rls.sql",
-  "20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql",
+  "20261010145000_rc446_mantigo_open_ride_privacy_boundary.sql",
   "20261010150000_rc447_matrimony_profile_privacy_boundary.sql",
   "20261010161000_rc448_matrimony_request_lifecycle_authority.sql",
   "20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql",
