@@ -7,6 +7,34 @@ revoke insert, update, delete on table public.restaurant_tables, public.restaura
 -- The Edge Function uses the service role only after validating the actor and exact workspace scope.
 grant select, insert, update, delete on table public.restaurant_tables, public.restaurant_inventory to service_role;
 
+-- Preserve branch-scoped reads for authorized restaurant staff after the direct-write boundary.
+-- Existing restrictive RLS policies still enforce the active-session and exact workspace scope.
+create policy restaurant_tables_active_branch_member_select
+  on public.restaurant_tables
+  for select to authenticated
+  using (exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_tables.tenant_id
+      and m.business_id = restaurant_tables.business_id
+      and m.branch_id = restaurant_tables.branch_id
+      and upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER','STAFF')
+  ));
+
+create policy restaurant_inventory_active_branch_member_select
+  on public.restaurant_inventory
+  for select to authenticated
+  using (exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_inventory.tenant_id
+      and m.business_id = restaurant_inventory.business_id
+      and m.branch_id = restaurant_inventory.branch_id
+      and upper(m.role) in ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER','STAFF')
+  ));
+
 do $$
 begin
   if has_table_privilege('anon', 'public.restaurant_tables', 'INSERT')
