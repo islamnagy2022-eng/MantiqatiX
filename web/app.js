@@ -504,7 +504,7 @@ async function globalSearch(queryText){
  const q=String(queryText||'').trim();
  if(q.length<2)return [];
  const needle='%'+q.replace(/[%_]/g,m=>'\\'+m)+'%';
- const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan);
+ const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan).filter(source=>source.key!=='campaigns'||(marketingCampaignState.loaded&&marketingCampaignState.available));
  const tasks=sources.map(async source=>{
   try{
    let queryBuilder=sb.from(source.table).select(source.select).limit(6);
