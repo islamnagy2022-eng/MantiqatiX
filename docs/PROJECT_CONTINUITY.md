@@ -685,3 +685,7 @@ This status is intentional and must remain until the open gates above are indepe
  
 ## Build progress — SESSION-031
 - Commit `f32e3af061aaa1dfd11dbabe70d9aae47bfe52bc`: campaign cards display business names where available and partner names from already loaded eligible profiles.
+
+ 
+## Build progress — SESSION-032
+- Commit `01aed8081a33fb44a54f496ad568ea9fd14d264f`: global campaign search is gated on confirmed backend availability to avoid noisy queries when RC453 is absent.
