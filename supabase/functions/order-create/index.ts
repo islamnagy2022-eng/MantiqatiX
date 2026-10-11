@@ -183,13 +183,20 @@ Deno.serve(async (req: Request) => {
   if (priceError) return json({ error: "PRICING_READ_FAILED" }, 500);
 
   const priceMap = new Map<string, any>();
-  for (const row of priceRows ?? []) {
-    if (branchId && row.branch_id && String(row.branch_id) !== branchId) continue;
-    const key = String(row.catalog_item_id);
-    const existing = priceMap.get(key);
-    const score = (row.branch_id ? 1000000 : 0) + Number(row.version ?? 0);
-    const oldScore = existing ? (existing.branch_id ? 1000000 : 0) + Number(existing.version ?? 0) : -1;
-    if (score > oldScore) priceMap.set(key, row);
+  for (const itemId of itemIds) {
+    const candidates = (priceRows ?? []).filter((row: any) => {
+      if (String(row.catalog_item_id) !== itemId) return false;
+      if (row.branch_id && (!branchId || String(row.branch_id) !== branchId)) return false;
+      return true;
+    });
+    const branchSpecific = branchId
+      ? candidates.filter((row: any) => String(row.branch_id ?? "") === branchId)
+      : [];
+    const applicable = branchSpecific.length
+      ? branchSpecific
+      : candidates.filter((row: any) => row.branch_id === null || row.branch_id === undefined);
+    if (applicable.length > 1) return json({ error: "AMBIGUOUS_ACTIVE_PRICE" }, 409);
+    if (applicable.length === 1) priceMap.set(itemId, applicable[0]);
   }
   if (priceMap.size !== itemIds.length) return json({ error: "ACTIVE_PRICE_NOT_AVAILABLE" }, 409);
 
@@ -216,10 +223,11 @@ Deno.serve(async (req: Request) => {
     if (optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId)) throw new Error("OPTION_ITEM_MISMATCH");
     const optionDelta = optionRows.reduce((sum: number, x: any) => sum + Number(x.price_delta ?? 0), 0);
     const unitPrice = Number(price.unit_price) + optionDelta;
-    if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("INVALID_SERVER_PRICE");
+    if (!Number.isFinite(optionDelta) || !Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("INVALID_SERVER_PRICE");
     const lineSubtotal = unitPrice * item.quantity;
     const taxRate = Number(catalog.tax_rate ?? 0);
-    const lineTax = lineSubtotal * (Number.isFinite(taxRate) && taxRate > 0 ? taxRate / 100 : 0);
+    if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100) throw new Error("INVALID_SERVER_TAX_RATE");
+    const lineTax = lineSubtotal * (taxRate > 0 ? taxRate / 100 : 0);
     subtotal += lineSubtotal;
     tax += lineTax;
     return {
