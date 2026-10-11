@@ -40,4 +40,12 @@ assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.sev
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");
 assert.ok(workflow.includes("node scripts/validate-production-migration-chain-gate.mjs"), "Pages validation must run the release-chain gate contract");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
+assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
+assert.match(source, /reconciliation\.source_ledger_identity_reconciled===true/, "source/ledger identity must be reconciled");
+assert.match(source, /reconciliation\.required_release_migrations_applied===true/, "all required migrations must be proven applied");
+assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered disposable replay must pass");
+assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
+assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
+assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
+assert.match(source, /!liveReconciliationVerified/, "missing live evidence must block release even when all migration files exist");
 console.log(`Production migration chain gate contract passed for ${required.length} required migration sources.`);
