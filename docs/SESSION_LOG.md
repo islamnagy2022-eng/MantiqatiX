@@ -309,3 +309,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built/fixed:** accept/decline controls render only for the current user's own provider profile when it is active and verified, matching the RC453 response RPC's eligibility checks.
 - **Backend remains authoritative:** the RPC still rechecks ownership/status/verification.
 - **Next:** continue build work; verify through the RC453 integration test after the feature set is complete.
+
+## 2026-10-11 — SESSION-039 — Label partner agreed values with currency
+
+- **Code commit:** [5982394e6b05aaf54a6242733cd0df6b5d9eb050](https://github.com/islamnagy2022-eng/MantiqaTix/commit/5982394e6b05aaf54a6242733cd0df6b5d9eb050).
+- **Built:** partner-level agreed values and campaign allocation totals now display the campaign currency to avoid ambiguous amounts.
+- **Next:** continue module construction; full validation remains deferred.
