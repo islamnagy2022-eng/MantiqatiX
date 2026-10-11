@@ -8,11 +8,6 @@ on:
       - "supabase/migrations/**"
       - "supabase/tests/**"
       - ".github/workflows/migration-chain-replay.yml"
-  pull_request:
-    paths:
-      - "supabase/migrations/**"
-      - "supabase/tests/**"
-      - ".github/workflows/migration-chain-replay.yml"
   workflow_dispatch:
 
 permissions:
@@ -87,7 +82,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in 1 2 3 4; do
-            if timeout 180s supabase start -x studio,edge-runtime,logflare,vector,supavisor; then
+            if timeout --kill-after=15s 180s supabase start -x studio,edge-runtime,logflare,vector,supavisor; then
               exit 0
             fi
             if [[ "$attempt" -lt 4 ]]; then
