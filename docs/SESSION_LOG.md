@@ -114,3 +114,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Safeguards:** Arabic UTF-8 BOM; spreadsheet-formula-like cells are prefixed; the export is limited to the loaded sample and does not claim to be a complete historical or accounting report.
 - **Tests:** pending post-build validation.
 - **Next:** continue actual primary-workspace feature work.
+
+## 2026-10-11 — SESSION-013 — Standardize refresh across primary workspaces
+
+- **Code commit:** [2a2dc8b1af248d592feb0ccb3a93765881ce4c42](https://github.com/islamnagy2022-eng/MantiqaTix/commit/2a2dc8b1af248d592feb0ccb3a93765881ce4c42).
+- **Built:** the shared `workspaceHead` now provides a consistent refresh action across primary workspaces that use this header. It invokes the existing app reload flow and preserves the current workspace.
+- **Tests:** pending post-build validation, especially the domain-module asynchronous load path and current-role workspace restoration.
+- **Production impact:** none.
+- **Next:** continue adding practical functionality to the primary marketing, CRM, orders, finance, analytics, and domain workspaces.
