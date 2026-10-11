@@ -123,7 +123,7 @@ begin
       if not found then raise exception 'INVENTORY_NOT_FOUND_IN_SCOPE'; end if;
       update public.restaurant_inventory i
       set name_ar=v_name, unit=v_unit, current_stock_qty=v_stock, min_stock_alert_threshold=v_minimum,
-          unit_cost_egp=v_cost, supplier_name=coalesce(v_supplier,'')
+          unit_cost_egp=v_cost, supplier_name=coalesce(v_supplier,''), updated_at=pg_catalog.now()
       where i.id=v_id and i.tenant_id=p_tenant_id and i.business_id=p_business_id and i.branch_id=p_branch_id
       returning pg_catalog.to_jsonb(i) into v_new;
     else
