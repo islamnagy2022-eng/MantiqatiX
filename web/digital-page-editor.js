@@ -26,7 +26,6 @@ const cfg=window.MANTIQATIX_CONFIG;const sb=supabase.createClient(cfg.supabaseUr
   const branchKeys=[...new Set(menuSourceItems.map(item=>item.branch_id?String(item.branch_id):'__NULL__'))];
   branchSelect.replaceChildren(new Option('اختر الفرع',''));
   branchKeys.forEach(key=>branchSelect.add(new Option(key==='__NULL__'?'أصناف دون فرع محدد':'الفرع '+key,key)));
-  if(branchKeys.length===1)branchSelect.value=branchKeys[0];
   branchSelect.onchange=()=>{button.disabled=!branchSelect.value||menuSourceItems.length===0};
   button.disabled=menuSourceItems.length===0||branchKeys.length===0||!branchSelect.value;
   help.textContent=menuSourceItems.length
