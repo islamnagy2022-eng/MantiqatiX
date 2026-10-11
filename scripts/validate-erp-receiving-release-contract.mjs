@@ -13,7 +13,7 @@ assert.match(edge,/rpc\("receive_purchase_stock_with_order_line_backend"\s*,/,"r
 assert.doesNotMatch(edge,/\.from\("(stock_balances|erp_purchase_receipts|inventory_transactions)"\)\.(insert|update|upsert|delete)/,"Edge Function must not mutate stock/receipt/ledger tables directly");
 assert.match(edge,/p_actor_user_id:\s*user\.id/,"actor identity must come from validated Auth user");
 assert.match(edge,/p_tenant_id:\s*tenantId/,"tenant scope must be explicitly passed to backend");
-assert.match(edge,/idempotency/i,"receipt operation must carry idempotency semantics");
+assert.match(edge,/const id = String\(body\.id \?\? ""\)\.trim\(\)/,"receipt operation must require a stable caller-supplied idempotency ID");
 assert.match(edge,/ORIGIN_NOT_ALLOWED/,"cross-origin requests must be rejected");
 assert.match(rc434,/insert into public\.erp_purchase_receipts[\s\S]*insert into public\.stock_balances[\s\S]*insert into public\.inventory_transactions/i,"receipt, stock and inventory ledger must be atomic");
 assert.match(rc434,/RECEIPT_IDEMPOTENCY_CONFLICT/,"conflicting receipt replay must fail closed");
