@@ -92,6 +92,10 @@ assert.match(workspaceMigration, /create policy restaurant_tables_active_branch_
 assert.match(workspaceMigration, /create policy restaurant_inventory_active_branch_member_select[\s\S]*?using \(exists \([\s\S]*?public\.user_memberships/, 'restaurant inventory reads include active branch membership');
 assert.match(workspaceIntegration, /RC461_RESTAURANT_RLS_NOT_ENABLED/, 'integration asserts RLS is enabled for both restaurant tables');
 assert.match(workspaceIntegration, /RC461_BRANCH_MEMBER_READ_POLICY_MISSING/, 'integration asserts branch-scoped read policies exist');
+assert.match(workspaceFixture, /create or replace function auth\.uid\(\).*as \$\$/m, 'fixture auth.uid function uses valid dollar-quote opener');
+assert.doesNotMatch(workspaceFixture, /^\$;$/m, 'fixture contains no malformed single-dollar closing delimiters');
+assert.match(workspaceMigration, /m\.branch_id = restaurant_tables\.branch_id/, 'table read policy is restricted to the active membership branch');
+assert.match(workspaceMigration, /m\.branch_id = restaurant_inventory\.branch_id/, 'inventory read policy is restricted to the active membership branch');
 
 assert.match(workspaceMigration, /insert into public\.audit_logs/, 'workspace changes and audit records are committed in the same transaction');
 assert.match(workspaceMigration, /set search_path = ''/, 'workspace mutation RPC pins an empty search path');
@@ -113,4 +117,4 @@ assert.match(workspaceIntegration, /RC461_CROSS_SCOPE_INVENTORY_UPDATE_WAS_ALLOW
 
 assert.match(pagesWorkflow, /group: pages-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/, 'preview CI cannot cancel an in-progress production Pages deployment');
 assert.match(pagesWorkflow, /if: \(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\| github\.event_name == 'workflow_dispatch'/, 'production deployment remains main-only or explicitly dispatched');
-console.log('Restaurant workspace contract: PASS (97 assertions)');
+console.log('Restaurant workspace contract: PASS (101 assertions)');
