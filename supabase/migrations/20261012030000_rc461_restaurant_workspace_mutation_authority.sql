@@ -162,7 +162,7 @@ $function$;
 revoke all on function public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying) from PUBLIC, anon, authenticated;
 grant execute on function public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying) to service_role;
 
-do $
+do $$
 begin
   if has_function_privilege('anon','public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying)','EXECUTE')
      or has_function_privilege('authenticated','public.restaurant_workspace_mutate_backend(text,jsonb,uuid,character varying,uuid,character varying)','EXECUTE')
