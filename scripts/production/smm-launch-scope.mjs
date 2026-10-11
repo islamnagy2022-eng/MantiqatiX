@@ -35,7 +35,7 @@ export function evaluateSmmLaunchScope(scope, runtimeGates = {}) {
   ];
   const missing = requiredRuntimeGates.filter((key) => runtimeGates[key] !== "PASS");
   return {
-    status: missing.length === 0 ? "PASS" : "NOT VERIFIED",
+    status: missing.length === 0 ? "PASS" : "BLOCKED",
     mode: "ACTIVE",
     evidence: missing.length === 0
       ? "SMM is in launch scope and all SMM runtime safety gates passed."
