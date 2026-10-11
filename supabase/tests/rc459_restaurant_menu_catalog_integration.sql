@@ -2,6 +2,7 @@ do $test$
 declare
   v_result jsonb;
   v_catalog_id uuid;
+  v_future_price_start timestamptz;
   v_item_id text := '30000000-0000-4000-8000-000000000001';
   v_actor uuid := '20000000-0000-4000-8000-000000000001';
   v_tenant_b uuid := '20000000-0000-4000-8000-000000000002';
@@ -87,6 +88,31 @@ begin
   if (select count(*) from public.catalog_item_prices where catalog_item_id=v_catalog_id and status='ACTIVE' and unit_price=125 and version=2)<>1 then raise exception 'new price version is not active'; end if;
   if (select count(*) from public.catalog_item_prices where catalog_item_id=v_catalog_id and status='INACTIVE' and unit_price=100 and effective_to is not null)<>1 then raise exception 'old price was not closed'; end if;
 
+  -- Future scheduled pricing must survive an immediate price change without overlapping intervals.
+  v_future_price_start := pg_catalog.now() + interval '30 days';
+  insert into public.catalog_item_prices(
+    tenant_id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to
+  ) values (
+    'TENANT-A',v_catalog_id,'BRANCH-A','EGP',200,3,'ACTIVE',v_future_price_start,null
+  );
+
+  v_payload := v_payload || jsonb_build_object('base_price_egp',150);
+  execute 'set role service_role';
+  v_result := public.restaurant_menu_catalog_mutate_backend(v_actor,'UPDATE',v_payload);
+  execute 'reset role';
+  if coalesce((v_result->>'changed')::boolean,false) is not true then raise exception 'immediate price update with a scheduled price should succeed'; end if;
+  if (select count(*) from public.catalog_item_prices where catalog_item_id=v_catalog_id)<>4 then raise exception 'scheduled price history was not preserved'; end if;
+  if not exists(
+    select 1 from public.catalog_item_prices
+    where catalog_item_id=v_catalog_id and unit_price=150 and version=4
+      and status='ACTIVE' and effective_to=v_future_price_start
+  ) then raise exception 'new current price must end at the next scheduled price boundary'; end if;
+  if not exists(
+    select 1 from public.catalog_item_prices
+    where catalog_item_id=v_catalog_id and unit_price=200 and version=3
+      and status='ACTIVE' and effective_from=v_future_price_start and effective_to is null
+  ) then raise exception 'future scheduled price was incorrectly closed or changed'; end if;
+
   v_payload := v_payload || jsonb_build_object('is_available',false);
   execute 'set role service_role';
   v_result := public.restaurant_menu_catalog_mutate_backend(v_actor,'UPDATE',v_payload);
@@ -105,7 +131,7 @@ begin
     if sqlerrm not like 'RESTAURANT_MENU_FORBIDDEN%' then raise; end if;
   end;
 
-  if (select count(*) from public.audit_logs where entity_id=v_item_id)<>3 then raise exception 'create, price update, and availability update must each be audited'; end if;
+  if (select count(*) from public.audit_logs where entity_id=v_item_id)<>4 then raise exception 'create, price updates, and availability update must each be audited'; end if;
 
   -- A second active manager in the same business/branch can edit the shared menu.
   v_actor := '20000000-0000-4000-8000-000000000003';
@@ -124,7 +150,7 @@ begin
   if not exists(select 1 from public.restaurant_menu_items where id=v_item_id and is_popular=true) then
     raise exception 'same-scope manager menu update was not persisted';
   end if;
-  if (select count(*) from public.audit_logs where entity_id=v_item_id)<>4 then
+  if (select count(*) from public.audit_logs where entity_id=v_item_id)<>5 then
     raise exception 'same-scope manager update must be audited';
   end if;
 end;
