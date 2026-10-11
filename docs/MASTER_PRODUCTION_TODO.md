@@ -1668,3 +1668,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## BUILD-ONLY continuation — 2026-10-11 — SESSION-017
 - [x] Added a read-only details drawer for job applications using only fields already loaded in the workspace.
 - [ ] Runtime/E2E verification remains outstanding until construction is complete.
+
+
+## BUILD-ONLY continuation — 2026-10-11 — SESSION-018
+- [x] Added searchable Used Items marketplace workspace with available/sold filters, safe record details, and CSV export.
+- [ ] Browser/runtime and E2E verification remain deferred until construction is complete, per current instruction.
