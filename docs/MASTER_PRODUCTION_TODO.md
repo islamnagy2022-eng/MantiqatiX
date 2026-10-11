@@ -1704,3 +1704,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Reuse idempotency key across retry attempts.
 - [x] Prevent refresh from creating overlapping campaign data loads.
 - [ ] Validate retry and concurrent-refresh behavior in post-build tests.
+
+ 
+## Campaign business context — SESSION-027
+- [x] Add RLS-filtered business selection for full-control platform admins without an active business context.
+- [x] Filter invitation options against the specific campaign business.
+- [ ] Validate platform-admin and tenant-manager flows against RC453 integration tests.
