@@ -248,3 +248,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Built:** each campaign card summarizes allocation percentage and agreed values for participants in `INVITED`, `ACCEPTED`, or `ACTIVE` states, matching the RC453 allocation validation scope. It shows the remaining percentage out of 100%.
 - **Scope:** summary is calculated only from RLS-visible participant records loaded for the session; backend remains authoritative for allocation limits.
 - **Tests:** pending post-build validation.
+
+## 2026-10-11 — SESSION-030 — Add campaigns to permission-filtered global search
+
+- **Code commit:** [57189fc4eaaeccefd54255db3bc75c9242ce461c](https://github.com/islamnagy2022-eng/MantiqaTix/commit/57189fc4eaaeccefd54255db3bc75c9242ce461c).
+- **Built:** global search now includes `marketing_campaigns` using explicit title/objective/status fields and the existing marketing-module RBAC filter. Database RLS remains in force.
+- **Compatibility:** if RC453 is absent, that search source fails closed to an empty result through the existing per-source error handling; no alternate direct-write/read path is added.
+- **Next:** continue module build-out.
