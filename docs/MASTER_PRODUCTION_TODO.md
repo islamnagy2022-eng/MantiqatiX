@@ -1745,3 +1745,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Campaign collaboration — SESSION-034
 - [x] Display invitation response timestamps/pending state.
 - [ ] Validate against accepted/declined participant rows after RC453 integration tests.
+
+ 
+## Campaign details — SESSION-035
+- [x] Display saved campaign brief to RLS-authorized participants/managers.
+- [ ] Validate brief rendering for long text and role visibility after RC453 deployment.
