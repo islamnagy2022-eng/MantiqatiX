@@ -146,3 +146,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Safeguards:** no additional query is executed; export is limited to session-loaded rows, with UTF-8 BOM and spreadsheet formula-like cell prefixing.
 - **Tests:** pending post-build validation.
 - **Next:** continue primary-module build-out.
+
+## 2026-10-11 — SESSION-017 — Replace module blueprint toast with source-backed section navigation
+
+- **Code commits:** [0b670638ad5ceb278189a5f77ac5264c5de67bfa](https://github.com/islamnagy2022-eng/MantiqaTix/commit/0b670638ad5ceb278189a5f77ac5264c5de67bfa) and [52fe501a0c85ffebddc1d7c75980a94aea870896](https://github.com/islamnagy2022-eng/MantiqaTix/commit/52fe501a0c85ffebddc1d7c75980a94aea870896).
+- **Built:** module blueprint section buttons now select the section and display its explicitly mapped source tables/counts rather than only showing a success toast. Added source maps across the 16 catalogued domain modules. Sections with no registered source say so instead of pretending an action is connected.
+- **Correction:** first implementation expected a runtime `meta` object that does not exist; the follow-up commit stores the module's actual table list in the rendered root and reconstructs the section context from it.
+- **Tests:** pending post-build validation. The section-to-source mappings require later validation against the authoritative schema.
+- **Next:** continue domain-module read/write workflow build-out; no unverified write actions were added.
