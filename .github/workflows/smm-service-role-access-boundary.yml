@@ -14,6 +14,7 @@ on:
     branches: [main]
     paths:
       - "supabase/functions/smm-gateway/index.ts"
+      - "web/smm.js"
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
