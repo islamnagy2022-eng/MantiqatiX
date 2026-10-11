@@ -166,3 +166,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Search only hides/shows rows already rendered from current RLS-visible data; it does not issue broader queries or change permissions.
 - Commit: `3aeedbc899b5da1f357c90160265de26a36c5491`.
 - Runtime/E2E and broad review remain deferred; no production changes.
+
+
+## 2026-10-11 — SESSION-014 — Read-only details for sector workspace records
+- Added a per-record “التفاصيل” action to mapped sector-workspace tables.
+- The details drawer resolves a record only from the current module's already-loaded rows and uses the existing allowlisted field labels; it does not perform a new broad query or expose unmapped columns.
+- This is read-only presentation functionality. Existing RLS and data loading remain unchanged.
+- Runtime/E2E verification and broad review remain deferred by user instruction; no production deployment or schema mutation.
