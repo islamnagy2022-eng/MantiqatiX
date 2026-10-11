@@ -268,3 +268,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Code commit:** [01aed8081a33fb44a54f496ad568ea9fd14d264f](https://github.com/islamnagy2022-eng/MantiqaTix/commit/01aed8081a33fb44a54f496ad568ea9fd14d264f).
 - **Built/fixed:** global search only includes the campaign source after the marketing workspace has confirmed the RC453 campaign tables are readable. This avoids repeated failed missing-table queries in environments where the migration is not deployed.
 - **Next:** continue build work; after RC453 deployment, verify campaign search is activated and permission-filtered.
+
+## 2026-10-11 — SESSION-033 — Add campaign search and status filters
+
+- **Code commit:** [87195baf1d369bdf05a76217c2664d1827ddac00](https://github.com/islamnagy2022-eng/MantiqaTix/commit/87195baf1d369bdf05a76217c2664d1827ddac00).
+- **Built:** Marketing campaign collaboration now has local search by campaign title/business/objective/channel and a status filter covering the backend-defined lifecycle states.
+- **Scope:** client-side filters only operate on campaigns already returned by RLS; no wider queries or additional access are introduced.
+- **Next:** continue module construction.
