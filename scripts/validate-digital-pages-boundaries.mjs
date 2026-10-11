@@ -14,6 +14,9 @@ for(const [src,marker,label] of [
  [atomicPayment,'for update','order row lock for payment state transition'],[atomicPayment,'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH','atomic amount/currency binding'],[atomicPayment,'DIGITAL_PAGE_EVENT_ORDER_MISMATCH','event/order correlation'],[atomicPayment,'to service_role','service-role-only payment processor'],[atomicPayment,'PAGE_ALREADY_LINKED_TO_DIFFERENT_ORDER','page cannot be reused across orders'],[atomicPayment,'MENU_BUSINESS_SCOPE_REQUIRED','menu fulfillment business ownership'],[atomicPayment,'PUBLISHED_PAGE_NOT_LINKED_TO_ORDER','published-page replay binding'],
  [editor,"restaurant_menu_items",'menu source table integration'],
  [editor,'PAGE_OWNER_ROLES','eligible page-owner role allowlist'],
+ [editor,'businessNames.get(String(x.business_id))','owner labels use authorized business display names'],
+ [editor,"('نشاط '+(i+1))",'owner labels avoid exposing internal business IDs'],
+
  [editor,".in('business_id',businessIds)",'business page reads are scoped at query time'],
  [editor,".in('provider_profile_id',providerIds).is('business_id',null)",'provider page reads are scoped at query time'],
  [editor,'const results=await Promise.all(queries)','owner-scoped queries are checked together'],
