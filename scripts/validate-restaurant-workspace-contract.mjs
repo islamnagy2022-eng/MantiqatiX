@@ -76,6 +76,8 @@ assert.match(menuUniqueMigration, /create unique index catalog_items_restaurant_
 assert.match(source, /invokeMntyFunction\('restaurant-workspace-mutate'/, 'table and inventory writes use the scoped Edge Function');
 assert.doesNotMatch(source, /sb\.from\('restaurant_(?:tables|inventory)'\)\.(?:insert|update|upsert|delete)\(/, 'browser code cannot mutate restaurant tables or inventory directly');
 assert.match(workspaceEdge, /admin\.auth\.getUser\(token\)/, 'workspace mutation verifies the bearer token server-side');
+assert.match(workspaceEdge, /restaurant_workspace_mutate_backend/, 'workspace Edge Function delegates mutations to the audited database RPC');
+assert.doesNotMatch(workspaceEdge, /admin\.from\("restaurant_(?:tables|inventory)"\)\.(?:insert|update)\(/, 'workspace Edge Function cannot bypass the atomic audit RPC');
 assert.match(workspaceEdge, /\.eq\("tenant_id", body\.tenantId\.trim\(\)\)[\s\S]*?\.eq\("business_id", body\.businessId\)[\s\S]*?\.eq\("branch_id", body\.branchId\.trim\(\)\)/, 'workspace mutation requires an exact active branch membership');
 assert.match(workspaceEdge, /FORBIDDEN_WORKSPACE_SCOPE/, 'workspace mutation rejects actors without an allowed active role');
 assert.match(workspaceEdge, /const isRecordId = \(value: unknown\)/, 'legacy text primary keys are validated without assuming UUID storage');
@@ -84,10 +86,11 @@ assert.match(workspaceMigration, /grant select, insert, update, delete on table 
 assert.match(workspaceMigration, /create or replace function public\.restaurant_workspace_mutate_backend/, 'workspace mutations use a single backend database function');
 assert.match(workspaceMigration, /insert into public\.audit_logs/, 'workspace changes and audit records are committed in the same transaction');
 assert.match(workspaceMigration, /set search_path = ''/, 'workspace mutation RPC pins an empty search path');
+assert.match(workspaceMigration, /from public\.branches br[\s\S]*?upper\(coalesce\(br\.status,'ACTIVE'\)\) = 'ACTIVE'/, 'workspace RPC rejects inactive or cross-business branches');
 assert.match(workspaceMigration, /grant execute on function public\.restaurant_workspace_mutate_backend[\s\S]*?to service_role/i, 'workspace mutation RPC is restricted to the service role');
 
 assert.match(workspaceIntegration, /RC461_AUTHENTICATED_DIRECT_MUTATION_REMAINS/, 'integration test fails if authenticated DML remains enabled');
 assert.match(workspaceIntegration, /RC461_TABLE_AUDIT_NOT_ATOMIC/, 'integration verifies table audit records for each mutation');
 assert.match(workspaceIntegration, /RC461_NON_MEMBER_WAS_ALLOWED/, 'integration verifies non-members cannot mutate workspace records');
 
-console.log('Restaurant workspace contract: PASS (77 assertions)');
+console.log('Restaurant workspace contract: PASS (80 assertions)');
