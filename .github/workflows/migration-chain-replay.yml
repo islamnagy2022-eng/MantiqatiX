@@ -31,17 +31,22 @@ jobs:
       - name: Fail closed if the historical schema baseline is missing
         run: node scripts/validate-historical-schema-baseline.mjs
 
-      - name: Inject approved credentials baseline into disposable replay only
+      - name: Inject approved SMM schema baselines into disposable replay only
         shell: bash
         run: |
           set -euo pipefail
-          baseline="supabase/tests/baselines/smm_provider_credentials.sql"
-          temporary_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
-          test -f "$baseline"
-          test ! -e "$temporary_migration"
-          cp "$baseline" "$temporary_migration"
-          echo "Injected owner-approved credentials schema baseline into this disposable CI workspace only."
-          echo "This temporary file is not committed and must never be applied to production."
+          providers_baseline="supabase/tests/baselines/smm_providers.sql"
+          credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
+          providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
+          credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          test -f "$providers_baseline"
+          test -f "$credentials_baseline"
+          test ! -e "$providers_migration"
+          test ! -e "$credentials_migration"
+          cp "$providers_baseline" "$providers_migration"
+          cp "$credentials_baseline" "$credentials_migration"
+          echo "Injected owner-approved production-derived SMM schema baselines into this disposable CI workspace only."
+          echo "Temporary files are not committed and must never be applied to production."
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
