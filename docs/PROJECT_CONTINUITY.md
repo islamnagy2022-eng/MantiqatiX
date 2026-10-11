@@ -651,3 +651,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Job applications now have a read-only details drawer limited to the already-loaded job ID, applicant name, and submission date.
 - No additional sensitive fields are queried or displayed; implementation commit: `f5522cad42215e392ef18cc9de4395468bf7ab3f`.
 - Runtime/E2E remains unverified.
+
+
+## BUILD TRACK UPDATE — 2026-10-11 — SESSION-018
+- The Used Items sector now has a dedicated read-only marketplace workspace with search, available/sold filtering, CSV export, and safe details drawer using the existing mapped fields.
+- Implementation commit: `2c5f2c00888778dc82353b76d6aef7fcda5d6922`.
+- No schema changes, production deployment, or runtime verification performed.
