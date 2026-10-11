@@ -15,6 +15,8 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 });
 const isUuid = (value: unknown) => typeof value === "string"
   && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+const isRecordId = (value: unknown) => typeof value === "string"
+  && value.trim().length > 0 && value.length <= 128 && !/[\\u0000-\\u001f]/.test(value);
 const roles = new Set(["OWNER", "ADMIN", "MANAGER", "BUSINESS_OWNER", "SERVICE_PROVIDER", "STAFF"]);
 const tableStatuses = new Set(["EMPTY", "OCCUPIED", "RESERVED", "CLEANING", "OUT_OF_SERVICE"]);
 
@@ -84,7 +86,7 @@ Deno.serve(async (req: Request) => {
     }
     const payload = { table_number: tableNumber, capacity_persons: capacity, status, reserved_customer_name: reservedName || null };
     if (body.tableId !== undefined && body.tableId !== null) {
-      if (!isUuid(body.tableId)) return json({ error: "INVALID_TABLE_ID" }, 400);
+      if (!isRecordId(body.tableId)) return json({ error: "INVALID_TABLE_ID" }, 400);
       const { data: existing, error: readError } = await admin.from("restaurant_tables")
         .select("id,tenant_id,business_id,branch_id").eq("id", body.tableId).maybeSingle();
       if (readError) return json({ error: "TABLE_READ_FAILED" }, 500);
@@ -123,7 +125,7 @@ Deno.serve(async (req: Request) => {
     unit_cost_egp: cost, supplier_name: supplier || null,
   };
   if (inventoryId !== undefined && inventoryId !== null) {
-    if (!isUuid(inventoryId)) return json({ error: "INVALID_INVENTORY_ID" }, 400);
+    if (!isRecordId(inventoryId)) return json({ error: "INVALID_INVENTORY_ID" }, 400);
     const { data: existing, error: readError } = await admin.from("restaurant_inventory")
       .select("id,tenant_id,business_id,branch_id").eq("id", inventoryId).maybeSingle();
     if (readError) return json({ error: "INVENTORY_READ_FAILED" }, 500);
