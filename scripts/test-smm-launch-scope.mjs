@@ -51,5 +51,9 @@ assert.equal(evaluateSmmLaunchScope({
 
 assert.equal(evaluateSmmLaunchScope(null).status, "BLOCKED",
   "missing scope must fail closed");
+assert.equal(evaluateSmmLaunchScope({
+  decision: "UNKNOWN",
+}, allRuntimeGatesPass).status, "BLOCKED",
+"unknown launch decision must fail closed");
 
 console.log("SMM launch-scope gate contract: PASS (deferred denial evidence + active feature safety)");
