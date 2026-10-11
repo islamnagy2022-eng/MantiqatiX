@@ -1238,7 +1238,7 @@ function openMarketingRecordDetails(kind,id){
  return openUnifiedRecordDetails({kicker:labels[kind]||'MARKETING RECORD',title,desc:'بيانات السجل الحالية كما تسمح بها الصلاحيات وRLS.',sections:[{title:'بيانات السجل',html}]});
 }
 function exportMarketingWorkspaceCsv(){
- const r=live.records||[],data=live.records||{};
+ const data=live.records||{};
  const rows=[
   ...(data.leads||[]).map(x=>({kind:'lead',id:x.id,title:x.title,status:x.status,category:x.source,amount:x.budget_max,currency:x.currency,created_at:x.created_at})),
   ...(data.projects||[]).map(x=>({kind:'project',id:x.id,title:x.project_type,status:x.status,category:x.management_mode,amount:x.gross_value,currency:x.currency,created_at:x.created_at})),
