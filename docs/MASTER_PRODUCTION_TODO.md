@@ -1559,3 +1559,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-12 — P0 SMM deferral status (candidate source only)
+
+- [x] Replace the standalone SMM page with a static “coming soon / deferred” page; do not load the browser Supabase SDK, app config, or `smm.js`.
+- [x] Remove the live SMM iframe from the internal workspace while preserving the separate Marketing & Advertising module.
+- [x] Mark SMM as deferred in desktop and mobile navigation.
+- [x] Add a fail-closed server gate in the SMM gateway: disabled unless `SMM_LAUNCH_ENABLED` equals exactly `true`.
+- [x] Add `scripts/validate-smm-deferred-gate.mjs` and wire it into the Pages CI workflow. Local source-contract validator and web JavaScript syntax checks passed.
+- [ ] Run final CI on the completed candidate commit and review all required checks.
+- [ ] Deploy the default-deny Edge Function only with explicit release authorization; verify live function version/hash and negative-test anonymous and ordinary authenticated calls. Until this is done, the production API is NOT VERIFIED disabled.
+- [ ] Keep `SMM_LAUNCH_ENABLED` unset/false for initial launch. Re-enable only through a separate approved rollout after core launch and SMM order, wallet, timeout, ambiguous-result, persistence, terminal-state, admin-scope, and idempotency tests pass.
+- **Current state:** P0 issue #212 remains OPEN. This candidate branch has not been merged or deployed. Overall release remains **BLOCKED / NOT CERTIFIED**.
