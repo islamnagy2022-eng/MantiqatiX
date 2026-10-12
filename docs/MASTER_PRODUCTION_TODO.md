@@ -1592,3 +1592,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Read-only catalog query confirmed `process_verified_digital_page_payment_backend` is SECURITY DEFINER with `search_path=public, pg_temp`, EXECUTE granted to `service_role` only, and references `digital_page_payment_events`.
 - [x] Therefore, absence of direct `service_role` table privileges on `digital_page_payment_events` appears consistent with the RPC-only boundary; it is not classified as a confirmed defect based on ACL evidence alone.
 - [ ] Full function-body/atomicity review and end-to-end webhook tests remain required before closing payment release gates.
+
+
+## 2026-10-13 — SMM production acceptance checklist
+- [x] Added `docs/release/SMM_PRODUCTION_ACCEPTANCE_GATE.md` to candidate branch with explicit safety, migration-lineage, least-privilege, provider, wallet/order, abuse-resistance, CI, and release-evidence gates.
+- [ ] Complete gates only with matching evidence; no source-only pass may be treated as production proof.
+- [ ] Live gateway gate, RC424→current migration reconciliation, credit historical-baseline blocker, SMM service-role grants, order idempotency schema, approved provider setup, and full lifecycle tests remain open.
