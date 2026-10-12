@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const source = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
 const web = fs.readFileSync("web/smm.js", "utf8");
+const app = fs.readFileSync("web/app.js", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql", "utf8");
 const checks = [];
 function check(name, ok) {
@@ -31,6 +32,7 @@ const adminGuardEnd = source.indexOf("async function secret", adminGuardStart);
 const adminGuard = adminGuardStart >= 0 && adminGuardEnd >= 0 ? source.slice(adminGuardStart, adminGuardEnd) : "";
 check("SMM admin guard uses explicit allowlist plus platform-scoped full-control membership", adminGuard.includes('from("smm_admins")') && adminGuard.includes('from("user_memberships")') && adminGuard.includes('MNTY-PLATFORM') && adminGuard.includes('p.full_control===true') && adminGuard.includes('p.scope==="PLATFORM"'));
 check("admin UI visibility is derived from backend admin check", web.includes("action:'admin_access'") && !web.includes("from('user_memberships')"));
+check("shared UI and SMM frontend do not read SMM tables directly", !/\.from\(\s*[\'"]smm_[a-zA-Z0-9_]+[\'"]\s*\)/.test(app) && !/\.from\(\s*[\'"]smm_[a-zA-Z0-9_]+[\'"]\s*\)/.test(web));
 check("wallet debit RPC ambiguity does not trigger automatic refund", source.includes('if(debit.error){') && source.includes("WALLET_DEBIT_OUTCOME_UNKNOWN") && source.indexOf('if(debit.error){') < source.indexOf('if(debit.data!==true)'));
 check("terminal order statuses cannot be downgraded by provider polling", source.includes('new Set(["COMPLETED","CANCELLED","FAILED","REFUNDED"])') && source.includes('.not("status","in", "(COMPLETED,CANCELLED,FAILED,REFUNDED)")') && source.includes('if(terminal.has(String(o.data.status)))return json({ok:true,status:o.data.status,terminal:true})'));
 check("provider terminal statuses are persisted and ambiguous sync writes require reconciliation", source.includes('const synced=await admin.from("smm_orders").update({status:st,provider_status:r.status??null') && source.includes('if(synced.error)return json({error:"ORDER_STATUS_SYNC_UNKNOWN"') && source.includes('if(!synced.data){'));
