@@ -79,6 +79,8 @@ check(catalog.includes('selling_price: hasValidExistingPrice ? existingPrice : 0
 check(catalog.includes('active: keepExistingActivation ? existing.active === true : false'), 'new provider services must remain inactive pending review');
 check(catalog.includes('existingPrice > providerCost'), 'service must be disabled unless reviewed customer price is strictly above current provider cost');
 check(catalog.includes('metadata: { provider_service_id: externalId, provider_rate: providerCost }'), 'provider catalog persistence must use allowlisted metadata');
+check(catalog.includes("typeof rawExternalId !== \"string\" && typeof rawExternalId !== \"number\""), "provider catalog identifiers must be scalar values");
+check(catalog.includes("typeof value === \"string\" || typeof value === \"number\""), "provider catalog text must reject arbitrary objects");
 check(tests.includes('new provider catalog items require manual price review and stay inactive'), 'catalog pricing safety tests must exist');
 
 if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
