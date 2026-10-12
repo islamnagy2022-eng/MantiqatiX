@@ -1694,3 +1694,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Provider JSON decoding now rejects malformed UTF-8 rather than accepting replacement-decoded bytes — implemented in candidate branch; exact-head CI pending.
 - [ ] Verify new malformed-UTF-8 regression test and all required workflows on the resulting candidate HEAD.
 - [ ] Keep live SMM disabled until reconciled migrations, idempotency schema, provider egress controls, financial E2E, and release-owner approval are evidenced.
+
+
+## SMM order idempotency — 2026-10-13
+- [x] Require a stable bounded idempotency key in order input validation.
+- [x] Persist the key and return the original order on a unique-key conflict without repeating debit/provider submission; reject materially different payload reuse.
+- [x] Add validation tests and a static launch-gate contract for idempotent retries.
+- [ ] BLOCKED: bring RC463 unique-index migration from the reviewed SMM migration branch through the reconciled migration release path; it is absent from PR #216.
+- [ ] BLOCKED: prove same-key concurrency creates one order and one wallet debit against disposable PostgreSQL and the exact reconciled schema.
+- [ ] Verify exact-head CI; keep SMM disabled until database uniqueness and financial E2E acceptance are proven.
