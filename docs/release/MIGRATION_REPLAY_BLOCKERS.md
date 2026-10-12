@@ -704,3 +704,9 @@ The latest catalog comparison also confirms the generated stored expressions mat
 The latest workflow for the current PR #207 head, [run 38280424261](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38280424261), again failed only at **“Fail closed if the historical schema baseline is missing”**; all Docker/Supabase startup and replay steps were skipped. The migration-history immutability, migration-version uniqueness, cross-PR collision, approval-audit atomicity, marketing backend/CRM, SMM deferred-source, SMM service-role, backend boundary, and MantiGO privacy checks reported success in this run set. Module Professionalization Validation was still queued at the time of this note, so no final result is claimed for that job. The web workflow's deployment step remains skipped.
 
 This is consistent with the unresolved source/chronology mismatch documented above. It is not a green replay and does not authorize production release.
+
+## Expanded dependency guard result — 2026-10-12
+
+The dependency preflight was tightened to include `credit_policies`, which is required by the foreign key in `credit_accounts` and was also missing from the candidate's earlier chronological creation history. The exact-head run [38280663419](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38280663419) now fails with the specific message: `no approved isolated compatibility baseline exists for public.credit_policies before 20260920155456_harden_credit_status_authorization.sql`. It stops before Docker/Supabase startup, as intended. This is a more complete dependency diagnosis, not a replay fix.
+
+Do not create this baseline automatically from inferred schema. If a test-only compatibility fixture is later explicitly approved, it must cover the complete dependency chain and be provenance-marked, isolated to disposable replay, and tested for exact live-derived shape without pretending to recover historical DDL.
