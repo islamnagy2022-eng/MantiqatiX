@@ -1,0 +1,26 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const gateway = readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
+const page = readFileSync("web/smm.html", "utf8");
+const handlerStart = gateway.indexOf("Deno.serve(async(req)=>{");
+assert.notEqual(handlerStart, -1, "SMM gateway handler must exist");
+const handler = gateway.slice(handlerStart);
+const options = handler.indexOf('if(req.method==="OPTIONS")');
+const gate = handler.indexOf('if (Deno.env.get("MNTY_SMM_ENABLED") !== "true") return json({error:"SMM_POST_LAUNCH_DEFERRED"},503);');
+const auth = handler.indexOf("const user=await getUser(req)");
+assert.ok(options >= 0 && gate > options && auth > gate, "SMM deny gate must run after OPTIONS and before authentication/actions");
+assert.ok(gateway.includes("AbortSignal.timeout(15000)"), "Provider requests must have a bounded timeout");
+const orderStart = handler.indexOf('if(a==="place_order")');
+const orderEnd = handler.indexOf('if(a==="order_status")', orderStart);
+const orderFlow = orderStart >= 0 && orderEnd > orderStart ? handler.slice(orderStart, orderEnd) : "";
+assert.ok(orderFlow.includes("PROVIDER_OUTCOME_UNKNOWN") && orderFlow.includes("reconciliation_required:true"), "Unknown provider outcomes must be explicitly marked for reconciliation");
+assert.ok(orderFlow.includes('status:"SUBMITTING"') && orderFlow.includes('.eq("status","SUBMITTING")'), "Unknown provider outcomes must not be marked terminal");
+assert.ok(!orderFlow.includes("smm_refund_wallet"), "Provider exceptions and ambiguous outcomes must never trigger automatic refunds");
+assert.ok(orderFlow.includes("PROVIDER_ACCEPTED_PERSISTENCE_UNKNOWN") && orderFlow.includes("smm_order_events"), "Provider acceptance/persistence ambiguity must be audited without refund");
+assert.ok(orderFlow.includes("if(debit.error)") && orderFlow.includes("WALLET_DEBIT_OUTCOME_UNKNOWN") && orderFlow.indexOf("if(debit.error)") < orderFlow.indexOf("if(debit.data!==true)"), "Ambiguous wallet debit errors must be reconciled, not reported as insufficient balance");
+assert.ok(!page.includes("<script"), "Deferred SMM page must not load scripts");
+assert.ok(!page.includes("supabase"), "Deferred SMM page must not initialize Supabase");
+assert.match(page, /قيد التطوير/);
+assert.match(page, /noindex,nofollow/);
+console.log("PASS: SMM server gate precedes all actions; deferred page is static and does not initialize Supabase.");

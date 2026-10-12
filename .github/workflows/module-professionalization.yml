@@ -25,6 +25,7 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/module-blueprints.js
+          node --check scripts/test-smm-live-deny-gate.mjs
       - name: Module runtime contract
         run: |
           grep -q "window.MNTYModuleRuntime" web/app.js
@@ -44,6 +45,7 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
+          node scripts/validate-smm-deferred-release.mjs
 
   matrimony-privacy-postgres:
     runs-on: ubuntu-latest
