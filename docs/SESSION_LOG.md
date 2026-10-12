@@ -226,3 +226,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The SMM service-role workflow for commit `cdbf7f7869159130a8028274d40a6a1376841c11` completed successfully: [run 38315127788](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315127788). Both the SMM PostgreSQL service-role integration job and validation job passed; validation included Deno type-check and all provider-transport/order-input tests.
 - This is valid evidence for the tested source/test commit, not the later final HEAD `505f5a868be86a62a59d8459a604e4aca4049ff2`, whose broader workflows were still queued at the last check.
 - Production remains blocked because the RC463 unique database index is not on PR #216 and must be delivered through the reconciled migration path before concurrent idempotency can be trusted.
+
+
+## 2026-10-13 — Production SMM hard-off containment
+
+- **Reason:** read-only inspection found live `smm-gateway` ACTIVE at version 8 without a launch gate; the live `smm_orders` table had no idempotency key/unique index, and `smm_debit_wallet` / `smm_refund_wallet` did not deduplicate by reference. The deployed version's order path could repeat debit/provider work on retries and attempted automatic refunds after ambiguous provider failures.
+- **Action:** deployed `smm-gateway` version 9 with a dual-flag gate, then superseded it with version **10** containing a source-level `SMM_INITIAL_LAUNCH_DEFERRED=true` hard-off plus the dual exact-true approval flags. The gate runs before auth and action routing; JWT verification remains enabled.
+- **Source:** candidate commit `efcf90186b3713af47c5f912a2e0e1ea46cd2122`. **Live read-back:** version 10 ACTIVE, `verify_jwt=true`, SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`; retrieved live source confirms the hard-off and dual-flag checks.
+- **Validation:** dual-flag unit tests, Deno type-check, provider-transport tests, and static SMM boundary validator passed on preceding commit `b3e5f7380de76b99a5f158a8761c0414426a4692`. CI for the additional compile-time hard-off/static assertion on the final candidate head is still pending. Direct HTTP smoke testing was unavailable because the execution container could not resolve the Supabase host; do not claim runtime-observed 503.
+- **Safety:** no database migration/schema/ACL changes, wallet or order writes, provider requests, credential reads, or customer-data mutations were performed. This deployment only closes the SMM gateway while the separate storefront is deferred.
+- **Still blocked:** live RC463 unique index and RC464 wallet exactly-once contract are absent; migration chain/replay is unresolved at the three credit-table baselines; production release remains **BLOCKED / NOT CERTIFIED**.
