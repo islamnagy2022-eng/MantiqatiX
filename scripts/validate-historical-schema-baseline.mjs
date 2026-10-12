@@ -144,6 +144,26 @@ if (!legacyPrivilegeMigration) {
   console.error("P0 BLOCKED: expected legacy SECURITY DEFINER privilege migration is missing.");
   process.exit(1);
 }
+// Fail early when a privilege-lockdown migration revokes an overload that no earlier
+// committed migration creates. Do not repair this by editing applied history or stubbing
+// a privileged function: recover authoritative DDL or obtain explicit approval for a
+// separately versioned, disposable-only live-derived baseline.
+const settlementLockdownVersion = "20260920095706";
+const settlementLockdown = migrations.find(({ name }) => name === settlementLockdownVersion + "_production_security_definer_execute_lockdown_v4.sql");
+if (settlementLockdown) {
+  const settlementRevoke = /revoke\\s+execute\\s+on\\s+function\\s+public\\.create_settlement_backend\\s*\\(\\s*varchar\\s*,\\s*varchar\\s*,\\s*varchar\\s*,\\s*varchar\\s*,\\s*numeric\\s*,\\s*numeric\\s*,\\s*numeric\\s*,\\s*numeric\\s*,\\s*varchar\\s*,\\s*varchar\\s*\\)/i;
+  const revokesTenArgSettlement = settlementRevoke.test(settlementLockdown.sql);
+  const priorTenArgSettlementCreation = migrations.some(({ name, sql }) =>
+    name < settlementLockdown.name &&
+    /create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.create_settlement_backend\\s*\\(\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*\\)/i.test(sql)
+  );
+  if (revokesTenArgSettlement && !priorTenArgSettlementCreation) {
+    console.error("P0 BLOCKED: " + settlementLockdown.name + " revokes public.create_settlement_backend(varchar,varchar,varchar,varchar,numeric,numeric,numeric,numeric,varchar,varchar), but no earlier committed migration creates that 10-argument overload.");
+    console.error("The earlier committed creation migration defines a different 9-argument overload. Do not rewrite applied migration history or synthesize a privileged function. Recover authoritative creation DDL or obtain explicit approval for a separately versioned test-only baseline.");
+    process.exit(1);
+  }
+}
+
 const legacyFunctionSignatures = [
   { name: "counter_offer_indrive_bid", args: "uuid,uuid,numeric" },
   { name: "fashion_erp_mutate", args: "text,jsonb,text" },
