@@ -220,3 +220,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Critical dependency:** database-enforced uniqueness requires RC463 (`smm_orders(user_id,idempotency_key)` unique partial index) from PR #215 or an equivalent reviewed migration. This migration is not present in PR #216's branch. Without that database constraint, concurrent retries are not safely deduplicated; therefore the runtime gate must stay closed and the order path is **NOT production-ready** until migration lineage is reconciled, the constraint is applied through an approved release, and concurrent duplicate tests pass.
 - **Verification:** exact-head CI is pending for the new source/tests. No claim of test pass, live schema parity, or production acceptance.
 - **Safety:** no merge, production deployment, migration, wallet mutation, or provider request.
+
+
+### Follow-up verification — SMM idempotency source tests
+- The SMM service-role workflow for commit `cdbf7f7869159130a8028274d40a6a1376841c11` completed successfully: [run 38315127788](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315127788). Both the SMM PostgreSQL service-role integration job and validation job passed; validation included Deno type-check and all provider-transport/order-input tests.
+- This is valid evidence for the tested source/test commit, not the later final HEAD `505f5a868be86a62a59d8459a604e4aca4049ff2`, whose broader workflows were still queued at the last check.
+- Production remains blocked because the RC463 unique database index is not on PR #216 and must be delivered through the reconciled migration path before concurrent idempotency can be trusted.
