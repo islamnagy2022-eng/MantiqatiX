@@ -655,3 +655,17 @@ Additional bounded recovery work was completed without changing production:
 The source-recovery path is not yet sufficient to safely repair chronological replay. Continue by inspecting historical repository refs and the release artifact's provenance metadata for the original credit DDL and finance-policy creation source. If no authoritative source is found, prepare a separately reviewed forward-repair proposal with explicit schema/default/policy semantics and an isolated clean-replay test; do not mutate applied history or infer production policy semantics silently.
 
 **Status remains BLOCKED / NOT CERTIFIED.** No production migration, Edge Function deployment, Auth/RLS/GRANT change, wallet operation, payment, or financial data mutation was performed.
+
+
+## RC40 archive chronology cross-check — 2026-10-12
+
+A checksum-verified scan of the user-provided release artifact found a more precise explanation for the credit replay failure, while also confirming that the archive is not safe to restore blindly:
+
+- `source_RC40.zip` SHA-256 is `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`, matching the supplied `source_RC40.zip.sha256` file.
+- The archive contains `supabase/migrations/20260920185000_production_credit_control.sql`, which creates `credit_policies`, `credit_accounts`, and `credit_periods`, followed by `20260920190000_harden_credit_status_authorization.sql`.
+- The current PR #207 branch instead contains `20260920155456_harden_credit_status_authorization.sql`, which references `credit_accounts` and `credit_periods` before either table exists in the clean replay sequence. The branch does **not** contain the archive's `20260920185000_production_credit_control.sql` or its `20260920190000` hardening filename. The latest exact-head run [38278645907](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38278645907) fails at that earlier hardening migration with PostgreSQL `42P01`.
+- This establishes a concrete source/chronology divergence between the supplied RC40 artifact and the current candidate branch. It does not establish that the archived credit migration is compatible with current production: the already-recorded live-vs-archive differences in amount precision, policy defaults, and finance-read policy provenance remain unresolved.
+
+### Required handling
+
+Do not merely copy or rename the archive migration, reorder timestamped history, or introduce a test-only credit baseline. Preserve both source histories as evidence; reconcile the intended release lineage and review all table constraints, generated columns, defaults, RLS, grants, and policy definitions first. Then make a reviewed candidate-only repair and rerun the entire empty-database chronological replay. Production remains untouched and the release remains **BLOCKED / NOT CERTIFIED**.
