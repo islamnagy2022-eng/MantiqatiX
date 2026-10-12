@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` for the chronological record and `docs/MASTER_PRODUCTION_TODO.md` for open gates. Release remains **BLOCKED / NOT CERTIFIED**. Verified main/base HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Auth/membership work is isolated in draft PR #217, branch `fix/auth-membership-recovery-20261013`, current code head before continuity update `90f9ac4c9d49502d1ffe7249e936445fa6743615`; CI validation and the related integration workflows passed, while Pages deploy was skipped because the PR is draft. Do not treat the PR as deployed.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -539,3 +539,12 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## Latest auth/membership continuation — 2026-10-13
+
+- PR #217: https://github.com/islamnagy2022-eng/MantiqaTiX/pull/217 — draft/open; do not merge until runtime acceptance evidence exists.
+- Changes on the branch: OAuth PKCE, protected membership recovery, source convergence to `private.ensure_customer_membership_for_user`, and static release/auth guards.
+- Verified CI runs: Pages validation [38318510837](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510837) PASS (deploy skipped); Module Professionalization [38318510864](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510864) PASS; Backend-only Module Boundary [38318510823](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510823) PASS; MantiGO Open Ride Privacy Boundary [38318510972](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510972) PASS.
+- Live read-only Auth/membership snapshot: 6 permanent Auth users; 0 missing active membership; 4 active platform CUSTOMER membership rows reference absent Auth IDs. Preserve and investigate; no data mutation was performed.
+- Remaining first gate: controlled non-production browser E2E for Google OAuth/session restoration, membership recovery, negative auth cases, idempotency, and cross-tenant/RLS denial. Do not create production test accounts or change Auth/DB/RLS/Edge Function deployment without proper authorization.
