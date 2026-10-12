@@ -3,7 +3,7 @@ import fs from "node:fs";
 const app = fs.readFileSync("web/app.js", "utf8");
 const smm = fs.readFileSync("web/smm.js", "utf8");
 const customerRegistration = fs.readFileSync("supabase/functions/mnty-customer-registration/index.ts", "utf8");
-const customerActivationMigration = fs.readFileSync("supabase/migrations/20260929150000_rc213_customer_direct_activation.sql", "utf8");
+const customerActivationMigration = fs.readFileSync("supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql", "utf8");
 
 const failures = [];
 
@@ -55,10 +55,12 @@ const serverRequired = [
   ["Customer activation rejects anonymous users", "actor.is_anonymous", customerRegistration],
   ["Customer activation restricts tenant to platform tenant", 'tenantId !== "MNTY-PLATFORM"', customerRegistration],
   ["Customer activation derives user ID from verified actor", "p_user_id: actor.id", customerRegistration],
-  ["Customer activation uses atomic private RPC", '.schema("private")', customerRegistration],
-  ["Atomic activation RPC is not executable by authenticated clients", "from public, anon, authenticated", customerActivationMigration],
-  ["Atomic activation RPC is granted to service role only", "to service_role", customerActivationMigration],
-  ["Atomic activation uses an advisory lock for idempotency", "pg_advisory_xact_lock", customerActivationMigration],
+  ["Customer activation uses the private schema", '.schema("private")', customerRegistration],
+  ["Customer activation calls the canonical membership invariant RPC", '.rpc("ensure_customer_membership_for_user"', customerRegistration],
+  ["Canonical membership RPC is defined in tracked migration", "create or replace function private.ensure_customer_membership_for_user", customerActivationMigration],
+  ["Canonical membership RPC is not executable by authenticated clients", "from public, anon, authenticated", customerActivationMigration],
+  ["Canonical membership RPC is granted to service role only", "to service_role", customerActivationMigration],
+  ["Canonical membership RPC uses advisory lock for idempotency", "pg_advisory_xact_lock", customerActivationMigration],
 ];
 for (const [name, marker, source] of serverRequired) {
   if (!source.includes(marker)) failures.push(name);
