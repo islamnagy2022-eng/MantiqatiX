@@ -56,6 +56,7 @@ assert.match(smmUi, /if\(r\.pending\)/, "UI must show pending reconciliation rat
 assert.match(smmUi, /if\(r\.replayed\)/, "UI must distinguish a replayed order from a newly submitted order");
 assert.ok(placeOrder.includes('target.protocol!=="https:"'), "customer target URL must require HTTPS");
 assert.match(placeOrder, /SERVICE_CONFIGURATION_INVALID/, "invalid service pricing configuration must fail closed");
+assert.match(placeOrder, /v\.smm_providers\.active!==true.*PROVIDER_INACTIVE/, "orders must fail closed if the provider is deactivated after catalog load");
 assert.match(edge, /provider_status:"submission_unknown"/, "ambiguous provider outcomes must be explicitly marked for reconciliation");
 assert.doesNotMatch(edge, /Automatic refund after provider failure/, "provider-call exceptions must not trigger blind automatic refunds");
 const orderStatusStart = edge.indexOf('if(a==="order_status")');
