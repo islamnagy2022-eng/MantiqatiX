@@ -17,9 +17,9 @@ const migrations = files.map((name) => ({
   sql: fs.readFileSync(path.join(migrationDirectory, name), "utf8"),
 }));
 const legacyBaselineSpecs = [
-  { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\\s\\S]*name character varying\\(255\\) not null[\\s\\S]*code character varying\\(64\\) not null/i },
-  { path: legacyProductsBaselinePath, table: "products", required: /id uuid primary key[\\s\\S]*business_id uuid not null references public\\.businesses\\(id\\)[\\s\\S]*sku character varying\\(128\\) not null[\\s\\S]*name character varying\\(255\\) not null/i },
-  { path: legacyOrdersBaselinePath, table: "orders", required: /id uuid primary key[\\s\\S]*business_id uuid not null references public\\.businesses\\(id\\)[\\s\\S]*customer_id uuid[\\s\\S]*status character varying\\(64\\)/i },
+  { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\s\S]*name character varying\(255\) not null[\s\S]*code character varying\(64\) not null/i },
+  { path: legacyProductsBaselinePath, table: "products", required: /id uuid primary key[\s\S]*business_id uuid not null references public\.businesses\(id\)[\s\S]*sku character varying\(128\) not null[\s\S]*name character varying\(255\) not null/i },
+  { path: legacyOrdersBaselinePath, table: "orders", required: /id uuid primary key[\s\S]*business_id uuid not null references public\.businesses\(id\)[\s\S]*customer_id uuid[\s\S]*status character varying\(64\)/i },
 ];
 for (const spec of legacyBaselineSpecs) {
   if (!fs.existsSync(spec.path)) {
@@ -32,7 +32,7 @@ for (const spec of legacyBaselineSpecs) {
       !/moyhiluyhjsujhwlyeuu/.test(source) ||
       !/NOT recovered historical DDL/.test(source) ||
       !/Never apply this file to production/.test(source) ||
-      !new RegExp("\\\\bcreate\\\\s+table\\\\s+(?:public\\\\s*\\\\.\\\\s*)?" + spec.table + "\\\\b","i").test(source) ||
+      !new RegExp("\\bcreate\\s+table\\s+(?:public\\s*\\.\\s*)?" + spec.table + "\\b","i").test(source) ||
       !spec.required.test(source) ||
       /^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(source)) {
     console.error("P0 BLOCKED: legacy table baseline failed provenance/shape/no-data checks: " + spec.table);
