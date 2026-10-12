@@ -1578,3 +1578,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Standardize the candidate source, validator, and continuity documentation on `MNTY_SMM_ENABLED` (exact value `true` required to enable; unset/other values remain disabled).
 - [ ] CI evidence on the resulting candidate head is pending.
 - [ ] Live production gateway remains NOT VERIFIED disabled; no deployment or environment change was performed.
+
+
+## 2026-10-12 — Read-only production ACL verification
+- [x] Queried actual PostgreSQL table ACLs with `has_table_privilege` and `pg_class.relacl`; no writes were performed.
+- [x] On `smm_orders`, `smm_wallets`, `smm_wallet_transactions`, `smm_order_events`, `smm_providers`, and `smm_services`, the observed `service_role` ACL is only `Dxtm` (DELETE/TRUNCATE/REFERENCES/TRIGGER), with SELECT/INSERT/UPDATE absent. Direct anon/authenticated SELECT/INSERT were absent in the sampled tables.
+- [x] `digital_page_payment_events` also has no direct SELECT/INSERT/UPDATE/DELETE privilege for `service_role`; its intended backend access path remains to be verified rather than granting broad access.
+- [ ] SMM service-role boundary migration RC456 remains source-only; production migration ledger still ends at RC424 in the verified snapshot. Do not apply RC456 independently of the full reconciled migration chain.
+- [ ] Keep SMM deferred. Do not add broad grants or deploy until the least-privilege route, migration provenance, and end-to-end tests are reviewed.

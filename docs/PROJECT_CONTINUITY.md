@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-12:** Read `docs/SESSION_LOG.md` for the chronological record. The core production release gate remains **BLOCKED / NOT CERTIFIED**. Main baseline at the start of this remediation branch: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Candidate branch `fix/p0-defer-smm-before-core-launch-20261012` adds a default-deny SMM API gate and removes live SMM browser loading from the deferred storefront; this is source-only and has NOT been merged or deployed. The live production SMM gateway is not proven disabled until the gate is explicitly deployed and negative-tested. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-12 (updated after SESSION-004):** Read `docs/SESSION_LOG.md` for the chronological record. The core production release gate remains **BLOCKED / NOT CERTIFIED**. Main baseline at the start of this remediation branch: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Candidate branch `fix/p0-defer-smm-before-core-launch-20261012` adds a default-deny SMM API gate and removes live SMM browser loading from the deferred storefront; this is source-only and has NOT been merged or deployed. The live production SMM gateway is not proven disabled until the gate is explicitly deployed and negative-tested. Do not rely on older RC entries below as the latest status without checking the session log.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -548,3 +548,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-smm-deferred-gate.mjs` and invoked it from `.github/workflows/pages.yml`. The validator passed against the current candidate source; `web/home.js` and `web/app.js` syntax checks passed. CI must still run on the final commit.
 - **Production impact:** none. No Supabase function deployment, environment variable change, merge, migration, provider call, or wallet mutation was performed. Because the current live function has not been redeployed with this gate, issue #212 remains OPEN and the live API is not yet verified disabled.
 - **Release state:** BLOCKED / NOT CERTIFIED. Do not enable `MNTY_SMM_ENABLED=true` until a separate approved rollout after core launch and full security/payment/order verification.
+
+
+## SESSION-004 — Read-only production ACL verification — 2026-10-12
+- **Verified fact:** a read-only PostgreSQL privilege query found `service_role` lacks SELECT/INSERT/UPDATE on the sampled SMM tables; its table ACL entries were `Dxtm`. Direct anon/authenticated SELECT/INSERT were absent in the same sample.
+- **Verified fact:** `public.digital_page_payment_events` has RLS enabled and no direct SELECT/INSERT/UPDATE/DELETE privilege for `service_role`; this is not alone proof of a defect because the intended access may be through a privileged RPC, which remains to be verified.
+- **Cross-check:** candidate RC456 SMM ACL migration defines the expected narrow service-role grants and RPC-only boundaries, but it is not applied in the previously verified production migration ledger (RC424). Do not apply it independently or bypass the full migration replay gate.
+- **Action:** retained the SMM fail-closed source-only change; updated this TODO/continuity record and PR notes. No production grants, migration, deployment, or financial operation was performed.
+- **Next:** verify digital-page payment event access path through the deployed function/RPC; keep SMM deferred; continue source/migration lineage recovery and full disposable replay after resolving the credit historical baseline requirement.
+- **Release state:** BLOCKED / NOT CERTIFIED.

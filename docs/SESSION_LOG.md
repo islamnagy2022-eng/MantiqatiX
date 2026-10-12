@@ -42,3 +42,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope:** source branch only; no production environment variable was changed, no Edge Function was deployed, no PR was merged, and no database or wallet operation occurred.
 - **Verification pending:** rerun GitHub Actions on the new head, inspect the exact checks, and verify no remaining conflicting flag names in the changed source/docs. Live SMM disablement is still NOT VERIFIED.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-12 — SESSION-004 — Read-only production ACL verification
+
+- **Query:** read-only PostgreSQL inspection using `has_table_privilege`, `pg_class.relacl`, and RLS flags for SMM tables plus `public.digital_page_payment_events`.
+- **Observed:** sampled SMM tables (`smm_orders`, `smm_wallets`, `smm_wallet_transactions`, `smm_order_events`, `smm_providers`, `smm_services`) show `service_role` ACL `Dxtm` only; SELECT/INSERT/UPDATE are absent. Sampled anon/authenticated direct SELECT/INSERT privileges are absent.
+- **Observed:** `digital_page_payment_events` has RLS enabled, no direct `service_role` SELECT/INSERT/UPDATE/DELETE privilege, and ACL `{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}`. This remains a verification item, not a confirmed defect, until the deployed payment Edge Function/RPC access path is traced.
+- **Cross-check:** candidate RC456 migration provides narrow grants for SMM table access and keeps provider credentials/wallet ledger RPC-only, but RC456 is not present in the previously verified production migration ledger through RC424. Do not apply it separately from full migration reconciliation.
+- **Not performed:** no production DDL, ACL grant/revoke, Edge Function deployment, wallet action, or PR merge.
+- **Next:** inspect the deployed digital-page payment function and RPC contract; continue exact migration provenance recovery. Full release remains BLOCKED / NOT CERTIFIED.
