@@ -47,6 +47,12 @@ check(gateway.includes('Deno.env.get("SMM_PROVIDER_HOSTS")'), 'provider calls mu
 check(fs.existsSync('supabase/functions/smm-gateway/provider-transport.test.ts'), 'provider transport unit tests must exist');
 
 const placeOrder=gateway.slice(gateway.indexOf('if(a==="place_order")'),gateway.indexOf('if(a==="order_status")'));
+check(placeOrder.includes('idempotency_key:validatedOrder.idempotencyKey'), 'order insert must persist the validated stable idempotency key');
+check(placeOrder.includes('o.error.code==="23505"'), 'unique idempotency conflicts must be resolved as retries, not new orders');
+check(placeOrder.includes('.eq("user_id",user.id).eq("idempotency_key",validatedOrder.idempotencyKey)'), 'idempotency replay lookup must be scoped to the authenticated user and stable key');
+check(placeOrder.includes('IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST'), 'reusing an idempotency key with a different order payload must be rejected');
+check(placeOrder.includes('replayed:true'), 'same-key retries must return the original order without repeating debit/provider submission');
+check(fs.readFileSync('supabase/functions/smm-gateway/order-validation.ts','utf8').includes('IDEMPOTENCY_KEY_REQUIRED'), 'order input validation must require a bounded stable idempotency key');
 check(placeOrder.includes('WALLET_DEBIT_RESULT_UNKNOWN'), 'ambiguous wallet debit must be quarantined for reconciliation');
 check(placeOrder.includes("providerRow.active!==true"), "order creation must reject inactive or missing providers");
 check(placeOrder.includes("target_url:validatedOrder.targetUrl"), "orders must persist only normalized HTTPS target URLs");
