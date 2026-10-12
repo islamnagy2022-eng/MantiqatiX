@@ -1,3 +1,4 @@
+import { getSmmLaunchDecision } from "./launch-gate.ts";
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const cors={"Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
@@ -10,7 +11,7 @@ async function call(p:any,k:string,a:string,x:any={}){let endpoint:URL;try{endpo
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  // Keep SMM disabled by default until the full migration chain and launch acceptance gates are approved.
- if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_POST_LAUNCH_DEFERRED"},503);
+ const launchDecision=getSmmLaunchDecision(Deno.env.get("MNTY_SMM_ENABLED"));if(!launchDecision.enabled)return json({error:launchDecision.error},launchDecision.status);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const b=await req.json(),a=b.action;
