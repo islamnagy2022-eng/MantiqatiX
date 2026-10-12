@@ -1585,3 +1585,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] RC452/RC453 migrations remain unproven in production. Do not treat the new UI as live-ready until the approved chronological migration path and production rollout evidence are complete.
 - [ ] Complete marketing lead lifecycle (assignment, status transitions, notes/follow-ups, audit), then real provider/campaign E2E and role/tenant isolation checks.
 - [ ] Overall release remains **BLOCKED / NOT CERTIFIED**; no production deployment, schema change, campaign budget spend, or PR merge was performed in this batch.
+
+
+## 2026-10-12 release-gate refresh — RC425+ candidate
+
+- [x] Confirmed 12 pre-hardening migrations create 36 tables; the hardening migration references 21 tables and `public.bookings` is the only unmatched dependency in that set.
+- [x] Read-only inspected live `bookings` column, policy and grant metadata; no row contents were queried for this check. This is not authoritative historical DDL.
+- [x] Replay fails closed before disposable Supabase starts: [run 38195776127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776127). No skip/reorder or synthetic table was added.
+- [x] Targeted module, SMM deferred, SMM ACL, migration uniqueness/immutability/collision CI passed on candidate merge head; Pages validation passed and deploy was skipped.
+- [ ] **P0 BLOCKED:** recover authoritative historical `public.bookings` creation/policy/grant source OR obtain explicit approval for a disposable-only compatibility baseline. Until then, do not mark chronological migration replay PASS.
+- [ ] **P0 BLOCKED:** deployed `smm-gateway` remains v6 without `MNTY_SMM_ENABLED` deny gate; PR #214 is source-only. Require approved deployment and negative runtime tests before launch exposure.
+- [ ] **P0 BLOCKED:** production migration ledger remains at RC424; post-RC424 migrations and production rollout are not proven. No production change authorized/performed in this batch.
+- [ ] Continue latest exact-head CI check, historical source recovery, and release evidence reconciliation. Overall status **BLOCKED / NOT CERTIFIED**.
