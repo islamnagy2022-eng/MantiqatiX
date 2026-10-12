@@ -59,7 +59,8 @@ export type ProviderBalance = { balance: number; currency: string | null };
 export function normalizeProviderBalance(value: unknown): ProviderBalance | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const row = value as Record<string, unknown>;
-  if (row.balance == null || (typeof row.balance === "string" && row.balance.trim() === "")) return null;
+  if ((typeof row.balance !== "number" && typeof row.balance !== "string") ||
+      (typeof row.balance === "string" && row.balance.trim() === "")) return null;
   const balance = Number(row.balance);
   if (!Number.isFinite(balance) || balance < 0) return null;
   const rawCurrency = typeof row.currency === "string" ? row.currency.trim().toUpperCase() : "";
