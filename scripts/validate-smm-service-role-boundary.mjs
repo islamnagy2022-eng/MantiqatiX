@@ -20,6 +20,24 @@ assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/
 
 assert.match(edge, /user\.is_anonymous\?null:user/, "anonymous Auth sessions must be rejected");
 assert.match(edge, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
+const providerCallStart = edge.indexOf("async function call(");
+const providerCallEnd = edge.indexOf("\\nDeno.serve", providerCallStart);
+assert.ok(providerCallStart >= 0 && providerCallEnd > providerCallStart, "provider request helper must exist");
+const providerCall = edge.slice(providerCallStart, providerCallEnd);
+assert.match(providerCall, /new globalThis\\.URL\\(/, "provider endpoint must be parsed with the global URL constructor");
+assert.match(providerCall, /endpoint\\.protocol!==?"https:"/, "provider endpoint must require HTTPS");
+assert.match(providerCall, /AbortController/, "provider requests must have an abortable timeout");
+assert.match(providerCall, /redirect:"error"/, "provider requests must reject redirects");
+const placeOrderStart = edge.indexOf('if(a==="place_order")');
+const placeOrderEnd = edge.indexOf('if(a==="', placeOrderStart + 10);
+assert.ok(placeOrderStart >= 0 && placeOrderEnd > placeOrderStart, "place_order action must exist");
+const placeOrder = edge.slice(placeOrderStart, placeOrderEnd);
+assert.match(placeOrder, /Number\\.isSafeInteger\\(q\\)/, "order quantity must be a safe integer");
+assert.match(placeOrder, /target\\.protocol!==?"https:"/, "customer target URL must require HTTPS");
+assert.match(placeOrder, /SERVICE_CONFIGURATION_INVALID/, "invalid service pricing configuration must fail closed");
+assert.match(edge, /provider_status:"submission_unknown"/, "ambiguous provider outcomes must be explicitly marked for reconciliation");
+assert.doesNotMatch(edge, /Automatic refund after provider failure/, "provider-call exceptions must not trigger blind automatic refunds");
+
 const catalogStart = edge.indexOf('if(a==="catalog")');
 const accountStart = edge.indexOf('if(a==="my_data")', catalogStart);
 const configureStart = edge.indexOf('if(a==="configure_provider")', accountStart);
