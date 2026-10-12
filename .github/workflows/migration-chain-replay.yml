@@ -75,6 +75,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          legacy_businesses_baseline="supabase/tests/baselines/legacy_businesses.sql"
+          legacy_products_baseline="supabase/tests/baselines/legacy_products.sql"
+          legacy_orders_baseline="supabase/tests/baselines/legacy_orders.sql"
+          legacy_businesses_migration="supabase/migrations/20260807999997_test_only_legacy_businesses_baseline.sql"
+          legacy_products_migration="supabase/migrations/20260807999998_test_only_legacy_products_baseline.sql"
+          legacy_orders_migration="supabase/migrations/20260807999999_test_only_legacy_orders_baseline.sql"
           registration_baseline="supabase/tests/baselines/account_registration_requests.sql"
           profiles_baseline="supabase/tests/baselines/marketing_provider_profiles.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
