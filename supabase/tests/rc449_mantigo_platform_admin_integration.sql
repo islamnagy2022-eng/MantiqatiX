@@ -83,7 +83,7 @@ begin
   result := public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
   if (result->>'gross')::numeric <> 100
      or (result->>'commission')::numeric <> 10
-     or (result->>'captain_net_amount')::numeric <> 90
+     or (result->>'captain_amount')::numeric <> 90
      or (result->>'paid_amount')::numeric <> 100
      or (result->>'unsettled_amount')::numeric <> 90 then
     raise exception 'platform financial report returned incorrect canonical ledger totals: %',result;
