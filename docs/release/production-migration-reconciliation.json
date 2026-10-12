@@ -14,7 +14,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": null,
   "checked_at": "2026-10-12",
-  "reason": "BLOCKED: live migration history remains at RC424, while 16 required post-RC424 migration source files are absent from the current repository tree. Read-only production audit also confirms SMM idempotency_key is absent, wallet debit/refund reference uniqueness indexes are absent, and service_role lacks SELECT/INSERT/UPDATE privileges on the SMM tables required by the gateway. All 3 providers and the single service are inactive. Do not deploy or enable providers until missing migration sources are recovered and reviewed, the complete ordered chain is reconciled and replayed on a disposable database, SMM schema/grant parity is verified, and required runtime/security evidence is recorded.",
+  "reason": "BLOCKED: live migration history remains at RC424. Sixteen required post-RC424 migration sources are absent from this main-based candidate branch; recovery is proposed separately in draft PR #207 and is not merged into this candidate baseline. Read-only production audit also confirms SMM idempotency_key is absent, wallet debit/refund reference uniqueness indexes are absent, and service_role lacks SELECT/INSERT/UPDATE privileges on the SMM tables required by the gateway. All 3 providers and the single service are inactive. Do not deploy or enable providers until the migration recovery is reviewed and integrated, the complete ordered chain is replayed on a disposable database, SMM schema/grant parity is verified, and required runtime/security evidence is recorded.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "FAIL",
   "auth_security_settings": "NOT VERIFIED",
@@ -65,5 +65,7 @@
     "20261010010000_rc439_encrypted_checkout_recovery.sql",
     "20261010020000_rc440_exposed_security_definer_search_path.sql",
     "20261010030000_rc441_platform_admin_scope_hardening.sql"
-  ]
+  ],
+  "migration_source_recovery_pr": 207,
+  "migration_source_recovery_status": "DRAFT_NOT_MERGED"
 }
