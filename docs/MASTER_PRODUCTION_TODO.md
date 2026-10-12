@@ -1671,3 +1671,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Keep SMM disabled in production until the live deny-gate, schema/ACL, idempotency, provider network egress, and reconciliation checks are independently proven.
 - [ ] Resolve migration history/replay blocker without inventing a historical credit baseline.
 - [ ] Complete financial/provider E2E and backup restore rehearsal before release certification.
+
+
+## 2026-10-13 — SMM catalog pricing and import safety
+- [x] Prevent catalog sync from setting customer selling price equal to provider cost.
+- [x] Keep new provider services inactive with price 0 until administrator review.
+- [x] Preserve existing reviewed customer prices; deactivate services when current provider cost is at or above customer price.
+- [x] Bound provider catalog text and quantity fields; persist only allowlisted provider metadata.
+- [x] Deno tests, production verification engine, syntax check, SMM service-role boundary, module professionalization, backend-only boundary, and MantiGO privacy checks passed on `5fb6a6fe5dc038868f2e0f5f03692094a8ea9fc8`.
+- [ ] Do not enable SMM or apply candidate migrations until the full migration chain, live idempotency/schema parity, DNS/egress controls, order/wallet E2E, and restore rehearsal are accepted.

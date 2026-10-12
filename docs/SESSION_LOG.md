@@ -180,3 +180,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact-head CI at `41f63a2db299d08ee9dcef9ef9b0c7822da163b3` passed: Pages validate, SMM Service Role Access Boundary (including isolated PostgreSQL ACL integration and Deno check), Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy boundary. Pages deploy job was skipped because PR #216 is draft.
 - PR #216 remains draft/source-only. No production changes, deploy, merge, migrations, grants/RLS changes, provider calls, or wallet operations.
 - Release remains **BLOCKED / NOT CERTIFIED**. The migration lineage/replay gate, live schema/idempotency parity, DNS/network egress controls, financial/provider E2E, and restore rehearsal remain unresolved.
+
+
+## 2026-10-13 — SESSION-018 — SMM catalog pricing safety
+
+- Found and fixed a high-impact catalog-sync behavior: provider synchronization had set customer selling price equal to wholesale provider cost, automatically activated every imported service, and persisted the provider's full arbitrary service object as metadata.
+- Added `catalog-normalization.ts` with bounded field lengths, ASCII control-character removal, positive/finite cost checks, integer quantity bounds, allowlisted metadata, and preservation of existing customer price.
+- New catalog items now start with selling price 0 and inactive until an administrator reviews pricing and explicitly activates them. Existing items whose current selling price is not strictly greater than the provider's latest cost are deactivated on refresh; reviewed prices/activation are preserved only while a positive margin remains.
+- Added Deno tests for new-item default-deny pricing, existing-price preservation, no-margin deactivation, invalid cost/quantity rejection, and metadata minimization.
+- Exact-head CI passed on `5fb6a6fe5dc038868f2e0f5f03692094a8ea9fc8`: Pages validation (Deno tests + production verification + syntax check), SMM Service Role Access Boundary, Module Professionalization Validation, Backend-only Module Boundary, and MantiGO Open Ride Privacy Boundary. Pages deploy job was skipped because PR #216 is draft.
+- No production change, deployment, merge, migration, grants, provider call, or wallet operation. Overall release remains **BLOCKED / NOT CERTIFIED**.

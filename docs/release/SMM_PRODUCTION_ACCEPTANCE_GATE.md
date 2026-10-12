@@ -143,3 +143,13 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [x] Order events persist a minimal provider response summary, not the full provider payload.
 - [x] Pages `validate` passed at `208621b59c0067d8637f3637fce5000f742c6aea`, including Deno tests, production verification engine, and syntax check.
 - [ ] Deployment is not claimed (deploy job skipped for draft PR); exact-head PostgreSQL/other boundary checks are still completing.
+
+
+## 2026-10-13 — Provider catalog pricing guard (candidate source only)
+- [x] Catalog sync no longer assigns `selling_price = provider_cost`.
+- [x] New services are created with customer price 0 and `active=false`; admin review/activation is required.
+- [x] Existing customer price is preserved on refresh, but an item is deactivated when its price is not strictly above the current provider cost.
+- [x] Provider catalog data is normalized: finite nonnegative cost, safe integer quantity bounds, bounded text, control-character removal, and allowlisted metadata instead of persisting the arbitrary raw provider object.
+- [x] Deno tests cover new-service default-deny, reviewed-price preservation, no-margin deactivation, invalid numeric bounds, and metadata minimization.
+- [x] Exact-head CI passed at `5fb6a6fe5dc038868f2e0f5f03692094a8ea9fc8`: [Pages validate](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975522), [SMM boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975413), [module professionalization](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975400), [backend-only boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975393), [MantiGO privacy](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975443).
+- [ ] The Pages deploy job was skipped because PR #216 is draft. This remains source-only and does not prove live pricing or production provider behavior.
