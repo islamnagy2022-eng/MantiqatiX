@@ -1,4 +1,4 @@
-export type ExistingSmmService = { selling_price: unknown; provider_cost: unknown; active: unknown };
+export type ExistingSmmService = { selling_price: unknown; active: unknown };
 
 export function normalizeProviderService(
   raw: unknown,
@@ -21,7 +21,6 @@ export function normalizeProviderService(
 
   const existingPrice = existing == null ? NaN : Number(existing.selling_price);
   const hasValidExistingPrice = Number.isFinite(existingPrice) && existingPrice >= 0;
-  const existingProviderCost = existing == null ? NaN : Number(existing.provider_cost);
   const hasReviewedMargin = hasValidExistingPrice && Number.isFinite(existingProviderCost) && existingPrice > providerCost;
   const keepExistingActivation = existing != null && typeof existing.active === "boolean" && hasReviewedMargin;
   const boundedText = (value: unknown, fallback: string, max: number) =>
