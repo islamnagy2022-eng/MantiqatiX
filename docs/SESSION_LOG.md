@@ -54,3 +54,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Final verified result:** [Module Professionalization Validation run 38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500) — `validate` PASS, `targeted-ads-search-path-integration` PASS, and `customer-membership-rc215-integration` PASS. The RC215 integration now verifies the auth-user trigger, exactly one active CUSTOMER membership, repeat-activation idempotency, anonymous-user exclusion, inactive-tenant denial, and service_role-only RPC grants.
 - [Pages validation run 38319097546](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097546) PASS; deploy skipped because PR #217 remains draft. [Backend-only Module Boundary run 38319097571](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097571) validator and approval-action-audit integration PASS; financial-journal integration was still running at last check. [MantiGO privacy run 38319097534](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097534) was still running at last check.
 - Live browser OAuth and multi-tenant runtime E2E remain NOT VERIFIED. No production data/schema/auth changes or deployment were made.
+
+
+### 2026-10-13 — Live membership RLS/grants verification
+
+- **Read-only live policy check:** `public.user_memberships` has RLS enabled and FORCE RLS enabled.
+- **Live SELECT policy:** `memberships_select_self`, targeted to `authenticated`, requires a non-anonymous JWT and `auth.uid() = user_id`.
+- **Live table privileges:** authenticated can SELECT, but cannot INSERT, UPDATE, or DELETE `public.user_memberships`; anon has no SELECT privilege. This confirms the browser recovery path cannot directly mutate membership rows and must use the protected server function.
+- **Status:** PASS for this specific RLS/grant boundary. This is not cross-tenant adversarial E2E and does not close the overall Auth/release gate.
