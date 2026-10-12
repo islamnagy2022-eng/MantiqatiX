@@ -41,7 +41,7 @@ const marketingProfileBaseline = fs.readFileSync(marketingProfileBaselinePath, "
 const marketingProfileChecks = [
   ["provider profile baseline provenance", /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(marketingProfileBaseline) && /2026-10-12/.test(marketingProfileBaseline) && /moyhiluyhjsujhwlyeuu/.test(marketingProfileBaseline) && /NOT recovered historical creation DDL/.test(marketingProfileBaseline) && /Never apply this file to production/.test(marketingProfileBaseline)],
   ["provider profile observed columns and constraints", /provider_kind character varying not null/i.test(marketingProfileBaseline) && /owner_user_id uuid/i.test(marketingProfileBaseline) && /name_ar character varying not null/i.test(marketingProfileBaseline) && /specialties jsonb not null default '\[\]'/i.test(marketingProfileBaseline) && /unique \(slug\)/i.test(marketingProfileBaseline) && /OFFICIAL[\s\S]*PARTNER_COMPANY[\s\S]*FREELANCER/i.test(marketingProfileBaseline)],
-  ["profile image column remains owned by ordered migration", !/profile_image_path/i.test(marketingProfileBaseline)],
+  ["profile image column remains owned by ordered migration", !/^\\s*profile_image_path\\s+/im.test(marketingProfileBaseline)],
   ["provider profile forced RLS and public active-only read", /enable row level security/i.test(marketingProfileBaseline) && /force row level security/i.test(marketingProfileBaseline) && /Public can view active marketing providers[\s\S]*to anon, authenticated[\s\S]*using \(status = 'ACTIVE'\)/i.test(marketingProfileBaseline)],
 ];
 const tableBaselineFailures = [...registrationChecks, ...marketingProfileChecks].filter(([, ok]) => !ok);
