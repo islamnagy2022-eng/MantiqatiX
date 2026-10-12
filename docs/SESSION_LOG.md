@@ -200,3 +200,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact candidate head `1c16630ec4eb7ed6104d92b8454d0cadcc33c3d9` passed Pages validation (Deno unit tests, production verification, syntax check), SMM service-role boundary, module professionalization, backend-only module boundary, and MantiGO privacy checks. Pages deployment was skipped because PR #216 remains draft.
 - The CI failure at the previous head was real and is retained in run history; do not treat that failed head as green. Only the corrected exact head above is verified.
 - No production deployment, merge, migration, grant/RLS change, provider call, or wallet operation occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SMM provider JSON decoding hardening
+
+- **Source change:** `supabase/functions/smm-gateway/provider-transport.ts` now decodes provider response bytes with fatal UTF-8 validation before JSON parsing. Malformed byte sequences are rejected instead of silently replaced with U+FFFD.
+- **Regression test:** added a Deno test in `supabase/functions/smm-gateway/provider-transport.test.ts` that submits malformed UTF-8 under an application/json content type and requires rejection.
+- **Commits:** source `452ab6bce30566dcb90e9586c105f62521f8657b`; test `1fd8de22a017d2cb872d9a55bae5edaa644123cb`.
+- **Verification:** exact-head GitHub Actions has not yet completed for this new test commit. Status is **IMPLEMENTED / NOT VERIFIED** until Deno and the relevant CI workflows finish successfully.
+- **Scope/safety:** candidate branch only; no production deployment, database migration, ACL/RLS change, provider request, wallet mutation, or PR merge.
+- **Remaining blockers unchanged:** migration lineage/replay, live schema and idempotency parity, DNS/egress controls, wallet/provider E2E, and backup-restore evidence. Keep SMM disabled by default.
