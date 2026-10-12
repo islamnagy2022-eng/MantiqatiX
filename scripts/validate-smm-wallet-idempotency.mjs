@@ -1,12 +1,12 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 
-const migration = fs.readFileSync("supabase/migrations/20261012110000_rc458_smm_wallet_exactly_once.sql", "utf8");
-const integration = fs.readFileSync("supabase/tests/rc458_smm_wallet_idempotency.sql", "utf8");
+const migration = fs.readFileSync("supabase/migrations/20261012110000_rc464_smm_wallet_exactly_once.sql", "utf8");
+const integration = fs.readFileSync("supabase/tests/rc464_smm_wallet_idempotency.sql", "utf8");
 const edge = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
 
-assert.match(migration, /RC458_ABORT: duplicate SMM DEBIT references require manual ledger reconciliation/, "migration must diagnose legacy duplicate debit references before creating a unique index");
-assert.match(migration, /RC458_ABORT: duplicate SMM REFUND references require manual ledger reconciliation/, "migration must diagnose legacy duplicate refund references before creating a unique index");
+assert.match(migration, /RC464_ABORT: duplicate SMM DEBIT references require manual ledger reconciliation/, "migration must diagnose legacy duplicate debit references before creating a unique index");
+assert.match(migration, /RC464_ABORT: duplicate SMM REFUND references require manual ledger reconciliation/, "migration must diagnose legacy duplicate refund references before creating a unique index");
 assert.match(migration, /create unique index if not exists smm_wallet_transactions_debit_reference_uidx[\s\S]*type = 'DEBIT'/i,
   "wallet debit ledger must be unique per user/order reference");
 assert.match(migration, /create unique index if not exists smm_wallet_transactions_refund_reference_uidx[\s\S]*type = 'REFUND'/i,
