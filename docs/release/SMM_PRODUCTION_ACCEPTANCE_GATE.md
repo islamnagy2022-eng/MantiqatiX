@@ -128,3 +128,10 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [x] Failed status persistence is surfaced as `ORDER_STATUS_PERSISTENCE_PENDING`.
 - [x] Client responses contain only normalized status and provider status, not the raw provider payload.
 - [ ] Exact-head CI is pending; production schema and terminal-state/idempotency contract still require verification.
+
+
+## Exact-head CI update — 2026-10-13
+- [x] SMM Service Role Access Boundary, including disposable PostgreSQL integration and Deno type-check, passed on `d110109fb42269d24885b41e78c9a25767003781`.
+- [x] Module Professionalization and MantiGO privacy checks passed on the same head.
+- [ ] Backend-only Module Boundary and Pages workflow were still running at last check.
+- [ ] No production deploy; SMM must remain disabled pending live schema/idempotency parity, network egress controls, and production negative tests.

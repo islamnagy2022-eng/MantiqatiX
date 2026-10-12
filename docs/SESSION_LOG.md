@@ -141,3 +141,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Extended the source validator to check terminal-state preservation, persistence-failure handling, and response minimization.
 - Exact-head CI for code commits `51934f98728f6f2be9602d103a1aff59a6a4110d` and `80441f12b572712e3486cee8e197f95ada6393a7` was queued/in progress at the latest inspection. The prior Pages validation at `68c78cc5f5a6fa57d4246967ac88849400371bcd` passed, including Deno transport tests; it predates the order-status change.
 - No production deploy, migration, grants, provider calls, wallet operations, or merge. State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-014 — Type-check correction and SMM CI evidence
+
+- Exact-head SMM Service Role Access Boundary passed at `d110109fb42269d24885b41e78c9a25767003781`, including disposable PostgreSQL ACL integration and `deno check --no-lock supabase/functions/smm-gateway/index.ts`: [run 38309841178](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38309841178).
+- Module Professionalization Validation passed at the same head: [run 38309841859](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38309841859).
+- MantiGO Open Ride Privacy Boundary passed at the same head: [run 38309841211](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38309841211).
+- Earlier type-check caught nested Supabase relation cardinality and unknown response typing in the new status-polling path. Fixed by normalizing the relation as object-or-array and explicitly typing the provider response; the new Deno check passed.
+- Backend-only Module Boundary and Pages workflow were still in progress at the latest check. Pages deployment remains skipped for the draft PR; no production deployment is claimed.
+- No production deploy, migration, grants, provider calls, wallet operations, or merge. State remains **BLOCKED / NOT CERTIFIED**.

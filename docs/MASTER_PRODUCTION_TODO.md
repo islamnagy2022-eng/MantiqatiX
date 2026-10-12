@@ -1643,3 +1643,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Raw provider status payload is no longer returned to clients.
 - [x] Added source-contract checks for terminal-state preservation and response minimization.
 - [ ] Exact-head CI for the order-status change is pending. Do not certify until it passes and schema/idempotency parity is proven.
+
+
+## 2026-10-13 — Exact-head CI update for SMM safety batch
+- [x] SMM Service Role Access Boundary passed on `d110109fb42269d24885b41e78c9a25767003781`, including PostgreSQL ACL integration and Deno type-check.
+- [x] Module Professionalization Validation passed on the same head.
+- [x] MantiGO Open Ride Privacy Boundary passed on the same head.
+- [ ] Backend-only Module Boundary and Pages workflow were still running at last check.
+- [ ] Deployment is not claimed; SMM remains gated pending production schema/idempotency parity, network egress protections, and negative acceptance tests.

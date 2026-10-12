@@ -85,3 +85,9 @@
 - Candidate source now quarantines ambiguous order creation/debit/provider outcomes, removes automatic refunds for ambiguous provider exceptions, uses an explicit provider hostname allowlist, and preserves terminal order states during status polling.
 - Pages validation and Deno transport unit tests passed at `68c78cc5f5a6fa57d4246967ac88849400371bcd`; that result predates the terminal-state polling changes.
 - Latest code head at the time of this matrix update is `80441f12b572712e3486cee8e197f95ada6393a7`; exact-head workflows are queued/in progress. Progress percentages remain unchanged until exact-head checks and broader integration evidence complete.
+
+
+## Verification update — 2026-10-13
+- Candidate SMM transport unit tests and Pages source validation passed at `68c78cc5f5a6fa57d4246967ac88849400371bcd`.
+- On later code head `d110109fb42269d24885b41e78c9a25767003781`, SMM Service Role Access Boundary (including disposable PostgreSQL integration and Deno type-check), Module Professionalization Validation, and MantiGO Open Ride Privacy Boundary passed.
+- Backend-only Module Boundary and Pages workflow remained in progress at the latest check. Percentages remain unchanged until final exact-head checks and broader production evidence are complete.
