@@ -210,3 +210,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Verification:** exact-head GitHub Actions has not yet completed for this new test commit. Status is **IMPLEMENTED / NOT VERIFIED** until Deno and the relevant CI workflows finish successfully.
 - **Scope/safety:** candidate branch only; no production deployment, database migration, ACL/RLS change, provider request, wallet mutation, or PR merge.
 - **Remaining blockers unchanged:** migration lineage/replay, live schema and idempotency parity, DNS/egress controls, wallet/provider E2E, and backup-restore evidence. Keep SMM disabled by default.
+
+
+## 2026-10-13 — SMM order retry idempotency at gateway boundary
+
+- **Finding:** The SMM gateway's order insert did not include an idempotency key, so an application retry could create a second order and reach a second debit/provider submission. This is a source-level risk even though the SMM rollout flag remains closed by default.
+- **Implemented on candidate branch:** `order-validation.ts` now requires a stable 16–128 character `[A-Za-z0-9_-]` key; `index.ts` persists the key and handles unique-key conflicts by looking up the original order under the authenticated user, replaying its status without a second debit/provider call, and rejecting a key reused with a different service/URL/quantity. `provider-transport.test.ts` includes valid/invalid key tests, and `validate-smm-deferred-gate.mjs` checks the retry contract.
+- **Commits:** validation `cee72b524c8203bffa159152b61506be5bcc8f26`; gateway `c398519c97d6595244bfe3eadfd557d0852c238c`; tests `cdbf7f7869159130a8028274d40a6a1376841c11`; static contract `5dcf4fa0fd3837f6b4a4776bc88834863dda5265`.
+- **Critical dependency:** database-enforced uniqueness requires RC463 (`smm_orders(user_id,idempotency_key)` unique partial index) from PR #215 or an equivalent reviewed migration. This migration is not present in PR #216's branch. Without that database constraint, concurrent retries are not safely deduplicated; therefore the runtime gate must stay closed and the order path is **NOT production-ready** until migration lineage is reconciled, the constraint is applied through an approved release, and concurrent duplicate tests pass.
+- **Verification:** exact-head CI is pending for the new source/tests. No claim of test pass, live schema parity, or production acceptance.
+- **Safety:** no merge, production deployment, migration, wallet mutation, or provider request.
