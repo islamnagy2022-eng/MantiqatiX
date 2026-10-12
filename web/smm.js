@@ -88,7 +88,7 @@ function openOrder(id){
   const target=targetEl.value.trim(),qty=Number(qtyEl.value);
   let parsed;
   try{parsed=new URL(target)}catch{}
-  if(!parsed||!['https:','http:'].includes(parsed.protocol)){message.innerHTML='<div class="notice">أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://.</div>';targetEl.focus();return}
+  if(!parsed||parsed.protocol!=='https:'||!parsed.hostname||parsed.username||parsed.password){message.innerHTML='<div class="notice">أدخل رابطًا عامًا صحيحًا وآمنًا يبدأ بـ https://.</div>';targetEl.focus();return}
   if(!Number.isSafeInteger(qty)||qty<min||qty>max){message.innerHTML='<div class="notice">الكمية يجب أن تكون عددًا صحيحًا بين '+min+' و'+max+'.</div>';qtyEl.focus();return}
   if(!Number.isFinite(unit)||unit<0){message.innerHTML='<div class="notice">تعذر التحقق من سعر الخدمة. أعد تحميل الكتالوج.</div>';return}
   if(!window.confirm('تأكيد الطلب؟ الكمية: '+qty+'، التكلفة التقديرية: $'+money(unit*qty/1000)+'. سيتم اعتماد السعر النهائي من الخادم.'))return;
@@ -97,7 +97,7 @@ function openOrder(id){
    const r=await fn({action:'place_order',service_id:selected.id,target_url:target,quantity:qty});
    message.innerHTML='<div class="notice success">تم استلام الطلب من النظام. رقم الطلب: '+esc(r.order_id||'—')+'. يمكنك متابعة حالته من صفحة «طلباتي».</div>';
    setTimeout(()=>{m.remove();load()},1500);
-  }catch(e){message.innerHTML='<div class="notice">'+esc(e.message||'تعذر إرسال الطلب. تحقق من حالة الطلب قبل إعادة المحاولة.')+'</div>';place.disabled=false;place.textContent='مراجعة وإرسال الطلب';}
+  }catch(e){message.innerHTML='<div class="notice">تعذر تأكيد نتيجة الإرسال. لا تعِد إرسال الطلب مباشرة؛ افتح «طلباتي» للتحقق أولًا أو تواصل مع الدعم إذا لم يظهر الطلب.</div>';place.textContent='التحقق من طلباتي';place.onclick=()=>{m.remove();tab='orders';render()};}
  };
 }
 sb.auth.onAuthStateChange(()=>load());load();
