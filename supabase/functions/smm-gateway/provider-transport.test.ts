@@ -39,3 +39,33 @@ Deno.test("provider response parser enforces response size limit", async () => {
   try { await readProviderJson(new Response('{"long":"0123456789"}', { status: 200 }), 8); } catch { rejected = true; }
   if (!rejected) throw new Error("Oversized provider response was accepted");
 });
+
+
+import { normalizeProviderOrderStatus } from "./order-status.ts";
+
+Deno.test("provider completed status is normalized", () => {
+  if (normalizeProviderOrderStatus("PROCESSING", " completed ") !== "COMPLETED") throw new Error("completed status not normalized");
+  if (normalizeProviderOrderStatus("PROCESSING", "complete") !== "COMPLETED") throw new Error("complete alias not normalized");
+});
+
+Deno.test("provider terminal states cannot regress", () => {
+  for (const current of ["COMPLETED", "CANCELLED", "FAILED", "PARTIAL"]) {
+    if (normalizeProviderOrderStatus(current, "processing") !== current) throw new Error("terminal state regressed: " + current);
+    if (normalizeProviderOrderStatus(current, "completed") !== current) throw new Error("terminal state changed: " + current);
+  }
+});
+
+Deno.test("provider status aliases map to known terminal and processing states", () => {
+  const cases = [
+    ["PROCESSING", "partial", "PARTIAL"],
+    ["PROCESSING", "cancelled", "CANCELLED"],
+    ["PROCESSING", "canceled", "CANCELLED"],
+    ["PROCESSING", "failed", "FAILED"],
+    ["PENDING", "in progress", "PROCESSING"],
+    ["PENDING", "inprogress", "PROCESSING"],
+    ["PENDING", "unknown-provider-state", "PENDING"]
+  ] as const;
+  for (const [current, incoming, expected] of cases) {
+    if (normalizeProviderOrderStatus(current, incoming) !== expected) throw new Error(`unexpected mapping for ${incoming}`);
+  }
+});
