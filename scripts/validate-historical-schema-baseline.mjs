@@ -83,6 +83,54 @@ const legacyFunctionSignatures = [
   { name: "restaurant_erp_mutate", args: "text,jsonb,text" },
   { name: "restaurant_table_mutate", args: "text,jsonb,text" },
 ];
+const legacyFunctionBaselinePath = "supabase/tests/baselines/legacy_security_definer_functions.sql";
+const legacyFunctionBaseline = fs.existsSync(legacyFunctionBaselinePath)
+  ? fs.readFileSync(legacyFunctionBaselinePath, "utf8")
+  : "";
+const liveDerivedProvenanceValid =
+  /TEST-ONLY LIVE-DERIVED FUNCTION BASELINE/.test(legacyFunctionBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(legacyFunctionBaseline) &&
+  /NOT recovered historical creation DDL/.test(legacyFunctionBaseline) &&
+  /MUST NOT be applied to production/.test(legacyFunctionBaseline);
+
+function normalizeFixtureTypes(rawArgs) {
+  return rawArgs.split(",").map((part) =>
+    part.trim().replace(/\s+DEFAULT\s+[\s\S]*$/i, "").trim().split(/\s+/).slice(1).join(" ").toLowerCase()
+  ).join(",");
+}
+
+function fixtureHasValidFunction({ name, args }) {
+  if (!liveDerivedProvenanceValid) return false;
+  const declaration = new RegExp(
+    "CREATE OR REPLACE FUNCTION public\\." + name + "\\s*\\(([\\s\\S]*?)\\)\\s*RETURNS\\b",
+    "i"
+  );
+  const match = legacyFunctionBaseline.match(declaration);
+  if (!match || normalizeFixtureTypes(match[1]) !== args.replace(/\s+/g, "").toLowerCase()) return false;
+  const start = legacyFunctionBaseline.search(declaration);
+  const remainder = legacyFunctionBaseline.slice(start);
+  const nextFunction = remainder.slice(1).search(/\nCREATE OR REPLACE FUNCTION public\./i);
+  const block = nextFunction < 0 ? remainder : remainder.slice(0, nextFunction + 1);
+  const exactAcl = new RegExp(
+    "REVOKE ALL ON FUNCTION public\\." + name + "\\(" + args.replace(/\s+/g, "") +
+    "\\) FROM PUBLIC, anon, authenticated, service_role;",
+    "i"
+  ).test(legacyFunctionBaseline);
+  return /\bSECURITY DEFINER\b/i.test(block) &&
+    /\bSET search_path TO\b/i.test(block) &&
+    exactAcl;
+}
+
+const fixtureMissingFunctions = legacyFunctionSignatures.filter((signature) => !fixtureHasValidFunction(signature));
+const rateGrantValid = /GRANT EXECUTE ON FUNCTION public\.mantigo_rate_ride\(text,integer,text\) TO authenticated;/i.test(legacyFunctionBaseline);
+if (!liveDerivedProvenanceValid || fixtureMissingFunctions.length || !rateGrantValid) {
+  console.error("P0 BLOCKED: the isolated live-derived function fixture failed provenance, signature, SECURITY DEFINER, search_path, or ACL validation.");
+  if (!liveDerivedProvenanceValid) console.error(" - missing explicit test-only/live-derived/non-production provenance");
+  for (const { name, args } of fixtureMissingFunctions) console.error(" - invalid fixture definition or ACL: public." + name + "(" + args + ")");
+  if (!rateGrantValid) console.error(" - missing observed authenticated EXECUTE exception for mantigo_rate_ride");
+  process.exit(1);
+}
+
 const unresolvedLegacyFunctions = legacyFunctionSignatures.filter(({ name, args }) => {
   const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\s+/g, "").toLowerCase();
   const creation = migrations.find(({ name: migrationName, sql }) =>
@@ -90,14 +138,16 @@ const unresolvedLegacyFunctions = legacyFunctionSignatures.filter(({ name, args 
     new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + name + "\\s*\\(", "i").test(sql) &&
     sql.replace(/\s+/g, "").toLowerCase().includes(normalizedSignature)
   );
-  return !creation;
+  return !creation && !fixtureHasValidFunction({ name, args });
 });
 if (unresolvedLegacyFunctions.length) {
-  console.error("P0 BLOCKED: the chronological replay reaches " + legacyPrivilegeMigration.name + " before these legacy SECURITY DEFINER functions are created by any earlier committed migration:");
+  console.error("P0 BLOCKED: required legacy SECURITY DEFINER function dependencies are missing from both committed earlier migrations and the validated isolated test fixture:");
   for (const { name, args } of unresolvedLegacyFunctions) console.error(" - public." + name + "(" + args + ")");
-  console.error("Do not add placeholder functions, skip the historical privilege migration, or self-certify a live-definition fixture. Recover authoritative creation DDL/history; any test-only function baseline requires separate explicit owner authorization and a reviewed validator change.");
+  console.error("Do not add placeholders or apply this fixture to production. Recover authoritative historical creation DDL to certify provenance.");
   process.exit(1);
 }
+console.warn("P0 LIMITATION: preflight uses a validated live-derived test-only function fixture because original historical creation DDL is absent from committed migration history.");
+console.warn("A successful replay validates migrations after this synthetic baseline only; it does NOT prove historical function-body fidelity or certify production migration provenance.");
 if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
   console.error("P0 BLOCKED: test-only provider and credentials baselines must sort before the first migration that references them.");
   process.exit(1);
