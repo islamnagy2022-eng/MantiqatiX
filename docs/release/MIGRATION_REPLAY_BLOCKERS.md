@@ -290,3 +290,9 @@ The live query returned no `anon` EXECUTE grant for any of these functions. The 
 - **Decision:** do not continue inventing individual schema fixtures or alter production. Recover the authoritative pre-migration schema/DDL from trusted database backups or version history, then design one reviewed disposable bootstrap with explicit provenance. Until then, the replay is **FAIL / NOT VERIFIED** and release remains **BLOCKED / NOT CERTIFIED**.
 - The workflow was corrected so service startup runs with migration SQL files temporarily stashed and restored under a shell trap; the dedicated `supabase db reset --local` step now reports SQL migration failures at the correct step instead of misclassifying them as startup failures.
 - No production SQL, migration ledger, Edge Function, Auth configuration, wallet, payment, or customer data was changed.
+
+### Supplied RC40 archive inspection
+
+- The uploaded `source_RC40.zip` SHA-256 matches its companion `.sha256` file (`e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`).
+- It contains 39 older SQL migrations and a useful enterprise schema migration, but archive search found no SQL definition for either `account_registration_requests` or `marketing_provider_profiles`.
+- Five different archive migrations share version `20260920130000`. They cannot be inserted directly into the current Supabase migration directory without resolving duplicate historical versions, and rewriting those versions would violate migration-history integrity. Therefore the archive is useful supporting material, not an approved drop-in replacement for the missing authoritative schema history.
