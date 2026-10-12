@@ -6,6 +6,7 @@ const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
+const privateAdminsBaselinePath = "supabase/tests/baselines/private_platform_admins.sql";
 const legacyBusinessesBaselinePath = "supabase/tests/baselines/legacy_businesses.sql";
 const legacyProductsBaselinePath = "supabase/tests/baselines/legacy_products.sql";
 const legacyOrdersBaselinePath = "supabase/tests/baselines/legacy_orders.sql";
@@ -17,6 +18,7 @@ const migrations = files.map((name) => ({
   sql: fs.readFileSync(path.join(migrationDirectory, name), "utf8"),
 }));
 const legacyBaselineSpecs = [
+  { path: privateAdminsBaselinePath, table: "platform_admins", schema: "private", required: /create schema private[\s\S]*user_id uuid not null[\s\S]*created_at timestamp with time zone not null default now\(\)[\s\S]*foreign key \(user_id\) references auth\.users\(id\) on delete cascade[\s\S]*mnty_deny_unexposed_platform_admins[\s\S]*using \(false\)[\s\S]*with check \(false\)/i },
   { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\s\S]*name character varying\(255\) not null[\s\S]*code character varying\(64\) not null/i },
   { path: legacyProductsBaselinePath, table: "products", required: /id uuid primary key[\s\S]*business_id uuid not null references public\.businesses\(id\)[\s\S]*sku character varying\(128\) not null[\s\S]*name character varying\(255\) not null/i },
   { path: legacyOrdersBaselinePath, table: "orders", required: /id uuid primary key[\s\S]*business_id uuid not null references public\.businesses\(id\)[\s\S]*customer_id uuid[\s\S]*status character varying\(64\)/i },
@@ -32,7 +34,7 @@ for (const spec of legacyBaselineSpecs) {
       !/moyhiluyhjsujhwlyeuu/.test(source) ||
       !/NOT recovered historical DDL/.test(source) ||
       !/Never apply this file to production/.test(source) ||
-      !new RegExp("\\bcreate\\s+table\\s+(?:public\\s*\\.\\s*)?" + spec.table + "\\b","i").test(source) ||
+      !new RegExp("\\bcreate\\s+table\\s+(?:" + (spec.schema ? spec.schema + "\\s*\\.\\s*" : "public\\s*\\.\\s*") + ")?" + spec.table + "\\b","i").test(source) ||
       !spec.required.test(source) ||
       /^\s*(?:insert\s+into|copy\s+public\.)/im.test(source)) {
     console.error("P0 BLOCKED: legacy table baseline failed provenance/shape/no-data checks: " + spec.table);
