@@ -454,3 +454,10 @@ This is still a minimal live-derived compatibility shape, not recovered historic
 - The migration replay run on the latest documentation commit was cancelled, so it provides no new pass/fail result. The most recent completed replay remains the earlier failure at missing `public.bookings`. Re-run only after an approved workflow change is available.
 
 No production DDL, grants, RLS policies, Auth settings, wallet/payment records, or Edge Functions were changed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Targeted catalog verification — SECURITY DEFINER grants and payment-event table — 2026-10-12
+
+- Read-only catalog query confirms `public.get_mnty_targeted_advertisements(...)` is `SECURITY DEFINER`, has `search_path=public, pg_temp`, and EXECUTE is granted to both `anon` and `authenticated`. Its body returns approved, active advertisements filtered by country/geographic targeting and bounded to 1–50 results. Anonymous access may be intentional for public ad delivery; do not revoke without product-owner intent and anonymous ad-render regression tests. Still review input validation, returned URLs/content, data minimization, and all referenced-table access.
+- Read-only catalog query confirms `public.claim_digital_page_payment_intent_backend(uuid,uuid,text,text)` is `SECURITY DEFINER`, has the same configured search_path, and is executable by `authenticated` but not `anon`. The signature accepts `p_user_id`; source-level caller-identity enforcement and abuse/race tests remain necessary, so a grant result alone is not certification.
+- `public.digital_page_payment_events` is owned by `postgres`, RLS enabled, no policies, and FORCE RLS disabled. Explicit table-privilege checks returned no SELECT/INSERT privilege for `anon`, `authenticated`, or `service_role`. This appears deny-by-default for direct API roles, but the intended backend write/read path and owner/security-definer behavior must be tested before adding policies or grants. No grants or policies were changed.
