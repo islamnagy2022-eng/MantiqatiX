@@ -639,3 +639,19 @@ A new read-only catalog query confirms that the credit source discrepancy is bro
 These are observed schema/default differences, not authorization to copy live definitions into a synthetic replay baseline. Keep production read-only and release blocked until the source of truth is recovered or a separately reviewed, explicit forward-repair migration is prepared with proven semantics and full clean-replay coverage.
 
 The live Supabase Edge Function read was also repeated: `smm-gateway` remains ACTIVE v8 with `verify_jwt=true` and SHA-256 `c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f`. The returned deployed source still does not contain the candidate `MNTY_SMM_ENABLED` / `SMM_POST_LAUNCH_DEFERRED` guard. This remains an independent P0 launch blocker; no deployment was performed.
+
+
+## Continued source-provenance investigation — 2026-10-12 18:45 UTC
+
+Additional bounded recovery work was completed without changing production:
+
+- Scanned the provided `source_RC40.zip` archive (883 entries) across every included SQL migration for the exact policy names `credit_accounts_finance_read` and `credit_periods_finance_read`, and for direct `CREATE TABLE public.credit_accounts/credit_periods` statements outside the known credit-control filenames. This scan did not recover authoritative creation statements for the two finance-read policies.
+- Repository code search also found the later migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` altering those policies, but no creation source. Commit search queries for credit table/policy creation returned no historical commit evidence through the connected GitHub search interface. These are bounded negative-search results, not proof that no source exists elsewhere.
+- The recovered archive's `20260920185000_production_credit_control.sql` remains incompatible with a blind restoration: observed live column precision and policy defaults differ, and the policy provenance is still missing. No guessed schema, policy, or test-only credit baseline was created.
+- Fresh read-only production inspection reconfirmed migration ledger head `20261008222845 / rc424_atomic_digital_page_payment_webhook`. `smm-gateway` remains ACTIVE v8, `verify_jwt=true`, deployed-source SHA-256 `c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f`; the deployed source still lacks the candidate `MNTY_SMM_ENABLED` fail-closed gate.
+
+### Decision and next safe step
+
+The source-recovery path is not yet sufficient to safely repair chronological replay. Continue by inspecting historical repository refs and the release artifact's provenance metadata for the original credit DDL and finance-policy creation source. If no authoritative source is found, prepare a separately reviewed forward-repair proposal with explicit schema/default/policy semantics and an isolated clean-replay test; do not mutate applied history or infer production policy semantics silently.
+
+**Status remains BLOCKED / NOT CERTIFIED.** No production migration, Edge Function deployment, Auth/RLS/GRANT change, wallet operation, payment, or financial data mutation was performed.
