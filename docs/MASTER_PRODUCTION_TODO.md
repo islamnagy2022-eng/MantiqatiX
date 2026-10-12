@@ -1597,3 +1597,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P0 BLOCKED:** deployed `smm-gateway` remains v6 without `MNTY_SMM_ENABLED` deny gate; PR #214 is source-only. Require approved deployment and negative runtime tests before launch exposure.
 - [ ] **P0 BLOCKED:** production migration ledger remains at RC424; post-RC424 migrations and production rollout are not proven. No production change authorized/performed in this batch.
 - [ ] Continue latest exact-head CI check, historical source recovery, and release evidence reconciliation. Overall status **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-12 — Exact-head CI and historical replay status refresh
+
+- [x] Rechecked CI on candidate head `65e1830e22768ce9d1b65346c1c8abd35b310d4f`; targeted module, Marketing/CRM, MantiGO privacy, approval-audit, SMM ACL/deferred, and migration uniqueness/immutability/collision checks passed.
+- [x] Pages workflow completed, but deploy was skipped because the PR remains draft; no deployment claim.
+- [ ] **P0 BLOCKED:** full chronological replay fails closed at missing authoritative historical `public.bookings` baseline; setup/replay were correctly skipped.
+- [x] Expanded repository branch/code/commit searches for historical bookings DDL, `CREATE TABLE bookings`, `bookings.sql`, schema and baseline; no authoritative creation artifact recovered.
+- [ ] **P0 BLOCKED:** keep PR #207/#214 unmerged and keep production changes blocked until historical source, runtime evidence, and explicit change approvals are resolved.
+- [ ] **P0 BLOCKED:** live SMM gateway v6 still lacks server-side launch-deny containment; require approved deploy and negative side-effect tests.
+- **Current release decision: BLOCKED / NOT CERTIFIED.** No production writes/deploys/merges or synthetic historical DDL were performed.
