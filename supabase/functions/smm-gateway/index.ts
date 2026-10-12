@@ -64,6 +64,8 @@ Deno.serve(async(req)=>{
    const s=await admin.from("smm_services").select("*,smm_providers(*)").eq("id",validatedOrder.serviceId).eq("active",true).single();
    if(s.error||!s.data)return json({error:"SERVICE_NOT_FOUND"},404);
    const v=s.data;
+   const providerRow=Array.isArray(v.smm_providers)?v.smm_providers[0]:v.smm_providers;
+   if(!providerRow||providerRow.active!==true||!v.provider_id||!String(v.external_service_id||"").trim())return json({error:"PROVIDER_UNAVAILABLE"},409);
    if(q<v.min_quantity||q>v.max_quantity)return json({error:"QUANTITY_OUT_OF_RANGE",min:v.min_quantity,max:v.max_quantity},400);
    const pricing=validateSmmOrderPricing({sellingPrice:Number(v.selling_price),providerCost:Number(v.provider_cost),quantity:q});
    if(!pricing.ok)return json({error:pricing.code},409);
@@ -80,12 +82,12 @@ Deno.serve(async(req)=>{
    }
    if(debit.data!==true){
     const mark=await admin.from("smm_orders").update({status:"FAILED",error_message:"Wallet debit rejected",updated_at:new Date().toISOString()}).eq("id",orderId);
-    if(mark.error)console.error("[smm-gateway] could not mark rejected debit",mark.error.code||"DB_ERROR");
+    if(mark.error){console.error("[smm-gateway] could not mark rejected debit",mark.error.code||"DB_ERROR");return json({error:"ORDER_STATUS_PERSISTENCE_PENDING",order_id:orderId,reconciliation_required:true},202);}
     return json({error:"INSUFFICIENT_BALANCE",required:sell,order_id:orderId},402);
    }
    let providerResult:any;
    try{
-    providerResult=await call(v.smm_providers,await secret(v.provider_id),"add",{service:v.external_service_id,link:b.target_url,quantity:q});
+    providerResult=await call(providerRow,await secret(v.provider_id),"add",{service:v.external_service_id,link:validatedOrder.targetUrl,quantity:q});
    }catch{
     console.error("[smm-gateway] provider outcome unknown",String(orderId));
     const mark=await admin.from("smm_orders").update({error_message:"Provider outcome unknown; do not retry or refund automatically; manual reconciliation required",updated_at:new Date().toISOString()}).eq("id",orderId);
@@ -121,7 +123,7 @@ Deno.serve(async(req)=>{
    const nextStatus=normalizeProviderOrderStatus(o.data.status,rawStatus);
    if(nextStatus!==o.data.status||rawStatus){
     const saved=await admin.from("smm_orders").update({status:nextStatus,provider_status:rawStatus||null,updated_at:new Date().toISOString()}).eq("id",b.order_id).eq("user_id",user.id).eq("status",o.data.status).select("id,status").maybeSingle();
-    if(saved.error){console.error("[smm-gateway] order status persistence failed",saved.error.code||"DB_ERROR");return json({error:"ORDER_STATUS_PERSISTENCE_PENDING",order_id:b.order_id,reconciliation_required:true},202);}if(!saved.data){const latest=await admin.from("smm_orders").select("status").eq("id",b.order_id).eq("user_id",user.id).maybeSingle();if(latest.error||!latest.data)return json({error:"ORDER_STATUS_PERSISTENCE_PENDING",order_id:b.order_id,reconciliation_required:true},202);return json({ok:true,status:latest.data.status,provider_status:rawStatus||null,concurrent_update:true});}
+    if(saved.error){console.error("[smm-gateway] order status persistence failed",saved.error.code||"DB_ERROR");return json({error:"ORDER_STATUS_PERSISTENCE_PENDING",order_id:b.order_id,reconciliation_required:true},202);}if(!saved.data){const latest=await admin.from("smm_orders").select("status,provider_status").eq("id",b.order_id).eq("user_id",user.id).maybeSingle();if(latest.error||!latest.data)return json({error:"ORDER_STATUS_PERSISTENCE_PENDING",order_id:b.order_id,reconciliation_required:true},202);return json({ok:true,status:latest.data.status,provider_status:latest.data.provider_status||null,concurrent_update:true});}
     const event=await admin.from("smm_order_events").insert({order_id:b.order_id,event_type:"STATUS_SYNC",payload:{provider_status:rawStatus||null,normalized_status:nextStatus,terminal_status_preserved:terminal.has(String(o.data.status||"").toUpperCase())}});
     if(event.error)console.error("[smm-gateway] status event insert failed",event.error.code||"DB_ERROR");
    }
