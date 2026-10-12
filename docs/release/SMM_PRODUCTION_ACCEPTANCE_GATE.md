@@ -114,3 +114,10 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [x] If the provider returns an order ID but saving that ID fails, return `PROVIDER_ACCEPTED_PERSISTENCE_PENDING` and do not refund.
 - [x] Added source-contract checks for these ambiguous-result behaviors.
 - [ ] Verify against the exact live schema/status constraints and reconcile with the idempotency/terminal-state migrations before enabling SMM. This is candidate source only; CI is pending.
+
+
+## CI update — 2026-10-13
+- [x] Pages `validate` succeeded at candidate commit `68c78cc5f5a6fa57d4246967ac88849400371bcd`, including provider transport unit tests and source validation.
+- [ ] The workflow's `deploy` job is skipped for the draft PR; no production deployment.
+- [ ] Other exact-head CI checks were queued/in progress at the last inspection.
+- [ ] Keep SMM disabled until live schema/idempotency/terminal-state reconciliation, provider egress controls, and production negative tests are complete.

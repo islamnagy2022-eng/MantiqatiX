@@ -122,3 +122,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Updated the SMM acceptance gate and master TODO. DNS rebinding/private resolution still needs network egress enforcement; the full live schema/idempotency/terminal-state chain remains unverified.
 - Latest relevant CI is running/queued for the candidate commits; do not claim PASS until the exact latest head completes.
 - No production deploy, migration, grant, wallet operation, provider call, or merge. State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-012 — CI feedback and validator correction
+
+- The Pages validation workflow at candidate commit `68c78cc5f5a6fa57d4246967ac88849400371bcd` completed its `validate` job successfully, including the new Deno provider transport unit tests and the source syntax/contract checks. Its deploy job remains skipped for the draft PR; no production deployment is claimed.
+- Earlier Pages validation at `15db395ee96294a82431f386d45afcb8c2fa0df7` failed because the source validator still expected the provider transport code inline after it had been extracted into `provider-transport.ts`. The validator was corrected in `68c78cc5f5a6fa57d4246967ac88849400371bcd`; the new exact-head Pages validation then passed.
+- The provider allowlist, bounded JSON parsing, and ambiguous-order quarantine changes remain candidate source only. Other exact-head CI workflows were still queued at the latest status check.
+- No production deployment, migration, grants, provider call, wallet operation, or merge.
+- State remains **BLOCKED / NOT CERTIFIED**.

@@ -1628,3 +1628,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Provider acceptance followed by order persistence failure returns `PROVIDER_ACCEPTED_PERSISTENCE_PENDING` without refund.
 - [x] Added source-contract checks for all three cases.
 - [ ] Exact-head CI pending; verify state semantics against reconciled schema and order idempotency/terminal-state RPCs before launch. SMM remains disabled in candidate source unless separately approved.
+
+
+## 2026-10-13 — CI feedback for SMM transport and order-safety batch
+- [x] Exact-head Pages `validate` job passed at `68c78cc5f5a6fa57d4246967ac88849400371bcd`, including Deno unit tests for provider allowlisting and response limits.
+- [x] Fixed an initial validator failure caused by extracting transport policy into `provider-transport.ts`; rerun on the corrected head passed.
+- [ ] Backend-only, SMM service-role, MantiGO privacy, and module-professionalization workflows must complete on the exact final head before the candidate batch is considered CI-green.
+- [ ] Pages deployment remains skipped for the draft PR; production is unchanged.
