@@ -42,28 +42,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          profile_baseline="supabase/tests/baselines/marketing_provider_profiles.sql"
-          profile_migration="supabase/migrations/20260927074157_test_only_live_derived_marketing_provider_profiles_baseline.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
           legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
-          test -f "$profile_baseline"
-          test ! -e "$profile_migration"
           test -f "$providers_baseline"
           test -f "$credentials_baseline"
           test -f "$legacy_functions_baseline"
           test ! -e "$providers_migration"
           test ! -e "$credentials_migration"
           test ! -e "$legacy_functions_migration"
-          cp "$profile_baseline" "$profile_migration"
           cp "$providers_baseline" "$providers_migration"
           cp "$credentials_baseline" "$credentials_migration"
           cp "$legacy_functions_baseline" "$legacy_functions_migration"
-          echo "Injected a live-derived provider-profile compatibility fixture, approved SMM schema baselines, and legacy function fixture into this disposable CI workspace only."
-          echo "The provider-profile fixture is synthetic, omits historical FK/policy provenance, and must never be applied to production."
+          echo "Injected owner-approved SMM table baselines and the separately authorized live-derived function fixture into disposable CI only."
           echo "The function fixture is synthetic, not historical DDL; it must never be applied to production."
 
       - name: Verify temporary baselines are exact schema-only copies
@@ -78,8 +72,6 @@ jobs:
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
           legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
-          cmp -s "$profile_baseline" "$profile_migration"
-          ! git ls-files --error-unmatch "$profile_migration" >/dev/null 2>&1
           cmp -s "$providers_baseline" "$providers_migration"
           cmp -s "$credentials_baseline" "$credentials_migration"
           cmp -s "$legacy_functions_baseline" "$legacy_functions_migration"
