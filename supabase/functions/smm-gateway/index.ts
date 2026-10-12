@@ -112,7 +112,7 @@ Deno.serve(async(req)=>{
    const providerData=Array.isArray(serviceData?.smm_providers)?serviceData.smm_providers[0]:serviceData?.smm_providers;
    if(!serviceData||!providerData)return json({error:"PROVIDER_CONFIGURATION_UNAVAILABLE"},503);
    const r:any=await call(providerData,await secret(serviceData.provider_id),"status",{order:o.data.provider_order_id});
-   const rawStatus=typeof r?.status==="string"?r.status:"";
+   const rawStatus=typeof r?.status==="string"?r.status.replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,64):"";
    const terminal=new Set(["COMPLETED","CANCELLED","FAILED","PARTIAL"]);
    const nextStatus=normalizeProviderOrderStatus(o.data.status,rawStatus);
    if(nextStatus!==o.data.status||rawStatus){
