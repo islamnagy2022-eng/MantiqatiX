@@ -95,8 +95,14 @@ function openOrder(id){
   place.disabled=true;place.textContent='جارٍ إرسال الطلب...';
   const storageKey='mnty_smm_idem:'+user.id+':'+selected.id+':'+encodeURIComponent(target)+':'+qty;
   let idempotencyKey=null;
-  try{idempotencyKey=sessionStorage.getItem(storageKey)}catch{}
-  if(!idempotencyKey){idempotencyKey=crypto.randomUUID();try{sessionStorage.setItem(storageKey,idempotencyKey)}catch{}}
+  try{
+   idempotencyKey=sessionStorage.getItem(storageKey);
+   if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem(storageKey,idempotencyKey);}
+  }catch{
+   place.disabled=false;place.textContent='مراجعة وإرسال الطلب';
+   message.innerHTML='<div class="notice">تعذر حفظ معرّف آمن للطلب في جلسة المتصفح؛ لم يتم إرسال الطلب. فعّل تخزين الجلسة أو استخدم متصفحًا آخر ثم أعد المحاولة.</div>';
+   return;
+  }
   try{
    const r=await fn({action:'place_order',service_id:selected.id,target_url:target,quantity:qty,idempotency_key:idempotencyKey});
    if(r.pending){message.innerHTML='<div class="notice">تم تسجيل الطلب للتحقق من نتيجته. لا تعِد الإرسال الآن؛ استخدم «طلباتي» لتحديث الحالة. رقم الطلب: '+esc(r.order_id||'—')+'.</div>';place.textContent='متابعة الطلبات';place.onclick=()=>{m.remove();tab='orders';render()};return;}
