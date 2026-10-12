@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` for the chronological record and `docs/MASTER_PRODUCTION_TODO.md` for open gates. Release remains **BLOCKED / NOT CERTIFIED**. Verified main/base HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Auth/membership work is isolated in draft PR #217, branch `fix/auth-membership-recovery-20261013`, current code head before continuity update `90f9ac4c9d49502d1ffe7249e936445fa6743615`; CI validation and the related integration workflows passed, while Pages deploy was skipped because the PR is draft. Do not treat the PR as deployed.
+> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` for the chronological record and `docs/MASTER_PRODUCTION_TODO.md` for open gates. Release remains **BLOCKED / NOT CERTIFIED**. Verified main/base HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Auth/membership work is isolated in draft PR #217, branch `fix/auth-membership-recovery-20261013`, current branch has since added RC215 disposable PostgreSQL integration tests and release documentation. The last software-change commit `665ae78d7a1331ff17bc1f8c28cd6f36fb0a2658` passed auth/static validation; CI run [38318855957](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855957) confirms the new membership PostgreSQL integration job PASS. Pages deploy was skipped because the PR is draft. Do not treat the PR as deployed.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -548,3 +548,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Verified CI runs: Pages validation [38318510837](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510837) PASS (deploy skipped); Module Professionalization [38318510864](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510864) PASS; Backend-only Module Boundary [38318510823](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510823) PASS; MantiGO Open Ride Privacy Boundary [38318510972](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510972) PASS.
 - Live read-only Auth/membership snapshot: 6 permanent Auth users; 0 missing active membership; 4 active platform CUSTOMER membership rows reference absent Auth IDs. Preserve and investigate; no data mutation was performed.
 - Remaining first gate: controlled non-production browser E2E for Google OAuth/session restoration, membership recovery, negative auth cases, idempotency, and cross-tenant/RLS denial. Do not create production test accounts or change Auth/DB/RLS/Edge Function deployment without proper authorization.
+
+
+### RC215 membership integration test result — 2026-10-13
+- Disposable PostgreSQL integration now applies `20260930100000_rc215_customer_membership_invariant.sql` and verifies trigger-created customer membership, idempotent reactivation, anonymous-user exclusion, and RPC execute grants.
+- Verified PASS in [Module Professionalization Validation run 38318855957](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855957).
+- All four orphan active CUSTOMER memberships have audit references (3 automatic activation successes, 1 direct registration activation success); origin of missing Auth identities remains unresolved. Preserve data.
+- Do not close live browser OAuth/membership E2E, multi-tenant isolation, or release gates based on this isolated SQL test.
