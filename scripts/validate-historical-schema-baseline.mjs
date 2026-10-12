@@ -4,7 +4,6 @@ import path from "node:path";
 const migrationDirectory = "supabase/migrations";
 const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
-const providerProfilesBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
 const files = fs.readdirSync(migrationDirectory)
   .filter((name) => name.endsWith(".sql"))
   .sort();
@@ -12,6 +11,26 @@ const migrations = files.map((name) => ({
   name,
   sql: fs.readFileSync(path.join(migrationDirectory, name), "utf8"),
 }));
+const missingHistoricalTables = [
+  { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql" },
+  { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql" },
+].filter(({ table, before }) => {
+  const prefix = migrations.filter(({ name }) => name < before);
+  const createPattern = new RegExp(
+    "\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:(?:\\"?public\\"?)\\s*\\.\\s*)?\\"?" + table + "\\b",
+    "i"
+  );
+  return !prefix.some(({ sql }) => createPattern.test(sql));
+});
+if (missingHistoricalTables.length) {
+  console.error("P0 BLOCKED: required core-table creation DDL is absent from committed migrations before its first dependent migration:");
+  for (const { table, before } of missingHistoricalTables) {
+    console.error(" - public." + table + " must exist before " + before);
+  }
+  console.error("Recover authoritative historical schema DDL/backup. Do not synthesize table fixtures or apply live-derived table snapshots as a substitute for provenance.");
+  process.exit(1);
+}
+
 const firstCredentialReference = migrations.find(({ sql }) =>
   /smm_provider_credentials/i.test(sql)
 );
@@ -23,9 +42,8 @@ const createsProvidersTable = migrations.some(({ sql }) =>
 );
 const providerBaselineVersion = "20260927074158";
 const credentialsBaselineVersion = "20260927074159";
-const providerProfilesBaselineVersion = "20260927074157";
 
-for (const baselinePath of [providerBaselinePath, credentialsBaselinePath, providerProfilesBaselinePath]) {
+for (const baselinePath of [providerBaselinePath, credentialsBaselinePath]) {
   if (!fs.existsSync(baselinePath)) {
     console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
     process.exit(1);
@@ -53,15 +71,7 @@ const credentialsChecks = [
   ["credentials baseline is explicitly test-only", /TEST-ONLY SCHEMA BASELINE/i.test(credentialsBaseline) && /Never apply this file to production/i.test(credentialsBaseline)],
 ];
 
-const providerProfilesBaseline = fs.readFileSync(providerProfilesBaselinePath, "utf8");
-const providerProfilesChecks = [
-  ["provider-profile fixture is explicitly test-only and live-derived", /TEST-ONLY LIVE-DERIVED TABLE COMPATIBILITY FIXTURE/.test(providerProfilesBaseline) && /moyhiluyhjsujhwlyeuu/.test(providerProfilesBaseline) && /NOT recovered historical creation DDL/.test(providerProfilesBaseline) && /MUST NOT be applied to production/.test(providerProfilesBaseline)],
-  ["provider-profile columns/defaults and constraints exist", /provider_kind varchar not null/i.test(providerProfilesBaseline) && /name_ar varchar not null/i.test(providerProfilesBaseline) && /slug varchar not null unique/i.test(providerProfilesBaseline) && /specialties jsonb not null default '\[\]'::jsonb/i.test(providerProfilesBaseline) && /settings jsonb not null default '\{\}'::jsonb/i.test(providerProfilesBaseline) && /marketing_provider_profiles_status_check/i.test(providerProfilesBaseline) && /marketing_provider_profiles_provider_kind_check/i.test(providerProfilesBaseline)],
-  ["media migration remains responsible for profile_image_path", !/profile_image_path/i.test(providerProfilesBaseline)],
-  ["provider-profile fixture is schema-only and does not invent historical RLS policy definitions", !/^\s*insert\s+into\b/im.test(providerProfilesBaseline) && !/^\s*create\s+policy\b/im.test(providerProfilesBaseline) && /enable row level security/i.test(providerProfilesBaseline)],
-];
-
-const failed = [...providerChecks, ...credentialsChecks, ...providerProfilesChecks].filter(([, ok]) => !ok);
+const failed = [...providerChecks, ...credentialsChecks].filter(([, ok]) => !ok);
 if (failed.length) {
   for (const [name] of failed) console.error("P0 BLOCKED: test baseline validation failed: " + name);
   process.exit(1);
@@ -163,7 +173,6 @@ if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
   process.exit(1);
 }
 for (const [version, temporaryName] of [
-  [providerProfilesBaselineVersion, providerProfilesBaselineVersion + "_test_only_live_derived_marketing_provider_profiles_baseline.sql"],
   [providerBaselineVersion, providerBaselineVersion + "_test_only_approved_smm_providers_baseline.sql"],
   [credentialsBaselineVersion, credentialsBaselineVersion + "_test_only_approved_smm_provider_credentials_baseline.sql"],
 ]) {
@@ -172,5 +181,4 @@ for (const [version, temporaryName] of [
     process.exit(1);
   }
 }
-console.warn("P0 LIMITATION: marketing_provider_profiles fixture restores only a live-derived table shape because its historical CREATE TABLE migration is absent; foreign-key and policy provenance are not certified.");
-console.log("Historical schema baseline preflight PASS: isolated SMM and provider-profile fixtures validated for disposable replay only.");
+console.log("Historical schema baseline preflight PASS: owner-approved isolated SMM fixtures and explicitly authorized live-derived function compatibility fixture validated.");
