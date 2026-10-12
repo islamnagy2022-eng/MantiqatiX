@@ -20,7 +20,7 @@ export function validateSmmOrderInput(input: SmmOrderInput): ValidatedSmmOrderIn
   }
   const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
   if (url.protocol !== "https:" || url.username || url.password || !hostname ||
-      hostname === "localhost" || hostname.endsWith(".localhost") ||
+      !hostname.includes(".") || hostname === "localhost" || hostname.endsWith(".localhost") ||
       hostname.endsWith(".local") || hostname.endsWith(".internal") ||
       hostname.endsWith(".test") || hostname.endsWith(".invalid") ||
       hostname.endsWith(".example") || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) ||
