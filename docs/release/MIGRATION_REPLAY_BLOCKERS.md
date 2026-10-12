@@ -669,3 +669,17 @@ A checksum-verified scan of the user-provided release artifact found a more prec
 ### Required handling
 
 Do not merely copy or rename the archive migration, reorder timestamped history, or introduce a test-only credit baseline. Preserve both source histories as evidence; reconcile the intended release lineage and review all table constraints, generated columns, defaults, RLS, grants, and policy definitions first. Then make a reviewed candidate-only repair and rerun the entire empty-database chronological replay. Production remains untouched and the release remains **BLOCKED / NOT CERTIFIED**.
+
+## Fail-fast guard verification and structural schema drift — 2026-10-12
+
+The follow-up exact-head workflow on PR #207 now stops before starting disposable Supabase. Run [38279683915](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38279683915) failed at **“Fail closed if the historical schema baseline is missing”** with the explicit message that no approved isolated compatibility baseline exists for `public.credit_accounts` before `20260920155456_harden_credit_status_authorization.sql`. All later replay steps were skipped. This is the intended fail-closed behavior of the new preflight guard, but the workflow is still red and is **not** a successful migration replay.
+
+A fresh read-only live catalog snapshot found further differences between the RC40 table-creation SQL and the current production schema:
+
+- In RC40, `credit_accounts.available_amount` and `credit_periods.outstanding_amount` are generated stored columns. In the live catalog both are ordinary nullable numeric columns with no generated expression.
+- The archived migration sets `credit_accounts.credit_policy_id` foreign-key deletion behavior to `ON DELETE RESTRICT`; the live catalog reports the default `NO ACTION` behavior.
+- The amount precision and credit-policy default differences recorded above remain present. Live finance-read policy definitions are visible in the catalog, but their authoritative creation source remains unlocated.
+
+This strengthens the conclusion that the archived creation migration is not an exact representation of the live schema. The guard correctly prevents a synthetic baseline from hiding this gap. No migration, policy, grant, production object, or financial record was changed.
+
+**Next safe step:** continue source-lineage recovery for the live table definitions and finance-read policy creation, then propose a reviewed candidate-only repair with explicit treatment of generated-vs-ordinary columns, defaults, constraints, and policies. Do not remove the guard merely to turn CI green. Status remains **BLOCKED / NOT CERTIFIED**.
