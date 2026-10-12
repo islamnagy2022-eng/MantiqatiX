@@ -167,3 +167,26 @@ Candidate ref at start of this audit: `06ce8d9c01613bdcaba381913de9841586ad34dc`
 6. Do not merge or deploy this draft. Do not alter production functions, schema, auth settings, financial data, or repository protections without the required explicit approval.
 
 This is a 30-check audit/triage cycle, **not** a declaration that 30 business modules are complete. Continue implementation in small reviewable changes and only mark a module complete after its acceptance tests and evidence pass. Release remains `BLOCKED / NOT CERTIFIED`.
+
+## SMM financial-safety remediation continuation — 2026-10-12
+
+Candidate branch: `reconcile/rc425-458-current-main-20261011`. Latest remediation commit at report update: `13f079cad3b8f7f421f8e6069e3f37993822259b`.
+
+### Source changes made on the draft branch
+- Added a 15-second bounded provider request and typed non-definitive errors for network, timeout, and ambiguous HTTP/response outcomes.
+- Changed order submission so uncertain provider outcomes, missing provider order IDs, wallet-debit RPC errors/non-boolean results, and provider-accepted/database-persistence failures require reconciliation and do **not** trigger automatic refunds.
+- Restricted refunds to an explicitly recognized provider rejection and checks the refund RPC result, including boolean `false`.
+- Made accepted-order persistence conditional on the expected `SUBMITTING` state; status polling avoids overwriting terminal order states and remains scoped to the authenticated owner.
+- Routed storefront catalog, customer order/wallet data, and admin visibility through the authenticated Edge Function rather than direct browser table reads.
+- Added positive finite amount validation and a stable per-attempt idempotency reference for administrative wallet credits.
+- Updated the SMM static validator to check the implemented debit ambiguity contract rather than requiring a stale variable-name pattern.
+
+### Verification and limitations
+- A manual source-contract recheck matched **21/21 targeted safety predicates** against the candidate source. This is not a substitute for running the repository validators, Deno type checking, PostgreSQL integration tests, or exact-head GitHub Actions.
+- The GitHub connector did not return new workflow runs for the latest commits; therefore, no exact-head CI pass is claimed for these changes.
+- No live Edge Function was deployed or modified. Production `smm-gateway` remains observed as version 6 without the candidate fail-closed flag. This remains a P0 launch blocker.
+- The historical migration replay dependency problem remains unresolved. No synthetic function definitions or unapproved historical baselines were introduced.
+- PR #207 remains draft/unmerged; production migrations and financial data remain untouched.
+
+**Release decision remains `BLOCKED / NOT CERTIFIED`.** Before SMM is enabled after launch, require exact-head CI, review of provider-specific definitive-rejection semantics, isolated failure-injection tests, approved deployment, and live negative verification. Core release additionally requires successful full chronological replay, production migration reconciliation, and the remaining release evidence listed above.
+
