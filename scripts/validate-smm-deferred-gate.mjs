@@ -50,6 +50,7 @@ check(placeOrder.includes('PROVIDER_RESULT_UNKNOWN'), 'ambiguous provider outcom
 check(placeOrder.includes('PROVIDER_ACCEPTED_PERSISTENCE_PENDING'), 'provider acceptance with failed persistence must be surfaced for reconciliation');
 check(!placeOrder.includes('smm_refund_wallet'), 'provider exceptions must not trigger automatic wallet refunds');
 check(!placeOrder.includes('Automatic refund after provider failure'), 'ambiguous provider outcomes must never auto-refund');
+check(!placeOrder.includes('payload:providerResult'), 'raw provider response must not be persisted to SMM order events');
 
 const orderStatus=gateway.slice(gateway.indexOf('if(a==="order_status")'),gateway.indexOf('return json({error:"UNKNOWN_ACTION"}',gateway.indexOf('if(a==="order_status")')));
 check(orderStatus.includes('normalizeProviderOrderStatus(o.data.status,rawStatus)'), 'order polling must use the tested status normalizer');
