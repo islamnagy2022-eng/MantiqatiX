@@ -562,3 +562,15 @@ This status is intentional and must remain until the open gates above are indepe
 - SMM storefront/provider-order/wallet implementation remains frozen. This batch only changes the distinct internal Marketing & Advertising workspace.
 - Remaining marketing module gaps include lead assignment/status/follow-up workflow, broader verified provider discovery, attribution/analytics tied to real platform data, and authenticated browser E2E after the approved schema release.
 - Overall release remains **BLOCKED / NOT CERTIFIED**. Continue by querying latest exact-head Actions results, fix only source/test failures that are within the non-SMM launch scope, and keep all production changes behind explicit change approval.
+
+
+## Resume point — 2026-10-12 — RC425+ remediation
+
+- **Main remains:** `8a56358d505d2c12878440037f7f24ba65d2ea10`. Current work is on `reconcile/rc425-458-current-main-20261011`; latest known docs commit is `9ddc11ab860546c86c0ebadb8a81f38cf707b68b`.
+- **Replay gate:** BLOCKED. Run [38195776127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776127) fails closed before Supabase startup because no approved disposable-only `public.bookings` compatibility baseline or authoritative historical DDL is available. Do not add the baseline without explicit owner approval; do not skip or reorder migrations.
+- **Dependency analysis:** 12 earlier migrations create 36 tables; hardening migration alters 21; `bookings` is the sole unmatched table dependency in that comparison. Live metadata does not establish historical creation or policy chronology.
+- **Targeted CI:** module validation [38195776086](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776086), SMM deferred checks [38195776073](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776073), SMM service-role ACL [38195776161](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776161), migration version uniqueness/history immutability/collision guards all passed on the candidate merge head. Pages validation [38195776024](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776024) passed; deploy was skipped.
+- **Live SMM:** deployed `smm-gateway` remains ACTIVE v6 and lacks the source-only deny gate from PR #214. Do not expose SMM order/wallet/provider paths at launch until containment is separately authorized, deployed, and negatively tested.
+- **No production changes:** no database/migration/Auth/RLS/grant writes, Edge deployments, financial mutations, or merges were performed.
+- **Next executable task:** check latest exact-head CI for branch commit `9ddc11ab860546c86c0ebadb8a81f38cf707b68b`; continue searching trusted historical artifacts for bookings creation DDL. If no authoritative source appears, stop at the explicit approval boundary rather than fabricate a fixture.
+- **Release status:** **BLOCKED / NOT CERTIFIED**.
