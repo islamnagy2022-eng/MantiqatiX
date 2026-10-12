@@ -55,3 +55,18 @@ export function validateSmmOrderPricing(input: SmmOrderPricing): { ok: true; cha
   }
   return { ok: true, charged, cost, profit };
 }
+
+
+export function normalizeSmmMoney(value: unknown, allowZero: boolean): number | null {
+  let amount: number;
+  if (typeof value === "number") {
+    amount = value;
+  } else if (typeof value === "string" && /^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(value)) {
+    amount = Number(value);
+  } else {
+    return null;
+  }
+  if (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000_000 ||
+      (!allowZero && amount <= 0) || Math.round(amount * 100) / 100 !== amount) return null;
+  return amount;
+}
