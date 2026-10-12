@@ -18,6 +18,7 @@ assert.ok(orderFlow.includes("PROVIDER_OUTCOME_UNKNOWN") && orderFlow.includes("
 assert.ok(orderFlow.includes('status:"SUBMITTING"') && orderFlow.includes('.eq("status","SUBMITTING")'), "Unknown provider outcomes must not be marked terminal");
 assert.ok(!orderFlow.includes("smm_refund_wallet"), "Provider exceptions and ambiguous outcomes must never trigger automatic refunds");
 assert.ok(orderFlow.includes("PROVIDER_ACCEPTED_PERSISTENCE_UNKNOWN") && orderFlow.includes("smm_order_events"), "Provider acceptance/persistence ambiguity must be audited without refund");
+assert.ok(orderFlow.includes("if(debit.error)") && orderFlow.includes("WALLET_DEBIT_OUTCOME_UNKNOWN") && orderFlow.indexOf("if(debit.error)") < orderFlow.indexOf("if(debit.data!==true)"), "Ambiguous wallet debit errors must be reconciled, not reported as insufficient balance");
 assert.ok(!page.includes("<script"), "Deferred SMM page must not load scripts");
 assert.ok(!page.includes("supabase"), "Deferred SMM page must not initialize Supabase");
 assert.match(page, /قيد التطوير/);
