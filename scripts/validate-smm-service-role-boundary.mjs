@@ -43,7 +43,8 @@ assert.ok(orderStatusStart >= 0 && orderStatusEnd > orderStatusStart, "order_sta
 const orderStatus = edge.slice(orderStatusStart, orderStatusEnd);
 assert.doesNotMatch(orderStatus, /result:r/, "raw provider status responses must not be returned to customers");
 assert.doesNotMatch(orderStatus, /payload:r\}/, "raw provider status responses must not be persisted in order events");
-assert.match(orderStatus, /const providerStatus=String\(r\.status\|\|"unknown"\)\.slice\(0,80\)/, "status response must expose only a bounded provider status");
+assert.match(orderStatus, /const providerStatus=\["completed","complete"\]\.includes\(m\).*?"unknown"/, "status response must normalize untrusted provider status to a safe enum");
+assert.doesNotMatch(orderStatus, /provider_status:String\(r\.status/, "raw provider status text must not be persisted or returned");
 assert.match(orderStatus, /const safeStatus=\{provider_status:providerStatus/, "status response must expose an allowlisted provider status object");
 assert.match(orderStatus, /Number\.isFinite\(remains\)&&remains>=0/, "remaining quantity must be finite and nonnegative");
 assert.match(orderStatus, /Number\.isFinite\(startCount\)&&startCount>=0/, "start count must be finite and nonnegative");
