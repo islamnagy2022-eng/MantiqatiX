@@ -20,7 +20,8 @@ const launchGate=fs.readFileSync('supabase/functions/smm-gateway/launch-gate.ts'
 const launchTests=fs.readFileSync('supabase/functions/smm-gateway/launch-gate.test.ts','utf8');
 check(options>=0 && gate>options, 'SMM default-deny gate must follow OPTIONS handling');
 check(gate>=0 && auth>gate, 'SMM default-deny gate must run before authentication and action routing');
-check(gateway.includes('if(!launch.enabled)return json({error:launch.error') && gateway.includes('},launch.status);'), 'disabled SMM gateway must return a non-success deferred response');
+check(gateway.includes('const SMM_INITIAL_LAUNCH_DEFERRED=true;'), 'separate SMM storefront must be hard-disabled in source for initial launch');
+check(gateway.includes('if(SMM_INITIAL_LAUNCH_DEFERRED||!launch.enabled)return json({error:"SMM_DEFERRED"') && gateway.includes('},503);'), 'disabled SMM gateway must return a fixed non-success deferred response');
 check(gateway.includes('getSmmLaunchDecision(Deno.env.get("MNTY_SMM_ENABLED"),Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED"))'), 'SMM requires both runtime enablement and separate post-launch approval');
 check(launchGate.includes('enabledFlag === "true" && postLaunchApprovalFlag === "true"'), 'SMM launch gate must fail closed unless both independent flags are exactly true');
 check(launchTests.includes('both exact approvals') && launchTests.includes('explicit dual approval'), 'dual launch-gate behavior must have unit tests');
