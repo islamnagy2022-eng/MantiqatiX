@@ -574,3 +574,14 @@ This status is intentional and must remain until the open gates above are indepe
 - **No production changes:** no database/migration/Auth/RLS/grant writes, Edge deployments, financial mutations, or merges were performed.
 - **Next executable task:** check latest exact-head CI for branch commit `9ddc11ab860546c86c0ebadb8a81f38cf707b68b`; continue searching trusted historical artifacts for bookings creation DDL. If no authoritative source appears, stop at the explicit approval boundary rather than fabricate a fixture.
 - **Release status:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest verified checkpoint — 2026-10-12 exact-head follow-up
+
+- Candidate head: `65e1830e22768ce9d1b65346c1c8abd35b310d4f`; main remains `8a56358d505d2c12878440037f7f24ba65d2ea10`.
+- Exact-head targeted CI passed: module professionalization, backend-only boundary, MantiGO privacy, approval audit atomicity, migration uniqueness/immutability/collision, Marketing Campaign Backend, Marketing CRM tenant scope, SMM service-role boundary, and SMM deferred module validation. See SESSION-004 in `docs/SESSION_LOG.md` for exact run links.
+- Pages workflow passed but deployment was skipped because the PR is draft. This is not a production deployment.
+- Full migration replay remains blocked at the fail-closed preflight due to missing authoritative historical `public.bookings` creation DDL. Expanded branch/code/commit searches did not recover it.
+- Live `smm-gateway` remains active v6 without `MNTY_SMM_ENABLED` / `SMM_POST_LAUNCH_DEFERRED`; candidate PR #214 is not deployed.
+- No production mutation, migration, deployment, merge, financial write, or Auth/RLS/grant change occurred.
+- **Decision: BLOCKED / NOT CERTIFIED.** Next action is trusted historical DDL recovery or explicit approval for a disposable-only compatibility baseline; do not fabricate schema or bypass replay.
