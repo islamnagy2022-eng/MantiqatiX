@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` for the chronological record and `docs/MASTER_PRODUCTION_TODO.md` for open gates. Release remains **BLOCKED / NOT CERTIFIED**. Verified main/base HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Auth/membership work is isolated in draft PR #217, branch `fix/auth-membership-recovery-20261013`, the branch includes RC215 disposable PostgreSQL integration tests and release documentation. Latest code/test commit `5f410d59f2035aa0569dc5a7d75f522172167804` has passed auth/static validation and the corrected membership integration test. CI run [38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500) confirms the RC215 membership PostgreSQL integration PASS including inactive-tenant denial. Pages deploy was skipped because the PR is draft. Do not treat the PR as deployed.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -539,3 +539,43 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## Latest auth/membership continuation — 2026-10-13
+
+- PR #217: https://github.com/islamnagy2022-eng/MantiqaTiX/pull/217 — draft/open; do not merge until runtime acceptance evidence exists.
+- Changes on the branch: OAuth PKCE, protected membership recovery, source convergence to `private.ensure_customer_membership_for_user`, and static release/auth guards.
+- Verified CI runs: Pages validation [38318510837](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510837) PASS (deploy skipped); Module Professionalization [38318510864](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510864) PASS; Backend-only Module Boundary [38318510823](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510823) PASS; MantiGO Open Ride Privacy Boundary [38318510972](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510972) PASS.
+- Live read-only Auth/membership snapshot: 6 permanent Auth users; 0 missing active membership; 4 active platform CUSTOMER membership rows reference absent Auth IDs. Preserve and investigate; no data mutation was performed.
+- Remaining first gate: controlled non-production browser E2E for Google OAuth/session restoration, membership recovery, negative auth cases, idempotency, and cross-tenant/RLS denial. Do not create production test accounts or change Auth/DB/RLS/Edge Function deployment without proper authorization.
+
+
+### RC215 membership integration test result — 2026-10-13
+- Disposable PostgreSQL integration now applies `20260930100000_rc215_customer_membership_invariant.sql` and verifies trigger-created customer membership, idempotent reactivation, anonymous-user exclusion, and RPC execute grants.
+- Verified PASS in [Module Professionalization Validation run 38318855957](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855957).
+- All four orphan active CUSTOMER memberships have audit references (3 automatic activation successes, 1 direct registration activation success); origin of missing Auth identities remains unresolved. Preserve data.
+- Do not close live browser OAuth/membership E2E, multi-tenant isolation, or release gates based on this isolated SQL test.
+
+
+### Latest RC215 correction — 2026-10-13
+- One integration run exposed malformed dollar-quoted SQL delimiters in the new test. The failure was diagnosed from CI logs, delimiters were corrected to `$rc215_test$`, and the subsequent integration passed.
+- Latest verified membership integration: [run 38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500) PASS.
+- Production gate remains BLOCKED / NOT CERTIFIED because browser OAuth round-trip, live recovery with a controlled test identity, and cross-tenant runtime E2E have not been executed.
+
+
+### Live membership RLS/grant evidence — 2026-10-13
+- `public.user_memberships`: RLS and FORCE RLS enabled.
+- `memberships_select_self` permits authenticated SELECT only for a non-anonymous JWT with `auth.uid() = user_id`.
+- Authenticated has SELECT but no INSERT/UPDATE/DELETE table privilege; anon has no SELECT. PASS for this specific boundary; cross-tenant E2E remains NOT VERIFIED.
+
+
+### P0 release blocker discovered — platform-admin authorization scope (2026-10-13)
+- Live `mnty_can_platform_admin()` still calls broad/null-scope `mnty_can('admin', NULL, NULL, NULL)`; the live role map grants `admin` to tenant OWNER/ADMIN. This is a latent platform privilege-boundary flaw.
+- Live blast radius: 5 SECURITY DEFINER functions reference the helper; 5 RLS policies use it on `digital_pages`, `mantigo_financial_config`, and `mantigo_rate_limit_config`.
+- Current-user audit found no active user relying solely on tenant-level OWNER/ADMIN/admin permission without a correctly scoped platform SUPER_ADMIN. This does not eliminate future risk.
+- Candidate RC449/RC462 disposable integration passes on PR #207 candidate run [38315402754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402754). Full migration replay fails closed on missing approved `credit_policies`, `credit_accounts`, and `credit_periods` compatibility baselines in [run 38315402728](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402728).
+- Do not deploy RC449 independently or invent baselines. The approved migration-chain gate remains BLOCKED; production unchanged.
+
+
+### Live RLS runtime probe — 2026-10-13
+- Transaction-local authenticated context queried `user_memberships` and returned 38 rows for the selected existing identity, 0 rows for other user IDs; transaction rolled back with no persistent writes. This is a single-identity RLS check, not full tenant-isolation E2E.

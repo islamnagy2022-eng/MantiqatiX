@@ -1559,3 +1559,66 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Session update — 2026-10-13 — Auth / Membership recovery (PR #217)
+
+### Implemented on review branch; not production deployed
+- [x] Google OAuth PKCE guard added to main browser Supabase client.
+- [x] Safe membership-recovery path calls authenticated `mnty-customer-registration`, validates the session identity, reloads live membership data, and confirms active CUSTOMER membership before success.
+- [x] Edge Function source aligned to the live private RPC `ensure_customer_membership_for_user`.
+- [x] Auth validator and release preflight guard the canonical RPC, PKCE, session identity and membership confirmation.
+- [x] CI verified at PR head `90f9ac4c9d49502d1ffe7249e936445fa6743615`: Pages validation PASS (deploy skipped because draft); Module Professionalization PASS; Backend-only Module Boundary PASS; MantiGO Open Ride Privacy Boundary PASS.
+- [x] Session evidence appended to `docs/SESSION_LOG.md`.
+
+### Production read-only audit
+- [x] Project ACTIVE_HEALTHY; `mnty-customer-registration` ACTIVE with JWT verification enabled.
+- [x] Canonical private RPC is service_role-only; auth-user membership trigger is installed.
+- [x] 6 permanent Auth users; 0 without active memberships; 10 distinct active membership user IDs.
+- [ ] Investigate 4 active platform CUSTOMER memberships whose user IDs are absent from `auth.users` (created 2026-09-29 to 2026-09-30). Preserve records until provenance/retention policy is established; do not delete or deactivate speculatively.
+
+### Remaining blockers for this module
+- [ ] Browser E2E: Google OAuth round-trip/session restoration using a controlled non-production test identity.
+- [ ] Membership recovery E2E for an account without active membership; verify membership appears after refresh and repeated activation is idempotent.
+- [ ] Negative tests: expired token, mismatched client/session identity, anonymous account, network/function failure, and tenant mismatch.
+- [ ] Two independent identities/two tenants: membership role switching and cross-tenant denial.
+- [ ] Review PR #217; keep draft/unmerged until required runtime and security evidence exists.
+- [ ] Do not claim production readiness from static CI alone; no production test account, DDL/data mutation, Auth setting change, Edge Function deploy, or release without the applicable authorization.
+
+
+### Follow-up verification — 2026-10-13
+- [x] Added disposable PostgreSQL 16 integration coverage for the RC215 membership migration/trigger, repeated activation idempotency, anonymous-user exclusion, and service-role-only RPC grants.
+- [x] New `customer-membership-rc215-integration` CI job PASS in [run 38318855957](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855957).
+- [x] Pages validation PASS; deploy skipped because PR #217 is draft: [run 38318856044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318856044).
+- [x] MantiGO privacy integration PASS: [run 38318855975](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855975).
+- [~] Backend-only workflow validation and financial journal integration PASS; approval audit integration was still running at last check: [run 38318855947](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855947).
+- [x] Read-only audit found all four orphan active CUSTOMER memberships have corresponding audit references: 3 `CUSTOMER_MEMBERSHIP_AUTO_ACTIVATED` and 1 `CUSTOMER_REGISTRATION_ACTIVATED`. This establishes app-origin activation evidence, not why the Auth users are now absent. Preserve records pending lifecycle/retention review.
+- [ ] Still open: real browser OAuth E2E, live membership recovery with controlled non-production identity, negative token/session tests, concurrent idempotency, and two-identity cross-tenant denial.
+
+
+### RC215 final integration verification — 2026-10-13
+- [x] Fixed malformed SQL block delimiters discovered by CI on the inactive-tenant test; failure was diagnosed from the job log and corrected using explicit `$rc215_test$` delimiters.
+- [x] Final membership integration PASS, including inactive-tenant denial: [run 38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500).
+- [x] Pages validation PASS, deployment skipped because PR is draft: [run 38319097546](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097546).
+- [x] Backend-only validator and approval-action-audit integration PASS: [run 38319097571](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097571); financial-journal integration still running at last check.
+- [~] MantiGO privacy workflow [run 38319097534](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097534) was still running at last check.
+- [ ] Still open: live browser Google OAuth, recovery with a controlled non-production identity, expired/mismatched token tests, concurrent idempotency, and independent cross-tenant denial.
+
+
+### Live membership authorization boundary — 2026-10-13
+- [x] Verified live `public.user_memberships` has RLS + FORCE RLS enabled.
+- [x] Verified the authenticated SELECT policy `memberships_select_self` requires a non-anonymous JWT and `auth.uid() = user_id`.
+- [x] Verified grants: authenticated SELECT only (no INSERT/UPDATE/DELETE); anon has no SELECT. Client membership mutation remains denied; the protected server function is the intended recovery boundary.
+- [ ] Cross-tenant denial still requires adversarial E2E with independent identities; this read-only policy/grant audit is not a substitute.
+
+
+### P0 security blocker — platform-admin scope (2026-10-13)
+- [x] Read-only live catalog confirms `mnty_can_platform_admin()` delegates to broad/null-scope `mnty_can('admin', NULL, NULL, NULL)`, whose role map grants admin to tenant OWNER/ADMIN. Treat this as a latent platform privilege-boundary flaw.
+- [x] Blast radius inventoried: 5 live SECURITY DEFINER functions reference the helper and 5 live RLS policies use it across digital pages and MantiGO configuration tables.
+- [x] Current-user population check found 0 active users with OWNER/ADMIN or explicit admin permission lacking a correctly scoped active platform SUPER_ADMIN membership; latent design risk remains.
+- [x] Candidate RC449/RC462 disposable PostgreSQL integration PASS in [run 38315402754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402754).
+- [!] Do not deploy candidate yet: full migration replay [run 38315402728](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402728) fails closed due missing approved compatibility baselines for `credit_policies`, `credit_accounts`, and `credit_periods`. Do not invent DDL or bypass the ordered migration gate.
+- [ ] Resolve authoritative credit schema provenance, pass clean ordered replay, then apply and verify RC449/RC462 through approved release gates. Production remains unchanged.
+
+
+- [x] Live read-only RLS runtime probe under transaction-local `authenticated` claims returned 38 own membership rows and 0 other-user rows; transaction rolled back. This verifies one identity's self-row visibility only; full two-tenant adversarial E2E remains open.

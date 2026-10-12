@@ -35,7 +35,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: result, error: activationError } = await admin
     .schema("private")
-    .rpc("activate_customer_registration_atomic", {
+    .rpc("ensure_customer_membership_for_user", {
       p_user_id: actor.id,
       p_tenant_id: tenantId,
     });

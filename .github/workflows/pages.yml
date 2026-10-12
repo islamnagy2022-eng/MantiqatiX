@@ -126,7 +126,7 @@ jobs:
           grep -q 'update_order_status_backend' supabase/functions/order-status-update/index.ts
           grep -q 'create_order_backend' supabase/functions/order-create/index.ts
           grep -q 'review_registration_request_atomic' supabase/functions/mnty-registration-review/index.ts
-          grep -q 'activate_customer_registration_atomic' supabase/functions/mnty-customer-registration/index.ts
+          grep -q 'ensure_customer_membership_for_user' supabase/functions/mnty-customer-registration/index.ts
           grep -q 'business-branch-admin' web/provider-onboarding-module.js
           grep -q 'SUPABASE_SERVICE_ROLE_KEY' supabase/functions/payment-intent/index.ts
           grep -q 'SUPABASE_SERVICE_ROLE_KEY' supabase/functions/settlement-create/index.ts
