@@ -6,6 +6,7 @@ on:
       - "supabase/migrations/20261012110000_rc458_smm_wallet_exactly_once.sql"
       - "supabase/tests/rc456_smm_service_role_fixture.sql"
       - "supabase/tests/rc458_smm_wallet_idempotency.sql"
+      - "scripts/validate-smm-wallet-idempotency.mjs"
       - ".github/workflows/smm-wallet-exactly-once.yml"
   pull_request:
     branches: [main]
@@ -35,6 +36,8 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - name: Validate wallet exactly-once contract
+        run: node scripts/validate-smm-wallet-idempotency.mjs
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Apply disposable fixture and RC458 contract
