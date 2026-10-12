@@ -34,7 +34,7 @@ for (const spec of legacyBaselineSpecs) {
       !/Never apply this file to production/.test(source) ||
       !new RegExp("\\bcreate\\s+table\\s+(?:public\\s*\\.\\s*)?" + spec.table + "\\b","i").test(source) ||
       !spec.required.test(source) ||
-      /^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(source)) {
+      /^\s*(?:insert\s+into|copy\s+public\.)/im.test(source)) {
     console.error("P0 BLOCKED: legacy table baseline failed provenance/shape/no-data checks: " + spec.table);
     process.exit(1);
   }
