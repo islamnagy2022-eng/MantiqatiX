@@ -10,6 +10,8 @@ on:
       - "supabase/tests/rc456_smm_service_role_*.sql"
       - "supabase/tests/rc457_smm_order_idempotency.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
+      - "supabase/functions/smm-gateway/launch-gate.ts"
+      - "supabase/functions/smm-gateway/launch-gate.test.ts"
       - ".github/workflows/smm-service-role-access-boundary.yml"
   pull_request:
     branches: [main]
@@ -34,6 +36,7 @@ jobs:
         with:
           deno-version: v2.x
       - run: node scripts/validate-smm-service-role-boundary.mjs
+      - run: deno test --no-lock supabase/functions/smm-gateway/launch-gate.test.ts
       - run: deno check --no-lock supabase/functions/smm-gateway/index.ts
 
   smm-service-role-postgres:
