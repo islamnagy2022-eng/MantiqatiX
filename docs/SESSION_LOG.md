@@ -151,3 +151,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Earlier type-check caught nested Supabase relation cardinality and unknown response typing in the new status-polling path. Fixed by normalizing the relation as object-or-array and explicitly typing the provider response; the new Deno check passed.
 - Backend-only Module Boundary and Pages workflow were still in progress at the latest check. Pages deployment remains skipped for the draft PR; no production deployment is claimed.
 - No production deploy, migration, grants, provider calls, wallet operations, or merge. State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-015 — SMM progress estimate adjustment
+
+- Updated the SMM module estimate from 75% to 80% source build and 25% to 40% verification/readiness based on the new provider allowlist/transport module, Deno tests, ambiguous-order quarantine, terminal-state protection, and successful exact-code-head source/isolated integration workflows.
+- Updated overall rounded averages: source build remains 69%, module verification/readiness becomes 38%; conservative launch readiness remains 30% because production migration lineage, live schema/idempotency parity, egress policy, and production E2E/restore gates remain unresolved.
+- Current branch has a documentation-only follow-up; no production changes or deployment.
