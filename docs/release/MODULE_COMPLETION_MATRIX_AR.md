@@ -79,3 +79,9 @@
 - [Deploy MantiqaTix Web workflow](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38308794709) — workflow success، لكن job `deploy` **skipped** لأن التغيير على PR مسودة؛ لذلك هذا ليس نشرًا للإنتاج.
 
 هذه النتائج تدعم وجود حواجز واختبارات مصدر/تكامل جيدة، لكنها لا تغيّر النسب التقديرية ولا تغلق بوابات P0: إعادة تشغيل سلسلة الترحيلات الكاملة، اختبارات E2E الشاملة، مطابقة الإنتاج، الاستعادة، أو نشر النسخة المرشحة ما زالت غير مثبتة.
+
+
+## Additional SMM order-state hardening — 2026-10-13
+- Candidate source now quarantines ambiguous order creation/debit/provider outcomes, removes automatic refunds for ambiguous provider exceptions, uses an explicit provider hostname allowlist, and preserves terminal order states during status polling.
+- Pages validation and Deno transport unit tests passed at `68c78cc5f5a6fa57d4246967ac88849400371bcd`; that result predates the terminal-state polling changes.
+- Latest code head at the time of this matrix update is `80441f12b572712e3486cee8e197f95ada6393a7`; exact-head workflows are queued/in progress. Progress percentages remain unchanged until exact-head checks and broader integration evidence complete.

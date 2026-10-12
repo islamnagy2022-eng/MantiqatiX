@@ -121,3 +121,10 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [ ] The workflow's `deploy` job is skipped for the draft PR; no production deployment.
 - [ ] Other exact-head CI checks were queued/in progress at the last inspection.
 - [ ] Keep SMM disabled until live schema/idempotency/terminal-state reconciliation, provider egress controls, and production negative tests are complete.
+
+
+## Order-status reconciliation — 2026-10-13
+- [x] Candidate polling preserves terminal order states against stale provider responses.
+- [x] Failed status persistence is surfaced as `ORDER_STATUS_PERSISTENCE_PENDING`.
+- [x] Client responses contain only normalized status and provider status, not the raw provider payload.
+- [ ] Exact-head CI is pending; production schema and terminal-state/idempotency contract still require verification.

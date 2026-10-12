@@ -1635,3 +1635,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Fixed an initial validator failure caused by extracting transport policy into `provider-transport.ts`; rerun on the corrected head passed.
 - [ ] Backend-only, SMM service-role, MantiGO privacy, and module-professionalization workflows must complete on the exact final head before the candidate batch is considered CI-green.
 - [ ] Pages deployment remains skipped for the draft PR; production is unchanged.
+
+
+## 2026-10-13 — SMM order status state safety
+- [x] Candidate status polling preserves terminal order states when provider responses are stale.
+- [x] Status persistence errors are surfaced as reconciliation-required instead of being reported as successful sync.
+- [x] Raw provider status payload is no longer returned to clients.
+- [x] Added source-contract checks for terminal-state preservation and response minimization.
+- [ ] Exact-head CI for the order-status change is pending. Do not certify until it passes and schema/idempotency parity is proven.

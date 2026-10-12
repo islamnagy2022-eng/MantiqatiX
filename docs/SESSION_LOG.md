@@ -131,3 +131,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The provider allowlist, bounded JSON parsing, and ambiguous-order quarantine changes remain candidate source only. Other exact-head CI workflows were still queued at the latest status check.
 - No production deployment, migration, grants, provider call, wallet operation, or merge.
 - State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-013 — SMM order status reconciliation hardening
+
+- Updated SMM order status polling to preserve terminal states (`COMPLETED`, `CANCELLED`, `FAILED`, `PARTIAL`) against stale provider status responses.
+- Status persistence failures now return `ORDER_STATUS_PERSISTENCE_PENDING` with a reconciliation-required response instead of silently returning success.
+- Provider status responses returned to the client are reduced to the normalized status and provider status string; the raw provider response is no longer returned.
+- Extended the source validator to check terminal-state preservation, persistence-failure handling, and response minimization.
+- Exact-head CI for code commits `51934f98728f6f2be9602d103a1aff59a6a4110d` and `80441f12b572712e3486cee8e197f95ada6393a7` was queued/in progress at the latest inspection. The prior Pages validation at `68c78cc5f5a6fa57d4246967ac88849400371bcd` passed, including Deno transport tests; it predates the order-status change.
+- No production deploy, migration, grants, provider calls, wallet operations, or merge. State remains **BLOCKED / NOT CERTIFIED**.
