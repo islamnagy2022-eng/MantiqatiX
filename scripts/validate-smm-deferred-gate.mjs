@@ -77,6 +77,10 @@ check(orderValidation.includes("Math.round((value + Number.EPSILON) * 100) / 100
 check(tests.includes('SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs'), 'SMM URL safety tests must exist');
 check(tests.includes('SMM pricing requires a strictly positive customer margin and finite totals'), 'SMM order pricing tests must exist');
 check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must return a generic client response');
+check(gateway.includes("normalizeProviderBalance(await call(p.data,await secret(b.provider_id),\"balance\"))"), "provider balance output must be normalized before returning to admins");
+check(gateway.includes("ADMIN_DATA_READ_FAILED"), "admin dashboard must not silently mask database read failures");
+check(transport.includes("host.endsWith(\".internal\")") && transport.includes("host.endsWith(\".onion\")"), "provider transport must reject internal and reserved hostname suffixes");
+check(tests.includes("provider balance normalization exposes only a bounded amount and currency"), "provider balance normalization tests must exist");
 
 check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
 check(fs.existsSync('supabase/functions/smm-gateway/order-status.ts'), 'provider status normalization module must exist');
