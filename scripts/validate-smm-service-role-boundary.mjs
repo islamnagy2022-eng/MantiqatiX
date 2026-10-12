@@ -49,6 +49,8 @@ assert.match(placeOrder, /IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST/, "idemp
 assert.match(idempotencyMigration, /create unique index if not exists smm_orders_user_idempotency_key_uidx[\s\S]*on public\.smm_orders \(user_id, idempotency_key\)/, "database must enforce per-user key uniqueness");
 assert.match(idempotencyMigration, /idempotency_key is null or idempotency_key ~/, "idempotency key format must be constrained");
 assert.match(smmUi, /sessionStorage\.getItem\(storageKey\)/, "UI must reuse the same key after an ambiguous network retry");
+assert.match(smmUi, /sessionStorage\.setItem\(storageKey,idempotencyKey\)/, "UI must persist a new idempotency key before sending");
+assert.match(smmUi, /تعذر حفظ معرّف آمن للطلب في جلسة المتصفح؛ لم يتم إرسال الطلب/, "UI must fail closed if it cannot persist the idempotency key");
 assert.match(smmUi, /idempotency_key:idempotencyKey/, "UI must send the idempotency key to the gateway");
 assert.match(smmUi, /if\(r\.pending\)/, "UI must show pending reconciliation rather than claiming confirmed success");
 assert.ok(placeOrder.includes('target.protocol!=="https:"'), "customer target URL must require HTTPS");
