@@ -562,3 +562,17 @@ This is confirmed on the latest exact candidate head. The main migration directo
 **Do not resolve this by editing the already-applied migration, backdating production DDL, skipping the migration, or injecting an unapproved credit schema snapshot.** The outstanding decision is limited to whether a schema-only, live-derived compatibility baseline for `credit_policies`, `credit_accounts`, and `credit_periods`, including verified constraints and policy definitions, may be generated and injected into the disposable replay workspace only. It must remain outside committed production migrations and contain no production rows or secrets. Until the source is recovered or that disposable-only baseline is explicitly approved and verified, the chronological replay and release gate remain BLOCKED.
 
 Latest exact-head non-replay CI has passed for migration immutability/version uniqueness, module professionalization, SMM deferral and service-role boundary, marketing campaign/CRM, backend-only module boundary, approval audit atomicity, and MantiGO open-ride privacy. Pages validation succeeded but did not deploy. These checks do not waive the failed full replay or the separate live SMM P0.
+
+
+## Credit migration source recovery — 2026-10-12
+
+A read-only review of the uploaded `source_RC40.zip` archive recovered two original source files that are absent from the current candidate migration directory:
+
+- `supabase/migrations/20260920185000_production_credit_control.sql` creates `credit_policies`, `credit_accounts`, and `credit_periods`, including generated balances, checks, tenant/business foreign keys, RLS/FORCE RLS, and the restrictive `authenticated_sessions_only` policy.
+- `supabase/migrations/20260920190000_harden_credit_status_authorization.sql` defines the credit-status authorization function after those tables.
+
+The candidate currently contains `20260920155456_harden_credit_status_authorization.sql`, which is ordered before the recovered table-creation file and causes the clean replay failure at `public.credit_accounts`.
+
+**This is source recovery, not authorization to inject a credit baseline or to restore the archive blindly.** The archived DDL uses `numeric(14,2)` for five credit amounts, while the read-only live catalog reported `numeric(18,2)`; the archive also does not include the live `credit_accounts_finance_read` and `credit_periods_finance_read` policy creation statements. Therefore the archive alone is not a schema-accurate live snapshot.
+
+Safe next step: reconcile the recovered source with live catalog evidence and the candidate migration-history rules, then make a candidate-only chronological migration correction that preserves applied history and matches the required live precision/policies. Until that is verified by a clean replay, keep the replay gate blocked. No production change was made.
