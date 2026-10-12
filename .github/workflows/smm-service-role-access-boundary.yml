@@ -36,6 +36,7 @@ jobs:
       - run: node scripts/validate-smm-service-role-boundary.mjs
       - run: deno check --no-lock supabase/functions/smm-gateway/index.ts
       - run: deno test supabase/functions/smm-gateway/provider-transport.test.ts
+      - run: deno test supabase/functions/smm-gateway/launch-gate.test.ts
 
   smm-service-role-postgres:
     runs-on: ubuntu-latest
