@@ -9,7 +9,7 @@ export async function readBoundedJson(req: Request, maxBytes = 65_536): Promise<
   }
   const contentLength = req.headers.get("content-length");
   if (contentLength !== null) {
-    if (!/^\\d+$/.test(contentLength) || !Number.isSafeInteger(Number(contentLength))) {
+    if (!/^\d+$/.test(contentLength) || !Number.isSafeInteger(Number(contentLength))) {
       return { ok: false, code: "INVALID_REQUEST", status: 400 };
     }
     if (Number(contentLength) > maxBytes) return { ok: false, code: "REQUEST_TOO_LARGE", status: 413 };
