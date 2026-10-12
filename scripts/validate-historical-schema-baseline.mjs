@@ -16,10 +16,12 @@ const migrations = files.map((name) => ({
   name,
   sql: fs.readFileSync(path.join(migrationDirectory, name), "utf8"),
 }));
+const bookingsBaselinePath = "supabase/tests/baselines/bookings.sql";
 const legacyBaselineSpecs = [
   { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\s\S]*name character varying\(255\) not null[\s\S]*code character varying\(64\) not null/i },
   { path: legacyProductsBaselinePath, table: "products", required: /id uuid primary key[\s\S]*business_id uuid not null references public\.businesses\(id\)[\s\S]*sku character varying\(128\) not null[\s\S]*name character varying\(255\) not null/i },
   { path: legacyOrdersBaselinePath, table: "orders", required: /id uuid primary key[\s\S]*business_id uuid not null references public\.businesses\(id\)[\s\S]*customer_id uuid[\s\S]*status character varying\(64\)/i },
+  { path: bookingsBaselinePath, table: "bookings", required: /id uuid not null default gen_random_uuid\(\)[\s\S]*created_at timestamp without time zone[\s\S]*constraint bookings_pkey primary key\s*\(id\)/i },
 ];
 for (const spec of legacyBaselineSpecs) {
   if (!fs.existsSync(spec.path)) {
@@ -44,7 +46,7 @@ const missingHistoricalTables = [
   { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
   // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
   // No fixture is authorized for this dependency; fail before starting disposable Supabase until source history is recovered.
-  { table: "bookings", before: "20260919233425_production_security_hardening_v1.sql", baselinePath: "supabase/tests/baselines/bookings.sql" },
+  { table: "bookings", before: "20260919233425_production_security_hardening_v1.sql", baselinePath: bookingsBaselinePath },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
