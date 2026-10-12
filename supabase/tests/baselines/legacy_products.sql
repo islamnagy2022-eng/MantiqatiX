@@ -1,5 +1,6 @@
 -- OWNER-APPROVED TEST-ONLY LEGACY TABLE BASELINE
 -- Authorized by the project owner on 2026-10-12 for disposable CI replay only.
+-- Production ledger context: Supabase project moyhiluyhjsujhwlyeuu; read-only source recovery only.
 -- The applied Phase 04 migration modifies an already-existing public.products table.
 -- That legacy table is absent from today's live catalog and its original creation DDL is not in the applied ledger.
 -- The base fields below are limited to the Phase 04 prerequisites and the archived source's documented marketplace model.
