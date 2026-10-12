@@ -177,3 +177,9 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [ ] **BLOCKER:** PR #216 does not contain RC463. Database uniqueness on `(user_id, idempotency_key)` is mandatory; source-only checks cannot prevent concurrent duplicate inserts.
 - [ ] Apply only through the reconciled, approved migration chain, then run disposable PostgreSQL concurrency tests proving one order and one debit.
 - [ ] Exact-head CI for the idempotency change must complete successfully before any gate status is upgraded.
+
+
+## Idempotency source-test evidence — 2026-10-13
+- **PASS on tested source/test commit** `cdbf7f7869159130a8028274d40a6a1376841c11`: [SMM Service Role Access Boundary run](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315127788) completed successfully. Its `validate` job passed `node scripts/validate-smm-service-role-boundary.mjs`, `deno check --no-lock supabase/functions/smm-gateway/index.ts`, and `deno test supabase/functions/smm-gateway/provider-transport.test.ts`, including the new idempotency input cases and malformed UTF-8 regression.
+- **NOT VERIFIED on final documentation/static-contract HEAD** `505f5a868be86a62a59d8459a604e4aca4049ff2`: runs [module validation](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315165048), [backend boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315165239), and [privacy boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315165474) were queued at last check.
+- This source-level PASS does not close the RC463 database uniqueness blocker, migration lineage blocker, or production acceptance gates.
