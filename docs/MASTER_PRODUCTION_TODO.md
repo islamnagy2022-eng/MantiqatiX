@@ -1619,3 +1619,6 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Candidate RC449/RC462 disposable PostgreSQL integration PASS in [run 38315402754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402754).
 - [!] Do not deploy candidate yet: full migration replay [run 38315402728](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402728) fails closed due missing approved compatibility baselines for `credit_policies`, `credit_accounts`, and `credit_periods`. Do not invent DDL or bypass the ordered migration gate.
 - [ ] Resolve authoritative credit schema provenance, pass clean ordered replay, then apply and verify RC449/RC462 through approved release gates. Production remains unchanged.
+
+
+- [x] Live read-only RLS runtime probe under transaction-local `authenticated` claims returned 38 own membership rows and 0 other-user rows; transaction rolled back. This verifies one identity's self-row visibility only; full two-tenant adversarial E2E remains open.
