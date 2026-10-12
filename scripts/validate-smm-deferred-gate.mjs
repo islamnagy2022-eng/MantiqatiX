@@ -80,6 +80,8 @@ check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must
 check(gateway.includes("normalizeProviderBalance(await call(p.data,await secret(b.provider_id),\"balance\"))"), "provider balance output must be normalized before returning to admins");
 check(gateway.includes("ADMIN_DATA_READ_FAILED"), "admin dashboard must not silently mask database read failures");
 check(transport.includes("host.endsWith(\".internal\")") && transport.includes("host.endsWith(\".onion\")"), "provider transport must reject internal and reserved hostname suffixes");
+check(transport.includes('contentType !== "application/json" && !contentType.endsWith("+json")'), "provider transport must reject non-JSON content types");
+check(tests.includes("provider response parser rejects non-JSON content types"), "non-JSON provider response tests must exist");
 check(tests.includes("provider balance normalization exposes only a bounded amount and currency"), "provider balance normalization tests must exist");
 
 check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
