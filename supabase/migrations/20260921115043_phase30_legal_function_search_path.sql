@@ -1,0 +1,4 @@
+BEGIN;
+CREATE OR REPLACE FUNCTION public.prevent_legal_mutation() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$BEGIN RAISE EXCEPTION 'LEGAL_RECORD_IMMUTABLE';END;$$;
+CREATE OR REPLACE FUNCTION public.prevent_published_legal_version_mutation() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$BEGIN IF OLD.status='PUBLISHED' THEN RAISE EXCEPTION 'LEGAL_PUBLISHED_VERSION_IMMUTABLE';END IF;RETURN NEW;END;$$;
+COMMIT;
