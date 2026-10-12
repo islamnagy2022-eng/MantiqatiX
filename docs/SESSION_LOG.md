@@ -169,3 +169,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - CI caught a mismatch in the new timeout validator assertion; fixed the assertion (the source timeout behavior itself was already inside the guarded try/finally). The corrected Pages `validate` job passed at `208621b59c0067d8637f3637fce5000f742c6aea`, including Deno unit tests, production verification engine, and syntax check. Deployment job was skipped because PR #216 is draft.
 - At last check, SMM Service Role Access Boundary had passed its Deno validation and was finishing isolated PostgreSQL integration; Backend-only Module Boundary was still running.
 - No production deploy, migrations, grants, provider calls, wallet operations, or merge. State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-017 — SMM outbound response hardening
+
+- Added provider order-status normalization unit coverage and terminal-state regression cases.
+- Kept the provider request abort timer active through streamed response-body parsing, rather than clearing it after headers.
+- Minimized provider submission event payloads; invalid provider catalog payloads are no longer echoed back to admin clients.
+- Provider status strings are now stripped of ASCII control characters and bounded to 64 characters before persistence/response.
+- Exact-head CI at `41f63a2db299d08ee9dcef9ef9b0c7822da163b3` passed: Pages validate, SMM Service Role Access Boundary (including isolated PostgreSQL ACL integration and Deno check), Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy boundary. Pages deploy job was skipped because PR #216 is draft.
+- PR #216 remains draft/source-only. No production changes, deploy, merge, migrations, grants/RLS changes, provider calls, or wallet operations.
+- Release remains **BLOCKED / NOT CERTIFIED**. The migration lineage/replay gate, live schema/idempotency parity, DNS/network egress controls, financial/provider E2E, and restore rehearsal remain unresolved.

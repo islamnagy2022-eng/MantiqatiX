@@ -1660,3 +1660,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Corrected the static validator's timeout assertion after CI exposed its token mismatch.
 - [x] Pages validation passed at `208621b59c0067d8637f3637fce5000f742c6aea`; deployment remains skipped for draft PR.
 - [ ] Keep overall release readiness at 30%; no change until migration lineage, live schema/idempotency, DNS/egress, financial E2E, and restore drill are verified.
+
+
+## 2026-10-13 continuation — SMM transport boundary
+- [x] Add explicit provider status normalization tests and terminal-state regression tests.
+- [x] Keep provider timeout active through response-body read/parse.
+- [x] Avoid echoing invalid provider catalog payloads.
+- [x] Bound and sanitize provider status strings.
+- [x] Latest exact-head CI passed on `41f63a2db299d08ee9dcef9ef9b0c7822da163b3`; Pages deploy skipped because PR #216 is draft.
+- [ ] Keep SMM disabled in production until the live deny-gate, schema/ACL, idempotency, provider network egress, and reconciliation checks are independently proven.
+- [ ] Resolve migration history/replay blocker without inventing a historical credit baseline.
+- [ ] Complete financial/provider E2E and backup restore rehearsal before release certification.
