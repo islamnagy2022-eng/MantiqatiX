@@ -4,6 +4,7 @@ import path from "node:path";
 const migrationDirectory = "supabase/migrations";
 const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
+const providerProfilesBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
 const files = fs.readdirSync(migrationDirectory)
   .filter((name) => name.endsWith(".sql"))
   .sort();
@@ -22,8 +23,9 @@ const createsProvidersTable = migrations.some(({ sql }) =>
 );
 const providerBaselineVersion = "20260927074158";
 const credentialsBaselineVersion = "20260927074159";
+const providerProfilesBaselineVersion = "20260927074157";
 
-for (const baselinePath of [providerBaselinePath, credentialsBaselinePath]) {
+for (const baselinePath of [providerBaselinePath, credentialsBaselinePath, providerProfilesBaselinePath]) {
   if (!fs.existsSync(baselinePath)) {
     console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
     process.exit(1);
@@ -51,7 +53,15 @@ const credentialsChecks = [
   ["credentials baseline is explicitly test-only", /TEST-ONLY SCHEMA BASELINE/i.test(credentialsBaseline) && /Never apply this file to production/i.test(credentialsBaseline)],
 ];
 
-const failed = [...providerChecks, ...credentialsChecks].filter(([, ok]) => !ok);
+const providerProfilesBaseline = fs.readFileSync(providerProfilesBaselinePath, "utf8");
+const providerProfilesChecks = [
+  ["provider-profile fixture is explicitly test-only and live-derived", /TEST-ONLY LIVE-DERIVED TABLE COMPATIBILITY FIXTURE/.test(providerProfilesBaseline) && /moyhiluyhjsujhwlyeuu/.test(providerProfilesBaseline) && /NOT recovered historical creation DDL/.test(providerProfilesBaseline) && /MUST NOT be applied to production/.test(providerProfilesBaseline)],
+  ["provider-profile columns/defaults and constraints exist", /provider_kind varchar not null/i.test(providerProfilesBaseline) && /name_ar varchar not null/i.test(providerProfilesBaseline) && /slug varchar not null unique/i.test(providerProfilesBaseline) && /specialties jsonb not null default '\[\]'::jsonb/i.test(providerProfilesBaseline) && /settings jsonb not null default '\{\}'::jsonb/i.test(providerProfilesBaseline) && /marketing_provider_profiles_status_check/i.test(providerProfilesBaseline) && /marketing_provider_profiles_provider_kind_check/i.test(providerProfilesBaseline)],
+  ["media migration remains responsible for profile_image_path", !/profile_image_path/i.test(providerProfilesBaseline)],
+  ["provider-profile fixture is schema-only and does not invent historical RLS policy definitions", !/^\s*insert\s+into\b/im.test(providerProfilesBaseline) && !/^\s*create\s+policy\b/im.test(providerProfilesBaseline) && /enable row level security/i.test(providerProfilesBaseline)],
+];
+
+const failed = [...providerChecks, ...credentialsChecks, ...providerProfilesChecks].filter(([, ok]) => !ok);
 if (failed.length) {
   for (const [name] of failed) console.error("P0 BLOCKED: test baseline validation failed: " + name);
   process.exit(1);
@@ -153,6 +163,7 @@ if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
   process.exit(1);
 }
 for (const [version, temporaryName] of [
+  [providerProfilesBaselineVersion, providerProfilesBaselineVersion + "_test_only_live_derived_marketing_provider_profiles_baseline.sql"],
   [providerBaselineVersion, providerBaselineVersion + "_test_only_approved_smm_providers_baseline.sql"],
   [credentialsBaselineVersion, credentialsBaselineVersion + "_test_only_approved_smm_provider_credentials_baseline.sql"],
 ]) {
@@ -161,4 +172,5 @@ for (const [version, temporaryName] of [
     process.exit(1);
   }
 }
-console.log("Historical schema baseline preflight PASS: both owner-approved production-derived SMM schema baselines validated for isolated replay only.");
+console.warn("P0 LIMITATION: marketing_provider_profiles fixture restores only a live-derived table shape because its historical CREATE TABLE migration is absent; foreign-key and policy provenance are not certified.");
+console.log("Historical schema baseline preflight PASS: isolated SMM and provider-profile fixtures validated for disposable replay only.");
