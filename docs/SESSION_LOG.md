@@ -21,3 +21,16 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+## 2026-10-13 — SESSION-002 — RC523 financial-report correction and exact-candidate CI refresh
+
+- **Continuity:** continued on existing PR #218 branch; no reset or rebuild from zero.
+- **Candidate before this log update:** d83a7be0b5482c3c55e9c0536e6bce09625ea645.
+- **Migration immutability repair:** restored historical RC449 migration exactly to main contents after detecting an attempted edit to an existing migration. Migration History Immutability passed on the candidate.
+- **Forward-only fix:** added RC523 at supabase/migrations/20261013200000_rc523_mantigo_financial_report_canonical_columns.sql. The financial report now reads canonical gross_amount and captain_net_amount fields while preserving the response key captain_amount.
+- **Regression strengthening:** changed the disposable RC449 integration fixture's legacy aliases to deliberately incorrect values (amount=999, captain_amount=888) while canonical amounts remain gross=100 and captain net=90. This prevents the test from passing if the function accidentally uses legacy aliases.
+- **Workflow:** the MantiGO Platform Admin Scope Hardening workflow now applies RC449 followed by RC523 before the behavioral integration test.
+- **Exact-candidate CI evidence:** platform-admin scope integration PASS (run 38324310111); audit-log append-only ACL PASS (38324310058); migration-history immutability PASS (38324310114); migration version uniqueness PASS (38324310043); open-PR migration collision guard PASS (38324310131); module professionalization PASS (38324310066); backend-only module boundary PASS (38324310070); approval-action audit atomicity PASS (38324310091); MantiGO open-ride privacy boundary PASS (38324310142); web validation PASS (38324310047).
+- **Deployment distinction:** run 38324310047 deploy job was SKIPPED because this is a PR branch. No production deploy, production migration, Auth configuration change, or live financial mutation occurred.
+- **Current status:** automated candidate checks passed at that candidate; production release remains BLOCKED / NOT CERTIFIED pending live authorization/tenant E2E, payment/settlement E2E, outstanding Auth/security remediation, device tests, and restore rehearsal.
+- **Next:** verify CI on the latest documentation-updated SHA; then continue the administration acceptance gate and reconcile module progress from existing work records. Do not treat missing measurement as zero and do not claim production readiness from disposable CI.
