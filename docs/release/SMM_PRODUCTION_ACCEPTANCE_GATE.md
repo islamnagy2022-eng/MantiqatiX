@@ -153,3 +153,13 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [x] Deno tests cover new-service default-deny, reviewed-price preservation, no-margin deactivation, invalid numeric bounds, and metadata minimization.
 - [x] Exact-head CI passed at `5fb6a6fe5dc038868f2e0f5f03692094a8ea9fc8`: [Pages validate](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975522), [SMM boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975413), [module professionalization](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975400), [backend-only boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975393), [MantiGO privacy](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38311975443).
 - [ ] The Pages deploy job was skipped because PR #216 is draft. This remains source-only and does not prove live pricing or production provider behavior.
+
+
+## 2026-10-13 — Margin enforcement and error minimization
+- [x] Catalog sync never auto-sets customer price to provider cost.
+- [x] Newly discovered services start inactive with zero customer price.
+- [x] Refresh and manual price updates deactivate services when selling price is at or below current provider cost.
+- [x] Provider metadata is allowlisted; arbitrary provider catalog objects are not persisted.
+- [x] Unexpected internal errors and database/RPC errors use fixed client-facing error codes.
+- [x] Corrected exact-head CI passed on `1c16630ec4eb7ed6104d92b8454d0cadcc33c3d9`; deploy job skipped because PR is draft.
+- [ ] These are candidate-source checks only; live schema, provider configuration, and production behavior remain unverified.

@@ -1680,3 +1680,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Bound provider catalog text and quantity fields; persist only allowlisted provider metadata.
 - [x] Deno tests, production verification engine, syntax check, SMM service-role boundary, module professionalization, backend-only boundary, and MantiGO privacy checks passed on `5fb6a6fe5dc038868f2e0f5f03692094a8ea9fc8`.
 - [ ] Do not enable SMM or apply candidate migrations until the full migration chain, live idempotency/schema parity, DNS/egress controls, order/wallet E2E, and restore rehearsal are accepted.
+
+
+## 2026-10-13 — SMM error minimization and margin enforcement
+- [x] Enforce strictly positive customer-price margin during catalog sync and manual price updates; items at or below provider cost are deactivated.
+- [x] Return generic client errors for unexpected exceptions and sensitive database/RPC failures.
+- [x] Investigate the catalog margin CI failure from logs, correct the undefined reference, and rerun the full relevant CI suite.
+- [x] Corrected exact-head CI passed at `1c16630ec4eb7ed6104d92b8454d0cadcc33c3d9`: Pages validate, SMM boundary, module professionalization, backend-only boundary, and MantiGO privacy.
+- [ ] Production remains blocked pending migration reconciliation/replay, live schema/idempotency proof, provider egress control, end-to-end financial/provider tests, and restore rehearsal.

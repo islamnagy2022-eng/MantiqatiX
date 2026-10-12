@@ -190,3 +190,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added Deno tests for new-item default-deny pricing, existing-price preservation, no-margin deactivation, invalid cost/quantity rejection, and metadata minimization.
 - Exact-head CI passed on `5fb6a6fe5dc038868f2e0f5f03692094a8ea9fc8`: Pages validation (Deno tests + production verification + syntax check), SMM Service Role Access Boundary, Module Professionalization Validation, Backend-only Module Boundary, and MantiGO Open Ride Privacy Boundary. Pages deploy job was skipped because PR #216 is draft.
 - No production change, deployment, merge, migration, grants, provider call, or wallet operation. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-019 — SMM pricing margin and error response safety
+
+- Added a final correction after CI caught an undefined identifier in the catalog margin helper. The failing exact-head run was investigated from logs and the reference corrected before the green run.
+- Catalog sync and the manual price-update action now disable a service whenever customer price is not strictly above current provider cost; manual price changes return a safe status rather than leaking raw database errors.
+- Gateway-wide unhandled errors now return a fixed `INTERNAL_ERROR`; provider-secret update, wallet-credit, and service-price database/RPC failures use fixed error codes rather than returning internal exception text.
+- Exact candidate head `1c16630ec4eb7ed6104d92b8454d0cadcc33c3d9` passed Pages validation (Deno unit tests, production verification, syntax check), SMM service-role boundary, module professionalization, backend-only module boundary, and MantiGO privacy checks. Pages deployment was skipped because PR #216 remains draft.
+- The CI failure at the previous head was real and is retained in run history; do not treat that failed head as green. Only the corrected exact head above is verified.
+- No production deployment, merge, migration, grant/RLS change, provider call, or wallet operation occurred. Release remains **BLOCKED / NOT CERTIFIED**.
