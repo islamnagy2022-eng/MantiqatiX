@@ -69,6 +69,9 @@ check(gateway.includes('requires_activation_review:!positiveMargin'), 'service p
 check(fs.existsSync('supabase/functions/smm-gateway/order-validation.ts'), 'order validation module must exist');
 const orderValidation=fs.readFileSync('supabase/functions/smm-gateway/order-validation.ts','utf8');
 check(gateway.includes('import { validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts"'), 'gateway must use tested order validation');
+check(gateway.includes('import { readBoundedJson } from "./request-validation.ts"'), "gateway must use bounded JSON request parsing");
+check(gateway.includes('req.method!=="POST"'), "gateway must reject methods other than POST and OPTIONS");
+check(tests.includes("SMM request parser enforces streamed body size even without a trusted content length"), "request body size must be tested with streamed bytes");
 check(orderValidation.includes('url.protocol !== "https:"'), 'SMM order targets must require HTTPS');
 check(orderValidation.includes('!hostname.includes(".")'), 'SMM order targets must reject single-label internal hosts');
 check(orderValidation.includes('url.username || url.password'), 'SMM order targets must reject embedded credentials');
