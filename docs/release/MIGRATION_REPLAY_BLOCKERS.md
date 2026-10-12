@@ -369,3 +369,10 @@ A further metadata-only query read `pg_policies` and `information_schema.role_ta
 - CI run [38195776127](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195776127) confirms the fail-closed guard exits with `P0 BLOCKED` and skips all bootstrap, Supabase startup, and replay steps. The other targeted integration and source-validation jobs passed on the candidate merge head, but chronological replay did not run.
 
 No production writes or configuration changes were made.
+
+
+### Launch containment recheck — SMM gateway — 2026-10-12
+
+A fresh read of the deployed Supabase Edge Function confirms `smm-gateway` remains **ACTIVE version 6** with JWT verification enabled. Its deployed source does not contain `MNTY_SMM_ENABLED` or `SMM_POST_LAUNCH_DEFERRED`; it authenticates users and retains paths for provider configuration, service synchronization, and provider calls. The server-side deferral code in PR #214 remains candidate source only. I did not invoke the gateway, make provider requests, or deploy a function.
+
+**P0 release implication:** do not expose the SMM storefront/operations for launch until the containment approach is explicitly authorized, deployed through the approved change path, and negative runtime tests prove the disabled state cannot reach provider/wallet/order side effects. Existing shared Marketing & Advertising functionality should not be disabled as a shortcut.
