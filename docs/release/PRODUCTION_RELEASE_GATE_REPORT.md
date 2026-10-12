@@ -220,3 +220,37 @@ Candidate head: `f088b02ffe799d3801c9d920a4a5f2f7bd9a57f6` on draft PR #207.
 - The candidate SMM code and validation changes are repository-only. No production function deployment, database migration/write, wallet/payment mutation, merge, or Auth/security configuration change was performed.
 - SMM remains a separate functional module and is deferred from the initial launch UI; internal Marketing & Advertising remains in scope. The source CI pass does not certify the live SMM endpoint.
 - Overall decision remains **`BLOCKED / NOT CERTIFIED`** pending historical replay, all exact-head checks, tenant/provider/payment E2E, live SMM containment under separate authorization, and remaining production/backup/restore evidence.
+
+## 10. Latest exact-head gate refresh — 2026-10-12
+
+Candidate head before this report-only update: `6a9867d6cc0c5827593bca85e09e215ae68aa614`.
+
+### Latest verified workflow results
+- [SMM Deferred Module Validation — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806786).
+- [SMM Service Role Access Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806780).
+- [Marketing Campaign Backend — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806791).
+- [Marketing CRM Tenant Scope — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806752).
+- [MantiGO Open Ride Privacy Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806763).
+- [Backend-only Module Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806738).
+- [Approval Action Audit Atomicity — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806748).
+- [Module Professionalization Validation — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806743).
+- [Migration History Immutability — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806783), [Migration Version Uniqueness — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806756), and [Open PR Migration Collision Guard — PASS](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806731).
+- [Web validation — PASS, deployment job skipped](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806807). This is not a production deployment.
+
+### Replay failure is confirmed, not a generic CI issue
+The [full chronological migration replay](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187806745) failed in its fail-closed preflight before starting Supabase or applying any migrations. The exact blocker is that `20260927095000_revoke_unused_security_definer_execute.sql` references these ten legacy function signatures before their authoritative creation DDL is available in any earlier committed migration or approved test-only baseline:
+- `public.counter_offer_indrive_bid(uuid,uuid,numeric)`
+- `public.fashion_erp_mutate(text,jsonb,text)`
+- `public.mantigo_accept_bid(text,text)`
+- `public.mantigo_cancel_ride(text)`
+- `public.mantigo_create_ride(text,text,text,text,numeric,text)`
+- `public.mantigo_rate_ride(text,integer,text)`
+- `public.mantigo_submit_bid(text,numeric,text,text,text,text)`
+- `public.mantigo_update_proposed_price(text,numeric)`
+- `public.restaurant_erp_mutate(text,jsonb,text)`
+- `public.restaurant_table_mutate(text,jsonb,text)`
+
+No placeholder function DDL, skipped migration, production write, or migration-history rewrite is an acceptable workaround. Resolution requires authoritative historical definitions or an explicitly approved disposable-test baseline extracted from trusted live definitions. The current CI guard is behaving as designed.
+
+### Current disposition
+PR #207 remains draft and unmerged. Live `smm-gateway` remains version 6 without the candidate fail-closed environment gate, so live containment is still not verified. No production deployment, migration, wallet/payment mutation, or auth/security setting change was performed. Overall release remains **`BLOCKED / NOT CERTIFIED`**.
