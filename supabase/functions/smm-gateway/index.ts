@@ -9,6 +9,8 @@ async function secret(id:string){const r=await admin.rpc("smm_get_provider_secre
 async function call(p:any,k:string,a:string,x:any={}){const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));const r=await fetch(p.api_url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString()});const t=await r.text();let d:any;try{d=JSON.parse(t)}catch{d={raw:t}}if(!r.ok)throw new Error("Provider HTTP "+r.status);return d;}
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
+ // The separate SMM storefront is deferred until after core launch. Default-deny all actions unless an explicitly approved rollout sets this flag to exactly "true".
+ if(Deno.env.get("SMM_LAUNCH_ENABLED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const b=await req.json(),a=b.action;
