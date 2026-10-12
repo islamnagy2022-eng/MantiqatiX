@@ -74,6 +74,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node --check web/app.js
           node --check web/smm.js
           grep -q "خارج نطاق الإطلاق الأول" web/smm.html
           ! grep -q 'src="smm.js"' web/smm.html
