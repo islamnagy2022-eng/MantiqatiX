@@ -21,3 +21,18 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-13 — SESSION-002 — Auth/membership recovery and RPC convergence
+
+- **User direction:** Continue automatically; work toward a secure production release, but do not claim completion without evidence.
+- **Verified baseline:** PR #217 is open and remains draft; base/main SHA `8a56358d505d2c12878440037f7f24ba65d2ea10`; branch head `90f9ac4c9d49502d1ffe7249e936445fa6743615`.
+- **Implemented on review branch:** Google OAuth client uses `flowType:'pkce'`; membership-recovery UI calls the authenticated `mnty-customer-registration` Edge Function, verifies the returned auth identity, reloads membership data, and confirms an active CUSTOMER membership before declaring success.
+- **Source convergence fix:** Live Edge Function `mnty-customer-registration` calls `private.ensure_customer_membership_for_user`; branch source was aligned to this RPC and the validator/release preflight now guard the canonical RPC and PKCE/membership-recovery contract.
+- **Production read-only evidence:** Supabase project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY. Edge Function is ACTIVE with JWT verification enabled. The canonical RPC and auth-user membership trigger exist. The canonical RPC is not directly executable by anon/authenticated and is granted to service_role.
+- **Membership count audit:** 6 permanent Auth users; 0 permanent Auth users without an active membership; 10 distinct user IDs with active memberships; 4 active CUSTOMER memberships in MNTY-PLATFORM reference user IDs absent from auth.users; no duplicate active CUSTOMER memberships per user in MNTY-PLATFORM. The four rows date from 2026-09-29 through 2026-09-30. No membership was deleted or changed; cause and retention policy remain unresolved.
+- **CI evidence at branch head:** Pages validation run [38318510837](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510837) succeeded; deploy was skipped because the PR is draft. Module Professionalization [38318510864](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510864), Backend-only Module Boundary [38318510823](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510823), and MantiGO Open Ride Privacy Boundary [38318510972](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318510972) completed successfully.
+- **Not verified:** Interactive Google OAuth round trip, membership recovery using a controlled test identity, expired/mismatched session negative tests, concurrent idempotency E2E, and independent cross-tenant/RLS denial.
+- **Production impact:** No production DDL, data mutation, RLS/Auth config change, Edge Function deployment, PR merge, Pages production deploy, or financial transaction. No role grants.
+- **Release state:** **BLOCKED / NOT CERTIFIED**. The code/CI evidence is not a substitute for E2E or final release approval.
+- **Next action:** Continue safe review-branch work; establish a controlled non-production auth fixture and test membership recovery/idempotency, then review orphan membership provenance without deleting rows. Do not bypass protected gates or create production test accounts.
