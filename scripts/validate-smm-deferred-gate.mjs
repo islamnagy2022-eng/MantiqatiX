@@ -59,6 +59,9 @@ check(orderStatus.includes('normalizeProviderOrderStatus(o.data.status,rawStatus
 check(orderStatus.includes('ORDER_STATUS_PERSISTENCE_PENDING'), 'failed order-status persistence must be surfaced for reconciliation');
 check(orderStatus.includes('.slice(0,64)') && orderStatus.includes('replace(/[\\u0000-\\u001f\\u007f]/g,"")'), 'provider status strings must be length-bounded and control-character sanitized');
 check(!orderStatus.includes('result:r'), 'raw provider status response must not be returned to clients');
+check(!gateway.includes('error:r.error.message') && !gateway.includes('error:ok.error.message'), 'database/RPC error details must not be echoed to clients');
+check(gateway.includes('requires_activation_review:!positiveMargin'), 'service pricing at or below provider cost must require review and deactivate service');
+check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must return a generic client response');
 
 check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
 check(fs.existsSync('supabase/functions/smm-gateway/order-status.ts'), 'provider status normalization module must exist');
