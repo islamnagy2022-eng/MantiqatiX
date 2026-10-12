@@ -573,3 +573,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Live read-back evidence: SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`, ACTIVE version 10. Source commit: `efcf90186b3713af47c5f912a2e0e1ea46cd2122` on Draft PR #216.
 - Runtime HTTP smoke test remains pending because DNS resolution from the current execution environment failed; do not claim observed HTTP 503 until tested from a network-capable environment.
 - Production schema remains unchanged. RC463/RC464 have not been applied. Core release is still **BLOCKED / NOT CERTIFIED** by migration-lineage and other release gates.
+
+
+### SMM gate verification correction — 2026-10-13
+- Source commit `efcf90186b3713af47c5f912a2e0e1ea46cd2122` passed 19 triggered GitHub checks, including SMM validation, Deno, transport/launch-gate tests, and disposable PostgreSQL service-role integration. The Pages deploy job was skipped because PR #216 is Draft.
+- Live Supabase Edge Function version 10 was read back with the source hard-off and dual approval gate; `verify_jwt=true` remains enabled. Runtime HTTP 503 is not claimed because the current execution environment could not resolve the project hostname.
+- Current documentation-only branch commits postdate the tested source commit; full CI for that documentation head is pending. Production release remains **BLOCKED / NOT CERTIFIED** due to migration lineage, live schema idempotency, finance/auth, and restore acceptance blockers.
