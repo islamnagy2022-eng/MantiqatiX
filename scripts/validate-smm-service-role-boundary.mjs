@@ -42,6 +42,7 @@ const orderStatusEnd = edge.indexOf('return json({error:"UNKNOWN_ACTION"}', orde
 assert.ok(orderStatusStart >= 0 && orderStatusEnd > orderStatusStart, "order_status action must exist");
 const orderStatus = edge.slice(orderStatusStart, orderStatusEnd);
 assert.doesNotMatch(orderStatus, /result:r/, "raw provider status responses must not be returned to customers");
+assert.doesNotMatch(orderStatus, /payload:r\}/, "raw provider status responses must not be persisted in order events");
 assert.match(orderStatus, /provider_status:String\(r\.status\|\|"unknown"\)/, "status response must expose only a bounded provider status");
 
 
