@@ -61,3 +61,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Limitation:** the attempt to retrieve the complete function definition was blocked by safety controls; atomicity/body review and end-to-end webhook verification remain NOT VERIFIED.
 - **Production impact:** none; read-only catalog metadata only.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — SESSION-006 — Verify SMM deferred-gate candidate CI
+
+- **Candidate HEAD checked:** `152a8c24b5fa1f808f3fa7942d026cc01abe7be9` on `fix/p0-defer-smm-before-core-launch-20261012`.
+- **CI:** Pages validation workflow `38308072523`, SMM service-role access boundary `38308072547`, module professionalization `38308072620`, backend-only module boundary `38308072638`, and MantiGO open-ride privacy boundary `38308072534` all completed successfully.
+- **Important distinction:** the Pages workflow's deploy job was skipped because this is a pull request. Passing CI verifies candidate source contracts only; it does not mean SMM was deployed or disabled in production.
+- **Action:** updated the master TODO to replace stale “CI pending” status with the exact passing run evidence.
+- **Still blocked:** PR #216 remains open/draft; live `smm-gateway` was last verified as version 8 without the new gate; production migration ledger snapshot ends at RC424; RC456/RC463/RC464 remain source-only and must not be applied outside the reconciled migration chain. Live negative tests, wallet/provider end-to-end tests, and explicit release authorization remain outstanding.
+- **Production impact:** documentation-only commit on candidate branch; no merge, deployment, Supabase mutation, environment change, provider request, or wallet operation.
+- **Release state:** BLOCKED / NOT CERTIFIED.
