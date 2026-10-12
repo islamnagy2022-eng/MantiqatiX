@@ -320,7 +320,7 @@ function roleSwitcher(){
  const tenant=active?.tenant_id?'<small class="role-context-tenant">النطاق: '+esc(active.tenant_id)+'</small>':'';
  return '<label class="role-switcher"><span>تبديل الدور</span><select id="mx-role-switcher" aria-label="تبديل الدور بين العضويات الفعلية">'+options+'</select>'+tenant+'</label>';
 }
-const MNTY_BACKEND_ONLY_TABLES=new Set(['erp_purchase_orders','erp_purchase_order_lines','erp_purchase_receipts','erp_stock_transfers','smm_admins','smm_provider_credentials','smm_providers']); function syncModuleRuntime(name){const m=domainModules.find(x=>x.name===name);if(!m)return;const d=live.moduleData?.[m.key];window.MNTYModuleRuntime=window.MNTYModuleRuntime||{};window.MNTYModuleRuntime[m.key]={ready:Boolean(d?.ready),tables:{...(d?.tables||{})},sourceCount:m.tables.length,readableCount:Object.values(d?.tables||{}).filter(v=>typeof v==='number').length};} async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};syncModuleRuntime(name);if(!m.tables.length){live.moduleData[m.key].ready=true;syncModuleRuntime(name);return}const out=await Promise.all(m.tables.map(async t=>{if(MNTY_BACKEND_ONLY_TABLES.has(t))return [t,null];const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true;syncModuleRuntime(name);}
+const MNTY_BACKEND_ONLY_TABLES=new Set(['erp_purchase_orders','erp_purchase_order_lines','erp_purchase_receipts','erp_stock_transfers','smm_admins','smm_provider_credentials','smm_providers','smm_services','smm_orders','smm_wallets','smm_wallet_transactions','smm_order_events']); function syncModuleRuntime(name){const m=domainModules.find(x=>x.name===name);if(!m)return;const d=live.moduleData?.[m.key];window.MNTYModuleRuntime=window.MNTYModuleRuntime||{};window.MNTYModuleRuntime[m.key]={ready:Boolean(d?.ready),tables:{...(d?.tables||{})},sourceCount:m.tables.length,readableCount:Object.values(d?.tables||{}).filter(v=>typeof v==='number').length};} async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};syncModuleRuntime(name);if(!m.tables.length){live.moduleData[m.key].ready=true;syncModuleRuntime(name);return}const out=await Promise.all(m.tables.map(async t=>{if(MNTY_BACKEND_ONLY_TABLES.has(t))return [t,null];const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true;syncModuleRuntime(name);}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
 function cleanAuthUrl(){
@@ -1625,11 +1625,7 @@ window.addToMntiCart=addToMntiCart;
 
 async function walletView(){
  if(!user?.id)return authView();
- let smm=null,general=[];
- try{
-   const sr=await sb.from('smm_wallets').select('balance,currency,updated_at').eq('user_id',user.id).maybeSingle();
-   if(!sr.error)smm=sr.data||null;
- }catch(_){}
+ let general=[];
  try{
    const ids=(live.memberships||[]).filter(m=>m.status==='ACTIVE'&&m.tenant_id&&m.business_id).map(m=>m.business_id);
    if(ids.length){
@@ -1637,9 +1633,8 @@ async function walletView(){
      if(!wr.error)general=wr.data||[];
    }
  }catch(_){}
- const hasWallet=Boolean(smm||general.length);
- const balance=smm?Number(smm.balance||0):null;
- document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>المحفظة</h1><p class="muted">المحافظ المالية لا تُنشأ أو تُشحّن تلقائيًا من الواجهة.</p><section class="mx-profile-card"><div class="mx-profile-card__avatar">▣</div><div><b>'+esc(user.email||'الحساب')+'</b><small>'+ (hasWallet?'محفظة مرتبطة بالحساب':'لا توجد محفظة مالية مفعلة حاليًا')+'</small></div></section>'+(smm?'<div class="mx-wallet-balance"><span>رصيد محفظة الخدمات الرقمية</span><strong>'+balance.toFixed(2)+' '+esc(smm.currency||'EGP')+'</strong><small>آخر تحديث: '+esc(new Date(smm.updated_at).toLocaleString('ar-EG'))+'</small></div>':'<div class="empty-state">سيظهر الرصيد هنا عند تفعيل محفظة مالية للحساب.</div>')+'<div class="action-bar"><button class="btn btn-primary" id="wallet-account">العودة إلى حسابي</button><button class="btn btn-outline" id="wallet-home">الرئيسية</button></div></section></main>';
+ const hasWallet=Boolean(general.length);
+ document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><h1>المحفظة</h1><p class="muted">المحافظ المالية لا تُنشأ أو تُشحّن تلقائيًا من الواجهة.</p><section class="mx-profile-card"><div class="mx-profile-card__avatar">▣</div><div><b>'+esc(user.email||'الحساب')+'</b><small>'+ (hasWallet?'محفظة مرتبطة بالحساب':'لا توجد محفظة مالية مفعلة حاليًا')+'</small></div></section><div class="mx-wallet-balance"><span>محفظة خدمات التسويق الرقمي SMM</span><strong>مؤجلة عن الإطلاق الأول</strong><small>لن يُعرض رصيد SMM من المتصفح مباشرة. ستتم قراءته عبر بوابة الخادم بعد اعتماد تفعيل الموديول.</small></div><div class="action-bar"><button class="btn btn-primary" id="wallet-account">العودة إلى حسابي</button><button class="btn btn-outline" id="wallet-home">الرئيسية</button></div></section></main>';
  document.getElementById('wallet-account').onclick=accountView;
  document.getElementById('wallet-home').onclick=()=>window.MXHomeLanding?MXHomeLanding():landingView();
 }
