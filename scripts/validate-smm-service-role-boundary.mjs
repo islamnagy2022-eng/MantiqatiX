@@ -156,6 +156,9 @@ assert.match(statusAction, /ORDER_REFUND_REQUIRES_RECONCILIATION/, "refund uncer
 assert.match(statusAction, /refund_requires_reconciliation/, "failed confirmed-cancellation refunds must persist a dedicated reconciliation state");
 assert.match(statusAction, /WALLET_REFUND_CONFIRMED/, "successful refund must be auditable");
 assert.match(statusAction, /cancelled_refunded/, "confirmed refunds must persist a terminal marker so polling does not create duplicate refund events");
+assert.match(statusAction, /provider_status","cancelled"\)\.select\("id"\)\.maybeSingle\(\)/, "terminal refund marker must be a conditional single-row claim");
+assert.match(statusAction, /if\(!refundMarker\.data\)/, "a concurrent poll that loses the terminal marker claim must not emit a duplicate refund event");
+assert.match(statusAction, /REFUND_MARKER_REQUIRES_RECONCILIATION/, "marker persistence failure after refund must enter reconciliation rather than report final success");
 assert.match(statusAction, /providerStatus!=="cancelled_refunded"/, "already-refunded cancellations must not create another refund ledger operation");
 assert.match(statusAction, /const cancellationPending=/, "status polling must preserve a pending cancellation while the provider still reports an active or uncertain state");
 assert.match(statusAction, /ORDER_STATE_CHANGED_RETRY/, "status synchronization must fail closed if a concurrent cancellation or update changed the order");
