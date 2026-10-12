@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` for the chronological record and `docs/MASTER_PRODUCTION_TODO.md` for open gates. Release remains **BLOCKED / NOT CERTIFIED**. Verified main/base HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Auth/membership work is isolated in draft PR #217, branch `fix/auth-membership-recovery-20261013`, current branch has since added RC215 disposable PostgreSQL integration tests and release documentation. The last software-change commit `665ae78d7a1331ff17bc1f8c28cd6f36fb0a2658` passed auth/static validation; CI run [38318855957](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855957) confirms the new membership PostgreSQL integration job PASS. Pages deploy was skipped because the PR is draft. Do not treat the PR as deployed.
+> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` for the chronological record and `docs/MASTER_PRODUCTION_TODO.md` for open gates. Release remains **BLOCKED / NOT CERTIFIED**. Verified main/base HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Auth/membership work is isolated in draft PR #217, branch `fix/auth-membership-recovery-20261013`, the branch includes RC215 disposable PostgreSQL integration tests and release documentation. Latest code/test commit `5f410d59f2035aa0569dc5a7d75f522172167804` has passed auth/static validation and the corrected membership integration test. CI run [38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500) confirms the RC215 membership PostgreSQL integration PASS including inactive-tenant denial. Pages deploy was skipped because the PR is draft. Do not treat the PR as deployed.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -555,3 +555,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Verified PASS in [Module Professionalization Validation run 38318855957](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855957).
 - All four orphan active CUSTOMER memberships have audit references (3 automatic activation successes, 1 direct registration activation success); origin of missing Auth identities remains unresolved. Preserve data.
 - Do not close live browser OAuth/membership E2E, multi-tenant isolation, or release gates based on this isolated SQL test.
+
+
+### Latest RC215 correction — 2026-10-13
+- One integration run exposed malformed dollar-quoted SQL delimiters in the new test. The failure was diagnosed from CI logs, delimiters were corrected to `$rc215_test$`, and the subsequent integration passed.
+- Latest verified membership integration: [run 38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500) PASS.
+- Production gate remains BLOCKED / NOT CERTIFIED because browser OAuth round-trip, live recovery with a controlled test identity, and cross-tenant runtime E2E have not been executed.
