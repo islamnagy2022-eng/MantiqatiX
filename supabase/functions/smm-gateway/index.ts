@@ -28,7 +28,7 @@ Deno.serve(async(req)=>{
   }
   if(a==="my_data"){
    const [o,w]=await Promise.all([
-    admin.from("smm_orders").select("id,service_id,quantity,selling_price,status,provider_order_id,created_at,updated_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
+    admin.from("smm_orders").select("id,service_id,quantity,selling_price,status,created_at,updated_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
     admin.from("smm_wallets").select("balance").eq("user_id",user.id).maybeSingle()
    ]);
    if(o.error||w.error){console.error("[smm-gateway] account read failed",o.error?.code||w.error?.code||"DB_ERROR");return json({error:"ACCOUNT_DATA_READ_FAILED"},500);}
