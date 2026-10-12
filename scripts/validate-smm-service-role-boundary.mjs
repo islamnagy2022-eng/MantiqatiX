@@ -24,11 +24,11 @@ assert.match(adminGuard, /p\.full_control===true/, "membership must have explici
 assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/, "tenant OWNER/ADMIN roles must not grant global SMM administration");
 
 assert.match(edge, /MNTY_SMM_ENABLED/, "SMM gateway must be disabled by default behind an explicit launch flag");
-assert.match(launchGate, /SMM_POST_LAUNCH_DEFERRED/, "disabled SMM gateway must return a stable non-sensitive error");
+assert.match(launchGate, /SMM_LAUNCH_GATES_PENDING/, "disabled SMM gateway must return a stable non-sensitive error");
 assert.match(edge, /getSmmLaunchDecision\(Deno\.env\.get\("MNTY_SMM_ENABLED"\)\)/, "gateway must use the tested launch-gate decision helper");
 assert.ok(edge.indexOf("if(!launchDecision.enabled)") < edge.indexOf("const user=await getUser(req)"), "SMM launch gate must run before authentication and any protected work");
 assert.match(launchGate, /flag === "true"/, "SMM launch gate must require the exact explicit true flag");
-assert.match(launchGate, /return \{ enabled: false, status: 503, error: "SMM_POST_LAUNCH_DEFERRED" \}/, "SMM launch gate must fail closed for every other flag value");
+assert.match(launchGate, /return \{ enabled: false, status: 503, error: "SMM_LAUNCH_GATES_PENDING" \}/, "SMM launch gate must fail closed for every other flag value");
 assert.match(edge, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
 const providerCallStart = edge.indexOf("async function call(");
 const providerCallEnd = edge.indexOf("\nDeno.serve", providerCallStart);
@@ -169,5 +169,5 @@ assert.match(smmUi, /provider_order_id/, "admin reconciliation view must show th
 
 assert.match(smmPage, /noindex,nofollow/, "deferred SMM storefront must be noindex");
 assert.doesNotMatch(smmPage, /smm\.js|vendor\/supabase\.js|config\.js/, "deferred SMM page must not load client app or Supabase scripts");
-assert.match(home, /قيد التطوير/, "homepage must label SMM as under development");
+assert.match(home, /قيد التجهيز للإطلاق/, "homepage must label SMM as under development");
 console.log("SMM service-role access boundary contract: PASS");
