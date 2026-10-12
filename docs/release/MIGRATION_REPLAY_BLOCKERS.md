@@ -544,3 +544,10 @@ This recovers authoritative table-creation source from the supplied archive; it 
 A second gap also needs reconciliation: the RC40 archive does not contain creation statements for the live `credit_accounts_finance_read` and `credit_periods_finance_read` policies, while a later candidate migration alters those policies. Recover their original migration source if available; otherwise request explicit approval before using a production-derived policy/schema snapshot in disposable replay. Do not silently fabricate or inject unapproved policy definitions.
 
 Recommended next step: create a reviewed, **test-only** replay compatibility plan that preserves all live migration versions and production state, uses the verified RC40 table DDL as the schema source, and explicitly handles the 15:54/18:50 ordering mismatch plus the missing finance-policy creation source. Validate it on disposable PostgreSQL only; do not add a backdated deployable migration or apply any baseline to production.
+
+
+### Live/source precision mismatch — 2026-10-12
+
+The RC40 archive is integrity-verified, but its credit DDL is **not an exact live-schema snapshot**. The archive declares `numeric(14,2)` for `credit_policies.credit_limit`, `credit_accounts.approved_limit/outstanding_amount`, and `credit_periods.billed_amount/paid_amount`; read-only production catalog metadata reports `numeric(18,2)` for all five columns. The two generated amount columns match the observed expressions, but the precision discrepancy means the RC40 migration cannot be treated as a byte-for-byte or schema-exact substitute for the live baseline.
+
+Therefore, preserve RC40 as historical source evidence, not as a certified production schema snapshot. The replay fix must not silently narrow live numeric capacity. Either recover the exact historical migration/source that matches production, or obtain explicit approval for a disposable-only compatibility baseline generated from the read-only live catalog and policy metadata. No such credit-schema baseline has been injected, and no production change was made.
