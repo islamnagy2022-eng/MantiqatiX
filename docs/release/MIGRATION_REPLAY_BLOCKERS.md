@@ -357,3 +357,15 @@ Candidate-head CI evidence:
 ### Dependency-set cross-check
 
 A separate static comparison covered all 12 migrations before the hardening migration: they create 36 distinct tables. The hardening migration alters 21 distinct tables; **20 are present in that earlier creation set and `public.bookings` is the only unmatched dependency**. This narrows the immediate replay blocker to one table dependency in this migration, without claiming the rest of the complete chain has replayed successfully.
+
+
+### Read-only bookings security metadata cross-check — 2026-10-12
+
+A further metadata-only query read `pg_policies` and `information_schema.role_table_grants`; it did not read booking rows or change the database.
+
+- Four policies exist: `authenticated_sessions_only`, `deny_anonymous_users`, `mnt_non_anonymous_boundary`, and `non_anonymous_authenticated_guard`. All are **RESTRICTIVE**, apply to `authenticated`, cover `ALL`, and enforce variants of the JWT `is_anonymous != true` guard in both USING and WITH CHECK.
+- `authenticated` has direct table SELECT/INSERT/UPDATE/DELETE grants; `service_role` has no direct table privileges in the reported grant rows. The owner role `postgres` retains ownership-level privileges.
+- This is current-state security metadata only. It does not reveal the original creation migration, policy chronology, or whether any earlier grants/policies existed and were removed. It is therefore not sufficient to manufacture historical DDL or authorize a compatibility fixture.
+- CI run [38195776127](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195776127) confirms the fail-closed guard exits with `P0 BLOCKED` and skips all bootstrap, Supabase startup, and replay steps. The other targeted integration and source-validation jobs passed on the candidate merge head, but chronological replay did not run.
+
+No production writes or configuration changes were made.
