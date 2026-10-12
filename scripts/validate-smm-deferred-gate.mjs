@@ -79,6 +79,7 @@ check(orderValidation.includes('url.username || url.password'), 'SMM order targe
 check(orderValidation.includes('sellingPrice <= providerCost'), 'SMM orders must reject non-positive gross margin');
 check(orderValidation.includes("Math.round((value + Number.EPSILON) * 100) / 100"), "wallet charges and provider costs must be rounded to currency cents");
 check(tests.includes('SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs'), 'SMM URL safety tests must exist');
+check(orderValidation.includes('typeof rawQuantity === "string" && /^\\\\d{1,15}$/.test(rawQuantity)'), "order quantity must reject coercible booleans, arrays, exponents and whitespace");
 check(tests.includes('SMM pricing requires a strictly positive customer margin and finite totals'), 'SMM order pricing tests must exist');
 check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must return a generic client response');
 check(gateway.includes('normalizeProviderBalance(await call(p.data,await secret(providerId),"balance"))'), "provider balance output must be normalized before returning to admins");
