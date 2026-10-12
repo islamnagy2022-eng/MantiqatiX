@@ -1688,3 +1688,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Investigate the catalog margin CI failure from logs, correct the undefined reference, and rerun the full relevant CI suite.
 - [x] Corrected exact-head CI passed at `1c16630ec4eb7ed6104d92b8454d0cadcc33c3d9`: Pages validate, SMM boundary, module professionalization, backend-only boundary, and MantiGO privacy.
 - [ ] Production remains blocked pending migration reconciliation/replay, live schema/idempotency proof, provider egress control, end-to-end financial/provider tests, and restore rehearsal.
+
+
+## SMM follow-up — 2026-10-13
+- [x] Provider JSON decoding now rejects malformed UTF-8 rather than accepting replacement-decoded bytes — implemented in candidate branch; exact-head CI pending.
+- [ ] Verify new malformed-UTF-8 regression test and all required workflows on the resulting candidate HEAD.
+- [ ] Keep live SMM disabled until reconciled migrations, idempotency schema, provider egress controls, financial E2E, and release-owner approval are evidenced.
