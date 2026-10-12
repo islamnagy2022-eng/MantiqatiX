@@ -68,7 +68,7 @@ check(!gateway.includes('error:r.error.message') && !gateway.includes('error:ok.
 check(gateway.includes('requires_activation_review:!positiveMargin'), 'service pricing at or below provider cost must require review and deactivate service');
 check(fs.existsSync('supabase/functions/smm-gateway/order-validation.ts'), 'order validation module must exist');
 const orderValidation=fs.readFileSync('supabase/functions/smm-gateway/order-validation.ts','utf8');
-check(gateway.includes('import { validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts"'), 'gateway must use tested order validation');
+check(gateway.includes('import { normalizeSmmMoney, validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts"'), "gateway must use tested order and money validation");
 check(gateway.includes('import { readBoundedJson } from "./request-validation.ts"'), "gateway must use bounded JSON request parsing");
 check(gateway.includes('req.method!=="POST"'), "gateway must reject methods other than POST and OPTIONS");
 check(tests.includes("SMM request parser enforces streamed body size even without a trusted content length"), "request body size must be tested with streamed bytes");
