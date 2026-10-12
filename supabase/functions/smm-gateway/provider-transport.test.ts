@@ -113,21 +113,30 @@ Deno.test("provider catalog normalization rejects invalid costs and quantity bou
 
 import { validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts";
 
+Deno.test("SMM order input requires a stable bounded idempotency key", () => {
+  for (const key of [undefined, "", "short", "contains spaces here", "x".repeat(129), "bad/key/value"]) {
+    const result = validateSmmOrderInput({ service_id: "service-123", target_url: "https://www.example.org/path", quantity: 10, idempotency_key: key });
+    if (result.ok || result.code !== "IDEMPOTENCY_KEY_REQUIRED") throw new Error("invalid idempotency key was accepted");
+  }
+  const valid = validateSmmOrderInput({ service_id: "service-123", target_url: "https://www.example.org/path", quantity: 10, idempotency_key: "client-request_123456" });
+  if (!valid.ok || valid.idempotencyKey !== "client-request_123456") throw new Error("valid idempotency key was not preserved");
+});
+
 Deno.test("SMM order input accepts a bounded HTTPS public target and safe integer quantity", () => {
-  const result = validateSmmOrderInput({ service_id: "service-123", target_url: "https://www.example.org/path?ref=1", quantity: "250" });
+  const result = validateSmmOrderInput({ idempotency_key: "test-key-12345678", service_id: "service-123", target_url: "https://www.example.org/path?ref=1", quantity: "250" });
   if (!result.ok) throw new Error("valid order input was rejected");
   if (result.quantity !== 250 || result.targetUrl !== "https://www.example.org/path?ref=1") throw new Error("order input was not normalized");
 });
 
 Deno.test("SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs", () => {
   const invalid = [
-    { service_id: "svc", target_url: "http://example.org", quantity: 1 },
-    { service_id: "svc", target_url: "https://user:pass@example.org", quantity: 1 },
-    { service_id: "svc", target_url: "https://localhost/admin", quantity: 1 },
-    { service_id: "svc", target_url: "https://127.0.0.1/private", quantity: 1 },
-    { service_id: "svc", target_url: "https://host.local/path", quantity: 1 },
-    { service_id: "svc", target_url: "https://intranet/path", quantity: 1 },
-    { service_id: "svc", target_url: "https://example.org/" + "x".repeat(2050), quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "http://example.org", quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://user:pass@example.org", quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://localhost/admin", quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://127.0.0.1/private", quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://host.local/path", quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://intranet/path", quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org/" + "x".repeat(2050), quantity: 1 },
   ];
   for (const item of invalid) {
     const result = validateSmmOrderInput(item);
@@ -137,14 +146,14 @@ Deno.test("SMM order input rejects unsafe protocols, credentials, local hosts, I
 
 Deno.test("SMM order input rejects missing service and fractional or unsafe quantities", () => {
   for (const item of [
-    { service_id: "", target_url: "https://example.org", quantity: 1 },
-    { service_id: "svc", target_url: "https://example.org", quantity: 1.5 },
-    { service_id: "svc", target_url: "https://example.org", quantity: Number.MAX_SAFE_INTEGER + 1 },
-    { service_id: "svc", target_url: "https://example.org", quantity: 0 },
-    { service_id: "svc", target_url: "https://example.org", quantity: true },
-    { service_id: "svc", target_url: "https://example.org", quantity: [1] },
-    { service_id: "svc", target_url: "https://example.org", quantity: "1e2" },
-    { service_id: "svc", target_url: "https://example.org", quantity: " 1 " },
+    { idempotency_key: "test-key-12345678", service_id: "", target_url: "https://example.org", quantity: 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org", quantity: 1.5 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org", quantity: Number.MAX_SAFE_INTEGER + 1 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org", quantity: 0 },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org", quantity: true },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org", quantity: [1] },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org", quantity: "1e2" },
+    { idempotency_key: "test-key-12345678", service_id: "svc", target_url: "https://example.org", quantity: " 1 " },
   ]) {
     const result = validateSmmOrderInput(item);
     if (result.ok || result.code !== "INVALID_ORDER") throw new Error("invalid order input was accepted");
