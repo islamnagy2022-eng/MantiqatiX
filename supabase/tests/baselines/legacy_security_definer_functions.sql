@@ -4,7 +4,6 @@
 -- These are trusted live definitions, not proof of historical versions.
 -- Never apply this file to production. Contains no production data or secrets.
 -- Review and refresh this fixture if the source definitions change.
-BEGIN;
 
 CREATE OR REPLACE FUNCTION public.counter_offer_indrive_bid(p_request_id uuid, p_bid_id uuid, p_new_counter_price numeric)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
@@ -220,4 +219,3 @@ REVOKE ALL ON FUNCTION public.mantigo_update_proposed_price(text,numeric) FROM P
 REVOKE ALL ON FUNCTION public.restaurant_erp_mutate(text,jsonb,text) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.restaurant_table_mutate(text,jsonb,text) FROM PUBLIC, anon, authenticated, service_role;
 
-COMMIT;
