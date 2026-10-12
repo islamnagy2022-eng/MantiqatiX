@@ -1612,3 +1612,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added latest exact-head CI evidence to `docs/release/MODULE_COMPLETION_MATRIX_AR.md`; all listed source/isolated integration workflows passed on `be74dd5a2b94bbd93591e97fa23e709fe5fe3f70`.
 - [x] Confirmed the Pages workflow's `validate` job passed while its `deploy` job was skipped for the draft PR; do not call this a production deployment.
 - [ ] Credit migration provenance remains unresolved; full clean-database replay, complete production E2E, restore rehearsal, and SMM live rollout gates remain open.
+
+
+## 2026-10-13 — SMM provider transport hardening
+- [x] Hardened candidate SMM provider HTTP calls: HTTPS only, no embedded credentials, non-standard ports rejected, local/IP-literal hosts rejected, redirects rejected, 15-second timeout, 1 MiB response cap, JSON-only response, and no raw body fallback.
+- [x] Extended the SMM source validator to require these controls.
+- [ ] DNS rebinding/private DNS targets still require a reviewed provider hostname allowlist or network egress enforcement.
+- [ ] Order error handling can still auto-refund on ambiguous provider/persistence outcomes; this is a go-live blocker and must be redesigned/tested before any enablement.
+- [ ] CI on the latest source changes is pending; do not mark PASS until completed.
