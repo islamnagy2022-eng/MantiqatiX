@@ -244,3 +244,15 @@ Deno.test("SMM money normalization accepts bounded decimal amounts only", async 
     if (normalizeSmmMoney(input, allowZero) !== null) throw new Error("invalid money input was accepted");
   }
 });
+
+
+Deno.test("provider response parser rejects malformed UTF-8 instead of replacement decoding", async () => {
+  const invalidUtf8 = new Uint8Array([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]);
+  let rejected = false;
+  try {
+    await readProviderJson(new Response(invalidUtf8, { status: 200, headers: { "Content-Type": "application/json" } }));
+  } catch {
+    rejected = true;
+  }
+  if (!rejected) throw new Error("Malformed UTF-8 provider response was accepted");
+});
