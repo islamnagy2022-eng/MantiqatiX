@@ -48,6 +48,9 @@ check(fs.existsSync('supabase/functions/smm-gateway/provider-transport.test.ts')
 
 const placeOrder=gateway.slice(gateway.indexOf('if(a==="place_order")'),gateway.indexOf('if(a==="order_status")'));
 check(placeOrder.includes('WALLET_DEBIT_RESULT_UNKNOWN'), 'ambiguous wallet debit must be quarantined for reconciliation');
+check(placeOrder.includes("providerRow.active!==true"), "order creation must reject inactive or missing providers");
+check(placeOrder.includes("target_url:validatedOrder.targetUrl"), "orders must persist only normalized HTTPS target URLs");
+check(placeOrder.includes("validateSmmOrderPricing({sellingPrice:Number(v.selling_price),providerCost:Number(v.provider_cost),quantity:q})"), "order creation must enforce current positive-margin pricing");
 check(placeOrder.includes('PROVIDER_RESULT_UNKNOWN'), 'ambiguous provider outcomes must be quarantined for reconciliation');
 check(placeOrder.includes('PROVIDER_ACCEPTED_PERSISTENCE_PENDING'), 'provider acceptance with failed persistence must be surfaced for reconciliation');
 check(!placeOrder.includes('smm_refund_wallet'), 'provider exceptions must not trigger automatic wallet refunds');
