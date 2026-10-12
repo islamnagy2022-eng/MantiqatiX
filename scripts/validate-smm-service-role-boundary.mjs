@@ -21,7 +21,7 @@ assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/
 assert.match(edge, /user\.is_anonymous\?null:user/, "anonymous Auth sessions must be rejected");
 assert.match(edge, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
 const providerCallStart = edge.indexOf("async function call(");
-const providerCallEnd = edge.indexOf("\\nDeno.serve", providerCallStart);
+const providerCallEnd = edge.indexOf("\nDeno.serve", providerCallStart);
 assert.ok(providerCallStart >= 0 && providerCallEnd > providerCallStart, "provider request helper must exist");
 const providerCall = edge.slice(providerCallStart, providerCallEnd);
 assert.match(providerCall, /new globalThis\\.URL\\(/, "provider endpoint must be parsed with the global URL constructor");
