@@ -108,3 +108,37 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 3. Keep SMM storefront exposure blocked until the server-side deny gate is approved, deployed through change control, and negative runtime tests prove no order/wallet/provider side effects.
 4. Continue the production release checklist only with read-only evidence or separately authorized candidate changes.
 - **Release state: BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-10-12 — SESSION-005 — Approved bookings baseline injected into disposable replay
+
+### Verified facts
+- Candidate branch: `reconcile/rc425-458-current-main-20261011`; PR #207 remains open and unmerged. Main remains `8a56358d505d2c12878440037f7f24ba65d2ea10`.
+- The owner-approved, explicitly test-only `supabase/tests/baselines/bookings.sql` is a minimal schema-only compatibility fixture sourced from read-only production catalog inspection. It is not claimed to be recovered historical DDL and must never be applied to production.
+- The earlier blocker was a missing disposable fixture injection before `20260919233425_production_security_hardening_v1.sql`, not permission to invent or alter production history.
+
+### Action performed
+- Updated `.github/workflows/migration-chain-replay.yml` to inject the approved baseline only into the disposable CI migration directory as `20260919233424_test_only_approved_bookings_baseline.sql`, immediately before the historical hardening migration that first references `public.bookings`.
+- Added fail-closed checks for source-file existence and destination absence, exact byte-for-byte copy comparison, untracked temporary migration verification, and exclusion from data-import checks.
+- Commit: [48bcf340f901e545e547b39639c641c899ea696c](https://github.com/islamnagy2022-eng/MantiqatiX/commit/48bcf340f901e545e547b39639c641c899ea696c).
+
+### Exact-head CI evidence
+- Module Professionalization Validation [38239527689](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527689): SUCCESS; all 16 listed jobs completed successfully.
+- Backend-only Module Boundary [38239527705](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527705): SUCCESS.
+- Approval Action Audit Atomicity [38239527674](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527674): SUCCESS.
+- Marketing Campaign Backend [38239527654](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527654): SUCCESS.
+- MantiGO Open Ride Privacy Boundary [38239527647](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527647): SUCCESS.
+- SMM Service Role Access Boundary [38239527736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527736): SUCCESS.
+- SMM Deferred Module Validation [38239527662](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527662): SUCCESS.
+- Migration Version Uniqueness [38239527714](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527714), Migration History Immutability [38239527709](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527709), and Open PR Migration Collision Guard [38239527658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527658): SUCCESS.
+- Pages workflow [38239527732](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527732): validation SUCCESS; deploy job SKIPPED, so no publication is claimed.
+- Disposable Migration Chain Replay [38239527707](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527707): still IN_PROGRESS. Historical-baseline preflight, temporary baseline injection, exact-copy/untracked/no-row checks, CLI setup and disposable config all passed. Disposable Supabase service startup is still in progress; chronological migration replay has NOT STARTED and is NOT VERIFIED.
+
+### Not performed
+- No production schema/data/migration ledger change, Edge Function deployment, Auth/RLS/grant change, wallet/payment write, PR merge, or production release.
+- No claim of full migration replay success or Production Ready status.
+
+### Next executable actions
+1. Observe run 38239527707 until disposable services either start or exhaust their configured retries.
+2. If startup succeeds, inspect the first actual timestamp-ordered replay result and resolve only the next evidenced blocker using authoritative source or separately approved test-only baseline; do not skip migrations or create placeholder DDL.
+3. Keep the overall release gate **BLOCKED / NOT CERTIFIED** until full replay and the independent live runtime/security/payment/backup/device gates are verified.
