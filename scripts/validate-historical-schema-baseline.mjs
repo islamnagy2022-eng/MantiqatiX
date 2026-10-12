@@ -17,7 +17,7 @@ const missingHistoricalTables = [
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
-    "\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:(?:\\"?public\\"?)\\s*\\.\\s*)?\\"?" + table + "\\b",
+    "\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\s*\\.\\s*)?" + table + "\\b",
     "i"
   );
   return !prefix.some(({ sql }) => createPattern.test(sql));
