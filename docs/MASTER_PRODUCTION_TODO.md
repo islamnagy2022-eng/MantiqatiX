@@ -1580,3 +1580,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Define a dedicated task/work-item source of truth, lifecycle, owner/dependency/due-date/acceptance fields, and audit contract before marking the Administration & Operations task-closure gate complete.
 - [ ] Add tenant/RBAC/RLS tests and end-to-end closure/reopen/audit tests before production release.
 - **Constraint:** do not fabricate tasks or silently treat notifications/approvals as tasks; no production schema change was made.
+
+
+## RC524 — Restore missing required migration source files — 2026-10-13
+
+- [x] Restored exact copies of 16 migration files RC425–RC432 and RC434–RC441 from the reconciled PR #207 branch into the current PR #218 branch.
+- [x] Compared source blob SHA values across PR #207, PR #202, and PR #84; all 16 files were identical across those candidate heads.
+- [x] Verified all 16 files now exist on the current candidate and match the PR #207 blob SHA values.
+- [x] Expanded scripts/validate-production-migration-chain-gate.mjs from 28 to 30 required migration source entries to include RC522 and RC523.
+- [ ] Run and inspect exact-head CI after these changes.
+- [ ] Full chronological migration replay remains NOT VERIFIED. Historical function-creation dependencies and other baseline issues remain blockers; source presence is not evidence of successful replay or production application.
+- [ ] Add/verify focused behavioral tests for the restored migrations before any release approval.
+- Safety: no production database changes, no migration-ledger edits, no Edge Function deployment, no financial/wallet mutations, no merge/release.
+- Release state: BLOCKED / NOT CERTIFIED.
