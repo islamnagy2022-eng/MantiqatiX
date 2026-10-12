@@ -2,7 +2,7 @@
 -- Authorized 2026-10-12 for isolated disposable CI replay only.
 -- Production catalog source: Supabase project moyhiluyhjsujhwlyeuu (read-only).
 -- This is a live-derived compatibility bootstrap, NOT recovered historical DDL.
--- Never apply to production. No production rows are included.
+-- Never apply this file to production. No production rows are included.
 -- Schema ACL observed: postgres owns private; USAGE for authenticated and service_role only.
 -- Table shape, PK, FK and deny policy are observed from the live catalog.
 -- RLS enablement remains owned by the ordered lock_platform_admins_rls migration.
