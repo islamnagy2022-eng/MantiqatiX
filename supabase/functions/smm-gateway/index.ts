@@ -105,7 +105,11 @@ Deno.serve(async(req)=>{
    const o=await admin.from("smm_orders").select("id,status,provider_order_id,service_id,smm_services(provider_id,smm_providers(*))").eq("id",b.order_id).eq("user_id",user.id).single();
    if(o.error||!o.data)return json({error:"ORDER_NOT_FOUND"},404);
    if(!o.data.provider_order_id)return json({ok:true,status:o.data.status});
-   const r=await call(o.data.smm_services.smm_providers,await secret(o.data.smm_services.provider_id),"status",{order:o.data.provider_order_id});
+   const orderData:any=o.data;
+   const serviceData=Array.isArray(orderData.smm_services)?orderData.smm_services[0]:orderData.smm_services;
+   const providerData=Array.isArray(serviceData?.smm_providers)?serviceData.smm_providers[0]:serviceData?.smm_providers;
+   if(!serviceData||!providerData)return json({error:"PROVIDER_CONFIGURATION_UNAVAILABLE"},503);
+   const r:any=await call(providerData,await secret(serviceData.provider_id),"status",{order:o.data.provider_order_id});
    const rawStatus=typeof r?.status==="string"?r.status:"";
    const m=rawStatus.trim().toLowerCase();
    const terminal=new Set(["COMPLETED","CANCELLED","FAILED","PARTIAL"]);
