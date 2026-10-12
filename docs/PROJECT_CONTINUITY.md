@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-12:** Read `docs/SESSION_LOG.md` for the chronological record. Current main HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Candidate branch `reconcile/rc425-458-current-main-20261011` contains unmerged release remediation; PR #207 and PR #214 remain draft. Exact-head targeted CI passed, but chronological replay is blocked by missing authoritative historical `public.bookings` DDL. Live SMM gateway v6 still lacks the server-side launch-deny gate. Release is **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
