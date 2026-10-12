@@ -4,6 +4,7 @@ const app = fs.readFileSync("web/app.js", "utf8");
 const smm = fs.readFileSync("web/smm.js", "utf8");
 
 const required = [
+  ["PKCE OAuth flow", "flowType:'pkce'", app],
   ["Google OAuth primary", "sb.auth.signInWithOAuth({provider:'google',options:", app],
   ["Secure OAuth redirect", "function oauthRedirectUrl(){return window.location.origin+window.location.pathname", app],
   ["Main Google sign-in", "sb.auth.signInWithOAuth({provider:'google',options:", app],
