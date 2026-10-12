@@ -7,6 +7,8 @@ import { normalizeProviderService } from "./catalog-normalization.ts";
 import { normalizeSmmMoney, validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts";
 import { readBoundedJson } from "./request-validation.ts";
 const cors={"Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
+// Hard gate for the initial launch scope: SMM stays disabled in source until a reviewed post-launch release changes this constant.
+const SMM_INITIAL_LAUNCH_DEFERRED=true;
 const json=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const URL=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,admin=createClient(URL,KEY);
 async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);const user=r.error?null:r.data.user;return !user||user.is_anonymous?null:user;}
@@ -35,7 +37,7 @@ Deno.serve(async(req)=>{
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
  // The separate SMM storefront is deferred until after core launch. Default-deny all actions unless an explicitly approved rollout sets this flag to exactly "true".
  const launch=getSmmLaunchDecision(Deno.env.get("MNTY_SMM_ENABLED"),Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED"));
- if(!launch.enabled)return json({error:launch.error,message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},launch.status);
+ if(SMM_INITIAL_LAUNCH_DEFERRED||!launch.enabled)return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const parsedBody=await readBoundedJson(req,32*1024);if(!parsedBody.ok)return json({error:parsedBody.code},parsedBody.status);
