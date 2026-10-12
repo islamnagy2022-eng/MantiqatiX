@@ -148,7 +148,7 @@ assert.match(statusAction, /const cancellationPending=/, "status polling must pr
 assert.match(statusAction, /ORDER_STATE_CHANGED_RETRY/, "status synchronization must fail closed if a concurrent cancellation or update changed the order");
 assert.match(statusAction, /statusWrite\.eq\("updated_at",o\.data\.updated_at\)/, "status synchronization must use an optimistic concurrency guard");
 assert.match(smmUi, /action:'cancel_order'/, "customer UI must invoke the guarded cancellation action");
-assert.match(smmUi, /لن يُعاد الرصيد إلا بعد تأكيد المورّد/, "customer UI must explain that refund requires provider confirmation");
+assert.match(smmUi, /لا يُعاد الرصيد إلا بعد تأكيد المورّد إلغاء الطلب/, "customer UI must explain that refund requires provider confirmation");
 assert.match(smmUi, /refund_requires_reconciliation/, "customer UI must disclose when a confirmed cancellation refund requires support reconciliation");
 assert.match(smmUi, /load-reconciliation/, "admin UI must expose the bounded reconciliation queue");
 assert.match(smmUi, /action:\x27reconciliation_queue\x27/, "admin UI must load reconciliation records through the gateway");
