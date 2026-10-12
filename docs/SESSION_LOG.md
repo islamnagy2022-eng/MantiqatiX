@@ -40,3 +40,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Read-only production schema check:** inspected public table inventory in Supabase project moyhiluyhjsujhwlyeuu. The relevant task/queue search returned approval_requests, approval_actions, audit_logs, marketing_projects, marketing_project_participants, notifications, and consent_audit_log; no authoritative public tasks/work_items table was found in that inventory.
 - **Decision:** do not fabricate task records or repurpose approvals/notifications as a task system. Administration's task-closure gate remains blocked until a source-of-truth task model and its authorization/audit contract are designed and tested. This is a dependency for module 01 and module 12.
 - **Production impact:** read-only inspection only; no schema, data, grant, policy, or Auth changes.
+
+
+## 2026-10-13 — SESSION-004 — Restore exact RC425–RC441 migration sources and extend release gate
+
+- Discovery: the current candidate branch lacked 16 required migration source files RC425–RC432 and RC434–RC441, although the release verifier referenced their names. The files were present on the reconciled PR #207 branch.
+- Provenance check: compared each of the 16 migration blob SHAs across PR #207 (834c791342b85c332114eca1923e18667bad4117), PR #202 (56dc3853be48fee413cbaf551fd350fe3f1df3ed), and PR #84 (934f2fc28ec61bdfc5023479b0e796e743244eb1); the corresponding blobs matched across all three candidate heads. This establishes byte identity for these files only; it does not resolve every broader historical replay dependency or certify production application.
+- Code action: restored the 16 migration files byte-for-byte from the reconciled branch to PR #218. Verified the new candidate tree contains all 16 and each blob SHA matches PR #207.
+- Release-gate action: updated scripts/validate-production-migration-chain-gate.mjs to track RC522 audit-log append-only and RC523 MantiGO financial-report canonical-column migrations as required sources; the count is now 30 and remains chronologically ordered by timestamp.
+- Not yet verified: CI on the new head has not yet been inspected; chronological full replay, unresolved earlier historical function DDL dependencies, tenant/payment/finance E2E, production application, and all release gates remain open. Associated focused tests for RC425–RC441 were not found in the current candidate tree during this pass.
+- Production impact: repository source only. No production SQL, ledger, data, grants/RLS, Auth settings, Edge Functions, payment/wallet operations, merge, or release changed.
+- Release status: BLOCKED / NOT CERTIFIED.
