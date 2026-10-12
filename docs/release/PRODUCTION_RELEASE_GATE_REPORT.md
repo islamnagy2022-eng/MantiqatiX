@@ -294,3 +294,26 @@ Candidate code head `3003a6186d937580cba37fe92c313d6760ffe111` completed these w
 The complete disposable migration replay **failed** at `20260920155456_harden_credit_status_authorization.sql`: `public.credit_accounts` does not exist in the fresh replay database [run 38254637974](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38254637974). The uploaded RC40 source places the original table-creation migration at `20260920185000` and the original function migration at `20260920190000`, while the current candidate retains a production-ledger alias at `20260920155456`. The live database also has finance-read policies whose creation source is absent from the RC40 archive. A safe replay plan must preserve production ledger immutability and must not narrow numeric precision or silently synthesize policy definitions.
 
 The release report and migration-blocker report received documentation-only commits on the candidate branch after that code head. Those documentation commits do not constitute a new code validation run. No merge, production deploy, database migration, Auth change, grant/RLS change, wallet/payment mutation, or customer-data write was performed.
+
+
+## Supabase Advisor snapshot — 2026-10-12
+
+A read-only Supabase Advisor run at approximately 14:51 UTC returned 133 security findings across five distinct lint categories, plus 632 performance findings across four categories. These are triage findings; they are not all confirmed exploitable vulnerabilities, and no automatic grant/RLS changes were made.
+
+### Security items requiring disposition
+- **40** `SECURITY DEFINER` functions are executable by `authenticated`. Each function needs an explicit caller/tenant authorization review; this generic lint alone does not prove each function is vulnerable.
+- **1** `SECURITY DEFINER` function, `public.get_mnty_targeted_advertisements`, is executable by `anon` and `authenticated`. Its current body filters to active, approved ads and is likely part of public ad delivery, so do not blindly revoke anonymous execution. However, its live configuration uses `search_path = public, pg_temp`; review it against the candidate's hardening migration and confirm its return fields are intentionally public before any separately approved deployment. [Supabase lint 0028](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable)
+- **90** anonymous-access policy findings were returned across tables. A separate catalog triage found 114 public tables with permissive policies for `authenticated`, of which 47 did not have a generic restrictive `FOR ALL` non-anonymous guard matching the expected JWT predicate. This is a review queue, not proof of exposure: inspect each table's policy predicates and required public/guest behavior, prioritizing financial, payment, wallet, order, membership, support, and CRM tables. Supabase anonymous users can carry the `authenticated` database role, so role membership alone is not sufficient authorization.
+- `public.digital_page_payment_events` has RLS enabled but no policies. Confirm client roles have no table privileges and the intended service-role-only event path is tested before deciding whether a policy is needed. [Supabase lint 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
+- Leaked-password protection is reported disabled. This needs a reviewed Auth configuration change and sign-in regression tests; it was not changed during this audit.
+
+### Performance review queue
+- 375 RLS initialization-plan findings (repeated `auth.*` evaluation patterns).
+- 105 foreign keys without covering indexes.
+- 28 tables with multiple permissive policies for the same role/action.
+- 124 indexes reported unused by current statistics.
+
+Do not bulk-remove unused indexes or rewrite RLS policies from these counts alone. Validate query plans, data volume, expected workload, public-page requirements, and tenant-isolation tests first.
+
+### Current release consequence
+These Advisor results add an explicit security-review gate; they do not replace the existing replay and SMM containment blockers. Review and source fixes may proceed on the candidate branch, but production changes to RLS/grants, Auth settings, or Edge Functions require separate authorization and successful negative tests. Production remains **`BLOCKED / NOT CERTIFIED`**.
