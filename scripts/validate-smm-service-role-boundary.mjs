@@ -53,6 +53,7 @@ assert.match(smmUi, /sessionStorage\.setItem\(storageKey,idempotencyKey\)/, "UI 
 assert.match(smmUi, /تعذر حفظ معرّف آمن للطلب في جلسة المتصفح؛ لم يتم إرسال الطلب/, "UI must fail closed if it cannot persist the idempotency key");
 assert.match(smmUi, /idempotency_key:idempotencyKey/, "UI must send the idempotency key to the gateway");
 assert.match(smmUi, /if\(r\.pending\)/, "UI must show pending reconciliation rather than claiming confirmed success");
+assert.match(smmUi, /if\(r\.replayed\)/, "UI must distinguish a replayed order from a newly submitted order");
 assert.ok(placeOrder.includes('target.protocol!=="https:"'), "customer target URL must require HTTPS");
 assert.match(placeOrder, /SERVICE_CONFIGURATION_INVALID/, "invalid service pricing configuration must fail closed");
 assert.match(edge, /provider_status:"submission_unknown"/, "ambiguous provider outcomes must be explicitly marked for reconciliation");
