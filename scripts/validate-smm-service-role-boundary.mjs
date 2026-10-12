@@ -37,6 +37,13 @@ assert.ok(placeOrder.includes('target.protocol!=="https:"'), "customer target UR
 assert.match(placeOrder, /SERVICE_CONFIGURATION_INVALID/, "invalid service pricing configuration must fail closed");
 assert.match(edge, /provider_status:"submission_unknown"/, "ambiguous provider outcomes must be explicitly marked for reconciliation");
 assert.doesNotMatch(edge, /Automatic refund after provider failure/, "provider-call exceptions must not trigger blind automatic refunds");
+const orderStatusStart = edge.indexOf('if(a==="order_status")');
+const orderStatusEnd = edge.indexOf('return json({error:"UNKNOWN_ACTION"}', orderStatusStart);
+assert.ok(orderStatusStart >= 0 && orderStatusEnd > orderStatusStart, "order_status action must exist");
+const orderStatus = edge.slice(orderStatusStart, orderStatusEnd);
+assert.doesNotMatch(orderStatus, /result:r/, "raw provider status responses must not be returned to customers");
+assert.match(orderStatus, /provider_status:String\(r\.status\|\|"unknown"\)/, "status response must expose only a bounded provider status");
+
 
 const catalogStart = edge.indexOf('if(a==="catalog")');
 const accountStart = edge.indexOf('if(a==="my_data")', catalogStart);
