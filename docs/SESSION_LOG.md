@@ -34,3 +34,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Deployment distinction:** run 38324310047 deploy job was SKIPPED because this is a PR branch. No production deploy, production migration, Auth configuration change, or live financial mutation occurred.
 - **Current status:** automated candidate checks passed at that candidate; production release remains BLOCKED / NOT CERTIFIED pending live authorization/tenant E2E, payment/settlement E2E, outstanding Auth/security remediation, device tests, and restore rehearsal.
 - **Next:** verify CI on the latest documentation-updated SHA; then continue the administration acceptance gate and reconcile module progress from existing work records. Do not treat missing measurement as zero and do not claim production readiness from disposable CI.
+
+## 2026-10-13 — SESSION-003 — Read-only task-source check
+
+- **Read-only production schema check:** inspected public table inventory in Supabase project moyhiluyhjsujhwlyeuu. The relevant task/queue search returned approval_requests, approval_actions, audit_logs, marketing_projects, marketing_project_participants, notifications, and consent_audit_log; no authoritative public tasks/work_items table was found in that inventory.
+- **Decision:** do not fabricate task records or repurpose approvals/notifications as a task system. Administration's task-closure gate remains blocked until a source-of-truth task model and its authorization/audit contract are designed and tested. This is a dependency for module 01 and module 12.
+- **Production impact:** read-only inspection only; no schema, data, grant, policy, or Auth changes.
