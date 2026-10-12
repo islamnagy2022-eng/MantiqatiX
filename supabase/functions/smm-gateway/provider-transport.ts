@@ -20,6 +20,8 @@ export function assertSafeProviderEndpoint(value: unknown, allowlistCsv: string 
 
 export async function readProviderJson(response: Response, maxBytes = 1_048_576): Promise<unknown> {
   if (!response.ok) throw new Error("Provider HTTP " + response.status);
+  const contentType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  if (contentType !== "application/json" && !contentType.endsWith("+json")) throw new Error("Provider response is not JSON");
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Provider returned an empty response");
   const chunks: Uint8Array[] = [];
