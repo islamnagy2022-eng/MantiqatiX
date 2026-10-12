@@ -276,3 +276,21 @@ Repository searches for the ten legacy SECURITY DEFINER signatures and their cre
 The SMM source validator confirms that candidate source checks `MNTY_SMM_ENABLED` before authentication and business operations. This is source-only evidence: the live Edge Function has not been changed, and its previously observed version 6 without this gate remains a P0 containment blocker until a separately authorized deployment and negative live test prove otherwise. The marketing/advertising internal module remains in launch scope; digital SMM remains deferred.
 
 PR #207 remains draft/unmerged. No production migration, Edge Function deployment, Auth change, wallet/payment mutation, or financial data write was performed. Release status remains **`BLOCKED / NOT CERTIFIED`**.
+
+
+## Latest production release recheck — 2026-10-12
+
+**Decision remains `BLOCKED / NOT CERTIFIED`.** This is a read-only recheck plus documentation-only updates; no production change was made.
+
+### Current live facts
+- Supabase project `moyhiluyhjsujhwlyeuu` is `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155.
+- Production migration ledger remains at 283 applied versions, latest `20261008222845` / `rc424_atomic_digital_page_payment_webhook`. No post-RC424 candidate migration was applied.
+- The deployed `smm-gateway` is now **ACTIVE version 8**, source hash `c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f`. Read-only source inspection still finds no `MNTY_SMM_ENABLED` deny gate. The UI deferral therefore does not contain the live API; P0 issue [#212](https://github.com/islamnagy2022-eng/MantiqaTiX/issues/212) remains open. No function deployment was performed.
+- The supplied `source_RC40.zip` SHA-256 was verified against its companion checksum. It contains original credit-control table DDL, but its numeric columns use `numeric(14,2)` while live production reports `numeric(18,2)` for five credit amount columns. It is useful historical source evidence, not an exact live-schema baseline.
+
+### Exact candidate CI evidence
+Candidate code head `3003a6186d937580cba37fe92c313d6760ffe111` completed these workflows successfully: Module Professionalization Validation [38254638082](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38254638082), SMM Deferred Module Validation [38254637874](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38254637874), Backend-only Module Boundary [38254637922](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38254637922), Migration History Immutability [38254637887](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38254637887), Migration Version Uniqueness [38254638027](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38254638027), and the related privacy, CRM, campaign, and approval-audit workflows. Pages validation passed but its deploy job was skipped [38254637872](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38254637872).
+
+The complete disposable migration replay **failed** at `20260920155456_harden_credit_status_authorization.sql`: `public.credit_accounts` does not exist in the fresh replay database [run 38254637974](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38254637974). The uploaded RC40 source places the original table-creation migration at `20260920185000` and the original function migration at `20260920190000`, while the current candidate retains a production-ledger alias at `20260920155456`. The live database also has finance-read policies whose creation source is absent from the RC40 archive. A safe replay plan must preserve production ledger immutability and must not narrow numeric precision or silently synthesize policy definitions.
+
+The release report and migration-blocker report received documentation-only commits on the candidate branch after that code head. Those documentation commits do not constitute a new code validation run. No merge, production deploy, database migration, Auth change, grant/RLS change, wallet/payment mutation, or customer-data write was performed.
