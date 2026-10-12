@@ -18,7 +18,7 @@ as $function$
       and m.status = 'ACTIVE'
       and upper(m.role) = 'SUPER_ADMIN'
       and coalesce(m.permissions ->> 'scope' = 'PLATFORM', false)
-      and coalesce(m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb, false)
+      and coalesce((m.permissions ->> 'full_control')::boolean, false)
   )
 $function$;
 
