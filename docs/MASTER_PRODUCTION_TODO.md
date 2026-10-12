@@ -1605,3 +1605,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Reported arithmetic averages from the documented estimates: source build 69%, verification/readiness 37%; conservative overall launch readiness is 30% and release remains BLOCKED / NOT CERTIFIED.
 - [ ] Treat figures as engineering estimates (approximately ±10 percentage points), not objective code coverage or production certification; update only with evidence tied to exact commit/environment.
 - [ ] P0 migration replay, multi-tenant E2E, payment/finance E2E, restore test, live SMM gate/schema/grants, and exact-head CI remain unresolved or unverified.
+
+
+## 2026-10-13 — Migration lineage blocker and exact-head CI evidence
+- [x] Added `docs/release/CREDIT_MIGRATION_LINEAGE_BLOCKER_AR.md`, distinguishing archive DDL from verified production history and documenting the observed schema/default differences.
+- [x] Added latest exact-head CI evidence to `docs/release/MODULE_COMPLETION_MATRIX_AR.md`; all listed source/isolated integration workflows passed on `be74dd5a2b94bbd93591e97fa23e709fe5fe3f70`.
+- [x] Confirmed the Pages workflow's `validate` job passed while its `deploy` job was skipped for the draft PR; do not call this a production deployment.
+- [ ] Credit migration provenance remains unresolved; full clean-database replay, complete production E2E, restore rehearsal, and SMM live rollout gates remain open.
