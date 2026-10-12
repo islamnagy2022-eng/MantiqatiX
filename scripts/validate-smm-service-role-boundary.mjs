@@ -116,11 +116,13 @@ const reconciliationEnd = edge.indexOf('if(a==="set_price")', reconciliationStar
 assert.ok(reconciliationStart >= 0 && reconciliationEnd > reconciliationStart, "admin reconciliation queue action must exist");
 const reconciliationQueue = edge.slice(reconciliationStart, reconciliationEnd);
 assert.match(reconciliationQueue, /if\(!\(await isAdmin\(user\.id\)\)\)return json\(\{error:"FORBIDDEN"\},403\)/, "reconciliation queue must be admin-only");
-assert.match(reconciliationQueue, /\.eq\("status","SUBMITTING"\)/, "reconciliation queue must select unresolved submitting orders");
+assert.match(reconciliationQueue, /\.or\("status\.eq\.SUBMITTING,provider_status\.eq\.cancel_request_started,provider_status\.eq\.cancel_requested"\)/, "reconciliation queue must include unresolved submissions and ambiguous cancellation requests");
 assert.match(reconciliationQueue, /\.limit\(100\)/, "reconciliation queue must be bounded");
 assert.doesNotMatch(reconciliationQueue, /target_url/, "reconciliation queue must not disclose customer target URLs");
 assert.match(reconciliationQueue, /لا تعِد إرسال الطلبات المعلّقة تلقائيًا/, "reconciliation queue must warn against blind resubmission");
 assert.match(reconciliationQueue, /RECONCILIATION_QUEUE_READ_FAILED/, "queue read failures must fail closed");
+assert.match(reconciliationQueue, /provider_status\.eq\.cancel_request_started/, "admin reconciliation must surface cancellation requests that may have timed out");
+assert.match(reconciliationQueue, /provider_status\.eq\.cancel_requested/, "admin reconciliation must surface provider cancellation requests awaiting confirmation");
 
 const cancelStart = edge.indexOf('if(a==="cancel_order")');
 const cancelEnd = edge.indexOf('if(a==="order_status")', cancelStart);
