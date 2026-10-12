@@ -100,7 +100,7 @@ Deno.serve(async(req)=>{
     console.error("[smm-gateway] provider accepted but order persistence failed",persisted.error.code||"DB_ERROR",String(orderId));
     return json({error:"PROVIDER_ACCEPTED_PERSISTENCE_PENDING",order_id:orderId,reconciliation_required:true},202);
    }
-   const event=await admin.from("smm_order_events").insert({order_id:orderId,event_type:"SUBMITTED",payload:providerResult});
+   const event=await admin.from("smm_order_events").insert({order_id:orderId,event_type:"SUBMITTED",payload:{provider_order_id:String(pid),provider_status:"submitted"}});
    if(event.error)console.error("[smm-gateway] order event insert failed",event.error.code||"DB_ERROR",String(orderId));
    return json({ok:true,order_id:orderId,provider_order_id:String(pid),status:"PROCESSING",charged:sell,event_recorded:!event.error});
   }if(a==="order_status"){
