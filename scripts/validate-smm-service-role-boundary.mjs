@@ -22,7 +22,7 @@ assert.match(adminGuard, /p\.full_control===true/, "membership must have explici
 assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/, "tenant OWNER/ADMIN roles must not grant global SMM administration");
 
 assert.match(edge, /MNTY_SMM_ENABLED/, "SMM gateway must be disabled by default behind an explicit launch flag");
-assert.match(edge, /SMM_POST_LAUNCH_DEFERRED/, "disabled SMM gateway must return a stable non-sensitive error");
+assert.match(launchGate, /SMM_POST_LAUNCH_DEFERRED/, "disabled SMM gateway must return a stable non-sensitive error");
 assert.match(edge, /getSmmLaunchDecision\(Deno\.env\.get\("MNTY_SMM_ENABLED"\)\)/, "gateway must use the tested launch-gate decision helper");
 assert.ok(edge.indexOf("if(!launchDecision.enabled)") < edge.indexOf("const user=await getUser(req)"), "SMM launch gate must run before authentication and any protected work");
 assert.match(launchGate, /flag === "true"/, "SMM launch gate must require the exact explicit true flag");
