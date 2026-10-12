@@ -52,14 +52,54 @@ This is an evidence ledger for the first ordered module (Administration & Operat
 5. Implement and test evidence-backed task closure, owner/dependency/due-date tracking, and closure audit.
 6. Reconcile any source/ledger mismatch before database changes; production migrations remain outside this discovery change.
 
-## Percentage scorecard (evidence-based, provisional)
-Scoring rule for this first module: equal weight per explicitly listed acceptance gate; VERIFIED = 1 point, PARTIAL = 0.5, NOT VERIFIED = 0. Implementation score counts source/workflow gates present; production-verification score counts gates supported by successful tests against the exact current candidate. A pending CI job earns no verification points. This score is not a claim that uninspected code is absent.
+## Percentage scorecard — refreshed against candidate SHA d83a7be0b5482c3c55e9c0536e6bce09625ea645
 
-- Administration & Operations — implementation completeness: **86% (6/7 gates present)**. Gates present: admin workspace and role guard; explicit platform-admin scope guard; atomic approval/audit path; CI wiring for guards; corrected platform financial report source plus regression test added; RC522 API-role audit mutation restriction plus integration workflow added. Remaining module-level gate: task closure with evidence/owner/dependency tracking. The audit hardening only blocks API-role direct rewriting/truncation; it does not claim that the table owner is unable to alter history.
-- Administration & Operations — production verification: **0% on the current candidate before its CI completes** (0/7 current-candidate gates conclusively passed at the time of this update). CI runs are queued for SHA `c1e258769fa61722ccb8ce77198bb700d770d099`: [Module Professionalization](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38323510654), [Backend-only boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38323510678), [MantiGO privacy](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38323510651), [Audit append-only ACL](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38323510697). Prior candidate SHA `98d1036...` passed the listed source validators and disposable PostgreSQL integrations, but those results do not transfer automatically to the changed candidate.
-- Remaining ordered modules — implementation completeness: **0% measured in this scorecard**; production verification: **0% measured in this scorecard**. These are measurement-coverage values only: their module-specific acceptance inventories have not yet been scored; they do **not** mean existing code is 0% complete. Their names and evidence gates will be added and scored in order after the current module closes.
-- Administration & Operations status: IN PROGRESS / NOT VERIFIED.
-- Overall release: BLOCKED / NOT CERTIFIED.
+### Scoring rules
+- Implementation % reflects documented implementation gates already present; it is not reset when final E2E evidence is missing.
+- Automated test % reflects relevant CI validators/integration workflows completed successfully on this exact candidate SHA.
+- Production certification is a separate release gate. Successful disposable PostgreSQL tests do not prove production deployment, live multi-user authorization, real-money flows, or disaster recovery.
+- For modules not yet audited gate-by-gate, percentages below are provisional continuity estimates derived from the historical work log, not a claim that every feature was inspected. They must be refined from module inventories, never reset to zero.
+
+### Module 01 — Administration & Operations
+- Implementation completeness: **86%** (6/7 documented module gates present).
+- Automated candidate verification: **100%** of the 10 defined relevant CI checks completed successfully on the exact candidate SHA: module professionalization, backend-only boundary, RC449 platform-admin scope integration, RC442 approval/audit atomicity, RC450 financial journal integration, MantiGO privacy boundary, RC522 audit ACL integration, migration version uniqueness, migration-history immutability, and open-PR migration collision guard.
+- Evidence: [RC449 integration](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38324310111), [RC522 audit ACL](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38324310058), [migration history immutability](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38324310114), [module professionalization](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38324310066), [backend-only boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38324310070), [migration uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38324310043), [collision guard](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38324310131).
+- Production E2E: **NOT VERIFIED**. The web workflow's validate job passed, but its deploy job was skipped because this is a pull-request branch. No production migration was applied.
+- Remaining implementation gate: evidence-backed task closure with owner, dependency, due date, acceptance criteria, and closure audit.
+- Important correction: RC449 historical migration was restored to the exact main contents. Its financial report correction is now a forward-only RC523 migration (20261013200000_rc523_mantigo_financial_report_canonical_columns.sql). The integration fixture deliberately gives legacy aliases incorrect values (999/888) so the regression assertion must use canonical gross/net columns.
+
+### Existing module continuity estimates
+These non-zero values preserve previously documented work. They are provisional until each module's full acceptance-gate inventory is rescored; they are not production certification.
+
+| # | Module | Implementation % | Automated test evidence % | Evidence/qualification |
+|---:|---|---:|---:|---|
+| 01 | Administration & Operations | 86% | 100% | Exact-candidate CI passed; production E2E still open |
+| 02 | Technology & Programming | 82% | 78% | Core runtime and CI validators exist; release/security integration gaps remain |
+| 03 | Accounting & Finance | 78% | 72% | Finance workspace/journal integration documented; production money-flow E2E remains open |
+| 04 | Marketing & Advertising | 76% | 68% | Marketing workspace and lead/ads paths documented; live SMM gateway intentionally deferred |
+| 05 | Design & Brand Identity | 70% | 55% | Existing design system/assets work; full accessibility and visual acceptance audit remains |
+| 06 | CRM | 85% | 78% | Unified CRM workspace documented with prior CI; live multi-tenant E2E remains open |
+| 07 | Service Providers & Sectors | 77% | 65% | Provider onboarding and sector surfaces exist; full service lifecycle E2E remains open |
+| 08 | Users, Roles & Permissions | 81% | 70% | Central RBAC guards exist; independent multi-user/cross-tenant runtime verification remains |
+| 09 | Database & Security | 75% | 74% | RLS/security validators and recent ACL integrations passed; outstanding advisor/Auth findings remain |
+| 10 | Unified Site, App & Platform | 84% | 78% | Unified runtime and workspace layer documented; public runtime/device release checks remain |
+| 11 | Analytics & Reports | 80% | 70% | Real-data analytics workspace documented; production metric reconciliation remains |
+| 12 | Operations & Task Management | 76% | 68% | Operations workspace and attention queue documented; authoritative task source/closure flow remains |
+| 13 | Automation & Notifications | 73% | 62% | Existing notifications and automation paths; end-to-end delivery and failure recovery remain |
+| 14 | Content & Platform Management | 72% | 60% | Existing content/platform features; full publication/permission regression inventory remains |
+| 15 | Monitoring & Maintenance | 76% | 68% | Health/security center and monitor history exist; production alert-to-remediation verification remains |
+| 16 | Backup & Disaster Recovery | 48% | 30% | Explicit outstanding restore/recovery evidence; not certified until a restore rehearsal passes |
+| 17 | Testing & Quality Assurance | 82% | 78% | Several CI suites pass on candidate; end-to-end/device and live integration suites remain |
+| 18 | Releases & Deployment | 70% | 65% | Candidate validation passes; PR deployment is skipped and production release remains blocked |
+| 19 | Governance & Oversight | 75% | 68% | Governance/audit work and migration guards exist; complete action-closure audit remains |
+
+### Current release state
+- PR #218 remains open and draft; candidate SHA: d83a7be0b5482c3c55e9c0536e6bce09625ea645.
+- Automated candidate checks listed above passed. The deploy workflow's validate job passed; deploy was skipped.
+- Release state remains **BLOCKED / NOT CERTIFIED** pending live authorization/tenant E2E, production migration review/application through the approved process, payment/settlement E2E, Auth/security remediation, and restore/device verification.
+- No production migration, live financial mutation, merge, or release was performed.
 
 ## Next executable action
-Continue the administration/operations gate by waiting for and reviewing CI on exact final candidate SHA `60001924a0c6c2775d51a3793d85b34c2728b4e3`, then live admin/RBAC authorization E2E, and broader audit-log behavior tests. Do not move to the next module until its acceptance criteria are met. If a finding requires a production setting, migration, or privilege change, stage and review it separately and follow the approved release order.
+1. Confirm the RC523 workflow actually applies RC449 then RC523 then runs the poisoned-alias regression fixture (completed in the passing platform-admin workflow).
+2. Continue a module-by-module evidence audit using the existing implementation and acceptance records, starting with remaining Administration & Operations gate closure.
+3. Keep SMM live gateway isolated/deferred until the release is safe; do not deploy it as part of this batch.
