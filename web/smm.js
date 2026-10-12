@@ -74,5 +74,30 @@ async function drawAdmin(v){v.innerHTML='<div class="admin-grid"><div class="car
 async function configProvider(id,name){const key=prompt('أدخل API Key للمزود '+name+' — لن يظهر المفتاح في قاعدة البيانات المكشوفة.');if(!key)return;try{await fn({action:'configure_provider',provider_id:id,api_key:key});alert('تم حفظ مفتاح المزود وتفعيله.');}catch(e){alert(e.message)}}
 async function syncProvider(id){try{const r=await fn({action:'sync_services',provider_id:id});alert('تمت مزامنة '+r.count+' خدمة.');load()}catch(e){alert(e.message)}}
 async function setPrice(id){const val=document.getElementById('p'+id).value;try{await fn({action:'set_price',service_id:id,selling_price:Number(val)});alert('تم حفظ السعر.');}catch(e){alert(e.message)}}
-function openOrder(id){selected=services.find(x=>x.id===id);const m=document.createElement('div');m.className='modal';m.innerHTML='<div><h2>'+esc(selected.name)+'</h2><p class="muted">سعر البيع: $'+money(selected.selling_price)+' لكل 1000</p><div class="form"><input class="input" id="target" placeholder="الرابط / الحساب المستهدف"><input class="input" id="qty" type="number" value="'+selected.min_quantity+'" min="'+selected.min_quantity+'" max="'+selected.max_quantity+'"><button class="btn primary" id="place">تنفيذ الطلب</button><button class="btn outline" id="close">إلغاء</button></div><div id="om"></div></div>';document.body.appendChild(m);m.querySelector('#close').onclick=()=>m.remove();m.querySelector('#place').onclick=async()=>{const target=m.querySelector('#target').value.trim(),qty=Number(m.querySelector('#qty').value);if(!target||qty<selected.min_quantity||qty>selected.max_quantity)return m.querySelector('#om').innerHTML='<div class="notice">تحقق من الرابط والكمية.</div>';try{const r=await fn({action:'place_order',service_id:selected.id,target_url:target,quantity:qty});m.querySelector('#om').innerHTML='<div class="notice success">تم إرسال الطلب. رقم الطلب: '+esc(r.order_id)+'<br>Provider order: '+esc(r.provider_order_id||'—')+'</div>';setTimeout(()=>{m.remove();load()},1200)}catch(e){m.querySelector('#om').innerHTML='<div class="notice">'+esc(e.message)+'</div>'}}}
+function openOrder(id){
+ selected=services.find(x=>String(x.id)===String(id));if(!selected)return;
+ const m=document.createElement('div');m.className='modal';
+ m.innerHTML='<div><h2>'+esc(selected.name||'الخدمة')+'</h2><p class="muted">سعر كل 1000: $'+money(selected.selling_price)+'</p><div class="form"><label for="target">رابط الحساب أو المحتوى المستهدف</label><input class="input" id="target" type="url" inputmode="url" placeholder="https://..." autocomplete="url" required><label for="qty">الكمية</label><input class="input" id="qty" type="number" inputmode="numeric" step="1" value="'+Number(selected.min_quantity||1)+'" min="'+Number(selected.min_quantity||1)+'" max="'+Number(selected.max_quantity||1)+'" required><div class="card"><div class="muted">التكلفة التقديرية</div><strong id="total">$'+money(Number(selected.selling_price||0)*Number(selected.min_quantity||1)/1000)+'</strong><div class="muted">تُحسب التكلفة النهائية من الخادم قبل تنفيذ الطلب.</div></div><button class="btn primary" id="place">مراجعة وإرسال الطلب</button><button class="btn outline" id="close">إلغاء</button></div><div id="om" aria-live="polite"></div></div>';
+ document.body.appendChild(m);
+ const targetEl=m.querySelector('#target'),qtyEl=m.querySelector('#qty'),totalEl=m.querySelector('#total'),place=m.querySelector('#place'),message=m.querySelector('#om');
+ const min=Number(selected.min_quantity||1),max=Number(selected.max_quantity||min),unit=Number(selected.selling_price||0);
+ const updateTotal=()=>{const q=Number(qtyEl.value);totalEl.textContent='$'+money(Number.isFinite(q)&&q>0?unit*q/1000:0);};
+ qtyEl.addEventListener('input',updateTotal);
+ m.querySelector('#close').onclick=()=>m.remove();
+ place.onclick=async()=>{
+  const target=targetEl.value.trim(),qty=Number(qtyEl.value);
+  let parsed;
+  try{parsed=new URL(target)}catch{}
+  if(!parsed||!['https:','http:'].includes(parsed.protocol)){message.innerHTML='<div class="notice">أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://.</div>';targetEl.focus();return}
+  if(!Number.isSafeInteger(qty)||qty<min||qty>max){message.innerHTML='<div class="notice">الكمية يجب أن تكون عددًا صحيحًا بين '+min+' و'+max+'.</div>';qtyEl.focus();return}
+  if(!Number.isFinite(unit)||unit<0){message.innerHTML='<div class="notice">تعذر التحقق من سعر الخدمة. أعد تحميل الكتالوج.</div>';return}
+  if(!window.confirm('تأكيد الطلب؟ الكمية: '+qty+'، التكلفة التقديرية: $'+money(unit*qty/1000)+'. سيتم اعتماد السعر النهائي من الخادم.'))return;
+  place.disabled=true;place.textContent='جارٍ إرسال الطلب...';
+  try{
+   const r=await fn({action:'place_order',service_id:selected.id,target_url:target,quantity:qty});
+   message.innerHTML='<div class="notice success">تم استلام الطلب من النظام. رقم الطلب: '+esc(r.order_id||'—')+'. يمكنك متابعة حالته من صفحة «طلباتي».</div>';
+   setTimeout(()=>{m.remove();load()},1500);
+  }catch(e){message.innerHTML='<div class="notice">'+esc(e.message||'تعذر إرسال الطلب. تحقق من حالة الطلب قبل إعادة المحاولة.')+'</div>';place.disabled=false;place.textContent='مراجعة وإرسال الطلب';}
+ };
+}
 sb.auth.onAuthStateChange(()=>load());load();
