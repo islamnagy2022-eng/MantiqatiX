@@ -9,6 +9,7 @@ async function secret(id:string){const r=await admin.rpc("smm_get_provider_secre
 import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts";
 import { normalizeProviderOrderStatus } from "./order-status.ts";
 import { normalizeProviderService } from "./catalog-normalization.ts";
+import { validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts";
 
 async function call(p:any,k:string,a:string,x:any={}) {
  const endpoint=assertSafeProviderEndpoint(p?.api_url,Deno.env.get("SMM_PROVIDER_HOSTS"));
@@ -57,15 +58,17 @@ Deno.serve(async(req)=>{
   if(a==="admin_data"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const [p,s,o]=await Promise.all([admin.from("smm_providers").select("id,name,api_url,active,priority").order("priority"),admin.from("smm_services").select("id,provider_id,platform,category,name,provider_cost,selling_price,min_quantity,max_quantity,active").order("created_at",{ascending:false}).limit(200),admin.from("smm_orders").select("id,user_id,service_id,quantity,selling_price,profit,status,provider_order_id,created_at").order("created_at",{ascending:false}).limit(100)]);return json({providers:p.data||[],services:s.data||[],orders:o.data||[]});}
   if(a==="set_price"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const price=Number(b.selling_price);if(!Number.isFinite(price)||price<0)return json({error:"INVALID_PRICE"},400);const current=await admin.from("smm_services").select("provider_cost,active").eq("id",b.service_id).maybeSingle();if(current.error)return json({error:"SERVICE_PRICE_READ_FAILED"},500);if(!current.data)return json({error:"SERVICE_NOT_FOUND"},404);const providerCost=Number(current.data.provider_cost);if(!Number.isFinite(providerCost)||providerCost<0)return json({error:"INVALID_SERVICE_PRICING"},409);const positiveMargin=price>providerCost;const r=await admin.from("smm_services").update({selling_price:price,active:positiveMargin?current.data.active:false,updated_at:new Date().toISOString()}).eq("id",b.service_id);if(r.error)return json({error:"SERVICE_PRICE_UPDATE_FAILED"},500);return json({ok:true,active:positiveMargin?current.data.active:false,requires_activation_review:!positiveMargin});}
   if(a==="place_order"){
-   const q=Number(b.quantity);
-   if(!b.service_id||!b.target_url||!Number.isInteger(q)||q<=0)return json({error:"INVALID_ORDER"},400);
-   const s=await admin.from("smm_services").select("*,smm_providers(*)").eq("id",b.service_id).eq("active",true).single();
+   const validatedOrder=validateSmmOrderInput(b);
+   if(!validatedOrder.ok)return json({error:validatedOrder.code},400);
+   const q=validatedOrder.quantity;
+   const s=await admin.from("smm_services").select("*,smm_providers(*)").eq("id",validatedOrder.serviceId).eq("active",true).single();
    if(s.error||!s.data)return json({error:"SERVICE_NOT_FOUND"},404);
    const v=s.data;
    if(q<v.min_quantity||q>v.max_quantity)return json({error:"QUANTITY_OUT_OF_RANGE",min:v.min_quantity,max:v.max_quantity},400);
-   const sell=Number(v.selling_price)*q/1000,cost=Number(v.provider_cost)*q/1000;
-   if(!Number.isFinite(sell)||!Number.isFinite(cost)||sell<0||cost<0)return json({error:"INVALID_SERVICE_PRICING"},409);
-   const o=await admin.from("smm_orders").insert({user_id:user.id,service_id:b.service_id,target_url:b.target_url,quantity:q,selling_price:sell,provider_cost:cost,profit:sell-cost,status:"SUBMITTING"}).select("id").single();
+   const pricing=validateSmmOrderPricing({sellingPrice:Number(v.selling_price),providerCost:Number(v.provider_cost),quantity:q});
+   if(!pricing.ok)return json({error:pricing.code},409);
+   const {charged:sell,cost,profit}=pricing;
+   const o=await admin.from("smm_orders").insert({user_id:user.id,service_id:validatedOrder.serviceId,target_url:validatedOrder.targetUrl,quantity:q,selling_price:sell,provider_cost:cost,profit,status:"SUBMITTING"}).select("id").single();
    if(o.error||!o.data){console.error("[smm-gateway] order insert failed",o.error?.code||"DB_ERROR");return json({error:"ORDER_CREATE_FAILED"},500);}
    const orderId=o.data.id;
    const debit=await admin.rpc("smm_debit_wallet",{p_user:user.id,p_amount:sell,p_reference:orderId});
