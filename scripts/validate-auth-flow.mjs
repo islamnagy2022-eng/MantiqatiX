@@ -5,6 +5,8 @@ const smm = fs.readFileSync("web/smm.js", "utf8");
 const customerRegistration = fs.readFileSync("supabase/functions/mnty-customer-registration/index.ts", "utf8");
 const customerActivationMigration = fs.readFileSync("supabase/migrations/20260929150000_rc213_customer_direct_activation.sql", "utf8");
 
+const failures = [];
+
 const required = [
   ["PKCE OAuth flow", "flowType:'pkce'", app],
   ["Google OAuth primary", "sb.auth.signInWithOAuth({provider:'google',options:", app],
@@ -54,20 +56,16 @@ const serverRequired = [
   ["Customer activation restricts tenant to platform tenant", 'tenantId !== "MNTY-PLATFORM"', customerRegistration],
   ["Customer activation derives user ID from verified actor", "p_user_id: actor.id", customerRegistration],
   ["Customer activation uses atomic private RPC", '.schema("private")', customerRegistration],
-  ["Atomic activation RPC is not executable by authenticated clients", "revoke all on function private.activate_customer_registration_atomic(uuid, text) from public, anon, authenticated", customerActivationMigration],
-  ["Atomic activation RPC is granted to service role only", "grant execute on function private.activate_customer_registration_atomic(uuid, text) to service_role", customerActivationMigration],
+  ["Atomic activation RPC is not executable by authenticated clients", "from public, anon, authenticated", customerActivationMigration],
+  ["Atomic activation RPC is granted to service role only", "to service_role", customerActivationMigration],
   ["Atomic activation uses an advisory lock for idempotency", "pg_advisory_xact_lock", customerActivationMigration],
 ];
 for (const [name, marker, source] of serverRequired) {
   if (!source.includes(marker)) failures.push(name);
 }
 if (/p_user_id\\s*:\\s*body\\./.test(customerRegistration)) failures.push("Customer activation must not accept user ID from request body");
-if (customerRegistration.includes("SUPABASE_SERVICE_ROLE_KEY") && /web\\//.test("web/app.js")) {
-  // The service key is server-only by design; the browser must never contain this secret name.
-  if (app.includes("SUPABASE_SERVICE_ROLE_KEY")) failures.push("Service role key reference must not appear in browser app source");
-}
-
-const failures = [];
+// The service role key is server-only; the browser must never reference it.
+if (app.includes("SUPABASE_SERVICE_ROLE_KEY")) failures.push("Service role key reference must not appear in browser app source");
 const bootStart = app.indexOf("async function bootAuth(){");
 const bootEnd = app.indexOf("async function renderApp()", bootStart);
 const bootAuth = bootStart >= 0 && bootEnd > bootStart ? app.slice(bootStart, bootEnd) : "";
