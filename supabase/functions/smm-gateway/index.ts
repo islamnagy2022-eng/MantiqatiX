@@ -6,26 +6,17 @@ const URL=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_
 async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);const user=r.error?null:r.data.user;return !user||user.is_anonymous?null:user;}
 async function isAdmin(id:string){const a=await admin.from("smm_admins").select("user_id").eq("user_id",id).maybeSingle();if(a.error)return false;if(a.data)return true;const r=await admin.from("user_memberships").select("tenant_id,role,status,business_id,permissions").eq("user_id",id).eq("status","ACTIVE");if(r.error)return false;return (r.data||[]).some((m:any)=>{const role=String(m.role||"").toUpperCase(),p=m.permissions&&typeof m.permissions==="object"?m.permissions:{};return role==="SUPER_ADMIN"&&String(m.tenant_id)==="MNTY-PLATFORM"&&m.business_id==null&&p.scope==="PLATFORM"&&p.full_control===true;});}
 async function secret(id:string){const r=await admin.rpc("smm_get_provider_secret",{p_provider_id:id});if(r.error||!r.data)throw new Error("Provider credential unavailable");return r.data as string;}
+import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts";
+
 async function call(p:any,k:string,a:string,x:any={}) {
- const endpointText=String(p?.api_url||"");
- let endpoint:globalThis.URL;
- try{endpoint=new globalThis.URL(endpointText);}catch{throw new Error("Invalid provider endpoint");}
- const host=endpoint.hostname.toLowerCase();
- if(endpoint.protocol!=="https:"||endpoint.username||endpoint.password|| (endpoint.port!==""&&endpoint.port!=="443") || host==="localhost"||host.endsWith(".localhost")||host.endsWith(".local")||/^\d{1,3}(\.\d{1,3}){3}$/.test(host)||host.includes(":")) throw new Error("Provider endpoint rejected by outbound URL policy");
+ const endpoint=assertSafeProviderEndpoint(p?.api_url,Deno.env.get("SMM_PROVIDER_HOSTS"));
  const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);
  let r:Response;
  try{r=await fetch(endpoint.toString(),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString(),signal:controller.signal,redirect:"error"});}
  catch{throw new Error("Provider request failed or timed out");}
  finally{clearTimeout(timer);}
- if(!r.ok)throw new Error("Provider HTTP "+r.status);
- const reader=r.body?.getReader();if(!reader)throw new Error("Provider returned an empty response");
- const chunks:Uint8Array[]=[];let total=0;
- try{while(true){const part=await reader.read();if(part.done)break;total+=part.value.byteLength;if(total>1048576){await reader.cancel();throw new Error("Provider response exceeded size limit");}chunks.push(part.value);}}
- finally{reader.releaseLock();}
- const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
- const t=new TextDecoder().decode(bytes);
- try{return JSON.parse(t);}catch{throw new Error("Provider returned invalid JSON");}
+ return await readProviderJson(r);
 }
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
