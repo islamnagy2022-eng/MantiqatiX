@@ -39,6 +39,7 @@ check(providerCall.indexOf('return await readProviderJson(r)') >= 0 && providerC
 check(transport.includes('total > maxBytes'), 'provider response body must be size-bounded');
 check(transport.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
 check(!providerCall.includes('d={raw:t}'), 'provider response text must not be returned or propagated as raw fallback');
+check(!gateway.includes('error:"INVALID_PROVIDER_RESPONSE",result:r'), 'invalid provider catalog responses must not be echoed to clients');
 
 check(gateway.includes('import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts"'), 'gateway must use tested provider transport policy');
 check(gateway.includes('Deno.env.get("SMM_PROVIDER_HOSTS")'), 'provider calls must fail closed without explicit host allowlist');
