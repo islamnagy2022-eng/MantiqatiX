@@ -25,8 +25,11 @@ export function normalizeProviderService(
   const hasValidExistingPrice = Number.isFinite(existingPrice) && existingPrice >= 0;
   const hasReviewedMargin = hasValidExistingPrice && Number.isFinite(providerCost) && existingPrice > providerCost;
   const keepExistingActivation = existing != null && typeof existing.active === "boolean" && hasReviewedMargin;
-  const boundedText = (value: unknown, fallback: string, max: number) =>
-    String(value ?? fallback).replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, max);
+  const boundedText = (value: unknown, fallback: string, max: number) => {
+    const safeValue = typeof value === "string" || typeof value === "number" ? String(value) : fallback;
+    const normalized = safeValue.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, max);
+    return normalized || fallback;
+  };
 
   return {
     provider_id: providerId,
