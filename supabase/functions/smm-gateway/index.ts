@@ -10,7 +10,7 @@ async function call(p:any,k:string,a:string,x:any={}){const f=new URLSearchParam
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  // The separate SMM storefront is deferred until after core launch. Default-deny all actions unless an explicitly approved rollout sets this flag to exactly "true".
- if(Deno.env.get("SMM_LAUNCH_ENABLED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
+ if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const b=await req.json(),a=b.action;

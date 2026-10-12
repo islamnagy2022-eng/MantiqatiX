@@ -27,9 +27,18 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 - **Decision basis:** issue #212 states that the separate SMM storefront, provider ordering, wallet/refunds, and provider administration are deferred until after initial core launch. The internal Marketing & Advertising module remains in scope.
 - **Branch:** `fix/p0-defer-smm-before-core-launch-20261012`, based on `8a56358d505d2c12878440037f7f24ba65d2ea10`.
-- **Implemented:** `supabase/functions/smm-gateway/index.ts` now rejects all non-OPTIONS requests with `SMM_DEFERRED`/503 unless `SMM_LAUNCH_ENABLED` is exactly `true`, before user authentication or any action routing.
+- **Implemented:** `supabase/functions/smm-gateway/index.ts` now rejects all non-OPTIONS requests with `SMM_DEFERRED`/503 unless `MNTY_SMM_ENABLED` is exactly `true`, before user authentication or any action routing.
 - **Implemented:** `web/smm.html` is now a static holding page with no `smm.js`, Supabase browser SDK, or config script. `web/app.js` no longer embeds the SMM storefront; desktop/mobile navigation labels SMM as coming soon; internal Marketing & Advertising remains.
 - **Testing:** `scripts/validate-smm-deferred-gate.mjs` added to the Pages workflow. Validator passed against current source; `web/home.js` and `web/app.js` parse checks passed. CI on the final candidate commit is still required.
 - **Production impact:** none. No live Edge Function deploy, environment setting change, merge, database migration, provider call, or wallet transaction. The live production SMM gateway has NOT been verified disabled; issue #212 stays OPEN until deployment and negative tests are explicitly authorized and completed.
-- **Release state:** BLOCKED / NOT CERTIFIED. Do not merge/deploy without release approval and required gates. Do not set `SMM_LAUNCH_ENABLED=true` for the initial launch.
+- **Release state:** BLOCKED / NOT CERTIFIED. Do not merge/deploy without release approval and required gates. Do not set `MNTY_SMM_ENABLED=true` for the initial launch.
 - **Next action:** run CI on the completed candidate branch, inspect the exact run results, then prepare a reviewable PR. After explicit authorization, deploy only the default-deny gateway and perform anonymous/authenticated negative tests against the live endpoint.
+
+
+## 2026-10-12 — SESSION-003 — Unify SMM deferred-launch flag contract
+
+- **Verified:** PR #216 source used `SMM_LAUNCH_ENABLED`, while adjacent SMM candidate PRs #214/#215 used `MNTY_SMM_ENABLED`; this created a deployment/configuration contract mismatch across draft branches.
+- **Action:** standardized the P0 deferred gateway, its source validator, and continuity/TODO/log references on the exact server-side flag `MNTY_SMM_ENABLED === "true"`, matching the existing adjacent candidate contract. Default remains disabled unless explicitly set to exact string `true`.
+- **Scope:** source branch only; no production environment variable was changed, no Edge Function was deployed, no PR was merged, and no database or wallet operation occurred.
+- **Verification pending:** rerun GitHub Actions on the new head, inspect the exact checks, and verify no remaining conflicting flag names in the changed source/docs. Live SMM disablement is still NOT VERIFIED.
+- **Release state:** BLOCKED / NOT CERTIFIED.
