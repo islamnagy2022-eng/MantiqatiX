@@ -1,4 +1,5 @@
 
+import { getSmmLaunchDecision } from "./launch-gate.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts";
 import { normalizeProviderOrderStatus } from "./order-status.ts";
@@ -33,7 +34,8 @@ Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
  // The separate SMM storefront is deferred until after core launch. Default-deny all actions unless an explicitly approved rollout sets this flag to exactly "true".
- if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
+ const launch=getSmmLaunchDecision(Deno.env.get("MNTY_SMM_ENABLED"),Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED"));
+ if(!launch.enabled)return json({error:launch.error,message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},launch.status);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const parsedBody=await readBoundedJson(req,32*1024);if(!parsedBody.ok)return json({error:parsedBody.code},parsedBody.status);
