@@ -1,11 +1,15 @@
-export type SmmOrderInput = { service_id?: unknown; target_url?: unknown; quantity?: unknown };
+export type SmmOrderInput = { service_id?: unknown; target_url?: unknown; quantity?: unknown; idempotency_key?: unknown };
 
 export type ValidatedSmmOrderInput =
-  | { ok: true; serviceId: string; targetUrl: string; quantity: number }
-  | { ok: false; code: "INVALID_ORDER" | "INVALID_TARGET_URL" };
+  | { ok: true; serviceId: string; targetUrl: string; quantity: number; idempotencyKey: string }
+  | { ok: false; code: "INVALID_ORDER" | "INVALID_TARGET_URL" | "IDEMPOTENCY_KEY_REQUIRED" };
 
 export function validateSmmOrderInput(input: SmmOrderInput): ValidatedSmmOrderInput {
   const serviceId = typeof input.service_id === "string" ? input.service_id.trim() : "";
+  const rawIdempotencyKey = typeof input.idempotency_key === "string" ? input.idempotency_key.trim() : "";
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(rawIdempotencyKey)) {
+    return { ok: false, code: "IDEMPOTENCY_KEY_REQUIRED" };
+  }
   const rawQuantity = input.quantity;
   const quantity = typeof rawQuantity === "number" ? rawQuantity :
     typeof rawQuantity === "string" && /^\d{1,15}$/.test(rawQuantity) ? Number(rawQuantity) : NaN;
@@ -29,7 +33,7 @@ export function validateSmmOrderInput(input: SmmOrderInput): ValidatedSmmOrderIn
       hostname.startsWith("[") || hostname.includes("..")) {
     return { ok: false, code: "INVALID_TARGET_URL" };
   }
-  return { ok: true, serviceId, targetUrl: url.toString(), quantity };
+  return { ok: true, serviceId, targetUrl: url.toString(), quantity, idempotencyKey: rawIdempotencyKey };
 }
 
 export type SmmOrderPricing = { sellingPrice: number; providerCost: number; quantity: number };
