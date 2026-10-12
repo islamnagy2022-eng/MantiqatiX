@@ -176,6 +176,9 @@ Deno.test("provider balance normalization exposes only a bounded amount and curr
     { balance: -1, currency: "USD" },
     { balance: "NaN", currency: "USD" },
     { balance: null, currency: "USD" },
+    { balance: true, currency: "USD" },
+    { balance: [], currency: "USD" },
+    { balance: { value: 10 }, currency: "USD" },
   ]) {
     if (normalizeProviderBalance(invalid) !== null) throw new Error("invalid provider balance payload was accepted");
   }
