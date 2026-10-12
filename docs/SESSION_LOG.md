@@ -111,3 +111,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - CI started for commits `2b69403c4d81919b1e5516d54006a080c7823e38` and `ef8bc68af2292620b965738fce6ee05ff15bacb9`; runs are queued/in progress and are not yet claimed as passing.
 - No production change/deploy, migration, grants, provider calls, wallet transaction, or merge.
 - State remains **BLOCKED / NOT CERTIFIED**; do not enable SMM until order/refund reconciliation and provider allowlisting are closed.
+
+
+## 2026-10-13 — SESSION-011 — SMM provider allowlist, transport tests, and ambiguous-order quarantine
+
+- Added `supabase/functions/smm-gateway/provider-transport.ts` with exact hostname allowlisting via `SMM_PROVIDER_HOSTS`, HTTPS-only endpoint policy, URL-credential/port/local/IP-literal rejection, bounded JSON response parsing, and size limits.
+- Added `supabase/functions/smm-gateway/provider-transport.test.ts` covering missing/wrong allowlists, unsafe endpoints, accepted allowlisted HTTPS endpoints, valid/invalid JSON, and response size caps. Wired `deno test` into Pages validation and expanded the source validator.
+- Updated `smm-gateway/index.ts` to use the tested transport module.
+- Reworked the SMM `place_order` failure path: wallet debit RPC errors are treated as unknown; provider exceptions/missing order IDs are marked for reconciliation without automatic refunds; provider acceptance followed by failed local persistence returns a reconciliation-required response without refund.
+- Updated the SMM acceptance gate and master TODO. DNS rebinding/private resolution still needs network egress enforcement; the full live schema/idempotency/terminal-state chain remains unverified.
+- Latest relevant CI is running/queued for the candidate commits; do not claim PASS until the exact latest head completes.
+- No production deploy, migration, grant, wallet operation, provider call, or merge. State remains **BLOCKED / NOT CERTIFIED**.
