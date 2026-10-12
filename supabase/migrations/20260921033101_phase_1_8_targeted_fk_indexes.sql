@@ -1,0 +1,10 @@
+create index if not exists idx_orders_payment_intents_order_id on public.payment_intents(order_id);
+create index if not exists idx_payment_provider_events_payment_intent_id on public.payment_provider_events(payment_intent_id);
+create index if not exists idx_financial_obligations_order_id on public.financial_obligations(order_id);
+create index if not exists idx_catalog_item_prices_tenant_id on public.catalog_item_prices(tenant_id);
+create index if not exists idx_catalog_item_options_tenant_id on public.catalog_item_options(tenant_id);
+create index if not exists idx_catalog_items_branch_id on public.catalog_items(branch_id);
+create index if not exists idx_catalog_business_settings_tenant_id on public.catalog_business_settings(tenant_id);
+create index if not exists idx_payout_destinations_tenant_id on public.payout_destinations(tenant_id);
+create index if not exists idx_commission_transactions_order_id on public.commission_transactions(order_id);
+create index if not exists idx_commission_transactions_rule_id on public.commission_transactions(rule_id);

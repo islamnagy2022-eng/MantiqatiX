@@ -1,0 +1,15 @@
+CREATE INDEX IF NOT EXISTS idx_advertisements_ad_space_id ON public.advertisements(ad_space_id);
+CREATE INDEX IF NOT EXISTS idx_approval_requests_branch_id ON public.approval_requests(branch_id);
+CREATE INDEX IF NOT EXISTS idx_approval_requests_tenant_id ON public.approval_requests(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_branch_id ON public.audit_logs(branch_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_organization_id ON public.audit_logs(organization_id);
+CREATE INDEX IF NOT EXISTS idx_branches_tenant_id ON public.branches(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_departments_tenant_id ON public.departments(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_transactions_branch_id ON public.inventory_transactions(branch_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_transactions_warehouse_id ON public.inventory_transactions(warehouse_id);
+CREATE INDEX IF NOT EXISTS idx_general_ledger_journal_entry_id ON public.general_ledger(journal_entry_id);
+CREATE INDEX IF NOT EXISTS idx_general_ledger_journal_line_id ON public.general_ledger(journal_line_id);
+CREATE INDEX IF NOT EXISTS idx_indrive_requests_accepted_bid_id ON public.indrive_requests(accepted_bid_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_business_id ON public.jobs(business_id);
+CREATE INDEX IF NOT EXISTS idx_payment_events_payment_id ON public.payment_events(payment_id);
+CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket_id ON public.ticket_messages(ticket_id);

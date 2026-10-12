@@ -1,0 +1,18 @@
+revoke execute on function public.append_audit_log_backend(varchar,varchar,varchar,uuid,varchar,varchar,varchar,varchar,jsonb,jsonb,varchar) from public, authenticated;
+revoke execute on function public.append_ticket_message_backend(varchar,varchar,text,varchar) from public, authenticated;
+revoke execute on function public.assert_financial_membership(varchar) from public, authenticated;
+revoke execute on function public.create_commission_backend(varchar,varchar,uuid,uuid,varchar,numeric,numeric,numeric,numeric,numeric,jsonb,jsonb) from public, authenticated;
+revoke execute on function public.create_notification_backend(varchar,varchar,uuid,varchar,varchar,text,varchar,varchar) from public, authenticated;
+revoke execute on function public.create_payment_intent_backend(varchar,uuid,numeric,varchar,varchar,varchar,varchar) from public, authenticated;
+revoke execute on function public.create_settlement_backend(varchar,varchar,varchar,varchar,numeric,numeric,numeric,numeric,varchar,varchar) from public, authenticated;
+revoke execute on function public.create_support_ticket_backend(varchar,varchar,uuid,varchar,text,varchar,varchar) from public, authenticated;
+revoke execute on function public.create_wallet_transaction_backend(varchar,varchar,varchar,varchar,numeric,varchar,varchar,varchar,text,jsonb,jsonb) from public, authenticated;
+revoke execute on function public.mark_notifications_read_backend(varchar) from public, authenticated;
+revoke execute on function public.post_financial_journal(jsonb,jsonb) from public, authenticated;
+revoke execute on function public.record_refund_backend(varchar,varchar,uuid,uuid,varchar,varchar,numeric,numeric,text,varchar,jsonb,jsonb) from public, authenticated;
+revoke execute on function public.resolve_commission_rule_backend(varchar,uuid,varchar) from public, authenticated;
+revoke execute on function public.resolve_platform_feature(varchar,uuid,varchar,varchar,varchar,varchar) from public, authenticated;
+revoke execute on function public.set_platform_feature_flag_backend(varchar,varchar,varchar,varchar,uuid,varchar,varchar,varchar,boolean,jsonb) from public, authenticated;
+revoke execute on function public.update_support_ticket_status_backend(varchar,varchar,uuid) from public, authenticated;
+grant execute on function public.is_platform_admin() to authenticated;
+revoke execute on function public.is_platform_admin() from public;
