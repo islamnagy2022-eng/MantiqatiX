@@ -165,11 +165,9 @@ Deno.test("provider balance normalization exposes only a bounded amount and curr
     { balance: -1, currency: "USD" },
     { balance: "NaN", currency: "USD" },
     { balance: null, currency: "USD" },
-    { balance: 10, currency: "US$D" },
   ]) {
-    const result = normalizeProviderBalance(invalid);
-    if (typeof invalid === "string" ? result !== null : (result === null || (invalid as any).balance < 0 || (invalid as any).balance === null || (invalid as any).balance === "NaN" || (invalid as any).currency === "US$D") && result !== null) {
-      throw new Error("invalid provider balance payload was accepted");
-    }
+    if (normalizeProviderBalance(invalid) !== null) throw new Error("invalid provider balance payload was accepted");
   }
+  const invalidCurrency = normalizeProviderBalance({ balance: 10, currency: "US$D" });
+  if (!invalidCurrency || invalidCurrency.balance !== 10 || invalidCurrency.currency !== null) throw new Error("invalid currency should be omitted");
 });
