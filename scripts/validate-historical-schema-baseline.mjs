@@ -84,16 +84,16 @@ const legacyFunctionSignatures = [
   { name: "restaurant_table_mutate", args: "text,jsonb,text" },
 ];
 const unresolvedLegacyFunctions = legacyFunctionSignatures.filter(({ name, args }) => {
-  const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\\s+/g, "").toLowerCase();
+  const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\s+/g, "").toLowerCase();
   const creation = migrations.find(({ name: migrationName, sql }) =>
     migrationName.slice(0, 14) < legacyPrivilegeMigration.name.slice(0, 14) &&
     new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + name + "\\s*\\(", "i").test(sql) &&
-    sql.replace(/\\s+/g, "").toLowerCase().includes(normalizedSignature)
+    sql.replace(/\s+/g, "").toLowerCase().includes(normalizedSignature)
   );
   return !creation;
 });
 if (unresolvedLegacyFunctions.length) {
-  console.error("P0 BLOCKED: the chronological replay reaches " + legacyPrivilegeMigration.name + " before these legacy SECURITY DEFINER functions are created by any earlier committed migration or approved test-only function baseline:");
+  console.error("P0 BLOCKED: the chronological replay reaches " + legacyPrivilegeMigration.name + " before these legacy SECURITY DEFINER functions are created by any earlier committed migration:");
   for (const { name, args } of unresolvedLegacyFunctions) console.error(" - public." + name + "(" + args + ")");
   console.error("Do not add placeholder functions, skip the historical privilege migration, or self-certify a live-definition fixture. Recover authoritative creation DDL/history; any test-only function baseline requires separate explicit owner authorization and a reviewed validator change.");
   process.exit(1);
