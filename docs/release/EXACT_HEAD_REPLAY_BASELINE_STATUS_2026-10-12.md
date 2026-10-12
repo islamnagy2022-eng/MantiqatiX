@@ -89,3 +89,24 @@ A successful run with this fixture can validate migrations after the synthetic b
 - Read-only production catalog inspection finds `public.bookings` has only `id uuid NOT NULL DEFAULT gen_random_uuid()` and `created_at timestamp without time zone NULL DEFAULT now()`, a primary key on `id`, RLS enabled, four authenticated non-anonymous guard policies, and no other indexes or table constraints observed. The production migration ledger search found no applied statement creating this table; the repository search found no `CREATE TABLE public.bookings` source.
 - These observations describe the current live shape only. They do not recover historical creation DDL or prove policy/grant provenance. No new bookings fixture has been added and no production changes were made. Do not add a live-derived bookings baseline without explicit scope approval or authoritative historical DDL.
 - Release remains **BLOCKED / NOT CERTIFIED**. Continue with source/history recovery and fail-closed validation; do not skip or reorder the security-hardening migration.
+
+
+## Latest continuation — 2026-10-12 15:25 UTC
+
+### Exact candidate and CI evidence
+- Candidate branch: `reconcile/rc425-458-current-main-20261011`
+- Code head inspected before this documentation-only update: `e114a7f297d9aadc84ec132b81bf35cf236267ed`.
+- Focused checks on that head passed: Module Professionalization Validation, SMM Deferred Module Validation, SMM Service Role Access Boundary, Marketing Campaign Backend, Marketing CRM Tenant Scope, Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, Approval Action Audit Atomicity, Backend-only Module Boundary, MantiGO Open Ride Privacy Boundary, and the web validation/deploy workflow. These checks do not certify the full release.
+- Exact-head replay: [run 38269477974](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38269477974) failed while applying `20260920155456_harden_credit_status_authorization.sql`: PostgreSQL reported `relation "public.credit_accounts" does not exist`; the function also references `public.credit_periods`. This is a reproduced SQL dependency/order failure, not merely the earlier container-registry startup issue.
+- A previous retry of the replay job was cancelled after local services began starting; its cancellation is not a pass. The subsequent completed run above reaches the migration chain and fails on the credit-table dependency.
+
+### Current read-only production evidence
+- Supabase project `moyhiluyhjsujhwlyeuu`: latest migration-ledger version remains `20261008222845`; no RC459/RC460/RC461 candidate migration is recorded in production.
+- Live `smm-gateway` is ACTIVE v8 with `verify_jwt=true` and source SHA-256 `c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f`. Its deployed source still lacks the candidate `MNTY_SMM_ENABLED` fail-closed gate. Candidate CI does not change this live state.
+- Live function inventory still does not include `restaurant-workspace-mutate` or `restaurant-menu-save`.
+
+### Decision and next action
+- Release remains **BLOCKED / NOT CERTIFIED**.
+- Do not add a guessed credit baseline, reconstruct finance policies from live state, skip the failing migration, or rewrite applied migration history. Recover authoritative credit-table DDL and finance-policy provenance, establish correct migration ordering for environments where the candidate migration may already have been applied, then rerun the full clean replay.
+- Keep SMM order execution deferred from initial launch until an explicitly approved containment/deployment path and live negative side-effect tests are completed.
+- No production database, Edge Function, Auth setting, grant/RLS, wallet, payment, or customer data was changed.
