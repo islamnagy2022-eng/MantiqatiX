@@ -39,6 +39,13 @@ assert.match(placeOrder, /idempotency_key:idempotencyKey/, "new SMM order must p
 assert.match(placeOrder, /23505/, "unique idempotency collision must load the original order rather than submit again");
 assert.match(placeOrder, /IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST/, "same key with different request payload must be rejected");
 assert.match(placeOrder, /replayed:true/, "idempotent replay must return the existing order");
+const orderInsertIndex = placeOrder.indexOf('admin.from("smm_orders").insert(');
+const collisionIndex = placeOrder.indexOf('if(o.error){if(o.error.code==="23505")');
+const debitIndex = placeOrder.indexOf('admin.rpc("smm_debit_wallet"');
+const providerSubmitIndex = placeOrder.indexOf("providerCallStarted=true");
+assert.ok(orderInsertIndex >= 0 && collisionIndex > orderInsertIndex, "idempotency claim must be attempted before duplicate handling");
+assert.ok(collisionIndex < debitIndex && debitIndex < providerSubmitIndex, "duplicate-key handling must happen before wallet debit and provider submission");
+assert.match(placeOrder, /IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST/, "idempotency key payload mismatch must not be treated as a replay");
 assert.match(idempotencyMigration, /create unique index if not exists smm_orders_user_idempotency_key_uidx[\s\S]*on public\.smm_orders \(user_id, idempotency_key\)/, "database must enforce per-user key uniqueness");
 assert.match(idempotencyMigration, /idempotency_key is null or idempotency_key ~/, "idempotency key format must be constrained");
 assert.match(smmUi, /sessionStorage\.getItem\(storageKey\)/, "UI must reuse the same key after an ambiguous network retry");
