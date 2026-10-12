@@ -129,6 +129,7 @@ const cancelAction = edge.slice(cancelStart, cancelEnd);
 assert.match(cancelAction, /\.eq\("user_id",user\.id\)/, "cancellation must be scoped to the authenticated order owner");
 assert.match(cancelAction, /CANCELLATION_NOT_SUPPORTED/, "cancellation must require provider/service support");
 assert.match(cancelAction, /cancel_request_started/, "cancellation intent must be persisted before the external request to avoid duplicate submissions");
+assert.match(cancelAction, /if\(!started\.data\)/, "concurrent cancellation requests must fail closed when the atomic claim is lost");
 assert.match(cancelAction, /cancel_requested/, "accepted cancellation requests must remain pending until provider status confirms cancellation");
 assert.doesNotMatch(cancelAction, /smm_refund_wallet/, "a cancellation request must never refund before provider confirmation");
 const statusActionStart = edge.indexOf('if(a==="order_status")');
@@ -138,6 +139,7 @@ assert.match(statusAction, /if\(st==="CANCELLED"\)/, "wallet refund must only ru
 assert.match(statusAction, /smm_refund_wallet/, "confirmed cancellation must attempt an idempotent wallet refund");
 assert.match(statusAction, /ORDER_REFUND_REQUIRES_RECONCILIATION/, "refund uncertainty must be explicit and retryable");
 assert.match(statusAction, /WALLET_REFUND_CONFIRMED/, "successful refund must be auditable");
+assert.match(statusAction, /const cancellationPending=/, "status polling must preserve a pending cancellation while the provider still reports an active or uncertain state");
 assert.match(smmUi, /action:'cancel_order'/, "customer UI must invoke the guarded cancellation action");
 assert.match(smmUi, /لن يُعاد الرصيد إلا بعد تأكيد المورّد/, "customer UI must explain that refund requires provider confirmation");
 
