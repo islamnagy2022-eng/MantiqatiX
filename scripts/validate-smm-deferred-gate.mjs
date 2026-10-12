@@ -56,6 +56,7 @@ check(!placeOrder.includes('payload:providerResult'), 'raw provider response mus
 const orderStatus=gateway.slice(gateway.indexOf('if(a==="order_status")'),gateway.indexOf('return json({error:"UNKNOWN_ACTION"}',gateway.indexOf('if(a==="order_status")')));
 check(orderStatus.includes('normalizeProviderOrderStatus(o.data.status,rawStatus)'), 'order polling must use the tested status normalizer');
 check(orderStatus.includes('ORDER_STATUS_PERSISTENCE_PENDING'), 'failed order-status persistence must be surfaced for reconciliation');
+check(orderStatus.includes('.slice(0,64)') && orderStatus.includes('replace(/[\\u0000-\\u001f\\u007f]/g,"")'), 'provider status strings must be length-bounded and control-character sanitized');
 check(!orderStatus.includes('result:r'), 'raw provider status response must not be returned to clients');
 
 check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
