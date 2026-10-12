@@ -1703,3 +1703,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: bring RC463 unique-index migration from the reviewed SMM migration branch through the reconciled migration release path; it is absent from PR #216.
 - [ ] BLOCKED: prove same-key concurrency creates one order and one wallet debit against disposable PostgreSQL and the exact reconciled schema.
 - [ ] Verify exact-head CI; keep SMM disabled until database uniqueness and financial E2E acceptance are proven.
+
+
+## Live SMM containment — 2026-10-13
+- [x] Read-only audit confirmed production SMM gateway v8 had no launch gate and the live order table lacked an idempotency key/unique index; wallet debit/refund RPCs were not idempotent by reference.
+- [x] Deploy a fail-closed source-level hard-off for the separate SMM storefront to Supabase Edge Function version 10; JWT verification remains enabled.
+- [x] Read back the live function version and SHA-256 and confirm the hard-off and dual approval checks exist before auth/action routing.
+- [ ] Run an HTTP smoke test from an environment with working DNS/network access; the current execution environment could not resolve the Supabase hostname, so runtime 503 is not claimed.
+- [ ] Verify exact-head CI for the hard-off constant/static contract.
+- [ ] BLOCKED: apply RC463/RC464 only through the reconciled, approved migration chain; prove unique order idempotency and exactly-once wallet operations in disposable PostgreSQL.
+- [ ] Do not enable SMM or certify the platform until migration replay, financial/provider E2E, auth security, and restore rehearsal pass.
