@@ -1559,3 +1559,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## RC523 — MantiGO platform financial report canonical-column correction — 2026-10-13
+
+- [x] Preserve migration history: restored RC449 to exact main-branch content; do not edit historical migrations.
+- [x] Add forward-only migration `20261013200000_rc523_mantigo_financial_report_canonical_columns.sql`.
+- [x] Keep public JSON contract key `captain_amount` while sourcing it from `captain_net_amount`; source gross and paid amount from `gross_amount`.
+- [x] Poison legacy fixture aliases (999/888) while canonical values are 100/90 to make the regression assertion meaningful.
+- [x] Update the platform-admin integration workflow to apply RC449, then RC523, then the integration test in disposable PostgreSQL.
+- [x] Exact candidate SHA `d83a7be0b5482c3c55e9c0536e6bce09625ea645`: platform-admin scope, audit append-only ACL, migration history immutability, migration version uniqueness, migration collision guard, module professionalization, backend-only boundary, approval/audit atomicity, MantiGO privacy boundary, and web validation all passed.
+- [ ] Production E2E and approved migration/release process remain outstanding. The PR deploy job was skipped; do not claim production deployment.
+- **Release state:** BLOCKED / NOT CERTIFIED.
