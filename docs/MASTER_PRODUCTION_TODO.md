@@ -1610,3 +1610,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Verified the authenticated SELECT policy `memberships_select_self` requires a non-anonymous JWT and `auth.uid() = user_id`.
 - [x] Verified grants: authenticated SELECT only (no INSERT/UPDATE/DELETE); anon has no SELECT. Client membership mutation remains denied; the protected server function is the intended recovery boundary.
 - [ ] Cross-tenant denial still requires adversarial E2E with independent identities; this read-only policy/grant audit is not a substitute.
+
+
+### P0 security blocker — platform-admin scope (2026-10-13)
+- [x] Read-only live catalog confirms `mnty_can_platform_admin()` delegates to broad/null-scope `mnty_can('admin', NULL, NULL, NULL)`, whose role map grants admin to tenant OWNER/ADMIN. Treat this as a latent platform privilege-boundary flaw.
+- [x] Blast radius inventoried: 5 live SECURITY DEFINER functions reference the helper and 5 live RLS policies use it across digital pages and MantiGO configuration tables.
+- [x] Current-user population check found 0 active users with OWNER/ADMIN or explicit admin permission lacking a correctly scoped active platform SUPER_ADMIN membership; latent design risk remains.
+- [x] Candidate RC449/RC462 disposable PostgreSQL integration PASS in [run 38315402754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402754).
+- [!] Do not deploy candidate yet: full migration replay [run 38315402728](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402728) fails closed due missing approved compatibility baselines for `credit_policies`, `credit_accounts`, and `credit_periods`. Do not invent DDL or bypass the ordered migration gate.
+- [ ] Resolve authoritative credit schema provenance, pass clean ordered replay, then apply and verify RC449/RC462 through approved release gates. Production remains unchanged.
