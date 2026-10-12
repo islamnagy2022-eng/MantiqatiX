@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const migration = fs.readFileSync("supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql", "utf8");
 const hardenedMigration = fs.readFileSync("supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql", "utf8");
+const malformedGuardMigration = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc441_platform_admin_integration.sql", "utf8");
 const checks = [];
 function check(name, ok) {
@@ -15,6 +16,10 @@ check("RC449 keeps the platform-admin guard limited to active platform SUPER_ADM
   hardenedMigration.includes("upper(m.role) = 'SUPER_ADMIN'") &&
   hardenedMigration.includes("m.permissions ->> 'scope' = 'PLATFORM'") &&
   hardenedMigration.includes("(m.permissions ->> 'full_control')::boolean"));
+check("RC462 uses JSONB containment so malformed full_control values fail closed without casts",
+  malformedGuardMigration.includes("m.permissions @> '{\"scope\":\"PLATFORM\",\"full_control\":true}'::jsonb") &&
+  !malformedGuardMigration.includes("->> 'full_control')::boolean") &&
+  malformedGuardMigration.includes("set search_path = ''"));
 check("RC449 applies empty search_path to the guard and every global RPC",
   (hardenedMigration.match(/set search_path = ''/g) || []).length >= 5);
 function rc449Function(name) {
@@ -42,6 +47,10 @@ check("global stale-ride expiration checks the platform-admin guard", migration.
 check("integration rejects tenant OWNER, ADMIN, and OPERATIONS_MANAGER", integration.includes("tenant OWNER must not be treated") && integration.includes("tenant ADMIN with admin permission") && integration.includes("tenant OPERATIONS_MANAGER"));
 check("integration exercises global dashboard, report, settlement, and expiration", integration.includes("tenant OWNER read platform-wide dashboard") && integration.includes("tenant OWNER read platform-wide financial report") && integration.includes("global settlement mutation") && integration.includes("global ride expiration mutation"));
 check("integration allows explicit platform SUPER_ADMIN and checks grants", integration.includes("explicit platform SUPER_ADMIN") && integration.includes("has_function_privilege('anon'"));
+check("integration denies malformed and false full_control values without exceptions",
+  integration.includes("malformed full_control must fail closed") &&
+  integration.includes("false full_control must fail closed") &&
+  integration.includes("not-a-boolean"));
 check("integration denies anon on ride expiration and preserves authenticated entrypoint grants",
   integration.includes("anon must not execute platform ride expiration") &&
   integration.includes("authenticated role must retain intended RPC entrypoint grants") &&
