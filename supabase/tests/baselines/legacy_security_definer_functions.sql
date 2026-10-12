@@ -207,13 +207,14 @@ begin
 end
 $function$;
 
--- Reproduce the live ACL posture: client roles, PUBLIC, and service_role cannot execute.
+-- Reproduce the observed live ACL snapshot: only mantigo_rate_ride had authenticated EXECUTE; all other client/public/service-role grants are absent.
 REVOKE ALL ON FUNCTION public.counter_offer_indrive_bid(uuid,uuid,numeric) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.fashion_erp_mutate(text,jsonb,text) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.mantigo_accept_bid(text,text) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.mantigo_cancel_ride(text) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.mantigo_create_ride(text,text,text,text,numeric,text) FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.mantigo_rate_ride(text,integer,text) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.mantigo_rate_ride(text,integer,text) FROM PUBLIC, anon, service_role;
+GRANT EXECUTE ON FUNCTION public.mantigo_rate_ride(text,integer,text) TO authenticated;
 REVOKE ALL ON FUNCTION public.mantigo_submit_bid(text,numeric,text,text,text,text) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.mantigo_update_proposed_price(text,numeric) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.restaurant_erp_mutate(text,jsonb,text) FROM PUBLIC, anon, authenticated, service_role;
