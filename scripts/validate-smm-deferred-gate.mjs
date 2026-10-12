@@ -36,13 +36,13 @@ check(transport.includes('new URL(String(value ?? ""))'), 'provider endpoint mus
 check(transport.includes('endpoint.protocol !== "https:"'), 'provider calls must require HTTPS');
 check(providerCall.includes('redirect:"error"'), 'provider calls must reject redirects');
 check(providerCall.includes('setTimeout(()=>controller.abort(),15000)'), 'provider calls must have a bounded timeout');
-check(providerCall.indexOf('return await readProviderJson(r)') >= 0 && providerCall.indexOf('return await readProviderJson(r)') < providerCall.indexOf('finally{clearTimeout(timer);'), 'provider timeout must cover response-body consumption');
+check(providerCall.includes("return await readProviderJson(response)") && providerCall.indexOf("return await readProviderJson(response)") < providerCall.indexOf("finally{clearTimeout(timeout);}"), "provider timeout must cover response-body consumption");
 check(transport.includes('total > maxBytes'), 'provider response body must be size-bounded');
 check(transport.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
 check(!providerCall.includes('d={raw:t}'), 'provider response text must not be returned or propagated as raw fallback');
 check(!gateway.includes('error:"INVALID_PROVIDER_RESPONSE",result:r'), 'invalid provider catalog responses must not be echoed to clients');
 
-check(gateway.includes('import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts"'), 'gateway must use tested provider transport policy');
+check(gateway.includes('import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts"'), "gateway must use tested provider transport policy and balance normalization");
 check(gateway.includes('Deno.env.get("SMM_PROVIDER_HOSTS")'), 'provider calls must fail closed without explicit host allowlist');
 check(fs.existsSync('supabase/functions/smm-gateway/provider-transport.test.ts'), 'provider transport unit tests must exist');
 
@@ -80,7 +80,7 @@ check(orderValidation.includes("Math.round((value + Number.EPSILON) * 100) / 100
 check(tests.includes('SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs'), 'SMM URL safety tests must exist');
 check(tests.includes('SMM pricing requires a strictly positive customer margin and finite totals'), 'SMM order pricing tests must exist');
 check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must return a generic client response');
-check(gateway.includes("normalizeProviderBalance(await call(p.data,await secret(b.provider_id),\"balance\"))"), "provider balance output must be normalized before returning to admins");
+check(gateway.includes('normalizeProviderBalance(await call(p.data,await secret(providerId),"balance"))'), "provider balance output must be normalized before returning to admins");
 check(gateway.includes("ADMIN_DATA_READ_FAILED"), "admin dashboard must not silently mask database read failures");
 check(transport.includes("host.endsWith(\".internal\")") && transport.includes("host.endsWith(\".onion\")"), "provider transport must reject internal and reserved hostname suffixes");
 check(transport.includes('contentType !== "application/json" && !contentType.endsWith("+json")'), "provider transport must reject non-JSON content types");
