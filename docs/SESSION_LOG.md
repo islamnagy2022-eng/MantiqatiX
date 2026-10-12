@@ -91,3 +91,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - These are transparent engineering estimates, approximately ±10 percentage points, not measured code coverage or a production certificate. The matrix lists blockers and an evidence policy for future updates.
 - No production changes, migrations, grants, deploys, provider calls, wallet operations, or PR merge were performed.
 - State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-009 — CI confirmation and credit migration provenance
+
+- Confirmed all five latest relevant workflow results on `be74dd5a2b94bbd93591e97fa23e709fe5fe3f70`: Module Professionalization, SMM Service Role Access Boundary (disposable PostgreSQL included), Backend-only Module Boundary (financial journal and approval-audit PostgreSQL tests included), MantiGO Open Ride Privacy Boundary, and Pages validation workflow are green at workflow level.
+- Verified Pages workflow `validate` succeeded but `deploy` was skipped for the draft PR. No production deployment is claimed.
+- Added exact CI evidence to module progress matrix and created `docs/release/CREDIT_MIGRATION_LINEAGE_BLOCKER_AR.md`, documenting that the RC40 archive is not authoritative historical proof and listing the known credit schema/default differences.
+- Repository-history searches did not recover a verifiable original credit-table DDL commit; the historical baseline remains unresolved.
+- No production writes, migrations, grants, deploys, provider calls, wallet transactions, or merges.
+- State remains **BLOCKED / NOT CERTIFIED**.
