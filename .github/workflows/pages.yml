@@ -30,6 +30,12 @@ jobs:
           mkdir -p web/vendor
           npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
           test -s web/vendor/supabase.js
+      - name: Test SMM provider transport boundary
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: SMM provider transport unit tests
+        run: deno test supabase/functions/smm-gateway/provider-transport.test.ts
       - name: Production verification engine
         run: npm run verify:production
       - name: Syntax check
@@ -44,6 +50,7 @@ jobs:
           grep -q 'signInWithGoogle' web/app.js
           grep -q 'id="google-auth"' web/app.js
           node --check web/smm.js
+          node scripts/validate-smm-deferred-gate.mjs
           node --check web/home.js
           node --check web/android-parity-catalog.js
           node --check web/provider-onboarding-module.js

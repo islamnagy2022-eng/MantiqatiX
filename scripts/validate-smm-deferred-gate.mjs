@@ -1,0 +1,119 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+
+const gateway=fs.readFileSync('supabase/functions/smm-gateway/index.ts','utf8');
+const transport=fs.readFileSync('supabase/functions/smm-gateway/provider-transport.ts','utf8');
+const tests=fs.readFileSync('supabase/functions/smm-gateway/provider-transport.test.ts','utf8');
+const catalog=fs.readFileSync('supabase/functions/smm-gateway/catalog-normalization.ts','utf8');
+const ngateway=gateway;
+const holding=fs.readFileSync('web/smm.html','utf8');
+const home=fs.readFileSync('web/home.js','utf8');
+const app=fs.readFileSync('web/app.js','utf8');
+
+const fail=[];
+const check=(condition,message)=>{if(!condition)fail.push(message)};
+
+const options=gateway.indexOf('if(req.method==="OPTIONS")');
+const gate=gateway.indexOf('const launch=getSmmLaunchDecision(');
+const auth=gateway.indexOf('const user=await getUser(req)');
+const launchGate=fs.readFileSync('supabase/functions/smm-gateway/launch-gate.ts','utf8');
+const launchTests=fs.readFileSync('supabase/functions/smm-gateway/launch-gate.test.ts','utf8');
+check(options>=0 && gate>options, 'SMM default-deny gate must follow OPTIONS handling');
+check(gate>=0 && auth>gate, 'SMM default-deny gate must run before authentication and action routing');
+check(gateway.includes('const SMM_INITIAL_LAUNCH_DEFERRED=true;'), 'separate SMM storefront must be hard-disabled in source for initial launch');
+check(gateway.includes('if(SMM_INITIAL_LAUNCH_DEFERRED||!launch.enabled)return json({error:"SMM_DEFERRED"') && gateway.includes('},503);'), 'disabled SMM gateway must return a fixed non-success deferred response');
+check(gateway.includes('getSmmLaunchDecision(Deno.env.get("MNTY_SMM_ENABLED"),Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED"))'), 'SMM requires both runtime enablement and separate post-launch approval');
+check(launchGate.includes('enabledFlag === "true" && postLaunchApprovalFlag === "true"'), 'SMM launch gate must fail closed unless both independent flags are exactly true');
+check(launchTests.includes('both exact approvals') && launchTests.includes('explicit dual approval'), 'dual launch-gate behavior must have unit tests');
+check(!/<script[^>]+src=["'][^"']*smm\.js/i.test(holding), 'deferred holding page must not load smm.js');
+check(!/<script[^>]+src=["'][^"']*vendor\/supabase\.js/i.test(holding), 'deferred holding page must not initialize Supabase browser SDK');
+check(!/<script[^>]+src=["'][^"']*config\.js/i.test(holding), 'deferred holding page must not load application config');
+check(!/<iframe[^>]+src=["'][^"']*smm\.html/i.test(app), 'internal workspace must not embed the live SMM storefront');
+check(holding.includes('الخدمة المستقلة مؤجلة للإطلاق الأول'), 'holding page must clearly disclose deferral');
+check(home.includes('خدمات SMM — قريبًا'), 'desktop navigation must label SMM as deferred');
+check(home.includes('خدمات التسويق الرقمي SMM — قريبًا'), 'mobile navigation must label SMM as deferred');
+check(app.includes('خدمات التسويق الرقمي SMM — قريبًا') && app.includes('المتجر المستقل مؤجل للإطلاق الأول'), 'internal SMM module entry must be marked deferred');
+check(app.includes('التسويق والإعلان'), 'internal Marketing & Advertising module must remain present');
+
+
+const providerCall=gateway.slice(gateway.indexOf('async function call('),gateway.indexOf('\nDeno.serve'));
+check(transport.includes('new URL(String(value ?? ""))'), 'provider endpoint must be parsed with a URL constructor');
+check(transport.includes('endpoint.protocol !== "https:"'), 'provider calls must require HTTPS');
+check(providerCall.includes('redirect:"error"'), 'provider calls must reject redirects');
+check(providerCall.includes('setTimeout(()=>controller.abort(),15000)'), 'provider calls must have a bounded timeout');
+check(providerCall.includes("return await readProviderJson(response)") && providerCall.indexOf("return await readProviderJson(response)") < providerCall.indexOf("finally{clearTimeout(timeout);}"), "provider timeout must cover response-body consumption");
+check(transport.includes('total > maxBytes'), 'provider response body must be size-bounded');
+check(transport.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
+check(!providerCall.includes('d={raw:t}'), 'provider response text must not be returned or propagated as raw fallback');
+check(!gateway.includes('error:"INVALID_PROVIDER_RESPONSE",result:r'), 'invalid provider catalog responses must not be echoed to clients');
+
+check(gateway.includes('import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts"'), "gateway must use tested provider transport policy and balance normalization");
+check(gateway.includes('Deno.env.get("SMM_PROVIDER_HOSTS")'), 'provider calls must fail closed without explicit host allowlist');
+check(fs.existsSync('supabase/functions/smm-gateway/provider-transport.test.ts'), 'provider transport unit tests must exist');
+
+const placeOrder=gateway.slice(gateway.indexOf('if(a==="place_order")'),gateway.indexOf('if(a==="order_status")'));
+check(placeOrder.includes('idempotency_key:validatedOrder.idempotencyKey'), 'order insert must persist the validated stable idempotency key');
+check(placeOrder.includes('o.error.code==="23505"'), 'unique idempotency conflicts must be resolved as retries, not new orders');
+check(placeOrder.includes('.eq("user_id",user.id).eq("idempotency_key",validatedOrder.idempotencyKey)'), 'idempotency replay lookup must be scoped to the authenticated user and stable key');
+check(placeOrder.includes('IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST'), 'reusing an idempotency key with a different order payload must be rejected');
+check(placeOrder.includes('replayed:true'), 'same-key retries must return the original order without repeating debit/provider submission');
+check(fs.readFileSync('supabase/functions/smm-gateway/order-validation.ts','utf8').includes('IDEMPOTENCY_KEY_REQUIRED'), 'order input validation must require a bounded stable idempotency key');
+check(placeOrder.includes('WALLET_DEBIT_RESULT_UNKNOWN'), 'ambiguous wallet debit must be quarantined for reconciliation');
+check(placeOrder.includes("providerRow.active!==true"), "order creation must reject inactive or missing providers");
+check(placeOrder.includes("target_url:validatedOrder.targetUrl"), "orders must persist only normalized HTTPS target URLs");
+check(placeOrder.includes("validateSmmOrderPricing({sellingPrice:Number(v.selling_price),providerCost:Number(v.provider_cost),quantity:q})"), "order creation must enforce current positive-margin pricing");
+check(placeOrder.includes('PROVIDER_RESULT_UNKNOWN'), 'ambiguous provider outcomes must be quarantined for reconciliation');
+check(placeOrder.includes('PROVIDER_ACCEPTED_PERSISTENCE_PENDING'), 'provider acceptance with failed persistence must be surfaced for reconciliation');
+check(!placeOrder.includes('smm_refund_wallet'), 'provider exceptions must not trigger automatic wallet refunds');
+check(!placeOrder.includes('Automatic refund after provider failure'), 'ambiguous provider outcomes must never auto-refund');
+check(!placeOrder.includes('payload:providerResult'), 'raw provider response must not be persisted to SMM order events');
+
+const orderStatus=gateway.slice(gateway.indexOf('if(a==="order_status")'),gateway.indexOf('return json({error:"UNKNOWN_ACTION"}',gateway.indexOf('if(a==="order_status")')));
+check(orderStatus.includes('normalizeProviderOrderStatus(o.data.status,rawStatus)'), 'order polling must use the tested status normalizer');
+check(orderStatus.includes('ORDER_STATUS_PERSISTENCE_PENDING'), 'failed order-status persistence must be surfaced for reconciliation');
+check(orderStatus.includes('.eq("status",o.data.status).select("id,status").maybeSingle()'), "order status writes must use compare-and-set to prevent stale concurrent updates");
+check(orderStatus.includes("concurrent_update:true"), "concurrent status changes must return the persisted latest status instead of overwriting it");
+check(orderStatus.includes('.slice(0,64)') && orderStatus.includes('replace(/[\\u0000-\\u001f\\u007f]/g,"")'), 'provider status strings must be length-bounded and control-character sanitized');
+check(!orderStatus.includes('result:r'), 'raw provider status response must not be returned to clients');
+check(!gateway.includes('error:r.error.message') && !gateway.includes('error:ok.error.message'), 'database/RPC error details must not be echoed to clients');
+check(gateway.includes('requires_activation_review:!positiveMargin'), 'service pricing at or below provider cost must require review and deactivate service');
+check(fs.existsSync('supabase/functions/smm-gateway/order-validation.ts'), 'order validation module must exist');
+const orderValidation=fs.readFileSync('supabase/functions/smm-gateway/order-validation.ts','utf8');
+check(gateway.includes('import { normalizeSmmMoney, validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts"'), "gateway must use tested order and money validation");
+check(gateway.includes('import { readBoundedJson } from "./request-validation.ts"'), "gateway must use bounded JSON request parsing");
+check(gateway.includes('req.method!=="POST"'), "gateway must reject methods other than POST and OPTIONS");
+check(tests.includes("SMM request parser enforces streamed body size even without a trusted content length"), "request body size must be tested with streamed bytes");
+check(tests.includes("SMM request parser validates declared content length without trusting it"), "declared content-length validation must be tested");
+check(gateway.includes("normalizeSmmMoney(b.amount,false)") && gateway.includes("normalizeSmmMoney(b.selling_price,true)"), "admin credit and service price actions must use strict money normalization");
+check(tests.includes("SMM money normalization accepts bounded decimal amounts only"), "strict money input must have unit coverage");
+check(orderValidation.includes('url.protocol !== "https:"'), 'SMM order targets must require HTTPS');
+check(orderValidation.includes('!hostname.includes(".")'), 'SMM order targets must reject single-label internal hosts');
+check(orderValidation.includes('url.username || url.password'), 'SMM order targets must reject embedded credentials');
+check(orderValidation.includes('sellingPrice <= providerCost'), 'SMM orders must reject non-positive gross margin');
+check(orderValidation.includes("Math.round((value + Number.EPSILON) * 100) / 100"), "wallet charges and provider costs must be rounded to currency cents");
+check(tests.includes('SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs'), 'SMM URL safety tests must exist');
+check(orderValidation.includes('typeof rawQuantity === "string" && /^\\d{1,15}$/.test(rawQuantity)'), "order quantity must reject coercible booleans, arrays, exponents and whitespace");
+check(tests.includes('SMM pricing requires a strictly positive customer margin and finite totals'), 'SMM order pricing tests must exist');
+check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must return a generic client response');
+check(gateway.includes('normalizeProviderBalance(await call(p.data,await secret(providerId),"balance"))'), "provider balance output must be normalized before returning to admins");
+check(gateway.includes("ADMIN_DATA_READ_FAILED"), "admin dashboard must not silently mask database read failures");
+check(transport.includes("host.endsWith(\".internal\")") && transport.includes("host.endsWith(\".onion\")"), "provider transport must reject internal and reserved hostname suffixes");
+check(transport.includes('contentType !== "application/json" && !contentType.endsWith("+json")'), "provider transport must reject non-JSON content types");
+check(tests.includes("provider response parser rejects non-JSON content types"), "non-JSON provider response tests must exist");
+check(tests.includes("provider balance normalization exposes only a bounded amount and currency"), "provider balance normalization tests must exist");
+
+check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
+check(fs.existsSync('supabase/functions/smm-gateway/order-status.ts'), 'provider status normalization module must exist');
+check(tests.includes('provider terminal states cannot regress'), 'terminal-state regression tests must exist');
+check(gateway.includes('import { normalizeProviderService } from "./catalog-normalization.ts"'), 'provider catalog must use tested normalization');
+check(catalog.includes('selling_price: hasValidExistingPrice ? existingPrice : 0') && catalog.includes('existingPrice > providerCost'), 'catalog sync must not equate customer price to provider cost');
+check(catalog.includes('active: keepExistingActivation ? existing.active === true : false'), 'new provider services must remain inactive pending review');
+check(catalog.includes('existingPrice > providerCost'), 'service must be disabled unless reviewed customer price is strictly above current provider cost');
+check(catalog.includes('metadata: { provider_service_id: externalId, provider_rate: providerCost }'), 'provider catalog persistence must use allowlisted metadata');
+check(catalog.includes("typeof rawExternalId !== \"string\" && typeof rawExternalId !== \"number\""), "provider catalog identifiers must be scalar values");
+check(catalog.includes("typeof value === \"string\" || typeof value === \"number\""), "provider catalog text must reject arbitrary objects");
+check(tests.includes('new provider catalog items require manual price review and stay inactive'), 'catalog pricing safety tests must exist');
+
+if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
+console.log('P0 SMM deferral gate: PASS');
+console.log('Static storefront, desktop/mobile navigation, internal workspace, and default-deny API gate are covered.');

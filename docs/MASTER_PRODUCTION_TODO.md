@@ -1559,3 +1559,164 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-12 — P0 SMM deferral status (candidate source only)
+
+- [x] Replace the standalone SMM page with a static “coming soon / deferred” page; do not load the browser Supabase SDK, app config, or `smm.js`.
+- [x] Remove the live SMM iframe from the internal workspace while preserving the separate Marketing & Advertising module.
+- [x] Mark SMM as deferred in desktop and mobile navigation.
+- [x] Add a fail-closed server gate in the SMM gateway: disabled unless `MNTY_SMM_ENABLED` equals exactly `true`.
+- [x] Add `scripts/validate-smm-deferred-gate.mjs` and wire it into the Pages CI workflow. Local source-contract validator and web JavaScript syntax checks passed.
+- [x] Final CI reviewed on candidate HEAD `152a8c24b5fa1f808f3fa7942d026cc01abe7be9`: Pages validation, SMM service-role access boundary, module professionalization, backend-only module boundary, and MantiGO open-ride privacy workflows completed successfully. Pages deploy job was skipped for the pull request; this is NOT a production deployment. Evidence: runs `38308072523`, `38308072547`, `38308072620`, `38308072638`, `38308072534`.
+- [ ] Deploy the default-deny Edge Function only with explicit release authorization; verify live function version/hash and negative-test anonymous and ordinary authenticated calls. Until this is done, the production API is NOT VERIFIED disabled.
+- [ ] Keep `MNTY_SMM_ENABLED` unset/false for initial launch. Re-enable only through a separate approved rollout after core launch and SMM order, wallet, timeout, ambiguous-result, persistence, terminal-state, admin-scope, and idempotency tests pass.
+- **Current state:** P0 issue #212 remains OPEN. This candidate branch has not been merged or deployed. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-12 — SMM deferred flag contract reconciliation
+- [x] Standardize the candidate source, validator, and continuity documentation on `MNTY_SMM_ENABLED` (exact value `true` required to enable; unset/other values remain disabled).
+- [x] CI evidence on candidate head `152a8c24b5fa1f808f3fa7942d026cc01abe7be9` passed the required source workflows; see run IDs above. Production deployment remains unverified.
+- [ ] Live production gateway remains NOT VERIFIED disabled; no deployment or environment change was performed.
+
+
+## 2026-10-12 — Read-only production ACL verification
+- [x] Queried actual PostgreSQL table ACLs with `has_table_privilege` and `pg_class.relacl`; no writes were performed.
+- [x] On `smm_orders`, `smm_wallets`, `smm_wallet_transactions`, `smm_order_events`, `smm_providers`, and `smm_services`, the observed `service_role` ACL is only `Dxtm` (DELETE/TRUNCATE/REFERENCES/TRIGGER), with SELECT/INSERT/UPDATE absent. Direct anon/authenticated SELECT/INSERT were absent in the sampled tables.
+- [x] `digital_page_payment_events` also has no direct SELECT/INSERT/UPDATE/DELETE privilege for `service_role`; its intended backend access path remains to be verified rather than granting broad access.
+- [ ] SMM service-role boundary migration RC456 remains source-only; production migration ledger still ends at RC424 in the verified snapshot. Do not apply RC456 independently of the full reconciled migration chain.
+- [ ] Keep SMM deferred. Do not add broad grants or deploy until the least-privilege route, migration provenance, and end-to-end tests are reviewed.
+
+
+## 2026-10-12 — Payment-event backend access path follow-up
+- [x] Read-only catalog query confirmed `process_verified_digital_page_payment_backend` is SECURITY DEFINER with `search_path=public, pg_temp`, EXECUTE granted to `service_role` only, and references `digital_page_payment_events`.
+- [x] Therefore, absence of direct `service_role` table privileges on `digital_page_payment_events` appears consistent with the RPC-only boundary; it is not classified as a confirmed defect based on ACL evidence alone.
+- [ ] Full function-body/atomicity review and end-to-end webhook tests remain required before closing payment release gates.
+
+
+## 2026-10-13 — SMM production acceptance checklist
+- [x] Added `docs/release/SMM_PRODUCTION_ACCEPTANCE_GATE.md` to candidate branch with explicit safety, migration-lineage, least-privilege, provider, wallet/order, abuse-resistance, CI, and release-evidence gates.
+- [ ] Complete gates only with matching evidence; no source-only pass may be treated as production proof.
+- [ ] Live gateway gate, RC424→current migration reconciliation, credit historical-baseline blocker, SMM service-role grants, order idempotency schema, approved provider setup, and full lifecycle tests remain open.
+
+
+## 2026-10-13 — Evidence-based module progress percentages
+- [x] Added `docs/release/MODULE_COMPLETION_MATRIX_AR.md` covering 20 modules with separate estimated source-build and verification/readiness percentages.
+- [x] Reported arithmetic averages from the documented estimates: source build 69%, verification/readiness 37%; conservative overall launch readiness is 30% and release remains BLOCKED / NOT CERTIFIED.
+- [ ] Treat figures as engineering estimates (approximately ±10 percentage points), not objective code coverage or production certification; update only with evidence tied to exact commit/environment.
+- [ ] P0 migration replay, multi-tenant E2E, payment/finance E2E, restore test, live SMM gate/schema/grants, and exact-head CI remain unresolved or unverified.
+
+
+## 2026-10-13 — Migration lineage blocker and exact-head CI evidence
+- [x] Added `docs/release/CREDIT_MIGRATION_LINEAGE_BLOCKER_AR.md`, distinguishing archive DDL from verified production history and documenting the observed schema/default differences.
+- [x] Added latest exact-head CI evidence to `docs/release/MODULE_COMPLETION_MATRIX_AR.md`; all listed source/isolated integration workflows passed on `be74dd5a2b94bbd93591e97fa23e709fe5fe3f70`.
+- [x] Confirmed the Pages workflow's `validate` job passed while its `deploy` job was skipped for the draft PR; do not call this a production deployment.
+- [ ] Credit migration provenance remains unresolved; full clean-database replay, complete production E2E, restore rehearsal, and SMM live rollout gates remain open.
+
+
+## 2026-10-13 — SMM provider transport hardening
+- [x] Hardened candidate SMM provider HTTP calls: HTTPS only, no embedded credentials, non-standard ports rejected, local/IP-literal hosts rejected, redirects rejected, 15-second timeout, 1 MiB response cap, JSON-only response, and no raw body fallback.
+- [x] Extended the SMM source validator to require these controls.
+- [ ] DNS rebinding/private DNS targets still require a reviewed provider hostname allowlist or network egress enforcement.
+- [ ] Order error handling can still auto-refund on ambiguous provider/persistence outcomes; this is a go-live blocker and must be redesigned/tested before any enablement.
+- [ ] CI on the latest source changes is pending; do not mark PASS until completed.
+
+
+## 2026-10-13 — SMM ambiguous outcome safety
+- [x] Candidate gateway no longer automatically refunds in the provider exception path; provider timeout/invalid response/missing ID are quarantined for manual reconciliation.
+- [x] Wallet debit RPC transport errors are treated as unknown, not as a confirmed no-debit result.
+- [x] Provider acceptance followed by order persistence failure returns `PROVIDER_ACCEPTED_PERSISTENCE_PENDING` without refund.
+- [x] Added source-contract checks for all three cases.
+- [ ] Exact-head CI pending; verify state semantics against reconciled schema and order idempotency/terminal-state RPCs before launch. SMM remains disabled in candidate source unless separately approved.
+
+
+## 2026-10-13 — CI feedback for SMM transport and order-safety batch
+- [x] Exact-head Pages `validate` job passed at `68c78cc5f5a6fa57d4246967ac88849400371bcd`, including Deno unit tests for provider allowlisting and response limits.
+- [x] Fixed an initial validator failure caused by extracting transport policy into `provider-transport.ts`; rerun on the corrected head passed.
+- [ ] Backend-only, SMM service-role, MantiGO privacy, and module-professionalization workflows must complete on the exact final head before the candidate batch is considered CI-green.
+- [ ] Pages deployment remains skipped for the draft PR; production is unchanged.
+
+
+## 2026-10-13 — SMM order status state safety
+- [x] Candidate status polling preserves terminal order states when provider responses are stale.
+- [x] Status persistence errors are surfaced as reconciliation-required instead of being reported as successful sync.
+- [x] Raw provider status payload is no longer returned to clients.
+- [x] Added source-contract checks for terminal-state preservation and response minimization.
+- [ ] Exact-head CI for the order-status change is pending. Do not certify until it passes and schema/idempotency parity is proven.
+
+
+## 2026-10-13 — Exact-head CI update for SMM safety batch
+- [x] SMM Service Role Access Boundary passed on `d110109fb42269d24885b41e78c9a25767003781`, including PostgreSQL ACL integration and Deno type-check.
+- [x] Module Professionalization Validation passed on the same head.
+- [x] MantiGO Open Ride Privacy Boundary passed on the same head.
+- [ ] Backend-only Module Boundary and Pages workflow were still running at last check.
+- [ ] Deployment is not claimed; SMM remains gated pending production schema/idempotency parity, network egress protections, and negative acceptance tests.
+
+
+## 2026-10-13 — SMM verification improvements
+- [x] Unit-tested SMM provider status normalization and terminal-state regression behavior.
+- [x] Extended provider timeout to cover response-body streaming/parsing.
+- [x] Minimized stored provider event payloads.
+- [x] Corrected the static validator's timeout assertion after CI exposed its token mismatch.
+- [x] Pages validation passed at `208621b59c0067d8637f3637fce5000f742c6aea`; deployment remains skipped for draft PR.
+- [ ] Keep overall release readiness at 30%; no change until migration lineage, live schema/idempotency, DNS/egress, financial E2E, and restore drill are verified.
+
+
+## 2026-10-13 continuation — SMM transport boundary
+- [x] Add explicit provider status normalization tests and terminal-state regression tests.
+- [x] Keep provider timeout active through response-body read/parse.
+- [x] Avoid echoing invalid provider catalog payloads.
+- [x] Bound and sanitize provider status strings.
+- [x] Latest exact-head CI passed on `41f63a2db299d08ee9dcef9ef9b0c7822da163b3`; Pages deploy skipped because PR #216 is draft.
+- [ ] Keep SMM disabled in production until the live deny-gate, schema/ACL, idempotency, provider network egress, and reconciliation checks are independently proven.
+- [ ] Resolve migration history/replay blocker without inventing a historical credit baseline.
+- [ ] Complete financial/provider E2E and backup restore rehearsal before release certification.
+
+
+## 2026-10-13 — SMM catalog pricing and import safety
+- [x] Prevent catalog sync from setting customer selling price equal to provider cost.
+- [x] Keep new provider services inactive with price 0 until administrator review.
+- [x] Preserve existing reviewed customer prices; deactivate services when current provider cost is at or above customer price.
+- [x] Bound provider catalog text and quantity fields; persist only allowlisted provider metadata.
+- [x] Deno tests, production verification engine, syntax check, SMM service-role boundary, module professionalization, backend-only boundary, and MantiGO privacy checks passed on `5fb6a6fe5dc038868f2e0f5f03692094a8ea9fc8`.
+- [ ] Do not enable SMM or apply candidate migrations until the full migration chain, live idempotency/schema parity, DNS/egress controls, order/wallet E2E, and restore rehearsal are accepted.
+
+
+## 2026-10-13 — SMM error minimization and margin enforcement
+- [x] Enforce strictly positive customer-price margin during catalog sync and manual price updates; items at or below provider cost are deactivated.
+- [x] Return generic client errors for unexpected exceptions and sensitive database/RPC failures.
+- [x] Investigate the catalog margin CI failure from logs, correct the undefined reference, and rerun the full relevant CI suite.
+- [x] Corrected exact-head CI passed at `1c16630ec4eb7ed6104d92b8454d0cadcc33c3d9`: Pages validate, SMM boundary, module professionalization, backend-only boundary, and MantiGO privacy.
+- [ ] Production remains blocked pending migration reconciliation/replay, live schema/idempotency proof, provider egress control, end-to-end financial/provider tests, and restore rehearsal.
+
+
+## SMM follow-up — 2026-10-13
+- [x] Provider JSON decoding now rejects malformed UTF-8 rather than accepting replacement-decoded bytes — implemented in candidate branch; exact-head CI pending.
+- [ ] Verify new malformed-UTF-8 regression test and all required workflows on the resulting candidate HEAD.
+- [ ] Keep live SMM disabled until reconciled migrations, idempotency schema, provider egress controls, financial E2E, and release-owner approval are evidenced.
+
+
+## SMM order idempotency — 2026-10-13
+- [x] Require a stable bounded idempotency key in order input validation.
+- [x] Persist the key and return the original order on a unique-key conflict without repeating debit/provider submission; reject materially different payload reuse.
+- [x] Add validation tests and a static launch-gate contract for idempotent retries.
+- [ ] BLOCKED: bring RC463 unique-index migration from the reviewed SMM migration branch through the reconciled migration release path; it is absent from PR #216.
+- [ ] BLOCKED: prove same-key concurrency creates one order and one wallet debit against disposable PostgreSQL and the exact reconciled schema.
+- [ ] Verify exact-head CI; keep SMM disabled until database uniqueness and financial E2E acceptance are proven.
+
+
+## Live SMM containment — 2026-10-13
+- [x] Read-only audit confirmed production SMM gateway v8 had no launch gate and the live order table lacked an idempotency key/unique index; wallet debit/refund RPCs were not idempotent by reference.
+- [x] Deploy a fail-closed source-level hard-off for the separate SMM storefront to Supabase Edge Function version 10; JWT verification remains enabled.
+- [x] Read back the live function version and SHA-256 and confirm the hard-off and dual approval checks exist before auth/action routing.
+- [ ] Run an HTTP smoke test from an environment with working DNS/network access; the current execution environment could not resolve the Supabase hostname, so runtime 503 is not claimed.
+- [ ] Verify exact-head CI for the hard-off constant/static contract.
+- [ ] BLOCKED: apply RC463/RC464 only through the reconciled, approved migration chain; prove unique order idempotency and exactly-once wallet operations in disposable PostgreSQL.
+- [ ] Do not enable SMM or certify the platform until migration replay, financial/provider E2E, auth security, and restore rehearsal pass.
+
+
+## SMM hard-off verification correction — 2026-10-13
+- [x] Exact function source commit `efcf90186b3713af47c5f912a2e0e1ea46cd2122` passed 19 triggered check runs, including SMM validation and disposable PostgreSQL service-role integration.
+- [x] Live Edge Function version 10 read-back confirms the hard-off source constant, dual flag gate, and JWT verification.
+- [ ] Runtime HTTP smoke test from a network-capable environment; no HTTP 503 claim is made from source read-back alone.
+- [ ] Latest documentation-only HEAD still needs its own CI completion; it contains no source changes to the tested SMM gate.
