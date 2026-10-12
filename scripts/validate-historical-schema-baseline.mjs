@@ -149,6 +149,11 @@ if (!legacyPrivilegeMigration) {
 // committed migration creates. Do not repair this by editing applied history or stubbing
 // a privileged function: recover authoritative DDL or obtain explicit approval for a
 // separately versioned, disposable-only live-derived baseline.
+const settlementTemporaryMigrationPath = "supabase/migrations/20260920095705_test_only_live_derived_settlement_baseline.sql";
+if (fs.existsSync(settlementTemporaryMigrationPath)) {
+  console.error("P0 BLOCKED: disposable-only settlement baseline migration exists as a tracked/source migration. It must be injected by CI into a fresh disposable database and never committed under supabase/migrations/.");
+  process.exit(1);
+}
 const settlementLockdownVersion = "20260920095706";
 const settlementLockdown = migrations.find(({ name }) => name === settlementLockdownVersion + "_production_security_definer_execute_lockdown_v4.sql");
 if (settlementLockdown) {
