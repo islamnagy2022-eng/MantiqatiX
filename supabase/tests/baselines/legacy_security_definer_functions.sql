@@ -31,7 +31,7 @@ CREATE OR REPLACE FUNCTION public.mantigo_accept_bid(p_ride_id text, p_bid_id te
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
-AS $function$;
+AS $function$
 begin
   if (select auth.uid()) is null then raise exception 'UNAUTHENTICATED'; end if;
   if not exists (select 1 from public.mantigo_rides r where r.id = p_ride_id and r.customer_id = (select auth.uid()) and r.status = 'SEARCHING_BIDS') then raise exception 'FORBIDDEN_OR_INVALID_RIDE_STATE'; end if;
@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION public.mantigo_cancel_ride(p_ride_id text)
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
-AS $function$;
+AS $function$
 begin
   if (select auth.uid()) is null then raise exception 'UNAUTHENTICATED'; end if;
   update public.mantigo_rides set status = 'CANCELLED', updated_at = now()
@@ -63,7 +63,7 @@ CREATE OR REPLACE FUNCTION public.mantigo_create_ride(p_vehicle_category text, p
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
-AS $function$;
+AS $function$
 declare v_uid uuid := (select auth.uid()); v_id text;
 begin
   if v_uid is null then raise exception 'UNAUTHENTICATED'; end if;
@@ -84,7 +84,7 @@ CREATE OR REPLACE FUNCTION public.mantigo_rate_ride(p_ride_id text, p_rating int
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public'
-AS $function$;
+AS $function$
 declare v_uid uuid:=auth.uid(); v_captain uuid; v_rating_id uuid;
 begin
   if v_uid is null then raise exception 'UNAUTHENTICATED'; end if;
@@ -114,7 +114,7 @@ CREATE OR REPLACE FUNCTION public.mantigo_submit_bid(p_ride_id text, p_offered_p
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
-AS $function$;
+AS $function$
 declare v_uid uuid := (select auth.uid()); v_id text; v_customer uuid;
 begin
   if v_uid is null then raise exception 'UNAUTHENTICATED'; end if;
@@ -137,7 +137,7 @@ CREATE OR REPLACE FUNCTION public.mantigo_update_proposed_price(p_ride_id text, 
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
-AS $function$;
+AS $function$
 begin
   if (select auth.uid()) is null then raise exception 'UNAUTHENTICATED'; end if;
   if p_new_price is null or p_new_price <= 0 then raise exception 'INVALID_PRICE'; end if;
