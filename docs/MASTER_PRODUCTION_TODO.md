@@ -1594,3 +1594,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [~] Backend-only workflow validation and financial journal integration PASS; approval audit integration was still running at last check: [run 38318855947](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855947).
 - [x] Read-only audit found all four orphan active CUSTOMER memberships have corresponding audit references: 3 `CUSTOMER_MEMBERSHIP_AUTO_ACTIVATED` and 1 `CUSTOMER_REGISTRATION_ACTIVATED`. This establishes app-origin activation evidence, not why the Auth users are now absent. Preserve records pending lifecycle/retention review.
 - [ ] Still open: real browser OAuth E2E, live membership recovery with controlled non-production identity, negative token/session tests, concurrent idempotency, and two-identity cross-tenant denial.
+
+
+### RC215 final integration verification — 2026-10-13
+- [x] Fixed malformed SQL block delimiters discovered by CI on the inactive-tenant test; failure was diagnosed from the job log and corrected using explicit `$rc215_test$` delimiters.
+- [x] Final membership integration PASS, including inactive-tenant denial: [run 38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500).
+- [x] Pages validation PASS, deployment skipped because PR is draft: [run 38319097546](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097546).
+- [x] Backend-only validator and approval-action-audit integration PASS: [run 38319097571](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097571); financial-journal integration still running at last check.
+- [~] MantiGO privacy workflow [run 38319097534](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097534) was still running at last check.
+- [ ] Still open: live browser Google OAuth, recovery with a controlled non-production identity, expired/mismatched token tests, concurrent idempotency, and independent cross-tenant denial.
