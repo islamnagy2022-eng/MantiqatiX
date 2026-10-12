@@ -82,6 +82,11 @@ Deno.serve(async(req)=>{
     return json({error:"WALLET_DEBIT_OUTCOME_UNKNOWN",order_id:o.data.id,reconciliation_required:true},503);
    }
    if(debit.data!==true){
+    if(debit.data!==false){
+     await admin.from("smm_orders").update({status:"WALLET_DEBIT_OUTCOME_UNKNOWN",error_message:"Wallet debit returned a non-boolean result; reconciliation required",updated_at:new Date().toISOString()}).eq("id",o.data.id).eq("status","SUBMITTING");
+     await admin.from("smm_order_events").insert({order_id:o.data.id,event_type:"WALLET_DEBIT_OUTCOME_UNKNOWN",payload:{reconciliation_required:true}});
+     return json({error:"WALLET_DEBIT_OUTCOME_UNKNOWN",order_id:o.data.id,reconciliation_required:true},503);
+    }
     await admin.from("smm_orders").update({status:"FAILED",error_message:"Insufficient wallet balance",updated_at:new Date().toISOString()}).eq("id",o.data.id).eq("status","SUBMITTING");
     return json({error:"INSUFFICIENT_BALANCE",required:sell,order_id:o.data.id},402);
    }
