@@ -73,6 +73,8 @@ check(gateway.includes('import { readBoundedJson } from "./request-validation.ts
 check(gateway.includes('req.method!=="POST"'), "gateway must reject methods other than POST and OPTIONS");
 check(tests.includes("SMM request parser enforces streamed body size even without a trusted content length"), "request body size must be tested with streamed bytes");
 check(tests.includes("SMM request parser validates declared content length without trusting it"), "declared content-length validation must be tested");
+check(gateway.includes("normalizeSmmMoney(b.amount,false)") && gateway.includes("normalizeSmmMoney(b.selling_price,true)"), "admin credit and service price actions must use strict money normalization");
+check(tests.includes("SMM money normalization accepts bounded decimal amounts only"), "strict money input must have unit coverage");
 check(orderValidation.includes('url.protocol !== "https:"'), 'SMM order targets must require HTTPS');
 check(orderValidation.includes('!hostname.includes(".")'), 'SMM order targets must reject single-label internal hosts');
 check(orderValidation.includes('url.username || url.password'), 'SMM order targets must reject embedded credentials');
