@@ -296,3 +296,10 @@ The live query returned no `anon` EXECUTE grant for any of these functions. The 
 - The uploaded `source_RC40.zip` SHA-256 matches its companion `.sha256` file (`e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`).
 - It contains 39 older SQL migrations and a useful enterprise schema migration, but archive search found no SQL definition for either `account_registration_requests` or `marketing_provider_profiles`.
 - Five different archive migrations share version `20260920130000`. They cannot be inserted directly into the current Supabase migration directory without resolving duplicate historical versions, and rewriting those versions would violate migration-history integrity. Therefore the archive is useful supporting material, not an approved drop-in replacement for the missing authoritative schema history.
+
+### Guard correction after the follow-up replay — 2026-10-12
+
+- The temporary live-derived `marketing_provider_profiles` compatibility fixture was removed from the candidate branch because its historical creation DDL, foreign keys, and RLS policy provenance were not recovered. It must not become a de facto replacement for the original schema history.
+- `scripts/validate-historical-schema-baseline.mjs` now fails closed before starting Docker/Supabase when it cannot find a committed table-creation migration before the first dependent migration for either `public.marketing_provider_profiles` or `public.account_registration_requests`.
+- The failed replay at [38190869647](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38190869647) is retained as evidence that the latter table is a real clean-replay dependency. It is not treated as a successful full-chain replay.
+- The only acceptable next source is authoritative historical DDL from a trusted backup, old source revision, or migration artifact with verified provenance. Do not add another current-live table snapshot or merge the PR to bypass this guard.
