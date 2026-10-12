@@ -254,3 +254,25 @@ No placeholder function DDL, skipped migration, production write, or migration-h
 
 ### Current disposition
 PR #207 remains draft and unmerged. Live `smm-gateway` remains version 6 without the candidate fail-closed environment gate, so live containment is still not verified. No production deployment, migration, wallet/payment mutation, or auth/security setting change was performed. Overall release remains **`BLOCKED / NOT CERTIFIED`**.
+
+
+## 11. Exact-head verification refresh — 2026-10-12
+
+Candidate head evaluated: `9baee5eb35cc7b66c7f81aac7b80089971359e3b` (documentation-only update follows this verification; rerun CI for the resulting head).
+
+### Workflow evidence on the candidate head
+- [SMM Deferred Module Validation — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205496): Deno syntax/type check, disposable PostgreSQL wallet-idempotency integration, UI quarantine, and SMM source-contract assertions passed.
+- [SMM Service Role Access Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205520).
+- [Marketing Campaign Backend — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205433); [Marketing CRM Tenant Scope — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205423).
+- [Backend-only Module Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205478); [MantiGO Open Ride Privacy Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205528); [Approval Action Audit Atomicity — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205446); [Module Professionalization Validation — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205429).
+- [Migration History Immutability — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205508); [Migration Version Uniqueness — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205570); [Open PR Migration Collision Guard — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205507).
+- [Web validation — PASS; deploy job SKIPPED](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205422). No production deployment occurred.
+- [Disposable chronological migration replay — BLOCKED](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38188205434). The fail-closed preflight failed before Supabase services started; migration replay did not begin and no migration was applied.
+
+### Migration dependency search
+Repository searches for the ten legacy SECURITY DEFINER signatures and their creation statements found only the privilege-revocation migration and later hardening/inspection references, not authoritative creation DDL in the committed migration history. This confirms that inventing placeholder bodies or bypassing the preflight is not justified. The safe next step is to recover trusted historical source or obtain explicit owner approval for a clearly isolated test-only baseline copied from trusted definitions; neither was done here.
+
+### Security boundary and release decision
+The SMM source validator confirms that candidate source checks `MNTY_SMM_ENABLED` before authentication and business operations. This is source-only evidence: the live Edge Function has not been changed, and its previously observed version 6 without this gate remains a P0 containment blocker until a separately authorized deployment and negative live test prove otherwise. The marketing/advertising internal module remains in launch scope; digital SMM remains deferred.
+
+PR #207 remains draft/unmerged. No production migration, Edge Function deployment, Auth change, wallet/payment mutation, or financial data write was performed. Release status remains **`BLOCKED / NOT CERTIFIED`**.
