@@ -52,3 +52,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Cross-check:** candidate RC456 migration provides narrow grants for SMM table access and keeps provider credentials/wallet ledger RPC-only, but RC456 is not present in the previously verified production migration ledger through RC424. Do not apply it separately from full migration reconciliation.
 - **Not performed:** no production DDL, ACL grant/revoke, Edge Function deployment, wallet action, or PR merge.
 - **Next:** inspect the deployed digital-page payment function and RPC contract; continue exact migration provenance recovery. Full release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-12 — SESSION-005 — Payment-event RPC boundary follow-up
+
+- **Verified fact:** the live function catalog reports `public.process_verified_digital_page_payment_backend` as SECURITY DEFINER, with `search_path=public, pg_temp`; EXECUTE is granted to `service_role` only; catalog metadata indicates its definition references `digital_page_payment_events`.
+- **Interpretation:** direct `service_role` table grants are not necessarily required for this event table because the backend RPC mediates access. Do not add direct grants based on the table ACL alone.
+- **Limitation:** the attempt to retrieve the complete function definition was blocked by safety controls; atomicity/body review and end-to-end webhook verification remain NOT VERIFIED.
+- **Production impact:** none; read-only catalog metadata only.
+- **Release state:** BLOCKED / NOT CERTIFIED.

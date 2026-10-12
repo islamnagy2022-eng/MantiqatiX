@@ -1586,3 +1586,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] `digital_page_payment_events` also has no direct SELECT/INSERT/UPDATE/DELETE privilege for `service_role`; its intended backend access path remains to be verified rather than granting broad access.
 - [ ] SMM service-role boundary migration RC456 remains source-only; production migration ledger still ends at RC424 in the verified snapshot. Do not apply RC456 independently of the full reconciled migration chain.
 - [ ] Keep SMM deferred. Do not add broad grants or deploy until the least-privilege route, migration provenance, and end-to-end tests are reviewed.
+
+
+## 2026-10-12 — Payment-event backend access path follow-up
+- [x] Read-only catalog query confirmed `process_verified_digital_page_payment_backend` is SECURITY DEFINER with `search_path=public, pg_temp`, EXECUTE granted to `service_role` only, and references `digital_page_payment_events`.
+- [x] Therefore, absence of direct `service_role` table privileges on `digital_page_payment_events` appears consistent with the RPC-only boundary; it is not classified as a confirmed defect based on ACL evidence alone.
+- [ ] Full function-body/atomicity review and end-to-end webhook tests remain required before closing payment release gates.

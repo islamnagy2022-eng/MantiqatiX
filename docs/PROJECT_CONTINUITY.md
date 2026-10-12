@@ -557,3 +557,11 @@ This status is intentional and must remain until the open gates above are indepe
 - **Action:** retained the SMM fail-closed source-only change; updated this TODO/continuity record and PR notes. No production grants, migration, deployment, or financial operation was performed.
 - **Next:** verify digital-page payment event access path through the deployed function/RPC; keep SMM deferred; continue source/migration lineage recovery and full disposable replay after resolving the credit historical baseline requirement.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## SESSION-005 — Payment-event RPC boundary follow-up — 2026-10-12
+- **Verified:** catalog metadata shows `process_verified_digital_page_payment_backend` is SECURITY DEFINER, uses `search_path=public, pg_temp`, references `digital_page_payment_events`, and grants EXECUTE to `service_role` only (not anon/authenticated).
+- **Interpretation:** lack of direct table privileges for `service_role` on `digital_page_payment_events` appears intentional for this RPC-mediated path; no direct grant is recommended from the ACL snapshot alone.
+- **Limit:** a direct attempt to retrieve the full function definition was blocked by tool safety controls; the complete function body/atomicity was not inspected in this step. The metadata is not full security certification.
+- **Action:** document the scoped finding; no database changes were made.
+- **Next:** full payment/webhook function-body and integration review remains a release gate.
