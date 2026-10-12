@@ -44,6 +44,7 @@ jobs:
           grep -q 'signInWithGoogle' web/app.js
           grep -q 'id="google-auth"' web/app.js
           node --check web/smm.js
+          node scripts/validate-smm-deferred-gate.mjs
           node --check web/home.js
           node --check web/android-parity-catalog.js
           node --check web/provider-onboarding-module.js
