@@ -52,8 +52,13 @@ Deno.serve(async(req)=>{
    const o=await admin.from("smm_orders").insert({user_id:user.id,service_id:b.service_id,target_url:b.target_url,quantity:q,selling_price:sell,provider_cost:cost,profit:sell-cost,status:"SUBMITTING"}).select("*").single();
    if(o.error)return json({error:"ORDER_CREATE_FAILED"},400);
    const debit=await admin.rpc("smm_debit_wallet",{p_user:user.id,p_amount:sell,p_reference:o.data.id});
-   if(debit.error||debit.data!==true){
-    await admin.from("smm_orders").update({status:"FAILED",error_message:"Insufficient wallet balance"}).eq("id",o.data.id);
+   if(debit.error){
+    await admin.from("smm_orders").update({error_message:"WALLET_DEBIT_OUTCOME_UNKNOWN: manual reconciliation required",updated_at:new Date().toISOString()}).eq("id",o.data.id).eq("status","SUBMITTING");
+    await admin.from("smm_order_events").insert({order_id:o.data.id,event_type:"WALLET_DEBIT_OUTCOME_UNKNOWN",payload:{reason:"debit RPC returned an error; do not retry automatically"}});
+    return json({error:"WALLET_DEBIT_OUTCOME_UNKNOWN",reconciliation_required:true,order_id:o.data.id},503);
+   }
+   if(debit.data!==true){
+    await admin.from("smm_orders").update({status:"FAILED",error_message:"Insufficient wallet balance"}).eq("id",o.data.id).eq("status","SUBMITTING");
     return json({error:"INSUFFICIENT_BALANCE",required:sell,order_id:o.data.id},402);
    }
    try{
