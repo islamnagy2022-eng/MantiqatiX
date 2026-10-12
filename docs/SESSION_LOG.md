@@ -101,3 +101,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Repository-history searches did not recover a verifiable original credit-table DDL commit; the historical baseline remains unresolved.
 - No production writes, migrations, grants, deploys, provider calls, wallet transactions, or merges.
 - State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-010 — SMM provider transport hardening
+
+- Reviewed the actual candidate SMM gateway source and identified a provider HTTP helper without timeout/response bound and with raw non-JSON fallback.
+- Hardened the candidate helper to require HTTPS, reject URL credentials/non-standard ports/localhost-local hostnames/IP-literal hosts, reject redirects, apply a 15-second timeout, cap response body at 1 MiB, require JSON, and avoid raw response fallback.
+- Extended the SMM static source validator to check these transport controls. Updated the SMM acceptance gate and master TODO with the remaining DNS/private-target limitation and the unresolved auto-refund ambiguity in the order exception path.
+- CI started for commits `2b69403c4d81919b1e5516d54006a080c7823e38` and `ef8bc68af2292620b965738fce6ee05ff15bacb9`; runs are queued/in progress and are not yet claimed as passing.
+- No production change/deploy, migration, grants, provider calls, wallet transaction, or merge.
+- State remains **BLOCKED / NOT CERTIFIED**; do not enable SMM until order/refund reconciliation and provider allowlisting are closed.
