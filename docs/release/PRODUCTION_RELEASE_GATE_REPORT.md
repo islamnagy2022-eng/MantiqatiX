@@ -362,3 +362,11 @@ The replay failure is now confirmed on the latest exact PR head, not merely an e
 - Live migration ledger: 283 entries, last `20261008222845` / RC424.
 - No production migration, Edge Function deployment, PR merge, Auth/RLS/GRANT/secret change, wallet/payment mutation, or backup/restore operation was performed in this continuation.
 - Backup/restore, full tenant isolation, complete finance/webhook E2E, and final production configuration evidence remain NOT VERIFIED.
+
+
+## Read-only Security Advisor triage — 2026-10-12 (SESSION-006 follow-up)
+
+- Fresh Supabase Security Advisor snapshot returned 94 lint entries: 90 repeated `auth_allow_anonymous_sign_ins` WARN entries, 40 authenticated-executable SECURITY DEFINER function findings, one anon-executable SECURITY DEFINER function finding, one leaked-password-protection WARN, and one RLS-enabled/no-policy INFO. Treat this as a review inventory; the repeated anonymous-sign-in entries may reflect multiple Auth-related checks/config surfaces and are not 90 distinct database vulnerabilities.
+- Read-only catalog review of all 40 authenticated-executable SECURITY DEFINER functions confirmed that each has a configured `search_path`; this alone does not prove authorization safety. A bounded source review of `mnty_active_membership` confirms it filters on `user_id = auth.uid()` and ACTIVE status. `assert_financial_membership` checks `auth.uid()`, active membership in the requested tenant, and a finance-capable role; `preview_commission_backend` calls this guard before reading commission rules.
+- The single anon-executable SECURITY DEFINER function `get_mnty_targeted_advertisements(...)` appears to serve public ad discovery and has `search_path = public, pg_temp`. This is not automatically a vulnerability, but its public result shape, row filters, and grant must remain part of a focused review.
+- No blanket GRANT revocation, RLS change, Auth configuration change, or production DDL was performed. Do not mass-revoke intentional workflow RPCs or add permissive policies to silence the advisor. Next security work should review each remaining SECURITY DEFINER function against its intended caller/ownership contract and run tenant-negative tests in an authorized isolated environment.
