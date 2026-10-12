@@ -43,12 +43,15 @@ for (const spec of legacyBaselineSpecs) {
   }
 }
 const missingHistoricalTables = [
-  // The archived RC40 source migrations are restored in chronological order:
-  // 20185000 creates credit_policies/accounts/periods, then 20190000 hardens get_credit_status.
-  // Keep this check tied to the first function migration that references these tables.
-  { table: "credit_policies", before: "20260920190000_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_policies.sql" },
-  { table: "credit_accounts", before: "20260920190000_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_accounts.sql" },
-  { table: "credit_periods", before: "20260920190000_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_periods.sql" },
+  // The current candidate has an early credit SECURITY DEFINER function migration that
+  // references credit_accounts/credit_periods before any creation migration; those tables
+  // in turn depend on credit_policies. RC40 contains later creation SQL, but its live
+  // precision/default/FK/policy lineage is unresolved, so do not auto-inject it.
+  // Fail before booting disposable Supabase until source lineage is reconciled or separately
+  // reviewed test-only compatibility baselines are explicitly approved.
+  { table: "credit_policies", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_policies.sql" },
+  { table: "credit_accounts", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_accounts.sql" },
+  { table: "credit_periods", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_periods.sql" },
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
   { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
   // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
