@@ -42,6 +42,9 @@ for (const spec of legacyBaselineSpecs) {
 const missingHistoricalTables = [
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
   { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
+  // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
+  // No fixture is authorized for this dependency; fail before starting disposable Supabase until source history is recovered.
+  { table: "bookings", before: "20260919233425_production_security_hardening_v1.sql", baselinePath: "supabase/tests/baselines/bookings.sql" },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
