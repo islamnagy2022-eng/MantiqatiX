@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 
 const gateway=fs.readFileSync('supabase/functions/smm-gateway/index.ts','utf8');
+const transport=fs.readFileSync('supabase/functions/smm-gateway/provider-transport.ts','utf8');
 const holding=fs.readFileSync('web/smm.html','utf8');
 const home=fs.readFileSync('web/home.js','utf8');
 const app=fs.readFileSync('web/app.js','utf8');
@@ -28,12 +29,12 @@ check(app.includes('التسويق والإعلان'), 'internal Marketing & Adv
 
 
 const providerCall=gateway.slice(gateway.indexOf('async function call('),gateway.indexOf('\nDeno.serve'));
-check(providerCall.includes('new globalThis.URL'), 'provider endpoint must be parsed with an explicit URL constructor');
-check(providerCall.includes('endpoint.protocol!=="https:"'), 'provider calls must require HTTPS');
+check(transport.includes('new URL(String(value ?? ""))'), 'provider endpoint must be parsed with a URL constructor');
+check(transport.includes('endpoint.protocol !== "https:"'), 'provider calls must require HTTPS');
 check(providerCall.includes('redirect:"error"'), 'provider calls must reject redirects');
 check(providerCall.includes('setTimeout(()=>controller.abort(),15000)'), 'provider calls must have a bounded timeout');
-check(providerCall.includes('total>1048576'), 'provider response body must be size-bounded');
-check(providerCall.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
+check(transport.includes('total > maxBytes'), 'provider response body must be size-bounded');
+check(transport.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
 check(!providerCall.includes('d={raw:t}'), 'provider response text must not be returned or propagated as raw fallback');
 
 check(gateway.includes('import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts"'), 'gateway must use tested provider transport policy');
