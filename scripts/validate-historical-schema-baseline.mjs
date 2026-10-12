@@ -6,6 +6,9 @@ const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
+const legacyBusinessesBaselinePath = "supabase/tests/baselines/legacy_businesses.sql";
+const legacyProductsBaselinePath = "supabase/tests/baselines/legacy_products.sql";
+const legacyOrdersBaselinePath = "supabase/tests/baselines/legacy_orders.sql";
 const files = fs.readdirSync(migrationDirectory)
   .filter((name) => name.endsWith(".sql"))
   .sort();
@@ -13,6 +16,29 @@ const migrations = files.map((name) => ({
   name,
   sql: fs.readFileSync(path.join(migrationDirectory, name), "utf8"),
 }));
+const legacyBaselineSpecs = [
+  { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\\s\\S]*name character varying\\(255\\) not null[\\s\\S]*code character varying\\(64\\) not null/i },
+  { path: legacyProductsBaselinePath, table: "products", required: /id uuid primary key[\\s\\S]*business_id uuid not null references public\\.businesses\\(id\\)[\\s\\S]*sku character varying\\(128\\) not null[\\s\\S]*name character varying\\(255\\) not null/i },
+  { path: legacyOrdersBaselinePath, table: "orders", required: /id uuid primary key[\\s\\S]*business_id uuid not null references public\\.businesses\\(id\\)[\\s\\S]*customer_id uuid[\\s\\S]*status character varying\\(64\\)/i },
+];
+for (const spec of legacyBaselineSpecs) {
+  if (!fs.existsSync(spec.path)) {
+    console.error("P0 BLOCKED: missing test-only baseline for pre-existing public." + spec.table + ": " + spec.path);
+    process.exit(1);
+  }
+  const source = fs.readFileSync(spec.path, "utf8");
+  if (!/OWNER-APPROVED TEST-ONLY LEGACY TABLE BASELINE/.test(source) ||
+      !/2026-10-12/.test(source) ||
+      !/moyhiluyhjsujhwlyeuu/.test(source) ||
+      !/NOT recovered historical DDL/.test(source) ||
+      !/Never apply this file to production/.test(source) ||
+      !new RegExp("\\\\bcreate\\\\s+table\\\\s+(?:public\\\\s*\\\\.\\\\s*)?" + spec.table + "\\\\b","i").test(source) ||
+      !spec.required.test(source) ||
+      /^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(source)) {
+    console.error("P0 BLOCKED: legacy table baseline failed provenance/shape/no-data checks: " + spec.table);
+    process.exit(1);
+  }
+}
 const missingHistoricalTables = [
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
   { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
@@ -203,5 +229,5 @@ for (const [version, temporaryName] of [
     process.exit(1);
   }
 }
-console.log("Disposable compatibility preflight PASS: owner-approved SMM fixtures, live-derived table baselines, and live-derived function compatibility fixture validated.");
+console.log("Disposable compatibility preflight PASS: legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived function compatibility fixture validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
