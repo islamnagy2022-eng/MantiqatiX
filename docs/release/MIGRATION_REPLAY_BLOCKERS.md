@@ -352,3 +352,8 @@ Candidate-head CI evidence:
 - [Deploy MantiqaTix Web](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195386452): validation PASS; deployment job SKIPPED, so this run did not publish the candidate.
 
 **Release decision remains BLOCKED / NOT CERTIFIED.** Resume only after authoritative historical DDL/policy/grant provenance is recovered or a specifically scoped disposable-only compatibility baseline is explicitly approved. Separately verify or safely contain the live SMM gateway before launch. No production database, migration ledger, Edge Function, Auth, RLS/grants, wallet, payment, or financial state was changed by this work.
+
+
+### Dependency-set cross-check
+
+A separate static comparison covered all 12 migrations before the hardening migration: they create 36 distinct tables. The hardening migration alters 21 distinct tables; **20 are present in that earlier creation set and `public.bookings` is the only unmatched dependency**. This narrows the immediate replay blocker to one table dependency in this migration, without claiming the rest of the complete chain has replayed successfully.
