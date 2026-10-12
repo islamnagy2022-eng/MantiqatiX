@@ -147,5 +147,8 @@ assert.match(statusAction, /const cancellationPending=/, "status polling must pr
 assert.match(smmUi, /action:'cancel_order'/, "customer UI must invoke the guarded cancellation action");
 assert.match(smmUi, /لن يُعاد الرصيد إلا بعد تأكيد المورّد/, "customer UI must explain that refund requires provider confirmation");
 assert.match(smmUi, /refund_requires_reconciliation/, "customer UI must disclose when a confirmed cancellation refund requires support reconciliation");
+assert.match(smmUi, /load-reconciliation/, "admin UI must expose the bounded reconciliation queue");
+assert.match(smmUi, /action:\x27reconciliation_queue\x27/, "admin UI must load reconciliation records through the gateway");
+assert.match(smmUi, /provider_order_id/, "admin reconciliation view must show the external provider order ID when known");
 
 console.log("SMM service-role access boundary contract: PASS");
