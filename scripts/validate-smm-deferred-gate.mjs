@@ -61,6 +61,14 @@ check(orderStatus.includes('.slice(0,64)') && orderStatus.includes('replace(/[\\
 check(!orderStatus.includes('result:r'), 'raw provider status response must not be returned to clients');
 check(!gateway.includes('error:r.error.message') && !gateway.includes('error:ok.error.message'), 'database/RPC error details must not be echoed to clients');
 check(gateway.includes('requires_activation_review:!positiveMargin'), 'service pricing at or below provider cost must require review and deactivate service');
+check(fs.existsSync('supabase/functions/smm-gateway/order-validation.ts'), 'order validation module must exist');
+const orderValidation=fs.readFileSync('supabase/functions/smm-gateway/order-validation.ts','utf8');
+check(gateway.includes('import { validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts"'), 'gateway must use tested order validation');
+check(orderValidation.includes('url.protocol !== "https:"'), 'SMM order targets must require HTTPS');
+check(orderValidation.includes('url.username || url.password'), 'SMM order targets must reject embedded credentials');
+check(orderValidation.includes('sellingPrice <= providerCost'), 'SMM orders must reject non-positive gross margin');
+check(tests.includes('SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs'), 'SMM URL safety tests must exist');
+check(tests.includes('SMM pricing requires a strictly positive customer margin and finite totals'), 'SMM order pricing tests must exist');
 check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must return a generic client response');
 
 check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
