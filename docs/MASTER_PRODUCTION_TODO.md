@@ -1598,3 +1598,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added `docs/release/SMM_PRODUCTION_ACCEPTANCE_GATE.md` to candidate branch with explicit safety, migration-lineage, least-privilege, provider, wallet/order, abuse-resistance, CI, and release-evidence gates.
 - [ ] Complete gates only with matching evidence; no source-only pass may be treated as production proof.
 - [ ] Live gateway gate, RC424→current migration reconciliation, credit historical-baseline blocker, SMM service-role grants, order idempotency schema, approved provider setup, and full lifecycle tests remain open.
+
+
+## 2026-10-13 — Evidence-based module progress percentages
+- [x] Added `docs/release/MODULE_COMPLETION_MATRIX_AR.md` covering 20 modules with separate estimated source-build and verification/readiness percentages.
+- [x] Reported arithmetic averages from the documented estimates: source build 69%, verification/readiness 37%; conservative overall launch readiness is 30% and release remains BLOCKED / NOT CERTIFIED.
+- [ ] Treat figures as engineering estimates (approximately ±10 percentage points), not objective code coverage or production certification; update only with evidence tied to exact commit/environment.
+- [ ] P0 migration replay, multi-tenant E2E, payment/finance E2E, restore test, live SMM gate/schema/grants, and exact-head CI remain unresolved or unverified.
