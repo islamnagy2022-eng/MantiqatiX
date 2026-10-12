@@ -207,6 +207,14 @@ Candidate head: `f088b02ffe799d3801c9d920a4a5f2f7bd9a57f6` on draft PR #207.
 - [Disposable Supabase Migration Chain Replay — BLOCKED](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626191): the fail-closed historical-schema preflight failed; chronological replay did not start. Do not bypass this guard or invent missing historical function DDL.
 - Module Professionalization Validation was still running at report time; its exact-head result must be checked before recording a final PASS.
 
+### Shared wallet UI boundary correction — 2026-10-12
+
+- A second browser-side path was found in `web/app.js`: the shared wallet screen queried `smm_wallets` directly instead of using the SMM gateway. This was removed. The shared screen now displays SMM as deferred and does not show SMM balance data from the browser client.
+- Added SMM services/orders/wallet transactions/events to the backend-only table set used by module-count/runtime accounting. This is an additional frontend guard, not a replacement for database ACL/RLS.
+- Expanded `validate-smm-payment-safety.mjs` to reject direct `.from('smm_*')` table reads in both `web/app.js` and `web/smm.js`, and expanded the SMM workflow path filters to cover `web/app.js`.
+- On code head `77349c32dc8db55ea6f8c29ed9823060742c3b3a`, [Pages validation passed with deployment skipped](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187727351). The SMM Deferred Module Validation steps, including Deno type-check, wallet idempotency integration, UI quarantine and SMM safety checks, all showed success, but the workflow had not yet published its terminal conclusion at the last poll: [run 38187727327](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38187727327). Do not treat an in-progress run as a final PASS.
+- No live deployment or production data mutation occurred. The live Edge Function remains version 6 without the fail-closed SMM gate; production containment remains NOT VERIFIED.
+
 ### Production comparison and release decision
 - A fresh read-only lookup still reports live `smm-gateway` version 6 with source hash `ea4de98886b739ed5ce83c7f5909671fd00481a8f488849ffe58567e58be6cd6`; the live source does **not** contain the `MNTY_SMM_ENABLED` fail-closed gate. It remains an active P0 containment blocker.
 - The candidate SMM code and validation changes are repository-only. No production function deployment, database migration/write, wallet/payment mutation, merge, or Auth/security configuration change was performed.
