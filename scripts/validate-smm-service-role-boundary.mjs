@@ -146,5 +146,6 @@ assert.match(statusAction, /WALLET_REFUND_CONFIRMED/, "successful refund must be
 assert.match(statusAction, /const cancellationPending=/, "status polling must preserve a pending cancellation while the provider still reports an active or uncertain state");
 assert.match(smmUi, /action:'cancel_order'/, "customer UI must invoke the guarded cancellation action");
 assert.match(smmUi, /لن يُعاد الرصيد إلا بعد تأكيد المورّد/, "customer UI must explain that refund requires provider confirmation");
+assert.match(smmUi, /refund_requires_reconciliation/, "customer UI must disclose when a confirmed cancellation refund requires support reconciliation");
 
 console.log("SMM service-role access boundary contract: PASS");
