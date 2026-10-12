@@ -116,6 +116,7 @@ Deno.test("SMM order input rejects unsafe protocols, credentials, local hosts, I
     { service_id: "svc", target_url: "https://localhost/admin", quantity: 1 },
     { service_id: "svc", target_url: "https://127.0.0.1/private", quantity: 1 },
     { service_id: "svc", target_url: "https://host.local/path", quantity: 1 },
+    { service_id: "svc", target_url: "https://intranet/path", quantity: 1 },
     { service_id: "svc", target_url: "https://example.org/" + "x".repeat(2050), quantity: 1 },
   ];
   for (const item of invalid) {
