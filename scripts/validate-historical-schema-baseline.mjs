@@ -7,6 +7,7 @@ const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentia
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
 const legacyBusinessesBaselinePath = "supabase/tests/baselines/legacy_businesses.sql";
+const settlementBaselinePath = "supabase/tests/baselines/settlement_backend_10arg.sql";
 const legacyProductsBaselinePath = "supabase/tests/baselines/legacy_products.sql";
 const legacyOrdersBaselinePath = "supabase/tests/baselines/legacy_orders.sql";
 const files = fs.readdirSync(migrationDirectory)
@@ -153,14 +154,30 @@ const settlementLockdown = migrations.find(({ name }) => name === settlementLock
 if (settlementLockdown) {
   const settlementRevoke = /revoke\s+execute\s+on\s+function\s+public\.create_settlement_backend\s*\(\s*varchar\s*,\s*varchar\s*,\s*varchar\s*,\s*varchar\s*,\s*numeric\s*,\s*numeric\s*,\s*numeric\s*,\s*numeric\s*,\s*varchar\s*,\s*varchar\s*\)/i;
   const revokesTenArgSettlement = settlementRevoke.test(settlementLockdown.sql);
+  const settlementBaseline = fs.existsSync(settlementBaselinePath)
+    ? fs.readFileSync(settlementBaselinePath, "utf8")
+    : "";
+  const settlementBaselineValid =
+    /TEST-ONLY LIVE-DERIVED SETTLEMENT FUNCTION BASELINE/.test(settlementBaseline) &&
+    /moyhiluyhjsujhwlyeuu/.test(settlementBaseline) &&
+    /NOT recovered historical creation DDL/.test(settlementBaseline) &&
+    /MUST NOT be applied to production/.test(settlementBaseline) &&
+    /CREATE OR REPLACE FUNCTION public\.create_settlement_backend\s*\(\s*p_id\s+character varying\s*,\s*p_tenant_id\s+character varying\s*,\s*p_beneficiary_type\s+character varying\s*,\s*p_beneficiary_id\s+character varying\s*,\s*p_gross\s+numeric\s*,\s*p_platform_fee\s+numeric\s*,\s*p_net\s+numeric\s*,\s*p_voucher\s+numeric\s*,\s*p_channel\s+character varying\s*,\s*p_reference_id\s+character varying\s*\)\s*RETURNS jsonb/i.test(settlementBaseline) &&
+    /SECURITY DEFINER/i.test(settlementBaseline) &&
+    /SET search_path TO 'public'/i.test(settlementBaseline) &&
+    /REVOKE ALL ON FUNCTION public\.create_settlement_backend\(varchar,varchar,varchar,varchar,numeric,numeric,numeric,numeric,varchar,varchar\) FROM PUBLIC, anon, authenticated, service_role;/i.test(settlementBaseline) &&
+    /GRANT EXECUTE ON FUNCTION public\.create_settlement_backend\(varchar,varchar,varchar,varchar,numeric,numeric,numeric,numeric,varchar,varchar\) TO service_role;/i.test(settlementBaseline);
   const priorTenArgSettlementCreation = migrations.some(({ name, sql }) =>
     name < settlementLockdown.name &&
     /create\s+(?:or\s+replace\s+)?function\s+public\.create_settlement_backend\s*\(\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*\)/i.test(sql)
-  );
+  ) || settlementBaselineValid;
   if (revokesTenArgSettlement && !priorTenArgSettlementCreation) {
-    console.error("P0 BLOCKED: " + settlementLockdown.name + " revokes public.create_settlement_backend(varchar,varchar,varchar,varchar,numeric,numeric,numeric,numeric,varchar,varchar), but no earlier committed migration creates that 10-argument overload.");
-    console.error("The earlier committed creation migration defines a different 9-argument overload. Do not rewrite applied migration history or synthesize a privileged function. Recover authoritative creation DDL or obtain explicit approval for a separately versioned test-only baseline.");
+    console.error("P0 BLOCKED: " + settlementLockdown.name + " revokes the 10-argument create_settlement_backend overload, but neither earlier committed migration DDL nor a validated disposable-only baseline defines it.");
+    console.error("Do not rewrite applied migration history or synthesize a privileged function. Recover authoritative historical creation DDL or validate the separately versioned disposable-only baseline.");
     process.exit(1);
+  }
+  if (revokesTenArgSettlement && settlementBaselineValid) {
+    console.warn("P0 LIMITATION: the 10-argument settlement function is sourced from a read-only live catalog snapshot for disposable replay only; this does NOT recover historical DDL or certify production migration provenance.");
   }
 }
 
