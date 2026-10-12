@@ -1,5 +1,6 @@
 -- OWNER-APPROVED TEST-ONLY LEGACY TABLE BASELINE
 -- Authorized by the project owner on 2026-10-12 for disposable CI replay only.
+-- Production ledger context: Supabase project moyhiluyhjsujhwlyeuu; read-only source recovery only.
 -- The applied Phase 04 migration modifies an already-existing public.businesses table.
 -- The live migration ledger does not contain its original creation DDL.
 -- This minimal pre-Phase-04 shape is inferred only for compatibility replay; it is NOT recovered historical DDL.
