@@ -141,6 +141,10 @@ Deno.test("SMM order input rejects missing service and fractional or unsafe quan
     { service_id: "svc", target_url: "https://example.org", quantity: 1.5 },
     { service_id: "svc", target_url: "https://example.org", quantity: Number.MAX_SAFE_INTEGER + 1 },
     { service_id: "svc", target_url: "https://example.org", quantity: 0 },
+    { service_id: "svc", target_url: "https://example.org", quantity: true },
+    { service_id: "svc", target_url: "https://example.org", quantity: [1] },
+    { service_id: "svc", target_url: "https://example.org", quantity: "1e2" },
+    { service_id: "svc", target_url: "https://example.org", quantity: " 1 " },
   ]) {
     const result = validateSmmOrderInput(item);
     if (result.ok || result.code !== "INVALID_ORDER") throw new Error("invalid order input was accepted");
