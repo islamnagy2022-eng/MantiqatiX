@@ -52,7 +52,30 @@ begin
     raise exception 'FAIL: service_role must execute the private customer membership RPC';
   end if;
 end
-$$;
+$;
+
+do $
+declare
+  v_rejected boolean := false;
+begin
+  begin
+    perform private.ensure_customer_membership_for_user(
+      '10000000-0000-4000-8000-000000000001'::uuid,
+      'MNTY-INACTIVE-TEST'
+    );
+  exception when others then
+    if sqlerrm = 'active_tenant_required' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+
+  if not v_rejected then
+    raise exception 'FAIL: membership RPC must reject an inactive tenant';
+  end if;
+end
+$;
 
 insert into auth.users(id, is_anonymous)
 values ('10000000-0000-4000-8000-000000000002', true);
@@ -73,4 +96,4 @@ $$;
 
 rollback;
 
-select 'PASS: RC215 membership trigger, idempotency, anonymous exclusion, and service-role-only RPC grants' as result;
+select 'PASS: RC215 membership trigger, idempotency, anonymous exclusion, inactive-tenant denial, and service-role-only RPC grants' as result;
