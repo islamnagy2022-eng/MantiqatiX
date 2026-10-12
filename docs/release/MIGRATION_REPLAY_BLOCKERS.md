@@ -280,3 +280,13 @@ The live query returned no `anon` EXECUTE grant for any of these functions. The 
 - Do not add a synthetic migration or placeholder function just to let replay continue.
 - Next safe path: recover the original definitions from a trusted Git history/backup, or obtain explicit owner approval to inject a clearly labeled, current-definition-only **test baseline outside `supabase/migrations`** for disposable replay. Such a baseline must preserve the current privilege boundary and must never be applied to production.
 - Until one of those paths is approved and the full chronological replay passes, `chronological_replay` stays `NOT RUN` and the release gate stays blocked.
+
+## Replay follow-up — missing core schema dependency — 2026-10-12
+
+- The disposable replay run [38190631816](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38190631816) successfully started Supabase services without implicitly replaying migrations, then ran the dedicated chronological replay step.
+- The new test-only live-derived `marketing_provider_profiles` table-shape fixture allowed `20260927103103_add_provider_profile_media.sql` to proceed in disposable CI. It is intentionally not historical DDL and does not certify the original foreign-key or RLS-policy provenance.
+- Replay then stopped at `20260927134000_add_unique_pending_membership_request.sql`: `public.account_registration_requests` does not exist in the clean database. Repository search did not find its historical table-creation migration; read-only production catalog inspection confirms the table exists live.
+- This demonstrates that the gap is broader than the ten legacy functions and one provider-profile table: core tables predate the earliest committed migration in this chain. Adding another guessed fixture without reconstructing its dependencies (including membership/RLS policy dependencies) would create a misleading partial baseline, not a trustworthy full replay.
+- **Decision:** do not continue inventing individual schema fixtures or alter production. Recover the authoritative pre-migration schema/DDL from trusted database backups or version history, then design one reviewed disposable bootstrap with explicit provenance. Until then, the replay is **FAIL / NOT VERIFIED** and release remains **BLOCKED / NOT CERTIFIED**.
+- The workflow was corrected so service startup runs with migration SQL files temporarily stashed and restored under a shell trap; the dedicated `supabase db reset --local` step now reports SQL migration failures at the correct step instead of misclassifying them as startup failures.
+- No production SQL, migration ledger, Edge Function, Auth configuration, wallet, payment, or customer data was changed.
