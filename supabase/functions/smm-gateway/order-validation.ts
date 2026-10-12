@@ -6,7 +6,9 @@ export type ValidatedSmmOrderInput =
 
 export function validateSmmOrderInput(input: SmmOrderInput): ValidatedSmmOrderInput {
   const serviceId = typeof input.service_id === "string" ? input.service_id.trim() : "";
-  const quantity = typeof input.quantity === "number" ? input.quantity : Number(input.quantity);
+  const rawQuantity = typeof input.quantity === "string" ? input.quantity.trim() : input.quantity;
+  const quantity = typeof rawQuantity === "number" ? rawQuantity :
+    typeof rawQuantity === "string" && /^\\d{1,15}$/.test(rawQuantity) ? Number(rawQuantity) : NaN;
   if (!serviceId || serviceId.length > 128 || !Number.isSafeInteger(quantity) || quantity <= 0) {
     return { ok: false, code: "INVALID_ORDER" };
   }
