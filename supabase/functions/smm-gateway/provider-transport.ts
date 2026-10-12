@@ -47,7 +47,7 @@ export async function readProviderJson(response: Response, maxBytes = 1_048_576)
     offset += chunk.byteLength;
   }
   try {
-    return JSON.parse(new TextDecoder().decode(bytes));
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
   } catch {
     throw new Error("Provider returned invalid JSON");
   }
