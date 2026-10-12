@@ -3,7 +3,7 @@ import { getSmmLaunchDecision } from "./launch-gate.ts";
 Deno.test("SMM launch gate is closed unless the exact explicit flag is true", () => {
   for (const flag of [undefined, "", "false", "TRUE", "1", "yes"]) {
     const decision = getSmmLaunchDecision(flag);
-    if (decision.enabled !== false || decision.status !== 503 || decision.error !== "SMM_POST_LAUNCH_DEFERRED") {
+    if (decision.enabled !== false || decision.status !== 503 || decision.error !== "SMM_LAUNCH_GATES_PENDING") {
       throw new Error("SMM gate did not fail closed for flag: " + String(flag));
     }
   }
