@@ -135,6 +135,9 @@ assert.match(cancelAction, /cancel_request_started/, "cancellation intent must b
 assert.match(cancelAction, /if\(!started\.data\)/, "concurrent cancellation requests must fail closed when the atomic claim is lost");
 assert.match(cancelAction, /select\("id"\)\.maybeSingle\(\)/, "cancellation state persistence must confirm that the conditional update actually changed a row");
 assert.match(cancelAction, /cancel_requested/, "accepted cancellation requests must remain pending until provider status confirms cancellation");
+assert.match(cancelAction, /CANCEL_REQUEST_STARTED/, "cancellation intent must be audited before contacting the provider");
+assert.match(cancelAction, /CANCEL_REQUEST_AUDIT_REQUIRES_RECONCILIATION/, "cancellation must fail closed if the intent audit event cannot be recorded");
+assert.match(cancelAction, /CANCEL_REJECTED/, "provider cancellation rejection must be auditable");
 assert.doesNotMatch(cancelAction, /smm_refund_wallet/, "a cancellation request must never refund before provider confirmation");
 const statusActionStart = edge.indexOf('if(a==="order_status")');
 const statusActionEnd = edge.indexOf('return json({error:"UNKNOWN_ACTION"}', statusActionStart);
