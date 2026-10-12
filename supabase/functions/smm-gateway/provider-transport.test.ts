@@ -31,6 +31,12 @@ Deno.test("provider response parser accepts bounded JSON", async () => {
   if ((result as {order?: number}).order !== 123) throw new Error("Expected parsed provider JSON");
 });
 
+Deno.test("provider response parser rejects non-JSON content types", async () => {
+  let rejected = false;
+  try { await readProviderJson(new Response('{"order":123}', { status: 200, headers: { "Content-Type": "text/html" } })); } catch { rejected = true; }
+  if (!rejected) throw new Error("Non-JSON content type was accepted");
+});
+
 Deno.test("provider response parser rejects invalid JSON", async () => {
   let rejected = false;
   try { await readProviderJson(new Response("not-json", { status: 200, headers: { "Content-Type": "application/json" } })); } catch { rejected = true; }
@@ -39,7 +45,7 @@ Deno.test("provider response parser rejects invalid JSON", async () => {
 
 Deno.test("provider response parser enforces response size limit", async () => {
   let rejected = false;
-  try { await readProviderJson(new Response('{"long":"0123456789"}', { status: 200 }), 8); } catch { rejected = true; }
+  try { await readProviderJson(new Response('{"long":"0123456789"}', { status: 200, headers: { "Content-Type": "application/json" } }), 8); } catch { rejected = true; }
   if (!rejected) throw new Error("Oversized provider response was accepted");
 });
 
