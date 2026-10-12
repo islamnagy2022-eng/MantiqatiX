@@ -6,6 +6,7 @@ const migration = fs.readFileSync("supabase/migrations/20261011010000_rc456_smm_
 const integration = fs.readFileSync("supabase/tests/rc456_smm_service_role_integration.sql", "utf8");
 const idempotencyMigration = fs.readFileSync("supabase/migrations/20261012100000_rc457_smm_order_idempotency.sql", "utf8");
 const smmUi = fs.readFileSync("web/smm.js", "utf8");
+const launchGate = fs.readFileSync("supabase/functions/smm-gateway/launch-gate.ts", "utf8");
 
 const adminStart = edge.indexOf("async function isAdmin");
 const secretStart = edge.indexOf("async function secret", adminStart);
@@ -22,7 +23,10 @@ assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/
 
 assert.match(edge, /MNTY_SMM_ENABLED/, "SMM gateway must be disabled by default behind an explicit launch flag");
 assert.match(edge, /SMM_POST_LAUNCH_DEFERRED/, "disabled SMM gateway must return a stable non-sensitive error");
-assert.ok(edge.indexOf('if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")') < edge.indexOf("const user=await getUser(req)"), "SMM launch gate must run before authentication and any protected work");
+assert.match(edge, /getSmmLaunchDecision\(Deno\.env\.get\("MNTY_SMM_ENABLED"\)\)/, "gateway must use the tested launch-gate decision helper");
+assert.ok(edge.indexOf("if(!launchDecision.enabled)") < edge.indexOf("const user=await getUser(req)"), "SMM launch gate must run before authentication and any protected work");
+assert.match(launchGate, /flag === "true"/, "SMM launch gate must require the exact explicit true flag");
+assert.match(launchGate, /return \{ enabled: false, status: 503, error: "SMM_POST_LAUNCH_DEFERRED" \}/, "SMM launch gate must fail closed for every other flag value");
 assert.match(edge, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
 const providerCallStart = edge.indexOf("async function call(");
 const providerCallEnd = edge.indexOf("\nDeno.serve", providerCallStart);
