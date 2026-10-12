@@ -575,3 +575,7 @@ This status is intentional and must remain until the open gates above are indepe
 - Current-user audit found no active user relying solely on tenant-level OWNER/ADMIN/admin permission without a correctly scoped platform SUPER_ADMIN. This does not eliminate future risk.
 - Candidate RC449/RC462 disposable integration passes on PR #207 candidate run [38315402754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402754). Full migration replay fails closed on missing approved `credit_policies`, `credit_accounts`, and `credit_periods` compatibility baselines in [run 38315402728](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402728).
 - Do not deploy RC449 independently or invent baselines. The approved migration-chain gate remains BLOCKED; production unchanged.
+
+
+### Live RLS runtime probe — 2026-10-13
+- Transaction-local authenticated context queried `user_memberships` and returned 38 rows for the selected existing identity, 0 rows for other user IDs; transaction rolled back with no persistent writes. This is a single-identity RLS check, not full tenant-isolation E2E.
