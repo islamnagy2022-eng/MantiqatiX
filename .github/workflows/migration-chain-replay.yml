@@ -59,9 +59,13 @@ jobs:
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
           bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
           legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
+          settlement_baseline="supabase/tests/baselines/settlement_backend_10arg.sql"
+          settlement_migration="supabase/migrations/20260920095705_test_only_live_derived_settlement_baseline.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
-          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$legacy_functions_baseline"; do test -f "$file"; done
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration"; do test ! -e "$file"; done
+          settlement_baseline="supabase/tests/baselines/settlement_backend_10arg.sql"
+          settlement_migration="supabase/migrations/20260920095705_test_only_live_derived_settlement_baseline.sql"
+          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$legacy_functions_baseline"; do test -f "$file"; done && test -f "$settlement_baseline"
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration"; do test ! -e "$file"; done "$settlement_migration"; do test ! -e "$file"; done
           cp "$legacy_businesses_baseline" "$legacy_businesses_migration"
           cp "$legacy_products_baseline" "$legacy_products_migration"
           cp "$legacy_orders_baseline" "$legacy_orders_migration"
@@ -71,6 +75,7 @@ jobs:
           cp "$credentials_baseline" "$credentials_migration"
           cp "$bookings_baseline" "$bookings_migration"
           cp "$legacy_functions_baseline" "$legacy_functions_migration"
+          cp "$settlement_baseline" "$settlement_migration"
           echo "Injected live-derived schema compatibility baselines and function definitions into disposable CI only."
           echo "The owner-approved bookings baseline is disposable-only and timestamped before the first historical migration that references it."
           echo "These are not historical creation migrations and must never be applied to production."
@@ -106,7 +111,8 @@ jobs:
           cmp -s "$credentials_baseline" "$credentials_migration"
           cmp -s "$bookings_baseline" "$bookings_migration"
           cmp -s "$legacy_functions_baseline" "$legacy_functions_migration"
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
+          cmp -s "$settlement_baseline" "$settlement_migration"
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done "$settlement_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
           ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration"
           echo "PASS: exact untracked temporary baseline copies; no production rows are imported. Function fixture is definition-only and is never invoked by replay."
 
