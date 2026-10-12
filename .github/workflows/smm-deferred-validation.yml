@@ -47,6 +47,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Check SMM gateway TypeScript syntax
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check SMM gateway without running it
+        run: deno check --no-lock supabase/functions/smm-gateway/index.ts
       - name: Test SMM wallet idempotency in disposable PostgreSQL
         shell: bash
         run: |
