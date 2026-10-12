@@ -26,6 +26,16 @@ check(home.includes('خدمات التسويق الرقمي SMM — قريبًا
 check(app.includes('خدمات التسويق الرقمي SMM — قريبًا') && app.includes('المتجر المستقل مؤجل للإطلاق الأول'), 'internal SMM module entry must be marked deferred');
 check(app.includes('التسويق والإعلان'), 'internal Marketing & Advertising module must remain present');
 
+
+const providerCall=gateway.slice(gateway.indexOf('async function call('),gateway.indexOf('\nDeno.serve'));
+check(providerCall.includes('new globalThis.URL'), 'provider endpoint must be parsed with an explicit URL constructor');
+check(providerCall.includes('endpoint.protocol!=="https:"'), 'provider calls must require HTTPS');
+check(providerCall.includes('redirect:"error"'), 'provider calls must reject redirects');
+check(providerCall.includes('setTimeout(()=>controller.abort(),15000)'), 'provider calls must have a bounded timeout');
+check(providerCall.includes('total>1048576'), 'provider response body must be size-bounded');
+check(providerCall.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
+check(!providerCall.includes('d={raw:t}'), 'provider response text must not be returned or propagated as raw fallback');
+
 if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
 console.log('P0 SMM deferral gate: PASS');
 console.log('Static storefront, desktop/mobile navigation, internal workspace, and default-deny API gate are covered.');
