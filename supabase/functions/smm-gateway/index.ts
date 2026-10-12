@@ -7,55 +7,7 @@ async function getUser(req:Request){const a=req.headers.get("Authorization")||""
 async function isAdmin(id:string){const a=await admin.from("smm_admins").select("user_id").eq("user_id",id).maybeSingle();if(a.error)return false;if(a.data)return true;const r=await admin.from("user_memberships").select("tenant_id,role,status,business_id,permissions").eq("user_id",id).eq("status","ACTIVE");if(r.error)return false;return (r.data||[]).some((m:any)=>{const role=String(m.role||"").toUpperCase(),p=m.permissions&&typeof m.permissions==="object"?m.permissions:{};return role==="SUPER_ADMIN"&&String(m.tenant_id)==="MNTY-PLATFORM"&&m.business_id==null&&p.scope==="PLATFORM"&&p.full_control===true;});}
 async function secret(id:string){const r=await admin.rpc("smm_get_provider_secret",{p_provider_id:id});if(r.error||!r.data)throw new Error("Provider credential unavailable");return r.data as string;}
 
-const MAX_SMM_REQUEST_BYTES = 32 * 1024;
-async function readBoundedJson(req: Request): Promise<
- { ok: true; value: Record<string, unknown> } |
- { ok: false; status: 400 | 413 | 415; error: "INVALID_CONTENT_TYPE" | "REQUEST_TOO_LARGE" | "INVALID_JSON" }
-> {
- const mediaType=(req.headers.get("content-type")||"").split(";",1)[0].trim().toLowerCase();
- if(mediaType!=="application/json")return {ok:false,status:415,error:"INVALID_CONTENT_TYPE"};
- const declaredLength=req.headers.get("content-length");
- if(declaredLength!==null){
-  const length=Number(declaredLength);
-  if(!Number.isSafeInteger(length)||length<0)return {ok:false,status:400,error:"INVALID_JSON"};
-  if(length>MAX_SMM_REQUEST_BYTES)return {ok:false,status:413,error:"REQUEST_TOO_LARGE"};
- }
- if(!req.body)return {ok:false,status:400,error:"INVALID_JSON"};
- const reader=req.body.getReader(),chunks:Uint8Array[]=[];let total=0;
- try{
-  while(true){
-   const part=await reader.read();if(part.done)break;
-   total+=part.value.byteLength;
-   if(total>MAX_SMM_REQUEST_BYTES){try{await reader.cancel();}catch{}return {ok:false,status:413,error:"REQUEST_TOO_LARGE"};}
-   chunks.push(part.value);
-  }
- }catch{return {ok:false,status:400,error:"INVALID_JSON"};}
- finally{try{reader.releaseLock();}catch{}}
- const bytes=new Uint8Array(total);let offset=0;
- for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
- try{
-  const parsed=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));
-  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))return {ok:false,status:400,error:"INVALID_JSON"};
-  return {ok:true,value:parsed as Record<string,unknown>};
- }catch{return {ok:false,status:400,error:"INVALID_JSON"};}
-}
 
-import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts";
-import { normalizeProviderOrderStatus } from "./order-status.ts";
-import { normalizeProviderService } from "./catalog-normalization.ts";
-import { validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts";
-
-async function call(p:any,k:string,a:string,x:any={}) {
- const endpoint=assertSafeProviderEndpoint(p?.api_url,Deno.env.get("SMM_PROVIDER_HOSTS"));
- const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));
- const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);
- try{
-  const r=await fetch(endpoint.toString(),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString(),signal:controller.signal,redirect:"error"});
-  // Keep the timeout active through response-body consumption, not just until headers arrive.
-  return await readProviderJson(r);
- }catch{throw new Error("Provider request failed, timed out, or returned invalid data");}
- finally{clearTimeout(timer);}
-}
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
@@ -63,7 +15,7 @@ Deno.serve(async(req)=>{
  if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
-  const parsedBody=await readBoundedJson(req);if(!parsedBody.ok)return json({error:parsedBody.error},parsedBody.status);
+  const parsedBody=await readBoundedJson(req,32*1024);if(!parsedBody.ok)return json({error:parsedBody.code},parsedBody.status);
   const b=parsedBody.value,a=b.action;
   if(a==="catalog"){
    const [s,p]=await Promise.all([
