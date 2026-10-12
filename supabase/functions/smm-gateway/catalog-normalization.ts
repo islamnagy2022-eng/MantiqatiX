@@ -7,7 +7,9 @@ export function normalizeProviderService(
 ): Record<string, unknown> | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const service = raw as Record<string, unknown>;
-  const externalId = String(service.service ?? service.id ?? "").trim().slice(0, 128);
+  const rawExternalId = service.service ?? service.id;
+  if (typeof rawExternalId !== "string" && typeof rawExternalId !== "number") return null;
+  const externalId = String(rawExternalId).trim().slice(0, 128);
   if (!externalId) return null;
 
   if (service.rate == null || (typeof service.rate === "string" && service.rate.trim() === "")) return null;
