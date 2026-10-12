@@ -1584,3 +1584,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Two independent identities/two tenants: membership role switching and cross-tenant denial.
 - [ ] Review PR #217; keep draft/unmerged until required runtime and security evidence exists.
 - [ ] Do not claim production readiness from static CI alone; no production test account, DDL/data mutation, Auth setting change, Edge Function deploy, or release without the applicable authorization.
+
+
+### Follow-up verification — 2026-10-13
+- [x] Added disposable PostgreSQL 16 integration coverage for the RC215 membership migration/trigger, repeated activation idempotency, anonymous-user exclusion, and service-role-only RPC grants.
+- [x] New `customer-membership-rc215-integration` CI job PASS in [run 38318855957](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855957).
+- [x] Pages validation PASS; deploy skipped because PR #217 is draft: [run 38318856044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318856044).
+- [x] MantiGO privacy integration PASS: [run 38318855975](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855975).
+- [~] Backend-only workflow validation and financial journal integration PASS; approval audit integration was still running at last check: [run 38318855947](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38318855947).
+- [x] Read-only audit found all four orphan active CUSTOMER memberships have corresponding audit references: 3 `CUSTOMER_MEMBERSHIP_AUTO_ACTIVATED` and 1 `CUSTOMER_REGISTRATION_ACTIVATED`. This establishes app-origin activation evidence, not why the Auth users are now absent. Preserve records pending lifecycle/retention review.
+- [ ] Still open: real browser OAuth E2E, live membership recovery with controlled non-production identity, negative token/session tests, concurrent idempotency, and two-identity cross-tenant denial.
