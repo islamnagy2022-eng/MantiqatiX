@@ -12,7 +12,7 @@ export function assertSafeProviderEndpoint(value: unknown, allowlistCsv: string 
       (endpoint.port !== "" && endpoint.port !== "443") ||
       !host.includes(".") || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
       host.endsWith(".internal") || host.endsWith(".test") || host.endsWith(".invalid") || host.endsWith(".example") || host.endsWith(".onion") ||
-      /^\\d{1,3}(\\.\\d{1,3}){3}$/.test(host) || host.includes(":"))
+      /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(":")) {
     throw new Error("Provider endpoint rejected by outbound URL policy");
   }
   return endpoint;
