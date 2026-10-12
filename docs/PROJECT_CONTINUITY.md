@@ -561,3 +561,9 @@ This status is intentional and must remain until the open gates above are indepe
 - One integration run exposed malformed dollar-quoted SQL delimiters in the new test. The failure was diagnosed from CI logs, delimiters were corrected to `$rc215_test$`, and the subsequent integration passed.
 - Latest verified membership integration: [run 38319097500](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097500) PASS.
 - Production gate remains BLOCKED / NOT CERTIFIED because browser OAuth round-trip, live recovery with a controlled test identity, and cross-tenant runtime E2E have not been executed.
+
+
+### Live membership RLS/grant evidence — 2026-10-13
+- `public.user_memberships`: RLS and FORCE RLS enabled.
+- `memberships_select_self` permits authenticated SELECT only for a non-anonymous JWT with `auth.uid() = user_id`.
+- Authenticated has SELECT but no INSERT/UPDATE/DELETE table privilege; anon has no SELECT. PASS for this specific boundary; cross-tenant E2E remains NOT VERIFIED.
