@@ -72,3 +72,10 @@ A successful run with this fixture can validate migrations after the synthetic b
 - This is evidence of a wider missing pre-existing schema baseline, not an isolated SQL typo. No historical CREATE TABLE migration for `account_registration_requests` was found in current repository search. Do not fabricate additional individual fixtures without recovering their dependencies and policy history.
 - Workflow startup was separated from migration replay: migrations are temporarily moved aside during `supabase start`, restored by a shell trap, and replayed only in the explicit `supabase db reset --local` step. This makes future SQL failures diagnosable at the correct step.
 - Release remains **BLOCKED / NOT CERTIFIED**. Recover authoritative pre-migration DDL from trusted history/backup before claiming full chronological replay. No production database or application state was changed.
+
+## Fail-closed correction — core schema provenance — 2026-10-12
+
+- The live-derived `marketing_provider_profiles` compatibility fixture used by the preceding disposable attempt was removed from the candidate. Its table shape was sourced read-only from production, but that does not establish historical DDL, foreign keys, or RLS policy provenance.
+- The preflight now checks that committed migrations create `public.marketing_provider_profiles` and `public.account_registration_requests` before their first dependent migrations. If either historical creation is missing, CI exits before starting the local stack.
+- This intentionally sacrifices replay progress in favor of release integrity. Do not treat the earlier run as a full-chain pass, and do not add more live-derived table snapshots without explicit scope approval and a documented test-only purpose.
+- The ten-function fixture remains explicitly test-only and live-derived under the prior owner instruction; even with that fixture, function-body history remains uncertified. Release is still **BLOCKED / NOT CERTIFIED** pending authoritative schema history and all other release gates.
