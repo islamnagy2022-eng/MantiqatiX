@@ -539,3 +539,13 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## 2026-10-13 continuation — RC524 migration-source recovery
+
+- Current working branch: docs/rc521-admin-operations-discovery-20261013; PR #218 remains draft and unmerged.
+- Restored 16 missing RC425–RC441 migration files from PR #207 after verifying identical blob SHAs across PR #207, #202, and #84 for those exact files. The current candidate's blobs were rechecked against PR #207 and matched.
+- Updated the migration-chain gate source list from 28 to 30 required migrations, including RC522 and RC523.
+- Important distinction: source recovery does not imply migration replay success or production application. Earlier clean-replay dependencies, missing focused tests in this branch, live E2E/security evidence, and owner-approved production change process remain unresolved.
+- Continue with exact-head CI and safe disposable replay/source-contract validation. Never change production or merge/release without explicit approval and evidence.
+- Release remains BLOCKED / NOT CERTIFIED.
