@@ -158,3 +158,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Updated the SMM module estimate from 75% to 80% source build and 25% to 40% verification/readiness based on the new provider allowlist/transport module, Deno tests, ambiguous-order quarantine, terminal-state protection, and successful exact-code-head source/isolated integration workflows.
 - Updated overall rounded averages: source build remains 69%, module verification/readiness becomes 38%; conservative launch readiness remains 30% because production migration lineage, live schema/idempotency parity, egress policy, and production E2E/restore gates remain unresolved.
 - Current branch has a documentation-only follow-up; no production changes or deployment.
+
+
+## 2026-10-13 — SESSION-016 — Status transition tests, timeout coverage, and payload minimization
+
+- Added `supabase/functions/smm-gateway/order-status.ts` to centralize provider status normalization, including completed/complete aliases, partial, cancelled/canceled, failed/error, and processing aliases; unknown provider statuses preserve the current state.
+- Extended `provider-transport.test.ts` with regression tests proving terminal order states cannot be downgraded by stale provider status.
+- Fixed a real timeout coverage gap: the 15-second abort timer now remains active while the response body is read and parsed, not only while waiting for response headers.
+- Minimized persisted SMM order event payloads to provider order ID and normalized submission status rather than storing the full provider response.
+- CI caught a mismatch in the new timeout validator assertion; fixed the assertion (the source timeout behavior itself was already inside the guarded try/finally). The corrected Pages `validate` job passed at `208621b59c0067d8637f3637fce5000f742c6aea`, including Deno unit tests, production verification engine, and syntax check. Deployment job was skipped because PR #216 is draft.
+- At last check, SMM Service Role Access Boundary had passed its Deno validation and was finishing isolated PostgreSQL integration; Backend-only Module Boundary was still running.
+- No production deploy, migrations, grants, provider calls, wallet operations, or merge. State remains **BLOCKED / NOT CERTIFIED**.

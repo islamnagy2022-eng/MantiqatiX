@@ -1651,3 +1651,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] MantiGO Open Ride Privacy Boundary passed on the same head.
 - [ ] Backend-only Module Boundary and Pages workflow were still running at last check.
 - [ ] Deployment is not claimed; SMM remains gated pending production schema/idempotency parity, network egress protections, and negative acceptance tests.
+
+
+## 2026-10-13 — SMM verification improvements
+- [x] Unit-tested SMM provider status normalization and terminal-state regression behavior.
+- [x] Extended provider timeout to cover response-body streaming/parsing.
+- [x] Minimized stored provider event payloads.
+- [x] Corrected the static validator's timeout assertion after CI exposed its token mismatch.
+- [x] Pages validation passed at `208621b59c0067d8637f3637fce5000f742c6aea`; deployment remains skipped for draft PR.
+- [ ] Keep overall release readiness at 30%; no change until migration lineage, live schema/idempotency, DNS/egress, financial E2E, and restore drill are verified.

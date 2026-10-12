@@ -135,3 +135,11 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [x] Module Professionalization and MantiGO privacy checks passed on the same head.
 - [ ] Backend-only Module Boundary and Pages workflow were still running at last check.
 - [ ] No production deploy; SMM must remain disabled pending live schema/idempotency parity, network egress controls, and production negative tests.
+
+
+## Additional transport and order-state verification — 2026-10-13
+- [x] Unit tests cover provider order status normalization and terminal-state regression.
+- [x] The 15-second timeout remains active through response-body parsing.
+- [x] Order events persist a minimal provider response summary, not the full provider payload.
+- [x] Pages `validate` passed at `208621b59c0067d8637f3637fce5000f742c6aea`, including Deno tests, production verification engine, and syntax check.
+- [ ] Deployment is not claimed (deploy job skipped for draft PR); exact-head PostgreSQL/other boundary checks are still completing.
