@@ -1603,3 +1603,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Backend-only validator and approval-action-audit integration PASS: [run 38319097571](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097571); financial-journal integration still running at last check.
 - [~] MantiGO privacy workflow [run 38319097534](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38319097534) was still running at last check.
 - [ ] Still open: live browser Google OAuth, recovery with a controlled non-production identity, expired/mismatched token tests, concurrent idempotency, and independent cross-tenant denial.
+
+
+### Live membership authorization boundary — 2026-10-13
+- [x] Verified live `public.user_memberships` has RLS + FORCE RLS enabled.
+- [x] Verified the authenticated SELECT policy `memberships_select_self` requires a non-anonymous JWT and `auth.uid() = user_id`.
+- [x] Verified grants: authenticated SELECT only (no INSERT/UPDATE/DELETE); anon has no SELECT. Client membership mutation remains denied; the protected server function is the intended recovery boundary.
+- [ ] Cross-tenant denial still requires adversarial E2E with independent identities; this read-only policy/grant audit is not a substitute.
