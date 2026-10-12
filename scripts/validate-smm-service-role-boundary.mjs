@@ -163,4 +163,7 @@ assert.match(smmUi, /load-reconciliation/, "admin UI must expose the bounded rec
 assert.match(smmUi, /action:\x27reconciliation_queue\x27/, "admin UI must load reconciliation records through the gateway");
 assert.match(smmUi, /provider_order_id/, "admin reconciliation view must show the external provider order ID when known");
 
+assert.match(smmPage, /noindex,nofollow/, "deferred SMM storefront must be noindex");
+assert.doesNotMatch(smmPage, /smm\.js|vendor\/supabase\.js|config\.js/, "deferred SMM page must not load client app or Supabase scripts");
+assert.match(home, /قيد التطوير/, "homepage must label SMM as under development");
 console.log("SMM service-role access boundary contract: PASS");
