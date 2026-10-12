@@ -66,3 +66,16 @@
 لا تُرفع نسبة «التحقق/الجاهزية» إلا بدليل قابل للمراجعة: SHA محدد، رابط تشغيل CI أو تقرير E2E، بيئة الاختبار، النتيجة المتوقعة والفعلية، والتاريخ. لا تُرفع حالة «الإنتاج» إلا بدليل حي وموافقة الإصدار.
 
 **الخلاصة:** توجد قاعدة برمجية واسعة ومجموعة اختبارات آلية مهمة، لكن اكتمال المصدر أعلى من مستوى التحقق الفعلي. الأولوية الآن ليست إضافة خصائص جديدة عشوائيًا؛ بل إغلاق موانع P0 وإثبات سلامة التكامل والإطلاق.
+
+
+## تحديث أدلة CI — 2026-10-13
+
+على رأس التوثيق الحالي `be74dd5a2b94bbd93591e97fa23e709fe5fe3f70` ظهرت النتائج التالية مكتملة بنجاح:
+
+- [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38308794716) — success.
+- [SMM Service Role Access Boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38308794815) — success، بما في ذلك اختبار PostgreSQL معزول.
+- [Backend-only Module Boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38308794748) — success، بما في ذلك اختبارات دفتر القيود وذَرّية سجل الموافقات.
+- [MantiGO Open Ride Privacy Boundary](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38308794733) — success.
+- [Deploy MantiqaTix Web workflow](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38308794709) — workflow success، لكن job `deploy` **skipped** لأن التغيير على PR مسودة؛ لذلك هذا ليس نشرًا للإنتاج.
+
+هذه النتائج تدعم وجود حواجز واختبارات مصدر/تكامل جيدة، لكنها لا تغيّر النسب التقديرية ولا تغلق بوابات P0: إعادة تشغيل سلسلة الترحيلات الكاملة، اختبارات E2E الشاملة، مطابقة الإنتاج، الاستعادة، أو نشر النسخة المرشحة ما زالت غير مثبتة.
