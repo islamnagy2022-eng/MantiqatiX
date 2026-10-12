@@ -169,3 +169,11 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [x] Provider response parser uses fatal UTF-8 decoding before JSON parsing.
 - [ ] Exact-head Deno regression test rejects malformed UTF-8 provider responses.
 - [ ] Do not mark this gate PASS until CI completes on the exact candidate HEAD.
+
+
+## Order retry idempotency — 2026-10-13
+- [x] Gateway validates and persists a bounded client idempotency key.
+- [x] Duplicate-key replay is scoped to the authenticated user; materially different payload reuse is rejected and replay does not repeat debit/provider submission.
+- [ ] **BLOCKER:** PR #216 does not contain RC463. Database uniqueness on `(user_id, idempotency_key)` is mandatory; source-only checks cannot prevent concurrent duplicate inserts.
+- [ ] Apply only through the reconciled, approved migration chain, then run disposable PostgreSQL concurrency tests proving one order and one debit.
+- [ ] Exact-head CI for the idempotency change must complete successfully before any gate status is upgraded.
