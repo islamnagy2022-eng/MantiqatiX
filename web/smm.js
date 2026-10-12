@@ -93,9 +93,10 @@ function openOrder(id){
   if(!Number.isFinite(unit)||unit<0){message.innerHTML='<div class="notice">تعذر التحقق من سعر الخدمة. أعد تحميل الكتالوج.</div>';return}
   if(!window.confirm('تأكيد الطلب؟ الكمية: '+qty+'، التكلفة التقديرية: $'+money(unit*qty/1000)+'. سيتم اعتماد السعر النهائي من الخادم.'))return;
   place.disabled=true;place.textContent='جارٍ إرسال الطلب...';
-  const storageKey='mnty_smm_idem:'+user.id+':'+selected.id+':'+encodeURIComponent(target)+':'+qty;
-  let idempotencyKey=null;
+  let storageKey=null,idempotencyKey=null;
   try{
+   const targetFingerprint=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(target)))).map(x=>x.toString(16).padStart(2,'0')).join('');
+   storageKey='mnty_smm_idem:'+user.id+':'+selected.id+':'+targetFingerprint+':'+qty;
    idempotencyKey=sessionStorage.getItem(storageKey);
    if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem(storageKey,idempotencyKey);}
   }catch{
