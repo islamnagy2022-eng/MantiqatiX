@@ -205,7 +205,7 @@ Candidate head: `f088b02ffe799d3801c9d920a4a5f2f7bd9a57f6` on draft PR #207.
 - [SMM Service Role Access Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626168): service-role PostgreSQL ACL boundary and Deno type-check completed successfully.
 - [Migration History Immutability — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626149).
 - [Disposable Supabase Migration Chain Replay — BLOCKED](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626191): the fail-closed historical-schema preflight failed; chronological replay did not start. Do not bypass this guard or invent missing historical function DDL.
-- Module Professionalization Validation was still running at report time; its exact-head result must be checked before recording a final PASS.
+- [Module Professionalization Validation completed PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187727359) on code head `77349c32dc8db55ea6f8c29ed9823060742c3b3a`. This validates the listed isolated integration/contract jobs at that candidate head; it does not override the blocked full migration replay or live-production gates.
 
 ### Shared wallet UI boundary correction — 2026-10-12
 
