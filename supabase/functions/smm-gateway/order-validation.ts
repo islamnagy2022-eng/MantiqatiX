@@ -44,10 +44,11 @@ export function validateSmmOrderPricing(input: SmmOrderPricing): { ok: true; cha
     }
     return { ok: false, code: "INVALID_SERVICE_PRICING" };
   }
-  const charged = sellingPrice * quantity / 1000;
-  const cost = providerCost * quantity / 1000;
-  const profit = charged - cost;
-  if (![charged, cost, profit].every(Number.isFinite) || charged <= 0 || profit <= 0) {
+  const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+  const charged = roundMoney(sellingPrice * quantity / 1000);
+  const cost = roundMoney(providerCost * quantity / 1000);
+  const profit = roundMoney(charged - cost);
+  if (![charged, cost, profit].every(Number.isFinite) || charged <= 0 || profit <= 0 || charged <= cost) {
     return { ok: false, code: "INVALID_SERVICE_PRICING" };
   }
   return { ok: true, charged, cost, profit };
