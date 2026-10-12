@@ -43,6 +43,13 @@ for (const spec of legacyBaselineSpecs) {
   }
 }
 const missingHistoricalTables = [
+  // The current candidate has an early credit SECURITY DEFINER function migration that
+  // references these tables before any creation migration. RC40 contains later creation
+  // SQL, but its live schema/default/policy drift is unresolved, so do not auto-inject it.
+  // Fail before booting disposable Supabase until source lineage is reconciled or a
+  // separately reviewed test-only compatibility baseline is explicitly approved.
+  { table: "credit_accounts", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_accounts.sql" },
+  { table: "credit_periods", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_periods.sql" },
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
   { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
   // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
