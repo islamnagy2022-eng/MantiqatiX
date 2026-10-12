@@ -6,9 +6,9 @@ on:
     paths:
       - "supabase/functions/smm-gateway/index.ts"
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
-      - "supabase/migrations/20261012100000_rc457_smm_order_idempotency.sql"
+      - "supabase/migrations/20261012100000_rc463_smm_order_idempotency.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
-      - "supabase/tests/rc457_smm_order_idempotency.sql"
+      - "supabase/tests/rc463_smm_order_idempotency.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
       - "supabase/functions/smm-gateway/launch-gate.ts"
       - "supabase/functions/smm-gateway/launch-gate.test.ts"
@@ -69,11 +69,11 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc456_smm_service_role_fixture.sql "$pg_container:/tmp/rc456_fixture.sql"
           docker cp supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql "$pg_container:/tmp/rc456_migration.sql"
-          docker cp supabase/migrations/20261012100000_rc457_smm_order_idempotency.sql "$pg_container:/tmp/rc457_migration.sql"
+          docker cp supabase/migrations/20261012100000_rc463_smm_order_idempotency.sql "$pg_container:/tmp/rc463_migration.sql"
           docker cp supabase/tests/rc456_smm_service_role_integration.sql "$pg_container:/tmp/rc456_test.sql"
-          docker cp supabase/tests/rc457_smm_order_idempotency.sql "$pg_container:/tmp/rc457_test.sql"
+          docker cp supabase/tests/rc463_smm_order_idempotency.sql "$pg_container:/tmp/rc463_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_migration.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc457_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc463_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_test.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc457_test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc463_test.sql
