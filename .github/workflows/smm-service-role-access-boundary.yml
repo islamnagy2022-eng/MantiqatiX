@@ -12,6 +12,8 @@ on:
       - "scripts/validate-smm-service-role-boundary.mjs"
       - "supabase/functions/smm-gateway/launch-gate.ts"
       - "supabase/functions/smm-gateway/launch-gate.test.ts"
+      - "web/smm.html"
+      - "web/home.js"
       - ".github/workflows/smm-service-role-access-boundary.yml"
   pull_request:
     branches: [main]
