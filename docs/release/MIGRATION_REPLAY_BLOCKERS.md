@@ -394,3 +394,19 @@ A fresh read of the deployed Supabase Edge Function confirms `smm-gateway` remai
 - This confirms the new baseline passes the validator but is not injected by the current workflow. The replay has not passed. Attempts to edit the workflow were rejected by the repository safety layer; do not use indirect or alternate paths to bypass that restriction.
 - Next step requires a supported, approved workflow-edit path to inject the clearly labelled schema-only baseline as a temporary migration in disposable CI, then verify byte-for-byte copy, ordering, untracked status, and run the complete chain again. This does not establish historical DDL provenance.
 - No production changes were made. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### SMM deferred-gate source review — 2026-10-12
+
+Read-only review of draft PR [#214](https://github.com/islamnagy2022-eng/MantiqaTix/pull/214) at `fix/smm-server-side-launch-deferral-20261011` confirms its added `MNTY_SMM_ENABLED` check is placed after OPTIONS and before authentication/action dispatch. The draft also replaces `web/smm.html` with a static deferred notice that does not load client scripts. The targeted CI run is source validation only; it does not deploy or verify the production Edge Function.
+
+The same candidate `supabase/functions/smm-gateway/index.ts` still contains critical unsafe behavior behind the disabled-by-default gate:
+- Provider `fetch()` has no explicit timeout/abort bound, and non-2xx responses are handled only as generic exceptions.
+- `place_order` refunds the wallet for every caught provider exception, including ambiguous outcomes such as timeout/connection loss or a successful provider acceptance followed by a local persistence failure. A missing provider order ID is also thrown into this same refund path.
+- The post-provider order update and order-event insert results are not checked before returning success, so local persistence failure can leave provider acceptance and local state inconsistent.
+- Order creation, debit, provider submission, and refund are not guarded by a demonstrated stable idempotency/reconciliation protocol in this handler.
+- `order_status` does not apply an explicit transition matrix before writing a new status, and provider errors are not separated from confirmed terminal outcomes.
+
+**Decision:** the server-side gate is a useful containment change only while `MNTY_SMM_ENABLED` remains unset or not equal to `true`. Do not enable the gate or treat PR #214 as order-flow certification until bounded provider calls, typed ambiguous outcomes, no automatic refund on ambiguous execution, confirmed-rejection-only refund semantics, checked conditional persistence, idempotency/reconciliation, and terminal-state transition tests are implemented and pass. Deploying the draft is not authorized by this review.
+
+No production function, environment variable, wallet, order, database, or customer data was changed.
