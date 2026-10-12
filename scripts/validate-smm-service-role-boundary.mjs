@@ -109,4 +109,16 @@ assert.match(integration, /RC456 SMM service-role access boundary: PASS/, "isola
 assert.match(integration, /direct client privilege unexpectedly present/, "integration must reject direct client table access");
 assert.match(integration, /provider credentials must remain RPC-only/, "integration must keep provider credentials inaccessible to the service role");
 
+
+const reconciliationStart = edge.indexOf('if(a==="reconciliation_queue")');
+const reconciliationEnd = edge.indexOf('if(a==="set_price")', reconciliationStart);
+assert.ok(reconciliationStart >= 0 && reconciliationEnd > reconciliationStart, "admin reconciliation queue action must exist");
+const reconciliationQueue = edge.slice(reconciliationStart, reconciliationEnd);
+assert.match(reconciliationQueue, /if\(!\(await isAdmin\(user\.id\)\)\)return json\(\{error:"FORBIDDEN"\},403\)/, "reconciliation queue must be admin-only");
+assert.match(reconciliationQueue, /\.eq\("status","SUBMITTING"\)/, "reconciliation queue must select unresolved submitting orders");
+assert.match(reconciliationQueue, /\.limit\(100\)/, "reconciliation queue must be bounded");
+assert.doesNotMatch(reconciliationQueue, /target_url/, "reconciliation queue must not disclose customer target URLs");
+assert.match(reconciliationQueue, /لا تعِد إرسال الطلبات المعلّقة تلقائيًا/, "reconciliation queue must warn against blind resubmission");
+assert.match(reconciliationQueue, /RECONCILIATION_QUEUE_READ_FAILED/, "queue read failures must fail closed");
+
 console.log("SMM service-role access boundary contract: PASS");
