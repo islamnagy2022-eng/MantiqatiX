@@ -65,11 +65,15 @@ const missingHistoricalTables = [
   );
   return !prefix.some(({ sql }) => createPattern.test(sql));
 });
-for (const { table, before, baselinePath } of missingHistoricalTables) {
-  if (!fs.existsSync(baselinePath)) {
-    console.error("P0 BLOCKED: no approved isolated compatibility baseline exists for public." + table + " before " + before);
-    process.exit(1);
+const missingBaselines = missingHistoricalTables.filter(({ baselinePath }) => !fs.existsSync(baselinePath));
+if (missingBaselines.length > 0) {
+  for (const { table, before, baselinePath } of missingBaselines) {
+    console.error(
+      "P0 BLOCKED: no approved isolated compatibility baseline exists for public." +
+      table + " before " + before + " (expected " + baselinePath + ")"
+    );
   }
+  process.exit(1);
 }
 const registrationBaseline = fs.readFileSync(registrationBaselinePath, "utf8");
 const registrationChecks = [
