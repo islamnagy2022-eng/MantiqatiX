@@ -14,7 +14,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": null,
   "checked_at": "2026-10-12",
-  "reason": "BLOCKED: live migration history remains at RC424. Sixteen required post-RC424 migration sources are absent from this main-based candidate branch; recovery is proposed separately in draft PR #207 and is not merged into this candidate baseline. Read-only production audit also confirms SMM idempotency_key is absent, wallet debit/refund reference uniqueness indexes are absent, and service_role lacks SELECT/INSERT/UPDATE privileges on the SMM tables required by the gateway. All 3 providers and the single service are inactive. Do not deploy or enable providers until the migration recovery is reviewed and integrated, the complete ordered chain is replayed on a disposable database, SMM schema/grant parity is verified, and required runtime/security evidence is recorded.",
+  "reason": "BLOCKED: live migration history remains at RC424. Sixteen required post-RC424 migration sources are absent from this main-based candidate branch; recovery is proposed separately in draft PR #207 and is not merged into this candidate baseline. Read-only production audit also confirms SMM idempotency_key is absent, wallet debit/refund reference uniqueness indexes are absent, and service_role lacks SELECT/INSERT/UPDATE privileges on the SMM tables required by the gateway. All 3 providers and the single service are inactive. Do not deploy or enable providers until the migration recovery is reviewed and integrated, the complete ordered chain is replayed on a disposable database, SMM schema/grant parity is verified, and required runtime/security evidence is recorded. Live Edge Function inspection confirms deployed smm-gateway version 8 has no MNTY_SMM_ENABLED deny gate. The candidate now contains a default-deny gate and a unit test, but it has not been deployed or negatively tested against production.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "FAIL",
   "auth_security_settings": "NOT VERIFIED",
@@ -46,7 +46,14 @@
     "services_total": 1,
     "services_active": 0,
     "service_role_required_table_privileges": "FAIL",
-    "production_migrations_applied": false
+    "production_migrations_applied": false,
+    "live_gateway_version": 8,
+    "live_gateway_hash": "c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f",
+    "live_gateway_has_launch_gate": false,
+    "candidate_gateway_has_launch_gate": true,
+    "candidate_launch_gate_test": "added; exact-head CI pending",
+    "live_negative_runtime_test": "NOT RUN; no production deployment authorized",
+    "status": "BLOCKED"
   },
   "missing_required_migration_sources": [
     "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
