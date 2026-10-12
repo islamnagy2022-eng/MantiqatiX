@@ -4,6 +4,7 @@ const app = fs.readFileSync("web/app.js", "utf8");
 const smm = fs.readFileSync("web/smm.js", "utf8");
 const customerRegistration = fs.readFileSync("supabase/functions/mnty-customer-registration/index.ts", "utf8");
 const customerActivationMigration = fs.readFileSync("supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql", "utf8");
+const moduleProfessionalizationWorkflow = fs.readFileSync(".github/workflows/module-professionalization.yml", "utf8");
 
 const failures = [];
 
@@ -85,6 +86,16 @@ for (const role of ["ADMIN","MANAGER","BUSINESS_OWNER","SUPPORT","SUPPORT_MANAGE
   if (!migration.includes(`('${role}')`)) failures.push(`Owner role context: ${role}`);
 }
 if (/cross join[\s\S]*SUPER_ADMIN/i.test(migration) || /values\s*\([\s\S]*['\"]SUPER_ADMIN['\"]/i.test(migration)) failures.push("Owner role contexts must not bootstrap SUPER_ADMIN");
+
+const membershipIntegrationMarkers = [
+  "customer-membership-rc215-integration:",
+  "supabase/tests/rc215_customer_membership_fixture.sql",
+  "supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql",
+  "supabase/tests/rc215_customer_membership_integration.sql",
+];
+for (const marker of membershipIntegrationMarkers) {
+  if (!moduleProfessionalizationWorkflow.includes(marker)) failures.push(`Customer membership PostgreSQL integration job missing: ${marker}`);
+}
 
 if (failures.length) {
   console.error("Auth/registration production invariant check failed:");
