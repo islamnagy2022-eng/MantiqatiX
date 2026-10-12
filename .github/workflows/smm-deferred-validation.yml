@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/smm-deferred-validation.yml"
       - ".github/workflows/module-professionalization.yml"
+      - "web/app.js"
       - "web/smm.*"
       - "supabase/functions/smm-gateway/**"
       - "supabase/migrations/*smm*"
@@ -14,6 +15,7 @@ on:
     paths:
       - ".github/workflows/smm-deferred-validation.yml"
       - ".github/workflows/module-professionalization.yml"
+      - "web/app.js"
       - "web/smm.*"
       - "supabase/functions/smm-gateway/**"
       - "supabase/migrations/*smm*"
