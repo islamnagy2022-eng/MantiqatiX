@@ -1,16 +1,19 @@
-import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts";
+import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts";
 
 Deno.test("provider endpoint requires an explicit exact hostname allowlist", () => {
   for (const [url, allowlist] of [
-    ["https://provider.example/api", undefined],
-    ["https://provider.example/api", ""],
-    ["https://evil.example/api", "provider.example"],
-    ["http://provider.example/api", "provider.example"],
-    ["https://user:pass@provider.example/api", "provider.example"],
-    ["https://provider.example:8443/api", "provider.example"],
+    ["https://provider.example.com/api", undefined],
+    ["https://provider.example.com/api", ""],
+    ["https://evil.example.com/api", "provider.example.com"],
+    ["http://provider.example.com/api", "provider.example.com"],
+    ["https://user:pass@provider.example.com/api", "provider.example.com"],
+    ["https://provider.example.com:8443/api", "provider.example.com"],
     ["https://localhost/api", "localhost"],
+    ["https://api.internal/v1", "api.internal"],
+    ["https://singlelabel/v1", "singlelabel"],
+    ["https://provider.test/v1", "provider.test"],
     ["https://127.0.0.1/api", "127.0.0.1"],
-    ["https://provider.example./api", "other.example"]
+    ["https://provider.example.com./api", "other.example.com"]
   ] as const) {
     let rejected = false;
     try { assertSafeProviderEndpoint(url, allowlist); } catch { rejected = true; }
@@ -19,8 +22,8 @@ Deno.test("provider endpoint requires an explicit exact hostname allowlist", () 
 });
 
 Deno.test("provider endpoint accepts an explicitly allowed HTTPS hostname", () => {
-  const url = assertSafeProviderEndpoint("https://provider.example/v2", "other.example, provider.example");
-  if (url.hostname !== "provider.example" || url.protocol !== "https:") throw new Error("Allowed endpoint parsed incorrectly");
+  const url = assertSafeProviderEndpoint("https://provider.example.com/v2", "other.example.com, provider.example.com");
+  if (url.hostname !== "provider.example.com" || url.protocol !== "https:") throw new Error("Allowed endpoint parsed incorrectly");
 });
 
 Deno.test("provider response parser accepts bounded JSON", async () => {
@@ -150,4 +153,23 @@ Deno.test("SMM pricing requires a strictly positive customer margin and finite t
   if (!rounded.ok || rounded.charged !== 7.56 || rounded.cost !== 4.44 || rounded.profit !== 3.12) throw new Error("currency values were not rounded to cents");
   const roundedAway = validateSmmOrderPricing({ sellingPrice: 4.001, providerCost: 4, quantity: 1 });
   if (roundedAway.ok) throw new Error("margin rounded to zero was accepted");
+});
+
+
+Deno.test("provider balance normalization exposes only a bounded amount and currency", () => {
+  const normalized = normalizeProviderBalance({ balance: "12.345", currency: "usd", private_token: "must-not-escape" });
+  if (!normalized || normalized.balance !== 12.35 || normalized.currency !== "USD") throw new Error("provider balance was not normalized");
+  if (Object.keys(normalized).some((key) => key.includes("token"))) throw new Error("provider secret fields escaped normalization");
+  for (const invalid of [
+    "provider returned an error",
+    { balance: -1, currency: "USD" },
+    { balance: "NaN", currency: "USD" },
+    { balance: null, currency: "USD" },
+    { balance: 10, currency: "US$D" },
+  ]) {
+    const result = normalizeProviderBalance(invalid);
+    if (typeof invalid === "string" ? result !== null : (result === null || (invalid as any).balance < 0 || (invalid as any).balance === null || (invalid as any).balance === "NaN" || (invalid as any).currency === "US$D") && result !== null) {
+      throw new Error("invalid provider balance payload was accepted");
+    }
+  }
 });
