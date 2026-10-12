@@ -85,10 +85,13 @@ Deno.test("provider catalog refresh preserves reviewed customer pricing and acti
   const row = normalizeProviderService({ id: "svc-2", rate: 4, min: 1, max: 100 }, "provider-1", { selling_price: "7.25", active: true });
   if (!row) throw new Error("valid provider service was rejected");
   if (row.selling_price !== 7.25 || row.active !== true) throw new Error("refresh overwrote reviewed price or activation");
+  const noMargin = normalizeProviderService({ id: "svc-3", rate: 7.25, min: 1, max: 100 }, "provider-1", { selling_price: 7.25, active: true });
+  if (!noMargin || noMargin.selling_price !== 7.25 || noMargin.active !== false) throw new Error("service without positive margin remained active");
 });
 
 Deno.test("provider catalog normalization rejects invalid costs and quantity bounds", () => {
   if (normalizeProviderService({ id: "svc", rate: -1, min: 1, max: 10 }, "provider-1")) throw new Error("negative provider cost accepted");
+  if (normalizeProviderService({ id: "svc", rate: null, min: 1, max: 10 }, "provider-1")) throw new Error("missing provider cost accepted");
   if (normalizeProviderService({ id: "svc", rate: 1, min: 10, max: 1 }, "provider-1")) throw new Error("inverted quantity bounds accepted");
   const row = normalizeProviderService({ id: "svc", rate: 1, min: 1, max: 10, name: "bad" + String.fromCharCode(0) + "name" }, "provider-1");
   if (!row || String(row.name).includes(String.fromCharCode(0))) throw new Error("control character was not removed");
