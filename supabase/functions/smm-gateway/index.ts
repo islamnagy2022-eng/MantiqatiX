@@ -134,10 +134,15 @@ Deno.serve(async(req)=>{
    else if(m==="partial")st="PARTIAL";
    else if(["canceled","cancelled"].includes(m))st="CANCELLED";
    else if(["processing","in progress","inprogress"].includes(m))st="PROCESSING";
-   if(!terminal.has(st)){
-    await admin.from("smm_orders").update({status:st,provider_status:r.status??null,updated_at:new Date().toISOString()}).eq("id",b.order_id).eq("user_id",user.id).not("status","in", "(COMPLETED,CANCELLED,FAILED,REFUNDED)");
+   const synced=await admin.from("smm_orders").update({status:st,provider_status:r.status??null,updated_at:new Date().toISOString()}).eq("id",b.order_id).eq("user_id",user.id).not("status","in", "(COMPLETED,CANCELLED,FAILED,REFUNDED)").select("id,status").maybeSingle();
+   if(synced.error)return json({error:"ORDER_STATUS_SYNC_UNKNOWN",order_id:b.order_id,reconciliation_required:true},503);
+   if(!synced.data){
+    const current=await admin.from("smm_orders").select("status").eq("id",b.order_id).eq("user_id",user.id).maybeSingle();
+    if(current.error||!current.data)return json({error:"ORDER_STATUS_SYNC_UNKNOWN",order_id:b.order_id,reconciliation_required:true},503);
+    st=String(current.data.status);
    }
-   await admin.from("smm_order_events").insert({order_id:b.order_id,event_type:"STATUS_SYNC",payload:{status:r.status??null}});
+   const event=await admin.from("smm_order_events").insert({order_id:b.order_id,event_type:"STATUS_SYNC",payload:{provider_status:r.status??null,local_status:st}});
+   if(event.error)console.error("[smm-gateway] status event insert failed",event.error.code||"DB_ERROR");
    return json({ok:true,status:st});
   }
   return json({error:"UNKNOWN_ACTION"},400);
