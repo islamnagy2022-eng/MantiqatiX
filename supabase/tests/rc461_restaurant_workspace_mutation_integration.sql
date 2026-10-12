@@ -5,12 +5,15 @@ declare
   v_business uuid := pg_catalog.gen_random_uuid();
   v_other_business uuid := pg_catalog.gen_random_uuid();
   v_unassigned_business uuid := pg_catalog.gen_random_uuid();
+  v_inactive_business uuid := pg_catalog.gen_random_uuid();
   v_tenant varchar := 'rc461-test-tenant';
   v_other_tenant varchar := 'rc461-other-tenant';
   v_unassigned_tenant varchar := 'rc461-unassigned-tenant';
   v_branch varchar := 'rc461-test-branch';
   v_other_branch varchar := 'rc461-other-branch';
   v_unassigned_branch varchar := 'rc461-unassigned-branch';
+  v_inactive_business_branch varchar := 'rc461-inactive-business-branch';
+  v_inactive_branch varchar := 'rc461-inactive-branch';
   v_result jsonb;
   v_table_id text;
   v_inventory_id text;
@@ -68,12 +71,18 @@ begin
     raise exception 'RC461_RPC_EXECUTE_BOUNDARY_INVALID';
   end if;
 
-  insert into public.businesses(id,tenant_id,status) values(v_business,v_tenant,'ACTIVE'),(v_other_business,v_other_tenant,'ACTIVE'),(v_unassigned_business,v_unassigned_tenant,'ACTIVE');
+  insert into public.businesses(id,tenant_id,status) values
+    (v_business,v_tenant,'ACTIVE'),(v_other_business,v_other_tenant,'ACTIVE'),
+    (v_unassigned_business,v_unassigned_tenant,'ACTIVE'),(v_inactive_business,v_tenant,'INACTIVE');
   insert into public.branches(id,tenant_id,business_id,status) values
-    (v_branch,v_tenant,v_business,'ACTIVE'),(v_other_branch,v_other_tenant,v_other_business,'ACTIVE'),(v_unassigned_branch,v_unassigned_tenant,v_unassigned_business,'ACTIVE');
+    (v_branch,v_tenant,v_business,'ACTIVE'),(v_other_branch,v_other_tenant,v_other_business,'ACTIVE'),
+    (v_unassigned_branch,v_unassigned_tenant,v_unassigned_business,'ACTIVE'),
+    (v_inactive_business_branch,v_tenant,v_inactive_business,'ACTIVE'),(v_inactive_branch,v_tenant,v_business,'INACTIVE');
   insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status)
   values(pg_catalog.gen_random_uuid()::text,v_actor,v_tenant,v_business,v_branch,'MANAGER','ACTIVE'),
-        (pg_catalog.gen_random_uuid()::text,v_actor,v_other_tenant,v_other_business,v_other_branch,'MANAGER','ACTIVE');
+        (pg_catalog.gen_random_uuid()::text,v_actor,v_other_tenant,v_other_business,v_other_branch,'MANAGER','ACTIVE'),
+        (pg_catalog.gen_random_uuid()::text,v_actor,v_tenant,v_inactive_business,v_inactive_business_branch,'MANAGER','ACTIVE'),
+        (pg_catalog.gen_random_uuid()::text,v_actor,v_tenant,v_business,v_inactive_branch,'MANAGER','ACTIVE');
 
   -- Seed records in a branch for which the authenticated actor has no membership.
   insert into public.restaurant_tables(id,tenant_id,business_id,branch_id,owner_user_id,table_number,capacity_persons,status)
@@ -139,6 +148,25 @@ begin
     raise exception 'RC461_NON_MEMBER_WAS_ALLOWED';
   exception when others then
     if sqlerrm <> 'FORBIDDEN_WORKSPACE_SCOPE' then raise; end if;
+  end;
+
+  -- A valid membership must not override an inactive business or inactive branch.
+  begin
+    perform public.restaurant_workspace_mutate_backend('TABLE_SAVE',
+      pg_catalog.jsonb_build_object('tableId',null,'tableNumber',21,'capacityPersons',2,'status','EMPTY'),
+      v_actor,v_tenant,v_inactive_business,v_inactive_business_branch);
+    raise exception 'RC461_INACTIVE_BUSINESS_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm <> 'BUSINESS_NOT_AVAILABLE' then raise; end if;
+  end;
+
+  begin
+    perform public.restaurant_workspace_mutate_backend('TABLE_SAVE',
+      pg_catalog.jsonb_build_object('tableId',null,'tableNumber',22,'capacityPersons',2,'status','EMPTY'),
+      v_actor,v_tenant,v_business,v_inactive_branch);
+    raise exception 'RC461_INACTIVE_BRANCH_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm <> 'BRANCH_NOT_AVAILABLE' then raise; end if;
   end;
 
   raise notice 'RC461 restaurant workspace mutation integration: PASS';
