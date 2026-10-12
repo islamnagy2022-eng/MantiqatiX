@@ -530,3 +530,17 @@ A fresh read-only production catalog check confirmed that both relations exist i
 **This is new replay evidence, not authorization to create a baseline.** The explicit approval recorded for test-only baselines currently covers the SMM provider tables only; it does not cover `credit_accounts` or `credit_periods`. Do not add these tables to the disposable replay by guessing their DDL, and do not apply any baseline or reconstructed migration to production. First recover their original creation source from an authoritative repository/history artifact. If that cannot be recovered, obtain explicit approval for a schema-only baseline derived from read-only catalog metadata, restricted to isolated disposable replay.
 
 The current release remains **BLOCKED / NOT CERTIFIED**. No production schema, migration ledger, grants, RLS, Auth settings, Edge Functions, wallet balances, payments, or customer data were changed during this check.
+
+
+## RC40 archive source recovery — 2026-10-12
+
+The uploaded `source_RC40.zip` was checked locally against its accompanying `source_RC40.zip.sha256`; SHA-256 matched exactly: `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`. The archive contains original SQL sources:
+
+- `supabase/migrations/20260920185000_production_credit_control.sql` — creates `credit_policies`, `credit_accounts`, and `credit_periods`, including generated `available_amount` / `outstanding_amount`, constraints, tenant foreign keys, RLS/FORCE RLS, and the `authenticated_sessions_only` restrictive policy.
+- `supabase/migrations/20260920190000_harden_credit_status_authorization.sql` — defines `get_credit_status` after those tables exist.
+
+This recovers authoritative table-creation source from the supplied archive; it does **not** by itself resolve the candidate replay. The current candidate has a ledger-alias-named function migration at `20260920155456_harden_credit_status_authorization.sql`, which sorts before the original table-creation migration at `20260920185000`. The live ledger records the earlier alias, so do not rename or rewrite applied production history to make the fresh replay pass.
+
+A second gap also needs reconciliation: the RC40 archive does not contain creation statements for the live `credit_accounts_finance_read` and `credit_periods_finance_read` policies, while a later candidate migration alters those policies. Recover their original migration source if available; otherwise request explicit approval before using a production-derived policy/schema snapshot in disposable replay. Do not silently fabricate or inject unapproved policy definitions.
+
+Recommended next step: create a reviewed, **test-only** replay compatibility plan that preserves all live migration versions and production state, uses the verified RC40 table DDL as the schema source, and explicitly handles the 15:54/18:50 ordering mismatch plus the missing finance-policy creation source. Validate it on disposable PostgreSQL only; do not add a backdated deployable migration or apply any baseline to production.
