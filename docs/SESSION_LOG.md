@@ -86,3 +86,25 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not performed:** no production database write, migration, RLS/grant/Auth change, Edge Function deployment, wallet/payment mutation, PR merge, or release approval.
 - **Next action:** preserve fail-closed replay; continue trusted-source recovery for bookings; verify exact-head checks on latest branch head; keep SMM launch blocked until approved deployment and negative runtime proof. No test-only bookings baseline is authorized yet.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-12 — SESSION-004 — Exact-head checks and expanded historical source recovery
+
+### Verified facts
+- Exact current candidate head `65e1830e22768ce9d1b65346c1c8abd35b310d4f` now has PR-triggered CI results. Successful runs: MantiGO Open Ride Privacy Boundary [38196086985](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196086985), Open PR Migration Collision Guard [38196087029](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087029), Marketing Campaign Backend [38196086981](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196086981), SMM Service Role Access Boundary [38196087022](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087022), Backend-only Module Boundary [38196087172](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087172), Migration History Immutability [38196087094](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087094), Migration Version Uniqueness [38196087032](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087032), Approval Action Audit Atomicity [38196087243](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087243), Marketing CRM Tenant Scope [38196087142](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087142), SMM Deferred Module Validation [38196087067](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087067), and Module Professionalization Validation [38196087016](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087016).
+- Pages workflow [38196087014](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087014) completed successfully overall, but the deployment job was skipped for the draft PR; no production/site deployment is claimed.
+- Chronological migration replay [38196087005](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196087005) failed at the intended fail-closed historical-baseline preflight. Supabase setup and replay steps were skipped. This is a correctly detected blocker, not a replay pass.
+- Expanded GitHub branch, code, and commit searches for `public.bookings`, `CREATE TABLE bookings`, `bookings.sql`, schema, and baseline found no authoritative historical `CREATE TABLE public.bookings` artifact. Results surfaced application/docs references and booking-flow work, not the missing original DDL. This does not prove no external backup exists.
+- `main` remains `8a56358d505d2c12878440037f7f24ba65d2ea10`; PR #207 and PR #214 remain candidate-only and unmerged.
+
+### Actions / boundaries
+- Updated this session log, continuity snapshot, and master TODO with the exact-head evidence and expanded source-search outcome.
+- No production database write, migration, Edge Function deployment, PR merge, Auth/RLS/grant change, payment/wallet mutation, or release approval occurred.
+- No synthetic historical DDL or disposable compatibility baseline was added.
+
+### Next executable actions
+1. Recover original `public.bookings` DDL/policy/grant history from a trusted release artifact or database backup, or obtain explicit owner approval for a separately labelled disposable-only compatibility baseline.
+2. Keep chronological replay blocked until that prerequisite is resolved and then run the full timestamp-ordered replay.
+3. Keep SMM storefront exposure blocked until the server-side deny gate is approved, deployed through change control, and negative runtime tests prove no order/wallet/provider side effects.
+4. Continue the production release checklist only with read-only evidence or separately authorized candidate changes.
+- **Release state: BLOCKED / NOT CERTIFIED.**
