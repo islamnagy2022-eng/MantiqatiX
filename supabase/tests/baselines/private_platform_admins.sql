@@ -1,4 +1,4 @@
--- OWNER-APPROVED TEST-ONLY LEGACY SCHEMA BASELINE
+-- OWNER-APPROVED TEST-ONLY LEGACY TABLE BASELINE (private schema)
 -- Authorized 2026-10-12 for isolated disposable CI replay only.
 -- Production catalog source: Supabase project moyhiluyhjsujhwlyeuu (read-only).
 -- This is a live-derived compatibility bootstrap, NOT recovered historical DDL.
