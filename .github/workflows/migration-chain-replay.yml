@@ -49,6 +49,7 @@ jobs:
           profiles_baseline="supabase/tests/baselines/marketing_provider_profiles.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
+          bookings_baseline="supabase/tests/baselines/bookings.sql"
           legacy_businesses_migration="supabase/migrations/20260807999997_test_only_legacy_businesses_baseline.sql"
           legacy_products_migration="supabase/migrations/20260807999998_test_only_legacy_products_baseline.sql"
           legacy_orders_migration="supabase/migrations/20260807999999_test_only_legacy_orders_baseline.sql"
@@ -56,10 +57,11 @@ jobs:
           profiles_migration="supabase/migrations/20260927074156_test_only_live_derived_provider_profiles_baseline.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
           legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
-          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$legacy_functions_baseline"; do test -f "$file"; done
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$legacy_functions_migration"; do test ! -e "$file"; done
+          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$legacy_functions_baseline"; do test -f "$file"; done
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration"; do test ! -e "$file"; done
           cp "$legacy_businesses_baseline" "$legacy_businesses_migration"
           cp "$legacy_products_baseline" "$legacy_products_migration"
           cp "$legacy_orders_baseline" "$legacy_orders_migration"
@@ -67,8 +69,10 @@ jobs:
           cp "$profiles_baseline" "$profiles_migration"
           cp "$providers_baseline" "$providers_migration"
           cp "$credentials_baseline" "$credentials_migration"
+          cp "$bookings_baseline" "$bookings_migration"
           cp "$legacy_functions_baseline" "$legacy_functions_migration"
           echo "Injected live-derived schema compatibility baselines and function definitions into disposable CI only."
+          echo "The owner-approved bookings baseline is disposable-only and timestamped before the first historical migration that references it."
           echo "These are not historical creation migrations and must never be applied to production."
 
       - name: Verify temporary baselines are exact schema-only copies
@@ -85,10 +89,12 @@ jobs:
           profiles_baseline="supabase/tests/baselines/marketing_provider_profiles.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
+          bookings_baseline="supabase/tests/baselines/bookings.sql"
           registration_migration="supabase/migrations/20260927074155_test_only_live_derived_registration_baseline.sql"
           profiles_migration="supabase/migrations/20260927074156_test_only_live_derived_provider_profiles_baseline.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
           legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
           cmp -s "$legacy_businesses_baseline" "$legacy_businesses_migration"
@@ -98,9 +104,10 @@ jobs:
           cmp -s "$profiles_baseline" "$profiles_migration"
           cmp -s "$providers_baseline" "$providers_migration"
           cmp -s "$credentials_baseline" "$credentials_migration"
+          cmp -s "$bookings_baseline" "$bookings_migration"
           cmp -s "$legacy_functions_baseline" "$legacy_functions_migration"
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$legacy_functions_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
-          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration"
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
+          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration"
           echo "PASS: exact untracked temporary baseline copies; no production rows are imported. Function fixture is definition-only and is never invoked by replay."
 
       - name: Setup Supabase CLI
