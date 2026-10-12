@@ -64,7 +64,7 @@ check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-s
 check(fs.existsSync('supabase/functions/smm-gateway/order-status.ts'), 'provider status normalization module must exist');
 check(tests.includes('provider terminal states cannot regress'), 'terminal-state regression tests must exist');
 check(gateway.includes('import { normalizeProviderService } from "./catalog-normalization.ts"'), 'provider catalog must use tested normalization');
-check(catalog.includes('selling_price: hasReviewedPrice ? existingPrice : 0'), 'catalog sync must not equate customer price to provider cost');
+check(catalog.includes('selling_price: hasValidExistingPrice ? existingPrice : 0') && catalog.includes('existingPrice > providerCost'), 'catalog sync must not equate customer price to provider cost');
 check(catalog.includes('active: keepExistingActivation ? existing.active === true : false'), 'new provider services must remain inactive pending review');
 check(catalog.includes('existingPrice > providerCost'), 'service must be disabled unless reviewed customer price is strictly above current provider cost');
 check(catalog.includes('metadata: { provider_service_id: externalId, provider_rate: providerCost }'), 'provider catalog persistence must use allowlisted metadata');
