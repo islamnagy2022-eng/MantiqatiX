@@ -336,3 +336,29 @@ Latest PR-triggered runs:
 The replay failure is now confirmed on the latest exact PR head, not merely an earlier candidate. The repository's main migration directory and production migration ledger do not contain an authoritative credit-table creation migration. The RC40 archive provides historical DDL, but its numeric precision differs from the live schema; using a live-derived disposable baseline still requires the explicit scope approval already recorded as outstanding. No baseline was injected, no migration history was edited, and no production changes were made.
 
 **Release remains `BLOCKED / NOT CERTIFIED`.** Continue source/test work on the candidate, but do not merge or deploy until the credit replay gap is resolved through an approved, schema-accurate disposable-only method and all required release evidence passes.
+
+
+## Continuation verification — 2026-10-12 16:35 UTC (SESSION-006)
+
+**Overall decision: BLOCKED / NOT CERTIFIED.** This entry supersedes any older status in this report where later evidence differs; historical entries are retained.
+
+### Exact candidate head and CI
+- Candidate PR #207 head before this documentation update: `7d871e19560fcce9895218f0e2f3236a974826c1`; PR #207 remains open Draft.
+- Exact-head workflow batch: [Disposable replay run 38277095706](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38277095706) **FAIL**. The disposable database started and chronological replay failed at `20260920155456_harden_credit_status_authorization.sql` because `public.credit_accounts` and `public.credit_periods` are absent.
+- Exact-head focused CI passed: module professionalization, backend-only module boundary, MantiGO privacy boundary, approval audit atomicity, migration collision guard, migration history immutability, migration version uniqueness, Marketing Campaign Backend, Marketing CRM Tenant Scope, SMM service-role boundary, and SMM deferred-module validation. Pages validation passed; deploy was skipped.
+- The documentation-only continuation commit is `bd47bf2423cf7f6b91ab88875ddcfef6f0067eac`. No workflow runs were returned for that commit at the time of this check; do not attribute prior CI success to this new commit.
+
+### Credit migration provenance
+- Read-only live schema inspection confirms several live credit amount columns use `numeric(18,2)`; recovered RC40 DDL uses `numeric(14,2)` for several amount columns.
+- Bounded GitHub code/commit searches for credit table creation and finance-read policy creation did not recover authoritative historical source. The later migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` alters `credit_accounts_finance_read` and `credit_periods_finance_read`, but their creation source remains missing from searchable candidate history.
+- Do not inject guessed credit DDL, infer policies, alter applied history, or mark migrations applied. Continue trusted artifact/history recovery. If unavailable, prepare a separately reviewed proposal for an owner-approved disposable-only compatibility baseline or a forward repair, with explicit schema/default/constraint/RLS/grant semantics and clean-replay evidence.
+
+### Live SMM containment
+- Read-only Supabase inspection: project `moyhiluyhjsujhwlyeuu`; deployed `smm-gateway` ACTIVE v8, `verify_jwt=true`, SHA-256 `c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f`.
+- The deployed source does not contain `MNTY_SMM_ENABLED` / `SMM_POST_LAUNCH_DEFERRED`. The candidate source has the deny gate before authentication/actions, bounded provider timeout, and explicit handling for unknown wallet/provider/persistence outcomes; this is source evidence only, not live containment.
+- Issue [#212](https://github.com/islamnagy2022-eng/MantiqaTiX/issues/212) remains OPEN / P0. Do not deploy without explicit production change authorization; after approval, verify live version/hash and negative runtime tests proving no order, wallet debit/refund, database write, or provider call while disabled.
+
+### Production and release restrictions
+- Live migration ledger: 283 entries, last `20261008222845` / RC424.
+- No production migration, Edge Function deployment, PR merge, Auth/RLS/GRANT/secret change, wallet/payment mutation, or backup/restore operation was performed in this continuation.
+- Backup/restore, full tenant isolation, complete finance/webhook E2E, and final production configuration evidence remain NOT VERIFIED.
