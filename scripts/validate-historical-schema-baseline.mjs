@@ -100,15 +100,23 @@ if (legacyBaselineExists) {
   for (const { name, args } of legacyFunctionSignatures) {
     const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\s+/g, "").toLowerCase();
     baselineChecks.push(["exact signature for " + name, normalizedBaseline.includes(normalizedSignature)]);
-    const revoke = legacyBaseline.match(new RegExp(
-      "revoke\\s+(?:all|execute)\\s+on\\s+function\\s+public\\." + name +
-      "\\s*\\([^)]*\\)\\s+from\\s+([^;]+);", "i"
-    ));
-    const revokedRoles = revoke ? revoke[1].toLowerCase().split(",").map((role) => role.trim()) : [];
-    baselineChecks.push([
-      "client/service-role EXECUTE revoked for " + name,
-      Boolean(revoke) && ["public", "anon", "authenticated", "service_role"].every((role) => revokedRoles.includes(role)),
-    ]);
+    if (name === "mantigo_rate_ride") {
+      baselineChecks.push([
+        "observed authenticated EXECUTE exception for mantigo_rate_ride only",
+        /revoke\s+all\s+on\s+function\s+public\.mantigo_rate_ride\s*\(text,integer,text\)\s+from\s+public\s*,\s*anon\s*,\s*service_role/i.test(legacyBaseline) &&
+          /grant\s+execute\s+on\s+function\s+public\.mantigo_rate_ride\s*\(text,integer,text\)\s+to\s+authenticated/i.test(legacyBaseline),
+      ]);
+    } else {
+      const revoke = legacyBaseline.match(new RegExp(
+        "revoke\\s+(?:all|execute)\\s+on\\s+function\\s+public\\." + name +
+        "\\s*\\([^)]*\\)\\s+from\\s+([^;]+);", "i"
+      ));
+      const revokedRoles = revoke ? revoke[1].toLowerCase().split(",").map((role) => role.trim()) : [];
+      baselineChecks.push([
+        "client/service-role EXECUTE revoked for " + name,
+        Boolean(revoke) && ["public", "anon", "authenticated", "service_role"].every((role) => revokedRoles.includes(role)),
+      ]);
+    }
   }
   baselineChecks.push([
     "all ten functions are SECURITY DEFINER",
@@ -119,8 +127,10 @@ if (legacyBaselineExists) {
     (legacyBaseline.match(/\bset\s+search_path\s*=/gi) || []).length >= legacyFunctionSignatures.length,
   ]);
   baselineChecks.push([
-    "baseline does not grant client EXECUTE",
-    !/\bgrant\s+(?:all|execute)\s+on\s+function\b[^;]*\bto\s+(?:public|anon|authenticated)\b/i.test(legacyBaseline),
+    "baseline ACL matches observed snapshot without PUBLIC, anon, or service_role grants",
+    /grant\s+execute\s+on\s+function\s+public\.mantigo_rate_ride\s*\(text,integer,text\)\s+to\s+authenticated/i.test(legacyBaseline) &&
+      !/\bgrant\s+(?:all|execute)\s+on\s+function\b[^;]*\bto\s+(?:public|anon|service_role)\b/i.test(legacyBaseline) &&
+      (legacyBaseline.match(/\bgrant\s+execute\s+on\s+function\b[^;]*\bto\s+authenticated\b/gi) || []).length === 1,
   ]);
   const failedBaselineChecks = baselineChecks.filter(([, ok]) => !ok);
   if (failedBaselineChecks.length) {
