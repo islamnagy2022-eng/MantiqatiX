@@ -624,3 +624,18 @@ Safe next step: reconcile the recovered source with live catalog evidence and th
 - No credit baseline or guessed policy was added. Do not treat this run as a pass, and do not move forward with a production migration or deployment while the schema provenance and clean replay are unresolved.
 - Other checks associated with the same PR head completed successfully, including module professionalization, migration version uniqueness, migration history immutability, migration collision guard, marketing/CRM tenant scope, SMM service-role boundary, SMM deferred validation, backend-only boundary, privacy boundary, marketing campaign backend, and approval audit atomicity. These results do not waive the replay failure.
 - **Decision remains: BLOCKED / NOT CERTIFIED.** Next work item is authoritative recovery of credit DDL/policy provenance from historical refs/objects or the original release source, then an explicit compatibility review before any migration-chain repair. SMM production containment remains a separate P0 because deployed v8 was previously confirmed without the candidate fail-closed guard; recheck live state before any release decision.
+
+
+## Read-only production catalog comparison — 2026-10-12
+
+A new read-only catalog query confirms that the credit source discrepancy is broader than numeric precision:
+
+- Live `credit_accounts` / `credit_periods` amount columns use `numeric(18,2)`; the recovered RC40 archive uses `numeric(14,2)` for the corresponding amount columns.
+- Live `credit_policies.block_new_credit` defaults to `true`, whereas the archive source defaults it to `false`.
+- Live `credit_policies.suspend_after_days` defaults to `15`, whereas the archive source defaults it to `30`.
+- Live `credit_policies.grace_days` defaults to `0`, whereas the archive source defaults it to `7`.
+- Live catalog confirms permissive finance-read policies named `credit_accounts_finance_read` and `credit_periods_finance_read`, alongside multiple restrictive anonymous-session policies. The exact policy definitions exist in the live catalog, but their authoritative creation migration has not been recovered in the candidate source. A later committed migration alters the finance-read policies, so restoring the archive file alone would not make the chain complete or faithfully reproducible.
+
+These are observed schema/default differences, not authorization to copy live definitions into a synthetic replay baseline. Keep production read-only and release blocked until the source of truth is recovered or a separately reviewed, explicit forward-repair migration is prepared with proven semantics and full clean-replay coverage.
+
+The live Supabase Edge Function read was also repeated: `smm-gateway` remains ACTIVE v8 with `verify_jwt=true` and SHA-256 `c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f`. The returned deployed source still does not contain the candidate `MNTY_SMM_ENABLED` / `SMM_POST_LAUNCH_DEFERRED` guard. This remains an independent P0 launch blocker; no deployment was performed.
