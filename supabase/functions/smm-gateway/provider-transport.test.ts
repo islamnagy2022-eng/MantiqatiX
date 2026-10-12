@@ -1,4 +1,5 @@
 import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts";
+import { readBoundedJson } from "./request-validation.ts";
 
 Deno.test("provider endpoint requires an explicit exact hostname allowlist", () => {
   for (const [url, allowlist] of [
@@ -176,4 +177,30 @@ Deno.test("provider balance normalization exposes only a bounded amount and curr
   }
   const invalidCurrency = normalizeProviderBalance({ balance: 10, currency: "US$D" });
   if (!invalidCurrency || invalidCurrency.balance !== 10 || invalidCurrency.currency !== null) throw new Error("invalid currency should be omitted");
+});
+
+
+Deno.test("SMM request parser accepts JSON and rejects wrong content type and non-object JSON", async () => {
+  const good = await readBoundedJson(new Request("https://gateway.example.test", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "catalog" }),
+  }), 1024);
+  if (!good.ok || good.value.action !== "catalog") throw new Error("valid JSON request was rejected");
+  const media = await readBoundedJson(new Request("https://gateway.example.test", {
+    method: "POST", headers: { "content-type": "text/plain" }, body: "{}",
+  }), 1024);
+  if (media.ok || media.status !== 415 || media.code !== "UNSUPPORTED_MEDIA_TYPE") throw new Error("wrong media type was accepted");
+  for (const body of ["{", "null", "[]", '"string"']) {
+    const result = await readBoundedJson(new Request("https://gateway.example.test", {
+      method: "POST", headers: { "content-type": "application/json" }, body,
+    }), 1024);
+    if (result.ok || result.status !== 400) throw new Error("invalid or non-object JSON was accepted");
+  }
+});
+
+Deno.test("SMM request parser enforces streamed body size even without a trusted content length", async () => {
+  const body = JSON.stringify({ value: "x".repeat(2048) });
+  const result = await readBoundedJson(new Request("https://gateway.example.test", {
+    method: "POST", headers: { "content-type": "application/json" }, body,
+  }), 512);
+  if (result.ok || result.status !== 413 || result.code !== "REQUEST_TOO_LARGE") throw new Error("oversized body was accepted");
 });
