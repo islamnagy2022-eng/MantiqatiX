@@ -63,7 +63,7 @@ const serverRequired = [
 for (const [name, marker, source] of serverRequired) {
   if (!source.includes(marker)) failures.push(name);
 }
-if (/p_user_id\\s*:\\s*body\\./.test(customerRegistration)) failures.push("Customer activation must not accept user ID from request body");
+if (customerRegistration.includes("p_user_id: body.")) failures.push("Customer activation must not accept user ID from request body");
 // The service role key is server-only; the browser must never reference it.
 if (app.includes("SUPABASE_SERVICE_ROLE_KEY")) failures.push("Service role key reference must not appear in browser app source");
 const bootStart = app.indexOf("async function bootAuth(){");
