@@ -98,3 +98,11 @@ For each checked item record: exact commit SHA, workflow/run URL or SQL query, t
 
 **BLOCKED / NOT CERTIFIED — not ready for real customer orders.**  
 This document is a checklist, not an authorization to deploy, migrate, grant privileges, configure a live provider, or move money.
+
+
+## 2026-10-13 — Provider transport hardening (candidate source only)
+- [x] Hardened the candidate provider HTTP helper to require HTTPS, reject embedded URL credentials, non-standard ports, localhost/local hostnames and IP-literal hosts, reject redirects, enforce a 15-second timeout, bound response bodies to 1 MiB, require JSON, and avoid raw-body fallback.
+- [x] Extended `scripts/validate-smm-deferred-gate.mjs` to assert these source-level transport guards.
+- [ ] This does not provide DNS-resolution/egress allowlisting against every private-address or DNS-rebinding case; a reviewed provider hostname allowlist or network egress control remains required before enabling provider calls.
+- [ ] The current order exception path still needs a separate redesign and tests so timeout/ambiguous provider outcomes or post-acceptance persistence errors cannot cause automatic refund. Keep SMM disabled until this is closed.
+- [ ] Latest CI for the new commits is queued/in progress; no result is claimed yet.
