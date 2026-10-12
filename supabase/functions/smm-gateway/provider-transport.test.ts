@@ -227,3 +227,20 @@ Deno.test("SMM request parser validates declared content length without trusting
   }), 128);
   if (!valid.ok || Object.keys(valid.value).length !== 0) throw new Error("valid decimal content length was rejected");
 });
+
+
+Deno.test("SMM money normalization accepts bounded decimal amounts only", async () => {
+  const { normalizeSmmMoney } = await import("./order-validation.ts");
+  for (const [input, allowZero, expected] of [
+    [12, false, 12], ["12.50", false, 12.5], [0, true, 0], ["0.00", true, 0],
+  ] as const) {
+    if (normalizeSmmMoney(input, allowZero) !== expected) throw new Error("valid money input was rejected");
+  }
+  for (const [input, allowZero] of [
+    ["1e3", false], [" 12", false], ["12 ", false], ["01.00", false],
+    ["1.234", false], [true, false], [[], false], [-1, false],
+    [1_000_000_000.01, true], [0, false],
+  ] as const) {
+    if (normalizeSmmMoney(input, allowZero) !== null) throw new Error("invalid money input was accepted");
+  }
+});
