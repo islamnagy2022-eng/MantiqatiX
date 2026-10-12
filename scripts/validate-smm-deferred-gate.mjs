@@ -66,6 +66,7 @@ check(tests.includes('provider terminal states cannot regress'), 'terminal-state
 check(gateway.includes('import { normalizeProviderService } from "./catalog-normalization.ts"'), 'provider catalog must use tested normalization');
 check(catalog.includes('selling_price: hasReviewedPrice ? existingPrice : 0'), 'catalog sync must not equate customer price to provider cost');
 check(catalog.includes('active: keepExistingActivation ? existing.active === true : false'), 'new provider services must remain inactive pending review');
+check(catalog.includes('existingPrice > providerCost'), 'service must be disabled unless reviewed customer price is strictly above current provider cost');
 check(catalog.includes('metadata: { provider_service_id: externalId, provider_rate: providerCost }'), 'provider catalog persistence must use allowlisted metadata');
 check(tests.includes('new provider catalog items require manual price review and stay inactive'), 'catalog pricing safety tests must exist');
 
