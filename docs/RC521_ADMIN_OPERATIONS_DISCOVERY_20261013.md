@@ -28,26 +28,26 @@ This is an evidence ledger for the first ordered module (Administration & Operat
 |---|---|---|
 | Current baseline and ownership identified | Repository metadata + exact main SHA | VERIFIED (discovery only) |
 | Open work, dependencies and release blockers inventoried | Master TODO, continuity file, open PR #217 | PARTIAL |
-| CI evidence tied to exact commit and event | PR-head runs available; main-head equivalent not established in this check | PARTIAL |
+| CI evidence tied to exact commit and event | Candidate PR head `1092710ee197122fe7197cd6463c26b17233a06f`: Module Professionalization Validation, Backend-only Module Boundary, MantiGO privacy integration, approval-action audit atomicity, financial journal integration, and targeted-ads search-path integration passed. Pages validation passed; deploy job was skipped because this is not `main`. | VERIFIED (candidate branch only) |
 | Task owner, due date, dependency, acceptance criteria and closure result tracked for each task | No current evidence from this read-only pass that every work item has all fields | NOT VERIFIED |
-| Admin actions are role-gated | Static admin workspace validator exists; this session did not execute repository CI locally or live browser E2E | NOT VERIFIED |
-| Sensitive administrative changes have authoritative audit evidence | `audit_logs` exists (11 rows in observed inventory); append-only and end-to-end behavior not tested here | NOT VERIFIED |
-| Error/conflict/idempotency handling verified in operations workflows | No focused end-to-end run executed in this session | NOT VERIFIED |
-| Regression tests pass for the current main head | PR checks passed on a different head; main-head run not established | NOT VERIFIED |
+| Admin actions are role-gated | `validate-admin-workspace.mjs` and `validate-mantigo-platform-admin-scope.mjs` are now included in the Production security validators step; that step passed on candidate SHA `1092710ee197122fe7197cd6463c26b17233a06f`. These are source-contract checks, not live browser E2E. | PARTIAL (static contract passed; live authorization E2E open) |
+| Sensitive administrative changes have authoritative audit evidence | Approval-action audit atomicity integration workflow passed on candidate SHA, exercising the RC442 migration against disposable PostgreSQL. This proves that specific approval transition's audit atomicity contract, not global `audit_logs` append-only behavior or every administrative action. | PARTIAL |
+| Error/conflict/idempotency handling verified in operations workflows | RC442 approval/audit integration, RC450 financial journal integration, RC451 targeted-ads search-path integration, and RC446 MantiGO privacy integration passed in disposable PostgreSQL on the candidate branch. General admin operations E2E remains open. | PARTIAL |
+| Regression tests pass for the current main head | Required focused CI jobs passed on candidate PR head `1092710ee197122fe7197cd6463c26b17233a06f`; no equivalent full gate is established for `main` at this point. | PARTIAL |
 | Production release decision is evidence-based | Project continuity and TODO explicitly block certification | VERIFIED: release remains blocked |
 
 ## Safe actions performed
-- Read-only GitHub and Supabase inspection only.
+- Read-only GitHub/Supabase inspection plus two repository-branch changes: an evidence report and CI workflow wiring for the admin workspace/platform-admin static guards.
+- Candidate-branch CI passed for the validators and the listed disposable-PostgreSQL integration jobs; Pages validation passed but the deploy job was skipped on this non-main branch.
 - No production SQL writes, migrations, grants/RLS changes, Auth configuration changes, Edge Function deployments, payments, wallet mutations, merges, or releases.
 - No customer or membership records were changed.
 
 ## Remaining blockers for closing this module
-1. Establish a reproducible current-main validation run and record exact SHA plus all required jobs.
-2. Run the existing admin workspace, RBAC and audit tests on the candidate head; add focused tests only where a demonstrated gap exists.
-3. Verify the administrative action authorization boundary using authorized test identities and negative cases.
-4. Verify audit creation, actor identity, immutable/append-only expectations and failure behavior for sensitive actions.
-5. Verify task/work-item closure requires evidence and cannot be marked VERIFIED merely because implementation is present.
-6. Reconcile any source/ledger mismatch before database changes; production migrations remain outside this discovery change.
+1. Establish a reproducible current-main validation run and record exact SHA plus all required jobs; candidate-branch green checks do not substitute for main/release certification.
+2. Execute live/admin authorization E2E with authorized test identities and negative cases; static regex/source contracts alone are insufficient.
+3. Verify global `audit_logs` actor attribution, append-only expectations, and fail/rollback behavior across sensitive administrative actions; RC442 only proves one approval-action path.
+4. Verify task/work-item closure requires evidence and cannot be marked VERIFIED merely because implementation is present.
+5. Reconcile any source/ledger mismatch before database changes; production migrations remain outside this discovery change.
 
 ## Percentages
 - Implementation completeness: NOT RATED. The discovery evidence does not provide a complete, enumerated implementation inventory sufficient for a defensible percentage.
@@ -56,4 +56,4 @@ This is an evidence ledger for the first ordered module (Administration & Operat
 - Overall release: BLOCKED / NOT CERTIFIED.
 
 ## Next executable action
-Continue the administration/operations gate with exact-main CI evidence and focused admin/RBAC/audit tests. Do not move to the next module until its acceptance criteria are met. If a finding requires a production setting, migration, or privilege change, stage and review it separately and follow the approved release order.
+Continue the administration/operations gate with exact-main CI evidence, live admin/RBAC authorization E2E, and broader audit-log behavior tests. Do not move to the next module until its acceptance criteria are met. If a finding requires a production setting, migration, or privilege change, stage and review it separately and follow the approved release order.
