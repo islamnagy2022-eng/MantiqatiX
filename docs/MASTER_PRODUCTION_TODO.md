@@ -1620,3 +1620,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] DNS rebinding/private DNS targets still require a reviewed provider hostname allowlist or network egress enforcement.
 - [ ] Order error handling can still auto-refund on ambiguous provider/persistence outcomes; this is a go-live blocker and must be redesigned/tested before any enablement.
 - [ ] CI on the latest source changes is pending; do not mark PASS until completed.
+
+
+## 2026-10-13 — SMM ambiguous outcome safety
+- [x] Candidate gateway no longer automatically refunds in the provider exception path; provider timeout/invalid response/missing ID are quarantined for manual reconciliation.
+- [x] Wallet debit RPC transport errors are treated as unknown, not as a confirmed no-debit result.
+- [x] Provider acceptance followed by order persistence failure returns `PROVIDER_ACCEPTED_PERSISTENCE_PENDING` without refund.
+- [x] Added source-contract checks for all three cases.
+- [ ] Exact-head CI pending; verify state semantics against reconciled schema and order idempotency/terminal-state RPCs before launch. SMM remains disabled in candidate source unless separately approved.
