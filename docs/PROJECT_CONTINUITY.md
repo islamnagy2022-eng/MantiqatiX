@@ -565,3 +565,11 @@ This status is intentional and must remain until the open gates above are indepe
 - **Limit:** a direct attempt to retrieve the full function definition was blocked by tool safety controls; the complete function body/atomicity was not inspected in this step. The metadata is not full security certification.
 - **Action:** document the scoped finding; no database changes were made.
 - **Next:** full payment/webhook function-body and integration review remains a release gate.
+
+
+## Production SMM containment update — 2026-10-13
+
+- Live `smm-gateway` was updated to version 10 as a protective containment action because the previous live version lacked a launch gate and the live order schema lacked database idempotency. Version 10 is source-hard-disabled for the initial launch (`SMM_INITIAL_LAUNCH_DEFERRED=true`) and also requires both exact flags `MNTY_SMM_ENABLED=true` and `MNTY_SMM_POST_LAUNCH_APPROVED=true`; the gate executes before authentication/action routing. `verify_jwt=true` remains enabled.
+- Live read-back evidence: SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`, ACTIVE version 10. Source commit: `efcf90186b3713af47c5f912a2e0e1ea46cd2122` on Draft PR #216.
+- Runtime HTTP smoke test remains pending because DNS resolution from the current execution environment failed; do not claim observed HTTP 503 until tested from a network-capable environment.
+- Production schema remains unchanged. RC463/RC464 have not been applied. Core release is still **BLOCKED / NOT CERTIFIED** by migration-lineage and other release gates.
