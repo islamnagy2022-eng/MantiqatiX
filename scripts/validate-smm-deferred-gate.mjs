@@ -65,6 +65,7 @@ check(fs.existsSync('supabase/functions/smm-gateway/order-validation.ts'), 'orde
 const orderValidation=fs.readFileSync('supabase/functions/smm-gateway/order-validation.ts','utf8');
 check(gateway.includes('import { validateSmmOrderInput, validateSmmOrderPricing } from "./order-validation.ts"'), 'gateway must use tested order validation');
 check(orderValidation.includes('url.protocol !== "https:"'), 'SMM order targets must require HTTPS');
+check(orderValidation.includes('!hostname.includes(".")'), 'SMM order targets must reject single-label internal hosts');
 check(orderValidation.includes('url.username || url.password'), 'SMM order targets must reject embedded credentials');
 check(orderValidation.includes('sellingPrice <= providerCost'), 'SMM orders must reject non-positive gross margin');
 check(tests.includes('SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs'), 'SMM URL safety tests must exist');
