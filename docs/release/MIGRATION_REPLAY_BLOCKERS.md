@@ -497,3 +497,12 @@ No production DDL, grants, RLS policies, Auth settings, wallet/payment records, 
 - Repository code search still returns only policy references to `credit_accounts`/`credit_periods`, not an authoritative earlier table-creation migration. Production catalog metadata previously confirmed the tables exist live with RLS and FORCE RLS enabled, but that is not historical provenance.
 - Next safe action: recover authoritative DDL from a trusted source or obtain separate explicit approval for schema-only, live-derived **disposable replay** fixtures and add them only through the approved replay workflow. No guessed DDL, migration-history rewrite, production schema change, or production financial data access is authorized by this finding.
 - Release remains **BLOCKED / NOT CERTIFIED**. No production database or application deployment was performed by this replay.
+
+
+### Follow-up on exact-head replay — 2026-10-12 12:58 UTC
+
+- The replay rerun [38252224065](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38252224065) on commit `47acf8c8d3e94d3805973f0fea5112778d00ba11` reproduced the same failure at `20260920155456_harden_credit_status_authorization.sql`: `public.credit_accounts` is absent in the empty disposable database. The candidate migration defines `get_credit_status` and references both `credit_accounts` and `credit_periods`; it does not create either table.
+- A second repository search found no authoritative `CREATE TABLE credit_accounts` migration or commit in the indexed source. The later migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` also assumes both tables and their named policies already exist. Therefore this is a historical schema provenance gap, not something safe to fix by editing the failing function or skipping the migration.
+- Exact-head module validation, migration uniqueness/history checks, migration-collision guard, deferred-SMM checks, service-role boundary, marketing/CRM checks, MantiGO privacy, and approval-audit atomicity passed. The web workflow validation passed, but the deploy job was skipped.
+- No credit schema baseline was added: prior owner approval covered the SMM provider tables only. Continue by locating trusted source-of-truth DDL/history; otherwise request narrowly scoped authorization for a schema-only disposable replay fixture with documented provenance. Do not apply that fixture to production.
+- PR #207 remains open and unmerged. Release remains **BLOCKED / NOT CERTIFIED**.
