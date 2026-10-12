@@ -90,4 +90,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Auth/registration production invariants passed: ${required.length} checks + Owner role-switch invariants.`);
+console.log(`Auth/registration production invariants passed: ${required.length} client checks + ${serverRequired.length} server/RPC checks + Owner role-switch invariants.`);
