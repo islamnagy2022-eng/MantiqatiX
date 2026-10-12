@@ -3,6 +3,8 @@ import fs from 'node:fs';
 
 const gateway=fs.readFileSync('supabase/functions/smm-gateway/index.ts','utf8');
 const transport=fs.readFileSync('supabase/functions/smm-gateway/provider-transport.ts','utf8');
+const tests=fs.readFileSync('supabase/functions/smm-gateway/provider-transport.test.ts','utf8');
+const ngateway=gateway;
 const holding=fs.readFileSync('web/smm.html','utf8');
 const home=fs.readFileSync('web/home.js','utf8');
 const app=fs.readFileSync('web/app.js','utf8');
@@ -49,9 +51,13 @@ check(!placeOrder.includes('smm_refund_wallet'), 'provider exceptions must not t
 check(!placeOrder.includes('Automatic refund after provider failure'), 'ambiguous provider outcomes must never auto-refund');
 
 const orderStatus=gateway.slice(gateway.indexOf('if(a==="order_status")'),gateway.indexOf('return json({error:"UNKNOWN_ACTION"}',gateway.indexOf('if(a==="order_status")')));
-check(orderStatus.includes('terminal.has(String(o.data.status||"").toUpperCase())'), 'terminal SMM order states must not regress on stale provider status');
+check(orderStatus.includes('normalizeProviderOrderStatus(o.data.status,rawStatus)'), 'order polling must use the tested status normalizer');
 check(orderStatus.includes('ORDER_STATUS_PERSISTENCE_PENDING'), 'failed order-status persistence must be surfaced for reconciliation');
 check(!orderStatus.includes('result:r'), 'raw provider status response must not be returned to clients');
+
+check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
+check(fs.existsSync('supabase/functions/smm-gateway/order-status.ts'), 'provider status normalization module must exist');
+check(tests.includes('provider terminal states cannot regress'), 'terminal-state regression tests must exist');
 
 if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
 console.log('P0 SMM deferral gate: PASS');
