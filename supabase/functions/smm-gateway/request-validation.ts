@@ -1,5 +1,5 @@
 export type BoundedJsonResult =
-  | { ok: true; value: any }
+  | { ok: true; value: Record<string, unknown> }
   | { ok: false; code: "REQUEST_TOO_LARGE" | "INVALID_JSON" | "INVALID_REQUEST" | "UNSUPPORTED_MEDIA_TYPE"; status: 400 | 413 | 415 };
 
 export async function readBoundedJson(req: Request, maxBytes = 65_536): Promise<BoundedJsonResult> {
@@ -8,8 +8,11 @@ export async function readBoundedJson(req: Request, maxBytes = 65_536): Promise<
     return { ok: false, code: "UNSUPPORTED_MEDIA_TYPE", status: 415 };
   }
   const contentLength = req.headers.get("content-length");
-  if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > maxBytes) {
-    return { ok: false, code: "REQUEST_TOO_LARGE", status: 413 };
+  if (contentLength !== null) {
+    if (!/^\\d+$/.test(contentLength) || !Number.isSafeInteger(Number(contentLength))) {
+      return { ok: false, code: "INVALID_REQUEST", status: 400 };
+    }
+    if (Number(contentLength) > maxBytes) return { ok: false, code: "REQUEST_TOO_LARGE", status: 413 };
   }
   const reader = req.body?.getReader();
   if (!reader) return { ok: false, code: "INVALID_JSON", status: 400 };
@@ -43,5 +46,5 @@ export async function readBoundedJson(req: Request, maxBytes = 65_536): Promise<
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return { ok: false, code: "INVALID_REQUEST", status: 400 };
   }
-  return { ok: true, value };
+  return { ok: true, value: value as Record<string, unknown> };
 }
