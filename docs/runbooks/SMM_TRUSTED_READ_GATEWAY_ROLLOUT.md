@@ -73,3 +73,11 @@ The broader release-remediation candidate PR #207 is currently at `8918506f732c7
 **Critical live-state caveat:** the production `smm-gateway` remains active at version 6. A static holding page, hidden navigation, a passing source validator, or PR #214 does not disable the separately addressable Edge Function. Before public launch, the reviewed server-side deny/disable behavior must be deployed only with explicit production approval and then verified by negative runtime tests proving disabled requests cannot reach authentication-dependent business logic, database, wallet/order, or provider operations. Capture the deployed function version/hash and test evidence. Until that evidence exists, SMM API containment is a production launch blocker.
 
 Do not deploy RC456, any other migration, the gateway, or a web bundle from this checkpoint. Keep migration replay, the ordered release batch, and all three rollout approvals as separate gates.
+
+## Release replay gate update — 2026-10-12 01:08 UTC
+
+The latest observed PR #207 disposable replay job [38190631816](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38190631816) failed at `20260927134000_add_unique_pending_membership_request.sql` because `public.account_registration_requests` was absent before the index was created (SQLSTATE 42P01). Do not infer a historical schema, invent a table, or skip the migration. Recover authoritative earlier creation DDL/history, or obtain explicit owner approval for a schema-only baseline in disposable replay outside `supabase/migrations`.
+
+The run also injected `20260927074160_test_only_live_derived_security_definer_baseline.sql` even though the prior release decision says that separate function baseline is not approved. Reconcile the approval record or remove that injection before treating the ten-function dependency as cleared.
+
+On PR #207 head `8918506f732c7077027768ca8eb1bdca927d44cf`, migration-history immutability, migration-version uniqueness, open-PR collision detection, SMM service-role boundary, and SMM deferred-module validation passed; chronological replay failed. PR #214's source checks also passed, but the live `smm-gateway` remains active at version 6, so source/UI deferral does not establish production API containment. Overall release remains **BLOCKED / NOT CERTIFIED**.
