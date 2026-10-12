@@ -170,3 +170,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 4. Continue independent tenant-isolation, finance/webhook, backup/restore, and production-configuration verification without touching live financial data.
 
 **Release status: BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-10-13 — Migration replay preflight diagnostics
+
+- Reviewed failed Disposable Supabase Migration Chain Replay run [38305097937](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38305097937). The job failed before starting Docker/Supabase because the historical baseline for `public.credit_policies` is missing; no migration was executed.
+- Improved `scripts/validate-historical-schema-baseline.mjs` to report **all** missing historical dependency baselines in one run rather than stopping at the first missing table. It remains fail-closed and preserves a distinct diagnostic for each missing dependency; no baseline is fabricated and no migration is skipped.
+- Commit: `8eca1e956cd256256f79d734f4886b211f2a5336` on the open draft PR #207 branch.
+- Next evidence: run the validator/CI at this exact head and record the complete missing-baseline inventory. The RC40 archive's credit-table DDL is not automatically authoritative because the live schema differs in precision/default/FK semantics and finance-read policy provenance is unresolved.
+- Safety: candidate-source only; no production database, migration ledger, data, policies, grants, Edge Functions, or payments were changed. Release remains **BLOCKED / NOT CERTIFIED**.
