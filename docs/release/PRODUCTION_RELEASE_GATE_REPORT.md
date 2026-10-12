@@ -317,3 +317,22 @@ Do not bulk-remove unused indexes or rewrite RLS policies from these counts alon
 
 ### Current release consequence
 These Advisor results add an explicit security-review gate; they do not replace the existing replay and SMM containment blockers. Review and source fixes may proceed on the candidate branch, but production changes to RLS/grants, Auth settings, or Edge Functions require separate authorization and successful negative tests. Production remains **`BLOCKED / NOT CERTIFIED`**.
+
+
+## Exact-head CI refresh — 2026-10-12 14:54 UTC
+
+Candidate head: `7328e7a6b548ace698918fd2dab345d54d37f2e9` on PR #207.
+
+Latest PR-triggered runs:
+- [SMM Deferred Module Validation](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026538): PASS.
+- [SMM Service Role Access Boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026314): PASS (PostgreSQL contract and validator jobs).
+- [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026441): PASS.
+- [Migration History Immutability](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026366): PASS.
+- [Migration Version Uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026399): PASS.
+- [Backend-only Module Boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026501): PASS.
+- [Pages validation](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026432): validation PASS; deployment job SKIPPED by the release gate, as intended.
+- [Disposable Supabase Migration Chain Replay](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38266026597): FAIL. The local stack initially hit public image-registry rate limits, then started successfully on retry. The actual blocker remains unchanged: migration `20260920155456_harden_credit_status_authorization.sql` references `public.credit_accounts` and `public.credit_periods`, which are absent in the empty replay database.
+
+The replay failure is now confirmed on the latest exact PR head, not merely an earlier candidate. The repository's main migration directory and production migration ledger do not contain an authoritative credit-table creation migration. The RC40 archive provides historical DDL, but its numeric precision differs from the live schema; using a live-derived disposable baseline still requires the explicit scope approval already recorded as outstanding. No baseline was injected, no migration history was edited, and no production changes were made.
+
+**Release remains `BLOCKED / NOT CERTIFIED`.** Continue source/test work on the candidate, but do not merge or deploy until the credit replay gap is resolved through an approved, schema-accurate disposable-only method and all required release evidence passes.
