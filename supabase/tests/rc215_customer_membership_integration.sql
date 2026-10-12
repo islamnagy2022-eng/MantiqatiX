@@ -6,7 +6,7 @@ begin;
 insert into auth.users(id, is_anonymous)
 values ('10000000-0000-4000-8000-000000000001', false);
 
-do $$
+do $rc215_test$
 declare
   v_count bigint;
   v_result jsonb;
@@ -52,9 +52,9 @@ begin
     raise exception 'FAIL: service_role must execute the private customer membership RPC';
   end if;
 end
-$;
+$rc215_test$;
 
-do $
+do $rc215_test$
 declare
   v_rejected boolean := false;
 begin
@@ -75,12 +75,12 @@ begin
     raise exception 'FAIL: membership RPC must reject an inactive tenant';
   end if;
 end
-$;
+$rc215_test$;
 
 insert into auth.users(id, is_anonymous)
 values ('10000000-0000-4000-8000-000000000002', true);
 
-do $$
+do $rc215_test$
 declare
   v_count bigint;
 begin
@@ -92,7 +92,7 @@ begin
     raise exception 'FAIL: anonymous Auth user must not receive a permanent customer membership; got % rows', v_count;
   end if;
 end
-$$;
+$rc215_test$;
 
 rollback;
 
