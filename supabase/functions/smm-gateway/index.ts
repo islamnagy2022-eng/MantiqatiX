@@ -13,11 +13,12 @@ async function call(p:any,k:string,a:string,x:any={}) {
  const endpoint=assertSafeProviderEndpoint(p?.api_url,Deno.env.get("SMM_PROVIDER_HOSTS"));
  const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);
- let r:Response;
- try{r=await fetch(endpoint.toString(),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString(),signal:controller.signal,redirect:"error"});}
- catch{throw new Error("Provider request failed or timed out");}
+ try{
+  const r=await fetch(endpoint.toString(),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString(),signal:controller.signal,redirect:"error"});
+  // Keep the timeout active through response-body consumption, not just until headers arrive.
+  return await readProviderJson(r);
+ }catch{throw new Error("Provider request failed, timed out, or returned invalid data");}
  finally{clearTimeout(timer);}
- return await readProviderJson(r);
 }
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
