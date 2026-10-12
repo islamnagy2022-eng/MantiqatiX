@@ -27,13 +27,13 @@ Deno.test("provider endpoint accepts an explicitly allowed HTTPS hostname", () =
 });
 
 Deno.test("provider response parser accepts bounded JSON", async () => {
-  const result = await readProviderJson(new Response('{"order":123}', { status: 200 }));
+  const result = await readProviderJson(new Response('{"order":123}', { status: 200, headers: { "Content-Type": "application/json" } }));
   if ((result as {order?: number}).order !== 123) throw new Error("Expected parsed provider JSON");
 });
 
 Deno.test("provider response parser rejects invalid JSON", async () => {
   let rejected = false;
-  try { await readProviderJson(new Response("not-json", { status: 200 })); } catch { rejected = true; }
+  try { await readProviderJson(new Response("not-json", { status: 200, headers: { "Content-Type": "application/json" } })); } catch { rejected = true; }
   if (!rejected) throw new Error("Invalid provider JSON was accepted");
 });
 
