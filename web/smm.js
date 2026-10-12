@@ -93,8 +93,14 @@ function openOrder(id){
   if(!Number.isFinite(unit)||unit<0){message.innerHTML='<div class="notice">تعذر التحقق من سعر الخدمة. أعد تحميل الكتالوج.</div>';return}
   if(!window.confirm('تأكيد الطلب؟ الكمية: '+qty+'، التكلفة التقديرية: $'+money(unit*qty/1000)+'. سيتم اعتماد السعر النهائي من الخادم.'))return;
   place.disabled=true;place.textContent='جارٍ إرسال الطلب...';
+  const storageKey='mnty_smm_idem:'+user.id+':'+selected.id+':'+encodeURIComponent(target)+':'+qty;
+  let idempotencyKey=null;
+  try{idempotencyKey=sessionStorage.getItem(storageKey)}catch{}
+  if(!idempotencyKey){idempotencyKey=crypto.randomUUID();try{sessionStorage.setItem(storageKey,idempotencyKey)}catch{}}
   try{
-   const r=await fn({action:'place_order',service_id:selected.id,target_url:target,quantity:qty});
+   const r=await fn({action:'place_order',service_id:selected.id,target_url:target,quantity:qty,idempotency_key:idempotencyKey});
+   if(r.pending){message.innerHTML='<div class="notice">تم تسجيل الطلب للتحقق من نتيجته. لا تعِد الإرسال الآن؛ استخدم «طلباتي» لتحديث الحالة. رقم الطلب: '+esc(r.order_id||'—')+'.</div>';place.textContent='متابعة الطلبات';place.onclick=()=>{m.remove();tab='orders';render()};return;}
+   try{sessionStorage.removeItem(storageKey)}catch{}
    message.innerHTML='<div class="notice success">تم استلام الطلب من النظام. رقم الطلب: '+esc(r.order_id||'—')+'. يمكنك متابعة حالته من صفحة «طلباتي».</div>';
    setTimeout(()=>{m.remove();load()},1500);
   }catch(e){message.innerHTML='<div class="notice">تعذر تأكيد نتيجة الإرسال. لا تعِد إرسال الطلب مباشرة؛ افتح «طلباتي» للتحقق أولًا أو تواصل مع الدعم إذا لم يظهر الطلب.</div>';place.textContent='التحقق من طلباتي';place.onclick=()=>{m.remove();tab='orders';render()};}
