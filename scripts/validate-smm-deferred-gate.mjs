@@ -48,6 +48,11 @@ check(placeOrder.includes('PROVIDER_ACCEPTED_PERSISTENCE_PENDING'), 'provider ac
 check(!placeOrder.includes('smm_refund_wallet'), 'provider exceptions must not trigger automatic wallet refunds');
 check(!placeOrder.includes('Automatic refund after provider failure'), 'ambiguous provider outcomes must never auto-refund');
 
+const orderStatus=gateway.slice(gateway.indexOf('if(a==="order_status")'),gateway.indexOf('return json({error:"UNKNOWN_ACTION"}',gateway.indexOf('if(a==="order_status")')));
+check(orderStatus.includes('terminal.has(String(o.data.status||"").toUpperCase())'), 'terminal SMM order states must not regress on stale provider status');
+check(orderStatus.includes('ORDER_STATUS_PERSISTENCE_PENDING'), 'failed order-status persistence must be surfaced for reconciliation');
+check(!orderStatus.includes('result:r'), 'raw provider status response must not be returned to clients');
+
 if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
 console.log('P0 SMM deferral gate: PASS');
 console.log('Static storefront, desktop/mobile navigation, internal workspace, and default-deny API gate are covered.');
