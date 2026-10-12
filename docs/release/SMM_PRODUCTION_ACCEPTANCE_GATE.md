@@ -106,3 +106,11 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [ ] This does not provide DNS-resolution/egress allowlisting against every private-address or DNS-rebinding case; a reviewed provider hostname allowlist or network egress control remains required before enabling provider calls.
 - [ ] The current order exception path still needs a separate redesign and tests so timeout/ambiguous provider outcomes or post-acceptance persistence errors cannot cause automatic refund. Keep SMM disabled until this is closed.
 - [ ] Latest CI for the new commits is queued/in progress; no result is claimed yet.
+
+
+## 2026-10-13 — Ambiguous order outcome quarantine (candidate source only)
+- [x] Removed automatic SMM wallet refund from the provider exception path. Network errors, timeouts, invalid/unknown provider responses, and missing provider order IDs now return a reconciliation-required response and keep the debited order pending rather than guessing failure.
+- [x] Split wallet debit RPC errors from an explicit rejected debit; an RPC error is treated as an unknown outcome rather than assumed to mean no debit.
+- [x] If the provider returns an order ID but saving that ID fails, return `PROVIDER_ACCEPTED_PERSISTENCE_PENDING` and do not refund.
+- [x] Added source-contract checks for these ambiguous-result behaviors.
+- [ ] Verify against the exact live schema/status constraints and reconcile with the idempotency/terminal-state migrations before enabling SMM. This is candidate source only; CI is pending.
