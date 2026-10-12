@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-12:** Read `docs/SESSION_LOG.md` for the chronological record. Current main HEAD: `8a56358d505d2c12878440037f7f24ba65d2ea10`. Candidate branch `reconcile/rc425-458-current-main-20261011` contains unmerged release remediation; PR #207 and PR #214 remain draft. Exact-head targeted CI passed, but chronological replay is blocked by missing authoritative historical `public.bookings` DDL. Live SMM gateway v6 still lacks the server-side launch-deny gate. Release is **BLOCKED / NOT CERTIFIED**.
+> **LATEST SESSION STATE — 2026-10-12:** Read `docs/SESSION_LOG.md` for the chronological record. Current main HEAD remains `8a56358d505d2c12878440037f7f24ba65d2ea10`. Candidate branch `reconcile/rc425-458-current-main-20261011` is at `31f8202d7e9f6a3ea45c73f576b33d02037dc78e` (latest code change: `48bcf340f901e545e547b39639c641c899ea696c`); PR #207 is open and unmerged. Exact-head targeted CI checks passed, including the test-only bookings-baseline injection contracts. Disposable migration replay run `38239527707` is still at Supabase service startup; chronological replay has not started and is NOT VERIFIED. Live SMM gateway v6 still lacks the server-side launch-deny gate. Release remains **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -585,3 +585,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Live `smm-gateway` remains active v6 without `MNTY_SMM_ENABLED` / `SMM_POST_LAUNCH_DEFERRED`; candidate PR #214 is not deployed.
 - No production mutation, migration, deployment, merge, financial write, or Auth/RLS/grant change occurred.
 - **Decision: BLOCKED / NOT CERTIFIED.** Next action is trusted historical DDL recovery or explicit approval for a disposable-only compatibility baseline; do not fabricate schema or bypass replay.
+
+
+## SESSION-005 — 2026-10-12 — Current replay checkpoint
+
+- Candidate branch head after the append-only session log update: `31f8202d7e9f6a3ea45c73f576b33d02037dc78e`; code/workflow change: `48bcf340f901e545e547b39639c641c899ea696c`.
+- The approved `bookings.sql` compatibility fixture is injected only into the disposable replay as timestamp `20260919233424`, before the hardening migration `20260919233425`. The workflow verifies exact copy, absence of tracked destination, and no row imports.
+- Exact-head core and focused CI checks are green; Pages deployment was skipped. Replay run [38239527707](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527707) passed preflight and injection checks, but is still starting disposable Supabase services. Full chronological replay is NOT VERIFIED.
+- No production changes, merge, live SMM deployment, or release certification occurred. Live SMM gateway v6 remains a P0 containment gate; the SMM feature freeze remains in effect.
+- Next: monitor the existing replay run, then respond to its actual result without skipping historical migrations or inventing DDL. Overall status: **BLOCKED / NOT CERTIFIED**.
