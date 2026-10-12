@@ -69,3 +69,27 @@ Deno.test("provider status aliases map to known terminal and processing states",
     if (normalizeProviderOrderStatus(current, incoming) !== expected) throw new Error(`unexpected mapping for ${incoming}`);
   }
 });
+
+
+import { normalizeProviderService } from "./catalog-normalization.ts";
+
+Deno.test("new provider catalog items require manual price review and stay inactive", () => {
+  const row = normalizeProviderService({ id: "svc-1", rate: "3.5", min: "1", max: "500", name: "New service", extra: "not allowed" }, "provider-1");
+  if (!row) throw new Error("valid provider service was rejected");
+  if (row.selling_price !== 0 || row.active !== false) throw new Error("new provider service was activated or priced automatically");
+  if (row.provider_cost !== 3.5) throw new Error("provider cost was not normalized");
+  if (JSON.stringify(row.metadata).includes("not allowed")) throw new Error("arbitrary provider metadata was persisted");
+});
+
+Deno.test("provider catalog refresh preserves reviewed customer pricing and activation", () => {
+  const row = normalizeProviderService({ id: "svc-2", rate: 4, min: 1, max: 100 }, "provider-1", { selling_price: "7.25", active: true });
+  if (!row) throw new Error("valid provider service was rejected");
+  if (row.selling_price !== 7.25 || row.active !== true) throw new Error("refresh overwrote reviewed price or activation");
+});
+
+Deno.test("provider catalog normalization rejects invalid costs and quantity bounds", () => {
+  if (normalizeProviderService({ id: "svc", rate: -1, min: 1, max: 10 }, "provider-1")) throw new Error("negative provider cost accepted");
+  if (normalizeProviderService({ id: "svc", rate: 1, min: 10, max: 1 }, "provider-1")) throw new Error("inverted quantity bounds accepted");
+  const row = normalizeProviderService({ id: "svc", rate: 1, min: 1, max: 10, name: "bad" + String.fromCharCode(0) + "name" }, "provider-1");
+  if (!row || String(row.name).includes(String.fromCharCode(0))) throw new Error("control character was not removed");
+});
