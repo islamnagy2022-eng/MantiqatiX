@@ -96,7 +96,8 @@ assert.match(catalog, /activeProviders\.has\(String\(x\.provider_id\)\)/, "servi
 assert.match(catalog, /id:x\.id,platform:x\.platform,category:x\.category,name:x\.name,description:x\.description/, "catalog response must map fields explicitly");
 assert.doesNotMatch(catalog, /provider_cost|external_service_id|metadata/, "catalog must not expose provider costs, provider IDs, external IDs, or raw metadata");
 assert.match(account, /\.eq\("user_id",user\.id\)/g, "both order and wallet reads must be scoped to the verified bearer user");
-assert.match(account, /select\("id,service_id,quantity,selling_price,status,created_at,updated_at"\)/, "account orders must use an explicit field allowlist");
+assert.match(account, /select\("id,service_id,quantity,selling_price,status,provider_status,created_at,updated_at,smm_services\(cancel\)"\)/, "account orders must use an explicit field allowlist and only cancellation capability metadata");
+assert.match(account, /cancel_supported:x\.smm_services\?\.cancel===true/, "customer data must expose only a boolean cancellation capability");
 assert.doesNotMatch(account, /provider_order_id/, "customer account responses must not expose external provider order identifiers");
 assert.match(account, /if\(o\.error\|\|w\.error\)/, "failed reads must return an error, not a successful empty/zero response");
 
@@ -120,5 +121,24 @@ assert.match(reconciliationQueue, /\.limit\(100\)/, "reconciliation queue must b
 assert.doesNotMatch(reconciliationQueue, /target_url/, "reconciliation queue must not disclose customer target URLs");
 assert.match(reconciliationQueue, /لا تعِد إرسال الطلبات المعلّقة تلقائيًا/, "reconciliation queue must warn against blind resubmission");
 assert.match(reconciliationQueue, /RECONCILIATION_QUEUE_READ_FAILED/, "queue read failures must fail closed");
+
+const cancelStart = edge.indexOf('if(a==="cancel_order")');
+const cancelEnd = edge.indexOf('if(a==="order_status")', cancelStart);
+assert.ok(cancelStart >= 0 && cancelEnd > cancelStart, "customer cancellation action must exist");
+const cancelAction = edge.slice(cancelStart, cancelEnd);
+assert.match(cancelAction, /\.eq\("user_id",user\.id\)/, "cancellation must be scoped to the authenticated order owner");
+assert.match(cancelAction, /CANCELLATION_NOT_SUPPORTED/, "cancellation must require provider/service support");
+assert.match(cancelAction, /cancel_request_started/, "cancellation intent must be persisted before the external request to avoid duplicate submissions");
+assert.match(cancelAction, /cancel_requested/, "accepted cancellation requests must remain pending until provider status confirms cancellation");
+assert.doesNotMatch(cancelAction, /smm_refund_wallet/, "a cancellation request must never refund before provider confirmation");
+const statusActionStart = edge.indexOf('if(a==="order_status")');
+const statusActionEnd = edge.indexOf('return json({error:"UNKNOWN_ACTION"}', statusActionStart);
+const statusAction = edge.slice(statusActionStart, statusActionEnd);
+assert.match(statusAction, /if\(st==="CANCELLED"\)/, "wallet refund must only run after normalized provider-confirmed cancellation");
+assert.match(statusAction, /smm_refund_wallet/, "confirmed cancellation must attempt an idempotent wallet refund");
+assert.match(statusAction, /ORDER_REFUND_REQUIRES_RECONCILIATION/, "refund uncertainty must be explicit and retryable");
+assert.match(statusAction, /WALLET_REFUND_CONFIRMED/, "successful refund must be auditable");
+assert.match(smmUi, /action:'cancel_order'/, "customer UI must invoke the guarded cancellation action");
+assert.match(smmUi, /لن يُعاد الرصيد إلا بعد تأكيد المورّد/, "customer UI must explain that refund requires provider confirmation");
 
 console.log("SMM service-role access boundary contract: PASS");
