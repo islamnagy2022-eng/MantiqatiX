@@ -79,8 +79,20 @@ Deno.serve(async(req)=>{
    const pricing=validateSmmOrderPricing({sellingPrice:Number(v.selling_price),providerCost:Number(v.provider_cost),quantity:q});
    if(!pricing.ok)return json({error:pricing.code},409);
    const {charged:sell,cost,profit}=pricing;
-   const o=await admin.from("smm_orders").insert({user_id:user.id,service_id:validatedOrder.serviceId,target_url:validatedOrder.targetUrl,quantity:q,selling_price:sell,provider_cost:cost,profit,status:"SUBMITTING"}).select("id").single();
-   if(o.error||!o.data){console.error("[smm-gateway] order insert failed",o.error?.code||"DB_ERROR");return json({error:"ORDER_CREATE_FAILED"},500);}
+   const o=await admin.from("smm_orders").insert({user_id:user.id,service_id:validatedOrder.serviceId,target_url:validatedOrder.targetUrl,quantity:q,selling_price:sell,provider_cost:cost,profit,status:"SUBMITTING",idempotency_key:validatedOrder.idempotencyKey}).select("id").single();
+   if(o.error){
+    if(o.error.code==="23505"){
+     const prior=await admin.from("smm_orders").select("id,service_id,target_url,quantity,selling_price,status,provider_status,created_at").eq("user_id",user.id).eq("idempotency_key",validatedOrder.idempotencyKey).maybeSingle();
+     if(prior.error){console.error("[smm-gateway] idempotency lookup failed",prior.error.code||"DB_ERROR");return json({error:"IDEMPOTENCY_LOOKUP_FAILED"},500);}
+     if(!prior.data)return json({error:"ORDER_CREATE_FAILED"},500);
+     if(String(prior.data.service_id)!==validatedOrder.serviceId||String(prior.data.target_url)!==validatedOrder.targetUrl||Number(prior.data.quantity)!==q)return json({error:"IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST"},409);
+     const pending=["SUBMITTING","PENDING"].includes(String(prior.data.status).toUpperCase());
+     return json({ok:true,replayed:true,pending,order_id:prior.data.id,status:prior.data.status,provider_status:prior.data.provider_status||null,created_at:prior.data.created_at,message:pending?"الطلب السابق قيد التحقق؛ لا تعِد إرساله.":"تم العثور على الطلب السابق دون إنشاء طلب أو خصم جديد."},pending?202:200);
+    }
+    console.error("[smm-gateway] order insert failed",o.error.code||"DB_ERROR");
+    return json({error:"ORDER_CREATE_FAILED"},500);
+   }
+   if(!o.data){console.error("[smm-gateway] order insert returned no row");return json({error:"ORDER_CREATE_FAILED"},500);}
    const orderId=o.data.id;
    const debit=await admin.rpc("smm_debit_wallet",{p_user:user.id,p_amount:sell,p_reference:orderId});
    if(debit.error){
