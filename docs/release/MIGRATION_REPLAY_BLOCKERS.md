@@ -376,3 +376,12 @@ No production writes or configuration changes were made.
 A fresh read of the deployed Supabase Edge Function confirms `smm-gateway` remains **ACTIVE version 6** with JWT verification enabled. Its deployed source does not contain `MNTY_SMM_ENABLED` or `SMM_POST_LAUNCH_DEFERRED`; it authenticates users and retains paths for provider configuration, service synchronization, and provider calls. The server-side deferral code in PR #214 remains candidate source only. I did not invoke the gateway, make provider requests, or deploy a function.
 
 **P0 release implication:** do not expose the SMM storefront/operations for launch until the containment approach is explicitly authorized, deployed through the approved change path, and negative runtime tests prove the disabled state cannot reach provider/wallet/order side effects. Existing shared Marketing & Advertising functionality should not be disabled as a shortcut.
+
+
+## 2026-10-12 — Partial replay unblocking attempt and CI workflow write restriction
+
+- Owner instruction: “لا تحجبها اتمها”. A schema-only compatibility baseline was added at `supabase/tests/baselines/bookings.sql`, and `scripts/validate-historical-schema-baseline.mjs` was updated to validate its provenance and minimal observed shape.
+- The baseline is based only on read-only current catalog evidence: `id`, `created_at`, and the primary key. It is explicitly NOT historical creation DDL and contains no production rows.
+- **Important incomplete step:** attempts to update `.github/workflows/migration-chain-replay.yml` so CI injects and verifies the baseline as an untracked temporary migration were rejected by the repository safety layer. No alternative write path was used to bypass that restriction.
+- Therefore the baseline is **not yet wired into replay**. Do not claim the replay is unblocked or passed; the next CI run is expected to fail at the actual migration if no temporary injection exists.
+- Next safe action: obtain a supported/approved workflow-edit path, wire the test-only baseline into the disposable replay workflow, verify exact copy and untracked status, then rerun full chronological replay. Production remains untouched and release remains **BLOCKED / NOT CERTIFIED**.
