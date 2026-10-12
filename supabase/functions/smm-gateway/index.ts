@@ -7,6 +7,7 @@ async function getUser(req:Request){const a=req.headers.get("Authorization")||""
 async function isAdmin(id:string){const a=await admin.from("smm_admins").select("user_id").eq("user_id",id).maybeSingle();if(a.error)return false;if(a.data)return true;const r=await admin.from("user_memberships").select("tenant_id,role,status,business_id,permissions").eq("user_id",id).eq("status","ACTIVE");if(r.error)return false;return (r.data||[]).some((m:any)=>{const role=String(m.role||"").toUpperCase(),p=m.permissions&&typeof m.permissions==="object"?m.permissions:{};return role==="SUPER_ADMIN"&&String(m.tenant_id)==="MNTY-PLATFORM"&&m.business_id==null&&p.scope==="PLATFORM"&&p.full_control===true;});}
 async function secret(id:string){const r=await admin.rpc("smm_get_provider_secret",{p_provider_id:id});if(r.error||!r.data)throw new Error("Provider credential unavailable");return r.data as string;}
 import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts";
+import { normalizeProviderOrderStatus } from "./order-status.ts";
 
 async function call(p:any,k:string,a:string,x:any={}) {
  const endpoint=assertSafeProviderEndpoint(p?.api_url,Deno.env.get("SMM_PROVIDER_HOSTS"));
@@ -111,15 +112,8 @@ Deno.serve(async(req)=>{
    if(!serviceData||!providerData)return json({error:"PROVIDER_CONFIGURATION_UNAVAILABLE"},503);
    const r:any=await call(providerData,await secret(serviceData.provider_id),"status",{order:o.data.provider_order_id});
    const rawStatus=typeof r?.status==="string"?r.status:"";
-   const m=rawStatus.trim().toLowerCase();
    const terminal=new Set(["COMPLETED","CANCELLED","FAILED","PARTIAL"]);
-   let nextStatus=o.data.status;
-   if(!terminal.has(String(o.data.status||"").toUpperCase())){
-    if(["completed","complete"].includes(m))nextStatus="COMPLETED";
-    else if(m==="partial")nextStatus="PARTIAL";
-    else if(["canceled","cancelled"].includes(m))nextStatus="CANCELLED";
-    else if(["processing","in progress","inprogress"].includes(m))nextStatus="PROCESSING";
-   }
+   const nextStatus=normalizeProviderOrderStatus(o.data.status,rawStatus);
    if(nextStatus!==o.data.status||rawStatus){
     const saved=await admin.from("smm_orders").update({status:nextStatus,provider_status:rawStatus||null,updated_at:new Date().toISOString()}).eq("id",b.order_id).eq("user_id",user.id);
     if(saved.error){console.error("[smm-gateway] order status persistence failed",saved.error.code||"DB_ERROR");return json({error:"ORDER_STATUS_PERSISTENCE_PENDING",order_id:b.order_id,reconciliation_required:true},202);}
