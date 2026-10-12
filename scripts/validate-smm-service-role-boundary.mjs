@@ -6,6 +6,8 @@ const migration = fs.readFileSync("supabase/migrations/20261011010000_rc456_smm_
 const integration = fs.readFileSync("supabase/tests/rc456_smm_service_role_integration.sql", "utf8");
 const idempotencyMigration = fs.readFileSync("supabase/migrations/20261012100000_rc457_smm_order_idempotency.sql", "utf8");
 const smmUi = fs.readFileSync("web/smm.js", "utf8");
+const smmPage = fs.readFileSync("web/smm.html", "utf8");
+const home = fs.readFileSync("web/home.js", "utf8");
 const launchGate = fs.readFileSync("supabase/functions/smm-gateway/launch-gate.ts", "utf8");
 
 const adminStart = edge.indexOf("async function isAdmin");
