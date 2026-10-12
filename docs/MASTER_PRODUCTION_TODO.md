@@ -1559,3 +1559,28 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Session update — 2026-10-13 — Auth / Membership recovery (PR #217)
+
+### Implemented on review branch; not production deployed
+- [x] Google OAuth PKCE guard added to main browser Supabase client.
+- [x] Safe membership-recovery path calls authenticated `mnty-customer-registration`, validates the session identity, reloads live membership data, and confirms active CUSTOMER membership before success.
+- [x] Edge Function source aligned to the live private RPC `ensure_customer_membership_for_user`.
+- [x] Auth validator and release preflight guard the canonical RPC, PKCE, session identity and membership confirmation.
+- [x] CI verified at PR head `90f9ac4c9d49502d1ffe7249e936445fa6743615`: Pages validation PASS (deploy skipped because draft); Module Professionalization PASS; Backend-only Module Boundary PASS; MantiGO Open Ride Privacy Boundary PASS.
+- [x] Session evidence appended to `docs/SESSION_LOG.md`.
+
+### Production read-only audit
+- [x] Project ACTIVE_HEALTHY; `mnty-customer-registration` ACTIVE with JWT verification enabled.
+- [x] Canonical private RPC is service_role-only; auth-user membership trigger is installed.
+- [x] 6 permanent Auth users; 0 without active memberships; 10 distinct active membership user IDs.
+- [ ] Investigate 4 active platform CUSTOMER memberships whose user IDs are absent from `auth.users` (created 2026-09-29 to 2026-09-30). Preserve records until provenance/retention policy is established; do not delete or deactivate speculatively.
+
+### Remaining blockers for this module
+- [ ] Browser E2E: Google OAuth round-trip/session restoration using a controlled non-production test identity.
+- [ ] Membership recovery E2E for an account without active membership; verify membership appears after refresh and repeated activation is idempotent.
+- [ ] Negative tests: expired token, mismatched client/session identity, anonymous account, network/function failure, and tenant mismatch.
+- [ ] Two independent identities/two tenants: membership role switching and cross-tenant denial.
+- [ ] Review PR #217; keep draft/unmerged until required runtime and security evidence exists.
+- [ ] Do not claim production readiness from static CI alone; no production test account, DDL/data mutation, Auth setting change, Edge Function deploy, or release without the applicable authorization.
