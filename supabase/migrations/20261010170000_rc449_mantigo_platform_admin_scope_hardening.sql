@@ -93,7 +93,7 @@ begin
     'ledger_count', count(*),
     'gross', coalesce(sum(l.gross_amount),0),
     'commission', coalesce(sum(l.commission_amount),0),
-    'captain_net_amount', coalesce(sum(l.captain_net_amount),0),
+    'captain_amount', coalesce(sum(l.captain_net_amount),0),
     'paid_count', count(*) filter (where l.payment_status in ('PAID','CASH_CONFIRMED')),
     'paid_amount', coalesce(sum(l.gross_amount) filter (where l.payment_status in ('PAID','CASH_CONFIRMED')),0),
     'settled_count', count(*) filter (where l.settlement_status='SETTLED'),
