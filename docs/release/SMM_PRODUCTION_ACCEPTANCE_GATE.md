@@ -163,3 +163,9 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - [x] Unexpected internal errors and database/RPC errors use fixed client-facing error codes.
 - [x] Corrected exact-head CI passed on `1c16630ec4eb7ed6104d92b8454d0cadcc33c3d9`; deploy job skipped because PR is draft.
 - [ ] These are candidate-source checks only; live schema, provider configuration, and production behavior remain unverified.
+
+
+## Additional transport regression — 2026-10-13
+- [x] Provider response parser uses fatal UTF-8 decoding before JSON parsing.
+- [ ] Exact-head Deno regression test rejects malformed UTF-8 provider responses.
+- [ ] Do not mark this gate PASS until CI completes on the exact candidate HEAD.
