@@ -91,6 +91,9 @@ Deno.test("provider catalog refresh preserves reviewed customer pricing and acti
 
 Deno.test("provider catalog normalization rejects invalid costs and quantity bounds", () => {
   if (normalizeProviderService({ id: "svc", rate: -1, min: 1, max: 10 }, "provider-1")) throw new Error("negative provider cost accepted");
+  if (normalizeProviderService({ id: { malformed: true }, rate: 1, min: 1, max: 10 }, "provider-1")) throw new Error("object provider identifier accepted");
+  const malformedText = normalizeProviderService({ id: "svc-text", rate: 1, min: 1, max: 10, name: { arbitrary: true } }, "provider-1");
+  if (!malformedText || malformedText.name !== "Service") throw new Error("non-scalar provider text was accepted");
   if (normalizeProviderService({ id: "svc", rate: null, min: 1, max: 10 }, "provider-1")) throw new Error("missing provider cost accepted");
   if (normalizeProviderService({ id: "svc", rate: 1, min: 10, max: 1 }, "provider-1")) throw new Error("inverted quantity bounds accepted");
   const row = normalizeProviderService({ id: "svc", rate: 1, min: 1, max: 10, name: "bad" + String.fromCharCode(0) + "name" }, "provider-1");
