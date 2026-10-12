@@ -63,3 +63,13 @@ The source dependency is coordinated, not independently deployable. The followin
 ## Release boundary
 
 Passing PR CI is not proof that the production function is deployed. This runbook does not authorize production changes. The rollout is complete only after the live function version and deployed web assets are independently verified and the smoke-test evidence is recorded.
+
+## Initial-launch deferral checkpoint — 2026-10-12
+
+SMM is deferred from the initial customer-facing launch. The server-side deferral candidate is PR #214 at exact head `b5ececafa6930837e5e392bb999e318e1038bd10`; its recorded exact-head source checks passed, but it remains a draft and has not been deployed. These checks are source/CI evidence only, not proof that production requests are denied.
+
+The broader release-remediation candidate PR #207 is currently at `8918506f732c7077027768ca8eb1bdca927d44cf`. Its latest exact-head checks passed for migration-history immutability, migration-version uniqueness, open-PR collision detection, SMM service-role boundary, and SMM deferred-module validation. The disposable chronological migration replay is still in progress; do not infer replay success until the replay job completes with a successful conclusion. Earlier replay attempts failed on missing historical SECURITY DEFINER function-creation dependencies.
+
+**Critical live-state caveat:** the production `smm-gateway` remains active at version 6. A static holding page, hidden navigation, a passing source validator, or PR #214 does not disable the separately addressable Edge Function. Before public launch, the reviewed server-side deny/disable behavior must be deployed only with explicit production approval and then verified by negative runtime tests proving disabled requests cannot reach authentication-dependent business logic, database, wallet/order, or provider operations. Capture the deployed function version/hash and test evidence. Until that evidence exists, SMM API containment is a production launch blocker.
+
+Do not deploy RC456, any other migration, the gateway, or a web bundle from this checkpoint. Keep migration replay, the ordered release batch, and all three rollout approvals as separate gates.
