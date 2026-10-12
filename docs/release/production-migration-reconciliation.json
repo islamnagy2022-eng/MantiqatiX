@@ -13,10 +13,10 @@
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": null,
-  "checked_at": "2026-10-11",
-  "reason": "Live ledger ends at RC424 and the source filename timestamp differs from the applied ledger version. Required post-RC424 migrations are not proven applied. Do not certify or deploy until exact live/source reconciliation, complete ordered replay on disposable PostgreSQL, and required integration/security evidence are recorded.",
+  "checked_at": "2026-10-12",
+  "reason": "BLOCKED: live migration history remains at RC424. Sixteen required post-RC424 migration sources are absent from this main-based candidate branch; recovery is proposed separately in draft PR #207 and is not merged into this candidate baseline. Read-only production audit also confirms SMM idempotency_key is absent, wallet debit/refund reference uniqueness indexes are absent, and service_role lacks SELECT/INSERT/UPDATE privileges on the SMM tables required by the gateway. All 3 providers and the single service are inactive. Do not deploy or enable providers until the migration recovery is reviewed and integrated, the complete ordered chain is replayed on a disposable database, SMM schema/grant parity is verified, and required runtime/security evidence is recorded. Live Edge Function inspection confirms deployed smm-gateway version 8 has no MNTY_SMM_ENABLED deny gate. The candidate now contains a default-deny gate and a unit test, but it has not been deployed or negatively tested against production. The latest available full-chain replay attempt also fails closed because an approved isolated historical compatibility baseline for public.credit_policies is missing before migration 20260920155456_harden_credit_status_authorization.sql. No placeholder baseline was created. The uploaded RC40 archive was checksum-verified and contains the missing credit-control DDL, but its source timestamps differ from the applied ledger migration. No baseline was injected and no migration was reordered; this requires an immutable-history-compatible, reviewed resolution. Read-only comparison confirms the archived credit DDL is not identical to the current live schema; defaults, one period constraint, and later RLS policies differ. A replay fixture must represent the correct historical point, not blindly copy current live or archived schema. The live migration ledger contains the authorization migration at 20260920155456 but no recorded credit-control table-creation migration, despite the tables existing in production. This historical provenance gap remains unresolved.",
   "edge_function_contracts": "NOT VERIFIED",
-  "smm_gateway_parity": "NOT VERIFIED",
+  "smm_gateway_parity": "FAIL",
   "auth_security_settings": "NOT VERIFIED",
   "rc424_reconciliation": {
     "ledger_version": "20261008222845",
@@ -30,5 +30,85 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "smm_production_audit": {
+    "checked_at": "2026-10-12",
+    "source": "read-only production SQL audit",
+    "latest_applied_migration": "20261008222845",
+    "latest_applied_migration_name": "rc424_atomic_digital_page_payment_webhook",
+    "smm_orders_has_idempotency_key": false,
+    "wallet_debit_reference_unique_index": false,
+    "wallet_refund_reference_unique_index": false,
+    "duplicate_debit_reference_groups": 0,
+    "duplicate_refund_reference_groups": 0,
+    "providers_total": 3,
+    "providers_active": 0,
+    "services_total": 1,
+    "services_active": 0,
+    "service_role_required_table_privileges": "FAIL",
+    "production_migrations_applied": false,
+    "live_gateway_version": 8,
+    "live_gateway_hash": "c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f",
+    "live_gateway_has_launch_gate": false,
+    "candidate_gateway_has_launch_gate": true,
+    "candidate_launch_gate_test": "added; exact-head CI pending",
+    "live_negative_runtime_test": "NOT RUN; no production deployment authorized",
+    "status": "BLOCKED"
+  },
+  "missing_required_migration_sources": [
+    "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
+    "20261009130000_rc426_digital_page_provider_order_binding.sql",
+    "20261009140000_rc427_one_active_payment_intent_per_order.sql",
+    "20261009150000_rc428_atomic_provider_failure_webhook.sql",
+    "20261009160000_rc429_atomic_subscription_failure_webhook.sql",
+    "20261009170000_rc430_atomic_subscription_success_webhook.sql",
+    "20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql",
+    "20261009190000_rc432_smm_wallet_transaction_idempotency.sql",
+    "20261009200000_rc434_atomic_erp_purchase_receiving.sql",
+    "20261009210000_rc435_subscription_provider_intent_claim.sql",
+    "20261009220000_rc436_atomic_financial_journal.sql",
+    "20261009230000_rc437_purchase_order_lines_receiving_limits.sql",
+    "20261009240000_rc438_purchase_order_creation_with_lines.sql",
+    "20261010010000_rc439_encrypted_checkout_recovery.sql",
+    "20261010020000_rc440_exposed_security_definer_search_path.sql",
+    "20261010030000_rc441_platform_admin_scope_hardening.sql"
+  ],
+  "migration_source_recovery_pr": 207,
+  "migration_source_recovery_status": "DRAFT_NOT_MERGED",
+  "migration_replay_blocker": "The current full-chain disposable replay is blocked before startup because the authorization migration 20260920155456_harden_credit_status_authorization.sql executes before credit_policies/credit_accounts/credit_periods exist in a clean replay. The uploaded source_RC40.zip (SHA-256 e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e, matching the supplied checksum value) contains the authoritative schema DDL at 20260920185000_production_credit_control.sql and a matching authorization migration at 20260920190000_harden_credit_status_authorization.sql. This timestamp/content divergence must be reconciled under the migration immutability contract. No credit-policy test baseline has been approved; do not fabricate, inject, or reorder it without explicit approval. Read-only live schema comparison also found differences from the archived credit DDL: credit_policies defaults differ (grace_days 0 vs 7, suspend_after_days 15 vs 30, block_new_credit true vs false), credit_periods has an additional period_end >= period_start check, and live RLS policies include later guards. The archive is not a byte-for-byte live-schema baseline; do not inject it as exact current schema without mapping the migration timeline.",
+  "migration_replay_workflow_run": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38280710560",
+  "source_archive_evidence": {
+    "archive": "/mnt/data/source_RC40.zip",
+    "sha256": "e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e",
+    "checksum_value_matches": true,
+    "checksum_filename_mismatch": true,
+    "credit_schema_source": "supabase/migrations/20260920185000_production_credit_control.sql",
+    "archive_authorization_source": "supabase/migrations/20260920190000_harden_credit_status_authorization.sql",
+    "live_ledger_authorization_version": "20260920155456",
+    "chronological_order_conflict": true,
+    "approved_credit_policy_replay_baseline": false,
+    "archive_matches_current_live_credit_schema": false,
+    "live_schema_differences": {
+      "credit_policies_grace_days_default": {
+        "archive": "7",
+        "live": "0"
+      },
+      "credit_policies_suspend_after_days_default": {
+        "archive": "30",
+        "live": "15"
+      },
+      "credit_policies_block_new_credit_default": {
+        "archive": "false",
+        "live": "true"
+      },
+      "credit_periods_period_end_check": {
+        "archive": "not present in archived CREATE TABLE",
+        "live": "CHECK (period_end >= period_start)"
+      },
+      "rls_policies": "Live tables have additional finance-read and non-anonymous guard policies beyond the archived initial authenticated_sessions_only policy"
+    },
+    "credit_control_migration_recorded_in_live_ledger": false,
+    "archive_authorization_version": "20260920190000",
+    "live_ledger_contains_credit_table_creation": false
+  }
 }

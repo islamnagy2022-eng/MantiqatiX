@@ -6,8 +6,14 @@ on:
     paths:
       - "supabase/functions/smm-gateway/index.ts"
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
+      - "supabase/migrations/20261012100000_rc463_smm_order_idempotency.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
+      - "supabase/tests/rc463_smm_order_idempotency.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
+      - "supabase/functions/smm-gateway/launch-gate.ts"
+      - "supabase/functions/smm-gateway/launch-gate.test.ts"
+      - "web/smm.html"
+      - "web/home.js"
       - ".github/workflows/smm-service-role-access-boundary.yml"
   pull_request:
     branches: [main]
@@ -16,6 +22,8 @@ on:
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
+      - "supabase/functions/smm-gateway/launch-gate.ts"
+      - "supabase/functions/smm-gateway/launch-gate.test.ts"
       - ".github/workflows/smm-service-role-access-boundary.yml"
 permissions:
   contents: read
@@ -32,6 +40,7 @@ jobs:
         with:
           deno-version: v2.x
       - run: node scripts/validate-smm-service-role-boundary.mjs
+      - run: deno test --no-lock supabase/functions/smm-gateway/launch-gate.test.ts
       - run: deno check --no-lock supabase/functions/smm-gateway/index.ts
 
   smm-service-role-postgres:
@@ -60,7 +69,11 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc456_smm_service_role_fixture.sql "$pg_container:/tmp/rc456_fixture.sql"
           docker cp supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql "$pg_container:/tmp/rc456_migration.sql"
+          docker cp supabase/migrations/20261012100000_rc463_smm_order_idempotency.sql "$pg_container:/tmp/rc463_migration.sql"
           docker cp supabase/tests/rc456_smm_service_role_integration.sql "$pg_container:/tmp/rc456_test.sql"
+          docker cp supabase/tests/rc463_smm_order_idempotency.sql "$pg_container:/tmp/rc463_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc463_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc456_test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc456_smm_test -v ON_ERROR_STOP=1 -f /tmp/rc463_test.sql
