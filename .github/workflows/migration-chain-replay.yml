@@ -78,6 +78,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          private_admins_baseline="supabase/tests/baselines/private_platform_admins.sql"
+          private_admins_migration="supabase/migrations/20260807999996_test_only_private_platform_admins_baseline.sql"
           legacy_businesses_baseline="supabase/tests/baselines/legacy_businesses.sql"
           legacy_products_baseline="supabase/tests/baselines/legacy_products.sql"
           legacy_orders_baseline="supabase/tests/baselines/legacy_orders.sql"
