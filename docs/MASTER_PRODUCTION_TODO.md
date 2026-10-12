@@ -1608,3 +1608,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P0 BLOCKED:** keep PR #207/#214 unmerged and keep production changes blocked until historical source, runtime evidence, and explicit change approvals are resolved.
 - [ ] **P0 BLOCKED:** live SMM gateway v6 still lacks server-side launch-deny containment; require approved deploy and negative side-effect tests.
 - **Current release decision: BLOCKED / NOT CERTIFIED.** No production writes/deploys/merges or synthetic historical DDL were performed.
+
+
+## SESSION-005 — 2026-10-12 — Approved bookings baseline replay follow-up
+
+- [x] Updated the disposable migration replay workflow to inject the owner-approved `supabase/tests/baselines/bookings.sql` as temporary migration `20260919233424_test_only_approved_bookings_baseline.sql`, immediately before `20260919233425_production_security_hardening_v1.sql`.
+- [x] Added checks for source presence, destination absence, exact file copy, untracked temporary migration, and no data import.
+- [x] Commit for workflow change: `48bcf340f901e545e547b39639c641c899ea696c`. Session/continuity documentation updates followed; main remains unchanged.
+- [x] Exact-head CI: Module Professionalization Validation, Backend-only Module Boundary, Approval Action Audit Atomicity, Marketing Campaign Backend, MantiGO Open Ride Privacy Boundary, SMM Service Role Access Boundary, SMM Deferred Module Validation, Migration Version Uniqueness, Migration History Immutability, and Open PR Migration Collision Guard all succeeded. Pages validation succeeded, but deploy was skipped.
+- [ ] **P0 NOT VERIFIED:** Disposable Migration Chain Replay [38239527707](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527707) passed historical baseline preflight and all temporary-fixture integrity checks; disposable Supabase service startup is still in progress. Timestamp-ordered replay has not begun.
+- [ ] **P0 BLOCKED:** Live SMM gateway v6 has not been changed and still lacks server-side launch-deny containment. Keep SMM feature development frozen; do not claim API containment from the static holding page or passing source tests.
+- [ ] **P0 BLOCKED:** No production migration, Edge Function deployment, Auth/security configuration change, financial/wallet mutation, merge, or production release has occurred.
+- **Current release decision: BLOCKED / NOT CERTIFIED.** Next action: observe run 38239527707 and handle the actual first replay/runtime result without skipping migrations or creating unapproved schema definitions.
