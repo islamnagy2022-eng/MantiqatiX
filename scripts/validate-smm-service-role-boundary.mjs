@@ -44,6 +44,8 @@ const orderStatus = edge.slice(orderStatusStart, orderStatusEnd);
 assert.doesNotMatch(orderStatus, /result:r/, "raw provider status responses must not be returned to customers");
 assert.doesNotMatch(orderStatus, /payload:r\}/, "raw provider status responses must not be persisted in order events");
 assert.match(orderStatus, /provider_status:String\(r\.status\|\|"unknown"\)/, "status response must expose only a bounded provider status");
+assert.match(orderStatus, /ORDER_STATUS_SYNC_FAILED/, "failed order status persistence must not be reported as success");
+assert.match(orderStatus, /payload:safeStatus/, "status events must persist only allowlisted provider fields");
 
 
 const catalogStart = edge.indexOf('if(a==="catalog")');
