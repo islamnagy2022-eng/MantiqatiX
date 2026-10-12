@@ -116,13 +116,14 @@ const reconciliationEnd = edge.indexOf('if(a==="set_price")', reconciliationStar
 assert.ok(reconciliationStart >= 0 && reconciliationEnd > reconciliationStart, "admin reconciliation queue action must exist");
 const reconciliationQueue = edge.slice(reconciliationStart, reconciliationEnd);
 assert.match(reconciliationQueue, /if\(!\(await isAdmin\(user\.id\)\)\)return json\(\{error:"FORBIDDEN"\},403\)/, "reconciliation queue must be admin-only");
-assert.match(reconciliationQueue, /\.or\("status\.eq\.SUBMITTING,provider_status\.eq\.cancel_request_started,provider_status\.eq\.cancel_requested"\)/, "reconciliation queue must include unresolved submissions and ambiguous cancellation requests");
+assert.match(reconciliationQueue, /\.or\("status\.eq\.SUBMITTING,provider_status\.eq\.cancel_request_started,provider_status\.eq\.cancel_requested,provider_status\.eq\.refund_requires_reconciliation"\)/, "reconciliation queue must include unresolved submissions and ambiguous cancellation requests");
 assert.match(reconciliationQueue, /\.limit\(100\)/, "reconciliation queue must be bounded");
 assert.doesNotMatch(reconciliationQueue, /target_url/, "reconciliation queue must not disclose customer target URLs");
 assert.match(reconciliationQueue, /لا تعِد إرسال الطلبات المعلّقة تلقائيًا/, "reconciliation queue must warn against blind resubmission");
 assert.match(reconciliationQueue, /RECONCILIATION_QUEUE_READ_FAILED/, "queue read failures must fail closed");
 assert.match(reconciliationQueue, /provider_status\.eq\.cancel_request_started/, "admin reconciliation must surface cancellation requests that may have timed out");
 assert.match(reconciliationQueue, /provider_status\.eq\.cancel_requested/, "admin reconciliation must surface provider cancellation requests awaiting confirmation");
+assert.match(reconciliationQueue, /provider_status\.eq\.refund_requires_reconciliation/, "admin reconciliation must surface confirmed cancellations with unresolved refunds");
 
 const cancelStart = edge.indexOf('if(a==="cancel_order")');
 const cancelEnd = edge.indexOf('if(a==="order_status")', cancelStart);
@@ -140,6 +141,7 @@ const statusAction = edge.slice(statusActionStart, statusActionEnd);
 assert.match(statusAction, /if\(st==="CANCELLED"\)/, "wallet refund must only run after normalized provider-confirmed cancellation");
 assert.match(statusAction, /smm_refund_wallet/, "confirmed cancellation must attempt an idempotent wallet refund");
 assert.match(statusAction, /ORDER_REFUND_REQUIRES_RECONCILIATION/, "refund uncertainty must be explicit and retryable");
+assert.match(statusAction, /refund_requires_reconciliation/, "failed confirmed-cancellation refunds must persist a dedicated reconciliation state");
 assert.match(statusAction, /WALLET_REFUND_CONFIRMED/, "successful refund must be auditable");
 assert.match(statusAction, /const cancellationPending=/, "status polling must preserve a pending cancellation while the provider still reports an active or uncertain state");
 assert.match(smmUi, /action:'cancel_order'/, "customer UI must invoke the guarded cancellation action");
