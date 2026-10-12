@@ -72,3 +72,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Still blocked:** PR #216 remains open/draft; live `smm-gateway` was last verified as version 8 without the new gate; production migration ledger snapshot ends at RC424; RC456/RC463/RC464 remain source-only and must not be applied outside the reconciled migration chain. Live negative tests, wallet/provider end-to-end tests, and explicit release authorization remain outstanding.
 - **Production impact:** documentation-only commit on candidate branch; no merge, deployment, Supabase mutation, environment change, provider request, or wallet operation.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — SESSION-007 — SMM production acceptance gates
+
+- Created `docs/release/SMM_PRODUCTION_ACCEPTANCE_GATE.md` on the candidate branch, defining six release gates: safe deferral, migration lineage/schema, least-privilege boundary, provider/catalog readiness, wallet/order correctness, abuse/operations, and exact-head release review.
+- Added objective acceptance checks for duplicate/concurrent orders, ambiguous provider outcomes, idempotent refunds, price policy, timeouts, SSRF, secret handling, and post-deploy evidence.
+- Recorded current read-only blockers: live gateway version 8 lacks the candidate gate; migration ledger snapshot ends at RC424; zero active providers/services/orders; missing `smm_orders.idempotency_key`; missing service_role SELECT/INSERT/UPDATE on sampled SMM tables; credit historical-baseline blocker remains unresolved.
+- Updated master TODO to link this gate plan.
+- Safety: candidate documentation-only changes; no production database mutation, migration, grants, edge-function deploy, provider call, wallet transaction, or PR merge.
+- State remains **BLOCKED / NOT CERTIFIED**.
