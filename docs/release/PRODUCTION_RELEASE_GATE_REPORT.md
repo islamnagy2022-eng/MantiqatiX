@@ -190,3 +190,25 @@ Candidate branch: `reconcile/rc425-458-current-main-20261011`. Latest remediatio
 
 **Release decision remains `BLOCKED / NOT CERTIFIED`.** Before SMM is enabled after launch, require exact-head CI, review of provider-specific definitive-rejection semantics, isolated failure-injection tests, approved deployment, and live negative verification. Core release additionally requires successful full chronological replay, production migration reconciliation, and the remaining release evidence listed above.
 
+## 9. Exact-head SMM hardening continuation — 2026-10-12
+
+Candidate head: `f088b02ffe799d3801c9d920a4a5f2f7bd9a57f6` on draft PR #207.
+
+### Completed source fixes
+- Repaired a literal escaped newline in `supabase/functions/smm-gateway/index.ts` that made the gateway fail TypeScript parsing.
+- Added a bounded `deno check --no-lock` to SMM validation and source-contract assertions for the escaped-newline regression and for the server-side deferral gate executing before authentication/business actions.
+- Corrected provider status synchronization: terminal provider states (for example COMPLETED/CANCELLED) are now persisted, while the database update predicate still prevents overwriting an already-terminal local order. If the update is ambiguous or loses a race, the handler returns `ORDER_STATUS_SYNC_UNKNOWN` with reconciliation required or rereads the current status rather than claiming an unpersisted status.
+- Expanded the SMM safety validator to check terminal-state persistence and race-safe behavior.
+
+### Exact-head evidence
+- [SMM Deferred Module Validation — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626156): TypeScript syntax check, Deno type-check, RC432 wallet idempotency PostgreSQL test, deferred UI quarantine, and SMM safety/service-role source checks all completed successfully.
+- [SMM Service Role Access Boundary — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626168): service-role PostgreSQL ACL boundary and Deno type-check completed successfully.
+- [Migration History Immutability — PASS](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626149).
+- [Disposable Supabase Migration Chain Replay — BLOCKED](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38187626191): the fail-closed historical-schema preflight failed; chronological replay did not start. Do not bypass this guard or invent missing historical function DDL.
+- Module Professionalization Validation was still running at report time; its exact-head result must be checked before recording a final PASS.
+
+### Production comparison and release decision
+- A fresh read-only lookup still reports live `smm-gateway` version 6 with source hash `ea4de98886b739ed5ce83c7f5909671fd00481a8f488849ffe58567e58be6cd6`; the live source does **not** contain the `MNTY_SMM_ENABLED` fail-closed gate. It remains an active P0 containment blocker.
+- The candidate SMM code and validation changes are repository-only. No production function deployment, database migration/write, wallet/payment mutation, merge, or Auth/security configuration change was performed.
+- SMM remains a separate functional module and is deferred from the initial launch UI; internal Marketing & Advertising remains in scope. The source CI pass does not certify the live SMM endpoint.
+- Overall decision remains **`BLOCKED / NOT CERTIFIED`** pending historical replay, all exact-head checks, tenant/provider/payment E2E, live SMM containment under separate authorization, and remaining production/backup/restore evidence.
