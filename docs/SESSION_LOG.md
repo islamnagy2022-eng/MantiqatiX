@@ -72,3 +72,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Candidate remediation evidence:** RC449/RC462 hardening exists in draft PR #207's candidate branch. Its disposable PostgreSQL platform-admin integration passed in [Module Professionalization Validation run 38315402754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402754).
 - **Deployment blocker:** full disposable migration replay for PR #207 fails closed in [run 38315402728](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402728) because no approved isolated historical baselines exist for `public.credit_policies`, `public.credit_accounts`, and `public.credit_periods` before migration `20260920155456_harden_credit_status_authorization.sql`. Do not invent those baselines, skip the migration, or apply RC449 independently of the approved ordered migration chain.
 - **Action:** keep production unchanged; track platform-admin scope as a P0 release blocker until authoritative credit schema provenance/ordered replay is resolved and the candidate guard is applied and verified through the approved release process.
+
+
+### 2026-10-13 — Live RLS runtime probe (read-only transaction)
+
+- Ran a transaction-local authenticated-context probe against live Supabase, selected an existing permanent Auth identity without exposing its ID, set JWT claims locally, switched to the `authenticated` role, queried `user_memberships`, and rolled back.
+- **Observed:** 38 own membership rows visible to that identity and 0 rows for other user IDs. The transaction performed no persistent writes. This is a positive check of self-row visibility and other-user denial for that one identity; it does not establish full two-tenant/role-switch E2E.
