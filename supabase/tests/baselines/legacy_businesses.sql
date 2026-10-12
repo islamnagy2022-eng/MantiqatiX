@@ -2,7 +2,7 @@
 -- Authorized by the project owner on 2026-10-12 for disposable CI replay only.
 -- The applied Phase 04 migration modifies an already-existing public.businesses table.
 -- The live migration ledger does not contain its original creation DDL.
--- This minimal pre-Phase-04 shape is inferred only for compatibility replay; it is NOT historical DDL.
+-- This minimal pre-Phase-04 shape is inferred only for compatibility replay; it is NOT recovered historical DDL.
 -- Never apply this file to production. No production rows are included.
 
 create table public.businesses (
