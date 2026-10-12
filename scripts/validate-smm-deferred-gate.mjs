@@ -15,7 +15,7 @@ const auth=gateway.indexOf('const user=await getUser(req)');
 check(options>=0 && gate>options, 'SMM default-deny gate must follow OPTIONS handling');
 check(gate>=0 && auth>gate, 'SMM default-deny gate must run before authentication and action routing');
 check(gateway.includes('json({error:"SMM_DEFERRED"') && gateway.includes('},503);'), 'disabled SMM gateway must return a non-success deferred response');
-check(gateway.includes('SMM_LAUNCH_ENABLED') && gateway.includes('!== "true"')===false, 'SMM rollout must require an exact explicit true flag');
+check(gateway.includes('Deno.env.get("SMM_LAUNCH_ENABLED")!=="true"'), 'SMM rollout must require an exact explicit true flag');
 check(!/<script[^>]+src=["'][^"']*smm\\.js/i.test(holding), 'deferred holding page must not load smm.js');
 check(!/<script[^>]+src=["'][^"']*vendor\\/supabase\\.js/i.test(holding), 'deferred holding page must not initialize Supabase browser SDK');
 check(!/<script[^>]+src=["'][^"']*config\\.js/i.test(holding), 'deferred holding page must not load application config');
