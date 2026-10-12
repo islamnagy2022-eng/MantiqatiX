@@ -1713,3 +1713,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify exact-head CI for the hard-off constant/static contract.
 - [ ] BLOCKED: apply RC463/RC464 only through the reconciled, approved migration chain; prove unique order idempotency and exactly-once wallet operations in disposable PostgreSQL.
 - [ ] Do not enable SMM or certify the platform until migration replay, financial/provider E2E, auth security, and restore rehearsal pass.
+
+
+## SMM hard-off verification correction — 2026-10-13
+- [x] Exact function source commit `efcf90186b3713af47c5f912a2e0e1ea46cd2122` passed 19 triggered check runs, including SMM validation and disposable PostgreSQL service-role integration.
+- [x] Live Edge Function version 10 read-back confirms the hard-off source constant, dual flag gate, and JWT verification.
+- [ ] Runtime HTTP smoke test from a network-capable environment; no HTTP 503 claim is made from source read-back alone.
+- [ ] Latest documentation-only HEAD still needs its own CI completion; it contains no source changes to the tested SMM gate.
