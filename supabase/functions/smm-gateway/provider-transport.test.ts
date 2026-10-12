@@ -204,3 +204,19 @@ Deno.test("SMM request parser enforces streamed body size even without a trusted
   }), 512);
   if (result.ok || result.status !== 413 || result.code !== "REQUEST_TOO_LARGE") throw new Error("oversized body was accepted");
 });
+
+
+Deno.test("SMM request parser validates declared content length without trusting it", async () => {
+  const oversized = await readBoundedJson(new Request("https://gateway.example.test", {
+    method: "POST", headers: { "content-type": "application/json", "content-length": "2048" }, body: "{}",
+  }), 128);
+  if (oversized.ok || oversized.status !== 413) throw new Error("oversized declared content length was accepted");
+  const malformed = await readBoundedJson(new Request("https://gateway.example.test", {
+    method: "POST", headers: { "content-type": "application/json", "content-length": "unknown" }, body: "{}",
+  }), 128);
+  if (malformed.ok || malformed.status !== 400) throw new Error("malformed content length was accepted");
+  const valid = await readBoundedJson(new Request("https://gateway.example.test", {
+    method: "POST", headers: { "content-type": "application/json", "content-length": "2" }, body: "{}",
+  }), 128);
+  if (!valid.ok || Object.keys(valid.value).length !== 0) throw new Error("valid decimal content length was rejected");
+});
