@@ -20,4 +20,5 @@ create table public.audit_logs(
 );
 alter table public.audit_logs enable row level security;
 alter table public.audit_logs force row level security;
-grant all on table public.audit_logs to anon, authenticated, service_role;
+grant select on table public.audit_logs to authenticated;
+grant all on table public.audit_logs to service_role;
