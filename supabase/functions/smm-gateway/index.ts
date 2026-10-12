@@ -9,6 +9,8 @@ async function secret(id:string){const r=await admin.rpc("smm_get_provider_secre
 async function call(p:any,k:string,a:string,x:any={}){let endpoint:URL;try{endpoint=new globalThis.URL(String(p?.api_url||""));}catch{throw new Error("Invalid provider endpoint");}if(endpoint.protocol!=="https:"||endpoint.username||endpoint.password)throw new Error("Provider endpoint must use HTTPS without embedded credentials");const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);let r:Response;try{r=await fetch(endpoint.toString(),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString(),signal:controller.signal,redirect:"error"});}finally{clearTimeout(timer);}const t=await r.text();let d:any;try{d=JSON.parse(t)}catch{d={raw:t.slice(0,2000)}}if(!r.ok)throw new Error("Provider HTTP "+r.status);return d;}
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
+ // Keep SMM disabled by default until the full migration chain and launch acceptance gates are approved.
+ if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_POST_LAUNCH_DEFERRED"},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const b=await req.json(),a=b.action;
