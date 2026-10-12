@@ -62,6 +62,10 @@ assert.match(placeOrder, /wallet_debit_unknown/, "ambiguous wallet debit must pe
 assert.match(placeOrder, /if\(debit\.error\|\|debit\.data!==false\)/, "unknown debit outcomes must not be mislabeled as insufficient balance");
 assert.ok(placeOrder.indexOf("WALLET_DEBIT_RESULT_UNKNOWN") < placeOrder.indexOf("providerCallStarted=true"), "provider submission must not begin when wallet debit is ambiguous");
 assert.match(edge, /provider_status:"submission_unknown"/, "ambiguous provider outcomes must be explicitly marked for reconciliation");
+assert.match(placeOrder, /let providerOrderId:string\|null=null/, "provider order ID must survive local persistence failures");
+assert.match(placeOrder, /PROVIDER_ACCEPTED_REQUIRES_RECONCILIATION/, "provider acceptance followed by database failure must return a reconciliation state");
+assert.match(placeOrder, /provider_accepted_persistence_retry/, "accepted provider order ID must be retained for reconciliation");
+assert.match(placeOrder, /provider_order_id:providerOrderId/, "known provider order ID must be persisted during recovery");
 assert.doesNotMatch(edge, /Automatic refund after provider failure/, "provider-call exceptions must not trigger blind automatic refunds");
 const orderStatusStart = edge.indexOf('if(a==="order_status")');
 const orderStatusEnd = edge.indexOf('return json({error:"UNKNOWN_ACTION"}', orderStatusStart);
