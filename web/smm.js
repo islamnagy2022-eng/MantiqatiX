@@ -106,6 +106,11 @@ function openOrder(id){
   try{
    const r=await fn({action:'place_order',service_id:selected.id,target_url:target,quantity:qty,idempotency_key:idempotencyKey});
    if(r.pending){message.innerHTML='<div class="notice">تم تسجيل الطلب للتحقق من نتيجته. لا تعِد الإرسال الآن؛ استخدم «طلباتي» لتحديث الحالة. رقم الطلب: '+esc(r.order_id||'—')+'.</div>';place.textContent='متابعة الطلبات';place.onclick=()=>{m.remove();tab='orders';render()};return;}
+   if(r.replayed){
+    try{sessionStorage.removeItem(storageKey)}catch{}
+    message.innerHTML='<div class="notice">تم العثور على طلب سابق بنفس معرّف المحاولة. الحالة الحالية: '+esc(statusLabel(r.status))+'، رقم الطلب: '+esc(r.order_id||'—')+'. لم يتم إنشاء طلب جديد. راجع «طلباتي» لمعرفة التفاصيل.</div>';
+    place.textContent='إغلاق';place.onclick=()=>m.remove();return;
+   }
    try{sessionStorage.removeItem(storageKey)}catch{}
    message.innerHTML='<div class="notice success">تم استلام الطلب من النظام. رقم الطلب: '+esc(r.order_id||'—')+'. يمكنك متابعة حالته من صفحة «طلباتي».</div>';
    setTimeout(()=>{m.remove();load()},1500);
