@@ -42,7 +42,7 @@ check("global stale-ride expiration checks the platform-admin guard", migration.
 check("integration rejects tenant OWNER, ADMIN, and OPERATIONS_MANAGER", integration.includes("tenant OWNER must not be treated") && integration.includes("tenant ADMIN with admin permission") && integration.includes("tenant OPERATIONS_MANAGER"));
 check("integration exercises global dashboard, report, settlement, and expiration", integration.includes("tenant OWNER read platform-wide dashboard") && integration.includes("tenant OWNER read platform-wide financial report") && integration.includes("global settlement mutation") && integration.includes("global ride expiration mutation"));
 check("integration allows explicit platform SUPER_ADMIN and checks grants", integration.includes("explicit platform SUPER_ADMIN") && integration.includes("has_function_privilege('anon'"));
-check("integration rejects malformed full_control JSON without cast exceptions", integration.includes("full_control":"not-a-boolean") && integration.includes("malformed full_control permission must not grant platform scope"));
+check("integration rejects malformed full_control JSON without cast exceptions", integration.includes('"full_control":"not-a-boolean"') && integration.includes("malformed full_control permission must not grant platform scope"));
 check("integration denies anon on ride expiration and preserves authenticated entrypoint grants",
   integration.includes("anon must not execute platform ride expiration") &&
   integration.includes("authenticated role must retain intended RPC entrypoint grants") &&
