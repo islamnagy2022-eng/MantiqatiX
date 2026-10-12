@@ -79,6 +79,28 @@ begin
     raise exception 'explicit platform SUPER_ADMIN with full_control should pass';
   end if;
 
+  -- Malformed JSON permission values must deny access without raising a cast exception.
+  update public.user_memberships
+     set permissions = '{"scope":"PLATFORM","full_control":"not-a-boolean"}'::jsonb
+   where id = 'platform';
+  if public.mnty_can_platform_admin() then
+    raise exception 'malformed full_control must fail closed';
+  end if;
+
+  update public.user_memberships
+     set permissions = '{"scope":"PLATFORM","full_control":false}'::jsonb
+   where id = 'platform';
+  if public.mnty_can_platform_admin() then
+    raise exception 'false full_control must fail closed';
+  end if;
+
+  update public.user_memberships
+     set permissions = '{"scope":"PLATFORM","full_control":true}'::jsonb
+   where id = 'platform';
+  if not public.mnty_can_platform_admin() then
+    raise exception 'valid platform SUPER_ADMIN permission must remain authorized';
+  end if;
+
   if has_function_privilege('anon','public.mnty_can_platform_admin()','EXECUTE') then
     raise exception 'anon must not execute platform-admin guard';
   end if;
