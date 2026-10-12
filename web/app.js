@@ -1746,11 +1746,47 @@ async function providerOnboardingView(){
   }
 }
 window.providerOnboardingView=providerOnboardingView;
+async function activateCustomerMembership(){
+ const button=document.getElementById('membership-activate-customer');
+ if(button){button.disabled=true;button.textContent='جارٍ التحقق من الحساب…'}
+ try{
+  const {data:{session},error:sessionError}=await sb.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(!session?.access_token)throw new Error('AUTH_REQUIRED');
+  const {data:verified,error:verifyError}=await sb.auth.getUser(session.access_token);
+  if(verifyError||!verified?.user?.id||verified.user.id!==user?.id)throw new Error('AUTH_SESSION_MISMATCH');
+  const {data,error}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+  await loadLiveData();
+  if(!(live.memberships||[]).some(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='CUSTOMER')){
+   throw new Error('CUSTOMER_MEMBERSHIP_NOT_CONFIRMED');
+  }
+  try{
+   const pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null');
+   if(String(pending?.role||'').toUpperCase()==='CUSTOMER')localStorage.removeItem('MNTYPendingRegistration');
+  }catch(_){}
+  showToast('تم التحقق من عضوية العميل بنجاح.','success');
+  await renderApp({forceWorkspace:true});
+ }catch(e){
+  if(button){button.disabled=false;button.textContent='تفعيل عضوية العميل'}
+  const errorCode=String(e?.message||'');
+  const message=errorCode==='AUTH_REQUIRED'||errorCode==='AUTH_SESSION_MISMATCH'
+   ?'انتهت جلسة الدخول أو تغير الحساب. سجّل الدخول مجددًا.'
+   :errorCode==='CUSTOMER_MEMBERSHIP_NOT_CONFIRMED'
+    ?'تم إرسال طلب التفعيل لكن لم نتمكن من تأكيد العضوية. أعد المحاولة أو تواصل مع الدعم.'
+    :'تعذر تفعيل عضوية العميل حاليًا. أعد المحاولة بعد التحقق من الاتصال.';
+  const status=document.getElementById('membership-activation-status');
+  if(status)status.textContent=message;
+  showToast(message,'error');
+ }
+}
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
 const app=document.getElementById('app');
 if(!app)return;
-app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">ACCOUNT STATUS</span><h1>الحساب تم التحقق منه</h1><p>حسابك مسجل بنجاح، لكن لا توجد عضوية تشغيلية نشطة مرتبطة به حاليًا.</p><div class="mnty-screen-note">يمكنك العودة للواجهة العامة أو تسجيل الخروج. لا يتم منح صلاحيات تشغيلية تلقائيًا قبل ربط العضوية من المسار المعتمد.</div><div class="action-bar"><button class="btn btn-primary" id="membership-home">العودة للواجهة العامة</button><button class="btn btn-outline" id="membership-logout">تسجيل الخروج</button></div></section></main>';
+app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">ACCOUNT STATUS</span><h1>الحساب تم التحقق منه</h1><p>حسابك مسجل بنجاح، لكن لا توجد عضوية تشغيلية نشطة مرتبطة به حاليًا.</p><div class="mnty-screen-note">يمكنك تفعيل عضوية العميل من خلال المسار الآمن على الخادم. لن تُمنح أدوار إدارية أو صلاحيات تشغيلية إضافية من المتصفح.</div><p id="membership-activation-status" class="msg" role="status" aria-live="polite"></p><div class="action-bar"><button class="btn btn-primary" id="membership-activate-customer">تفعيل عضوية العميل</button><button class="btn btn-outline" id="membership-home">العودة للواجهة العامة</button><button class="btn btn-outline" id="membership-logout">تسجيل الخروج</button></div></section></main>';
+document.getElementById('membership-activate-customer')?.addEventListener('click',activateCustomerMembership);
 document.getElementById('membership-home')?.addEventListener('click',()=>window.MXHomeLanding?window.MXHomeLanding():landingView());
 document.getElementById('membership-logout')?.addEventListener('click',logout);
 }
