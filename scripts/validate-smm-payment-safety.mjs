@@ -15,6 +15,8 @@ const persistenceStart = source.indexOf('const persisted=await admin.from("smm_o
 const persistenceEnd = source.indexOf('const event=await admin.from("smm_order_events")', persistenceStart);
 const persistenceBranch = persistenceStart >= 0 && persistenceEnd >= 0 ? source.slice(persistenceStart, persistenceEnd) : "";
 check("provider call has bounded timeout", source.includes("AbortSignal.timeout(15000)"));
+check("gateway source contains no literal escaped newline that breaks TypeScript parsing", !source.includes(');\\n  if(a==="configure_provider")'));
+check("SMM server-side deferral gate runs before authentication and business actions", source.indexOf('if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")') >= 0 && source.indexOf('if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")') < source.indexOf("const user=await getUser(req)"));
 check("network/HTTP ambiguity has a typed non-definitive error", source.includes('new ProviderCallError("Provider network outcome unknown",false)') && source.includes('Provider response outcome unknown'));
 check("ambiguous provider outcomes require reconciliation", unknownBranch.includes('PROVIDER_OUTCOME_UNKNOWN') && unknownBranch.includes("reconciliation_required:true"));
 check("ambiguous provider outcomes never auto-refund", unknownBranch.length > 0 && !unknownBranch.includes("smm_refund_wallet"));
