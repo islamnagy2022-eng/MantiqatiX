@@ -82,3 +82,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Updated master TODO to link this gate plan.
 - Safety: candidate documentation-only changes; no production database mutation, migration, grants, edge-function deploy, provider call, wallet transaction, or PR merge.
 - State remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-008 — Module completion matrix
+
+- Added `docs/release/MODULE_COMPLETION_MATRIX_AR.md`, covering 20 modules and distinguishing estimated source-build completeness from verification/release readiness.
+- Based on the existing production gate report and current SMM evidence, the documented arithmetic averages are 69% source build and 37% verification/readiness; overall launch readiness is conservatively estimated at 30% because unresolved P0 gates block release.
+- These are transparent engineering estimates, approximately ±10 percentage points, not measured code coverage or a production certificate. The matrix lists blockers and an evidence policy for future updates.
+- No production changes, migrations, grants, deploys, provider calls, wallet operations, or PR merge were performed.
+- State remains **BLOCKED / NOT CERTIFIED**.
