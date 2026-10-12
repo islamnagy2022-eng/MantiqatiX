@@ -70,6 +70,7 @@ check(orderValidation.includes('url.protocol !== "https:"'), 'SMM order targets 
 check(orderValidation.includes('!hostname.includes(".")'), 'SMM order targets must reject single-label internal hosts');
 check(orderValidation.includes('url.username || url.password'), 'SMM order targets must reject embedded credentials');
 check(orderValidation.includes('sellingPrice <= providerCost'), 'SMM orders must reject non-positive gross margin');
+check(orderValidation.includes("Math.round((value + Number.EPSILON) * 100) / 100"), "wallet charges and provider costs must be rounded to currency cents");
 check(tests.includes('SMM order input rejects unsafe protocols, credentials, local hosts, IP literals and oversized URLs'), 'SMM URL safety tests must exist');
 check(tests.includes('SMM pricing requires a strictly positive customer margin and finite totals'), 'SMM order pricing tests must exist');
 check(gateway.includes('error:"INTERNAL_ERROR"'), 'unhandled gateway errors must return a generic client response');
