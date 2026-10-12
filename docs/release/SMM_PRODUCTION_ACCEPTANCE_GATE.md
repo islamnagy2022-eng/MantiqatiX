@@ -193,3 +193,9 @@ This document is a checklist, not an authorization to deploy, migrate, grant pri
 - **CI evidence:** the dual-flag tests passed on prior commit `b3e5f7380de76b99a5f158a8761c0414426a4692`; exact-head CI for the added source hard-off constant/static contract is pending. Do not upgrade the source-test gate until it completes.
 - **Not changed:** no production table/schema, migration ledger, wallet, order, provider credential, RLS/grant, or customer data was modified. No SMM order was submitted.
 - **Remaining blockers:** RC463 idempotency index is absent from the live `smm_orders` table; wallet debit/refund RPCs remain non-idempotent in the live schema; full migration replay and core release gates remain blocked. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Verification follow-up — 2026-10-13
+- **PASS at source commit `efcf90186b3713af47c5f912a2e0e1ea46cd2122`:** 19 GitHub check runs completed successfully, including SMM validation, Deno type-check, provider transport tests, the new dual-flag launch-gate tests, static hard-off contract, SMM service-role PostgreSQL integration, and the other triggered security/integration checks. [SMM validation run](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315750771) and [Pages validation run](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38315755101).
+- The Pages `deploy` job was **SKIPPED** because PR #216 is Draft; this did not deploy the website. The Supabase Edge Function version 10 deployment is a separate, verified production action.
+- This validates candidate source, not the live HTTP response. Runtime HTTP smoke test remains outstanding because the execution environment could not resolve the Supabase hostname.
