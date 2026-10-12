@@ -40,6 +40,13 @@ check(gateway.includes('import { assertSafeProviderEndpoint, readProviderJson } 
 check(gateway.includes('Deno.env.get("SMM_PROVIDER_HOSTS")'), 'provider calls must fail closed without explicit host allowlist');
 check(fs.existsSync('supabase/functions/smm-gateway/provider-transport.test.ts'), 'provider transport unit tests must exist');
 
+const placeOrder=gateway.slice(gateway.indexOf('if(a==="place_order")'),gateway.indexOf('if(a==="order_status")'));
+check(placeOrder.includes('WALLET_DEBIT_RESULT_UNKNOWN'), 'ambiguous wallet debit must be quarantined for reconciliation');
+check(placeOrder.includes('PROVIDER_RESULT_UNKNOWN'), 'ambiguous provider outcomes must be quarantined for reconciliation');
+check(placeOrder.includes('PROVIDER_ACCEPTED_PERSISTENCE_PENDING'), 'provider acceptance with failed persistence must be surfaced for reconciliation');
+check(!placeOrder.includes('smm_refund_wallet'), 'provider exceptions must not trigger automatic wallet refunds');
+check(!placeOrder.includes('Automatic refund after provider failure'), 'ambiguous provider outcomes must never auto-refund');
+
 if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
 console.log('P0 SMM deferral gate: PASS');
 console.log('Static storefront, desktop/mobile navigation, internal workspace, and default-deny API gate are covered.');
