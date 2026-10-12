@@ -20,7 +20,9 @@ assert.match(adminGuard, /p\.scope==="PLATFORM"/, "membership must carry PLATFOR
 assert.match(adminGuard, /p\.full_control===true/, "membership must have explicit full control");
 assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/, "tenant OWNER/ADMIN roles must not grant global SMM administration");
 
-assert.match(edge, /user\.is_anonymous\?null:user/, "anonymous Auth sessions must be rejected");
+assert.match(edge, /MNTY_SMM_ENABLED/, "SMM gateway must be disabled by default behind an explicit launch flag");
+assert.match(edge, /SMM_POST_LAUNCH_DEFERRED/, "disabled SMM gateway must return a stable non-sensitive error");
+assert.ok(edge.indexOf('if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")') < edge.indexOf("const user=await getUser(req)"), "SMM launch gate must run before authentication and any protected work");
 assert.match(edge, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
 const providerCallStart = edge.indexOf("async function call(");
 const providerCallEnd = edge.indexOf("\nDeno.serve", providerCallStart);
