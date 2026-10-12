@@ -36,6 +36,10 @@ check(providerCall.includes('total>1048576'), 'provider response body must be si
 check(providerCall.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
 check(!providerCall.includes('d={raw:t}'), 'provider response text must not be returned or propagated as raw fallback');
 
+check(gateway.includes('import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts"'), 'gateway must use tested provider transport policy');
+check(gateway.includes('Deno.env.get("SMM_PROVIDER_HOSTS")'), 'provider calls must fail closed without explicit host allowlist');
+check(fs.existsSync('supabase/functions/smm-gateway/provider-transport.test.ts'), 'provider transport unit tests must exist');
+
 if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
 console.log('P0 SMM deferral gate: PASS');
 console.log('Static storefront, desktop/mobile navigation, internal workspace, and default-deny API gate are covered.');
