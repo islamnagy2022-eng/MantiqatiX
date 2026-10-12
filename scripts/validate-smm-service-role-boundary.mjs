@@ -57,6 +57,10 @@ assert.match(smmUi, /if\(r\.replayed\)/, "UI must distinguish a replayed order f
 assert.ok(placeOrder.includes('target.protocol!=="https:"'), "customer target URL must require HTTPS");
 assert.match(placeOrder, /SERVICE_CONFIGURATION_INVALID/, "invalid service pricing configuration must fail closed");
 assert.match(placeOrder, /v\.smm_providers\.active!==true.*PROVIDER_INACTIVE/, "orders must fail closed if the provider is deactivated after catalog load");
+assert.match(placeOrder, /WALLET_DEBIT_RESULT_UNKNOWN/, "ambiguous wallet debit must be quarantined for reconciliation");
+assert.match(placeOrder, /wallet_debit_unknown/, "ambiguous wallet debit must persist an explicit reconciliation state");
+assert.match(placeOrder, /if\(debit\.error\|\|debit\.data!==false\)/, "unknown debit outcomes must not be mislabeled as insufficient balance");
+assert.ok(placeOrder.indexOf("WALLET_DEBIT_RESULT_UNKNOWN") < placeOrder.indexOf("providerCallStarted=true"), "provider submission must not begin when wallet debit is ambiguous");
 assert.match(edge, /provider_status:"submission_unknown"/, "ambiguous provider outcomes must be explicitly marked for reconciliation");
 assert.doesNotMatch(edge, /Automatic refund after provider failure/, "provider-call exceptions must not trigger blind automatic refunds");
 const orderStatusStart = edge.indexOf('if(a==="order_status")');
