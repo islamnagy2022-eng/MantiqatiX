@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const gateway=fs.readFileSync('supabase/functions/smm-gateway/index.ts','utf8');
 const transport=fs.readFileSync('supabase/functions/smm-gateway/provider-transport.ts','utf8');
 const tests=fs.readFileSync('supabase/functions/smm-gateway/provider-transport.test.ts','utf8');
+const catalog=fs.readFileSync('supabase/functions/smm-gateway/catalog-normalization.ts','utf8');
 const ngateway=gateway;
 const holding=fs.readFileSync('web/smm.html','utf8');
 const home=fs.readFileSync('web/home.js','utf8');
@@ -62,6 +63,11 @@ check(!orderStatus.includes('result:r'), 'raw provider status response must not 
 check(ngateway.includes('import { normalizeProviderOrderStatus } from "./order-status.ts"'), 'gateway must use unit-tested provider status normalization');
 check(fs.existsSync('supabase/functions/smm-gateway/order-status.ts'), 'provider status normalization module must exist');
 check(tests.includes('provider terminal states cannot regress'), 'terminal-state regression tests must exist');
+check(gateway.includes('import { normalizeProviderService } from "./catalog-normalization.ts"'), 'provider catalog must use tested normalization');
+check(catalog.includes('selling_price: hasReviewedPrice ? existingPrice : 0'), 'catalog sync must not equate customer price to provider cost');
+check(catalog.includes('active: keepExistingActivation ? existing.active === true : false'), 'new provider services must remain inactive pending review');
+check(catalog.includes('metadata: { provider_service_id: externalId, provider_rate: providerCost }'), 'provider catalog persistence must use allowlisted metadata');
+check(tests.includes('new provider catalog items require manual price review and stay inactive'), 'catalog pricing safety tests must exist');
 
 if(fail.length){console.error('P0 SMM deferral gate: FAIL');for(const item of fail)console.error(' - '+item);process.exit(1)}
 console.log('P0 SMM deferral gate: PASS');
