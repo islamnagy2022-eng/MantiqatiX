@@ -35,7 +35,7 @@ check(transport.includes('new URL(String(value ?? ""))'), 'provider endpoint mus
 check(transport.includes('endpoint.protocol !== "https:"'), 'provider calls must require HTTPS');
 check(providerCall.includes('redirect:"error"'), 'provider calls must reject redirects');
 check(providerCall.includes('setTimeout(()=>controller.abort(),15000)'), 'provider calls must have a bounded timeout');
-check(providerCall.indexOf('return await readProviderJson(r)') < providerCall.indexOf('finally{clearTimeout(timer)}'), 'provider timeout must cover response-body consumption');
+check(providerCall.indexOf('return await readProviderJson(r)') >= 0 && providerCall.indexOf('return await readProviderJson(r)') < providerCall.indexOf('finally{clearTimeout(timer);'), 'provider timeout must cover response-body consumption');
 check(transport.includes('total > maxBytes'), 'provider response body must be size-bounded');
 check(transport.includes('Provider returned invalid JSON'), 'provider response must fail closed when it is not valid JSON');
 check(!providerCall.includes('d={raw:t}'), 'provider response text must not be returned or propagated as raw fallback');
