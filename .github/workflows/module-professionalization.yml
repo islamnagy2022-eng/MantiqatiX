@@ -322,10 +322,12 @@ jobs:
           docker cp supabase/tests/rc441_platform_admin_fixture.sql "$pg_container:/tmp/rc441_fixture.sql"
           docker cp supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc441_migration.sql"
           docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449_migration.sql"
+          docker cp supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql "$pg_container:/tmp/rc462_migration.sql"
           docker cp supabase/tests/rc441_platform_admin_integration.sql "$pg_container:/tmp/rc449_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc462_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449_test.sql
 
   erp-branch-scope-integration:
