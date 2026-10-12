@@ -146,4 +146,8 @@ Deno.test("SMM pricing requires a strictly positive customer margin and finite t
   if (negativeMargin.ok || negativeMargin.code !== "NON_POSITIVE_MARGIN") throw new Error("negative margin was accepted");
   const overflow = validateSmmOrderPricing({ sellingPrice: Number.MAX_VALUE, providerCost: 0, quantity: Number.MAX_SAFE_INTEGER });
   if (overflow.ok) throw new Error("overflowed order total was accepted");
+  const rounded = validateSmmOrderPricing({ sellingPrice: 7.555, providerCost: 4.444, quantity: 1000 });
+  if (!rounded.ok || rounded.charged !== 7.56 || rounded.cost !== 4.44 || rounded.profit !== 3.12) throw new Error("currency values were not rounded to cents");
+  const roundedAway = validateSmmOrderPricing({ sellingPrice: 4.001, providerCost: 4, quantity: 1 });
+  if (roundedAway.ok) throw new Error("margin rounded to zero was accepted");
 });
