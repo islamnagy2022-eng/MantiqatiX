@@ -1571,3 +1571,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Exact candidate SHA `d83a7be0b5482c3c55e9c0536e6bce09625ea645`: platform-admin scope, audit append-only ACL, migration history immutability, migration version uniqueness, migration collision guard, module professionalization, backend-only boundary, approval/audit atomicity, MantiGO privacy boundary, and web validation all passed.
 - [ ] Production E2E and approved migration/release process remain outstanding. The PR deploy job was skipped; do not claim production deployment.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## Cross-module dependency — authoritative task source — 2026-10-13
+
+- [x] Read-only production table inventory checked for task/work-item sources.
+- [x] Confirmed the relevant inventory includes approval_requests, approval_actions, audit_logs, marketing_projects, marketing_project_participants, notifications, and consent_audit_log; no authoritative public tasks/work_items table was found.
+- [ ] Define a dedicated task/work-item source of truth, lifecycle, owner/dependency/due-date/acceptance fields, and audit contract before marking the Administration & Operations task-closure gate complete.
+- [ ] Add tenant/RBAC/RLS tests and end-to-end closure/reopen/audit tests before production release.
+- **Constraint:** do not fabricate tasks or silently treat notifications/approvals as tasks; no production schema change was made.
