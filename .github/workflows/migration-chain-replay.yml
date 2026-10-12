@@ -61,10 +61,8 @@ jobs:
           set -euo pipefail
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
-          legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
-          legacy_functions_migration="supabase/migrations/20260927074160_test_only_approved_legacy_security_definer_baseline.sql"
           cmp -s "$providers_baseline" "$providers_migration"
           cmp -s "$credentials_baseline" "$credentials_migration"
           ! git ls-files --error-unmatch "$providers_migration" >/dev/null 2>&1
