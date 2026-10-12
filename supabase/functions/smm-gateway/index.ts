@@ -101,7 +101,29 @@ Deno.serve(async(req)=>{
    const event=await admin.from("smm_order_events").insert({order_id:orderId,event_type:"SUBMITTED",payload:providerResult});
    if(event.error)console.error("[smm-gateway] order event insert failed",event.error.code||"DB_ERROR",String(orderId));
    return json({ok:true,order_id:orderId,provider_order_id:String(pid),status:"PROCESSING",charged:sell,event_recorded:!event.error});
-  }if(a==="order_status"){const o=await admin.from("smm_orders").select("*,smm_services(*,smm_providers(*))").eq("id",b.order_id).eq("user_id",user.id).single();if(!o.data)return json({error:"ORDER_NOT_FOUND"},404);if(!o.data.provider_order_id)return json({ok:true,status:o.data.status});const r=await call(o.data.smm_services.smm_providers,await secret(o.data.smm_services.provider_id),"status",{order:o.data.provider_order_id}),m=String(r.status||"").toLowerCase();let st=o.data.status;if(["completed","complete"].includes(m))st="COMPLETED";else if(m==="partial")st="PARTIAL";else if(["canceled","cancelled"].includes(m))st="CANCELLED";else if(["processing","in progress","inprogress"].includes(m))st="PROCESSING";await admin.from("smm_orders").update({status:st,provider_status:r.status??null,updated_at:new Date().toISOString()}).eq("id",b.order_id);await admin.from("smm_order_events").insert({order_id:b.order_id,event_type:"STATUS_SYNC",payload:r});return json({ok:true,status:st,result:r});}
+  }if(a==="order_status"){
+   const o=await admin.from("smm_orders").select("id,status,provider_order_id,service_id,smm_services(provider_id,smm_providers(*))").eq("id",b.order_id).eq("user_id",user.id).single();
+   if(o.error||!o.data)return json({error:"ORDER_NOT_FOUND"},404);
+   if(!o.data.provider_order_id)return json({ok:true,status:o.data.status});
+   const r=await call(o.data.smm_services.smm_providers,await secret(o.data.smm_services.provider_id),"status",{order:o.data.provider_order_id});
+   const rawStatus=typeof r?.status==="string"?r.status:"";
+   const m=rawStatus.trim().toLowerCase();
+   const terminal=new Set(["COMPLETED","CANCELLED","FAILED","PARTIAL"]);
+   let nextStatus=o.data.status;
+   if(!terminal.has(String(o.data.status||"").toUpperCase())){
+    if(["completed","complete"].includes(m))nextStatus="COMPLETED";
+    else if(m==="partial")nextStatus="PARTIAL";
+    else if(["canceled","cancelled"].includes(m))nextStatus="CANCELLED";
+    else if(["processing","in progress","inprogress"].includes(m))nextStatus="PROCESSING";
+   }
+   if(nextStatus!==o.data.status||rawStatus){
+    const saved=await admin.from("smm_orders").update({status:nextStatus,provider_status:rawStatus||null,updated_at:new Date().toISOString()}).eq("id",b.order_id).eq("user_id",user.id);
+    if(saved.error){console.error("[smm-gateway] order status persistence failed",saved.error.code||"DB_ERROR");return json({error:"ORDER_STATUS_PERSISTENCE_PENDING",order_id:b.order_id,reconciliation_required:true},202);}
+    const event=await admin.from("smm_order_events").insert({order_id:b.order_id,event_type:"STATUS_SYNC",payload:{provider_status:rawStatus||null,normalized_status:nextStatus,terminal_status_preserved:terminal.has(String(o.data.status||"").toUpperCase())}});
+    if(event.error)console.error("[smm-gateway] status event insert failed",event.error.code||"DB_ERROR");
+   }
+   return json({ok:true,status:nextStatus,provider_status:rawStatus||null});
+  }
   return json({error:"UNKNOWN_ACTION"},400);
  }catch(e){return json({error:e instanceof Error?e.message:"INTERNAL_ERROR"},500);}
 });
