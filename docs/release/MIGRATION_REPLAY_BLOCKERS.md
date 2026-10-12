@@ -385,3 +385,12 @@ A fresh read of the deployed Supabase Edge Function confirms `smm-gateway` remai
 - **Important incomplete step:** attempts to update `.github/workflows/migration-chain-replay.yml` so CI injects and verifies the baseline as an untracked temporary migration were rejected by the repository safety layer. No alternative write path was used to bypass that restriction.
 - Therefore the baseline is **not yet wired into replay**. Do not claim the replay is unblocked or passed; the next CI run is expected to fail at the actual migration if no temporary injection exists.
 - Next safe action: obtain a supported/approved workflow-edit path, wire the test-only baseline into the disposable replay workflow, verify exact copy and untracked status, then rerun full chronological replay. Production remains untouched and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Exact-head replay result after bookings baseline preflight fix — 2026-10-12
+
+- Candidate commit `fe7436659b3b4ba798464f3ae5a831724b78abfe` passed the fail-closed preflight and started disposable Supabase successfully.
+- Full replay run [38196631233](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38196631233) then **FAILED** at `20260919233425_production_security_hardening_v1.sql`, statement 20: `alter table public.bookings enable row level security`, SQLSTATE `42P01` (`public.bookings` does not exist).
+- This confirms the new baseline passes the validator but is not injected by the current workflow. The replay has not passed. Attempts to edit the workflow were rejected by the repository safety layer; do not use indirect or alternate paths to bypass that restriction.
+- Next step requires a supported, approved workflow-edit path to inject the clearly labelled schema-only baseline as a temporary migration in disposable CI, then verify byte-for-byte copy, ordering, untracked status, and run the complete chain again. This does not establish historical DDL provenance.
+- No production changes were made. Release remains **BLOCKED / NOT CERTIFIED**.
