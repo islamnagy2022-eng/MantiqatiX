@@ -63,7 +63,8 @@ assert.match(catalog, /activeProviders\.has\(String\(x\.provider_id\)\)/, "servi
 assert.match(catalog, /id:x\.id,platform:x\.platform,category:x\.category,name:x\.name,description:x\.description/, "catalog response must map fields explicitly");
 assert.doesNotMatch(catalog, /provider_cost|external_service_id|metadata/, "catalog must not expose provider costs, provider IDs, external IDs, or raw metadata");
 assert.match(account, /\.eq\("user_id",user\.id\)/g, "both order and wallet reads must be scoped to the verified bearer user");
-assert.match(account, /select\("id,service_id,quantity,selling_price,status,provider_order_id,created_at,updated_at"\)/, "account orders must use an explicit field allowlist");
+assert.match(account, /select\("id,service_id,quantity,selling_price,status,created_at,updated_at"\)/, "account orders must use an explicit field allowlist");
+assert.doesNotMatch(account, /provider_order_id/, "customer account responses must not expose external provider order identifiers");
 assert.match(account, /if\(o\.error\|\|w\.error\)/, "failed reads must return an error, not a successful empty/zero response");
 
 assert.match(migration, /revoke all on table[\s\S]*from public, anon, authenticated/i, "direct client table access must be revoked");
