@@ -64,8 +64,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          profile_baseline="supabase/tests/baselines/marketing_provider_profiles.sql"
-          profile_migration="supabase/migrations/20260927074157_test_only_live_derived_marketing_provider_profiles_baseline.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
