@@ -151,11 +151,11 @@ if (!legacyPrivilegeMigration) {
 const settlementLockdownVersion = "20260920095706";
 const settlementLockdown = migrations.find(({ name }) => name === settlementLockdownVersion + "_production_security_definer_execute_lockdown_v4.sql");
 if (settlementLockdown) {
-  const settlementRevoke = /revoke\\s+execute\\s+on\\s+function\\s+public\\.create_settlement_backend\\s*\\(\\s*varchar\\s*,\\s*varchar\\s*,\\s*varchar\\s*,\\s*varchar\\s*,\\s*numeric\\s*,\\s*numeric\\s*,\\s*numeric\\s*,\\s*numeric\\s*,\\s*varchar\\s*,\\s*varchar\\s*\\)/i;
+  const settlementRevoke = /revoke\s+execute\s+on\s+function\s+public\.create_settlement_backend\s*\(\s*varchar\s*,\s*varchar\s*,\s*varchar\s*,\s*varchar\s*,\s*numeric\s*,\s*numeric\s*,\s*numeric\s*,\s*numeric\s*,\s*varchar\s*,\s*varchar\s*\)/i;
   const revokesTenArgSettlement = settlementRevoke.test(settlementLockdown.sql);
   const priorTenArgSettlementCreation = migrations.some(({ name, sql }) =>
     name < settlementLockdown.name &&
-    /create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.create_settlement_backend\\s*\\(\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?numeric\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*,\\s*(?:[a-z_][a-z0-9_]*\\s+)?(?:varchar|character\\s+varying)\\s*\\)/i.test(sql)
+    /create\s+(?:or\s+replace\s+)?function\s+public\.create_settlement_backend\s*\(\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?numeric\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*,\s*(?:[a-z_][a-z0-9_]*\s+)?(?:varchar|character\s+varying)\s*\)/i.test(sql)
   );
   if (revokesTenArgSettlement && !priorTenArgSettlementCreation) {
     console.error("P0 BLOCKED: " + settlementLockdown.name + " revokes public.create_settlement_backend(varchar,varchar,varchar,varchar,numeric,numeric,numeric,numeric,varchar,varchar), but no earlier committed migration creates that 10-argument overload.");
