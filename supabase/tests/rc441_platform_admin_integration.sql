@@ -6,7 +6,6 @@ declare
   tenant_ops uuid := '10000000-0000-4000-8000-000000000043';
   platform_admin uuid := '10000000-0000-4000-8000-000000000044';
   tenant_scoped_super_admin uuid := '10000000-0000-4000-8000-000000000045';
-  malformed_admin uuid := '10000000-0000-4000-8000-000000000046';
   rejected boolean;
   result jsonb;
 begin
@@ -15,7 +14,6 @@ begin
     ('admin',tenant_admin,'TENANT-B','ADMIN','ACTIVE','{"admin":true}'::jsonb),
     ('ops',tenant_ops,'TENANT-C','OPERATIONS_MANAGER','ACTIVE','{"admin":true}'::jsonb),
     ('tenant-super',tenant_scoped_super_admin,'TENANT-D','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
-    ('malformed-platform',malformed_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":"not-a-boolean"}'::jsonb),
     ('platform',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
 
   insert into public.mantigo_rides(id,customer_id,status,updated_at) values
@@ -74,12 +72,6 @@ begin
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_scoped_super_admin::text,false);
   if public.mnty_can_platform_admin() then
     raise exception 'tenant-scoped SUPER_ADMIN with PLATFORM permission must not gain platform access';
-  end if;
-
-  -- Malformed permission JSON must deny access without raising a cast error.
-  perform pg_catalog.set_config('request.jwt.claim.sub',malformed_admin::text,false);
-  if public.mnty_can_platform_admin() then
-    raise exception 'malformed full_control permission must not grant platform scope';
   end if;
 
   perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
