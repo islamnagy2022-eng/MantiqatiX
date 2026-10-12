@@ -83,78 +83,19 @@ const legacyFunctionSignatures = [
   { name: "restaurant_erp_mutate", args: "text,jsonb,text" },
   { name: "restaurant_table_mutate", args: "text,jsonb,text" },
 ];
-const legacyFunctionNames = legacyFunctionSignatures.map(({ name }) => name);
-const legacyBaselinePath = "supabase/tests/baselines/legacy_security_definer_functions.sql";
-const legacyBaselineExists = fs.existsSync(legacyBaselinePath);
-const legacyBaseline = legacyBaselineExists ? fs.readFileSync(legacyBaselinePath, "utf8") : "";
-if (legacyBaselineExists) {
-  const normalizedBaseline = legacyBaseline.toLowerCase().replace(/\s+/g, "");
-  const baselineChecks = [];
-  baselineChecks.push([
-    "owner approval, test-only, source provenance, and production prohibition",
-    /owner-approved test-only function baseline/i.test(legacyBaseline) &&
-      /moyhiluyhjsujhwlyeuu/i.test(legacyBaseline) &&
-      /read-only/i.test(legacyBaseline) &&
-      /never apply this file to production/i.test(legacyBaseline),
-  ]);
-  for (const { name, args } of legacyFunctionSignatures) {
-    const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\s+/g, "").toLowerCase();
-    baselineChecks.push(["exact signature for " + name, normalizedBaseline.includes(normalizedSignature)]);
-    if (name === "mantigo_rate_ride") {
-      baselineChecks.push([
-        "observed authenticated EXECUTE exception for mantigo_rate_ride only",
-        /revoke\s+all\s+on\s+function\s+public\.mantigo_rate_ride\s*\(text,integer,text\)\s+from\s+public\s*,\s*anon\s*,\s*service_role/i.test(legacyBaseline) &&
-          /grant\s+execute\s+on\s+function\s+public\.mantigo_rate_ride\s*\(text,integer,text\)\s+to\s+authenticated/i.test(legacyBaseline),
-      ]);
-    } else {
-      const revoke = legacyBaseline.match(new RegExp(
-        "revoke\\s+(?:all|execute)\\s+on\\s+function\\s+public\\." + name +
-        "\\s*\\([^)]*\\)\\s+from\\s+([^;]+);", "i"
-      ));
-      const revokedRoles = revoke ? revoke[1].toLowerCase().split(",").map((role) => role.trim()) : [];
-      baselineChecks.push([
-        "client/service-role EXECUTE revoked for " + name,
-        Boolean(revoke) && ["public", "anon", "authenticated", "service_role"].every((role) => revokedRoles.includes(role)),
-      ]);
-    }
-  }
-  baselineChecks.push([
-    "all ten functions are SECURITY DEFINER",
-    (legacyBaseline.match(/\bsecurity\s+definer\b/gi) || []).length >= legacyFunctionSignatures.length,
-  ]);
-  baselineChecks.push([
-    "all ten functions pin a function-level search_path",
-    (legacyBaseline.match(/\bset\s+search_path\s*=/gi) || []).length >= legacyFunctionSignatures.length,
-  ]);
-  baselineChecks.push([
-    "baseline ACL matches observed snapshot without PUBLIC, anon, or service_role grants",
-    /grant\s+execute\s+on\s+function\s+public\.mantigo_rate_ride\s*\(text,integer,text\)\s+to\s+authenticated/i.test(legacyBaseline) &&
-      !/\bgrant\s+(?:all|execute)\s+on\s+function\b[^;]*\bto\s+(?:public|anon|service_role)\b/i.test(legacyBaseline) &&
-      (legacyBaseline.match(/\bgrant\s+execute\s+on\s+function\b[^;]*\bto\s+authenticated\b/gi) || []).length === 1,
-  ]);
-  const failedBaselineChecks = baselineChecks.filter(([, ok]) => !ok);
-  if (failedBaselineChecks.length) {
-    for (const [name] of failedBaselineChecks) console.error("P0 BLOCKED: legacy function baseline validation failed: " + name);
-    process.exit(1);
-  }
-}
 const unresolvedLegacyFunctions = legacyFunctionSignatures.filter(({ name, args }) => {
-  const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\s+/g, "").toLowerCase();
+  const normalizedSignature = ("public." + name + "(" + args + ")").replace(/\\s+/g, "").toLowerCase();
   const creation = migrations.find(({ name: migrationName, sql }) =>
     migrationName.slice(0, 14) < legacyPrivilegeMigration.name.slice(0, 14) &&
     new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + name + "\\s*\\(", "i").test(sql) &&
-    sql.replace(/\s+/g, "").toLowerCase().includes(normalizedSignature)
+    sql.replace(/\\s+/g, "").toLowerCase().includes(normalizedSignature)
   );
-  const inApprovedBaseline = legacyBaselineExists &&
-    /OWNER-APPROVED TEST-ONLY FUNCTION BASELINE/i.test(legacyBaseline) &&
-    new RegExp("\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?" + name + "\\s*\\(", "i").test(legacyBaseline) &&
-    legacyBaseline.replace(/\s+/g, "").toLowerCase().includes(normalizedSignature);
-  return !creation && !inApprovedBaseline;
+  return !creation;
 });
 if (unresolvedLegacyFunctions.length) {
   console.error("P0 BLOCKED: the chronological replay reaches " + legacyPrivilegeMigration.name + " before these legacy SECURITY DEFINER functions are created by any earlier committed migration or approved test-only function baseline:");
   for (const { name, args } of unresolvedLegacyFunctions) console.error(" - public." + name + "(" + args + ")");
-  console.error("Do not add placeholder functions or skip the historical privilege migration. Recover authoritative creation DDL/history or obtain explicit owner approval for a separate test-only baseline sourced from live definitions.");
+  console.error("Do not add placeholder functions, skip the historical privilege migration, or self-certify a live-definition fixture. Recover authoritative creation DDL/history; any test-only function baseline requires separate explicit owner authorization and a reviewed validator change.");
   process.exit(1);
 }
 if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
