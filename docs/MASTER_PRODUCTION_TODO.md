@@ -1620,3 +1620,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P0 BLOCKED:** Live SMM gateway v6 has not been changed and still lacks server-side launch-deny containment. Keep SMM feature development frozen; do not claim API containment from the static holding page or passing source tests.
 - [ ] **P0 BLOCKED:** No production migration, Edge Function deployment, Auth/security configuration change, financial/wallet mutation, merge, or production release has occurred.
 - **Current release decision: BLOCKED / NOT CERTIFIED.** Next action: observe run 38239527707 and handle the actual first replay/runtime result without skipping migrations or creating unapproved schema definitions.
+
+
+## Migration replay preflight — 2026-10-13
+- [x] Investigate latest exact-head replay failure: failed before Docker/Supabase startup at the missing `public.credit_policies` baseline guard.
+- [x] Improve the preflight to enumerate every missing approved baseline in one run while retaining fail-closed behavior.
+- [ ] Verify the updated preflight on exact commit `8eca1e956cd256256f79d734f4886b211f2a5336` and capture the full dependency list.
+- [ ] BLOCKED: recover authoritative historical DDL or obtain explicit approval for a provenance-documented disposable-only compatibility baseline; do not infer credit schema from RC40 because known live/archive differences remain.
+- [ ] Do not merge PR #207 or apply post-RC424 migrations until clean replay and separate production reconciliation are approved.
