@@ -567,3 +567,11 @@ This status is intentional and must remain until the open gates above are indepe
 - `public.user_memberships`: RLS and FORCE RLS enabled.
 - `memberships_select_self` permits authenticated SELECT only for a non-anonymous JWT with `auth.uid() = user_id`.
 - Authenticated has SELECT but no INSERT/UPDATE/DELETE table privilege; anon has no SELECT. PASS for this specific boundary; cross-tenant E2E remains NOT VERIFIED.
+
+
+### P0 release blocker discovered — platform-admin authorization scope (2026-10-13)
+- Live `mnty_can_platform_admin()` still calls broad/null-scope `mnty_can('admin', NULL, NULL, NULL)`; the live role map grants `admin` to tenant OWNER/ADMIN. This is a latent platform privilege-boundary flaw.
+- Live blast radius: 5 SECURITY DEFINER functions reference the helper; 5 RLS policies use it on `digital_pages`, `mantigo_financial_config`, and `mantigo_rate_limit_config`.
+- Current-user audit found no active user relying solely on tenant-level OWNER/ADMIN/admin permission without a correctly scoped platform SUPER_ADMIN. This does not eliminate future risk.
+- Candidate RC449/RC462 disposable integration passes on PR #207 candidate run [38315402754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402754). Full migration replay fails closed on missing approved `credit_policies`, `credit_accounts`, and `credit_periods` compatibility baselines in [run 38315402728](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38315402728).
+- Do not deploy RC449 independently or invent baselines. The approved migration-chain gate remains BLOCKED; production unchanged.
