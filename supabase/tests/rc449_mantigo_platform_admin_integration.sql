@@ -79,6 +79,16 @@ begin
     raise exception 'explicit platform SUPER_ADMIN with full_control should pass';
   end if;
 
+  -- The report must use the canonical financial ledger columns, not legacy aliases.
+  result := public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
+  if (result->>'gross')::numeric <> 100
+     or (result->>'commission')::numeric <> 10
+     or (result->>'captain_net_amount')::numeric <> 90
+     or (result->>'paid_amount')::numeric <> 100
+     or (result->>'unsettled_amount')::numeric <> 90 then
+    raise exception 'platform financial report returned incorrect canonical ledger totals: %',result;
+  end if;
+
   if has_function_privilege('anon','public.mnty_can_platform_admin()','EXECUTE') then
     raise exception 'anon must not execute platform-admin guard';
   end if;
