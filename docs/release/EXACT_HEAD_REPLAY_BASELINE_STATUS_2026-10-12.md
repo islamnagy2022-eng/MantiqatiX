@@ -63,3 +63,12 @@ At the owner's instruction to execute the unblock, a new test-only fixture was a
 **Critical scope qualification:** this is a live-derived compatibility fixture, not recovered historical creation DDL. It is injected only by the disposable CI workflow as untracked `20260927074160_test_only_live_derived_security_definer_baseline.sql`, before the existing privilege-hardening migration. It is never applied to production and executes no function bodies or table-row DML. The validator checks all ten signatures, security-definer attributes, search-path settings, ACL revocations, and the observed `mantigo_rate_ride` authenticated-execute exception before allowing the isolated replay to proceed.
 
 A successful run with this fixture can validate migrations after the synthetic baseline, but cannot certify the original historical function bodies or prove full migration provenance. Production ledger and committed migration history remain unreconciled for those pre-existing source gaps. No production database, Edge Function, auth configuration, or financial state was changed.
+
+## Latest replay attempt — core schema gap confirmed — 2026-10-12
+
+- Run #180 failed during the dedicated chronological replay step: https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38190631816
+- Preflight, temporary fixture injection, service startup without migration replay, and restoration of all migration SQL files passed.
+- The test-only live-derived `marketing_provider_profiles` table-shape fixture allowed migration `20260927103103_add_provider_profile_media.sql` to pass. The next migration, `20260927134000_add_unique_pending_membership_request.sql`, failed because `public.account_registration_requests` is absent from the clean database.
+- This is evidence of a wider missing pre-existing schema baseline, not an isolated SQL typo. No historical CREATE TABLE migration for `account_registration_requests` was found in current repository search. Do not fabricate additional individual fixtures without recovering their dependencies and policy history.
+- Workflow startup was separated from migration replay: migrations are temporarily moved aside during `supabase start`, restored by a shell trap, and replayed only in the explicit `supabase db reset --local` step. This makes future SQL failures diagnosable at the correct step.
+- Release remains **BLOCKED / NOT CERTIFIED**. Recover authoritative pre-migration DDL from trusted history/backup before claiming full chronological replay. No production database or application state was changed.
