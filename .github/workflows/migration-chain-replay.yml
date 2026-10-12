@@ -46,14 +46,19 @@ jobs:
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
+          legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
           test -f "$providers_baseline"
           test -f "$credentials_baseline"
+          test -f "$legacy_functions_baseline"
           test ! -e "$providers_migration"
           test ! -e "$credentials_migration"
+          test ! -e "$legacy_functions_migration"
           cp "$providers_baseline" "$providers_migration"
           cp "$credentials_baseline" "$credentials_migration"
-          echo "Injected approved SMM table baselines into this disposable CI workspace only."
-          echo "Temporary files are not committed and must never be applied to production."
+          cp "$legacy_functions_baseline" "$legacy_functions_migration"
+          echo "Injected approved SMM table baselines and a live-derived legacy function fixture into this disposable CI workspace only."
+          echo "The function fixture is synthetic, not historical DDL; it must never be applied to production."
 
       - name: Verify temporary baselines are exact schema-only copies
         shell: bash
@@ -63,12 +68,16 @@ jobs:
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
+          legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
           cmp -s "$providers_baseline" "$providers_migration"
           cmp -s "$credentials_baseline" "$credentials_migration"
+          cmp -s "$legacy_functions_baseline" "$legacy_functions_migration"
           ! git ls-files --error-unmatch "$providers_migration" >/dev/null 2>&1
           ! git ls-files --error-unmatch "$credentials_migration" >/dev/null 2>&1
+          ! git ls-files --error-unmatch "$legacy_functions_migration" >/dev/null 2>&1
           ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+public\.)' "$providers_migration" "$credentials_migration"
-          echo "PASS: exact test-only baseline copies; temporary files are untracked and contain no row imports."
+          echo "PASS: exact test-only baseline copies; temporary files are untracked. Function DML text is definition-only and is never invoked by replay."
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
