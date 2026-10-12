@@ -676,10 +676,15 @@ The follow-up exact-head workflow on PR #207 now stops before starting disposabl
 
 A fresh read-only live catalog snapshot found further differences between the RC40 table-creation SQL and the current production schema:
 
-- In RC40, `credit_accounts.available_amount` and `credit_periods.outstanding_amount` are generated stored columns. In the live catalog both are ordinary nullable numeric columns with no generated expression.
+- The current read-only live catalog confirms that `credit_accounts.available_amount` and `credit_periods.outstanding_amount` are generated stored columns with the same expressions shown in the RC40 creation migration. This point is **not** a schema difference; the earlier statement that these live columns were ordinary nullable numeric columns was incorrect and is superseded by this correction.
 - The archived migration sets `credit_accounts.credit_policy_id` foreign-key deletion behavior to `ON DELETE RESTRICT`; the live catalog reports the default `NO ACTION` behavior.
 - The amount precision and credit-policy default differences recorded above remain present. Live finance-read policy definitions are visible in the catalog, but their authoritative creation source remains unlocated.
 
 This strengthens the conclusion that the archived creation migration is not an exact representation of the live schema. The guard correctly prevents a synthetic baseline from hiding this gap. No migration, policy, grant, production object, or financial record was changed.
 
 **Next safe step:** continue source-lineage recovery for the live table definitions and finance-read policy creation, then propose a reviewed candidate-only repair with explicit treatment of generated-vs-ordinary columns, defaults, constraints, and policies. Do not remove the guard merely to turn CI green. Status remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Evidence correction — generated credit columns — 2026-10-12
+
+A subsequent fresh read-only catalog query corrected the generated-column observation in the preceding section: live `credit_accounts.available_amount` and `credit_periods.outstanding_amount` are both `GENERATED ALWAYS` columns with expressions matching RC40. Therefore, generated-column status is not a demonstrated RC40/live difference. The remaining observed differences still requiring authoritative reconciliation include numeric precision (live `numeric` without typmod vs RC40 `numeric(14,2)`), credit-policy defaults (`grace_days`, `suspend_after_days`, `block_new_credit`), and the foreign-key delete action for `credit_accounts.credit_policy_id`. The finance-read policies are present in the live catalog, but the source that originally created them is still not established. This correction is based on metadata only; no data or schema was changed.
