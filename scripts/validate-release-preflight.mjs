@@ -37,8 +37,15 @@ if (!/business-register/.test(onboarding) || !/business-onboarding-status/.test(
 }
 if (!/signInWithOAuth\(\{provider:\s*['"]google['"]/.test(app) ||
     !/redirectTo\s*:\s*oauthRedirectUrl\(\)/.test(app) ||
-    !/detectSessionInUrl\s*:\s*true/.test(app)) {
-  throw new Error('Production auth flow is missing the secure Google OAuth redirect/session detection guard.');
+    !/detectSessionInUrl\s*:\s*true/.test(app) ||
+    !/flowType\s*:\s*['"]pkce['"]/.test(app)) {
+  throw new Error('Production auth flow is missing the secure Google OAuth PKCE redirect/session detection guard.');
+}
+if (!app.includes("function activateCustomerMembership()") ||
+    !app.includes("verified.user.id!==user?.id") ||
+    !app.includes("sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}})") ||
+    !app.includes("CUSTOMER_MEMBERSHIP_NOT_CONFIRMED")) {
+  throw new Error('Production membership recovery is missing identity validation, protected server activation, or active-membership confirmation.');
 }
 const smm = fs.readFileSync('web/smm.js', 'utf8');
 if (app.includes('signInWithOtp(') || app.includes('verifyOtp(') || smm.includes('signInWithOtp(') || smm.includes('verifyOtp(')) {
