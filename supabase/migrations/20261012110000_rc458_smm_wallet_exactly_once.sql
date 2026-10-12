@@ -2,6 +2,26 @@
 -- Source-only. Do not apply until the complete production migration lineage is reconciled.
 begin;
 
+-- Fail with an actionable diagnostic instead of letting a legacy duplicate silently block index creation.
+do $preflight$
+begin
+  if exists (
+    select 1 from public.smm_wallet_transactions
+    where reference_id is not null and type = 'DEBIT'
+    group by user_id, reference_id having count(*) > 1
+  ) then
+    raise exception 'RC458_ABORT: duplicate SMM DEBIT references require manual ledger reconciliation';
+  end if;
+  if exists (
+    select 1 from public.smm_wallet_transactions
+    where reference_id is not null and type = 'REFUND'
+    group by user_id, reference_id having count(*) > 1
+  ) then
+    raise exception 'RC458_ABORT: duplicate SMM REFUND references require manual ledger reconciliation';
+  end if;
+end;
+$preflight$;
+
 create unique index if not exists smm_wallet_transactions_debit_reference_uidx
   on public.smm_wallet_transactions (user_id, reference_id)
   where reference_id is not null and type = 'DEBIT';
