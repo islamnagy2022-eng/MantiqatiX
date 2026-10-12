@@ -1568,7 +1568,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Mark SMM as deferred in desktop and mobile navigation.
 - [x] Add a fail-closed server gate in the SMM gateway: disabled unless `MNTY_SMM_ENABLED` equals exactly `true`.
 - [x] Add `scripts/validate-smm-deferred-gate.mjs` and wire it into the Pages CI workflow. Local source-contract validator and web JavaScript syntax checks passed.
-- [ ] Run final CI on the completed candidate commit and review all required checks.
+- [x] Final CI reviewed on candidate HEAD `152a8c24b5fa1f808f3fa7942d026cc01abe7be9`: Pages validation, SMM service-role access boundary, module professionalization, backend-only module boundary, and MantiGO open-ride privacy workflows completed successfully. Pages deploy job was skipped for the pull request; this is NOT a production deployment. Evidence: runs `38308072523`, `38308072547`, `38308072620`, `38308072638`, `38308072534`.
 - [ ] Deploy the default-deny Edge Function only with explicit release authorization; verify live function version/hash and negative-test anonymous and ordinary authenticated calls. Until this is done, the production API is NOT VERIFIED disabled.
 - [ ] Keep `MNTY_SMM_ENABLED` unset/false for initial launch. Re-enable only through a separate approved rollout after core launch and SMM order, wallet, timeout, ambiguous-result, persistence, terminal-state, admin-scope, and idempotency tests pass.
 - **Current state:** P0 issue #212 remains OPEN. This candidate branch has not been merged or deployed. Overall release remains **BLOCKED / NOT CERTIFIED**.
@@ -1576,7 +1576,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 ## 2026-10-12 — SMM deferred flag contract reconciliation
 - [x] Standardize the candidate source, validator, and continuity documentation on `MNTY_SMM_ENABLED` (exact value `true` required to enable; unset/other values remain disabled).
-- [ ] CI evidence on the resulting candidate head is pending.
+- [x] CI evidence on candidate head `152a8c24b5fa1f808f3fa7942d026cc01abe7be9` passed the required source workflows; see run IDs above. Production deployment remains unverified.
 - [ ] Live production gateway remains NOT VERIFIED disabled; no deployment or environment change was performed.
 
 
