@@ -150,7 +150,7 @@ assert.doesNotMatch(cancelAction, /smm_refund_wallet/, "a cancellation request m
 const statusActionStart = edge.indexOf('if(a==="order_status")');
 const statusActionEnd = edge.indexOf('return json({error:"UNKNOWN_ACTION"}', statusActionStart);
 const statusAction = edge.slice(statusActionStart, statusActionEnd);
-assert.match(statusAction, /if\(st==="CANCELLED"\)/, "wallet refund must only run after normalized provider-confirmed cancellation");
+assert.match(statusAction, /if\(st==="CANCELLED"&&providerStatus!=="cancelled_refunded"\)/, "wallet refund must only run after normalized provider-confirmed cancellation and must skip an already-refunded order");
 assert.match(statusAction, /smm_refund_wallet/, "confirmed cancellation must attempt an idempotent wallet refund");
 assert.match(statusAction, /ORDER_REFUND_REQUIRES_RECONCILIATION/, "refund uncertainty must be explicit and retryable");
 assert.match(statusAction, /refund_requires_reconciliation/, "failed confirmed-cancellation refunds must persist a dedicated reconciliation state");
