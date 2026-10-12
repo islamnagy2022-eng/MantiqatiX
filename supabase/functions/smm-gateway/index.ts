@@ -6,6 +6,40 @@ const URL=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_
 async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);const user=r.error?null:r.data.user;return !user||user.is_anonymous?null:user;}
 async function isAdmin(id:string){const a=await admin.from("smm_admins").select("user_id").eq("user_id",id).maybeSingle();if(a.error)return false;if(a.data)return true;const r=await admin.from("user_memberships").select("tenant_id,role,status,business_id,permissions").eq("user_id",id).eq("status","ACTIVE");if(r.error)return false;return (r.data||[]).some((m:any)=>{const role=String(m.role||"").toUpperCase(),p=m.permissions&&typeof m.permissions==="object"?m.permissions:{};return role==="SUPER_ADMIN"&&String(m.tenant_id)==="MNTY-PLATFORM"&&m.business_id==null&&p.scope==="PLATFORM"&&p.full_control===true;});}
 async function secret(id:string){const r=await admin.rpc("smm_get_provider_secret",{p_provider_id:id});if(r.error||!r.data)throw new Error("Provider credential unavailable");return r.data as string;}
+
+const MAX_SMM_REQUEST_BYTES = 32 * 1024;
+async function readBoundedJson(req: Request): Promise<
+ { ok: true; value: Record<string, unknown> } |
+ { ok: false; status: 400 | 413 | 415; error: "INVALID_CONTENT_TYPE" | "REQUEST_TOO_LARGE" | "INVALID_JSON" }
+> {
+ const mediaType=(req.headers.get("content-type")||"").split(";",1)[0].trim().toLowerCase();
+ if(mediaType!=="application/json")return {ok:false,status:415,error:"INVALID_CONTENT_TYPE"};
+ const declaredLength=req.headers.get("content-length");
+ if(declaredLength!==null){
+  const length=Number(declaredLength);
+  if(!Number.isSafeInteger(length)||length<0)return {ok:false,status:400,error:"INVALID_JSON"};
+  if(length>MAX_SMM_REQUEST_BYTES)return {ok:false,status:413,error:"REQUEST_TOO_LARGE"};
+ }
+ if(!req.body)return {ok:false,status:400,error:"INVALID_JSON"};
+ const reader=req.body.getReader(),chunks:Uint8Array[]=[];let total=0;
+ try{
+  while(true){
+   const part=await reader.read();if(part.done)break;
+   total+=part.value.byteLength;
+   if(total>MAX_SMM_REQUEST_BYTES){try{await reader.cancel();}catch{}return {ok:false,status:413,error:"REQUEST_TOO_LARGE"};}
+   chunks.push(part.value);
+  }
+ }catch{return {ok:false,status:400,error:"INVALID_JSON"};}
+ finally{try{reader.releaseLock();}catch{}}
+ const bytes=new Uint8Array(total);let offset=0;
+ for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+ try{
+  const parsed=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));
+  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))return {ok:false,status:400,error:"INVALID_JSON"};
+  return {ok:true,value:parsed as Record<string,unknown>};
+ }catch{return {ok:false,status:400,error:"INVALID_JSON"};}
+}
+
 import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts";
 import { normalizeProviderOrderStatus } from "./order-status.ts";
 import { normalizeProviderService } from "./catalog-normalization.ts";
@@ -24,11 +58,13 @@ async function call(p:any,k:string,a:string,x:any={}) {
 }
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
+ if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
  // The separate SMM storefront is deferred until after core launch. Default-deny all actions unless an explicitly approved rollout sets this flag to exactly "true".
  if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
-  const b=await req.json(),a=b.action;
+  const parsedBody=await readBoundedJson(req);if(!parsedBody.ok)return json({error:parsedBody.error},parsedBody.status);
+  const b=parsedBody.value,a=b.action;
   if(a==="catalog"){
    const [s,p]=await Promise.all([
     admin.from("smm_services").select("id,provider_id,platform,category,name,description,selling_price,min_quantity,max_quantity,refill,cancel,dripfeed").eq("active",true).order("platform").order("category").limit(500),
