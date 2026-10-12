@@ -142,3 +142,31 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 1. Observe run 38239527707 until disposable services either start or exhaust their configured retries.
 2. If startup succeeds, inspect the first actual timestamp-ordered replay result and resolve only the next evidenced blocker using authoritative source or separately approved test-only baseline; do not skip migrations or create placeholder DDL.
 3. Keep the overall release gate **BLOCKED / NOT CERTIFIED** until full replay and the independent live runtime/security/payment/backup/device gates are verified.
+
+
+## 2026-10-12 — SESSION-006 — Exact-head replay failure reconfirmed; SMM remains live
+
+### Current source and PR state verified
+- `main` is still at `8a56358d505d2c12878440037f7f24ba65d2ea10` in this checkpoint.
+- PR #207 remains open Draft, head `7d871e19560fcce9895218f0e2f3236a974826c1`, branch `reconcile/rc425-458-current-main-20261011`.
+- PR #214 remains open, head `c3c91b503b9615a07b4f8b5013775d396894cdee`; PR #175 remains open, head `ec0a4b39231e0dc52eaca69ac28dca61bce06066`.
+- Exact-head run batch for PR #207: [38277095706](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38277095706) disposable migration replay **FAIL**; module professionalization, backend-only boundary, MantiGO privacy, approval audit atomicity, migration collision guard, migration history immutability, migration version uniqueness, Marketing Campaign Backend, Marketing CRM Tenant Scope, SMM service-role boundary, SMM deferred-module validation, and Pages workflow validation **PASS**. Pages deploy job was **SKIPPED**, not deployed.
+
+### Confirmed P0/P1 blockers
+- Downloaded exact replay job logs for run 38277095706. Disposable Supabase services started and timestamp-ordered replay reached `20260920155456_harden_credit_status_authorization.sql`, then failed because `public.credit_accounts` does not exist; the function also references missing `public.credit_periods`. This is a real schema/history failure, not an image-registry startup failure.
+- Re-ran bounded GitHub source/commit searches for `CREATE TABLE credit_accounts`, `CREATE TABLE credit_periods`, `credit_accounts_finance_read`, and `production_credit_control`. No authoritative creation migration or policy-creation source was found in the searchable default-branch code or commit results. These are bounded negative-search results, not proof that no source exists elsewhere.
+- Read-only `information_schema.columns` query against live Supabase project `moyhiluyhjsujhwlyeuu` confirms the live credit amount columns use `numeric(18,2)`; the recovered RC40 archive DDL uses `numeric(14,2)` for several amount columns. The live schema and archive also differ in defaults/policy provenance. Do not blindly inject archive DDL, synthesize credit tables, or alter applied migration history.
+- Read-only Edge Function inspection confirms production `smm-gateway` is ACTIVE v8, `verify_jwt=true`, deployed-source SHA-256 `c16d88610845d8dbab5ee40f366452a40e9cc021df487d45ebcd8077199ee40f`. It does not contain `MNTY_SMM_ENABLED` or `SMM_POST_LAUNCH_DEFERRED`; issue [#212](https://github.com/islamnagy2022-eng/MantiqaTiX/issues/212) remains open. PR #214's source gate has not been deployed. Live SMM containment remains **NOT VERIFIED**.
+- Supabase production migration ledger remains 283 entries through `20261008222845` / RC424. No production writes or deployments occurred.
+
+### Action performed in this session
+- Updated this append-only session log on the existing PR #207 candidate branch to preserve current evidence and prevent repeated stale checks. This documentation-only commit does not repair the migration chain or contain production.
+- No PR merge, production deployment, production migration, Auth/RLS/GRANT change, secret change, wallet/payment mutation, or backup/restore operation was performed.
+
+### Next executable actions
+1. Continue historical-ref and artifact-provenance recovery for credit table creation and finance-read policy creation. If authoritative source remains unavailable, prepare a clearly labelled review proposal for an owner-approved disposable-only baseline or forward-repair design; do not implement it without approval.
+2. Keep the release gate closed while the replay fails.
+3. Treat live SMM containment as an independent P0: require explicit deployment approval, deploy the reviewed fail-closed gate only through change control, then perform approved negative runtime tests proving no order, wallet, database-write, or provider side effects.
+4. Continue independent tenant-isolation, finance/webhook, backup/restore, and production-configuration verification without touching live financial data.
+
+**Release status: BLOCKED / NOT CERTIFIED.**
