@@ -47,3 +47,10 @@ The following checks completed successfully on candidate commit `0aa7105d4568ff5
 
 ## Safety boundary and decision
 No production migration, Edge Function deployment, Auth/security setting change, wallet/payment mutation, or financial data write was performed during this work. Do not merge PR #207 or declare production readiness on the basis of isolated CI checks. Release status remains **BLOCKED / NOT CERTIFIED** until all required gates are evidenced.
+
+
+## Authorization correction — 2026-10-12
+
+A review of the project authorization history found no explicit owner approval for using the ten live `SECURITY DEFINER` function bodies as a test-only replay baseline. The prior approval scope for SMM table schemas does not extend to privileged function definitions. To preserve the fail-closed release gate, the function fixture has been removed from the branch and its temporary migration injection has been removed from the replay workflow. The validator must now stop before service startup and list the ten unresolved historical creation dependencies unless authoritative earlier DDL is recovered or the owner separately authorizes that exact test-only fixture.
+
+Any run that checked out the earlier commit while the fixture was present is not acceptable evidence for certifying chronological replay, even if it later reports success. The current PR remains draft; no production database or function was changed. The service-start retry from run #165 remains a separate infrastructure question and does not override this authorization blocker.
