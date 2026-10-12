@@ -13,10 +13,10 @@
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": null,
-  "checked_at": "2026-10-11",
-  "reason": "Live ledger ends at RC424 and the source filename timestamp differs from the applied ledger version. Required post-RC424 migrations are not proven applied. Do not certify or deploy until exact live/source reconciliation, complete ordered replay on disposable PostgreSQL, and required integration/security evidence are recorded.",
+  "checked_at": "2026-10-12",
+  "reason": "BLOCKED: live migration history remains at RC424. Read-only production audit confirms SMM idempotency_key is absent, wallet debit/refund reference uniqueness indexes are absent, and service_role lacks SELECT/INSERT/UPDATE privileges on the SMM tables required by the gateway. All 3 providers and the single service are inactive. Required post-RC424 migrations are not proven applied. Do not deploy or enable providers until the full ordered migration chain is reconciled and replayed on a disposable database, the SMM schema/grant parity is verified, and required runtime/security evidence is recorded.",
   "edge_function_contracts": "NOT VERIFIED",
-  "smm_gateway_parity": "NOT VERIFIED",
+  "smm_gateway_parity": "FAIL",
   "auth_security_settings": "NOT VERIFIED",
   "rc424_reconciliation": {
     "ledger_version": "20261008222845",
@@ -30,5 +30,22 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "smm_production_audit": {
+    "checked_at": "2026-10-12",
+    "source": "read-only production SQL audit",
+    "latest_applied_migration": "20261008222845",
+    "latest_applied_migration_name": "rc424_atomic_digital_page_payment_webhook",
+    "smm_orders_has_idempotency_key": false,
+    "wallet_debit_reference_unique_index": false,
+    "wallet_refund_reference_unique_index": false,
+    "duplicate_debit_reference_groups": 0,
+    "duplicate_refund_reference_groups": 0,
+    "providers_total": 3,
+    "providers_active": 0,
+    "services_total": 1,
+    "services_active": 0,
+    "service_role_required_table_privileges": "FAIL",
+    "production_migrations_applied": false
+  }
 }
