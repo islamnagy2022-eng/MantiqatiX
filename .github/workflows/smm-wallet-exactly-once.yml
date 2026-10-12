@@ -3,17 +3,17 @@ on:
   push:
     branches: ["**"]
     paths:
-      - "supabase/migrations/20261012110000_rc458_smm_wallet_exactly_once.sql"
+      - "supabase/migrations/20261012110000_rc464_smm_wallet_exactly_once.sql"
       - "supabase/tests/rc456_smm_service_role_fixture.sql"
-      - "supabase/tests/rc458_smm_wallet_idempotency.sql"
+      - "supabase/tests/rc464_smm_wallet_idempotency.sql"
       - "scripts/validate-smm-wallet-idempotency.mjs"
       - ".github/workflows/smm-wallet-exactly-once.yml"
   pull_request:
     branches: [main]
     paths:
-      - "supabase/migrations/20261012110000_rc458_smm_wallet_exactly_once.sql"
+      - "supabase/migrations/20261012110000_rc464_smm_wallet_exactly_once.sql"
       - "supabase/tests/rc456_smm_service_role_fixture.sql"
-      - "supabase/tests/rc458_smm_wallet_idempotency.sql"
+      - "supabase/tests/rc464_smm_wallet_idempotency.sql"
       - ".github/workflows/smm-wallet-exactly-once.yml"
 permissions:
   contents: read
@@ -40,7 +40,7 @@ jobs:
         run: node scripts/validate-smm-wallet-idempotency.mjs
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
-      - name: Apply disposable fixture and RC458 contract
+      - name: Apply disposable fixture and RC464 contract
         env:
           PGPASSWORD: postgres
         run: |
@@ -48,6 +48,6 @@ jobs:
           export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres PGDATABASE=mantiqatix_smm_wallet_test
           psql -v ON_ERROR_STOP=1 -f supabase/tests/rc456_smm_service_role_fixture.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261012100000_rc457_smm_order_idempotency.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261012110000_rc458_smm_wallet_exactly_once.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/tests/rc458_smm_wallet_idempotency.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261012100000_rc463_smm_order_idempotency.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261012110000_rc464_smm_wallet_exactly_once.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/rc464_smm_wallet_idempotency.sql
