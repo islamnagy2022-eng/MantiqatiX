@@ -146,7 +146,7 @@ if (unresolvedLegacyFunctions.length) {
   console.error("Do not add placeholders or apply this fixture to production. Recover authoritative historical creation DDL to certify provenance.");
   process.exit(1);
 }
-console.warn("P0 LIMITATION: preflight uses a validated live-derived test-only function fixture because original historical creation DDL is absent from committed migration history.");
+console.warn("P0 LIMITATION: fixture is live-derived test-only compatibility scaffolding; it is not historical DDL and cannot certify historical function-body provenance.");
 console.warn("A successful replay validates migrations after this synthetic baseline only; it does NOT prove historical function-body fidelity or certify production migration provenance.");
 if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
   console.error("P0 BLOCKED: test-only provider and credentials baselines must sort before the first migration that references them.");
