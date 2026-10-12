@@ -333,3 +333,22 @@ The disposable migration replay [run 38194282084](https://github.com/islamnagy20
 Read-only catalog evidence from the live project shows `public.bookings` has two columns only (`id uuid NOT NULL DEFAULT gen_random_uuid()`, `created_at timestamp without time zone NULL DEFAULT now()`), primary key `bookings_pkey`, RLS enabled, four authenticated non-anonymous guard policies, and no other indexes or table constraints observed. A search of the applied production migration statements found no `CREATE TABLE` statement for `bookings`; repository search also found no creation migration. This is a live schema observation, not recovered historical DDL. No new test baseline was added because prior baseline approvals must not be silently expanded to this dependency.
 
 Next safe action: recover the authoritative creation/policy/grant history from a trusted source, or obtain explicit approval for a narrowly scoped disposable-only compatibility baseline. Do not create a production migration from this snapshot, bypass the hardening migration, or claim full replay success. Production database, migration ledger, functions, Auth, grants/RLS, wallet, payments, and financial records remain untouched.
+
+
+## Follow-up — fail-closed preflight and CI evidence — 2026-10-12
+
+The candidate branch now checks the missing `public.bookings` dependency before starting disposable Supabase. On commit [`a81f044640f8ba9f27f578d942ec6be07e4ceec7`](https://github.com/islamnagy2022-eng/MantiqaTix/commit/a81f044640f8ba9f27f578d942ec6be07e4ceec7), replay run [38195386432](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195386432) failed at the intentional fail-closed preflight; all later replay/startup steps were skipped. This is a blocker detection, not a migration replay pass.
+
+Additional source recovery performed:
+- Inspected all 12 committed migrations ordered before `20260919233425_production_security_hardening_v1.sql`; none creates or even references `public.bookings`.
+- Repository code search and the available RC40 archive still did not yield authoritative `CREATE TABLE public.bookings` DDL.
+- The earlier production audit recorded one row in `bookings`, but row count and present-day catalog shape do not establish historical table creation, policy/grant history, or business semantics.
+- Therefore no `bookings.sql` fixture, placeholder migration, migration skip, or production change was introduced.
+
+Candidate-head CI evidence:
+- [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195386449): PASS, including the inspected finance, ERP branch-scope, checkout-recovery, and SECURITY DEFINER integration jobs.
+- [SMM Deferred Module Validation](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195386376): PASS in disposable CI only; does not verify the deployed production function is gated.
+- [SMM Service Role Access Boundary](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195386506): PASS.
+- [Deploy MantiqaTix Web](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38195386452): validation PASS; deployment job SKIPPED, so this run did not publish the candidate.
+
+**Release decision remains BLOCKED / NOT CERTIFIED.** Resume only after authoritative historical DDL/policy/grant provenance is recovered or a specifically scoped disposable-only compatibility baseline is explicitly approved. Separately verify or safely contain the live SMM gateway before launch. No production database, migration ledger, Edge Function, Auth, RLS/grants, wallet, payment, or financial state was changed by this work.
