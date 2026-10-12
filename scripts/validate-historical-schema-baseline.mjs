@@ -4,6 +4,8 @@ import path from "node:path";
 const migrationDirectory = "supabase/migrations";
 const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
+const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
+const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
 const files = fs.readdirSync(migrationDirectory)
   .filter((name) => name.endsWith(".sql"))
   .sort();
@@ -12,8 +14,8 @@ const migrations = files.map((name) => ({
   sql: fs.readFileSync(path.join(migrationDirectory, name), "utf8"),
 }));
 const missingHistoricalTables = [
-  { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql" },
-  { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql" },
+  { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
+  { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -22,13 +24,33 @@ const missingHistoricalTables = [
   );
   return !prefix.some(({ sql }) => createPattern.test(sql));
 });
-if (missingHistoricalTables.length) {
-  console.error("P0 BLOCKED: required core-table creation DDL is absent from committed migrations before its first dependent migration:");
-  for (const { table, before } of missingHistoricalTables) {
-    console.error(" - public." + table + " must exist before " + before);
+for (const { table, before, baselinePath } of missingHistoricalTables) {
+  if (!fs.existsSync(baselinePath)) {
+    console.error("P0 BLOCKED: no approved isolated compatibility baseline exists for public." + table + " before " + before);
+    process.exit(1);
   }
-  console.error("Recover authoritative historical schema DDL/backup. Do not synthesize table fixtures or apply live-derived table snapshots as a substitute for provenance.");
+}
+const registrationBaseline = fs.readFileSync(registrationBaselinePath, "utf8");
+const registrationChecks = [
+  ["registration baseline provenance", /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(registrationBaseline) && /2026-10-12/.test(registrationBaseline) && /moyhiluyhjsujhwlyeuu/.test(registrationBaseline) && /NOT recovered historical creation DDL/.test(registrationBaseline) && /Never apply this file to production/.test(registrationBaseline)],
+  ["registration columns, defaults and role/status checks", /user_id uuid not null/i.test(registrationBaseline) && /requested_role character varying\\(40\\) not null/i.test(registrationBaseline) && /status character varying\\(20\\) not null default 'PENDING'/i.test(registrationBaseline) && /metadata jsonb not null default '\\{\\}'::jsonb/i.test(registrationBaseline) && /requested_role_check[\\s\\S]*CUSTOMER[\\s\\S]*SERVICE_PROVIDER/i.test(registrationBaseline) && /status_check[\\s\\S]*APPROVED[\\s\\S]*REJECTED[\\s\\S]*CANCELLED/i.test(registrationBaseline)],
+  ["registration user foreign key and RLS", /references auth\\.users\\(id\\) on delete cascade/i.test(registrationBaseline) && /enable row level security/i.test(registrationBaseline) && /account_registration_requests_self_insert[\\s\\S]*to authenticated/i.test(registrationBaseline)],
+  ["pending unique index intentionally left to its ordered migration", !/create unique index account_registration_requests_pending_role_uidx/i.test(registrationBaseline)],
+];
+const marketingProfileBaseline = fs.readFileSync(marketingProfileBaselinePath, "utf8");
+const marketingProfileChecks = [
+  ["provider profile baseline provenance", /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(marketingProfileBaseline) && /2026-10-12/.test(marketingProfileBaseline) && /moyhiluyhjsujhwlyeuu/.test(marketingProfileBaseline) && /NOT recovered historical creation DDL/.test(marketingProfileBaseline) && /Never apply this file to production/.test(marketingProfileBaseline)],
+  ["provider profile observed columns and constraints", /provider_kind character varying not null/i.test(marketingProfileBaseline) && /owner_user_id uuid/i.test(marketingProfileBaseline) && /name_ar character varying not null/i.test(marketingProfileBaseline) && /specialties jsonb not null default '\\[\\]'/i.test(marketingProfileBaseline) && /unique \\(slug\\)/i.test(marketingProfileBaseline) && /OFFICIAL[\\s\\S]*PARTNER_COMPANY[\\s\\S]*FREELANCER/i.test(marketingProfileBaseline)],
+  ["profile image column remains owned by ordered migration", !/profile_image_path/i.test(marketingProfileBaseline)],
+  ["provider profile forced RLS and public active-only read", /enable row level security/i.test(marketingProfileBaseline) && /force row level security/i.test(marketingProfileBaseline) && /Public can view active marketing providers[\\s\\S]*to anon, authenticated[\\s\\S]*using \\(status = 'ACTIVE'\\)/i.test(marketingProfileBaseline)],
+];
+const tableBaselineFailures = [...registrationChecks, ...marketingProfileChecks].filter(([, ok]) => !ok);
+if (tableBaselineFailures.length) {
+  for (const [name] of tableBaselineFailures) console.error("P0 BLOCKED: table baseline validation failed: " + name);
   process.exit(1);
+}
+if (missingHistoricalTables.length) {
+  console.warn("P0 LIMITATION: live-derived table compatibility baselines are injected only into disposable CI; they do NOT recover or certify historical table-creation provenance.");
 }
 
 const firstCredentialReference = migrations.find(({ sql }) =>
@@ -181,4 +203,5 @@ for (const [version, temporaryName] of [
     process.exit(1);
   }
 }
-console.log("Historical schema baseline preflight PASS: owner-approved isolated SMM fixtures and explicitly authorized live-derived function compatibility fixture validated.");
+console.log("Disposable compatibility preflight PASS: owner-approved SMM fixtures, live-derived table baselines, and live-derived function compatibility fixture validated.");
+console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
