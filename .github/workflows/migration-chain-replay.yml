@@ -138,12 +138,28 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Start disposable Supabase services (retry on registry throttling)
+      - name: Start disposable Supabase services without replaying migrations
         shell: bash
         run: |
           set -euo pipefail
+          migration_stash="$(mktemp -d)"
+          restore_migrations() {
+            shopt -s nullglob
+            for file in "$migration_stash"/*.sql; do
+              mv "$file" supabase/migrations/
+            done
+            rmdir "$migration_stash" 2>/dev/null || true
+          }
+          trap restore_migrations EXIT
+          shopt -s nullglob
+          for file in supabase/migrations/*.sql; do
+            mv "$file" "$migration_stash/"
+          done
           for attempt in 1 2 3 4; do
             if timeout --kill-after=15s 180s supabase start -x studio,edge-runtime,logflare,vector,supavisor; then
+              restore_migrations
+              trap - EXIT
+              echo "Disposable services started; all migration SQL files restored for the dedicated replay step."
               exit 0
             fi
             if [[ "$attempt" -lt 4 ]]; then
