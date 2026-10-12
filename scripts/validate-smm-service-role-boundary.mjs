@@ -133,6 +133,7 @@ assert.match(cancelAction, /\.eq\("user_id",user\.id\)/, "cancellation must be s
 assert.match(cancelAction, /CANCELLATION_NOT_SUPPORTED/, "cancellation must require provider/service support");
 assert.match(cancelAction, /cancel_request_started/, "cancellation intent must be persisted before the external request to avoid duplicate submissions");
 assert.match(cancelAction, /if\(!started\.data\)/, "concurrent cancellation requests must fail closed when the atomic claim is lost");
+assert.match(cancelAction, /select\("id"\)\.maybeSingle\(\)/, "cancellation state persistence must confirm that the conditional update actually changed a row");
 assert.match(cancelAction, /cancel_requested/, "accepted cancellation requests must remain pending until provider status confirms cancellation");
 assert.doesNotMatch(cancelAction, /smm_refund_wallet/, "a cancellation request must never refund before provider confirmation");
 const statusActionStart = edge.indexOf('if(a==="order_status")');
@@ -144,6 +145,8 @@ assert.match(statusAction, /ORDER_REFUND_REQUIRES_RECONCILIATION/, "refund uncer
 assert.match(statusAction, /refund_requires_reconciliation/, "failed confirmed-cancellation refunds must persist a dedicated reconciliation state");
 assert.match(statusAction, /WALLET_REFUND_CONFIRMED/, "successful refund must be auditable");
 assert.match(statusAction, /const cancellationPending=/, "status polling must preserve a pending cancellation while the provider still reports an active or uncertain state");
+assert.match(statusAction, /ORDER_STATE_CHANGED_RETRY/, "status synchronization must fail closed if a concurrent cancellation or update changed the order");
+assert.match(statusAction, /statusWrite\.eq\("updated_at",o\.data\.updated_at\)/, "status synchronization must use an optimistic concurrency guard");
 assert.match(smmUi, /action:'cancel_order'/, "customer UI must invoke the guarded cancellation action");
 assert.match(smmUi, /لن يُعاد الرصيد إلا بعد تأكيد المورّد/, "customer UI must explain that refund requires provider confirmation");
 assert.match(smmUi, /refund_requires_reconciliation/, "customer UI must disclose when a confirmed cancellation refund requires support reconciliation");
