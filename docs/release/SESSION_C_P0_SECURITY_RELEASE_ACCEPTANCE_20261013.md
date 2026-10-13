@@ -206,3 +206,20 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 
 - Current PR #207 head `61c994c47b7b27f498a26463dda658694ffcb719` now declares `settlement_attempts_baseline` in the second workflow shell (verified by read-only source fetch). Exact-head replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) was still in progress; the source fix is not considered a test pass until full run completion.
 - Settlement fixture schema parity and approval/provenance remain open. Global status **BLOCKED / NOT CERTIFIED**.
+
+
+## Root-cause continuation — 2026-10-13 05:28 UTC
+
+### Migration replay: exact failing dependency
+Run [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) failed in disposable chronological replay at `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql` with `function public.smm_bootstrap_first_admin() does not exist`. Live read-only catalog inspection confirms the function exists in production and is SECURITY DEFINER with an ACL restricted to postgres; the failure is a missing pre-migration historical definition in the replay chain, not a missing live function.
+
+Current PR #207 head `136600157e02889b36b267dfd8632542662ceec3` now validates and injects `supabase/tests/baselines/smm_bootstrap_first_admin.sql` only into a fresh disposable replay at `20260927033924`. The fixture copies the read-only catalog definition, inserts no rows, and is not historical creation DDL. Exact-head replay [38351334323](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351334323) is pending. The full chain is not yet certified.
+
+### SMM gateway contract
+PR #225 current head `04b6513cff0131c7dab003c7a6d9a98d8dc430b3` passed its source/security contract in [run 38351175629](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351175629). This is a static regression check only; live HTTP denial and deployed-source runtime behavior remain NOT VERIFIED.
+
+### MantiGO admin authorization test
+The available run [38343317017](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343317017) failed with `AUTH_REQUIRED` inside the authorized financial-report path. PR #219 has since been updated, so the old run cannot classify the latest head. The root-cause work must establish request identity propagation in the disposable fixture and re-run current-head tests without weakening `auth.uid()` or the platform-admin guard.
+
+### Release decision
+The live global MantiGO SECURITY DEFINER authorization finding remains P0. Candidate migrations, static checks, and passing source validators do not constitute production remediation. Require reviewed candidate SQL, exact-head tests, staged approval, and positive platform-admin plus negative tenant-role live tests before release. No production changes were made. **BLOCKED / NOT CERTIFIED**.
