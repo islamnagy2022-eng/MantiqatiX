@@ -390,3 +390,13 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - The same active migration workstream also added a clearly labeled trigger-only `smm_bootstrap_first_admin()` compatibility baseline based on read-only `pg_get_functiondef` evidence. It is never invoked during replay and does not broaden EXECUTE grants. Historical provenance is still unresolved.
 - Latest observed PR #207 head after those fixes: `e7fcd20f5c9a125d2a99590cb56a688086ab95cb`; its new exact-head replay [#38351708218](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351708218) was pending when checked. Do not infer a pass from the previous run.
 - Root fix principle retained: compatibility baselines are only disposable test scaffolding to discover the next dependency. They do not repair the canonical migration archive or prove production ledger consistency. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## SMM exact-head regression result — 2026-10-13 05:37 UTC
+
+- PR #225 current head at this check: `4117a7788f2ec632269e46870dea51863fe274ef`.
+- Exact-head workflow run [#38351776942](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351776942) completed **SUCCESS**; its `source-and-unit` job passed.
+- The earlier redirect assertion was corrected to use a deterministic literal string assertion, avoiding the previous invalid regex. The successful run is the evidence for that fix on the exact PR head.
+- Scope of PASS: source security-contract validator and SMM unit/static checks included in that workflow only. It does not certify live post-launch functionality, migration replay, provider end-to-end behavior, wallet/payment E2E, or production readiness.
+- PR #225 remains draft/open/unmerged. Production SMM remains fail-closed; no production deployment or flag change was made.
+- Independent current blockers remain: PR #207 chronological replay is being repaired from one missing historical policy dependency at a time using read-only production catalog evidence and disposable-only fixtures; the live MantiGO global-admin RPC authorization issue is still P0.
