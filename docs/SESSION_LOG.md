@@ -182,3 +182,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Read-only source search found only the ALTER statement; live `pg_policies` confirms the policy exists with active same-tenant finance-role SELECT scope. Posted root-cause and safe remediation options at [PR #207 comment 6138988836](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138988836). No fixture added without approval and no production changes.
 - PR #228 Deno type-check remains blocked on transitive npm package provisioning, despite static and PostgreSQL tests passing; see [6138974795](https://github.com/islamnagy2022-eng/MantiqatiX/pull/228#issuecomment-6138974795).
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## PR #228 root fix implementation — 2026-10-13 05:35 UTC
+
+- Commit `468a9511d96730dd06ed73a0e13de3fc7d1193b1` enabled `--node-modules-dir=auto`; this resolved dependency provisioning and surfaced genuine TypeScript errors: `requestId` was referenced but undeclared in four locations.
+- Added `const requestId=crypto.randomUUID();` at the beginning of the checkout request handler in commit `27cce959111e28f2b8d477ced2888aec5f394dcd`. Exact-head regression [run 38352157438](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38352157438) is queued. The prior run [38352064454](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38352064454) still failed type-check on the now-fixed undefined variable; it is not acceptance evidence for current head.
+- PR #207 exact-head replay remains failed at missing historical policy `commission_transactions_finance_read`; root cause and approval boundary are documented at [comment 6138988836](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138988836) and archive provenance follow-up [6139004215](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6139004215).
+- No production changes. Release remains **BLOCKED / NOT CERTIFIED**.
