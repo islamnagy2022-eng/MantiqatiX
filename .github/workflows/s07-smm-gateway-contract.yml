@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Test launch-gate decisions
-        run: deno test --no-check supabase/functions/smm-gateway/launch-gate.test.ts
+      - name: Test SMM gateway safety helpers
+        run: deno test --no-check supabase/functions/smm-gateway/*.test.ts
       - name: Validate gateway wiring and safety contract
         run: node scripts/validate-s07-smm-gateway.mjs
