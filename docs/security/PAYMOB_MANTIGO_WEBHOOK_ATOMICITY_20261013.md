@@ -37,3 +37,25 @@
 - Do not deploy the Edge Function or apply this migration to production without separate explicit approval and a reviewed release plan.
 - Do not use a real payment or wallet mutation to test this fix.
 - Do not interpret a successful isolated RPC test as proof of Paymob end-to-end settlement, refund, notification delivery, or production rollout.
+
+
+## Expanded Paymob failure-path coverage — 2026-10-13
+
+The candidate was expanded beyond MantiGO because source review found the same split-write risk in the ordinary order failure callback and a non-atomic subscription failure update.
+
+- Ordinary order failure: replaced direct provider-event insertion + separate `payment_intents` update with `process_verified_payment_failure_backend`.
+- Subscription failure: replaced direct `subscription_payment_intents` update with `process_verified_subscription_payment_failure_backend`; provider-event rows now have explicit `subscription_payment_intent_id` correlation.
+- Both new failure RPCs are SECURITY DEFINER, require the service-role JWT claim, revoke execute from PUBLIC/anon/authenticated, and grant execute only to `service_role`.
+- Existing success processing remains delegated to the existing success RPCs. This candidate does not claim the entire payment platform or all success-path authorization is newly certified.
+
+**Latest exact code head:** `b522ffe0bfca3ed4cf3df0cbaaa8972334bbb900`.
+
+Dedicated workflow [#38355575454](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38355575454) completed **SUCCESS**:
+- static source boundary validation — PASS
+- Deno type-check of Paymob webhook — PASS
+- disposable PostgreSQL migration apply — PASS
+- MantiGO, ordinary order, and subscription callback regression suite — PASS
+
+Regression cases include duplicate replay, amount/currency mismatch, cross-intent event identity conflicts, forced ledger/intent write failures with transaction rollback, service-role-only execution, legacy MantiGO event repair, and preserving a previously successful subscription.
+
+Production rollout, real Paymob success/failure/refund E2E, financial settlement posting, and full chronological migration replay remain **NOT VERIFIED / BLOCKED**. No production migration, deployment, or real payment was executed.
