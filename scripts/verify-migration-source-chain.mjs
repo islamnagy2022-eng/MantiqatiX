@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 
 const roots = ["supabase/migrations", "supabase/recovered-migrations"];
+const diagnosticReplay = process.argv.includes("--diagnostic-replay");
 const expected = [
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261009130000_rc426_digital_page_provider_order_binding.sql",
@@ -26,6 +27,33 @@ const expected = [
   "20261013200000_rc523_mantigo_financial_report_canonical_columns.sql"
 ];
 
+// Explicit diagnostic-only tie-break order based on source-control addition chronology
+// inspected for these exact files. This is NOT proof of production migration order and
+// does NOT repair or rename any migration version.
+const collisionOrder = new Map([
+  ["20260928020000", [
+    "20260928020000_rc101_g6_rls_permissive_policy_hardening.sql",
+    "20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql"
+  ]],
+  ["20260928060000", [
+    "20260928060000_restore_registration_request_dml_grants.sql",
+    "20260928060000_rc109_harden_order_support_tenant_boundaries.sql"
+  ]],
+  ["20260928190000", [
+    "20260928190000_rc162_mantigo_trip_state_machine.sql",
+    "20260928190000_rc200_cross_tenant_customer_payment_authorization.sql"
+  ]],
+  ["20260928200000", [
+    "20260928200000_rc164_mantigo_direct_delete_lockdown.sql",
+    "20260928200000_rc164_retire_legacy_mantigo_mutator.sql",
+    "20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql"
+  ]],
+  ["20260928210000", [
+    "20260928210000_rc172_restore_medical_booking_contract.sql",
+    "20260928210000_rc207_official_global_mnty_cover_ads.sql"
+  ]]
+]);
+
 const sha256 = (value) => crypto.createHash("sha256").update(value).digest("hex");
 const all = [];
 const missingDirectories = [];
@@ -37,14 +65,8 @@ for (const root of roots) {
   for (const name of fs.readdirSync(root).filter((n) => n.endsWith(".sql")).sort()) {
     const fullPath = path.join(root, name);
     const match = /^(\d{14})_(.+)\.sql$/.exec(name);
-    all.push({
-      root,
-      name,
-      path: fullPath,
-      version: match?.[1] ?? null,
-      validName: Boolean(match),
-      sha256: sha256(fs.readFileSync(fullPath))
-    });
+    all.push({ root, name, path: fullPath, version: match?.[1] ?? null,
+      validName: Boolean(match), sha256: sha256(fs.readFileSync(fullPath)) });
   }
 }
 
@@ -54,10 +76,11 @@ for (const file of all) {
   const existing = byName.get(file.name);
   if (!existing) byName.set(file.name, file);
   else if (existing.sha256 !== file.sha256) {
-    conflictingCopies.push({ name: file.name, paths: [existing.path, file.path], sha256: [existing.sha256, file.sha256] });
+    conflictingCopies.push({ name: file.name, paths: [existing.path, file.path],
+      sha256: [existing.sha256, file.sha256] });
   }
 }
-const uniqueNames = [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
+const uniqueNames = [...byName.values()];
 const byVersion = new Map();
 for (const file of uniqueNames) {
   if (!file.version) continue;
@@ -69,6 +92,24 @@ const collisions = [...byVersion.entries()]
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([version, names]) => ({ version, files: names.sort() }));
 
+const collisionOrderErrors = [];
+for (const collision of collisions) {
+  const prescribed = collisionOrder.get(collision.version);
+  if (!prescribed || JSON.stringify([...prescribed].sort()) !== JSON.stringify([...collision.files].sort())) {
+    collisionOrderErrors.push({version: collision.version, files: collision.files, reason:"no exact diagnostic tie-break manifest"});
+  }
+}
+const orderRank = new Map();
+for (const [version, names] of collisionOrder) names.forEach((name, i) => orderRank.set(name, i));
+const orderedFiles = [...uniqueNames].sort((a, b) => {
+  const versionOrder = (a.version ?? a.name).localeCompare(b.version ?? b.name);
+  if (versionOrder !== 0) return versionOrder;
+  const rankA = orderRank.get(a.name);
+  const rankB = orderRank.get(b.name);
+  if (rankA !== undefined && rankB !== undefined) return rankA - rankB;
+  return a.name.localeCompare(b.name);
+});
+
 const missingRequired = expected.filter((name) => !byName.has(name));
 const invalidNames = all.filter((f) => !f.validName).map((f) => ({ path: f.path, name: f.name }));
 const rc433Candidates = uniqueNames.filter((f) => /rc433_/i.test(f.name)).map((f) => f.name);
@@ -77,12 +118,19 @@ if (missingDirectories.length) blockers.push({ kind: "missing_directory", items:
 if (invalidNames.length) blockers.push({ kind: "invalid_filename", items: invalidNames });
 if (conflictingCopies.length) blockers.push({ kind: "same_name_different_content", items: conflictingCopies });
 if (missingRequired.length) blockers.push({ kind: "required_source_missing", items: missingRequired });
-if (collisions.length) blockers.push({ kind: "migration_version_collision", items: collisions });
+if (collisionOrderErrors.length) blockers.push({ kind: "unreviewed_migration_version_collision", items: collisionOrderErrors });
+if (collisions.length && !diagnosticReplay) blockers.push({ kind: "migration_version_collision", items: collisions });
 
+const strictBlockers = blockers.filter((b) => b.kind !== "migration_version_collision");
+const replayMayStart = strictBlockers.length === 0 && (!collisions.length || diagnosticReplay);
 const report = {
   generatedAt: new Date().toISOString(),
-  status: blockers.length ? "BLOCKED" : "PASS",
-  purpose: "Source preflight only; not evidence of production application or successful SQL replay.",
+  status: replayMayStart ? (diagnosticReplay && collisions.length ? "DIAGNOSTIC_ONLY" : "PASS") : "BLOCKED",
+  purpose: diagnosticReplay
+    ? "Diagnostic-only replay order. Collision tie-breaks use reviewed source-control addition chronology; this is not proof of production migration order and cannot certify the chain."
+    : "Strict source preflight; not evidence of production application or successful SQL replay.",
+  diagnosticReplay,
+  certificationAllowed: !diagnosticReplay && collisions.length === 0 && blockers.length === 0,
   roots,
   counts: {
     migrationDirectorySqlFiles: all.filter((f) => f.root === roots[0]).length,
@@ -92,18 +140,21 @@ const report = {
     uniqueVersionCount: byVersion.size,
     versionCollisionGroups: collisions.length
   },
-  expectedSources: expected.map((name) => ({ name, found: byName.has(name), locations: all.filter((f) => f.name === name).map((f) => f.path) })),
-  rc433Audit: {
-    result: rc433Candidates.length ? "SOURCE_FOUND" : "NO_SOURCE_FOUND",
+  expectedSources: expected.map((name) => ({ name, found: byName.has(name),
+    locations: all.filter((f) => f.name === name).map((f) => f.path) })),
+  rc433Audit: { result: rc433Candidates.length ? "SOURCE_FOUND" : "NO_SOURCE_FOUND",
     files: rc433Candidates,
-    note: "The surrounding RC425–RC441 range was requested for review, but the current PR's explicit required-source list omits RC433. Confirm from authoritative task/ledger evidence whether RC433 was ever a defined migration; absence alone does not prove a missing applied migration."
-  },
+    note: "Absence alone does not prove a missing applied migration; confirm the identifier against authoritative source/ledger evidence." },
   collisions,
+  collisionTieBreakOrder: collisions.map((c) => ({version:c.version, order:collisionOrder.get(c.version) ?? null,
+    basis:"source-control addition chronology; diagnostic only; not production application order"})),
   conflictingCopies,
   invalidNames,
   missingRequired,
   blockers,
-  replayMayStart: blockers.length === 0
+  replayOrder: orderedFiles.map((f) => f.path),
+  replayMayStart,
+  certificationNote: "A successful diagnostic replay does not clear migration-version uniqueness or prove production ledger/source identity."
 };
 
 const reportArg = process.argv.findIndex((arg) => arg === "--report");
@@ -114,7 +165,7 @@ if (reportArg >= 0 && process.argv[reportArg + 1]) {
 }
 console.log(JSON.stringify(report, null, 2));
 if (!report.replayMayStart) {
-  console.error("Migration clean replay BLOCKED by source-chain preflight. Resolve every blocker; do not skip files or rewrite applied history.");
+  console.error("Migration replay BLOCKED by source-chain preflight. Resolve every blocker; do not skip files or rewrite applied history.");
   process.exit(1);
 }
-console.log("Migration source-chain preflight PASS. A PostgreSQL replay is still required.");
+if (diagnosticReplay) console.warn("DIAGNOSTIC-ONLY MODE: migration version collisions remain unresolved; result cannot certify production readiness.");
