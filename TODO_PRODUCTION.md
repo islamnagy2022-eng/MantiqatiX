@@ -421,3 +421,21 @@
 - [🟢] Public footer dead-end links fixed: About, Terms and Privacy now open real in-app information dialogs instead of `href="#"` no-op anchors.
 - [🟢] Dialog accessibility implemented: `role="dialog"`, `aria-modal`, labelled heading, Escape close, backdrop close and initial focus.
 - [🟡] CI for RC314 remains pending/in progress at documentation time; no production gate was marked closed from this UI change alone.
+
+
+## 2026-10-13 — Latest production gate refresh
+
+Canonical detailed register: `docs/MASTER_PRODUCTION_TODO.md`. Chronological evidence: `docs/SESSION_LOG.md`. This update does not override earlier entries; it records new evidence only.
+
+- [x] Isolated S06 concurrent duplicate-payment callback regression passed: [run 38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801), candidate [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237), DRAFT/unmerged.
+- [x] Isolated SMM RC524 least-privilege ACL integration passed: [run 38400557008](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400557008), candidate [PR #236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236), DRAFT/unmerged; production ACL unchanged.
+- [ ] **P0 BLOCKED:** Full chronological migration replay failed in [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251). Do not skip historical migrations or invent DDL.
+- [ ] **P0 NOT VERIFIED:** Live SMM gateway/API negative-denial behavior and existing production TRUNCATE ACL require approved rollout/evidence; keep SMM deferred.
+- [ ] **P0 NOT VERIFIED:** Real Paymob, refunds, settlements/GL, cross-tenant E2E, Auth/browser/device, restore/DR, monitoring/rollback, and final regression.
+- [ ] [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) is a fail-closed marketing schema provenance guard, not a schema fix.
+- [ ] PR #207, #220, #221, #235, #236, and #237 remain draft/unmerged at this checkpoint. PR #233/#234 are blocked experiments; do not merge.
+- **Release: BLOCKED / NOT CERTIFIED.** No production migration, Edge Function deployment, financial mutation, merge, or release approval occurred in this continuation.
+
+
+- [x] Latest S06 conflicting-status concurrency regression passed at exact head: [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421). This is disposable PostgreSQL only.
+- [ ] Security Advisor refresh (2026-10-13): 40 authenticated SECURITY DEFINER, 1 anon SECURITY DEFINER, 90 anonymous-policy warnings, leaked-password protection disabled, and one RLS-enabled/no-policy INFO finding; per-item triage remains open.

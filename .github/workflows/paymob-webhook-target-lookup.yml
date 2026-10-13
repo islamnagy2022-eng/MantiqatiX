@@ -1,0 +1,56 @@
+name: Paymob Webhook Target Lookup
+on:
+  push:
+    branches:
+      - main
+      - reconcile/rc425-458-current-main-20261011
+    paths:
+      - 'supabase/migrations/20261013010000_paymob_webhook_target_lookup_rpc.sql'
+      - 'supabase/tests/rc463_paymob_webhook_target_lookup_fixture.sql'
+      - 'supabase/tests/rc463_paymob_webhook_target_lookup_integration.sql'
+      - 'scripts/validate-finance-boundaries.mjs'
+      - '.github/workflows/paymob-webhook-target-lookup.yml'
+  pull_request:
+    branches:
+      - main
+      - 'docs/rc521-admin-operations-discovery-20261013'
+    paths:
+      - 'supabase/migrations/20261013010000_paymob_webhook_target_lookup_rpc.sql'
+      - 'supabase/tests/rc463_paymob_webhook_target_lookup_fixture.sql'
+      - 'supabase/tests/rc463_paymob_webhook_target_lookup_integration.sql'
+      - 'scripts/validate-finance-boundaries.mjs'
+      - '.github/workflows/paymob-webhook-target-lookup.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Validate finance and webhook source boundaries
+        run: node scripts/validate-finance-boundaries.mjs
+      - name: Install isolated lookup schema fixture
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc463_paymob_webhook_target_lookup_fixture.sql
+      - name: Apply lookup RPC migration to disposable PostgreSQL
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261013010000_paymob_webhook_target_lookup_rpc.sql
+      - name: Run target binding and ambiguity regression tests
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc463_paymob_webhook_target_lookup_integration.sql

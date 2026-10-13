@@ -1,4 +1,26 @@
 # MantiqatiX Continuous Execution Status
+## Exact-head CI checkpoint — 2026-10-12, SMM frozen
+
+Candidate branch: `reconcile/rc425-458-current-main-20261011`
+Exact head: `df1ada71e3a15535388dc62b5caff05294606f2c`
+
+- Core source validation passed: Module Professionalization Validation [38178199559], Backend-only Module Boundary [38178199597], MantiGO Open Ride Privacy Boundary [38178199558], Approval Action Audit Atomicity [38178199601], Migration Version Uniqueness [38178199576], Migration History Immutability [38178199554], and Open PR Migration Collision Guard [38178199583].
+- The core validation log confirms the checkout-secret crypto regression tests passed (round-trip, fresh IV, authenticated-context binding, tamper rejection) and the payment/webhook source contracts passed. This is source/CI evidence only, not live payment E2E.
+- Pages workflow [38178199581] completed successfully as a workflow, but its deployment job was skipped for this draft PR. No production deployment is claimed.
+- SMM Deferred Module Validation [38178199561] remains failed. Per the owner's explicit instruction, do not continue SMM development or attempt to make its feature tests green during the initial-launch cycle. Preserve the failure record; do not weaken or delete tests. The SMM-specific implementation remains deferred until after actual launch and a separate explicit owner request.
+- The separate live-server SMM deny/containment issue remains a production risk gate; this documentation and source CI did not disable the live gateway. No production change is claimed.
+- The full chronological migration replay has not been evidenced on this exact head. The known historical SECURITY DEFINER creation dependencies, post-RC424 migration reconciliation, authenticated browser/tenant isolation, payment/finance E2E, backup/restore and rollback evidence remain release blockers.
+
+**Release status: BLOCKED / NOT CERTIFIED.** Do not merge to `main`, deploy, or apply production migrations on the basis of these CI results.
+
+## Owner decision — SMM frozen until after production launch (2026-10-12)
+
+- **SMM implementation and feature work are paused by explicit owner instruction.** Do not continue SMM development, remediation, UI work, provider/payment/wallet work, or SMM-specific expansion until the owner explicitly requests resumption after the site has launched and is operating.
+- Keep the SMM module out of the initial launch scope. Do not weaken, delete, or rewrite existing SMM security tests to make CI green; retain their current results as recorded evidence, but do not spend the current release cycle implementing SMM fixes.
+- This freeze is a development-scope decision, not proof that any already-deployed SMM endpoint has been disabled. Do not change production Edge Functions, secrets, database grants, migrations, wallet/order state, or deployment configuration without a separately authorized production change and verified rollback plan.
+- Continue release work only on non-SMM launch-critical areas: migration-source/ledger reconciliation and chronological replay on disposable PostgreSQL, non-SMM security and tenant-isolation checks, authenticated browser acceptance, payment/finance acceptance, and backup/restore plus rollback evidence.
+- Release remains **NOT CERTIFIED** until all launch-critical gates outside the deferred SMM feature set are independently evidenced. If a shared security or production-risk gate depends on SMM being active, report it explicitly; do not silently waive it.
+
 Last updated: 2026-10-11 — RC453 source CI verified; production release not certified
 
 ## Release status
@@ -360,3 +382,60 @@ All Supabase production queries were read-only. No production migrations, table 
 - At exact head `0d08e2a66f8c60eb7cf05d38e8ac1167cfc967c3`, Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy CI all passed. The isolated RC434 atomic-receiving and RC437 order-line PostgreSQL jobs passed, as did the static contract and JavaScript syntax checks.
 - This does not prove browser-to-live-Edge-to-production-database E2E. Do not deploy the functions until RC434/RC437/RC438 are reviewed as part of the complete chronological migration chain, and the base migration PR collision with PR #84 is resolved.
 - Redundant draft PR #200 was closed unmerged because it duplicated migration filenames; PR #201 replaces it as a stacked, non-migration-changing implementation PR.
+
+
+## Current-main reconciliation — release candidate 2026-10-11
+
+- Clean reconciliation is based on current `main` checkpoint `8a56358d505d2c12878440037f7f24ba65d2ea10`; it preserves the current main Pages workflow and adds the Paymob signed-order-binding validator to the validation gate.
+- Candidate source changes restore RC425–RC432, RC434–RC441, RC457 and RC458 migration sources, plus isolated PostgreSQL integration tests and scoped payment/finance/ERP Edge Function fixes. RC433 is not inferred to exist. These are source-only candidates and are not applied to production.
+- RC424 applied-ledger statement version `20261008222845` was verified byte-for-byte identical to the source statement (7,208 bytes); retain the immutable ledger version and treat the filename timestamp as a legacy alias.
+- Full disposable replay remains blocked: applied migration history and repository sources contain references to `public.smm_provider_credentials` but no authoritative create-table statement. Live catalog evidence is recorded separately; it is not substituted for historical DDL or silently pre-seeded into a replay fixture.
+- RC458 now scopes purchase-order approval role selection to the target branch and organization and preserves the existing branch-scoped `PURCHASING` receiving permission. Cross-branch privilege-escalation and positive purchasing-role cases are in the disposable integration suite; latest exact-head CI must pass before this candidate is considered verified.
+- No production migration, grant/RLS/Auth change, Edge Function deployment, payment, wallet mutation, or customer-data write was performed. Release remains **NOT CERTIFIED**.
+
+
+## Automated 30-stage continuation cycle — 2026-10-11
+
+Completed a 30-check review pass across the current candidate PR, exact-head CI, candidate SMM gateway/validators, migration replay controls, and source inventory for restaurants, MantiGO, medical booking, pharmacy, marketing, CRM, tenant isolation, wallet/finance, payments, appointments, membership, and ERP/inventory.
+
+**Evidence at candidate SHA `06ce8d9c01613bdcaba381913de9841586ad34dc`:**
+- Core module validation passed; migration immutability, migration version uniqueness, collision guard, backend-only boundary, MantiGO privacy, approval audit atomicity, and SMM service-role boundary passed.
+- SMM-specific deferred validation failed; its failures remain recorded and are not waived.
+- Pages validation passed but deploy was skipped.
+- Live Supabase project reported `ACTIVE_HEALTHY`; live SMM gateway remains ACTIVE v6 without the candidate `MNTY_SMM_ENABLED` gate.
+- Live migration listing still reconciles through RC424 (`20261008222845`); chronological replay remains blocked by ten missing historical function definitions.
+- Module inventory is not equivalent to E2E acceptance: restaurant/menu, pharmacy, medical, marketing, CRM, tenant isolation, financial flows, and disaster recovery each retain explicit verification work.
+
+Next execution priority: close the live SMM containment gate only with approved production change control and a negative test; in parallel, recover authoritative historical DDL or obtain separate explicit approval for a test-only current-definition baseline, then continue module-specific E2E and recovery evidence. No production write, merge, or deploy was performed by this cycle.
+
+
+## Exact-head verification checkpoint — 2026-10-12 (bae779e81760e7e76f048281db21c71f6e6cad48)
+
+The following results were re-queried from GitHub Actions for the exact candidate SHA above; these are repository CI results, not production smoke tests:
+
+- **Passed:** Migration History Immutability, Open PR Migration Collision Guard, MantiGO Open Ride Privacy Boundary, Migration Version Uniqueness, SMM Service Role Access Boundary, Backend-only Module Boundary, Approval Action Audit Atomicity, and Module Professionalization Validation.
+- **Pages workflow:** validation workflow completed successfully; the deploy job was skipped for this draft PR. No production deployment occurred.
+- **Failed:** SMM Deferred Module Validation. This is intentionally not repaired, weakened, deleted, or reclassified while the owner’s SMM feature freeze is in effect. Keep its provider/wallet acceptance failures visible for the separately deferred product.
+- PR #207 remains open and draft; it is not merged. GitHub reports the current PR as mergeable, but mergeability is not release approval and does not override any gate below.
+
+### Remaining release decision
+
+**BLOCKED / NOT CERTIFIED.** The passing core CI does not resolve the production P0 global MantiGO authorization finding, live migration ledger ending at RC424, failed chronological migration replay due to ten missing historical SECURITY DEFINER creation dependencies, missing full payment/tenant-isolation E2E, missing backup-restore/RPO-RTO evidence, leaked-password protection configuration, or absent enforced repository branch protection. The live smm-gateway was previously observed active; UI deferral does not prove server-side containment. No production action is authorized or claimed by this checkpoint.
+
+### Safe next steps
+
+1. Recover trusted historical creation DDL for the ten replay dependencies, or request explicit approval for a separate current-definition-only test baseline used solely in disposable replay. Do not invent historical migrations, placeholders, or skip the revoke migration.
+2. Obtain admin-controlled branch protection and required review/check settings before any release candidate is approved.
+3. Complete isolated tenant/auth/payment/ERP browser E2E and backup restore rehearsal; record evidence and actual RPO/RTO.
+4. Keep SMM feature implementation frozen. Any server-side SMM containment change remains a separate production change-control item; do not deploy or alter the live gateway without explicit approval.
+5. Do not merge or deploy until all release gates are independently evidenced and reviewed.
+
+
+## Internal marketing campaign workspace batch — 2026-10-12
+
+- Candidate UI work now connects the internal Marketing & Advertising workspace to the RC453 campaign backend: campaign listing, create via protected RPC, status transition via protected RPC, partner invitation, and provider response.
+- The frontend does not directly mutate `marketing_campaigns` or `marketing_campaign_participants`; server-side RPCs remain responsible for actor identity, tenant/business authorization, eligibility, allocation caps, audit, notification, and transition rules.
+- The campaign contract validator is wired into the core Module Professionalization Validation workflow.
+- Latest application commit: `bba4f7ade95ca448cc423beb73726fb670c5081d`. The latest documentation commit at this checkpoint is `8fa58ec5e9e7bc37ac72e27bb4c004cbdea2eb3f`. Do not transfer CI evidence from prior SHAs; query latest exact-head runs before claiming validation.
+- The RC452/RC453 schema remains candidate-only because production ledger reconciliation stops at RC424 and chronological replay remains blocked by missing historical SECURITY DEFINER creation DDL. No production changes were performed.
+- SMM freeze remains in force; this is internal marketing workspace work only. Full launch remains **BLOCKED / NOT CERTIFIED** pending the existing global production gates and real runtime evidence.

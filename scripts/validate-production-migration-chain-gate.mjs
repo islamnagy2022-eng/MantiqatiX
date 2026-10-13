@@ -32,9 +32,13 @@ const required = [
   "20261010200000_rc451_targeted_ads_empty_search_path.sql",
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
-  "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261011020000_rc457_financial_journal_idempotency_rpc_convergence.sql",
+  "20261011030000_rc458_erp_branch_organization_scope.sql"
 ];
-assert.equal(required.length, 28, "release gate must track the complete 28-file migration source set");
+assert.ok(required.includes("20261011020000_rc457_financial_journal_idempotency_rpc_convergence.sql"), "RC457 financial journal convergence must be release-gated");
+assert.ok(required.includes("20261011030000_rc458_erp_branch_organization_scope.sql"), "RC458 ERP branch isolation must be release-gated");
+assert.equal(required.length, 30, "release gate must track the complete 30-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
@@ -53,8 +57,29 @@ assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant 
 assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
-assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
+assert.match(source, /evaluateSmmLaunchScope\(reconciliation\.smm_initial_launch_scope/, "SMM release gate must evaluate the explicit launch-scope decision");
+assert.match(source, /smmLaunchScope\.status==="PASS"/, "SMM must pass the mode-specific launch containment contract");
+const smmScope = fs.readFileSync("scripts/production/smm-launch-scope.mjs", "utf8");
+assert.match(smmScope, /scope\.decision === "DEFERRED_NOT_IN_INITIAL_LAUNCH"/, "deferred SMM must use the deferred launch path");
+for (const requiredField of [
+  /scope\.live_edge_function === "DISABLED_AND_VERIFIED"/,
+  /scope\.gateway_customer_access === "DENIED"/,
+  /scope\.negative_test === "PASS"/,
+  /scope\.live_function_version/,
+  /scope\.live_function_hash/,
+  /scope\.disable_evidence_ref/,
+]) assert.match(smmScope, requiredField, "deferred SMM must require live deny-gate evidence, version/hash, and negative testing");
+assert.match(smmScope, /requiredRuntimeGates = \[/, "active SMM must retain its own runtime safety gate list");
+for (const gate of ["smm_gateway_parity", "smm_acl_boundary", "smm_order_refund_safety", "smm_provider_timeout_safety", "smm_order_idempotency"]) {
+  assert.ok(smmScope.includes(JSON.stringify(gate)), `active SMM must require ${gate}`);
+}
+assert.match(source, /smm_order_idempotency: reconciliation\.smm_order_idempotency/, "production verifier must pass the explicit order idempotency evidence into the active SMM gate");
+assert.match(source, /reconciliation\.erp_atomic_receiving_e2e==="PASS"/, "ERP atomic receiving E2E must pass");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
+assert.match(source, /reconciliation\.security_definer_acl_review==="PASS"/, "all exposed SECURITY DEFINER ACLs must be reviewed");
+assert.match(source, /reconciliation\.rls_policy_audit==="PASS"/, "sensitive-table RLS policy review must pass");
+assert.match(source, /reconciliation\.targeted_ads_search_path==="PASS"/, "live targeted-ad search_path must match hardened source");
+assert.match(source, /reconciliation\.leaked_password_protection==="PASS"/, "leaked-password protection must be enabled and verified");
 const rc451 = fs.readFileSync("supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql", "utf8");
 assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\s\S]*?\) set search_path = '';/, "RC451 must harden the public targeted-ad SECURITY DEFINER search path");
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");

@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const maxBodyBytes = 64 * 1024;
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -38,29 +39,70 @@ Deno.serve(async (req: Request) => {
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return json({ error: "UNAUTHORIZED" }, 401);
 
+  const contentLength = Number(req.headers.get("Content-Length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413);
+
   let body: any;
-  try { body = await req.json(); } catch { return json({ error: "INVALID_JSON" }, 400); }
+  try {
+    const raw = await req.text();
+    if (new TextEncoder().encode(raw).byteLength > maxBodyBytes) return json({ error: "PAYLOAD_TOO_LARGE" }, 413);
+    body = JSON.parse(raw);
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "INVALID_BODY" }, 400);
+  } catch {
+    return json({ error: "INVALID_JSON" }, 400);
+  }
 
   const required = ["orderId", "tenantId", "businessId", "clientIdempotencyKey", "currency", "customerName", "customerPhone", "deliveryAddress", "items"];
   for (const key of required) {
     if (body[key] === undefined || body[key] === null) return json({ error: "MISSING_FIELD", field: key }, 400);
   }
 
-  if (!String(body.orderId).match(/^[0-9a-f-]{36}$/i)) return json({ error: "INVALID_ORDER_ID" }, 400);
-  if (!String(body.clientIdempotencyKey).trim() || String(body.clientIdempotencyKey).length > 200) return json({ error: "INVALID_IDEMPOTENCY_KEY" }, 400);
+  const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+  if (!isUuid(body.orderId)) return json({ error: "INVALID_ORDER_ID" }, 400);
+  const idempotencyKey = String(body.clientIdempotencyKey).trim();
+  if (!idempotencyKey || idempotencyKey.length > 200) return json({ error: "INVALID_IDEMPOTENCY_KEY" }, 400);
+  if (typeof body.tenantId !== "string" || !body.tenantId.trim() || body.tenantId.length > 120 || !isUuid(body.businessId)) {
+    return json({ error: "INVALID_ORDER_SCOPE" }, 400);
+  }
+  if (body.branchId !== undefined && body.branchId !== null && (typeof body.branchId !== "string" || body.branchId.length > 120)) {
+    return json({ error: "INVALID_BRANCH_ID" }, 400);
+  }
+  if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 200
+      || typeof body.customerPhone !== "string" || !body.customerPhone.trim() || body.customerPhone.trim().length > 40
+      || typeof body.deliveryAddress !== "string" || body.deliveryAddress.length > 1000) {
+    return json({ error: "INVALID_CUSTOMER_DETAILS" }, 400);
+  }
+  if (body.notes !== undefined && body.notes !== null && (typeof body.notes !== "string" || body.notes.length > 2000)) {
+    return json({ error: "INVALID_ORDER_NOTES" }, 400);
+  }
+  if (body.metadata !== undefined && body.metadata !== null && (typeof body.metadata !== "object" || Array.isArray(body.metadata))) {
+    return json({ error: "INVALID_ORDER_METADATA" }, 400);
+  }
+  const fulfillmentType = String((body.metadata as Record<string, unknown> | null)?.fulfillmentType ?? "DELIVERY").toUpperCase();
+  if (!["DELIVERY", "PICKUP", "DINE_IN"].includes(fulfillmentType)) return json({ error: "INVALID_FULFILLMENT_TYPE" }, 400);
+  if (fulfillmentType === "DELIVERY" && !body.deliveryAddress.trim()) return json({ error: "DELIVERY_ADDRESS_REQUIRED" }, 400);
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  const requestedBranchId = typeof body.branchId === "string" && body.branchId.trim()
+    ? body.branchId.trim()
+    : null;
+  const { data: targetMemberships, error: targetMembershipError } = await admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,status,branch_id")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .eq("status", "ACTIVE")
-    .limit(1)
-    .maybeSingle();
+    .limit(100);
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+
+  const targetMembership = (targetMemberships ?? []).find((membership: any) =>
+    !membership.branch_id || (requestedBranchId && String(membership.branch_id) === requestedBranchId)
+  );
+  if (!targetMembership && (targetMemberships ?? []).length > 0) {
+    return json({ error: "BRANCH_MEMBERSHIP_MISMATCH" }, 403);
+  }
 
   if (!targetMembership) {
     const { data: customerMembership, error: customerMembershipError } = await admin
@@ -85,7 +127,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: "BUSINESS_NOT_AVAILABLE" }, 409);
   }
 
-  const normalizedItems = body.items.map((raw: any) => ({
+  const normalizedItems: Array<{ catalogItemId: string; quantity: number; selectedOptionIds: string[] }> = body.items.map((raw: any) => ({
     catalogItemId: String(raw?.catalogItemId ?? ""),
     quantity: Number(raw?.quantity),
     selectedOptionIds: Array.isArray(raw?.selectedOptionIds)
@@ -95,11 +137,19 @@ Deno.serve(async (req: Request) => {
         : [],
   }));
 
-  if (normalizedItems.some((x: any) => !x.catalogItemId || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
+  if (normalizedItems.some((x: any) => !isUuid(x.catalogItemId) || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
     return json({ error: "INVALID_ITEM_QUANTITY" }, 400);
   }
 
-  const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
+  if (normalizedItems.some((item: any) => item.selectedOptionIds.some((id: string) => !isUuid(id)))) {
+    return json({ error: "INVALID_ITEM_OPTION_ID" }, 400);
+  }
+
+  if (normalizedItems.some((item: any) => new Set(item.selectedOptionIds).size !== item.selectedOptionIds.length)) {
+    return json({ error: "DUPLICATE_ITEM_OPTION" }, 400);
+  }
+
+  const itemIds: string[] = [...new Set<string>(normalizedItems.map((x: any) => String(x.catalogItemId)))];
   const { data: catalogItems, error: itemError } = await admin
     .from("catalog_items")
     .select("id,business_id,branch_id,name_ar,name_en,tax_rate,status")
@@ -109,7 +159,7 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
+  const branchId = requestedBranchId;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
@@ -138,17 +188,24 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE")
     .eq("currency", String(body.currency).toUpperCase())
     .lte("effective_from", nowIso)
-    .or("effective_to.is.null,effective_to.gte." + nowIso);
+    .or("effective_to.is.null,effective_to.gt." + nowIso);
   if (priceError) return json({ error: "PRICING_READ_FAILED" }, 500);
 
   const priceMap = new Map<string, any>();
-  for (const row of priceRows ?? []) {
-    if (branchId && row.branch_id && String(row.branch_id) !== branchId) continue;
-    const key = String(row.catalog_item_id);
-    const existing = priceMap.get(key);
-    const score = (row.branch_id ? 1000000 : 0) + Number(row.version ?? 0);
-    const oldScore = existing ? (existing.branch_id ? 1000000 : 0) + Number(existing.version ?? 0) : -1;
-    if (score > oldScore) priceMap.set(key, row);
+  for (const itemId of itemIds) {
+    const candidates = (priceRows ?? []).filter((row: any) => {
+      if (String(row.catalog_item_id) !== itemId) return false;
+      if (row.branch_id && (!branchId || String(row.branch_id) !== branchId)) return false;
+      return true;
+    });
+    const branchSpecific = branchId
+      ? candidates.filter((row: any) => String(row.branch_id ?? "") === branchId)
+      : [];
+    const applicable = branchSpecific.length
+      ? branchSpecific
+      : candidates.filter((row: any) => row.branch_id === null || row.branch_id === undefined);
+    if (applicable.length > 1) return json({ error: "AMBIGUOUS_ACTIVE_PRICE" }, 409);
+    if (applicable.length === 1) priceMap.set(itemId, applicable[0]);
   }
   if (priceMap.size !== itemIds.length) return json({ error: "ACTIVE_PRICE_NOT_AVAILABLE" }, 409);
 
@@ -166,19 +223,34 @@ Deno.serve(async (req: Request) => {
     if (optionMap.size !== optionIds.length) return json({ error: "OPTION_NOT_AVAILABLE" }, 409);
   }
 
+  if (normalizedItems.some((item: any) => {
+    const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
+    return optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId);
+  })) return json({ error: "OPTION_ITEM_MISMATCH" }, 409);
+
+  if (normalizedItems.some((item: any) => {
+    const price = priceMap.get(item.catalogItemId);
+    const catalog = itemMap.get(item.catalogItemId);
+    const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
+    const optionDelta = optionRows.reduce((sum: number, x: any) => sum + Number(x.price_delta ?? 0), 0);
+    const unitPrice = Number(price?.unit_price) + optionDelta;
+    const taxRate = Number(catalog?.tax_rate ?? 0);
+    return !Number.isFinite(Number(price?.unit_price)) || Number(price?.unit_price) < 0
+      || !Number.isFinite(optionDelta) || !Number.isFinite(unitPrice) || unitPrice < 0
+      || !Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100;
+  })) return json({ error: "INVALID_SERVER_PRICING_DATA" }, 409);
+
   let subtotal = 0;
   let tax = 0;
   const authoritativeItems = normalizedItems.map((item: any) => {
     const catalog = itemMap.get(item.catalogItemId);
     const price = priceMap.get(item.catalogItemId);
     const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
-    if (optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId)) throw new Error("OPTION_ITEM_MISMATCH");
     const optionDelta = optionRows.reduce((sum: number, x: any) => sum + Number(x.price_delta ?? 0), 0);
     const unitPrice = Number(price.unit_price) + optionDelta;
-    if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("INVALID_SERVER_PRICE");
     const lineSubtotal = unitPrice * item.quantity;
     const taxRate = Number(catalog.tax_rate ?? 0);
-    const lineTax = lineSubtotal * (Number.isFinite(taxRate) && taxRate > 0 ? taxRate / 100 : 0);
+    const lineTax = lineSubtotal * (taxRate > 0 ? taxRate / 100 : 0);
     subtotal += lineSubtotal;
     tax += lineTax;
     return {
@@ -201,7 +273,7 @@ Deno.serve(async (req: Request) => {
     p_business_id: body.businessId,
     p_branch_id: branchId,
     p_customer_id: user.id,
-    p_client_idempotency_key: String(body.clientIdempotencyKey),
+    p_client_idempotency_key: idempotencyKey,
     p_subtotal: subtotal,
     p_discount: 0,
     p_tax: tax,

@@ -1,0 +1,9 @@
+ALTER TABLE public.commission_transactions FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.general_ledger FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.journal_entries FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.journal_entry_lines FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.settlement_transactions FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.wallet_accounts FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.wallet_transactions FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.support_tickets FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.ticket_messages FORCE ROW LEVEL SECURITY;

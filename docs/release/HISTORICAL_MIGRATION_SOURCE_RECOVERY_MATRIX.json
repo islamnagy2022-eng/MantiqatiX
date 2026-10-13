@@ -1,0 +1,695 @@
+{
+  "generated_at": "2026-10-12",
+  "source": "Supabase production migration ledger, project moyhiluyhjsujhwlyeuu (read-only)",
+  "count": 137,
+  "method": "Reconstructed ordered SQL migration files from the statements array stored for each applied version/name. Statements were joined in order with semicolon separators.",
+  "exact_original_file_bytes_recovered": false,
+  "warning": "Ledger-derived SQL is not claimed to be byte-identical to original migration source. Full disposable replay, diff review, and security verification are required before release certification.",
+  "entries": [
+    {
+      "version": "20260906190900",
+      "name": "phase11_payment_intents",
+      "path": "supabase/migrations/20260906190900_phase11_payment_intents.sql"
+    },
+    {
+      "version": "20260906191100",
+      "name": "phase11b_harden_payment_intents",
+      "path": "supabase/migrations/20260906191100_phase11b_harden_payment_intents.sql"
+    },
+    {
+      "version": "20260910130000",
+      "name": "phase12e_corrective_atomic_cash_confirm",
+      "path": "supabase/migrations/20260910130000_phase12e_corrective_atomic_cash_confirm.sql"
+    },
+    {
+      "version": "20260910140000",
+      "name": "phase13_tenant_payment_methods",
+      "path": "supabase/migrations/20260910140000_phase13_tenant_payment_methods.sql"
+    },
+    {
+      "version": "20260910150000",
+      "name": "phase14a_payment_architecture_refactor",
+      "path": "supabase/migrations/20260910150000_phase14a_payment_architecture_refactor.sql"
+    },
+    {
+      "version": "20260910160000",
+      "name": "phase14a1_cash_rpc_payment_method_alignment",
+      "path": "supabase/migrations/20260910160000_phase14a1_cash_rpc_payment_method_alignment.sql"
+    },
+    {
+      "version": "20260912170000",
+      "name": "phase04_reconciliation",
+      "path": "supabase/migrations/20260912170000_phase04_reconciliation.sql"
+    },
+    {
+      "version": "20260912180000",
+      "name": "phase14b_payment_rls_grants_hardening",
+      "path": "supabase/migrations/20260912180000_phase14b_payment_rls_grants_hardening.sql"
+    },
+    {
+      "version": "20260912190000",
+      "name": "phase14a2_cash_rpc_type_alignment",
+      "path": "supabase/migrations/20260912190000_phase14a2_cash_rpc_type_alignment.sql"
+    },
+    {
+      "version": "20260919233425",
+      "name": "production_security_hardening_v1",
+      "path": "supabase/migrations/20260919233425_production_security_hardening_v1.sql"
+    },
+    {
+      "version": "20260919233450",
+      "name": "production_security_hardening_v2",
+      "path": "supabase/migrations/20260919233450_production_security_hardening_v2.sql"
+    },
+    {
+      "version": "20260919233455",
+      "name": "production_block_anonymous_users_v1",
+      "path": "supabase/migrations/20260919233455_production_block_anonymous_users_v1.sql"
+    },
+    {
+      "version": "20260920003116",
+      "name": "phase27_auth_platform_continuity_hardening",
+      "path": "supabase/migrations/20260920003116_phase27_auth_platform_continuity_hardening.sql"
+    },
+    {
+      "version": "20260920011110",
+      "name": "phase28_mantiqatix_brand_identity",
+      "path": "supabase/migrations/20260920011110_phase28_mantiqatix_brand_identity.sql"
+    },
+    {
+      "version": "20260920013928",
+      "name": "phase28b_mantiqatix_brand_identity_update",
+      "path": "supabase/migrations/20260920013928_phase28b_mantiqatix_brand_identity_update.sql"
+    },
+    {
+      "version": "20260920071316",
+      "name": "phase28_financial_backend_authority",
+      "path": "supabase/migrations/20260920071316_phase28_financial_backend_authority.sql"
+    },
+    {
+      "version": "20260920071808",
+      "name": "20260920130000_phase3_wallet_backend_authority",
+      "path": "supabase/migrations/20260920071808_20260920130000_phase3_wallet_backend_authority.sql"
+    },
+    {
+      "version": "20260920071851",
+      "name": "20260920133000_phase3_commission_backend_authority",
+      "path": "supabase/migrations/20260920071851_20260920133000_phase3_commission_backend_authority.sql"
+    },
+    {
+      "version": "20260920072107",
+      "name": "20260920140000_phase3_refund_backend_authority",
+      "path": "supabase/migrations/20260920072107_20260920140000_phase3_refund_backend_authority.sql"
+    },
+    {
+      "version": "20260920072143",
+      "name": "20260920141000_phase3_refund_wallet_atomic_fix",
+      "path": "supabase/migrations/20260920072143_20260920141000_phase3_refund_wallet_atomic_fix.sql"
+    },
+    {
+      "version": "20260920072158",
+      "name": "20260920142000_phase3_commission_rule_authority",
+      "path": "supabase/migrations/20260920072158_20260920142000_phase3_commission_rule_authority.sql"
+    },
+    {
+      "version": "20260920072213",
+      "name": "20260920143000_phase3_commission_rule_enforcement",
+      "path": "supabase/migrations/20260920072213_20260920143000_phase3_commission_rule_enforcement.sql"
+    },
+    {
+      "version": "20260920072522",
+      "name": "phase4_communications_support_feature_flags_v2",
+      "path": "supabase/migrations/20260920072522_phase4_communications_support_feature_flags_v2.sql"
+    },
+    {
+      "version": "20260920073255",
+      "name": "phase4_audit_and_notification_authority",
+      "path": "supabase/migrations/20260920073255_phase4_audit_and_notification_authority.sql"
+    },
+    {
+      "version": "20260920074341",
+      "name": "phase4_feature_flag_and_support_status_authority",
+      "path": "supabase/migrations/20260920074341_phase4_feature_flag_and_support_status_authority.sql"
+    },
+    {
+      "version": "20260920085437",
+      "name": "production_security_hardening_v3",
+      "path": "supabase/migrations/20260920085437_production_security_hardening_v3.sql"
+    },
+    {
+      "version": "20260920090217",
+      "name": "production_marketplace_real_data_v1",
+      "path": "supabase/migrations/20260920090217_production_marketplace_real_data_v1.sql"
+    },
+    {
+      "version": "20260920090828",
+      "name": "production_indrive_bidding_real_data_v1",
+      "path": "supabase/migrations/20260920090828_production_indrive_bidding_real_data_v1.sql"
+    },
+    {
+      "version": "20260920091119",
+      "name": "production_education_matrimony_real_data_v1",
+      "path": "supabase/migrations/20260920091119_production_education_matrimony_real_data_v1.sql"
+    },
+    {
+      "version": "20260920091734",
+      "name": "production_fashion_tailors_real_data_v1",
+      "path": "supabase/migrations/20260920091734_production_fashion_tailors_real_data_v1.sql"
+    },
+    {
+      "version": "20260920091922",
+      "name": "production_fashion_erp_real_data_v1",
+      "path": "supabase/migrations/20260920091922_production_fashion_erp_real_data_v1.sql"
+    },
+    {
+      "version": "20260920092005",
+      "name": "production_restaurant_menu_real_data_v1",
+      "path": "supabase/migrations/20260920092005_production_restaurant_menu_real_data_v1.sql"
+    },
+    {
+      "version": "20260920092245",
+      "name": "production_restaurant_orders_tables_inventory_v1",
+      "path": "supabase/migrations/20260920092245_production_restaurant_orders_tables_inventory_v1.sql"
+    },
+    {
+      "version": "20260920092724",
+      "name": "production_settlement_persistence_v1",
+      "path": "supabase/migrations/20260920092724_production_settlement_persistence_v1.sql"
+    },
+    {
+      "version": "20260920093101",
+      "name": "production_mantigo_real_data_v1",
+      "path": "supabase/migrations/20260920093101_production_mantigo_real_data_v1.sql"
+    },
+    {
+      "version": "20260920095706",
+      "name": "production_security_definer_execute_lockdown_v4",
+      "path": "supabase/migrations/20260920095706_production_security_definer_execute_lockdown_v4.sql"
+    },
+    {
+      "version": "20260920112742",
+      "name": "harden_identity_rls_against_anonymous_sessions",
+      "path": "supabase/migrations/20260920112742_harden_identity_rls_against_anonymous_sessions.sql"
+    },
+    {
+      "version": "20260920112849",
+      "name": "global_authenticated_anonymous_boundary_and_admin_function_hardening",
+      "path": "supabase/migrations/20260920112849_global_authenticated_anonymous_boundary_and_admin_function_hardening.sql"
+    },
+    {
+      "version": "20260920120235",
+      "name": "real_settlement_obligations_and_payout_destinations",
+      "path": "supabase/migrations/20260920120235_real_settlement_obligations_and_payout_destinations.sql"
+    },
+    {
+      "version": "20260920155456",
+      "name": "harden_credit_status_authorization",
+      "path": "supabase/migrations/20260920155456_harden_credit_status_authorization.sql"
+    },
+    {
+      "version": "20260920211525",
+      "name": "production_business_deactivation_and_payment_intent_hardening",
+      "path": "supabase/migrations/20260920211525_production_business_deactivation_and_payment_intent_hardening.sql"
+    },
+    {
+      "version": "20260920211717",
+      "name": "security_definer_surface_reduction_and_finance_rls",
+      "path": "supabase/migrations/20260920211717_security_definer_surface_reduction_and_finance_rls.sql"
+    },
+    {
+      "version": "20260920211732",
+      "name": "revoke_exposed_backend_rpc_execute",
+      "path": "supabase/migrations/20260920211732_revoke_exposed_backend_rpc_execute.sql"
+    },
+    {
+      "version": "20260920223002",
+      "name": "add_personal_referral_qr_system",
+      "path": "supabase/migrations/20260920223002_add_personal_referral_qr_system.sql"
+    },
+    {
+      "version": "20260920223109",
+      "name": "extend_referral_qr_to_service_profiles",
+      "path": "supabase/migrations/20260920223109_extend_referral_qr_to_service_profiles.sql"
+    },
+    {
+      "version": "20260921025705",
+      "name": "phase_1_1_canonical_catalog_pricing_authority",
+      "path": "supabase/migrations/20260921025705_phase_1_1_canonical_catalog_pricing_authority.sql"
+    },
+    {
+      "version": "20260921025804",
+      "name": "phase_1_1_catalog_admin_functions",
+      "path": "supabase/migrations/20260921025804_phase_1_1_catalog_admin_functions.sql"
+    },
+    {
+      "version": "20260921030321",
+      "name": "phase_1_2_payment_pricing_binding",
+      "path": "supabase/migrations/20260921030321_phase_1_2_payment_pricing_binding.sql"
+    },
+    {
+      "version": "20260921030535",
+      "name": "phase_1_3_order_payment_state_machine_hardening",
+      "path": "supabase/migrations/20260921030535_phase_1_3_order_payment_state_machine_hardening.sql"
+    },
+    {
+      "version": "20260921030546",
+      "name": "phase_1_3_cash_payment_state_binding",
+      "path": "supabase/migrations/20260921030546_phase_1_3_cash_payment_state_binding.sql"
+    },
+    {
+      "version": "20260921033101",
+      "name": "phase_1_8_targeted_fk_indexes",
+      "path": "supabase/migrations/20260921033101_phase_1_8_targeted_fk_indexes.sql"
+    },
+    {
+      "version": "20260921034303",
+      "name": "phase_1_9_complete_anonymous_boundary_financial",
+      "path": "supabase/migrations/20260921034303_phase_1_9_complete_anonymous_boundary_financial.sql"
+    },
+    {
+      "version": "20260921035003",
+      "name": "phase_2_0_financial_anon_privilege_hardening",
+      "path": "supabase/migrations/20260921035003_phase_2_0_financial_anon_privilege_hardening.sql"
+    },
+    {
+      "version": "20260921035103",
+      "name": "phase_2_1_revoke_anon_write_privileges_public",
+      "path": "supabase/migrations/20260921035103_phase_2_1_revoke_anon_write_privileges_public.sql"
+    },
+    {
+      "version": "20260921035155",
+      "name": "phase_2_2_restrict_sensitive_authenticated_writes",
+      "path": "supabase/migrations/20260921035155_phase_2_2_restrict_sensitive_authenticated_writes.sql"
+    },
+    {
+      "version": "20260921035250",
+      "name": "phase_2_3_force_rls_financial_audit_support",
+      "path": "supabase/migrations/20260921035250_phase_2_3_force_rls_financial_audit_support.sql"
+    },
+    {
+      "version": "20260921035325",
+      "name": "phase_2_4_critical_fk_indexes_v2",
+      "path": "supabase/migrations/20260921035325_phase_2_4_critical_fk_indexes_v2.sql"
+    },
+    {
+      "version": "20260921092106",
+      "name": "phase17_atomic_settlement_financial_authority",
+      "path": "supabase/migrations/20260921092106_phase17_atomic_settlement_financial_authority.sql"
+    },
+    {
+      "version": "20260921092131",
+      "name": "phase17_atomic_settlement_anonymous_guard",
+      "path": "supabase/migrations/20260921092131_phase17_atomic_settlement_anonymous_guard.sql"
+    },
+    {
+      "version": "20260921092144",
+      "name": "phase18_sensitive_finance_anonymous_boundary",
+      "path": "supabase/migrations/20260921092144_phase18_sensitive_finance_anonymous_boundary.sql"
+    },
+    {
+      "version": "20260921092150",
+      "name": "phase19_remove_verified_duplicate_indexes",
+      "path": "supabase/migrations/20260921092150_phase19_remove_verified_duplicate_indexes.sql"
+    },
+    {
+      "version": "20260921110130",
+      "name": "phase_27_profile_project_visual_identity",
+      "path": "supabase/migrations/20260921110130_phase_27_profile_project_visual_identity.sql"
+    },
+    {
+      "version": "20260921110313",
+      "name": "phase_28_secure_media_storage",
+      "path": "supabase/migrations/20260921110313_phase_28_secure_media_storage.sql"
+    },
+    {
+      "version": "20260921111157",
+      "name": "phase_29_atomic_settlement_service_role_boundary",
+      "path": "supabase/migrations/20260921111157_phase_29_atomic_settlement_service_role_boundary.sql"
+    },
+    {
+      "version": "20260921111310",
+      "name": "phase_30_remove_legacy_atomic_settlement_rpc_signature",
+      "path": "supabase/migrations/20260921111310_phase_30_remove_legacy_atomic_settlement_rpc_signature.sql"
+    },
+    {
+      "version": "20260921114304",
+      "name": "phase30_legal_agreements_engine",
+      "path": "supabase/migrations/20260921114304_phase30_legal_agreements_engine.sql"
+    },
+    {
+      "version": "20260921114319",
+      "name": "phase30_legal_publish_and_gates",
+      "path": "supabase/migrations/20260921114319_phase30_legal_publish_and_gates.sql"
+    },
+    {
+      "version": "20260921114713",
+      "name": "phase30_legal_business_gate",
+      "path": "supabase/migrations/20260921114713_phase30_legal_business_gate.sql"
+    },
+    {
+      "version": "20260921114719",
+      "name": "phase30_legal_commission_referral_gates",
+      "path": "supabase/migrations/20260921114719_phase30_legal_commission_referral_gates.sql"
+    },
+    {
+      "version": "20260921114727",
+      "name": "phase30_legal_audit_bridge",
+      "path": "supabase/migrations/20260921114727_phase30_legal_audit_bridge.sql"
+    },
+    {
+      "version": "20260921114819",
+      "name": "phase30_legal_cms_grants",
+      "path": "supabase/migrations/20260921114819_phase30_legal_cms_grants.sql"
+    },
+    {
+      "version": "20260921114827",
+      "name": "phase30_legal_auto_enforcement",
+      "path": "supabase/migrations/20260921114827_phase30_legal_auto_enforcement.sql"
+    },
+    {
+      "version": "20260921114906",
+      "name": "phase30_legal_consent_backend",
+      "path": "supabase/migrations/20260921114906_phase30_legal_consent_backend.sql"
+    },
+    {
+      "version": "20260921114950",
+      "name": "phase30_legal_function_acl_hardening",
+      "path": "supabase/migrations/20260921114950_phase30_legal_function_acl_hardening.sql"
+    },
+    {
+      "version": "20260921115022",
+      "name": "phase30_legal_advisor_hardening",
+      "path": "supabase/migrations/20260921115022_phase30_legal_advisor_hardening.sql"
+    },
+    {
+      "version": "20260921115043",
+      "name": "phase30_legal_function_search_path",
+      "path": "supabase/migrations/20260921115043_phase30_legal_function_search_path.sql"
+    },
+    {
+      "version": "20260921141517",
+      "name": "phase30_legal_private_rbac_helper",
+      "path": "supabase/migrations/20260921141517_phase30_legal_private_rbac_helper.sql"
+    },
+    {
+      "version": "20260921141524",
+      "name": "phase30_legal_assert_private_admin",
+      "path": "supabase/migrations/20260921141524_phase30_legal_assert_private_admin.sql"
+    },
+    {
+      "version": "20260921141547",
+      "name": "phase30_legal_rpc_edge_only",
+      "path": "supabase/migrations/20260921141547_phase30_legal_rpc_edge_only.sql"
+    },
+    {
+      "version": "20260921141641",
+      "name": "phase30_legal_edge_actor_hardening",
+      "path": "supabase/migrations/20260921141641_phase30_legal_edge_actor_hardening.sql"
+    },
+    {
+      "version": "20260921141809",
+      "name": "phase30_legal_assert_explicit_admin",
+      "path": "supabase/migrations/20260921141809_phase30_legal_assert_explicit_admin.sql"
+    },
+    {
+      "version": "20260921152539",
+      "name": "phase30_1_legal_cms_hardening",
+      "path": "supabase/migrations/20260921152539_phase30_1_legal_cms_hardening.sql"
+    },
+    {
+      "version": "20260921152646",
+      "name": "phase30_2_legal_anonymous_boundary",
+      "path": "supabase/migrations/20260921152646_phase30_2_legal_anonymous_boundary.sql"
+    },
+    {
+      "version": "20260921205038",
+      "name": "phase41_lockdown_payment_client_writes",
+      "path": "supabase/migrations/20260921205038_phase41_lockdown_payment_client_writes.sql"
+    },
+    {
+      "version": "20260921205608",
+      "name": "phase36_subscription_canonical_authority",
+      "path": "supabase/migrations/20260921205608_phase36_subscription_canonical_authority.sql"
+    },
+    {
+      "version": "20260921211423",
+      "name": "phase_357_subscription_rls_hardening",
+      "path": "supabase/migrations/20260921211423_phase_357_subscription_rls_hardening.sql"
+    },
+    {
+      "version": "20260921211617",
+      "name": "phase_358_non_anonymous_sensitive_rls",
+      "path": "supabase/migrations/20260921211617_phase_358_non_anonymous_sensitive_rls.sql"
+    },
+    {
+      "version": "20260921223349",
+      "name": "phase_362_subscription_payments",
+      "path": "supabase/migrations/20260921223349_phase_362_subscription_payments.sql"
+    },
+    {
+      "version": "20260921223417",
+      "name": "phase_362_payment_provider_order_correlation",
+      "path": "supabase/migrations/20260921223417_phase_362_payment_provider_order_correlation.sql"
+    },
+    {
+      "version": "20260921224322",
+      "name": "phase363_payment_financial_reconciliation",
+      "path": "supabase/migrations/20260921224322_phase363_payment_financial_reconciliation.sql"
+    },
+    {
+      "version": "20260922160100",
+      "name": "phase364_anonymous_authenticated_guard",
+      "path": "supabase/migrations/20260922160100_phase364_anonymous_authenticated_guard.sql"
+    },
+    {
+      "version": "20260923162559",
+      "name": "phase327_harden_atomic_settlement_search_path",
+      "path": "supabase/migrations/20260923162559_phase327_harden_atomic_settlement_search_path.sql"
+    },
+    {
+      "version": "20260923194640",
+      "name": "phase328_revoke_public_reverse_journal_execute",
+      "path": "supabase/migrations/20260923194640_phase328_revoke_public_reverse_journal_execute.sql"
+    },
+    {
+      "version": "20260924130434",
+      "name": "phase_3_36_global_non_anonymous_rls_boundary",
+      "path": "supabase/migrations/20260924130434_phase_3_36_global_non_anonymous_rls_boundary.sql"
+    },
+    {
+      "version": "20260924132631",
+      "name": "phase_3_37_storage_public_media_path_boundary",
+      "path": "supabase/migrations/20260924132631_phase_3_37_storage_public_media_path_boundary.sql"
+    },
+    {
+      "version": "20260924153852",
+      "name": "phase_3_41_legacy_module_idempotency",
+      "path": "supabase/migrations/20260924153852_phase_3_41_legacy_module_idempotency.sql"
+    },
+    {
+      "version": "20260924153901",
+      "name": "phase_3_41_restaurant_mutation_rpc",
+      "path": "supabase/migrations/20260924153901_phase_3_41_restaurant_mutation_rpc.sql"
+    },
+    {
+      "version": "20260924153921",
+      "name": "phase_3_41_restaurant_mutation_rpc_completion",
+      "path": "supabase/migrations/20260924153921_phase_3_41_restaurant_mutation_rpc_completion.sql"
+    },
+    {
+      "version": "20260924153935",
+      "name": "phase_3_41_fashion_mutation_rpc",
+      "path": "supabase/migrations/20260924153935_phase_3_41_fashion_mutation_rpc.sql"
+    },
+    {
+      "version": "20260924153948",
+      "name": "phase_3_41_revoke_legacy_sector_direct_writes",
+      "path": "supabase/migrations/20260924153948_phase_3_41_revoke_legacy_sector_direct_writes.sql"
+    },
+    {
+      "version": "20260924155033",
+      "name": "phase_3_42_restaurant_tables_server_authority",
+      "path": "supabase/migrations/20260924155033_phase_3_42_restaurant_tables_server_authority.sql"
+    },
+    {
+      "version": "20260924161001",
+      "name": "phase_3_43_legacy_tenant_branch_columns",
+      "path": "supabase/migrations/20260924161001_phase_3_43_legacy_tenant_branch_columns.sql"
+    },
+    {
+      "version": "20260924161040",
+      "name": "phase_3_43_legacy_scope_enforcement",
+      "path": "supabase/migrations/20260924161040_phase_3_43_legacy_scope_enforcement.sql"
+    },
+    {
+      "version": "20260924162612",
+      "name": "phase_3_46_auth_security_closure",
+      "path": "supabase/migrations/20260924162612_phase_3_46_auth_security_closure.sql"
+    },
+    {
+      "version": "20260924163938",
+      "name": "phase_3_49_storage_policy_ownership_hardening",
+      "path": "supabase/migrations/20260924163938_phase_3_49_storage_policy_ownership_hardening.sql"
+    },
+    {
+      "version": "20260924165707",
+      "name": "phase_3_54_anonymous_session_boundary_closure",
+      "path": "supabase/migrations/20260924165707_phase_3_54_anonymous_session_boundary_closure.sql"
+    },
+    {
+      "version": "20260924165733",
+      "name": "phase_3_54_anonymous_boundary_cleanup",
+      "path": "supabase/migrations/20260924165733_phase_3_54_anonymous_boundary_cleanup.sql"
+    },
+    {
+      "version": "20260924210114",
+      "name": "phase_3_55_revoke_exposed_legacy_erp_rpc_execute",
+      "path": "supabase/migrations/20260924210114_phase_3_55_revoke_exposed_legacy_erp_rpc_execute.sql"
+    },
+    {
+      "version": "20260924211708",
+      "name": "phase_3_56_anon_privilege_lockdown",
+      "path": "supabase/migrations/20260924211708_phase_3_56_anon_privilege_lockdown.sql"
+    },
+    {
+      "version": "20260924221741",
+      "name": "maintenance_request_simple_flow_v1",
+      "path": "supabase/migrations/20260924221741_maintenance_request_simple_flow_v1.sql"
+    },
+    {
+      "version": "20260924221938",
+      "name": "maintenance_provider_request_visibility_fix_v1",
+      "path": "supabase/migrations/20260924221938_maintenance_provider_request_visibility_fix_v1.sql"
+    },
+    {
+      "version": "20260924224046",
+      "name": "indrive_bid_acceptance_atomicity_v1",
+      "path": "supabase/migrations/20260924224046_indrive_bid_acceptance_atomicity_v1.sql"
+    },
+    {
+      "version": "20260924230603",
+      "name": "harden_indrive_server_state_transitions",
+      "path": "supabase/migrations/20260924230603_harden_indrive_server_state_transitions.sql"
+    },
+    {
+      "version": "20260924230659",
+      "name": "fix_indrive_rls_recursion_with_private_helpers",
+      "path": "supabase/migrations/20260924230659_fix_indrive_rls_recursion_with_private_helpers.sql"
+    },
+    {
+      "version": "20260924230730",
+      "name": "move_indrive_bid_security_definers_to_private_schema",
+      "path": "supabase/migrations/20260924230730_move_indrive_bid_security_definers_to_private_schema.sql"
+    },
+    {
+      "version": "20260925010851",
+      "name": "mantigo_server_authority_mutations_v2",
+      "path": "supabase/migrations/20260925010851_mantigo_server_authority_mutations_v2.sql"
+    },
+    {
+      "version": "20260925011128",
+      "name": "storage_remove_legacy_anon_media_read",
+      "path": "supabase/migrations/20260925011128_storage_remove_legacy_anon_media_read.sql"
+    },
+    {
+      "version": "20260925134831",
+      "name": "mantigo_server_authoritative_state_v1",
+      "path": "supabase/migrations/20260925134831_mantigo_server_authoritative_state_v1.sql"
+    },
+    {
+      "version": "20260925135339",
+      "name": "mantigo_server_authoritative_create_v1",
+      "path": "supabase/migrations/20260925135339_mantigo_server_authoritative_create_v1.sql"
+    },
+    {
+      "version": "20260926213901",
+      "name": "erp_inventory_transfer_authority_v1",
+      "path": "supabase/migrations/20260926213901_erp_inventory_transfer_authority_v1.sql"
+    },
+    {
+      "version": "20260926214420",
+      "name": "erp_stock_transfer_authority_v1",
+      "path": "supabase/migrations/20260926214420_erp_stock_transfer_authority_v1.sql"
+    },
+    {
+      "version": "20260926214429",
+      "name": "erp_stock_transfer_authority_cleanup_v2",
+      "path": "supabase/migrations/20260926214429_erp_stock_transfer_authority_cleanup_v2.sql"
+    },
+    {
+      "version": "20260926214633",
+      "name": "erp_warehouse_opening_stock_authority_v1",
+      "path": "supabase/migrations/20260926214633_erp_warehouse_opening_stock_authority_v1.sql"
+    },
+    {
+      "version": "20260926215401",
+      "name": "erp_purchase_receipts_table_v1",
+      "path": "supabase/migrations/20260926215401_erp_purchase_receipts_table_v1.sql"
+    },
+    {
+      "version": "20260926215717",
+      "name": "erp_purchase_receipts_table_v2",
+      "path": "supabase/migrations/20260926215717_erp_purchase_receipts_table_v2.sql"
+    },
+    {
+      "version": "20260926215725",
+      "name": "erp_purchase_receiving_function_v2",
+      "path": "supabase/migrations/20260926215725_erp_purchase_receiving_function_v2.sql"
+    },
+    {
+      "version": "20260926220351",
+      "name": "erp_purchase_order_authority_v1",
+      "path": "supabase/migrations/20260926220351_erp_purchase_order_authority_v1.sql"
+    },
+    {
+      "version": "20260926220729",
+      "name": "erp_purchase_order_authority_v1",
+      "path": "supabase/migrations/20260926220729_erp_purchase_order_authority_v1.sql"
+    },
+    {
+      "version": "20260926220746",
+      "name": "erp_purchase_order_submit_approval_v2",
+      "path": "supabase/migrations/20260926220746_erp_purchase_order_submit_approval_v2.sql"
+    },
+    {
+      "version": "20260927020456",
+      "name": "phase_3_57_receive_purchase_rpc_anon_lockdown",
+      "path": "supabase/migrations/20260927020456_phase_3_57_receive_purchase_rpc_anon_lockdown.sql"
+    },
+    {
+      "version": "20260927021510",
+      "name": "phase_3_58_fix_erp_catalog_item_reference",
+      "path": "supabase/migrations/20260927021510_phase_3_58_fix_erp_catalog_item_reference.sql"
+    },
+    {
+      "version": "20260927033925",
+      "name": "harden_smm_bootstrap_trigger_execute_privilege",
+      "path": "supabase/migrations/20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql"
+    },
+    {
+      "version": "20260927054629",
+      "name": "support_ticket_status_workflow_constraint",
+      "path": "supabase/migrations/20260927054629_support_ticket_status_workflow_constraint.sql"
+    },
+    {
+      "version": "20260927065218",
+      "name": "mnty_platform_admin_authority",
+      "path": "supabase/migrations/20260927065218_mnty_platform_admin_authority.sql"
+    },
+    {
+      "version": "20260927065247",
+      "name": "mnty_atomic_registration_review",
+      "path": "supabase/migrations/20260927065247_mnty_atomic_registration_review.sql"
+    },
+    {
+      "version": "20260927065347",
+      "name": "mnty_platform_bootstrap_authority",
+      "path": "supabase/migrations/20260927065347_mnty_platform_bootstrap_authority.sql"
+    },
+    {
+      "version": "20260927071154",
+      "name": "harden_payment_reconciliation_read_scope",
+      "path": "supabase/migrations/20260927071154_harden_payment_reconciliation_read_scope.sql"
+    }
+  ]
+}

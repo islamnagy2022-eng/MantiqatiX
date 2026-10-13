@@ -1,0 +1,18 @@
+BEGIN;
+REVOKE ALL ON FUNCTION public.legal_is_admin(uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.legal_effective_version(text,text,uuid) FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.legal_gate_business_activation() FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.legal_gate_employee_activation() FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.legal_gate_order_insert() FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.legal_gate_commission_insert() FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.legal_gate_referral_insert() FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.legal_audit_bridge() FROM PUBLIC,anon,authenticated,service_role;
+DROP POLICY IF EXISTS user_consents_own_read ON public.user_consents;
+CREATE POLICY user_consents_own_read ON public.user_consents FOR SELECT TO authenticated USING(user_id=auth.uid() OR public.legal_is_admin(auth.uid()));
+DROP POLICY IF EXISTS consent_audit_own_read ON public.consent_audit_log;
+CREATE POLICY consent_audit_own_read ON public.consent_audit_log FOR SELECT TO authenticated USING(user_id=auth.uid() OR public.legal_is_admin(auth.uid()));
+DROP POLICY IF EXISTS agreements_participant_read ON public.agreements;
+CREATE POLICY agreements_participant_read ON public.agreements FOR SELECT TO authenticated USING(public.legal_is_admin(auth.uid()) OR EXISTS(SELECT 1 FROM public.agreement_participants ap WHERE ap.agreement_id=id AND ap.user_id=auth.uid()));
+DROP POLICY IF EXISTS agreement_participants_read ON public.agreement_participants;
+CREATE POLICY agreement_participants_read ON public.agreement_participants FOR SELECT TO authenticated USING(public.legal_is_admin(auth.uid()) OR user_id=auth.uid());
+COMMIT;

@@ -1,8 +1,7 @@
 name: Marketing Campaign Backend
 on:
   push:
-    branches:
-      - "**"
+    branches: [main]
     paths:
       - "supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql"
       - "supabase/tests/rc453_marketing_campaign_*.sql"
@@ -17,6 +16,10 @@ on:
       - ".github/workflows/marketing-campaign-backend.yml"
 permissions:
   contents: read
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest

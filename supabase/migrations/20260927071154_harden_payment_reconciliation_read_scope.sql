@@ -1,0 +1,2 @@
+drop policy if exists payment_financial_reconciliations_authenticated_select on public.payment_financial_reconciliations;
+create policy payment_financial_reconciliations_finance_read on public.payment_financial_reconciliations for select to authenticated using (exists (select 1 from public.user_memberships um where um.user_id=auth.uid() and um.tenant_id=payment_financial_reconciliations.tenant_id and um.status='ACTIVE' and upper(um.role) in ('OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER')));

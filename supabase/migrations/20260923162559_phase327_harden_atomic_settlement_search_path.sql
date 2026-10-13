@@ -1,0 +1,1 @@
+alter function public.create_settlement_and_post_journal(character varying, character varying, character varying, character varying, numeric, numeric, numeric, numeric, character varying, character varying, uuid, text, uuid) set search_path = pg_catalog, public;

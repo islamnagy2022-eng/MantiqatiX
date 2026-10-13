@@ -1559,3 +1559,174 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Exact-head release checkpoint — 2026-10-12
+
+- Candidate PR #207 current branch: `reconcile/rc425-458-current-main-20261011`. Latest documentation head at this checkpoint: `bbd3133979a6a2e84deaf14343d1e71d01a93a99`. Exact-head CI results recorded below refer to the previous code/documentation head `95db1770bd89286bfadba9172b0c9409a68e0566`; fresh checks are required for the new documentation head.
+- [x] Core module validation passed: [38178521555](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521555).
+- [x] Migration version uniqueness [38178521452](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521452), migration immutability [38178521625](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521625), open-PR migration collision guard [38178521533](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521533), backend-only boundary [38178521457](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521457), MantiGO privacy [38178521521](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521521), approval audit atomicity [38178521525](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521525), and SMM service-role boundary [38178521548](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521548) passed.
+- [x] Pages validation [38178521567](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521567) passed; deploy job was skipped because PR #207 is draft. This is not a production deployment.
+- [ ] SMM deferred validation [38178521468](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38178521468) failed. Do not weaken/delete/repair it during the owner’s SMM freeze; retain it as post-launch feature acceptance evidence.
+- [ ] P0 SMM server-side containment issue #212 remains open. The live gateway must not be treated as disabled based on UI quarantine. Any live change needs explicit production approval and negative runtime tests.
+- [ ] Full chronological migration replay remains blocked on ten missing historical SECURITY DEFINER function creation dependencies; no placeholders, skipped migrations, or synthetic historical DDL.
+- [ ] Production migration ledger is still only reconciled through RC424; post-RC424 migrations are not proven applied.
+- [ ] Production P0 MantiGO global authorization, real cross-tenant/auth/payment/ERP E2E, Paymob sandbox end-to-end, backup restore/RPO/RTO, leaked-password protection, and enforced main branch protection remain unresolved.
+- **Release decision: BLOCKED / NOT CERTIFIED.** No merge, production deployment, migration, live Edge Function modification, financial mutation, or Auth/RLS/grant change was performed.
+
+## Internal Marketing & Advertising campaign workflow — 2026-10-12
+
+- [x] Candidate workspace reads `marketing_campaigns` and `marketing_campaign_participants` under RLS; missing/unavailable candidate tables degrade to empty arrays rather than breaking workspace rendering.
+- [x] Candidate campaign creation calls `create_marketing_campaign_backend` and checks the MARKETING create permission before submission.
+- [x] Candidate campaign status changes call `update_marketing_campaign_status_backend`; backend transition validation remains authoritative.
+- [x] Candidate provider invitations/responses call `invite_marketing_campaign_partner_backend` and `respond_marketing_campaign_invitation_backend`.
+- [x] Extended the marketing campaign validator with UI/RPC integration assertions and wired it into Module Professionalization Validation.
+- [ ] Verify JavaScript syntax and the new campaign UI contract at the newest exact head; CI evidence is still pending and earlier run IDs for the previous head were queued.
+- [ ] RC452/RC453 migrations remain unproven in production. Do not treat the new UI as live-ready until the approved chronological migration path and production rollout evidence are complete.
+- [ ] Complete marketing lead lifecycle (assignment, status transitions, notes/follow-ups, audit), then real provider/campaign E2E and role/tenant isolation checks.
+- [ ] Overall release remains **BLOCKED / NOT CERTIFIED**; no production deployment, schema change, campaign budget spend, or PR merge was performed in this batch.
+
+
+## 2026-10-12 release-gate refresh — RC425+ candidate
+
+- [x] Confirmed 12 pre-hardening migrations create 36 tables; the hardening migration references 21 tables and `public.bookings` is the only unmatched dependency in that set.
+- [x] Read-only inspected live `bookings` column, policy and grant metadata; no row contents were queried for this check. This is not authoritative historical DDL.
+- [x] Replay fails closed before disposable Supabase starts: [run 38195776127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776127). No skip/reorder or synthetic table was added.
+- [x] Targeted module, SMM deferred, SMM ACL, migration uniqueness/immutability/collision CI passed on candidate merge head; Pages validation passed and deploy was skipped.
+- [ ] **P0 BLOCKED:** recover authoritative historical `public.bookings` creation/policy/grant source OR obtain explicit approval for a disposable-only compatibility baseline. Until then, do not mark chronological migration replay PASS.
+- [ ] **P0 BLOCKED:** deployed `smm-gateway` remains v6 without `MNTY_SMM_ENABLED` deny gate; PR #214 is source-only. Require approved deployment and negative runtime tests before launch exposure.
+- [ ] **P0 BLOCKED:** production migration ledger remains at RC424; post-RC424 migrations and production rollout are not proven. No production change authorized/performed in this batch.
+- [ ] Continue latest exact-head CI check, historical source recovery, and release evidence reconciliation. Overall status **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-12 — Exact-head CI and historical replay status refresh
+
+- [x] Rechecked CI on candidate head `65e1830e22768ce9d1b65346c1c8abd35b310d4f`; targeted module, Marketing/CRM, MantiGO privacy, approval-audit, SMM ACL/deferred, and migration uniqueness/immutability/collision checks passed.
+- [x] Pages workflow completed, but deploy was skipped because the PR remains draft; no deployment claim.
+- [ ] **P0 BLOCKED:** full chronological replay fails closed at missing authoritative historical `public.bookings` baseline; setup/replay were correctly skipped.
+- [x] Expanded repository branch/code/commit searches for historical bookings DDL, `CREATE TABLE bookings`, `bookings.sql`, schema and baseline; no authoritative creation artifact recovered.
+- [ ] **P0 BLOCKED:** keep PR #207/#214 unmerged and keep production changes blocked until historical source, runtime evidence, and explicit change approvals are resolved.
+- [ ] **P0 BLOCKED:** live SMM gateway v6 still lacks server-side launch-deny containment; require approved deploy and negative side-effect tests.
+- **Current release decision: BLOCKED / NOT CERTIFIED.** No production writes/deploys/merges or synthetic historical DDL were performed.
+
+
+## SESSION-005 — 2026-10-12 — Approved bookings baseline replay follow-up
+
+- [x] Updated the disposable migration replay workflow to inject the owner-approved `supabase/tests/baselines/bookings.sql` as temporary migration `20260919233424_test_only_approved_bookings_baseline.sql`, immediately before `20260919233425_production_security_hardening_v1.sql`.
+- [x] Added checks for source presence, destination absence, exact file copy, untracked temporary migration, and no data import.
+- [x] Commit for workflow change: `48bcf340f901e545e547b39639c641c899ea696c`. Session/continuity documentation updates followed; main remains unchanged.
+- [x] Exact-head CI: Module Professionalization Validation, Backend-only Module Boundary, Approval Action Audit Atomicity, Marketing Campaign Backend, MantiGO Open Ride Privacy Boundary, SMM Service Role Access Boundary, SMM Deferred Module Validation, Migration Version Uniqueness, Migration History Immutability, and Open PR Migration Collision Guard all succeeded. Pages validation succeeded, but deploy was skipped.
+- [ ] **P0 NOT VERIFIED:** Disposable Migration Chain Replay [38239527707](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527707) passed historical baseline preflight and all temporary-fixture integrity checks; disposable Supabase service startup is still in progress. Timestamp-ordered replay has not begun.
+- [ ] **P0 BLOCKED:** Live SMM gateway v6 has not been changed and still lacks server-side launch-deny containment. Keep SMM feature development frozen; do not claim API containment from the static holding page or passing source tests.
+- [ ] **P0 BLOCKED:** No production migration, Edge Function deployment, Auth/security configuration change, financial/wallet mutation, merge, or production release has occurred.
+- **Current release decision: BLOCKED / NOT CERTIFIED.** Next action: observe run 38239527707 and handle the actual first replay/runtime result without skipping migrations or creating unapproved schema definitions.
+
+
+## Migration replay preflight — 2026-10-13
+- [x] Investigate latest exact-head replay failure: failed before Docker/Supabase startup at the missing `public.credit_policies` baseline guard.
+- [x] Improve the preflight to enumerate every missing approved baseline in one run while retaining fail-closed behavior.
+- [ ] Verify the updated preflight on exact commit `8eca1e956cd256256f79d734f4886b211f2a5336` and capture the full dependency list.
+- [ ] BLOCKED: recover authoritative historical DDL or obtain explicit approval for a provenance-documented disposable-only compatibility baseline; do not infer credit schema from RC40 because known live/archive differences remain.
+- [ ] Do not merge PR #207 or apply post-RC424 migrations until clean replay and separate production reconciliation are approved.
+
+
+## 2026-10-13 — SMM trigger ACL replay root-cause checkpoint
+
+- [x] Read-only production catalog confirms `public.smm_bootstrap_first_admin()` exists as a `SECURITY DEFINER` trigger function with `search_path=public`; direct EXECUTE is denied to `anon` and `authenticated`.
+- [x] Latest failed replay identified the exact first SQL error: `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql` fails with SQLSTATE `42883` because the preceding historical creation DDL is absent from the committed migration archive.
+- [x] The prior CI workflow had an approved test-only live-derived fixture but the full `supabase db reset --local` run did not execute the temporary version `20260927033924` before the historical lockdown, so the fixture was not present at the failure point.
+- [x] Updated the migration replay workflow in commit `ae5f6f63672a0aa2947f3d20fc70cae7e99ff6d0`: reset the disposable database only through version `20260927033924`, inject the documented function fixture directly into the disposable Postgres container, apply the actual lockdown migration separately, assert PUBLIC/anon/authenticated cannot EXECUTE it, then continue the remaining migrations.
+- [ ] **P0 NOT VERIFIED:** exact-head run [38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354483080) is in progress at disposable Supabase service startup; no replay result yet.
+- [ ] Historical DDL provenance remains unresolved; the fixture is test-only and does not claim canonical history recovery. Do not merge or deploy based on a partial replay.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — Marketing leads migration-source gap
+
+- [x] Confirmed via read-only production catalog and migration ledger that `public.marketing_leads` exists with its live columns, FKs, checks, index, RLS/FORCE RLS and policies, but no canonical table-creation migration appears in the tracked source or live migration-name ledger.
+- [x] Added the test-only live-derived baseline `supabase/tests/baselines/marketing_leads.sql` and disposable-only temporary version `20260927140496` ahead of `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`. The validator and workflow verify provenance, exact-copy, untracked state, no operational rows, and required policy order.
+- [x] Fixed two replay harness defects: unstable Docker-container lookup and invalid `supabase migration up --local --version` usage. The latter printed CLI version instead of targeting a migration; the workflow now applies the ACL SQL directly for the isolated assertion before normal migration replay.
+- [ ] **P1 NOT VERIFIED:** latest replay [38356535239](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356535239) passed baseline validation/exact-copy checks and is still starting disposable Supabase; chronological replay has not completed.
+- [ ] Canonical historical DDL provenance remains unresolved. Test-only baseline is not a production migration and must not be applied to production.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — Current continuation: payment concurrency, SMM ACL, replay blockers
+
+### Verified on isolated CI
+- [x] S06 concurrent duplicate callback test: two independent PostgreSQL sessions submitted the same verified success event; exactly one non-idempotent result and one idempotent replay were observed; final order was `PAID` and exactly one `SUCCEEDED` event remained. Exact-head workflow [38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801) passed.
+- [x] SMM RC524 least-privilege ACL reset migration + PostgreSQL integration passed in disposable CI [38400557008](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400557008) and branch follow-up [38400580077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400580077). Candidate PR [#236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236) is DRAFT and unmerged.
+- [x] The core S06 adversarial regression and concurrency assertion printed PASS in [run 38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801). Candidate PR [#237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237) is DRAFT and unmerged.
+- [x] Exact-head validation batch on PR #207 candidate commit `bcc0f646304a20b3188e7bc45323b25b3e134162`: Migration Version Uniqueness, Migration History Immutability, SMM Deferred Module Validation, Module Professionalization Validation, Open PR Migration Collision Guard, Paymob Webhook Target Lookup, Approval Action Audit Atomicity, Marketing Campaign Backend, Marketing CRM Tenant Scope, MantiGO privacy boundary, Backend-only Module Boundary, and SMM Service Role Access Boundary passed. Pages validation passed but the deploy job was skipped; no deployment occurred.
+
+### P0 — release gates still open
+- [ ] **BLOCKED — clean chronological replay:** [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed. The historical source gap is not solved by filename normalization; do not skip migrations, alter historical files, or invent schema/function DDL.
+- [ ] **BLOCKED — marketing schema provenance:** [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) adds a fail-closed preflight for `public.marketing_project_participants`; exact live catalog inspection is evidence of current shape, not proof of original creation DDL. No guessed baseline was added.
+- [ ] **BLOCKED — SMM live ACL:** production read-only inspection found `service_role` TRUNCATE on SMM tables. RC524 is candidate-only; production ACL is unchanged until a separately reviewed/approved rollout.
+- [ ] **NOT VERIFIED — SMM runtime denial:** deployed `smm-gateway` remains active (v10, `verify_jwt=true`) but the launch-deferred flag must be confirmed by live negative API tests. Keep SMM launch deferred and do not activate campaigns.
+- [ ] **NOT VERIFIED — Paymob/finance E2E:** concurrency regression is isolated CI evidence only; real provider transactions, refunds, settlement, GL reconciliation, and production ledger consistency remain unverified.
+- [ ] **NOT VERIFIED — full production release:** Auth/browser/device E2E, tenant isolation, leaked-password protection, per-function Security Advisor triage, backup/restore RPO/RTO, monitoring/alerts, rollback rehearsal, and final regression remain open.
+- [ ] **NOT VERIFIED — repository governance:** require protected main, required reviews/status checks, and direct/force-push restrictions before release; do not alter repository settings without authorized approval.
+
+### Current candidate PRs
+- [PR #207](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207): RC425–RC458 source/replay reconciliation; DRAFT.
+- [PR #220](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220): S06 payment/finance contracts; DRAFT.
+- [PR #221](https://github.com/islamnagy2022-eng/MantiqatiX/pull/221): S07 deferred SMM gateway safety contract; DRAFT.
+- [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235): marketing participant baseline fail-closed guard; DRAFT.
+- [PR #236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236): RC524 SMM ACL least-privilege reset; DRAFT.
+- [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237): S06 concurrent callback regression; DRAFT.
+- [PR #233](https://github.com/islamnagy2022-eng/MantiqatiX/pull/233) and [PR #234](https://github.com/islamnagy2022-eng/MantiqatiX/pull/234): superseded/blocked replay experiments; do not merge.
+
+### Next executable sequence
+1. Inspect exact first SQL failure from latest replay run and update `docs/release/MIGRATION_REPLAY_BLOCKERS.md` with evidence; no bypasses.
+2. Recover authoritative original DDL/history for the next missing relation/function, or obtain explicit approval for a provenance-documented disposable-only baseline. Existing SMM/marketing baseline approvals are narrow and do not expand automatically.
+3. Continue S06 contract coverage for conflicting duplicate events, amount/currency/order mismatch, and terminal-state transitions in disposable PostgreSQL; keep real Paymob E2E WAIT until a separately authorized test transaction.
+4. Keep SMM deferred; verify source/runtime parity and negative API behavior without deploying or changing production.
+5. Re-run exact-head CI, full replay, and release-gate evidence review. Do not merge/deploy until every P0 gate is VERIFIED.
+
+**Release decision: BLOCKED / NOT CERTIFIED. No production migration, Edge Function deployment, financial mutation, merge, or release approval was performed by this continuation.**
+
+
+### Live Security Advisor refresh — 2026-10-13 13:18 UTC
+- [ ] **P0 NOT VERIFIED:** current read-only advisor snapshot contains 94 lint records / 133 counted findings: 90 anonymous-access-policy warnings, 40 authenticated-executable SECURITY DEFINER functions, 1 anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), 1 leaked-password-protection warning, and 1 RLS-enabled/no-policy INFO finding for `digital_page_payment_events`.
+- Treat the 90 anonymous-policy findings as review flags, not 90 independently confirmed vulnerabilities. Do not blanket-disable anonymous access or revoke all SECURITY DEFINER execution.
+- Leaked Password Protection is still disabled; enablement remains an authorized Supabase Auth/dashboard action and has not been changed in this session.
+- The `digital_page_payment_events` no-policy condition remains fail-closed by design until the service-role/RPC access path and least-privilege grants are explicitly reconciled.
+- Source: read-only Supabase Security Advisor snapshot observed at `2026-10-13T13:18:40.718Z`. Release remains BLOCKED.
+
+
+### S06 conflicting-event race — 2026-10-13 13:19 UTC
+- [x] Added and ran a second two-session regression that races `SUCCEEDED` and `FAILED` callbacks using the same provider event ID. Exact-head [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421) passed; the log confirms `S06 conflicting callback race: PASS`.
+- Verified behavior: exactly one conflicting callback can win, the other returns `DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH`, only one event remains, and the order status matches the persisted event.
+- This is isolated PostgreSQL evidence only; it does not certify real Paymob/settlement/refund or production ledger E2E. Candidate [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237) remains DRAFT/unmerged.
+
+
+## Session update — 2026-10-13 — SMM security and migration replay root causes
+
+### Verified progress
+- [x] PR #225 remains a separate draft/unmerged SMM security review. SMM Gateway Security Regression run [38407032241](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407032241) passed on its tested code revision: static gateway contract, service-role boundary validation, Deno check, and 7 unit tests. No live provider request or wallet/payment operation was run.
+- [x] Read-only inspection of the deployed `smm-gateway` shows ACTIVE version 10 and source identical to the PR #218 base gateway source; the hard launch-deferred gate returns `503 SMM_DEFERRED` before user lookup, body parsing, provider calls, wallet RPCs, or order writes. This proves fail-closed containment, not post-launch feature readiness.
+- [x] Added catalog-derived, schema-only compatibility scaffolding to disposable replay for marketing CRM tables/policies missing from tracked historical source: `marketing_projects`, `marketing_project_participants`, `marketing_plans`, `marketing_provider_subscriptions`, plus `payment_events_finance_read`. All source evidence came from read-only catalog/ledger queries; no rows were copied.
+- [x] Extended `scripts/validate-historical-schema-baseline.mjs` to verify table dependencies, constraints, indexes, RLS/FORCE RLS, policy predicates, observed least-privilege grants, provenance markers, and chronological ALTER POLICY dependencies.
+- [x] Migration version uniqueness and history immutability passed on recent PR #207 heads. The SMM service-role boundary, SMM deferred module, marketing backend, CRM tenant scope, Paymob webhook lookup, approval atomicity, MantiGO open-ride privacy and backend-only boundary checks have passed on the latest tested head(s); check each run against the current exact SHA before final release certification.
+- [x] Reconfirmed the current production migration ledger by SELECT: latest applied version is `20261008222845 / rc424_atomic_digital_page_payment_webhook`. RC449/RC462 remain absent from production.
+
+### Open P0/P1 blockers
+- [ ] **P0 BLOCKED:** live MantiGO global dashboard, financial report, captain settlement and stale-ride expiry RPCs remain SECURITY DEFINER, `search_path=public`, executable by `authenticated`, and do not call `mnty_can_platform_admin()`. RC449/RC462 passed disposable regression tests, but are not deployed/applied. No production hotfix or migration was performed.
+- [ ] **P1 NOT VERIFIED:** full chronological migration replay remains blocked. Run [38406719880](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406719880) advanced past the marketing table dependencies but failed because `payment_events_finance_read` was absent before its historical ALTER POLICY statement. A policy-only test fixture and validator were added.
+- [ ] **CI WIRING:** run [38407549932](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407549932) then failed before database replay because the separate verification shell did not declare `payment_events_policy_baseline`. Fixed by declaring both fixture variables in the verification step. Latest replay run [38407801526](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407801526) is pending; its exact-copy/untracked check and replay result are **NOT VERIFIED** until logs complete.
+- [ ] Historical table/policy creation DDL for these marketing dependencies is not present in the source/ledger evidence examined. Test-only catalog-derived baselines are compatibility scaffolding, not recovered historical DDL. A passing baseline-assisted replay would not certify historical provenance.
+- [ ] The requested root path `MANTIQATIX_MASTER_TODO_2026-10-13.md` was not found in repository search. This append-only update is recorded here in the existing canonical `docs/MASTER_PRODUCTION_TODO.md`; the detailed session continuation is in `docs/engineering/AUTONOMOUS_CONTINUATION_20261013.md` on PR #225's branch.
+
+### Safety and release decision
+- No production schema/data/migration ledger/grant/Auth/RLS change, live Edge Function deployment, wallet/payment operation, merge, or production release was performed by this continuation.
+- **Release remains `BLOCKED / NOT CERTIFIED`.** Do not merge/deploy or apply RC449/RC462 until the separately approved production change/release procedure is authorized and the live catalog is reverified. Do not mark replay PASS until the exact-head clean replay completes successfully and its evidence is inspected.
+
+
+## Replay update — 2026-10-13 — settlement transaction policy
+
+- [ ] Run [38408000724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408000724) advanced past the payment-events finance policy fixture, then failed on missing `settlement_transactions_finance_read` before the historical ALTER POLICY statement.
+- [x] Added a catalog-derived, policy-only test fixture for `settlement_transactions_finance_read`, plus validator checks and disposable-only workflow injection at timestamp `20260927140492`.
+- [ ] Exact-head preflight/copy verification and chronological replay are pending on the next run. No replay PASS is claimed.
+- [ ] Historical policy-creation source remains unrecovered; the fixture is synthetic and disposable-only.
+- **Production release remains `BLOCKED / NOT CERTIFIED`.**

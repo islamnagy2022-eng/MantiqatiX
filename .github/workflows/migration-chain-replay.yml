@@ -1,0 +1,518 @@
+name: Disposable Supabase Migration Chain Replay
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "scripts/validate-historical-schema-baseline.mjs"
+      - ".github/workflows/migration-chain-replay.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "scripts/validate-historical-schema-baseline.mjs"
+      - ".github/workflows/migration-chain-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migration-chain-replay-${{ github.event.pull_request.number || github.ref }}
+  # Let an in-flight replay finish; it remains evidence only for its exact commit.
+  cancel-in-progress: false
+
+jobs:
+  replay-all-migrations:
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Fail closed if the historical schema baseline is missing
+        run: node scripts/validate-historical-schema-baseline.mjs
+
+      - name: Inject verified test-only compatibility baselines into disposable replay only
+        shell: bash
+        run: |
+          set -euo pipefail
+          legacy_businesses_baseline="supabase/tests/baselines/legacy_businesses.sql"
+          legacy_products_baseline="supabase/tests/baselines/legacy_products.sql"
+          legacy_orders_baseline="supabase/tests/baselines/legacy_orders.sql"
+          registration_baseline="supabase/tests/baselines/account_registration_requests_schema.sql"
+          registration_security_baseline="supabase/tests/baselines/account_registration_requests.sql"
+          profiles_baseline="supabase/tests/baselines/marketing_provider_profiles.sql"
+          marketing_leads_baseline="supabase/tests/baselines/marketing_leads.sql"
+          admins_baseline="supabase/tests/baselines/smm_admins.sql"
+          providers_baseline="supabase/tests/baselines/smm_providers.sql"
+          credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
+          bookings_baseline="supabase/tests/baselines/bookings.sql"
+          approval_policy_baseline="supabase/tests/baselines/approval_requests_scoped_read.sql"
+          commission_policy_baseline="supabase/tests/baselines/commission_transactions_finance_read.sql"
+          marketing_schema_baseline="supabase/tests/baselines/marketing_commission_schema.sql"
+          journal_finance_policy_baseline="supabase/tests/baselines/journal_finance_read_policies.sql"
+          general_ledger_policy_baseline="supabase/tests/baselines/general_ledger_finance_read.sql"
+          legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
+          smm_bootstrap_baseline="supabase/tests/baselines/smm_bootstrap_first_admin.sql"
+          smm_wallets_baseline="supabase/tests/baselines/smm_wallets.sql"
+          smm_wallet_transactions_baseline="supabase/tests/baselines/smm_wallet_transactions.sql"
+          smm_services_baseline="supabase/tests/baselines/smm_services.sql"
+          smm_orders_baseline="supabase/tests/baselines/smm_orders.sql"
+          smm_order_events_baseline="supabase/tests/baselines/smm_order_events.sql"
+          settlement_baseline="supabase/tests/baselines/settlement_backend_10arg.sql"
+          settlement_attempts_baseline="supabase/tests/baselines/settlement_attempts.sql"
+          credit_policies_baseline="supabase/tests/baselines/credit_policies.sql"
+          credit_accounts_baseline="supabase/tests/baselines/credit_accounts.sql"
+          credit_periods_baseline="supabase/tests/baselines/credit_periods.sql"
+          payment_provider_events_baseline="supabase/tests/baselines/payment_provider_events.sql"
+          payment_events_policy_baseline="supabase/tests/baselines/payment_events_finance_read.sql"
+          settlement_transactions_policy_baseline="supabase/tests/baselines/settlement_transactions_finance_read.sql"
+          wallet_accounts_policy_baseline="supabase/tests/baselines/wallet_accounts_finance_read.sql"
+          wallet_transactions_policy_baseline="supabase/tests/baselines/wallet_transactions_finance_read.sql"
+          legacy_businesses_migration="supabase/migrations/20260807999997_test_only_legacy_businesses_baseline.sql"
+          legacy_products_migration="supabase/migrations/20260807999998_test_only_legacy_products_baseline.sql"
+          legacy_orders_migration="supabase/migrations/20260807999999_test_only_legacy_orders_baseline.sql"
+          registration_migration="supabase/migrations/20260927065246_test_only_live_derived_registration_schema_baseline.sql"
+          registration_security_migration="supabase/migrations/20260927074155_test_only_live_derived_registration_security_baseline.sql"
+          profiles_migration="supabase/migrations/20260927074156_test_only_live_derived_provider_profiles_baseline.sql"
+          marketing_leads_migration="supabase/migrations/20260927140496_test_only_live_derived_marketing_leads.sql"
+          admins_migration="supabase/migrations/20260927033923_test_only_approved_smm_admins_baseline.sql"
+          providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
+          credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
+          approval_policy_migration="supabase/migrations/20260927140499_test_only_live_derived_approval_requests_scoped_read.sql"
+          commission_policy_migration="supabase/migrations/20260927140498_test_only_live_derived_commission_transactions_finance_read.sql"
+          marketing_schema_migration="supabase/migrations/20260927140494_test_only_live_derived_marketing_commission_schema.sql"
+          journal_finance_policy_migration="supabase/migrations/20260927140495_test_only_live_derived_journal_finance_read_policies.sql"
+          general_ledger_policy_migration="supabase/migrations/20260927140497_test_only_live_derived_general_ledger_finance_read.sql"
+          legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
+          smm_bootstrap_migration="supabase/migrations/20260927033924_test_only_live_derived_smm_bootstrap_first_admin.sql"
+          smm_wallets_migration="supabase/migrations/20260927140487_test_only_live_derived_smm_wallets_baseline.sql"
+          smm_wallet_transactions_migration="supabase/migrations/20260927140488_test_only_live_derived_smm_wallet_transactions_baseline.sql"
+          smm_services_migration="supabase/migrations/20260927140489_test_only_live_derived_smm_services_baseline.sql"
+          smm_orders_migration="supabase/migrations/20260927140490_test_only_live_derived_smm_orders_baseline.sql"
+          smm_order_events_migration="supabase/migrations/20260927140491_test_only_live_derived_smm_order_events_baseline.sql"
+          settlement_migration="supabase/migrations/20260920095705_test_only_live_derived_settlement_baseline.sql"
+          settlement_attempts_migration="supabase/migrations/20260920211715_test_only_live_derived_settlement_attempts_baseline.sql"
+          credit_policies_migration="supabase/migrations/20260920155450_test_only_live_derived_credit_policies_baseline.sql"
+          credit_accounts_migration="supabase/migrations/20260920155451_test_only_live_derived_credit_accounts_baseline.sql"
+          credit_periods_migration="supabase/migrations/20260920155452_test_only_live_derived_credit_periods_baseline.sql"
+          payment_provider_events_migration="supabase/migrations/20260920211716_test_only_live_derived_payment_provider_events_baseline.sql"
+          payment_events_policy_migration="supabase/migrations/20260927140493_test_only_live_derived_payment_events_finance_read.sql"
+          settlement_transactions_policy_migration="supabase/migrations/20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql"
+          wallet_accounts_policy_migration="supabase/migrations/20260927140486_test_only_live_derived_wallet_accounts_finance_read.sql"
+          wallet_transactions_policy_migration="supabase/migrations/20260927140485_test_only_live_derived_wallet_transactions_finance_read.sql"
+          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$registration_security_baseline" "$profiles_baseline" "$marketing_leads_baseline" "$admins_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$approval_policy_baseline" "$marketing_schema_baseline" "$journal_finance_policy_baseline" "$general_ledger_policy_baseline" "$commission_policy_baseline" "$legacy_functions_baseline" "$smm_bootstrap_baseline" "$smm_wallets_baseline" "$smm_wallet_transactions_baseline" "$smm_services_baseline" "$smm_orders_baseline" "$smm_order_events_baseline" "$settlement_baseline" "$settlement_attempts_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline" "$payment_events_policy_baseline" "$settlement_transactions_policy_baseline" "$wallet_accounts_policy_baseline" "$wallet_transactions_policy_baseline"; do test -f "$file"; done
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$smm_wallets_migration" "$smm_wallet_transactions_migration" "$smm_services_migration" "$smm_orders_migration" "$smm_order_events_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration"; do test ! -e "$file"; done
+          cp "$legacy_businesses_baseline" "$legacy_businesses_migration"
+          cp "$legacy_products_baseline" "$legacy_products_migration"
+          cp "$legacy_orders_baseline" "$legacy_orders_migration"
+          cp "$registration_baseline" "$registration_migration"
+          cp "$registration_security_baseline" "$registration_security_migration"
+          cp "$profiles_baseline" "$profiles_migration"
+          cp "$marketing_leads_baseline" "$marketing_leads_migration"
+          cp "$admins_baseline" "$admins_migration"
+          cp "$providers_baseline" "$providers_migration"
+          cp "$credentials_baseline" "$credentials_migration"
+          cp "$bookings_baseline" "$bookings_migration"
+          cp "$approval_policy_baseline" "$approval_policy_migration"
+          cp "$marketing_schema_baseline" "$marketing_schema_migration"
+          cp "$journal_finance_policy_baseline" "$journal_finance_policy_migration"
+          cp "$general_ledger_policy_baseline" "$general_ledger_policy_migration"
+          cp "$commission_policy_baseline" "$commission_policy_migration"
+          cp "$legacy_functions_baseline" "$legacy_functions_migration"
+          cp "$smm_bootstrap_baseline" "$smm_bootstrap_migration"
+          cp "$smm_wallets_baseline" "$smm_wallets_migration"
+          cp "$smm_wallet_transactions_baseline" "$smm_wallet_transactions_migration"
+          cp "$smm_services_baseline" "$smm_services_migration"
+          cp "$smm_orders_baseline" "$smm_orders_migration"
+          cp "$smm_order_events_baseline" "$smm_order_events_migration"
+          cp "$settlement_baseline" "$settlement_migration"
+          cp "$settlement_attempts_baseline" "$settlement_attempts_migration"
+          cp "$credit_policies_baseline" "$credit_policies_migration"
+          cp "$credit_accounts_baseline" "$credit_accounts_migration"
+          cp "$credit_periods_baseline" "$credit_periods_migration"
+          cp "$payment_provider_events_baseline" "$payment_provider_events_migration"
+          cp "$payment_events_policy_baseline" "$payment_events_policy_migration"
+          cp "$settlement_transactions_policy_baseline" "$settlement_transactions_policy_migration"
+          cp "$wallet_accounts_policy_baseline" "$wallet_accounts_policy_migration"
+          cp "$wallet_transactions_policy_baseline" "$wallet_transactions_policy_migration"
+          echo "Injected catalog-verified test-only compatibility baselines into disposable CI only."
+          echo "SMM admins fixture is schema-only, contains no rows, and is not recovered historical DDL."
+          echo "The wallet finance policy baseline is derived from a read-only production catalog snapshot and is never a production migration."
+          echo "These are not historical creation migrations and must never be applied to production."
+
+      - name: Verify temporary baselines are exact copies and untracked
+        shell: bash
+        run: |
+          set -euo pipefail
+          legacy_businesses_baseline="supabase/tests/baselines/legacy_businesses.sql"
+          legacy_products_baseline="supabase/tests/baselines/legacy_products.sql"
+          legacy_orders_baseline="supabase/tests/baselines/legacy_orders.sql"
+          registration_baseline="supabase/tests/baselines/account_registration_requests_schema.sql"
+          registration_security_baseline="supabase/tests/baselines/account_registration_requests.sql"
+          profiles_baseline="supabase/tests/baselines/marketing_provider_profiles.sql"
+          marketing_leads_baseline="supabase/tests/baselines/marketing_leads.sql"
+          admins_baseline="supabase/tests/baselines/smm_admins.sql"
+          providers_baseline="supabase/tests/baselines/smm_providers.sql"
+          credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
+          bookings_baseline="supabase/tests/baselines/bookings.sql"
+          approval_policy_baseline="supabase/tests/baselines/approval_requests_scoped_read.sql"
+          commission_policy_baseline="supabase/tests/baselines/commission_transactions_finance_read.sql"
+          marketing_schema_baseline="supabase/tests/baselines/marketing_commission_schema.sql"
+          journal_finance_policy_baseline="supabase/tests/baselines/journal_finance_read_policies.sql"
+          general_ledger_policy_baseline="supabase/tests/baselines/general_ledger_finance_read.sql"
+          legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
+          smm_bootstrap_baseline="supabase/tests/baselines/smm_bootstrap_first_admin.sql"
+          settlement_baseline="supabase/tests/baselines/settlement_backend_10arg.sql"
+          settlement_attempts_baseline="supabase/tests/baselines/settlement_attempts.sql"
+          credit_policies_baseline="supabase/tests/baselines/credit_policies.sql"
+          credit_accounts_baseline="supabase/tests/baselines/credit_accounts.sql"
+          credit_periods_baseline="supabase/tests/baselines/credit_periods.sql"
+          payment_provider_events_baseline="supabase/tests/baselines/payment_provider_events.sql"
+          payment_events_policy_baseline="supabase/tests/baselines/payment_events_finance_read.sql"
+          settlement_transactions_policy_baseline="supabase/tests/baselines/settlement_transactions_finance_read.sql"
+          wallet_accounts_policy_baseline="supabase/tests/baselines/wallet_accounts_finance_read.sql"
+          wallet_transactions_policy_baseline="supabase/tests/baselines/wallet_transactions_finance_read.sql"
+          smm_order_events_baseline="supabase/tests/baselines/smm_order_events.sql"
+          legacy_businesses_migration="supabase/migrations/20260807999997_test_only_legacy_businesses_baseline.sql"
+          legacy_products_migration="supabase/migrations/20260807999998_test_only_legacy_products_baseline.sql"
+          legacy_orders_migration="supabase/migrations/20260807999999_test_only_legacy_orders_baseline.sql"
+          registration_migration="supabase/migrations/20260927065246_test_only_live_derived_registration_schema_baseline.sql"
+          registration_security_migration="supabase/migrations/20260927074155_test_only_live_derived_registration_security_baseline.sql"
+          profiles_migration="supabase/migrations/20260927074156_test_only_live_derived_provider_profiles_baseline.sql"
+          marketing_leads_migration="supabase/migrations/20260927140496_test_only_live_derived_marketing_leads.sql"
+          admins_migration="supabase/migrations/20260927033923_test_only_approved_smm_admins_baseline.sql"
+          providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
+          credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
+          approval_policy_migration="supabase/migrations/20260927140499_test_only_live_derived_approval_requests_scoped_read.sql"
+          commission_policy_migration="supabase/migrations/20260927140498_test_only_live_derived_commission_transactions_finance_read.sql"
+          marketing_schema_migration="supabase/migrations/20260927140494_test_only_live_derived_marketing_commission_schema.sql"
+          journal_finance_policy_migration="supabase/migrations/20260927140495_test_only_live_derived_journal_finance_read_policies.sql"
+          general_ledger_policy_migration="supabase/migrations/20260927140497_test_only_live_derived_general_ledger_finance_read.sql"
+          legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
+          smm_bootstrap_migration="supabase/migrations/20260927033924_test_only_live_derived_smm_bootstrap_first_admin.sql"
+          settlement_migration="supabase/migrations/20260920095705_test_only_live_derived_settlement_baseline.sql"
+          settlement_attempts_migration="supabase/migrations/20260920211715_test_only_live_derived_settlement_attempts_baseline.sql"
+          credit_policies_migration="supabase/migrations/20260920155450_test_only_live_derived_credit_policies_baseline.sql"
+          credit_accounts_migration="supabase/migrations/20260920155451_test_only_live_derived_credit_accounts_baseline.sql"
+          credit_periods_migration="supabase/migrations/20260920155452_test_only_live_derived_credit_periods_baseline.sql"
+          payment_provider_events_migration="supabase/migrations/20260920211716_test_only_live_derived_payment_provider_events_baseline.sql"
+          payment_events_policy_migration="supabase/migrations/20260927140493_test_only_live_derived_payment_events_finance_read.sql"
+          settlement_transactions_policy_migration="supabase/migrations/20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql"
+          wallet_accounts_policy_migration="supabase/migrations/20260927140486_test_only_live_derived_wallet_accounts_finance_read.sql"
+          wallet_transactions_policy_migration="supabase/migrations/20260927140485_test_only_live_derived_wallet_transactions_finance_read.sql"
+          smm_order_events_migration="supabase/migrations/20260927140491_test_only_live_derived_smm_order_events_baseline.sql"
+          cmp -s "$legacy_businesses_baseline" "$legacy_businesses_migration"
+          cmp -s "$legacy_products_baseline" "$legacy_products_migration"
+          cmp -s "$legacy_orders_baseline" "$legacy_orders_migration"
+          cmp -s "$registration_baseline" "$registration_migration"
+          cmp -s "$registration_security_baseline" "$registration_security_migration"
+          cmp -s "$profiles_baseline" "$profiles_migration"
+          cmp -s "$marketing_leads_baseline" "$marketing_leads_migration"
+          cmp -s "$admins_baseline" "$admins_migration"
+          cmp -s "$providers_baseline" "$providers_migration"
+          cmp -s "$credentials_baseline" "$credentials_migration"
+          cmp -s "$bookings_baseline" "$bookings_migration"
+          cmp -s "$approval_policy_baseline" "$approval_policy_migration"
+          cmp -s "$marketing_schema_baseline" "$marketing_schema_migration"
+          cmp -s "$journal_finance_policy_baseline" "$journal_finance_policy_migration"
+          cmp -s "$general_ledger_policy_baseline" "$general_ledger_policy_migration"
+          cmp -s "$commission_policy_baseline" "$commission_policy_migration"
+          cmp -s "$legacy_functions_baseline" "$legacy_functions_migration"
+          cmp -s "$smm_bootstrap_baseline" "$smm_bootstrap_migration"
+          cmp -s "$settlement_baseline" "$settlement_migration"
+          cmp -s "$settlement_attempts_baseline" "$settlement_attempts_migration"
+          cmp -s "$credit_policies_baseline" "$credit_policies_migration"
+          cmp -s "$credit_accounts_baseline" "$credit_accounts_migration"
+          cmp -s "$credit_periods_baseline" "$credit_periods_migration"
+          cmp -s "$payment_provider_events_baseline" "$payment_provider_events_migration"
+          cmp -s "$payment_events_policy_baseline" "$payment_events_policy_migration"
+          cmp -s "$settlement_transactions_policy_baseline" "$settlement_transactions_policy_migration"
+          cmp -s "$wallet_accounts_policy_baseline" "$wallet_accounts_policy_migration"
+          cmp -s "$wallet_transactions_policy_baseline" "$wallet_transactions_policy_migration"
+          cmp -s "$smm_order_events_baseline" "$smm_order_events_migration"
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
+          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"
+          # SMM/onboarding fixtures are schema-only, not data seed baselines.
+          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|update[[:space:]]+(public\\.)?|delete[[:space:]]+from|copy[[:space:]]+(public|private)\\.)' "$admins_migration" "$providers_migration" "$credentials_migration"
+          echo "PASS: exact untracked temporary baseline copies; no production rows are imported. Function fixtures are definition-only and are never invoked by replay."
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create disposable local Supabase config
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > supabase/config.toml <<'TOML'
+          project_id = "mantiqatix-migration-ci"
+
+          [api]
+          enabled = true
+          port = 54321
+          schemas = ["public", "graphql_public"]
+          extra_search_path = ["public", "extensions"]
+          max_rows = 1000
+
+          [db]
+          port = 54322
+          shadow_port = 54320
+          major_version = 15
+
+          [db.migrations]
+          enabled = true
+          schema_paths = []
+
+          [db.seed]
+          enabled = false
+
+          [auth]
+          enabled = true
+          site_url = "http://127.0.0.1:3000"
+          additional_redirect_urls = ["http://127.0.0.1:3000"]
+          jwt_expiry = 3600
+          enable_signup = true
+
+          [studio]
+          enabled = false
+          TOML
+
+      - name: Login to Docker Hub when credentials are configured
+        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Start disposable Supabase services without replaying migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          migration_stash="$(mktemp -d)"
+          restore_migrations() {
+            shopt -s nullglob
+            for file in "$migration_stash"/*.sql; do
+              mv "$file" supabase/migrations/
+            done
+            rmdir "$migration_stash" 2>/dev/null || true
+          }
+          trap restore_migrations EXIT
+          shopt -s nullglob
+          for file in supabase/migrations/*.sql; do
+            mv "$file" "$migration_stash/"
+          done
+          for attempt in 1 2 3 4; do
+            if timeout --kill-after=15s 180s supabase start -x studio,edge-runtime,logflare,vector,supavisor; then
+              restore_migrations
+              trap - EXIT
+              echo "Disposable services started; all migration SQL files restored for the dedicated replay step."
+              exit 0
+            fi
+            if [[ "$attempt" -lt 4 ]]; then
+              supabase stop --no-backup || true
+              sleep $((attempt * 30))
+            fi
+          done
+          echo "Supabase local stack failed after four attempts." >&2
+          exit 1
+
+      - name: Normalize known legacy migration aliases in disposable replay only
+        shell: bash
+        run: |
+          set -euo pipefail
+          # These source filenames have legacy duplicate timestamps. The target versions
+          # below match the read-only live Supabase migration ledger. Never rename source
+          # migrations in Git; this normalization exists only on the disposable CI runner.
+          rename_legacy_alias() {
+            local source="$1"
+            local target="$2"
+            test -f "supabase/migrations/$source"
+            if [[ -e "supabase/migrations/$target" ]]; then
+              echo "P0 BLOCKED: canonical replay target already exists: $target" >&2
+              exit 1
+            fi
+            mv "supabase/migrations/$source" "supabase/migrations/$target"
+          }
+          rename_legacy_alias "20260928020000_rc101_g6_rls_permissive_policy_hardening.sql" "20260928101022_rc101_g6_rls_permissive_policy_hardening.sql"
+          rename_legacy_alias "20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql" "20260928104107_rc102_g8_crm_notification_support_rls_hardening.sql"
+          rename_legacy_alias "20260928060000_restore_registration_request_dml_grants.sql" "20260928034100_restore_registration_request_dml_grants.sql"
+          rename_legacy_alias "20260928060000_rc109_harden_order_support_tenant_boundaries.sql" "20260928112420_rc109_harden_order_support_tenant_boundaries.sql"
+          rename_legacy_alias "20260928190000_rc162_mantigo_trip_state_machine.sql" "20260928124303_rc162_mantigo_trip_state_machine.sql"
+          rename_legacy_alias "20260928200000_rc164_mantigo_direct_delete_lockdown.sql" "20260928125655_rc164_mantigo_direct_delete_lockdown.sql"
+          rename_legacy_alias "20260928200000_rc164_retire_legacy_mantigo_mutator.sql" "20260928125731_rc164_retire_legacy_mantigo_mutator.sql"
+          rename_legacy_alias "20260928210000_rc172_restore_medical_booking_contract.sql" "20260928131753_rc172_restore_medical_booking_contract.sql"
+          rename_legacy_alias "20260928190000_rc200_cross_tenant_customer_payment_authorization.sql" "20260928154527_rc200_cross_tenant_customer_payment_authorization.sql"
+          rename_legacy_alias "20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql" "20260928161513_rc206_geographic_ad_targeting_and_nearest_fallback.sql"
+          rename_legacy_alias "20260928210000_rc207_official_global_mnty_cover_ads.sql" "20260928174954_rc207_official_global_mnty_cover_ads.sql" &&
+          rename_legacy_alias "20261001090000_harden_provider_onboarding_authority.sql" "20261001164107_20261001090000_harden_provider_onboarding_authority.sql" &&
+          rename_legacy_alias "20261001165000_grant_provider_onboarding_authenticated_insert.sql" "20261001164222_grant_provider_onboarding_authenticated_insert.sql" &&
+          rename_legacy_alias "20261001100000_lock_provider_onboarding_direct_writes.sql" "20261001164327_20261001100000_lock_provider_onboarding_direct_writes.sql" &&
+          rename_legacy_alias "20261001193000_grant_provider_onboarding_service_role.sql" "20261001170235_provider_onboarding_service_role_rpc_grants.sql" &&
+          rename_legacy_alias "20261002090000_super_admin_platform_authority_reconciliation.sql" "20261002044021_20261002090000_super_admin_platform_authority_reconciliation.sql" &&
+          rename_legacy_alias "20261002010000_rc238_fix_settlement_journal_posting.sql" "20261002083009_fix_settlement_journal_posting_order.sql" &&
+          rename_legacy_alias "20261002190000_rc228_digital_page_products_orders.sql" "20261002073217_rc228_digital_page_products_orders.sql" &&
+          rename_legacy_alias "20261002191000_rc229_digital_page_payment_columns.sql" "20261002073331_rc229_digital_page_payment_columns.sql" &&
+          rename_legacy_alias "20261002192000_rc230_digital_page_payment_events.sql" "20261002073419_rc230_digital_page_payment_events.sql" &&
+          rename_legacy_alias "20261002110000_rc248_digital_page_content_publishing.sql" "20261002090131_rc248_digital_page_content_publishing.sql" &&
+          rename_legacy_alias "20261002100000_rc256_critical_fk_indexes.sql" "20261002094419_rc256_critical_fk_indexes.sql" &&
+          rename_legacy_alias "20261001200000_provider_location_markaz_baseline.sql" "20261001173313_provider_location_center_baseline.sql" &&
+          rename_legacy_alias "20261001201000_provider_location_center_policy.sql" "20261001173412_provider_location_center_policy.sql" &&
+          rename_legacy_alias "20261002123000_rc258_centralized_server_rbac.sql" "20261002122425_rc258_centralized_server_rbac.sql" &&
+          rename_legacy_alias "20261002123500_rc258_use_central_rbac_admin_ad.sql" "20261002122515_rc258_use_central_rbac_admin_ad.sql" &&
+          rename_legacy_alias "20261002150000_rc264_registration_review_audit_notifications.sql" "20261002142519_rc264_registration_review_audit_notifications.sql" &&
+          rename_legacy_alias "20261004004500_rc339_seed_mantiqati_official_showcase.sql" "20261004005819_rc339_seed_mantiqati_official_showcase.sql" &&
+          rename_legacy_alias "20261006110000_rc_mantigo_production_completion_v1.sql" "20261006101048_rc_mantigo_production_completion_v1.sql" &&
+          rename_legacy_alias "20261006133000_mantigo_p0_security_audit_notification_hardening.sql" "20261006103016_mantigo_p0_security_audit_notification_hardening.sql" &&
+          rename_legacy_alias "20261006150000_mantigo_matching_idempotency_v1.sql" "20261006103232_mantigo_matching_idempotency_v1.sql" &&
+          rename_legacy_alias "20261006121810_mantigo_rating_immutability_v1.sql" "20261006121907_mantigo_rating_immutability_v1.sql" &&
+          rename_legacy_alias "20261006170000_mantigo_trip_reason_hardening_v1.sql" "20261006131243_mantigo_trip_reason_hardening_v1.sql" &&
+          rename_legacy_alias "20261006171000_mantigo_notification_lifecycle_v1.sql" "20261006140601_mantigo_notification_lifecycle_v1.sql" &&
+          rename_legacy_alias "20261006172000_mantigo_stale_expiration_engine_v1.sql" "20261006140650_mantigo_stale_expiration_engine_v1.sql" &&
+          rename_legacy_alias "20261006173000_mantigo_state_integrity_constraints_v1.sql" "20261006141819_mantigo_state_integrity_constraints_v1.sql" &&
+          rename_legacy_alias "20261006174000_mantigo_acceptance_integrity_trigger_v1.sql" "20261006142022_mantigo_acceptance_integrity_trigger_v1.sql" &&
+          rename_legacy_alias "20261006175000_mantigo_cancellation_reason_policy_v1.sql" "20261006142337_mantigo_cancellation_reason_policy_v1.sql" &&
+          rename_legacy_alias "20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql" "20261006144647_mantigo_customer_tracking_and_finance_indexes_v1.sql" &&
+          rename_legacy_alias "20261006181000_mantigo_admin_dashboard_kpi_rpc_v1.sql" "20261006144733_mantigo_admin_dashboard_kpi_rpc_v1.sql" &&
+          rename_legacy_alias "20261006184500_mantigo_captain_earnings_dashboard_v2.sql" "20261006154605_mantigo_captain_earnings_dashboard_v2.sql" &&
+          rename_legacy_alias "20261006190000_mantigo_admin_financial_report_v1.sql" "20261006154704_mantigo_admin_financial_report_v1.sql" &&
+          rename_legacy_alias "20261006214500_mantigo_financial_config_rls_v1.sql" "20261006184441_mantigo_financial_config_rls_v1.sql" &&
+          rename_legacy_alias "20261007001000_mantigo_abuse_rate_limits_v1.sql" "20261006212355_mantigo_abuse_rate_limits_v1.sql" &&
+          rename_legacy_alias "20261007002000_mantigo_rate_limit_idempotency_compat_v1.sql" "20261006212705_mantigo_rate_limit_idempotency_compat_v1.sql" &&
+          rename_legacy_alias "20261006235500_job_application_backend_submit_v1.sql" "20261006235123_job_application_backend_submit_v1.sql" &&
+          rename_legacy_alias "20261007021500_reverse_bidding_server_authority_v1.sql" "20261006231828_reverse_bidding_server_authority_v1.sql" &&
+          rename_legacy_alias "20261007030000_cleanup_duplicate_job_application_index_v1.sql" "20261006235323_cleanup_duplicate_job_application_index_v1.sql" &&
+          rename_legacy_alias "20261007060000_education_request_server_authority_v1.sql" "20261007021723_education_request_server_authority_v1.sql" &&
+          rename_legacy_alias "20261007023000_remove_duplicate_mantigo_bids_index_v1.sql" "20261007022318_remove_duplicate_mantigo_bids_index_v1.sql" &&
+          rename_legacy_alias "20261007064000_mantigo_rate_limit_internal_boundary_v1.sql" "20261007064228_mantigo_rate_limit_internal_boundary_v1.sql" &&
+          rename_legacy_alias "20261007073000_harden_private_order_status_trigger_execute_v1.sql" "20261007065754_harden_private_order_status_trigger_execute_v1.sql" &&
+          rename_legacy_alias "20261008000001_rc422_security_definer_caller_contract_v1.sql" "20261007223944_rc422_security_definer_caller_contract_v1.sql" &&
+          rename_legacy_alias "20261008000002_rc423_restrictive_authenticated_guard_policies.sql" "20261008125422_rc423_convert_authenticated_guard_policies_to_restrictive.sql" &&
+          rename_legacy_alias "20261009010000_rc424_atomic_digital_page_payment_webhook.sql" "20261008222845_rc424_atomic_digital_page_payment_webhook.sql"
+          node scripts/validate-migration-version-uniqueness.mjs
+          node scripts/validate-ledger-recovered-migrations.mjs
+          echo "PASS: disposable replay uses the unique migration versions observed in the live ledger; repository history remains unchanged."
+          echo "PASS: known applied migration timestamps normalized to exact live-ledger versions only in this disposable runner."
+          echo "live_ledger_order_alias_count=43"
+          echo "KNOWN SOURCE GAP: live ledger 20261001164118 harden_provider_onboarding_tenant_scope has no source file; no historical DDL synthesized."
+
+      - name: Replay every migration in repository timestamp order
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The historical archive contains the EXECUTE-lockdown migration but not its
+          # function's creation DDL. Keep the approved live-derived definition test-only:
+          # replay up to its version, inject it into this disposable DB, then run the real
+          # lockdown migration and assert its ACL contract before continuing the full chain.
+          smm_bootstrap_baseline="supabase/tests/baselines/smm_bootstrap_first_admin.sql"
+          test -f "$smm_bootstrap_baseline"
+
+          # Supabase CLI's db reset --version did not stop before the next migration in
+          # the observed CI run: it attempted 20260927033925 before the live-derived
+          # function baseline was injected. Enforce the cutoff at the filesystem boundary:
+          # temporarily remove every later migration from the disposable replay directory.
+          # The EXIT trap restores every file even when reset fails.
+          replay_migration_stash="$(mktemp -d)"
+          restore_future_migrations() {
+            shopt -s nullglob
+            for file in "$replay_migration_stash"/*.sql; do
+              mv "$file" supabase/migrations/
+            done
+            rmdir "$replay_migration_stash" 2>/dev/null || true
+          }
+          trap restore_future_migrations EXIT
+          shopt -s nullglob
+          for file in supabase/migrations/*.sql; do
+            name="$(basename "$file")"
+            version="${name%%_*}"
+            if [[ "$version" =~ ^[0-9]{14}$ ]] && [[ "$version" > "20260927033924" ]]; then
+              mv "$file" "$replay_migration_stash/"
+            fi
+          done
+          test -f supabase/migrations/20260927033924_test_only_live_derived_smm_bootstrap_first_admin.sql
+          if [[ -e supabase/migrations/20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql ]]; then
+            echo "P0 BLOCKED: future SMM lockdown migration was not isolated before reset." >&2
+            exit 1
+          fi
+          echo "Temporarily isolated $(find "$replay_migration_stash" -maxdepth 1 -type f -name '*.sql' | wc -l) future migrations; reset cutoff is enforced by file presence, not CLI version parsing."
+          supabase db reset --local
+          restore_future_migrations
+          trap - EXIT
+
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+          # This workflow writes its disposable Supabase config with db.port=54322
+          # and the local default postgres password. Avoid depending on CLI env-output shape.
+          db_url="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+          if ! pg_isready -d "$db_url"; then
+            echo "P0 BLOCKED: disposable PostgreSQL is not reachable on the configured local port." >&2
+            exit 1
+          fi
+          psql "$db_url" -v ON_ERROR_STOP=1 -f "$smm_bootstrap_baseline"
+          psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT to_regprocedure('public.smm_bootstrap_first_admin()') IS NOT NULL" | grep -qx t
+
+          # Apply the actual historical SQL directly for an isolated preflight assertion.
+          # Supabase CLI's migration-up command has no target-version flag; after this direct
+          # assertion, the ordinary migration runner reapplies the idempotent REVOKE and records
+          # the migration in its own ledger.
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/migrations/20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT NOT has_function_privilege('anon', p.oid, 'EXECUTE') AND NOT has_function_privilege('authenticated', p.oid, 'EXECUTE') AND NOT EXISTS (SELECT 1 FROM aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE') FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'smm_bootstrap_first_admin' AND pg_get_function_identity_arguments(p.oid) = ''" | grep -qx t
+
+          # Continue through every remaining migration in timestamp order. The targeted REVOKE
+          # is safe to replay and will be recorded normally in the local migration ledger.
+          # Prove that the disposable settlement-policy compatibility migration is actually
+          # applied by Supabase's migration runner before allowing the later ALTER POLICY to run.
+          # Earlier CI showed 40493 onward being applied while the injected 40492 policy migration
+          # was absent from the log; stage the runner at this boundary and verify both ledger + catalog.
+          policy_checkpoint_stash="$(mktemp -d)"
+          restore_policy_checkpoint_migrations() {
+            shopt -s nullglob
+            for file in "$policy_checkpoint_stash"/*.sql; do
+              mv "$file" supabase/migrations/
+            done
+            rmdir "$policy_checkpoint_stash" 2>/dev/null || true
+          }
+          trap restore_policy_checkpoint_migrations EXIT
+          shopt -s nullglob
+          for file in supabase/migrations/*.sql; do
+            name="$(basename "$file")"
+            version="${name%%_*}"
+            if [[ "$version" =~ ^[0-9]{14}$ ]] && [[ "$version" > "20260927140492" ]]; then
+              mv "$file" "$policy_checkpoint_stash/"
+            fi
+          done
+          echo "Running staged migration checkpoint through 20260927140492."
+          supabase migration up --local
+          restore_policy_checkpoint_migrations
+          trap - EXIT
+          echo "Checkpoint ledger rows:"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT version, name FROM supabase_migrations.schema_migrations WHERE version >= '20260927140490' AND version <= '20260927140500' ORDER BY version;"
+          echo "Checkpoint policy catalog:"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT schemaname, tablename, policyname, cmd, roles, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read';"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT schemaname, tablename, policyname, cmd, roles, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_accounts' AND policyname = 'wallet_accounts_finance_read';"
+          psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140492') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read') AND EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140486') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_accounts' AND policyname = 'wallet_accounts_finance_read') AND EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140485') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_transactions' AND policyname = 'wallet_transactions_finance_read')" | grep -qx t
+
+          # Continue with the remaining migrations only after the staged baseline is present
+          # in both the local migration ledger and PostgreSQL policy catalog.
+          supabase migration up --local
+
+      - name: Record local migration ledger
+        run: supabase migration list --local
+
+      - name: Verify replay completed
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d supabase/migrations
+          test "$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)" -gt 0
+          echo "Full disposable Supabase migration replay completed."

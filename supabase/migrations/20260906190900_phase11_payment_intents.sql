@@ -1,0 +1,15 @@
+-- 11. PAYMENT INTENTS
+CREATE TABLE IF NOT EXISTS payment_intents (
+    id VARCHAR(64) PRIMARY KEY,
+    tenant_id VARCHAR(64) NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
+    amount NUMERIC(14,4) NOT NULL CHECK (amount >= 0),
+    currency VARCHAR(8) NOT NULL DEFAULT 'SAR',
+    status VARCHAR(32) NOT NULL DEFAULT 'CREATED', -- 'CREATED', 'SUCCEEDED', 'FAILED', 'REFUNDED', 'CANCELLED'
+    provider VARCHAR(32) NOT NULL,
+    provider_intent_id VARCHAR(128),
+    idempotency_key VARCHAR(128) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_tenant_idempotency UNIQUE (tenant_id, idempotency_key)
+);

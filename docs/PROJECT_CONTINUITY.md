@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` and `docs/MASTER_PRODUCTION_TODO.md` for the current handoff. `main` is unchanged at `8a56358d505d2c12878440037f7f24ba65d2ea10`; PR #207 candidate branch is `reconcile/rc425-458-current-main-20261011` at `bcc0f646304a20b3188e7bc45323b25b3e134162`, open/draft/unmerged. Targeted exact-head CI checks passed, but the latest chronological replay [38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed; historical source provenance remains unresolved. S06 isolated duplicate-callback concurrency test passed [38402862801]; SMM RC524 ACL candidate passed isolated integration [38400557008] but is not applied to production. PRs #235–#237 are drafts. Live SMM remains deferred; live ACL and API negative-test evidence remain open. Release remains **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -539,3 +539,87 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## Resume point — 2026-10-12 — exact-head CI checkpoint
+
+- Candidate branch: `reconcile/rc425-458-current-main-20261011`; documentation head is now `058a8ab9f4bf7fbbe3e0d49270688e77d7242124` (the prior exact-head CI evidence is for `95db1770bd89286bfadba9172b0c9409a68e0566`).
+- PR #207 remains draft/open/unmerged. The Pages workflow passed validation but skipped deployment. The core module validation and all listed non-SMM boundaries passed at the prior head; SMM Deferred Module Validation failed and remains intentionally untouched under the owner’s freeze.
+- Before making further code changes, query Actions for the latest documentation head and record fresh exact-head results. Do not assume prior-head results transfer to the new SHA.
+- Highest-priority non-SMM release blockers: ten missing historical SECURITY DEFINER creation dependencies block chronological replay; production ledger reconciles only through RC424; P0 global MantiGO authorization needs validated release fix; tenant/auth/payment/ERP runtime E2E and backup restore/RPO-RTO evidence remain incomplete; leaked-password protection and enforced branch protection remain unresolved.
+- Issue #212 is still open: the live SMM gateway has not been proven disabled. UI deferral does not disable the API. Do not deploy or modify the live gateway without explicit approval; keep SMM feature development and its tests frozen.
+- No production writes, migrations, function deployments, PR merge, financial mutations, or Auth/RLS/grant changes were made in this session. Release remains **BLOCKED / NOT CERTIFIED**.
+- The chronological append-only evidence is in `docs/SESSION_LOG.md` (SESSION-002).
+
+## Resume point — 2026-10-12 — Internal marketing campaign workflow
+
+- Candidate branch remains `reconcile/rc425-458-current-main-20261011`, PR #207 draft/open/unmerged.
+- Internal Marketing & Advertising workspace now has candidate UI integration for campaign reads, campaign creation, allowed status transitions, partner invitations, and invitation responses using RC453 backend RPCs. The frontend uses business-scope RBAC checks and avoids direct INSERT/UPDATE/DELETE on campaign tables.
+- `scripts/validate-marketing-campaign-backend.mjs` now includes workspace/RPC contract assertions and is wired into `.github/workflows/module-professionalization.yml`.
+- Last app code commit: `bba4f7ade95ca448cc423beb73726fb670c5081d`. Session log update commit: `3b756de1c7affeef032cb398e5267dc3fc9eccf4`. Fresh exact-head CI has not yet been confirmed for the app change or subsequent documentation commit.
+- The RC452/RC453 schema and RPCs remain candidate source only; production migration ledger still reconciles only through RC424. Missing historical SECURITY DEFINER DDL still blocks chronological replay. Do not enable a feature that depends on unapplied schema in production.
+- No production migration/deploy, external ad publishing, campaign budget spend, wallet/payment mutation, PR merge, or live Auth/RLS/grant changes were performed.
+- SMM storefront/provider-order/wallet implementation remains frozen. This batch only changes the distinct internal Marketing & Advertising workspace.
+- Remaining marketing module gaps include lead assignment/status/follow-up workflow, broader verified provider discovery, attribution/analytics tied to real platform data, and authenticated browser E2E after the approved schema release.
+- Overall release remains **BLOCKED / NOT CERTIFIED**. Continue by querying latest exact-head Actions results, fix only source/test failures that are within the non-SMM launch scope, and keep all production changes behind explicit change approval.
+
+
+## Resume point — 2026-10-12 — RC425+ remediation
+
+- **Main remains:** `8a56358d505d2c12878440037f7f24ba65d2ea10`. Current work is on `reconcile/rc425-458-current-main-20261011`; latest known docs commit is `9ddc11ab860546c86c0ebadb8a81f38cf707b68b`.
+- **Replay gate:** BLOCKED. Run [38195776127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776127) fails closed before Supabase startup because no approved disposable-only `public.bookings` compatibility baseline or authoritative historical DDL is available. Do not add the baseline without explicit owner approval; do not skip or reorder migrations.
+- **Dependency analysis:** 12 earlier migrations create 36 tables; hardening migration alters 21; `bookings` is the sole unmatched table dependency in that comparison. Live metadata does not establish historical creation or policy chronology.
+- **Targeted CI:** module validation [38195776086](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776086), SMM deferred checks [38195776073](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776073), SMM service-role ACL [38195776161](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776161), migration version uniqueness/history immutability/collision guards all passed on the candidate merge head. Pages validation [38195776024](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38195776024) passed; deploy was skipped.
+- **Live SMM:** deployed `smm-gateway` remains ACTIVE v6 and lacks the source-only deny gate from PR #214. Do not expose SMM order/wallet/provider paths at launch until containment is separately authorized, deployed, and negatively tested.
+- **No production changes:** no database/migration/Auth/RLS/grant writes, Edge deployments, financial mutations, or merges were performed.
+- **Next executable task:** check latest exact-head CI for branch commit `9ddc11ab860546c86c0ebadb8a81f38cf707b68b`; continue searching trusted historical artifacts for bookings creation DDL. If no authoritative source appears, stop at the explicit approval boundary rather than fabricate a fixture.
+- **Release status:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest verified checkpoint — 2026-10-12 exact-head follow-up
+
+- Candidate head: `65e1830e22768ce9d1b65346c1c8abd35b310d4f`; main remains `8a56358d505d2c12878440037f7f24ba65d2ea10`.
+- Exact-head targeted CI passed: module professionalization, backend-only boundary, MantiGO privacy, approval audit atomicity, migration uniqueness/immutability/collision, Marketing Campaign Backend, Marketing CRM tenant scope, SMM service-role boundary, and SMM deferred module validation. See SESSION-004 in `docs/SESSION_LOG.md` for exact run links.
+- Pages workflow passed but deployment was skipped because the PR is draft. This is not a production deployment.
+- Full migration replay remains blocked at the fail-closed preflight due to missing authoritative historical `public.bookings` creation DDL. Expanded branch/code/commit searches did not recover it.
+- Live `smm-gateway` remains active v6 without `MNTY_SMM_ENABLED` / `SMM_POST_LAUNCH_DEFERRED`; candidate PR #214 is not deployed.
+- No production mutation, migration, deployment, merge, financial write, or Auth/RLS/grant change occurred.
+- **Decision: BLOCKED / NOT CERTIFIED.** Next action is trusted historical DDL recovery or explicit approval for a disposable-only compatibility baseline; do not fabricate schema or bypass replay.
+
+
+## SESSION-005 — 2026-10-12 — Current replay checkpoint
+
+- Candidate branch head after the append-only session log update: `31f8202d7e9f6a3ea45c73f576b33d02037dc78e`; code/workflow change: `48bcf340f901e545e547b39639c641c899ea696c`.
+- The approved `bookings.sql` compatibility fixture is injected only into the disposable replay as timestamp `20260919233424`, before the hardening migration `20260919233425`. The workflow verifies exact copy, absence of tracked destination, and no row imports.
+- Exact-head core and focused CI checks are green; Pages deployment was skipped. Replay run [38239527707](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527707) passed preflight and injection checks, but is still starting disposable Supabase services. Full chronological replay is NOT VERIFIED.
+- No production changes, merge, live SMM deployment, or release certification occurred. Live SMM gateway v6 remains a P0 containment gate; the SMM feature freeze remains in effect.
+- Next: monitor the existing replay run, then respond to its actual result without skipping historical migrations or inventing DDL. Overall status: **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-13 — Current continuation checkpoint (SESSION-003)
+
+Read the latest SESSION-003 entry in docs/SESSION_LOG.md and the dated section in docs/release/MIGRATION_REPLAY_BLOCKERS.md before continuing.
+
+- PR #207 remains open/draft/unmerged; PR #218 remains open/draft/unmerged. Main was last verified as 8a56358d505d2c12878440037f7f24ba65d2ea10.
+- The root-level MANTIQATIX_MASTER_TODO_2026-10-13.md was missing at the start of this session and is being added as a concise durable pointer to the canonical docs/MASTER_PRODUCTION_TODO.md plus the latest verified state.
+- Read-only live catalog evidence enabled a disposable-only payment_provider_events schema fixture. The baseline includes current columns/defaults, PK/unique/FKs and ENABLE/FORCE RLS, but intentionally no policy/grants/data. The ordered 20260920211717 migration remains the sole source of payment_provider_events_finance_read.
+- Current live credit amount columns were rechecked and are numeric(18,2); all three candidate fixtures and the Validator were corrected back to that exact type after a prior unsupported inference.
+- Latest exact-head CI replay is not yet certified. Check the newest PR #207 workflow run before further edits and continue past the first successful preflight to expose subsequent chronological failures.
+- P0 separate live runtime concern: read-only ACL evidence says service_role has no table SELECT/INSERT/UPDATE/DELETE privileges on payment_provider_events while deployed paymob-webhook v8 directly selects/inserts it. Investigate whether the intended path should be a narrowly scoped RPC or another approved least-privilege mechanism. Do not alter production grants or deploy code without separate explicit authorization.
+- Recent Postgres logs also show permission-denied errors for smm_orders, smm_services, smm_wallets, digital_page_orders and digital_page_products. Treat as independent evidence-led P0/P1 candidates; do not mass-grant privileges or weaken RLS.
+- Respect the previously recorded SMM initial-launch feature freeze. Inspect and document, but do not implement SMM feature changes or weaken SMM validation unless the owner explicitly lifts that freeze.
+- No production DDL/data/ACL changes, Auth changes, deployment, merge, or financial test records were created.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation checkpoint
+
+- Master TODO and session log were appended with exact PR/run references; do not treat the targeted green jobs as overall release approval.
+- S06: [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237), exact-head isolated concurrent callback test PASS in [run 38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801). No real payment was processed.
+- SMM: [PR #236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236), RC524 isolated ACL test PASS in [run 38400557008](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400557008). Production privileges remain unchanged; SMM launch stays deferred.
+- Migration replay: [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed. Current marketing participant catalog was inspected read-only; [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) fails closed pending provenance/approval rather than guessing DDL.
+- Do not merge, deploy, apply migrations, change production secrets/Auth, mutate financial data, or weaken SMM validation. Continue with exact failure evidence and authoritative historical DDL recovery.
+- Release state: **BLOCKED / NOT CERTIFIED**.
+
+
+- Latest S06 exact-head validation: [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421) passed both duplicate idempotency and conflicting-status concurrency; see PR #237. This remains isolated test evidence, not real payment acceptance.
+- Security Advisor was refreshed at 2026-10-13T13:18:40.718Z: 40 authenticated SECURITY DEFINER execute warnings, one anon-executable SECURITY DEFINER, 90 anonymous-policy warnings, leaked-password protection disabled, and one RLS-enabled/no-policy INFO. Do not mass-revoke or disable without per-item review.

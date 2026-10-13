@@ -27,6 +27,7 @@ const requiredWorkflowMarkers = [
   'validate-security-definer-contract.mjs',
   'validate-release-preflight.mjs',
   'validate-rbac-contract.mjs',
+  'test-smm-launch-scope.mjs',
 ];
 
 const home = read('web/home.js');
