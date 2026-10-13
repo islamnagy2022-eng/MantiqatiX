@@ -8,6 +8,7 @@ on:
       - 'scripts/audit-migration-chain-s04.mjs'
       - 'scripts/audit-smm-migration-baseline.mjs'
       - 'docs/release/s04-migration-chain-clean-replay-report.md'
+      - 'docs/release/S04_MIGRATION_BASELINE_DEPENDENCY_AUDIT_20261013.md'
       - '.github/workflows/s04-migration-chain-clean-replay.yml'
   workflow_dispatch:
 permissions:
