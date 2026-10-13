@@ -173,7 +173,7 @@ const marketingLeadsBaselineValid =
   /create index idx_mkt_leads_status on public\.marketing_leads\s*\(status, created_at desc\)/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_leads enable row level security/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_leads force row level security/i.test(marketingLeadsBaseline) &&
-  /CREATE POLICY "Users view own marketing leads"[\s\S]*ON public\.marketing_leads[\s\S]*FOR SELECT TO authenticated[\s\S]*auth\.uid\(\)[\s\S]*requester_user_id/i.test(marketingLeadsBaseline) &&
+  /CREATE POLICY "Users view own marketing leads"[\s\S]*ON public\.marketing_leads[\s\S]*FOR SELECT[\s\S]*TO authenticated[\s\S]*auth\.uid\(\)[\s\S]*requester_user_id/i.test(marketingLeadsBaseline) &&
   !/insert\s+into|copy\s+public\.|create trigger|\bgrant\b|\brevoke\b/i.test(marketingLeadsBaseline);
 if (!marketingLeadsPolicyMigration || marketingLeadsPriorCreator || !marketingLeadsBaselineValid ||
     fs.existsSync(path.join(migrationDirectory, marketingLeadsTemporaryName)) ||
