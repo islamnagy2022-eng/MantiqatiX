@@ -632,3 +632,12 @@ Candidate fix is in draft PR [#241](https://github.com/islamnagy2022-eng/Mantiqa
 1. Follow run #38414218162 to the next SQL outcome and continue resolving missing historical SMM table/policy dependencies with read-only schema evidence and disposable-only fixtures.
 2. Keep PR #241 draft/unmerged despite passing SQL/typing checks; obtain review and ensure RC425/RC428–RC430 migrations are released atomically with the webhook source in the approved release pipeline.
 3. Continue P0 live MantiGO authorization blocker remediation only through an explicitly approved production release process.
+
+
+## Paymob webhook response minimization and exact-head retest — 2026-10-13 17:42 UTC
+
+- PR #241 now points to head `27371386246e97f1d380e22c6b399add8b390e2d`; exact-head run [#38415010971](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38415010971) completed **SUCCESS** after the latest payment changes.
+- Additional hardening: subscription and normal success responses no longer echo raw RPC JSON. This prevents the RC430 `PAID_PENDING_LEGAL` reason or other internal RPC fields from being copied into the external webhook response. State-conflict errors from the subscription RPCs are mapped to a conflict response rather than a generic server error.
+- Logs confirm the static atomic-transition contract, RC425 integration, RC428/RC429/RC430 integration, and Deno type-check all passed on the tested candidate revision.
+- PR #241 remains draft/open/unmerged. Live Paymob function remains unchanged; production release is still blocked.
+- SMM replay head is now `e7762ba79a544a6e6ece1308868649889794ec1c`. The previous run [#38414694299](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38414694299) progressed through the four early SMM compatibility baselines and failed at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` because `public.smm_wallets` was missing. The wallet baseline was moved from the later RC456 timestamp to `20260927140487`, before this historical policy migration. The updated exact-head replay run [#38415180492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38415180492) is queued/pending; no result is claimed.
