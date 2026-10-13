@@ -59,7 +59,7 @@ assert.match(edge, /smm_get_provider_secret/, "credentials must be fetched throu
 assert.match(edge, /Cache-Control":"no-store"/, "responses must not be cached");
 assert.match(transport, /endpoint\.protocol !== "https:"/, "provider endpoint must require HTTPS");
 assert.match(transport, /allowed\.has\(host\)/, "provider host allowlist required");
-assert.match(transport, /redirect:"error"/, "provider requests must reject redirects");
+assert.match(edge, /redirect:"error"/, "provider requests must reject redirects");
 assert.match(edge, /setTimeout\(\(\)=>controller\.abort\(\),15000\)/, "provider call timeout required");
 assert.match(edge, /PROVIDER_RESULT_UNKNOWN/, "ambiguous provider outcome must be surfaced for reconciliation");
 assert.doesNotMatch(edge, /admin\.rpc\(["']smm_(?:refund|credit)_wallet["']/i, "gateway must not invoke an automatic refund/credit RPC");
