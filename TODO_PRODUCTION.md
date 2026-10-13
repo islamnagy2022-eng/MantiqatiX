@@ -421,3 +421,28 @@
 - [🟢] Public footer dead-end links fixed: About, Terms and Privacy now open real in-app information dialogs instead of `href="#"` no-op anchors.
 - [🟢] Dialog accessibility implemented: `role="dialog"`, `aria-modal`, labelled heading, Escape close, backdrop close and initial focus.
 - [🟡] CI for RC314 remains pending/in progress at documentation time; no production gate was marked closed from this UI change alone.
+
+
+## Evidence refresh — 2026-10-13 (read-only GitHub verification)
+
+This checkpoint supplements, and does not erase, earlier records. PR heads and exact-head Actions runs were inspected.
+
+### Current PR evidence
+
+- PR #207 head `854935bf0bdd524bb7bf28453a7c34253c731e71`: multiple validation jobs passed, but **Disposable Supabase Migration Chain Replay failed**: [run 38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600). Clean rebuild remains BLOCKED.
+- PR #220 head `9abe223bbca6bdd861109883fd581eb2125d6948`: **S06 Payment Integrity Regressions passed** in [run 38357928701](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928701); **S04 Migration Chain Clean Replay failed** in [run 38357928636](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928636). Payment regression PASS is limited to the isolated suite.
+- PR #221 head `91fcf6b1578e71b2a0c86e1a39d5f8cb448ce97f`: S07 deferred-launch contract passed in [run 38342839169](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38342839169). SMM stays deferred; no provider execution is authorized.
+- PR #235 head `2fc3227c063361d1d963e00be6d33802a400ae04`: open Draft, reported non-mergeable. The historical `marketing_project_participants` baseline is missing; fail-closed preflight is a diagnostic guard, not a schema repair.
+- PR #236 head `70b2ea3e75c68c27272566ab59ed671f659804a4`: open Draft. The exact-head Actions lookup returned no workflow runs, so current-head CI is **NOT VERIFIED** from this lookup. Earlier isolated evidence does not prove live ACL changes.
+- PR #237 head `0f0d12ff56195031e36ebd73a17732876f8b4f8d`: concurrent duplicate callback test passed in [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421). This is disposable PostgreSQL evidence, not a live Paymob transaction.
+- PR #238 head `84926bd6462f417fb37d8ba3045596f50f7e88d4`: documentation validation, backend boundary, ride privacy boundary and Pages workflow checks passed in [run 38404753733](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404753733). This PR remains open Draft; a PR Pages workflow is not proof of a production deployment.
+- PR #233 is a blocked filename-rename experiment; do not merge.
+- PR #234 is superseded/blocked clean-replay normalization; do not use as final acceptance evidence or merge.
+
+### Production decision and next action
+
+- Production remains **BLOCKED — NOT PRODUCTION CERTIFIED**.
+- No production migration, grant, live data, secret, payment, SMM provider call, merge to `main`, or production deployment was performed by this evidence refresh.
+- Do not apply RC524 or other source-only migrations until exact-head tests, independent review, migration ordering, live-ledger compatibility and rollback are approved.
+- Immediate technical blocker: recover/verify authoritative historical schema provenance for missing tables (including `marketing_project_participants` and `smm_provider_credentials`), reconcile migration ledger versus source by content hash, then rerun the disposable full replay without speculative DDL.
+- External P0 gates remain open: multi-user/tenant E2E, customer/provider/order/notification E2E, authorized Paymob production test, refunds/settlement/GL reconciliation, Auth leaked-password protection, browser/device/PWA, backup/restore/rollback and Android signed-device testing.
