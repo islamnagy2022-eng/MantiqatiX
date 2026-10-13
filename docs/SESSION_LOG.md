@@ -100,3 +100,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - Test review follow-up: corrected RC523 expected totals to match the isolated fixture's actual single inserted ledger row. The test does not run the separate RC441 data-seeding integration script, so it now expects one row and validates gross=250, commission=25, captain_amount=200, paid_amount=250, and unsettled_amount=200. This correction is source-reviewed only; CI must still execute it.
+
+
+## 2026-10-13 — SESSION-010 — Align the production verifier with the 33-migration release contract
+
+- **Finding:** `scripts/validate-production-migration-chain-gate.mjs` already enforces 33 ordered migration source names, including RC457, RC458, RC462, RC522, and RC523. The production verifier's `requiredReleaseMigrations` list lagged at RC456, so its success evidence message and required-file scan did not independently enumerate the latest five required sources.
+- **Change:** Updated `scripts/production/verify-production.mjs` to include RC457, RC458, RC462, RC522, and RC523 in immutable filename timestamp order.
+- **Verification:** Source diff and companion contract were inspected; no claim of local execution or CI success. Exact-head workflow remains the required verification.
+- **Safety:** No production database operation, migration application, finance operation, Edge Function deployment, merge, or release.
+- **Next:** Inspect exact-head CI after queue completion and resolve any reproducible failure. Release remains BLOCKED / NOT CERTIFIED.
