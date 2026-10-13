@@ -190,6 +190,20 @@ const marketingSchemaPriorCreators = [
   /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_provider_services\b/i,
   /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_commission_rules\b/i,
 ].some(pattern => migrations.some(({ sql }) => pattern.test(sql)));
+const marketingSchemaPriorPolicyCreators = [
+  /create\s+policy\s+"Public can view active marketing services"\s+on\s+(?:public\s*\.\s*)?marketing_services\b/i,
+  /create\s+policy\s+"Public can view active provider services"\s+on\s+(?:public\s*\.\s*)?marketing_provider_services\b/i,
+  /create\s+policy\s+"Authenticated can view active commission rules"\s+on\s+(?:public\s*\.\s*)?marketing_commission_rules\b/i,
+  /create\s+policy\s+authenticated_sessions_only\s+on\s+(?:public\s*\.\s*)?marketing_services\b/i,
+  /create\s+policy\s+mnt_non_anonymous_boundary\s+on\s+(?:public\s*\.\s*)?marketing_services\b/i,
+  /create\s+policy\s+non_anonymous_authenticated_guard\s+on\s+(?:public\s*\.\s*)?marketing_services\b/i,
+  /create\s+policy\s+authenticated_sessions_only\s+on\s+(?:public\s*\.\s*)?marketing_provider_services\b/i,
+  /create\s+policy\s+mnt_non_anonymous_boundary\s+on\s+(?:public\s*\.\s*)?marketing_provider_services\b/i,
+  /create\s+policy\s+non_anonymous_authenticated_guard\s+on\s+(?:public\s*\.\s*)?marketing_provider_services\b/i,
+  /create\s+policy\s+authenticated_sessions_only\s+on\s+(?:public\s*\.\s*)?marketing_commission_rules\b/i,
+  /create\s+policy\s+mnt_non_anonymous_boundary\s+on\s+(?:public\s*\.\s*)?marketing_commission_rules\b/i,
+  /create\s+policy\s+non_anonymous_authenticated_guard\s+on\s+(?:public\s*\.\s*)?marketing_commission_rules\b/i,
+].some(pattern => migrations.some(({ sql }) => pattern.test(sql)));
 const marketingSchemaBaselineValid =
   /TEST-ONLY LIVE-DERIVED MARKETING SCHEMA COMPATIBILITY BASELINE/.test(marketingSchemaBaseline) &&
   /2026-10-13/.test(marketingSchemaBaseline) &&
@@ -213,6 +227,7 @@ const marketingSchemaBaselineValid =
   !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.|update\s+public\.|delete\s+from\s+public\.)/im.test(marketingSchemaBaseline);
 const marketingSchemaFailureReasons = [
   ["earlier or later committed table creator exists; fixture may duplicate source history", marketingSchemaPriorCreators],
+  ["committed policy creator exists; fixture may duplicate source history", marketingSchemaPriorPolicyCreators],
   ["live-derived schema/policy contract invalid", !marketingSchemaBaselineValid],
   ["missing policy ALTER migration", !marketingSchemaPolicyMigration],
   ["missing later RC99 replacement migration", !marketingSchemaReplacementMigration],
