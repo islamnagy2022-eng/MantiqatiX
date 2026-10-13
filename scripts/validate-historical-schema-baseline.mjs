@@ -74,6 +74,7 @@ if (missingBaselines.length > 0) {
   }
   process.exit(1);
 }
+// A fixture path alone must never authorize this financial table; its schema and security contract need explicit review.
 // Fail closed on the next observed chronological replay blocker: the finance policy
 // migration references payment_provider_events, but no earlier committed migration
 // creates it. No owner-approved disposable schema fixture exists for this financial table.
