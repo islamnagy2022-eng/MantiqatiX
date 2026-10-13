@@ -108,3 +108,8 @@ Two existing helper test files were expanded on the S07 branch:
 The changes are committed as `da2a1168210a55c810b24aab58ff57329aef8a69` and `30d65a6492e8dccbe2ce037e67104072fe592d2e`. These tests have not been executed locally. A workflow run for the latest test commit was not returned by the commit-run lookup at this checkpoint; do not infer success or failure from the missing result. Previously observed S07 run `38341127397` was queued and predates these additional test cases.
 
 The source-parity blocker remains unchanged. Do not treat more unit tests as a substitute for reconciling `index.ts`, or for disposable integration tests of DB transactions, concurrent idempotency, wallet/provider ambiguity, and authorization.
+
+
+## Test-fixture correction — provider allowlist positive case
+
+Reviewing the queued test suite uncovered a fixture bug in `provider-transport.test.ts`: its positive allowlist case used `api.provider.example`, but the helper intentionally rejects reserved `.example` hostnames. That would make the supposed valid-host test fail for the reserved suffix rather than exercise the allowlist success path. The fixture now uses `api.provider.com` for the positive HTTPS host in commit `af236d64ed4a4ba3fac04542a6c5eb5bdf41b3a4`. Reserved-host rejection cases remain unchanged. This is a test fixture correction, not a change to provider URL policy. CI is still required to verify the suite.
