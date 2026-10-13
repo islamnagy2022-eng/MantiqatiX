@@ -5,11 +5,6 @@ import path from "node:path";
 const migrationDir = "supabase/migrations";
 const baselineDir = "supabase/tests/baselines";
 const baselines = {
-  smm_admins: {
-    path: path.join(baselineDir, "smm_admins.sql"),
-    version: "20260927033923",
-    temporaryName: "20260927033923_test_only_approved_smm_admins_baseline.sql",
-  },
   smm_providers: {
     path: path.join(baselineDir, "smm_providers.sql"),
     version: "20260927074158",
@@ -43,13 +38,6 @@ for (const [table, item] of Object.entries(baselines)) {
   assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
 }
 
-const admins = fs.readFileSync(baselines.smm_admins.path, "utf8");
-assert.match(admins, /user_id\s+uuid\s+not\s+null/i);
-assert.match(admins, /primary\s+key\s*\(\s*user_id\s*\)/i);
-assert.match(admins, /references\s+auth\.users\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i);
-assert.match(admins, /enable\s+row\s+level\s+security/i);
-assert.doesNotMatch(admins, /create\s+policy|force\s+row\s+level\s+security/i);
-
 const providers = fs.readFileSync(baselines.smm_providers.path, "utf8");
 assert.match(providers, /id\s+uuid\s+not\s+null\s+default\s+gen_random_uuid\(\)/i);
 assert.match(providers, /api_url\s+text\s+not\s+null/i);
@@ -69,4 +57,4 @@ assert.match(credentials, /references\s+public\.smm_providers\s*\(\s*id\s*\)[\s\
 assert.match(credentials, /create\s+policy\s+mnty_deny_unexposed_client_access[\s\S]*to\s+anon\s*,\s*authenticated/i);
 assert.doesNotMatch(allSource, /create\s+policy\s+mnty_deny_unexposed_client_access/i, "credentials deny policy must not be duplicated by a later migration");
 
-console.log("SMM replay baseline contract PASS: three schema-only fixtures, source provenance, dependency order, policy ownership, and no-data rules.");
+console.log("SMM replay baseline contract PASS: two approved schema-only fixtures; smm_admins intentionally omitted pending approval/provenance.");
