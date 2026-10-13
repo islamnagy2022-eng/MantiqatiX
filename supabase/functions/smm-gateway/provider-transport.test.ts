@@ -1,11 +1,24 @@
 import { assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts";
 
-Deno.test("S07_PROVIDER_001: only allowlisted HTTPS provider hosts are accepted", () => {
-  assertEquals(assertSafeProviderEndpoint("https://api.provider.com/v2", "api.provider.com").hostname, "api.provider.com");
+Deno.test("S07_PROVIDER_001A: allowlisted HTTPS hostname is accepted", () => {
+  const endpoint = assertSafeProviderEndpoint("https://api.provider.com/v2", "api.provider.com");
+  assertEquals(endpoint.hostname, "api.provider.com");
+});
+
+Deno.test("S07_PROVIDER_001B: unlisted hostname is rejected", () => {
   assertThrows(() => assertSafeProviderEndpoint("https://evil.example/api", "api.provider.com"));
+});
+
+Deno.test("S07_PROVIDER_001C: non-HTTPS provider endpoint is rejected", () => {
   assertThrows(() => assertSafeProviderEndpoint("http://api.provider.com", "api.provider.com"));
+});
+
+Deno.test("S07_PROVIDER_001D: credentials in provider URL are rejected", () => {
   assertThrows(() => assertSafeProviderEndpoint("https://user:pass@api.provider.com", "api.provider.com"));
+});
+
+Deno.test("S07_PROVIDER_001E: non-standard provider port is rejected", () => {
   assertThrows(() => assertSafeProviderEndpoint("https://api.provider.com:8443", "api.provider.com"));
 });
 
