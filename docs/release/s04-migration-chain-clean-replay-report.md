@@ -171,3 +171,10 @@ The failure matches the earlier authoritative clean-replay finding; it does not 
 Repository search found `supabase/tests/rc456_smm_service_role_fixture.sql`, which defines `public.smm_providers` and `public.smm_provider_credentials` for disposable integration testing. Its own header explicitly says it is a test fixture and does not synthesize the missing historical migration baseline. It is therefore useful for schema-shape comparison, but **not** a valid substitute for the authentic historical DDL or a replay prerequisite. No production migration was added or changed to work around the failure.
 
 **Disposition:** S04 remains `BLOCKED / NOT CERTIFIED`. The next valid unblock is authoritative recovery/reconciliation of the historical SMM table-creation source plus reviewed resolution of executable migration-version collisions. Do not skip the failing migration, promote the test fixture into production history, or infer application from current table existence.
+
+
+### Additional repository-history verification
+
+Merged PR [#203](https://github.com/islamnagy2022-eng/MantiqatiX/pull/203) is explicitly a test-fixture correction, not a schema-creation migration. Its body states that the full replay blocker remains because the historical migration references `smm_provider_credentials` before any committed migration creates the table. The fixture's definitions therefore cannot be treated as recovered production DDL. A repository-wide source search during this continuation found table definitions in that fixture, but no authoritative `CREATE TABLE public.smm_providers` / `public.smm_provider_credentials` migration source in the searchable current repository. This is a bounded search result, not proof that no historical source exists in other branches or archives.
+
+The correct unblock remains source provenance: identify a historical branch/commit or verified migration artifact whose content can be reconciled with the live catalog and migration ledger. Until then, adding a new baseline migration or moving the ACL migration would manufacture history and is not justified.
