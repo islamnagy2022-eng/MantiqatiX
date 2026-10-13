@@ -1594,3 +1594,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P0/P1 governance:** GitHub API confirms `main.protected=false`, `protection.enabled=false`, required status checks off, and no repository rulesets. No changes were made. A repository administrator must configure protected-branch rules and required checks in a separately reviewed change.
 - [ ] **P1 Auth security:** current Supabase Security Advisor reports leaked-password protection disabled. Auth production setting was not changed; authorized Auth owner action and read-only re-verification required.
 - [ ] **RLS review:** multiple anonymous-role policy warnings require per-table/policy review; do not blanket-revoke or add policies.
+
+
+## Session C PR #225 SMM CI trigger — 2026-10-13
+
+- [ ] **P1 / BLOCKED:** PR #225 targets `docs/rc521-admin-operations-discovery-20261013`, but its `pull_request` workflow trigger filters `branches: [main]`; therefore PR event will not match its current base. Align the filter or base and require a real exact-head CI run.
+- **Coordination:** finding posted to [PR #225 comment 6138548754](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138548754). No workflow edit performed in Session C.
