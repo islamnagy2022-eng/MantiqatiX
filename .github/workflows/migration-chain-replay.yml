@@ -368,6 +368,7 @@ jobs:
           rename_legacy_alias "20261002100000_rc256_critical_fk_indexes.sql" "20261002094419_rc256_critical_fk_indexes.sql"
           node scripts/validate-migration-version-uniqueness.mjs
           echo "PASS: disposable replay uses the unique migration versions observed in the live ledger; repository history remains unchanged."
+          echo "PASS: digital-page migration versions normalized to exact live-ledger versions in this disposable runner only."
 
       - name: Replay every migration in repository timestamp order
         shell: bash
