@@ -1,5 +1,6 @@
 -- S05: atomically persist a verified MantiGO Paymob event and transition its ledger row.
 -- Source-only on the S05 review branch. Do not apply to production without isolated validation and approval.
+-- MantiGO has its own event ledger (introduced by RC425); do not overload the shared payment_provider_events table.
 create or replace function public.process_verified_mantigo_payment_backend(
   p_ledger_id text,
   p_external_event_id text,
@@ -18,7 +19,7 @@ set search_path = public, pg_temp
 as $function$
 declare
   v_ledger public.mantigo_financial_ledger%rowtype;
-  v_event public.payment_provider_events%rowtype;
+  v_event public.mantigo_payment_provider_events%rowtype;
   v_rows integer;
 begin
   if coalesce(p_signature_verified, false) is not true then
@@ -28,6 +29,9 @@ begin
      or p_external_event_id is null or length(trim(p_external_event_id)) = 0
      or p_provider_transaction_id is null or length(trim(p_provider_transaction_id)) = 0 then
     raise exception 'MANTIGO_PAYMENT_EVENT_FIELDS_REQUIRED';
+  end if;
+  if p_external_event_id <> ('paymob:' || p_provider_transaction_id) then
+    raise exception 'MANTIGO_EVENT_TRANSACTION_MISMATCH';
   end if;
   if p_status not in ('PAID', 'FAILED') then
     raise exception 'MANTIGO_PAYMENT_STATUS_INVALID';
@@ -57,10 +61,10 @@ begin
   end if;
 
   select * into v_event
-  from public.payment_provider_events
+  from public.mantigo_payment_provider_events
   where provider = 'PAYMOB' and external_event_id = p_external_event_id;
   if found then
-    if v_event.payment_intent_id::text is distinct from v_ledger.id then
+    if v_event.ledger_id is distinct from v_ledger.id then
       raise exception 'MANTIGO_EVENT_LEDGER_MISMATCH';
     end if;
     if v_event.status is distinct from p_status
@@ -74,12 +78,12 @@ begin
     raise exception 'MANTIGO_PAYMENT_STATE_NOT_PENDING';
   end if;
 
-  insert into public.payment_provider_events(
-    id, tenant_id, provider, event_type, payment_intent_id,
-    external_event_id, status, signature_verified, raw_payload, processed_at
+  insert into public.mantigo_payment_provider_events(
+    id, ledger_id, provider, event_type, external_event_id,
+    status, signature_verified, raw_payload, processed_at
   ) values (
-    gen_random_uuid(), 'MNTY-PLATFORM', 'PAYMOB', 'MANTIGO_RIDE_PAYMENT',
-    v_ledger.id, p_external_event_id, p_status, true,
+    'paymob-mantigo:' || p_external_event_id, v_ledger.id, 'PAYMOB',
+    'MANTIGO_RIDE_PAYMENT', p_external_event_id, p_status, true,
     coalesce(p_raw_payload, '{}'::jsonb), now()
   );
 
