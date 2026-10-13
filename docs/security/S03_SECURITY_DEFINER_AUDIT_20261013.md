@@ -179,3 +179,30 @@ The live definition and the repository migration `20261006180000_mantigo_custome
 The live catalog confirms two authenticated-executable overloads of `private.legal_is_admin`. The zero-argument overload checks the current `auth.uid()`; the UUID overload checks `coalesce(p_user_id, auth.uid())`, so a caller can supply another user's UUID and receive a boolean indicating whether that account has an active `SUPER_ADMIN`, `ADMIN`, or `LEGAL_ADMIN` membership. The function uses an explicitly empty search path and schema-qualified table/auth references.
 
 **Classification: Requires verification, not a confirmed exploit.** `authenticated` has USAGE on schema `private` and EXECUTE on both overloads, while `anon` lacks private-schema USAGE. The PostgREST exposed-schema setting could not be read through the SQL session (`current_setting('pgrst.db_schemas', true)` returned NULL), so REST reachability is not established. If this helper is exposed to untrusted authenticated callers, the UUID overload is a role-enumeration oracle and should be restricted to self-checks or kept behind a non-exposed internal schema boundary. Before any change, inspect internal call sites and the actual API schema configuration; do not revoke privileges in production as part of this audit.
+
+
+### Production migration-ledger reconciliation — 2026-10-13
+
+A fresh read-only call to Supabase `list_migrations` returned a production ledger whose latest applied migration is `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). The repository contains later source migrations `20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql` and `20261010200000_rc451_targeted_ads_empty_search_path.sql`, but neither version appears in the production ledger returned by this call.
+
+Consequences:
+- RC446 is **not evidenced as applied to production**. This aligns with the live definition missing the active/verified/available captain guard.
+- RC451 is **not evidenced as applied to production**. The previously inspected live ad RPC configuration remains `search_path=public, pg_temp`, while the source migration and its isolated integration test expect `search_path=''`.
+- This is stronger than merely seeing a source migration: the ledger and live catalog indicate these two source-only protections remain pending. No migration was applied by S03.
+- The branch inventory reports only a `main` Supabase development branch with `with_data=false`; no disposable branch is available for this test run. No costed branch was created.
+
+### Candidate F — targeted-ad search path hardening is source-only
+
+The existing RC451 source migration sets the intentionally public ad RPC to an empty search path and preserves anon/authenticated execution; its companion integration test checks the exact setting and ACL contract. The current production catalog snapshot previously recorded `search_path=public, pg_temp`, and the migration ledger does not contain RC451.
+
+**Classification: Confirmed source/production hardening divergence; no exploit confirmed.** The body schema-qualifies application tables and uses static SQL, which lowers immediate shadowing risk, but the public schema in the execution path is unnecessary. Preserve the intentional public ad-serving behavior; do not revoke anon execution. Validate RC451 and its fixture in an isolated database before considering a separately approved release.
+
+### Current consolidated classification
+
+- In-scope callable SECURITY DEFINER overloads: **45** (1 anon-executable, also authenticated; 45 authenticated-executable; counts overlap).
+- Confirmed source/production divergences: **2** relevant to this follow-up: RC446 captain authorization guard and RC451 empty-search-path hardening are present in repository source but absent from the returned production migration ledger; the corresponding live definition/configuration observations agree with that absence.
+- Confirmed exploitable vulnerabilities: **0 established** from the collected evidence. This does not mean no vulnerabilities exist.
+- Contract/security candidates requiring review: customer ride full-row serialization; caller-supplied captain name/phone; private `legal_is_admin(uuid)` role-enumeration reachability; public advertisement field contract; and the two source/production hardening divergences above.
+- SQL test execution: **NOT RUN**; 0 passed, 0 failed. The current contract test intentionally contains an assertion expected to flag broad bid/ledger row serialization. RC446/RC451 integration tests are disposable-database tests and were not run against production.
+- Production actions: read-only inventory/ledger checks only. No RPC business calls, DML, DDL, grants, revokes, migrations, branch creation, merge, or deployment.
+- Release state remains **BLOCKED / NOT CERTIFIED** until isolated runtime tests and the product-contract decisions are evidenced.
