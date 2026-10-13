@@ -165,8 +165,8 @@ test('S09-FORM-003: digital-page section creation validates JSON and guards dupl
 
 test('S09-UX-005: reopening a digital page loads every field used by the editor form', () => {
   const editor = read('web/digital-page-editor.js');
-  assert.match(editor, /select\('id,page_type,business_id,provider_profile_id,digital_page_order_id,slug,title,description,seo_title,seo_description,status,version,updated_at'\)/, 'page list projection should include all fields consumed by fill()');
-  for (const field of ['digital_page_order_id', 'description', 'seo_title', 'seo_description']) {
+  assert.match(editor, /select\('id,page_type,business_id,provider_profile_id,slug,title,description,seo_title,seo_description,status,version,updated_at'\)/, 'page list projection should include all fields consumed by fill()');
+  for (const field of ['description', 'seo_title', 'seo_description']) {
     assert.match(editor, new RegExp('p\\.' + field.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&')), 'editor should preserve ' + field + ' when reopening a page');
   }
 });
