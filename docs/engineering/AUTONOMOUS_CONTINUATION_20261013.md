@@ -410,3 +410,25 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Updated the migration-owning PR #207 workflow in commit `ae5f6f63672a0aa2947f3d20fc70cae7e99ff6d0` to reset the disposable DB through version `20260927033924`, inject the fixture via the running disposable Postgres container, apply the real lockdown migration `20260927033925`, assert PUBLIC/anon/authenticated cannot execute it, then continue the rest of the chain.
 - Current exact-head replay run [#38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354483080) is **IN PROGRESS** at disposable service startup. The ACL-specific result and subsequent chronological replay are not verified yet.
 - This correction does not reconstruct canonical history; the live-derived fixture remains disposable-only. PR #207 stays unmerged; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 continuation — Paymob RPC integration and migration replay progress
+
+### Paymob webhook atomicity: aligned with the canonical candidate PR
+- Read-only inspection found PR #218 already owns the stronger RC425/RC428/RC429/RC430 database-side atomic RPCs. A separate duplicate implementation was therefore closed as superseded (PR #230, closed unmerged) to avoid competing function signatures and weaker event storage.
+- New stacked draft PR #231: https://github.com/islamnagy2022-eng/MantiqatiX/pull/231 — branch `security/paymob-webhook-rc425-integration-20261013`, base `docs/rc521-admin-operations-discovery-20261013`.
+- The Edge Function now routes MantiGO through RC425 with flattened provider/order/amount/currency/success binding; ordinary-order failures through RC428; subscription failures through RC429; and subscription success through RC430. The Edge Function no longer separately inserts MantiGO provider events/notifications or directly updates the failure intent rows.
+- Dedicated workflow [#38356125130](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356125130) completed SUCCESS on PR #231's tested head `a0068d2f2f8fefc4f645b86a37c62b9e8c9f7f6a`: static RPC contract, Deno type-check, isolated PostgreSQL application of RC425–RC430, RC425 integration test, and new RC428/RC429/RC430 integration cases all passed.
+- This is candidate evidence only; no production migration or Edge Function deployment occurred. Real Paymob E2E, settlement reconciliation, and live rollout remain NOT VERIFIED.
+
+### Historical migration replay: next gap and harness repair
+- A previous replay run failed because the workflow searched for a Docker container name that was not stable; this was replaced with a direct disposable Supabase DB URL.
+- A subsequent run exposed a second harness defect: `supabase migration up --local --version ...` prints the CLI version rather than targeting a migration. The workflow now applies the target SQL directly for the isolated ACL assertion, then lets the normal migration runner reapply the idempotent statement and record it in the disposable migration ledger.
+- The latest replay then reached `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` and failed because `public.marketing_leads` has no canonical CREATE TABLE migration in the repository source, while production's read-only ledger also has no marketing-lead creation migration record.
+- Added a narrowly scoped test-only live-derived `marketing_leads` baseline at temporary version `20260927140496`, before the policy migration. It creates no rows, is copied only in disposable replay, includes only the policy required by the historical `ALTER POLICY`, and is guarded by the baseline validator/workflow exact-copy and untracked-file checks. Current full replay CI is queued/pending; no PASS is claimed yet.
+- Latest migration branch head at this checkpoint: `8e259abab75a83a0810b8368e6ad2cd94890f164`; workflow run [#38356432723](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356432723) is pending at last inspection.
+
+### Current release blockers
+- Live MantiGO admin/report/settlement/expiry RPCs remain a P0 production blocker: the prior read-only catalog query confirmed SECURITY DEFINER, `search_path=public`, authenticated EXECUTE, and no `mnty_can_platform_admin()` guard.
+- Migration source chronology remains FAIL/BLOCKED until duplicate versions, missing RC433 source, and all clean-replay dependencies are reconciled.
+- Release remains **BLOCKED / NOT CERTIFIED**. No production data, migrations, Auth/RLS/grants, payment/ledger records, or live deployments were modified.
