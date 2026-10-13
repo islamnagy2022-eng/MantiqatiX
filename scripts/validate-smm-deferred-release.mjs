@@ -8,7 +8,7 @@ const checks = [
   ["SMM is explicitly in the release-deferred set", /RELEASE_DEFERRED_MODULES\s*=\s*new Set\(\[[^\]]*خدمات التسويق الرقمي SMM/.test(app)],
   ["deferred module cannot be enabled by a remote feature flag", /function moduleEnabled\(name\)\s*\{\s*if\(RELEASE_DEFERRED_MODULES\.has\(name\)\)return false;/.test(app)],
   ["SMM app route renders development notice instead of embedded storefront", /function smmModulePage\(\)\s*\{return `[\s\S]*قيد التطوير[\s\S]*مؤجل عن نطاق الإطلاق الأول[\s\S]*`\}/.test(app)],
-  ["main landing navigation has no direct SMM storefront link", !/<a href="smm\.html">[^<]*SMM[^<]*<\/a>/i.test(app)],
+  ["main landing exposes a clickable SMM entry that leads only to the static holding page", /<a class="mnty-module-card" href="smm\.html"[^>]*aria-label="[^"]*SMM[^"]*"[^>]*>[\s\S]*خدمات التسويق الرقمي SMM — قيد التطوير[\s\S]*<\/a>/.test(app)],
   ["landing showcase labels SMM as deferred", /خدمات التسويق الرقمي SMM — قيد التطوير/.test(app) && /خارج نطاق الإطلاق الأول/.test(app)],
   ["standalone SMM page is noindex and explicitly under development", /name="robots" content="noindex,nofollow"/.test(page) && /قيد التطوير — خارج نطاق الإطلاق الأول/.test(page)],
   ["standalone SMM page does not load the SMM client or Supabase SDK", !/<script\b/i.test(page)],
