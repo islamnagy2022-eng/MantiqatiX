@@ -120,8 +120,8 @@ if (paymentProviderEventsMigration) {
   );
   if (!paymentEventIndexesMigration ||
       !/create index if not exists idx_payment_provider_events_tenant_id on public\.payment_provider_events \(tenant_id\)/i.test(paymentEventIndexesMigration.sql) ||
-      !/create index if not exists idx_payment_provider_events_payment_intent_id on public\.payment_provider_events \(payment_intent_id\)/i.test(paymentEventIndexesMigration.sql)) {
-    console.error("P0 BLOCKED: ordered RC256 migration does not prove both payment_provider_events foreign-key indexes; do not synthesize them in the fixture.");
+      !/create index idx_payment_provider_events_payment_intent_id on public\.payment_provider_events \(payment_intent_id\)/i.test(paymentProviderEventsBaseline)) {
+    console.error("P0 BLOCKED: the catalog-derived payment_provider_events baseline or chronological RC256 tenant index migration is missing its expected index contract.");
     process.exit(1);
   }
   const paymentEventBaselineVersion = "20260920211716";
