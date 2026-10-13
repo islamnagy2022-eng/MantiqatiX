@@ -27,8 +27,7 @@ BEGIN
    WHERE provider = 'PAYMOB'
      AND (
        (nullif(trim(coalesce(p_merchant_ref, '')), '') IS NOT NULL AND id::text = p_merchant_ref)
-       OR (nullif(trim(coalesce(p_merchant_ref, '')), '') IS NULL
-           AND nullif(trim(coalesce(p_provider_order_id, '')), '') IS NOT NULL
+       OR (nullif(trim(coalesce(p_provider_order_id, '')), '') IS NOT NULL
            AND provider_order_id = p_provider_order_id)
      )
    ORDER BY CASE WHEN id::text = p_merchant_ref THEN 0 ELSE 1 END
@@ -45,8 +44,7 @@ BEGIN
    WHERE provider = 'PAYMOB'
      AND (
        (nullif(trim(coalesce(p_merchant_ref, '')), '') IS NOT NULL AND id::text = p_merchant_ref)
-       OR (nullif(trim(coalesce(p_merchant_ref, '')), '') IS NULL
-           AND nullif(trim(coalesce(p_provider_order_id, '')), '') IS NOT NULL
+       OR (nullif(trim(coalesce(p_provider_order_id, '')), '') IS NOT NULL
            AND provider_order_id = p_provider_order_id)
      )
    ORDER BY CASE WHEN id::text = p_merchant_ref THEN 0 ELSE 1 END
@@ -76,8 +74,7 @@ BEGIN
    WHERE provider = 'PAYMOB'
      AND (
        (nullif(trim(coalesce(p_merchant_ref, '')), '') IS NOT NULL AND id::text = p_merchant_ref)
-       OR (nullif(trim(coalesce(p_merchant_ref, '')), '') IS NULL
-           AND nullif(trim(coalesce(p_provider_order_id, '')), '') IS NOT NULL
+       OR (nullif(trim(coalesce(p_provider_order_id, '')), '') IS NOT NULL
            AND provider_order_id = p_provider_order_id)
      )
    ORDER BY CASE WHEN id::text = p_merchant_ref THEN 0 ELSE 1 END
