@@ -22,6 +22,12 @@ const normalIntentBranch = edge.slice(normalIntentStart, normalSuccessStart);
 assert.ok(normalIntentBranch.includes('admin.rpc("process_verified_payment_failure_backend"'), "ordinary Paymob failures must use the atomic failure RPC");
 assert.ok(!normalIntentBranch.includes('.from("payment_provider_events").insert'), "ordinary failure branch must not insert events separately");
 assert.ok(!normalIntentBranch.includes('.from("payment_intents").update'), "ordinary failure branch must not update payment intent separately");
+const subscriptionStart = edge.indexOf("const sub=subByRef??subByOrder");
+const subscriptionEnd = edge.indexOf('const {data:digitalByRef}', subscriptionStart);
+assert.ok(subscriptionStart >= 0 && subscriptionEnd > subscriptionStart, "subscription webhook branch must remain identifiable");
+const subscriptionBranch = edge.slice(subscriptionStart, subscriptionEnd);
+assert.ok(subscriptionBranch.includes('admin.rpc("process_verified_subscription_payment_failure_backend"'), "subscription failures must use the atomic failure RPC");
+assert.ok(!subscriptionBranch.includes('.from("subscription_payment_intents").update'), "subscription failure branch must not update intent separately");
 assert.ok(migration.includes("ADD COLUMN IF NOT EXISTS financial_ledger_id"), "event-to-ledger correlation must have a dedicated column");
 assert.ok(migration.includes("FOR UPDATE"), "ledger must be locked during callback processing");
 assert.ok(/ON CONFLICT\s*\(provider,\s*external_event_id\)\s*DO NOTHING/i.test(migration), "provider event idempotency must be concurrency-safe");
@@ -30,10 +36,15 @@ assert.ok(migration.includes("GRANT EXECUTE ON FUNCTION public.process_verified_
 assert.ok(failureMigration.includes("FOR UPDATE"), "failure RPC must lock payment intent/order");
 assert.ok(failureMigration.includes("REVOKE ALL ON FUNCTION public.process_verified_payment_failure_backend"), "failure RPC must revoke default/client execute");
 assert.ok(failureMigration.includes("GRANT EXECUTE ON FUNCTION public.process_verified_payment_failure_backend"), "failure RPC must grant service_role only");
+assert.ok(failureMigration.includes("ADD COLUMN IF NOT EXISTS subscription_payment_intent_id"), "subscription events need explicit intent correlation");
+assert.ok(failureMigration.includes("REVOKE ALL ON FUNCTION public.process_verified_subscription_payment_failure_backend"), "subscription failure RPC must revoke client execute");
+assert.ok(failureMigration.includes("GRANT EXECUTE ON FUNCTION public.process_verified_subscription_payment_failure_backend"), "subscription failure RPC must grant service_role only");
 assert.ok(failureMigration.includes("ON CONFLICT (provider, external_event_id) DO NOTHING"), "failure event identity must be concurrency-safe");
 assert.ok(tests.includes("TEST_FORCED_LEDGER_WRITE_FAILURE"), "test must prove event rollback when ledger write fails");
 assert.ok(tests.includes("TEST_FORCED_PAYMENT_INTENT_WRITE_FAILURE"), "test must prove failure-event rollback when intent update fails");
 assert.ok(tests.includes("EXTERNAL_EVENT_REPLAY_MISMATCH"), "test must cover ordinary payment cross-intent replay");
+assert.ok(tests.includes("TEST_FORCED_SUBSCRIPTION_WRITE_FAILURE"), "test must prove subscription event rollback after write failure");
+assert.ok(tests.includes("SUBSCRIPTION_EVENT_REPLAY_MISMATCH"), "test must cover subscription event identity mismatch");
 assert.ok(tests.includes("PAYMOB_EVENT_IDEMPOTENCY_CONFLICT"), "test must cover cross-ledger event-key reuse");
 assert.ok(tests.includes("legacy event correlation was not repaired"), "test must cover recovery of the known legacy event shape");
 
