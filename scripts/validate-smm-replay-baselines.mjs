@@ -25,6 +25,16 @@ const baselines = {
     version: "20261001085000",
     temporaryName: "20261001085000_test_only_approved_provider_onboarding_requests_baseline.sql",
   },
+  digital_page_products: {
+    path: path.join(baselineDir, "digital_page_products.sql"),
+    version: "20261002095000",
+    temporaryName: "20261002095000_test_only_live_derived_digital_page_products_baseline.sql",
+  },
+  digital_page_orders: {
+    path: path.join(baselineDir, "digital_page_orders.sql"),
+    version: "20261002095100",
+    temporaryName: "20261002095100_test_only_live_derived_digital_page_orders_baseline.sql",
+  },
 };
 const files = fs.readdirSync(migrationDir).filter(name => name.endsWith(".sql")).sort();
 const source = Object.fromEntries(files.map(name => [name, fs.readFileSync(path.join(migrationDir, name), "utf8")]));
@@ -45,9 +55,12 @@ for (const [table, item] of Object.entries(baselines)) {
   assert.ok(firstReference, table + " must have a tracked dependent migration");
   assert.ok(item.version < firstReference.slice(0, 14), table + " test baseline must precede its first dependency");
   const tableCreateMigration = files.find(name => new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i").test(source[name]));
-  if (table === "provider_onboarding_requests") {
-    assert.ok(tableCreateMigration, "canonical provider onboarding CREATE TABLE migration must exist");
-    assert.ok(firstReference.slice(0, 14) < tableCreateMigration.slice(0, 14), "known provider onboarding migration-order defect must remain explicit");
+  if (table === "provider_onboarding_requests" || table === "digital_page_orders") {
+    assert.ok(tableCreateMigration, table + " canonical CREATE TABLE migration must exist");
+    assert.ok(firstReference.slice(0, 14) < tableCreateMigration.slice(0, 14), table + " migration-order defect must remain explicit");
+  } else if (table === "digital_page_products") {
+    assert.ok(tableCreateMigration, "digital page products canonical CREATE TABLE migration must exist");
+    assert.ok(item.version < tableCreateMigration.slice(0, 14), "digital page products baseline must precede the canonical migration");
   } else {
     assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
   }
@@ -86,6 +99,26 @@ assert.match(providerOnboardingAuthority, /drop\s+policy\s+if\s+exists\s+provide
 assert.match(providerOnboardingCreate, /create\s+table\s+if\s+not\s+exists\s+public\.provider_onboarding_requests/i);
 assert.ok("20261001085000" < "20261001090000" && "20261001090000" < "20261001164200", "fixture must document rather than hide the out-of-order dependency");
 
+const digitalPageProducts = fs.readFileSync(baselines.digital_page_products.path, "utf8");
+assert.match(digitalPageProducts, /create table public\\.digital_page_products/i);
+assert.match(digitalPageProducts, /code text not null[\\s\\S]*unique \\(code\\)/i);
+assert.match(digitalPageProducts, /price numeric\\(12,2\\) not null[\\s\\S]*check \\(price >= 0\\)/i);
+assert.match(digitalPageProducts, /enable row level security/i);
+assert.doesNotMatch(digitalPageProducts, /create policy|insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+(public|private)\\./i);
+const digitalPageOrders = fs.readFileSync(baselines.digital_page_orders.path, "utf8");
+assert.match(digitalPageOrders, /create table public\\.digital_page_orders/i);
+assert.match(digitalPageOrders, /provider_intent_id text[\\s\\S]*provider_order_id text[\\s\\S]*provider_transaction_id text/i);
+assert.match(digitalPageOrders, /unique \\(user_id, idempotency_key\\)/i);
+assert.match(digitalPageOrders, /references public\\.digital_page_products\\(id\\)/i);
+assert.match(digitalPageOrders, /enable row level security/i);
+assert.doesNotMatch(digitalPageOrders, /create policy|insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+(public|private)\\./i);
+const digitalPageCreate = source["20261002190000_rc228_digital_page_products_orders.sql"];
+const digitalPageIndexes = source["20261002100000_rc256_critical_fk_indexes.sql"];
+assert.ok(digitalPageCreate && digitalPageIndexes, "digital-page baseline dependency and later canonical migration must both exist");
+assert.match(digitalPageIndexes, /create index if not exists idx_digital_page_orders_product_id on public\\.digital_page_orders \\(product_id\\)/i);
+assert.match(digitalPageCreate, /create table if not exists public\\.digital_page_orders/i);
+assert.ok("20261002095000" < "20261002095100" && "20261002095100" < "20261002100000" && "20261002100000" < "20261002190000", "digital-page test fixtures must precede RC256 and explicitly preserve the RC256-before-RC228 source-order gap");
+
 const credentials = fs.readFileSync(baselines.smm_provider_credentials.path, "utf8");
 assert.match(credentials, /api_key_ciphertext\s+text\s*,/i);
 assert.match(credentials, /configured\s+boolean\s+not\s+null\s+default\s+false/i);
@@ -93,4 +126,4 @@ assert.match(credentials, /references\s+public\.smm_providers\s*\(\s*id\s*\)[\s\
 assert.match(credentials, /create\s+policy\s+mnty_deny_unexposed_client_access[\s\S]*to\s+anon\s*,\s*authenticated/i);
 assert.doesNotMatch(allSource, /create\s+policy\s+mnty_deny_unexposed_client_access/i, "credentials deny policy must not be duplicated by a later migration");
 
-console.log("SMM replay baseline contract PASS: four schema-only fixtures, source provenance, dependency order, policy ownership, and no-data rules.");
+console.log("SMM replay baseline contract PASS: six schema-only fixtures, source provenance, dependency order, policy ownership, and no-data rules.");
