@@ -1,6 +1,6 @@
 # SMM Providers — Live Schema Evidence
 
-**Status:** Read-only catalog evidence from production. On 2026-10-11 the owner explicitly approved using this observed schema as a **test-only baseline for isolated disposable replay**. It is not a historical production migration and must never be applied to production.
+**Status:** Read-only catalog evidence from production. On 2026-10-11 the owner explicitly approved using this observed schema as a **test-only baseline for isolated disposable replay**. It is not the original historical DDL, does not establish historical creation chronology, and must never be applied to production.
 
 **Observed:** 2026-10-11, Supabase project `moyhiluyhjsujhwlyeuu`, using read-only PostgreSQL catalog introspection. No provider records or API URLs were queried.
 
@@ -33,7 +33,7 @@ Constraints and indexes:
 
 The earliest committed migration, `20260927074200_harden_smm_table_api_privileges.sql`, references both `public.smm_providers` and `public.smm_provider_credentials`. Repository inspection found no committed migration that creates `public.smm_providers`.
 
-The owner has approved use of the documented `smm_provider_credentials` snapshot for an isolated test/replay environment only. That table's observed foreign key references `public.smm_providers(id)`; therefore the credentials snapshot cannot be installed exactly unless the provider table exists first. The provider table evidence in this document has **not** been approved as a replay baseline.
+The owner approval recorded below covers both the `smm_providers` and `smm_provider_credentials` snapshots as test-only baselines for an isolated disposable replay. The provider baseline must be injected first because the credentials table has a foreign key to `public.smm_providers(id)`. This approval does not recover historical creation DDL and does not authorize production application.
 
 ## Safety and next step
 
