@@ -88,3 +88,29 @@ This narrows the tracked-file parity gap: all six helper files currently in the 
 The GitHub Actions run `38338350751` completed the seven Deno launch-gate unit tests successfully (**7 passed, 0 failed**) but failed the static validator at the expected source-parity assertion because the branch entrypoint does not import `./provider-transport.ts`. This confirms that the guard is actively blocking the stale entrypoint; it does not certify the gateway or the production runtime.
 
 The newer validator revision that checks actual import declarations was committed separately as `2b0c468b7196a226f62f69d2b87981971f3d23ef`. Its workflow result is not yet confirmed. Do not weaken the assertion to turn CI green. Next source-parity work must reconcile the entrypoint's behavior in reviewed, bounded changes, preserve the hard deferred-launch gate, and then run isolated tests. No production function, database privilege, secret, wallet, provider, or deployment was changed during this read-only comparison.
+
+
+### Entrypoint safety-feature comparison
+
+The following source-marker comparison was also performed against the retrieved live v10 `index.ts`. These are source observations only, not runtime proofs:
+
+| Safety behavior / marker | Live v10 entrypoint | S07 branch entrypoint |
+|---|---|---|
+| Bounded request JSON (32 KiB) | Present | Missing |
+| Provider HTTPS allowlist helper | Present | Missing |
+| Provider request timeout (15 s) | Present | Missing |
+| Redirects rejected | Present | Missing |
+| Order input validation helper | Present | Missing |
+| Pricing/margin validation helper | Present | Missing |
+| Money normalization helper | Present | Missing |
+| Idempotency handling marker | Present | Missing |
+| Explicit ambiguous provider result marker | Present | Missing |
+| Explicit ambiguous wallet debit marker | Present | Missing |
+| Provider accepted, persistence pending handling | Present | Missing |
+| Provider status normalization helper | Present | Missing |
+| Provider service normalization helper | Present | Missing |
+| Bounded provider response parser | Present | Missing |
+| Legacy automatic refund RPC `smm_refund_wallet` | Absent | Present |
+| Hard deferred launch gate | Present | Present |
+
+This matrix explains why the entrypoint must not be certified even though the helper files match. Do not resolve the mismatch by simply deleting the validator or by opening the launch gate. The next code change should be a reviewed reconciliation of the entrypoint with the six already-matching helpers, followed by isolated tests for idempotency, debit/provider ambiguity, persistence failure, SSRF/redirect/timeout handling, and terminal status transitions.
