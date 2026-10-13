@@ -55,6 +55,34 @@ begin
   end;
   if not rejected then raise exception 'event/transaction mismatch was not rejected'; end if;
 
+  -- Provider order reference must bind the callback to the stored order.
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      target,'paymob:s06-provider-order-mismatch','TRANSACTION','SUCCEEDED',true,249.50,'EGP',
+      's06-provider-order-mismatch','wrong-provider-order','{"suite":"S06"}'::jsonb
+    );
+    raise exception 'TEST_FAILED: provider order mismatch unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'provider order mismatch was not rejected'; end if;
+
+  -- The provider amount and currency must match the stored order snapshot.
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      target,'paymob:s06-amount-currency-mismatch','TRANSACTION','SUCCEEDED',true,248.50,'USD',
+      's06-amount-currency-mismatch','s06-provider-order','{"suite":"S06"}'::jsonb
+    );
+    raise exception 'TEST_FAILED: amount/currency mismatch unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'amount/currency mismatch was not rejected'; end if;
+
   select count(*) into n from public.digital_page_payment_events
     where digital_page_order_id=target;
   if n <> 0 then raise exception 'rejected callbacks persisted % provider events',n; end if;
