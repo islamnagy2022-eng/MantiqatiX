@@ -63,6 +63,7 @@ const missingHistoricalTables = [
   { table: "settlement_attempts", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/settlement_attempts.sql" },
   { table: "payment_provider_events", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/payment_provider_events.sql" },
   // The archived source changes this live RLS policy but does not create its table.
+  { table: "smm_services", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_services.sql" },
   { table: "smm_orders", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_orders.sql" },
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
 ].filter(({ table, before }) => {
@@ -590,6 +591,43 @@ if (!smmBootstrapLockdownMigration || smmBootstrapPriorCreation || !smmBootstrap
     smmBootstrapBaselineVersion >= smmBootstrapLockdownMigration.name.slice(0, 14) ||
     !/revoke execute on function public\.smm_bootstrap_first_admin\(\) from public, anon, authenticated;/i.test(smmBootstrapLockdownMigration.sql)) {
   console.error("P0 BLOCKED: live-derived smm_bootstrap_first_admin fixture or its ordered EXECUTE lockdown contract is invalid.");
+  process.exit(1);
+}
+
+// Validate the live-derived SMM service catalog and its public-active read policy.
+// This compatibility source exists only in the disposable replay.
+const smmServicesBaselinePath = "supabase/tests/baselines/smm_services.sql";
+const smmServicesBaseline = fs.readFileSync(smmServicesBaselinePath, "utf8");
+const smmServicesPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const smmServicesBaselineVersion = "20260927140489";
+const smmServicesTemporaryName = smmServicesBaselineVersion + "_test_only_live_derived_smm_services_baseline.sql";
+const smmServicesBaselineValid =
+  /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(smmServicesBaseline) &&
+  /2026-10-13/.test(smmServicesBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(smmServicesBaseline) &&
+  /NOT recovered historical creation DDL/.test(smmServicesBaseline) &&
+  /MUST NEVER be applied to production/.test(smmServicesBaseline) &&
+  /create table public\.smm_services/i.test(smmServicesBaseline) &&
+  /id uuid primary key default gen_random_uuid\(\)/i.test(smmServicesBaseline) &&
+  /provider_id uuid not null references public\.smm_providers\(id\) on delete cascade/i.test(smmServicesBaseline) &&
+  /external_service_id text not null/i.test(smmServicesBaseline) &&
+  /provider_cost numeric\(18,8\) not null default 0 check \(provider_cost >= 0\)/i.test(smmServicesBaseline) &&
+  /selling_price numeric\(18,8\) not null default 0 check \(selling_price >= 0\)/i.test(smmServicesBaseline) &&
+  /min_quantity bigint not null default 1 check \(min_quantity > 0\)/i.test(smmServicesBaseline) &&
+  /max_quantity bigint not null default 1000000 check \(max_quantity >= min_quantity\)/i.test(smmServicesBaseline) &&
+  /unique \(provider_id, external_service_id\)/i.test(smmServicesBaseline) &&
+  /create index smm_services_platform_idx on public\.smm_services\(platform, active\)/i.test(smmServicesBaseline) &&
+  /alter table public\.smm_services enable row level security/i.test(smmServicesBaseline) &&
+  /create policy smm_services_public_read[\s\S]*for select[\s\S]*to anon, authenticated[\s\S]*using \(active = true\)/i.test(smmServicesBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+public\.)/im.test(smmServicesBaseline) &&
+  !/force row level security|\bgrant\b|\btrigger\b/i.test(smmServicesBaseline);
+if (!smmServicesPolicyMigration || !smmServicesBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, smmServicesTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === smmServicesBaselineVersion) ||
+    smmServicesBaselineVersion >= smmServicesPolicyMigration.name.slice(0, 14)) {
+  console.error("P0 BLOCKED: SMM services live-derived baseline or chronological policy contract is invalid.");
   process.exit(1);
 }
 
