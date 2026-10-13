@@ -69,3 +69,15 @@ Do **not** roll back to the old vulnerable function bodies or restore tenant-rol
 - After the fixture correction, pull-request workflow runs were created for successive heads: `38338985945` (fixture change), `38338994894` (validator change), and `38339004814` (latest documentation/head `58be6adcc7936d89acd856ce4850f5bc0dd7b171`). All three are queued at this observation; none verifies the corrected fixture yet. The earlier run `38338507340` also remains queued on an older head. Track only a completed run whose checkout includes the PL/pgSQL fixture and validator commits before deciding whether the fix worked.
 
 - Latest log extraction confirms the failure is raised at line 11 of `settle_mantigo_captain_backend` as `PLATFORM_ADMIN_REQUIRED`; the guard had returned true earlier in the same integration block. The cause is still unresolved. Commit `91fad5914abb8ea4ec688b38aa00c95fe9c221ca` adds disposable-test-only assertions immediately before the authorized settlement call to distinguish identity drift from a guard/membership mismatch and emit focused diagnostic context. This is diagnostic instrumentation, not a production fix; await an exact-head completed PostgreSQL run.
+
+
+## Follow-up after diagnostic workflow — 2026-10-13
+
+The latest diagnostic PostgreSQL runs (38339850312 and 38339857225) still fail at the authorized settlement call with PLATFORM_ADMIN_REQUIRED. The new pre-call assertions did not fail: the disposable session identity and the direct call to mnty_can_platform_admin() pass immediately before the nested SECURITY DEFINER RPC. This narrows the failure to a difference during nested RPC execution or its resolved function context; it does not yet identify the root cause.
+
+A bounded candidate change was made to RC462: the request-context guard now uses a VOLATILE PL/pgSQL body instead of a SQL-language function, to prevent any SQL-function inlining and make the identity lookup explicit inside the function body. The static validator was updated to require this exact contract. This is a hypothesis to test, not a verified fix.
+
+- No production migration was applied.
+- No live role, grant, RLS policy, auth setting, or financial row was changed.
+- The candidate migration must pass malformed-permission tests and the full PostgreSQL integration test at the new head before it can be considered.
+- Production remains BLOCKED / NOT CERTIFIED.
