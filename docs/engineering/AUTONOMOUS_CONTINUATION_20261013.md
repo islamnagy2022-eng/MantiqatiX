@@ -298,3 +298,30 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - I added a review comment to PR #207: [comment 6138767562](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138767562), asking for exact type/length parity, validator assertions, and confirmation of approval provenance. I did not alter the other session's branch.
 - Latest CI for head `60bb79a...` includes replay run [#38350353538](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350353538), which was pending/queued at the last check; it has not yet supplied a replay result.
 - Treat this fixture as **PROPOSED / NOT VERIFIED FOR SCHEMA PARITY** until the mismatch and approval boundary are resolved, even if the replay run proceeds. Full release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Exact-head verification checkpoint — 2026-10-13 05:18 UTC
+
+### SMM gateway security regression — PASS on reviewed source commit
+
+- PR #225 exact tested head: `22ac357c8a375e4f0edf7e6de76f1435c10c46aa`.
+- Run [#38350564285](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350564285) completed **success**; job `source-and-unit` completed successfully. This covers the static SMM security contract and the Deno checks/unit tests configured by that workflow. It is not a live HTTP Edge Function runtime test.
+- The redirect assertion was made literal and deterministic in `scripts/validate-smm-gateway-security.mjs` at this head. The provider request source still explicitly uses `redirect:"error"`.
+- PR #225 is still **OPEN / DRAFT / UNMERGED**, based on PR #218 head `77012649e41fe22077538c39cd8593bf696ab33e`. Do not merge automatically.
+
+### Historical migration replay — not yet passed
+
+- PR #207 has continued to advance; latest observed head at this checkpoint is `e0cdd1f12f89dfbfdd3476ebd121a1dff09c4de1`.
+- The earlier replay run [#38350541588](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350541588) failed in the temporary-baseline verification shell because `settlement_attempts_baseline` was not declared in that shell. The latest workflow source now includes the declaration, but the next exact-head replay run is still pending/not yet verified.
+- Separate schema review flagged that the test-only settlement-attempts fixture must preserve exact catalog type modifiers (`amount numeric(14,4)`, `currency varchar(8)`) and have explicit provenance/approval. Do not treat the fixture as release evidence until those checks and the next exact-head run pass.
+- The previously observed replay failure at `20260920211717_security_definer_surface_reduction_and_finance_rls.sql` with missing `public.settlement_attempts` remains a valid historical failure on that older run; it is not proof that the newer head has passed.
+
+### Live production guardrail recheck
+
+- Read-only catalog evidence still shows `get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, and `expire_stale_mantigo_rides_backend` as SECURITY DEFINER, `search_path=public`, executable by `authenticated`, and not checking `mnty_can_platform_admin()`.
+- Candidate RC449/RC462 migrations and disposable integration tests exist in repository source, and the focused MantiGO platform-admin workflow passed on the earlier PR #218 base-head run. That does not mean the fixes are live: production catalog evidence still shows the vulnerable deployed definitions.
+- The deployed `smm-gateway` remains version 10, with source identical to the PR #218 base source and hard-disabled at entry with HTTP 503 `SMM_DEFERRED`. No production deployment or environment change was performed.
+
+### Current release verdict
+
+**BLOCKED / NOT CERTIFIED.** SMM static/unit regression is green at its exact tested SHA. Full chronological migration replay is still unresolved; live MantiGO RPC authorization is a P0 production blocker. No merge, production migration, data mutation, grants/Auth/RLS change, wallet/payment operation, or deployment was performed.
