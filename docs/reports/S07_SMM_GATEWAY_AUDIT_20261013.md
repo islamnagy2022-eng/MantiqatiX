@@ -122,3 +122,17 @@ Expanded `provider-transport.test.ts` with two more cases:
 - structured JSON media types ending in `+json` are accepted.
 
 Commit: `88d10e12f3518d5f22cb1b2b7236163ce855e4b6`. The provider allowlist positive fixture was corrected in the prior test commit. Neither change has a completed CI result at this checkpoint. The S07 job is queued in the observed Actions environment; no test pass is claimed.
+
+## Follow-up checkpoint — additional boundary tests (2026-10-13)
+
+Added additional unit cases on the isolated S07 branch:
+
+- Catalog normalization: `S07_CATALOG_006`–`008` cover missing/blank identifiers and rates, invalid existing price/activation combinations, and strict output-field allowlisting to prevent provider secrets or arbitrary fields from being copied.
+- Order validation: `S07_ORDER_007`–`008` cover local/reserved/IPv6 target URLs, overlong targets, malformed service identifiers, and unsafe quantity bounds.
+- Order status: `S07_STATUS_004` covers case-insensitive terminal-state protection.
+
+The integration matrix now records these additions and the known external service ID truncation/collision risk. The normalization helper was not modified because it matches the inspected live v10 helper byte-for-byte; changing its identifier behavior requires a separate reviewed parity decision.
+
+Latest observed PR head: `703e2065d9af0ab7b41df2a4d55f07e0b9e6b3e4`. PR #221 remains open and Draft. The last completed S07 workflow inspected still had all Deno helper tests passing and the static validator failing at the expected missing `./provider-transport.ts` import. No completed CI result has yet been verified for the newest test commits, so their pass status remains **PENDING**.
+
+**Decision unchanged: BLOCKED / NOT CERTIFIED.** Keep `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not merge, deploy, alter production grants/secrets, submit provider requests, or mutate wallets.
