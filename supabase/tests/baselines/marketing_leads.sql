@@ -128,3 +128,65 @@ CREATE POLICY "Providers view assigned projects"
   );
 REVOKE ALL ON TABLE public.marketing_project_participants FROM PUBLIC, anon, authenticated, service_role;
 GRANT REFERENCES, TRIGGER, TRUNCATE ON TABLE public.marketing_project_participants TO service_role;
+
+
+-- Additional subscription-plan dependencies for the same historical policy migration.
+-- These table definitions and policy predicates are read-only catalog snapshots dated
+-- 2026-10-13. They are compatibility scaffolding for disposable replay, not recovered
+-- historical DDL. The observed production grants are intentionally restrictive.
+
+CREATE TABLE public.marketing_plans (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  provider_kind character varying NOT NULL,
+  code character varying NOT NULL,
+  name_ar character varying NOT NULL,
+  name_en character varying,
+  description text,
+  price numeric NOT NULL DEFAULT 0,
+  currency character varying NOT NULL DEFAULT 'EGP'::character varying,
+  billing_period character varying NOT NULL DEFAULT 'MONTHLY'::character varying,
+  features jsonb NOT NULL DEFAULT '{}'::jsonb,
+  status character varying NOT NULL DEFAULT 'ACTIVE'::character varying,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_plans_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_plans_provider_kind_code_key UNIQUE (provider_kind, code),
+  CONSTRAINT marketing_plans_price_check CHECK (price >= 0::numeric),
+  CONSTRAINT marketing_plans_billing_period_check CHECK (billing_period::text = ANY (ARRAY['MONTHLY'::character varying,'QUARTERLY'::character varying,'YEARLY'::character varying,'ONE_TIME'::character varying]::text[])),
+  CONSTRAINT marketing_plans_provider_kind_check CHECK (provider_kind::text = ANY (ARRAY['OFFICIAL'::character varying,'PARTNER_COMPANY'::character varying,'FREELANCER'::character varying]::text[])),
+  CONSTRAINT marketing_plans_status_check CHECK (status::text = ANY (ARRAY['ACTIVE'::character varying,'INACTIVE'::character varying]::text[]))
+);
+ALTER TABLE public.marketing_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_plans FORCE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view active marketing plans"
+  ON public.marketing_plans FOR SELECT TO anon, authenticated
+  USING (status::text = 'ACTIVE'::text);
+REVOKE ALL ON TABLE public.marketing_plans FROM PUBLIC, anon, authenticated, service_role;
+GRANT REFERENCES, TRIGGER, TRUNCATE ON TABLE public.marketing_plans TO service_role;
+
+CREATE TABLE public.marketing_provider_subscriptions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  provider_id uuid NOT NULL,
+  plan_id uuid NOT NULL,
+  status character varying NOT NULL DEFAULT 'ACTIVE'::character varying,
+  starts_at timestamp with time zone NOT NULL DEFAULT now(),
+  ends_at timestamp with time zone,
+  feature_overrides jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_provider_subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_provider_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.marketing_plans(id),
+  CONSTRAINT marketing_provider_subscriptions_provider_id_fkey FOREIGN KEY (provider_id) REFERENCES public.marketing_provider_profiles(id) ON DELETE CASCADE,
+  CONSTRAINT marketing_provider_subscriptions_status_check CHECK (status::text = ANY (ARRAY['TRIAL'::character varying,'ACTIVE'::character varying,'PAUSED'::character varying,'EXPIRED'::character varying,'CANCELLED'::character varying]::text[]))
+);
+ALTER TABLE public.marketing_provider_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_provider_subscriptions FORCE ROW LEVEL SECURITY;
+CREATE POLICY "Owners view their subscriptions"
+  ON public.marketing_provider_subscriptions FOR SELECT TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.marketing_provider_profiles p
+      WHERE p.id = marketing_provider_subscriptions.provider_id
+        AND p.owner_user_id = (SELECT auth.uid() AS uid)
+    )
+  );
+REVOKE ALL ON TABLE public.marketing_provider_subscriptions FROM PUBLIC, anon, authenticated, service_role;
+GRANT REFERENCES, TRIGGER, TRUNCATE ON TABLE public.marketing_provider_subscriptions TO service_role;
