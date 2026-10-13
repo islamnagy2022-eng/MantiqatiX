@@ -264,3 +264,9 @@ The live global MantiGO SECURITY DEFINER authorization finding remains P0. Candi
 - Updated only `.github/workflows/digital-page-provider-order-binding-regression.yml` on PR #228 branch `security/digital-page-provider-order-binding-20261013`, commit `468a9511d96730dd06ed73a0e13de3fc7d1193b1`, to run `deno check --node-modules-dir=auto --no-lock supabase/functions/digital-page-payment-intent/index.ts`. This addresses the observed missing transitive npm package provisioning without removing the type-check.
 - Exact-head rerun [38352064454](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38352064454) is queued/in progress; no pass is claimed yet. The PostgreSQL behavioral job is being rerun as well.
 - Follow-up archive inspection found no creation DDL for `commission_transactions_finance_read` in the supplied RC40 archive either; added to [PR #207 comment 6139004215](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6139004215). Explicit approval is still required before creating a live-derived test-only policy fixture.
+
+
+## Exact-head payment regression PASS — 2026-10-13 05:35 UTC
+
+- PR #228 current head `27cce959111e28f2b8d477ced2888aec5f394dcd` passed [run 38352157438](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38352157438): digital-page boundary validation PASS, Deno type-check PASS, and disposable PostgreSQL provider-order finalization/legacy-overload revocation PASS. This validates the candidate branch tests only; it does not prove live Paymob E2E or deployment.
+- Root fixes: workflow enables Deno npm dependency auto-management, and handler defines a per-request UUID used only for safe correlation/error responses. No production call or deployment.
