@@ -25,6 +25,8 @@ on:
       - 'supabase/tests/rc458_*'
       - 'supabase/tests/rc450_*'
       - 'supabase/tests/rc457_*'
+      - 'supabase/migrations/20261013200000_rc523_mantigo_financial_report_canonical_columns.sql'
+      - 'supabase/tests/rc523_*'
       - '.github/workflows/recovered-migration-focused-integration.yml'
   push:
     branches: [main]
@@ -51,6 +53,8 @@ on:
       - 'supabase/tests/rc458_*'
       - 'supabase/tests/rc450_*'
       - 'supabase/tests/rc457_*'
+      - 'supabase/migrations/20261013200000_rc523_mantigo_financial_report_canonical_columns.sql'
+      - 'supabase/tests/rc523_*'
       - '.github/workflows/recovered-migration-focused-integration.yml'
 permissions:
   contents: read
@@ -499,3 +503,44 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc437_test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_rc458_test -v ON_ERROR_STOP=1 -f /tmp/rc458_test.sql
 
+
+
+  mantigo-financial-report-rc523-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_financial_report_rc523_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_financial_report_rc523_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run RC441 then RC449 then RC462 then RC523 financial-report regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc441_platform_admin_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc441.sql"
+          docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449.sql"
+          docker cp supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql "$pg_container:/tmp/rc462.sql"
+          docker cp supabase/migrations/20261013200000_rc523_mantigo_financial_report_canonical_columns.sql "$pg_container:/tmp/rc523.sql"
+          docker cp supabase/tests/rc523_mantigo_financial_report_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -f /tmp/rc441.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -f /tmp/rc462.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -f /tmp/rc523.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_financial_report_rc523_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
