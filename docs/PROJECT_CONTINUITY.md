@@ -558,3 +558,11 @@ This status is intentional and must remain until the open gates above are indepe
 - SMM RC432 is still deferred, and chronological full replay still has historical DDL dependencies. Production migration status remains unchanged.
 - Continue by inspecting exact-head CI outcomes and fixing only reproducible source/test failures. No production writes, deployments, merges or releases without explicit approval.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC526 source-presence gate
+
+- Added a filesystem existence assertion for all 30 migration files tracked by the production migration-chain gate. The candidate tree was checked first and all 30 were present after RC524 recovery.
+- Current code candidate: 7cf34432de0d5b604121e00f662f04771de18568. Exact-head CI is queued and not yet considered passed.
+- No production changes. Continue from CI results and full replay prerequisites; never certify based on source presence alone.
+- Release remains BLOCKED / NOT CERTIFIED.
