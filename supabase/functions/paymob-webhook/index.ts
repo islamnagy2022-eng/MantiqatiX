@@ -29,7 +29,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
      });
      if(e){
        const message=String(e.message??"");
-       if(/SUBSCRIPTION_.*(MISMATCH|NOT_FOUND|REQUIRED|INVALID|REPLAY)/.test(message))return json({error:"SUBSCRIPTION_PAYMENT_VALIDATION_FAILED",requestId},409,requestId);
+       if(/SUBSCRIPTION_.*(MISMATCH|NOT_FOUND|REQUIRED|INVALID|REPLAY|STATE_CHANGED)/.test(message))return json({error:"SUBSCRIPTION_PAYMENT_VALIDATION_FAILED",requestId},409,requestId);
        console.error("SUBSCRIPTION_PAYMENT_FAILURE_PROCESSING_FAILED",requestId,e.code??"DB_ERROR");
        return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
      }
@@ -44,7 +44,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    });
    if(e){
      const message=String(e.message??"");
-     if(/SUBSCRIPTION_.*(MISMATCH|NOT_FOUND|REQUIRED|INVALID|REPLAY)/.test(message))return json({error:"SUBSCRIPTION_PAYMENT_VALIDATION_FAILED",requestId},409,requestId);
+     if(/SUBSCRIPTION_.*(MISMATCH|NOT_FOUND|REQUIRED|INVALID|REPLAY|STATE_CHANGED)/.test(message))return json({error:"SUBSCRIPTION_PAYMENT_VALIDATION_FAILED",requestId},409,requestId);
      console.error("SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId,e.code??"DB_ERROR");
      return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
    }
