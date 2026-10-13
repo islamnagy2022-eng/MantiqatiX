@@ -40,9 +40,7 @@ for (const [table, item] of Object.entries(baselines)) {
   assert.ok(firstReference, table + " must have a tracked dependent migration");
   assert.ok(item.version < firstReference.slice(0, 14), table + " test baseline must precede its first dependency");
   const tableCreateMigration = files.find(name => new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i").test(source[name]));
-  if (false) {
-    assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
-  }
+  assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
 }
 
 const admins = fs.readFileSync(baselines.smm_admins.path, "utf8");
