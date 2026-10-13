@@ -1,0 +1,1 @@
+create unique index if not exists job_applications_job_applicant_uq on public.job_applications(job_id, applicant_user_id);
