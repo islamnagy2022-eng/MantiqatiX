@@ -4,6 +4,30 @@
 -- and ignored the update result. A persisted event could therefore suppress retries while
 -- the payment intent remained CREATED/PENDING.
 
+ALTER TABLE public.payment_provider_events
+  ADD COLUMN IF NOT EXISTS subscription_payment_intent_id uuid;
+
+DO $migration$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+      FROM pg_constraint
+     WHERE conname = 'payment_provider_events_subscription_payment_intent_id_fkey'
+       AND conrelid = 'public.payment_provider_events'::regclass
+  ) THEN
+    ALTER TABLE public.payment_provider_events
+      ADD CONSTRAINT payment_provider_events_subscription_payment_intent_id_fkey
+      FOREIGN KEY (subscription_payment_intent_id)
+      REFERENCES public.subscription_payment_intents(id)
+      ON DELETE RESTRICT;
+  END IF;
+END;
+$migration$;
+
+CREATE INDEX IF NOT EXISTS idx_payment_provider_events_subscription_payment_intent_id
+  ON public.payment_provider_events(subscription_payment_intent_id)
+  WHERE subscription_payment_intent_id IS NOT NULL;
+
 CREATE OR REPLACE FUNCTION public.process_verified_payment_failure_backend(
   p_event_id text,
   p_tenant_id text,
