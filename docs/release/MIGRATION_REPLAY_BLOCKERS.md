@@ -736,3 +736,9 @@ The validator now checks explicit approval/provenance wording, required schema s
 - Added a fail-closed preflight to `scripts/validate-historical-schema-baseline.mjs` so this missing dependency is reported before Docker/Supabase startup rather than after a costly partial replay. The preflight does not create or alter any database object. Commit: `ebafdf51e3142d66b13e02e716c6228732972bf6`.
 - The three credit baselines were reviewed for the observed column types/defaults, generated stored columns, PK/unique/FK/check constraints, indexes, and ENABLE/FORCE RLS. They contain schema DDL only and no INSERT/COPY of production or financial rows. Their temporary migration copies are injected only by the disposable CI workflow and checked for exact byte copies and untracked status. They intentionally do not add policies whose source history is not established.
 - Production database/schema, applied migration ledger, financial records, grants, RLS, Auth settings, and deployed functions were not changed. PR #207 remains draft/unmerged. The current candidate still cannot claim a successful full chronological replay or production readiness.
+
+### Fail-closed guard execution — 2026-10-13
+
+- On candidate source commit `143827aedb746092c7c256d6c71f0cd8087c2878`, replay workflow [38348273334](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38348273334) executed the updated validator successfully as a negative test: it reported the missing `public.payment_provider_events` creation dependency and stopped before baseline injection or Supabase startup.
+- The run's PR merge ref was `9ae5f5cd1e913d7e02dc140ef611d400604be585`; this is CI's synthetic merge commit, not a branch commit and not a production revision.
+- The guard is intentionally a blocker, not a passing replay. No financial-table baseline was synthesized or approved in this work. Full chronological replay, final schema parity, and release certification remain **NOT VERIFIED / BLOCKED**.
