@@ -4,6 +4,7 @@ import path from "node:path";
 
 const migrationDir = "supabase/migrations";
 const baselineDir = "supabase/tests/baselines";
+assert.ok(!fs.existsSync(path.join(baselineDir, "smm_admins.sql")), "smm_admins baseline must remain absent until explicitly approved and historically sourced");
 const baselines = {
   smm_providers: {
     path: path.join(baselineDir, "smm_providers.sql"),
@@ -17,6 +18,7 @@ const baselines = {
   },
 };
 const files = fs.readdirSync(migrationDir).filter(name => name.endsWith(".sql")).sort();
+assert.ok(!files.some(name => name.includes("test_only_approved_smm_admins_baseline")), "unapproved smm_admins test baseline migration must never enter replay");
 const source = Object.fromEntries(files.map(name => [name, fs.readFileSync(path.join(migrationDir, name), "utf8")]));
 const allSource = files.map(name => source[name]).join("\n");
 const noDataOps = /^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+(?:public|private)\.)/im;
