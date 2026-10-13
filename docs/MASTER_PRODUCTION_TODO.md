@@ -1686,3 +1686,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] SMM remains isolated pending dedicated authorization, provider timeout/ambiguity, persistence and terminal-state review; no SMM launch.
 - **Safety:** no production mutation, migration application, Auth/RLS/Grant changes, Edge Function deployment, financial movement, merge or release.
 - **Release:** BLOCKED / NOT CERTIFIED.
+
+
+## RC540 — Current exact-head checks after continuity update — 2026-10-13
+
+- [x] Recorded RC539 evidence in continuity documents. This produced new documentation-only PR head `f608bc76bfc898f3aa4116fbd3777f2b378bb64b`.
+- [ ] Exact-head checks now queued: Backend-only Module Boundary [38329261941], Migration Version Uniqueness [38329261943], Web workflow [38329261830], Audit Log ACL [38329261699], migration immutability [38329261728], platform-admin scope [38329261733], focused PostgreSQL integration [38329261773], module validation [38329261803], collision guard [38329261829], MantiGO privacy [38329261878], approval/audit atomicity [38329261801]. Queue status is NOT PASS; check them only after completion.
+- [ ] Production migration reconciliation, chronological replay, tenant-isolation/payment E2E, deployed Edge Function parity, Auth/security, backup restore, signed device build and rollback remain release blockers.
+- Release remains BLOCKED / NOT CERTIFIED; no production changes or release actions performed.
