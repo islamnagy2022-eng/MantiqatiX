@@ -1,4 +1,7 @@
 -- RC449 behavioral integration test. Run only in disposable PostgreSQL.
+-- The test deliberately changes JWT identity in one backend session; force per-execution plans
+-- so STABLE no-argument auth helpers are not reused across simulated identities.
+SET plan_cache_mode = force_custom_plan;
 do $test$
 declare
   tenant_owner uuid := '10000000-0000-4000-8000-000000000041';
@@ -240,5 +243,6 @@ begin
   end if;
 end;
 $test$;
+RESET plan_cache_mode;
 
 select 'RC449 platform-admin scope integration: PASS' as result;
