@@ -181,3 +181,21 @@
 - No production SQL mutation was run. The only Supabase SQL queries in this cycle were SELECTs against migration metadata and `pg_catalog`.
 - **Status:** P0 live authorization **BLOCKED**; P1 migration source/version parity **FAIL / BLOCKED**; S04 clean replay **FAIL / BLOCKED**; SMM exact-head CI **NOT VERIFIED**; production release **BLOCKED / NOT CERTIFIED**.
 - **Resume first:** verify current SMM push-triggered CI on its exact head, then coordinate migration source reconciliation in PR #218 using the production-version/content map above. Do not merge, deploy, apply migrations, or change live grants/Auth/RLS without separate explicit approval.
+
+
+## Cross-session coordination checkpoint — 2026-10-13 05:08 UTC
+
+- Rechecked PR #207 before any edits to its owned migration/replay files. Its branch `reconcile/rc425-458-current-main-20261011` had advanced to `5221973aad1cb37ebd411e6d896c57732da111d3`; another session corrected the payment-event index validator in commit `fix(ci): validate payment event indexes at their actual sources`. Do not duplicate or overwrite that fix.
+- Latest PR #207 workflow run [#38349796102](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349796102) is in progress. The historical schema preflight, test-only baseline injection, and exact-copy/untracked guards all passed; Supabase disposable service startup is still in progress; chronological replay has not started, so full replay remains **NOT VERIFIED** on this run.
+- The prior run [#38349544642](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349544642) failed at the old payment-event index validator. That failure is superseded by the new commit and must not be used as the current verdict.
+- A separate diagnostic PR #226 was opened briefly, then closed as superseded after discovering PR #207 already owns the approved SMM schema-only baselines and a more comprehensive historical schema baseline validator. PR #226 was not merged. Its branch is retained for audit traceability only.
+- PR #225 remains OPEN/DRAFT/UNMERGED, head `0a323e9c3c88c2c97e433790ac3a261a4b803de2`, base PR #218 head `77012649e41fe22077538c39cd8593bf696ab33e`. Its workflow is configured for push and matching PR events, but the available workflow-run lookup only exposes PR-triggered runs and currently returns no exact-head run. SMM exact-head CI remains **NOT VERIFIED**.
+- Current independent status: RC449/RC462 disposable authorization integration passed on its previously tested revision; four live MantiGO RPCs remain a confirmed P0 production blocker from read-only catalog checks. No production changes were made.
+- No migrations, data, Auth/RLS/grants, live Edge Functions, wallet/payment operations, or deployment actions were performed during this coordination pass.
+
+### Resume from here
+1. Check run #38349796102 until it completes; capture the exact failure or PASS and SHA. If it fails, diagnose the next first chronological dependency rather than skipping it.
+2. Keep the production MantiGO RPC issue BLOCKED until a separate approved production change process is available; candidate tests are not production evidence.
+3. Keep PR #225 draft and unmerged; verify SMM on exact SHA via the actual Actions run page if the connector still cannot expose push-triggered runs.
+4. Continue P0 payment/webhook and tenant-isolation review on disposable tests, without overlapping files owned by PR #207.
+5. Production release remains **BLOCKED / NOT CERTIFIED**.
