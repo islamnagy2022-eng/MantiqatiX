@@ -40,6 +40,7 @@ export function evaluateSmmLaunchScope(scope, runtimeGates = {}) {
     "smm_acl_boundary",
     "smm_order_refund_safety",
     "smm_provider_timeout_safety",
+    "smm_order_idempotency",
   ];
   const missing = requiredRuntimeGates.filter((key) => runtimeGates[key] !== "PASS");
   return {
