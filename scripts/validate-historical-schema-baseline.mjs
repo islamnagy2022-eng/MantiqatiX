@@ -63,6 +63,7 @@ const missingHistoricalTables = [
   { table: "settlement_attempts", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/settlement_attempts.sql" },
   { table: "payment_provider_events", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/payment_provider_events.sql" },
   // The archived source changes this live RLS policy but does not create its table.
+  { table: "smm_orders", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_orders.sql" },
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
@@ -589,6 +590,46 @@ if (!smmBootstrapLockdownMigration || smmBootstrapPriorCreation || !smmBootstrap
     smmBootstrapBaselineVersion >= smmBootstrapLockdownMigration.name.slice(0, 14) ||
     !/revoke execute on function public\.smm_bootstrap_first_admin\(\) from public, anon, authenticated;/i.test(smmBootstrapLockdownMigration.sql)) {
   console.error("P0 BLOCKED: live-derived smm_bootstrap_first_admin fixture or its ordered EXECUTE lockdown contract is invalid.");
+  process.exit(1);
+}
+
+// Validate the live-derived SMM order table and its owner policies before the
+// historical migration that alters those policies. Disposable compatibility only.
+const smmOrdersBaselinePath = "supabase/tests/baselines/smm_orders.sql";
+const smmOrdersBaseline = fs.readFileSync(smmOrdersBaselinePath, "utf8");
+const smmOrdersPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const smmOrdersBaselineVersion = "20260927140490";
+const smmOrdersTemporaryName = smmOrdersBaselineVersion + "_test_only_live_derived_smm_orders_baseline.sql";
+const smmOrdersBaselineValid =
+  /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(smmOrdersBaseline) &&
+  /2026-10-13/.test(smmOrdersBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(smmOrdersBaseline) &&
+  /NOT recovered historical creation DDL/.test(smmOrdersBaseline) &&
+  /MUST NEVER be applied to production/.test(smmOrdersBaseline) &&
+  /create table public\\.smm_orders/i.test(smmOrdersBaseline) &&
+  /id uuid primary key default gen_random_uuid\\(\\)/i.test(smmOrdersBaseline) &&
+  /user_id uuid not null references auth\\.users\\(id\\) on delete cascade/i.test(smmOrdersBaseline) &&
+  /service_id uuid not null references public\\.smm_services\\(id\\)/i.test(smmOrdersBaseline) &&
+  /quantity bigint not null check \\(quantity > 0\\)/i.test(smmOrdersBaseline) &&
+  /selling_price numeric\\(18,8\\) not null check \\(selling_price >= 0\\)/i.test(smmOrdersBaseline) &&
+  /provider_cost numeric\\(18,8\\) not null default 0 check \\(provider_cost >= 0\\)/i.test(smmOrdersBaseline) &&
+  /status text not null default 'PENDING'[\\s\\S]*'REFUNDED'[\\s\\S]*'FAILED'/i.test(smmOrdersBaseline) &&
+  /metadata jsonb not null default '\\{\\}'::jsonb/i.test(smmOrdersBaseline) &&
+  /create index smm_orders_status_idx on public\\.smm_orders\\(status, created_at desc\\)/i.test(smmOrdersBaseline) &&
+  /create index smm_orders_user_idx on public\\.smm_orders\\(user_id, created_at desc\\)/i.test(smmOrdersBaseline) &&
+  /alter table public\\.smm_orders enable row level security/i.test(smmOrdersBaseline) &&
+  /create policy smm_orders_owner_insert[\\s\\S]*for insert[\\s\\S]*to authenticated[\\s\\S]*with check \\(/i.test(smmOrdersBaseline) &&
+  /create policy smm_orders_owner_read[\\s\\S]*for select[\\s\\S]*to authenticated[\\s\\S]*auth\\.uid\\(\\)[\\s\\S]*user_id/i.test(smmOrdersBaseline) &&
+  !/^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(smmOrdersBaseline) &&
+  !/force row level security|\\bgrant\\b|\\btrigger\\b/i.test(smmOrdersBaseline);
+if (!smmOrdersPolicyMigration || !smmOrdersBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, smmOrdersTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === smmOrdersBaselineVersion) ||
+    smmOrdersBaselineVersion >= smmOrdersPolicyMigration.name.slice(0, 14) ||
+    !/alter policy smm_orders_owner_read on public\\.smm_orders to authenticated;/i.test(smmOrdersPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: SMM orders live-derived baseline or chronological policy-alter contract is invalid.");
   process.exit(1);
 }
 
