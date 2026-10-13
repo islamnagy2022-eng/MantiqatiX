@@ -64,3 +64,33 @@
 - Live production parity: **NOT VERIFIED**
 - Full migration replay: **BLOCKED**
 - Production release: **BLOCKED / NOT CERTIFIED**
+
+
+## Append-only execution update — 2026-10-13 (verified GitHub Actions evidence)
+
+### Repository / PR state rechecked
+- PR #225 is still **OPEN / DRAFT / UNMERGED**, mergeable reported true; base is `docs/rc521-admin-operations-discovery-20261013` at `77012649e41fe22077538c39cd8593bf696ab33e`.
+- Exact PR head at inspection: `acb6466afbfdadd76570ab9404aa37551e1a2b92`.
+- Current head contains the corrected string-based admin assertion in `scripts/validate-smm-gateway-security.mjs`; this corrects the invalid regular expression shown by the earlier workflow log.
+- The previously failing SMM workflow run #38348635011 checked out synthetic merge commit `cc16b047dd22155fcfa72f4083fb0281291672a8`, whose merge parents were from the earlier PR base (the log says merge of `69385a7606241939d99491806a06434eba21715c` into `8a56358d505d2c12878440037f7f24ba65d2ea10`). It therefore does **not** verify the corrected current PR head/base combination. Current-head CI remains **NOT VERIFIED**.
+- Earlier service-role run #38348634984 was reported successful for its own tested revision; do not transfer that pass to current head without a new matching run.
+
+### S04 migration replay failure — exact evidence
+- Workflow run: [#38348635052](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38348635052).
+- The disposable Supabase stack failed during startup/replay at migration `20260927074200_harden_smm_table_api_privileges.sql`.
+- Exact PostgreSQL error recorded in the job log: `ERROR: relation "public.smm_provider_credentials" does not exist (SQLSTATE 42P01)`.
+- `scripts/audit-migration-chain-s04.mjs` also exited 1 before the replay attempt completed. Its audit covers invalid migration filenames, duplicate versions, and required migration-source presence; the uploaded artifact contains the detailed JSON evidence.
+- `supabase init` exited 0; `supabase start` exited 1; clean replay was marked `FAILED_DURING_SUPABASE_START`; final job conclusion is **FAILURE**. Artifact upload success is only evidence preservation, not replay success.
+- Do not patch this by skipping migrations, adding fake tables/functions, or rewriting historical migration contents without a complete chronology and explicit review. Next action: inspect the artifact's full source-audit JSON and locate the canonical creation migration (if any), then produce a minimal reproducible chronology report on an isolated branch.
+
+### Current work / safety boundary
+- No production database, migrations, grants, Auth/RLS, Edge Function, wallet, payment, provider, merge, or release action was performed.
+- SMM source remains hard-disabled by `SMM_INITIAL_LAUNCH_DEFERRED=true`; this is containment, not launch readiness.
+- Release remains **BLOCKED / NOT CERTIFIED**.
+
+### Exact next actions
+1. Trigger a fresh PR workflow by committing this append-only evidence update, then verify run SHA and all jobs against current PR #225 head/base. Do not count the prior invalid-regex run as the latest verdict.
+2. Download/read artifact `11789859107` from run #38348635052 and extract the complete audit JSON; classify duplicate versions vs missing required sources.
+3. Trace where `public.smm_provider_credentials` is created and why the 2026-09-27 privilege migration runs before that relation exists. Preserve production migration history.
+4. Continue P0 platform RPC authorization review separately; keep PR #225 draft and do not merge/deploy.
+5. Add isolated HTTP/Edge Runtime side-effect tests only after a runnable disposable runtime is available; until then mark NOT VERIFIED.
