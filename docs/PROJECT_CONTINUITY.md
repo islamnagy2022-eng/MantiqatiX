@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-12:** Read `docs/SESSION_LOG.md` for the chronological record. Current main HEAD remains `8a56358d505d2c12878440037f7f24ba65d2ea10`. Candidate branch `reconcile/rc425-458-current-main-20261011` is at `31f8202d7e9f6a3ea45c73f576b33d02037dc78e` (latest code change: `48bcf340f901e545e547b39639c641c899ea696c`); PR #207 is open and unmerged. Exact-head targeted CI checks passed, including the test-only bookings-baseline injection contracts. Disposable migration replay run `38239527707` is still at Supabase service startup; chronological replay has not started and is NOT VERIFIED. Live SMM gateway v6 still lacks the server-side launch-deny gate. Release remains **BLOCKED / NOT CERTIFIED**.
+> **LATEST SESSION STATE — 2026-10-13:** Read `docs/SESSION_LOG.md` and `docs/MASTER_PRODUCTION_TODO.md` for the current handoff. `main` is unchanged at `8a56358d505d2c12878440037f7f24ba65d2ea10`; PR #207 candidate branch is `reconcile/rc425-458-current-main-20261011` at `bcc0f646304a20b3188e7bc45323b25b3e134162`, open/draft/unmerged. Targeted exact-head CI checks passed, but the latest chronological replay [38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed; historical source provenance remains unresolved. S06 isolated duplicate-callback concurrency test passed [38402862801]; SMM RC524 ACL candidate passed isolated integration [38400557008] but is not applied to production. PRs #235–#237 are drafts. Live SMM remains deferred; live ACL and API negative-test evidence remain open. Release remains **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -609,3 +609,13 @@ Read the latest SESSION-003 entry in docs/SESSION_LOG.md and the dated section i
 - Respect the previously recorded SMM initial-launch feature freeze. Inspect and document, but do not implement SMM feature changes or weaken SMM validation unless the owner explicitly lifts that freeze.
 - No production DDL/data/ACL changes, Auth changes, deployment, merge, or financial test records were created.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation checkpoint
+
+- Master TODO and session log were appended with exact PR/run references; do not treat the targeted green jobs as overall release approval.
+- S06: [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237), exact-head isolated concurrent callback test PASS in [run 38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801). No real payment was processed.
+- SMM: [PR #236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236), RC524 isolated ACL test PASS in [run 38400557008](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400557008). Production privileges remain unchanged; SMM launch stays deferred.
+- Migration replay: [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed. Current marketing participant catalog was inspected read-only; [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) fails closed pending provenance/approval rather than guessing DDL.
+- Do not merge, deploy, apply migrations, change production secrets/Auth, mutate financial data, or weaken SMM validation. Continue with exact failure evidence and authoritative historical DDL recovery.
+- Release state: **BLOCKED / NOT CERTIFIED**.
