@@ -296,3 +296,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 3. Continue isolated S06 conflict/mismatch/terminal-state tests; do not use real Paymob transactions without separate approval.
 4. Preserve SMM feature freeze; test the deployed API's deferred/deny behavior read-only and do not deploy.
 5. Re-run exact-head checks and full replay after source provenance is resolved.
+
+
+### Follow-up verification — S06 conflicting-event race and live advisor
+- Exact-head [S06 run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421) passed the added conflicting-status concurrency test. It races `SUCCEEDED` and `FAILED` for one external event ID; exactly one wins, the other raises `DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH`, and the stored order/event remain consistent.
+- Fresh read-only Security Advisor snapshot at `2026-10-13T13:18:40.718Z`: 94 lint records / 133 counted findings — 90 anonymous-policy warnings, 40 authenticated-executable SECURITY DEFINER functions, one anon-executable SECURITY DEFINER function, one leaked-password-protection warning, and one RLS-enabled/no-policy INFO finding. These are triage findings, not 133 confirmed vulnerabilities. No blanket revocations or Auth settings were changed.
+- TODO register updated with this evidence. Release remains **BLOCKED / NOT CERTIFIED**.
