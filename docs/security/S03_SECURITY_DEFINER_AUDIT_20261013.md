@@ -373,3 +373,8 @@ The inspected helpers have explicit function settings: the InDrive predicate hel
 - Test execution: **not run**; SQL scripts remain unverified at runtime.
 - Confirmed exploitable findings: **0 based on evidence collected**, which must not be interpreted as proof of no vulnerabilities.
 - Release decision: **BLOCKED — NOT CERTIFIED** pending isolated runtime tests, field-level data contract review, schema/API exposure confirmation, and reconciliation of source migrations with production.
+
+
+### Source-tree existence cross-check — qualification
+
+A follow-up GitHub contents lookup for the exact RC446 and RC451 migration paths returned HTTP 404 on `main`, even though code-search results show those filenames referenced by migration-chain/security validation scripts and workflows. Therefore, the evidence currently supports **an unresolved source-tree inconsistency** (references exist; exact migration file retrieval did not), not a claim that the migration files themselves are present and ready to apply. Before any release, verify the actual tree at the intended release commit, repair missing/mismatched files in a separate reviewable change, and ensure the production migration ledger matches the validated chain. Do not apply either migration based only on filename references.
