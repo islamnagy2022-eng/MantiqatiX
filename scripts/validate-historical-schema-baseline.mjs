@@ -183,6 +183,39 @@ if (!settlementTransactionsPolicyMigration || settlementTransactionsPriorPolicyC
   process.exit(1);
 }
 
+// Validate the catalog-derived wallet finance-read policy missing from historical source.
+const walletAccountsPolicyBaselinePath = "supabase/tests/baselines/wallet_accounts_finance_read.sql";
+const walletAccountsPolicyBaseline = fs.readFileSync(walletAccountsPolicyBaselinePath, "utf8");
+const walletAccountsPolicyVersion = "20260927140486";
+const walletAccountsPolicyTemporaryName = walletAccountsPolicyVersion + "_test_only_live_derived_wallet_accounts_finance_read.sql";
+const walletAccountsPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const walletAccountsPriorPolicyCreation = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < walletAccountsPolicyMigration?.name.slice(0, 14) &&
+  /create\\s+policy\\s+wallet_accounts_finance_read\\s+on\\s+(?:public\\s*\\.\\s*)?wallet_accounts\\b/i.test(sql)
+);
+const walletAccountsPolicyBaselineValid =
+  /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(walletAccountsPolicyBaseline) &&
+  /2026-10-13/.test(walletAccountsPolicyBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(walletAccountsPolicyBaseline) &&
+  /NOT recovered historical policy-creation DDL/i.test(walletAccountsPolicyBaseline) &&
+  /MUST NOT be applied to production/i.test(walletAccountsPolicyBaseline) &&
+  /CREATE POLICY wallet_accounts_finance_read[\\s\\S]*ON public\\.wallet_accounts[\\s\\S]*FOR SELECT[\\s\\S]*TO authenticated/i.test(walletAccountsPolicyBaseline) &&
+  /um\\.tenant_id::text = wallet_accounts\\.tenant_id::text/i.test(walletAccountsPolicyBaseline) &&
+  /um\\.status::text = 'ACTIVE'/i.test(walletAccountsPolicyBaseline) &&
+  /upper\\(um\\.role::text\\) = ANY/i.test(walletAccountsPolicyBaseline) &&
+  /OWNER[\\s\\S]*ADMIN[\\s\\S]*MANAGER[\\s\\S]*FINANCE[\\s\\S]*ACCOUNTANT[\\s\\S]*FINANCE_MANAGER/i.test(walletAccountsPolicyBaseline) &&
+  !/create\\s+table|\\bgrant\\b|\\brevoke\\b|insert\\s+into|copy\\s+(?:public|private)\\./i.test(walletAccountsPolicyBaseline);
+if (!walletAccountsPolicyMigration || walletAccountsPriorPolicyCreation || !walletAccountsPolicyBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, walletAccountsPolicyTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === walletAccountsPolicyVersion) ||
+    walletAccountsPolicyVersion >= walletAccountsPolicyMigration.name.slice(0, 14) ||
+    !/alter policy wallet_accounts_finance_read on public\\.wallet_accounts to authenticated;/i.test(walletAccountsPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: wallet_accounts finance-read test-only policy baseline, provenance, timestamp, or ordered ALTER POLICY contract is invalid.");
+  process.exit(1);
+}
+
 // Validate the catalog-derived finance-read policy missing from the historical source chain.
 // The table already exists in the replay; only this policy definition is injected test-only.
 const paymentEventsPolicyBaselinePath = "supabase/tests/baselines/payment_events_finance_read.sql";
