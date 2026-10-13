@@ -23,19 +23,30 @@ for (const id of ["S07_GATE_001", "S07_GATE_002", "S07_GATE_003", "S07_GATE_004"
 
 // Fail closed on source parity: launch gating alone is not enough to certify the
 // older gateway entrypoint. Require the v10 safety modules and ambiguity handling.
-for (const marker of [
+// Require real import declarations rather than matching helper filenames in comments.
+for (const modulePath of [
   "./provider-transport.ts",
   "./order-validation.ts",
   "./request-validation.ts",
   "./order-status.ts",
   "./catalog-normalization.ts",
+]) {
+  const escaped = modulePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(edge, new RegExp("\\bfrom\\s+[\"\']" + escaped + "[\"\']"),
+    `gateway source is not v10 safety-parity complete; missing import ${modulePath}`);
+}
+
+// Ignore comments when checking outcome markers so documentation alone cannot satisfy parity.
+const edgeWithoutComments = edge.replace(/\/\*[\s\S]*?\*\/|(^|[^:])\/\/.*$/gm, "$1");
+for (const marker of [
   "PROVIDER_RESULT_UNKNOWN",
   "WALLET_DEBIT_RESULT_UNKNOWN",
   "PROVIDER_ACCEPTED_PERSISTENCE_PENDING",
 ]) {
-  assert.ok(edge.includes(marker), `gateway source is not v10 safety-parity complete; missing ${marker}`);
+  assert.ok(new RegExp("\\b" + marker + "\\b").test(edgeWithoutComments),
+    `gateway source is not v10 safety-parity complete; missing outcome marker ${marker}`);
 }
-assert.doesNotMatch(edge, /smm_refund_wallet/, "ambiguous provider outcomes must not trigger automatic refund");
+assert.doesNotMatch(edgeWithoutComments, /smm_refund_wallet/, "ambiguous provider outcomes must not trigger automatic refund");
 
 // Source-level high-risk mutation points: no provider credential may be returned
 // from read actions, and user data reads must remain user-scoped.
