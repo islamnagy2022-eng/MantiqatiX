@@ -54,6 +54,9 @@ const missingHistoricalTables = [
   { table: "credit_accounts", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_accounts.sql" },
   { table: "credit_periods", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_periods.sql" },
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
+  // The next policy migration alters this table, but no earlier committed migration creates it.
+  // Do not infer its schema from the table name; require separately approved schema-only provenance first.
+  { table: "marketing_project_participants", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/marketing_project_participants.sql" },
   { table: "marketing_leads", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: marketingLeadsBaselinePath },
   { table: "account_registration_requests", before: "20260927065247_mnty_atomic_registration_review.sql", baselinePath: registrationBaselinePath },
   // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
