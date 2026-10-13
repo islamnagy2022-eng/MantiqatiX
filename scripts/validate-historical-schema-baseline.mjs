@@ -608,27 +608,27 @@ const smmOrdersBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(smmOrdersBaseline) &&
   /NOT recovered historical creation DDL/.test(smmOrdersBaseline) &&
   /MUST NEVER be applied to production/.test(smmOrdersBaseline) &&
-  /create table public\\.smm_orders/i.test(smmOrdersBaseline) &&
-  /id uuid primary key default gen_random_uuid\\(\\)/i.test(smmOrdersBaseline) &&
-  /user_id uuid not null references auth\\.users\\(id\\) on delete cascade/i.test(smmOrdersBaseline) &&
-  /service_id uuid not null references public\\.smm_services\\(id\\)/i.test(smmOrdersBaseline) &&
-  /quantity bigint not null check \\(quantity > 0\\)/i.test(smmOrdersBaseline) &&
-  /selling_price numeric\\(18,8\\) not null check \\(selling_price >= 0\\)/i.test(smmOrdersBaseline) &&
-  /provider_cost numeric\\(18,8\\) not null default 0 check \\(provider_cost >= 0\\)/i.test(smmOrdersBaseline) &&
-  /status text not null default 'PENDING'[\\s\\S]*'REFUNDED'[\\s\\S]*'FAILED'/i.test(smmOrdersBaseline) &&
-  /metadata jsonb not null default '\\{\\}'::jsonb/i.test(smmOrdersBaseline) &&
-  /create index smm_orders_status_idx on public\\.smm_orders\\(status, created_at desc\\)/i.test(smmOrdersBaseline) &&
-  /create index smm_orders_user_idx on public\\.smm_orders\\(user_id, created_at desc\\)/i.test(smmOrdersBaseline) &&
-  /alter table public\\.smm_orders enable row level security/i.test(smmOrdersBaseline) &&
-  /create policy smm_orders_owner_insert[\\s\\S]*for insert[\\s\\S]*to authenticated[\\s\\S]*with check \\(/i.test(smmOrdersBaseline) &&
-  /create policy smm_orders_owner_read[\\s\\S]*for select[\\s\\S]*to authenticated[\\s\\S]*auth\\.uid\\(\\)[\\s\\S]*user_id/i.test(smmOrdersBaseline) &&
-  !/^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(smmOrdersBaseline) &&
-  !/force row level security|\\bgrant\\b|\\btrigger\\b/i.test(smmOrdersBaseline);
+  /create table public\.smm_orders/i.test(smmOrdersBaseline) &&
+  /id uuid primary key default gen_random_uuid\(\)/i.test(smmOrdersBaseline) &&
+  /user_id uuid not null references auth\.users\(id\) on delete cascade/i.test(smmOrdersBaseline) &&
+  /service_id uuid not null references public\.smm_services\(id\)/i.test(smmOrdersBaseline) &&
+  /quantity bigint not null check \(quantity > 0\)/i.test(smmOrdersBaseline) &&
+  /selling_price numeric\(18,8\) not null check \(selling_price >= 0\)/i.test(smmOrdersBaseline) &&
+  /provider_cost numeric\(18,8\) not null default 0 check \(provider_cost >= 0\)/i.test(smmOrdersBaseline) &&
+  /status text not null default 'PENDING'[\s\S]*'REFUNDED'[\s\S]*'FAILED'/i.test(smmOrdersBaseline) &&
+  /metadata jsonb not null default '\{\}'::jsonb/i.test(smmOrdersBaseline) &&
+  /create index smm_orders_status_idx on public\.smm_orders\(status, created_at desc\)/i.test(smmOrdersBaseline) &&
+  /create index smm_orders_user_idx on public\.smm_orders\(user_id, created_at desc\)/i.test(smmOrdersBaseline) &&
+  /alter table public\.smm_orders enable row level security/i.test(smmOrdersBaseline) &&
+  /create policy smm_orders_owner_insert[\s\S]*for insert[\s\S]*to authenticated[\s\S]*with check \(/i.test(smmOrdersBaseline) &&
+  /create policy smm_orders_owner_read[\s\S]*for select[\s\S]*to authenticated[\s\S]*auth\.uid\(\)[\s\S]*user_id/i.test(smmOrdersBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+public\.)/im.test(smmOrdersBaseline) &&
+  !/force row level security|\bgrant\b|\btrigger\b/i.test(smmOrdersBaseline);
 if (!smmOrdersPolicyMigration || !smmOrdersBaselineValid ||
     fs.existsSync(path.join(migrationDirectory, smmOrdersTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === smmOrdersBaselineVersion) ||
     smmOrdersBaselineVersion >= smmOrdersPolicyMigration.name.slice(0, 14) ||
-    !/alter policy smm_orders_owner_read on public\\.smm_orders to authenticated;/i.test(smmOrdersPolicyMigration.sql)) {
+    !/alter policy smm_orders_owner_read on public\.smm_orders to authenticated;/i.test(smmOrdersPolicyMigration.sql)) {
   console.error("P0 BLOCKED: SMM orders live-derived baseline or chronological policy-alter contract is invalid.");
   process.exit(1);
 }
