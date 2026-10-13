@@ -1639,3 +1639,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P0 NOT VERIFIED:** exact-head run [38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354483080) is in progress at disposable Supabase service startup; no replay result yet.
 - [ ] Historical DDL provenance remains unresolved; the fixture is test-only and does not claim canonical history recovery. Do not merge or deploy based on a partial replay.
 - Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — Marketing leads migration-source gap
+
+- [x] Confirmed via read-only production catalog and migration ledger that `public.marketing_leads` exists with its live columns, FKs, checks, index, RLS/FORCE RLS and policies, but no canonical table-creation migration appears in the tracked source or live migration-name ledger.
+- [x] Added the test-only live-derived baseline `supabase/tests/baselines/marketing_leads.sql` and disposable-only temporary version `20260927140496` ahead of `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`. The validator and workflow verify provenance, exact-copy, untracked state, no operational rows, and required policy order.
+- [x] Fixed two replay harness defects: unstable Docker-container lookup and invalid `supabase migration up --local --version` usage. The latter printed CLI version instead of targeting a migration; the workflow now applies the ACL SQL directly for the isolated assertion before normal migration replay.
+- [ ] **P1 NOT VERIFIED:** latest replay [38356535239](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356535239) passed baseline validation/exact-copy checks and is still starting disposable Supabase; chronological replay has not completed.
+- [ ] Canonical historical DDL provenance remains unresolved. Test-only baseline is not a production migration and must not be applied to production.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
