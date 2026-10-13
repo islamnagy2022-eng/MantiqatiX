@@ -1609,3 +1609,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P0 / payments:** PR #220 S06-focused regression passed but its S04 migration replay failed; webhook replay binding, atomic event/state transitions, checked row counts and concurrent/fault-injection tests remain open.
 - [ ] **P1 / SMM CI:** PR #225 exact-head run still not found and PR base/filter mismatch remains; do not treat static validator source as CI or runtime proof.
 - **Release remains BLOCKED / NOT CERTIFIED.** No production changes, merge, deployment, or financial mutation.
+
+
+## Payment webhook main parity follow-up — 2026-10-13
+
+- [ ] **P0 / payment integrity:** current-main webhook blob `c03384ce019484b77139d924c4621f6b23903071` lacks the `.eq("status","PENDING")` predicate present on PR #220 candidate blob `04d502fb2e01b1f751e10f6ac68b4814ccf220d5`. Candidate still performs event insert and intent update separately and does not validate update errors/affected-row count. Require transactional DB RPC, replay binding checks, and concurrency/fault-injection tests; then verify deployed-source parity.
