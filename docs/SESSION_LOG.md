@@ -243,3 +243,7 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - This is replay compatibility scaffolding, not recovered historical DDL; it does not prove original function provenance. It does not change the initial-launch SMM feature freeze or add SMM product functionality.
 - Current candidate head after this implementation: ee839091a7494300a85eb094595549f136c47ac2. Exact-head replay run 38350836940 is pending; outcome NOT VERIFIED.
 - No production DDL, grants, function deployment, Auth/RLS changes, or rows were changed.
+
+### RC40 archive cross-check
+- Inspected uploaded `source_RC40.zip` locally (883 entries). The only `settlement_attempts` occurrence is the historical hardening migration `20260921154500_phase18_phase19_webhook_and_rls_hardening.sql`; it conditionally creates a restrictive session policy and creates `idx_payment_provider_events_payment_intent_id`, but does not create the table. No `smm_bootstrap_first_admin` definition exists in the archive.
+- Did not import the archive migration into the candidate: it bundles several unrelated policies/indexes and requires a separate source/ledger reconciliation before reuse.
