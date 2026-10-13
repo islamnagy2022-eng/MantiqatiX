@@ -193,6 +193,21 @@ begin
     raise exception 'authenticated role must retain intended RPC entrypoint grants; authorization is enforced inside each RPC';
   end if;
 
+  -- Reassert the simulated request identity immediately before the mutating RPC.
+  -- If this fails, the error distinguishes fixture/session context from RPC authorization.
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
+  if auth.uid() is distinct from platform_admin then
+    raise exception 'test fixture identity drift before settlement: auth.uid=% expected=%',auth.uid(),platform_admin;
+  end if;
+  if not public.mnty_can_platform_admin() then
+    raise exception 'platform guard false immediately before settlement: uid=%, matching_active_platform_memberships=%',
+      auth.uid(),
+      (select count(*) from public.user_memberships m
+       where m.user_id=platform_admin and m.tenant_id='MNTY-PLATFORM' and m.status='ACTIVE'
+         and upper(m.role)='SUPER_ADMIN'
+         and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb);
+  end if;
+
   -- Authorized platform-admin settlement is persisted and replay-safe.
   result := public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
   if result->>'settlement_status' <> 'SETTLED' or coalesce((result->>'idempotent')::boolean,true) then
