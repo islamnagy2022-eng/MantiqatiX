@@ -1,0 +1,40 @@
+name: SMM Gateway Security Regression
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/functions/smm-gateway/**"
+      - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
+      - "supabase/tests/rc456_smm_service_role_*.sql"
+      - "scripts/validate-smm-gateway-security.mjs"
+      - ".github/workflows/smm-gateway-security-regression.yml"
+  pull_request:
+    branches: [main, "docs/rc521-admin-operations-discovery-20261013"]
+    paths:
+      - "supabase/functions/smm-gateway/**"
+      - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
+      - "supabase/tests/rc456_smm_service_role_*.sql"
+      - "scripts/validate-smm-gateway-security.mjs"
+      - ".github/workflows/smm-gateway-security-regression.yml"
+permissions:
+  contents: read
+jobs:
+  source-and-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Validate SMM security contract
+        run: node scripts/validate-smm-gateway-security.mjs
+      - name: Validate service-role ACL boundary
+        run: node scripts/validate-smm-service-role-boundary.mjs
+      - name: Deno type check
+        run: deno check --no-lock supabase/functions/smm-gateway/index.ts
+      - name: SMM unit and negative-input tests
+        run: deno test --no-lock supabase/functions/smm-gateway/smm-gateway.test.ts
