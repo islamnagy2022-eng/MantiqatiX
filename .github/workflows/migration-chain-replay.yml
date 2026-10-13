@@ -90,7 +90,7 @@ jobs:
           general_ledger_policy_migration="supabase/migrations/20260927140497_test_only_live_derived_general_ledger_finance_read.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
           smm_bootstrap_migration="supabase/migrations/20260927033924_test_only_live_derived_smm_bootstrap_first_admin.sql"
-          smm_wallets_migration="supabase/migrations/20261011009999_test_only_live_derived_smm_wallets_baseline.sql"
+          smm_wallets_migration="supabase/migrations/20260927140487_test_only_live_derived_smm_wallets_baseline.sql"
           smm_wallet_transactions_migration="supabase/migrations/20260927140488_test_only_live_derived_smm_wallet_transactions_baseline.sql"
           smm_services_migration="supabase/migrations/20260927140489_test_only_live_derived_smm_services_baseline.sql"
           smm_orders_migration="supabase/migrations/20260927140490_test_only_live_derived_smm_orders_baseline.sql"
