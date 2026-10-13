@@ -60,15 +60,41 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  const {data:mantigo}=await admin.from("mantigo_financial_ledger").select("id,ride_id,customer_id,currency,gross_amount,payment_status,settlement_status").eq("id",merchantRef).maybeSingle();
  if(mantigo){
    if(Math.abs(Number(mantigo.gross_amount)-amount)>0.01||String(mantigo.currency).toUpperCase()!==currency)return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
-   const {data:existingM}=await admin.from("payment_provider_events").select("id").eq("provider","PAYMOB").eq("external_event_id",eventId).maybeSingle();
-   if(existingM)return json({ok:true,idempotent:true,requestId},200,requestId);
    const nextStatus=success?"PAID":"FAILED";
-   const {error:ee}=await admin.from("payment_provider_events").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",provider:"PAYMOB",event_type:"MANTIGO_RIDE_PAYMENT",payment_intent_id:mantigo.id,external_event_id:eventId,status:nextStatus,signature_verified:true,raw_payload:raw,processed_at:new Date().toISOString()});
-   if(ee)return json({error:"MANTIGO_PROVIDER_EVENT_PERSISTENCE",requestId},500,requestId);
-   const {error:le}=await admin.from("mantigo_financial_ledger").update({payment_status:nextStatus,payment_reference:eventId,provider_transaction_id:value(obj.id),payment_confirmed_at:success?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq("id",mantigo.id).eq("payment_status","PENDING");
-   if(le)return json({error:"MANTIGO_PAYMENT_UPDATE_FAILED",requestId},500,requestId);
-   await admin.from("notifications").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",user_id:mantigo.customer_id,type:"MANTIGO_PAYMENT",title:success?"تم تأكيد الدفع":"تعذر تأكيد الدفع",body:success?"تم تأكيد الدفع الإلكتروني للرحلة.":"تعذر تأكيد الدفع الإلكتروني للرحلة.",entity_type:"MANTIGO_RIDE",entity_id:mantigo.ride_id});
-   return json({ok:true,status:nextStatus,requestId},200,requestId);
+   // RC425 owns the transaction across the MantiGO ledger, dedicated provider-event table,
+   // and customer notification. payment_provider_events.payment_intent_id references marketplace
+   // payment_intents, so a MantiGO ledger ID must never be written into that column.
+   // Pass only the signed fields needed for server-side binding; do not persist card/source details.
+   const boundPayload={
+    provider:"PAYMOB",
+    transaction_id:value(obj.id),
+    merchant_order_id:merchantRef,
+    provider_order_id:paymobOrderId,
+    amount_cents:value(obj.amount_cents),
+    currency,
+    success
+   };
+   const {data:processed,error:processingError}=await admin.rpc("process_verified_mantigo_payment_backend",{
+    p_ledger_id:mantigo.id,
+    p_external_event_id:eventId,
+    p_status:nextStatus,
+    p_signature_verified:true,
+    p_amount:amount,
+    p_currency:currency,
+    p_provider_transaction_id:value(obj.id),
+    p_raw_payload:boundPayload
+   });
+   if(processingError){
+    console.error("MANTIGO_PAYMENT_PROCESSING_FAILED",requestId,processingError.code||"RPC_ERROR");
+    return json({error:"MANTIGO_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
+   }
+   return json({
+    ok:true,
+    status:value(processed?.status)||nextStatus,
+    idempotent:processed?.idempotent===true,
+    alreadyFinal:processed?.already_final===true,
+    requestId
+   },200,requestId);
  }
 const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash").eq("id",merchantRef).maybeSingle()
  const {data:intentByOrder}=intentByRef?{data:null}:await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
