@@ -1,0 +1,73 @@
+name: Digital Page Provider Order Binding Regression
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/functions/digital-page-payment-intent/index.ts"
+      - "scripts/validate-digital-pages-boundaries.mjs"
+      - "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql"
+      - "supabase/tests/rc426_digital_page_finalizer_*.sql"
+      - ".github/workflows/digital-page-provider-order-binding-regression.yml"
+  pull_request:
+    branches: [main, "docs/rc521-admin-operations-discovery-20261013"]
+    paths:
+      - "supabase/functions/digital-page-payment-intent/index.ts"
+      - "scripts/validate-digital-pages-boundaries.mjs"
+      - "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql"
+      - "supabase/tests/rc426_digital_page_finalizer_*.sql"
+      - ".github/workflows/digital-page-provider-order-binding-regression.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Validate digital-page payment boundary
+        run: node scripts/validate-digital-pages-boundaries.mjs
+      - name: Type-check checkout Edge Function
+        run: deno check --no-lock supabase/functions/digital-page-payment-intent/index.ts
+
+  disposable-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc426_finalizer_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc426_finalizer_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify provider-order finalization and legacy overload revocation
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_finalizer_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_finalizer_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_finalizer_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc426_digital_page_finalizer_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql "$pg_container:/tmp/rc426.sql"
+          docker cp supabase/tests/rc426_digital_page_finalizer_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_finalizer_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_finalizer_test -v ON_ERROR_STOP=1 -f /tmp/rc426.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_finalizer_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
