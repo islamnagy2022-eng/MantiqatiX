@@ -340,3 +340,36 @@ A fresh SELECT-only aggregate over the same S03 scope (excluding the four S02-ow
 The role counts overlap: the single anon-executable function is also authenticated-executable. This inventory confirms the scoped search-path property only; it does not prove correct authorization, least-privilege output fields, safe state transitions, or API schema reachability. The GitHub combined commit-status query for the latest audit commit returned no status entries; this is **not** evidence of CI passing.
 
 No production mutation, migration, privilege change, application RPC invocation, merge, or deployment occurred. Behavioral tests remain unexecuted pending an isolated test environment.
+
+
+## Follow-up read-only verification (2026-10-13, continued)
+
+### Migration-ledger cross-check
+
+A fresh Supabase migration-ledger read confirms that the latest applied migration reported by the connector is `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). The following source migrations previously identified as relevant are still absent from the returned production ledger:
+
+- `20261010060000_rc446_mantigo_open_ride_privacy_boundary`
+- `20261010200000_rc451_targeted_ads_empty_search_path`
+
+This is a **source/production migration drift signal**, not by itself proof that either source migration is safe or required for production. Before any deployment decision, inspect their complete SQL, dependencies, and release ordering, then validate in an isolated database. No migration was applied.
+
+### Private-schema callable helper grants
+
+A fresh catalog query confirms these private SECURITY DEFINER helpers are executable by `authenticated`, while `anon` has neither `private` schema USAGE nor function EXECUTE:
+
+- `private.can_read_indrive_bid`
+- `private.can_read_indrive_request`
+- `private.can_submit_indrive_bid`
+- `private.legal_is_admin` (two overloads)
+- `private.upsert_mnty_push_subscription`
+- `private.disable_mnty_push_subscription`
+
+The inspected helpers have explicit function settings: the InDrive predicate helpers and legal helper use an empty `search_path`; push subscription helpers use `search_path=public`. These grants are PostgreSQL privilege facts only. They do **not** establish that PostgREST exposes the `private` schema, nor that direct invocation is possible through the HTTP API. API schema configuration and call paths remain unverified. The push upsert's endpoint-conflict reassignment remains a contract question, not a confirmed vulnerability.
+
+### Updated disposition
+
+- Production reads only: migration ledger and function/schema privilege catalog.
+- Production mutations, business RPC execution, grants/revokes, migrations, deployments, merges: **none**.
+- Test execution: **not run**; SQL scripts remain unverified at runtime.
+- Confirmed exploitable findings: **0 based on evidence collected**, which must not be interpreted as proof of no vulnerabilities.
+- Release decision: **BLOCKED — NOT CERTIFIED** pending isolated runtime tests, field-level data contract review, schema/API exposure confirmation, and reconciliation of source migrations with production.
