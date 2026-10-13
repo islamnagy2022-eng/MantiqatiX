@@ -123,21 +123,11 @@ declare
   v_ride_status text;
   v_result jsonb;
 begin
-  if p_admin_user_id is null or p_admin_user_id <> auth.uid() then
+  if p_admin_user_id is null or auth.uid() is null or p_admin_user_id <> auth.uid() then
     raise exception 'USER_CONTEXT_MISMATCH';
   end if;
   if not public.mnty_can_platform_admin() then
-    -- TEMPORARY DISPOSABLE-TEST DIAGNOSTIC. Remove before release; no production apply.
-    raise exception 'PLATFORM_ADMIN_REQUIRED'
-      using detail = pg_catalog.format(
-        'settlement guard denied: uid=%s, matching_platform_admin_rows=%s, current_user=%s',
-        auth.uid(),
-        (select count(*) from public.user_memberships m
-         where m.user_id=auth.uid() and m.tenant_id='MNTY-PLATFORM' and m.status='ACTIVE'
-           and upper(m.role)='SUPER_ADMIN'
-           and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb),
-        current_user
-      );
+    raise exception 'PLATFORM_ADMIN_REQUIRED';
   end if;
 
   select r.status into v_ride_status
@@ -200,7 +190,7 @@ declare
   v_count integer := 0;
   v_ride record;
 begin
-  if p_admin_user_id is null or p_admin_user_id <> auth.uid() then
+  if p_admin_user_id is null or auth.uid() is null or p_admin_user_id <> auth.uid() then
     raise exception 'USER_CONTEXT_MISMATCH';
   end if;
   if not public.mnty_can_platform_admin() then
