@@ -1580,3 +1580,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **Required tests:** same provider event ID against a different intent/order, conflicting terminal status, concurrent duplicate requests, late failure after success, forced failure between event/state writes, and zero-row conditional update. Then run Paymob sandbox reconciliation.
 - **Coordination:** review posted to [PR #220 comment 6138530408](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138530408). S06-owned files were not edited.
 - **Release:** remains `BLOCKED / NOT CERTIFIED`.
+
+
+## Session C live SMM evidence refresh — 2026-10-13
+
+- **SOURCE VERIFIED / RUNTIME NOT VERIFIED:** live `smm-gateway` is ACTIVE v10, `verify_jwt=true`, SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. Deployed bundle hard-codes `SMM_INITIAL_LAUNCH_DEFERRED=true` and checks the gate before authentication; non-OPTIONS POST should return `503 SMM_DEFERRED` without DB/provider/wallet work.
+- [ ] **Remaining:** capture a safe approved live/staging negative HTTP probe and side-effect evidence; verify exact source parity. Do not mark runtime PASS based only on source.
+- **Verified live ledger:** 283 migrations, ending `20261008222845 / rc424_atomic_digital_page_payment_webhook`; newer source migrations are not thereby applied.
