@@ -152,3 +152,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Source commit: `0ede84686f0fc68fa9b6f544e86c8692916e41fd`.
 - RC450/RC457 remain unverified until a run containing RC536 finishes. Continue treating all fixtures as isolated test-only baseline models, not production schema changes.
 - No production database changes, migrations, grants, auth/RLS changes, deployments, merge, or release. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC537 — Focused migration integration green — 2026-10-13
+
+- Confirmed completed run `38328375015` (source commit `0ede84686f0fc68fa9b6f544e86c8692916e41fd`) for `Recovered Migration Focused Integration`.
+- All 13 jobs passed: RC434 receiving, Security Definer search path, subscription intent, checkout recovery, MantiGO Paymob atomicity, ERP branch scope, digital-page payment binding, MantiGO platform-admin scope, RC523 financial report, RC457 journal convergence, RC450 journal scope, RC437 order lines, and RC436 journal integration.
+- The RC450/RC457 fixture corrections therefore progressed through the intended disposable-PostgreSQL test chain successfully.
+- Scope of evidence: focused CI integration only. This is not proof of full chronological production migration replay, deployed Edge Function parity, production tenant isolation, real payment/settlement E2E, backup restore, or signed device release.
+- PR #218 remains OPEN / DRAFT / UNMERGED. No production migration, production database write, grant/RLS/Auth change, Edge Function deployment, financial mutation, merge, or release was performed. Release remains BLOCKED / NOT CERTIFIED pending remaining exact-head checks and mandatory production gates.
