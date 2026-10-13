@@ -39,6 +39,7 @@
   "smm_acl_boundary": "NOT VERIFIED",
   "smm_order_refund_safety": "NOT VERIFIED",
   "smm_provider_timeout_safety": "NOT VERIFIED",
+  "smm_order_idempotency": "NOT VERIFIED",
   "smm_initial_launch_scope": {
     "decision": "DEFERRED_NOT_IN_INITIAL_LAUNCH",
     "internal_marketing_and_advertising_module": "IN_SCOPE",
