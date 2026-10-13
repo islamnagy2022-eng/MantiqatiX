@@ -1593,3 +1593,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Add/verify focused behavioral tests for the restored migrations before any release approval.
 - Safety: no production database changes, no migration-ledger edits, no Edge Function deployment, no financial/wallet mutations, no merge/release.
 - Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC525 — Restore focused migration integration coverage — 2026-10-13
+
+- [x] Restored disposable PostgreSQL fixtures and integration SQL for RC425, RC431, RC434, RC435, RC436, RC439, and RC440 from the reconciled branch.
+- [x] Added .github/workflows/recovered-migration-focused-integration.yml with seven isolated integration jobs for those contracts.
+- [ ] Exact-head CI is queued at SHA d4403cc8c7c9dca8fe0bcacdb5897da58f56c4b8; do not mark any job passed until its completed result is observed.
+- [ ] RC432 SMM wallet contract remains deferred; full ordered migration replay and earlier legacy function DDL dependencies remain unresolved.
+- [ ] Production E2E, migration approval/application, tenant isolation, payment/finance E2E, Auth/security, backup/restore and device release gates remain open.
+- Safety: source and CI only; no production mutation, migration application, Edge Function deployment, financial transaction, merge, or release.
+- Release state: BLOCKED / NOT CERTIFIED.
