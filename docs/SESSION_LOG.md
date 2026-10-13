@@ -118,3 +118,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - RC531 — Migration-order review correction (2026-10-13): a manual review initially misread the timestamps for RC446 (`20261010060000`, 06:00) and RC442 (`20261010120000`, 12:00). The original order RC446 → RC442 was chronological; the temporary reordering was reverted in both the production verifier and migration-chain gate. Re-fetched both files from the branch and programmatically checked all 33 entries: both lists are sorted by the 14-digit filename timestamp, have no ordering violations, and match each other exactly. This is source-level verification only; exact-head CI remains required.
+
+
+- RC532 — Add source-contract checks for RC523 guard (2026-10-13): extended `scripts/validate-production-migration-chain-gate.mjs` to assert the report RPC explicitly rejects a null `p_admin_user_id` and to assert the focused regression test checks for a non-null response. Confirmed `.github/workflows/pages.yml` invokes this gate. This prevents accidental source regression but does not replace runtime negative tests for null/mismatched actors; those test-file changes remain blocked. Exact-head CI is still queued and no pass is claimed.
