@@ -10,6 +10,10 @@ on:
       - "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql"
       - "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql"
       - "scripts/validate-paymob-webhook-atomic-transitions.mjs"
+      - "supabase/tests/rc425_mantigo_paymob_fixture.sql"
+      - "supabase/tests/rc425_mantigo_paymob_integration.sql"
+      - "supabase/tests/rc428_430_paymob_atomic_fixture.sql"
+      - "supabase/tests/rc428_430_paymob_atomic_integration.sql"
       - ".github/workflows/paymob-webhook-atomic-transitions.yml"
   pull_request:
     branches: [main, "docs/rc521-admin-operations-discovery-20261013"]
