@@ -5,8 +5,6 @@ const migrationDirectory = "supabase/migrations";
 const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
 const adminsBaselinePath = "supabase/tests/baselines/smm_admins.sql";
-const providerOnboardingBaselinePath = "supabase/tests/baselines/provider_onboarding_requests.sql";
-const providerOnboardingBaselineVersion = "20261001163708";
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests_schema.sql";
 const registrationSecurityBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
@@ -73,8 +71,6 @@ const missingHistoricalTables = [
   { table: "smm_orders", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_orders.sql" },
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
   { table: "smm_wallets", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_wallets.sql" },
-  // The source-timestamped authority migration runs before the later canonical CREATE TABLE file; replay aliases it to the live ledger order.
-  { table: "provider_onboarding_requests", before: "20261001090000_harden_provider_onboarding_authority.sql", baselinePath: providerOnboardingBaselinePath },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -988,7 +984,7 @@ const createsAdminsTable = migrations.some(({ sql }) =>
   /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_admins"?\b/i.test(sql)
 );
 
-for (const baselinePath of [adminsBaselinePath, providerBaselinePath, credentialsBaselinePath, providerOnboardingBaselinePath]) {
+for (const baselinePath of [adminsBaselinePath, providerBaselinePath, credentialsBaselinePath]) {
   if (!fs.existsSync(baselinePath)) {
     console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
     process.exit(1);
@@ -1026,16 +1022,7 @@ const adminsChecks = [
   ["admin baseline has approved source provenance and test-only warning", /2026-10-14/i.test(adminsBaseline) && /moyhiluyhjsujhwlyeuu/i.test(adminsBaseline) && /read-only PostgreSQL catalog introspection/i.test(adminsBaseline) && /NOT recovered historical DDL/i.test(adminsBaseline) && /Never apply this file to production/i.test(adminsBaseline)],
   ["admin baseline contains no production data or operational mutations", !/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+public\.)/im.test(adminsBaseline)],
 ];
-const providerOnboardingBaseline = fs.readFileSync(providerOnboardingBaselinePath, "utf8");
-const providerOnboardingAuthority = migrations.find(({ name }) => name === "20261001090000_harden_provider_onboarding_authority.sql");
-const providerOnboardingCreate = migrations.find(({ name }) => name === "20261001164200_provider_onboarding_final.sql");
-const providerOnboardingChecks = [
-  ["provider onboarding baseline provenance and non-production warning", /2026-10-14/i.test(providerOnboardingBaseline) && /moyhiluyhjsujhwlyeuu/i.test(providerOnboardingBaseline) && /read-only PostgreSQL catalog introspection/i.test(providerOnboardingBaseline) && /NOT recovered historical DDL/i.test(providerOnboardingBaseline) && /Never apply this file to production/i.test(providerOnboardingBaseline)],
-  ["provider onboarding baseline schema shape, keys, checks and foreign keys", /id uuid not null default gen_random_uuid\(\)/i.test(providerOnboardingBaseline) && /registration_request_id uuid not null/i.test(providerOnboardingBaseline) && /primary key \(id\)/i.test(providerOnboardingBaseline) && /unique \(registration_request_id\)/i.test(providerOnboardingBaseline) && /references public\.account_registration_requests\(id\)\s*on delete cascade/i.test(providerOnboardingBaseline) && /references auth\.users\(id\)\s*on delete cascade/i.test(providerOnboardingBaseline) && /provider_onboarding_requests_status_check[\s\S]*PENDING[\s\S]*APPROVED[\s\S]*REJECTED[\s\S]*CANCELLED/i.test(providerOnboardingBaseline)],
-  ["provider onboarding baseline is schema-only and leaves policies to chronology", /enable row level security/i.test(providerOnboardingBaseline) && !/force row level security|create policy/i.test(providerOnboardingBaseline) && !/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+(?:public|private)\.)/im.test(providerOnboardingBaseline)],
-  ["provider onboarding baseline precedes the normalized authority migration without colliding with source history", providerOnboardingBaselineVersion < "20261001164107" && !!providerOnboardingAuthority && !!providerOnboardingCreate && !migrations.some(({name})=>name.slice(0,14)===providerOnboardingBaselineVersion) && !fs.existsSync(path.join(migrationDirectory, providerOnboardingBaselineVersion + "_test_only_approved_provider_onboarding_requests_baseline.sql"))],
-];
-const failed = [...providerChecks, ...credentialsChecks, ...adminsChecks, ...providerOnboardingChecks].filter(([, ok]) => !ok);
+const failed = [...providerChecks, ...credentialsChecks, ...adminsChecks].filter(([, ok]) => !ok);
 if (failed.length) {
   for (const [name] of failed) console.error("P0 BLOCKED: test baseline validation failed: " + name);
   process.exit(1);
@@ -1186,7 +1173,6 @@ for (const [version, temporaryName] of [
   [providerBaselineVersion, providerBaselineVersion + "_test_only_approved_smm_providers_baseline.sql"],
   [credentialsBaselineVersion, credentialsBaselineVersion + "_test_only_approved_smm_provider_credentials_baseline.sql"],
   [adminsBaselineVersion, adminsBaselineVersion + "_test_only_approved_smm_admins_baseline.sql"],
-  [providerOnboardingBaselineVersion, providerOnboardingBaselineVersion + "_test_only_approved_provider_onboarding_requests_baseline.sql"],
 ]) {
   if (fs.existsSync(path.join(migrationDirectory, temporaryName))) {
     console.error("P0 BLOCKED: temporary test-only migration filename already exists in repository: " + temporaryName);
