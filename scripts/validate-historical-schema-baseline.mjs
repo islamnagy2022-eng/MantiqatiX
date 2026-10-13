@@ -62,6 +62,8 @@ const missingHistoricalTables = [
   // remains owned by its chronological migration and is never duplicated in this fixture.
   { table: "settlement_attempts", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/settlement_attempts.sql" },
   { table: "payment_provider_events", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/payment_provider_events.sql" },
+  // The archived source changes this live RLS policy but does not create its table.
+  { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -587,6 +589,41 @@ if (!smmBootstrapLockdownMigration || smmBootstrapPriorCreation || !smmBootstrap
     smmBootstrapBaselineVersion >= smmBootstrapLockdownMigration.name.slice(0, 14) ||
     !/revoke execute on function public\.smm_bootstrap_first_admin\(\) from public, anon, authenticated;/i.test(smmBootstrapLockdownMigration.sql)) {
   console.error("P0 BLOCKED: live-derived smm_bootstrap_first_admin fixture or its ordered EXECUTE lockdown contract is invalid.");
+  process.exit(1);
+}
+
+// Validate the live-derived SMM order-event table and owner-read policy required by
+// the historical migration that alters this policy. This fixture is schema-only and
+// exists only in the disposable replay; it does not grant access or insert rows.
+const smmOrderEventsBaselinePath = "supabase/tests/baselines/smm_order_events.sql";
+const smmOrderEventsBaseline = fs.readFileSync(smmOrderEventsBaselinePath, "utf8");
+const smmOrderEventsPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const smmOrderEventsBaselineVersion = "20260927140491";
+const smmOrderEventsTemporaryName = smmOrderEventsBaselineVersion + "_test_only_live_derived_smm_order_events_baseline.sql";
+const smmOrderEventsBaselineValid =
+  /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(smmOrderEventsBaseline) &&
+  /2026-10-13/.test(smmOrderEventsBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(smmOrderEventsBaseline) &&
+  /NOT recovered historical creation DDL/.test(smmOrderEventsBaseline) &&
+  /MUST NEVER be applied to production/.test(smmOrderEventsBaseline) &&
+  /create table public\\.smm_order_events/i.test(smmOrderEventsBaseline) &&
+  /id uuid primary key default gen_random_uuid\\(\\)/i.test(smmOrderEventsBaseline) &&
+  /order_id uuid not null references public\\.smm_orders\\(id\\) on delete cascade/i.test(smmOrderEventsBaseline) &&
+  /event_type text not null/i.test(smmOrderEventsBaseline) &&
+  /payload jsonb not null default '\\{\\}'::jsonb/i.test(smmOrderEventsBaseline) &&
+  /created_at timestamptz not null default now\\(\\)/i.test(smmOrderEventsBaseline) &&
+  /alter table public\\.smm_order_events enable row level security/i.test(smmOrderEventsBaseline) &&
+  /create policy smm_order_events_owner_read[\\s\\S]*for select[\\s\\S]*to authenticated[\\s\\S]*o\\.id = smm_order_events\\.order_id[\\s\\S]*o\\.user_id = \\(select auth\\.uid\\(\\)\\)/i.test(smmOrderEventsBaseline) &&
+  !/^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(smmOrderEventsBaseline) &&
+  !/force row level security|\\bgrant\\b|\\btrigger\\b/i.test(smmOrderEventsBaseline);
+if (!smmOrderEventsPolicyMigration || !smmOrderEventsBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, smmOrderEventsTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === smmOrderEventsBaselineVersion) ||
+    smmOrderEventsBaselineVersion >= smmOrderEventsPolicyMigration.name.slice(0, 14) ||
+    !/alter policy smm_order_events_owner_read on public\\.smm_order_events to authenticated;/i.test(smmOrderEventsPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: SMM order-event live-derived baseline or chronological policy-alter contract is invalid.");
   process.exit(1);
 }
 
