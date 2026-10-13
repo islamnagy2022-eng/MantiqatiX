@@ -209,3 +209,34 @@
 - This does **not** certify post-launch SMM functionality, provider safety, service-role grants, or the full release. Do not enable SMM or alter environment flags without a separately reviewed and approved post-launch release.
 - Read-only production MantiGO catalog checks still confirm the four global admin/report/settlement/expiry RPCs remain callable by `authenticated`, SECURITY DEFINER, `search_path=public`, and missing `mnty_can_platform_admin()`. Those are independent P0 blockers.
 - No deployment or production mutation was performed during this check.
+
+
+## Latest CI and financial schema-lineage checkpoint — 2026-10-13 05:11 UTC
+
+### SMM security regression CI
+- Run [#38349997044](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349997044) completed **SUCCESS** for the SMM code revision `b1c43c1affeffd44e7e44d4ce07b554bc59a354d`, checked out as synthetic merge commit `55974e2` with base `77012649e41fe22077538c39cd8593bf696ab33e`.
+- Verified steps: SMM source-contract validator, service-role ACL boundary validator, Deno type check, and SMM unit/negative-input tests all **PASS**.
+- The first run on the previous code revision failed because the static validator searched `provider-transport.ts` for `redirect:"error"`, while the actual `fetch()` call and redirect option live in `index.ts`. Corrected the assertion to inspect the actual call site; the next run passed all four steps.
+- A subsequent documentation-only commit `3d9f4f8027ddc994f7b00208e94d4be63e1a2707` updated this continuation record. The SMM workflow path filter does not include this documentation file; the tested runtime/validator files did not change after the successful run. Do not describe this as a test run on the documentation commit itself.
+
+### Latest chronological replay result
+- PR #207 exact candidate head `5221973aad1cb37ebd411e6d896c57732da111d3` was tested as synthetic merge commit `5637e65` against `main`.
+- Run [#38349796102](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349796102) passed the historical-schema preflight and test-only fixture copy/untracked guards, successfully started the disposable Supabase stack, then failed during chronological replay at `20260920211717_security_definer_surface_reduction_and_finance_rls.sql`:
+  `ERROR: relation "public.settlement_attempts" does not exist (SQLSTATE 42P01)`.
+- This is a newly exposed financial schema-lineage dependency. The run is **FAIL**, not a replay pass.
+
+### Read-only production evidence for settlement_attempts
+- `public.settlement_attempts` exists in production, owned by `postgres`, with RLS enabled and FORCE RLS enabled.
+- Read-only column/constraint/index/policy/grant queries returned schema metadata only; no settlement rows or financial values were queried.
+- Columns: `id varchar NOT NULL`, `tenant_id varchar NOT NULL`, `obligation_id varchar NOT NULL`, `provider varchar NOT NULL`, `destination_id varchar NULL`, `amount numeric(14,4) NOT NULL`, `currency varchar(8) NOT NULL`, `status varchar NOT NULL DEFAULT 'PENDING'`, `external_reference varchar NULL`, `failure_code varchar NULL`, `failure_message text NULL`, `created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP`, `updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP`.
+- Constraints: PK `id`; FK `tenant_id -> tenants(id) ON DELETE RESTRICT`; FK `obligation_id -> financial_obligations(id) ON DELETE RESTRICT`; nullable `destination_id -> payout_destinations(id) ON DELETE RESTRICT`; unique `(obligation_id, external_reference)`; check `amount > 0`.
+- Indexes: PK index; unique index `(obligation_id, external_reference)`; `idx_settlement_attempts_obligation` on `(obligation_id, created_at DESC)`.
+- RLS policy: `settlement_attempts_finance_read`, SELECT for `authenticated`, constrained through the related obligation and an ACTIVE membership with role OWNER/ADMIN/FINANCE/ACCOUNTANT/FINANCE_MANAGER. Direct table grants reported to `service_role` were REFERENCES/TRIGGER/TRUNCATE only; no SELECT/INSERT/UPDATE/DELETE grants to ordinary API roles appeared in the returned matrix.
+- This catalog snapshot is evidence for a possible **disposable-only** compatibility baseline, not recovered historical creation DDL. No such baseline was created or injected in this session; the existing explicit approvals for SMM and credit fixtures do not automatically authorize a new financial settlement fixture. Next safe action is to recover authoritative historical DDL or obtain explicit approval for a clearly labeled schema-only disposable baseline.
+
+### Current overall status
+- SMM handler containment: **PASS by deployed-source inspection**; live Edge Function is ACTIVE v10, `verify_jwt=true`, SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`, and its entrypoint is byte-for-byte identical after newline normalization to PR #218 source, including `SMM_INITIAL_LAUNCH_DEFERRED=true`. It returns 503 before identity lookup/body parsing/provider/wallet/order side effects.
+- SMM source/unit CI: **PASS** on the tested code revision above; no live HTTP side-effect test was run.
+- PR #207 migration replay: **FAIL / BLOCKED** at `settlement_attempts` dependency.
+- Live MantiGO platform authorization: **BLOCKED**; four global admin/report/settlement/expiry RPCs remain authenticated-executable SECURITY DEFINER functions with `search_path=public` and no platform-admin guard.
+- Production release: **BLOCKED / NOT CERTIFIED**.
