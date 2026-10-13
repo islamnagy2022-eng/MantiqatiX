@@ -22,8 +22,13 @@
 
 ## Verification status
 
-- Static source contract: passed in the dedicated workflow before database setup.
-- Isolated PostgreSQL migration/test: **IN PROGRESS** at run [38354852342](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354852342) as of this report.
+- **PASS — exact tested code head** `66ad6dd87e543790b8bff7474aca5bf9d8f28ee7`.
+- Dedicated workflow [#38355012716](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38355012716) completed successfully.
+- Static source contract: PASS.
+- Deno type-check of `supabase/functions/paymob-webhook/index.ts`: PASS.
+- Isolated PostgreSQL schema fixture + candidate migration: PASS.
+- Regression tests: PASS for success, exact replay, amount mismatch, cross-ledger event-key conflict, rollback after forced ledger-write failure, service-role restriction, and legacy event repair.
+- This verifies the candidate RPC and source contract in isolation only; it does not prove a real Paymob transaction, normal-order/subscription failure-path correctness, notification delivery, or full application migration replay.
 - Full application migration replay: independently blocked on missing historical schema/function sources; this candidate does not resolve that separate issue.
 - Production release: **BLOCKED / NOT CERTIFIED**.
 
