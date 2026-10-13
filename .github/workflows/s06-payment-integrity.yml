@@ -44,6 +44,11 @@ jobs:
           node-version: "22"
       - name: Record exact tested source revision
         run: git rev-parse HEAD
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Paymob webhook runtime
+        run: deno check --no-lock supabase/functions/paymob-webhook/index.ts
       - name: Run S06 webhook and payment-intent source regressions
         run: node --test tests/s06-payment-integrity.test.mjs
       - name: Prepare disposable PostgreSQL roles and fixture
