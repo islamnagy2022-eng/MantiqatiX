@@ -199,3 +199,13 @@
 3. Keep PR #225 draft and unmerged; verify SMM on exact SHA via the actual Actions run page if the connector still cannot expose push-triggered runs.
 4. Continue P0 payment/webhook and tenant-isolation review on disposable tests, without overlapping files owned by PR #207.
 5. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Read-only live SMM deployment parity recheck — 2026-10-13 05:09 UTC
+
+- Supabase Edge Function inventory reports `smm-gateway` **ACTIVE, version 10**, `verify_jwt=true`, entrypoint SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`.
+- Retrieved the deployed Edge Function source read-only. Its `index.ts` is **byte-for-byte identical after newline normalization** to `supabase/functions/smm-gateway/index.ts` at PR #218 base head `77012649e41fe22077538c39cd8593bf696ab33e`: both are 19,650 characters in the API response and both contain `const SMM_INITIAL_LAUNCH_DEFERRED=true`.
+- The live handler checks HTTP method, computes the two-flag launch decision, then returns HTTP 503 `SMM_DEFERRED` before verified-user lookup, JSON body parsing, provider calls, order writes, or wallet RPCs. This is current deployed-source evidence that the SMM storefront API is contained at the handler entrypoint; it supersedes older notes referring to live version 6 as the current version.
+- This does **not** certify post-launch SMM functionality, provider safety, service-role grants, or the full release. Do not enable SMM or alter environment flags without a separately reviewed and approved post-launch release.
+- Read-only production MantiGO catalog checks still confirm the four global admin/report/settlement/expiry RPCs remain callable by `authenticated`, SECURITY DEFINER, `search_path=public`, and missing `mnty_can_platform_admin()`. Those are independent P0 blockers.
+- No deployment or production mutation was performed during this check.
