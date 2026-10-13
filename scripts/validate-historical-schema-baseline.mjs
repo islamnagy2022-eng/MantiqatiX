@@ -94,6 +94,7 @@ if (financePolicyMigration) {
   }
 }
 
+// The approved read-only catalog evidence records all credit amount columns as unconstrained numeric (no typmod); do not normalize them to numeric(p,s).
 const creditBaselineSpecs = [
   {
     path: "supabase/tests/baselines/credit_policies.sql",
