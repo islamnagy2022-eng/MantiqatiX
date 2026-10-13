@@ -6,12 +6,6 @@ on:
       - 'web/**'
       - 'tests/s09-frontend-qa.test.mjs'
       - '.github/workflows/s09-frontend-qa.yml'
-  push:
-    branches: ['agent/s09-frontend-qa-clean']
-    paths:
-      - 'web/**'
-      - 'tests/s09-frontend-qa.test.mjs'
-      - '.github/workflows/s09-frontend-qa.yml'
 permissions:
   contents: read
 jobs:
