@@ -48,6 +48,30 @@ if (mantigoOrderGate < 0 || mantigoRpc < 0 || mantigoOrderGate >= mantigoRpc) {
   throw new Error('S05 MantiGO provider/order gate must precede the atomic payment RPC');
 }
 
+// S05 subscription webhook atomicity contract: both outcomes must use the database
+// transaction boundaries from RC429/RC430, never separate Edge Function writes.
+const subscriptionStart = webhook.indexOf('if(sub){');
+const digitalOrderStart = webhook.indexOf('const {data:digitalByRef}=');
+if (subscriptionStart < 0 || digitalOrderStart < 0 || subscriptionStart >= digitalOrderStart) {
+  throw new Error('S05 subscription branch boundary could not be located');
+}
+const subscriptionBranch = webhook.slice(subscriptionStart, digitalOrderStart);
+for (const [marker,label] of [
+  ['admin.rpc("process_verified_subscription_payment_failure"','atomic subscription failure RPC'],
+  ['admin.rpc("process_verified_subscription_payment_backend"','atomic subscription success RPC'],
+  ['p_provider_order_id:paymobOrderId','signed provider order bound to RPC'],
+  ['p_raw_payload:raw','raw signed callback supplied for replay binding']
+]) {
+  if (!subscriptionBranch.includes(marker)) throw new Error('S05 subscription webhook contract missing: '+label);
+}
+if (subscriptionBranch.includes('from("subscription_payment_intents").update') ||
+    subscriptionBranch.includes('from("payment_provider_events").insert')) {
+  throw new Error('S05 release BLOCKED: subscription event persistence and status transition must use atomic RPCs');
+}
+if (subscriptionBranch.includes('from("payment_provider_events").select')) {
+  throw new Error('S05 release BLOCKED: do not short-circuit replay validation before the atomic subscription RPC');
+}
+
 // S05 MantiGO atomicity release gate. This intentionally fails until the webhook
 // delegates event idempotency + ledger transition to one transactional RPC.
 const mantigoStart = webhook.indexOf('const {data:mantigo}=');
