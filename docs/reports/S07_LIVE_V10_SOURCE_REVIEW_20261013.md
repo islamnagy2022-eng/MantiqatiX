@@ -114,3 +114,17 @@ The following source-marker comparison was also performed against the retrieved 
 | Hard deferred launch gate | Present | Present |
 
 This matrix explains why the entrypoint must not be certified even though the helper files match. Do not resolve the mismatch by simply deleting the validator or by opening the launch gate. The next code change should be a reviewed reconciliation of the entrypoint with the six already-matching helpers, followed by isolated tests for idempotency, debit/provider ambiguity, persistence failure, SSRF/redirect/timeout handling, and terminal status transitions.
+
+
+### Follow-up checkpoint — catalog sync path is still unsafe in stale entrypoint
+
+A fresh read of the current `agent/s07-smm-gateway` branch confirms that `supabase/functions/smm-gateway/index.ts` imports only `launch-gate.ts`, not the matching v10 helpers. In particular, the `sync_services` action still constructs a row directly from provider input with these behaviors:
+
+- `selling_price: Number(s.rate || 0)` uses provider cost as the customer selling price.
+- `active: true` activates imported services without a reviewed price/margin.
+- `metadata: s` persists the raw provider object rather than the allowlisted normalized metadata.
+- The action upserts the row directly instead of using `normalizeProviderService`.
+
+The hard-coded `SMM_INITIAL_LAUNCH_DEFERRED=true` check occurs before authenticated action dispatch, so this stale action path remains blocked while the gate is intact. It must not be enabled by changing the constant or environment flags until the entrypoint is reconciled with the v10 helper modules and tests. The existing static validator already requires the v10 imports and is expected to fail against this entrypoint; retain that failure as a release block.
+
+This is a source-level finding only. No provider call, service sync, wallet mutation, migration, live function update, or deployment was performed.
