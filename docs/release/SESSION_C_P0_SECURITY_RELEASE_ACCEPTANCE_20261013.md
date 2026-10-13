@@ -176,3 +176,12 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - PR #219 latest current-head MantiGO admin scope run fails; full behavior suite is not PASS.
 - PR #220 S06 focused tests passed on the inspected head, but S04 clean migration replay failed and deployment was cancelled; webhook atomicity and replay binding remain open.
 - Release remains **BLOCKED / NOT CERTIFIED**. No production writes, migrations, Auth/RLS/grant/secret changes, financial mutations, merges, or deployments were performed.
+
+
+## Fresh read-only live verification — 2026-10-13 05:12 UTC
+
+- **Migration ledger:** 283 applied versions; latest `20261008222845 / rc424_atomic_digital_page_payment_webhook`. The selected later candidate versions checked (`20261010170000`, `20261010180000`, `20261011010000`, `20261011020000`) are absent. The live SMM ACL migration version is recorded as `20260927074210`, while the repository source filename uses `20260927074200`; do not infer source-name equality from label alone.
+- **MantiGO P0:** read-only catalog query reconfirmed the four global admin RPCs are `SECURITY DEFINER`, `search_path=public`, executable by `authenticated`, and do not include `mnty_can_platform_admin()` in their definitions. This remains a live authorization blocker. No RPCs were invoked for mutations.
+- **Security Advisor:** 94 findings in current snapshot (90 anonymous-policy warnings, 40 authenticated SECURITY DEFINER execute warnings, one anon-executable SECURITY DEFINER warning, one leaked-password-protection warning, one RLS-enabled/no-policy informational finding). Findings require contextual triage; they are not all proven exploitable vulnerabilities. No Auth/RLS/grant changes made.
+- **SMM containment:** live `smm-gateway` remains ACTIVE v10, `verify_jwt=true`, source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. Read-only source confirms `SMM_INITIAL_LAUNCH_DEFERRED=true` and 503 gate precedes `getUser(req)`. Runtime HTTP denial is **NOT VERIFIED**.
+- **Decision:** **BLOCKED / NOT CERTIFIED**. No production writes, migrations, Auth/RLS/grant/secret changes, financial mutations, Edge Function deployment, merge, or release.
