@@ -1,0 +1,88 @@
+name: S04 Migration Chain Clean Replay
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/recovered-migrations/**'
+      - 'scripts/audit-migration-chain-s04.mjs'
+      - '.github/workflows/s04-migration-chain-clean-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  clean-replay:
+    name: Disposable Supabase clean replay and source audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact tested revision
+        uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Audit sources and attempt clean replay
+        id: replay
+        shell: bash
+        run: |
+          set +e
+          mkdir -p s04-replay-evidence
+          echo "MANTIQATIX S04 CLEAN REPLAY EVIDENCE" > s04-replay-evidence/report.txt
+          echo "tested_commit=${GITHUB_SHA}" >> s04-replay-evidence/report.txt
+          echo "tested_ref=${GITHUB_REF}" >> s04-replay-evidence/report.txt
+          echo "timestamp_utc=$(date -u +%FT%TZ)" >> s04-replay-evidence/report.txt
+          echo "production_touched=false" >> s04-replay-evidence/report.txt
+
+          node scripts/audit-migration-chain-s04.mjs > s04-replay-evidence/source-audit.json 2> s04-replay-evidence/source-audit.stderr
+          audit_rc=$?
+          echo "source_audit_exit=$audit_rc" | tee -a s04-replay-evidence/report.txt
+
+          supabase init --force > s04-replay-evidence/supabase-init.log 2>&1
+          init_rc=$?
+          echo "supabase_init_exit=$init_rc" | tee -a s04-replay-evidence/report.txt
+          start_rc=125
+          replay_rc=125
+          if [ "$init_rc" -eq 0 ]; then
+            supabase start > s04-replay-evidence/supabase-start.log 2>&1
+            start_rc=$?
+          fi
+          echo "supabase_start_exit=$start_rc" | tee -a s04-replay-evidence/report.txt
+
+          if [ "$start_rc" -eq 0 ]; then
+            supabase db reset --local --debug > s04-replay-evidence/clean-replay.log 2>&1
+            replay_rc=$?
+            echo "clean_replay_exit=$replay_rc" | tee -a s04-replay-evidence/report.txt
+            error_line=$(grep -n -m1 -E 'ERROR:|Error:|duplicate migration version|failed to apply' s04-replay-evidence/clean-replay.log | cut -d: -f1)
+            if [ -n "$error_line" ]; then
+              first_failed_migration=$(head -n "$error_line" s04-replay-evidence/clean-replay.log | grep -E 'Applying migration|Applying:' | tail -n 1)
+              if [ -z "$first_failed_migration" ]; then
+                first_failed_migration="No migration application line precedes the first reported error; likely CLI/preflight failure."
+              fi
+              echo "first_failure=$first_failed_migration" | tee -a s04-replay-evidence/report.txt
+              echo "first_error=$(sed -n "${error_line}p" s04-replay-evidence/clean-replay.log)" | tee -a s04-replay-evidence/report.txt
+            else
+              echo "first_failure=No matching error marker detected; inspect full clean-replay.log and exit code." | tee -a s04-replay-evidence/report.txt
+            fi
+          else
+            echo "clean_replay_exit=NOT_RUN" | tee -a s04-replay-evidence/report.txt
+            echo "first_failure=Supabase local stack did not start; inspect init/start logs." | tee -a s04-replay-evidence/report.txt
+          fi
+
+          if [ "$audit_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
+            echo "status=FAIL_BLOCKED" | tee -a s04-replay-evidence/report.txt
+            echo "S04_RESULT=FAIL_BLOCKED" >> "$GITHUB_STEP_SUMMARY"
+            cat s04-replay-evidence/report.txt >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "status=PASS" | tee -a s04-replay-evidence/report.txt
+          echo "S04_RESULT=PASS" >> "$GITHUB_STEP_SUMMARY"
+          cat s04-replay-evidence/report.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload independent S04 replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s04-clean-replay-evidence-${{ github.sha }}
+          path: s04-replay-evidence/
+          if-no-files-found: warn
+          retention-days: 30
