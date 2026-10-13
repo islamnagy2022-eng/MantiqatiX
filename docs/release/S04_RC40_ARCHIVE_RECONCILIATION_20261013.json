@@ -151,5 +151,63 @@
     "disposition": "SOURCE CANDIDATE ONLY. Do not copy into executable migrations or treat as applied until SQL semantics and ledger statement provenance are reconciled."
   },
   "smmFinding": "No CREATE TABLE for public.smm_providers or public.smm_provider_credentials was found in the archive's supabase/migrations directory; the archive does not resolve the first S04 replay failure.",
-  "conclusion": "RC40 is useful historical source evidence but is not byte-identical to the current recovered source set and contains its own duplicate version group. It must not be overlaid wholesale or replayed as a canonical production history."
+  "conclusion": "RC40 is useful historical source evidence but is not byte-identical to the current recovered source set and contains its own duplicate version group. It must not be overlaid wholesale or replayed as a canonical production history. Additional read-only comparison shows the RC40 credit-control DDL is not an exact live-schema baseline and the RC40 authorization file does not match the applied ledger statement.",
+  "creditControlCandidate": {
+    "file": "supabase/migrations/20260920185000_production_credit_control.sql",
+    "observation": "The archive file creates public.credit_policies, public.credit_accounts, and public.credit_periods; those tables are present in the live catalog. The file's version/name is not present in the live migration ledger as an exact record, and the 12 overlapping archive sources all differ from current recovered files.",
+    "disposition": "NOT A SAFE BASELINE. The archive migration is a source candidate, but its version is absent from the production ledger, the related authorization source does not match the recorded ledger statement byte-for-byte, and live defaults/types differ. Do not inject or execute this file to unblock replay without a separately reviewed baseline/source decision.",
+    "sourceArchiveFileSha256": "d5d041496cb4a8679855cc73c8ea3ac122f6ebe49226c032de92419a892e11f6",
+    "exactVersionPresentInLiveLedger": false,
+    "liveLedgerRelatedRow": {
+      "version": "20260920155456",
+      "name": "harden_credit_status_authorization",
+      "statementBytes": 2248,
+      "statementMd5": "82af7a802839a630d5dc4201ce3ce8a1"
+    },
+    "archiveAuthorizationFile": {
+      "name": "20260920190000_harden_credit_status_authorization.sql",
+      "bytes": 2335,
+      "md5": "9161bd24cfc0c49b1249c00deac33be9",
+      "sha256": "852a6071f02ca994c5fe88f344b6ed906dfc3b6ff12f5cf1c1b919c3bece1f67",
+      "exactLedgerStatementMatch": false
+    },
+    "observedLiveVsArchiveDifferences": [
+      {
+        "table": "credit_policies",
+        "field": "credit_limit",
+        "live": "numeric default 0",
+        "archive": "numeric(14,2) default 0"
+      },
+      {
+        "table": "credit_policies",
+        "field": "grace_days",
+        "live": "integer default 0",
+        "archive": "integer default 7"
+      },
+      {
+        "table": "credit_policies",
+        "field": "suspend_after_days",
+        "live": "integer default 15",
+        "archive": "integer default 30"
+      },
+      {
+        "table": "credit_policies",
+        "field": "block_new_credit",
+        "live": "boolean default true",
+        "archive": "boolean default false"
+      },
+      {
+        "table": "credit_accounts",
+        "field": "approved_limit/outstanding_amount",
+        "live": "numeric default 0",
+        "archive": "numeric(14,2) default 0"
+      },
+      {
+        "table": "credit_periods",
+        "field": "billed_amount/paid_amount",
+        "live": "numeric default 0",
+        "archive": "numeric(14,2) default 0"
+      }
+    ]
+  }
 }
