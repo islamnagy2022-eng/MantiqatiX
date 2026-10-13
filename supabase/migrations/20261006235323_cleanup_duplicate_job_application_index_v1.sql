@@ -1,0 +1,1 @@
+drop index if exists public.job_applications_job_applicant_uq;
