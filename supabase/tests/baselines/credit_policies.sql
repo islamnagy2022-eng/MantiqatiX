@@ -13,7 +13,7 @@ CREATE TABLE public.credit_policies (
   tenant_id character varying NOT NULL,
   business_id uuid NOT NULL,
   policy_name character varying NOT NULL,
-  credit_limit numeric NOT NULL DEFAULT 0,
+  credit_limit numeric(18,2) NOT NULL DEFAULT 0,
   billing_cycle character varying NOT NULL DEFAULT 'MONTHLY',
   payment_due_days integer NOT NULL DEFAULT 30,
   grace_days integer NOT NULL DEFAULT 0,
