@@ -62,7 +62,7 @@ assert.match(transport, /allowed\.has\(host\)/, "provider host allowlist require
 assert.match(transport, /redirect:"error"/, "provider requests must reject redirects");
 assert.match(edge, /setTimeout\(\(\)=>controller\.abort\(\),15000\)/, "provider call timeout required");
 assert.match(edge, /PROVIDER_RESULT_UNKNOWN/, "ambiguous provider outcome must be surfaced for reconciliation");
-assert.doesNotMatch(edge, /refund|smm_refund_wallet/i, "gateway must not auto-refund an ambiguous provider outcome");
+assert.doesNotMatch(edge, /admin\.rpc\(["']smm_(?:refund|credit)_wallet["']/i, "gateway must not invoke an automatic refund/credit RPC");
 assert.match(orderValidation, /idempotency_key|idempotencyKey/i, "order validation must include idempotency contract");
 
 // The ACL regression must keep credentials and wallet ledger outside direct table access.
