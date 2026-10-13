@@ -8,7 +8,7 @@ Scope: source-level regression contracts only; no production mutations.
 
 `tests/s06-payment-integrity.test.mjs`
 
-The 12 Node.js `node:test` checks cover:
+The 13 Node.js `node:test` checks cover:
 1. Authenticated, non-anonymous caller boundary.
 2. Required/bounded idempotency key and backend payment-intent RPC.
 3. Server-authoritative order/intent amount and pricing snapshot comparison.
@@ -17,10 +17,11 @@ The 12 Node.js `node:test` checks cover:
 6. Paymob HMAC verification and verification-before-processing order.
 7. Invalid signature rejection.
 8. Provider event identity and amount/currency comparison.
-9. Verified backend payment processing RPC.
-10. Digital-page idempotency claim before provider request and in-progress response.
-11. Claim release on provider failure/unavailability.
-12. Backend finalization of the provider intent.
+9. Guard against late failure callbacks downgrading terminal payment intents.
+10. Verified backend payment processing RPC.
+11. Digital-page idempotency claim before provider request and in-progress response.
+12. Claim release on provider failure/unavailability.
+13. Backend finalization of the provider intent.
 
 ## Evidence classification
 
@@ -31,6 +32,10 @@ The 12 Node.js `node:test` checks cover:
 - **Provider sandbox:** not exercised. No provider request was sent.
 - **Real payments/refunds/settlements:** none.
 - **Production Supabase writes, migrations, Edge Function deployments, merges:** none.
+
+## Limited source fix staged
+
+The normal Paymob failure callback now updates a payment intent only when its current status is `PENDING`, preventing a late failure callback from blindly overwriting a terminal status. A regression assertion was added. This is a source-level mitigation only; atomic event/ledger handling and runtime behavior still require integration testing.
 
 ## Remaining high-value tests / evidence gaps
 
