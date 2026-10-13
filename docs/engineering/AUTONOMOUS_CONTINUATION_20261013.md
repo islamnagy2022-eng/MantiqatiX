@@ -380,3 +380,13 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 
 - No production migration, schema, data, grant, Auth/RLS, function, wallet, settlement, payment, Edge Function, or deployment change was made.
 - Release remains **BLOCKED / NOT CERTIFIED**. Exact next action: wait for run #38351334323; if startup succeeds, capture the first chronological SQL failure and reconcile from authoritative source evidence, not by skipping migrations or weakening guards.
+
+
+## Latest chronological replay diagnosis — 2026-10-13 05:30 UTC
+
+- Exact replay [#38351334323](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351334323) completed startup and passed the temporary-baseline verifier, then failed at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`, statement 5: `policy "approval_requests_scoped_read" for table "approval_requests" does not exist (SQLSTATE 42704)`.
+- Read-only production `pg_policies` evidence shows the missing live SELECT policy's actual semantics: active membership in the same tenant, and either requester ownership or role OWNER/ADMIN/SUPER_ADMIN/MANAGER; a separate restrictive non-anonymous guard also exists. No table rows were read.
+- This failure was reported to the owner of PR #207 with exact error, source-search finding, catalog-derived predicate and safe resolution options. PR #207 subsequently added `supabase/tests/baselines/approval_requests_scoped_read.sql` and a temporary pre-`ALTER POLICY` injection at `20260927140499`, plus fail-closed provenance/shape/no-grant/no-data validation. This is test-only compatibility, not recovered historical DDL.
+- The same active migration workstream also added a clearly labeled trigger-only `smm_bootstrap_first_admin()` compatibility baseline based on read-only `pg_get_functiondef` evidence. It is never invoked during replay and does not broaden EXECUTE grants. Historical provenance is still unresolved.
+- Latest observed PR #207 head after those fixes: `e7fcd20f5c9a125d2a99590cb56a688086ab95cb`; its new exact-head replay [#38351708218](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351708218) was pending when checked. Do not infer a pass from the previous run.
+- Root fix principle retained: compatibility baselines are only disposable test scaffolding to discover the next dependency. They do not repair the canonical migration archive or prove production ledger consistency. Release remains **BLOCKED / NOT CERTIFIED**.
