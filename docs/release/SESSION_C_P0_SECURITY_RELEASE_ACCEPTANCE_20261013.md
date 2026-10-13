@@ -155,3 +155,24 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - **Verified diff:** the files differ on one line: the PR candidate adds `.eq("status","PENDING")` to the generic failed-payment intent update. The main source lacks that status predicate.
 - **Residual risk:** even on the candidate, provider-event insertion and payment-intent state update are separate requests; the update error and affected-row count are not checked. This is not atomic and does not resolve cross-intent replay binding, concurrent duplicate delivery, or injected persistence-failure behavior.
 - **Coordination:** posted [PR #220 comment 6138661187](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138661187). No webhook invocation or production source change performed.
+
+
+## Session C latest exact-head CI blockers — 2026-10-13
+
+### PR #207 — fail-closed preflight index contract
+- Current head `8409c52b4798415235b663ac4d5c69d2abb33a54`; run [38349544642](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349544642) failed before Supabase startup.
+- Error: `P0 BLOCKED: ordered RC256 migration does not prove both payment_provider_events foreign-key indexes; do not synthesize them in the fixture.`
+- Source review: RC256 creates `idx_payment_provider_events_tenant_id`; the approved schema-only fixture creates `idx_payment_provider_events_payment_intent_id` and documents that tracked migration history has no creation statement for it. Reconcile the validator contract with the disposable-only fixture; do not rewrite historical/production migration lineage. Comment [6138691853](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138691853).
+
+### PR #218 — missing SMM credentials dependency
+- Run [38343250122](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343250122) failed during clean replay at `20260927074200_harden_smm_table_api_privileges.sql`: `relation "public.smm_provider_credentials" does not exist (SQLSTATE 42P01)`.
+- The approved test-only SMM credentials baseline is on PR #207 but is not in PR #218's current `main` base. Coordinate isolated fixture injection or recover authoritative historical creation DDL; no guessed production migration. Comment [6138692264](https://github.com/islamnagy2022-eng/MantiqatiX/pull/218#issuecomment-6138692264).
+
+### PR #225 — CI assertion points to wrong file
+- Head `0a323e9c3c88c2c97e433790ac3a261a4b803de2`; run [38349321482](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349321482) failed at validator line 62: expected `redirect:"error"` in `provider-transport.ts`.
+- The actual fetch option is in `supabase/functions/smm-gateway/index.ts`, while `provider-transport.ts` handles endpoint validation and bounded JSON. Correct the assertion or relocate the fetch wrapper, then add behavioral redirect coverage. This is not runtime proof. Comment [6138691421](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138691421).
+
+### Remaining global gate
+- PR #219 latest current-head MantiGO admin scope run fails; full behavior suite is not PASS.
+- PR #220 S06 focused tests passed on the inspected head, but S04 clean migration replay failed and deployment was cancelled; webhook atomicity and replay binding remain open.
+- Release remains **BLOCKED / NOT CERTIFIED**. No production writes, migrations, Auth/RLS/grant/secret changes, financial mutations, merges, or deployments were performed.
