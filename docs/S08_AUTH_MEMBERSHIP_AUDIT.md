@@ -39,18 +39,19 @@ The customer-registration and registration-review Edge Function sources were ins
 - Registration review requires a request ID/decision and calls `review_registration_request_atomic`.
 - Both reject non-POST requests and reject a present browser Origin that differs from the configured GitHub Pages origin. They intentionally do not reject a missing Origin; the bearer token remains required. Confirm this is consistent with the intended non-browser caller policy.
 - **Security observation (not changed):** both functions return database/RPC error text derived from `error.message` to the caller. Review the outward error contract for accidental internal-detail disclosure and prefer stable public error codes while retaining detailed diagnostics only in protected server logs. This touches the registration-review function's error contract; it is documented for coordinated review rather than changed in parallel.
-- Four additional static assertions were added to the S08 script for server-side token validation, tenant/RPC constraints, and method/origin guards. The script is now wired into the PR validation workflow immediately after `validate-auth-flow`; the workflow change preserves the existing deploy guard (deploy remains limited to `main` pushes or manual dispatch). The new assertions remain **pending execution** until a workflow run reports their result.
+- Four additional static assertions were added to the S08 script for server-side token validation, tenant/RPC constraints, and method/origin guards. The script is wired into the PR validation workflow immediately after `validate-auth-flow`. The workflow's deploy guard remains limited to `main` pushes or manual dispatch, so the PR path does not qualify for deployment.
 
 ## Execution evidence and limits
 
 - Repository source was inspected through the connected GitHub source view on `main`.
 - The uploaded RC40 ZIP is a different Android-oriented snapshot; its SHA-256 is `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`. It must not be treated as the current web source.
-- A live source-contract evaluation against the fetched `main` blobs passed **13/13 assertions** (main blob SHA `e009bd28460772e07b0ff2e892d77787a0c2996f`; SMM blob SHA `982c4d62fb31f917e20e3f39b58326a49f88ce5f`). An earlier version of the S08 script passed `node --check`, but the current expanded script has **not** been syntax-checked or executed locally. Outbound DNS/network access prevented cloning. The current workflow commit `ca6146429722e449bfc009b389af5a98b0bf534d` currently has no PR-triggered workflow run returned, so execution remains pending.
+- A source-contract evaluation against the fetched `main` blobs passed **13/13 assertions** (main blob SHA `e009bd28460772e07b0ff2e892d77787a0c2996f`; SMM blob SHA `982c4d62fb31f917e20e3f39b58326a49f88ce5f`). An earlier version of the S08 script passed `node --check`, but the current expanded script has **not** been syntax-checked or executed locally because outbound DNS/network access prevented cloning.
+- GitHub Actions run `38338144331` for `Deploy MantiqatiX Web` on commit `ca6146429722e449bfc009b389af5a98b0bf534d` is **cancelled**; both `validate` and `deploy` jobs report `cancelled`. This is not a pass or fail result for the S08 assertions. Three other PR-triggered workflows for that commit were still queued at the time of inspection. S08 execution evidence remains pending.
 - No production settings, secrets, user accounts, memberships, RLS policies, deployment, merge, or release were changed.
 
 ## Next actions
 
-1. Wait for/check the PR validation run on commit `ca6146429722e449bfc009b389af5a98b0bf534d`; confirm the S08 script step's exact result and that the deploy job is skipped. If no run starts, inspect PR/Actions trigger status.
+1. Check the latest PR validation run; capture the exact S08 step result. If runs continue to cancel or remain queued, diagnose Actions concurrency/queue status without forcing a production deploy.
 2. Run isolated browser tests with synthetic accounts for OAuth success/cancel/error, callback replay, expired session, explicit logout, and membership absence/presence.
 3. Verify the deployed Supabase Auth URL allow-list and Google provider configuration read-only; compare exact redirect URIs with main and SMM origins.
 4. Confirm leaked-password protection read-only with the project owner; enable only through a separately approved production change.
