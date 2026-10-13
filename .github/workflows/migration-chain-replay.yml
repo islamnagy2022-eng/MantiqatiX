@@ -318,6 +318,37 @@ jobs:
           echo "Supabase local stack failed after four attempts." >&2
           exit 1
 
+      - name: Normalize known legacy migration aliases in disposable replay only
+        shell: bash
+        run: |
+          set -euo pipefail
+          # These source filenames have legacy duplicate timestamps. The target versions
+          # below match the read-only live Supabase migration ledger. Never rename source
+          # migrations in Git; this normalization exists only on the disposable CI runner.
+          rename_legacy_alias() {
+            local source="$1"
+            local target="$2"
+            test -f "supabase/migrations/$source"
+            if [[ -e "supabase/migrations/$target" ]]; then
+              echo "P0 BLOCKED: canonical replay target already exists: $target" >&2
+              exit 1
+            fi
+            mv "supabase/migrations/$source" "supabase/migrations/$target"
+          }
+          rename_legacy_alias "20260928020000_rc101_g6_rls_permissive_policy_hardening.sql" "20260928101022_rc101_g6_rls_permissive_policy_hardening.sql"
+          rename_legacy_alias "20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql" "20260928104107_rc102_g8_crm_notification_support_rls_hardening.sql"
+          rename_legacy_alias "20260928060000_restore_registration_request_dml_grants.sql" "20260928034100_restore_registration_request_dml_grants.sql"
+          rename_legacy_alias "20260928060000_rc109_harden_order_support_tenant_boundaries.sql" "20260928112420_rc109_harden_order_support_tenant_boundaries.sql"
+          rename_legacy_alias "20260928190000_rc162_mantigo_trip_state_machine.sql" "20260928124303_rc162_mantigo_trip_state_machine.sql"
+          rename_legacy_alias "20260928200000_rc164_mantigo_direct_delete_lockdown.sql" "20260928125655_rc164_mantigo_direct_delete_lockdown.sql"
+          rename_legacy_alias "20260928200000_rc164_retire_legacy_mantigo_mutator.sql" "20260928125731_rc164_retire_legacy_mantigo_mutator.sql"
+          rename_legacy_alias "20260928210000_rc172_restore_medical_booking_contract.sql" "20260928131753_rc172_restore_medical_booking_contract.sql"
+          rename_legacy_alias "20260928190000_rc200_cross_tenant_customer_payment_authorization.sql" "20260928154527_rc200_cross_tenant_customer_payment_authorization.sql"
+          rename_legacy_alias "20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql" "20260928161513_rc206_geographic_ad_targeting_and_nearest_fallback.sql"
+          rename_legacy_alias "20260928210000_rc207_official_global_mnty_cover_ads.sql" "20260928174954_rc207_official_global_mnty_cover_ads.sql"
+          node scripts/validate-migration-version-uniqueness.mjs
+          echo "PASS: disposable replay uses the unique migration versions observed in the live ledger; repository history remains unchanged."
+
       - name: Replay every migration in repository timestamp order
         shell: bash
         run: |
