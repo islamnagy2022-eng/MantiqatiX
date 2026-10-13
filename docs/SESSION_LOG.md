@@ -92,3 +92,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Fetched current-main `supabase/functions/paymob-webhook/index.ts` (blob `c03384ce019484b77139d924c4621f6b23903071`) and PR #220 branch candidate (blob `04d502fb2e01b1f751e10f6ac68b4814ccf220d5`). Only observed source diff adds `.eq("status","PENDING")` to the candidate generic failure update. Main lacks that predicate; candidate still ignores update error/row count and uses separate event-insert/state-update requests.
 - Commented on [PR #220](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138661187). Atomicity, event-to-intent binding, concurrency and fault-injection tests remain open. No production webhook invoked or changed.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C latest exact-head recheck — 2026-10-13
+
+- PR #207 current head `8409c52b4798415235b663ac4d5c69d2abb33a54`, run [38349544642](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349544642): replay fails closed in preflight on the `payment_provider_events` index contract before Supabase startup. RC256 creates the tenant index; the approved test-only baseline carries the payment_intent index absent from tracked creation history. Keep production history and test-only compatibility separate. Comment [6138691853](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138691853).
+- PR #218 run [38343250122](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343250122): clean replay fails at `20260927074200_harden_smm_table_api_privileges.sql` because `public.smm_provider_credentials` is missing. Its base `main` does not include the test-only SMM baselines on PR #207. Comment [6138692264](https://github.com/islamnagy2022-eng/MantiqatiX/pull/218#issuecomment-6138692264).
+- PR #225 exact-head run [38349321482](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349321482) fails at validator line 62 because it searches for `redirect:"error"` in `provider-transport.ts`, but the actual fetch option is in `index.ts`. Comment [6138691421](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138691421). This is a source-contract test bug candidate; no PR-owned file changed.
+- PR #219 current-head run remains FAIL; PR #220 focused S06 job passes but S04 replay fails and deployment was cancelled.
+- No production operations, merge, or deployment. **BLOCKED / NOT CERTIFIED**.
