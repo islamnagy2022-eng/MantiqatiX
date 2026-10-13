@@ -114,6 +114,7 @@ jobs:
             normalization_rc=$?
             if [ "$normalization_rc" -eq 0 ]; then
               node scripts/validate-migration-version-uniqueness.mjs > s04-replay-evidence/normalized-version-validation.log 2>&1
+              node scripts/validate-ledger-recovered-migrations.mjs > s04-replay-evidence/ledger-recovered-source-validation.log 2>&1
               normalization_rc=$?
             fi
           fi
