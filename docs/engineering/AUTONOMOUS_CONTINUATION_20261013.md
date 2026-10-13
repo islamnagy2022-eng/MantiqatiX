@@ -252,3 +252,16 @@
 - PR #226 was closed as superseded after confirming PR #207 already owns the historical schema baseline validator and approved SMM fixtures; it was not merged.
 - No production mutation, migration application, grant/Auth/RLS change, provider request, wallet/payment operation, merge, or deployment was performed in this cycle.
 - **Overall: BLOCKED / NOT CERTIFIED.** Resume by following the next chronological replay blocker through PR #207, verify the latest run to completion, and keep the settlement baseline behind explicit approval or recovered authoritative DDL.
+
+
+## Read-only payment/webhook source parity check — 2026-10-13 05:13 UTC
+
+- Production constraint metadata confirms these duplicate-protection contracts exist in the live schema:
+  - `payment_intents`: UNIQUE `(tenant_id, idempotency_key)`.
+  - `payment_events`: UNIQUE `(event_id)`.
+  - `payment_provider_events`: UNIQUE `(provider, external_event_id)`.
+  - `settlement_attempts`: UNIQUE `(obligation_id, external_reference)`.
+- Live `payment-webhook` is ACTIVE v1, `verify_jwt=false` (expected for provider callbacks), entrypoint hash `1a415557f2fccaec6704fcc01a4b71dbaedc95b5f9c611fef23781c4b18d8642`, and its entrypoint matches the PR #207 candidate source after newline normalization. Source inspection shows signature verification and atomic RPC usage; no live webhook request was sent.
+- Live `paymob-webhook` is ACTIVE v8, `verify_jwt=false`, hash `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca`. Its deployed entrypoint is 11,538 characters and **does not match** the PR #207 candidate source (15,041 characters). The deployed source still directly updates a pending `subscription_payment_intents` row on a failure callback after an existence check, while the candidate uses the atomic `process_verified_subscription_payment_failure` RPC and explicit retryable provider-correlation handling. This is a deployment/source-parity and webhook-race acceptance blocker; it is not proof by itself of an exploitable live incident.
+- Production migration ledger remains through RC424, so RC425–RC458 candidate changes are not proven applied. Do not deploy the candidate webhook independently of the required migrations, exact-head E2E tests, and rollback plan.
+- All observations were read-only metadata/source inspections; no payment, wallet, webhook, customer data, or production configuration was modified.
