@@ -83,15 +83,16 @@ const liveLedgerOrderAliases = [
   ["20261006214500_mantigo_financial_config_rls_v1.sql", "20261006184441_mantigo_financial_config_rls_v1.sql"],
   ["20261007001000_mantigo_abuse_rate_limits_v1.sql", "20261006212355_mantigo_abuse_rate_limits_v1.sql"],
   ["20261007002000_mantigo_rate_limit_idempotency_compat_v1.sql", "20261006212705_mantigo_rate_limit_idempotency_compat_v1.sql"],
-  ["20261006235500_job_application_backend_submit_v1.sql", "20261007011733_job_application_backend_submit_v1.sql"],
-  ["20261007021500_reverse_bidding_server_authority_v1.sql", "20261007011736_reverse_bidding_server_authority_v1.sql"],
-  ["20261007030000_cleanup_duplicate_job_application_index_v1.sql", "20261007011740_cleanup_duplicate_job_application_index_v1.sql"],
+  ["20261006235500_job_application_backend_submit_v1.sql", "20261006235123_job_application_backend_submit_v1.sql"],
+  ["20261007021500_reverse_bidding_server_authority_v1.sql", "20261006231828_reverse_bidding_server_authority_v1.sql"],
+  ["20261007030000_cleanup_duplicate_job_application_index_v1.sql", "20261006235323_cleanup_duplicate_job_application_index_v1.sql"],
   ["20261007060000_education_request_server_authority_v1.sql", "20261007021723_education_request_server_authority_v1.sql"],
   ["20261007023000_remove_duplicate_mantigo_bids_index_v1.sql", "20261007022318_remove_duplicate_mantigo_bids_index_v1.sql"],
   ["20261007064000_mantigo_rate_limit_internal_boundary_v1.sql", "20261007064228_mantigo_rate_limit_internal_boundary_v1.sql"],
   ["20261007073000_harden_private_order_status_trigger_execute_v1.sql", "20261007065754_harden_private_order_status_trigger_execute_v1.sql"],
   ["20261008000001_rc422_security_definer_caller_contract_v1.sql", "20261007223944_rc422_security_definer_caller_contract_v1.sql"],
   ["20261008000002_rc423_restrictive_authenticated_guard_policies.sql", "20261008125422_rc423_convert_authenticated_guard_policies_to_restrictive.sql"],
+  ["20261009010000_rc424_atomic_digital_page_payment_webhook.sql", "20261008222845_rc424_atomic_digital_page_payment_webhook.sql"],
 ];
 const missingLiveLedgerOrderAliases = liveLedgerOrderAliases.filter(([source, target]) =>
   !fs.existsSync(path.join(migrationDir, source)) ||
