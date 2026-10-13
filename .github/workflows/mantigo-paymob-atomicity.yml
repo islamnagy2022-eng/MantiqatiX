@@ -6,6 +6,7 @@ on:
     paths:
       - "supabase/functions/paymob-webhook/index.ts"
       - "supabase/migrations/20261013080000_atomic_mantigo_paymob_webhook_processing.sql"
+      - "supabase/migrations/20261013090000_atomic_paymob_payment_failure_processing.sql"
       - "supabase/tests/fixtures/mantigo_paymob_atomicity_schema.sql"
       - "supabase/tests/rc_atomic_mantigo_paymob_webhook.sql"
       - "scripts/validate-mantigo-webhook-atomicity.mjs"
@@ -16,6 +17,7 @@ on:
     paths:
       - "supabase/functions/paymob-webhook/index.ts"
       - "supabase/migrations/20261013080000_atomic_mantigo_paymob_webhook_processing.sql"
+      - "supabase/migrations/20261013090000_atomic_paymob_payment_failure_processing.sql"
       - "supabase/tests/fixtures/mantigo_paymob_atomicity_schema.sql"
       - "supabase/tests/rc_atomic_mantigo_paymob_webhook.sql"
       - "scripts/validate-mantigo-webhook-atomicity.mjs"
@@ -72,6 +74,7 @@ jobs:
           set -euo pipefail
           docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/tests/fixtures/mantigo_paymob_atomicity_schema.sql
           docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261013080000_atomic_mantigo_paymob_webhook_processing.sql
+          docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261013090000_atomic_paymob_payment_failure_processing.sql
 
       - name: Test replay, mismatch, concurrency identity, rollback, and legacy repair
         shell: bash
