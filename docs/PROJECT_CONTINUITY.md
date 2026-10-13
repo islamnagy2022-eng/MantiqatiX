@@ -590,3 +590,5 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `supabase/tests/rc523_mantigo_financial_report_integration.sql` to verify the RC523 report uses canonical `gross_amount` and `captain_net_amount` even when legacy `amount`/`captain_amount` differ, while keeping the external JSON key `captain_amount`.
 - Added a disposable PostgreSQL CI job applying RC441 → RC449 → RC462 → RC523, plus RC523 migration/test paths in both focused-workflow trigger filters.
 - This is implemented source, not yet a passing test. Inspect exact-head CI and logs when complete. No production changes or release; BLOCKED / NOT CERTIFIED.
+
+- RC523 test-review correction: assertions now match the fixture's one inserted ledger row. Expected canonical totals are gross 250, commission 25, captain_amount 200, paid_amount 250, and unsettled_amount 200. This is a source correction only; no CI pass is claimed.
