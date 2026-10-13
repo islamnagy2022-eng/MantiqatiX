@@ -21,3 +21,29 @@ Deno.test("S07_CATALOG_003: malformed services are rejected and arbitrary metada
   const row = normalizeProviderService({ service: "svc", rate: 1, min: 1, max: 10, metadata: { secret: "never store" } }, "p1");
   assertEquals(row?.metadata, { provider_service_id: "svc", provider_rate: 1 });
 });
+
+
+Deno.test("S07_CATALOG_004: invalid quantity bounds and negative provider costs are rejected", () => {
+  for (const raw of [
+    { service: "svc", rate: -1, min: 1, max: 10 },
+    { service: "svc", rate: 1, min: 0, max: 10 },
+    { service: "svc", rate: 1, min: 10, max: 9 },
+    { service: "svc", rate: 1, min: 1.5, max: 10 },
+    { service: "svc", rate: 1, min: 1, max: 1_000_000_001 },
+  ]) {
+    assertEquals(normalizeProviderService(raw, "p1"), null);
+  }
+});
+
+Deno.test("S07_CATALOG_005: service text is bounded and control characters are removed", () => {
+  const row = normalizeProviderService({
+    service: "svc",
+    rate: 1,
+    min: 1,
+    max: 10,
+    name: "  Safe\u0000 name\n  ",
+    description: "x".repeat(1500),
+  }, "p1");
+  assertEquals(row?.name, "Safe name");
+  assertEquals(String(row?.description).length, 1000);
+});
