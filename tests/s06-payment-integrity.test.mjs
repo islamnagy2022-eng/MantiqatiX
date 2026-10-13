@@ -84,3 +84,11 @@ test("S06-14 subscription webhook calls the canonical atomic success RPC with pr
 test("S06-15 all webhook payment state transitions avoid direct table DML", () => {
   assert.doesNotMatch(webhook, /from\("(payment_intents|subscription_payment_intents|mantigo_financial_ledger|payment_provider_events)"\)\.(update|insert|upsert|delete)/);
 });
+
+test("S06-16 replay idempotency and ownership are decided by atomic RPCs, not unbound event lookups", () => {
+  assert.doesNotMatch(webhook, /from\("payment_provider_events"\)\.select\("id(?:,payment_intent_id)?"\)/);
+  assert.match(webhook, /process_verified_provider_payment_failure/);
+  assert.match(webhook, /process_verified_subscription_payment_failure/);
+  assert.match(webhook, /process_verified_mantigo_payment_backend/);
+  assert.match(webhook, /process_verified_digital_page_payment_backend/);
+});
