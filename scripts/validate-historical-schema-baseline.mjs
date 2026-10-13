@@ -140,6 +140,39 @@ if (paymentProviderEventsMigration) {
   }
 }
 
+// Validate the catalog-derived policy that the historical migration alters but no earlier
+// committed migration creates. It is a policy-only fixture, never table DDL or a production change.
+const approvalPolicyBaselinePath = "supabase/tests/baselines/approval_requests_scoped_read.sql";
+const approvalPolicyBaseline = fs.readFileSync(approvalPolicyBaselinePath, "utf8");
+const approvalPolicyVersion = "20260927140499";
+const approvalPolicyTemporaryName = approvalPolicyVersion + "_test_only_live_derived_approval_requests_scoped_read.sql";
+const approvalPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const approvalPolicyPriorCreation = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < approvalPolicyMigration?.name.slice(0, 14) &&
+  /create\s+policy\s+approval_requests_scoped_read\s+on\s+(?:public\s*\.\s*)?approval_requests\b/i.test(sql)
+);
+const approvalPolicyBaselineValid =
+  /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(approvalPolicyBaseline) &&
+  /2026-10-13/.test(approvalPolicyBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(approvalPolicyBaseline) &&
+  /NOT recovered historical policy-creation DDL/i.test(approvalPolicyBaseline) &&
+  /MUST NOT be applied to production/i.test(approvalPolicyBaseline) &&
+  /CREATE POLICY approval_requests_scoped_read[\s\S]*ON public\.approval_requests[\s\S]*FOR SELECT TO authenticated/i.test(approvalPolicyBaseline) &&
+  /approval_requests\.requested_by = auth\.uid\(\)/i.test(approvalPolicyBaseline) &&
+  /um\.role::text = ANY[\s\S]*OWNER[\s\S]*ADMIN[\s\S]*SUPER_ADMIN[\s\S]*MANAGER/i.test(approvalPolicyBaseline) &&
+  !/create table|alter table|\bgrant\b|\brevoke\b|create trigger/i.test(approvalPolicyBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.)/im.test(approvalPolicyBaseline);
+if (!approvalPolicyMigration || approvalPolicyPriorCreation || !approvalPolicyBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, approvalPolicyTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === approvalPolicyVersion) ||
+    approvalPolicyVersion >= approvalPolicyMigration.name.slice(0, 14) ||
+    !/alter policy approval_requests_scoped_read on public\.approval_requests to authenticated;/i.test(approvalPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: approval_requests_scoped_read compatibility fixture or its ordered ALTER POLICY contract is invalid.");
+  process.exit(1);
+}
+
 // Validate the read-only live-derived SMM trigger function required by the historical
 // privilege-lockdown migration. It is definition-only; replay never invokes the trigger.
 const smmBootstrapBaselinePath = "supabase/tests/baselines/smm_bootstrap_first_admin.sql";
