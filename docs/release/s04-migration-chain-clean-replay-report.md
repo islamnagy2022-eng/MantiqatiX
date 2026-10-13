@@ -156,7 +156,7 @@ No changes were made to `.github/workflows/mantigo-platform-admin-scope.yml` or 
 Closure requires restoring/reconciling the missing earlier baseline source, globally unique migration versions, resolution of source/ledger semantic discrepancies, successful chronological replay from a disposable empty environment, and exact-head CI evidence. Do not skip a failed migration or mark this task complete based only on source presence.
 
 
-## 5. Exact-head CI replay result — 2026-10-13
+## 8. Exact-head CI replay result — 2026-10-13
 
 The isolated S04 workflow completed on tested commit `d8cc0c71f06baeae64221d4cf6a675436d05df5c` (run [38338075186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338075186)) with **failure**, not pass. The source audit returned exit code 1 because the executable migration directory still contains the five duplicate version groups listed above. Supabase CLI initialization succeeded, but local stack startup/replay stopped at the first SQL migration:
 
