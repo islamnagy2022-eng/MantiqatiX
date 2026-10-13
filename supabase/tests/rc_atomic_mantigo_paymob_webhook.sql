@@ -148,6 +148,139 @@ BEGIN
 END;
 $test$;
 
+-- Ordinary-order failure callbacks use the same atomic event + state transition.
+INSERT INTO public.orders
+  (id,tenant_id,business_id,status,total_amount,total,currency,pricing_version,pricing_hash,pricing_authority)
+VALUES
+  ('00000000-0000-0000-0000-000000000020','tenant-1','00000000-0000-0000-0000-000000000120','PENDING',75.00,75.00,'EGP',1,'order-hash-1','SERVER'),
+  ('00000000-0000-0000-0000-000000000021','tenant-1','00000000-0000-0000-0000-000000000121','PENDING',90.00,90.00,'EGP',1,'order-hash-2','SERVER'),
+  ('00000000-0000-0000-0000-000000000022','tenant-1','00000000-0000-0000-0000-000000000122','PENDING',60.00,60.00,'EGP',1,'order-hash-3','SERVER'),
+  ('00000000-0000-0000-0000-000000000023','tenant-1','00000000-0000-0000-0000-000000000123','PENDING',80.00,80.00,'EGP',1,'order-hash-4','SERVER');
+
+INSERT INTO public.payment_intents
+  (id,tenant_id,order_id,amount,currency,status,provider,payment_method,pricing_version,pricing_hash)
+VALUES
+  ('intent-failure','tenant-1','00000000-0000-0000-0000-000000000020',75.00,'EGP','PENDING','PAYMOB','CARD',1,'order-hash-1'),
+  ('intent-conflict','tenant-1','00000000-0000-0000-0000-000000000021',90.00,'EGP','PENDING','PAYMOB','CARD',1,'order-hash-2'),
+  ('intent-atomic-failure','tenant-1','00000000-0000-0000-0000-000000000022',60.00,'EGP','PENDING','PAYMOB','CARD',1,'order-hash-3'),
+  ('intent-unauthorized','tenant-1','00000000-0000-0000-0000-000000000023',80.00,'EGP','PENDING','PAYMOB','CARD',1,'order-hash-4'),
+  ('intent-final','tenant-1','00000000-0000-0000-0000-000000000021',90.00,'EGP','SUCCEEDED','PAYMOB','CARD',1,'order-hash-2');
+
+DO $test$
+DECLARE result jsonb;
+BEGIN
+  result := public.process_verified_payment_failure_backend(
+    'event-order-failure','tenant-1','PAYMOB','paymob:order-failure','intent-failure','TRANSACTION',true,75.00,'EGP','{"case":"order-failure"}'::jsonb
+  );
+  IF result->>'status' <> 'FAILED' OR result->>'idempotent' <> 'false' THEN
+    RAISE EXCEPTION 'order failure result incorrect: %', result;
+  END IF;
+  IF (SELECT status FROM public.payment_intents WHERE id='intent-failure') <> 'FAILED' THEN
+    RAISE EXCEPTION 'payment intent did not transition to FAILED';
+  END IF;
+  IF (SELECT count(*) FROM public.payment_provider_events WHERE provider='PAYMOB' AND external_event_id='paymob:order-failure') <> 1 THEN
+    RAISE EXCEPTION 'order failure event not persisted exactly once';
+  END IF;
+END;
+$test$;
+
+DO $test$
+DECLARE result jsonb;
+BEGIN
+  result := public.process_verified_payment_failure_backend(
+    'event-order-failure-retry','tenant-1','PAYMOB','paymob:order-failure','intent-failure','TRANSACTION',true,75.00,'EGP','{"case":"order-failure-retry"}'::jsonb
+  );
+  IF result->>'idempotent' <> 'true' OR result->>'status' <> 'FAILED' THEN
+    RAISE EXCEPTION 'order failure replay result incorrect: %', result;
+  END IF;
+  IF (SELECT count(*) FROM public.payment_provider_events WHERE provider='PAYMOB' AND external_event_id='paymob:order-failure') <> 1 THEN
+    RAISE EXCEPTION 'order failure replay created duplicate event';
+  END IF;
+END;
+$test$;
+
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.process_verified_payment_failure_backend(
+      'event-order-wrong-amount','tenant-1','PAYMOB','paymob:order-wrong-amount','intent-conflict','TRANSACTION',true,89.00,'EGP','{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_PROVIDER_FINANCIAL_MISMATCH_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_PROVIDER_FINANCIAL_MISMATCH_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'PROVIDER_FINANCIAL_MISMATCH' THEN RAISE; END IF;
+  END;
+  IF EXISTS (SELECT 1 FROM public.payment_provider_events WHERE external_event_id='paymob:order-wrong-amount') THEN
+    RAISE EXCEPTION 'order failure amount mismatch persisted event';
+  END IF;
+END;
+$test$;
+
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.process_verified_payment_failure_backend(
+      'event-order-cross-intent','tenant-1','PAYMOB','paymob:order-failure','intent-conflict','TRANSACTION',true,90.00,'EGP','{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_EXTERNAL_EVENT_REPLAY_MISMATCH_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_EXTERNAL_EVENT_REPLAY_MISMATCH_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'EXTERNAL_EVENT_REPLAY_MISMATCH' THEN RAISE; END IF;
+  END;
+  IF (SELECT status FROM public.payment_intents WHERE id='intent-conflict') <> 'PENDING' THEN
+    RAISE EXCEPTION 'cross-intent event reuse changed other payment intent';
+  END IF;
+END;
+$test$;
+
+CREATE OR REPLACE FUNCTION public.test_fail_payment_intent_update()
+RETURNS trigger LANGUAGE plpgsql AS $function$
+BEGIN
+  IF NEW.id = 'intent-atomic-failure' THEN RAISE EXCEPTION 'TEST_FORCED_PAYMENT_INTENT_WRITE_FAILURE'; END IF;
+  RETURN NEW;
+END;
+$function$;
+CREATE TRIGGER test_fail_payment_intent_update
+BEFORE UPDATE ON public.payment_intents
+FOR EACH ROW EXECUTE FUNCTION public.test_fail_payment_intent_update();
+
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.process_verified_payment_failure_backend(
+      'event-order-atomic-failure','tenant-1','PAYMOB','paymob:order-atomic-failure','intent-atomic-failure','TRANSACTION',true,60.00,'EGP','{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_PAYMENT_INTENT_WRITE_FAILURE_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_PAYMENT_INTENT_WRITE_FAILURE_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'TEST_FORCED_PAYMENT_INTENT_WRITE_FAILURE' THEN RAISE; END IF;
+  END;
+  IF EXISTS (SELECT 1 FROM public.payment_provider_events WHERE external_event_id='paymob:order-atomic-failure') THEN
+    RAISE EXCEPTION 'order failure event was not rolled back after intent update failure';
+  END IF;
+  IF (SELECT status FROM public.payment_intents WHERE id='intent-atomic-failure') <> 'PENDING' THEN
+    RAISE EXCEPTION 'failed intent update changed payment state';
+  END IF;
+END;
+$test$;
+DROP TRIGGER test_fail_payment_intent_update ON public.payment_intents;
+DROP FUNCTION public.test_fail_payment_intent_update();
+
+DO $test$
+DECLARE result jsonb;
+BEGIN
+  result := public.process_verified_payment_failure_backend(
+    'event-order-already-final','tenant-1','PAYMOB','paymob:order-already-final','intent-final','TRANSACTION',true,90.00,'EGP','{}'::jsonb
+  );
+  IF result->>'already_final' <> 'true' OR result->>'status' <> 'SUCCEEDED' THEN
+    RAISE EXCEPTION 'final intent should not be downgraded: %', result;
+  END IF;
+  IF (SELECT status FROM public.payment_intents WHERE id='intent-final') <> 'SUCCEEDED' THEN
+    RAISE EXCEPTION 'final payment intent was downgraded';
+  END IF;
+END;
+$test$;
+
 -- Non-service role is rejected even if it can see the function.
 DO $test$
 BEGIN
