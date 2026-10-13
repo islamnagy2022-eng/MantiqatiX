@@ -42,3 +42,89 @@ CREATE POLICY "Users view own marketing leads"
   FOR SELECT
   TO authenticated
   USING ((SELECT auth.uid()) = requester_user_id);
+
+
+-- The following two related tables are included as disposable-only compatibility
+-- dependencies because the same historical ALTER POLICY migration references them
+-- before any canonical CREATE TABLE source is present in the repository.
+-- Their shape/policies below are catalog-derived snapshots, not historical DDL.
+-- The policy predicates and observed grants are preserved; no rows are copied.
+
+CREATE TABLE public.marketing_projects (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  lead_id uuid,
+  client_business_id uuid,
+  project_type character varying NOT NULL DEFAULT 'MARKETING_SERVICE'::character varying,
+  management_mode character varying NOT NULL DEFAULT 'OFFICIAL'::character varying,
+  status character varying NOT NULL DEFAULT 'OPEN'::character varying,
+  gross_value numeric NOT NULL DEFAULT 0,
+  platform_commission numeric NOT NULL DEFAULT 0,
+  management_fee numeric NOT NULL DEFAULT 0,
+  partner_payout numeric NOT NULL DEFAULT 0,
+  currency character varying NOT NULL DEFAULT 'EGP'::character varying,
+  notes text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_projects_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_projects_client_business_id_fkey FOREIGN KEY (client_business_id) REFERENCES public.businesses(id) ON DELETE SET NULL,
+  CONSTRAINT marketing_projects_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.marketing_leads(id) ON DELETE SET NULL,
+  CONSTRAINT marketing_projects_gross_value_check CHECK (gross_value >= 0::numeric),
+  CONSTRAINT marketing_projects_platform_commission_check CHECK (platform_commission >= 0::numeric),
+  CONSTRAINT marketing_projects_management_fee_check CHECK (management_fee >= 0::numeric),
+  CONSTRAINT marketing_projects_partner_payout_check CHECK (partner_payout >= 0::numeric),
+  CONSTRAINT marketing_projects_management_mode_check CHECK (management_mode::text = ANY (ARRAY['OFFICIAL'::character varying,'PARTNER'::character varying,'JOINT'::character varying]::text[])),
+  CONSTRAINT marketing_projects_status_check CHECK (status::text = ANY (ARRAY['OPEN'::character varying,'ACTIVE'::character varying,'ON_HOLD'::character varying,'COMPLETED'::character varying,'CANCELLED'::character varying]::text[]))
+);
+CREATE INDEX idx_mkt_projects_status ON public.marketing_projects USING btree (status, created_at DESC);
+ALTER TABLE public.marketing_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_projects FORCE ROW LEVEL SECURITY;
+CREATE POLICY "Project clients can view own marketing projects"
+  ON public.marketing_projects FOR SELECT TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.businesses b
+      WHERE b.id = marketing_projects.client_business_id
+        AND EXISTS (
+          SELECT 1 FROM public.user_memberships um
+          WHERE um.business_id = b.id
+            AND um.user_id = (SELECT auth.uid() AS uid)
+            AND um.status::text = 'ACTIVE'::text
+        )
+    )
+  );
+REVOKE ALL ON TABLE public.marketing_projects FROM PUBLIC, anon, authenticated, service_role;
+GRANT SELECT ON TABLE public.marketing_projects TO authenticated;
+GRANT REFERENCES, TRIGGER, TRUNCATE ON TABLE public.marketing_projects TO service_role;
+
+CREATE TABLE public.marketing_project_participants (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  project_id uuid NOT NULL,
+  provider_id uuid NOT NULL,
+  role character varying NOT NULL,
+  allocation_percent numeric,
+  agreed_value numeric NOT NULL DEFAULT 0,
+  status character varying NOT NULL DEFAULT 'ACTIVE'::character varying,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marketing_project_participants_pkey PRIMARY KEY (id),
+  CONSTRAINT marketing_project_participants_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.marketing_projects(id) ON DELETE CASCADE,
+  CONSTRAINT marketing_project_participants_provider_id_fkey FOREIGN KEY (provider_id) REFERENCES public.marketing_provider_profiles(id) ON DELETE RESTRICT,
+  CONSTRAINT marketing_project_participants_project_id_provider_id_role_key UNIQUE (project_id, provider_id, role),
+  CONSTRAINT marketing_project_participants_agreed_value_check CHECK (agreed_value >= 0::numeric),
+  CONSTRAINT marketing_project_participants_allocation_percent_check CHECK (allocation_percent >= 0::numeric AND allocation_percent <= 100::numeric),
+  CONSTRAINT marketing_project_participants_role_check CHECK (role::text = ANY (ARRAY['MANAGER'::character varying,'EXECUTOR'::character varying,'SPECIALIST'::character varying,'REFERRER'::character varying]::text[])),
+  CONSTRAINT marketing_project_participants_status_check CHECK (status::text = ANY (ARRAY['ACTIVE'::character varying,'COMPLETED'::character varying,'REMOVED'::character varying]::text[]))
+);
+CREATE INDEX idx_mkt_project_participants_provider ON public.marketing_project_participants USING btree (provider_id);
+ALTER TABLE public.marketing_project_participants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketing_project_participants FORCE ROW LEVEL SECURITY;
+CREATE POLICY "Providers view assigned projects"
+  ON public.marketing_project_participants FOR SELECT TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.marketing_provider_profiles p
+      WHERE p.id = marketing_project_participants.provider_id
+        AND p.owner_user_id = (SELECT auth.uid() AS uid)
+    )
+  );
+REVOKE ALL ON TABLE public.marketing_project_participants FROM PUBLIC, anon, authenticated, service_role;
+GRANT REFERENCES, TRIGGER, TRUNCATE ON TABLE public.marketing_project_participants TO service_role;
