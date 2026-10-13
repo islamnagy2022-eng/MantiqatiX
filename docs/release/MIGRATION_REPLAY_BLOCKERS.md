@@ -822,3 +822,27 @@ Run 38351334323 passed the baseline preflight and all disposable fixture guards,
 Read-only live catalog evidence confirms the policy exists on public.approval_requests as SELECT TO authenticated, scoped to active tenant membership and requester/OWNER/ADMIN/SUPER_ADMIN/MANAGER visibility. Repository search finds only the ALTER POLICY statement; the supplied RC40 archive has no policy-creation source. Added `supabase/tests/baselines/approval_requests_scoped_read.sql` as a policy-only, live-derived compatibility fixture at temporary version 20260927140499 before the historical ALTER POLICY migration. Validator verifies its security contract, absence of earlier tracked creation, no table DDL/grants/data, and timestamp ordering. This fixture is not historical policy provenance and is never for production.
 
 Candidate head after code changes: e7fcd20f5c9a125d2a99590cb56a688086ab95cb. Exact-head replay result NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — Missing commission finance-read policy dependency
+
+The latest disposable chronological replay run `38351761328` progressed beyond the SMM bootstrap function after the trigger-function compatibility baseline was actually injected at `20260927033924`. It then failed at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` with:
+
+```
+ERROR: policy "commission_transactions_finance_read" for table "commission_transactions" does not exist (SQLSTATE 42704)
+At statement: 17
+alter policy commission_transactions_finance_read on public.commission_transactions to authenticated
+```
+
+Read-only production `pg_policies` evidence for `public.commission_transactions` confirms the policy is `SELECT TO authenticated`, constrained to an ACTIVE membership in the same tenant and roles `OWNER, ADMIN, MANAGER, FINANCE, ACCOUNTANT, FINANCE_MANAGER`. Repository search found the historical ALTER statement but no earlier committed policy-creation source.
+
+### Safe diagnostic fix in PR #207
+
+- Added `supabase/tests/baselines/commission_transactions_finance_read.sql`, a policy-only, catalog-derived fixture with explicit test-only provenance. It contains no table DDL, grants, trigger, or data writes.
+- Added a validator contract requiring the live-derived source note, tenant and user scope, ACTIVE membership, the exact finance role set, absence of a prior committed policy creator, a unique temporary version, and ordering before the historical ALTER.
+- Updated the replay workflow to inject an exact copy only into the disposable database at temporary version `20260927140498`, verify exact-copy/untracked status, and include it in the no-data-write guard. The fixture must never be applied to production.
+- This diagnoses one more missing historical policy dependency; it does not recover canonical history or certify the replay.
+
+Current exact-head CI after these changes: pending at commit `9c09ac5ba2e92b867acd71099b866b62315e854e` when this note was written. The next replay result must be read from that exact head; no pass is inferred.
+
+No production schema, data, migration ledger, RLS, grants, Auth, wallet, or payment state was changed. Release remains **BLOCKED / NOT CERTIFIED**.
