@@ -206,7 +206,7 @@ const commissionPolicyFailureReasons = [
   ["temporary migration file already exists", fs.existsSync(path.join(migrationDirectory, commissionPolicyTemporaryName))],
   ["temporary version collision", migrations.some(({ name }) => name.slice(0, 14) === commissionPolicyVersion)],
   ["temporary version is not earlier than ALTER POLICY", !commissionPolicyMigration || commissionPolicyVersion >= commissionPolicyMigration.name.slice(0, 14)],
-  ["expected ordered ALTER POLICY statement absent", !commissionPolicyMigration || !/alter policy commission_transactions_finance_read on public\\.commission_transactions to authenticated;/i.test(commissionPolicyMigration.sql)],
+  ["expected ordered ALTER POLICY statement absent", !commissionPolicyMigration || !/alter policy commission_transactions_finance_read on public\.commission_transactions to authenticated;/i.test(commissionPolicyMigration.sql)],
 ].filter(([, failed]) => failed);
 if (commissionPolicyFailureReasons.length) {
   for (const [reason] of commissionPolicyFailureReasons) console.error("P0 BLOCKED commission_transactions_finance_read: " + reason);
