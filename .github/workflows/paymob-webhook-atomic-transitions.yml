@@ -64,7 +64,15 @@ jobs:
           done
           pg_isready -d "$DB_URL"
           psql "$DB_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pgcrypto;'
-          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "do \\$roles\\$ begin if not exists(select 1 from pg_catalog.pg_roles where rolname='anon') then create role anon nologin; end if; if not exists(select 1 from pg_catalog.pg_roles where rolname='authenticated') then create role authenticated nologin; end if; if not exists(select 1 from pg_catalog.pg_roles where rolname='service_role') then create role service_role nologin; end if; end \\$roles\\$;"
+          psql "$DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          DO $roles$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname='service_role') THEN CREATE ROLE service_role NOLOGIN; END IF;
+          END
+          $roles$;
+          SQL
           psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc425_mantigo_paymob_fixture.sql
           psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql
           psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc425_mantigo_paymob_integration.sql
