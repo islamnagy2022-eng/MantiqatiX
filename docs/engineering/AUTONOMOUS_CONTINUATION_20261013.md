@@ -114,3 +114,54 @@
 2. Inspect S04 artifact `11789859107` to capture the complete source-audit JSON and migration-version/missing-source list.
 3. Trace the canonical creation history for `public.smm_provider_credentials`; preserve historical migration bytes and do not synthesize production schema.
 4. Continue independent P0 review of tenant isolation and payment/webhook idempotency using disposable tests; keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## Append-only update — S04 artifact and production migration-source reconciliation (2026-10-13)
+
+### Full S04 artifact inspected
+- Downloaded artifact `11789859107` from run #38348635052 and inspected `report.txt`, `source-audit.json`, and `source-audit.stderr` directly.
+- Source audit results: 160 migration files; 0 invalid filenames; **5 duplicate-version groups**; 0 missing entries from the audit's required-source list; RC433 source not found and explicitly marked `NOT_FOUND_NOT_VERIFIED_GAP`.
+- Duplicate groups reported by the audit:
+  1. `20260928020000`: RC101 and RC102.
+  2. `20260928060000`: RC109 and `restore_registration_request_dml_grants`.
+  3. `20260928190000`: RC162 and RC200.
+  4. `20260928200000`: RC164 direct-delete lockdown, RC164 legacy-mutator retirement, and RC206 geographic targeting.
+  5. `20260928210000`: RC172 medical booking and RC207 global MantiGO cover ads.
+- The audit process itself exited 1 with assertion `Migration versions must be globally unique within supabase/migrations` (actual 5 groups, expected 0). This is a source-history blocker, not a passing preflight.
+
+### Read-only production migration ledger/source comparison
+- Confirmed the active Supabase project is `moyhiluyhjsujhwlyeuu`; used only read-only migration-list/SELECT queries.
+- Production records the same migration names under distinct applied versions, which differ from several candidate filenames:
+  - `harden_smm_table_api_privileges`: source `20260927074200`, production `20260927074210`.
+  - `restore_registration_request_dml_grants`: source `20260928060000`, production `20260928034100`.
+  - RC101: source `20260928020000`, production `20260928101022`.
+  - RC102: source `20260928020000`, production `20260928104107`.
+  - RC109: source `20260928060000`, production `20260928112420`.
+  - RC162: source `20260928190000`, production `20260928124303`.
+  - RC164 direct-delete: source `20260928200000`, production `20260928125655`.
+  - RC164 legacy-mutator retirement: source `20260928200000`, production `20260928125731`.
+  - RC172: source `20260928210000`, production `20260928131753`.
+  - RC200: source `20260928190000`, production `20260928154527`.
+  - RC206: source `20260928200000`, production `20260928161513`.
+  - RC207: source `20260928210000`, production `20260928174954`.
+- Compared normalized source SQL (comments/formatting removed) with the corresponding read-only stored applied statement. Nine of these twelve normalized sources match; three have substantive drift and must not be silently renamed or treated as canonical:
+  - RC172 source omits `v_status text` present in the production-applied function body.
+  - RC206 source has the older `raw` query shape, while the applied statement includes a `targeted` CTE with a different projection.
+  - RC207 source is substantially shorter and lacks the `get_mnty_targeted_advertisements` function present in the applied statement.
+- A read-only query using `ILIKE ANY (ARRAY[...])` failed with PostgreSQL `42601 syntax error at or near ")"`; it was retried with equivalent explicit `OR name LIKE ...` predicates and returned the migration-name/version mapping. No data was changed.
+- The clean replay also fails earlier at `20260927074200_harden_smm_table_api_privileges.sql` because `public.smm_provider_credentials` does not exist in the clean workspace. Production has the corresponding privilege migration under version `20260927074210`; source replay still needs an approved, historically faithful bootstrap/reconciliation approach.
+- The repository's migration-history immutability gate rejects modification/deletion of existing migration files. Do not rename or rewrite these files in the stacked SMM branch. The original migration-owning PR must reconcile source names/content against production evidence without changing production or bypassing immutability.
+- This is the first concrete source-to-ledger comparison for these collisions; it is not permission to apply migrations or change the live ledger.
+
+### Updated status
+- P0 RC449/RC462 candidate behavior: **PASS on tested disposable PostgreSQL revision** `10fe17516029d7c4e42f155548ee5c64eb2e3d80`; live production authorization remains **BLOCKED** until an approved release path is applied and reverified.
+- P1 migration-version uniqueness/source parity: **FAIL / BLOCKED**.
+- S04 clean replay: **FAIL / BLOCKED**.
+- SMM exact-head CI: **NOT VERIFIED**; the workflow trigger filter has been corrected in commit `94edc7e364efe3313eaa30c51c829b909e2fa3fd`, but the available run lookup does not expose push-triggered runs.
+- Release: **BLOCKED / NOT CERTIFIED**.
+
+### Next exact actions
+1. Keep the SMM PR draft and unmerged; confirm its push-triggered workflow run by its run page and exact head SHA when available.
+2. Coordinate source reconciliation on the migration-owning PR: preserve all applied SQL, identify the nine byte/semantic matches and three mismatches, and resolve duplicate versions without rewriting any migration already present in the target base.
+3. Resolve the earliest missing SMM schema dependency and subsequent historical bootstrap gaps only in disposable infrastructure with explicitly approved schema baselines; do not create placeholder functions or skip migrations.
+4. Re-run source uniqueness/immutability checks, then a complete chronological disposable replay from a clean database. Keep the gate failed until both pass.
