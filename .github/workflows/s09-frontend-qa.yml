@@ -1,0 +1,39 @@
+name: S09 Frontend QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'tests/s09-frontend-qa.test.mjs'
+      - '.github/workflows/s09-frontend-qa.yml'
+  push:
+    branches: ['agent/s09-frontend-qa-clean']
+    paths:
+      - 'web/**'
+      - 'tests/s09-frontend-qa.test.mjs'
+      - '.github/workflows/s09-frontend-qa.yml'
+permissions:
+  contents: read
+jobs:
+  frontend-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install project dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build browser SDK bundle
+        run: |
+          mkdir -p web/vendor
+          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
+          test -s web/vendor/supabase.js
+      - name: Run S09 static route, asset, UX-contract, and secret-marker tests
+        run: node --test tests/s09-frontend-qa.test.mjs
+      - name: Syntax-check browser JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in web/*.js; do node --check "$file"; done
