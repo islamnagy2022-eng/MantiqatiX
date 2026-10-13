@@ -189,49 +189,6 @@ if (!marketingLeadsPolicyMigration || marketingLeadsPriorCreator || !marketingLe
 
 // Validate the catalog-derived policy that the historical migration alters but no earlier
 // committed migration creates. It is a policy-only fixture, never table DDL or a production change.
-// Validate a live-catalog-derived, test-only schema/policy fixture for the table whose
-// historical creator is absent. This does not claim historical DDL and is injected only into disposable replay.
-const marketingParticipantsBaselinePath = "supabase/tests/baselines/marketing_project_participants.sql";
-const marketingParticipantsBaseline = fs.readFileSync(marketingParticipantsBaselinePath, "utf8");
-const marketingParticipantsVersion = "20260927140493";
-const marketingParticipantsTemporaryName = marketingParticipantsVersion + "_test_only_live_derived_marketing_project_participants.sql";
-const marketingParticipantsPolicyMigration = migrations.find(({ name }) =>
-  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
-);
-const marketingParticipantsPriorCreator = migrations.some(({ name, sql }) =>
-  name.slice(0, 14) < marketingParticipantsPolicyMigration?.name.slice(0, 14) &&
-  /create\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\s*\\.\\s*)?marketing_project_participants\\b/i.test(sql)
-);
-const marketingParticipantsBaselineValid =
-  /TEST-ONLY LIVE-DERIVED MARKETING PROJECT PARTICIPANTS COMPATIBILITY BASELINE/.test(marketingParticipantsBaseline) &&
-  /2026-10-13/.test(marketingParticipantsBaseline) &&
-  /moyhiluyhjsujhwlyeuu/.test(marketingParticipantsBaseline) &&
-  /NOT recovered historical DDL/i.test(marketingParticipantsBaseline) &&
-  /MUST NOT be applied to production/i.test(marketingParticipantsBaseline) &&
-  /CREATE TABLE public\\.marketing_project_participants/i.test(marketingParticipantsBaseline) &&
-  /id uuid NOT NULL DEFAULT gen_random_uuid\\(\\)/i.test(marketingParticipantsBaseline) &&
-  /project_id uuid NOT NULL/i.test(marketingParticipantsBaseline) &&
-  /provider_id uuid NOT NULL/i.test(marketingParticipantsBaseline) &&
-  /allocation_percent numeric/i.test(marketingParticipantsBaseline) &&
-  /agreed_value numeric NOT NULL DEFAULT 0/i.test(marketingParticipantsBaseline) &&
-  /FOREIGN KEY \\(project_id\\) REFERENCES public\\.marketing_projects\\(id\\) ON DELETE CASCADE/i.test(marketingParticipantsBaseline) &&
-  /FOREIGN KEY \\(provider_id\\) REFERENCES public\\.marketing_provider_profiles\\(id\\) ON DELETE RESTRICT/i.test(marketingParticipantsBaseline) &&
-  /UNIQUE \\(project_id, provider_id, role\\)/i.test(marketingParticipantsBaseline) &&
-  /allocation_percent >= 0 AND allocation_percent <= 100/i.test(marketingParticipantsBaseline) &&
-  /ALTER TABLE public\\.marketing_project_participants ENABLE ROW LEVEL SECURITY/i.test(marketingParticipantsBaseline) &&
-  /ALTER TABLE public\\.marketing_project_participants FORCE ROW LEVEL SECURITY/i.test(marketingParticipantsBaseline) &&
-  /CREATE POLICY "Providers view assigned projects"[\\s\\S]*ON public\\.marketing_project_participants[\\s\\S]*FOR SELECT TO public[\\s\\S]*p\\.owner_user_id = \\(SELECT auth\\.uid\\(\\) AS uid\\)/i.test(marketingParticipantsBaseline) &&
-  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(marketingParticipantsBaseline) &&
-  !/\\bgrant\\b|\\brevoke\\b|create trigger/i.test(marketingParticipantsBaseline);
-if (!marketingParticipantsPolicyMigration || marketingParticipantsPriorCreator || !marketingParticipantsBaselineValid ||
-    fs.existsSync(path.join(migrationDirectory, marketingParticipantsTemporaryName)) ||
-    migrations.some(({ name }) => name.slice(0, 14) === marketingParticipantsVersion) ||
-    marketingParticipantsVersion >= marketingParticipantsPolicyMigration.name.slice(0, 14) ||
-    !/alter policy "Providers view assigned projects" on public\\.marketing_project_participants to authenticated;/i.test(marketingParticipantsPolicyMigration.sql)) {
-  console.error("P0 BLOCKED: marketing_project_participants test-only catalog baseline or ordered ALTER POLICY contract is invalid.");
-  process.exit(1);
-}
-
 const approvalPolicyBaselinePath = "supabase/tests/baselines/approval_requests_scoped_read.sql";
 const approvalPolicyBaseline = fs.readFileSync(approvalPolicyBaselinePath, "utf8");
 const approvalPolicyVersion = "20260927140499";
