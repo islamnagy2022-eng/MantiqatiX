@@ -265,3 +265,23 @@
 - Live `paymob-webhook` is ACTIVE v8, `verify_jwt=false`, hash `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca`. Its deployed entrypoint is 11,538 characters and **does not match** the PR #207 candidate source (15,041 characters). The deployed source still directly updates a pending `subscription_payment_intents` row on a failure callback after an existence check, while the candidate uses the atomic `process_verified_subscription_payment_failure` RPC and explicit retryable provider-correlation handling. This is a deployment/source-parity and webhook-race acceptance blocker; it is not proof by itself of an exploitable live incident.
 - Production migration ledger remains through RC424, so RC425–RC458 candidate changes are not proven applied. Do not deploy the candidate webhook independently of the required migrations, exact-head E2E tests, and rollback plan.
 - All observations were read-only metadata/source inspections; no payment, wallet, webhook, customer data, or production configuration was modified.
+
+
+## Expanded live payment Edge Function parity matrix — 2026-10-13 05:14 UTC
+
+Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch `reconcile/rc425-458-current-main-20261011`:
+
+| Function | Live version | `verify_jwt` | Live/source exact match | Key observation |
+|---|---:|---|---|---|
+| `payment-intent` | 6 | true | NO | Candidate adds explicit `provider_order_id` correlation not present in live source. |
+| `payment-webhook` | 1 | false | YES | Provider callback uses signature checks and RPC paths; no live callback was invoked. |
+| `paymob-webhook` | 8 | false | NO | Candidate adds retryable provider-correlation and atomic failure RPC paths; live source still has a direct conditional update for subscription failure. |
+| `digital-page-payment-intent` | 3 | true | NO | Candidate adds explicit `provider_order_id` correlation checks. |
+| `subscription-payment-intent` | 2 | true | NO | Candidate adds retryable provider-correlation handling. |
+| `mantigo-payment-intent` | 3 | false | NO | Live handler manually requires a Bearer token and validates it through Supabase Auth, rejects anonymous users, and scopes subsequent actions; `verify_jwt=false` alone is not proof of a bypass. |
+
+- Live/source equality was checked on the complete entrypoint content after newline normalization. The production Edge Function inventory reports the versions and SHA-256 values; source files were read from the PR #207 candidate branch.
+- For `payment-webhook`, exact source parity is positive evidence only for the entrypoint, not proof of webhook signature correctness, DB function parity, or end-to-end duplicate delivery safety.
+- The other five source mismatches align with the fact that PR #207's RC425–RC458 candidate has not been deployed. They are release-parity blockers, not automatically confirmed vulnerabilities. Review the exact diffs and tests before any staged deployment.
+- Live schema metadata confirms uniqueness on `payment_intents(tenant_id,idempotency_key)`, `payment_events(event_id)`, and `payment_provider_events(provider,external_event_id)`. These database constraints support idempotency, but no live payment event or webhook request was executed.
+- No production deployment, migration, grant, payment, wallet, webhook, or data mutation was performed.
