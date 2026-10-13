@@ -978,6 +978,7 @@ const createsProvidersTable = migrations.some(({ sql }) =>
 );
 const providerBaselineVersion = "20260927074158";
 const credentialsBaselineVersion = "20260927074159";
+// Test-only compatibility version: exact live schema, not historical DDL or a production migration.
 const adminsBaselineVersion = "20260927033923";
 const createsAdminsTable = migrations.some(({ sql }) =>
   /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_admins"?\b/i.test(sql)
