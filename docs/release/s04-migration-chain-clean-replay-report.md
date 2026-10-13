@@ -57,6 +57,22 @@ The uploaded `source_RC40.zip` was inspected as a separate historical source can
 
 Row-level hashes and missing filenames are recorded in [S04 RC40 archive reconciliation](S04_RC40_ARCHIVE_RECONCILIATION_20261013.json). Do not overlay the RC40 archive onto the current recovered directory: all 12 same-name SQL files differ in content, and the archive has its own timestamp collision.
 
+### RC40 credit-control candidate is not a safe baseline
+
+A read-only query of the production ledger found only `20260920155456 / harden_credit_status_authorization` for the credit-related name search. Its recorded statement is 2,248 bytes with MD5 `82af7a802839a630d5dc4201ce3ce8a1`. The RC40 archive's `20260920190000_harden_credit_status_authorization.sql` is 2,335 bytes with MD5 `9161bd24cfc0c49b1249c00deac33be9`; the statements are **not byte-identical**.
+
+The RC40 `20260920185000_production_credit_control.sql` is also absent from the production ledger at that version/name, and its schema defaults/types differ from the live catalog:
+
+| Field | Live catalog | RC40 archive candidate |
+|---|---|---|
+| `credit_policies.credit_limit` | `numeric default 0` | `numeric(14,2) default 0` |
+| `credit_policies.grace_days` | `integer default 0` | `integer default 7` |
+| `credit_policies.suspend_after_days` | `integer default 15` | `integer default 30` |
+| `credit_policies.block_new_credit` | `boolean default true` | `boolean default false` |
+| Credit account/period amounts | `numeric default 0` | `numeric(14,2) default 0` |
+
+Therefore RC40 is useful evidence of a possible historical implementation, but it is **not** an exact live-schema baseline and cannot safely be injected into the replay to get past the missing credit tables. The existing historical-schema preflight correctly blocks on this unresolved dependency. No credit baseline was synthesized or applied.
+
 ## 3. Requested migrations — dependency and precondition review
 
 | Migration | Source/order observation | Dependency or replay precondition |
