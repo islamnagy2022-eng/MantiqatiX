@@ -67,3 +67,36 @@ test('S09-CONFIG-001: browser config excludes server-role key markers', () => {
   assert.doesNotMatch(config, /SUPABASE_SERVICE_ROLE_KEY|-----BEGIN .*PRIVATE KEY-----/i);
   assert.match(config, /SUPABASE_URL|supabaseUrl|createClient/i, 'configuration contract not recognized; review manually');
 });
+
+
+test('S09-RESP-001: responsive styles provide narrow-screen layout rules', () => {
+  const homepage = read('web/home-mobile-fixes.css');
+  const smm = read('web/smm.css');
+  const digital = read('web/digital-page.css');
+  const editor = read('web/digital-page-editor.css');
+  assert.match(homepage, /@media\s*\(/i, 'homepage mobile fixes must include media-query rules');
+  assert.match(smm, /@media\s*\(/i, 'SMM stylesheet must include media-query rules');
+  assert.match(digital, /(?:auto-fit|auto-fill|minmax|clamp\()/i, 'digital page should use fluid sizing or responsive grid');
+  assert.match(editor, /(?:auto-fit|auto-fill|minmax|clamp\()/i, 'digital editor should use fluid sizing or responsive grid');
+});
+
+test('S09-FORM-001: digital-page editor declares native validation for core fields', () => {
+  const html = read('web/digital-page-editor.html');
+  assert.match(html, /id=["']title["'][^>]*\brequired\b/i, 'page title should be required');
+  assert.match(html, /id=["']slug["'][^>]*\brequired\b/i, 'slug should be required');
+  assert.match(html, /id=["']slug["'][^>]*\bpattern=/i, 'slug should declare a format constraint');
+  assert.match(html, /id=["']title["'][^>]*\bmaxlength=/i, 'title should have a length bound');
+  assert.match(html, /id=["']description["'][^>]*\bmaxlength=/i, 'description should have a length bound');
+});
+
+test('S09-ERR-001: digital-page routes expose an error/status surface and handle rejected requests', () => {
+  const pageHtml = read('web/digital-page.html');
+  const pageJs = read('web/digital-page.js');
+  const editorHtml = read('web/digital-page-editor.html');
+  const editorJs = read('web/digital-page-editor.js');
+  assert.match(pageHtml, /id=["']page["']/i, 'public digital page must have a render target');
+  assert.match(pageJs, /function fail\s*\(/, 'public digital page must define a failure renderer');
+  assert.match(pageJs, /catch\s*\(/, 'public digital page must handle rejected operations');
+  assert.match(editorHtml, /id=["']status["']/i, 'editor must expose a status region');
+  assert.match(editorJs, /catch\s*\(/, 'editor must handle rejected operations');
+});
