@@ -193,3 +193,10 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - **Migration replay PR #207:** current head `56dc3375ec8cde875d886e1aa95b2329889139b0`; run [38350541588](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350541588) FAILS before replay: `settlement_attempts_baseline: unbound variable` in the second shell step, where the declaration was omitted while `cmp` still references it. Coordination comment [6138798133](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138798133). No owned workflow file edited.
 - The previous head's replay preflight reported a finance-read policy contract mismatch. Read-only exact-source review shows the current policy SQL matches the validator regex, so this must be rechecked against the post-fix exact run rather than labeled a confirmed policy defect. Independently, the proposed schema-only settlement fixture does not yet preserve observed `numeric(14,4)` and `varchar(8)` typmods, and explicit approval/provenance for this additional financial fixture must be confirmed.
 - Global status remains **BLOCKED / NOT CERTIFIED**. No production changes, migrations, financial mutation, Auth/RLS/grant/secret changes, deployment, or merge.
+
+
+## Queue checkpoint — 2026-10-13 05:19 UTC
+
+- PR #207 latest head `61c994c47b7b27f498a26463dda658694ffcb719`; exact-head replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) is currently **IN PROGRESS**. Prior-head shell-variable failure remains a finding to verify against this run; no replay PASS is claimed yet.
+- PR #225 exact head `67bf1c5b7b57c69393245fa5dfc4e55901dcb160` passes [38350675472](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350675472), including security contract, ACL boundary, type check, and SMM unit/negative-input tests. Live HTTP deny remains NOT VERIFIED.
+- MantiGO authorized-path behavior and payment replay remain failed gates as documented above. Global status remains **BLOCKED / NOT CERTIFIED**.
