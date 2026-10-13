@@ -75,6 +75,64 @@ if (missingBaselines.length > 0) {
   }
   process.exit(1);
 }
+const creditBaselineSpecs = [
+  {
+    path: "supabase/tests/baselines/credit_policies.sql",
+    table: "credit_policies",
+    required: /credit_limit numeric\\(18,2\\) not null default 0[\\s\\S]*grace_days integer not null default 0[\\s\\S]*suspend_after_days integer not null default 15[\\s\\S]*block_new_credit boolean not null default true[\\s\\S]*unique \\(tenant_id, business_id\\)[\\s\\S]*references public\\.tenants\\(id\\) on delete cascade/i,
+  },
+  {
+    path: "supabase/tests/baselines/credit_accounts.sql",
+    table: "credit_accounts",
+    required: /approved_limit numeric\\(18,2\\) not null default 0[\\s\\S]*outstanding_amount numeric\\(18,2\\) not null default 0[\\s\\S]*available_amount numeric\\(18,2\\) generated always as[\\s\\S]*references public\\.credit_policies\\(id\\)[\\s\\S]*unique \\(tenant_id, business_id\\)/i,
+  },
+  {
+    path: "supabase/tests/baselines/credit_periods.sql",
+    table: "credit_periods",
+    required: /billed_amount numeric\\(18,2\\) not null default 0[\\s\\S]*paid_amount numeric\\(18,2\\) not null default 0[\\s\\S]*outstanding_amount numeric\\(18,2\\) generated always as[\\s\\S]*period_end >= period_start[\\s\\S]*unique \\(credit_account_id, period_start, period_end\\)/i,
+  },
+];
+for (const spec of creditBaselineSpecs) {
+  const source = fs.readFileSync(spec.path, "utf8");
+  const valid = /OWNER-APPROVED TEST-ONLY LIVE-DERIVED CREDIT SCHEMA BASELINE/.test(source) &&
+    /2026-10-13/.test(source) &&
+    /moyhiluyhjsujhwlyeuu/.test(source) &&
+    /NOT recovered historical creation DDL/.test(source) &&
+    /must NEVER be applied to production/.test(source) &&
+    new RegExp("\\\\bcreate\\\\s+table\\\\s+public\\\\." + spec.table + "\\\\b", "i").test(source) &&
+    spec.required.test(source) &&
+    /enable row level security/i.test(source) &&
+    /force row level security/i.test(source) &&
+    !/^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(source);
+  if (!valid) {
+    console.error("P0 BLOCKED: credit compatibility baseline failed provenance/shape/RLS/no-data checks: " + spec.table);
+    process.exit(1);
+  }
+}
+const creditBaselineVersions = [
+  ["20260920155450", "20260920155450_test_only_live_derived_credit_policies_baseline.sql"],
+  ["20260920155451", "20260920155451_test_only_live_derived_credit_accounts_baseline.sql"],
+  ["20260920155452", "20260920155452_test_only_live_derived_credit_periods_baseline.sql"],
+];
+for (const [version, temporaryName] of creditBaselineVersions) {
+  if (fs.existsSync(path.join(migrationDirectory, temporaryName))) {
+    console.error("P0 BLOCKED: temporary test-only credit migration filename already exists in repository: " + temporaryName);
+    process.exit(1);
+  }
+  if (version >= "20260920155456") {
+    console.error("P0 BLOCKED: test-only credit fixtures must sort before the first dependent migration.");
+    process.exit(1);
+  }
+}
+const creditPolicyCreator = migrations.find(({ name, sql }) =>
+  name.startsWith("20260920211717") && /CREATE POLICY credit_accounts_finance_read/i.test(sql) &&
+  /CREATE POLICY credit_periods_finance_read/i.test(sql)
+);
+if (!creditPolicyCreator) {
+  console.error("P0 BLOCKED: expected ordered migration creating finance-read policies was not found; credit baseline must not silently supply or duplicate policy history.");
+  process.exit(1);
+}
+
 const registrationBaseline = fs.readFileSync(registrationBaselinePath, "utf8");
 const registrationChecks = [
   ["registration baseline provenance", /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(registrationBaseline) && /2026-10-12/.test(registrationBaseline) && /moyhiluyhjsujhwlyeuu/.test(registrationBaseline) && /NOT recovered historical creation DDL/.test(registrationBaseline) && /Never apply this file to production/.test(registrationBaseline)],
@@ -289,5 +347,5 @@ for (const [version, temporaryName] of [
     process.exit(1);
   }
 }
-console.log("Disposable compatibility preflight PASS: legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived function compatibility fixture validated.");
+console.log("Disposable compatibility preflight PASS: approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived function compatibility fixture validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
