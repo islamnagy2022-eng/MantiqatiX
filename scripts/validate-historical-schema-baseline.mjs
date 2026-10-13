@@ -67,7 +67,7 @@ const missingHistoricalTables = [
   { table: "smm_services", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_services.sql" },
   { table: "smm_orders", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_orders.sql" },
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
-  { table: "smm_wallets", before: "20261011010000_rc456_smm_service_role_access_boundary.sql", baselinePath: "supabase/tests/baselines/smm_wallets.sql" },
+  { table: "smm_wallets", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_wallets.sql" },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -600,9 +600,9 @@ if (!smmBootstrapLockdownMigration || smmBootstrapPriorCreation || !smmBootstrap
 const smmWalletsBaselinePath = "supabase/tests/baselines/smm_wallets.sql";
 const smmWalletsBaseline = fs.readFileSync(smmWalletsBaselinePath, "utf8");
 const smmWalletsBoundaryMigration = migrations.find(({ name }) =>
-  name === "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
 );
-const smmWalletsBaselineVersion = "20261011009999";
+const smmWalletsBaselineVersion = "20260927140487";
 const smmWalletsTemporaryName = smmWalletsBaselineVersion + "_test_only_live_derived_smm_wallets_baseline.sql";
 const smmWalletsBaselineValid =
   /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(smmWalletsBaseline) &&
@@ -623,7 +623,7 @@ if (!smmWalletsBoundaryMigration || !smmWalletsBaselineValid ||
     fs.existsSync(path.join(migrationDirectory, smmWalletsTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === smmWalletsBaselineVersion) ||
     smmWalletsBaselineVersion >= smmWalletsBoundaryMigration.name.slice(0, 14)) {
-  console.error("P0 BLOCKED: SMM wallet live-derived baseline or RC456 ordering contract is invalid.");
+  console.error("P0 BLOCKED: SMM wallet live-derived baseline or chronological policy-alter contract is invalid.");
   process.exit(1);
 }
 
