@@ -113,6 +113,30 @@ BEGIN
     RAISE EXCEPTION 'S03: customer ride RPC serializes full bid/financial rows; use an explicit public-field allowlist';
   END IF;
 
+
+  -- Authorization helper chain: delegated identity must remain anchored to
+  -- auth.uid(), and permission checks must consume the scoped membership set.
+  SELECT pg_get_functiondef(p.oid)
+    INTO v_def
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public' AND p.proname = 'mnty_active_membership'
+    AND p.prosecdef;
+  IF v_def IS NULL
+     OR v_def NOT ILIKE '%m.user_id = auth.uid()%'
+     OR v_def NOT ILIKE '%m.status = ''ACTIVE''%'
+     OR v_def NOT ILIKE '%p_tenant_id is null or m.tenant_id = p_tenant_id%' THEN
+    RAISE EXCEPTION 'S03: active membership helper lost identity/tenant/status scoping';
+  END IF;
+
+  SELECT pg_get_functiondef(p.oid)
+    INTO v_def
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public' AND p.proname = 'mnty_can'
+    AND p.prosecdef;
+  IF v_def IS NULL OR v_def NOT ILIKE '%mnty_active_membership%' THEN
+    RAISE EXCEPTION 'S03: mnty_can no longer delegates to scoped active membership';
+  END IF;
+
   RAISE NOTICE 'S03 read-only SECURITY DEFINER contract assertions passed';
 END
 $s03$;
