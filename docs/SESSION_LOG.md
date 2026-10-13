@@ -85,3 +85,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #220 focused S06 payment regression passed, but separate S04 clean migration replay failed and deployment was cancelled; webhook source risks remain open.
 - PR #225 exact-head CI run not found; current PR base branch does not match workflow pull_request filter.
 - No production writes, migrations, financial mutations, deployments, merges, or release performed. **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C payment webhook source parity — 2026-10-13
+
+- Fetched current-main `supabase/functions/paymob-webhook/index.ts` (blob `c03384ce019484b77139d924c4621f6b23903071`) and PR #220 branch candidate (blob `04d502fb2e01b1f751e10f6ac68b4814ccf220d5`). Only observed source diff adds `.eq("status","PENDING")` to the candidate generic failure update. Main lacks that predicate; candidate still ignores update error/row count and uses separate event-insert/state-update requests.
+- Commented on [PR #220](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138661187). Atomicity, event-to-intent binding, concurrency and fault-injection tests remain open. No production webhook invoked or changed.
+- Release remains **BLOCKED / NOT CERTIFIED**.
