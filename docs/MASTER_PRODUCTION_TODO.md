@@ -1614,3 +1614,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Chronological full replay, legacy function DDL prerequisites, production migration approval/application, and runtime E2E remain open.
 - Safety: repository-only change; no production SQL or deployment.
 - Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC527 — Expand focused regression coverage and migration inventory — 2026-10-13
+
+- [x] Restored exact RC457/RC458/RC462 migration sources and RC457/RC441/RC437/RC458 integration fixtures/tests from reconciled PR #207.
+- [x] Added five disposable PostgreSQL jobs for finance journal boundaries/idempotency, platform-admin scope, order-line quantity controls, and ERP branch organization scope. Focused workflow now contains 12 integration jobs.
+- [x] Expanded migration-chain gate to 33 required sources in timestamp order, including RC457, RC458 and RC462; all are subject to filesystem presence checks.
+- [ ] Wait for and inspect exact-head CI results; queued is not passed.
+- [ ] Full chronological replay and legacy DDL dependency fixes remain open, along with live tenant/payment/Auth/security, restore rehearsal, device, and release evidence.
+- Safety: repository/CI only; no production SQL, data, grants/RLS/Auth, Edge Functions, money movement, merge, or release.
+- Release remains BLOCKED / NOT CERTIFIED.
