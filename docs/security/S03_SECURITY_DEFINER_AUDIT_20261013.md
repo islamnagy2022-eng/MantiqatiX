@@ -293,3 +293,33 @@ A SELECT-only triage query identified two in-scope callable SECURITY DEFINER fun
 2. `public.preview_commission_backend(...)`: anon EXECUTE is false and authenticated EXECUTE is true. Manual definition inspection confirms it first calls `public.assert_financial_membership(p_tenant_id)`, then validates non-negative gross amount, resolves an active scoped commission rule, validates percentage bounds, and computes commission/net values. Thus absence of a direct `auth.uid()` token is explained by delegated authorization rather than, by itself, indicating missing authorization.
 
 The heuristic returned no other in-scope callable functions lacking both a direct identity reference and the known authorization-helper patterns. This is not proof of complete authorization correctness: alternate helper names, indirect call chains, dynamic behavior, and business-contract requirements can evade lexical checks. No RPC was invoked and no production state was changed.
+
+
+### Additional private SECURITY DEFINER helper and privilege review — 2026-10-13
+
+A read-only catalog query checked non-public SECURITY DEFINER functions with role EXECUTE privileges and their function owners/configuration. A separate focused definition review covered private InDrive helpers and push-subscription helpers.
+
+**Positive controls observed**
+- The scoped callable SECURITY DEFINER inventory query found no in-scope function with a missing explicit `search_path` setting (zero rows).
+- `private.accept_indrive_bid_impl(uuid,uuid)` and `private.reject_indrive_bid_impl(uuid,uuid)` require an authenticated actor, lock the request and bid rows, bind the request to its owner unless the actor passes the platform-admin check, and verify the bid belongs to the specified request and is in OFFERED state before changing it.
+- `private.can_read_indrive_bid`, `private.can_read_indrive_request`, and `private.can_submit_indrive_bid` are predicate helpers whose definitions bind access decisions to `auth.uid()`, request ownership, bid participation/state, or the platform-admin predicate.
+- `private.upsert_mnty_push_subscription` and `private.disable_mnty_push_subscription` reject missing authentication. Disable is scoped to both endpoint and `auth.uid()`; upsert derives `user_id` from `auth.uid()` and validates endpoint/key lengths.
+
+**Items requiring contract/reachability verification**
+- Several private InDrive helpers have PostgreSQL EXECUTE granted to `authenticated` and the `private` schema has USAGE for `authenticated`. This does not prove that PostgREST exposes the schema, but it means these helpers should not be treated as unreachable without checking active API schema configuration. Their current definitions include authorization predicates; direct exposure may still reveal relationship/state information through boolean results and should be intentional.
+- Push-subscription upsert uses `ON CONFLICT (endpoint) DO UPDATE` and reassigns the matching row to the current actor. This avoids trusting a supplied user ID, but the endpoint is the conflict key. Review whether possession/knowledge of another subscription endpoint is intended to authorize reassignment; no exploit is confirmed because endpoint secrecy and exposure paths were not tested.
+- Function owners observed for these reviewed private helpers are `postgres`; their definitions use explicit empty search paths (or an explicit `public` path for push subscription operations).
+
+This was catalog/definition inspection only. No helper RPC was invoked, no push endpoint or user data was read from application rows, and no production state or privileges were changed. The API schema exposure question and push endpoint ownership contract remain open.
+
+### Updated S03 checklist
+
+- [x] Read-only inventory confirms explicit function-level `search_path` for callable SECURITY DEFINER functions in the defined scope.
+- [x] Review selected InDrive and push-subscription helper definitions and record delegated identity/state checks.
+- [ ] Verify active PostgREST exposed-schema configuration for `private`.
+- [ ] Confirm whether push endpoint reassignment on conflict is acceptable under the subscription ownership contract.
+- [ ] Run the contract SQL tests in a disposable branch/database and record actual pass/fail output.
+- [ ] Obtain product decision for customer-visible bid and financial-ledger field allowlists.
+- [ ] Reconcile source migrations with live production catalog and migration history before certification.
+
+**Status remains BLOCKED / NOT CERTIFIED.** The above checks are static catalog/definition review only, not runtime behavioral tests.
