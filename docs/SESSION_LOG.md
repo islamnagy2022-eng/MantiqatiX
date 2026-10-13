@@ -34,3 +34,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Next step:** re-check new exact-head CI for PR #207 and PR #219 after owners' fixes; inspect replay logs beyond the bootstrap step and require full MantiGO behavioral success. Continue independent read-only checks meanwhile.
 - **Session C branch checkpoint commit:** `83b4bd72328d78754a1fd5c195825a8dcf3a5420`.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C payment webhook review — 2026-10-13
+
+- **Verified fact:** source review of PR #220 `paymob-webhook/index.ts` (blob `04d502fb2e01b1f751e10f6ac68b4814ccf220d5`) found subscription/MantiGO existing-event shortcuts do not validate event-to-intent binding; generic branch reads but does not compare the existing event's intent ID; multiple failure paths persist event and payment state in separate calls and omit result/row-count checks.
+- **Action performed:** posted actionable findings to PR #220 comment [6138530408](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138530408); appended them to the Session C acceptance report.
+- **Not performed:** no payment operations, production writes, Edge Function deployment, or edits to S06-owned files.
+- **Next step:** require atomic event/state RPCs, replay ownership/status assertions, row-count checks, concurrent delivery/fault-injection tests, and sandbox reconciliation on exact candidate SHA.
+- **Session C report commit:** `5b93601ac16b163e2f42e99d9aa845b368dcacb4`.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
