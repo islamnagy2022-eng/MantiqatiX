@@ -3,7 +3,7 @@
 **Audit date:** 2026-10-13  
 **Repository:** `islamnagy2022-eng/MantiqaTiX`  
 **PR:** [#218](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/218) — open, Draft, unmerged  
-**Audit source commit:** `11d5eb7dc0bbbc83d1ad080656a1696b723cddc8`  
+**Current report commit:** pending this update; replay evidence is from the exact run/commit listed below  
 **Supabase project:** `moyhiluyhjsujhwlyeuu`  
 **Status:** `BLOCKED / NOT CERTIFIED`
 
@@ -15,9 +15,9 @@ The candidate RC425–RC441, RC449, RC462, RC522, and RC523 migrations are **not
 
 ## 2. Source inventory and ordering
 
-The PR branch contains **160 SQL files** in `supabase/migrations/`. The requested source files RC425–RC432, RC434–RC441, RC449, RC462, RC522, and RC523 are present. RC433 has no matching migration source in the inspected inventory; this is recorded as a numbering/source gap requiring confirmation, not assumed to be an applied migration.
+The PR branch contains **160 SQL files** in `supabase/migrations/` and **33** in `supabase/recovered-migrations/`. The source-chain preflight reported **193 total files**, **187 unique 14-digit versions**, and **five duplicate-version groups**. All 20 explicit required sources (RC425–RC432, RC434–RC441, RC449, RC462, RC522, RC523) were present in the preflight. RC433 has no matching source; confirm from authoritative evidence whether RC433 was ever a defined migration. Absence alone does not establish a missing applied migration.
 
-The source audit identified five duplicate migration-version groups. Supabase migration versions are the first 14 digits of the filename, so each group is a chain-integrity blocker:
+The five duplicate-version groups are a chain-integrity blocker because Supabase uses the first 14 filename digits as the migration version:
 
 | Duplicate version | Conflicting source filenames |
 |---|---|
@@ -39,37 +39,42 @@ Do not resolve these collisions by changing production history or arbitrarily re
 | RC428 | Present at `20261009150000` | Replaces provider-payment failure RPC; depends on `payment_intents`, `orders`, and `payment_provider_events`. |
 | RC429 | Present at `20261009160000` | Replaces subscription-payment failure RPC; depends on subscription intents, provider events, and businesses. |
 | RC430 | Present at `20261009170000` | Replaces subscription-payment success RPC; depends on subscription intents, subscriptions, memberships, businesses, and the legal assertion contract. |
-| RC431 | Present at `20261009180000` | Hardens existing digital-page payment RPC/event objects; must be compared with the preceding RC424 function definition, not treated as standalone. |
+| RC431 | Present at `20261009180000` | Hardens existing digital-page payment RPC/event objects; compare with the preceding RC424 function definition, not as standalone. |
 | RC432 | Present at `20261009190000` | Depends on SMM wallet tables/functions and aborts on conflicting legacy debit/refund/credit references. |
-| RC434 | Present at `20261009200000` | Depends on ERP purchase, warehouse, receipt, stock, inventory, membership, business, and catalog objects. Its own header flags missing purchase-order line modeling; RC437 appears later in timestamp order. |
+| RC434 | Present at `20261009200000` | Depends on ERP purchase, warehouse, receipt, stock, inventory, membership, business, and catalog objects. Its header flags missing purchase-order line modeling; RC437 appears later in timestamp order. |
 | RC435 | Present at `20261009210000` | Alters subscription intent state and creates claim RPCs; requires the existing subscription-intent schema and related pricing/membership objects. |
 | RC436 | Present at `20261009220000` | Depends on the financial journal, chart-of-accounts, general-ledger, membership, and business schemas. |
 | RC437 | Present at `20261009230000` | Adds purchase-order lines and line-aware receiving; existing purchase orders/catalog/ERP receipt contracts must match. |
 | RC438 | Present at `20261009240000` | Explicitly depends on RC437's line schema and line-aware receiving wrapper; timestamp ordering is correct. |
-| RC439 | Present at `20261010010000` | Adds encrypted checkout recovery columns to `subscription_payment_intents`; requires RC435-era intent table. |
-| RC440 | Present at `20261010020000` | Updates search paths for matching exposed SECURITY DEFINER functions; its target-function selection must be tested against the clean schema's actual grants and function metadata. |
+| RC439 | Present at `20261010010000` | Adds encrypted checkout recovery columns to `subscription_payment_intents`; requires the RC435-era intent table. |
+| RC440 | Present at `20261010020000` | Updates search paths for matching exposed SECURITY DEFINER functions; test target selection against actual grants and function metadata. |
 | RC441 | Present at `20261010030000` | Adds MantiGO platform-admin scoping and replaces several RPCs; depends on memberships, rides, ledger, audit logs, notifications, and settlement/journal contracts. |
-| RC449 | Present at `20261010170000` | Substantially overlaps RC441's function set. Keep both source files immutable during audit; establish intended semantic relationship and prerequisite availability before full replay. |
+| RC449 | Present at `20261010170000` | Substantially overlaps RC441's function set. Keep both immutable during audit; establish their intended semantic relationship and prerequisite availability before full replay. |
 | RC462 | Present at `20261012040000` | Forward correction to `mnty_can_platform_admin()`; requires RC441/RC449 to have defined the function and `user_memberships` to exist. |
 | RC522 | Present at `20261013190000` | Alters privileges on `audit_logs`; table and intended owner/application-role grants must be present. |
-| RC523 | Present at `20261013200000` | Replaces the MantiGO financial report RPC; requires the platform-admin guard and canonical `mantigo_financial_ledger` columns. The focused integration fixture is not proof of full-chain compatibility. |
+| RC523 | Present at `20261013200000` | Replaces the MantiGO financial report RPC; requires the platform-admin guard and canonical `mantigo_financial_ledger` columns. Focused fixtures do not prove full-chain compatibility. |
 
-This is a source-level dependency review, not a successful replay result. Exact dependency validity remains **NOT VERIFIED** until the disposable chronological replay executes the actual SQL.
+This is a source-level dependency review, not a successful replay result. Exact dependency validity remains **NOT VERIFIED** until the actual SQL executes in chronological order.
 
-## 4. Recovered migrations and semantic discrepancies
+## 4. Clean replay execution and first failure
 
-Files under `supabase/recovered-migrations/` are archival candidates, not an executable migration directory. Their existence is not proof of application. Preserve this separation during replay.
+A disposable PostgreSQL 16 CI job executed the source-chain preflight and produced artifact **`s04-migration-chain-clean-replay`**. Run: [38336927669](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38336927669), tested commit `bab265d2c18c32941f5e37c08eca94590beb8486`.
+
+Observed output:
+
+- `STATUS=BLOCKED`
+- `STAGE=SOURCE_PREFLIGHT`
+- `DETAIL=Source chain contains missing/invalid/ambiguous migration inputs; SQL replay was not started.`
+
+The artifact's machine-readable report confirms five duplicate-version groups, no invalid filename formats, no missing explicit required source files, and no duplicate/conflicting file copies. The **first failure is source-chain preflight**, not an individual SQL migration. No first failed migration can be named because SQL replay never started.
+
+A separate S04 workflow was also added to run source/uniqueness audit and attempt `supabase db reset --local` in a disposable local Supabase stack. Its exact-head run must be checked separately; a queued or in-progress run is not a pass.
+
+## 5. Recovered migrations and semantic discrepancies
+
+Files under `supabase/recovered-migrations/` are archival candidates, not an executable migration directory. Their existence is not proof of application.
 
 The existing semantic reconciliation record documents unresolved source-versus-ledger differences for RC169, RC172, RC199, RC206, and RC207. In particular, RC199 may create a policy already introduced by a later ledger statement when replayed in repository filename order, and the RC207 repository source omits a function replacement present in the recorded ledger statement. These discrepancies prevent claiming a production-equivalent rebuild.
-
-## 5. Clean replay execution
-
-A new S04 CI workflow was added to run the source/uniqueness audit and attempt `supabase db reset --local` against a disposable local Supabase stack. It writes a separate evidence report and uploads logs as a workflow artifact.
-
-**Clean replay result:** `NOT VERIFIED — exact-head workflow evidence pending`  
-**First replay failure:** `NOT VERIFIED — do not infer a first migration failure before the log is available`
-
-The source audit is expected to fail closed on duplicate versions. The workflow attempts the clean replay separately to capture any CLI preflight or first migration failure.
 
 ## 6. Files changed by S04
 
@@ -84,7 +89,7 @@ No changes were made to `.github/workflows/mantigo-platform-admin-scope.yml` or 
 - Production writes/migrations: **NONE**
 - Applied migration history rewritten: **NO**
 - PR merged / deployment performed: **NO**
-- Full chronological clean replay: **NOT VERIFIED**
+- Full chronological clean replay: **BLOCKED before SQL replay**
 - Release status: **BLOCKED / NOT CERTIFIED**
 
 Closure requires globally unique and reconciled migration versions; resolution of source/ledger semantic discrepancies; successful chronological replay from a disposable empty environment; and exact-head CI evidence. Do not skip a failed migration or mark this task complete based only on source presence.
