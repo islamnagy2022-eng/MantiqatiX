@@ -47,7 +47,10 @@ test("S06-08 webhook checks event identity and amount/currency against intent", 
   assert.match(webhook, /PAYMENT_AMOUNT_CURRENCY_MISMATCH/);
   assert.match(webhook, /external_event_id.*eventId/s);
 });
-test("S06-09 normal payment processing delegates to verified backend RPC", () => {
+test("S06-09 late failure callback cannot downgrade a terminal payment intent", () => {
+  assert.match(webhook, /update\\(\\{status:"FAILED".*?\\}\\)\\.eq\\("id",intent\\.id\\)\\.eq\\("status","PENDING"\\)/);
+});
+test("S06-10 normal payment processing delegates to verified backend RPC", () => {
   assert.match(webhook, /process_verified_provider_payment/);
   assert.match(webhook, /p_signature_verified:true/);
 });
