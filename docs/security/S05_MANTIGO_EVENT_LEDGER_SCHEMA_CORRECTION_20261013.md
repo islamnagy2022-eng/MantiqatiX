@@ -17,8 +17,9 @@ The S05 migration was corrected to:
 - Keep event insertion and the locked ledger transition inside one database function/transaction.
 - Preserve service-role-only RPC execution and the dedicated event table's denied direct API grants.
 - Check the event ID is bound to the Paymob transaction ID and the stored provider order ID matches the locked ledger metadata.
+- Drop the legacy RC425 eight-argument RPC overload before creating the stricter nine-argument function, preventing an older callable signature from remaining alongside the hardened entry point.
 
-The static contract was corrected to validate the dedicated MantiGO table's required columns, text-like identifiers, named unique constraint, RLS/FORCE RLS, revoked direct API-role grants, and function source boundary.
+The static contract was corrected to validate the dedicated MantiGO table's required columns, text-like identifiers, named unique constraint, RLS/FORCE RLS, revoked direct API-role grants, function source boundary, and absence of the legacy eight-argument RPC overload.
 
 Latest source links:
 - Migration: https://github.com/islamnagy2022-eng/MantiqatiX/blob/security/s05-tenant-isolation-review-20261013/supabase/migrations/20261013040000_s05_atomic_mantigo_paymob_webhook.sql
