@@ -53,3 +53,11 @@ This file is the dated master checkpoint requested for MantiqatiX autonomous exe
 ## Acceptance rule
 
 Do not label the release ready until required CI on the final candidate passes, migration replay passes in a disposable environment, live authorization and SMM deny behavior are verified through approved negative tests, payment invariants are tested, backup/restore/rollback evidence exists, and all P0 blockers are closed. Until then, the only valid release state is **`BLOCKED / NOT CERTIFIED`**.
+
+
+## Latest exact-head update — 2026-10-13 05:17 UTC
+
+- [x] **SMM PR #225 exact-head CI**: current head `cbb8d541616f8fbd3abf7c3f9cecb5aaaed86ff0`, run [38350429554](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350429554) PASS for security contract, service-role ACL boundary, Deno type check, and SMM unit/negative-input tests. Live HTTP deny test remains NOT VERIFIED; PR is draft and based on the RC521 discovery branch.
+- [ ] **P1 / PR #207 replay bootstrap**: current head `56dc3375ec8cde875d886e1aa95b2329889139b0`, run [38350541588](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350541588) fails before replay with `settlement_attempts_baseline: unbound variable`. The variable is missing from declarations in the second workflow shell step; comment [6138798133](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138798133). No workflow edit from Session C.
+- [ ] **P0 / settlement fixture fidelity**: disposable-only `settlement_attempts` baseline still uses unbounded `numeric` and `character varying`, while read-only production catalog reports `numeric(14,4)` and `varchar(8)`. Preserve exact typmods and confirm approval/provenance before relying on this new financial fixture. Prior finance-policy validator failure must be rechecked after bootstrap fix because current source SQL matches the static regex on independent inspection.
+- Release remains **BLOCKED / NOT CERTIFIED**.
