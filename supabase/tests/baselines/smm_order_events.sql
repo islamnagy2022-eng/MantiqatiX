@@ -3,7 +3,7 @@
 -- Snapshot date: 2026-10-13.
 -- This is NOT recovered historical creation DDL and MUST NEVER be applied to production.
 -- Injected only into a disposable chronological replay before 20260927140500.
--- Schema/policy only: no rows, grants, triggers, or FORCE ROW LEVEL SECURITY are created.
+-- Schema/policy only; this file creates no data rows or direct access privileges.
 
 create table public.smm_order_events (
   id uuid primary key default gen_random_uuid(),
