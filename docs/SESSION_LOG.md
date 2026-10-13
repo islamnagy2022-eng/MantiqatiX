@@ -161,3 +161,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The RC450/RC457 fixture corrections therefore progressed through the intended disposable-PostgreSQL test chain successfully.
 - Scope of evidence: focused CI integration only. This is not proof of full chronological production migration replay, deployed Edge Function parity, production tenant isolation, real payment/settlement E2E, backup restore, or signed device release.
 - PR #218 remains OPEN / DRAFT / UNMERGED. No production migration, production database write, grant/RLS/Auth change, Edge Function deployment, financial mutation, merge, or release was performed. Release remains BLOCKED / NOT CERTIFIED pending remaining exact-head checks and mandatory production gates.
+
+
+## RC538 — Synchronize master production TODO with verified CI — 2026-10-13
+
+- Updated `docs/MASTER_PRODUCTION_TODO.md` with the confirmed 13/13 focused integration job result and the other successful source-validation workflows on tested code commit `0ede84686f0fc68fa9b6f544e86c8692916e41fd`.
+- Recorded that the web deploy workflow was cancelled, not successful; no deployment is claimed.
+- Reaffirmed that the latest branch head has documentation-only commits after the tested code commit, so exact-head checks must be confirmed before merge.
+- Explicitly preserved remaining blockers: full chronological migration replay and production ledger reconciliation, live tenant/payment/settlement E2E, Edge Function parity, Auth/RLS/SECURITY DEFINER remediation, backup/restore, browser/device/Android signing, rollback, and final certification.
+- TODO update commit: `0ea721eaaeb2d9fbf51565d01712793d3ef7e75c`.
+- No production database changes, migrations, grant/RLS/Auth changes, Edge Function deployment, merge, or release. Release remains BLOCKED / NOT CERTIFIED.
