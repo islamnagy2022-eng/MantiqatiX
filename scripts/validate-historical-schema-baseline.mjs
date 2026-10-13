@@ -67,6 +67,7 @@ const missingHistoricalTables = [
   { table: "smm_services", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_services.sql" },
   { table: "smm_orders", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_orders.sql" },
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
+  { table: "smm_wallets", before: "20261011010000_rc456_smm_service_role_access_boundary.sql", baselinePath: "supabase/tests/baselines/smm_wallets.sql" },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -592,6 +593,37 @@ if (!smmBootstrapLockdownMigration || smmBootstrapPriorCreation || !smmBootstrap
     smmBootstrapBaselineVersion >= smmBootstrapLockdownMigration.name.slice(0, 14) ||
     !/revoke execute on function public\.smm_bootstrap_first_admin\(\) from public, anon, authenticated;/i.test(smmBootstrapLockdownMigration.sql)) {
   console.error("P0 BLOCKED: live-derived smm_bootstrap_first_admin fixture or its ordered EXECUTE lockdown contract is invalid.");
+  process.exit(1);
+}
+
+// Validate the live-derived SMM wallet table before RC456 hardens its table grants.
+const smmWalletsBaselinePath = "supabase/tests/baselines/smm_wallets.sql";
+const smmWalletsBaseline = fs.readFileSync(smmWalletsBaselinePath, "utf8");
+const smmWalletsBoundaryMigration = migrations.find(({ name }) =>
+  name === "20261011010000_rc456_smm_service_role_access_boundary.sql"
+);
+const smmWalletsBaselineVersion = "20261011009999";
+const smmWalletsTemporaryName = smmWalletsBaselineVersion + "_test_only_live_derived_smm_wallets_baseline.sql";
+const smmWalletsBaselineValid =
+  /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(smmWalletsBaseline) &&
+  /2026-10-13/.test(smmWalletsBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(smmWalletsBaseline) &&
+  /NOT recovered historical creation DDL/.test(smmWalletsBaseline) &&
+  /MUST NEVER be applied to production/.test(smmWalletsBaseline) &&
+  /create table public\.smm_wallets/i.test(smmWalletsBaseline) &&
+  /user_id uuid primary key references auth\.users\(id\) on delete cascade/i.test(smmWalletsBaseline) &&
+  /balance numeric\(18,8\) not null default 0 check \(balance >= 0\)/i.test(smmWalletsBaseline) &&
+  /currency text not null default 'USD'/i.test(smmWalletsBaseline) &&
+  /updated_at timestamptz not null default now\(\)/i.test(smmWalletsBaseline) &&
+  /alter table public\.smm_wallets enable row level security/i.test(smmWalletsBaseline) &&
+  /create policy smm_wallet_owner_read[\s\S]*for select[\s\S]*to authenticated[\s\S]*auth\.uid\(\)[\s\S]*user_id/i.test(smmWalletsBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+public\.)/im.test(smmWalletsBaseline) &&
+  !/force row level security|\bgrant\b|\btrigger\b/i.test(smmWalletsBaseline);
+if (!smmWalletsBoundaryMigration || !smmWalletsBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, smmWalletsTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === smmWalletsBaselineVersion) ||
+    smmWalletsBaselineVersion >= smmWalletsBoundaryMigration.name.slice(0, 14)) {
+  console.error("P0 BLOCKED: SMM wallet live-derived baseline or RC456 ordering contract is invalid.");
   process.exit(1);
 }
 
