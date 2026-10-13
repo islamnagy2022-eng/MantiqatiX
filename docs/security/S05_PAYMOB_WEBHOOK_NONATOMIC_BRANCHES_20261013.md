@@ -13,18 +13,20 @@ Scope: source review only, branch `security/s05-tenant-isolation-review-20261013
 
 ## Findings
 
-### S05-PW-01 — Subscription FAILED callback lacks durable provider-event insertion
-In the subscription branch, after checking for an existing provider event, the failure path updates `subscription_payment_intents.status` to `FAILED` and returns success without inserting the matching row into `payment_provider_events`.
+### S05-PW-01 — Subscription failure path now routes through atomic RPCs (source correction made; runtime unverified)
+The webhook now calls `process_verified_subscription_payment_failure` for signed FAILED callbacks and `process_verified_subscription_payment_backend` for signed success callbacks. Both calls pass the signed Paymob order ID and raw callback payload to the database function. The early shared-event-table idempotency pre-check and direct Edge Function update were removed so replay binding and event/intent state transitions are decided by the transactional RPC.
 
-Impact:
-- The provider callback is not durably represented in the shared event ledger for this failure branch.
-- Re-delivery may revisit the same branch because the event-ledger idempotency marker was not written.
-- The update is filtered to `status = 'PENDING'`; an already-final row can result in a zero-row update while the handler still returns HTTP 200.
+Source references:
+- Failure function: `supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql`
+- Success function: `supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql`
+- Updated handler: `supabase/functions/paymob-webhook/index.ts`
 
-Recommended safe next step:
-- Add a database-side verified failure-processing RPC that atomically locks and validates the subscription intent, enforces terminal-state policy, inserts the provider event, and transitions the intent.
-- Define whether repeated matching FAILED callbacks are idempotent and whether conflicting FAILED/PAID callbacks are rejected.
-- Validate using disposable database fixtures and concurrent/replay tests before any release decision.
+Impact/status:
+- Source-level split-write concern addressed for the subscription branch.
+- Not executed against an isolated database; RPC signature/schema compatibility, duplicate/concurrent callback behavior, and terminal-state semantics remain unverified.
+
+Recommended next step:
+- Run migration replay and behavioral tests in a disposable database before any release decision.
 
 ### S05-PW-02 — General payment FAILED callback uses separate writes
 In the general `payment_intents` branch, the failure path inserts `payment_provider_events`, then updates `payment_intents` separately. The update result is not checked before returning HTTP 200.
@@ -56,7 +58,7 @@ Recommended safe next step:
 |---|---|
 | Source branch reviewed | Yes |
 | MantiGO atomic RPC source exists | Yes |
-| Subscription failure branch atomicity | Open / source issue |
+| Subscription callbacks routed to atomic RPCs | Source corrected; runtime unverified |
 | General payment failure branch atomicity | Open / source issue |
 | Original event-table DDL located | Not yet |
 | Static SQL contract executed | No |
