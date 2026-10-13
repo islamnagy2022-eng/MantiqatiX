@@ -977,3 +977,12 @@ The source search was extended beyond the current migration directory:
 - Root cause: the new baseline/migration variables were added to the injection step but not to the separate verification step's local variable declarations. This is a CI workflow wiring defect, not a SQL or production failure.
 - Fixed by declaring both `payment_events_policy_baseline` and `payment_events_policy_migration` in the verification step as well. The workflow now contains two declarations for each variable (one per step), matching the step-local shell scope.
 - The next exact-head CI run must prove the exact-copy/untracked step passes before replay resumes. No production state was changed.
+
+
+## 2026-10-13 — settlement transaction finance policy dependency
+
+- Replay run [#38408000724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408000724), on head `7016250e763a4b0729fd2bb3c4553c79ea5e47ce`, passed the baseline preflight and exact-copy/untracked checks and replayed through the new payment-events policy baseline.
+- It then failed at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` with `ERROR: policy "settlement_transactions_finance_read" for table "settlement_transactions" does not exist (SQLSTATE 42704)`.
+- Read-only production catalog inspection confirmed a SELECT policy scoped to `authenticated`, active same-tenant membership, and the finance-role allowlist. RLS and FORCE RLS are enabled; direct SELECT is denied to `anon` and allowed to `authenticated`/service role. No settlement or payment rows were read.
+- Added a policy-only fixture `supabase/tests/baselines/settlement_transactions_finance_read.sql`, injected only into disposable replay at `20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql`. It contains no table DDL, grants, or rows. The historical-baseline validator now checks the exact policy contract, provenance, no-data/no-DDL rules, version ordering, and matching historical ALTER POLICY statement.
+- This is catalog-derived policy compatibility, not recovered historical policy-creation DDL. The next exact-head run must pass the fixture copy guard and replay farther before status can change. Production is unchanged; release remains **BLOCKED / NOT CERTIFIED**.
