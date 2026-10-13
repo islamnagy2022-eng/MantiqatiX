@@ -51,3 +51,15 @@ A read-only query of `information_schema.role_table_grants` returned only REFERE
 ## Decision
 
 **BLOCKED / NOT CERTIFIED.** Keep the live launch gate intact. No deployment, merge, migration, secret change, live provider call, paid campaign, or wallet mutation was performed.
+
+## Follow-up checkpoint — fail-closed parity guard
+
+Date: 2026-10-13
+
+A further read of the S07 branch entrypoint confirmed that it is still the older `index.ts` implementation, not the reviewed live v10 source. It still contains a direct `smm_refund_wallet` call after provider execution failure, lacks the v10 provider-transport/request/order-validation helpers, and uses the older provider call path. The static launch gate currently returns before these actions, but this does **not** make the stale action implementation suitable for a future launch.
+
+To prevent the current static validator from certifying that stale source, the validator now explicitly requires the v10 helper imports and the ambiguous-outcome markers (`PROVIDER_RESULT_UNKNOWN`, `WALLET_DEBIT_RESULT_UNKNOWN`, `PROVIDER_ACCEPTED_PERSISTENCE_PENDING`), and rejects the legacy automatic-refund call. It also checks for all seven gate test IDs. Given the checked-in entrypoint, this parity validator is expected to fail until a reviewed source-parity update is made; this is an intentional safety block, not a regression to bypass.
+
+The added tests `S07_GATE_006` and `S07_GATE_007` cover false/empty flags and all non-approved flag pairs. They have been committed but have not yet been confirmed by a completed Deno CI run.
+
+No live function, secrets, database grants, provider, wallet, or production deployment was changed. Keep PR #221 draft and do not certify it for production until source parity and isolated integration tests are complete.
