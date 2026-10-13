@@ -95,26 +95,30 @@ jobs:
           admins_baseline="supabase/tests/baselines/smm_admins.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
+          provider_onboarding_baseline="supabase/tests/baselines/provider_onboarding_requests.sql"
           admins_migration="supabase/migrations/20260927033923_test_only_approved_smm_admins_baseline.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          provider_onboarding_migration="supabase/migrations/20261001163708_test_only_approved_provider_onboarding_requests_baseline.sql"
           if [ "$audit_rc" -eq 0 ] && [ "$normalization_rc" -eq 0 ]; then
             node scripts/validate-smm-replay-baselines.mjs > s04-replay-evidence/test-baseline-validation.log 2>&1
             baseline_rc=$?
           fi
           echo "test_baseline_validation_exit=$baseline_rc" | tee -a s04-replay-evidence/report.txt
           if [ "$baseline_rc" -eq 0 ]; then
-            for file in "$admins_migration" "$providers_migration" "$credentials_migration"; do test ! -e "$file"; done
+            for file in "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"; do test ! -e "$file"; done
             cp "$admins_baseline" "$admins_migration"
             cp "$providers_baseline" "$providers_migration"
             cp "$credentials_baseline" "$credentials_migration"
+            cp "$provider_onboarding_baseline" "$provider_onboarding_migration"
             cmp -s "$admins_baseline" "$admins_migration"
             cmp -s "$providers_baseline" "$providers_migration"
             cmp -s "$credentials_baseline" "$credentials_migration"
-            for file in "$admins_migration" "$providers_migration" "$credentials_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
-            ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|update[[:space:]]+public\.|delete[[:space:]]+from|copy[[:space:]]+(public|private)\.)' "$admins_migration" "$providers_migration" "$credentials_migration"
+            cmp -s "$provider_onboarding_baseline" "$provider_onboarding_migration"
+            for file in "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
+            ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|update[[:space:]]+public\.|delete[[:space:]]+from|copy[[:space:]]+(public|private)\.)' "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
             echo "temporary_test_baselines_injected=true" | tee -a s04-replay-evidence/report.txt
-            echo "provider_onboarding_source_order_normalized_to_live_ledger=true" | tee -a s04-replay-evidence/report.txt
+            echo "provider_onboarding_authority_and_grant_source_order_normalized_to_live_ledger=true" | tee -a s04-replay-evidence/report.txt
             echo "temporary_smm_baselines_injected=true" | tee -a s04-replay-evidence/report.txt
           else
             echo "temporary_smm_baselines_injected=false" | tee -a s04-replay-evidence/report.txt
@@ -135,7 +139,7 @@ jobs:
             supabase db reset --local --debug > s04-replay-evidence/clean-replay.log 2>&1
             replay_rc=$?
             echo "clean_replay_exit=$replay_rc" | tee -a s04-replay-evidence/report.txt
-            rm -f "$admins_migration" "$providers_migration" "$credentials_migration"
+            rm -f "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
             error_line=$(grep -n -m1 -E 'ERROR:|Error:|duplicate migration version|failed to apply' s04-replay-evidence/clean-replay.log | cut -d: -f1)
             if [ -n "$error_line" ]; then
               first_failed_migration=$(head -n "$error_line" s04-replay-evidence/clean-replay.log | grep -E 'Applying migration|Applying:' | tail -n 1)
@@ -163,7 +167,7 @@ jobs:
             fi
           fi
 
-          rm -f "$admins_migration" "$providers_migration" "$credentials_migration"
+          rm -f "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
           if [ "$audit_rc" -ne 0 ] || [ "$normalization_rc" -ne 0 ] || [ "$baseline_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
             echo "status=FAIL_BLOCKED" | tee -a s04-replay-evidence/report.txt
             echo "S04_RESULT=FAIL_BLOCKED" >> "$GITHUB_STEP_SUMMARY"
