@@ -184,3 +184,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Actions in this batch:** read-only GitHub inspection and documentation reconciliation only. No code behavior changes, production database writes, migration application, Auth/RLS/Grant changes, Edge Function deployment, real financial transactions, merge, or release.
 - **Next:** use the disposable PostgreSQL workflow to run a full chronological replay from the real baseline and resolve only evidenced historical DDL dependencies without stubs; independently reconcile live function parity, tenant isolation/payment E2E, Auth/security, backup/restore, and device/rollback evidence. Keep SMM isolated pending dedicated review.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## RC540 — Evidence log documentation-commit checks — 2026-10-13
+
+- Documentation-only commits for RC539 updated the continuity record, session log, and production TODO. PR #218 head advanced to `f608bc76bfc898f3aa4116fbd3777f2b378bb64b`.
+- Exact-head actions have been triggered for this documentation head. At inspection, the following 11 workflows were QUEUED (not passed): Backend-only Module Boundary [38329261941], Migration Version Uniqueness [38329261943], Deploy MantiqaTiX Web [38329261830], Audit Log Append-only ACL [38329261699], Migration History Immutability [38329261728], MantiGO Platform Admin Scope Hardening [38329261733], Recovered Migration Focused Integration [38329261773], Module Professionalization Validation [38329261803], Open PR Migration Collision Guard [38329261829], MantiGO Open Ride Privacy Boundary [38329261878], Approval Action Audit Atomicity [38329261801].
+- These queued checks are explicitly NOT counted as passes. The prior code candidate `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc` had the focused 13/13 integrations plus the listed source validators passing; the new head differs only by documentation commits made in this batch.
+- Production reconciliation manifest remains BLOCKED, with required migrations not proven applied and chronological replay NOT RUN. Keep release BLOCKED / NOT CERTIFIED.
+- No production mutation, deployment, merge, or financial operation occurred.
