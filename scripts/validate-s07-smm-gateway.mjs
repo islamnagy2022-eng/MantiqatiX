@@ -16,9 +16,26 @@ assert.match(edge, /SMM_DEFERRED/, "gateway must return the stable deferred erro
 assert.match(edge, /status:\s*503|json\([^;]*503/s, "deferred requests must receive HTTP 503");
 assert.match(gate, /enabledFlag\s*===\s*"true"\s*&&\s*postLaunchApprovalFlag\s*===\s*"true"/, "launch must require both exact approval flags");
 assert.match(gate, /status:\s*503,\s*error:\s*"SMM_DEFERRED"/, "gate must fail closed with 503 SMM_DEFERRED");
-for (const id of ["S07_GATE_001", "S07_GATE_002", "S07_GATE_003", "S07_GATE_004", "S07_GATE_005"]) {
+for (const id of ["S07_GATE_001", "S07_GATE_002", "S07_GATE_003", "S07_GATE_004", "S07_GATE_005", "S07_GATE_006", "S07_GATE_007"]) {
   assert.ok(tests.includes(id), `missing uniquely named launch-gate test ${id}`);
 }
+
+
+// Fail closed on source parity: launch gating alone is not enough to certify the
+// older gateway entrypoint. Require the v10 safety modules and ambiguity handling.
+for (const marker of [
+  "./provider-transport.ts",
+  "./order-validation.ts",
+  "./request-validation.ts",
+  "./order-status.ts",
+  "./catalog-normalization.ts",
+  "PROVIDER_RESULT_UNKNOWN",
+  "WALLET_DEBIT_RESULT_UNKNOWN",
+  "PROVIDER_ACCEPTED_PERSISTENCE_PENDING",
+]) {
+  assert.ok(edge.includes(marker), `gateway source is not v10 safety-parity complete; missing ${marker}`);
+}
+assert.doesNotMatch(edge, /smm_refund_wallet/, "ambiguous provider outcomes must not trigger automatic refund");
 
 // Source-level high-risk mutation points: no provider credential may be returned
 // from read actions, and user data reads must remain user-scoped.
