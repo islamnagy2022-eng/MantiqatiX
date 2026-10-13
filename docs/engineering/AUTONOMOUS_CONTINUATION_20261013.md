@@ -485,3 +485,12 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Added a policy-only, catalog-derived test fixture at `supabase/tests/baselines/payment_events_finance_read.sql`; CI temporarily injects it as `20260927140493_test_only_live_derived_payment_events_finance_read.sql` immediately before the historical ALTER POLICY migration. The validator checks the predicate/roles, provenance, no data/table/grants, and chronological placement. It does not claim original historical DDL.
 - Latest PR #207 head: `af4d56ec52ebf3339c795b2ba8d5411f3336ef4b`. New exact-head CI run [#38407549932](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407549932) is queued/pending. No result is claimed until the validator and replay logs complete.
 - Latest live ledger remains at `20261008222845 / rc424_atomic_digital_page_payment_webhook`; the four global MantiGO RPCs remain confirmed unsafe in the live catalog. No production mutation, migration, deployment, merge, or release occurred. Overall status remains **BLOCKED / NOT CERTIFIED**.
+
+
+## CI wiring correction — payment policy fixture (2026-10-13 13:47 UTC)
+
+- After the new policy fixture was added, CI run #38407549932 failed in the exact-copy verification step before any database replay. Exact error: `payment_events_policy_baseline: unbound variable` under Bash `set -u`.
+- Root cause was the workflow's step-local shell scope: the new fixture variables existed in the injection step but were missing from the separate verification step. Added the baseline and temporary-migration declarations to that verification step. The workflow now declares each variable once per step.
+- Documented the failure and correction in `docs/release/MIGRATION_REPLAY_BLOCKERS.md`. No migration was applied or skipped; no production state was touched.
+- Latest PR #207 head is `268c8bc1438e499c45487a002e8ec4f776c68011`. New replay run [#38407801526](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407801526) is pending. The exact-copy/untracked check must pass before replay can resume; no new replay result is claimed.
+- SMM regression remains PASS on its last tested exact source revision, and the four live MantiGO RPC authorization blockers remain unchanged. Release remains **BLOCKED / NOT CERTIFIED**.
