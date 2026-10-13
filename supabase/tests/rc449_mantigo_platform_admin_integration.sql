@@ -181,6 +181,10 @@ begin
   if result->>'uid' is distinct from platform_admin::text or result->>'guard' is distinct from 'true' then
     raise exception 'nested security-definer context mismatch: %', result;
   end if;
+  if auth.uid() is distinct from platform_admin then
+    raise exception 'request identity changed after diagnostic wrapper: uid=%, setting=%',
+      auth.uid(), current_setting('request.jwt.claim.sub',true);
+  end if;
 
   -- The report must use the canonical financial ledger columns, not legacy aliases.
   result := public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
