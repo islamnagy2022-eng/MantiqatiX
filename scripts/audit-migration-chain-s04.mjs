@@ -49,7 +49,6 @@ const required = [
   "20261013200000_rc523_mantigo_financial_report_canonical_columns.sql"
 ];
 const liveLedgerOrderAliases = [
-  ["20261001164200_provider_onboarding_final.sql", "20261001163708_provider_onboarding_requests.sql"],
   ["20261001090000_harden_provider_onboarding_authority.sql", "20261001164107_harden_provider_onboarding_authority.sql"],
   ["20261001165000_grant_provider_onboarding_authenticated_insert.sql", "20261001164222_grant_provider_onboarding_authenticated_insert.sql"],
   ["20261001100000_lock_provider_onboarding_direct_writes.sql", "20261001164327_lock_provider_onboarding_direct_writes.sql"],
