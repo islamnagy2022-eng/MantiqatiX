@@ -152,7 +152,7 @@ const settlementAttemptsBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(settlementAttemptsBaseline) &&
   /NOT recovered historical creation DDL/i.test(settlementAttemptsBaseline) &&
   /NEVER apply this file to production/i.test(settlementAttemptsBaseline) &&
-  /create table public\\.settlement_attempts/i.test(settlementAttemptsBaseline) &&
+  /create table public\.settlement_attempts/i.test(settlementAttemptsBaseline) &&
   /id character varying not null/i.test(settlementAttemptsBaseline) &&
   /tenant_id character varying not null/i.test(settlementAttemptsBaseline) &&
   /obligation_id character varying not null/i.test(settlementAttemptsBaseline) &&
@@ -166,17 +166,17 @@ const settlementAttemptsBaselineValid =
   /failure_message text/i.test(settlementAttemptsBaseline) &&
   /created_at timestamp with time zone not null default current_timestamp/i.test(settlementAttemptsBaseline) &&
   /updated_at timestamp with time zone not null default current_timestamp/i.test(settlementAttemptsBaseline) &&
-  /primary key \\(id\\)/i.test(settlementAttemptsBaseline) &&
-  /check \\(amount > 0\\)/i.test(settlementAttemptsBaseline) &&
-  /references public\\.payout_destinations\\(id\\) on delete restrict/i.test(settlementAttemptsBaseline) &&
-  /references public\\.financial_obligations\\(id\\) on delete restrict/i.test(settlementAttemptsBaseline) &&
-  /references public\\.tenants\\(id\\) on delete restrict/i.test(settlementAttemptsBaseline) &&
-  /unique \\(obligation_id, external_reference\\)/i.test(settlementAttemptsBaseline) &&
-  /create index idx_settlement_attempts_obligation[\\s\\S]*on public\\.settlement_attempts using btree \\(obligation_id, created_at desc\\)/i.test(settlementAttemptsBaseline) &&
+  /primary key \(id\)/i.test(settlementAttemptsBaseline) &&
+  /check \(amount > 0\)/i.test(settlementAttemptsBaseline) &&
+  /references public\.payout_destinations\(id\) on delete restrict/i.test(settlementAttemptsBaseline) &&
+  /references public\.financial_obligations\(id\) on delete restrict/i.test(settlementAttemptsBaseline) &&
+  /references public\.tenants\(id\) on delete restrict/i.test(settlementAttemptsBaseline) &&
+  /unique \(obligation_id, external_reference\)/i.test(settlementAttemptsBaseline) &&
+  /create index idx_settlement_attempts_obligation[\s\S]*on public\.settlement_attempts using btree \(obligation_id, created_at desc\)/i.test(settlementAttemptsBaseline) &&
   /enable row level security/i.test(settlementAttemptsBaseline) &&
   /force row level security/i.test(settlementAttemptsBaseline) &&
-  !/create policy|\\bgrant\\b|\\brevoke\\b/i.test(settlementAttemptsBaseline) &&
-  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(settlementAttemptsBaseline);
+  !/create policy|\bgrant\b|\brevoke\b/i.test(settlementAttemptsBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.)/im.test(settlementAttemptsBaseline);
 if (!settlementAttemptsBaselineValid) {
   console.error("P0 BLOCKED: settlement_attempts schema-only baseline failed catalog-evidence, RLS, no-policy/no-grant, or no-data checks.");
   process.exit(1);
