@@ -9,7 +9,7 @@
 - Repository: `islamnagy2022-eng/MantiqatiX`
 - Reference PR: [#218](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/218), OPEN / DRAFT / UNMERGED at inspection.
 - Source snapshot inspected: PR head `292bce3eaaeb68b83133eae83f8dde4129d57a3f`, branch `docs/rc521-admin-operations-discovery-20261013`, observed 2026-10-13 02:25:45 UTC.
-- S04 changes are isolated on branch `s04/migration-chain-clean-replay-20261013`; no edits were made to `.github/workflows/mantigo-platform-admin-scope.yml` or S02 administrative-function tests.
+- S04 changes are isolated on branch `s04/migration-chain-clean-replay-20261013`; candidate after runner hardening is `162e6cc578a6cf0469be07a1c6edd490ee51323c`. Run [38336971783](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38336971783) was QUEUED at the latest status read, so it is not counted as a pass; an earlier run on `31438201c10ce4fee9a8a72e2a400a81960b20e8` was still in progress. No edits were made to `.github/workflows/mantigo-platform-admin-scope.yml` or S02 administrative-function tests.
 - No merge, release, deployment, or production database write was performed.
 
 ## Read-only production ledger
