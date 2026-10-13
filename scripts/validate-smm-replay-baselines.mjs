@@ -93,4 +93,4 @@ assert.match(credentials, /references\s+public\.smm_providers\s*\(\s*id\s*\)[\s\
 assert.match(credentials, /create\s+policy\s+mnty_deny_unexposed_client_access[\s\S]*to\s+anon\s*,\s*authenticated/i);
 assert.doesNotMatch(allSource, /create\s+policy\s+mnty_deny_unexposed_client_access/i, "credentials deny policy must not be duplicated by a later migration");
 
-console.log("SMM replay baseline contract PASS: three schema-only fixtures, source provenance, dependency order, policy ownership, and no-data rules.");
+console.log("SMM replay baseline contract PASS: four schema-only fixtures, source provenance, dependency order, policy ownership, and no-data rules.");
