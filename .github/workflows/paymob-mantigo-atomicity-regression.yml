@@ -11,7 +11,7 @@ on:
       - "supabase/tests/rc425_mantigo_paymob_integration.sql"
       - ".github/workflows/paymob-mantigo-atomicity-regression.yml"
   push:
-    branches: [main, "docs/rc521-admin-operations-discovery-20261013"]
+    branches: [main, "docs/rc521-admin-operations-discovery-20261013", "security/paymob-mantigo-atomic-rpc-wiring-20261013"]
     paths:
       - "supabase/functions/paymob-webhook/index.ts"
       - "scripts/validate-finance-boundaries.mjs"
