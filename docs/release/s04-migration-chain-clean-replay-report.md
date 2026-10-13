@@ -3,7 +3,6 @@
 **Audit date:** 2026-10-13  
 **Repository:** `islamnagy2022-eng/MantiqaTiX`  
 **PR:** [#218](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/218) — open, Draft, unmerged  
-**Current report commit:** pending this update; replay evidence is from the exact run/commit listed below  
 **Supabase project:** `moyhiluyhjsujhwlyeuu`  
 **Status:** `BLOCKED / NOT CERTIFIED`
 
@@ -58,17 +57,25 @@ This is a source-level dependency review, not a successful replay result. Exact 
 
 ## 4. Clean replay execution and first failure
 
-A disposable PostgreSQL 16 CI job executed the source-chain preflight and produced artifact **`s04-migration-chain-clean-replay`**. Run: [38336927669](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38336927669), tested commit `bab265d2c18c32941f5e37c08eca94590beb8486`.
+### Actual disposable Supabase startup/replay attempt
 
-Observed output:
+Run [38336871463](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38336871463), tested merge commit `c9f960f4745054ff0f3348a2b938623581aea812`, initialized a disposable local Supabase stack. Supabase CLI began applying migrations during `supabase start`, then stopped at the **first migration in the directory**:
 
-- `STATUS=BLOCKED`
-- `STAGE=SOURCE_PREFLIGHT`
-- `DETAIL=Source chain contains missing/invalid/ambiguous migration inputs; SQL replay was not started.`
+- **First failed migration:** `20260927074200_harden_smm_table_api_privileges.sql`
+- **SQLSTATE:** `42P01` (`undefined_table`)
+- **First error:** `relation "public.smm_provider_credentials" does not exist`
+- **Failing operation:** revoking `REFERENCES, TRIGGER, TRUNCATE` on `public.smm_provider_credentials` from `anon, authenticated`
+- **Replay status:** `FAIL_BLOCKED`; later migrations were not applied in this disposable attempt.
 
-The artifact's machine-readable report confirms five duplicate-version groups, no invalid filename formats, no missing explicit required source files, and no duplicate/conflicting file copies. The **first failure is source-chain preflight**, not an individual SQL migration. No first failed migration can be named because SQL replay never started.
+This demonstrates a missing prerequisite in the clean source chain: the first executable migration assumes `public.smm_provider_credentials` already exists, but the clean local database does not have it. The source inventory starts at this migration and does not contain the earlier table-creation baseline needed to make this chain self-contained. Do not bypass the failed migration or create an unreviewed production-history workaround.
 
-A separate S04 workflow was also added to run source/uniqueness audit and attempt `supabase db reset --local` in a disposable local Supabase stack. Its exact-head run must be checked separately; a queued or in-progress run is not a pass.
+The evidence artifact is [s04-clean-replay-evidence](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38336871463/artifacts/11784793144).
+
+### Independent source-chain preflight
+
+A separate disposable PostgreSQL 16 source-preflight run [38336927669](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38336927669) also returned `STATUS=BLOCKED`, `STAGE=SOURCE_PREFLIGHT`; SQL replay was not started by that job. Its artifact confirms five duplicate-version groups, zero invalid filename formats, zero missing explicit required sources, and zero conflicting duplicate file copies. This is independent evidence of the additional version-collision blocker.
+
+The S04 workflow was updated to extract the first migration/error from the Supabase startup log, not mislabel a migration failure as a generic startup failure. Its follow-up exact-head run should be treated as pending until completed.
 
 ## 5. Recovered migrations and semantic discrepancies
 
@@ -79,7 +86,7 @@ The existing semantic reconciliation record documents unresolved source-versus-l
 ## 6. Files changed by S04
 
 - `scripts/audit-migration-chain-s04.mjs` — filename format, global version uniqueness, required source presence, recovered archive count, and SHA-256 inventory for target migrations.
-- `.github/workflows/s04-migration-chain-clean-replay.yml` — isolated replay attempt and evidence artifact.
+- `.github/workflows/s04-migration-chain-clean-replay.yml` — isolated replay attempt, first-error extraction, and evidence artifact.
 - `docs/release/s04-migration-chain-clean-replay-report.md` — independent report.
 
 No changes were made to `.github/workflows/mantigo-platform-admin-scope.yml` or S02 administrative-function tests.
@@ -89,7 +96,9 @@ No changes were made to `.github/workflows/mantigo-platform-admin-scope.yml` or 
 - Production writes/migrations: **NONE**
 - Applied migration history rewritten: **NO**
 - PR merged / deployment performed: **NO**
-- Full chronological clean replay: **BLOCKED before SQL replay**
+- Full chronological clean replay: **BLOCKED at the first migration**
+- First failure: **missing `public.smm_provider_credentials` at `20260927074200_harden_smm_table_api_privileges.sql`**
+- Additional chain blocker: **five duplicate migration-version groups**
 - Release status: **BLOCKED / NOT CERTIFIED**
 
-Closure requires globally unique and reconciled migration versions; resolution of source/ledger semantic discrepancies; successful chronological replay from a disposable empty environment; and exact-head CI evidence. Do not skip a failed migration or mark this task complete based only on source presence.
+Closure requires restoring/reconciling the missing earlier baseline source, globally unique migration versions, resolution of source/ledger semantic discrepancies, successful chronological replay from a disposable empty environment, and exact-head CI evidence. Do not skip a failed migration or mark this task complete based only on source presence.
