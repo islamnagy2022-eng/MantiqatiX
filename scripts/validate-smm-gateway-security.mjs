@@ -50,7 +50,7 @@ assert.match(adminGuard, /role==="SUPER_ADMIN"/, "membership fallback restricted
 assert.match(adminGuard, /MNTY-PLATFORM/, "membership must be platform tenant scoped");
 assert.match(adminGuard, /p\.full_control===true/, "explicit full-control boolean required");
 assert.doesNotMatch(adminGuard, /role==="OWNER"|role==="ADMIN"/, "tenant owner/admin must not become global SMM admin");
-assert.match(edge, /if\(!(await isAdmin\(user\.id\)\)\)return json\(\{error:"FORBIDDEN"\},403\)/, "admin mutations must check authorization");
+assert.ok(edge.includes('if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403)'), "admin mutations must check authorization");
 
 // Secret containment, safe logs, outbound transport and ambiguous failures.
 assert.doesNotMatch(edge, /api_key_ciphertext/, "gateway source must not directly read ciphertext column");
