@@ -792,3 +792,11 @@ Read-only catalog evidence on project moyhiluyhjsujhwlyeuu recovered the current
 Implemented supabase/tests/baselines/settlement_attempts.sql and validator checks. CI injects it as 20260920211715_test_only_live_derived_settlement_attempts_baseline.sql before the existing payment_provider_events fixture and historical policy migration. Fixture deliberately omits policy/grants/data and is not historical DDL. No production change.
 
 Latest candidate head after this work: 6b481ca4ea8d1b8d8855871db49b2ca262ad1801. Replay run 38350384105 is pending/in progress; its outcome is NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-13 — Missing SMM bootstrap function during chronological replay
+
+Replay run 38350577917 passed the preflight and disposable baseline guards, then failed on migration 20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql with `ERROR: function public.smm_bootstrap_first_admin() does not exist (SQLSTATE 42883)`. The migration only revokes EXECUTE; the function is not created by tracked earlier migration history.
+
+Read-only live catalog evidence confirms the function exists in production as SECURITY DEFINER, RETURNS trigger, search_path public, with ACL postgres-only. Added schema/function-definition-only fixture `supabase/tests/baselines/smm_bootstrap_first_admin.sql`, injected at temporary replay version 20260927033924 only, before the historical revoke migration. The fixture is never invoked and includes no trigger creation or standalone data mutation. Validator checks exact signature, body contract, SECURITY DEFINER/search_path, version order and historical revoke statement. This does not recover historical provenance or unfreeze SMM feature development.
+
+Candidate head after this change: ee839091a7494300a85eb094595549f136c47ac2. Exact-head replay run 38350836940 is pending; full replay remains NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
