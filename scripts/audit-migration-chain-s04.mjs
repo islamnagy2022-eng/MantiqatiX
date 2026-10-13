@@ -73,7 +73,6 @@ const report = {
   duplicate_version_groups: duplicateVersions.map(([version, names]) => ({ version, names })),
   approved_legacy_duplicate_group_count: approvedDuplicateGroups.length,
   unapproved_duplicate_version_groups: unapprovedDuplicateVersions.map(([version, names]) => ({ version, names })),
-  disposable_normalization_required: approvedDuplicateGroups.length > 0,
   missing_required_sources: missingRequired,
   live_ledger_order_aliases: liveLedgerOrderAliases.map(([source, target]) => ({ source, target })),
   invalid_live_ledger_order_aliases: missingLiveLedgerOrderAliases,
