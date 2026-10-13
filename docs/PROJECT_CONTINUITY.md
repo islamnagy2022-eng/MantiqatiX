@@ -603,3 +603,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Production release remains BLOCKED / NOT CERTIFIED because the current reconciliation manifest says required release migrations are not applied/proven and chronological replay is NOT RUN; live ledger last observed at RC424. Other open release evidence includes tenant-isolation and payment/finance E2E, Edge Function parity, Auth/security remediation, backup/restore, signed device build and rollback.
 - Administration & Operations remains partial: no authoritative task/work-item table/source was found in the read-only inventory.
 - Next action: complete isolated chronological replay by resolving evidence-backed historical DDL prerequisites; do not introduce fake stubs, rewrite applied migration history, modify production, deploy, merge or release without explicit approval.
+
+
+## Exact-head recheck — RC540 (2026-10-13)
+
+- Latest documentation head on PR #218: `f608bc76bfc898f3aa4116fbd3777f2b378bb64b`. CI was retriggered due to documentation changes. Eleven checks were QUEUED at inspection; none is counted as passed until completed.
+- The immediately preceding code candidate `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc` had focused PostgreSQL integration 13/13 and the listed source validators passing.
+- Release remains BLOCKED / NOT CERTIFIED: migration reconciliation says required migrations are not applied/proven and chronological replay is NOT RUN; live runtime and disaster-recovery gates remain open.
