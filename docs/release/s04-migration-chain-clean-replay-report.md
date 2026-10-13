@@ -77,7 +77,7 @@ The evidence artifact is [s04-clean-replay-evidence](https://github.com/islamnag
 
 A separate disposable PostgreSQL 16 source-preflight run [38336927669](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38336927669) also returned `STATUS=BLOCKED`, `STAGE=SOURCE_PREFLIGHT`; SQL replay was not started by that job. Its artifact confirms five duplicate-version groups, zero invalid filename formats, zero missing explicit required sources, and zero conflicting duplicate file copies. This is independent evidence of the additional version-collision blocker.
 
-The S04 workflow was updated to extract the first migration/error from the Supabase startup log, not mislabel a migration failure as a generic startup failure. Its follow-up exact-head run should be treated as pending until completed.
+The S04 workflow was updated to extract the first migration/error from the Supabase startup log. Follow-up run [38337145926](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38337145926) completed on PR head `b62b7f2104cc3be0ef5602f3cf08bb71090f6cd8` (merge-test SHA `c25042494575427f4d997e1aa17001af6506fc86`): source audit failed closed on the five version collisions, and the disposable Supabase startup/replay attempt reported the first failed migration and SQLSTATE shown above.
 
 ## 5. Recovered migrations and semantic discrepancies
 
