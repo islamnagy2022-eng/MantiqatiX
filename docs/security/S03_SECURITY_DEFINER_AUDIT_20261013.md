@@ -123,9 +123,10 @@ These are code-level observations, not runtime tests.
 Added `supabase/tests/security/s03_security_definer_contract.sql`. It uses catalog reads and definition assertions only; it does not invoke business RPCs or mutate business data. It covers:
 1. the intentional public-advertisement contract and approved/active/date/limit filters;
 2. actor/admin guards on selected privileged operations;
-3. explicit `search_path` on callable SECURITY DEFINER functions in scope, excluding the four S02-owned functions.
+3. explicit `search_path` on callable SECURITY DEFINER functions in scope, excluding the four S02-owned functions;
+4. identity/tenant/status scoping in `mnty_active_membership` and delegation from `mnty_can`.
 
-**Execution status: NOT RUN.** No isolated PostgreSQL runner was available/executed in this audit turn. The data-minimization assertion is expected to flag the current `to_jsonb(b)`/`to_jsonb(f)` pattern if run against the current definition; that is a predicted result from source inspection, not an observed test failure. A test file existing is not a passing test. Production was not used to run behavioral tests.
+**Execution status: NOT RUN.** No isolated PostgreSQL runner was available/executed in this audit turn. The data-minimization assertion is expected to flag the current `to_jsonb(b)`/`to_jsonb(f)` pattern if run against the current definition; that is a predicted result from source inspection, not an observed test failure. Helper-chain assertions were added after direct inspection of the helper definitions. A test file existing is not a passing test. Production was not used to run behavioral tests.
 
 ## Required next steps
 
