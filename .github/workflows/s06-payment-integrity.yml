@@ -1,7 +1,7 @@
 name: S06 Payment Integrity Regressions
 on:
   pull_request:
-    branches: [main]
+    branches: ['**']
     paths:
       - 'supabase/tests/s06_payment_integrity_regression.sql'
       - '.github/workflows/s06-payment-integrity.yml'
