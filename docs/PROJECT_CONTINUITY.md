@@ -592,3 +592,5 @@ This status is intentional and must remain until the open gates above are indepe
 - This is implemented source, not yet a passing test. Inspect exact-head CI and logs when complete. No production changes or release; BLOCKED / NOT CERTIFIED.
 
 - RC523 test-review correction: assertions now match the fixture's one inserted ledger row. Expected canonical totals are gross 250, commission 25, captain_amount 200, paid_amount 250, and unsettled_amount 200. This is a source correction only; no CI pass is claimed.
+
+- RC530: aligned `scripts/production/verify-production.mjs` with the companion 33-source release contract by adding RC457, RC458, RC462, RC522 and RC523 in filename timestamp order. This source correction awaits exact-head CI; release remains blocked.
