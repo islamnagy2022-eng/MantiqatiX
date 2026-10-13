@@ -206,3 +206,13 @@ The existing RC451 source migration sets the intentionally public ad RPC to an e
 - SQL test execution: **NOT RUN**; 0 passed, 0 failed. The current contract test intentionally contains an assertion expected to flag broad bid/ledger row serialization. RC446/RC451 integration tests are disposable-database tests and were not run against production.
 - Production actions: read-only inventory/ledger checks only. No RPC business calls, DML, DDL, grants, revokes, migrations, branch creation, merge, or deployment.
 - Release state remains **BLOCKED / NOT CERTIFIED** until isolated runtime tests and the product-contract decisions are evidenced.
+
+
+### Diagnostic test addition — read-only, not executed
+
+Added `supabase/tests/security/s03_security_definer_diagnostics.sql` on this isolated Git branch. It emits catalog-only statuses for the targeted-ad search path, open-ride captain guard, customer bid/ledger full-row serialization, caller-supplied captain contact fields, and the private legal admin UUID overload. It performs no DML/DDL, calls no business RPCs, and changes no grants. The output is designed to classify candidates for review rather than automatically label every deviation as an exploit.
+
+Current repository-only verification:
+- S03 report and both SQL files are present on `security/s03-audit-isolated-20261013`.
+- No SQL runner was available in the session; syntax/runtime execution and result output remain **NOT VERIFIED**.
+- Test counts remain **0 passed / 0 failed / 2 files not run**. Do not interpret unexecuted assertions or diagnostic statuses as test results.
