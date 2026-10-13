@@ -184,7 +184,7 @@ const commissionPolicyMigration = migrations.find(({ name }) =>
 );
 const commissionPolicyPriorCreation = migrations.some(({ name, sql }) =>
   name.slice(0, 14) < commissionPolicyMigration?.name.slice(0, 14) &&
-  /create\\s+policy\\s+commission_transactions_finance_read\\s+on\\s+(?:public\\s*\\.\\s*)?commission_transactions\\b/i.test(sql)
+  /create\s+policy\s+commission_transactions_finance_read\s+on\s+(?:public\s*\.\s*)?commission_transactions\b/i.test(sql)
 );
 const commissionPolicyBaselineValid =
   /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(commissionPolicyBaseline) &&
@@ -192,18 +192,18 @@ const commissionPolicyBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(commissionPolicyBaseline) &&
   /NOT recovered historical policy-creation DDL/i.test(commissionPolicyBaseline) &&
   /MUST NOT be applied to production/i.test(commissionPolicyBaseline) &&
-  /CREATE POLICY commission_transactions_finance_read[\\s\\S]*ON public\\.commission_transactions[\\s\\S]*FOR SELECT TO authenticated/i.test(commissionPolicyBaseline) &&
-  /um\\.tenant_id::text = commission_transactions\\.tenant_id::text/i.test(commissionPolicyBaseline) &&
-  /um\\.user_id = \\(SELECT auth\\.uid\\(\\)\\)/i.test(commissionPolicyBaseline) &&
-  /um\\.status::text = 'ACTIVE'/i.test(commissionPolicyBaseline) &&
-  /OWNER[\\s\\S]*ADMIN[\\s\\S]*MANAGER[\\s\\S]*FINANCE[\\s\\S]*ACCOUNTANT[\\s\\S]*FINANCE_MANAGER/i.test(commissionPolicyBaseline) &&
-  !/create table|alter table|\\bgrant\\b|\\brevoke\\b|create trigger/i.test(commissionPolicyBaseline) &&
-  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(commissionPolicyBaseline);
+  /CREATE POLICY commission_transactions_finance_read[\s\S]*ON public\.commission_transactions[\s\S]*FOR SELECT TO authenticated/i.test(commissionPolicyBaseline) &&
+  /um\.tenant_id::text = commission_transactions\.tenant_id::text/i.test(commissionPolicyBaseline) &&
+  /um\.user_id = \(SELECT auth\.uid\(\)\)/i.test(commissionPolicyBaseline) &&
+  /um\.status::text = 'ACTIVE'/i.test(commissionPolicyBaseline) &&
+  /OWNER[\s\S]*ADMIN[\s\S]*MANAGER[\s\S]*FINANCE[\s\S]*ACCOUNTANT[\s\S]*FINANCE_MANAGER/i.test(commissionPolicyBaseline) &&
+  !/create table|alter table|\bgrant\b|\brevoke\b|create trigger/i.test(commissionPolicyBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.)/im.test(commissionPolicyBaseline);
 if (!commissionPolicyMigration || commissionPolicyPriorCreation || !commissionPolicyBaselineValid ||
     fs.existsSync(path.join(migrationDirectory, commissionPolicyTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === commissionPolicyVersion) ||
     commissionPolicyVersion >= commissionPolicyMigration.name.slice(0, 14) ||
-    !/alter policy commission_transactions_finance_read on public\\.commission_transactions to authenticated;/i.test(commissionPolicyMigration.sql)) {
+    !/alter policy commission_transactions_finance_read on public\.commission_transactions to authenticated;/i.test(commissionPolicyMigration.sql)) {
   console.error("P0 BLOCKED: commission_transactions_finance_read compatibility fixture or its ordered ALTER POLICY contract is invalid.");
   process.exit(1);
 }
