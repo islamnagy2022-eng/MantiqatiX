@@ -257,3 +257,10 @@ The live global MantiGO SECURITY DEFINER authorization finding remains P0. Candi
 - Posted root-cause comment [6138988836](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138988836): recover authoritative original creation DDL or obtain explicit approval for a separately labeled live-derived policy fixture injected only into disposable replay. No production policy or data was changed.
 - PR #228 still needs Deno npm dependency provisioning and exact-head rerun; [comment 6138974795](https://github.com/islamnagy2022-eng/MantiqatiX/pull/228#issuecomment-6138974795). PR #225 static SMM regression passes, but live gateway denial remains NOT VERIFIED.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Narrow CI correction implemented — PR #228 — 2026-10-13 05:34 UTC
+
+- Updated only `.github/workflows/digital-page-provider-order-binding-regression.yml` on PR #228 branch `security/digital-page-provider-order-binding-20261013`, commit `468a9511d96730dd06ed73a0e13de3fc7d1193b1`, to run `deno check --node-modules-dir=auto --no-lock supabase/functions/digital-page-payment-intent/index.ts`. This addresses the observed missing transitive npm package provisioning without removing the type-check.
+- Exact-head rerun [38352064454](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38352064454) is queued/in progress; no pass is claimed yet. The PostgreSQL behavioral job is being rerun as well.
+- Follow-up archive inspection found no creation DDL for `commission_transactions_finance_read` in the supplied RC40 archive either; added to [PR #207 comment 6139004215](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6139004215). Explicit approval is still required before creating a live-derived test-only policy fixture.
