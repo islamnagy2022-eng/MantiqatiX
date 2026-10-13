@@ -187,7 +187,6 @@ begin
   end if;
 
   -- The report must use the canonical financial ledger columns, not legacy aliases.
-  perform pg_catalog.set_config('mantiqatix.test_auth_diag','on',false);
   result := public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
   if (result->>'gross')::numeric <> 100
      or (result->>'commission')::numeric <> 10
