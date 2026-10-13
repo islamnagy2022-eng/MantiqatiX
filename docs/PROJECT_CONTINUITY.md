@@ -594,3 +594,12 @@ This status is intentional and must remain until the open gates above are indepe
 - RC523 test-review correction: assertions now match the fixture's one inserted ledger row. Expected canonical totals are gross 250, commission 25, captain_amount 200, paid_amount 250, and unsettled_amount 200. This is a source correction only; no CI pass is claimed.
 
 - RC530: aligned `scripts/production/verify-production.mjs` with the companion 33-source release contract by adding RC457, RC458, RC462, RC522 and RC523 in filename timestamp order. This source correction awaits exact-head CI; release remains blocked.
+
+
+## Latest verified continuation — 2026-10-13 (RC539)
+
+- PR #218 remains a draft and unmerged. Current head verified from GitHub: `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc`.
+- Exact-head focused integration [38328931209] passed 13/13 disposable PostgreSQL jobs; exact-head migration uniqueness, platform-admin scope, privacy, audit atomicity, history immutability, collision guard, module validation, audit append-only ACL, and backend boundary runs also succeeded. Pages validation passed but its deploy job was skipped on the PR event.
+- Production release remains BLOCKED / NOT CERTIFIED because the current reconciliation manifest says required release migrations are not applied/proven and chronological replay is NOT RUN; live ledger last observed at RC424. Other open release evidence includes tenant-isolation and payment/finance E2E, Edge Function parity, Auth/security remediation, backup/restore, signed device build and rollback.
+- Administration & Operations remains partial: no authoritative task/work-item table/source was found in the read-only inventory.
+- Next action: complete isolated chronological replay by resolving evidence-backed historical DDL prerequisites; do not introduce fake stubs, rewrite applied migration history, modify production, deploy, merge or release without explicit approval.
