@@ -399,6 +399,7 @@ jobs:
           rename_legacy_alias "20261008000001_rc422_security_definer_caller_contract_v1.sql" "20261007223944_rc422_security_definer_caller_contract_v1.sql" &&
           rename_legacy_alias "20261008000002_rc423_restrictive_authenticated_guard_policies.sql" "20261008125422_rc423_convert_authenticated_guard_policies_to_restrictive.sql"
           node scripts/validate-migration-version-uniqueness.mjs
+          node scripts/validate-ledger-recovered-migrations.mjs
           echo "PASS: disposable replay uses the unique migration versions observed in the live ledger; repository history remains unchanged."
           echo "PASS: known applied migration timestamps normalized to exact live-ledger versions only in this disposable runner."
           echo "live_ledger_order_alias_count=43"
