@@ -69,6 +69,8 @@ check("integration verifies authorized settlement persistence and replay safety"
 const rc462 = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
 const rc462Test = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
 const adminWorkflow = fs.readFileSync(".github/workflows/mantigo-platform-admin-scope.yml", "utf8");
+check("RC462 platform-admin guard re-evaluates request-scoped identity on every call",
+  /create or replace function public\.mnty_can_platform_admin\(\)[\\s\\S]*?language sql\\s+volatile/i.test(rc462));
 check("RC462 malformed JSON guard must use JSON containment rather than unsafe text-to-boolean casts",
   rc462.includes("m.permissions @> '{\"scope\":\"PLATFORM\",\"full_control\":true}'::jsonb") &&
   !rc462.includes("(m.permissions ->> 'full_control')::boolean"));
