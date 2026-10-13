@@ -109,3 +109,12 @@ test('S09-SEC-002: SMM order refresh binds IDs as escaped data, not inline JavaS
   assert.doesNotMatch(smm, /onclick=["']syncOrder\(/i, 'order IDs must not be interpolated into inline JavaScript');
   assert.match(smm, /esc\(o\.id\)/, 'order IDs inserted into markup should be HTML-escaped');
 });
+
+
+test('S09-FORM-002: SMM rejects non-finite/fractional quantities and prevents duplicate submits', () => {
+  const smm = read('web/smm.js');
+  assert.match(smm, /!Number\.isFinite\(qty\)\|\|!Number\.isInteger\(qty\)/, 'quantity must be a finite integer');
+  assert.match(smm, /submit\.disabled=true/, 'submit must lock while a request is in flight');
+  assert.match(smm, /submit\.disabled=false/, 'submit must be restored after a request failure');
+  assert.match(smm, /submit\.textContent=['"]جارٍ إرسال الطلب/, 'in-flight state should be visible to the user');
+});
