@@ -281,6 +281,145 @@ BEGIN
 END;
 $test$;
 
+-- Subscription failure callbacks also persist event + status in one transaction.
+INSERT INTO public.businesses(id,tenant_id)
+VALUES
+  ('00000000-0000-0000-0000-000000000130','tenant-1'),
+  ('00000000-0000-0000-0000-000000000131','tenant-1'),
+  ('00000000-0000-0000-0000-000000000132','tenant-1'),
+  ('00000000-0000-0000-0000-000000000133','tenant-1'),
+  ('00000000-0000-0000-0000-000000000134','tenant-1');
+
+INSERT INTO public.subscription_payment_intents
+  (id,business_id,amount,currency,status,provider)
+VALUES
+  ('00000000-0000-0000-0000-000000000030','00000000-0000-0000-0000-000000000130',30.00,'EGP','PENDING','PAYMOB'),
+  ('00000000-0000-0000-0000-000000000031','00000000-0000-0000-0000-000000000131',55.00,'EGP','PENDING','PAYMOB'),
+  ('00000000-0000-0000-0000-000000000032','00000000-0000-0000-0000-000000000132',60.00,'EGP','PENDING','PAYMOB'),
+  ('00000000-0000-0000-0000-000000000033','00000000-0000-0000-0000-000000000133',80.00,'EGP','PENDING','PAYMOB'),
+  ('00000000-0000-0000-0000-000000000034','00000000-0000-0000-0000-000000000134',90.00,'EGP','SUCCEEDED','PAYMOB');
+
+DO $test$
+DECLARE result jsonb;
+BEGIN
+  result := public.process_verified_subscription_payment_failure_backend(
+    'event-sub-failure','paymob:sub-failure','00000000-0000-0000-0000-000000000030','sub-tx-failure',30.00,'EGP',true,'{"case":"sub-failure"}'::jsonb
+  );
+  IF result->>'status' <> 'FAILED' OR result->>'idempotent' <> 'false' THEN
+    RAISE EXCEPTION 'subscription failure result incorrect: %', result;
+  END IF;
+  IF (SELECT status FROM public.subscription_payment_intents WHERE id='00000000-0000-0000-0000-000000000030') <> 'FAILED' THEN
+    RAISE EXCEPTION 'subscription intent did not transition to FAILED';
+  END IF;
+  IF (SELECT subscription_payment_intent_id <> '00000000-0000-0000-0000-000000000030'::uuid OR payment_intent_id IS NOT NULL
+      FROM public.payment_provider_events WHERE external_event_id='paymob:sub-failure') THEN
+    RAISE EXCEPTION 'subscription event correlation is incorrect';
+  END IF;
+END;
+$test$;
+
+DO $test$
+DECLARE result jsonb;
+BEGIN
+  result := public.process_verified_subscription_payment_failure_backend(
+    'event-sub-failure-retry','paymob:sub-failure','00000000-0000-0000-0000-000000000030','sub-tx-failure',30.00,'EGP',true,'{"case":"sub-failure-retry"}'::jsonb
+  );
+  IF result->>'idempotent' <> 'true' OR result->>'status' <> 'FAILED' THEN
+    RAISE EXCEPTION 'subscription failure replay incorrect: %', result;
+  END IF;
+  IF (SELECT count(*) FROM public.payment_provider_events WHERE provider='PAYMOB' AND external_event_id='paymob:sub-failure') <> 1 THEN
+    RAISE EXCEPTION 'subscription failure replay created duplicate event';
+  END IF;
+END;
+$test$;
+
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.process_verified_subscription_payment_failure_backend(
+      'event-sub-wrong-amount','paymob:sub-wrong-amount','00000000-0000-0000-0000-000000000031','sub-tx-wrong-amount',54.00,'EGP',true,'{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_SUBSCRIPTION_AMOUNT_MISMATCH_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_SUBSCRIPTION_AMOUNT_MISMATCH_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'SUBSCRIPTION_PAYMENT_AMOUNT_MISMATCH' THEN RAISE; END IF;
+  END;
+  IF EXISTS (SELECT 1 FROM public.payment_provider_events WHERE external_event_id='paymob:sub-wrong-amount') THEN
+    RAISE EXCEPTION 'subscription amount mismatch persisted event';
+  END IF;
+END;
+$test$;
+
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.process_verified_subscription_payment_failure_backend(
+      'event-sub-cross-intent','paymob:sub-failure','00000000-0000-0000-0000-000000000031','sub-tx-failure',55.00,'EGP',true,'{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_SUBSCRIPTION_EVENT_REPLAY_MISMATCH_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_SUBSCRIPTION_EVENT_REPLAY_MISMATCH_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'SUBSCRIPTION_EVENT_REPLAY_MISMATCH' THEN RAISE; END IF;
+  END;
+  IF (SELECT status FROM public.subscription_payment_intents WHERE id='00000000-0000-0000-0000-000000000031') <> 'PENDING' THEN
+    RAISE EXCEPTION 'subscription event conflict changed another intent';
+  END IF;
+END;
+$test$;
+
+CREATE OR REPLACE FUNCTION public.test_fail_subscription_intent_update()
+RETURNS trigger LANGUAGE plpgsql AS $function$
+BEGIN
+  IF NEW.id = '00000000-0000-0000-0000-000000000032'::uuid THEN RAISE EXCEPTION 'TEST_FORCED_SUBSCRIPTION_WRITE_FAILURE'; END IF;
+  RETURN NEW;
+END;
+$function$;
+CREATE TRIGGER test_fail_subscription_intent_update
+BEFORE UPDATE ON public.subscription_payment_intents
+FOR EACH ROW EXECUTE FUNCTION public.test_fail_subscription_intent_update();
+
+DO $test$
+BEGIN
+  BEGIN
+    PERFORM public.process_verified_subscription_payment_failure_backend(
+      'event-sub-atomic-failure','paymob:sub-atomic-failure','00000000-0000-0000-0000-000000000032','sub-tx-atomic-failure',60.00,'EGP',true,'{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_SUBSCRIPTION_WRITE_FAILURE_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_SUBSCRIPTION_WRITE_FAILURE_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'TEST_FORCED_SUBSCRIPTION_WRITE_FAILURE' THEN RAISE; END IF;
+  END;
+  IF EXISTS (SELECT 1 FROM public.payment_provider_events WHERE external_event_id='paymob:sub-atomic-failure') THEN
+    RAISE EXCEPTION 'subscription event was not rolled back after status update failure';
+  END IF;
+  IF (SELECT status FROM public.subscription_payment_intents WHERE id='00000000-0000-0000-0000-000000000032') <> 'PENDING' THEN
+    RAISE EXCEPTION 'failed subscription update changed payment state';
+  END IF;
+END;
+$test$;
+DROP TRIGGER test_fail_subscription_intent_update ON public.subscription_payment_intents;
+DROP FUNCTION public.test_fail_subscription_intent_update();
+
+-- A successful subscription event created by the previous success RPC remains final on replay.
+INSERT INTO public.payment_provider_events
+  (id,tenant_id,provider,event_type,payment_intent_id,subscription_payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
+VALUES
+  ('legacy-sub-success','tenant-1','PAYMOB','SUBSCRIPTION',NULL,NULL,'paymob:sub-legacy-success','PROCESSED',true,'{}'::jsonb,now());
+DO $test$
+DECLARE result jsonb;
+BEGIN
+  result := public.process_verified_subscription_payment_failure_backend(
+    'event-sub-legacy-replay','paymob:sub-legacy-success','00000000-0000-0000-0000-000000000034','sub-tx-legacy',90.00,'EGP',true,'{}'::jsonb
+  );
+  IF result->>'already_final' <> 'true' OR result->>'status' <> 'SUCCEEDED' THEN
+    RAISE EXCEPTION 'legacy successful subscription was not preserved: %', result;
+  END IF;
+  IF (SELECT status FROM public.subscription_payment_intents WHERE id='00000000-0000-0000-0000-000000000034') <> 'SUCCEEDED' THEN
+    RAISE EXCEPTION 'legacy successful subscription was downgraded';
+  END IF;
+END;
+$test$;
+
 -- Non-service role is rejected even if it can see the function.
 DO $test$
 BEGIN
