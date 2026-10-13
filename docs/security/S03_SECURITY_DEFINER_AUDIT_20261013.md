@@ -378,3 +378,21 @@ The inspected helpers have explicit function settings: the InDrive predicate hel
 ### Source-tree existence cross-check — qualification
 
 A follow-up GitHub contents lookup for the exact RC446 and RC451 migration paths returned HTTP 404 on `main`, even though code-search results show those filenames referenced by migration-chain/security validation scripts and workflows. Therefore, the evidence currently supports **an unresolved source-tree inconsistency** (references exist; exact migration file retrieval did not), not a claim that the migration files themselves are present and ready to apply. Before any release, verify the actual tree at the intended release commit, repair missing/mismatched files in a separate reviewable change, and ensure the production migration ledger matches the validated chain. Do not apply either migration based only on filename references.
+
+
+## Fresh Supabase Security Advisor snapshot — 2026-10-13
+
+A fresh read-only Security Advisor query returned these items relevant to release readiness:
+
+1. `anon_security_definer_function_executable`: 1 finding — the public targeted-ad RPC, already described above. The product contract must explicitly confirm anonymous delivery is intended.
+2. `authenticated_security_definer_function_executable`: 40 findings — callable public SECURITY DEFINER functions. This is an exposure inventory, not a verdict that every function is vulnerable; each function must have a reviewed caller contract and authorization checks.
+3. `auth_leaked_password_protection`: **WARN — disabled**. Enable compromised-password protection through the approved Auth settings/release process, after evaluating user impact. No Auth settings were changed during this audit.
+4. `rls_enabled_no_policy`: **INFO — one table**, `public.digital_page_payment_events`, has RLS enabled with no policies. This may be deliberate deny-by-default; verify intended client access and retain the boundary unless a justified narrow policy is tested.
+5. Anonymous-role RLS policy warnings were returned for multiple tables, including financial, payment, ride, SMM, tenant, storage, and marketplace tables. These are advisor-level leads and must be reviewed against each policy expression and actual role semantics; they do not alone establish that unauthenticated users can read or mutate the underlying rows. In particular, do not blanket-remove policies without checking app behavior and negative tests.
+
+Remediation references:
+- [SECURITY DEFINER callable by anon (lint 0028)](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable)
+- [SECURITY DEFINER callable by authenticated (lint 0029)](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
+- [Leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
+
+**Safety:** this was an advisor read only. No production settings, policies, grants, migrations, schema, or data were modified.
