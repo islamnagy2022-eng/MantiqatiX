@@ -18,6 +18,9 @@ begin
   );
 
   perform pg_catalog.set_config('request.jwt.claim.sub',v_admin::text,false);
+  if public.get_mantigo_admin_financial_report_backend(v_admin,null,null) is null then
+    raise exception 'RC523 report must not be null';
+  end if;
   v_report := public.get_mantigo_admin_financial_report_backend(v_admin,null,null);
 
   if (v_report->>'ledger_count')::bigint <> 1 then
