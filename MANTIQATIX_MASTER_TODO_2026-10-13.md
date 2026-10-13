@@ -100,3 +100,11 @@ Next executable action: inspect exact-head workflow run for the current PR #207 
 - Read-only live catalog confirms the policy exists with authenticated SELECT and tenant/requester/finance-role-like visibility scope; repository and RC40 archive search did not recover its creation migration.
 - Added policy-only disposable fixture `supabase/tests/baselines/approval_requests_scoped_read.sql` at temporary version 20260927140499, with validator and CI exact-copy/untracked/no-data guards. No table DDL, grants, or data in this fixture.
 - Candidate code head e7fcd20f5c9a125d2a99590cb56a688086ab95cb; exact-head replay NOT VERIFIED.
+## SESSION-004 addendum — 2026-10-13 (append-only)
+
+- Current head when recorded: eca81d7deded9051ed4e7cb7c271049cfb299390; session log append is commit 839d305d657f67e26df6a66dd749f60305a0cd3d. Query PR #207 again for the latest head before acting.
+- Disposable replay run 38352747923 on earlier SHA 2b5ecf7257c794f38e401f34397e910f05c756c7 passed the schema baseline preflight and fixture-copy/untracked guards; Supabase startup was still in progress. Full chronological replay and latest-head CI remain NOT VERIFIED.
+- Replay validator was corrected after run 38349544642: RC256 proves only the tenant_id index; the observed payment_intent_id index has no tracked creation statement and now resides in the disposable-only catalog fixture. Do not call it recovered historical DDL.
+- P0 deployed/source drift: deployed paymob-webhook v8 directly reads/writes payment_provider_events, but the tracked branch source routes payment processing through atomic RPCs and now has a static regression guard against direct provider-event table operations. Read-only live ACL evidence reports service_role lacks SELECT/INSERT/UPDATE/DELETE on that table. No production function or grants were changed. A separately authorized, tested Edge Function rollout is required to align deployment with source; no live callback test was sent.
+- Next exact action: inspect newest PR #207 CI for the current head; if replay reaches migration execution, diagnose the first SQL failure and repeat; if it completes, record complete replay outcome and then continue P0 webhook source/deployed parity, payment idempotency, and safe RPC tests.
+- Release remains BLOCKED / NOT CERTIFIED.
