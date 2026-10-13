@@ -68,7 +68,6 @@ jobs:
             rename_legacy_alias "20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql" "20260928161513_rc206_geographic_ad_targeting_and_nearest_fallback.sql" &&
             rename_legacy_alias "20260928210000_rc172_restore_medical_booking_contract.sql" "20260928131753_rc172_restore_medical_booking_contract.sql" &&
             rename_legacy_alias "20260928210000_rc207_official_global_mnty_cover_ads.sql" "20260928174954_rc207_official_global_mnty_cover_ads.sql" &&
-          rename_legacy_alias "20261001164200_provider_onboarding_final.sql" "20261001163708_provider_onboarding_requests.sql" &&
           rename_legacy_alias "20261001090000_harden_provider_onboarding_authority.sql" "20261001164107_harden_provider_onboarding_authority.sql" &&
           rename_legacy_alias "20261001165000_grant_provider_onboarding_authenticated_insert.sql" "20261001164222_grant_provider_onboarding_authenticated_insert.sql" &&
           rename_legacy_alias "20261001100000_lock_provider_onboarding_direct_writes.sql" "20261001164327_lock_provider_onboarding_direct_writes.sql" &&
