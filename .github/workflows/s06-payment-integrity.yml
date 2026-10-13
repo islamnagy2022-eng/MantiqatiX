@@ -4,12 +4,18 @@ on:
     branches: ['**']
     paths:
       - 'supabase/tests/s06_payment_integrity_regression.sql'
+      - 'tests/s06-payment-integrity.test.mjs'
+      - 'supabase/functions/paymob-webhook/**'
+      - 'supabase/functions/digital-page-payment-intent/**'
       - '.github/workflows/s06-payment-integrity.yml'
       - 'supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql'
   push:
     branches: [main]
     paths:
       - 'supabase/tests/s06_payment_integrity_regression.sql'
+      - 'tests/s06-payment-integrity.test.mjs'
+      - 'supabase/functions/paymob-webhook/**'
+      - 'supabase/functions/digital-page-payment-intent/**'
       - '.github/workflows/s06-payment-integrity.yml'
       - 'supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql'
 permissions:
@@ -33,6 +39,11 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Run S06 webhook and payment-intent source regressions
+        run: node --test tests/s06-payment-integrity.test.mjs
       - name: Prepare disposable PostgreSQL roles and fixture
         shell: bash
         run: |
