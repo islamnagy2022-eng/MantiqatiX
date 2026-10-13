@@ -549,3 +549,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Important distinction: source recovery does not imply migration replay success or production application. Earlier clean-replay dependencies, missing focused tests in this branch, live E2E/security evidence, and owner-approved production change process remain unresolved.
 - Continue with exact-head CI and safe disposable replay/source-contract validation. Never change production or merge/release without explicit approval and evidence.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC525 focused integration coverage
+
+- Restored test fixtures/integration SQL from the reconciled PR #207 source for RC425, RC431, RC434, RC435, RC436, RC439 and RC440, then added a separate seven-job disposable-PostgreSQL workflow.
+- Exact candidate at recording time: d4403cc8c7c9dca8fe0bcacdb5897da58f56c4b8. The focused workflow and related checks were queued; no queued result is counted as a pass.
+- SMM RC432 is still deferred, and chronological full replay still has historical DDL dependencies. Production migration status remains unchanged.
+- Continue by inspecting exact-head CI outcomes and fixing only reproducible source/test failures. No production writes, deployments, merges or releases without explicit approval.
+- Release remains BLOCKED / NOT CERTIFIED.
