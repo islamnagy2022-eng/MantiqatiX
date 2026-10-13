@@ -969,3 +969,11 @@ The source search was extended beyond the current migration directory:
 - Added `supabase/tests/baselines/payment_events_finance_read.sql`, a policy-only catalog-derived fixture, and temporary CI injection at `20260927140493_test_only_live_derived_payment_events_finance_read.sql`, before the historical ALTER POLICY migration. It contains no table DDL, grants, or data.
 - Extended the historical-baseline validator to verify the exact predicate, role scope, provenance labels, temporary version ordering, no pre-existing canonical policy creator, and the matching chronological ALTER POLICY statement.
 - This fixture is synthetic policy compatibility, not recovered historical policy-creation DDL. The updated exact-head CI must pass preflight and proceed further before any new status can be assigned. Production remains unchanged; release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — replay fixture verifier variable fix
+
+- The first CI run after adding `payment_events_finance_read` failed before database startup in the temporary-baseline verification step with Bash `set -u` error: `payment_events_policy_baseline: unbound variable`.
+- Root cause: the new baseline/migration variables were added to the injection step but not to the separate verification step's local variable declarations. This is a CI workflow wiring defect, not a SQL or production failure.
+- Fixed by declaring both `payment_events_policy_baseline` and `payment_events_policy_migration` in the verification step as well. The workflow now contains two declarations for each variable (one per step), matching the step-local shell scope.
+- The next exact-head CI run must prove the exact-copy/untracked step passes before replay resumes. No production state was changed.
