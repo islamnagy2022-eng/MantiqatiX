@@ -44,3 +44,23 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Search RC40/recovered source and other authoritative historical artifacts for the original policy definition.
 - If no authoritative source is available, keep replay blocked pending explicit approval for a test-only live-derived compatibility fixture, clearly marked as non-historical and never applied to production.
 - Production release state remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — RC40 source provenance check
+
+### Work performed
+- Inspected the supplied `source_RC40.zip` and read `docs/RC40_SCHEMA_RECONCILIATION.md`.
+- Searched all SQL migrations within that archive for `wallet_accounts_finance_read` and `marketing_project_participants`; no source hits were found.
+- Confirmed the RC40 reconciliation note explicitly disclaims full historical migration-graph equivalence with the current live schema.
+- Earlier read-only live catalog evidence for `wallet_accounts` showed RLS enabled and forced, an authenticated SELECT policy with active same-tenant finance-role checks, and service_role grants including DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, and UPDATE. This was metadata-only; no wallet rows were read or changed. Do not revoke these live privileges as part of this source investigation.
+
+### Result
+- The missing original policy definition has not been recovered from the provided RC40 archive or repository search. This is not authorization to invent a historical migration or silently normalize production state.
+- Full replay remains BLOCKED at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` because `wallet_accounts_finance_read` is missing from the disposable replay database at the point the migration alters it.
+- No production change, merge, deploy, live ACL mutation, or financial transaction was performed.
+
+### Next action
+1. Seek authoritative historical source/backup for the original `wallet_accounts_finance_read` policy and the marketing participant table.
+2. If unavailable, request explicit approval for a test-only, live-derived compatibility fixture in disposable CI only, with provenance limitations stated in the artifact and TODO.
+3. Rerun full replay only after resolving the source gap; never label synthetic-baseline replay as historical fidelity.
+4. Release remains **BLOCKED / NOT CERTIFIED**.
