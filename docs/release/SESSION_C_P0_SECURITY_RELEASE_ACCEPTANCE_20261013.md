@@ -223,3 +223,12 @@ The available run [38343317017](https://github.com/islamnagy2022-eng/MantiqatiX/
 
 ### Release decision
 The live global MantiGO SECURITY DEFINER authorization finding remains P0. Candidate migrations, static checks, and passing source validators do not constitute production remediation. Require reviewed candidate SQL, exact-head tests, staged approval, and positive platform-admin plus negative tenant-role live tests before release. No production changes were made. **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest exact-head refresh — 2026-10-13 05:29 UTC
+
+- PR #207 advanced to head `7a5cafe7239b103f5c86bad9ab1593797756866a`. Exact-head replay [38351560986](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351560986) is pending/in progress; earlier run [38351334323] is stale and cannot certify the current tree. Registration fixture ordering was split in the current candidate, but only the new exact-head result can establish whether the full replay passes.
+- PR #225 current head `e108a42fe43b83fc927d6a083fe87e0c8bfa87ba` passed static gateway security regression [38351557549](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351557549). Runtime HTTP denial remains NOT VERIFIED; its PR base is a non-main branch.
+- PR #220 source/ACL review found a critical implementation gap: despite RC428/RC429 failure RPCs and RC425 MantiGO RPC being present in the branch, `paymob-webhook/index.ts` still performs direct table reads/writes on paths where the live `service_role` ACL denies DML. The handler does not call `process_verified_provider_payment_failure`, `process_verified_subscription_payment_failure`, or `process_verified_mantigo_payment_backend`. Review comment [6138943387](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138943387) records the root correction.
+- Recommended architecture: a single server-authoritative event-processing RPC (or a complete set of tightly scoped service-only RPCs) should resolve target order/intent, bind provider order/transaction/amount/currency, claim event idempotency, transition payment state and enqueue notifications atomically. The edge handler verifies HMAC then calls RPC; no broad table grants. This is candidate design guidance, not implemented or deployed.
+- Release remains **BLOCKED / NOT CERTIFIED**. No production migration, table grants, function deployment, financial mutation, Auth/RLS change, merge, or release.
