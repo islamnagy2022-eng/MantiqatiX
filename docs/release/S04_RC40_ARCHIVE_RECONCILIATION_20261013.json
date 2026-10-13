@@ -1,0 +1,155 @@
+{
+  "reportDate": "2026-10-13",
+  "artifact": "source_RC40.zip",
+  "providedChecksumFile": "source_RC40.zip.sha256",
+  "archiveSha256": "e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e",
+  "checksumVerified": true,
+  "archiveScope": "User-provided RC40 source package; evidence source only, not production application proof.",
+  "counts": {
+    "archiveMigrationFiles": 39,
+    "exactFilenameOverlapWithCurrentRecovered": 12,
+    "exactContentMatchesAmongOverlaps": 0,
+    "contentMismatchesAmongOverlaps": 12,
+    "archiveFilesAbsentFromCurrentMigrationAndRecoveredDirectories": 27,
+    "archiveDuplicateVersionGroups": [
+      {
+        "version": "20260920130000",
+        "count": 5
+      }
+    ]
+  },
+  "overlappingFiles": [
+    {
+      "name": "20260808000000_phase04_enterprise_schema_and_rls.sql",
+      "archiveSha256": "863e8cae38a0b896c88cd7f86f55e584c5214a075dbcc8087233ccdb99a0b026",
+      "currentSha256": "2f8708dc78fb6a0aed6619f4eb0a68acfa57cf6ad187e155102f46fd734d94c2",
+      "archiveBytes": 23251,
+      "currentBytes": 27335,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260808000001_phase05_sync_engine.sql",
+      "archiveSha256": "f7933b8e784346a46823c6f16c85a59b420efc62e0adda8fe0ff556ebfa14dd5",
+      "currentSha256": "fa765dd6eb82406e63ccb514fe84d581c1371b44b4841ea7d0b3f0a348760d76",
+      "archiveBytes": 1810,
+      "currentBytes": 1810,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260808000002_phase06_financial_core_hardening.sql",
+      "archiveSha256": "84e545ecf969599fcddb1b6f8e80629a7bceab55a04bb23a31226b5141ae53bb",
+      "currentSha256": "41cefd319fcbd1c984c706f1b502b292e1f405d7c77b80cf401b10a09dd7d39f",
+      "archiveBytes": 20602,
+      "currentBytes": 20855,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260906190900_phase11_payment_intents.sql",
+      "archiveSha256": "f62d70e32f81e4dbe5943f1841422d5fbd0152673f16ee4c5a94f7d43adf7959",
+      "currentSha256": "5a7300172a87482a98da33628dcbb2e22bcf3039f6b7f2bf0b80df9f6a1cbdcc",
+      "archiveBytes": 766,
+      "currentBytes": 777,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260906191100_phase11b_harden_payment_intents.sql",
+      "archiveSha256": "6fd7aca82177b36d80c8e011d0f3cae578a20822977ad52baccbac06ba4fbee9",
+      "currentSha256": "a024a2b9e5e123c18f9526154fd121b40b5fd341692bcabb76145f551b4efc82",
+      "archiveBytes": 242,
+      "currentBytes": 243,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260910130000_phase12e_corrective_atomic_cash_confirm.sql",
+      "archiveSha256": "bddd384c6f31d23351cdf76764520f8bb6425ce7368c41d9c419a95d9650b503",
+      "currentSha256": "e14258cae347f17090924e54e1be95c78ef6e84a16ab511fe2ffbba638085bc0",
+      "archiveBytes": 5650,
+      "currentBytes": 5652,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260910140000_phase13_tenant_payment_methods.sql",
+      "archiveSha256": "0d1afef7e8512787b505a763a60c5cb3b59acbce928572f46d3bf1b406c23ada",
+      "currentSha256": "684c9ca1144dc9921c4202876e570d8c865231f722b81d19d1093133309f8129",
+      "archiveBytes": 2621,
+      "currentBytes": 2622,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260910150000_phase14a_payment_architecture_refactor.sql",
+      "archiveSha256": "6a1a6d0534d02cac8483ba5c78e0abe54b2cc079f437f7e418c90792b8ed2034",
+      "currentSha256": "6aa84c801088711752a849f3134c980b9d0cb9e0220336465cb4863f685d970d",
+      "archiveBytes": 1517,
+      "currentBytes": 1518,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260910160000_phase14a1_cash_rpc_payment_method_alignment.sql",
+      "archiveSha256": "e7926e1ff6a896971077f5b931294d3fea2d7d49cc0d145027464611a3e059f3",
+      "currentSha256": "9116af8497b307f086a706bc6de657b9622de4791368b968d943dfaf3751360e",
+      "archiveBytes": 6197,
+      "currentBytes": 6199,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260912170000_phase04_reconciliation.sql",
+      "archiveSha256": "932e5a887ef2bd1ad21c36812c312b8b67a6f187d6253931e38e8ace9a63bf12",
+      "currentSha256": "0cbef627091998ed21f59b13d45759ce20375d4d53086b5f225221cc47da41f7",
+      "archiveBytes": 7153,
+      "currentBytes": 7141,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260912180000_phase14b_payment_rls_grants_hardening.sql",
+      "archiveSha256": "4d1ce328703c5d58b6f1b7861887c9a331310d4ab6031e3c51bdc1cbb092eca5",
+      "currentSha256": "a183d10b91a8a869ac2f8a5acaa5a4440e98c633f729ab65ab662ffea198fc6d",
+      "archiveBytes": 2673,
+      "currentBytes": 2675,
+      "exactContentMatch": false
+    },
+    {
+      "name": "20260912190000_phase14a2_cash_rpc_type_alignment.sql",
+      "archiveSha256": "10928c958cd525652d68e3dd7039d766ce84b45502dea408e2e3c53d55ec70b3",
+      "currentSha256": "87ae849d3a2b6e6e024ed68cfe45f69e3cbe7e816f6d84a022505bfcc8696e04",
+      "archiveBytes": 6127,
+      "currentBytes": 6120,
+      "exactContentMatch": false
+    }
+  ],
+  "archiveOnlyFiles": [
+    "20260920032700_phase27_auth_platform_continuity_hardening.sql",
+    "20260920120000_production_security_hardening_v3.sql",
+    "20260920123000_production_marketplace_real_data_v1.sql",
+    "20260920130000_production_fashion_tailors_real_data_v1.sql",
+    "20260920130000_production_indrive_bidding_real_data_v1.sql",
+    "20260920130000_production_mantigo_real_data_v1.sql",
+    "20260920130000_production_restaurant_orders_tables_inventory_v1.sql",
+    "20260920130000_production_settlement_persistence_v1.sql",
+    "20260920185000_production_credit_control.sql",
+    "20260920190000_harden_credit_status_authorization.sql",
+    "20260921040000_phase21_anon_write_privilege_hardening.sql",
+    "20260921040100_phase22_sensitive_authenticated_write_hardening.sql",
+    "20260921040200_phase23_force_rls_financial_support.sql",
+    "20260921040300_phase24_critical_fk_indexes.sql",
+    "20260921050000_phase10_server_authoritative_order_create.sql",
+    "20260921120000_phase13_state_machine_hardening.sql",
+    "20260921120001_phase13_state_machine_hardening_full.sql",
+    "20260921123000_phase16_partner_voucher_reserve_coa.sql",
+    "20260921143000_phase15_payment_edge_and_referral_rpc_hardening.sql",
+    "20260921150000_phase16_production_invariant_verification.sql",
+    "20260921154500_phase18_phase19_webhook_and_rls_hardening.sql",
+    "20260921170000_phase17_atomic_settlement_financial_authority.sql",
+    "20260924211708_phase_3_56_anon_privilege_lockdown.sql",
+    "20260925120000_maintenance_request_simple_flow_v1.sql",
+    "20260925133000_indrive_bid_acceptance_atomicity_v1.sql",
+    "20260927020000_phase_3_57_erp_authority_schema_reconciliation.sql",
+    "20260927021000_phase_3_57_receive_purchase_rpc_anon_lockdown.sql"
+  ],
+  "criticalCandidate": {
+    "file": "supabase/migrations/20260920185000_production_credit_control.sql",
+    "observation": "The archive file creates public.credit_policies, public.credit_accounts, and public.credit_periods; those tables are present in the live catalog. The file's version/name is not present in the live migration ledger as an exact record, and the 12 overlapping archive sources all differ from current recovered files.",
+    "disposition": "SOURCE CANDIDATE ONLY. Do not copy into executable migrations or treat as applied until SQL semantics and ledger statement provenance are reconciled."
+  },
+  "smmFinding": "No CREATE TABLE for public.smm_providers or public.smm_provider_credentials was found in the archive's supabase/migrations directory; the archive does not resolve the first S04 replay failure.",
+  "conclusion": "RC40 is useful historical source evidence but is not byte-identical to the current recovered source set and contains its own duplicate version group. It must not be overlaid wholesale or replayed as a canonical production history."
+}
