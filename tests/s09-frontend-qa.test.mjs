@@ -100,3 +100,12 @@ test('S09-ERR-001: digital-page routes expose an error/status surface and handle
   assert.match(editorHtml, /id=["']status["']/i, 'editor must expose a status region');
   assert.match(editorJs, /catch\s*\(/, 'editor must handle rejected operations');
 });
+
+
+test('S09-SEC-002: SMM order refresh binds IDs as escaped data, not inline JavaScript', () => {
+  const smm = read('web/smm.js');
+  assert.match(smm, /data-sync-order=/, 'order refresh buttons should use a data attribute');
+  assert.match(smm, /querySelectorAll\(['"]\[data-sync-order\]['"]\)/, 'order refresh should bind click handlers from DOM data');
+  assert.doesNotMatch(smm, /onclick=["']syncOrder\(/i, 'order IDs must not be interpolated into inline JavaScript');
+  assert.match(smm, /esc\(o\.id\)/, 'order IDs inserted into markup should be HTML-escaped');
+});
