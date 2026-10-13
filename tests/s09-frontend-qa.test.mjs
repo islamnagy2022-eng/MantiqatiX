@@ -180,3 +180,12 @@ test('S09-FIN-001: admin credit UI validates positive amount and locks duplicate
   assert.match(smm, /button\.textContent='جارٍ إضافة الرصيد…'/);
   assert.match(smm, /finally\{button\.disabled=false;button\.textContent=original\}/);
 });
+
+
+test('S09-FIN-002: service price editor rejects invalid prices and locks duplicate saves', () => {
+  const smm = read('web/smm.js');
+  assert.match(smm, /!raw\|\|!Number\.isFinite\(price\)\|\|price<=0/, 'price must be a finite positive number');
+  assert.match(smm, /if\(button\?\.disabled\)return/, 'duplicate price saves should be ignored');
+  assert.match(smm, /button\.textContent='جارٍ الحفظ…'/, 'price save should show pending feedback');
+  assert.match(smm, /finally\{if\(button\?\.isConnected\)/, 'price save control should be restored after success or failure');
+});
