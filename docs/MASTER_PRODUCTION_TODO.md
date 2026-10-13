@@ -1633,3 +1633,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P1 / SMM live containment:** deployed `smm-gateway` v10 has source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`; source has hard deferred flag and early 503 gate, but live HTTP negative test remains NOT VERIFIED.
 - [ ] **P1 / migration ledger:** 283 applied versions, latest `20261008222845 / rc424_atomic_digital_page_payment_webhook`; selected RC449/RC462/RC522/RC523 candidate versions remain absent from the ledger.
 - Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Dated master entrypoint
+
+- Dated execution checkpoint: [`MANTIQATIX_MASTER_TODO_2026-10-13.md`](../MANTIQATIX_MASTER_TODO_2026-10-13.md). Keep its release status and priority blockers synchronized with this detailed task inventory and `docs/SESSION_LOG.md`.
