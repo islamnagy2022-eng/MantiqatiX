@@ -273,3 +273,13 @@ Classification: no confirmed legal authorization exploit from this catalog-only 
 ### Updated status after legal recheck
 
 This was a read-only production catalog inspection. Behavioral tests remain **NOT RUN** (0 passed, 0 failed), no disposable Supabase test branch is available, and no release/security certification is granted. Existing restrictions remain: no production grants/revokes, migrations, data mutations, merge, deployment, or edits to S02-owned files.
+
+
+### Private schema USAGE grant recheck — 2026-10-13
+
+A follow-up read-only privilege query found:
+- `private` schema USAGE: `authenticated=true`, `anon=false`, `service_role=true`.
+- The active SQL session returns null for `pgrst.db_schemas` and `pgrst.db_extra_search_path`.
+- A read-only check of role-level database settings found no stored `pgrst.db_schemas` or `pgrst.db_extra_search_path` setting.
+
+This narrows but does not close the question: authenticated has schema USAGE and EXECUTE on the UUID-taking private admin predicate, but the database-side checks available here do not establish whether PostgREST exposes `private` as an RPC schema. Therefore direct endpoint reachability remains **unverified**. Treat this as a high-priority configuration verification item, not a confirmed exploit; do not infer exposure or safety from a null session setting.
