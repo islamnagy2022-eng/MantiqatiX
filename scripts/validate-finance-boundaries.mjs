@@ -59,6 +59,16 @@ for (const [marker, label] of [
 ]) {
   if (!lookupMigration.includes(marker)) throw new Error('Webhook target lookup migration marker missing: ' + label);
 }
+for (const [marker, label] of [
+  ['PAYMENT_TARGET_AMBIGUOUS_MERCHANT_REFERENCE', 'reject ambiguous merchant reference'],
+  ['PAYMENT_TARGET_AMBIGUOUS_PROVIDER_ORDER', 'reject ambiguous provider order'],
+  ['jsonb_to_recordset(v_candidates)', 'count all matching targets before dispatch']
+]) {
+  if (!lookupMigration.includes(marker)) throw new Error('Webhook target ambiguity guard missing: ' + label);
+}
+if (/\bLIMIT\s+1\b/i.test(lookupMigration)) {
+  throw new Error('Webhook target lookup must not select an arbitrary first match');
+}
 if (/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.resolve_paymob_webhook_target\([^;]+\)\s+TO\s+(?:PUBLIC|anon|authenticated)/i.test(lookupMigration)) {
   throw new Error('Webhook target lookup RPC must not be executable by PUBLIC, anon, or authenticated');
 }
