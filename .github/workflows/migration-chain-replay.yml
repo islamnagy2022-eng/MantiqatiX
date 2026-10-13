@@ -284,9 +284,11 @@ jobs:
 
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
-          db_url="$(supabase status -o env | sed -n 's/^DB_URL=//p' | sed -e 's/^"//' -e 's/"$//')"
-          if [ -z "$db_url" ]; then
-            echo "P0 BLOCKED: Supabase local DB_URL was not returned by status." >&2
+          # This workflow writes its disposable Supabase config with db.port=54322
+          # and the local default postgres password. Avoid depending on CLI env-output shape.
+          db_url="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+          if ! pg_isready -d "$db_url"; then
+            echo "P0 BLOCKED: disposable PostgreSQL is not reachable on the configured local port." >&2
             exit 1
           fi
           psql "$db_url" -v ON_ERROR_STOP=1 -f "$smm_bootstrap_baseline"
