@@ -65,7 +65,12 @@ jobs:
             rename_legacy_alias "20260928190000_rc200_cross_tenant_customer_payment_authorization.sql" "20260928154527_rc200_cross_tenant_customer_payment_authorization.sql" &&
             rename_legacy_alias "20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql" "20260928161513_rc206_geographic_ad_targeting_and_nearest_fallback.sql" &&
             rename_legacy_alias "20260928210000_rc172_restore_medical_booking_contract.sql" "20260928131753_rc172_restore_medical_booking_contract.sql" &&
-            rename_legacy_alias "20260928210000_rc207_official_global_mnty_cover_ads.sql" "20260928174954_rc207_official_global_mnty_cover_ads.sql"
+            rename_legacy_alias "20260928210000_rc207_official_global_mnty_cover_ads.sql" "20260928174954_rc207_official_global_mnty_cover_ads.sql" &&
+          rename_legacy_alias "20261002190000_rc228_digital_page_products_orders.sql" "20261002073217_rc228_digital_page_products_orders.sql" &&
+          rename_legacy_alias "20261002191000_rc229_digital_page_payment_columns.sql" "20261002073331_rc229_digital_page_payment_columns.sql" &&
+          rename_legacy_alias "20261002192000_rc230_digital_page_payment_events.sql" "20261002073419_rc230_digital_page_payment_events.sql" &&
+          rename_legacy_alias "20261002110000_rc248_digital_page_content_publishing.sql" "20261002090131_rc248_digital_page_content_publishing.sql" &&
+          rename_legacy_alias "20261002100000_rc256_critical_fk_indexes.sql" "20261002094419_rc256_critical_fk_indexes.sql"
             normalization_rc=$?
             if [ "$normalization_rc" -eq 0 ]; then
               node scripts/validate-migration-version-uniqueness.mjs > s04-replay-evidence/normalized-version-validation.log 2>&1
