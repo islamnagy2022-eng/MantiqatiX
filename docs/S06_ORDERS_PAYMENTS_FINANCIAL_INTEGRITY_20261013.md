@@ -28,7 +28,8 @@ The 13 Node.js `node:test` checks cover:
 - **Added to repository:** yes; source file committed on the S06 branch.
 - **Executed locally in this session:** no. The connected GitHub API permits repository edits and CI inspection but does not provide a local Node/Deno execution environment here.
 - **CI evidence:** run `38337350525` (`S06 Payment Integrity Regressions`) passed on the earlier PR merge revision `e6afe56d249f28785427d9859fa1a0969391da5c`. Its disposable PostgreSQL job created temporary roles, loaded `rc431_digital_page_payment_fixture.sql`, applied RC431 to that disposable database, and executed the then-current SQL regression file successfully (`S06 payment-integrity adversarial regressions: PASS`).
-- **Latest SQL additions:** tests now also cover provider-order mismatch, amount/currency mismatch, and replaying one provider event against a different order. These were committed after the last confirmed passing run and remain unverified until the matching S06 CI run completes.
+- **Latest SQL additions:** tests cover whitespace-only event ID rejection, NULL status, provider-order mismatch, amount/currency mismatch, and replaying one provider event against a different order. These were committed after the last confirmed passing run and remain unverified until the matching S06 CI run completes.
+- **Current head:** `f049451864513809eee76d8ae2938a40ccdcfa78`. S06 run `38338848438` is queued for this revision; no result is claimed yet.
 - **Runtime integration:** not tested. These are source-text regression checks, not execution of Edge Functions, SQL RPCs, concurrency races, or database transactions.
 - **Provider sandbox:** not exercised. No provider request was sent.
 - **Real payments/refunds/settlements:** none.
@@ -40,7 +41,7 @@ The normal Paymob failure callback now updates a payment intent only when its cu
 
 ## Remaining high-value tests / evidence gaps
 
-- Await the S06 CI run for the latest SQL regression revision and fix any assertion or syntax failures.
+- Await S06 run `38338848438` for head `f049451864513809eee76d8ae2938a40ccdcfa78`, inspect its logs, and fix any assertion or syntax failures.
 - Disposable PostgreSQL integration tests for unique idempotency constraints and concurrent duplicate requests.
 - Re-run the S06 workflow for the latest SQL test commit, then verify webhook HMAC fixture tests with valid/invalid signatures, event replay, out-of-order success/failure events, and transactionally atomic event/ledger updates.
 - Verify terminal-state guards prevent late failure events from downgrading successful payments.
