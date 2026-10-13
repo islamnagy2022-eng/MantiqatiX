@@ -35,6 +35,22 @@ CREATE TABLE public.orders (
   pricing_authority varchar
 );
 
+CREATE TABLE public.businesses (
+  id uuid PRIMARY KEY,
+  tenant_id varchar NOT NULL
+);
+
+CREATE TABLE public.subscription_payment_intents (
+  id uuid PRIMARY KEY,
+  business_id uuid NOT NULL,
+  amount numeric NOT NULL,
+  currency text NOT NULL,
+  status text NOT NULL,
+  provider text NOT NULL,
+  provider_transaction_id text,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE public.payment_intents (
   id varchar PRIMARY KEY,
   tenant_id varchar NOT NULL DEFAULT 'MNTY-PLATFORM',
