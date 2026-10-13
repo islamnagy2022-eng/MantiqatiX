@@ -129,22 +129,22 @@ if (paymentProviderEventsMigration) {
   }
 }
 
-// The approved read-only catalog evidence records all credit amount columns as unconstrained numeric (no typmod); do not normalize them to numeric(p,s).
+// Read-only live catalog recheck on 2026-10-13 confirms numeric(18,2) typmods on all credit amount columns.
 const creditBaselineSpecs = [
   {
     path: "supabase/tests/baselines/credit_policies.sql",
     table: "credit_policies",
-    required: /credit_limit numeric\s+not null default 0[\s\S]*grace_days integer not null default 0[\s\S]*suspend_after_days integer not null default 15[\s\S]*block_new_credit boolean not null default true[\s\S]*unique \(tenant_id, business_id\)[\s\S]*references public\.tenants\(id\) on delete cascade/i,
+    required: /credit_limit numeric\(18,2\) not null default 0[\s\S]*grace_days integer not null default 0[\s\S]*suspend_after_days integer not null default 15[\s\S]*block_new_credit boolean not null default true[\s\S]*unique \(tenant_id, business_id\)[\s\S]*references public\.tenants\(id\) on delete cascade/i,
   },
   {
     path: "supabase/tests/baselines/credit_accounts.sql",
     table: "credit_accounts",
-    required: /approved_limit numeric\s+not null default 0[\s\S]*outstanding_amount numeric\s+not null default 0[\s\S]*available_amount numeric generated always as[\s\S]*unique \(tenant_id, business_id\)[\s\S]*references public\.credit_policies\(id\)/i,
+    required: /approved_limit numeric\(18,2\) not null default 0[\s\S]*outstanding_amount numeric\(18,2\) not null default 0[\s\S]*available_amount numeric\(18,2\) generated always as[\s\S]*unique \(tenant_id, business_id\)[\s\S]*references public\.credit_policies\(id\)/i,
   },
   {
     path: "supabase/tests/baselines/credit_periods.sql",
     table: "credit_periods",
-    required: /billed_amount numeric\s+not null default 0[\s\S]*paid_amount numeric\s+not null default 0[\s\S]*outstanding_amount numeric generated always as[\s\S]*unique \(credit_account_id, period_start, period_end\)[\s\S]*period_end >= period_start/i,
+    required: /billed_amount numeric\(18,2\) not null default 0[\s\S]*paid_amount numeric\(18,2\) not null default 0[\s\S]*outstanding_amount numeric\(18,2\) generated always as[\s\S]*unique \(credit_account_id, period_start, period_end\)[\s\S]*period_end >= period_start/i,
   },
 ];
 for (const spec of creditBaselineSpecs) {
