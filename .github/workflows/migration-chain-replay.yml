@@ -145,6 +145,7 @@ jobs:
           cp "$wallet_accounts_policy_baseline" "$wallet_accounts_policy_migration"
           cp "$wallet_transactions_policy_baseline" "$wallet_transactions_policy_migration"
           echo "Injected catalog-verified test-only compatibility baselines into disposable CI only."
+          echo "SMM admins fixture is schema-only, contains no rows, and is not recovered historical DDL."
           echo "The wallet finance policy baseline is derived from a read-only production catalog snapshot and is never a production migration."
           echo "These are not historical creation migrations and must never be applied to production."
 
