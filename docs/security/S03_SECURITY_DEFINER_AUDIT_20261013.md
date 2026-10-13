@@ -515,3 +515,43 @@ Reviewed live `pg_policies` definitions for the selected payment, wallet, ledger
 ### Remaining uncertainty
 
 These policy definitions are encouraging static evidence, not proof of effective API behavior. Effective access also depends on grants, role inheritance, views, SECURITY DEFINER functions, PostgREST schema exposure, JWT claims, and the deployed application path. Isolated positive/negative tests remain mandatory, particularly for cross-tenant reads, anonymous Auth sessions, captain bid/contact disclosure, and payment/provider-event field minimization. No vulnerability or successful test is asserted solely from this catalog review.
+
+
+## Fresh deployed SMM gateway verification — Supabase snapshot 2026-10-13
+
+The live Edge Function was retrieved directly from Supabase after the earlier source-only review. This is stronger evidence than the previous source guess and changes the SMM risk assessment.
+
+### Deployed artifact identity and source parity
+
+- Live function: `smm-gateway`, status `ACTIVE`, version **10**, `verify_jwt=true`.
+- Deployed bundle SHA-256: `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`.
+- GitHub `main` `supabase/functions/smm-gateway/index.ts` SHA is `26101b48d9ab4135b1174e39907f87bfc593076b`, and does not contain the deployed version's imported helper modules. The deployed bundle is therefore not represented by the current `main` file as fetched. Helper searches on GitHub's default branch also returned no matching helper definitions. Do not deploy `main` over version 10 or infer runtime behavior from it.
+- The deployed version contains `index.ts` plus `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`.
+
+### Important positive controls visible in the deployed artifact
+
+- **Fail-closed SMM launch gate:** `SMM_INITIAL_LAUNCH_DEFERRED=true` is hard-coded, and the handler returns `503 SMM_DEFERRED` before authentication or action dispatch. Thus the separate SMM storefront/gateway actions are deliberately unavailable in this deployed code path, regardless of environment flags. This matches a deferred-launch posture; do not treat it as a runtime incident.
+- The function also requires POST (except OPTIONS), has `verify_jwt=true`, rejects anonymous users through Auth user lookup, and bounds request JSON to 32 KiB.
+- Provider requests use a 15-second abort deadline, HTTPS host allowlisting through `SMM_PROVIDER_HOSTS`, disabled redirects, JSON content-type validation, and a 1 MiB response limit.
+- Order submission requires a bounded idempotency key, validates quantity and HTTPS target URL, validates service/provider availability and price/cost margin, and avoids automatically refunding an ambiguous provider result. Unknown debit/provider outcomes are marked for reconciliation rather than automatically retried/refunded.
+- Provider catalog normalization preserves an existing reviewed selling price where valid, does not equate wholesale cost to customer price, disables new/unreviewed services, bounds fields, and stores only a small allowlisted metadata summary.
+- Order-status normalization preserves terminal states and the update is conditional on the previously observed status to reduce out-of-order/concurrent overwrites. Persistence failures are surfaced as reconciliation-required responses.
+
+### Remaining SMM limitations
+
+- These are source-level observations from the exact live version 10 bundle; no SMM actions were invoked, no provider calls were made, and no order/wallet rows were read or changed.
+- Because the launch gate is hard-coded closed, the live SMM action paths cannot be functionally certified from this snapshot. A post-launch enablement requires a reviewed release that intentionally changes the hard gate, parity between repository source and deployed bundle, isolated tests for all helper modules, and a controlled financial/provider simulation.
+- The function's helper modules were retrieved from the live bundle, but were not found in the default branch during this pass. Recover and commit the exact reviewed source (including tests) before any future rollout; do not weaken the hard gate just to make a test pass.
+
+### Current Security Advisor snapshot
+
+A fresh Security Advisor call returned:
+- 1 `anon_security_definer_function_executable` warning for the public targeted-ad RPC.
+- 40 `authenticated_security_definer_function_executable` warnings. These are review inventory signals, not 40 confirmed vulnerabilities.
+- 1 INFO finding for RLS enabled with no policy on `public.digital_page_payment_events`; direct privileges for anon/authenticated on this table are false in the queried catalog snapshot, consistent with a deny-by-default table but requiring intended-access confirmation.
+
+The current advisor response did not include the earlier leaked-password-protection warning in the returned findings. Do not treat that earlier observation as a fresh current finding without a new matching result.
+
+### Gate status
+
+No production settings, Auth configuration, database privileges, or Edge Function deployment were changed. No tests are represented as passed. The broader release remains **BLOCKED — NOT CERTIFIED** because runtime role-based tests, S03 test execution, source recovery/parity, and the remaining data-minimization/product-contract decisions are still outstanding.
