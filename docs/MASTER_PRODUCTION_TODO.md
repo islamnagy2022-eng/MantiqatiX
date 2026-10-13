@@ -1625,3 +1625,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Full chronological replay and legacy DDL dependency fixes remain open, along with live tenant/payment/Auth/security, restore rehearsal, device, and release evidence.
 - Safety: repository/CI only; no production SQL, data, grants/RLS/Auth, Edge Functions, money movement, merge, or release.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC528 — Exact-head CI recheck and deploy-gate audit — 2026-10-13
+
+- [x] Rechecked PR #218 exact head: `5fd777dacda37e97f4289cb408423135d464ffe7`; PR remains draft/open/unmerged.
+- [x] Rechecked exact-head CI run states. All inspected current-head runs remained queued at retrieval; none is marked passed on that basis.
+- [x] Reviewed Pages workflow condition: deploy requires validation and only runs for main-branch push or explicit workflow_dispatch, not pull_request. Source review is not deployment proof.
+- [x] Confirmed the migration-chain gate includes 33 required source filenames and checks their presence/order; its live reconciliation contract still requires production migration application evidence, chronological replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function contracts/parity, and Auth security.
+- [ ] Inspect all exact-head CI conclusions and logs after they complete; queued status is not a pass.
+- [ ] Complete chronological disposable migration replay and resolve historical DDL prerequisites without stubs or migration-history rewrites.
+- [ ] Complete mandatory production/runtime gates before certification.
+- Safety: no production SQL/data, migration ledger, grants/RLS/Auth, Edge Functions, financial/wallet operations, merge, or release changed.
+- Release state: BLOCKED / NOT CERTIFIED.

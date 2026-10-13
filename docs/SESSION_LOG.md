@@ -77,3 +77,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Extended scripts/validate-production-migration-chain-gate.mjs from 30 to 33 required migration sources, in timestamp order, adding RC457, RC458 and RC462. Filesystem existence is checked for every required source.
 - Exact-head CI after these changes has not yet been observed to complete; queued jobs are not passes. The previous exact-head tests are not transferable to the new candidate.
 - No production mutations, migrations, deployments, merge or release. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — SESSION-008 — Exact-head CI queue recheck and deployment-gate confirmation
+
+- Verified current PR #218 head is `5fd777dacda37e97f4289cb408423135d464ffe7`; PR remains open, draft, and unmerged.
+- Rechecked current-head GitHub Actions. The migration version uniqueness run (`38325620083`), focused migration integration run (`38325620091`), platform-admin scope (`38325620114`), approval/audit atomicity (`38325620142`), migration-history immutability (`38325620134`), audit-log ACL (`38325620159`), migration collision guard (`38325620110`), module validation (`38325620118`), backend-only module boundary (`38325620144`), MantiGO privacy (`38325620194`), and Pages validation/deployment workflow (`38325620138`) were all reported queued at inspection. No queued check is counted as pass.
+- Reviewed `.github/workflows/pages.yml`: the deploy job requires a successful validate job and is conditioned on a push to main or explicit workflow_dispatch; a PR run does not deploy. This is workflow-source inspection, not evidence of a production deployment.
+- The migration validator tracks 33 required migration source files and asserts their filesystem presence and timestamp order. It also requires live reconciliation evidence, ordered replay, tenant isolation, payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM parity, and Auth security settings before certification.
+- No code behavior changed in this session entry. No production mutation, migration application, Auth/grant/RLS change, Edge Function deployment, financial operation, merge, or release was performed.
+- Next: inspect completed exact-head CI jobs/logs when available; fix only reproducible failures, then perform disposable full-chain replay and close mandatory runtime gates. Release remains BLOCKED / NOT CERTIFIED.

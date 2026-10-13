@@ -574,3 +574,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Added five isolated PostgreSQL jobs; focused migration workflow now has 12 integration jobs. Added RC457/RC458/RC462 to the fail-closed migration-chain inventory (33 required files, timestamp ordered).
 - Exact-head CI has been triggered but is not yet confirmed complete. Do not report a pass until a completed check is inspected.
 - Production remains unchanged. Release is still BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC528 exact-head CI and deployment-gate audit
+
+- Exact PR #218 head: `5fd777dacda37e97f4289cb408423135d464ffe7`. PR remains draft/open/unmerged.
+- At the latest direct check, all inspected Actions runs on this head were still queued, including the 12-job focused migration workflow. No new pass is claimed. Run links: [focused migration integration](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38325620091), [migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38325620083), [Pages validate/deploy workflow](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38325620138).
+- Reviewed `.github/workflows/pages.yml`: deployment needs validation and is conditioned on main push or manual dispatch; pull_request runs validate but do not deploy. This does not prove a deployment occurred.
+- The migration-chain validator tracks 33 required sources and enforces source existence and timestamp order, while requiring live reconciliation, chronological replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function parity/contracts, and Auth-security evidence for certification.
+- No production mutation or release action was performed. Continue from exact-head CI results and disposable replay; release remains BLOCKED / NOT CERTIFIED.
