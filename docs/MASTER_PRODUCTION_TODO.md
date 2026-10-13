@@ -1587,3 +1587,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **SOURCE VERIFIED / RUNTIME NOT VERIFIED:** live `smm-gateway` is ACTIVE v10, `verify_jwt=true`, SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. Deployed bundle hard-codes `SMM_INITIAL_LAUNCH_DEFERRED=true` and checks the gate before authentication; non-OPTIONS POST should return `503 SMM_DEFERRED` without DB/provider/wallet work.
 - [ ] **Remaining:** capture a safe approved live/staging negative HTTP probe and side-effect evidence; verify exact source parity. Do not mark runtime PASS based only on source.
 - **Verified live ledger:** 283 migrations, ending `20261008222845 / rc424_atomic_digital_page_payment_webhook`; newer source migrations are not thereby applied.
+
+
+## Session C governance/Auth refresh — 2026-10-13
+
+- [ ] **P0/P1 governance:** GitHub API confirms `main.protected=false`, `protection.enabled=false`, required status checks off, and no repository rulesets. No changes were made. A repository administrator must configure protected-branch rules and required checks in a separately reviewed change.
+- [ ] **P1 Auth security:** current Supabase Security Advisor reports leaked-password protection disabled. Auth production setting was not changed; authorized Auth owner action and read-only re-verification required.
+- [ ] **RLS review:** multiple anonymous-role policy warnings require per-table/policy review; do not blanket-revoke or add policies.
