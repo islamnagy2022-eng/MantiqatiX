@@ -1559,3 +1559,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-13 — MantiGO Paymob callback atomicity candidate
+
+- [x] Confirmed by read-only deployed Edge Function retrieval that active `paymob-webhook` v8 source matches `main` and contains the MantiGO split-write/idempotency failure described in `docs/security/PAYMOB_MANTIGO_WEBHOOK_ATOMICITY_20261013.md`.
+- [x] Added a candidate migration with dedicated `financial_ledger_id` correlation and service-role-only atomic RPC; switched the MantiGO branch in `paymob-webhook` to the RPC.
+- [x] Exact tested code head `66ad6dd87e543790b8bff7474aca5bf9d8f28ee7` passed dedicated workflow [38355012716](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38355012716): static contract, Deno type-check, isolated PostgreSQL migration, and regression tests for duplicate replay, mismatch, event-key conflict, rollback, service-role restriction, and legacy repair.
+- [ ] **P0 NOT VERIFIED:** production rollout. Do not deploy or apply the migration without separate explicit approval.
+- [ ] **NOT VERIFIED:** real Paymob transaction/refund E2E and failure branches for normal payment intents/subscriptions.
+- [ ] Full historical migration replay remains separately blocked; candidate migration does not repair canonical historical provenance.
+- Release remains **BLOCKED / NOT CERTIFIED**.
