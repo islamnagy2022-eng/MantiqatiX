@@ -131,3 +131,12 @@ test('S09-SEC-003: SMM admin actions bind provider/service IDs through DOM data 
   assert.doesNotMatch(smm, /onclick=["'](?:configProvider|syncProvider|setPrice)\(/i, 'dynamic admin IDs must not be interpolated into inline handlers');
   assert.match(smm, /input\.dataset\.priceService===String\(id\)/, 'price editor lookup must match its data ID without constructing selectors');
 });
+
+
+test('S09-UX-003: SMM order refresh prevents duplicate in-flight requests and restores control state', () => {
+  const smm = read('web/smm.js');
+  assert.match(smm, /async function syncOrder\(id,button\)/, 'refresh handler should receive its initiating button');
+  assert.match(smm, /if\(button\?\.disabled\)return/, 'duplicate refresh clicks should be ignored while pending');
+  assert.match(smm, /button\.textContent='جارٍ التحديث…'/, 'refresh should show a pending state');
+  assert.match(smm, /finally\{if\(button\?\.isConnected\)/, 'refresh should restore the button after success or failure');
+});
