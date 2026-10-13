@@ -18,11 +18,6 @@ declare
 begin
   -- Read request identity at execution time, not as a declaration initializer.
   v_auth := auth.uid();
-  -- Temporary conditional diagnostic; remove after identifying the disposable fixture issue.
-  if current_setting('mantiqatix.test_auth_diag', true) = 'on' then
-    raise notice 'RC523_AUTH_DIAG auth_uid=%, supplied_admin=%, subject_guc=%',
-      v_auth, p_admin_user_id, current_setting('request.jwt.claim.sub', true);
-  end if;
   if v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id then
     raise exception 'AUTH_REQUIRED';
   end if;
