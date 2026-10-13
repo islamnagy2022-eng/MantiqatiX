@@ -121,3 +121,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - RC532 — Add source-contract checks for RC523 guard (2026-10-13): extended `scripts/validate-production-migration-chain-gate.mjs` to assert the report RPC explicitly rejects a null `p_admin_user_id` and to assert the focused regression test checks for a non-null response. Confirmed `.github/workflows/pages.yml` invokes this gate. This prevents accidental source regression but does not replace runtime negative tests for null/mismatched actors; those test-file changes remain blocked. Exact-head CI is still queued and no pass is claimed.
+
+
+- RC533 — Strengthen static checks for RC523 regression coverage (2026-10-13): the release-chain validator now checks that the focused financial report test includes canonical and legacy ledger columns, intentionally conflicting values (250/25/200 vs 999/888), the key financial count/amount assertions, and stable JSON key `captain_amount` without exposing `captain_net_amount`. These are source-contract assertions, not runtime execution; exact-head CI must still pass and runtime negative actor tests remain outstanding.
