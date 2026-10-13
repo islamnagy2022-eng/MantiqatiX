@@ -1604,3 +1604,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Production E2E, migration approval/application, tenant isolation, payment/finance E2E, Auth/security, backup/restore and device release gates remain open.
 - Safety: source and CI only; no production mutation, migration application, Edge Function deployment, financial transaction, merge, or release.
 - Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC526 — Required migration files must exist — 2026-10-13
+
+- [x] Strengthened the production migration-chain validator: each of the 30 required migration entries must now exist as an actual file in supabase/migrations, not only appear in the verifier source.
+- [x] Before the change, confirmed all 30 required migration files existed in the current candidate tree.
+- [ ] Exact-head CI after this guard is queued; inspect final results before claiming a pass.
+- [ ] Chronological full replay, legacy function DDL prerequisites, production migration approval/application, and runtime E2E remain open.
+- Safety: repository-only change; no production SQL or deployment.
+- Release state: BLOCKED / NOT CERTIFIED.
