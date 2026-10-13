@@ -200,3 +200,9 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - PR #207 latest head `61c994c47b7b27f498a26463dda658694ffcb719`; exact-head replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) is currently **IN PROGRESS**. Prior-head shell-variable failure remains a finding to verify against this run; no replay PASS is claimed yet.
 - PR #225 exact head `67bf1c5b7b57c69393245fa5dfc4e55901dcb160` passes [38350675472](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350675472), including security contract, ACL boundary, type check, and SMM unit/negative-input tests. Live HTTP deny remains NOT VERIFIED.
 - MantiGO authorized-path behavior and payment replay remain failed gates as documented above. Global status remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Migration replay bootstrap fix source rechecked — 2026-10-13
+
+- Current PR #207 head `61c994c47b7b27f498a26463dda658694ffcb719` now declares `settlement_attempts_baseline` in the second workflow shell (verified by read-only source fetch). Exact-head replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) was still in progress; the source fix is not considered a test pass until full run completion.
+- Settlement fixture schema parity and approval/provenance remain open. Global status **BLOCKED / NOT CERTIFIED**.
