@@ -32,6 +32,8 @@ jobs:
           test -s web/vendor/supabase.js
       - name: Production verification engine
         run: npm run verify:production
+      - name: S06 payment integrity regression tests
+        run: node --test tests/s06-payment-integrity.test.mjs
       - name: Syntax check
         run: |
           node --check web/rbac.js
