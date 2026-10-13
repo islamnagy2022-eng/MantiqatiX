@@ -85,7 +85,7 @@ if (financePolicyMigration) {
   const financePolicyVersion = financePolicyMigration.name.slice(0, 14);
   const priorPaymentProviderEventsCreation = migrations.some(({ name, sql }) =>
     name.slice(0, 14) < financePolicyVersion &&
-    /\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\s*\\.\\s*)?payment_provider_events\\b/i.test(sql)
+    /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?payment_provider_events\b/i.test(sql)
   );
   const paymentProviderEventsBaseline = "supabase/tests/baselines/payment_provider_events.sql";
   if (!priorPaymentProviderEventsCreation && !fs.existsSync(paymentProviderEventsBaseline)) {
