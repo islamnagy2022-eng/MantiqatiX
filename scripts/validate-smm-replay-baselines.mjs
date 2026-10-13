@@ -20,6 +20,11 @@ const baselines = {
     version: "20260927074159",
     temporaryName: "20260927074159_test_only_approved_smm_provider_credentials_baseline.sql",
   },
+  provider_onboarding_requests: {
+    path: path.join(baselineDir, "provider_onboarding_requests.sql"),
+    version: "20261001085000",
+    temporaryName: "20261001085000_test_only_approved_provider_onboarding_requests_baseline.sql",
+  },
 };
 const files = fs.readdirSync(migrationDir).filter(name => name.endsWith(".sql")).sort();
 const source = Object.fromEntries(files.map(name => [name, fs.readFileSync(path.join(migrationDir, name), "utf8")]));
@@ -39,7 +44,13 @@ for (const [table, item] of Object.entries(baselines)) {
   const firstReference = files.find(name => new RegExp("\\b" + table + "\\b", "i").test(source[name]));
   assert.ok(firstReference, table + " must have a tracked dependent migration");
   assert.ok(item.version < firstReference.slice(0, 14), table + " test baseline must precede its first dependency");
-  assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
+  const tableCreateMigration = files.find(name => new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i").test(source[name]));
+  if (table === "provider_onboarding_requests") {
+    assert.ok(tableCreateMigration, "canonical provider onboarding CREATE TABLE migration must exist");
+    assert.ok(firstReference.slice(0, 14) < tableCreateMigration.slice(0, 14), "known provider onboarding migration-order defect must remain explicit");
+  } else {
+    assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
+  }
 }
 
 const admins = fs.readFileSync(baselines.smm_admins.path, "utf8");
@@ -60,6 +71,20 @@ const policyMigration = source["20261001000000_security_hardening_private_tables
 assert.ok(policyMigration, "chronological SMM policy migration must exist");
 assert.match(policyMigration, /create\s+policy\s+"deny_direct_access_authenticated"\s+on\s+public\.smm_providers/i);
 assert.match(policyMigration, /create\s+policy\s+"deny_direct_access_anon"\s+on\s+public\.smm_providers/i);
+
+const providerOnboarding = fs.readFileSync(baselines.provider_onboarding_requests.path, "utf8");
+assert.match(providerOnboarding, /registration_request_id\\s+uuid\\s+not\\s+null/i);
+assert.match(providerOnboarding, /references\\s+public\\.account_registration_requests\\s*\\(\\s*id\\s*\\)[\\s\\S]*on\\s+delete\\s+cascade/i);
+assert.match(providerOnboarding, /references\\s+auth\\.users\\s*\\(\\s*id\\s*\\)[\\s\\S]*on\\s+delete\\s+cascade/i);
+assert.match(providerOnboarding, /provider_onboarding_requests_status_check[\\s\\S]*PENDING[\\s\\S]*APPROVED[\\s\\S]*REJECTED[\\s\\S]*CANCELLED/i);
+assert.match(providerOnboarding, /enable\\s+row\\s+level\\s+security/i);
+assert.doesNotMatch(providerOnboarding, /force\\s+row\\s+level\\s+security|create\\s+policy/i);
+const providerOnboardingAuthority = source["20261001090000_harden_provider_onboarding_authority.sql"];
+const providerOnboardingCreate = source["20261001164200_provider_onboarding_final.sql"];
+assert.ok(providerOnboardingAuthority && providerOnboardingCreate, "provider onboarding dependency and later canonical create migration must both exist");
+assert.match(providerOnboardingAuthority, /drop\\s+policy\\s+if\\s+exists\\s+provider_onboarding_self_insert\\s+on\\s+public\\.provider_onboarding_requests/i);
+assert.match(providerOnboardingCreate, /create\\s+table\\s+if\\s+not\\s+exists\\s+public\\.provider_onboarding_requests/i);
+assert.ok("20261001085000" < "20261001090000" && "20261001090000" < "20261001164200", "fixture must document rather than hide the out-of-order dependency");
 
 const credentials = fs.readFileSync(baselines.smm_provider_credentials.path, "utf8");
 assert.match(credentials, /api_key_ciphertext\s+text\s*,/i);
