@@ -22,10 +22,6 @@ check("integration denies anon on ride expiration and preserves authenticated en
   integration.includes("authenticated role must retain intended RPC entrypoint grants") &&
   integration.includes("has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE')"));
 check("integration verifies authorized settlement persistence and replay safety", integration.includes("authorized platform admin settlement failed") && integration.includes("settlement replay did not return idempotent success") && integration.includes("settlement replay duplicated audit or notification"));
-const failed = checks.filter(x => !x.ok);
-if (failed.length) process.exit(1);
-console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");
-
 const rc462 = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
 const rc462Test = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
 const focusedWorkflow = fs.readFileSync(".github/workflows/recovered-migration-focused-integration.yml", "utf8");
@@ -41,3 +37,7 @@ check("RC462 malformed-permission regression is selected and executed by focused
   focusedWorkflow.includes("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql") &&
   focusedWorkflow.includes('docker cp supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql "$pg_container:/tmp/rc462_test.sql"') &&
   focusedWorkflow.indexOf("-f /tmp/rc462_migration.sql") < focusedWorkflow.indexOf("-f /tmp/rc462_test.sql"));
+
+const failed = checks.filter(x => !x.ok);
+if (failed.length) process.exit(1);
+console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");
