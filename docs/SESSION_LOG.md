@@ -51,3 +51,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Not yet verified: CI on the new head has not yet been inspected; chronological full replay, unresolved earlier historical function DDL dependencies, tenant/payment/finance E2E, production application, and all release gates remain open. Associated focused tests for RC425–RC441 were not found in the current candidate tree during this pass.
 - Production impact: repository source only. No production SQL, ledger, data, grants/RLS, Auth settings, Edge Functions, payment/wallet operations, merge, or release changed.
 - Release status: BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — SESSION-005 — Restore focused disposable-PostgreSQL integration coverage
+
+- Restored exact test fixtures/integration SQL from the reconciled PR #207 branch for RC425 (MantiGO Paymob atomicity), RC431 (digital-page payment binding), RC434 (ERP receiving), RC435 (subscription intent), RC436 (financial journal), RC439 (checkout recovery), and RC440 (SECURITY DEFINER search-path hardening).
+- Added .github/workflows/recovered-migration-focused-integration.yml with seven isolated PostgreSQL jobs. The workflow is limited to PR validation and main-branch path-triggered checks; it does not deploy migrations or touch production.
+- Exact-head candidate: d4403cc8c7c9dca8fe0bcacdb5897da58f56c4b8. GitHub Actions has queued the focused integration jobs and related validators; queued is not pass. The current observation returned 28 check-runs, all queued at retrieval time.
+- Still open: RC432 SMM wallet tests remain deferred with the SMM commercial gateway; other later migrations need their own focused contracts as appropriate; full chronological replay remains blocked by historical function DDL dependencies; no production E2E/restore rehearsal or migration application is proven.
+- No production database or app state changed. Release remains BLOCKED / NOT CERTIFIED.
