@@ -43,3 +43,11 @@
 - Static checks cannot prove runtime side-effect ordering, JWT verification at the gateway edge, actual database grants, deployed/source parity, or provider behavior.
 - The gateway's `order_status` path has no local try/catch around its provider call; top-level catch returns a generic 500, but runtime timeout/response behavior still needs integration coverage.
 - Provider result parsing recognizes a returned order identifier but does not locally validate every provider-specific error shape; provider contract fixtures are still needed.
+
+
+### Read-only production ACL matrix — 2026-10-13
+
+- The current live table privilege query returned **no SELECT/INSERT/UPDATE/DELETE grants to `anon`, `authenticated`, or `service_role`** for any of these eight tables: `smm_admins`, `smm_providers`, `smm_services`, `smm_orders`, `smm_wallets`, `smm_order_events`, `smm_provider_credentials`, `smm_wallet_transactions`.
+- The trusted RPCs `smm_get_provider_secret(uuid)`, `smm_set_provider_secret(uuid,uuid,text)`, and `smm_debit_wallet(uuid,numeric,uuid)` report `service_role EXECUTE=true`, `anon/authenticated EXECUTE=false`. Their current catalog configuration reports `SECURITY DEFINER=true`; their `search_path` values are `public,vault` for the two secret RPCs and `public` for wallet debit.
+- The candidate RC456 service-role table-boundary migration is not proven applied to production by this evidence. Because the hard launch gate remains true, the gateway currently exits before table/RPC access. **Do not disable the hard gate** until a separately reviewed rollout applies/validates the required least-privilege table grants, RPC contracts, and post-deploy tests. The credentials and wallet ledger must remain RPC-only.
+- These are read-only privilege metadata results; no data rows or secret values were read, and no grants were changed.
