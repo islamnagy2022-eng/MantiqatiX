@@ -106,8 +106,8 @@ begin
   end if;
   select count(*) into n from public.digital_page_payment_events
     where digital_page_order_id=target;
-  if n <> 3 then
-    raise exception 'expected 3 accepted unique events (success, replay ignored, late failure), got %', n;
+  if n <> 2 then
+    raise exception 'expected 2 unique events (success and late failure; replay ignored), got %', n;
   end if;
 
 end
