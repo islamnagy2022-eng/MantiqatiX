@@ -285,3 +285,16 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - The other five source mismatches align with the fact that PR #207's RC425–RC458 candidate has not been deployed. They are release-parity blockers, not automatically confirmed vulnerabilities. Review the exact diffs and tests before any staged deployment.
 - Live schema metadata confirms uniqueness on `payment_intents(tenant_id,idempotency_key)`, `payment_events(event_id)`, and `payment_provider_events(provider,external_event_id)`. These database constraints support idempotency, but no live payment event or webhook request was executed.
 - No production deployment, migration, grant, payment, wallet, webhook, or data mutation was performed.
+
+
+## Review of new settlement_attempts replay fixture — 2026-10-13 05:16 UTC
+
+- PR #207 advanced to head `60bb79a5010e65af05896ac2bca3de71f72a2916`, adding `supabase/tests/baselines/settlement_attempts.sql` and temporary injection at `20260920211715`. This is another session's work; I did not modify its files.
+- I compared the new fixture to the earlier read-only production catalog evidence and found exact-shape drift:
+  - Production `amount` is `numeric(14,4)` (`numeric_precision=14`, `numeric_scale=4)); fixture currently says unbounded `numeric`.
+  - Production `currency` is `character varying(8)`; fixture currently says unbounded `character varying`.
+  - The validator currently asserts those unbounded types, so it would not catch this drift.
+- The fixture does correctly omit data rows, grants, and policies, and the chronological migration remains responsible for the later finance-read policy. The live catalog also has PK/FKs/check/unique constraints and `idx_settlement_attempts_obligation`.
+- I added a review comment to PR #207: [comment 6138767562](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138767562), asking for exact type/length parity, validator assertions, and confirmation of approval provenance. I did not alter the other session's branch.
+- Latest CI for head `60bb79a...` includes replay run [#38350353538](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350353538), which was pending/queued at the last check; it has not yet supplied a replay result.
+- Treat this fixture as **PROPOSED / NOT VERIFIED FOR SCHEMA PARITY** until the mismatch and approval boundary are resolved, even if the replay run proceeds. Full release remains **BLOCKED / NOT CERTIFIED**.
