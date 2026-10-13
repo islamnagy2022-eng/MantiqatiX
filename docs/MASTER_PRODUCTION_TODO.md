@@ -1649,3 +1649,5 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Continue chronological full replay and mandatory live tenant/payment/Auth/security/backup/device gates.
 - Safety: repository/test workflow only; no production SQL, migration application, financial transaction, merge, or release.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+- Test review correction: RC523 integration test expectations now match the one ledger row inserted by this isolated test (gross 250, commission 25, captain_amount 200, paid amount 250, unsettled amount 200). CI execution remains pending; do not mark passed based on source review.
