@@ -2,7 +2,7 @@
 **Checked:** 2026-10-13  
 **Repository:** `islamnagy2022-eng/MantiqaTiX`  
 **PR:** #218 — OPEN / DRAFT / UNMERGED  
-**Head at measurement:** `d9a6b18995b34ec4a467c16207270ff99427fc48`
+**Source audit head:** `d8f58cdcff2e0f4520994e9cb918f5f1b19c24a6` (later commits in this batch only restore exact Deno config files or update evidence documentation)
 
 ## How to read the percentages
 
@@ -14,11 +14,12 @@ These percentages are evidence-based coverage measures, not claims that a module
 |---|---:|---|
 | Domain module runtime wiring | **28/28 = 100%** | All 28 domain codes pass the catalog/workspace/table-binding contract |
 | Canonical UI feature-flag mappings | **24/24 = 100%** | All 24 canonical module codes are mapped by the validator |
-| Exact deployed source parity checked in this batch | **6/37 = 16.2%** | Five critical payment/ERP functions plus SMM were compared byte-for-byte against current live source; this is not a claim that the other 31 are mismatched |
+| Exact deployed Edge Function source parity | **32/37 = 86.5%** | All 37 active functions were compared; 32 are byte-for-byte matched after restoring missing Deno config files, and 5 have source differences requiring review (not automatic overwrite) |
 | Required post-RC424 production migrations proven applied | **0/33 = 0%** | Live ledger still ends at `20261008222845` / RC424; no required post-RC424 migrations are proven applied |
+| Migration source inventory (count-based) | **126/283 = 44.5%** | 126 source files have filename timestamps at or before the live RC424 ledger ceiling, versus 283 live ledger rows; this is an inventory signal, not exact version reconciliation. There are 160 source files total, including 34 after the ceiling |
 | Full chronological migration replay | **NOT RUN** | No score assigned; a partial fixture run is not a full replay |
 | Full production E2E certification | **NOT VERIFIED** | No production-ready percentage is asserted without tenant/payment/finance/backup/device evidence |
-| Exact-head PR workflow set | **11/12 succeeded; 1 queued** | The focused migration integration workflow was still queued at the last check; queued is not PASS |
+| Exact-head PR workflow set at prior source head | **11/12 succeeded; 1 queued** | On head `d9a6b18995b34ec4a467c16207270ff99427fc48`, the focused migration integration workflow remained queued; queued is not PASS. Subsequent source/config commits triggered a fresh CI set, which must be rechecked on the current head |
 | SMM gateway regression tests | **PASS** | Deno check, new Deno tests, boundary validator, and isolated PostgreSQL ACL test passed in run 38329947697 |
 | Final release certification | **BLOCKED / NOT CERTIFIED** | Binary release gate remains open; not the same as overall source-code progress |
 
@@ -57,9 +58,19 @@ These percentages are evidence-based coverage measures, not claims that a module
 | HOME_MAINTENANCE | خدمات المنزل والصيانة | 100% — PASS | NOT VERIFIED |
 | SOFTWARE_ERP | البرمجيات وERP | 100% — PASS | NOT VERIFIED |
 
+## Edge Function source divergence requiring review
+
+| Function | Observed difference | Safe next action |
+|---|---|---|
+| `catalog-admin` | Formatting/text differs; the three actions and RPCs appear semantically equivalent in the inspected source | Keep parity classified as non-exact until normalized comparison or a reviewed commit establishes the intended canonical source |
+| `financial-journal` | Live source uses wildcard CORS and an `esm.sh` import; branch source uses the site-origin allowlist, `Vary`, `no-store`, and a pinned `jsr:` import | Do not replace the hardened branch source with the less restrictive live copy; review and test deployment migration plan |
+| `business-branch-admin` | Live and branch sources differ in authorization/validation implementation | Review role, tenant, business, and branch checks with negative tests before any deployment |
+| `mnty-customer-registration` | Live calls `private.ensure_customer_membership_for_user`; branch calls `private.activate_customer_registration_atomic` | Reconcile the intended RPC contract and test against the live migration state before rollout |
+| `digital-page-order-create` | Branch source adds pricing-hash/idempotency and business-membership checks absent from the live source | Keep branch hardening; test dependencies and rollout sequencing; do not overwrite it with the live version |
+
 ## Release blockers that dominate overall readiness
 
-1. **Migration chain:** live ledger has 283 recorded migrations and ends at RC424. The release gate tracks 33 required later migration sources; production application is not proven and full ordered replay has not run.
+1. **Migration chain:** live ledger has 283 recorded migrations and ends at RC424. The repo contains 160 migration source files, of which 126 have filename timestamps at/before RC424 and 34 are later candidates. Full per-version source reconciliation and chronological replay remain blocked; the release gate tracks 33 required later migration sources, and 0/33 are proven applied.
 2. **Security:** live Security Advisor reports 40 authenticated-executable SECURITY DEFINER functions requiring per-function review, one anon-executable targeted-advertisement SECURITY DEFINER warning, one RLS-enabled/no-policy table (`digital_page_payment_events`, intentionally fail-closed pending access-contract verification), and leaked-password protection warning(s). Do not blanket-revoke or add broad RLS policies.
 3. **Performance:** current Advisor reports 105 unindexed foreign keys, 375 auth/RLS init-plan warnings, 124 unused-index notices, and 28 multiple-permissive-policy warnings. These need query/usage analysis, not blind schema changes.
 4. **Critical runtime acceptance:** two-tenant isolation, live Paymob, finance/settlement, notification delivery, backup/restore rehearsal, signed Android/device release, rollback, and post-deployment smoke remain unverified or external.
