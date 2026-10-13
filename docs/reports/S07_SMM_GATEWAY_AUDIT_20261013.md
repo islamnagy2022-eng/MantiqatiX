@@ -44,3 +44,18 @@ Files added/changed:
 4. Run CI and disposable integration tests for user/tenant/provider/admin boundaries, secret non-disclosure, spend-limit enforcement, concurrent debit/idempotency, provider timeouts and ambiguous outcomes, safe retry/refund handling, terminal-state transitions, and event/notification persistence.
 5. Obtain isolated authenticated test identities and test provider credentials before any controlled runtime smoke test. No real paid campaign.
 6. Keep PR #221 draft; do not merge or deploy without explicit release approval and completed gates.
+
+
+## Follow-up checkpoint — helper-level safety tests added
+
+Date: 2026-10-13
+
+Added isolated Deno test files for the helper modules already matching deployed v10:
+- `provider-transport.test.ts`: provider hostname allowlist, HTTPS/credentials/port/private-host rejection, response status/content type, invalid/oversized JSON, and balance normalization.
+- `order-validation.test.ts`: idempotency-key requirement, unsafe target URLs, invalid quantities, non-positive margin, and money bounds/precision.
+- `order-status.test.ts`: terminal-state preservation, known provider status normalization, and unknown-state preservation.
+- `catalog-normalization.test.ts`: new services stay inactive/zero-priced, existing reviewed prices are retained only with margin, malformed rows are rejected, and arbitrary provider metadata is not persisted.
+
+Updated `.github/workflows/s07-smm-gateway-contract.yml` to run `deno test --no-check supabase/functions/smm-gateway/*.test.ts`, so these helper tests run alongside the seven launch-gate tests. The workflow then still runs the source-parity validator. **The helper tests have been committed but have not yet been confirmed by a completed CI run.** Even if they pass, they do not cover gateway integration, real database transactionality, wallet/provider ambiguity, or prove the branch entrypoint matches v10.
+
+The active production function and database remain unchanged. Keep the hard defer gate and PR #221 draft; do not merge or deploy until the entrypoint parity gap and isolated integration-test blockers are resolved.
