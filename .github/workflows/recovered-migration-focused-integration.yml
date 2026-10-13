@@ -1,0 +1,285 @@
+name: Recovered Migration Focused Integration
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql'
+      - 'supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql'
+      - 'supabase/migrations/20261009200000_rc434_atomic_erp_purchase_receiving.sql'
+      - 'supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql'
+      - 'supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql'
+      - 'supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql'
+      - 'supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql'
+      - 'supabase/tests/rc425_*'
+      - 'supabase/tests/rc431_*'
+      - 'supabase/tests/rc434_*'
+      - 'supabase/tests/rc435_*'
+      - 'supabase/tests/rc436_*'
+      - 'supabase/tests/rc439_*'
+      - 'supabase/tests/rc440_*'
+      - '.github/workflows/recovered-migration-focused-integration.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql'
+      - 'supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql'
+      - 'supabase/migrations/20261009200000_rc434_atomic_erp_purchase_receiving.sql'
+      - 'supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql'
+      - 'supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql'
+      - 'supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql'
+      - 'supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql'
+      - 'supabase/tests/rc425_*'
+      - 'supabase/tests/rc431_*'
+      - 'supabase/tests/rc434_*'
+      - 'supabase/tests/rc435_*'
+      - 'supabase/tests/rc436_*'
+      - 'supabase/tests/rc439_*'
+      - 'supabase/tests/rc440_*'
+      - '.github/workflows/recovered-migration-focused-integration.yml'
+permissions:
+  contents: read
+jobs:
+  mantigo-paymob-atomicity-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_mantigo_paymob_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_mantigo_paymob_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Test RC425 atomic MantiGo Paymob processing
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc425_mantigo_paymob_fixture.sql "$pg_container:/tmp/rc425_fixture.sql"
+          docker cp supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql "$pg_container:/tmp/rc425_migration.sql"
+          docker cp supabase/tests/rc425_mantigo_paymob_integration.sql "$pg_container:/tmp/rc425_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -f /tmp/rc425_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -f /tmp/rc425_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_mantigo_paymob_test -v ON_ERROR_STOP=1 -f /tmp/rc425_test.sql
+
+
+  digital-page-payment-binding-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_digital_page_payment_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_digital_page_payment_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run RC431 digital-page provider-order binding integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_digital_page_payment_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_digital_page_payment_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_digital_page_payment_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc431_digital_page_payment_fixture.sql "$pg_container:/tmp/rc431_fixture.sql"
+          docker cp supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql "$pg_container:/tmp/rc431_migration.sql"
+          docker cp supabase/tests/rc431_digital_page_payment_integration.sql "$pg_container:/tmp/rc431_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_digital_page_payment_test -v ON_ERROR_STOP=1 -f /tmp/rc431_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_digital_page_payment_test -v ON_ERROR_STOP=1 -f /tmp/rc431_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_digital_page_payment_test -v ON_ERROR_STOP=1 -f /tmp/rc431_test.sql
+
+
+  subscription-intent-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_subscription_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_subscription_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run subscription claim integration tests inside disposable PostgreSQL
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc435_subscription_intent_fixture.sql "$pg_container:/tmp/rc435_fixture.sql"
+          docker cp supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql "$pg_container:/tmp/rc435_migration.sql"
+          docker cp supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql "$pg_container:/tmp/rc439_migration.sql"
+          docker cp supabase/tests/rc435_subscription_intent_integration.sql "$pg_container:/tmp/rc435_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc439_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_subscription_test -v ON_ERROR_STOP=1 -f /tmp/rc435_test.sql
+
+
+  financial-journal-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_finance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_finance_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run financial journal integration tests inside disposable PostgreSQL
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc436_financial_journal_fixture.sql "$pg_container:/tmp/rc436_fixture.sql"
+          docker cp supabase/migrations/20261009220000_rc436_atomic_financial_journal.sql "$pg_container:/tmp/rc436_migration.sql"
+          docker cp supabase/tests/rc436_financial_journal_integration.sql "$pg_container:/tmp/rc436_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -f /tmp/rc436_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -f /tmp/rc436_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_finance_test -v ON_ERROR_STOP=1 -f /tmp/rc436_test.sql
+
+
+  checkout-recovery-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_checkout_recovery_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_checkout_recovery_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Test RC439 encrypted checkout recovery schema
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc435_subscription_intent_fixture.sql "$pg_container:/tmp/rc439_fixture.sql"
+          docker cp supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql "$pg_container:/tmp/rc439_migration.sql"
+          docker cp supabase/tests/rc439_checkout_recovery_integration.sql "$pg_container:/tmp/rc439_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_checkout_recovery_test -v ON_ERROR_STOP=1 -f /tmp/rc439_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_checkout_recovery_test -v ON_ERROR_STOP=1 -f /tmp/rc439_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_checkout_recovery_test -v ON_ERROR_STOP=1 -f /tmp/rc439_test.sql
+
+
+  security-definer-search-path-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_security_path_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_security_path_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Verify exposed SECURITY DEFINER search paths
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc440_security_definer_fixture.sql "$pg_container:/tmp/rc440_fixture.sql"
+          docker cp supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql "$pg_container:/tmp/rc440_migration.sql"
+          docker cp supabase/tests/rc440_security_definer_integration.sql "$pg_container:/tmp/rc440_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_security_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_test.sql
+
+
+  rc434-receiving-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_erp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_erp_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run RC434 receiving integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc434_erp_receiving_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009200000_rc434_atomic_erp_purchase_receiving.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc434_erp_receiving_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_erp_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+
