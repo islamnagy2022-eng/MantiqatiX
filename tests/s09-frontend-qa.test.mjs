@@ -151,3 +151,13 @@ test('S09-UX-004: digital-page editor locks save/publish/unpublish actions while
   assert.match(editor, /finally\{button\.disabled=false;button\.textContent=original\}/, 'action buttons should be restored after success or failure');
   assert.match(editor, /تعذر إلغاء النشر/, 'unpublish errors should be handled visibly');
 });
+
+
+test('S09-FORM-003: digital-page section creation validates JSON and guards duplicate requests', () => {
+  const editor = read('web/digital-page-editor.js');
+  assert.match(editor, /const button=\$\('sectionForm'\)\.querySelector\('\[type="submit"\]'\);if\(button\.disabled\)return/, 'section creation should prevent duplicate submissions');
+  assert.match(editor, /button\.textContent='جارٍ إضافة القسم…'/, 'section creation should show a pending state');
+  assert.match(editor, /Array\.isArray\(data\)\|\|typeof data!=='object'/, 'section data should be a JSON object, not an array or primitive');
+  assert.match(editor, /if\(count\.error\)throw count\.error/, 'count query errors must be surfaced before insert');
+  assert.match(editor, /تعذر إضافة القسم/, 'section creation failures should be surfaced');
+});
