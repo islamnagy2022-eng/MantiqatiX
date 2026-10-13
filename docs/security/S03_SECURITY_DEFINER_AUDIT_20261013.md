@@ -323,3 +323,20 @@ This was catalog/definition inspection only. No helper RPC was invoked, no push 
 - [ ] Reconcile source migrations with live production catalog and migration history before certification.
 
 **Status remains BLOCKED / NOT CERTIFIED.** The above checks are static catalog/definition review only, not runtime behavioral tests.
+
+
+### Final scoped callable inventory recheck — 2026-10-13
+
+A fresh SELECT-only aggregate over the same S03 scope (excluding the four S02-owned functions) returned:
+
+| Metric | Live catalog result |
+|---|---:|
+| Callable SECURITY DEFINER functions in scope | 45 |
+| Anon-executable functions (overlap allowed) | 1 |
+| Authenticated-executable functions (overlap allowed) | 45 |
+| Functions with explicit function-level `search_path` | 45 |
+| Functions missing explicit function-level `search_path` | 0 |
+
+The role counts overlap: the single anon-executable function is also authenticated-executable. This inventory confirms the scoped search-path property only; it does not prove correct authorization, least-privilege output fields, safe state transitions, or API schema reachability. The GitHub combined commit-status query for the latest audit commit returned no status entries; this is **not** evidence of CI passing.
+
+No production mutation, migration, privilege change, application RPC invocation, merge, or deployment occurred. Behavioral tests remain unexecuted pending an isolated test environment.
