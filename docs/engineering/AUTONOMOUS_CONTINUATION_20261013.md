@@ -574,3 +574,43 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - PR #207 briefly reported `mergeable=false` after the new commit; recheck mergeability before any review action. No merge is authorized.
 - SMM security CI run [#38411840045](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38411840045) passed static security-contract validation, service-role boundary validation, Deno type checking, and the SMM helper unit tests on the preceding code-bearing revision. The subsequent PR #225 update was documentation-only; exact latest SHA status should still be rechecked.
 - Release remains `BLOCKED / NOT CERTIFIED`: production MantiGO admin RPCs remain unguarded; Paymob webhook v8 has source/ACL drift and missing RPC dependencies; clean historical migration provenance is not yet recovered. No production state changed.
+
+
+## P0 payment state-transition hardening and SMM replay dependencies — 2026-10-13 17:32 UTC
+
+### New payment/webhook defect found and fixed in candidate source
+Read-only source review confirmed the tracked/deployed `paymob-webhook` was not using several atomic RPCs already defined by candidate migrations RC425 and RC428–RC430:
+- Subscription failure directly updated `subscription_payment_intents` and bypassed provider-event persistence.
+- Subscription success still called legacy `process_verified_subscription_payment` instead of the candidate `process_verified_subscription_payment_backend` contract with provider-order binding.
+- MantiGO callback handling directly inserted into the generic payment-event table, updated the ride ledger, and inserted notifications as separate operations instead of RC425's atomic RPC.
+- Normal payment failure directly inserted an event and updated the intent without the atomic failure RPC; the branch also had an early duplicate-event shortcut before intent binding could be validated.
+- Normal payment lookup did not require the signed provider order ID to equal `payment_intents.provider_order_id` before processing.
+
+Candidate fix is in draft PR [#241](https://github.com/islamnagy2022-eng/MantiqatiX/pull/241), head `660ab1f2ecf524dccd20f8e3158c694f418607b8`, stacked on PR #218:
+- Subscription success/failure use RC430/RC429 RPCs and include provider-order ID/raw payload.
+- MantiGO success/failure uses RC425 atomic RPC and a normalized, explicitly bound payload.
+- Normal failure uses RC428; normal callback processing checks the provider order ID and delegates replay/final-state handling to the RPC.
+- Direct table writes and early duplicate-event shortcuts were removed from these payment branches.
+- Added `scripts/validate-paymob-webhook-atomic-transitions.mjs`, workflow `.github/workflows/paymob-webhook-atomic-transitions.yml`, and disposable PostgreSQL tests for RC425 and RC428–RC430.
+- Static contract validation passed in run [#38412949047](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38412949047), but that run predates the SQL integration step. The first full SQL run [#38413738309](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38413738309) failed because the disposable fixture lacked `business_subscriptions.updated_at`; the fixture was corrected. Latest rerun [#38413885499](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38413885499) was still running at this checkpoint, so the complete integration suite is **NOT VERIFIED** until that run finishes.
+- No production payment, webhook, database, migration, or deployment operation was performed. PR #241 is draft/unmerged and must not be deployed independently of RC425/RC428–RC430 in the approved release chain.
+
+### SMM migration replay root-cause progression
+- Replay run [#38411737603](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38411737603) proved the filesystem-enforced cutoff fixed the earlier control-flow issue: the temporary RC SMM function baseline ran, and the real lockdown migration was reached in chronological replay.
+- The next exact failure was `ERROR: relation "public.smm_order_events" does not exist` in `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`.
+- Read-only production catalog checks then showed `smm_order_events`, `smm_orders`, and `smm_services` exist in production but their canonical table-creation migrations are absent from the replayable source archive. Their columns, constraints/indexes, RLS flags, and live policies were inspected via SELECT-only queries.
+- Added schema/policy-only, explicitly live-derived fixtures for disposable replay at versions `20260927140489` (`smm_services`), `20260927140490` (`smm_orders`), and `20260927140491` (`smm_order_events`). Updated `scripts/validate-historical-schema-baseline.mjs` to validate their provenance/shape/ordering and `.github/workflows/migration-chain-replay.yml` to inject exact copies only into disposable replay. No data rows or direct grants are included.
+- Latest replay [#38413378838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38413378838) was still in progress at this checkpoint. Its next SQL error, if any, is the next dependency to diagnose; do not skip migrations or treat these test-only baselines as recovered history.
+
+### Current status
+- Live MantiGO admin RPC authorization: **BLOCKED** (read-only production catalog still confirms the four high-risk RPCs are SECURITY DEFINER, executable by authenticated, `search_path=public`, and missing the platform-admin guard).
+- SMM live handler: fail-closed and source-matched to PR #218 base, but post-launch SMM remains deferred.
+- Migration clean replay: **IN PROGRESS / NOT VERIFIED** on the latest run.
+- Paymob atomic transition source: **IMPLEMENTED IN DRAFT PR / SQL CI NOT VERIFIED**.
+- Production release: **BLOCKED / NOT CERTIFIED**.
+
+### Next exact actions
+1. Read the final result of run #38413378838; fix the next first chronological missing dependency using read-only production catalog evidence and a disposable-only schema/policy fixture where appropriate.
+2. Read the final result of run #38413885499; fix any fixture/function contract mismatch and rerun until RC425 and RC428–RC430 integration tests pass.
+3. Keep PRs #207, #225, and #241 unmerged/unreleased pending review, exact-head CI, and the approved production migration path.
+4. Continue P0 authorization and financial integrity review without production writes.
