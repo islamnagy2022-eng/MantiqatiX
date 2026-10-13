@@ -30,6 +30,20 @@ The five duplicate-version groups are a chain-integrity blocker because Supabase
 
 Do not resolve these collisions by changing production history or arbitrarily renaming files. Establish intended ordering and reconcile source/ledger semantics first, then make a reviewed correction on the source branch.
 
+## 2A. Full live-ledger name-stem reconciliation inventory
+
+A separate read-only inventory was generated from all 283 current Supabase ledger rows and the 193 SQL files in the two repository directories. It strips only the leading 14-digit filename prefix and `.sql` suffix to identify candidate name matches; it does not claim content equivalence.
+
+- **131/283** ledger rows have a candidate source with the same name stem.
+- **152/283** ledger rows have no same-name-stem source candidate in either inspected directory.
+- **62** source files have no same-name-stem ledger entry.
+- **49** ledger rows exactly match a source filename's leading 14-digit version.
+- The known RC424 alias has ledger version `20261008222845` but source prefix `20261009010000`; retain the earlier exact-statement comparison as distinct evidence.
+
+Machine-readable details (all candidate matches, unmatched rows, source-only stems, and collision groups): [S04 migration ledger name inventory](S04_MIGRATION_LEDGER_NAME_INVENTORY_20261013.json).
+
+These counts are discovery indicators only. In particular, the 152 unmatched ledger rows must not be labeled “not applied”; they remain source-recovery/alias-reconciliation work. This inventory makes clear that a full production-equivalent replay cannot be certified from filename counts or current source presence.
+
 ## 3. Requested migrations — dependency and precondition review
 
 | Migration | Source/order observation | Dependency or replay precondition |
