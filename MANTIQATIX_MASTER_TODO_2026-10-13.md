@@ -69,3 +69,9 @@ Do not label the release ready until required CI on the final candidate passes, 
 - PR #225 current head `67bf1c5b7b57c69393245fa5dfc4e55901dcb160`; [run 38350675472](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350675472) PASS for source/ACL/type/unit-negative-input checks. Live HTTP deny remains NOT VERIFIED.
 - PR #219 MantiGO behavioral PostgreSQL suite still FAILS at `AUTH_REQUIRED` in an authorized path; PR #220 focused S06 payment tests pass but S04 replay fails.
 - Release remains **BLOCKED / NOT CERTIFIED**; no production writes, migrations, security configuration changes, merge, or deployment.
+
+
+## Replay bootstrap source recheck — 2026-10-13
+
+- Current PR #207 head `61c994c47b7b27f498a26463dda658694ffcb719` now declares `settlement_attempts_baseline` in the second workflow shell; prior unbound-variable defect appears fixed in source. Exact-head replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) was still running at last check. Do not mark replay PASS until full logs complete.
+- Settlement fixture still needs exact `numeric(14,4)` / `varchar(8)` parity and explicit test-only approval/provenance. Global status remains **BLOCKED / NOT CERTIFIED**.
