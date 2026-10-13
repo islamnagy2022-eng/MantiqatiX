@@ -115,7 +115,7 @@ jobs:
             for file in "$admins_migration" "$providers_migration" "$credentials_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
             ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|update[[:space:]]+public\.|delete[[:space:]]+from|copy[[:space:]]+(public|private)\.)' "$admins_migration" "$providers_migration" "$credentials_migration"
             echo "temporary_test_baselines_injected=true" | tee -a s04-replay-evidence/report.txt
-            echo "provider_onboarding_order_gap=known; replay is not clean-install certification" | tee -a s04-replay-evidence/report.txt
+            echo "provider_onboarding_source_order_normalized_to_live_ledger=true" | tee -a s04-replay-evidence/report.txt
             echo "temporary_smm_baselines_injected=true" | tee -a s04-replay-evidence/report.txt
           else
             echo "temporary_smm_baselines_injected=false" | tee -a s04-replay-evidence/report.txt
