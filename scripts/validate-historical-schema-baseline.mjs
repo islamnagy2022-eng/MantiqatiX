@@ -43,12 +43,11 @@ for (const spec of legacyBaselineSpecs) {
   }
 }
 const missingHistoricalTables = [
-  // The current candidate has an early credit SECURITY DEFINER function migration that
-  // references credit_accounts/credit_periods before any creation migration; those tables
-  // in turn depend on credit_policies. RC40 contains later creation SQL, but its live
-  // precision/default/FK/policy lineage is unresolved, so do not auto-inject it.
-  // Fail before booting disposable Supabase until source lineage is reconciled or separately
-  // reviewed test-only compatibility baselines are explicitly approved.
+  // The candidate has an early credit-status function migration that references the
+  // credit tables before any committed creation migration. The owner has now approved
+  // separately labeled live-derived table-shape fixtures for disposable CI only. The
+  // fixtures deliberately do not claim historical provenance and do not inject rows or
+  // recreate live-only restrictive policies whose creation history is absent from the ledger.
   { table: "credit_policies", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_policies.sql" },
   { table: "credit_accounts", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_accounts.sql" },
   { table: "credit_periods", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_periods.sql" },
