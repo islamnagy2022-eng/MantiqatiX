@@ -192,3 +192,15 @@ Their provenance explicitly limits them to isolated disposable replay and prohib
 This would remove only the known SMM bootstrap failure. It would not certify the chain: the historical baseline validator in PR #207 separately blocks on unresolved `credit_policies`, `credit_accounts`, and `credit_periods` before the earlier `20260920155456_harden_credit_status_authorization.sql`, and also identifies a missing `bookings` historical source/baseline dependency. RC40 is not approved as a substitute. The five executable duplicate-version groups also remain unresolved.
 
 **Status remains BLOCKED / NOT CERTIFIED.** No production writes, migration-ledger changes, merges, or deployments were made.
+
+
+## 9. Follow-up historical-source search — 2026-10-13
+
+The follow-up search covered the current S04 executable migration directory, repository code search for `CREATE TABLE`/SMM schema identifiers, migration-recovery PR #198's changed-file list, and SMM fixture PR #203's changed-file list.
+
+- The inspected executable migration inventory contains SMM hardening and later SMM wallet-idempotency / RC456 access-boundary migrations, but no identified original migration that creates `smm_providers` and `smm_provider_credentials`.
+- PR #198's changed files are the RC425–RC432 and RC434–RC441 recovery set; it does not supply the missing earlier SMM table-creation baseline.
+- PR #203 changes only `supabase/tests/rc456_smm_service_role_fixture.sql`. That fixture supplies disposable table definitions but is not historical migration source.
+- Repository search results surfaced schema references and the test fixture, but no authoritative original SMM creation migration was located in this pass.
+
+This is a bounded search result, not proof that the original migration never existed or was never applied. Historical source remains **UNRECOVERED / UNVERIFIED**. Do not manufacture a replacement baseline from a test fixture. Recovery should continue from authoritative git history, an owner-held original source archive, or independently verifiable migration statement history, then compare exact SQL and schema semantics before replay.
