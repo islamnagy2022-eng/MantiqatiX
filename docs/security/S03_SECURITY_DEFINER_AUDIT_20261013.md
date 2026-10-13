@@ -469,3 +469,31 @@ The gateway returns raw provider result in `order_status` and provider-derived e
 ### SMM gateway status
 
 These are actionable source-level risks, not proof of a live incident. Do not treat the `main` source as deployed truth: the deployed version 6/source mismatch must be reconciled first. Do not deploy or mutate production under this audit. Required evidence includes source/version parity, isolated tests for timeouts/ambiguous acceptance/refund failures/status races, and financial-ledger reconciliation. Release remains **BLOCKED — NOT CERTIFIED**.
+
+
+## Follow-up verification — exact table privileges and migration ledger — 2026-10-13
+
+A second read-only catalog query used PostgreSQL `has_table_privilege` directly for each of SELECT, INSERT, UPDATE, and DELETE on the sensitive table subset (payments, ledgers, wallets, rides/bids, orders, tenants, and SMM). This supersedes any inference from the earlier aggregated `table_privilege_grantees` list, which included non-SELECT privileges and therefore was not a valid way to infer SELECT access.
+
+### Exact client-role privileges observed
+
+- For every table in the queried subset, `anon` returned false for SELECT, INSERT, UPDATE, and DELETE.
+- For SMM tables in that subset (`smm_orders`, `smm_order_events`, `smm_wallets`, `smm_wallet_transactions`, `smm_admins`, `smm_providers`, `smm_provider_credentials`, `smm_services`), `authenticated` also returned false for all four direct table privileges.
+- `authenticated` has SELECT on several business tables in the subset, including `orders`, `payment_intents`, `payment_financial_reconciliations`, `payment_provider_events`, `wallet_accounts`, `wallet_transactions`, `general_ledger`, `mantigo_rides`, `mantigo_bids`, and `indrive_bids`. This is not by itself evidence of exposure: the relevant tables have RLS enabled, and most finance/ride tables in this subset also have FORCE RLS. The policy predicates and caller role context still need isolated role-based tests.
+- `mantigo_financial_ledger` has no direct SELECT privilege for either client role in this snapshot; its customer/captain SELECT policy does not independently grant table access.
+- The six deny-only tables previously noted (`erp_purchase_orders`, `erp_purchase_receipts`, `erp_stock_transfers`, `legacy_module_idempotency`, `smm_admins`, `smm_provider_credentials`) remain catalog-level deny-policy observations, not evidence of a working client read path.
+
+### Advisor warning interpretation
+
+The Security Advisor's anonymous-policy warnings should not be read as 90 confirmed anonymous data leaks. Exact direct table privileges were absent for `anon` across the sensitive table subset above. Advisor warnings and explicit `anon`/ `public` policy roles are distinct signals; complete reconciliation requires enumerating every warning's table, effective grants, RLS policies, view/function paths, and API exposure. This query only sampled the stated sensitive subset and does not resolve all 90 warnings.
+
+### Migration ledger reconciliation
+
+A fresh read of the live migration ledger confirms the latest applied migration is still `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). Source filenames referenced in the S03 investigation for RC446 and RC451 were not confirmed as applied migrations by this ledger; earlier direct fetches of those exact paths from `main` returned 404. Treat them as unresolved source-tree references, not as production changes or deployed hardening. Do not apply them based on filename references alone.
+
+### Evidence limits and release gate
+
+- Read-only catalog checks only; no business rows or secrets were read.
+- No grants, policies, Auth settings, migrations, or production data were changed.
+- No role-based tests or S03 SQL tests were executed; there are still zero tests claimed as passed.
+- Release remains **BLOCKED — NOT CERTIFIED** until warning reconciliation, SMM deployed/source parity, product decisions on pre-acceptance bid identity disclosure, and isolated negative tests are complete.
