@@ -31,28 +31,32 @@ begin
   rejected:=false;
   begin
     perform public.get_mantigo_admin_dashboard_backend(platform_admin);
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'unauthenticated caller read platform dashboard'; end if;
 
   rejected:=false;
   begin
     perform public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'unauthenticated caller read platform financial report'; end if;
 
   rejected:=false;
   begin
     perform public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'unauthenticated caller reached settlement'; end if;
 
   rejected:=false;
   begin
     perform public.expire_stale_mantigo_rides_backend(platform_admin,30);
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'unauthenticated caller reached ride expiration'; end if;
   if (select settlement_status from public.mantigo_financial_ledger where ride_id='ride-rc449') <> 'READY'
@@ -65,28 +69,32 @@ begin
   rejected:=false;
   begin
     perform public.get_mantigo_admin_dashboard_backend(platform_admin);
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'forged admin UUID read platform dashboard'; end if;
 
   rejected:=false;
   begin
     perform public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'forged admin UUID read platform financial report'; end if;
 
   rejected:=false;
   begin
     perform public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'forged admin UUID reached settlement'; end if;
 
   rejected:=false;
   begin
     perform public.expire_stale_mantigo_rides_backend(platform_admin,30);
-  exception when others then rejected:=true;
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
   end;
   if not rejected then raise exception 'forged admin UUID reached ride expiration'; end if;
   if (select settlement_status from public.mantigo_financial_ledger where ride_id='ride-rc449') <> 'READY'
