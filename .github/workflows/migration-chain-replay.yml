@@ -351,6 +351,39 @@ jobs:
 
           # Continue through every remaining migration in timestamp order. The targeted REVOKE
           # is safe to replay and will be recorded normally in the local migration ledger.
+          # Prove that the disposable settlement-policy compatibility migration is actually
+          # applied by Supabase's migration runner before allowing the later ALTER POLICY to run.
+          # Earlier CI showed 40493 onward being applied while the injected 40492 policy migration
+          # was absent from the log; stage the runner at this boundary and verify both ledger + catalog.
+          policy_checkpoint_stash="$(mktemp -d)"
+          restore_policy_checkpoint_migrations() {
+            shopt -s nullglob
+            for file in "$policy_checkpoint_stash"/*.sql; do
+              mv "$file" supabase/migrations/
+            done
+            rmdir "$policy_checkpoint_stash" 2>/dev/null || true
+          }
+          trap restore_policy_checkpoint_migrations EXIT
+          shopt -s nullglob
+          for file in supabase/migrations/*.sql; do
+            name="$(basename "$file")"
+            version="${name%%_*}"
+            if [[ "$version" =~ ^[0-9]{14}$ ]] && [[ "$version" > "20260927140492" ]]; then
+              mv "$file" "$policy_checkpoint_stash/"
+            fi
+          done
+          echo "Running staged migration checkpoint through 20260927140492."
+          supabase migration up --local
+          restore_policy_checkpoint_migrations
+          trap - EXIT
+          echo "Checkpoint ledger rows:"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT version, name FROM supabase_migrations.schema_migrations WHERE version >= '20260927140490' AND version <= '20260927140500' ORDER BY version;"
+          echo "Checkpoint policy catalog:"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT schemaname, tablename, policyname, cmd, roles, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read';"
+          psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140492') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read')" | grep -qx t
+
+          # Continue with the remaining migrations only after the staged baseline is present
+          # in both the local migration ledger and PostgreSQL policy catalog.
           supabase migration up --local
 
       - name: Record local migration ledger
