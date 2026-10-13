@@ -1,6 +1,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const cors={"Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
+// Hard launch gate: environment flags alone must never enable SMM in the initial release.
+const SMM_INITIAL_LAUNCH_DEFERRED=true;
 const json=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const URL=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,admin=createClient(URL,KEY);
 async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);const user=r.error?null:r.data.user;return !user||user.is_anonymous?null:user;}
@@ -23,7 +25,7 @@ async function call(p:any,k:string,a:string,x:any={}){
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  // SMM is deferred from initial launch. Fail closed before auth, DB, wallet, or provider actions.
- if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_POST_LAUNCH_DEFERRED"},503);
+ if(SMM_INITIAL_LAUNCH_DEFERRED||Deno.env.get("MNTY_SMM_ENABLED")!=="true"||Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const b=await req.json(),a=b.action;
