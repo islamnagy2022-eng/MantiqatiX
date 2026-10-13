@@ -113,3 +113,12 @@ The source-parity blocker remains unchanged. Do not treat more unit tests as a s
 ## Test-fixture correction — provider allowlist positive case
 
 Reviewing the queued test suite uncovered a fixture bug in `provider-transport.test.ts`: its positive allowlist case used `api.provider.example`, but the helper intentionally rejects reserved `.example` hostnames. That would make the supposed valid-host test fail for the reserved suffix rather than exercise the allowlist success path. The fixture now uses `api.provider.com` for the positive HTTPS host in commit `af236d64ed4a4ba3fac04542a6c5eb5bdf41b3a4`. Reserved-host rejection cases remain unchanged. This is a test fixture correction, not a change to provider URL policy. CI is still required to verify the suite.
+
+
+## Provider response parser edge cases added
+
+Expanded `provider-transport.test.ts` with two more cases:
+- empty provider response bodies and invalid UTF-8 are rejected;
+- structured JSON media types ending in `+json` are accepted.
+
+Commit: `88d10e12f3518d5f22cb1b2b7236163ce855e4b6`. The provider allowlist positive fixture was corrected in the prior test commit. Neither change has a completed CI result at this checkpoint. The S07 job is queued in the observed Actions environment; no test pass is claimed.
