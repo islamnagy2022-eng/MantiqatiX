@@ -30,3 +30,21 @@ const digitalPaymentRpc = webhook.indexOf('admin.rpc("process_verified_digital_p
 if (signatureGate < 0 || digitalPaymentRpc < 0 || signatureGate >= digitalPaymentRpc) {
   throw new Error('S05 webhook signature gate must occur before the digital-page payment RPC');
 }
+
+// S05 MantiGO regression contract: the signed Paymob order ID must bind to the
+// exact MantiGO ledger intent before an event can be persisted or the ledger changed.
+for (const [marker,label] of [
+  ['MANTIGO_PROVIDER_ORDER_MISMATCH','MantiGO provider/order mismatch rejection'],
+  ['metadata.paymob_intention_order_id','stored Paymob intention order ID'],
+  ['mantigo.provider!=="PAYMOB"','MantiGO ledger provider binding'],
+  ['mantigo.provider_intent_id','MantiGO provider intent existence']
+]) {
+  if (!webhook.includes(marker)) throw new Error('S05 MantiGO callback contract missing: '+label);
+}
+const mantigoOrderGate = webhook.indexOf('MANTIGO_PROVIDER_ORDER_MISMATCH');
+const mantigoEventInsert = webhook.indexOf('from("payment_provider_events").insert', webhook.indexOf('const {data:mantigo}='));
+const mantigoLedgerUpdate = webhook.indexOf('from("mantigo_financial_ledger").update', webhook.indexOf('const {data:mantigo}='));
+if (mantigoOrderGate < 0 || mantigoEventInsert < 0 || mantigoLedgerUpdate < 0 ||
+    mantigoOrderGate >= mantigoEventInsert || mantigoOrderGate >= mantigoLedgerUpdate) {
+  throw new Error('S05 MantiGO provider/order gate must precede event persistence and ledger mutation');
+}
