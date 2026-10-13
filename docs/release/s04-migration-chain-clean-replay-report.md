@@ -44,6 +44,19 @@ Machine-readable details (all candidate matches, unmatched rows, source-only ste
 
 These counts are discovery indicators only. In particular, the 152 unmatched ledger rows must not be labeled “not applied”; they remain source-recovery/alias-reconciliation work. This inventory makes clear that a full production-equivalent replay cannot be certified from filename counts or current source presence.
 
+## 2B. RC40 source archive reconciliation
+
+The uploaded `source_RC40.zip` was inspected as a separate historical source candidate. Its companion checksum file matches the archive exactly: SHA-256 `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`.
+
+- Archive contains **39** SQL migration files.
+- **12** filenames overlap with `supabase/recovered-migrations/`; SHA-256 comparison found **0 exact content matches** and **12 content mismatches**.
+- **27** archive migration filenames are absent from both current migration directories.
+- The archive itself has a duplicate timestamp group: five files share `20260920130000`.
+- The archive contains `20260920185000_production_credit_control.sql`, which defines `credit_policies`, `credit_accounts`, and `credit_periods`; those tables are present in the live catalog. However, that exact version/name is not in the live ledger. It is a **source candidate only**, not proof of production application and not authorization to reorder or insert it into executable history.
+- The archive contains no `CREATE TABLE` migration for `smm_providers` or `smm_provider_credentials`; it does not resolve the first S04 replay failure.
+
+Row-level hashes and missing filenames are recorded in [S04 RC40 archive reconciliation](S04_RC40_ARCHIVE_RECONCILIATION_20261013.json). Do not overlay the RC40 archive onto the current recovered directory: all 12 same-name SQL files differ in content, and the archive has its own timestamp collision.
+
 ## 3. Requested migrations — dependency and precondition review
 
 | Migration | Source/order observation | Dependency or replay precondition |
