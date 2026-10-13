@@ -1571,3 +1571,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Coordination:** Session C posted findings to PR #207 comment [6138521154](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138521154) and PR #219 comment [6138522148](https://github.com/islamnagy2022-eng/MantiqatiX/pull/219#issuecomment-6138522148). Session C did not modify those workstreams' owned workflow/migration/test files.
 - **Production safety:** no production writes, migration applications, Auth/RLS/GRANT changes, financial mutations, Edge Function deployments, merges, or releases were performed.
 - **Release decision:** `BLOCKED / NOT CERTIFIED`. Do not infer replay success from a workflow bootstrap fix; do not infer MantiGO authorization success from the isolated RC462 test alone.
+
+
+## Session C payment/webhook review — 2026-10-13
+
+- [ ] **P0 — Paymob cross-entity replay:** PR #220 source inspection found subscription and MantiGO existing-event paths return idempotent success without checking event-to-intent/order binding; generic payment intent does not compare the stored event's `payment_intent_id` to the current intent.
+- [ ] **P0 — webhook atomicity:** several paths persist event and payment state separately; MantiGO/generic failure paths do not check state-update result/affected rows. Require one transactional RPC per event family or a unified atomic handler with status transition guards.
+- [ ] **Required tests:** same provider event ID against a different intent/order, conflicting terminal status, concurrent duplicate requests, late failure after success, forced failure between event/state writes, and zero-row conditional update. Then run Paymob sandbox reconciliation.
+- **Coordination:** review posted to [PR #220 comment 6138530408](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138530408). S06-owned files were not edited.
+- **Release:** remains `BLOCKED / NOT CERTIFIED`.
