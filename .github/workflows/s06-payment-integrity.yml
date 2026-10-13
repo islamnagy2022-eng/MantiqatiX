@@ -4,6 +4,8 @@ on:
     branches: ['**']
     paths:
       - 'supabase/tests/s06_payment_integrity_regression.sql'
+      - 'supabase/tests/s06_payment_integrity_concurrency_seed.sql'
+      - 'supabase/tests/s06_payment_integrity_concurrency_assert.sql'
       - 'tests/s06-payment-integrity.test.mjs'
       - 'supabase/functions/paymob-webhook/**'
       - 'supabase/functions/digital-page-payment-intent/**'
@@ -66,3 +68,19 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+          docker cp supabase/tests/s06_payment_integrity_concurrency_seed.sql "$pg_container:/tmp/concurrency-seed.sql"
+          docker cp supabase/tests/s06_payment_integrity_concurrency_assert.sql "$pg_container:/tmp/concurrency-assert.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/concurrency-seed.sql
+
+          # Race two independent sessions against the same provider event and order.
+          # Row locking must yield exactly one applied result and one idempotent replay.
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -At -c "begin; select pg_sleep(0.25); select public.process_verified_digital_page_payment_backend('10000000-0000-4000-8000-000000006063','paymob:s06-concurrent-tx','TRANSACTION','SUCCEEDED',true,249.50,'EGP','s06-concurrent-tx','s06-concurrency-provider-order','{}'::jsonb); commit;" > "$RUNNER_TEMP/s06-concurrency-a.log" &
+          pid_a=$!
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -At -c "begin; select pg_sleep(0.25); select public.process_verified_digital_page_payment_backend('10000000-0000-4000-8000-000000006063','paymob:s06-concurrent-tx','TRANSACTION','SUCCEEDED',true,249.50,'EGP','s06-concurrent-tx','s06-concurrency-provider-order','{}'::jsonb); commit;" > "$RUNNER_TEMP/s06-concurrency-b.log" &
+          pid_b=$!
+          wait "$pid_a"
+          wait "$pid_b"
+          cat "$RUNNER_TEMP/s06-concurrency-a.log" "$RUNNER_TEMP/s06-concurrency-b.log" > "$RUNNER_TEMP/s06-concurrency-combined.log"
+          test "$(grep -c '"idempotent": false' "$RUNNER_TEMP/s06-concurrency-combined.log")" -eq 1
+          test "$(grep -c '"idempotent": true' "$RUNNER_TEMP/s06-concurrency-combined.log")" -eq 1
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/concurrency-assert.sql
