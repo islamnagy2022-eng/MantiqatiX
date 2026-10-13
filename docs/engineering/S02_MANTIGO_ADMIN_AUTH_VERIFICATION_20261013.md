@@ -81,3 +81,16 @@ A bounded candidate change was made to RC462: the request-context guard now uses
 - No live role, grant, RLS policy, auth setting, or financial row was changed.
 - The candidate migration must pass malformed-permission tests and the full PostgreSQL integration test at the new head before it can be considered.
 - Production remains BLOCKED / NOT CERTIFIED.
+
+
+## Follow-up checkpoint — missing JWT subject fails closed explicitly
+
+A disposable PostgreSQL run with temporary diagnostic detail established that the earlier failure occurred on the unauthenticated settlement path: `auth.uid()` was empty, and the condition `p_admin_user_id <> auth.uid()` did not reject it because SQL comparisons with `NULL` evaluate to unknown. The call then reached the platform-admin guard and returned `PLATFORM_ADMIN_REQUIRED` instead of the expected identity-context rejection.
+
+Corrective candidate change:
+- `settle_mantigo_captain_backend` now explicitly rejects `auth.uid() IS NULL` before comparing the supplied actor ID.
+- `expire_stale_mantigo_rides_backend` has the same explicit null-identity rejection.
+- The temporary diagnostic detail was removed from the candidate migration before the next test run.
+- Static validation now includes a check requiring both null-identity guards.
+
+This change is isolated to the draft migration branch. No production migration was applied. The PostgreSQL integration run for commit `78392b149b25b9d72ebfdb6aae378f0441da9925` was still running at report time; the fix is not certified until the complete behavioral test passes on the final head.
