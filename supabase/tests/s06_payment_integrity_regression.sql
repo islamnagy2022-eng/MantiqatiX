@@ -1,4 +1,5 @@
 -- S06 adversarial payment-integrity regressions; disposable PostgreSQL only.
+-- Includes provider binding, cross-order replay, NULL status, and terminal-state regressions.
 do $test$
 declare
   target uuid := '10000000-0000-4000-8000-000000006061';
