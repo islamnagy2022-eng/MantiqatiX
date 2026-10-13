@@ -1685,3 +1685,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 5. Re-run exact-head CI, full replay, and release-gate evidence review. Do not merge/deploy until every P0 gate is VERIFIED.
 
 **Release decision: BLOCKED / NOT CERTIFIED. No production migration, Edge Function deployment, financial mutation, merge, or release approval was performed by this continuation.**
+
+
+### Live Security Advisor refresh — 2026-10-13 13:18 UTC
+- [ ] **P0 NOT VERIFIED:** current read-only advisor snapshot contains 94 lint records / 133 counted findings: 90 anonymous-access-policy warnings, 40 authenticated-executable SECURITY DEFINER functions, 1 anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), 1 leaked-password-protection warning, and 1 RLS-enabled/no-policy INFO finding for `digital_page_payment_events`.
+- Treat the 90 anonymous-policy findings as review flags, not 90 independently confirmed vulnerabilities. Do not blanket-disable anonymous access or revoke all SECURITY DEFINER execution.
+- Leaked Password Protection is still disabled; enablement remains an authorized Supabase Auth/dashboard action and has not been changed in this session.
+- The `digital_page_payment_events` no-policy condition remains fail-closed by design until the service-role/RPC access path and least-privilege grants are explicitly reconciled.
+- Source: read-only Supabase Security Advisor snapshot observed at `2026-10-13T13:18:40.718Z`. Release remains BLOCKED.
