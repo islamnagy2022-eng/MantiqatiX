@@ -112,3 +112,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - RC523 hardening follow-up: tightened the report actor guard to reject `p_admin_user_id IS NULL` explicitly before platform-scope authorization. This closes a SQL three-valued-logic edge case where `auth.uid() <> NULL` evaluates to NULL rather than TRUE. Source change only; the null/mismatch negative test is still pending and CI has not passed.
+
+
+- RC523 regression-test refinement: added a non-null response assertion to the existing disposable-PostgreSQL report integration test. Attempted to extend the test with explicit null/mismatched actor negative cases, but the repository write was blocked by the security guard; those negative tests remain open and must not be described as present. CI is still pending.
