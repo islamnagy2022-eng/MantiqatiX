@@ -17,7 +17,7 @@ CREATE TABLE public.credit_periods (
   due_date date NOT NULL,
   billed_amount numeric NOT NULL DEFAULT 0,
   paid_amount numeric NOT NULL DEFAULT 0,
-  outstanding_amount numeric(18,2) GENERATED ALWAYS AS (GREATEST((billed_amount - paid_amount), (0)::numeric)) STORED,
+  outstanding_amount numeric GENERATED ALWAYS AS (GREATEST((billed_amount - paid_amount), (0)::numeric)) STORED,
   status character varying NOT NULL DEFAULT 'OPEN',
   paid_at timestamptz,
   days_overdue integer NOT NULL DEFAULT 0,
