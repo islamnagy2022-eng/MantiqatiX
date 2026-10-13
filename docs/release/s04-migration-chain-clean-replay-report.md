@@ -83,6 +83,8 @@ The S04 workflow was updated to extract the first migration/error from the Supab
 
 Files under `supabase/recovered-migrations/` are archival candidates, not an executable migration directory. Their existence is not proof of application.
 
+A read-only comparison of all **33** recovered archive files against the live migration ledger found **33/33 exact filename-version/name matches**. SQL content comparison found **22/33 byte-for-byte matches**; the remaining **11/33** matched after normalization that removes SQL comments and statement delimiters and normalizes formatting. This supports archival content correspondence, but does not make these files executable migrations or prove any unapplied migration is safe to replay. The separate source-chain preflight found no duplicate file copies between the executable and recovered directories.
+
 The existing semantic reconciliation record documents unresolved source-versus-ledger differences for RC169, RC172, RC199, RC206, and RC207. In particular, RC199 may create a policy already introduced by a later ledger statement when replayed in repository filename order, and the RC207 repository source omits a function replacement present in the recorded ledger statement. These discrepancies prevent claiming a production-equivalent rebuild.
 
 ## 6. Files changed by S04
