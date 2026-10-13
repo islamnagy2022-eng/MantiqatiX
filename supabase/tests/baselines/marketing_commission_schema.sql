@@ -20,7 +20,6 @@ CREATE TABLE public.marketing_services (
   CONSTRAINT marketing_services_code_key UNIQUE (code),
   CONSTRAINT marketing_services_status_check CHECK (status::text = ANY (ARRAY['ACTIVE'::character varying, 'INACTIVE'::character varying]::text[]))
 );
-CREATE UNIQUE INDEX marketing_services_code_key ON public.marketing_services USING btree (code);
 ALTER TABLE public.marketing_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_services FORCE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view active marketing services" ON public.marketing_services FOR SELECT TO anon, authenticated USING ((status)::text = 'ACTIVE'::text);
@@ -54,7 +53,6 @@ CREATE TABLE public.marketing_provider_services (
   CONSTRAINT marketing_provider_services_status_check CHECK (status::text = ANY (ARRAY['ACTIVE'::character varying, 'INACTIVE'::character varying]::text[]))
 );
 CREATE INDEX idx_mkt_provider_services_service ON public.marketing_provider_services USING btree (service_id);
-CREATE UNIQUE INDEX marketing_provider_services_provider_id_service_id_key ON public.marketing_provider_services USING btree (provider_id, service_id);
 ALTER TABLE public.marketing_provider_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marketing_provider_services FORCE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view active provider services" ON public.marketing_provider_services FOR SELECT TO anon, authenticated USING ((status)::text = 'ACTIVE'::text);
