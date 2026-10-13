@@ -100,3 +100,12 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - **Other live runtime inventory:** `paymob-webhook` ACTIVE v8, `payment-intent` ACTIVE v6, `subscription-payment-intent` ACTIVE v2, `digital-page-payment-intent` ACTIVE v3, `mantigo-payment-intent` ACTIVE v3; deployed versions/hashes are recorded in the session's live inventory check, not as proof of business-flow correctness.
 - **Migration ledger recheck:** 283 rows; last version remains `20261008222845 / rc424_atomic_digital_page_payment_webhook`. RC449/RC462/RC522/RC523 remain unproven as applied by the source reviewed in this checkpoint.
 - **Safety:** read-only catalog/source inspection only; no invocation, database write, migration, deployment, secret change, or payment operation performed.
+
+
+## Release governance and Auth advisor refresh — 2026-10-13
+
+- **Verified GitHub branch metadata:** `main` currently points to `8a56358d505d2c12878440037f7f24ba65d2ea10`; branch API reports `protected=false`, `protection.enabled=false`, and required-status-check enforcement `off`. Repository rulesets endpoint returned an empty list. The direct branch-protection detail endpoint returned 403, so no deeper required-check configuration could be inspected. This is a release-governance blocker; no settings were changed.
+- **Verified Supabase Security Advisor:** current security advisor response reports leaked-password protection disabled. This is a confirmed Auth hardening gap, not something to change through this session because Auth production configuration changes are outside the authorized scope.
+- **Advisor interpretation:** the advisor also reports anonymous-role policies on multiple tables. These findings require per-policy intent and predicate review; do not apply blanket RLS/grant changes based on lint labels alone.
+- **Action performed:** evidence recorded in this Session C report. No branch protection, Auth, RLS, grants, production data, or deployment settings were modified.
+- **Next action:** a repository administrator must enable branch protection and required checks under a separately reviewed governance change; an authorized Auth owner must enable and verify leaked-password protection. Both remain open gates.
