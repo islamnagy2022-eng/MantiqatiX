@@ -512,3 +512,36 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Added `supabase/tests/baselines/settlement_transactions_finance_read.sql` (policy only), CI injection at `20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql`, and validator checks for policy scope, provenance, ordering and no table/grant/data changes. Appended the finding to both `docs/release/MIGRATION_REPLAY_BLOCKERS.md` and `docs/MASTER_PRODUCTION_TODO.md`.
 - Latest replay branch head after documentation: `33e813e87330212dc49741a545f50d15cd4dc3d4`. The next exact-head run must verify the new fixture and continue replay; no PASS is claimed.
 - The production ledger remains at RC424 and the four global MantiGO RPCs remain unguarded in live catalog. No production mutation, deployment, merge, or release occurred. Status remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Root-cause fix checkpoint — replay cutoff enforced by filesystem (2026-10-13 17:15 UTC)
+
+### Confirmed root cause
+- Latest completed replay run before this change: [#38350577917](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350577917), job `replay-all-migrations`.
+- Exact error: `ERROR: function public.smm_bootstrap_first_admin() does not exist (SQLSTATE 42883)` while applying `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql`.
+- The workflow attempted `supabase db reset --local --version 20260927033924`, intending to stop before the lockdown migration, but the observed command proceeded to `20260927033925` and failed before the subsequent `psql` baseline injection could run. This is a control-flow defect in the replay harness, not a reason to bypass the lockdown.
+- The approved test-only function baseline already exists at `supabase/tests/baselines/smm_bootstrap_first_admin.sql`; the historical source creation migration is absent. The actual lockdown migration must remain in the chronological replay and its ACL contract must be asserted.
+
+### Implemented root-cause change
+- Updated `.github/workflows/migration-chain-replay.yml` on PR #207 branch `reconcile/rc425-458-current-main-20261011`.
+- New commit: `4190f3c9d3c739c841f789fb667f51d11f2a5d10`.
+- The workflow now enforces the pre-lockdown cutoff by temporarily moving every migration with a 14-digit version greater than `20260927033924` out of `supabase/migrations` before `supabase db reset --local`. An EXIT trap restores every stashed file even if reset fails; the workflow asserts the test-only baseline migration is present and the real lockdown migration is absent during reset.
+- After the clean reset, the workflow restores future migrations, injects the catalog-verified function definition into the disposable DB, applies the real lockdown SQL and checks its ACL, then resumes normal `supabase migration up --local`. No historical migration is edited, no placeholder function is added to production, and no production database is mutated.
+- PR #207 remains open and unmerged. At the time of this checkpoint, the newly committed workflow had not yet produced a run visible through the available workflow-run lookup; therefore the fix is **IMPLEMENTED / NOT YET VERIFIED**.
+
+### SMM exact-head CI evidence
+- PR #225 head: `ec2f050a4980c2e7d7f2442a529284a140fd508f`.
+- Run [#38408664832](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408664832) checked out synthetic merge commit `8deed20` merging that exact head into base `77012649e41fe22077538c39cd8593bf696ab33e`.
+- Job `source-and-unit` completed **SUCCESS**. Logs confirm `SMM gateway security contract: PASS` and `SMM service-role access boundary contract: PASS`. This is static contract/unit CI evidence, not a live HTTP test or post-launch provider certification.
+- PR #225 remains draft/open/unmerged. The live SMM function remains deliberately fail-closed (deployed version 10, hard-disabled gate), so do not enable it without a separate release approval.
+
+### Current release decision
+- P0 live MantiGO RPC authorization remains **BLOCKED**; the four high-risk RPCs are still SECURITY DEFINER, have `search_path=public`, are executable by `authenticated`, and lack the platform-admin guard per read-only production catalog checks.
+- P1 migration replay remains **FAIL / BLOCKED** until a new run proves the cutoff fix works and chronological replay proceeds to the next true blocker.
+- Overall: **BLOCKED / NOT CERTIFIED**.
+
+### Next exact actions
+1. Inspect the new PR #207 CI run at commit `4190f3c9d3c739c841f789fb667f51d11f2a5d10`. If it fails, capture the first actual SQL error and fix that specific dependency without skipping the migration.
+2. Re-run full clean replay to completion; inspect the local migration ledger and assert every source migration is accounted for.
+3. Keep PR #225 draft and unmerged; add isolated HTTP-level tests for the fail-closed 503/no-side-effect behavior when an available safe harness permits it.
+4. Do not merge, deploy, apply production migrations, or alter live grants/Auth/RLS without separate explicit approval.
