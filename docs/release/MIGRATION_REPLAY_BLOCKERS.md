@@ -918,3 +918,13 @@ A read-only query confirmed that `public.marketing_project_participants` exists 
 Recover the original creation migration or obtain explicit, narrowly scoped approval for a disposable-only live-derived schema snapshot for this exact table. If approved, record schema hash/provenance, include no production rows, verify policy/grant expectations separately, and inject only in the disposable test workspace before the first dependent migration. Do not add it to `supabase/migrations` and never apply it to production.
 
 Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Historical source recovery attempt — 2026-10-13
+
+The source search was extended beyond the current migration directory:
+- Searched the supplied RC40 archive `source_RC40.zip` (SHA-256 `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`) for `marketing_project_participants` across SQL/Markdown/JSON files; no matching source file/content was found.
+- Searched repository commit history and pull-request metadata for `marketing_project_participants`, “marketing project participants”, and “create marketing project participants”. No creation migration was found. PR #51 changes only `scripts/validate-module-runtime-contracts.mjs` and `web/operations-modules.js`; it does not contain schema DDL.
+- The live catalog inspection remains the only currently found structural evidence, and does not establish original DDL provenance.
+
+**Conclusion:** original creation DDL is not recovered by the supplied archive or the searched repository/PR history. Continue fail-closed. Do not generate an assumed production migration or broaden prior test-baseline approvals. The remaining safe dependency is an authoritative historical SQL export/backup/deployment record, or explicit owner approval scoped only to a disposable schema fixture with provenance and no production rows.
