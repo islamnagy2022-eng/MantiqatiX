@@ -165,3 +165,19 @@
 2. Coordinate source reconciliation on the migration-owning PR: preserve all applied SQL, identify the nine byte/semantic matches and three mismatches, and resolve duplicate versions without rewriting any migration already present in the target base.
 3. Resolve the earliest missing SMM schema dependency and subsequent historical bootstrap gaps only in disposable infrastructure with explicitly approved schema baselines; do not create placeholder functions or skip migrations.
 4. Re-run source uniqueness/immutability checks, then a complete chronological disposable replay from a clean database. Keep the gate failed until both pass.
+
+
+## Final checkpoint for this execution cycle — 2026-10-13
+
+- PR #225 rechecked: open, draft, unmerged; base `docs/rc521-admin-operations-discovery-20261013`; current head before this checkpoint commit: `2c57b6223c1faec8109a188eb18639a9c04e8b37`. PR link: https://github.com/islamnagy2022-eng/MantiqatiX/pull/225.
+- Latest source/log evidence in this cycle is recorded above; this checkpoint is documentation-only and does not modify runtime, migration SQL, production settings, or data.
+- A fresh **read-only production** query against `pg_catalog.pg_proc` confirmed all four high-risk MantiGO RPCs remain in the unsafe live state:
+  - `get_mantigo_admin_dashboard_backend`
+  - `get_mantigo_admin_financial_report_backend`
+  - `settle_mantigo_captain_backend`
+  - `expire_stale_mantigo_rides_backend`
+  For all four: `SECURITY DEFINER = true`, `search_path=public`, `authenticated_can_execute = true`, and `calls_platform_guard = false`.
+- This is a current P0 production blocker. The RC449/RC462 candidate passed disposable integration tests, but production remains unmodified because the approved workflow requires separate authorization for production changes. Do not hot-edit production.
+- No production SQL mutation was run. The only Supabase SQL queries in this cycle were SELECTs against migration metadata and `pg_catalog`.
+- **Status:** P0 live authorization **BLOCKED**; P1 migration source/version parity **FAIL / BLOCKED**; S04 clean replay **FAIL / BLOCKED**; SMM exact-head CI **NOT VERIFIED**; production release **BLOCKED / NOT CERTIFIED**.
+- **Resume first:** verify current SMM push-triggered CI on its exact head, then coordinate migration source reconciliation in PR #218 using the production-version/content map above. Do not merge, deploy, apply migrations, or change live grants/Auth/RLS without separate explicit approval.
