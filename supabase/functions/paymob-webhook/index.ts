@@ -60,8 +60,10 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    }
    return json({ok:true,status:value(result.payment_status),fulfillmentStatus:value(result.fulfillment_status),requestId},200,requestId)
  }
- const {data:mantigo}=await admin.from("mantigo_financial_ledger").select("id,ride_id,customer_id,currency,gross_amount,payment_status,settlement_status").eq("id",merchantRef).maybeSingle();
+ const {data:mantigo}=await admin.from("mantigo_financial_ledger").select("id,ride_id,customer_id,currency,gross_amount,payment_status,settlement_status,provider,provider_intent_id,metadata").eq("id",merchantRef).maybeSingle();
  if(mantigo){
+   const mantigoMetadata=(mantigo.metadata&&typeof mantigo.metadata==="object"?mantigo.metadata:{}) as Record<string,unknown>;
+   if(mantigo.provider!=="PAYMOB"||!mantigo.provider_intent_id||!mantigoMetadata.paymob_intention_order_id||String(mantigoMetadata.paymob_intention_order_id)!==paymobOrderId)return json({error:"MANTIGO_PROVIDER_ORDER_MISMATCH",requestId},409,requestId);
    if(Math.abs(Number(mantigo.gross_amount)-amount)>0.01||String(mantigo.currency).toUpperCase()!==currency)return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
    const {data:existingM}=await admin.from("payment_provider_events").select("id").eq("provider","PAYMOB").eq("external_event_id",eventId).maybeSingle();
    if(existingM)return json({ok:true,idempotent:true,requestId},200,requestId);
