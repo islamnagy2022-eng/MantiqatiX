@@ -122,3 +122,35 @@ Do not classify every anonymous-related warning as a vulnerability automatically
 - Anonymous-access adversarial tests: NOT VERIFIED
 - Production changes: NONE
 - Release recommendation: BLOCKED / NOT CERTIFIED until synthetic-identity runtime evidence is attached
+
+
+## Continuation update — 2026-10-13 (live catalog review)
+
+A targeted read-only query further confirmed RLS and FORCE RLS on `public.tenants`, `public.user_memberships`, `public.branches`, `public.businesses`, `public.organizations`, and `public.tenant_modules`. `public.digital_page_orders` and `public.digital_page_payment_events` have RLS enabled but FORCE RLS is false; interpret this together with table ownership, effective grants, and trusted backend paths rather than treating the flag alone as a vulnerability.
+
+Observed policy boundaries:
+- `tenants_select_member`: active membership, `auth.uid()`, and matching tenant ID; `tenants_no_direct_update` denies direct updates.
+- `memberships_select_self`: row user ID equals `auth.uid()`.
+- `organizations_member_read` and `tenant_modules_member_read`: active tenant membership; write policies are limited to OWNER/ADMIN.
+- `businesses_member_select`: active tenant membership; write policies are limited to OWNER/ADMIN/MANAGER. The public showcase policy is separately constrained to ACTIVE records and `settings.showcase=true`.
+- `branches_member_read`: active membership and matching tenant; no explicit `branch_id` predicate was visible. Product must confirm whether all tenant members may read all branches or whether limited roles require branch-level isolation. This is an open design question, not a confirmed vulnerability. PostgreSQL permissive policies are OR-combined, subject to restrictive policies, so effective policy behavior must be assessed as a set.
+
+Targeted SECURITY DEFINER review:
+- `mnty_active_membership(character varying,uuid,character varying)`: `search_path=public, pg_temp`; authenticated EXECUTE allowed, anon denied; definition binds membership lookup to `auth.uid()` and ACTIVE status.
+- `start_business_trial_backend(uuid,text,text,integer,text,uuid)`: empty search_path; service_role-only EXECUTE in the observed grant checks. It accepts `p_actor_user_id`, so the trusted caller must bind it to the authenticated actor rather than pass an untrusted client value. The server/Edge Function call path remains NOT VERIFIED.
+- `get_or_create_business_referral_profile(uuid)`: service_role-only EXECUTE and function logic checks `auth.uid()` plus active membership/role. Verify user JWT propagation in the trusted call path if it is intended to act on behalf of a user.
+- `track_business_referral_event(...)`: service_role-only EXECUTE observed; inspect the trusted caller for event-type and metadata validation/minimization.
+- Payment webhook signature verification before the payment RPC remains NOT VERIFIED; the database RPC receives a boolean assertion and cannot itself infer that the provider signature was cryptographically validated.
+
+### Added static regression contract
+
+Added `supabase/tests/S05_tenant_isolation_policy_contract.sql` on branch `security/s05-tenant-isolation-review-20261013` (commit `594c2f2ddddfc696ab8b8268221a4aaa3aa30028`). This contract checks selected catalog invariants and effective direct table/function privilege boundaries. It is **static only**, has not been run in CI or production in this review, and does not substitute for two-tenant runtime tests.
+
+### Updated gate
+
+- Static policy/grant inventory: PARTIAL REVIEWED.
+- Branch-level vs tenant-level visibility semantics: NEEDS PRODUCT CONFIRMATION.
+- Trusted backend actor binding and webhook signature path: NOT VERIFIED.
+- Synthetic multi-user runtime tests: NOT RUN.
+- Production changes, merge, deployment: NONE.
+- Release gate: **BLOCKED / NOT CERTIFIED**.
