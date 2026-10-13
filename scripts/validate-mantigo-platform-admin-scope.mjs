@@ -14,6 +14,23 @@ check("global dashboard checks the platform-admin guard", migration.includes("ge
 check("global financial report checks the platform-admin guard", migration.includes("get_mantigo_admin_financial_report_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
 check("global settlement checks the platform-admin guard", migration.includes("settle_mantigo_captain_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
 check("global stale-ride expiration checks the platform-admin guard", migration.includes("expire_stale_mantigo_rides_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
+const privilegedRpcGrants = [
+  ["get_mantigo_admin_dashboard_backend(uuid)", "get_mantigo_admin_dashboard_backend(uuid)"],
+  ["get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)", "get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)"],
+  ["settle_mantigo_captain_backend(uuid,text,text)", "settle_mantigo_captain_backend(uuid,text,text)"],
+  ["expire_stale_mantigo_rides_backend(uuid,integer)", "expire_stale_mantigo_rides_backend(uuid,integer)"]
+];
+check("guard and all four privileged RPCs pin search_path to empty",
+  (migration.match(/set search_path = ''/g) || []).length >= 5);
+check("all four privileged RPCs revoke PUBLIC/anon and retain only the intended authenticated entrypoint",
+  privilegedRpcGrants.every(([signature]) =>
+    migration.includes("revoke all on function public." + signature + " from public, anon;") &&
+    migration.includes("grant execute on function public." + signature + " to authenticated;")));
+check("each privileged RPC binds the supplied admin ID to auth.uid before privileged work",
+  migration.includes("v_user <> p_admin_user_id") &&
+  migration.includes("v_auth <> p_admin_user_id") &&
+  (migration.match(/p_admin_user_id <> auth\.uid\(\)/g) || []).length >= 2);
+
 check("integration rejects tenant OWNER, ADMIN, and OPERATIONS_MANAGER", integration.includes("tenant OWNER must not be treated") && integration.includes("tenant ADMIN with admin permission") && integration.includes("tenant OPERATIONS_MANAGER"));
 check("integration exercises global dashboard, report, settlement, and expiration", integration.includes("tenant OWNER read platform-wide dashboard") && integration.includes("tenant OWNER read platform-wide financial report") && integration.includes("global settlement mutation") && integration.includes("global ride expiration mutation"));
 check("integration allows explicit platform SUPER_ADMIN and checks grants", integration.includes("explicit platform SUPER_ADMIN") && integration.includes("has_function_privilege('anon'"));
