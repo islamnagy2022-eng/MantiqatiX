@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const read = (p) => fs.readFileSync(p, "utf8");
 const webhook = read("supabase/functions/paymob-webhook/index.ts");
+const lookupMigration = read("supabase/migrations/20261013010000_paymob_webhook_target_lookup_rpc.sql");
 const orderPayment = read("supabase/functions/payment-intent/index.ts");
 const ridePayment = read("supabase/functions/mantigo-payment-intent/index.ts");
 const digitalPayment = read("supabase/functions/digital-page-payment-intent/index.ts");
@@ -17,9 +18,9 @@ const failureStart = webhook.indexOf('if(!success){\n   const {data:failureResul
 const failureEnd = failureStart < 0 ? -1 : webhook.indexOf('const {data:processed,error:e}=await admin.rpc("process_verified_provider_payment"', failureStart);
 const normalFailureBlock = failureStart >= 0 && failureEnd > failureStart ? webhook.slice(failureStart, failureEnd) : "";
 const workflow = read(".github/workflows/pages.yml");
-const subscriptionBlockStart = webhook.indexOf("const sub=subByRef??subByOrder");
+const subscriptionBlockStart = webhook.indexOf('const sub=target?.kind==="subscription"?target:null');
 const subscriptionMutationStart = webhook.indexOf('admin.rpc("process_verified_subscription_payment_failure"', subscriptionBlockStart);
-const digitalBlockStart = webhook.indexOf("const digital=digitalByRef??digitalByOrder");
+const digitalBlockStart = webhook.indexOf('const digital=target?.kind==="digital_page"?target:null');
 const digitalMutationStart = webhook.indexOf('admin.rpc("process_verified_digital_page_payment_backend"', digitalBlockStart);
 
 const checks = [
@@ -29,7 +30,8 @@ const checks = [
   ["Normal Paymob checkout marks an intent FAILED only after explicit HTTP 4xx rejection", orderPayment.includes("response.status >= 400 && response.status < 500") && orderPayment.includes("PAYMENT_PROVIDER_REJECTED") && orderPayment.includes("persist_definitive_provider_rejection")],
   ["Normal Paymob 5xx or incomplete responses do not release the active intent", orderPayment.includes("HTTP 5xx, malformed JSON, or missing provider identifiers are ambiguous") && orderPayment.includes("reconciliationRequired: true") && orderPayment.indexOf("if (response.status >= 400 && response.status < 500)") < orderPayment.indexOf("if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId)") && !orderPayment.slice(orderPayment.indexOf("if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId)")).includes("update({ status: \"FAILED\"")],
   ["Normal provider-intent persistence checks the state transition and affected row", orderPayment.includes('.eq("status", "CREATED").is("provider_intent_id", null)') && orderPayment.includes('.select("id").maybeSingle()') && orderPayment.includes("PAYMENT_INTENT_PERSISTENCE_UNKNOWN")],
-  ["Normal webhook binds intent to signed provider order", webhook.includes("PAYMENT_PROVIDER_ORDER_MISMATCH") && webhook.includes('eq("provider_order_id",paymobOrderId)')],
+  ["Normal webhook resolves targets through the server-only RPC", webhook.includes('admin.rpc("resolve_paymob_webhook_target"') && lookupMigration.includes("GRANT EXECUTE ON FUNCTION public.resolve_paymob_webhook_target(text,text) TO service_role")],
+  ["Normal webhook binds intent to signed provider order", webhook.includes("PAYMENT_PROVIDER_ORDER_MISMATCH") && webhook.includes("String(intent.provider_order_id)!==paymobOrderId")],
   ["Normal failure and success callbacks do not short-circuit replay validation", !webhook.includes('admin.from("payment_provider_events").select("id,payment_intent_id").eq("provider","PAYMOB").eq("external_event_id",eventId).maybeSingle();if(existing)return json({ok:true,idempotent:true,requestId},200,requestId)')],
   ["Subscription success webhook uses the hardened atomic backend RPC", webhook.includes('admin.rpc("process_verified_subscription_payment_backend"') && webhook.includes("p_provider_order_id:paymobOrderId") && webhook.includes("p_raw_payload:raw")],
   ["Subscription success no longer calls the legacy unbound RPC", !webhook.includes('admin.rpc("process_verified_subscription_payment"')],
@@ -55,6 +57,9 @@ const checks = [
   ["RC431 rejects NULL status and conflicting replay status", digitalHardeningMigration.includes("if p_status is null or p_status not in ('SUCCEEDED', 'FAILED')") && digitalHardeningMigration.includes("DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH")],
   ["RC431 digital-page payment RPC rejects a null status", digitalHardeningMigration.includes("if p_status is null or p_status not in ('SUCCEEDED', 'FAILED')")],
   ["RC431 digital-page callback rejects conflicting status on replay", digitalHardeningMigration.includes("DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH") && digitalHardeningMigration.includes("v_event.status is distinct from p_status")],
+  ["Lookup rejects ambiguous merchant references", lookupMigration.includes("PAYMENT_TARGET_AMBIGUOUS_MERCHANT_REFERENCE")],
+  ["Lookup rejects ambiguous provider-order IDs instead of choosing LIMIT 1", lookupMigration.includes("PAYMENT_TARGET_AMBIGUOUS_PROVIDER_ORDER") && !/\\bLIMIT\\s+1\\b/i.test(lookupMigration)],
+  ["Lookup uses fixed search_path and is service-role-only", lookupMigration.includes("SET search_path = public, pg_temp") && lookupMigration.includes("REVOKE ALL ON FUNCTION public.resolve_paymob_webhook_target(text,text)") && lookupMigration.includes("TO service_role;")],
   ["Subscription webhook binds intent to signed provider order", webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("sub.provider_order_id")],
   ["Subscription callback arriving before provider-order persistence is retryable", webhook.includes("SUBSCRIPTION_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('sub.status==="PENDING"')],
   ["Normal payment callback arriving before provider-order persistence is retryable", webhook.includes("PAYMENT_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('intent.status==="CREATED"')],
@@ -66,7 +71,7 @@ const checks = [
   ["Digital webhook rejects a mismatched provider order", webhook.includes("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH") && digitalHardeningMigration.includes("v_order.provider_order_id <> p_provider_order_id")],
   ["Digital provider-order and merchant-reference binding run before payment mutation", digitalBlockStart >= 0 && digitalMutationStart > digitalBlockStart && webhook.indexOf("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH", digitalBlockStart) < digitalMutationStart && webhook.slice(digitalBlockStart, digitalMutationStart).includes("String(digital.provider_order_id)!==paymobOrderId") && webhook.slice(digitalBlockStart, digitalMutationStart).includes("DIGITAL_PAGE_MERCHANT_REFERENCE_MISMATCH")],
   ["Subscription provider-order and merchant-reference binding run before payment mutation", subscriptionBlockStart >= 0 && subscriptionMutationStart > subscriptionBlockStart && webhook.indexOf("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH", subscriptionBlockStart) < subscriptionMutationStart && webhook.slice(subscriptionBlockStart, subscriptionMutationStart).includes("String(sub.provider_order_id)!==paymobOrderId") && webhook.slice(subscriptionBlockStart, subscriptionMutationStart).includes("SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH")],
-  ["Digital webhook returns retryable status while a claimed intent lacks provider-order persistence", webhook.includes("DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('payment_status,provider_order_id,metadata')],
+  ["Digital webhook returns retryable status while a claimed intent lacks provider-order persistence", webhook.includes("DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('"payment_intent_claim" in (digital.metadata as Record<string,unknown>)') && lookupMigration.includes("'metadata',d.metadata")],
   ["MantiGo claims the ledger before creating a Paymob intention", ridePayment.indexOf("paymob_intention_claim:requestId") > 0 && ridePayment.indexOf("paymob_intention_claim:requestId") < ridePayment.indexOf('fetch("https://accept.paymob.com/v1/intention/"')],
   ["MantiGo intention persistence must own the claim token", ridePayment.includes('.filter("metadata->>paymob_intention_claim","eq",requestId)')],
   ["MantiGo refuses retrying a pending ledger without a stored intention", ridePayment.includes('if(String(ledger.payment_status)==="PENDING")return json({error:"PAYMENT_INTENT_REQUIRES_RESTART"},409,requestId)')],
