@@ -49,3 +49,19 @@ if (mantigoOrderGate < 0 || mantigoEventInsert < 0 || mantigoLedgerUpdate < 0 ||
     mantigoOrderGate >= mantigoEventInsert || mantigoOrderGate >= mantigoLedgerUpdate) {
   throw new Error('S05 MantiGO provider/order gate must precede event persistence and ledger mutation');
 }
+
+// S05 MantiGO atomicity release gate. This intentionally fails until the webhook
+// delegates event idempotency + ledger transition to one transactional RPC.
+const mantigoStart = webhook.indexOf('const {data:mantigo}=');
+const generalIntentStart = webhook.indexOf('const {data:intentByRef}=');
+if (mantigoStart < 0 || generalIntentStart < 0 || mantigoStart >= generalIntentStart) {
+  throw new Error('S05 MantiGO branch boundary could not be located');
+}
+const mantigoBranch = webhook.slice(mantigoStart, generalIntentStart);
+if (!mantigoBranch.includes('admin.rpc("process_verified_mantigo_payment_backend"')) {
+  throw new Error('S05 release BLOCKED: MantiGO webhook must use the atomic process_verified_mantigo_payment_backend RPC');
+}
+if (mantigoBranch.includes('from("payment_provider_events").insert') ||
+    mantigoBranch.includes('from("mantigo_financial_ledger").update')) {
+  throw new Error('S05 release BLOCKED: MantiGO event persistence and ledger transition must not be separate Edge Function writes');
+}
