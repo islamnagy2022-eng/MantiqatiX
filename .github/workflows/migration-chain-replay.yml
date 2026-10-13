@@ -175,6 +175,7 @@ jobs:
           payment_events_policy_baseline="supabase/tests/baselines/payment_events_finance_read.sql"
           settlement_transactions_policy_baseline="supabase/tests/baselines/settlement_transactions_finance_read.sql"
           wallet_accounts_policy_baseline="supabase/tests/baselines/wallet_accounts_finance_read.sql"
+          wallet_transactions_policy_baseline="supabase/tests/baselines/wallet_transactions_finance_read.sql"
           smm_order_events_baseline="supabase/tests/baselines/smm_order_events.sql"
           legacy_businesses_migration="supabase/migrations/20260807999997_test_only_legacy_businesses_baseline.sql"
           legacy_products_migration="supabase/migrations/20260807999998_test_only_legacy_products_baseline.sql"
@@ -202,6 +203,7 @@ jobs:
           payment_events_policy_migration="supabase/migrations/20260927140493_test_only_live_derived_payment_events_finance_read.sql"
           settlement_transactions_policy_migration="supabase/migrations/20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql"
           wallet_accounts_policy_migration="supabase/migrations/20260927140486_test_only_live_derived_wallet_accounts_finance_read.sql"
+          wallet_transactions_policy_migration="supabase/migrations/20260927140485_test_only_live_derived_wallet_transactions_finance_read.sql"
           smm_order_events_migration="supabase/migrations/20260927140491_test_only_live_derived_smm_order_events_baseline.sql"
           cmp -s "$legacy_businesses_baseline" "$legacy_businesses_migration"
           cmp -s "$legacy_products_baseline" "$legacy_products_migration"
@@ -232,7 +234,7 @@ jobs:
           cmp -s "$wallet_transactions_policy_baseline" "$wallet_transactions_policy_migration"
           cmp -s "$smm_order_events_baseline" "$smm_order_events_migration"
           for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
-          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$smm_order_events_migration"
+          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"
           echo "PASS: exact untracked temporary baseline copies; no production rows are imported. Function fixtures are definition-only and are never invoked by replay."
 
       - name: Setup Supabase CLI
