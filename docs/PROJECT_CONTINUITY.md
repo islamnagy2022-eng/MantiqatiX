@@ -594,3 +594,18 @@ This status is intentional and must remain until the open gates above are indepe
 - Exact-head core and focused CI checks are green; Pages deployment was skipped. Replay run [38239527707](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38239527707) passed preflight and injection checks, but is still starting disposable Supabase services. Full chronological replay is NOT VERIFIED.
 - No production changes, merge, live SMM deployment, or release certification occurred. Live SMM gateway v6 remains a P0 containment gate; the SMM feature freeze remains in effect.
 - Next: monitor the existing replay run, then respond to its actual result without skipping historical migrations or inventing DDL. Overall status: **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-13 — Current continuation checkpoint (SESSION-003)
+
+Read the latest SESSION-003 entry in docs/SESSION_LOG.md and the dated section in docs/release/MIGRATION_REPLAY_BLOCKERS.md before continuing.
+
+- PR #207 remains open/draft/unmerged; PR #218 remains open/draft/unmerged. Main was last verified as 8a56358d505d2c12878440037f7f24ba65d2ea10.
+- The root-level MANTIQATIX_MASTER_TODO_2026-10-13.md was missing at the start of this session and is being added as a concise durable pointer to the canonical docs/MASTER_PRODUCTION_TODO.md plus the latest verified state.
+- Read-only live catalog evidence enabled a disposable-only payment_provider_events schema fixture. The baseline includes current columns/defaults, PK/unique/FKs and ENABLE/FORCE RLS, but intentionally no policy/grants/data. The ordered 20260920211717 migration remains the sole source of payment_provider_events_finance_read.
+- Current live credit amount columns were rechecked and are numeric(18,2); all three candidate fixtures and the Validator were corrected back to that exact type after a prior unsupported inference.
+- Latest exact-head CI replay is not yet certified. Check the newest PR #207 workflow run before further edits and continue past the first successful preflight to expose subsequent chronological failures.
+- P0 separate live runtime concern: read-only ACL evidence says service_role has no table SELECT/INSERT/UPDATE/DELETE privileges on payment_provider_events while deployed paymob-webhook v8 directly selects/inserts it. Investigate whether the intended path should be a narrowly scoped RPC or another approved least-privilege mechanism. Do not alter production grants or deploy code without separate explicit authorization.
+- Recent Postgres logs also show permission-denied errors for smm_orders, smm_services, smm_wallets, digital_page_orders and digital_page_products. Treat as independent evidence-led P0/P1 candidates; do not mass-grant privileges or weaken RLS.
+- Respect the previously recorded SMM initial-launch feature freeze. Inspect and document, but do not implement SMM feature changes or weaken SMM validation unless the owner explicitly lifts that freeze.
+- No production DDL/data/ACL changes, Auth changes, deployment, merge, or financial test records were created.
+- Release remains BLOCKED / NOT CERTIFIED.
