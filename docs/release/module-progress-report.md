@@ -23,6 +23,38 @@ These percentages are evidence-based coverage measures, not claims that a module
 | SMM gateway regression tests | **PASS** | Deno check, new Deno tests, boundary validator, and isolated PostgreSQL ACL test passed in run 38329947697 |
 | Final release certification | **BLOCKED / NOT CERTIFIED** | Binary release gate remains open; not the same as overall source-code progress |
 
+
+## All canonical UI modules
+
+These 24 canonical codes passed the feature-flag alias mapping contract. The 100% value below applies only to that mapping contract; it does not certify the workflow or production E2E.
+
+| Canonical code | Module | Mapping contract | Production E2E |
+|---|---|---:|---|
+| ANALYTICS | التحليلات والتقارير | 100% — PASS | NOT VERIFIED |
+| CONTROL | التحكم الكامل / إدارة المنصة | 100% — PASS | NOT VERIFIED |
+| CRM | المستخدمون وإدارة علاقات العملاء | 100% — PASS | NOT VERIFIED |
+| DOMAINS | المجالات والقطاعات | 100% — PASS | NOT VERIFIED |
+| EDUCATION | التعليم والمدارس | 100% — PASS | NOT VERIFIED |
+| FASHION | التجارة والأزياء | 100% — PASS | NOT VERIFIED |
+| FINANCE | المالية والعمولات والتسويات | 100% — PASS | NOT VERIFIED |
+| GOVERNANCE | الحوكمة والتدقيق | 100% — PASS | NOT VERIFIED |
+| GROCERY | البقالة والسوبر ماركت | 100% — PASS | NOT VERIFIED |
+| HOME | الرئيسية | 100% — PASS | NOT VERIFIED |
+| JOBS | الوظائف والتوظيف | 100% — PASS | NOT VERIFIED |
+| MAINTENANCE | الصيانة والخدمات المنزلية | 100% — PASS | NOT VERIFIED |
+| MANTIGO | MantiGO والنقل والمزايدات | 100% — PASS | NOT VERIFIED |
+| MARKETING | التسويق والإعلان | 100% — PASS | NOT VERIFIED |
+| MATRIMONY | الزواج | 100% — PASS | NOT VERIFIED |
+| MEDICAL | المنظومة الطبية | 100% — PASS | NOT VERIFIED |
+| MODULES | إدارة الموديولات | 100% — PASS | NOT VERIFIED |
+| OPERATIONS | الطلبات والعمليات | 100% — PASS | NOT VERIFIED |
+| PRO_SERVICES | الخدمات المهنية | 100% — PASS | NOT VERIFIED |
+| REGISTRATION | التسجيل والعضويات | 100% — PASS | NOT VERIFIED |
+| RESTAURANTS | المطاعم والكافيهات | 100% — PASS | NOT VERIFIED |
+| SETTINGS | الإعدادات | 100% — PASS | NOT VERIFIED |
+| SMM | خدمات التسويق الرقمي SMM | 100% — PASS | DEFERRED / NOT DEPLOYED |
+| USED_ITEMS | المستعمل | 100% — PASS | NOT VERIFIED |
+
 ## All domain modules
 
 “Runtime wiring” is the validated CI contract only. “Production E2E” remains unverified for each row until evidence exists for the actual user/provider/owner/admin workflow and cross-tenant denial in the deployed environment.
