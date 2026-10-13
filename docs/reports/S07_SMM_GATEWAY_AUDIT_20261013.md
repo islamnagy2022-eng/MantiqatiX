@@ -92,3 +92,8 @@ This test file is included by the existing `deno test --no-check supabase/functi
 At this checkpoint, workflow run [38341065311](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38341065311), associated with PR head `6e24a9e4a0c5971fe7cf18a924d1dbbfe2ef5a50`, and its S07 job were still **queued**. This run predates the new request parser test commit, so it cannot validate that test. Do not count any of the newly added helper tests as passing until a completed run on a commit containing them is inspected.
 
 The source-parity validator remains intentionally fail-closed: current `index.ts` lacks imports for the v10 safety helpers and retains the legacy automatic refund path. No validator relaxation, entrypoint overwrite, merge, deployment, secret update, migration, provider call, campaign submission, or wallet mutation was performed. PR #221 remains Draft and **BLOCKED / NOT CERTIFIED**.
+
+
+## CI run for request parser test commit
+
+The S07 contract workflow run [38341127397](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38341127397), associated with commit `1f269b2e6859daf34912d5451a7093db9a8bb191` (the new request parser tests), was returned as **queued** on recheck. No test or validator outcome is available yet. The documentation-only commit after it does not itself trigger the workflow because the workflow path filter excludes this report. Wait for a completed run on the test commit or a later code commit before recording test results.
