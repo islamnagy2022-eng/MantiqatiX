@@ -143,3 +143,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Source commit: `abac117ed1d6485f6b3a5d08d3fd6eb96f27971e`.
 - This should unblock the intended migration path; outcome must be confirmed by the next exact-head CI run. RC450/RC457 are still failing in the latest completed run until the new run proves otherwise.
 - No production database changes, migrations, grants, auth/RLS changes, deployments, merge, or release were performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC536 — Complete finance fixture membership baseline — 2026-10-13
+
+- The new run `38328318477` progressed past the missing legacy RPC signatures; the standalone RC436 financial journal integration job passed.
+- RC457 then exposed another missing baseline field in the same disposable fixture: `user_memberships.created_at`, referenced by the membership selection ordering in the posting RPC. Added `created_at timestamptz not null default current_timestamp` to `supabase/tests/rc450_financial_journal_fixture.sql`.
+- Source commit: `0ede84686f0fc68fa9b6f544e86c8692916e41fd`.
+- RC450/RC457 remain unverified until a run containing RC536 finishes. Continue treating all fixtures as isolated test-only baseline models, not production schema changes.
+- No production database changes, migrations, grants, auth/RLS changes, deployments, merge, or release. Release remains BLOCKED / NOT CERTIFIED.
