@@ -1,6 +1,6 @@
 -- RC449 behavioral integration test. Run only in disposable PostgreSQL.
--- The test deliberately changes JWT identity in one backend session; force per-execution plans
--- so STABLE no-argument auth helpers are not reused across simulated identities.
+-- The test deliberately changes JWT identity in one backend session. RC462's VOLATILE guard
+-- must re-evaluate request-scoped identity instead of reusing the first caller's result.
 SET plan_cache_mode = force_custom_plan;
 do $test$
 declare
