@@ -114,6 +114,15 @@ begin
     raise exception 'RC430_FAIL: duplicate subscription success not idempotent: %',v_result;
   end if;
 
+  v_result := public.process_verified_subscription_payment_failure(
+    'paymob-sub:TX-SUB-LATE-FAIL','paymob:TX-SUB-LATE-FAIL',v_sub_success,'TX-SUB-LATE-FAIL',250,'EGP',
+    'subscription-order-success',true,'{"case":"late-subscription-failure"}'::jsonb
+  );
+  select status into v_status from public.subscription_payment_intents where id=v_sub_success;
+  if v_status <> 'SUCCEEDED' or coalesce((v_result->>'already_final')::boolean,false) is not true then
+    raise exception 'RC429_FAIL: late failure downgraded a successful subscription: %, %',v_status,v_result;
+  end if;
+
   begin
     perform public.process_verified_subscription_payment_backend(
       'paymob-sub:TX-SUB-SUCCESS','paymob:TX-SUB-SUCCESS',v_sub_success,'TX-SUB-SUCCESS',250,'EGP',
@@ -125,8 +134,8 @@ begin
   end;
 
   select count(*) into v_events from public.payment_provider_events;
-  if v_events <> 4 then
-    raise exception 'RC428-430_FAIL: unexpected event count %, expected 4',v_events;
+  if v_events <> 5 then
+    raise exception 'RC428-430_FAIL: unexpected event count %, expected 5',v_events;
   end if;
 end;
 $test$;
