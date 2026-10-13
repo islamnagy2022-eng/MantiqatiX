@@ -148,3 +148,11 @@ These non-zero values preserve previously documented work. They are provisional 
 - Reviewed the Pages workflow source: deployment requires successful validation and only runs for a push to main or explicit workflow_dispatch, not for a pull-request event.
 - Confirmed the migration-chain validator requires 33 source files to exist in timestamp order and separately requires live reconciliation and runtime evidence before release certification.
 - No production changes, migrations, deployments, financial operations, merge, or release. Overall release remains **0% approved / BLOCKED / NOT CERTIFIED**.
+
+
+## RC529 update — 2026-10-13
+
+- Added a disposable PostgreSQL regression test for the RC523 MantiGO financial report. It deliberately separates canonical ledger amounts from legacy amount columns and checks report totals and the stable `captain_amount` JSON key.
+- Added the dedicated `mantigo-financial-report-rc523-integration` job to the focused integration workflow and included the RC523 migration/test paths in the trigger filters.
+- Current focused workflow run: [38326313929](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38326313929). At inspection, the RC523 job was queued; no pass is claimed.
+- No production changes, financial operations, merge, or release. Certification remains blocked pending completed CI and required production/runtime evidence.
