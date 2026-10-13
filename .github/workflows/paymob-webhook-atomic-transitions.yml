@@ -1,0 +1,46 @@
+name: Paymob Webhook Atomic State Transitions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql"
+      - "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql"
+      - "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql"
+      - "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql"
+      - "scripts/validate-paymob-webhook-atomic-transitions.mjs"
+      - ".github/workflows/paymob-webhook-atomic-transitions.yml"
+  pull_request:
+    branches: [main, "docs/rc521-admin-operations-discovery-20261013"]
+    paths:
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql"
+      - "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql"
+      - "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql"
+      - "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql"
+      - "scripts/validate-paymob-webhook-atomic-transitions.mjs"
+      - ".github/workflows/paymob-webhook-atomic-transitions.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Validate atomic webhook state transitions
+        run: node scripts/validate-paymob-webhook-atomic-transitions.mjs
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Paymob webhook
+        run: deno check --no-lock supabase/functions/paymob-webhook/index.ts
