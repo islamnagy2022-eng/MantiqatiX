@@ -928,3 +928,24 @@ The source search was extended beyond the current migration directory:
 - The live catalog inspection remains the only currently found structural evidence, and does not establish original DDL provenance.
 
 **Conclusion:** original creation DDL is not recovered by the supplied archive or the searched repository/PR history. Continue fail-closed. Do not generate an assumed production migration or broaden prior test-baseline approvals. The remaining safe dependency is an authoritative historical SQL export/backup/deployment record, or explicit owner approval scoped only to a disposable schema fixture with provenance and no production rows.
+
+
+## 2026-10-13 — marketing project table dependency found in clean replay
+
+### Exact evidence
+- Latest PR #207 replay run [#38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600), tested from PR #207 head `854935bf0bdd524bb7bf28453a7c34253c731e71`, successfully started disposable Supabase and advanced through the test-only SMM, registration, provider-profile, marketing-lead, finance-policy and approval-policy baselines.
+- It then failed in `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` at `ERROR: relation "public.marketing_project_participants" does not exist (SQLSTATE 42P01)`.
+- Read-only production catalog inspection confirms `public.marketing_project_participants` and `public.marketing_projects` both exist. Their complete column lists, constraints, indexes, RLS enabled/forced state, policies and table grants were inspected; no operational rows were queried or copied.
+- A read-only search of the applied migration ledger finds no canonical CREATE TABLE statement for either table. The only matching historical statement is the 2026-09-27 policy-hardening migration that alters their existing policies. Repository code search likewise did not recover their canonical table-creation DDL.
+- `marketing_project_participants` depends on `marketing_projects` and `marketing_provider_profiles`; `marketing_projects` depends on `marketing_leads` and `businesses`. The existing test-only marketing-leads baseline already supplies the first/parent dependency chain, so this patch extends that same isolated compatibility baseline with the two catalog-derived tables in dependency order.
+
+### Isolated-only change
+- Extend `supabase/tests/baselines/marketing_leads.sql` to create `marketing_projects` then `marketing_project_participants` after `marketing_leads`, using only read-only catalog-derived columns, constraints, indexes, RLS, the two policy definitions required by the historical ALTER POLICY migration, and observed least-privilege table grants.
+- Extend `scripts/validate-historical-schema-baseline.mjs` to fail closed unless both tables' dependencies, constraints, indexes, RLS, policy predicates and grants are present and the chronological ALTER POLICY statements still exist.
+- The workflow injects this file only as a temporary untracked migration in the disposable CI workspace before `20260927140500`. No new committed file is added under `supabase/migrations`, and no production table/schema/data/policy/grant is changed.
+- This does **not** recover historical DDL. The fixture uses the current read-only catalog shape and current observed policy role targets; it must be described as synthetic-baseline-assisted replay. The production release gate remains blocked until source provenance, security parity and the complete replay are independently accepted.
+
+### Verification still required
+- Run the historical schema baseline validator and migration history immutability/version-uniqueness gates on the updated exact PR head.
+- Inspect the next chronological replay failure without skipping migrations or inventing dependencies.
+- A successful run of this synthetic-baseline-assisted replay is necessary but not sufficient for release certification.
