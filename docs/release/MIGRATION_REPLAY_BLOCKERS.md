@@ -846,3 +846,21 @@ Read-only production `pg_policies` evidence for `public.commission_transactions`
 Current exact-head CI after these changes: pending at commit `9c09ac5ba2e92b867acd71099b866b62315e854e` when this note was written. The next replay result must be read from that exact head; no pass is inferred.
 
 No production schema, data, migration ledger, RLS, grants, Auth, wallet, or payment state was changed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — Second missing finance policy dependency
+
+Replay run `38352389561` verified the commission policy fixture and progressed further, then failed at statement 17 of `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` with:
+
+```
+ERROR: policy "general_ledger_finance_read" for table "general_ledger" does not exist (SQLSTATE 42704)
+```
+
+A read-only `pg_policies` query against production confirms `general_ledger_finance_read` is a permissive `SELECT TO authenticated` policy scoped to the caller's ACTIVE tenant membership and finance-capable roles `OWNER, ADMIN, MANAGER, FINANCE, ACCOUNTANT, FINANCE_MANAGER`. Repository search did not find a prior committed `CREATE POLICY general_ledger_finance_read`; the historical file only alters the policy's role audience.
+
+Safe disposable-only response on the migration-owning branch:
+- Added `supabase/tests/baselines/general_ledger_finance_read.sql` from the read-only catalog predicate, explicitly marked as test-only and not historical recovery.
+- Added validator checks for tenant/user/status/role scope, no DDL/grants/data, no earlier creator, and a unique version before the historical ALTER.
+- Added exact-copy, untracked, and no-data-write checks in the replay workflow. Temporary version `20260927140497` sorts before the commission fixture at `20260927140498`, approval fixture at `20260927140499`, and historical ALTER at `20260927140500`.
+
+The next replay on code head `8ada230565bb9fd8f2ba745440fb3c4175b4c612` was pending at last check. The previous run demonstrates that the commission-policy preflight no longer stops the replay; it is not a full replay PASS. Keep historical provenance unresolved and production release **BLOCKED / NOT CERTIFIED**.
