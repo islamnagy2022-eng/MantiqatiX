@@ -96,7 +96,6 @@ begin
 
   rejected:=false;
   begin
-    perform pg_catalog.set_config('mantiqatix.test_auth_diag','on',false);
     perform public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
   exception when others then
     if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
