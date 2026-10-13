@@ -33,3 +33,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Blockers preserved:** authoritative historical schema gaps, migration chain replay, tenant/auth E2E, Paymob/finance E2E, managed Auth setting, backup/restore/rollback, browser/PWA/device and signed Android evidence.
 - **Next action:** use authoritative migration/archive/live-schema provenance to repair the clean-replay prerequisites; do not synthesize missing DDL. Then rerun clean replay and exact-head tests, review the smallest independently deployable source changes, and obtain explicit approval before production rollout.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-003 — Exact-head CI correction
+
+- Corrected the earlier incomplete PR #236 Actions lookup: exact-head run [38400580077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400580077) passed the SMM service-role ACL boundary at `70b2ea3e75c68c27272566ab59ed671f659804a4`, event `push`; scope is disposable PostgreSQL only.
+- Verified PR #239 exact-head runs: Pages [38406024136](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406024136) validation passed and deploy was skipped; backend boundary [38406023940](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406023940), module validation [38406024107](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406024107), and MantiGO privacy [38406023924](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406023924) passed.
+- Reconfirmed the historical migration source gap: the tracked migration tree is not a complete reproduction of live history, and authoritative creation DDL for `marketing_project_participants` was not recovered. No guessed DDL or baseline added.
+- No production deployment, production DDL/ACL change, merge, live payment, or SMM provider call performed. Release remains **BLOCKED / NOT CERTIFIED**.
+- Next action: recover authoritative historical schema provenance or obtain explicit narrowly scoped approval for a disposable-only baseline; then rerun full chronological replay and keep production blocked until all live gates pass.
