@@ -48,6 +48,17 @@ const required = [
   "20261013190000_rc522_audit_log_append_only.sql",
   "20261013200000_rc523_mantigo_financial_report_canonical_columns.sql"
 ];
+const liveLedgerOrderAliases = [
+  ["20261002190000_rc228_digital_page_products_orders.sql", "20261002073217_rc228_digital_page_products_orders.sql"],
+  ["20261002191000_rc229_digital_page_payment_columns.sql", "20261002073331_rc229_digital_page_payment_columns.sql"],
+  ["20261002192000_rc230_digital_page_payment_events.sql", "20261002073419_rc230_digital_page_payment_events.sql"],
+  ["20261002110000_rc248_digital_page_content_publishing.sql", "20261002090131_rc248_digital_page_content_publishing.sql"],
+  ["20261002100000_rc256_critical_fk_indexes.sql", "20261002094419_rc256_critical_fk_indexes.sql"],
+];
+const missingLiveLedgerOrderAliases = liveLedgerOrderAliases.filter(([source, target]) =>
+  !fs.existsSync(path.join(migrationDir, source)) ||
+  fs.existsSync(path.join(migrationDir, target))
+);
 const missingRequired = required.filter(name => !fs.existsSync(path.join(migrationDir, name)));
 const rc433 = files.filter(name => /rc433/i.test(name));
 const recovered = fs.existsSync(recoveredDir)
@@ -64,6 +75,9 @@ const report = {
   unapproved_duplicate_version_groups: unapprovedDuplicateVersions.map(([version, names]) => ({ version, names })),
   disposable_normalization_required: approvedDuplicateGroups.length > 0,
   missing_required_sources: missingRequired,
+  live_ledger_order_aliases: liveLedgerOrderAliases.map(([source, target]) => ({ source, target })),
+  invalid_live_ledger_order_aliases: missingLiveLedgerOrderAliases,
+  disposable_normalization_required: approvedDuplicateGroups.length > 0 || liveLedgerOrderAliases.length > 0,
   rc433_sources: rc433,
   rc433_status: rc433.length ? "SOURCE_PRESENT" : "NOT_FOUND_NOT_VERIFIED_GAP",
   recovered_archive_file_count: recovered.length,
@@ -71,7 +85,7 @@ const report = {
   required_source_sha256: Object.fromEntries(required.filter(name => fs.existsSync(path.join(migrationDir, name))).map(name => [name, digest(name)])),
   first_12_migration_files: files.slice(0, 12),
   latest_12_migration_files: files.slice(-12),
-  result: invalidNames.length || unapprovedDuplicateVersions.length || missingRequired.length ? "FAIL" : "PASS_WITH_APPROVED_DISPOSABLE_NORMALIZATION"
+  result: invalidNames.length || unapprovedDuplicateVersions.length || missingRequired.length || missingLiveLedgerOrderAliases.length ? "FAIL" : "PASS_WITH_APPROVED_DISPOSABLE_NORMALIZATION"
 };
 console.log(JSON.stringify(report, null, 2));
 if (invalidNames.length) console.error("Invalid migration filenames:", invalidNames.join(", "));
@@ -82,3 +96,4 @@ if (missingRequired.length) console.error("Missing required migration sources:",
 assert.equal(invalidNames.length, 0, "Every migration filename must use the 14-digit timestamp convention");
 assert.equal(unapprovedDuplicateVersions.length, 0, "Only the exact approved legacy duplicate groups may be normalized in disposable CI");
 assert.equal(missingRequired.length, 0, "Every required S04 migration source must exist");
+assert.equal(missingLiveLedgerOrderAliases.length, 0, "Digital-page migration sources and their live-ledger replay aliases must remain reconciled");
