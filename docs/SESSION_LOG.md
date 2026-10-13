@@ -134,3 +134,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Change commit: `5fa921b297a69221876c3167d31facc633add03b`. Fix is committed; its new CI outcome is not yet verified.
 - Safety: test-fixture-only source change. No production database mutation, migration application, financial operation, Auth/grant/RLS change, Edge Function deployment, merge, or release.
 - Release remains BLOCKED / NOT CERTIFIED until the new exact-head CI and all mandatory runtime gates pass.
+
+
+## RC535 — Repair financial journal integration fixture baseline — 2026-10-13
+
+- Rechecked the rerun of focused integration workflow `38328039678`. The prior `created_at` fixture omission is no longer the observed failure; both RC450 and RC457 jobs now stop earlier in RC436 on `ALTER FUNCTION public.post_financial_journal(jsonb,jsonb)` because the isolated fixture omitted legacy RPC signatures.
+- Added fail-closed, test-only legacy RPC signatures to `supabase/tests/rc450_financial_journal_fixture.sql`. They raise `FIXTURE_LEGACY_RPC_MUST_NOT_BE_CALLED`; RC436/RC450 replace the backend function before assertions. These are disposable local test fixtures only, not production functions or a production migration.
+- Source commit: `abac117ed1d6485f6b3a5d08d3fd6eb96f27971e`.
+- This should unblock the intended migration path; outcome must be confirmed by the next exact-head CI run. RC450/RC457 are still failing in the latest completed run until the new run proves otherwise.
+- No production database changes, migrations, grants, auth/RLS changes, deployments, merge, or release were performed. Release remains BLOCKED / NOT CERTIFIED.
