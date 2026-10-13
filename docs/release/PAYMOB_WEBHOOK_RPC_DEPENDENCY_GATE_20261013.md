@@ -44,3 +44,18 @@ This is a real deployment dependency mismatch, not just a static-code difference
 ## Boundaries
 
 No production writes, migrations, grants, Auth/RLS changes, Edge Function deployment, wallet/payment transactions, or ledger mutations were performed. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Additional P0 dependency found and hardened in source — 2026-10-13
+
+A further read-only `pg_catalog.pg_proc` check found `resolve_paymob_webhook_target(text,text)` is also **NOT FOUND in production**. The tracked webhook calls this RPC before dispatching to the subscription, digital-page, MantiGO, or standard payment-intent processor. The candidate source migration `20261013010000_paymob_webhook_target_lookup_rpc.sql` existed in the PR but is not recorded in the live migration ledger (latest recorded version remains RC424).
+
+The resolver migration was hardened on the PR #207 branch:
+- Exact merchant-reference candidates take precedence only when unambiguous.
+- Provider-order-only lookup now fails closed if more than one target matches.
+- MantiGO lookup is restricted to rows whose provider is PAYMOB.
+- Function remains `SECURITY DEFINER` with `search_path=public, pg_temp`; execute is revoked from PUBLIC/anon/authenticated and granted only to `service_role`.
+- Added isolated PostgreSQL fixture/integration tests for each target kind, unknown references, duplicate provider-order IDs, ambiguous merchant references, and execute grants.
+- Added a dedicated GitHub Actions workflow to run those tests independently of the full historical replay.
+
+The new workflow and full migration replay are pending at the latest branch head; no PASS is claimed until their logs complete. This does not authorize production migration or Edge Function deployment.
