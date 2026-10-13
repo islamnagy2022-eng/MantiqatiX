@@ -51,3 +51,10 @@ Do **not** roll back to the old vulnerable function bodies or restore tenant-rol
 - Regression test/validator changes: committed on the S02 branch.
 - PostgreSQL execution for the new tests: **PENDING CI / NOT VERIFIED** until a completed run for the exact S02 code commit is observed.
 - Production migration, grant/RLS/Auth changes, merge, deployment, and financial/operational mutations: **NOT PERFORMED**.
+
+## Follow-up after CI attempts (2026-10-13)
+- CI run `38336820460`: static contract passed; PostgreSQL integration failed at the authorized settlement call with `PLATFORM_ADMIN_REQUIRED`.
+- CI run `38336966802`: static contract passed (23/23); the same PostgreSQL failure persisted. The integration test changes `request.jwt.claim.sub` several times inside one top-level DO block, while the fixture's `auth.uid()` was marked STABLE; PostgreSQL may preserve stable-function values for the statement snapshot, so the fixture did not faithfully model distinct HTTP requests.
+- S02 changed only the disposable fixture's `auth.uid()` volatility to VOLATILE to model JWT subject changes within that single test block. This does not alter production Auth or any migration. The static validator now checks this fixture contract.
+- The latest source commit is `0885f7faab55db45bf52eba35cdb784af86897f0`. A completed PostgreSQL run for this exact commit has **not yet been observed**. Therefore no behavioral test pass is claimed.
+- Next gate: obtain a CI run for the latest commit and require both static and PostgreSQL integration steps to pass. If the workflow does not trigger, re-run it from GitHub Actions against the current PR head; do not treat earlier run results as verification of the newer commit.
