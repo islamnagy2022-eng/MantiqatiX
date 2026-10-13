@@ -1638,3 +1638,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Complete mandatory production/runtime gates before certification.
 - Safety: no production SQL/data, migration ledger, grants/RLS/Auth, Edge Functions, financial/wallet operations, merge, or release changed.
 - Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC529 — RC523 canonical MantiGO financial-report regression test — 2026-10-13
+
+- [x] Added disposable PostgreSQL regression assertions using conflicting canonical and legacy ledger values. Checks cover gross, commission, paid, settled, unsettled totals and preservation of JSON key `captain_amount`.
+- [x] Added a focused CI job applying RC441 → RC449 → RC462 → RC523 before running the test.
+- [x] Added RC523 migration and test paths to the focused workflow's pull-request and main-branch trigger filters.
+- [ ] Inspect the new job's exact-head result and logs; source presence is not a passing integration test.
+- [ ] Continue chronological full replay and mandatory live tenant/payment/Auth/security/backup/device gates.
+- Safety: repository/test workflow only; no production SQL, migration application, financial transaction, merge, or release.
+- Release remains BLOCKED / NOT CERTIFIED.
