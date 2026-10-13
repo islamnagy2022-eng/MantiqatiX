@@ -637,3 +637,13 @@ This status is intentional and must remain until the open gates above are indepe
 - SMM regression and isolated PostgreSQL ACL CI passed; SMM stays deferred/disabled and undeployed. The latest focused migration integration run was still queued at the last check.
 - Current Advisor blockers: 40 authenticated-executable SECURITY DEFINER functions, one anon-executable public advertisement function, one RLS-enabled/no-policy payment-events table intentionally fail-closed pending access-contract verification, and leaked-password-protection warning(s). Performance Advisor counts 105 unindexed FKs, 375 auth/RLS init-plan notices, 124 unused-index notices, and 28 multiple-permissive-policy notices.
 - Release status: **BLOCKED / NOT CERTIFIED**. No production migrations, grants/RLS/Auth changes, function deployments, real payment operations, merge, or release occurred.
+
+
+## RC544 — Current source parity and migration replay baseline — 2026-10-13
+
+- 37 ACTIVE production Edge Functions; 32/37 (86.5%) exact live/repository source parity confirmed in the current audit. Five textual divergences remain: catalog-admin (format-only/semantically equivalent on inspected actions), financial-journal, business-branch-admin, mnty-customer-registration, and digital-page-order-create. The latter four need security/contract review; do not deploy or overwrite blindly.
+- Restored missing exact Deno import-map files for `payment-webhook`, `mnty-provider-onboarding-submit`, and `mnty-provider-onboarding-review`; source-only, not deployed.
+- 283 live migration ledger rows vs 160 repository migration source files; 126 source filenames at/before RC424, 34 later. Count-based indicator 126/283 = 44.5%, not exact reconciliation. There is no `supabase/config.toml` or separate migration archive under `supabase/`. The historical source gap blocks full chronological replay.
+- 0/33 required post-RC424 migrations are proven applied; ledger still ends at RC424. Full chronological replay NOT RUN.
+- Current objective module measures: 28/28 runtime wiring contracts pass; 24/24 canonical UI feature-flag mappings pass. These do not imply full feature/E2E production readiness.
+- Current-head CI must be rechecked after the latest source/config and documentation commits; any queued check is NOT PASS. Release remains **BLOCKED / NOT CERTIFIED**.
