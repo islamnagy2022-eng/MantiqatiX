@@ -97,3 +97,14 @@ The source-parity validator remains intentionally fail-closed: current `index.ts
 ## CI run for request parser test commit
 
 The S07 contract workflow run [38341127397](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38341127397), associated with commit `1f269b2e6859daf34912d5451a7093db9a8bb191` (the new request parser tests), was returned as **queued** on recheck. No test or validator outcome is available yet. The documentation-only commit after it does not itself trigger the workflow because the workflow path filter excludes this report. Wait for a completed run on the test commit or a later code commit before recording test results.
+
+
+## Additional helper boundary tests — pending CI
+
+Two existing helper test files were expanded on the S07 branch:
+- `catalog-normalization.test.ts`: invalid/negative provider costs, invalid min/max quantity bounds, maximum quantity cap, and bounded/cleaned service text.
+- `order-validation.test.ts`: malformed/oversized idempotency keys, oversized service identifiers, rounded-to-zero charge, and pricing overflow.
+
+The changes are committed as `da2a1168210a55c810b24aab58ff57329aef8a69` and `30d65a6492e8dccbe2ce037e67104072fe592d2e`. These tests have not been executed locally. A workflow run for the latest test commit was not returned by the commit-run lookup at this checkpoint; do not infer success or failure from the missing result. Previously observed S07 run `38341127397` was queued and predates these additional test cases.
+
+The source-parity blocker remains unchanged. Do not treat more unit tests as a substitute for reconciling `index.ts`, or for disposable integration tests of DB transactions, concurrent idempotency, wallet/provider ambiguity, and authorization.
