@@ -949,3 +949,13 @@ The source search was extended beyond the current migration directory:
 - Run the historical schema baseline validator and migration history immutability/version-uniqueness gates on the updated exact PR head.
 - Inspect the next chronological replay failure without skipping migrations or inventing dependencies.
 - A successful run of this synthetic-baseline-assisted replay is necessary but not sufficient for release certification.
+
+
+## 2026-10-13 — second marketing policy dependency exposed
+
+- After the project/participant compatibility additions, replay run [#38406227251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406227251), tested at `b30aa0fe1e41fe7f0216a8fa816dc17a65e71b74`, passed baseline provenance checks, exact-copy/untracked checks, migration version uniqueness, and migration-history immutability. It started disposable Supabase and passed the earlier `marketing_project_participants` dependency.
+- The next failure was `ERROR: relation "public.marketing_provider_subscriptions" does not exist (SQLSTATE 42P01)` during `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`.
+- Read-only production catalog inspection found `marketing_provider_subscriptions` depends on `marketing_plans` and `marketing_provider_profiles`; no canonical CREATE TABLE statements for either `marketing_plans` or `marketing_provider_subscriptions` were found in the applied migration ledger/source search. Both tables' columns, constraints, indexes, RLS, policies and observed grants were inspected without reading operational rows.
+- Extended the same disposable-only compatibility fixture with `marketing_plans` followed by `marketing_provider_subscriptions`, preserving the observed FK, CHECK/UNIQUE constraints, owner-view policy predicate, RLS/FORCE RLS, and least-privilege grants. Extended the baseline validator to require these contracts and the chronological `Owners view their subscriptions` ALTER POLICY statement.
+- Static pattern checks against the updated baseline and applied ALTER POLICY migration all passed. These are source-level checks only; the next exact-head GitHub Actions run must verify the Node validator and continue the full replay.
+- As before, the baseline is catalog-derived compatibility scaffolding, not historical source recovery. No production data, schema, grants, Auth/RLS, or migration ledger was changed. Release remains **BLOCKED / NOT CERTIFIED**.
