@@ -47,8 +47,13 @@ test("S06-08 webhook checks event identity and amount/currency against intent", 
   assert.match(webhook, /PAYMENT_AMOUNT_CURRENCY_MISMATCH/);
   assert.match(webhook, /external_event_id.*eventId/s);
 });
-test("S06-09 late failure callback cannot downgrade a terminal payment intent", () => {
-  assert.match(webhook, /update\\(\\{status:"FAILED".*?\\}\\)\\.eq\\("id",intent\\.id\\)\\.eq\\("status","PENDING"\\)/);
+test("S06-09 failed payment callbacks use atomic server-authoritative RPC", () => {
+  assert.match(webhook, /process_verified_provider_payment_failure/);
+  assert.match(webhook, /process_verified_subscription_payment_failure/);
+  assert.match(webhook, /process_verified_mantigo_payment_backend/);
+  assert.doesNotMatch(webhook, /from\("payment_intents"\)\.update/);
+  assert.doesNotMatch(webhook, /from\("subscription_payment_intents"\)\.update/);
+  assert.doesNotMatch(webhook, /from\("mantigo_financial_ledger"\)\.update/);
 });
 test("S06-10 normal payment processing delegates to verified backend RPC", () => {
   assert.match(webhook, /process_verified_provider_payment/);
@@ -67,4 +72,15 @@ test("S06-12 digital-page provider failure releases claim", () => {
 test("S06-13 digital-page provider intent is finalized via backend RPC", () => {
   assert.match(digital, /finalize_digital_page_payment_intent_backend/);
   assert.match(digital, /PAYMENT_PERSISTENCE_FAILED/);
+});
+
+test("S06-14 subscription webhook calls the canonical atomic success RPC with provider-order binding", () => {
+  assert.match(webhook, /process_verified_subscription_payment_backend/);
+  assert.match(webhook, /p_provider_order_id:paymobOrderId/);
+  assert.match(webhook, /p_raw_payload:raw/);
+  assert.doesNotMatch(webhook, /rpc\("process_verified_subscription_payment"/);
+});
+
+test("S06-15 all webhook payment state transitions avoid direct table DML", () => {
+  assert.doesNotMatch(webhook, /from\("(payment_intents|subscription_payment_intents|mantigo_financial_ledger|payment_provider_events)"\)\.(update|insert|upsert|delete)/);
 });
