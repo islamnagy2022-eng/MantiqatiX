@@ -476,3 +476,12 @@
 - Source search did not find an earlier committed `CREATE POLICY wallet_accounts_finance_read`; only the later `ALTER POLICY` was found. This is a historical source/baseline provenance gap, not evidence that the policy should be invented in production.
 - **Next action:** inspect RC40/recovered source and authoritative historical artifacts for the original policy definition. If no authoritative source is found, keep replay blocked and request explicit approval for a clearly labeled disposable-only live-derived policy compatibility fixture; never apply it to production or label replay historically faithful.
 - Other exact-head checks on PR #207 passed: migration version uniqueness [38415183077], open-PR migration collision guard [38415181890], and migration history immutability [38415180384]. These do not override the failed full replay.
+
+
+## 2026-10-13 — RC40 provenance check follow-up
+
+- [x] Inspected the uploaded `source_RC40.zip` archive and `docs/RC40_SCHEMA_RECONCILIATION.md`. The document explicitly describes RC40 as a partial live-schema reconciliation and says the complete historical migration graph is not claimed identical to live schema.
+- [x] Searched every SQL file under `supabase/migrations/` inside the RC40 archive for `wallet_accounts_finance_read` and `marketing_project_participants`; no matches were found. This archive therefore does not provide the missing original policy/table creation evidence.
+- [x] Rechecked repository source search: the only exact `wallet_accounts_finance_read` hit remains the later `ALTER POLICY` statement in `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`; no committed original `CREATE POLICY` was located by that search.
+- [ ] **Decision unchanged: replay remains BLOCKED.** Do not invent historical SQL or inject an unapproved policy fixture. The next safe step is to request/locate an authoritative historical migration/backup, or obtain explicit owner approval for a clearly labeled disposable-only live-derived compatibility fixture. Even if approved and replay passes, that result must be described as replay after a synthetic baseline, not proof of historical provenance.
+- Production impact: none. RC40 archive was read-only; no database rows, schema, grants, deployments, or secrets were changed.
