@@ -124,3 +124,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - RC533 — Strengthen static checks for RC523 regression coverage (2026-10-13): the release-chain validator now checks that the focused financial report test includes canonical and legacy ledger columns, intentionally conflicting values (250/25/200 vs 999/888), the key financial count/amount assertions, and stable JSON key `captain_amount` without exposing `captain_net_amount`. These are source-contract assertions, not runtime execution; exact-head CI must still pass and runtime negative actor tests remain outstanding.
+
+
+## RC534 — Fix shared disposable finance fixture schema — 2026-10-13
+
+- Inspected the completed exact-head focused integration logs for RC450 and RC457. Both failed before reaching their assertions because RC436 references `journal_entries.created_at`, while the shared disposable fixture omitted that baseline column.
+- Cross-checked RC449A's preflight: it explicitly requires `journal_entries.created_at`; this confirms the fixture was inconsistent with the reviewed journal baseline rather than evidence that production should be changed.
+- Updated only `supabase/tests/rc450_financial_journal_fixture.sql` to define `created_at timestamptz not null default current_timestamp`. Both RC450 and RC457 focused jobs use this fixture, so the next CI run will re-exercise both migration paths.
+- Change commit: `5fa921b297a69221876c3167d31facc633add03b`. Fix is committed; its new CI outcome is not yet verified.
+- Safety: test-fixture-only source change. No production database mutation, migration application, financial operation, Auth/grant/RLS change, Edge Function deployment, merge, or release.
+- Release remains BLOCKED / NOT CERTIFIED until the new exact-head CI and all mandatory runtime gates pass.
