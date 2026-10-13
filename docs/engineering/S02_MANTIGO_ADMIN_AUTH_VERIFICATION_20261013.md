@@ -94,3 +94,15 @@ Corrective candidate change:
 - Static validation now includes a check requiring both null-identity guards.
 
 This change is isolated to the draft migration branch. No production migration was applied. The PostgreSQL integration run for commit `78392b149b25b9d72ebfdb6aae378f0441da9925` was still running at report time; the fix is not certified until the complete behavioral test passes on the final head.
+
+
+### Additional correction — canonical report migration override
+
+A follow-up inspection found that RC523 replaces the financial-report RPC after RC449/RC462 in the disposable workflow. Therefore, fixing only the earlier RC449 definition would not fix the final function under test. The candidate RC523 definition has now also been changed to assign `v_auth := auth.uid()` at function execution time and explicitly reject a null actor ID. RC449's dashboard/report identity reads are likewise assigned at execution time, and the static validator now checks the RC523 override.
+
+Relevant candidate commits:
+- RC449 null identity and runtime identity assignment: `78392b149b25b9d72ebfdb6aae378f0441da9925` and `c2ba10570405f36d6f816a9eb0bd90454509c194`.
+- RC523 canonical report runtime identity: `d7a9b141b3dc01b5e2d8d6ce4e36d10054572f2c`.
+- Static validation of the RC523 override: `30e479e42627f6e79aef463081fe1d173a699eb1`.
+
+The final-head PostgreSQL integration result is still pending; no production migration has been applied.
