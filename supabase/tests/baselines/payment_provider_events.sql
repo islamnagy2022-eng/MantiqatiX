@@ -6,7 +6,8 @@
 -- Contains schema only: no payment events, provider payloads, IDs, customer data, secrets, policies, or grants.
 -- The ordered migration 20260920211717_security_definer_surface_reduction_and_finance_rls.sql creates
 -- payment_provider_events_finance_read. Do not duplicate that policy here.
--- Indexes added by later chronological migrations are intentionally left to those migrations.
+-- RC256 creates idx_payment_provider_events_tenant_id. The tracked migration history has no creation statement for
+-- idx_payment_provider_events_payment_intent_id, so that observed catalog index is reproduced here for disposable parity.
 
 CREATE TABLE public.payment_provider_events (
   id character varying NOT NULL,
@@ -29,6 +30,8 @@ CREATE TABLE public.payment_provider_events (
   CONSTRAINT payment_provider_events_tenant_id_fkey
     FOREIGN KEY (tenant_id) REFERENCES public.tenants(id) ON DELETE RESTRICT
 );
+
+CREATE INDEX idx_payment_provider_events_payment_intent_id ON public.payment_provider_events (payment_intent_id);
 
 ALTER TABLE public.payment_provider_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_provider_events FORCE ROW LEVEL SECURITY;
