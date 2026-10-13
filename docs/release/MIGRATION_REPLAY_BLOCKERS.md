@@ -996,3 +996,11 @@ The source search was extended beyond the current migration directory:
 - The migration replay workflow injects the fixture only into the disposable workspace as temporary version `20260927033923`, before the SMM bootstrap-function fixture and the first tracked dependency. The validator checks exact columns, key/FK, RLS/no-policy contract, ACL, provenance, ordering, no migration collision, and no data operations. The workflow verifies exact-copy, untracked status, and no-data-write constraints.
 - This resolves the immediate missing `public.smm_admins` relation in the **test harness only** if the next exact-head replay confirms it. It does not recover historical source, change production, or certify the full replay. Await exact-head CI and continue to the next failure without skipping migrations.
 - Production schema, data, migration ledger, Edge Functions, privileges, Auth settings, wallet/payment state, merge, and deployment remain untouched by this change.
+
+
+## 2026-10-14 — Duplicate SMM provider policy removed from replay baseline
+
+- Exact-head replay run `38482596515` passed baseline validation, exact-copy/untracked checks, and disposable Supabase startup, then failed at `20261001000000_security_hardening_private_tables_geo_rpc.sql` because `deny_direct_access_authenticated` already existed on `public.smm_providers`.
+- Root cause: the approved schema-only SMM provider fixture included a policy that is actually owned by the chronological security-hardening migration. That duplicate obscured the real migration order.
+- Removed policy creation from `supabase/tests/baselines/smm_providers.sql`; the fixture now supplies only the observed table shape, RLS state, and ACL. Updated the validator to require the chronological migration to create both the authenticated and anonymous deny policies, then let the following migration remove the redundant anonymous policy.
+- Static source checks passed 6/6. A new exact-head replay must still confirm the migration now succeeds and reveal the next dependency. No production changes were made.
