@@ -21,6 +21,7 @@ on:
       - 'supabase/migrations/20261011030000_rc458_erp_branch_organization_scope.sql'
       - 'supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql'
       - 'supabase/tests/rc441_*'
+      - 'supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql'
       - 'supabase/tests/rc437_*'
       - 'supabase/tests/rc458_*'
       - 'supabase/tests/rc450_*'
@@ -414,10 +415,12 @@ jobs:
           docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449_migration.sql"
           docker cp supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql "$pg_container:/tmp/rc462_migration.sql"
           docker cp supabase/tests/rc441_platform_admin_integration.sql "$pg_container:/tmp/rc449_test.sql"
+          docker cp supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql "$pg_container:/tmp/rc462_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc441_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc462_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc462_test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449_test.sql
 
 
