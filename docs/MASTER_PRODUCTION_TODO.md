@@ -1721,3 +1721,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 ### Safety and release decision
 - No production schema/data/migration ledger/grant/Auth/RLS change, live Edge Function deployment, wallet/payment operation, merge, or production release was performed by this continuation.
 - **Release remains `BLOCKED / NOT CERTIFIED`.** Do not merge/deploy or apply RC449/RC462 until the separately approved production change/release procedure is authorized and the live catalog is reverified. Do not mark replay PASS until the exact-head clean replay completes successfully and its evidence is inspected.
+
+
+## Replay update — 2026-10-13 — settlement transaction policy
+
+- [ ] Run [38408000724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408000724) advanced past the payment-events finance policy fixture, then failed on missing `settlement_transactions_finance_read` before the historical ALTER POLICY statement.
+- [x] Added a catalog-derived, policy-only test fixture for `settlement_transactions_finance_read`, plus validator checks and disposable-only workflow injection at timestamp `20260927140492`.
+- [ ] Exact-head preflight/copy verification and chronological replay are pending on the next run. No replay PASS is claimed.
+- [ ] Historical policy-creation source remains unrecovered; the fixture is synthetic and disposable-only.
+- **Production release remains `BLOCKED / NOT CERTIFIED`.**
