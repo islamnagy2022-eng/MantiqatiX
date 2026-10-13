@@ -1,0 +1,70 @@
+# MANTIQATIX MASTER TODO — 2026-10-13
+
+**Release state: BLOCKED / NOT CERTIFIED.** This is the requested root-level continuation index. Detailed historical records remain append-only in docs/SESSION_LOG.md; canonical project continuity and broad backlog remain in docs/PROJECT_CONTINUITY.md and docs/MASTER_PRODUCTION_TODO.md. Do not replace those records with this summary.
+
+## Current repository state
+
+- Repository: islamnagy2022-eng/MantiqaTix
+- Working branch: reconcile/rc425-458-current-main-20261011
+- Main last verified: 8a56358d505d2c12878440037f7f24ba65d2ea10
+- PR #207: open, draft, unmerged. At the start of the 2026-10-13 continuation, head was 3e06f004cf6a575c2d88af3ce143b45750355b97; subsequent commits update the candidate. Query the current PR head before acting.
+- PR #218: open, draft, unmerged at last inspection, head 77012649e41fe22077538c39cd8593bf696ab33e.
+- Supabase project: moyhiluyhjsujhwlyeuu.
+- Production migration ledger last documented at RC424 / version 20261008222845. Do not mutate or rewrite it.
+- Latest replay run known before this TODO file commit: 38349259664 was pending/in progress for Disposable Supabase Migration Chain Replay. Check latest exact-head CI before assuming its result.
+- No production schema/data/grants/RLS/Auth/secrets, deployed functions, or release settings were changed during this continuation. No merge or deployment occurred.
+
+## P0 — security and financial integrity
+
+1. **Payment webhook table privilege mismatch — NOT VERIFIED runtime, high-risk evidence.**
+   - Read-only catalog reports public.payment_provider_events ACL: postgres=arwdDxtm/postgres, authenticated=rm/postgres, service_role=Dxtm/postgres.
+   - has_table_privilege reports service_role lacks SELECT/INSERT/UPDATE/DELETE on this table, while deployed paymob-webhook v8 directly selects and inserts using the service-role client.
+   - Next: trace intended call path/RPCs and existing grants across all relevant tables, reproduce safely in disposable CI, add a least-privilege regression test and propose a scoped migration/RPC. Do not apply production grants or deploy without separate explicit authorization.
+2. **Other permission-denied runtime evidence.**
+   - Recent Postgres logs include permission denied for smm_orders, smm_services, smm_wallets, digital_page_orders and digital_page_products.
+   - Next: inventory intended client/server access, RLS and grants per table. Do not mass-grant or weaken policies. Respect the initial-launch SMM feature freeze; do not implement SMM feature changes or weaken SMM tests.
+3. Verify RPC SECURITY DEFINER caller authorization, tenant isolation, order/payment idempotency, webhook replay and journal integrity using exact-head CI and safe isolated tests. Production payment E2E remains NOT VERIFIED.
+
+## P1 — migration history and disposable replay
+
+1. Inspect latest run for current PR #207 head and capture complete logs.
+2. A read-only catalog query recovered the current public.payment_provider_events schema: 13 columns, PK(id), unique(provider, external_event_id), FKs to payment_intents and tenants, two later-created indexes, RLS+FORCE RLS, and SELECT-only finance policy. The fixture supabase/tests/baselines/payment_provider_events.sql is schema-only and deliberately includes no policy, grants, rows, payloads, or secrets.
+3. CI copies the fixture byte-for-byte only into the disposable workspace as 20260920211716_test_only_live_derived_payment_provider_events_baseline.sql, before the ordered finance-read policy migration. Validator checks source provenance, shape, RLS, no policy/grants/data, timestamp order and policy contract. This is not historical DDL or a production migration.
+4. Current live catalog recheck confirms all seven credit amount/generated columns use numeric(18,2), precision 18 scale 2. The three credit fixtures and validator have been restored to that exact type after an incorrect interim edit.
+5. Continue chronological replay through every subsequent migration. A successful preflight is not a successful replay. Verify final schema/constraints/indexes/RLS/grants/functions against evidence. Preserve duplicate migration timestamp collision gates and immutable production ledger.
+6. Record every blocker and exact SHA/run. Never invent missing policy or historical provenance.
+
+## P2 — SMM and marketing
+
+- Initial-launch SMM feature freeze remains in effect from the prior explicit owner instruction. Preserve failed/deferred validation evidence; inspect and document only until the owner explicitly lifts the freeze.
+- After authorization, review gateway server-side deny behavior, tenant/provider access, credential secrecy, provider timeouts, retry/idempotency and payment safety.
+
+## P3 — functionality and UX
+
+- Membership/account-role counts and authorization correctness.
+- Orders, inventory, accounting, reports, notifications, PWA and mobile/browser UX.
+- Validate with isolated automated tests; do not claim runtime behavior from static source checks.
+
+## P4 — release and recovery
+
+- Full disposable migration replay on exact candidate SHA.
+- Exact-head build and required regression/security workflows.
+- Tenant-isolation and payment/refund/settlement E2E in safe test environment.
+- Backup/restore and rollback drill.
+- Auth/security advisor remediation evidence, browser/device smoke, release gate, and release decision.
+- No production launch until all critical gates are proven and a separate release approval is given.
+
+## Latest evidence pointers
+
+- docs/SESSION_LOG.md — chronological append-only session history.
+- docs/PROJECT_CONTINUITY.md — handoff and cross-session state.
+- docs/MASTER_PRODUCTION_TODO.md — existing detailed backlog.
+- docs/release/MIGRATION_REPLAY_BLOCKERS.md — migration evidence, exact blockers, catalog findings and replay decisions.
+- docs/release/CREDIT_SCHEMA_BASELINE_EVIDENCE_20261013.md — credit fixture evidence and limits.
+- PR #207: https://github.com/islamnagy2022-eng/MantiqaTix/pull/207
+- PR #218: https://github.com/islamnagy2022-eng/MantiqaTix/pull/218
+
+## Last safe checkpoint
+
+Checkpoint source head before this root index was added: d2c84a7be34a8bbd40523964944a8b5403c02208.
+Next executable action: inspect exact-head workflow run for the current PR #207 candidate, then fix the next evidenced blocker on the same working branch and update this index plus the append-only session log.
