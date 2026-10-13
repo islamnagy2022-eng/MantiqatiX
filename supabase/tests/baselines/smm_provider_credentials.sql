@@ -1,6 +1,7 @@
 -- OWNER-APPROVED TEST-ONLY SCHEMA BASELINE
 -- Approved: 2026-10-11 for isolated replay only.
--- Source: read-only catalog snapshot of production public.smm_provider_credentials.
+-- Source: read-only PostgreSQL catalog snapshot of production public.smm_provider_credentials
+-- in Supabase project moyhiluyhjsujhwlyeuu. No credential values or rows were queried.
 -- Never apply this file to production and never move it into supabase/migrations.
 -- Prerequisite: public.smm_providers must exist from an authoritative source or a separately approved test-only baseline.
 -- No production rows, credential values, or secrets are included.
