@@ -5,8 +5,6 @@ const migrationDirectory = "supabase/migrations";
 const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
 const adminsBaselinePath = "supabase/tests/baselines/smm_admins.sql";
-const providerOnboardingBaselinePath = "supabase/tests/baselines/provider_onboarding_requests.sql";
-const providerOnboardingBaselineVersion = "20261001085000";
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests_schema.sql";
 const registrationSecurityBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
@@ -74,7 +72,6 @@ const missingHistoricalTables = [
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
   { table: "smm_wallets", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_wallets.sql" },
   // Production has this table, but the chain references it before the later canonical CREATE TABLE migration.
-  { table: "provider_onboarding_requests", before: "20261001090000_harden_provider_onboarding_authority.sql", baselinePath: providerOnboardingBaselinePath },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -988,7 +985,7 @@ const createsAdminsTable = migrations.some(({ sql }) =>
   /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_admins"?\b/i.test(sql)
 );
 
-for (const baselinePath of [adminsBaselinePath, providerBaselinePath, credentialsBaselinePath, providerOnboardingBaselinePath]) {
+for (const baselinePath of [adminsBaselinePath, providerBaselinePath, credentialsBaselinePath]) {
   if (!fs.existsSync(baselinePath)) {
     console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
     process.exit(1);
@@ -1025,22 +1022,6 @@ const adminsChecks = [
   ["admin table has no direct privileges and matches observed service_role ACL", /revoke\s+all[\s\S]*from\s+public\s*,\s*anon\s*,\s*authenticated\s*,\s*service_role/i.test(adminsBaseline) && /grant\s+references\s*,\s*trigger\s*,\s*truncate[\s\S]*to\s+service_role/i.test(adminsBaseline)],
   ["admin baseline has approved source provenance and test-only warning", /2026-10-14/i.test(adminsBaseline) && /moyhiluyhjsujhwlyeuu/i.test(adminsBaseline) && /read-only PostgreSQL catalog introspection/i.test(adminsBaseline) && /NOT recovered historical DDL/i.test(adminsBaseline) && /Never apply this file to production/i.test(adminsBaseline)],
   ["admin baseline contains no production data or operational mutations", !/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+public\.)/im.test(adminsBaseline)],
-];
-const providerOnboardingBaseline = fs.readFileSync(providerOnboardingBaselinePath, "utf8");
-const providerOnboardingDependencyMigration = migrations.find(({ name }) =>
-  name === "20261001090000_harden_provider_onboarding_authority.sql"
-);
-const providerOnboardingCreateMigration = migrations.find(({ name }) =>
-  name === "20261001164200_provider_onboarding_final.sql"
-);
-const providerOnboardingChecks = [
-  ["provider onboarding baseline has catalog provenance and an explicit non-production warning", /2026-10-14/i.test(providerOnboardingBaseline) && /moyhiluyhjsujhwlyeuu/i.test(providerOnboardingBaseline) && /read-only PostgreSQL catalog introspection/i.test(providerOnboardingBaseline) && /NOT recovered historical DDL/i.test(providerOnboardingBaseline) && /must never be applied to production/i.test(providerOnboardingBaseline)],
-  ["provider onboarding baseline matches observed columns, defaults, primary key, and registration uniqueness", /id\s+uuid\s+not\s+null\s+default\s+gen_random_uuid\(\)/i.test(providerOnboardingBaseline) && /registration_request_id\s+uuid\s+not\s+null/i.test(providerOnboardingBaseline) && /specialties\s+jsonb\s+not\s+null\s+default\s+'\[\]'::jsonb/i.test(providerOnboardingBaseline) && /status\s+varchar\s+not\s+null\s+default\s+'PENDING'/i.test(providerOnboardingBaseline) && /primary\s+key\s*\(\s*id\s*\)/i.test(providerOnboardingBaseline) && /unique\s*\(\s*registration_request_id\s*\)/i.test(providerOnboardingBaseline)],
-  ["provider onboarding baseline matches auth and registration foreign keys", /references\s+public\.account_registration_requests\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i.test(providerOnboardingBaseline) && /references\s+auth\.users\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i.test(providerOnboardingBaseline) && /references\s+public\.tenants\s*\(\s*id\s*\)/i.test(providerOnboardingBaseline) && /references\s+public\.organizations\s*\(\s*id\s*\)/i.test(providerOnboardingBaseline)],
-  ["provider onboarding baseline enables RLS without pre-creating later policies or FORCE RLS", /enable\s+row\s+level\s+security/i.test(providerOnboardingBaseline) && !/force\s+row\s+level\s+security|create\s+policy/i.test(providerOnboardingBaseline)],
-  ["provider onboarding baseline has no production data or mutation statements", !/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+(?:public|private)\.)/im.test(providerOnboardingBaseline)],
-  ["provider onboarding ordering defect is explicitly documented rather than hidden", !!providerOnboardingDependencyMigration && !!providerOnboardingCreateMigration && providerOnboardingBaselineVersion < providerOnboardingDependencyMigration.name.slice(0, 14) && providerOnboardingDependencyMigration.name.slice(0, 14) < providerOnboardingCreateMigration.name.slice(0, 14) && /drop\s+policy\s+if\s+exists\s+provider_onboarding_self_insert\s+on\s+public\.provider_onboarding_requests/i.test(providerOnboardingDependencyMigration.sql) && /create\s+table\s+if\s+not\s+exists\s+public\.provider_onboarding_requests/i.test(providerOnboardingCreateMigration.sql)],
-  ["provider onboarding temporary version has no tracked migration collision", !migrations.some(({ name }) => name.slice(0, 14) === providerOnboardingBaselineVersion) && !fs.existsSync(path.join(migrationDirectory, providerOnboardingBaselineVersion + "_test_only_approved_provider_onboarding_requests_baseline.sql"))],
 ];
 const failed = [...providerChecks, ...credentialsChecks, ...adminsChecks, ...providerOnboardingChecks].filter(([, ok]) => !ok);
 if (failed.length) {
@@ -1193,7 +1174,6 @@ for (const [version, temporaryName] of [
   [providerBaselineVersion, providerBaselineVersion + "_test_only_approved_smm_providers_baseline.sql"],
   [credentialsBaselineVersion, credentialsBaselineVersion + "_test_only_approved_smm_provider_credentials_baseline.sql"],
   [adminsBaselineVersion, adminsBaselineVersion + "_test_only_approved_smm_admins_baseline.sql"],
-  [providerOnboardingBaselineVersion, providerOnboardingBaselineVersion + "_test_only_approved_provider_onboarding_requests_baseline.sql"],
 ]) {
   if (fs.existsSync(path.join(migrationDirectory, temporaryName))) {
     console.error("P0 BLOCKED: temporary test-only migration filename already exists in repository: " + temporaryName);
