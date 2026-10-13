@@ -57,6 +57,7 @@ jobs:
           node scripts/validate-public-brand.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
+          node scripts/test-s08-auth-flows.mjs
           node scripts/validate-module-catalog.mjs
           node scripts/validate-android-parity-catalog.mjs
           node scripts/validate-public-web-secrets.mjs
