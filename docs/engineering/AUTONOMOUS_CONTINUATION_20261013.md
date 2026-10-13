@@ -94,3 +94,23 @@
 3. Trace where `public.smm_provider_credentials` is created and why the 2026-09-27 privilege migration runs before that relation exists. Preserve production migration history.
 4. Continue P0 platform RPC authorization review separately; keep PR #225 draft and do not merge/deploy.
 5. Add isolated HTTP/Edge Runtime side-effect tests only after a runnable disposable runtime is available; until then mark NOT VERIFIED.
+
+
+## Append-only update — latest verification and CI trigger correction (2026-10-13)
+
+- Latest SMM verification branch commit: `94edc7e364efe3313eaa30c51c829b909e2fa3fd`. It includes the prior continuation-log update and a workflow trigger fix.
+- Independent review identified that the new SMM workflow's `pull_request.branches` filter originally listed only `main`, while PR #225 targets `docs/rc521-admin-operations-discovery-20261013`. The workflow now includes that stacked base branch as well as `main`.
+- The available workflow-run lookup returns only pull-request-triggered runs, so it does not establish whether the new push-triggered run executed. No exact-head SMM validator result is claimed yet. The prior invalid-regex failure remains a historical failure on an earlier synthetic merge SHA, not the current verdict.
+- P0 candidate evidence was independently checked: workflow [#38343250142](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343250142) checked out synthetic merge commit `10fe17516029d7c4e42f155548ee5c64eb2e3d80`, which merges PR #218 head `77012649e41fe22077538c39cd8593bf696ab33e` into `main`. Its disposable PostgreSQL job passed:
+  - `MantiGO platform-admin scope contract PASS: 15/15 checks`
+  - `RC462 malformed platform-admin permissions regression: PASS`
+  - `RC449 platform-admin scope integration: PASS`
+- This verifies the candidate SQL and integration contract on that tested merge revision only. It does **not** mean the migrations are applied in production; the read-only production ledger in PR #218 still reports RC424 and the live four-RPC authorization issue remains a production blocker.
+- The matching S04 clean replay run [#38343250122](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343250122) failed on that same synthetic merge commit with `ERROR: relation "public.smm_provider_credentials" does not exist (SQLSTATE 42P01)` at `20260927074200_harden_smm_table_api_privileges.sql`. Therefore migration replay remains **FAIL / BLOCKED** despite the focused P0 authorization tests passing.
+- PR #225 remains open/draft/unmerged. No merge, deploy, production migration, live grant/RLS/Auth change, provider request, wallet/payment write, or release was performed.
+
+### Next safe continuation point
+1. Confirm a new SMM workflow run against the current PR #225 head `94edc7e364efe3313eaa30c51c829b909e2fa3fd`; if the connector cannot expose push-triggered runs, use the linked GitHub Actions run page and keep status NOT VERIFIED until its exact SHA and logs are confirmed.
+2. Inspect S04 artifact `11789859107` to capture the complete source-audit JSON and migration-version/missing-source list.
+3. Trace the canonical creation history for `public.smm_provider_credentials`; preserve historical migration bytes and do not synthesize production schema.
+4. Continue independent P0 review of tenant isolation and payment/webhook idempotency using disposable tests; keep release **BLOCKED / NOT CERTIFIED**.
