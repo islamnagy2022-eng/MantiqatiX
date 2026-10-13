@@ -173,3 +173,9 @@ The live definition and the repository migration `20261006180000_mantigo_custome
 - High-priority privacy candidates requiring contract confirmation: customer ride full-row serialization and open-ride visibility; caller-supplied captain name/phone on bids.
 - Test execution remains **NOT RUN**: 0 passed, 0 failed. No result was inferred from source inspection.
 - Production remains read-only throughout this follow-up. No RPC execution, DML, DDL, GRANT/REVOKE, migration, merge, or deploy was performed.
+
+### Candidate E — caller-selected user ID in private legal admin predicate
+
+The live catalog confirms two authenticated-executable overloads of `private.legal_is_admin`. The zero-argument overload checks the current `auth.uid()`; the UUID overload checks `coalesce(p_user_id, auth.uid())`, so a caller can supply another user's UUID and receive a boolean indicating whether that account has an active `SUPER_ADMIN`, `ADMIN`, or `LEGAL_ADMIN` membership. The function uses an explicitly empty search path and schema-qualified table/auth references.
+
+**Classification: Requires verification, not a confirmed exploit.** `authenticated` has USAGE on schema `private` and EXECUTE on both overloads, while `anon` lacks private-schema USAGE. The PostgREST exposed-schema setting could not be read through the SQL session (`current_setting('pgrst.db_schemas', true)` returned NULL), so REST reachability is not established. If this helper is exposed to untrusted authenticated callers, the UUID overload is a role-enumeration oracle and should be restricted to self-checks or kept behind a non-exposed internal schema boundary. Before any change, inspect internal call sites and the actual API schema configuration; do not revoke privileges in production as part of this audit.
