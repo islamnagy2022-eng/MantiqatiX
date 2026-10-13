@@ -40,6 +40,8 @@ jobs:
           node scripts/audit-migration-chain-s04.mjs > s04-replay-evidence/source-audit.json 2> s04-replay-evidence/source-audit.stderr
           audit_rc=$?
           echo "source_audit_exit=$audit_rc" | tee -a s04-replay-evidence/report.txt
+          echo "known_unrecovered_live_ledger_migration=20261001164118_harden_provider_onboarding_tenant_scope" | tee -a s04-replay-evidence/report.txt
+          echo "historical_ddl_synthesized=false" | tee -a s04-replay-evidence/report.txt
 
           # Resolve only the five catalog-reconciled duplicate timestamp groups on this disposable runner.
           # Never rename or rewrite the historical source files in Git or the production ledger.
