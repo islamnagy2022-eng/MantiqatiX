@@ -115,6 +115,15 @@ if (!paymentProviderEventsBaselineValid) {
   process.exit(1);
 }
 if (paymentProviderEventsMigration) {
+  const paymentEventIndexesMigration = migrations.find(({ name }) =>
+    name === "20261002100000_rc256_critical_fk_indexes.sql"
+  );
+  if (!paymentEventIndexesMigration ||
+      !/create index if not exists idx_payment_provider_events_tenant_id on public\\.payment_provider_events \\(tenant_id\\)/i.test(paymentEventIndexesMigration.sql) ||
+      !/create index if not exists idx_payment_provider_events_payment_intent_id on public\\.payment_provider_events \\(payment_intent_id\\)/i.test(paymentEventIndexesMigration.sql)) {
+    console.error("P0 BLOCKED: ordered RC256 migration does not prove both payment_provider_events foreign-key indexes; do not synthesize them in the fixture.");
+    process.exit(1);
+  }
   const paymentEventBaselineVersion = "20260920211716";
   const paymentEventBaselineName = paymentEventBaselineVersion + "_test_only_live_derived_payment_provider_events_baseline.sql";
   if (fs.existsSync(path.join(migrationDirectory, paymentEventBaselineName)) ||
