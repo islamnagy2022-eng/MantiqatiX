@@ -30,6 +30,17 @@ Added `scripts/test-s08-auth-flows.mjs` on this branch. It adds source-contract 
 - **Leaked-password protection:** prior repository continuity/security evidence records this setting as disabled. This audit did not read or change the live dashboard setting; current live state remains **NOT VERIFIED** until read-only confirmation.
 - **Real account inventory:** no Auth account list was requested or read, and no personal account identifiers are included.
 
+## Additional registration endpoint review
+
+The customer-registration and registration-review Edge Function sources were inspected read-only:
+
+- Both require a bearer token and validate it through `admin.auth.getUser(token)`; both reject anonymous actors.
+- Customer registration restricts the requested tenant to `MNTY-PLATFORM` and calls `activate_customer_registration_atomic`.
+- Registration review requires a request ID/decision and calls `review_registration_request_atomic`.
+- Both reject non-POST requests and reject a present browser Origin that differs from the configured GitHub Pages origin. They intentionally do not reject a missing Origin; the bearer token remains required. Confirm this is consistent with the intended non-browser caller policy.
+- **Security observation (not changed):** both functions return database/RPC error text derived from `error.message` to the caller. Review the outward error contract for accidental internal-detail disclosure and prefer stable public error codes while retaining detailed diagnostics only in protected server logs. This touches the registration-review function's error contract; it is documented for coordinated review rather than changed in parallel.
+- Four additional static assertions were added to the S08 script for server-side token validation, tenant/RPC constraints, and method/origin guards. They are **pending execution** until CI or a full checkout is available.
+
 ## Execution evidence and limits
 
 - Repository source was inspected through the connected GitHub source view on `main`.
