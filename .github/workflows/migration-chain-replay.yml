@@ -405,7 +405,8 @@ jobs:
           psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT version, name FROM supabase_migrations.schema_migrations WHERE version >= '20260927140490' AND version <= '20260927140500' ORDER BY version;"
           echo "Checkpoint policy catalog:"
           psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT schemaname, tablename, policyname, cmd, roles, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read';"
-          psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140492') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read')" | grep -qx t
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT schemaname, tablename, policyname, cmd, roles, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_accounts' AND policyname = 'wallet_accounts_finance_read';"
+          psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140492') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read') AND EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140486') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_accounts' AND policyname = 'wallet_accounts_finance_read')" | grep -qx t
 
           # Continue with the remaining migrations only after the staged baseline is present
           # in both the local migration ledger and PostgreSQL policy catalog.
