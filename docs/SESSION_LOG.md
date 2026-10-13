@@ -140,3 +140,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - On current PR #207 head `61c994c47b7b27f498a26463dda658694ffcb719`, read-only fetch of `.github/workflows/migration-chain-replay.yml` confirms `settlement_attempts_baseline` is now declared in the second verification shell at line 110 and is used by `cmp` at line 140. The previously observed unbound-variable defect appears fixed in source.
 - Exact-head replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) was still in progress when checked; the fix is not yet marked PASS until CI logs confirm the step and full replay. Coordination confirmation: [6138819719](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138819719).
 - The settlement fixture type/provenance review remains open (`numeric(14,4)`, `varchar(8)`, explicit test-only approval). Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Root-cause continuation — 2026-10-13 05:28 UTC
+
+- Retrieved the complete failed log for replay run [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904): chronological replay stopped at `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql` because `public.smm_bootstrap_first_admin()` did not exist in that run's temporary database.
+- Current PR #207 head `136600157e02889b36b267dfd8632542662ceec3` now has `supabase/tests/baselines/smm_bootstrap_first_admin.sql`, validator checks, and disposable-only injection at `20260927033924`. Exact-head replay [38351334323](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351334323) is pending. This fixture is catalog-derived and test-only; it is not recovered historical DDL.
+- PR #225 exact-head source/security contract passed on `04b6513cff0131c7dab003c7a6d9a98d8dc430b3`, run [38351175629](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351175629). This is static contract evidence, not a live HTTP negative test.
+- PR #219's available failed run [38343317017](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343317017) returned `AUTH_REQUIRED` inside the authorized financial report path. Since the PR was updated after that run, it is stale evidence; current-head rerun is needed. Do not weaken the authorization check to make the test pass.
+- The live MantiGO global SECURITY DEFINER authorization issue remains P0; no production function, grants, RLS, Auth settings, migration ledger, or data was modified. Release remains **BLOCKED / NOT CERTIFIED**.
