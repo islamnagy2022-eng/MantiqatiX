@@ -21,11 +21,11 @@ This work is limited to frontend QA. It does not modify Auth logic, SQL/migratio
 ## Added independent checks
 
 - tests/s09-frontend-qa.test.mjs: Node built-in test cases for entry route metadata, local HTML asset references, visible boot-status/no-JavaScript fallback, module wiring for SMM/digital-page routes, known private-key/server-role secret markers, responsive CSS contracts, editor native form constraints, digital-page error/status handling, safe SMM order-refresh event binding, quantity/duplicate-submit guards, duplicate in-flight order-status refresh protection, admin-credit positive-amount validation and duplicate-submit protection, editor save/publish/unpublish pending states with visible error recovery, and section creation JSON validation plus duplicate-submit protection, and preservation of description/SEO metadata when reopening an existing page.
-- `web/smm.js`: removed the inline `onclick` interpolation for order IDs; refresh buttons now use an HTML-escaped `data-sync-order` attribute and explicit event listeners. The status class token is escaped before insertion. SMM order submission now rejects non-finite/fractional quantities and disables the submit button while the request is in flight, restoring it if the request fails. Order refresh now also locks its initiating button until completion. Admin credit now requires a non-empty user ID and a finite positive amount, locks the button while the request is pending, and restores it on either success or failure.
+- `web/smm.js`: removed inline `onclick` interpolation for order IDs; refresh buttons now use an HTML-escaped `data-sync-order` attribute and explicit event listeners. The status class token is escaped before insertion. SMM order submission rejects non-finite/fractional quantities and prevents duplicate in-flight submits. Order refresh locks its initiating button until completion. Admin credit requires a non-empty user ID and finite positive amount, with duplicate-submit protection. Service-price saves now reject blank, non-finite, zero, and negative values, prevent duplicate in-flight saves, and restore the button after success/failure.
 - `web/digital-page-editor.js`: save, publish, unpublish, and section creation controls now prevent repeated in-flight clicks and restore controls in `finally`. Section JSON is required to be an object (not a primitive or array), and the section count query is checked before insertion. The page-list projection now includes description and SEO fields consumed by the editor when a saved page is reopened; it deliberately selects only columns present in the schema. Unpublish and section-creation failures are surfaced in the status region.
 - `.github/workflows/s09-frontend-qa.yml`: isolated CI gate to run those checks and syntax-check browser JS without modifying production or core application logic.
 
-These are static smoke/contract checks, not browser automation. The SMM event-binding/refresh-lock and editor pending-state changes are source-level hardening and still require the exact-head CI result plus runtime verification. They do not prove user journeys, responsive rendering, keyboard accessibility, session-expiry recovery, network-failure UI, 4xx/5xx handling, or role-based dashboards work at runtime.
+These are static smoke/contract checks, not browser automation. The exact-head run recorded above passed the source-level suite; SMM event-binding/refresh-lock, price validation, and editor pending-state changes still require runtime verification. They do not prove user journeys, responsive rendering, keyboard accessibility, session-expiry recovery, network-failure UI, 4xx/5xx handling, or role-based dashboards work at runtime.
 
 ## Required runtime/E2E scenarios — pending
 
@@ -44,11 +44,11 @@ These are static smoke/contract checks, not browser automation. The SMM event-bi
 
 - node --test tests/s09-frontend-qa.test.mjs
 - for file in web/*.js; do node --check "$file"; done
-- CI workflow: S09 Frontend QA. The latest observed run for the prior head was queued; re-check the exact-head run after the commit before recording any result.
+- CI workflow: S09 Frontend QA. Run `38341922779` completed successfully on commit `080d1d5249d6ce132d07f806432e20e907dc9a71`; dependency install, browser SDK bundle build, all static smoke tests, and `node --check` for `web/*.js` passed. Any later commit requires a new exact-head result. This does not constitute browser E2E.
 
 ## Branch hygiene
 
-The initial working branch was found to contain 112 changed files / 213 commits relative to `main`; draft PR #223 was closed without merging. A clean branch was created from `main`, and only the three S09 QA files are being carried forward. Clean branch verified against main: the current change set contains five files only (S09 workflow, QA report, QA tests, `web/smm.js`, and `web/digital-page-editor.js`). Re-verify the final diff and CI head after each follow-up commit.
+The initial working branch was found to contain 112 changed files / 213 commits relative to `main`; draft PR #223 was closed without merging. A clean branch was created from `main`. The current six-file diff is limited to the S09 workflow, QA report/tests, `web/smm.js`, `web/digital-page-editor.js`, and `web/brand.js`. The `web/brand.js` change normalizes an existing literal-escaped-newline source into valid JavaScript; it is included because the all-browser-JS syntax gate checks this file too. Keep this repair explicit in review and re-check the diff after follow-up commits.
 
 ## Evidence and close criteria
 
