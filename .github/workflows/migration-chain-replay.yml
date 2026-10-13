@@ -368,6 +368,7 @@ jobs:
           node scripts/validate-migration-version-uniqueness.mjs
           echo "PASS: disposable replay uses the unique migration versions observed in the live ledger; repository history remains unchanged."
           echo "PASS: digital-page migration versions normalized to exact live-ledger versions in this disposable runner only."
+          echo "KNOWN SOURCE GAP: live ledger 20261001164118 harden_provider_onboarding_tenant_scope has no source file; no historical DDL synthesized."
 
       - name: Replay every migration in repository timestamp order
         shell: bash
