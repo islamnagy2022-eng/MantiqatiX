@@ -108,3 +108,26 @@ Next executable action: inspect exact-head workflow run for the current PR #207 
 - P0 deployed/source drift: deployed paymob-webhook v8 directly reads/writes payment_provider_events, but the tracked branch source routes payment processing through atomic RPCs and now has a static regression guard against direct provider-event table operations. Read-only live ACL evidence reports service_role lacks SELECT/INSERT/UPDATE/DELETE on that table. No production function or grants were changed. A separately authorized, tested Edge Function rollout is required to align deployment with source; no live callback test was sent.
 - Next exact action: inspect newest PR #207 CI for the current head; if replay reaches migration execution, diagnose the first SQL failure and repeat; if it completes, record complete replay outcome and then continue P0 webhook source/deployed parity, payment idempotency, and safe RPC tests.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-13 17:36 UTC — autonomous continuation checkpoint
+
+### Current exact status
+- Working branch: reconcile/rc425-458-current-main-20261011
+- Current candidate head at this checkpoint: 0ede832fbe93eebfb41d390e88f7c8e7558bbf3d
+- PR #207 remains open/draft/unmerged; the latest replay run triggered by the new baseline set is [#38414543916](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38414543916), queued at the last check. Do not claim replay PASS until this exact run and any successor complete.
+- PR #241 (stacked on PR #218) is open/draft/unmerged. Run [#38414086540](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38414086540) passed static Paymob webhook contract checks, disposable RC425 MantiGO integration, RC428/RC429/RC430 failure/replay/terminal-state integration, and Deno type-check. The RC430 stale-row bug discovered by the integration test was corrected to persist the verified transaction ID argument.
+- PR #225 remains open/draft/unmerged. SMM gateway stays intentionally fail-closed; no production SMM enablement or deployment was performed.
+- Release state remains **BLOCKED / NOT CERTIFIED**.
+
+### P0/P1 findings added this cycle
+1. **SMM historical source gap:** clean replay exposed that production contains smm_wallet_transactions, smm_services, smm_orders, smm_order_events, and smm_wallets, while the historical source archive lacks their canonical table-creation DDL before policy/privilege migrations reference them. Read-only catalog queries captured columns, constraints, indexes, RLS flags and relevant existing policies.
+2. **Disposable-only SMM compatibility fixtures:** added test-only baselines for smm_wallet_transactions, smm_services, smm_orders, smm_order_events, and smm_wallets. The replay workflow injects byte-identical temporary migration copies at 20260927140488–20260927140491 and 20261011009999, respectively. The historical policy/grant migrations remain in order. Fixtures contain no rows or direct grants, are explicitly labeled test-only, and are not recovered historical DDL.
+3. **Replay cutoff root fix:** workflow now isolates migrations later than 20260927033924 before the pre-lockdown reset using a filesystem stash and EXIT restore trap. Run #38411737603 verified this let the replay pass the earlier smm_bootstrap_first_admin() failure and reach the next real schema gap.
+4. **Paymob webhook atomicity:** candidate webhook source now delegates subscription success/failure to RC430/RC429, MantiGO state/event/notification changes to RC425, and normal payment failures to RC428; normal payment processing also binds the signed provider order ID to the stored intent before processing. The candidate is not deployed.
+5. **Production authorization blocker remains:** read-only live catalog checks still show the four MantiGO global dashboard/report/settlement/expiry RPCs are SECURITY DEFINER, have search_path=public, are executable by authenticated, and lack mnty_can_platform_admin(). RC449/RC462 tests passing in disposable PostgreSQL do not imply the live functions are fixed.
+
+### Next exact actions
+1. Inspect run #38414543916. If it fails, use the first SQL error and inspect production schema through SELECT-only queries; add only a schema/policy compatibility fixture if it is strictly necessary for disposable replay and explicitly mark provenance as unrecovered.
+2. Continue the complete chronological replay; do not skip or rewrite historical migrations to force a pass.
+3. Review PR #241 and require its atomic payment migrations to ship together; no live provider HTTP transaction has been tested and no production deployment is authorized.
+4. Preserve no-merge/no-deploy/no-production-write boundaries. Keep P0 live authorization and full replay blockers open until evidence proves closure.
