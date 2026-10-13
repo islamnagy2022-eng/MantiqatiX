@@ -84,7 +84,7 @@ assert.match(providerOnboarding, /references\s+auth\.users\s*\(\s*id\s*\)[\s\S]*
 assert.match(providerOnboarding, /provider_onboarding_requests_status_check[\s\S]*PENDING[\s\S]*APPROVED[\s\S]*REJECTED[\s\S]*CANCELLED/i);
 assert.match(providerOnboarding, /enable\s+row\s+level\s+security/i);
 assert.doesNotMatch(providerOnboarding, /force\s+row\s+level\s+security|create\s+policy/i);
-const providerOnboardingAuthority = source["20261001164107_harden_provider_onboarding_authority.sql"];
+const providerOnboardingAuthority = source["20261001164107_20261001090000_harden_provider_onboarding_authority.sql"];
 const providerOnboardingCreate = source["20261001164200_provider_onboarding_final.sql"];
 assert.ok(providerOnboardingAuthority && providerOnboardingCreate, "provider onboarding authority and canonical create migrations must exist");
 assert.match(providerOnboardingAuthority, /drop\s+policy\s+if\s+exists\s+provider_onboarding_self_insert\s+on\s+public\.provider_onboarding_requests/i);
