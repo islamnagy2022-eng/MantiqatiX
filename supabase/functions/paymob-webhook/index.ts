@@ -15,9 +15,10 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  if(!(await verify(obj,order,source,value(raw.hmac??obj.hmac))))return json({error:"INVALID_PROVIDER_SIGNATURE",requestId},401,requestId)
  const eventId=`paymob:${value(obj.id)}`;const merchantRef=value(order.merchant_order_id);const paymobOrderId=value(order.id);const amount=Number(obj.amount_cents??0)/100;const currency=value(obj.currency).toUpperCase();const success=obj.success===true||value(obj.success).toLowerCase()==="true"
  if(!value(obj.id)||amount<=0||!Number.isFinite(amount)||!currency)return json({error:"INVALID_PROVIDER_EVENT",requestId},400,requestId)
- const {data:subByRef}=await admin.from("subscription_payment_intents").select("id,business_id,amount,currency,status,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
- const {data:subByOrder}=subByRef?{data:null}:await admin.from("subscription_payment_intents").select("id,business_id,amount,currency,status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
- const sub=subByRef??subByOrder
+ const {data:lookupTarget,error:lookupError}=await admin.rpc("resolve_paymob_webhook_target",{p_merchant_ref:merchantRef,p_provider_order_id:paymobOrderId})
+ if(lookupError)return json({error:"PAYMENT_TARGET_LOOKUP_FAILED",requestId},500,requestId)
+ const target=lookupTarget&&typeof lookupTarget==="object"?lookupTarget as Record<string,unknown>:null
+ const sub=target?.kind==="subscription"?target:null
  if(sub){
    if(!sub.provider_order_id&&sub.status==="PENDING")return json({error:"SUBSCRIPTION_PROVIDER_CORRELATION_PENDING",retryable:true,requestId},503,requestId)
    if(!sub.provider_order_id||String(sub.provider_order_id)!==paymobOrderId)return json({error:"SUBSCRIPTION_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
@@ -30,9 +31,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    }
    const {data:processed,error:e}=await admin.rpc("process_verified_subscription_payment_backend",{p_event_id:`paymob-sub-success:${value(obj.id)}`,p_external_event_id:eventId,p_subscription_payment_intent_id:sub.id,p_provider_transaction_id:value(obj.id),p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_provider_order_id:paymobOrderId,p_signature_verified:true,p_raw_payload:raw});if(e){const message=String(e.message??"");if(message.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH")||message.includes("SUBSCRIPTION_PAYMENT_AMOUNT_MISMATCH"))return json({error:"SUBSCRIPTION_PAYMENT_BINDING_MISMATCH",requestId},409,requestId);if(message.includes("SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND"))return json({error:"SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId);return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId)}return json({ok:true,status:String(processed?.status??"UNKNOWN"),result:processed,requestId},200,requestId)
  }
- const {data:digitalByRef}=await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id,metadata").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
- const {data:digitalByOrder}=digitalByRef?{data:null}:await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id,metadata").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
- const digital=digitalByRef??digitalByOrder
+ const digital=target?.kind==="digital_page"?target:null
  if(digital){
    if(!digital.provider_order_id&&digital.payment_status==="PENDING"&&digital.metadata&&typeof digital.metadata==="object"&&"payment_intent_claim" in (digital.metadata as Record<string,unknown>))return json({error:"DIGITAL_PAGE_PROVIDER_CORRELATION_PENDING",retryable:true,requestId},503,requestId)
    if(!digital.provider_order_id||String(digital.provider_order_id)!==paymobOrderId)return json({error:"DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
@@ -66,7 +65,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    }
    return json({ok:true,status:value(result.payment_status),fulfillmentStatus:value(result.fulfillment_status),requestId},200,requestId)
  }
- const {data:mantigo}=await admin.from("mantigo_financial_ledger").select("id,ride_id,customer_id,currency,gross_amount,payment_status,settlement_status").eq("id",merchantRef).maybeSingle();
+ const mantigo=target?.kind==="mantigo"?target:null;
  if(mantigo){
    if(Math.abs(Number(mantigo.gross_amount)-amount)>0.01||String(mantigo.currency).toUpperCase()!==currency)return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
    const nextStatus=success?"PAID":"FAILED";
@@ -101,9 +100,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
    const mantigoResult=processedMantigo&&typeof processedMantigo==="object"?processedMantigo as Record<string,unknown>:{};
    return json({ok:true,status:value(mantigoResult.status),idempotent:mantigoResult.idempotent===true,alreadyFinal:mantigoResult.already_final===true,requestId},200,requestId);
  }
-const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash,provider_order_id,provider").eq("id",merchantRef).eq("provider","PAYMOB").maybeSingle()
- const {data:intentByOrder}=intentByRef?{data:null}:await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash,provider_order_id,provider").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
- const intent=intentByRef??intentByOrder;if(!intent)return json({error:"PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId)
+const intent=target?.kind==="payment_intent"?target:null;if(!intent)return json({error:"PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId)
  if(!intent.provider_order_id&&intent.status==="CREATED")return json({error:"PAYMENT_PROVIDER_CORRELATION_PENDING",retryable:true,requestId},503,requestId)
  if(!intent.provider_order_id||String(intent.provider_order_id)!==paymobOrderId)return json({error:"PAYMENT_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
  if(merchantRef&&merchantRef!==String(intent.id))return json({error:"PAYMENT_MERCHANT_REFERENCE_MISMATCH",requestId},409,requestId)
