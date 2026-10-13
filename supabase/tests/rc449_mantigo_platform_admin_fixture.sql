@@ -23,6 +23,7 @@ declare
 begin
   -- Execute dynamically: current_setting() is STABLE and a cached PL/pgSQL
   -- expression can retain the first simulated JWT subject for the entire DO block.
+  -- Each invocation must read the current request GUC, as a separate HTTP request would.
   execute 'select nullif(current_setting(''request.jwt.claim.sub'', true), '''')::uuid, current_setting(''mantiqatix.test_auth_diag'', true)'
     into v_uid, v_diag;
   if v_diag = 'on' then
