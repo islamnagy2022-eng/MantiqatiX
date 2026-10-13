@@ -178,3 +178,17 @@ Repository search found `supabase/tests/rc456_smm_service_role_fixture.sql`, whi
 Merged PR [#203](https://github.com/islamnagy2022-eng/MantiqatiX/pull/203) is explicitly a test-fixture correction, not a schema-creation migration. Its body states that the full replay blocker remains because the historical migration references `smm_provider_credentials` before any committed migration creates the table. The fixture's definitions therefore cannot be treated as recovered production DDL. A repository-wide source search during this continuation found table definitions in that fixture, but no authoritative `CREATE TABLE public.smm_providers` / `public.smm_provider_credentials` migration source in the searchable current repository. This is a bounded search result, not proof that no historical source exists in other branches or archives.
 
 The correct unblock remains source provenance: identify a historical branch/commit or verified migration artifact whose content can be reconciled with the live catalog and migration ledger. Until then, adding a new baseline migration or moving the ACL migration would manufacture history and is not justified.
+
+
+## 9. Approved SMM test-baseline provenance and next preflight blockers — 2026-10-13
+
+A cross-PR source review found the owner-approved, test-only SMM schema baselines in PR #207 branch `reconcile/rc425-458-current-main-20261011`:
+
+- `supabase/tests/baselines/smm_providers.sql` — blob `c8cb25309b2c6ca02e36e4a08111524de655dffd`
+- `supabase/tests/baselines/smm_provider_credentials.sql` — blob `99b937330b360fc8c310563a9ab66128f82b81c0`
+
+Their provenance explicitly limits them to isolated disposable replay and prohibits production application or placement under executable `supabase/migrations/`. PR #211 records the same owner approval and intent. These files are **not present on the S04 continuation branch**, so the current S04 workflow does not inject them and still stops at the missing credentials table. The safe next implementation is to port these exact reviewed test-only files and have CI copy them into temporary, versioned migration filenames only in its disposable checkout, then remove them with the runner's disposable workspace. They must not be added to the executable source chain or production.
+
+This would remove only the known SMM bootstrap failure. It would not certify the chain: the historical baseline validator in PR #207 separately blocks on unresolved `credit_policies`, `credit_accounts`, and `credit_periods` before the earlier `20260920155456_harden_credit_status_authorization.sql`, and also identifies a missing `bookings` historical source/baseline dependency. RC40 is not approved as a substitute. The five executable duplicate-version groups also remain unresolved.
+
+**Status remains BLOCKED / NOT CERTIFIED.** No production writes, migration-ledger changes, merges, or deployments were made.
