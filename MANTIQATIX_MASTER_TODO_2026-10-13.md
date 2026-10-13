@@ -68,3 +68,10 @@
 
 Checkpoint source head before this root index was added: d2c84a7be34a8bbd40523964944a8b5403c02208.
 Next executable action: inspect exact-head workflow run for the current PR #207 candidate, then fix the next evidenced blocker on the same working branch and update this index plus the append-only session log.
+
+## 2026-10-13 SESSION-004 update
+- Newly observed replay failure at run 38349796102: public.settlement_attempts missing when historical finance-read policy migration 20260920211717 runs.
+- Added catalog-derived schema-only fixture supabase/tests/baselines/settlement_attempts.sql, temporary replay version 20260920211715, CI exact-copy/untracked/no-data guards, and validator contract checks.
+- Candidate head at this checkpoint: 6b481ca4ea8d1b8d8855871db49b2ca262ad1801.
+- Exact-head replay run 38350384105 is pending/in progress; do not claim replay success until it finishes.
+- Next: inspect exact-head replay result, fix next evidenced blocker, then continue P0 payment-webhook ACL/source analysis. No production change, merge, or deployment.
