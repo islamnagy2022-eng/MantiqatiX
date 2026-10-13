@@ -342,3 +342,11 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Exact run [#38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) now passes the temporary-baseline verification shell and proceeds farther through the chronological migrations, but fails at `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql` with `ERROR: function public.smm_bootstrap_first_admin() does not exist (SQLSTATE 42883)`.
 - This is the next missing historical function dependency in the disposable replay, not a reason to synthesize a production migration or stub a function. PR #207 remains the migration-history owner; resolve through authoritative source/ledger evidence and test-only compatibility only with explicit provenance/approval.
 - The new run still concludes **FAIL**; full migration replay remains **NOT VERIFIED**.
+
+
+## Historical SMM bootstrap function provenance check — 2026-10-13 05:24 UTC
+
+- Read-only production catalog confirms `public.smm_bootstrap_first_admin()` exists as a trigger-returning `SECURITY DEFINER` function with `search_path=public`; it creates the first `smm_admins` row only when that table is empty. It is not executable by `anon`, `authenticated`, or `service_role`.
+- Repository search found no tracked canonical creation migration in the current source tree; the master production TODO mentions it only as trigger-only. This supports treating the replay error as a historical source gap, not broadening its ACL or synthesizing production history.
+- Added evidence/comment to PR #207: https://github.com/islamnagy2022-eng/MantiqatiX/pull/207 (comment ID `6138870917`). No files in the migration-owning PR were edited. A disposable-only function baseline still requires canonical source/provenance or explicit owner approval.
+- Latest observed PR #207 head `9556b9a9dde205d30000a830be67f001704b996a`; run [#38351107774](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351107774) is pending. Do not carry forward an old run's failure as the latest verdict, and do not report a pass until this exact-head run completes.
