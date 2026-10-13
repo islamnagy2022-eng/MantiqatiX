@@ -80,6 +80,7 @@ create table public.journal_entries (
   total_credit numeric not null,
   entry_date date not null,
   posted_at timestamptz not null,
+  created_at timestamptz not null default current_timestamp,
   created_by uuid not null
 );
 create table public.journal_entry_lines (
