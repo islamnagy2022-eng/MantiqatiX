@@ -28,12 +28,15 @@ checks.push([
 const handlerStart = gateway.indexOf("Deno.serve(async(req)=>{");
 const handler = handlerStart >= 0 ? gateway.slice(handlerStart) : "";
 const optionsIndex = handler.indexOf('if(req.method==="OPTIONS")');
-const gateIndex = handler.indexOf('if(Deno.env.get("MNTY_SMM_ENABLED")!=="true")return json({error:"SMM_POST_LAUNCH_DEFERRED"},503);');
+const gateIndex = handler.indexOf('if(SMM_INITIAL_LAUNCH_DEFERRED||Deno.env.get("MNTY_SMM_ENABLED")!=="true"||Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED")!=="true")return json({error:"SMM_DEFERRED"');
 const authIndex = handler.indexOf("const user=await getUser(req)");
 checks.push([
-  "SMM gateway fails closed before authentication and all actions unless explicitly enabled server-side",
-  optionsIndex >= 0 && gateIndex > optionsIndex && authIndex > gateIndex &&
-    handler.includes('error:"SMM_POST_LAUNCH_DEFERRED"') &&
+  "SMM gateway hard gate cannot be overridden by environment flags and runs before authentication",
+  gateway.includes("const SMM_INITIAL_LAUNCH_DEFERRED=true;") &&
+    optionsIndex >= 0 && gateIndex > optionsIndex && authIndex > gateIndex &&
+    handler.includes('Deno.env.get("MNTY_SMM_ENABLED")!=="true"') &&
+    handler.includes('Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED")!=="true"') &&
+    handler.includes('error:"SMM_DEFERRED"') &&
     handler.includes("},503);"),
 ]);
 
