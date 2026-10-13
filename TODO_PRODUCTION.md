@@ -3,6 +3,36 @@
 حالات العمل: TODO / IN PROGRESS / WAIT / BLOCKED / DONE / VERIFIED / NOT VERIFIED.  
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
+## Session Update — 2026-10-13 (evidence-backed; not a release approval)
+
+### P0 — Current release blockers (revalidated)
+- [ ] **Clean migration replay — BLOCKED.** S04 clean replay normalizes known duplicate version prefixes only in the disposable CI checkout and preserves SQL SHA-256, but replay then stops at missing historical baseline dependencies. A prior exact-head run failed because `public.marketing_project_participants` was absent before migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`; another isolated replay surfaced missing `public.smm_provider_credentials`. Do not fabricate schema or skip migrations.
+- [ ] **Migration history/source convergence — BLOCKED.** Five duplicate migration-version groups were detected. Renaming committed history was rejected by the immutability gate; PR #233 is explicitly blocked/do-not-merge. PR #234 is a disposable-normalization experiment and remains blocked/superseded. Reconcile each live migration record to authoritative source before any release.
+- [ ] **SMM least-privilege migration — READY FOR REVIEW, NOT APPLIED.** Draft PR #236 adds RC524 to reset service_role grants on all eight SMM tables; isolated PostgreSQL integration passed in runs #38400557008 and #38400580077. Live service_role TRUNCATE grants remain until a separately reviewed and approved migration is applied.
+- [ ] **SMM runtime/launch — DEFERRED.** Live `smm-gateway` was observed active at v10 with `verify_jwt=true`; the live source matched the S07 branch source, and the hard deferred-launch guard remains enabled. This is not proof of full provider, tenant-isolation, spend-limit, retry/refund, or runtime 503 coverage. Keep campaigns/provider calls/wallet operations disabled.
+- [ ] **Payments concurrency — PARTIAL PASS.** Draft PR #237 adds two-session duplicate Paymob callback coverage; isolated PostgreSQL run #38402862801 passed. It does not certify real Paymob production callbacks, settlement, GL posting, refunds, or end-to-end reconciliation.
+- [ ] **Marketing participant historical baseline — WAIT.** Draft PR #235 adds a fail-closed preflight requiring an approved disposable-only baseline; it intentionally does not create guessed DDL or alter production.
+- [ ] **External release gates — NOT VERIFIED.** Auth leaked-password protection, multi-tenant browser E2E, real-device/PWA, real authorized Paymob E2E, backup/restore RPO/RTO, Android signed artifact, rollback rehearsal, and final release approval remain open.
+
+### Current working PRs (all drafts; no merges/deploys)
+- PR #207 — RC425–RC458 source/release reconciliation: https://github.com/islamnagy2022-eng/MantiqatiX/pull/207
+- PR #220 — S06 payment integrity contracts: https://github.com/islamnagy2022-eng/MantiqatiX/pull/220
+- PR #221 — S07 deferred SMM gateway safety: https://github.com/islamnagy2022-eng/MantiqatiX/pull/221
+- PR #235 — marketing historical-baseline preflight: https://github.com/islamnagy2022-eng/MantiqatiX/pull/235
+- PR #236 — RC524 SMM service-role least-privilege reset: https://github.com/islamnagy2022-eng/MantiqatiX/pull/236
+- PR #237 — S06 concurrent callback idempotency: https://github.com/islamnagy2022-eng/MantiqatiX/pull/237
+- PR #233 — migration filename rename experiment: BLOCKED / DO NOT MERGE.
+- PR #234 — disposable S04 normalization experiment: BLOCKED / superseded; do not use as release evidence.
+
+### Next execution order
+1. Reconcile the live Supabase migration ledger against main, recovered migrations, RC40 archive, and RC425–RC458 evidence; produce a per-version manifest with source hash and applied version, without touching live DB.
+2. Extend the existing PR #207 historical baseline validator using only authoritative schema evidence or explicitly approved disposable-only fixtures. Never infer table DDL solely from names.
+3. Run the full S04 replay after all required baselines and dependency order are proven; retain the complete logs/artifact and exact commit SHA.
+4. Review PR #236's grant reset and integration evidence; keep it unapplied until migration-history/release gates are approved.
+5. Extend S06 isolated tests for conflicting event replay, payment/ledger/settlement atomicity, and refund idempotency; do not call a real provider.
+6. Re-run S07 exact-head checks and verify the deployed deferred gate without enabling campaign execution.
+7. Reassess all P0 gates; do not mark production certified until each external/runtime item has direct evidence.
+
 ## P0 — بوابة الإطلاق
 - [🟢] Baseline CI — run #114 نجح على `main` للـcommit `d58e1360a170bce596494b2aeb37b5166fff6a5b`، وتضمن تحقق ملفات الويب وSyntax وMetadata/Security smoke.
 - [ ] Auth production: Email OTP end-to-end، session، logout، expiry. **NOT VERIFIED — requires external browser/auth test.**
