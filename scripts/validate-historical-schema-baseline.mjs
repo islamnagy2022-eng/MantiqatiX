@@ -142,6 +142,40 @@ if (paymentProviderEventsMigration) {
   }
 }
 
+// Validate the catalog-derived finance-read policy missing from the historical source chain.
+// The table already exists in the replay; only this policy definition is injected test-only.
+const paymentEventsPolicyBaselinePath = "supabase/tests/baselines/payment_events_finance_read.sql";
+const paymentEventsPolicyBaseline = fs.readFileSync(paymentEventsPolicyBaselinePath, "utf8");
+const paymentEventsPolicyVersion = "20260927140493";
+const paymentEventsPolicyTemporaryName = paymentEventsPolicyVersion + "_test_only_live_derived_payment_events_finance_read.sql";
+const paymentEventsPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const paymentEventsPriorPolicyCreation = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < paymentEventsPolicyMigration?.name.slice(0, 14) &&
+  /create\s+policy\s+payment_events_finance_read\s+on\s+(?:public\s*\.\s*)?payment_events\b/i.test(sql)
+);
+const paymentEventsPolicyBaselineValid =
+  /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(paymentEventsPolicyBaseline) &&
+  /2026-10-13/.test(paymentEventsPolicyBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(paymentEventsPolicyBaseline) &&
+  /NOT recovered historical policy-creation DDL/i.test(paymentEventsPolicyBaseline) &&
+  /MUST NOT be applied to production/i.test(paymentEventsPolicyBaseline) &&
+  /CREATE POLICY payment_events_finance_read[\s\S]*ON public\.payment_events[\s\S]*FOR SELECT[\s\S]*TO authenticated/i.test(paymentEventsPolicyBaseline) &&
+  /um\.tenant_id::text = \(payment_events\.tenant_id\)::text/i.test(paymentEventsPolicyBaseline) &&
+  /um\.status::text = 'ACTIVE'::text/i.test(paymentEventsPolicyBaseline) &&
+  /upper\(\(um\.role\)::text\) = ANY/i.test(paymentEventsPolicyBaseline) &&
+  /OWNER[\s\S]*ADMIN[\s\S]*MANAGER[\s\S]*FINANCE[\s\S]*ACCOUNTANT[\s\S]*FINANCE_MANAGER/i.test(paymentEventsPolicyBaseline) &&
+  !/create\s+table|\bgrant\b|\brevoke\b|insert\s+into|copy\s+(?:public|private)\./i.test(paymentEventsPolicyBaseline);
+if (!paymentEventsPolicyMigration || paymentEventsPriorPolicyCreation || !paymentEventsPolicyBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, paymentEventsPolicyTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === paymentEventsPolicyVersion) ||
+    paymentEventsPolicyVersion >= paymentEventsPolicyMigration.name.slice(0, 14) ||
+    !/alter policy payment_events_finance_read on public\.payment_events to authenticated;/i.test(paymentEventsPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: payment_events finance-read test-only policy baseline, provenance, timestamp, or ordered ALTER POLICY contract is invalid.");
+  process.exit(1);
+}
+
 // Validate the live-derived marketing CRM tables whose policies are altered before any
 // canonical CREATE TABLE source exists. This remains synthetic disposable-only compatibility,
 // not a claim that the historical table/policy creation DDL has been recovered.
