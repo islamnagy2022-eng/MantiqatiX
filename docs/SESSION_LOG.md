@@ -56,3 +56,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Next step:** obtain an authorized safe negative runtime probe through an approved staging or operator route and capture version/hash/response/side-effect evidence. Continue tracking replay and payment blockers.
 - **Report commit:** `3123878584f143c3ff5df5de322221192f6a3c38`.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C governance/Auth evidence — 2026-10-13
+
+- **Verified fact:** GitHub branch API reports `main.protected=false`, `protection.enabled=false`, required-status-check enforcement `off`; repository rulesets endpoint returned `[]`. Direct branch-protection detail endpoint returned 403, so detailed settings were not accessible. No setting changed.
+- **Verified fact:** current Supabase Security Advisor reports leaked-password protection disabled. Anonymous-policy warnings exist across multiple tables and require scoped review rather than blanket changes.
+- **Action performed:** recorded these release gates in the Session C acceptance report.
+- **Not performed:** no branch protection changes, Auth setting changes, RLS/grant changes, production writes, or deployment.
+- **Next step:** repository administrator to configure protection/required checks; authorized Auth owner to enable leaked-password protection; then verify via read-only settings and advisor recheck.
+- **Report commit:** `05c1ead06f20ba10b21b2109ad13b4c97eb49bf3`.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
