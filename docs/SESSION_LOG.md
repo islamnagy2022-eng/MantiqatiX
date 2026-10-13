@@ -21,3 +21,15 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-13 — SESSION-002 — Exact-head release evidence refresh
+
+- **Baseline used for this documentation branch:** `8a56358d505d2c12878440037f7f24ba65d2ea10` (parent of documentation-only branch `docs/production-evidence-refresh-20261013`).
+- **Rechecked PR heads:** #207 `854935bf0bdd524bb7bf28453a7c34253c731e71`; #220 `9abe223bbca6bdd861109883fd581eb2125d6948`; #221 `91fcf6b1578e71b2a0c86e1a39d5f8cb448ce97f`; #235 `2fc3227c063361d1d963e00be6d33802a400ae04`; #236 `70b2ea3e75c68c27272566ab59ed671f659804a4`; #237 `0f0d12ff56195031e36ebd73a17732876f8b4f8d`; #238 `84926bd6462f417fb37d8ba3045596f50f7e88d4`.
+- **Verified CI:** #207 migration replay failed [38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600); #220 isolated payment regressions passed [38357928701](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928701), while clean replay failed [38357928636](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928636); #221 SMM deferred contract passed [38342839169](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38342839169); #237 concurrent callback test passed [38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421); #238 docs/boundary/Pages PR checks passed [38404753733](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404753733).
+- **Not verified:** exact-head CI for #236 was not returned by the current Actions lookup; no production application of RC524; no real Paymob E2E; no production deployment implied by PR Pages validation.
+- **Action performed:** prepared evidence-only updates for `TODO_PRODUCTION.md`, `docs/TODO_MASTER_DEVELOPMENT.md`, and this append-only session log on a dedicated documentation branch. No source/migration/production mutation.
+- **Blockers preserved:** authoritative historical schema gaps, migration chain replay, tenant/auth E2E, Paymob/finance E2E, managed Auth setting, backup/restore/rollback, browser/PWA/device and signed Android evidence.
+- **Next action:** use authoritative migration/archive/live-schema provenance to repair the clean-replay prerequisites; do not synthesize missing DDL. Then rerun clean replay and exact-head tests, review the smallest independently deployable source changes, and obtain explicit approval before production rollout.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
