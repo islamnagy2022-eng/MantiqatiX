@@ -28,7 +28,20 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,6 +51,28 @@ jobs:
           node-version: "22"
       - name: Validate atomic webhook state transitions
         run: node scripts/validate-paymob-webhook-atomic-transitions.mjs
+      - name: Run isolated RC425 and RC428-RC430 PostgreSQL integration tests
+        env:
+          DB_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+          for attempt in $(seq 1 30); do
+            if pg_isready -d "$DB_URL"; then break; fi
+            sleep 2
+          done
+          pg_isready -d "$DB_URL"
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c 'create extension if not exists pgcrypto;'
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "do \\$roles\\$ begin if not exists(select 1 from pg_catalog.pg_roles where rolname='anon') then create role anon nologin; end if; if not exists(select 1 from pg_catalog.pg_roles where rolname='authenticated') then create role authenticated nologin; end if; if not exists(select 1 from pg_catalog.pg_roles where rolname='service_role') then create role service_role nologin; end if; end \\$roles\\$;"
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc425_mantigo_paymob_fixture.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc425_mantigo_paymob_integration.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc428_430_paymob_atomic_fixture.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc428_430_paymob_atomic_integration.sql
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
