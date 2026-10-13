@@ -133,3 +133,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #225 advanced to head `67bf1c5b7b57c69393245fa5dfc4e55901dcb160`; exact-head run [38350675472](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350675472) PASS (SMM source/ACL/type/unit-negative-input checks). Live deployed HTTP behavior remains NOT VERIFIED.
 - PR #219's latest inspected MantiGO PostgreSQL behavioral run [38343317017](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343317017) remains FAIL (`AUTH_REQUIRED` in the authorized path); do not weaken the platform guard. PR #220 S06 focused tests PASS but S04 migration replay FAIL, so payment release gate remains blocked.
 - No production mutations, migration applications, Auth/RLS/grant/secret changes, deployment, or merges. Release status: **BLOCKED / NOT CERTIFIED**.
+
+
+## Migration replay bootstrap fix source rechecked — 2026-10-13 05:19 UTC
+
+- On current PR #207 head `61c994c47b7b27f498a26463dda658694ffcb719`, read-only fetch of `.github/workflows/migration-chain-replay.yml` confirms `settlement_attempts_baseline` is now declared in the second verification shell at line 110 and is used by `cmp` at line 140. The previously observed unbound-variable defect appears fixed in source.
+- Exact-head replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) was still in progress when checked; the fix is not yet marked PASS until CI logs confirm the step and full replay. Coordination confirmation: [6138819719](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138819719).
+- The settlement fixture type/provenance review remains open (`numeric(14,4)`, `varchar(8)`, explicit test-only approval). Release remains **BLOCKED / NOT CERTIFIED**.
