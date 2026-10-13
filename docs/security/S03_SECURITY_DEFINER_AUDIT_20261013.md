@@ -255,3 +255,21 @@ Specific review conclusions:
 ### Environment decision required for behavioral tests
 
 Supabase organization discovery returned one organization, `manteqti` (ID `uahatcrnwfexfdmkrdkr`). I have not requested a cost quote or created a branch because the Supabase connector requires asking the user to select the organization before quoting branch cost, and explicit cost confirmation before branch creation. Until that confirmation, runtime tests remain unexecuted.
+
+
+### Legal authorization call-chain and EXECUTE privilege recheck — 2026-10-13
+
+A targeted, read-only catalog query checked the legal-related SECURITY DEFINER functions, their EXECUTE privileges for `anon`, `authenticated`, and `service_role`, and references to the private admin predicate.
+
+Observed:
+- `private.legal_is_admin()` and `private.legal_is_admin(uuid)`: `anon=false`, `authenticated=true`, both configured with an empty `search_path`.
+- `public.legal_assert_action(...)`, `public.legal_publish_version(...)`, `public.legal_suspend_document(...)`, `public.legal_update_document(...)`, and `public.legal_update_draft_version(...)`: catalog reports EXECUTE only for `service_role`, not for `anon` or `authenticated`.
+- `public.record_legal_consent(...)` and `public.record_legal_consent_backend(...)`: catalog reports no EXECUTE for `anon` or `authenticated`; the backend overload reports EXECUTE for `service_role`.
+- The checked PostgREST schema setting `pgrst.db_schemas` is unset/null. This does **not** establish which schemas are exposed by the active API gateway, so direct RPC reachability of `private.legal_is_admin(uuid)` remains unresolved.
+- Several service-role-only legal write functions call `private.legal_is_admin` with a target actor UUID. Their current EXECUTE ACLs reduce direct end-user reachability through ordinary role grants, but service-role call paths and the active API exposure configuration still need verification before certification.
+
+Classification: no confirmed legal authorization exploit from this catalog-only check. Keep the private helper as an unresolved reachability/call-chain item; do not label it vulnerable solely because authenticated has PostgreSQL EXECUTE on the function. No application RPC was invoked, and no production data/schema/privileges were changed.
+
+### Updated status after legal recheck
+
+This was a read-only production catalog inspection. Behavioral tests remain **NOT RUN** (0 passed, 0 failed), no disposable Supabase test branch is available, and no release/security certification is granted. Existing restrictions remain: no production grants/revokes, migrations, data mutations, merge, deployment, or edits to S02-owned files.
