@@ -76,7 +76,7 @@ jobs:
           docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261013080000_atomic_mantigo_paymob_webhook_processing.sql
           docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261013090000_atomic_paymob_payment_failure_processing.sql
 
-      - name: Test replay, mismatch, concurrency identity, rollback, and legacy repair
+      - name: Test MantiGO, order, and subscription callback atomicity
         shell: bash
         run: |
           set -euo pipefail
