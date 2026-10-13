@@ -18,6 +18,12 @@ language plpgsql
 volatile
 as $function$
 begin
+  -- Temporary disposable-test diagnostic: reveal only whether the platform fixture
+  -- identity reaches each call site. This file is never deployed to production.
+  if current_setting('request.jwt.claim.sub',true) = '10000000-0000-4000-8000-000000000044' then
+    raise notice 'RC449_AUTH_DIAG setting=% context=%',
+      current_setting('request.jwt.claim.sub',true), pg_catalog.pg_context;
+  end if;
   -- PL/pgSQL avoids SQL-function inlining so each simulated request reads the
   -- current JWT subject rather than a value folded into the enclosing DO statement.
   return nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
