@@ -57,10 +57,11 @@ check("auth regressions assert expected rejection identifiers rather than accept
 check("multi-identity test session forces fresh plans and restores planner setting",
   integration.includes("SET plan_cache_mode = force_custom_plan;") &&
   integration.includes("RESET plan_cache_mode;"));
-check("disposable auth.uid fixture models JWT subject switches without changing production auth",
-  fixture.includes("VOLATILE is intentional in this disposable fixture only") &&
+check("disposable auth.uid fixture reads the current simulated JWT subject on every invocation without changing production auth",
+  fixture.includes("disposable fixture only") &&
   /create or replace function auth\.uid\(\)[\s\S]*?language plpgsql\s+volatile/i.test(fixture) &&
-  fixture.includes("avoids SQL-function inlining"));
+  fixture.includes("execute 'select nullif(current_setting") &&
+  fixture.includes("Each invocation must read the current request GUC"));
 
 
 
