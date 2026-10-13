@@ -106,3 +106,12 @@ Relevant candidate commits:
 - Static validation of the RC523 override: `30e479e42627f6e79aef463081fe1d173a699eb1`.
 
 The final-head PostgreSQL integration result is still pending; no production migration has been applied.
+
+
+### Latest diagnostic — same-session identity switching still invalidates the integration assumption
+
+The latest disposable PostgreSQL diagnostic returned `v_auth=10000000-0000-4000-8000-000000000041` (the earlier tenant-owner subject) while the supplied actor was the platform-admin UUID `...0044`. The request setting and direct guard immediately before the RPC still reflected the platform-admin identity. This means the test's repeated identity changes inside one `DO` block are not being observed consistently by the cached identity expression in the already-invoked financial-report RPC.
+
+Interpretation is intentionally limited: this proves the current **same-session multi-identity integration harness is failing**; it does not yet establish whether the behavior reproduces across separate PostgREST requests/connections. Do not weaken the guard or accept a stale identity. The next step is to refactor the disposable integration test so identity-sensitive RPC calls are exercised in separate request-like sessions, while retaining unauthenticated/forged-actor rejection and authorized-admin success checks. The temporary error-detail diagnostic has been removed from RC523. The explicit null-identity checks in settlement/expiration remain.
+
+Current status remains **BLOCKED / NOT CERTIFIED** pending an accurate session model and a passing PostgreSQL integration run. No production migration was applied.
