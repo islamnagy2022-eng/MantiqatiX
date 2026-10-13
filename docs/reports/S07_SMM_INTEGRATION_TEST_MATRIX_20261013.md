@@ -76,3 +76,15 @@ These are committed test additions only; the GitHub Actions result for this new 
 The current helper truncates external service IDs to 128 characters rather than rejecting overlong IDs. Two distinct upstream IDs sharing the same first 128 characters could collide in a database key. Because the helper is currently byte-identical to the inspected live v10 helper, this behavior is recorded as a source-parity follow-up rather than changed in isolation. A correction must include a deliberate parity decision, collision/migration review, and tests before adoption.
 
 Status remains **BLOCKED / NOT CERTIFIED**. The launch gate remains closed; no provider request, wallet mutation, schema/grant change, merge, or deployment was performed.
+
+## Follow-up checkpoint — order/status boundary coverage expanded
+
+Date: 2026-10-13
+
+Added focused unit cases:
+
+- `S07_ORDER_007`: reserved/local suffixes, IPv6 loopback, and overlong target URLs are rejected by order-input validation.
+- `S07_ORDER_008`: empty/overlong service IDs and unsafe/oversized quantity representations fail closed. The oversized numeric-string fixture was corrected to 16 digits so it actually exercises the validator's length rejection.
+- `S07_STATUS_004`: terminal-state protection is case-insensitive for lowercase persisted terminal statuses.
+
+No production gateway behavior was changed. These tests are not marked passed until the corresponding completed GitHub Actions run is observed. The static source-parity validator remains intentionally blocking because the entrypoint still lacks the reviewed v10 imports and outcome handling.
