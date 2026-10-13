@@ -142,6 +142,41 @@ if (paymentProviderEventsMigration) {
   }
 }
 
+// Validate the catalog-derived settlement finance-read policy missing from historical source.
+// Only the policy is injected: settlement_transactions already exists by this migration point.
+const settlementTransactionsPolicyBaselinePath = "supabase/tests/baselines/settlement_transactions_finance_read.sql";
+const settlementTransactionsPolicyBaseline = fs.readFileSync(settlementTransactionsPolicyBaselinePath, "utf8");
+const settlementTransactionsPolicyVersion = "20260927140492";
+const settlementTransactionsPolicyTemporaryName = settlementTransactionsPolicyVersion + "_test_only_live_derived_settlement_transactions_finance_read.sql";
+const settlementTransactionsPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const settlementTransactionsPriorPolicyCreation = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < settlementTransactionsPolicyMigration?.name.slice(0, 14) &&
+  /create\s+policy\s+settlement_transactions_finance_read\s+on\s+(?:public\s*\.\s*)?settlement_transactions\b/i.test(sql)
+);
+const settlementTransactionsPolicyBaselineValid =
+  /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(settlementTransactionsPolicyBaseline) &&
+  /2026-10-13/.test(settlementTransactionsPolicyBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(settlementTransactionsPolicyBaseline) &&
+  /NOT recovered historical policy-creation DDL/i.test(settlementTransactionsPolicyBaseline) &&
+  /MUST NOT be applied to production/i.test(settlementTransactionsPolicyBaseline) &&
+  /CREATE POLICY settlement_transactions_finance_read[\s\S]*ON public\.settlement_transactions[\s\S]*FOR SELECT[\s\S]*TO authenticated/i.test(settlementTransactionsPolicyBaseline) &&
+  /um\.tenant_id::text = \(settlement_transactions\.tenant_id\)::text/i.test(settlementTransactionsPolicyBaseline) &&
+  /um\.status::text = 'ACTIVE'::text/i.test(settlementTransactionsPolicyBaseline) &&
+  /upper\(\(um\.role\)::text\) = ANY/i.test(settlementTransactionsPolicyBaseline) &&
+  /OWNER[\s\S]*ADMIN[\s\S]*MANAGER[\s\S]*FINANCE[\s\S]*ACCOUNTANT[\s\S]*FINANCE_MANAGER/i.test(settlementTransactionsPolicyBaseline) &&
+  !/create\s+table|\bgrant\b|\brevoke\b|insert\s+into|copy\s+(?:public|private)\./i.test(settlementTransactionsPolicyBaseline);
+if (!settlementTransactionsPolicyMigration || settlementTransactionsPriorPolicyCreation ||
+    !settlementTransactionsPolicyBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, settlementTransactionsPolicyTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === settlementTransactionsPolicyVersion) ||
+    settlementTransactionsPolicyVersion >= settlementTransactionsPolicyMigration.name.slice(0, 14) ||
+    !/alter policy settlement_transactions_finance_read on public\.settlement_transactions to authenticated;/i.test(settlementTransactionsPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: settlement_transactions finance-read test-only policy baseline, provenance, timestamp, or ordered ALTER POLICY contract is invalid.");
+  process.exit(1);
+}
+
 // Validate the catalog-derived finance-read policy missing from the historical source chain.
 // The table already exists in the replay; only this policy definition is injected test-only.
 const paymentEventsPolicyBaselinePath = "supabase/tests/baselines/payment_events_finance_read.sql";
