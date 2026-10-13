@@ -42,3 +42,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Reconfirmed the historical migration source gap: the tracked migration tree is not a complete reproduction of live history, and authoritative creation DDL for `marketing_project_participants` was not recovered. No guessed DDL or baseline added.
 - No production deployment, production DDL/ACL change, merge, live payment, or SMM provider call performed. Release remains **BLOCKED / NOT CERTIFIED**.
 - Next action: recover authoritative historical schema provenance or obtain explicit narrowly scoped approval for a disposable-only baseline; then rerun full chronological replay and keep production blocked until all live gates pass.
+
+
+## 2026-10-13 — SESSION-004 — Read-only marketing schema evidence
+
+- Read the live catalog for `public.marketing_project_participants` in Supabase project `moyhiluyhjsujhwlyeuu` without selecting business rows or mutating the database.
+- Catalog evidence recorded in `TODO_PRODUCTION.md`: eight columns, PK/unique/check/FK constraints, provider index, RLS enabled+forced, current assigned-provider SELECT policy, and three restrictive authenticated-only policies.
+- This verifies current shape, not historical creation provenance or original policy timeline. The replay branch remains fail-closed; no fixture, production DDL, grants, data, merge, deployment, or provider/payment call was applied.
+- Added evidence clarification to PR #235 conversation. Next decision gate: either supply authoritative historical migration/archive source, or explicitly approve a clearly labeled **disposable-CI-only** live-derived compatibility fixture. Even if approved, production remains blocked until full chronological replay passes.
+- PR #239 exact-head workflows for commit `65ad27f48143b19fb0e034896cc6c053684258b3` all completed successfully: Pages validation [38406976891](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406976891) with deploy skipped for pull_request event; Backend-only Module Boundary [38406976456](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406976456); Module Professionalization [38406977987](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406977987); MantiGO privacy [38406978137](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406978137). Corresponding push-triggered runs also passed. These are validation checks, not production deployment evidence.
+- Release state remains **BLOCKED / NOT CERTIFIED**.
