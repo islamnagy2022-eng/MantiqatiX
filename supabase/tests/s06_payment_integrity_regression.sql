@@ -84,6 +84,26 @@ begin
     if not rejected then raise exception 'invalid amount % was not rejected',n; end if;
   end loop;
 
+  -- Missing provider transaction and provider order references must be rejected.
+  foreach n in array array[1, 2] loop
+    rejected := false;
+    begin
+      perform public.process_verified_digital_page_payment_backend(
+        target,
+        case when n = 1 then 'paymob:s06-missing-tx' else 'paymob:s06-missing-order' end,
+        'TRANSACTION','SUCCEEDED',true,249.50,'EGP',
+        case when n = 1 then null else 's06-missing-order' end,
+        case when n = 2 then null else 's06-provider-order' end,
+        '{"suite":"S06","case":"missing-provider-reference"}'::jsonb
+      );
+      raise exception 'TEST_FAILED: missing provider reference % unexpectedly succeeded', n;
+    exception when others then
+      if sqlerrm <> 'DIGITAL_PAGE_AMOUNT_CURRENCY_INVALID' then raise; end if;
+      rejected := true;
+    end;
+    if not rejected then raise exception 'missing provider reference % was not rejected', n; end if;
+  end loop;
+
   -- An event identifier must be derived from the exact provider transaction ID.
   rejected := false;
   begin
