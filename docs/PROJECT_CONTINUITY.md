@@ -610,3 +610,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Latest documentation head on PR #218: `f608bc76bfc898f3aa4116fbd3777f2b378bb64b`. CI was retriggered due to documentation changes. Eleven checks were QUEUED at inspection; none is counted as passed until completed.
 - The immediately preceding code candidate `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc` had focused PostgreSQL integration 13/13 and the listed source validators passing.
 - Release remains BLOCKED / NOT CERTIFIED: migration reconciliation says required migrations are not applied/proven and chronological replay is NOT RUN; live runtime and disaster-recovery gates remain open.
+
+
+## RC541 — Latest live-state check (2026-10-13)
+
+- Current PR #218 candidate `173da30eef28a86356b4077abf06ce02f60cfed8` has completed the required observed CI set successfully, including 13/13 focused disposable PostgreSQL integration jobs. The Pages deploy job was skipped for the PR event.
+- Fresh read-only Supabase inventory confirms 283 recorded migrations, latest RC424 version `20261008222845`; post-RC424 migrations are not recorded as applied. Active functions include payment-intent v6, paymob-webhook v8, subscription-payment-intent v2, erp-purchase-receive v1, digital-page-payment-intent v3, and smm-gateway v10; version numbers alone do not prove source parity.
+- Security Advisor snapshot: 1 INFO RLS-enabled/no-policy finding on `digital_page_payment_events`, 1 anon-executable SECURITY DEFINER warning on targeted ads, and 40 authenticated-executable SECURITY DEFINER warnings. These require scoped contract review, not blanket ACL changes.
+- Full chronological replay, live tenant/payment E2E, Edge Function parity, Auth/security, backup/restore, signed device build and rollback remain open. Do not deploy or certify until evidence is reconciled. Release remains BLOCKED / NOT CERTIFIED.
