@@ -2,7 +2,7 @@
 
 **Repository:** `islamnagy2022-eng/MantiqaTiX`  
 **PR:** #218 (draft, unmerged)  
-**Reviewed branch head:** `a5252349cc84680c618628a4c88ac87f1ce5dbf2`  
+**Reviewed branch head:** `ca520738fde2fcac405840312ef52a8a1d3df44f`  
 **Supabase project:** `moyhiluyhjsujhwlyeuu`  
 **Method:** read-only comparison of repository migration files with `supabase_migrations.schema_migrations.statements`. No production schema or data was changed.
 
@@ -24,23 +24,24 @@
 - Existing ledger-derived files under `supabase/recovered-migrations/` are archival candidates, not automatically executable migrations. They require source review, secret scanning, dependency/order reconciliation, and disposable replay before use.
 - No historical migration was edited by this audit. No production migration, RLS policy, grant, function, Edge Function, payment, or other data-changing operation was executed.
 
-## CI snapshot at review
+## CI snapshot — refreshed for reviewed head `ca520738fde2fcac405840312ef52a8a1d3df44f`
 
-Observed workflow results on the reviewed head included successful runs for:
-- Migration history immutability
-- Migration version uniqueness
-- Open-PR migration collision guard
-- RC446 MantiGO open-ride privacy boundary
-- RC449/RC462 platform-admin scope boundary
-- RC522 audit-log append-only ACL
-- Approval-action audit atomicity
-- SMM service-role access boundary
-- Targeted-ad search-path integration
-- Matrimony privacy integration
-- Module professionalization validation
-- RC434 ERP receiving integration
+The following GitHub Actions runs associated with this candidate were observed completed successfully:
 
-The focused recovered-migration integration workflow and RC523 financial-report integration job were still queued at the last observation; they are not counted as passing. Web validation succeeded, but the deploy job was skipped. These results do not constitute release certification.
+- Migration History Immutability — run `38333772074`
+- Open PR Migration Collision Guard — run `38333772068`
+- Migration Version Uniqueness — run `38333772081`
+- Audit Log Append-only ACL — run `38333772063`
+- SMM Service Role Access Boundary — run `38333772056`
+- MantiGO Open Ride Privacy Boundary — run `38333772138`
+- MantiGO Platform Admin Scope Hardening — run `38333772101`
+- Approval Action Audit Atomicity — run `38333772091`
+- Module Professionalization Validation — run `38333772093`
+- Backend-only Module Boundary — run `38333772116`
+- Recovered Migration Focused Integration — run `38333772075`, including the RC523 financial-report regression job and its canonical-column-only second pass
+- Web validation — run `38333772096`; the validation job succeeded and the deploy job was **skipped**
+
+These results strengthen branch-level regression evidence, including disposable-PostgreSQL checks. They do **not** establish that the entire workflow matrix is complete, that a chronological full-history replay succeeds, or that the live production authorization defect is fixed. No production deployment was performed by the skipped deploy job, and no candidate migration was applied to production.
 
 ## Release gate
 
