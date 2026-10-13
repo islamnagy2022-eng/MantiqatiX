@@ -4,7 +4,8 @@ import path from "node:path";
 const migrationDirectory = "supabase/migrations";
 const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
-const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
+const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests_schema.sql";
+const registrationSecurityBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
 const legacyBusinessesBaselinePath = "supabase/tests/baselines/legacy_businesses.sql";
 const settlementBaselinePath = "supabase/tests/baselines/settlement_backend_10arg.sql";
@@ -52,7 +53,7 @@ const missingHistoricalTables = [
   { table: "credit_accounts", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_accounts.sql" },
   { table: "credit_periods", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_periods.sql" },
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
-  { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
+  { table: "account_registration_requests", before: "20260927065247_mnty_atomic_registration_review.sql", baselinePath: registrationBaselinePath },
   // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
   { table: "bookings", before: "20260919233425_production_security_hardening_v1.sql", baselinePath: bookingsBaselinePath },
   // Live catalog evidence provides an exact schema-only compatibility shape. The finance-read policy
@@ -293,12 +294,32 @@ if (!creditPolicyCreator) {
 }
 
 const registrationBaseline = fs.readFileSync(registrationBaselinePath, "utf8");
+const registrationSecurityBaseline = fs.readFileSync(registrationSecurityBaselinePath, "utf8");
 const registrationChecks = [
-  ["registration baseline provenance", /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(registrationBaseline) && /2026-10-12/.test(registrationBaseline) && /moyhiluyhjsujhwlyeuu/.test(registrationBaseline) && /NOT recovered historical creation DDL/.test(registrationBaseline) && /Never apply this file to production/.test(registrationBaseline)],
-  ["registration columns, defaults and role/status checks", /user_id uuid not null/i.test(registrationBaseline) && /requested_role character varying\(40\) not null/i.test(registrationBaseline) && /status character varying\(20\) not null default 'PENDING'/i.test(registrationBaseline) && /metadata jsonb not null default '\{\}'::jsonb/i.test(registrationBaseline) && /requested_role_check[\s\S]*CUSTOMER[\s\S]*SERVICE_PROVIDER/i.test(registrationBaseline) && /status_check[\s\S]*APPROVED[\s\S]*REJECTED[\s\S]*CANCELLED/i.test(registrationBaseline)],
-  ["registration user foreign key and RLS", /references auth\.users\(id\) on delete cascade/i.test(registrationBaseline) && /enable row level security/i.test(registrationBaseline) && /account_registration_requests_self_insert[\s\S]*to authenticated/i.test(registrationBaseline)],
+  ["registration schema baseline provenance", /OWNER-APPROVED TEST-ONLY LIVE-DERIVED SCHEMA BASELINE/.test(registrationBaseline) && /2026-10-12/.test(registrationBaseline) && /moyhiluyhjsujhwlyeuu/.test(registrationBaseline) && /NOT recovered historical creation DDL/.test(registrationBaseline) && /Never apply this file to production/.test(registrationBaseline)],
+  ["registration columns, defaults and role/status checks", /user_id uuid not null/i.test(registrationBaseline) && /requested_role character varying\\(40\\) not null/i.test(registrationBaseline) && /status character varying\\(20\\) not null default 'PENDING'/i.test(registrationBaseline) && /metadata jsonb not null default '\\{\\}'::jsonb/i.test(registrationBaseline) && /requested_role_check[\\s\\S]*CUSTOMER[\\s\\S]*SERVICE_PROVIDER/i.test(registrationBaseline) && /status_check[\\s\\S]*APPROVED[\\s\\S]*REJECTED[\\s\\S]*CANCELLED/i.test(registrationBaseline)],
+  ["registration user foreign key and RLS", /references auth\\.users\\(id\\) on delete cascade/i.test(registrationBaseline) && /enable row level security/i.test(registrationBaseline) && !/create policy|\\bgrant\\b|\\brevoke\\b/i.test(registrationBaseline)],
   ["pending unique index intentionally left to its ordered migration", !/create unique index account_registration_requests_pending_role_uidx/i.test(registrationBaseline)],
+  ["registration security fixture provenance", /OWNER-APPROVED TEST-ONLY LIVE-DERIVED REGISTRATION SECURITY BASELINE/.test(registrationSecurityBaseline) && /2026-10-12/.test(registrationSecurityBaseline) && /moyhiluyhjsujhwlyeuu/.test(registrationSecurityBaseline) && /NOT recovered historical policy\\/grant provenance/.test(registrationSecurityBaseline) && /Never apply this file to production/.test(registrationSecurityBaseline)],
+  ["registration security policies and grants separated from table DDL", /account_registration_requests_platform_review[\\s\\S]*to authenticated/i.test(registrationSecurityBaseline) && /account_registration_requests_self_insert[\\s\\S]*to authenticated/i.test(registrationSecurityBaseline) && /account_registration_requests_self_select[\\s\\S]*to authenticated/i.test(registrationSecurityBaseline) && /grant insert, select on table public\\.account_registration_requests to authenticated/i.test(registrationSecurityBaseline) && /grant insert, references, select, trigger, truncate, update[\\s\\S]*to service_role/i.test(registrationSecurityBaseline) && !/create table|alter table/i.test(registrationSecurityBaseline) && !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(registrationSecurityBaseline)],
 ];
+const registrationTemporaryVersions = [
+  ["20260927065246", "20260927065246_test_only_live_derived_registration_schema_baseline.sql"],
+  ["20260927074155", "20260927074155_test_only_live_derived_registration_security_baseline.sql"],
+];
+for (const [version, temporaryName] of registrationTemporaryVersions) {
+  if (fs.existsSync(path.join(migrationDirectory, temporaryName)) ||
+      migrations.some(({ name }) => name.slice(0, 14) === version)) {
+    registrationChecks.push(["registration temporary version is isolated and collision-free: " + version, false]);
+  }
+}
+const registrationSecurityMigration = migrations.find(({ name }) =>
+  name === "20260927065247_mnty_atomic_registration_review.sql"
+);
+if (!registrationSecurityMigration ||
+    !"20260927065246" < registrationSecurityMigration.name.slice(0, 14)) {
+  registrationChecks.push(["registration schema fixture sorts before first dependent migration", false]);
+}
 const marketingProfileBaseline = fs.readFileSync(marketingProfileBaselinePath, "utf8");
 const marketingProfileChecks = [
   ["provider profile baseline provenance", /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(marketingProfileBaseline) && /2026-10-12/.test(marketingProfileBaseline) && /moyhiluyhjsujhwlyeuu/.test(marketingProfileBaseline) && /NOT recovered historical creation DDL/.test(marketingProfileBaseline) && /Never apply this file to production/.test(marketingProfileBaseline)],
