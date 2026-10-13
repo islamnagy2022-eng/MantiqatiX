@@ -46,3 +46,11 @@ A broad grant on these financial and order tables to the global `service_role` w
 
 ## Release decision
 This finding remains open P0. Release remains **BLOCKED / NOT CERTIFIED**.
+
+## Additional read-only function/ACL correlation
+
+- The live Edge Function source API reports `paymob-webhook` version 8. It directly uses the service-role client for the table operations listed above.
+- The same live ACL query also returned no service_role SELECT/INSERT/UPDATE/DELETE on `subscription_payment_intents`, `digital_page_orders`, `mantigo_financial_ledger`, and `notifications`. `payment_intents` has service_role DML privileges.
+- Read-only `pg_proc` inspection confirms the following existing SECURITY DEFINER RPCs are executable by `service_role` and not shown as executable by anon/authenticated: `process_verified_provider_payment(varchar, varchar, varchar, varchar, varchar, varchar, boolean, numeric, varchar, numeric)`, `process_verified_subscription_payment(text, text, uuid, text, numeric, text, boolean)`, and `process_verified_digital_page_payment_backend(uuid, text, text, text, boolean, numeric, text, text, text, jsonb)`.
+- This strengthens the case for aligning the deployed webhook with the server-authoritative RPC path rather than adding broad table DML grants. It does not prove that the existing RPCs cover every current webhook branch; signature/correlation/failure behavior needs isolated contract tests.
+- These are schema/ACL/function-definition metadata observations only. No real webhook event was submitted and no production rows or function code were changed.
