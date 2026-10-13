@@ -192,19 +192,24 @@ const commissionPolicyBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(commissionPolicyBaseline) &&
   /NOT recovered historical policy-creation DDL/i.test(commissionPolicyBaseline) &&
   /MUST NOT be applied to production/i.test(commissionPolicyBaseline) &&
-  /CREATE POLICY commission_transactions_finance_read[\s\S]*ON public\.commission_transactions[\s\S]*FOR SELECT TO authenticated/i.test(commissionPolicyBaseline) &&
+  /CREATE POLICY commission_transactions_finance_read[\s\S]*ON public\.commission_transactions[\s\S]*FOR\s+SELECT\s+TO\s+authenticated/i.test(commissionPolicyBaseline) &&
   /um\.tenant_id::text = commission_transactions\.tenant_id::text/i.test(commissionPolicyBaseline) &&
   /um\.user_id = \(SELECT auth\.uid\(\)\)/i.test(commissionPolicyBaseline) &&
   /um\.status::text = 'ACTIVE'/i.test(commissionPolicyBaseline) &&
   /OWNER[\s\S]*ADMIN[\s\S]*MANAGER[\s\S]*FINANCE[\s\S]*ACCOUNTANT[\s\S]*FINANCE_MANAGER/i.test(commissionPolicyBaseline) &&
   !/create table|alter table|\bgrant\b|\brevoke\b|create trigger/i.test(commissionPolicyBaseline) &&
   !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.)/im.test(commissionPolicyBaseline);
-if (!commissionPolicyMigration || commissionPolicyPriorCreation || !commissionPolicyBaselineValid ||
-    fs.existsSync(path.join(migrationDirectory, commissionPolicyTemporaryName)) ||
-    migrations.some(({ name }) => name.slice(0, 14) === commissionPolicyVersion) ||
-    commissionPolicyVersion >= commissionPolicyMigration.name.slice(0, 14) ||
-    !/alter policy commission_transactions_finance_read on public\.commission_transactions to authenticated;/i.test(commissionPolicyMigration.sql)) {
-  console.error("P0 BLOCKED: commission_transactions_finance_read compatibility fixture or its ordered ALTER POLICY contract is invalid.");
+const commissionPolicyFailureReasons = [
+  ["missing ALTER POLICY migration", !commissionPolicyMigration],
+  ["earlier source policy creator exists; fixture may duplicate history", commissionPolicyPriorCreation],
+  ["live-derived fixture contract invalid", !commissionPolicyBaselineValid],
+  ["temporary migration file already exists", fs.existsSync(path.join(migrationDirectory, commissionPolicyTemporaryName))],
+  ["temporary version collision", migrations.some(({ name }) => name.slice(0, 14) === commissionPolicyVersion)],
+  ["temporary version is not earlier than ALTER POLICY", !commissionPolicyMigration || commissionPolicyVersion >= commissionPolicyMigration.name.slice(0, 14)],
+  ["expected ordered ALTER POLICY statement absent", !commissionPolicyMigration || !/alter policy commission_transactions_finance_read on public\\.commission_transactions to authenticated;/i.test(commissionPolicyMigration.sql)],
+].filter(([, failed]) => failed);
+if (commissionPolicyFailureReasons.length) {
+  for (const [reason] of commissionPolicyFailureReasons) console.error("P0 BLOCKED commission_transactions_finance_read: " + reason);
   process.exit(1);
 }
 
