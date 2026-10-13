@@ -66,8 +66,19 @@ jobs:
               echo "first_failure=No matching error marker detected; inspect full clean-replay.log and exit code." | tee -a s04-replay-evidence/report.txt
             fi
           else
-            echo "clean_replay_exit=NOT_RUN" | tee -a s04-replay-evidence/report.txt
-            echo "first_failure=Supabase local stack did not start; inspect init/start logs." | tee -a s04-replay-evidence/report.txt
+            startup_error_line=$(grep -n -m1 -E 'ERROR:|Error:|SQLSTATE|duplicate migration version|does not exist' s04-replay-evidence/supabase-start.log | cut -d: -f1)
+            if [ -n "$startup_error_line" ]; then
+              first_failed_migration=$(head -n "$startup_error_line" s04-replay-evidence/supabase-start.log | grep -E 'Applying migration' | tail -n 1)
+              if [ -z "$first_failed_migration" ]; then
+                first_failed_migration="Supabase startup/preflight failed before a migration application line."
+              fi
+              echo "clean_replay_exit=FAILED_DURING_SUPABASE_START" | tee -a s04-replay-evidence/report.txt
+              echo "first_failure=$first_failed_migration" | tee -a s04-replay-evidence/report.txt
+              echo "first_error=$(sed -n "${startup_error_line}p" s04-replay-evidence/supabase-start.log)" | tee -a s04-replay-evidence/report.txt
+            else
+              echo "clean_replay_exit=FAILED_DURING_SUPABASE_START" | tee -a s04-replay-evidence/report.txt
+              echo "first_failure=Supabase local stack did not start; inspect init/start logs." | tee -a s04-replay-evidence/report.txt
+            fi
           fi
 
           if [ "$audit_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
