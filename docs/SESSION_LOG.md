@@ -179,3 +179,32 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Commit: `8eca1e956cd256256f79d734f4886b211f2a5336` on the open draft PR #207 branch.
 - Next evidence: run the validator/CI at this exact head and record the complete missing-baseline inventory. The RC40 archive's credit-table DDL is not automatically authoritative because the live schema differs in precision/default/FK semantics and finance-read policy provenance is unresolved.
 - Safety: candidate-source only; no production database, migration ledger, data, policies, grants, Edge Functions, or payments were changed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-13 — SESSION-003 — Catalog-verified replay baseline and live ACL risk
+
+### Starting state rechecked
+- Repository: islamnagy2022-eng/MantiqaTix.
+- PR #207: open, draft, unmerged; source head at the start of this continuation was 3e06f004cf6a575c2d88af3ce143b45750355b97. PR #218: open, draft, unmerged at 77012649e41fe22077538c39cd8593bf696ab33e.
+- Main remains 8a56358d505d2c12878440037f7f24ba65d2ea10. No merge, deployment, production DDL, grants, Auth changes, RLS changes, or data writes were performed.
+- The requested root-level MANTIQATIX_MASTER_TODO_2026-10-13.md did not exist; docs/MASTER_PRODUCTION_TODO.md and docs/PROJECT_CONTINUITY.md existed but had older checkpoint details.
+
+### Actions and evidence
+- Read-only Supabase catalog introspection for public.payment_provider_events recovered all 13 column definitions/defaults, PK/unique/FKs, indexes, RLS+FORCE RLS, current SELECT policy, and direct ACL metadata. No row data or payloads were queried.
+- Added supabase/tests/baselines/payment_provider_events.sql as a schema-only, catalog-verified compatibility fixture. It deliberately contains no policy, grants, rows, payloads, IDs, or secrets. The historical migration 20260920211717_security_definer_surface_reduction_and_finance_rls.sql remains the source for payment_provider_events_finance_read.
+- Updated scripts/validate-historical-schema-baseline.mjs to validate fixture provenance/shape/RLS/no-policy/no-grant/no-data, reject timestamp collisions, and assert the ordered policy's role contract.
+- Updated .github/workflows/migration-chain-replay.yml to copy the fixture only into disposable CI as 20260920211716_test_only_live_derived_payment_provider_events_baseline.sql, then verify byte identity, untracked status, and no row imports.
+- Rechecked live credit amount columns with information_schema.columns: all seven queried credit amount/generated columns have numeric_precision=18 and numeric_scale=2. Reverted the earlier incorrect candidate change to unconstrained numeric in all three credit fixtures and the validator. Current candidate assertions require numeric(18,2).
+- Read-only ACL query for payment_provider_events returned relacl {postgres=arwdDxtm/postgres,authenticated=rm/postgres,service_role=Dxtm/postgres}; has_table_privilege reported no anon SELECT/INSERT, no authenticated INSERT, and no service_role SELECT/INSERT/UPDATE/DELETE. The live paymob-webhook v8 source directly selects and inserts payment_provider_events with a service-role client. This is a separate P0 production runtime concern requiring a least-privilege design and explicit authorized rollout; no production privileges were changed. Log search in the available recent window surfaced other table permission-denied errors (smm_orders, smm_services, smm_wallets, digital_page_orders/products); no claim is made that payment_provider_events itself has a logged failure.
+- RC40 source archive search did not find a CREATE TABLE for payment_provider_events, so it was not treated as authoritative historical DDL.
+
+### CI
+- Latest exact-head replay after the initial fixture change was run 38348485717 and failed at the prior fail-closed preflight. New candidate changes trigger a fresh workflow; the latest queried exact-head run set before this log update was still in progress/pending (run 38349259664 for Disposable Supabase Migration Chain Replay).
+- Migration History Immutability and Migration Version Uniqueness passed on the latest observed run set. Full replay remains NOT VERIFIED until the newest run completes and reaches chronological replay.
+
+### Release and next actions
+- Release status remains BLOCKED / NOT CERTIFIED.
+- Inspect exact-head replay logs first. If baseline validation passes, continue through all subsequent chronological migration failures; do not assume the payment event table was the final blocker.
+- Inspect the new table fixture and validator for exact live catalog parity; confirm the finance policy is created only by its ordered migration.
+- Resolve the payment webhook ACL finding via source-path analysis and tests; do not apply grants or migrations to production without a separate explicit authorization.
+- Continue with safe P0/P1 work while honoring the previously recorded SMM feature freeze for initial launch; do not weaken SMM tests to force green.
+- No PR merge, deployment, production migration, production data write, or production privilege change occurred.
