@@ -58,3 +58,21 @@ PR: [#221 — Draft](https://github.com/islamnagy2022-eng/MantiqatiX/pull/221)
 - Unresolved blockers:
 - Reviewer and approval:
 - Production changes: **none** (must remain true for this workstream until separately authorized).
+
+## Follow-up checkpoint — expanded catalog-normalization edge coverage
+
+Date: 2026-10-13
+
+Added three test cases to `supabase/functions/smm-gateway/catalog-normalization.test.ts`:
+
+- `S07_CATALOG_006`: rejects blank/unsupported external service identifiers and missing/blank provider rates.
+- `S07_CATALOG_007`: verifies zero, equal-cost, negative, and non-finite existing selling prices cannot preserve service activation; invalid stored prices normalize to zero.
+- `S07_CATALOG_008`: asserts the normalized result has only the explicit output allowlist and does not copy arbitrary provider token/secret fields.
+
+These are committed test additions only; the GitHub Actions result for this new commit must be checked before reporting them as passing. The normalization helper itself was not changed, preserving byte-for-byte parity with the inspected live helper.
+
+### Remaining catalog review note
+
+The current helper truncates external service IDs to 128 characters rather than rejecting overlong IDs. Two distinct upstream IDs sharing the same first 128 characters could collide in a database key. Because the helper is currently byte-identical to the inspected live v10 helper, this behavior is recorded as a source-parity follow-up rather than changed in isolation. A correction must include a deliberate parity decision, collision/migration review, and tests before adoption.
+
+Status remains **BLOCKED / NOT CERTIFIED**. The launch gate remains closed; no provider request, wallet mutation, schema/grant change, merge, or deployment was performed.
