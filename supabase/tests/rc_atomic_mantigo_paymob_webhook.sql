@@ -315,4 +315,37 @@ BEGIN
 END;
 $privileges$;
 
+DO $test$
+BEGIN
+  PERFORM set_config('request.jwt.claim.role','authenticated',true);
+  BEGIN
+    PERFORM public.process_verified_payment_failure_backend(
+      'event-order-unauthorized','tenant-1','PAYMOB','paymob:order-unauthorized','intent-unauthorized','TRANSACTION',true,80.00,'EGP','{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_FAILURE_RPC_SERVICE_ROLE_DENIAL_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_FAILURE_RPC_SERVICE_ROLE_DENIAL_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'SERVICE_ROLE_REQUIRED' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claim.role','service_role',true);
+  IF EXISTS (SELECT 1 FROM public.payment_provider_events WHERE external_event_id='paymob:order-unauthorized') THEN
+    RAISE EXCEPTION 'unauthorized failure RPC persisted an event';
+  END IF;
+END;
+$test$;
+
+DO $privileges$
+BEGIN
+  IF has_function_privilege('anon','public.process_verified_payment_failure_backend(text,text,text,text,text,text,boolean,numeric,text,jsonb)','EXECUTE') THEN
+    RAISE EXCEPTION 'anon must not execute payment failure processor';
+  END IF;
+  IF has_function_privilege('authenticated','public.process_verified_payment_failure_backend(text,text,text,text,text,text,boolean,numeric,text,jsonb)','EXECUTE') THEN
+    RAISE EXCEPTION 'authenticated must not execute payment failure processor';
+  END IF;
+  IF NOT has_function_privilege('service_role','public.process_verified_payment_failure_backend(text,text,text,text,text,text,boolean,numeric,text,jsonb)','EXECUTE') THEN
+    RAISE EXCEPTION 'service_role must execute payment failure processor';
+  END IF;
+END;
+$privileges$;
+
 ROLLBACK;
