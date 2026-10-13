@@ -56,7 +56,8 @@ check("multi-identity test session forces fresh plans and restores planner setti
   integration.includes("RESET plan_cache_mode;"));
 check("disposable auth.uid fixture models JWT subject switches without changing production auth",
   fixture.includes("VOLATILE is intentional in this disposable fixture only") &&
-  /create or replace function auth\.uid\(\)[\s\S]*?language sql\s+volatile/i.test(fixture));
+  /create or replace function auth\.uid\(\)[\s\S]*?language plpgsql\s+volatile/i.test(fixture) &&
+  fixture.includes("avoids SQL-function inlining"));
 
 
 
