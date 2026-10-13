@@ -406,7 +406,8 @@ jobs:
           rename_legacy_alias "20261008000002_rc423_restrictive_authenticated_guard_policies.sql" "20261008125422_rc423_convert_authenticated_guard_policies_to_restrictive.sql"
           node scripts/validate-migration-version-uniqueness.mjs
           echo "PASS: disposable replay uses the unique migration versions observed in the live ledger; repository history remains unchanged."
-          echo "PASS: digital-page migration versions normalized to exact live-ledger versions in this disposable runner only."
+          echo "PASS: known applied migration timestamps normalized to exact live-ledger versions only in this disposable runner."
+          echo "live_ledger_order_alias_count=43"
           echo "KNOWN SOURCE GAP: live ledger 20261001164118 harden_provider_onboarding_tenant_scope has no source file; no historical DDL synthesized."
 
       - name: Replay every migration in repository timestamp order
