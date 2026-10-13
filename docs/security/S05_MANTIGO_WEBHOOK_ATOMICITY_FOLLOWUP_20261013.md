@@ -68,3 +68,7 @@ The atomic function uses a row lock and puts event insertion plus ledger update 
 ## Updated gate
 
 **Still BLOCKED / NOT CERTIFIED.** No CI result was found for the latest source commits; no isolated database behavior test was run; no migration was applied; no production changes, merge, deployment, or real payment occurred.
+
+### Additional schema compatibility gate
+
+The static SQL contract was strengthened to check that `payment_provider_events` contains all columns referenced by the new function, that `payment_intent_id` can store the text-valued MantiGO ledger ID, and that a unique `(provider, external_event_id)` index exists. This is a preflight guard, not proof that the current live schema matches the branch migration. The contract remains unexecuted until a disposable database is available.
