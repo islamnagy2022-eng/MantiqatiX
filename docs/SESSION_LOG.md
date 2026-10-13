@@ -60,3 +60,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact-head candidate: d4403cc8c7c9dca8fe0bcacdb5897da58f56c4b8. GitHub Actions has queued the focused integration jobs and related validators; queued is not pass. The current observation returned 28 check-runs, all queued at retrieval time.
 - Still open: RC432 SMM wallet tests remain deferred with the SMM commercial gateway; other later migrations need their own focused contracts as appropriate; full chronological replay remains blocked by historical function DDL dependencies; no production E2E/restore rehearsal or migration application is proven.
 - No production database or app state changed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — SESSION-006 — Fail-closed migration source existence check
+
+- Updated scripts/validate-production-migration-chain-gate.mjs to assert that every one of its 30 required migration filenames physically exists under supabase/migrations, in addition to being listed by the production verifier.
+- Pre-write tree inspection confirmed all 30 listed migration files exist in the candidate after RC524 recovery. This prevents future source manifests from passing merely because a missing filename is referenced as a string.
+- Exact code head at this change: 7cf34432de0d5b604121e00f662f04771de18568. GitHub Actions checks are queued; no result is counted as passing until completion.
+- Production remains untouched. Full replay and all live acceptance gates remain open; release BLOCKED / NOT CERTIFIED.
