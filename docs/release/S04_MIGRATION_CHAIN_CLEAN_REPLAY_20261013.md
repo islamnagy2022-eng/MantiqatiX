@@ -53,10 +53,11 @@ The existing uniqueness check allowlists these exact legacy collisions for repos
 
 ## Clean replay result
 
-- **PostgreSQL full replay:** **NOT RUN** at report authoring time.
-- **First blocker:** source preflight, duplicate version `20260928020000`.
-- **First SQL migration failure:** none observed; SQL execution was not started because the chain is ambiguous before replay.
-- **Migrations applied in this test:** 0.
+- **Strict preflight run:** FAIL-CLOSED as designed on the five duplicate-version groups; zero SQL files were attempted. See run [38336971783](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38336971783) and its artifact `s04-migration-chain-clean-replay`.
+- **Diagnostic replay mode:** added a clearly non-certifying path that keeps all files and uses an explicit source-control chronology tie-break for only the five known collisions. Latest code candidate: `887988351d5470813d29712deed0d25030431292`; run [38337345266](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38337345266) was QUEUED at the last check. It is not a pass.
+- **First SQL migration failure:** not yet observed; the diagnostic runner has not completed.
+- **Static baseline dependency finding:** the first recovered source `20260808000000_phase04_enterprise_schema_and_rls.sql` explicitly says `public.businesses` already exists and alters it at lines 29–44, but does not create it in that file. It also references `auth.users` and `auth.uid()`. Thus a truly empty vanilla PostgreSQL database cannot replay this source as-is without an authoritative earlier baseline/Supabase schema. No application table/auth stubs were added.
+- **Migrations applied in the completed strict-preflight test:** 0.
 - **Skipped migrations:** 0.
 - **Production effects:** none.
 
