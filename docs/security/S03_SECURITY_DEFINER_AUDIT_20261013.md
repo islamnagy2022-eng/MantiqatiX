@@ -283,3 +283,13 @@ A follow-up read-only privilege query found:
 - A read-only check of role-level database settings found no stored `pgrst.db_schemas` or `pgrst.db_extra_search_path` setting.
 
 This narrows but does not close the question: authenticated has schema USAGE and EXECUTE on the UUID-taking private admin predicate, but the database-side checks available here do not establish whether PostgREST exposes `private` as an RPC schema. Therefore direct endpoint reachability remains **unverified**. Treat this as a high-priority configuration verification item, not a confirmed exploit; do not infer exposure or safety from a null session setting.
+
+
+### Follow-up triage of callable functions without direct `auth.uid()` — 2026-10-13
+
+A SELECT-only triage query identified two in-scope callable SECURITY DEFINER functions whose own definitions do not directly mention `auth.uid()` and did not match the small set of known membership helper names:
+
+1. `public.get_mnty_targeted_advertisements(...)`: anon and authenticated EXECUTE are true. This is the previously documented public ad-serving endpoint. Its definition filters to active/approved ads, enforces start/end windows, and clamps the result limit to 1–50. The intended public nature and returned creative/target URL fields still require product-contract confirmation; no exploit was established.
+2. `public.preview_commission_backend(...)`: anon EXECUTE is false and authenticated EXECUTE is true. Manual definition inspection confirms it first calls `public.assert_financial_membership(p_tenant_id)`, then validates non-negative gross amount, resolves an active scoped commission rule, validates percentage bounds, and computes commission/net values. Thus absence of a direct `auth.uid()` token is explained by delegated authorization rather than, by itself, indicating missing authorization.
+
+The heuristic returned no other in-scope callable functions lacking both a direct identity reference and the known authorization-helper patterns. This is not proof of complete authorization correctness: alternate helper names, indirect call chains, dynamic behavior, and business-contract requirements can evade lexical checks. No RPC was invoked and no production state was changed.
