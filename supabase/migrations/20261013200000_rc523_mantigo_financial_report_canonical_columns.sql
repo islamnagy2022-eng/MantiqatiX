@@ -18,8 +18,11 @@ declare
 begin
   -- Read request identity at execution time, not as a declaration initializer.
   v_auth := auth.uid();
-  if v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id then
+  if v_auth is null or p_admin_user_id is null then
     raise exception 'AUTH_REQUIRED';
+  end if;
+  if v_auth <> p_admin_user_id then
+    raise exception 'USER_CONTEXT_MISMATCH';
   end if;
   if not public.mnty_can_platform_admin() then
     raise exception 'PLATFORM_ADMIN_REQUIRED';
