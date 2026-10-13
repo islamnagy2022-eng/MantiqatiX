@@ -25,7 +25,10 @@ for (const id of ["S07_GATE_001", "S07_GATE_002", "S07_GATE_003", "S07_GATE_004"
 const catalogStart = edge.indexOf('if(a==="catalog")');
 const accountStart = edge.indexOf('if(a==="my_data")', catalogStart);
 const configureStart = edge.indexOf('if(a==="configure_provider")', accountStart);
-if (catalogStart >= 0 && accountStart > catalogStart && configureStart > accountStart) {
+assert.ok(catalogStart >= 0, "catalog action anchor must exist");
+assert.ok(accountStart > catalogStart, "my_data action anchor must follow catalog");
+assert.ok(configureStart > accountStart, "configure_provider action anchor must follow my_data");
+{
   const catalog = edge.slice(catalogStart, accountStart);
   const account = edge.slice(accountStart, configureStart);
   assert.doesNotMatch(catalog, /api_key|provider_secret|provider_cost|metadata/, "catalog must not expose provider secrets or internal cost metadata");
