@@ -100,3 +100,8 @@ test("S06-17 merchant reference must match the resolved entity even when provide
   assert.match(webhook, /PAYMENT_MERCHANT_REFERENCE_MISMATCH/);
   assert.match(webhook, /merchant_order_id:merchantRef/);
 });
+
+test("S06-18 generic Paymob callbacks require the stored provider-order ID before either transition", () => {
+  assert.match(webhook, /PAYMENT_PROVIDER_ORDER_MISMATCH/);
+  assert.match(webhook, /!intent\.provider_order_id\|\|String\(intent\.provider_order_id\)!==paymobOrderId/);
+});
