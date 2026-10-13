@@ -583,3 +583,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Reviewed `.github/workflows/pages.yml`: deployment needs validation and is conditioned on main push or manual dispatch; pull_request runs validate but do not deploy. This does not prove a deployment occurred.
 - The migration-chain validator tracks 33 required sources and enforces source existence and timestamp order, while requiring live reconciliation, chronological replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function parity/contracts, and Auth-security evidence for certification.
 - No production mutation or release action was performed. Continue from exact-head CI results and disposable replay; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC529 canonical financial-report integration coverage
+
+- Added `supabase/tests/rc523_mantigo_financial_report_integration.sql` to verify the RC523 report uses canonical `gross_amount` and `captain_net_amount` even when legacy `amount`/`captain_amount` differ, while keeping the external JSON key `captain_amount`.
+- Added a disposable PostgreSQL CI job applying RC441 → RC449 → RC462 → RC523, plus RC523 migration/test paths in both focused-workflow trigger filters.
+- This is implemented source, not yet a passing test. Inspect exact-head CI and logs when complete. No production changes or release; BLOCKED / NOT CERTIFIED.
