@@ -103,3 +103,30 @@ These non-zero values preserve previously documented work. They are provisional 
 1. Confirm the RC523 workflow actually applies RC449 then RC523 then runs the poisoned-alias regression fixture (completed in the passing platform-admin workflow).
 2. Continue a module-by-module evidence audit using the existing implementation and acceptance records, starting with remaining Administration & Operations gate closure.
 3. Keep SMM live gateway isolated/deferred until the release is safe; do not deploy it as part of this batch.
+
+
+## Continuation update — RC524–RC526 — 2026-10-13
+
+### Additional source recovery and CI changes
+- Restored 16 migration sources RC425–RC432 and RC434–RC441 from the reconciled PR #207 branch. The 16 file blob SHAs matched across PR #207, PR #202, and PR #84; the restored candidate blobs were verified against PR #207.
+- Added a source-presence assertion to scripts/validate-production-migration-chain-gate.mjs. All 30 required migration filenames in that gate were confirmed to exist in the candidate tree before adding the assertion.
+- Added seven disposable PostgreSQL integration jobs for RC425, RC431, RC434, RC435, RC436, RC439 and RC440, plus their fixtures/integration SQL, in .github/workflows/recovered-migration-focused-integration.yml.
+- Expanded the migration-chain source list from 28 to 30 by adding RC522 audit-log append-only and RC523 canonical financial-report migrations.
+- PR #218 title/body updated to accurately describe source recovery and focused regression gates. It remains a draft and unmerged.
+
+### Latest verification status
+- Latest repository head at this report update: 7b97899677781a34b209df8202fdd12fa12b62f8. The latest code-containing candidate is 7cf34432de0d5b604121e00f662f04771de18568; the intervening commit only appends continuity documentation.
+- GitHub Actions runs for the new migration-focused workflow and related validators were still queued at the latest inspection. Therefore no new pass is claimed for RC524–RC526 changes. Earlier passing CI on d83a7be0b5482c3c55e9c0536e6bce09625ea645 applies only to that older candidate and its then-present files.
+- The workflow is validation-only on this PR; its deployment job is not evidence of production deployment.
+- Production migration history was last observed through RC424. RC425+ and RC522/RC523 have not been proven applied to production.
+
+### Remaining blockers
+1. Observe completed CI for the latest code-containing candidate; queued/cancelled checks do not count as passes.
+2. Run the full chronological disposable migration replay. Earlier historical SECURITY DEFINER function-creation dependencies remain unresolved; do not create stubs or silently expand approved test baselines.
+3. Add or restore focused behavioral tests for the remaining required migration contracts where absent; RC432 SMM remains deferred under the launch-scope decision.
+4. Complete production authorization/tenant E2E, Paymob and settlement E2E, Auth/security remediation, backup/restore rehearsal, Android signed artifact/device checks, and final regression.
+
+### Percentage and certification interpretation
+- The historical module implementation and automated-test percentages above are continuity estimates, not a claim that all features were inspected. They should not be reset to zero because production E2E is incomplete.
+- Module-specific production-verification percentages are **not yet defensibly scored** because the denominator of mandatory production acceptance checks has not been inventoried for each of the 19 modules. Do not fill this gap with arbitrary percentages. Overall release certification remains **0% approved / BLOCKED / NOT CERTIFIED** until every mandatory release gate passes.
+- No production database writes, migration application, ledger edits, grants/RLS/Auth changes, Edge Function deployments, financial/wallet operations, merge, or release were performed.
