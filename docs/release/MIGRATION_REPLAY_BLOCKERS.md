@@ -749,3 +749,9 @@ The validator now checks explicit approval/provenance wording, required schema s
 - Corrected `credit_policies.credit_limit`, `credit_accounts.approved_limit`, `credit_accounts.outstanding_amount`, `credit_accounts.available_amount`, `credit_periods.billed_amount`, `credit_periods.paid_amount`, and `credit_periods.outstanding_amount` to use unconstrained `numeric`; updated the validator to require that shape rather than accepting `numeric(18,2)`.
 - The fixtures retain their generated stored expressions, declared FK/unique/check constraints, indexes, and ENABLE/FORCE RLS statements. This correction only aligns type declarations with the documented catalog evidence; it does not recover historical creation DDL or prove full parity. A new exact-head CI run is required.
 - Relevant source commits: `717f5d96c22c18de2c44d89899b2b4da5b4e598a`, `2ca649ca3c719939c514fb3895319d2f682e817a`, `67c4c9233af67e904b282fed71190d1d7fe161af`, `d8877ed750015006880e3775a9e7aba5b8479ce5`, `8a6ad601ee73b5cee45e3a73a94ac0d4abd72add`, and validator commit `d36f66117bd45b489d01ddc70b3555590c79de8f`.
+
+### Credit-type correction verification — 2026-10-13
+
+- Candidate source commit `42e13ccbf2aec909ec22c6b735cdcc3799b58e15` ran replay workflow [38348433595](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38348433595).
+- The validator passed the credit-baseline checks with unconstrained `numeric` amount types and then failed closed at the documented `payment_provider_events` historical dependency before Supabase startup. This confirms the new type checks accept the corrected fixture shape; it does **not** constitute a full replay pass.
+- The replay remains **BLOCKED / NOT CERTIFIED** until authoritative creation DDL for `payment_provider_events` is recovered or the owner separately approves a properly evidenced disposable-only schema contract. Do not use a guessed table shape to proceed.
