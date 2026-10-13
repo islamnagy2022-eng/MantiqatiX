@@ -494,3 +494,12 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Documented the failure and correction in `docs/release/MIGRATION_REPLAY_BLOCKERS.md`. No migration was applied or skipped; no production state was touched.
 - Latest PR #207 head is `268c8bc1438e499c45487a002e8ec4f776c68011`. New replay run [#38407801526](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407801526) is pending. The exact-copy/untracked check must pass before replay can resume; no new replay result is claimed.
 - SMM regression remains PASS on its last tested exact source revision, and the four live MantiGO RPC authorization blockers remain unchanged. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Master TODO and latest queued replay — 2026-10-13 13:49 UTC
+
+- The requested root file `MANTIQATIX_MASTER_TODO_2026-10-13.md` is not present in the repository search results. To preserve the canonical project record without creating a competing TODO, appended the current status to the existing `docs/MASTER_PRODUCTION_TODO.md` on PR #207's working branch.
+- The update records the verified SMM CI result, current production migration tail at RC424, the four live MantiGO RPC authorization defects, the catalog-derived marketing/payment policy fixtures, the replay failures and limitations, and the release decision.
+- PR #207 current head is `7016250e763a4b0729fd2bb3c4553c79ea5e47ce`. Migration-history immutability passed; migration-version uniqueness is running. Replay run [#38408000724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408000724) is still pending without a job assigned in the available status response. Earlier run #38407801526 was cancelled after the branch advanced, so it does not verify the corrected exact-copy step.
+- No further commit is being made to PR #207 while its replay run is pending, to avoid cancelling the queued replay through workflow concurrency. Resume by polling #38408000724, then inspect the exact logs before changing any code.
+- Production release remains **BLOCKED / NOT CERTIFIED**; no production writes/deployment/merge occurred.
