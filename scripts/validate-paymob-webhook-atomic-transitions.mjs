@@ -22,6 +22,7 @@ check("subscription failure uses atomic RC429 RPC", subscription.includes('admin
 check("subscription success uses atomic RC430 RPC", subscription.includes('admin.rpc("process_verified_subscription_payment_backend"'));
 check("subscription RPC binds provider order ID", subscription.includes("p_provider_order_id:paymobOrderId"));
 check("subscription RPC passes signature and raw payload", subscription.includes("p_signature_verified:true") && subscription.includes("p_raw_payload:raw"));
+check("subscription success does not echo raw RPC result or internal legal error", !subscription.includes("result:processed"));
 check("subscription branch does not pre-read event ledger or directly mutate intent", !subscription.includes('.from("payment_provider_events")') && !subscription.includes('.from("subscription_payment_intents").update'));
 
 check("digital page transitions remain in atomic RC424/RC431 RPC", digital.includes('admin.rpc("process_verified_digital_page_payment_backend"'));
@@ -34,6 +35,7 @@ check("MantiGO branch has no direct event, ledger or notification writes", !mant
 check("normal payment resolves and compares provider_order_id before processing", normal.includes("provider_order_id") && normal.includes("String(intent.provider_order_id)!==paymobOrderId"));
 check("normal failure uses atomic RC428 RPC", normal.includes('admin.rpc("process_verified_provider_payment_failure"'));
 check("normal success remains server-authoritative RPC", normal.includes('admin.rpc("process_verified_provider_payment"'));
+check("normal success does not echo raw RPC result", !normal.includes("result:processed"));
 check("normal failure does not write event ledger or intent directly", !normal.includes('.from("payment_provider_events").insert') && !normal.includes('.from("payment_intents").update'));
 check("normal payment branch delegates replay binding to its atomic RPC", !normal.includes('.from("payment_provider_events").select') && !normal.includes('.from("payment_provider_events").insert'));
 
