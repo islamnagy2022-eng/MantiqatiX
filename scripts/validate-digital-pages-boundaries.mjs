@@ -87,3 +87,18 @@ if (mantigoBranch.includes('from("payment_provider_events").insert') ||
     mantigoBranch.includes('from("mantigo_financial_ledger").update')) {
   throw new Error('S05 release BLOCKED: MantiGO event persistence and ledger transition must not be separate Edge Function writes');
 }
+
+// S05 general-payment failure atomicity release gate. This remains intentionally
+// blocked until a transactional failure RPC replaces the two independent writes.
+const genericIntentStart = webhook.indexOf('const {data:intentByRef}=');
+if (genericIntentStart < 0) throw new Error('S05 general payment branch boundary could not be located');
+const genericPaymentBranch = webhook.slice(genericIntentStart);
+const genericFailureStart = genericPaymentBranch.indexOf('if(!success){');
+if (genericFailureStart < 0) throw new Error('S05 general payment failure branch could not be located');
+const genericFailureEnd = genericPaymentBranch.indexOf('\n const {data:processed,error:e}=await admin.rpc("process_verified_provider_payment"', genericFailureStart);
+if (genericFailureEnd < 0) throw new Error('S05 general payment failure branch end could not be located');
+const genericFailureBranch = genericPaymentBranch.slice(genericFailureStart, genericFailureEnd);
+if (genericFailureBranch.includes('from("payment_provider_events").insert') ||
+    genericFailureBranch.includes('from("payment_intents").update')) {
+  throw new Error('S05 release BLOCKED: general payment FAILED callback must persist provider event and transition intent through one atomic database RPC');
+}
