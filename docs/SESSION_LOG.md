@@ -250,3 +250,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added only documentation on isolated branch `s04/ledger-reconciliation-20261013`, created from PR #218 head `b62b7f2104cc3be0ef5602f3cf08bb71090f6cd8`. Files: `docs/release/S04_MIGRATION_LEDGER_NAME_INVENTORY_20261013.json` and this appended log entry; the existing S04 report was updated with the reconciliation counts.
 - No production writes, migration application, ledger rewrite, deployment, merge, or release. PR #218 remains open/draft/unmerged; release remains **BLOCKED / NOT CERTIFIED**.
 - Next: recover the authentic missing `smm_provider_credentials` creation baseline and other unmatched sources from authoritative history; reconcile semantic SQL differences; then rerun the existing Supabase CLI clean replay on an exact candidate head. Do not skip failed migrations or rename applied history.
+
+
+## RC546 — RC40 archive checksum and recovered-source parity audit — 2026-10-13
+
+- Verified uploaded `source_RC40.zip` against `source_RC40.zip.sha256`: SHA-256 `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e` matches.
+- Archive contains 39 SQL migration files. Compared its filenames against current `supabase/migrations/` + `supabase/recovered-migrations/`: 12 exact filename overlaps and 27 archive files absent from both current directories.
+- Computed SHA-256 for all 12 overlapping SQL files: **0/12 exact content matches**. The RC40 archive cannot be copied over the current recovered files without semantic reconciliation. The archive itself has five files sharing version prefix `20260920130000`.
+- Found archive candidate `20260920185000_production_credit_control.sql`, which creates `credit_policies`, `credit_accounts`, and `credit_periods`; those tables exist in the live catalog. The exact version/name is absent from the live migration ledger, so this is a source candidate only and is not evidence of application. It must not be inserted into executable history or used to reorder earlier ledger migrations without provenance reconciliation.
+- The archive has no creation DDL for `smm_providers` or `smm_provider_credentials`; it does not fix the first S04 replay failure.
+- Added `docs/release/S04_RC40_ARCHIVE_RECONCILIATION_20261013.json` and updated the S04 report. No SQL migrations were changed or added to executable history; no production mutation, deployment, merge, or release occurred.
+- Current S04 branch remains `s04/ledger-reconciliation-20261013`. Release remains **BLOCKED / NOT CERTIFIED**.
+- Next: inspect the archive's credit-control SQL against the live catalog and ledger statements as a semantic candidate only; continue seeking the authentic missing SMM table creation source or retain the owner-approved disposable-only schema baseline. Do not use the archive file as an applied migration without evidence.
