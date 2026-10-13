@@ -87,9 +87,8 @@ if (financePolicyMigration) {
     name.slice(0, 14) < financePolicyVersion &&
     /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?payment_provider_events\b/i.test(sql)
   );
-  const paymentProviderEventsBaseline = "supabase/tests/baselines/payment_provider_events.sql";
-  if (!priorPaymentProviderEventsCreation && !fs.existsSync(paymentProviderEventsBaseline)) {
-    console.error("P0 BLOCKED: " + financePolicyMigration.name + " creates a policy on public.payment_provider_events, but no earlier committed creation migration or owner-approved disposable-only baseline exists.");
+  if (!priorPaymentProviderEventsCreation) {
+    console.error("P0 BLOCKED: " + financePolicyMigration.name + " creates a policy on public.payment_provider_events, but no earlier committed creation migration or separately validated owner-approved disposable-only baseline contract exists.");
     console.error("Do not invent a financial schema baseline or modify the historical policy migration. Recover authoritative DDL or obtain explicit owner approval for a schema-only disposable fixture.");
     process.exit(1);
   }
