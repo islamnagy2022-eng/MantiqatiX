@@ -271,3 +271,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Semantic comparison found material live-vs-archive schema differences: `credit_policies.grace_days` live default 0 vs archive 7; `suspend_after_days` live 15 vs archive 30; `block_new_credit` live true vs archive false; credit amount columns live `numeric` vs archive `numeric(14,2)`. Do not use the archive migration as a replay baseline or insert it into executable history without a separately reviewed decision.
 - Updated `docs/release/S04_RC40_ARCHIVE_RECONCILIATION_20261013.json` and the S04 report. Production operations remained read-only; no migration, baseline, grant, policy, or data was applied or modified.
 - S04 remains **BLOCKED / NOT CERTIFIED**. The first existing Supabase clean-replay failure remains `20260927074200_harden_smm_table_api_privileges.sql` due to missing `public.smm_provider_credentials`; the owner-approved test-only SMM baseline is separate from recovery of authentic historical DDL.
+
+
+## RC548 — Strengthen S04 source audit without treating archive as executable — 2026-10-13
+
+- Updated `scripts/audit-migration-chain-s04.mjs` to inventory both `supabase/migrations/` and `supabase/recovered-migrations/`, hash file content, validate filename shape, report same-name content conflicts, and distinguish executable duplicate versions from archival version groups/cross-directory overlaps. Recovered migrations remain explicitly non-executable.
+- Added a push trigger limited to the isolated branch `s04/ledger-reconciliation-20261013` so the S04 source audit and disposable replay can run without merging or publishing PR #218.
+- The updated branch run [38338010686](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338010686) was QUEUED at last inspection; no CI pass is claimed. The prior authoritative Supabase CLI replay still fails at `20260927074200_harden_smm_table_api_privileges.sql` due to missing `public.smm_provider_credentials`.
+- No executable migration SQL, production schema/data/ledger, Auth, grants, RLS, or Edge Functions were modified. No merge/deploy occurred. S04 remains **BLOCKED / NOT CERTIFIED**.
