@@ -90,3 +90,13 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - **Coordination:** posted review to [PR #220](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220), comment [6138530408](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138530408), requesting branch-specific replay tests, atomic event/state transitions, affected-row checks, concurrent delivery/fault injection, and sandbox reconciliation.
 - **Not performed:** no payment/refund/settlement operation, no production write, no Edge Function deployment, no changes to S06-owned files.
 - **Next step:** require the S06 owner to fix and test cross-intent replay and atomicity on an exact candidate SHA; independently verify its CI result before changing the release gate.
+
+
+## Live SMM deployed-source recheck — 2026-10-13
+
+- **Verified live function inventory (read-only):** Supabase project `moyhiluyhjsujhwlyeuu` reports `smm-gateway` ACTIVE, version `10`, `verify_jwt=true`, deployed source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`.
+- **Verified deployed source:** the fetched live bundle contains `SMM_INITIAL_LAUNCH_DEFERRED=true` and evaluates the launch decision before calling `getUser(req)`; non-OPTIONS POST actions return `503 SMM_DEFERRED` before database reads/writes, wallet operations, or provider calls. This is stronger evidence than the earlier source-only observation.
+- **Still NOT VERIFIED:** no safe live HTTP negative probe was available through the connected tools in this run, so actual response status/body, no-side-effect runtime telemetry, and parity with the exact GitHub candidate bundle are not certified. Do not describe this as runtime PASS. The launch gate must remain fail-closed.
+- **Other live runtime inventory:** `paymob-webhook` ACTIVE v8, `payment-intent` ACTIVE v6, `subscription-payment-intent` ACTIVE v2, `digital-page-payment-intent` ACTIVE v3, `mantigo-payment-intent` ACTIVE v3; deployed versions/hashes are recorded in the session's live inventory check, not as proof of business-flow correctness.
+- **Migration ledger recheck:** 283 rows; last version remains `20261008222845 / rc424_atomic_digital_page_payment_webhook`. RC449/RC462/RC522/RC523 remain unproven as applied by the source reviewed in this checkpoint.
+- **Safety:** read-only catalog/source inspection only; no invocation, database write, migration, deployment, secret change, or payment operation performed.
