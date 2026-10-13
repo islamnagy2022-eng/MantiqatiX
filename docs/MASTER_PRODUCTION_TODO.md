@@ -1704,3 +1704,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Exact current-head CI for `173da30eef28a86356b4077abf06ce02f60cfed8` completed successfully: focused integration [38329295442] (13 jobs), migration uniqueness [38329295349], Pages validation [38329295538] (deploy skipped), audit ACL [38329295385], approval atomicity [38329295335], module validation [38329295383], backend boundary [38329295355], collision guard [38329295462], privacy [38329295409], platform-admin [38329295487], migration immutability [38329295477].
 - [ ] Full ordered migration replay, runtime tenant/payment/finance E2E, function source parity, Auth/security remediation, restore rehearsal, signed device build and rollback remain unverified. Do not apply production migrations without a reviewed, explicitly approved rollout and reconciled baseline.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC542 — SMM active-source parity restoration (source only) — 2026-10-13
+
+- [x] Compared live Supabase `smm-gateway` v10 file inventory to PR #218 candidate; found six imported modules absent from repository source.
+- [x] Restored `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`; updated `index.ts` from the active v10 source.
+- [x] Re-fetched all seven source files and verified exact text parity with the active deployed v10 files.
+- [x] Confirmed the source launch gate returns `SMM_DEFERRED` unless both the enablement and post-launch approval flags are true; no deployment or launch enabled.
+- [ ] Exact-head CI triggered on source commit `57be194aa4f0d35eff9ea1c00f59fd3a91edf3a2` was QUEUED at first inspection. Check results before considering merge.
+- [ ] SMM security review/acceptance, full migration replay, production tenant/payment E2E, Auth/RLS/SECURITY DEFINER remediation, backup/restore and rollback evidence remain open. No production release.
