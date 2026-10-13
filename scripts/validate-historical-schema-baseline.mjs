@@ -150,7 +150,7 @@ const smmBootstrapBaselineVersion = "20260927033924";
 const smmBootstrapTemporaryName = smmBootstrapBaselineVersion + "_test_only_live_derived_smm_bootstrap_first_admin.sql";
 const smmBootstrapPriorCreation = migrations.some(({ name, sql }) =>
   name.slice(0, 14) < smmBootstrapLockdownMigration?.name.slice(0, 14) &&
-  /create\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?smm_bootstrap_first_admin\\s*\\(/i.test(sql)
+  /create\s+(?:or\s+replace\s+)?function\s+(?:public\s*\.\s*)?smm_bootstrap_first_admin\s*\(/i.test(sql)
 );
 const smmBootstrapBaselineValid =
   /TEST-ONLY LIVE-DERIVED FUNCTION BASELINE/.test(smmBootstrapBaseline) &&
@@ -158,20 +158,20 @@ const smmBootstrapBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(smmBootstrapBaseline) &&
   /NOT recovered historical creation DDL/.test(smmBootstrapBaseline) &&
   /MUST NOT be applied to production/.test(smmBootstrapBaseline) &&
-  /CREATE OR REPLACE FUNCTION public\\.smm_bootstrap_first_admin\\(\\)/i.test(smmBootstrapBaseline) &&
+  /CREATE OR REPLACE FUNCTION public\.smm_bootstrap_first_admin\(\)/i.test(smmBootstrapBaseline) &&
   /RETURNS trigger/i.test(smmBootstrapBaseline) &&
   /LANGUAGE plpgsql/i.test(smmBootstrapBaseline) &&
   /SECURITY DEFINER/i.test(smmBootstrapBaseline) &&
   /SET search_path TO 'public'/i.test(smmBootstrapBaseline) &&
-  /if not exists\\(select 1 from public\\.smm_admins\\)/i.test(smmBootstrapBaseline) &&
-  /insert into public\\.smm_admins\\(user_id\\) values\\(new\\.id\\) on conflict do nothing/i.test(smmBootstrapBaseline) &&
+  /if not exists\(select 1 from public\.smm_admins\)/i.test(smmBootstrapBaseline) &&
+  /insert into public\.smm_admins\(user_id\) values\(new\.id\) on conflict do nothing/i.test(smmBootstrapBaseline) &&
   /return new;/i.test(smmBootstrapBaseline) &&
-  !/CREATE TRIGGER|\\bgrant\\b|\\brevoke\\b/i.test(smmBootstrapBaseline);
+  !/CREATE TRIGGER|\bgrant\b|\brevoke\b/i.test(smmBootstrapBaseline);
 if (!smmBootstrapLockdownMigration || smmBootstrapPriorCreation || !smmBootstrapBaselineValid ||
     fs.existsSync(path.join(migrationDirectory, smmBootstrapTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === smmBootstrapBaselineVersion) ||
     smmBootstrapBaselineVersion >= smmBootstrapLockdownMigration.name.slice(0, 14) ||
-    !/revoke execute on function public\\.smm_bootstrap_first_admin\\(\\) from public, anon, authenticated;/i.test(smmBootstrapLockdownMigration.sql)) {
+    !/revoke execute on function public\.smm_bootstrap_first_admin\(\) from public, anon, authenticated;/i.test(smmBootstrapLockdownMigration.sql)) {
   console.error("P0 BLOCKED: live-derived smm_bootstrap_first_admin fixture or its ordered EXECUTE lockdown contract is invalid.");
   process.exit(1);
 }
