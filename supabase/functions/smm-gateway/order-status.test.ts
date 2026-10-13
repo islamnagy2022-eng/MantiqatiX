@@ -19,3 +19,9 @@ Deno.test("S07_STATUS_003: unknown provider status preserves current state", () 
   assertEquals(normalizeProviderOrderStatus("PROCESSING", "unexpected-state"), "PROCESSING");
   assertEquals(normalizeProviderOrderStatus("SUBMITTING", null), "SUBMITTING");
 });
+
+Deno.test("S07_STATUS_004: terminal-state protection is case-insensitive", () => {
+  assertEquals(normalizeProviderOrderStatus("failed", "processing"), "failed");
+  assertEquals(normalizeProviderOrderStatus("completed", "error"), "completed");
+  assertEquals(normalizeProviderOrderStatus("partial", "canceled"), "partial");
+});
