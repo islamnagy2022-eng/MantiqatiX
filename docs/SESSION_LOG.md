@@ -67,3 +67,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Next step:** repository administrator to configure protection/required checks; authorized Auth owner to enable leaked-password protection; then verify via read-only settings and advisor recheck.
 - **Report commit:** `05c1ead06f20ba10b21b2109ad13b4c97eb49bf3`.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C PR #225 CI-trigger review — 2026-10-13
+
+- **Verified fact:** PR #225 head `acb6466afbfdadd76570ab9404aa37551e1a2b92` targets `docs/rc521-admin-operations-discovery-20261013`; its SMM security workflow has `pull_request.branches: [main]`. This base mismatch prevents the pull_request event from matching for this PR.
+- **Action performed:** posted finding to PR #225 comment [6138548754](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138548754). No PR-owned workflow file modified.
+- **Next step:** align the workflow filter with the intended base or rebase the PR, then capture exact-head CI. No run was returned for the head in the current query.
+- **Report commit:** `9433e5640932686f08fd4b23102f5aaff02bc936`.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
