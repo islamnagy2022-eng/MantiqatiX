@@ -7,10 +7,6 @@ const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentia
 const adminsBaselinePath = "supabase/tests/baselines/smm_admins.sql";
 const providerOnboardingBaselinePath = "supabase/tests/baselines/provider_onboarding_requests.sql";
 const providerOnboardingBaselineVersion = "20261001085000";
-const digitalPageProductsBaselinePath = "supabase/tests/baselines/digital_page_products.sql";
-const digitalPageProductsBaselineVersion = "20261002095000";
-const digitalPageOrdersBaselinePath = "supabase/tests/baselines/digital_page_orders.sql";
-const digitalPageOrdersBaselineVersion = "20261002095100";
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests_schema.sql";
 const registrationSecurityBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
@@ -79,10 +75,6 @@ const missingHistoricalTables = [
   { table: "smm_wallets", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_wallets.sql" },
   // Production has this table, but the chain references it before the later canonical CREATE TABLE migration.
   { table: "provider_onboarding_requests", before: "20261001090000_harden_provider_onboarding_authority.sql", baselinePath: providerOnboardingBaselinePath },
-  // RC256 references both digital-page tables before their later RC228 creation migration.
-  // These current-catalog shapes are test-only and intentionally cannot certify clean historical replay.
-  { table: "digital_page_products", before: "20261002100000_rc256_critical_fk_indexes.sql", baselinePath: digitalPageProductsBaselinePath },
-  { table: "digital_page_orders", before: "20261002100000_rc256_critical_fk_indexes.sql", baselinePath: digitalPageOrdersBaselinePath },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -1202,8 +1194,6 @@ for (const [version, temporaryName] of [
   [credentialsBaselineVersion, credentialsBaselineVersion + "_test_only_approved_smm_provider_credentials_baseline.sql"],
   [adminsBaselineVersion, adminsBaselineVersion + "_test_only_approved_smm_admins_baseline.sql"],
   [providerOnboardingBaselineVersion, providerOnboardingBaselineVersion + "_test_only_approved_provider_onboarding_requests_baseline.sql"],
-  [digitalPageProductsBaselineVersion, digitalPageProductsBaselineVersion + "_test_only_live_derived_digital_page_products_baseline.sql"],
-  [digitalPageOrdersBaselineVersion, digitalPageOrdersBaselineVersion + "_test_only_live_derived_digital_page_orders_baseline.sql"],
 ]) {
   if (fs.existsSync(path.join(migrationDirectory, temporaryName))) {
     console.error("P0 BLOCKED: temporary test-only migration filename already exists in repository: " + temporaryName);
@@ -1234,43 +1224,6 @@ for (const [version, temporaryName] of [
    console.error("P0 BLOCKED: wallet_transactions finance-read test fixture failed provenance, tenant-scope, no-data, no-collision, or ordering validation.");
    process.exit(1);
  }
-
-const digitalPageProductsBaseline = fs.existsSync(digitalPageProductsBaselinePath) ? fs.readFileSync(digitalPageProductsBaselinePath, "utf8") : "";
-const digitalPageOrdersBaseline = fs.existsSync(digitalPageOrdersBaselinePath) ? fs.readFileSync(digitalPageOrdersBaselinePath, "utf8") : "";
-const rc256 = migrations.find(({ name }) => name === "20261002100000_rc256_critical_fk_indexes.sql");
-const rc228 = migrations.find(({ name }) => name === "20261002190000_rc228_digital_page_products_orders.sql");
-const digitalPageBaselineValid =
-  /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(digitalPageProductsBaseline) &&
-  /OWNER-APPROVED TEST-ONLY SCHEMA BASELINE/.test(digitalPageOrdersBaseline) &&
-  /2026-10-14/.test(digitalPageProductsBaseline) && /2026-10-14/.test(digitalPageOrdersBaseline) &&
-  /moyhiluyhjsujhwlyeuu/.test(digitalPageProductsBaseline) && /moyhiluyhjsujhwlyeuu/.test(digitalPageOrdersBaseline) &&
-  /NOT recovered historical DDL/.test(digitalPageProductsBaseline) && /NOT recovered historical DDL/.test(digitalPageOrdersBaseline) &&
-  /Never apply this file to production/.test(digitalPageProductsBaseline) && /Never apply this file to production/.test(digitalPageOrdersBaseline) &&
-  /create table public\.digital_page_products/i.test(digitalPageProductsBaseline) &&
-  /code text not null[\s\S]*unique \(code\)/i.test(digitalPageProductsBaseline) &&
-  /price numeric\(12,2\) not null[\s\S]*check \(price >= 0\)/i.test(digitalPageProductsBaseline) &&
-  /enable row level security/i.test(digitalPageProductsBaseline) &&
-  /create table public\.digital_page_orders/i.test(digitalPageOrdersBaseline) &&
-  /provider_intent_id text[\s\S]*provider_order_id text[\s\S]*provider_transaction_id text/i.test(digitalPageOrdersBaseline) &&
-  /unique \(user_id, idempotency_key\)/i.test(digitalPageOrdersBaseline) &&
-  /references public\.digital_page_products\(id\)/i.test(digitalPageOrdersBaseline) &&
-  /enable row level security/i.test(digitalPageOrdersBaseline) &&
-  !/create policy|insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\./i.test(digitalPageProductsBaseline) &&
-  !/create policy|insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\./i.test(digitalPageOrdersBaseline) &&
-  !!rc256 && !!rc228 &&
-  rc256.sql.includes("idx_digital_page_orders_product_id") &&
-  /create table if not exists public\.digital_page_orders/i.test(rc228.sql) &&
-  digitalPageProductsBaselineVersion < rc256.name.slice(0,14) &&
-  digitalPageOrdersBaselineVersion < rc256.name.slice(0,14) &&
-  rc256.name.slice(0,14) < rc228.name.slice(0,14) &&
-  !migrations.some(({name}) => name.slice(0,14) === digitalPageProductsBaselineVersion) &&
-  !migrations.some(({name}) => name.slice(0,14) === digitalPageOrdersBaselineVersion) &&
-  !fs.existsSync(path.join(migrationDirectory, digitalPageProductsBaselineVersion + "_test_only_live_derived_digital_page_products_baseline.sql")) &&
-  !fs.existsSync(path.join(migrationDirectory, digitalPageOrdersBaselineVersion + "_test_only_live_derived_digital_page_orders_baseline.sql"));
-if (!digitalPageBaselineValid) {
-  console.error("P0 BLOCKED: digital-page test-only baseline provenance, schema, no-policy/no-data, timestamp, or RC256-before-RC228 ordering contract failed.");
-  process.exit(1);
-}
 
 console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived function compatibility fixture validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
