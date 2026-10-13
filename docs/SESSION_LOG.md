@@ -227,3 +227,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 2. If replay proceeds, diagnose the next chronological migration error and recover its source/schema evidence; do not assume this fixture closes all replay gaps.
 3. Investigate the separate live payment-webhook service_role ACL mismatch only through source analysis and disposable tests; any production privilege change requires separate explicit authorization.
 4. Keep release BLOCKED / NOT CERTIFIED until full exact-head replay and all P0 gates have evidence.
+
+### SESSION-004 follow-up — validator/CI feedback loop
+- Run 38350438788 failed closed on an incorrect settlement policy regex; the regex escaping was corrected, not the policy assertion.
+- Run 38350541588 passed schema validator and fixture injection, then failed in the separate verification shell with `settlement_attempts_baseline: unbound variable`. Cause: each GitHub Actions `run:` block has its own shell process; the verify step lacked declarations for the new fixture paths. Added both baseline and temporary-migration declarations in commit 9291b38976dd9348c3808c039ab4027d02042a48.
+- Run 38350577917 for the code candidate before documentation-only follow-up passed validator, injection, byte-for-byte copies, untracked checks, and no-data guard; it is currently in progress at "Start disposable Supabase services without replaying migrations". Docker Hub login is skipped because credentials are not configured; an earlier run showed transient `toomanyrequests: Rate exceeded`, so stack startup remains an environment dependency, not yet a migration result.
+- Current source head at the time of this log addition: 02ccd4e17ecf3862c476cafb41c41bf8a60901ea. Exact-head replay run 38350675387 is pending and must be checked after it starts.
+- Independent P0 audit: deployed paymob-webhook v8 directly queries/writes five tables where service_role has no DML privileges. Evidence is in docs/release/PAYMOB_WEBHOOK_PRIVILEGE_MISMATCH_20261013.md. Existing service_role-only SECURITY DEFINER RPCs are present; do not broaden table grants as a shortcut.
