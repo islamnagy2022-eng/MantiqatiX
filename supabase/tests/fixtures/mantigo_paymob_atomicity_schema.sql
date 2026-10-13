@@ -20,10 +20,33 @@ $function$;
 CREATE TABLE public.tenants (
   id varchar PRIMARY KEY
 );
-INSERT INTO public.tenants(id) VALUES ('MNTY-PLATFORM');
+INSERT INTO public.tenants(id) VALUES ('MNTY-PLATFORM'), ('tenant-1');
+
+CREATE TABLE public.orders (
+  id uuid PRIMARY KEY,
+  tenant_id varchar NOT NULL,
+  business_id uuid NOT NULL,
+  status varchar NOT NULL,
+  total_amount numeric NOT NULL,
+  total numeric,
+  currency varchar NOT NULL,
+  pricing_version bigint,
+  pricing_hash varchar,
+  pricing_authority varchar
+);
 
 CREATE TABLE public.payment_intents (
-  id varchar PRIMARY KEY
+  id varchar PRIMARY KEY,
+  tenant_id varchar NOT NULL DEFAULT 'MNTY-PLATFORM',
+  order_id uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000099',
+  amount numeric NOT NULL DEFAULT 40,
+  currency varchar NOT NULL DEFAULT 'EGP',
+  status varchar NOT NULL DEFAULT 'CREATED',
+  provider varchar NOT NULL DEFAULT 'PAYMOB',
+  payment_method varchar NOT NULL DEFAULT 'CARD',
+  pricing_version bigint DEFAULT 1,
+  pricing_hash varchar DEFAULT 'fixture-hash',
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE public.mantigo_financial_ledger (
