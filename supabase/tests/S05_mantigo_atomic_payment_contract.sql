@@ -14,6 +14,9 @@ DECLARE
   v_force_rls boolean;
 BEGIN
   v_oid := to_regprocedure('public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,text,jsonb)');
+  IF to_regprocedure('public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)') IS NOT NULL THEN
+    RAISE EXCEPTION 'S05 contract failed: legacy 8-argument MantiGO payment RPC overload must be retired';
+  END IF;
   IF v_oid IS NULL THEN
     RAISE EXCEPTION 'S05 contract failed: atomic MantiGO payment RPC is missing';
   END IF;
