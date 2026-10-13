@@ -53,7 +53,6 @@ jobs:
           admins_baseline="supabase/tests/baselines/smm_admins.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
-          provider_onboarding_baseline="supabase/tests/baselines/provider_onboarding_requests.sql"
           bookings_baseline="supabase/tests/baselines/bookings.sql"
           approval_policy_baseline="supabase/tests/baselines/approval_requests_scoped_read.sql"
           commission_policy_baseline="supabase/tests/baselines/commission_transactions_finance_read.sql"
@@ -87,7 +86,6 @@ jobs:
           admins_migration="supabase/migrations/20260927033923_test_only_approved_smm_admins_baseline.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
-          provider_onboarding_migration="supabase/migrations/20261001085000_test_only_approved_provider_onboarding_requests_baseline.sql"
           bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
           approval_policy_migration="supabase/migrations/20260927140499_test_only_live_derived_approval_requests_scoped_read.sql"
           commission_policy_migration="supabase/migrations/20260927140498_test_only_live_derived_commission_transactions_finance_read.sql"
@@ -111,8 +109,8 @@ jobs:
           settlement_transactions_policy_migration="supabase/migrations/20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql"
           wallet_accounts_policy_migration="supabase/migrations/20260927140486_test_only_live_derived_wallet_accounts_finance_read.sql"
           wallet_transactions_policy_migration="supabase/migrations/20260927140485_test_only_live_derived_wallet_transactions_finance_read.sql"
-          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$registration_security_baseline" "$profiles_baseline" "$marketing_leads_baseline" "$admins_baseline" "$providers_baseline" "$credentials_baseline" "$provider_onboarding_baseline" "$bookings_baseline" "$approval_policy_baseline" "$marketing_schema_baseline" "$journal_finance_policy_baseline" "$general_ledger_policy_baseline" "$commission_policy_baseline" "$legacy_functions_baseline" "$smm_bootstrap_baseline" "$smm_wallets_baseline" "$smm_wallet_transactions_baseline" "$smm_services_baseline" "$smm_orders_baseline" "$smm_order_events_baseline" "$settlement_baseline" "$settlement_attempts_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline" "$payment_events_policy_baseline" "$settlement_transactions_policy_baseline" "$wallet_accounts_policy_baseline" "$wallet_transactions_policy_baseline"; do test -f "$file"; done
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$smm_wallets_migration" "$smm_wallet_transactions_migration" "$smm_services_migration" "$smm_orders_migration" "$smm_order_events_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration"; do test ! -e "$file"; done
+          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$registration_security_baseline" "$profiles_baseline" "$marketing_leads_baseline" "$admins_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$approval_policy_baseline" "$marketing_schema_baseline" "$journal_finance_policy_baseline" "$general_ledger_policy_baseline" "$commission_policy_baseline" "$legacy_functions_baseline" "$smm_bootstrap_baseline" "$smm_wallets_baseline" "$smm_wallet_transactions_baseline" "$smm_services_baseline" "$smm_orders_baseline" "$smm_order_events_baseline" "$settlement_baseline" "$settlement_attempts_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline" "$payment_events_policy_baseline" "$settlement_transactions_policy_baseline" "$wallet_accounts_policy_baseline" "$wallet_transactions_policy_baseline"; do test -f "$file"; done
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$smm_wallets_migration" "$smm_wallet_transactions_migration" "$smm_services_migration" "$smm_orders_migration" "$smm_order_events_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration"; do test ! -e "$file"; done
           cp "$legacy_businesses_baseline" "$legacy_businesses_migration"
           cp "$legacy_products_baseline" "$legacy_products_migration"
           cp "$legacy_orders_baseline" "$legacy_orders_migration"
@@ -123,7 +121,6 @@ jobs:
           cp "$admins_baseline" "$admins_migration"
           cp "$providers_baseline" "$providers_migration"
           cp "$credentials_baseline" "$credentials_migration"
-          cp "$provider_onboarding_baseline" "$provider_onboarding_migration"
           cp "$bookings_baseline" "$bookings_migration"
           cp "$approval_policy_baseline" "$approval_policy_migration"
           cp "$marketing_schema_baseline" "$marketing_schema_migration"
@@ -166,7 +163,6 @@ jobs:
           admins_baseline="supabase/tests/baselines/smm_admins.sql"
           providers_baseline="supabase/tests/baselines/smm_providers.sql"
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
-          provider_onboarding_baseline="supabase/tests/baselines/provider_onboarding_requests.sql"
           bookings_baseline="supabase/tests/baselines/bookings.sql"
           approval_policy_baseline="supabase/tests/baselines/approval_requests_scoped_read.sql"
           commission_policy_baseline="supabase/tests/baselines/commission_transactions_finance_read.sql"
@@ -196,7 +192,6 @@ jobs:
           admins_migration="supabase/migrations/20260927033923_test_only_approved_smm_admins_baseline.sql"
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
-          provider_onboarding_migration="supabase/migrations/20261001085000_test_only_approved_provider_onboarding_requests_baseline.sql"
           bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
           approval_policy_migration="supabase/migrations/20260927140499_test_only_live_derived_approval_requests_scoped_read.sql"
           commission_policy_migration="supabase/migrations/20260927140498_test_only_live_derived_commission_transactions_finance_read.sql"
@@ -226,7 +221,6 @@ jobs:
           cmp -s "$admins_baseline" "$admins_migration"
           cmp -s "$providers_baseline" "$providers_migration"
           cmp -s "$credentials_baseline" "$credentials_migration"
-          cmp -s "$provider_onboarding_baseline" "$provider_onboarding_migration"
           cmp -s "$bookings_baseline" "$bookings_migration"
           cmp -s "$approval_policy_baseline" "$approval_policy_migration"
           cmp -s "$marketing_schema_baseline" "$marketing_schema_migration"
@@ -246,10 +240,10 @@ jobs:
           cmp -s "$wallet_accounts_policy_baseline" "$wallet_accounts_policy_migration"
           cmp -s "$wallet_transactions_policy_baseline" "$wallet_transactions_policy_migration"
           cmp -s "$smm_order_events_baseline" "$smm_order_events_migration"
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
-          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
+          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$marketing_leads_migration" "$admins_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$marketing_schema_migration" "$journal_finance_policy_migration" "$general_ledger_policy_migration" "$commission_policy_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration" "$payment_events_policy_migration" "$settlement_transactions_policy_migration" "$wallet_accounts_policy_migration" "$wallet_transactions_policy_migration" "$smm_order_events_migration"
           # SMM/onboarding fixtures are schema-only, not data seed baselines.
-          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|update[[:space:]]+(public\\.)?|delete[[:space:]]+from|copy[[:space:]]+(public|private)\\.)' "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
+          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|update[[:space:]]+(public\\.)?|delete[[:space:]]+from|copy[[:space:]]+(public|private)\\.)' "$admins_migration" "$providers_migration" "$credentials_migration"
           echo "PASS: exact untracked temporary baseline copies; no production rows are imported. Function fixtures are definition-only and are never invoked by replay."
 
       - name: Setup Supabase CLI
