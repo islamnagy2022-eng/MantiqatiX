@@ -1714,3 +1714,19 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Confirmed the source launch gate returns `SMM_DEFERRED` unless both the enablement and post-launch approval flags are true; no deployment or launch enabled.
 - [ ] Exact-head CI triggered on source commit `57be194aa4f0d35eff9ea1c00f59fd3a91edf3a2` was QUEUED at first inspection. Check results before considering merge.
 - [ ] SMM security review/acceptance, full migration replay, production tenant/payment E2E, Auth/RLS/SECURITY DEFINER remediation, backup/restore and rollback evidence remain open. No production release.
+
+
+## RC543 — Module progress percentages and fresh production blockers — 2026-10-13
+
+Evidence report: `docs/release/module-progress-report.md`.
+
+- **28/28 = 100%** of the defined domain-module runtime-wiring check passes (canonical catalog + routed workspace + expected live-table binding). This is wiring coverage, not production feature-completion.
+- **24/24 = 100%** of canonical UI feature-flag code mappings pass CI.
+- **6/37 = 16.2%** of currently ACTIVE Edge Functions were exact-compared to live source in this batch: payment-intent, paymob-webhook, subscription-payment-intent, erp-purchase-receive, digital-page-payment-intent, and smm-gateway. This is the number checked, not the parity percentage of all functions.
+- **0/33 = 0%** of required post-RC424 release migrations are proven applied in production; live ledger remains at `20261008222845` / RC424. Chronological replay remains NOT RUN.
+- SMM source regression CI passed (run `38329947697`), including Deno check/tests and isolated PostgreSQL ACL integration. SMM is still deferred/disabled and not deployed from this PR.
+- Exact-head focused migration integration remained queued at last check (run `38329947672`); do not count queued as passed.
+- Fresh Security Advisor still reports 40 authenticated SECURITY DEFINER warnings, one anon-executable targeted-advertisement function warning, one RLS-enabled/no-policy table, and leaked-password-protection warning(s). Performance Advisor reports 105 unindexed FKs, 375 auth/RLS init-plan warnings, 124 unused-index notices, and 28 multiple-permissive-policy warnings. Review each in context; do not blanket revoke or add broad policies.
+- Mandatory runtime gates remain open: tenant isolation, live Paymob/finance E2E, notification delivery, backup/restore, Android signing/device checks, rollback, and production smoke.
+
+**Release remains BLOCKED / NOT CERTIFIED.** Do not treat wiring percentages as a release-readiness score.
