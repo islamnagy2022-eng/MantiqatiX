@@ -804,3 +804,13 @@ Candidate head after this change: ee839091a7494300a85eb094595549f136c47ac2. Exac
 ## RC40 source archive check — settlement and SMM function provenance
 
 The uploaded `source_RC40.zip` was inspected locally (883 archive entries; SQL/source/document files searched for `settlement_attempts` and `smm_bootstrap_first_admin`). The only occurrence was in `supabase/migrations/20260921154500_phase18_phase19_webhook_and_rls_hardening.sql`, which conditionally adds the restrictive `authenticated_sessions_only` policy to an existing `settlement_attempts` table and creates indexes including `idx_payment_provider_events_payment_intent_id`. It does **not** create `settlement_attempts`; no `smm_bootstrap_first_admin` function definition exists in that archive. This corroborates that the current table/function creation lineage is absent from the supplied RC40 archive. The RC40 migration is not copied into the candidate history because it contains a broader set of policy/index operations and its application state/source provenance must be reconciled separately. The catalog-derived fixtures remain disposable-only compatibility scaffolding, not recovered historical DDL.
+
+## 2026-10-13 — Registration baseline was later than first dependency
+
+Run 38350881761 advanced through the SMM bootstrap fixture and then failed at 20260927065247_mnty_atomic_registration_review.sql because public.account_registration_requests did not exist (SQLSTATE 42P01). The earlier compatibility fixture version 20260927074155 was too late; the previous validator incorrectly treated 20260927134000_add_unique_pending_membership_request.sql as the first dependency.
+
+Corrected the chronology by splitting the existing owner-approved live-derived registration fixture:
+- Schema/constraints/indexes/RLS only: `supabase/tests/baselines/account_registration_requests_schema.sql`, injected as temporary `20260927065246_test_only_live_derived_registration_schema_baseline.sql` before 27065247.
+- Policies/grants only: `supabase/tests/baselines/account_registration_requests.sql`, injected as temporary `20260927074155_test_only_live_derived_registration_security_baseline.sql` after the atomic review RPC migration. The pending unique index remains owned by 20260927134000.
+
+The validator now checks provenance, table constraints, RLS/no-policy/no-grant for the schema fixture, the separate policy/grant contract, and temporary version collisions/order. No production changes were made. Candidate code head 14cae3a824dbac5e2da85ad90d05b1c303a460b4; exact-head replay is not yet verified. Release remains BLOCKED / NOT CERTIFIED.
