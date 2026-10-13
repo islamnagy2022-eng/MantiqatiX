@@ -110,3 +110,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Supabase Security Advisor returned 94 findings: 90 anonymous-policy warnings, 40 authenticated SECURITY DEFINER execute warnings, one anon-executable SECURITY DEFINER function warning, one leaked-password-protection warning, and one RLS-enabled/no-policy informational item. These are triage findings, not 94 independently confirmed exploitable vulnerabilities. Auth/RLS/grants were not changed.
 - Live `smm-gateway` remains ACTIVE v10, `verify_jwt=true`, deployed source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. Read-only source fetch confirms `SMM_INITIAL_LAUNCH_DEFERRED=true` and the 503 gate precedes `getUser(req)`; this is deployed-source evidence only, not a live HTTP negative-test pass.
 - Release remains **BLOCKED / NOT CERTIFIED**. No production writes, migrations, Auth/RLS/grant/secret changes, financial mutations, Edge Function deployment, merge, or release occurred.
+
+
+## Master checkpoint file reconciled — 2026-10-13
+
+- The prompt-named root file `MANTIQATIX_MASTER_TODO_2026-10-13.md` did not exist on the Session C branch or `main` at inspection time. Created it on the isolated Session C branch as a dated entrypoint containing current exact-head CI blockers, live gate evidence, release boundary, and next execution steps.
+- The detailed inventory remains `docs/MASTER_PRODUCTION_TODO.md`; the acceptance report remains `docs/release/SESSION_C_P0_SECURITY_RELEASE_ACCEPTANCE_20261013.md`. Keep all three synchronized. No runtime source files or production systems were changed.
+- Creation commit: `c40e6bd0550f34fb7c5e6235c64f986c087bc7ff`.
