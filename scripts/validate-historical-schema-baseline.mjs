@@ -142,8 +142,9 @@ if (paymentProviderEventsMigration) {
   }
 }
 
-// Validate the live-derived marketing_leads table and its minimal owner-read policy,
-// which the historical ALTER POLICY migration expects but no earlier committed migration creates.
+// Validate the live-derived marketing CRM tables whose policies are altered before any
+// canonical CREATE TABLE source exists. This remains synthetic disposable-only compatibility,
+// not a claim that the historical table/policy creation DDL has been recovered.
 const marketingLeadsBaseline = fs.readFileSync(marketingLeadsBaselinePath, "utf8");
 const marketingLeadsVersion = "20260927140496";
 const marketingLeadsTemporaryName = marketingLeadsVersion + "_test_only_live_derived_marketing_leads.sql";
@@ -153,6 +154,14 @@ const marketingLeadsPolicyMigration = migrations.find(({ name }) =>
 const marketingLeadsPriorCreator = migrations.some(({ name, sql }) =>
   name.slice(0, 14) < marketingLeadsPolicyMigration?.name.slice(0, 14) &&
   /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_leads\b/i.test(sql)
+);
+const marketingProjectsPriorCreator = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < marketingLeadsPolicyMigration?.name.slice(0, 14) &&
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_projects\b/i.test(sql)
+);
+const marketingParticipantsPriorCreator = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < marketingLeadsPolicyMigration?.name.slice(0, 14) &&
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_project_participants\b/i.test(sql)
 );
 const marketingLeadsBaselineValid =
   /OWNER-APPROVED TEST-ONLY LIVE-DERIVED TABLE\/POLICY BASELINE/.test(marketingLeadsBaseline) &&
@@ -174,13 +183,40 @@ const marketingLeadsBaselineValid =
   /alter table public\.marketing_leads enable row level security/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_leads force row level security/i.test(marketingLeadsBaseline) &&
   /CREATE POLICY "Users view own marketing leads"[\s\S]*ON public\.marketing_leads[\s\S]*FOR SELECT[\s\S]*TO authenticated[\s\S]*auth\.uid\(\)[\s\S]*requester_user_id/i.test(marketingLeadsBaseline) &&
-  !/insert\s+into|copy\s+public\.|create trigger|\bgrant\b|\brevoke\b/i.test(marketingLeadsBaseline);
-if (!marketingLeadsPolicyMigration || marketingLeadsPriorCreator || !marketingLeadsBaselineValid ||
+  /CREATE TABLE public\.marketing_projects/i.test(marketingLeadsBaseline) &&
+  /marketing_projects_lead_id_fkey[\s\S]*references public\.marketing_leads\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
+  /marketing_projects_client_business_id_fkey[\s\S]*references public\.businesses\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
+  /marketing_projects_management_mode_check/i.test(marketingLeadsBaseline) &&
+  /marketing_projects_status_check/i.test(marketingLeadsBaseline) &&
+  /create index idx_mkt_projects_status on public\.marketing_projects\s*\(status, created_at desc\)/i.test(marketingLeadsBaseline) &&
+  /alter table public\.marketing_projects enable row level security/i.test(marketingLeadsBaseline) &&
+  /alter table public\.marketing_projects force row level security/i.test(marketingLeadsBaseline) &&
+  /CREATE POLICY "Project clients can view own marketing projects"[\s\S]*ON public\.marketing_projects[\s\S]*FOR SELECT TO authenticated[\s\S]*um\.user_id = \(SELECT auth\.uid\(\) AS uid\)[\s\S]*um\.status::text = 'ACTIVE'::text/i.test(marketingLeadsBaseline) &&
+  /REVOKE ALL ON TABLE public\.marketing_projects FROM PUBLIC, anon, authenticated, service_role/i.test(marketingLeadsBaseline) &&
+  /GRANT SELECT ON TABLE public\.marketing_projects TO authenticated/i.test(marketingLeadsBaseline) &&
+  /GRANT REFERENCES, TRIGGER, TRUNCATE ON TABLE public\.marketing_projects TO service_role/i.test(marketingLeadsBaseline) &&
+  /CREATE TABLE public\.marketing_project_participants/i.test(marketingLeadsBaseline) &&
+  /marketing_project_participants_project_id_fkey[\s\S]*references public\.marketing_projects\(id\) on delete cascade/i.test(marketingLeadsBaseline) &&
+  /marketing_project_participants_provider_id_fkey[\s\S]*references public\.marketing_provider_profiles\(id\) on delete restrict/i.test(marketingLeadsBaseline) &&
+  /marketing_project_participants_role_check/i.test(marketingLeadsBaseline) &&
+  /marketing_project_participants_status_check/i.test(marketingLeadsBaseline) &&
+  /marketing_project_participants_allocation_percent_check/i.test(marketingLeadsBaseline) &&
+  /create index idx_mkt_project_participants_provider on public\.marketing_project_participants\s*\(provider_id\)/i.test(marketingLeadsBaseline) &&
+  /alter table public\.marketing_project_participants enable row level security/i.test(marketingLeadsBaseline) &&
+  /alter table public\.marketing_project_participants force row level security/i.test(marketingLeadsBaseline) &&
+  /CREATE POLICY "Providers view assigned projects"[\s\S]*ON public\.marketing_project_participants[\s\S]*FOR SELECT TO authenticated[\s\S]*p\.owner_user_id = \(SELECT auth\.uid\(\) AS uid\)/i.test(marketingLeadsBaseline) &&
+  /REVOKE ALL ON TABLE public\.marketing_project_participants FROM PUBLIC, anon, authenticated, service_role/i.test(marketingLeadsBaseline) &&
+  /GRANT REFERENCES, TRIGGER, TRUNCATE ON TABLE public\.marketing_project_participants TO service_role/i.test(marketingLeadsBaseline) &&
+  !/insert\s+into|copy\s+public\.|create trigger/i.test(marketingLeadsBaseline);
+if (!marketingLeadsPolicyMigration || marketingLeadsPriorCreator || marketingProjectsPriorCreator ||
+    marketingParticipantsPriorCreator || !marketingLeadsBaselineValid ||
     fs.existsSync(path.join(migrationDirectory, marketingLeadsTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === marketingLeadsVersion) ||
     marketingLeadsVersion >= marketingLeadsPolicyMigration.name.slice(0, 14) ||
-    !/alter policy "Users view own marketing leads" on public\.marketing_leads to authenticated;/i.test(marketingLeadsPolicyMigration.sql)) {
-  console.error("P0 BLOCKED: marketing_leads test-only baseline, provenance, timestamp, or ordered ALTER POLICY contract is invalid.");
+    !/alter policy "Users view own marketing leads" on public\.marketing_leads to authenticated;/i.test(marketingLeadsPolicyMigration.sql) ||
+    !/alter policy "Project clients can view own marketing projects" on public\.marketing_projects to authenticated;/i.test(marketingLeadsPolicyMigration.sql) ||
+    !/alter policy "Providers view assigned projects" on public\.marketing_project_participants to authenticated;/i.test(marketingLeadsPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: marketing CRM test-only baselines, provenance, timestamp, grants/RLS, or ordered ALTER POLICY contracts are invalid.");
   process.exit(1);
 }
 
