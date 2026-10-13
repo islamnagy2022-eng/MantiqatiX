@@ -146,3 +146,12 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 ## Current release decision
 
 **BLOCKED / NOT CERTIFIED.** No production writes, migration application, financial mutation, Edge Function deployment, merge, or release were performed. Continue only through read-only verification, disposable CI, and owner-coordinated source fixes.
+
+
+### Payment webhook — main-vs-candidate source parity recheck
+
+- **Current-main blob SHA:** `c03384ce019484b77139d924c4621f6b23903071`.
+- **PR #220 candidate blob SHA:** `04d502fb2e01b1f751e10f6ac68b4814ccf220d5`.
+- **Verified diff:** the files differ on one line: the PR candidate adds `.eq("status","PENDING")` to the generic failed-payment intent update. The main source lacks that status predicate.
+- **Residual risk:** even on the candidate, provider-event insertion and payment-intent state update are separate requests; the update error and affected-row count are not checked. This is not atomic and does not resolve cross-intent replay binding, concurrent duplicate delivery, or injected persistence-failure behavior.
+- **Coordination:** posted [PR #220 comment 6138661187](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138661187). No webhook invocation or production source change performed.
