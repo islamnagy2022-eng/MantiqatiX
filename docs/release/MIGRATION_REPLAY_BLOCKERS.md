@@ -814,3 +814,11 @@ Corrected the chronology by splitting the existing owner-approved live-derived r
 - Policies/grants only: `supabase/tests/baselines/account_registration_requests.sql`, injected as temporary `20260927074155_test_only_live_derived_registration_security_baseline.sql` after the atomic review RPC migration. The pending unique index remains owned by 20260927134000.
 
 The validator now checks provenance, table constraints, RLS/no-policy/no-grant for the schema fixture, the separate policy/grant contract, and temporary version collisions/order. No production changes were made. Candidate code head 14cae3a824dbac5e2da85ad90d05b1c303a460b4; exact-head replay is not yet verified. Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-13 — Missing approval_requests policy dependency
+
+Run 38351334323 passed the baseline preflight and all disposable fixture guards, then failed at 20260927140500_remove_anonymous_sensitive_policy_access_v2.sql with `ERROR: policy "approval_requests_scoped_read" for table "approval_requests" does not exist (SQLSTATE 42704)`.
+
+Read-only live catalog evidence confirms the policy exists on public.approval_requests as SELECT TO authenticated, scoped to active tenant membership and requester/OWNER/ADMIN/SUPER_ADMIN/MANAGER visibility. Repository search finds only the ALTER POLICY statement; the supplied RC40 archive has no policy-creation source. Added `supabase/tests/baselines/approval_requests_scoped_read.sql` as a policy-only, live-derived compatibility fixture at temporary version 20260927140499 before the historical ALTER POLICY migration. Validator verifies its security contract, absence of earlier tracked creation, no table DDL/grants/data, and timestamp ordering. This fixture is not historical policy provenance and is never for production.
+
+Candidate head after code changes: e7fcd20f5c9a125d2a99590cb56a688086ab95cb. Exact-head replay result NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
