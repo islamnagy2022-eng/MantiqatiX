@@ -11,11 +11,11 @@ function auditMigrations(entries) {
   const findings = [];
   for (const relation of targetRelations) {
     const createPattern = new RegExp(
-      String.raw`\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\s*\\.\\s*)?"?${relation}"?\\b`,
+      "\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\s*\\.\\s*)?\\\"?" + relation + "\\\"?\\b",
       "i"
     );
     const privilegePattern = new RegExp(
-      String.raw`\\b(?:grant|revoke)\\b[\\s\\S]{0,300}?\\bon\\s+table\\s+(?:public\\s*\\.\\s*)?"?${relation}"?\\b`,
+      "\\b(?:grant|revoke)\\b[\\s\\S]{0,300}?\\bon\\s+table\\s+(?:public\\s*\\.\\s*)?\\\"?" + relation + "\\\"?\\b",
       "i"
     );
     const createAt = ordered.findIndex(file => createPattern.test(file.content));
@@ -64,7 +64,7 @@ console.log(JSON.stringify({
 }, null, 2));
 if (report.findings.length) {
   for (const finding of report.findings) {
-    console.error(`SMM baseline dependency ${finding.result}: public.${finding.relation}; privilege migration=${finding.first_privilege_migration}; create migration=${finding.first_create_migration ?? "NOT FOUND"}`);
+    console.error("SMM baseline dependency " + finding.result + ": public." + finding.relation + "; privilege migration=" + finding.first_privilege_migration + "; create migration=" + (finding.first_create_migration ?? "NOT FOUND"));
   }
   process.exit(1);
 }
