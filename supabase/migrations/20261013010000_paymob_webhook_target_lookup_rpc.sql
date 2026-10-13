@@ -97,7 +97,8 @@ BEGIN
         'payment_status',l.payment_status,'settlement_status',l.settlement_status
       ) AS target
     FROM public.mantigo_financial_ledger l
-    WHERE nullif(trim(coalesce(p_merchant_ref, '')), '') IS NOT NULL
+    WHERE l.provider = 'PAYMOB'
+      AND nullif(trim(coalesce(p_merchant_ref, '')), '') IS NOT NULL
       AND l.id::text = p_merchant_ref
 
     UNION ALL
