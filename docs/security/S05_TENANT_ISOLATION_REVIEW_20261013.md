@@ -163,3 +163,23 @@ A fresh catalog query included `pg_policies.permissive`. The `authenticated_sess
 The static contract was strengthened in commit `802d9ef969d9fedb5363ac92b80c1425de5278fc` to fail if these guard policies are changed away from RESTRICTIVE or are missing. This test is still unexecuted; no CI run is associated with the reviewed commits so far.
 
 Repeated restrictive guard policies appear redundant and increase policy complexity, but no cleanup is proposed in this S05 scope. Effective behavior must still be confirmed with synthetic-user behavioral tests.
+
+### Continuation update — Paymob webhook source-path review (2026-10-13)
+
+Read-only source inspection of `supabase/functions/paymob-webhook/index.ts` on this review branch (blob `c03384ce019484b77139d924c4621f6b23903071`) found the following positive static evidence:
+
+- The handler rejects non-POST requests and fails closed when `PAYMOB_HMAC_SECRET` is absent.
+- It computes HMAC-SHA512 from the configured secret and the expected Paymob transaction fields, compares the digest using a constant-time-style byte/character accumulator, and returns HTTP 401 with `INVALID_PROVIDER_SIGNATURE` before processing when verification fails.
+- Only after that verification does the handler correlate the merchant/provider order reference, compare amount and currency, and call `process_verified_digital_page_payment_backend` with `p_signature_verified: true`.
+- This reduces the earlier uncertainty about the **source-code path**: signature verification is present in the reviewed branch source. It does **not** prove that this exact file/version is deployed in production, that the HMAC canonicalization matches current Paymob requirements for all event shapes, or that the live database RPC enforces every expected order/replay guard.
+- The webhook source uses a service-role client; runtime tests must therefore exercise only a disposable environment and include invalid/missing HMAC, altered amount/currency, wrong merchant/provider order reference, duplicate external event, unsuccessful payment event, and concurrent/replayed callbacks. Do not use real transactions.
+
+### Updated evidence classification
+
+- Paymob signature validation in reviewed source: **STATIC SOURCE EVIDENCE FOUND**.
+- Exact production Edge Function version parity: **NOT VERIFIED**.
+- HMAC compatibility and adversarial webhook runtime tests: **NOT RUN**.
+- S05 synthetic two-tenant behavioral RLS suite: **NOT RUN**.
+- Production mutations, merge, and deployment: **NONE**.
+- Overall release gate remains **BLOCKED / NOT CERTIFIED**.
+
