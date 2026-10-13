@@ -46,3 +46,30 @@ Deno.test("S07_ORDER_004: money normalization enforces bounds and cents precisio
     assertEquals(normalizeSmmMoney(amount, true), null);
   }
 });
+
+
+Deno.test("S07_ORDER_005: malformed idempotency keys and oversized identifiers are rejected", () => {
+  for (const idempotency_key of ["", "short", "contains spaces 123", "key.with.dots.123", "x".repeat(129)]) {
+    assertEquals(validateSmmOrderInput({
+      service_id: "service-1",
+      target_url: "https://example.com/profile",
+      quantity: 10,
+      idempotency_key,
+    }).ok, false);
+  }
+  assertEquals(validateSmmOrderInput({
+    service_id: "s".repeat(129),
+    target_url: "https://example.com/profile",
+    quantity: 10,
+    idempotency_key: "order_key_12345678",
+  }).ok, false);
+});
+
+Deno.test("S07_ORDER_006: pricing rejects rounded zero charge and overflow outcomes", () => {
+  assertEquals(validateSmmOrderPricing({
+    sellingPrice: 0.001, providerCost: 0, quantity: 1,
+  }).ok, false);
+  assertEquals(validateSmmOrderPricing({
+    sellingPrice: Number.MAX_VALUE, providerCost: 0, quantity: Number.MAX_SAFE_INTEGER,
+  }).ok, false);
+});
