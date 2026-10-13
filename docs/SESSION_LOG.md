@@ -68,3 +68,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Pre-write tree inspection confirmed all 30 listed migration files exist in the candidate after RC524 recovery. This prevents future source manifests from passing merely because a missing filename is referenced as a string.
 - Exact code head at this change: 7cf34432de0d5b604121e00f662f04771de18568. GitHub Actions checks are queued; no result is counted as passing until completion.
 - Production remains untouched. Full replay and all live acceptance gates remain open; release BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — SESSION-007 — Expand finance, ERP and admin migration tests
+
+- Restored exact RC457, RC458 and RC462 migration sources plus integration test sources for RC457, RC441 platform-admin, RC437 purchase-order lines and RC458 ERP branch scope from the reconciled PR #207 branch. Blob hashes for these ten sources were verified against the reconciled source tree.
+- Extended the disposable PostgreSQL focused workflow with five more jobs: RC450 financial-journal boundary, RC457 journal idempotency convergence, RC441/RC449/RC462 platform-admin scope, RC434/RC437/RC438 order-line controls, and RC434/RC437/RC438/RC458 ERP branch scope. The workflow now defines 12 focused integration jobs.
+- Extended scripts/validate-production-migration-chain-gate.mjs from 30 to 33 required migration sources, in timestamp order, adding RC457, RC458 and RC462. Filesystem existence is checked for every required source.
+- Exact-head CI after these changes has not yet been observed to complete; queued jobs are not passes. The previous exact-head tests are not transferable to the new candidate.
+- No production mutations, migrations, deployments, merge or release. Release remains BLOCKED / NOT CERTIFIED.
