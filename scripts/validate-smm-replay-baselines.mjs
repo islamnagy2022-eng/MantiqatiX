@@ -100,23 +100,23 @@ assert.match(providerOnboardingCreate, /create\s+table\s+if\s+not\s+exists\s+pub
 assert.ok("20261001085000" < "20261001090000" && "20261001090000" < "20261001164200", "fixture must document rather than hide the out-of-order dependency");
 
 const digitalPageProducts = fs.readFileSync(baselines.digital_page_products.path, "utf8");
-assert.match(digitalPageProducts, /create table public\\.digital_page_products/i);
-assert.match(digitalPageProducts, /code text not null[\\s\\S]*unique \\(code\\)/i);
-assert.match(digitalPageProducts, /price numeric\\(12,2\\) not null[\\s\\S]*check \\(price >= 0\\)/i);
+assert.match(digitalPageProducts, /create table public\.digital_page_products/i);
+assert.match(digitalPageProducts, /code text not null[\s\S]*unique \(code\)/i);
+assert.match(digitalPageProducts, /price numeric\(12,2\) not null[\s\S]*check \(price >= 0\)/i);
 assert.match(digitalPageProducts, /enable row level security/i);
-assert.doesNotMatch(digitalPageProducts, /create policy|insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+(public|private)\\./i);
+assert.doesNotMatch(digitalPageProducts, /create policy|insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\./i);
 const digitalPageOrders = fs.readFileSync(baselines.digital_page_orders.path, "utf8");
-assert.match(digitalPageOrders, /create table public\\.digital_page_orders/i);
-assert.match(digitalPageOrders, /provider_intent_id text[\\s\\S]*provider_order_id text[\\s\\S]*provider_transaction_id text/i);
-assert.match(digitalPageOrders, /unique \\(user_id, idempotency_key\\)/i);
-assert.match(digitalPageOrders, /references public\\.digital_page_products\\(id\\)/i);
+assert.match(digitalPageOrders, /create table public\.digital_page_orders/i);
+assert.match(digitalPageOrders, /provider_intent_id text[\s\S]*provider_order_id text[\s\S]*provider_transaction_id text/i);
+assert.match(digitalPageOrders, /unique \(user_id, idempotency_key\)/i);
+assert.match(digitalPageOrders, /references public\.digital_page_products\(id\)/i);
 assert.match(digitalPageOrders, /enable row level security/i);
-assert.doesNotMatch(digitalPageOrders, /create policy|insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+(public|private)\\./i);
+assert.doesNotMatch(digitalPageOrders, /create policy|insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\./i);
 const digitalPageCreate = source["20261002190000_rc228_digital_page_products_orders.sql"];
 const digitalPageIndexes = source["20261002100000_rc256_critical_fk_indexes.sql"];
 assert.ok(digitalPageCreate && digitalPageIndexes, "digital-page baseline dependency and later canonical migration must both exist");
-assert.match(digitalPageIndexes, /create index if not exists idx_digital_page_orders_product_id on public\\.digital_page_orders \\(product_id\\)/i);
-assert.match(digitalPageCreate, /create table if not exists public\\.digital_page_orders/i);
+assert.match(digitalPageIndexes, /create index if not exists idx_digital_page_orders_product_id on public\.digital_page_orders \(product_id\)/i);
+assert.match(digitalPageCreate, /create table if not exists public\.digital_page_orders/i);
 assert.ok("20261002095000" < "20261002095100" && "20261002095100" < "20261002100000" && "20261002100000" < "20261002190000", "digital-page test fixtures must precede RC256 and explicitly preserve the RC256-before-RC228 source-order gap");
 
 const credentials = fs.readFileSync(baselines.smm_provider_credentials.path, "utf8");
