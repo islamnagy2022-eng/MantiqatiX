@@ -89,27 +89,27 @@ const paymentProviderEventsBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(paymentProviderEventsBaseline) &&
   /not recovered historical creation DDL/i.test(paymentProviderEventsBaseline) &&
   /NEVER apply this file to production/.test(paymentProviderEventsBaseline) &&
-  /create table public\\.payment_provider_events/i.test(paymentProviderEventsBaseline) &&
+  /create table public\.payment_provider_events/i.test(paymentProviderEventsBaseline) &&
   /id character varying not null/i.test(paymentProviderEventsBaseline) &&
   /tenant_id character varying not null/i.test(paymentProviderEventsBaseline) &&
   /provider character varying not null/i.test(paymentProviderEventsBaseline) &&
   /event_type character varying not null/i.test(paymentProviderEventsBaseline) &&
-  /payment_intent_id character varying[\\s\\S]*references public\\.payment_intents\\(id\\) on delete set null/i.test(paymentProviderEventsBaseline) &&
+  /payment_intent_id character varying[\s\S]*references public\.payment_intents\(id\) on delete set null/i.test(paymentProviderEventsBaseline) &&
   /external_event_id character varying not null/i.test(paymentProviderEventsBaseline) &&
   /status character varying not null default 'RECEIVED'/i.test(paymentProviderEventsBaseline) &&
   /signature_verified boolean not null default false/i.test(paymentProviderEventsBaseline) &&
   /payload_hash character varying/i.test(paymentProviderEventsBaseline) &&
-  /raw_payload jsonb not null default '\\{\\}'::jsonb/i.test(paymentProviderEventsBaseline) &&
+  /raw_payload jsonb not null default '\{\}'::jsonb/i.test(paymentProviderEventsBaseline) &&
   /processed_at timestamp with time zone/i.test(paymentProviderEventsBaseline) &&
   /error_message text/i.test(paymentProviderEventsBaseline) &&
   /created_at timestamp with time zone not null default current_timestamp/i.test(paymentProviderEventsBaseline) &&
-  /primary key \\(id\\)/i.test(paymentProviderEventsBaseline) &&
-  /unique \\(provider, external_event_id\\)/i.test(paymentProviderEventsBaseline) &&
-  /references public\\.tenants\\(id\\) on delete restrict/i.test(paymentProviderEventsBaseline) &&
+  /primary key \(id\)/i.test(paymentProviderEventsBaseline) &&
+  /unique \(provider, external_event_id\)/i.test(paymentProviderEventsBaseline) &&
+  /references public\.tenants\(id\) on delete restrict/i.test(paymentProviderEventsBaseline) &&
   /enable row level security/i.test(paymentProviderEventsBaseline) &&
   /force row level security/i.test(paymentProviderEventsBaseline) &&
-  !/create policy|\\bgrant\\b|\\brevoke\\b/i.test(paymentProviderEventsBaseline) &&
-  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(paymentProviderEventsBaseline);
+  !/create policy|\bgrant\b|\brevoke\b/i.test(paymentProviderEventsBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.)/im.test(paymentProviderEventsBaseline);
 if (!paymentProviderEventsBaselineValid) {
   console.error("P0 BLOCKED: payment_provider_events schema-only baseline failed catalog-evidence, RLS, no-policy/no-grant, or no-data checks.");
   process.exit(1);
@@ -123,7 +123,7 @@ if (paymentProviderEventsMigration) {
     console.error("P0 BLOCKED: payment_provider_events temporary baseline version collides with repository history or sorts after its dependent policy migration.");
     process.exit(1);
   }
-  if (!/CREATE POLICY payment_provider_events_finance_read[\\s\\S]*ON public\\.payment_provider_events[\\s\\S]*FOR SELECT TO authenticated[\\s\\S]*m\\.role IN \\('OWNER','ADMIN','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\\)/i.test(paymentProviderEventsMigration.sql)) {
+  if (!/CREATE POLICY payment_provider_events_finance_read[\s\S]*ON public\.payment_provider_events[\s\S]*FOR SELECT TO authenticated[\s\S]*m\.role IN \('OWNER','ADMIN','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\)/i.test(paymentProviderEventsMigration.sql)) {
     console.error("P0 BLOCKED: ordered finance-read policy migration differs from the documented security contract; do not synthesize or replace its policy.");
     process.exit(1);
   }
