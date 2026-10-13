@@ -465,3 +465,14 @@
 - [🟢] Public footer dead-end links fixed: About, Terms and Privacy now open real in-app information dialogs instead of `href="#"` no-op anchors.
 - [🟢] Dialog accessibility implemented: `role="dialog"`, `aria-modal`, labelled heading, Escape close, backdrop close and initial focus.
 - [🟡] CI for RC314 remains pending/in progress at documentation time; no production gate was marked closed from this UI change alone.
+
+## 2026-10-13 — RC207 exact-head migration replay follow-up
+
+- [ ] **S04 replay remains BLOCKED on candidate PR #207.** Exact candidate head `e7762ba79a544a6e6ece1308868649889794ec1c`; replay merge commit `e98be206a520334b9a69b93ea86fbbae4998448b`; run [38415180492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38415180492) failed in `replay-all-migrations`.
+- The preflight passed and test-only compatibility baselines were verified untracked/disposable-only. Chronological replay then failed at migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`, statement 61:
+  `alter policy wallet_accounts_finance_read on public.wallet_accounts to authenticated`
+  PostgreSQL error: policy `wallet_accounts_finance_read` does not exist (SQLSTATE 42704).
+- A read-only live catalog query confirmed `public.wallet_accounts` exists, RLS is enabled and forced, and the policy currently exists for SELECT / role authenticated. Its live USING predicate scopes access to active memberships in the same tenant and roles OWNER, ADMIN, MANAGER, FINANCE, ACCOUNTANT, or FINANCE_MANAGER. No rows were queried or modified.
+- Source search did not find an earlier committed `CREATE POLICY wallet_accounts_finance_read`; only the later `ALTER POLICY` was found. This is a historical source/baseline provenance gap, not evidence that the policy should be invented in production.
+- **Next action:** inspect RC40/recovered source and authoritative historical artifacts for the original policy definition. If no authoritative source is found, keep replay blocked and request explicit approval for a clearly labeled disposable-only live-derived policy compatibility fixture; never apply it to production or label replay historically faithful.
+- Other exact-head checks on PR #207 passed: migration version uniqueness [38415183077], open-PR migration collision guard [38415181890], and migration history immutability [38415180384]. These do not override the failed full replay.
