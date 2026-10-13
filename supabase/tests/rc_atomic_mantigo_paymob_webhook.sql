@@ -487,4 +487,37 @@ BEGIN
 END;
 $privileges$;
 
+DO $test$
+BEGIN
+  PERFORM set_config('request.jwt.claim.role','authenticated',true);
+  BEGIN
+    PERFORM public.process_verified_subscription_payment_failure_backend(
+      'event-sub-unauthorized','paymob:sub-unauthorized','00000000-0000-0000-0000-000000000033','sub-tx-unauthorized',80.00,'EGP',true,'{}'::jsonb
+    );
+    RAISE EXCEPTION 'EXPECTED_SUBSCRIPTION_RPC_DENIAL_NOT_RAISED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'EXPECTED_SUBSCRIPTION_RPC_DENIAL_NOT_RAISED' THEN RAISE; END IF;
+    IF SQLERRM <> 'SERVICE_ROLE_REQUIRED' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claim.role','service_role',true);
+  IF EXISTS (SELECT 1 FROM public.payment_provider_events WHERE external_event_id='paymob:sub-unauthorized') THEN
+    RAISE EXCEPTION 'unauthorized subscription RPC persisted an event';
+  END IF;
+END;
+$test$;
+
+DO $privileges$
+BEGIN
+  IF has_function_privilege('anon','public.process_verified_subscription_payment_failure_backend(text,text,uuid,text,numeric,text,boolean,jsonb)','EXECUTE') THEN
+    RAISE EXCEPTION 'anon must not execute subscription failure processor';
+  END IF;
+  IF has_function_privilege('authenticated','public.process_verified_subscription_payment_failure_backend(text,text,uuid,text,numeric,text,boolean,jsonb)','EXECUTE') THEN
+    RAISE EXCEPTION 'authenticated must not execute subscription failure processor';
+  END IF;
+  IF NOT has_function_privilege('service_role','public.process_verified_subscription_payment_failure_backend(text,text,uuid,text,numeric,text,boolean,jsonb)','EXECUTE') THEN
+    RAISE EXCEPTION 'service_role must execute subscription failure processor';
+  END IF;
+END;
+$privileges$;
+
 ROLLBACK;
