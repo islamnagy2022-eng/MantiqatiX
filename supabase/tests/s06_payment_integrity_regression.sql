@@ -25,6 +25,20 @@ begin
   end;
   if not rejected then raise exception 'unverified callback was not rejected'; end if;
 
+  -- NULL status must be rejected explicitly rather than falling through SQL three-valued logic.
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      target,'paymob:s06-null-status','TRANSACTION',null,true,249.50,'EGP',
+      's06-null-status','s06-provider-order','{"suite":"S06","case":"null-status"}'::jsonb
+    );
+    raise exception 'TEST_FAILED: NULL callback status unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_EVENT_STATUS_INVALID' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'NULL callback status was not rejected'; end if;
+
   -- Zero and negative provider amounts must fail before an event is persisted.
   foreach n in array array[0, -1] loop
     rejected := false;
