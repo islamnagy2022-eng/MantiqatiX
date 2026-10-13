@@ -130,3 +130,12 @@ These non-zero values preserve previously documented work. They are provisional 
 - The historical module implementation and automated-test percentages above are continuity estimates, not a claim that all features were inspected. They should not be reset to zero because production E2E is incomplete.
 - Module-specific production-verification percentages are **not yet defensibly scored** because the denominator of mandatory production acceptance checks has not been inventoried for each of the 19 modules. Do not fill this gap with arbitrary percentages. Overall release certification remains **0% approved / BLOCKED / NOT CERTIFIED** until every mandatory release gate passes.
 - No production database writes, migration application, ledger edits, grants/RLS/Auth changes, Edge Function deployments, financial/wallet operations, merge, or release were performed.
+
+
+## Continuation update — RC527 — 2026-10-13
+
+- Restored three additional migration files (RC457 financial-journal idempotency convergence, RC458 ERP branch organization scope, RC462 malformed platform-admin permission guard) and five associated test sources for RC457, RC441, RC437 and RC458. These restored blobs were checked against the reconciled PR #207 tree.
+- Expanded the focused PostgreSQL workflow from seven to twelve integration jobs by adding RC450, RC457, platform-admin RC441/RC449/RC462, RC437 order-line, and RC458 ERP branch-scope jobs.
+- Expanded the fail-closed migration-chain list from 30 to 33 ordered required migration sources. The new three files are included in source-existence checks.
+- CI for the newest candidate must be inspected; no pass is claimed while runs are queued. Full chronological replay, production migration approval/application, tenant/payment/Auth/security E2E, backup/restore and device-release gates remain open.
+- No production changes or release. Overall certification remains **0% approved / BLOCKED / NOT CERTIFIED**.
