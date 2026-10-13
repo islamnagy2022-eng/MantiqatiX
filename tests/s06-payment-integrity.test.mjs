@@ -54,17 +54,17 @@ test("S06-10 normal payment processing delegates to verified backend RPC", () =>
   assert.match(webhook, /process_verified_provider_payment/);
   assert.match(webhook, /p_signature_verified:true/);
 });
-test("S06-10 digital-page flow claims idempotency before provider call and handles in-progress race", () => {
+test("S06-11 digital-page flow claims idempotency before provider call and handles in-progress race", () => {
   assert.match(digital, /claim_digital_page_payment_intent_backend/);
   assert.match(digital, /PAYMENT_INTENT_IN_PROGRESS/);
   assert.ok(digital.indexOf("claim_digital_page_payment_intent_backend") < digital.indexOf('fetch(PAYMOB_BASE_URL'));
 });
-test("S06-11 digital-page provider failure releases claim", () => {
+test("S06-12 digital-page provider failure releases claim", () => {
   assert.match(digital, /release_digital_page_payment_intent_claim_backend/);
   assert.match(digital, /PAYMENT_PROVIDER_REJECTED/);
   assert.match(digital, /PAYMENT_PROVIDER_UNAVAILABLE/);
 });
-test("S06-12 digital-page provider intent is finalized via backend RPC", () => {
+test("S06-13 digital-page provider intent is finalized via backend RPC", () => {
   assert.match(digital, /finalize_digital_page_payment_intent_backend/);
   assert.match(digital, /PAYMENT_PERSISTENCE_FAILED/);
 });
