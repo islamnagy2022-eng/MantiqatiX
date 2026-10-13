@@ -959,3 +959,13 @@ The source search was extended beyond the current migration directory:
 - Extended the same disposable-only compatibility fixture with `marketing_plans` followed by `marketing_provider_subscriptions`, preserving the observed FK, CHECK/UNIQUE constraints, owner-view policy predicate, RLS/FORCE RLS, and least-privilege grants. Extended the baseline validator to require these contracts and the chronological `Owners view their subscriptions` ALTER POLICY statement.
 - Static pattern checks against the updated baseline and applied ALTER POLICY migration all passed. These are source-level checks only; the next exact-head GitHub Actions run must verify the Node validator and continue the full replay.
 - As before, the baseline is catalog-derived compatibility scaffolding, not historical source recovery. No production data, schema, grants, Auth/RLS, or migration ledger was changed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — missing payment-events finance-read policy source
+
+- Exact replay run [#38406719880](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406719880), tested at `4307e952d23961883b23ebfa8fda16faec00c768`, passed the baseline preflight, exact-copy/untracked checks, disposable Supabase startup, and advanced past the newly supplied marketing table dependencies.
+- It failed at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` with `ERROR: policy "payment_events_finance_read" for table "payment_events" does not exist (SQLSTATE 42704)`.
+- Read-only production `pg_policies` inspection found the exact policy as SELECT/ PERMISSIVE / `authenticated`, with an active same-tenant membership and finance-role allowlist (`OWNER`, `ADMIN`, `MANAGER`, `FINANCE`, `ACCOUNTANT`, `FINANCE_MANAGER`). RLS and FORCE RLS are enabled on the table. Direct SELECT is denied to `anon` and `authenticated`; service-role SELECT is present. No rows were queried.
+- Added `supabase/tests/baselines/payment_events_finance_read.sql`, a policy-only catalog-derived fixture, and temporary CI injection at `20260927140493_test_only_live_derived_payment_events_finance_read.sql`, before the historical ALTER POLICY migration. It contains no table DDL, grants, or data.
+- Extended the historical-baseline validator to verify the exact predicate, role scope, provenance labels, temporary version ordering, no pre-existing canonical policy creator, and the matching chronological ALTER POLICY statement.
+- This fixture is synthetic policy compatibility, not recovered historical policy-creation DDL. The updated exact-head CI must pass preflight and proceed further before any new status can be assigned. Production remains unchanged; release stays **BLOCKED / NOT CERTIFIED**.
