@@ -75,3 +75,11 @@ Next executable action: inspect exact-head workflow run for the current PR #207 
 - Candidate head at this checkpoint: 6b481ca4ea8d1b8d8855871db49b2ca262ad1801.
 - Exact-head replay run 38350384105 is pending/in progress; do not claim replay success until it finishes.
 - Next: inspect exact-head replay result, fix next evidenced blocker, then continue P0 payment-webhook ACL/source analysis. No production change, merge, or deployment.
+
+## P0 payment-webhook ACL investigation — 2026-10-13
+- Read-only live function inspection: deployed `paymob-webhook` version 8 directly reads/writes `payment_provider_events`, `subscription_payment_intents`, `digital_page_orders`, `mantigo_financial_ledger`, and `notifications`; ACL checks show service_role has no SELECT/INSERT/UPDATE/DELETE on those tables. `payment_intents` does have service_role DML privileges.
+- Existing SECURITY DEFINER RPCs `process_verified_provider_payment`, `process_verified_subscription_payment`, and `process_verified_digital_page_payment_backend` are service_role-only by observed function ACL. This favors aligning the webhook to RPC boundaries over broad table grants.
+- Evidence recorded in `docs/release/PAYMOB_WEBHOOK_PRIVILEGE_MISMATCH_20261013.md`. No production ACL/function/data changes were made; no real webhook was sent.
+- Latest replay candidate with settlement_attempts fixture reached the exact-copy/untracked check but exposed a CI shell-scope defect: `settlement_attempts_baseline: unbound variable` because verification step lacked its own declarations. Added those declarations in commit `9291b38976dd9348c3808c039ab4027d02042a48`. Exact-head run for that code passed baseline validation/injection but had the verification step fail; the follow-up candidate adds the declaration fix.
+- A later run exposed a validator regex escaping defect for the settlement policy; fixed in commit `56dc3375ec8cde875d886e1aa95b2329889139b0`. Current exact-head replay run was queued at `e0cdd1f12f89dfbfdd3476ebd121a1dff09c4de1` as of the last check; inspect the newest run after this documentation commit.
+- Continue to treat full replay as NOT VERIFIED until the latest head reaches the chronological replay step and finishes.
