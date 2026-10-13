@@ -1,11 +1,12 @@
 name: S04 Migration Chain Clean Replay
 on:
   pull_request:
-    branches: [main]
+    branches: [main, "docs/rc521-admin-operations-discovery-20261013"]
     paths:
       - 'supabase/migrations/**'
       - 'supabase/recovered-migrations/**'
       - 'scripts/audit-migration-chain-s04.mjs'
+      - 'scripts/audit-smm-migration-baseline.mjs'
       - 'docs/release/s04-migration-chain-clean-replay-report.md'
       - '.github/workflows/s04-migration-chain-clean-replay.yml'
   workflow_dispatch:
@@ -38,6 +39,13 @@ jobs:
           node scripts/audit-migration-chain-s04.mjs > s04-replay-evidence/source-audit.json 2> s04-replay-evidence/source-audit.stderr
           audit_rc=$?
           echo "source_audit_exit=$audit_rc" | tee -a s04-replay-evidence/report.txt
+
+          node scripts/audit-smm-migration-baseline.mjs --self-test > s04-replay-evidence/smm-baseline-self-test.log 2>&1
+          baseline_self_test_rc=$?
+          echo "smm_baseline_self_test_exit=$baseline_self_test_rc" | tee -a s04-replay-evidence/report.txt
+          node scripts/audit-smm-migration-baseline.mjs > s04-replay-evidence/smm-baseline-audit.json 2> s04-replay-evidence/smm-baseline-audit.stderr
+          baseline_audit_rc=$?
+          echo "smm_baseline_audit_exit=$baseline_audit_rc" | tee -a s04-replay-evidence/report.txt
 
           supabase init --force > s04-replay-evidence/supabase-init.log 2>&1
           init_rc=$?
@@ -81,7 +89,7 @@ jobs:
             fi
           fi
 
-          if [ "$audit_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
+          if [ "$audit_rc" -ne 0 ] || [ "$baseline_self_test_rc" -ne 0 ] || [ "$baseline_audit_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
             echo "status=FAIL_BLOCKED" | tee -a s04-replay-evidence/report.txt
             echo "S04_RESULT=FAIL_BLOCKED" >> "$GITHUB_STEP_SUMMARY"
             cat s04-replay-evidence/report.txt >> "$GITHUB_STEP_SUMMARY"
