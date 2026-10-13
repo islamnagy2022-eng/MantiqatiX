@@ -1,6 +1,8 @@
 -- S05: atomically persist a verified MantiGO Paymob event and transition its ledger row.
 -- Source-only on the S05 review branch. Do not apply to production without isolated validation and approval.
 -- MantiGO has its own event ledger (introduced by RC425); do not overload the shared payment_provider_events table.
+-- RC425 exposed an older 8-argument overload; remove it so callers cannot bypass the stricter order binding.
+drop function if exists public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb);
 create or replace function public.process_verified_mantigo_payment_backend(
   p_ledger_id text,
   p_external_event_id text,
