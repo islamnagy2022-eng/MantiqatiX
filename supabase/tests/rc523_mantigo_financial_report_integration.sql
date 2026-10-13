@@ -47,6 +47,20 @@ begin
   if not (v_report ? 'captain_amount') or (v_report ? 'captain_net_amount') then
     raise exception 'RC523 public JSON response keys changed unexpectedly: %',v_report;
   end if;
+
+  -- Prove the RPC runs on the canonical production schema without legacy aliases.
+  -- The first pass above deliberately diverges legacy values to catch regressions;
+  -- this second pass removes those legacy columns entirely and reruns the report.
+  alter table public.mantigo_financial_ledger
+    drop column amount,
+    drop column captain_amount;
+
+  v_report := public.get_mantigo_admin_financial_report_backend(v_admin,null,null);
+  if (v_report->>'gross')::numeric <> 250
+     or (v_report->>'commission')::numeric <> 25
+     or (v_report->>'captain_amount')::numeric <> 200 then
+    raise exception 'RC523 must execute with canonical columns only: %',v_report;
+  end if;
 end
 $test$;
 
