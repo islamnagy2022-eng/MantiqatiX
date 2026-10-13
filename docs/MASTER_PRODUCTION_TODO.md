@@ -1600,3 +1600,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [ ] **P1 / BLOCKED:** PR #225 targets `docs/rc521-admin-operations-discovery-20261013`, but its `pull_request` workflow trigger filters `branches: [main]`; therefore PR event will not match its current base. Align the filter or base and require a real exact-head CI run.
 - **Coordination:** finding posted to [PR #225 comment 6138548754](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138548754). No workflow edit performed in Session C.
+
+
+## Session C exact-head CI follow-up — 2026-10-13
+
+- [ ] **P0 / migration replay:** PR #207 run [38347614461](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38347614461) passed temporary fixture guards but replay failed with missing `public.payment_provider_events` (42P01); Docker Hub rate limiting also affected local Supabase startup. Recover authoritative migration provenance/order; do not fabricate a fixture or rewrite history.
+- [ ] **P0 / MantiGO authorization regression:** PR #219 run [38337855864](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38337855864) failed authorized settlement with `PLATFORM_ADMIN_REQUIRED`; a later run failed financial-report auth with `AUTH_REQUIRED`. Isolate identity tests and verify exact function execution; never weaken authorization.
+- [ ] **P0 / payments:** PR #220 S06-focused regression passed but its S04 migration replay failed; webhook replay binding, atomic event/state transitions, checked row counts and concurrent/fault-injection tests remain open.
+- [ ] **P1 / SMM CI:** PR #225 exact-head run still not found and PR base/filter mismatch remains; do not treat static validator source as CI or runtime proof.
+- **Release remains BLOCKED / NOT CERTIFIED.** No production changes, merge, deployment, or financial mutation.
