@@ -40,6 +40,14 @@ jobs:
       - name: Validate atomic webhook boundary
         run: node scripts/validate-mantigo-webhook-atomicity.mjs
 
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check Paymob webhook Edge Function
+        run: deno check --no-lock supabase/functions/paymob-webhook/index.ts
+
       - name: Start isolated PostgreSQL
         shell: bash
         run: |
