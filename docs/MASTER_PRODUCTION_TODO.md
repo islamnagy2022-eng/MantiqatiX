@@ -1651,3 +1651,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Release remains BLOCKED / NOT CERTIFIED.
 
 - Test review correction: RC523 integration test expectations now match the one ledger row inserted by this isolated test (gross 250, commission 25, captain_amount 200, paid amount 250, unsettled amount 200). CI execution remains pending; do not mark passed based on source review.
+
+
+## RC530 — Align production verifier with full migration release contract — 2026-10-13
+
+- [x] Updated `scripts/production/verify-production.mjs` required migration list to include RC457, RC458, RC462, RC522, and RC523 after RC456, ordered by immutable filename timestamp.
+- [x] Confirmed the companion `scripts/validate-production-migration-chain-gate.mjs` already declares and checks all 33 required source names.
+- [ ] Wait for and inspect exact-head CI; static source alignment is not a passing runtime result.
+- Safety: source-only; no production DB mutation, migration application, financial operation, merge, or release.
+- Release remains BLOCKED / NOT CERTIFIED.
