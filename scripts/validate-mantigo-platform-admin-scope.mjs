@@ -32,6 +32,9 @@ check("each privileged RPC binds the supplied admin ID to auth.uid before privil
   migration.includes("v_auth <> p_admin_user_id") &&
   (migration.match(/p_admin_user_id <> auth\.uid\(\)/g) || []).length >= 2);
 
+check("settlement and expiration explicitly reject a missing auth.uid instead of relying on NULL comparison",
+  (migration.match(/p_admin_user_id is null or auth\.uid\(\) is null or p_admin_user_id <> auth\.uid\(\)/g) || []).length >= 2);
+
 check("integration rejects tenant OWNER, ADMIN, and OPERATIONS_MANAGER", integration.includes("tenant OWNER must not be treated") && integration.includes("tenant ADMIN with admin permission") && integration.includes("tenant OPERATIONS_MANAGER"));
 check("integration exercises global dashboard, report, settlement, and expiration", integration.includes("tenant OWNER read platform-wide dashboard") && integration.includes("tenant OWNER read platform-wide financial report") && integration.includes("global settlement mutation") && integration.includes("global ride expiration mutation"));
 check("integration allows explicit platform SUPER_ADMIN and checks grants", integration.includes("explicit platform SUPER_ADMIN") && integration.includes("has_function_privilege('anon'"));
