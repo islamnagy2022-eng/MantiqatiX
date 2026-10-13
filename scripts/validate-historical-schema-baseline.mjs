@@ -190,7 +190,7 @@ if (settlementAttemptsPolicyMigration) {
     console.error("P0 BLOCKED: settlement_attempts temporary baseline version collides with repository history or sorts after its dependent policy migration.");
     process.exit(1);
   }
-  if (!/CREATE POLICY settlement_attempts_finance_read[\\s\\S]*ON public\\.settlement_attempts[\\s\\S]*FOR SELECT TO authenticated[\\s\\S]*m\\.role IN \\('OWNER','ADMIN','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\\)/i.test(settlementAttemptsPolicyMigration.sql)) {
+  if (!/CREATE POLICY settlement_attempts_finance_read[\s\S]*ON public\.settlement_attempts[\s\S]*FOR SELECT TO authenticated[\s\S]*m\.role IN \('OWNER','ADMIN','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\)/i.test(settlementAttemptsPolicyMigration.sql)) {
     console.error("P0 BLOCKED: ordered settlement_attempts finance-read policy differs from the documented security contract.");
     process.exit(1);
   }
