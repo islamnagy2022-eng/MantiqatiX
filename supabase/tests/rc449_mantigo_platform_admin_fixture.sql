@@ -19,12 +19,15 @@ volatile
 as $function$
 declare
   v_uid uuid;
+  v_diag text;
 begin
   -- Execute dynamically: current_setting() is STABLE and a cached PL/pgSQL
   -- expression can retain the first simulated JWT subject for the entire DO block.
-  -- Each invocation must read the current request GUC, as a separate HTTP request would.
-  execute 'select nullif(current_setting(''request.jwt.claim.sub'', true), '''')::uuid'
-    into v_uid;
+  execute 'select nullif(current_setting(''request.jwt.claim.sub'', true), '''')::uuid, current_setting(''mantiqatix.test_auth_diag'', true)'
+    into v_uid, v_diag;
+  if v_diag = 'on' then
+    raise exception 'AUTH_UID_DIAG current_sub=%', v_uid;
+  end if;
   return v_uid;
 end
 $function$;
