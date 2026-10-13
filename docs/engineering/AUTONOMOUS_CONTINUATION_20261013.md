@@ -432,3 +432,11 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Live MantiGO admin/report/settlement/expiry RPCs remain a P0 production blocker: the prior read-only catalog query confirmed SECURITY DEFINER, `search_path=public`, authenticated EXECUTE, and no `mnty_can_platform_admin()` guard.
 - Migration source chronology remains FAIL/BLOCKED until duplicate versions, missing RC433 source, and all clean-replay dependencies are reconciled.
 - Release remains **BLOCKED / NOT CERTIFIED**. No production data, migrations, Auth/RLS/grants, payment/ledger records, or live deployments were modified.
+
+
+## SMM exact-head CI result — 2026-10-13
+
+- Latest PR #225 head `a54e118879deae6460a3f689f1144bb7eb878a99` was verified by workflow [#38356494948](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356494948): **SUCCESS**.
+- Steps passed: SMM security-contract validator, service-role ACL boundary validator, Deno type-check, and SMM unit/negative-input tests.
+- This closes the previous `NOT VERIFIED` status for the candidate SMM source/unit gate at this exact head. It does not prove post-launch provider functionality: the deployed `smm-gateway` remains intentionally fail-closed with `SMM_INITIAL_LAUNCH_DEFERRED=true`, and its live source is still the base PR #218 version.
+- PR #225 remains draft/open/unmerged. Do not enable SMM or deploy without separate release approval.
