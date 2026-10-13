@@ -76,3 +76,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Next step:** align the workflow filter with the intended base or rebase the PR, then capture exact-head CI. No run was returned for the head in the current query.
 - **Report commit:** `9433e5640932686f08fd4b23102f5aaff02bc936`.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C exact-head CI recheck — 2026-10-13
+
+- PR #207 run [38347614461](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38347614461): temporary credit fixture preflight/copy/untracked/no-row checks passed; Docker Hub rate limits affected Supabase startup; chronological replay then failed with missing relation `public.payment_provider_events` (42P01). This is a distinct lineage/order blocker, not a complete replay pass. Follow-up comment [6138654676](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138654676).
+- PR #219 run [38337855864](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38337855864): static contract 25/25 and RC462 malformed-permission subtest passed; authorized settlement assertion failed with `PLATFORM_ADMIN_REQUIRED`. Later observed run failed with `AUTH_REQUIRED` in financial report. Full behavior suite remains failed; follow-up [6138655168](https://github.com/islamnagy2022-eng/MantiqatiX/pull/219#issuecomment-6138655168).
+- PR #220 focused S06 payment regression passed, but separate S04 clean migration replay failed and deployment was cancelled; webhook source risks remain open.
+- PR #225 exact-head CI run not found; current PR base branch does not match workflow pull_request filter.
+- No production writes, migrations, financial mutations, deployments, merges, or release performed. **BLOCKED / NOT CERTIFIED**.
