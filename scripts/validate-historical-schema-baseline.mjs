@@ -57,6 +57,7 @@ const missingHistoricalTables = [
   { table: "bookings", before: "20260919233425_production_security_hardening_v1.sql", baselinePath: bookingsBaselinePath },
   // Live catalog evidence provides an exact schema-only compatibility shape. The finance-read policy
   // remains owned by its chronological migration and is never duplicated in this fixture.
+  { table: "settlement_attempts", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/settlement_attempts.sql" },
   { table: "payment_provider_events", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/payment_provider_events.sql" },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
@@ -134,6 +135,63 @@ if (paymentProviderEventsMigration) {
   }
   if (!/CREATE POLICY payment_provider_events_finance_read[\s\S]*ON public\.payment_provider_events[\s\S]*FOR SELECT TO authenticated[\s\S]*m\.role IN \('OWNER','ADMIN','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\)/i.test(paymentProviderEventsMigration.sql)) {
     console.error("P0 BLOCKED: ordered finance-read policy migration differs from the documented security contract; do not synthesize or replace its policy.");
+    process.exit(1);
+  }
+}
+
+// Validate the live-derived settlement_attempts compatibility fixture. The historical
+// finance-read policy remains in the ordered security migration and is not copied into this baseline.
+const settlementAttemptsBaselinePath = "supabase/tests/baselines/settlement_attempts.sql";
+const settlementAttemptsBaseline = fs.readFileSync(settlementAttemptsBaselinePath, "utf8");
+const settlementAttemptsPolicyMigration = migrations.find(({ name }) =>
+  name === "20260920211717_security_definer_surface_reduction_and_finance_rls.sql"
+);
+const settlementAttemptsBaselineValid =
+  /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(settlementAttemptsBaseline) &&
+  /2026-10-13/.test(settlementAttemptsBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(settlementAttemptsBaseline) &&
+  /NOT recovered historical creation DDL/i.test(settlementAttemptsBaseline) &&
+  /NEVER apply this file to production/i.test(settlementAttemptsBaseline) &&
+  /create table public\\.settlement_attempts/i.test(settlementAttemptsBaseline) &&
+  /id character varying not null/i.test(settlementAttemptsBaseline) &&
+  /tenant_id character varying not null/i.test(settlementAttemptsBaseline) &&
+  /obligation_id character varying not null/i.test(settlementAttemptsBaseline) &&
+  /provider character varying not null/i.test(settlementAttemptsBaseline) &&
+  /destination_id character varying/i.test(settlementAttemptsBaseline) &&
+  /amount numeric not null/i.test(settlementAttemptsBaseline) &&
+  /currency character varying not null/i.test(settlementAttemptsBaseline) &&
+  /status character varying not null default 'PENDING'/i.test(settlementAttemptsBaseline) &&
+  /external_reference character varying/i.test(settlementAttemptsBaseline) &&
+  /failure_code character varying/i.test(settlementAttemptsBaseline) &&
+  /failure_message text/i.test(settlementAttemptsBaseline) &&
+  /created_at timestamp with time zone not null default current_timestamp/i.test(settlementAttemptsBaseline) &&
+  /updated_at timestamp with time zone not null default current_timestamp/i.test(settlementAttemptsBaseline) &&
+  /primary key \\(id\\)/i.test(settlementAttemptsBaseline) &&
+  /check \\(amount > 0\\)/i.test(settlementAttemptsBaseline) &&
+  /references public\\.payout_destinations\\(id\\) on delete restrict/i.test(settlementAttemptsBaseline) &&
+  /references public\\.financial_obligations\\(id\\) on delete restrict/i.test(settlementAttemptsBaseline) &&
+  /references public\\.tenants\\(id\\) on delete restrict/i.test(settlementAttemptsBaseline) &&
+  /unique \\(obligation_id, external_reference\\)/i.test(settlementAttemptsBaseline) &&
+  /create index idx_settlement_attempts_obligation[\\s\\S]*on public\\.settlement_attempts using btree \\(obligation_id, created_at desc\\)/i.test(settlementAttemptsBaseline) &&
+  /enable row level security/i.test(settlementAttemptsBaseline) &&
+  /force row level security/i.test(settlementAttemptsBaseline) &&
+  !/create policy|\\bgrant\\b|\\brevoke\\b/i.test(settlementAttemptsBaseline) &&
+  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(settlementAttemptsBaseline);
+if (!settlementAttemptsBaselineValid) {
+  console.error("P0 BLOCKED: settlement_attempts schema-only baseline failed catalog-evidence, RLS, no-policy/no-grant, or no-data checks.");
+  process.exit(1);
+}
+if (settlementAttemptsPolicyMigration) {
+  const settlementAttemptsVersion = "20260920211715";
+  const settlementAttemptsName = settlementAttemptsVersion + "_test_only_live_derived_settlement_attempts_baseline.sql";
+  if (fs.existsSync(path.join(migrationDirectory, settlementAttemptsName)) ||
+      migrations.some(({ name }) => name.slice(0, 14) === settlementAttemptsVersion) ||
+      settlementAttemptsVersion >= settlementAttemptsPolicyMigration.name.slice(0, 14)) {
+    console.error("P0 BLOCKED: settlement_attempts temporary baseline version collides with repository history or sorts after its dependent policy migration.");
+    process.exit(1);
+  }
+  if (!/CREATE POLICY settlement_attempts_finance_read[\\s\\S]*ON public\\.settlement_attempts[\\s\\S]*FOR SELECT TO authenticated[\\s\\S]*m\\.role IN \\('OWNER','ADMIN','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\\)/i.test(settlementAttemptsPolicyMigration.sql)) {
+    console.error("P0 BLOCKED: ordered settlement_attempts finance-read policy differs from the documented security contract.");
     process.exit(1);
   }
 }
