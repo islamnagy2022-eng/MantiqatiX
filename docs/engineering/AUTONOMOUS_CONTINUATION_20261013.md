@@ -545,3 +545,20 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 2. Re-run full clean replay to completion; inspect the local migration ledger and assert every source migration is accounted for.
 3. Keep PR #225 draft and unmerged; add isolated HTTP-level tests for the fail-closed 503/no-side-effect behavior when an available safe harness permits it.
 4. Do not merge, deploy, apply production migrations, or alter live grants/Auth/RLS without separate explicit approval.
+
+
+## Root-cause execution update — staged migration replay checkpoint (2026-10-13 14:16 UTC)
+
+- Latest verified replay run [#38408000724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408000724) passed disposable service startup and the exact-copy/untracked guard, then failed in migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` at statement 46: `ERROR: policy "settlement_transactions_finance_read" for table "settlement_transactions" does not exist (SQLSTATE 42704)`.
+- The log's chronological apply list contained the temporary policy migration at version `20260927140492` in the verification/copy guard, but did **not** contain it in the actual `Applying migration ...` output; the next applied file was `20260927140493_test_only_live_derived_payment_events_finance_read.sql`. This is now the concrete CI defect to investigate, rather than adding another guessed policy fixture.
+- Implemented a staged replay checkpoint in PR #207's owning branch, commit `bfdaf276fede8fd852b08c6ed58ccfc382687381`, workflow `.github/workflows/migration-chain-replay.yml`: temporarily isolates all migrations newer than `20260927140492`, invokes `supabase migration up --local`, logs the local migration ledger and policy catalog, and hard-fails unless version `20260927140492` and the expected policy both exist before restoring later migrations and continuing. This is disposable CI only; no production state is touched.
+- This patch is **IN PROGRESS / NOT VERIFIED** until the new exact-head workflow run reports the staged checkpoint and its ledger/catalog evidence. PR #207 currently reports `mergeable=false` after the workflow update; inspect and resolve its mergeability condition before any merge request (still no merge authorized).
+- PR #225's SMM security contract workflow had a successful source-and-unit job on an earlier tested synthetic PR revision, but that does not establish success on its latest head `899794506ec0ceb16363998abae189d933e289ba`; exact-head SMM CI remains **NOT VERIFIED**.
+- A fresh read-only production catalog query still confirms the four MantiGO dashboard/report/settlement/expiry RPCs are SECURITY DEFINER, use `search_path=public`, are executable by `authenticated`, and do not call `mnty_can_platform_admin()`. This remains a live P0 blocker. Live SMM remains deployed at version 10 with `verify_jwt=true` and the hard-deferred 503 gate; that is containment, not post-launch certification.
+- No production migration, data, Auth/RLS/grant change, Edge Function deployment, wallet/payment operation, PR merge, or release was performed.
+
+### Exact next steps
+1. Inspect the new staged-checkpoint CI on PR #207's current exact head `bfdaf276fede8fd852b08c6ed58ccfc382687381`; determine why 40492 was skipped if the checkpoint fails, using the printed local ledger and policy catalog.
+2. Reconcile PR #207's current `mergeable=false` state without overwriting other sessions' commits.
+3. Continue clean replay one proven dependency at a time; never synthesize a historical source migration or claim historical provenance from catalog-derived fixtures.
+4. Re-run SMM source/unit/security regression on PR #225's exact latest SHA and preserve the release block until P0 live RPC authorization is fixed through the separately approved release path.
