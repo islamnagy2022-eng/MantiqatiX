@@ -63,6 +63,16 @@ The following high-impact functions were inspected directly and showed explicit 
 
 These checks reduce specific authorization concerns but do not constitute complete end-to-end authorization, race, tenant-isolation, or business-logic certification.
 
+
+### Authorization helper chain verified
+
+- `public.mnty_active_membership` filters `public.user_memberships` by `m.user_id = auth.uid()`, active status, and optional tenant/business/branch constraints.
+- `public.mnty_can` derives permissions from that helper rather than reading an actor ID supplied by the caller.
+- `public.mnty_can_platform_admin` delegates to `mnty_can('admin', null, null, null)`.
+- `preview_commission_backend` calls `assert_financial_membership`, which rejects unauthenticated sessions, requires active membership in the requested tenant, and requires an allowed finance/admin/owner role.
+
+This delegation explains why these functions do not contain a direct `auth.uid()` call themselves. It is not a finding by itself. Remaining verification: exercise helper-chain behavior using role/JWT fixtures in an isolated database and confirm permission JSON casts fail safely for malformed values.
+
 ## Classification summary
 
 - **Confirmed exploitable risks in S03 scope:** 0 confirmed from the evidence collected so far. This is not a claim that all 45 functions are vulnerability-free.
