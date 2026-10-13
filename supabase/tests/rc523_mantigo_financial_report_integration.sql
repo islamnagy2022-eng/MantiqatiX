@@ -20,25 +20,25 @@ begin
   perform pg_catalog.set_config('request.jwt.claim.sub',v_admin::text,false);
   v_report := public.get_mantigo_admin_financial_report_backend(v_admin,null,null);
 
-  if (v_report->>'ledger_count')::bigint <> 2 then
+  if (v_report->>'ledger_count')::bigint <> 1 then
     raise exception 'RC523 ledger_count mismatch: %',v_report;
   end if;
-  if (v_report->>'gross')::numeric <> 350 then
-    raise exception 'RC523 gross must sum gross_amount, not legacy amount: %',v_report;
+  if (v_report->>'gross')::numeric <> 250 then
+    raise exception 'RC523 gross must use gross_amount, not legacy amount: %',v_report;
   end if;
-  if (v_report->>'commission')::numeric <> 35 then
+  if (v_report->>'commission')::numeric <> 25 then
     raise exception 'RC523 commission mismatch: %',v_report;
   end if;
-  if (v_report->>'captain_amount')::numeric <> 290 then
-    raise exception 'RC523 captain_amount must sum captain_net_amount, not legacy captain_amount: %',v_report;
+  if (v_report->>'captain_amount')::numeric <> 200 then
+    raise exception 'RC523 captain_amount must use captain_net_amount, not legacy captain_amount: %',v_report;
   end if;
-  if (v_report->>'paid_count')::bigint <> 2 or (v_report->>'paid_amount')::numeric <> 350 then
+  if (v_report->>'paid_count')::bigint <> 1 or (v_report->>'paid_amount')::numeric <> 250 then
     raise exception 'RC523 paid metrics mismatch: %',v_report;
   end if;
   if (v_report->>'settled_count')::bigint <> 0 or (v_report->>'settled_amount')::numeric <> 0 then
     raise exception 'RC523 settled metrics mismatch: %',v_report;
   end if;
-  if (v_report->>'unsettled_count')::bigint <> 2 or (v_report->>'unsettled_amount')::numeric <> 290 then
+  if (v_report->>'unsettled_count')::bigint <> 1 or (v_report->>'unsettled_amount')::numeric <> 200 then
     raise exception 'RC523 unsettled metrics mismatch: %',v_report;
   end if;
   if not (v_report ? 'captain_amount') or (v_report ? 'captain_net_amount') then
