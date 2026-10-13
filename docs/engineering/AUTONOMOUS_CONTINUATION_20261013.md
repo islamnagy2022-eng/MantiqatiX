@@ -5,7 +5,7 @@
 - Reference PR #218 remains open and draft; observed head: `77012649e41fe22077538c39cd8593bf696ab33e`.
 - PR #207 remains open and draft; it documents unresolved chronological migration replay and global authorization blockers.
 - Current work branch: `security/smm-gateway-runtime-verification-20261013`
-- Latest commit created in this continuation: `f12f396477885f2b0a02a4a9e05ece9d565a8798`
+- Latest commit created in this continuation: `c0bae9312ae6c6538e1efd01355d910aa180fce2`
 - Branch link: https://github.com/islamnagy2022-eng/MantiqatiX/tree/security/smm-gateway-runtime-verification-20261013
 - Claimed master todo path `MANTIQATIX_MASTER_TODO_2026-10-13.md` was not found at repository root; repository code search also did not find that exact filename. Do not assume it exists. This continuation record is the durable resume note for this branch.
 
@@ -26,6 +26,9 @@
 
 ## Verification evidence and limitations
 - GitHub branch existence was confirmed.
+- Opened draft PR #225, retargeted it to PR #218's head branch so the diff is isolated (4 files, 5 commits), and confirmed the dedicated workflow started.
+- Exact-head CI run `38348635011` failed at the new static validator with a JavaScript regex parse error in the admin-guard assertion. The error was fixed in commit `c0bae9312ae6c6538e1efd01355d910aa180fce2`; rerun must confirm the fix.
+- The existing service-role boundary job in run `38348634984` passed its validator, Deno type check, and existing SMM unit tests; the PostgreSQL job was still in progress at last observation.
 - Workflow run lookup returned no runs for commits `f12f396477885f2b0a02a4a9e05ece9d565a8798` and `0eeba66ef3a150a3b8ce75683af3067dc3da327e`. The available connector lookup filters to PR-triggered runs; therefore this result is **NOT VERIFIED**, not proof that GitHub Actions never ran.
 - No local Deno/PostgreSQL/Edge Runtime execution was available in this work cycle.
 - No live HTTP request was sent to SMM. No provider call or wallet operation was triggered.
