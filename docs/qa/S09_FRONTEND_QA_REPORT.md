@@ -20,11 +20,11 @@ This work is limited to frontend QA. It does not modify Auth logic, SQL/migratio
 
 ## Added independent checks
 
-- tests/s09-frontend-qa.test.mjs: Node built-in test cases for entry route metadata, local HTML asset references, visible boot-status/no-JavaScript fallback, module wiring for SMM/digital-page routes, known private-key/server-role secret markers, responsive CSS contracts, editor native form constraints, digital-page error/status handling, safe SMM order-refresh event binding, and quantity/duplicate-submit guards.
+- tests/s09-frontend-qa.test.mjs: Node built-in test cases for entry route metadata, local HTML asset references, visible boot-status/no-JavaScript fallback, module wiring for SMM/digital-page routes, known private-key/server-role secret markers, responsive CSS contracts, editor native form constraints, digital-page error/status handling, safe SMM order-refresh event binding, quantity/duplicate-submit guards, and duplicate in-flight order-status refresh protection (pending state plus control restoration in `finally`).
 - `web/smm.js`: removed the inline `onclick` interpolation for order IDs; refresh buttons now use an HTML-escaped `data-sync-order` attribute and explicit event listeners. The status class token is escaped before insertion. SMM order submission now rejects non-finite/fractional quantities and disables the submit button while the request is in flight, restoring it if the request fails.
 - .github/workflows/s09-frontend-qa.yml: isolated CI gate to run those checks and syntax-check browser JS without modifying production or core application logic.
 
-These are static smoke/contract checks, not browser automation. The SMM event-binding change is source-level hardening and still requires the exact-head CI result plus runtime verification. They do not prove user journeys, responsive rendering, keyboard accessibility, session-expiry recovery, network-failure UI, 4xx/5xx handling, or role-based dashboards work at runtime.
+These are static smoke/contract checks, not browser automation. The SMM event-binding and refresh-lock changes are source-level hardening and still require the exact-head CI result plus runtime verification. They do not prove user journeys, responsive rendering, keyboard accessibility, session-expiry recovery, network-failure UI, 4xx/5xx handling, or role-based dashboards work at runtime.
 
 ## Required runtime/E2E scenarios — pending
 
@@ -43,7 +43,7 @@ These are static smoke/contract checks, not browser automation. The SMM event-bi
 
 - node --test tests/s09-frontend-qa.test.mjs
 - for file in web/*.js; do node --check "$file"; done
-- CI workflow: S09 Frontend QA. The latest observed run before the most recent test expansion was queued; re-check the exact-head run after the commit before recording any result.
+- CI workflow: S09 Frontend QA. The latest observed run for the prior head was queued; re-check the exact-head run after the commit before recording any result.
 
 ## Branch hygiene
 
