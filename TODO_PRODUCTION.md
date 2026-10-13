@@ -14,6 +14,12 @@
 - [ ] **Marketing participant historical baseline — WAIT.** Draft PR #235 adds a fail-closed preflight requiring an approved disposable-only baseline; it intentionally does not create guessed DDL or alter production.
 - [ ] **External release gates — NOT VERIFIED.** Auth leaked-password protection, multi-tenant browser E2E, real-device/PWA, real authorized Paymob E2E, backup/restore RPO/RTO, Android signed artifact, rollback rehearsal, and final release approval remain open.
 
+### Exact-head CI checkpoint — 2026-10-13 13:22 UTC
+- Documentation branch `dac3e2f8bf1828cfaf929a69424223f246aa19e0`: web validation workflow #38404277443 passed structural/syntax/security smoke checks, but its deploy job was skipped because `PRODUCTION_GATE=BLOCKED`. This is not a deployment.
+- RC425–RC458 candidate head `854935bf0bdd524bb7bf28453a7c34253c731e71`: full disposable replay run #38404099600 was still starting disposable Supabase services at last poll; the SQL replay step had not started, so no migration pass/fail can yet be claimed.
+- Candidate release verifier on the docs branch lists post-RC424 sources as missing because that branch is based on `main`, not PR #207's recovery branch. Do not interpret the docs-branch result as a failure of files present on PR #207; validate on the exact candidate branch.
+- Exact-head CI also passed S06 concurrent callback idempotency run #38403871421 on SHA `0f0d12ff56195031e36ebd73a17732876f8b4f8d`, and SMM least-privilege boundary run #38400580077 on SHA `70b2ea3e75c68c27272566ab59ed671f659804a4`. These are separate isolated branches and are not an integrated release certification.
+
 ### Current working PRs (all drafts; no merges/deploys)
 - PR #207 — RC425–RC458 source/release reconciliation: https://github.com/islamnagy2022-eng/MantiqatiX/pull/207
 - PR #220 — S06 payment integrity contracts: https://github.com/islamnagy2022-eng/MantiqatiX/pull/220
