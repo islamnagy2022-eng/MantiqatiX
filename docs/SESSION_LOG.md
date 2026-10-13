@@ -115,3 +115,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - RC523 regression-test refinement: added a non-null response assertion to the existing disposable-PostgreSQL report integration test. Attempted to extend the test with explicit null/mismatched actor negative cases, but the repository write was blocked by the security guard; those negative tests remain open and must not be described as present. CI is still pending.
+
+
+- RC531 — Migration-order review correction (2026-10-13): a manual review initially misread the timestamps for RC446 (`20261010060000`, 06:00) and RC442 (`20261010120000`, 12:00). The original order RC446 → RC442 was chronological; the temporary reordering was reverted in both the production verifier and migration-chain gate. Re-fetched both files from the branch and programmatically checked all 33 entries: both lists are sorted by the 14-digit filename timestamp, have no ordering violations, and match each other exactly. This is source-level verification only; exact-head CI remains required.
