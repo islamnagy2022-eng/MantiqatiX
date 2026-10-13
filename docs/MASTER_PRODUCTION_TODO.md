@@ -1570,3 +1570,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **NOT VERIFIED:** real Paymob transaction/refund E2E and failure branches for normal payment intents/subscriptions.
 - [ ] Full historical migration replay remains separately blocked; candidate migration does not repair canonical historical provenance.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — Expanded Paymob callback atomicity candidate
+
+- [x] Read-only deployed-source parity confirmed `paymob-webhook` v8 matches `main`; the old code split provider-event persistence from MantiGO ledger updates, and had separate non-atomic ordinary-order failure updates plus subscription failure updates without provider-event persistence.
+- [x] Candidate PR #230 adds atomic MantiGO, ordinary-order-failure, and subscription-failure RPCs; the webhook now routes those paths through the RPCs.
+- [x] Dedicated exact-code-head run [38355575454](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38355575454) passed static source checks, Deno type-check, isolated migration application, and regression tests including forced-write-failure rollback and idempotency conflict cases.
+- [ ] **P0 NOT VERIFIED:** no production migration or Edge Function deployment; requires separate explicit approval.
+- [ ] **NOT VERIFIED:** real Paymob payment/refund E2E and full payment-to-settlement reconciliation.
+- [ ] Full chronological migration replay remains independently blocked; this PR does not repair canonical historical migration provenance.
+- Release remains **BLOCKED / NOT CERTIFIED**.
