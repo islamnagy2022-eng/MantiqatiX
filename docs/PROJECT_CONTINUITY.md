@@ -566,3 +566,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Current code candidate: 7cf34432de0d5b604121e00f662f04771de18568. Exact-head CI is queued and not yet considered passed.
 - No production changes. Continue from CI results and full replay prerequisites; never certify based on source presence alone.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC527 focused finance/ERP/admin coverage
+
+- Restored RC457, RC458 and RC462 source migrations and matching test files from reconciled PR #207; SHA verification passed for these exact sources.
+- Added five isolated PostgreSQL jobs; focused migration workflow now has 12 integration jobs. Added RC457/RC458/RC462 to the fail-closed migration-chain inventory (33 required files, timestamp ordered).
+- Exact-head CI has been triggered but is not yet confirmed complete. Do not report a pass until a completed check is inspected.
+- Production remains unchanged. Release is still BLOCKED / NOT CERTIFIED.
