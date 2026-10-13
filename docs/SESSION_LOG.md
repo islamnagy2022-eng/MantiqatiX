@@ -158,3 +158,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #220 root-cause review found that `paymob-webhook/index.ts` still has direct Supabase table operations for subscription intent lookup/failure update, provider-event duplicate lookup, digital-page order lookup, MantiGO ledger lookup, and notifications. The new atomic failure/MantiGO RPC migrations are not called by this handler. Live service_role ACL denies DML on several of those tables. Posted the exact gap and root-correction criteria on [PR #220 comment 6138943387](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138943387).
 - Required correction: use supported server-side RPCs for lookup, event binding/idempotency, state transition, and notification/outbox; remove unsupported direct access; test failure/duplicate/mismatch/race cases. Do not grant broad DML or deploy from this audit.
 - No production changes. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Replay acceptance stabilization — 2026-10-13 05:31 UTC
+
+- PR #207 head is now `1b85a440a647f29428d2183f392b0ad0c63b7607`. Run [38351754864](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351754864) is pending on prior SHA `287d89d728652fc8985cf8cea3fd7f763c56477f`; run [38351724719](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351724719) on `e7fcd20f5c9a125d2a99590cb56a688086ab95cb` was cancelled. No current-head replay PASS is available.
+- Coordination comment [6138956619](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138956619) asks to stabilize the replay candidate or dispatch a run against the final SHA.
+- PR #220's RPC/table ACL mismatch is recorded in [comment 6138943387](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138943387); candidate RPC definitions are insufficient until every handler branch calls the supported server-side path and isolated tests pass.
+- Release remains **BLOCKED / NOT CERTIFIED**. No production changes.
