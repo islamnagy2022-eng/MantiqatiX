@@ -618,3 +618,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Fresh read-only Supabase inventory confirms 283 recorded migrations, latest RC424 version `20261008222845`; post-RC424 migrations are not recorded as applied. Active functions include payment-intent v6, paymob-webhook v8, subscription-payment-intent v2, erp-purchase-receive v1, digital-page-payment-intent v3, and smm-gateway v10; version numbers alone do not prove source parity.
 - Security Advisor snapshot: 1 INFO RLS-enabled/no-policy finding on `digital_page_payment_events`, 1 anon-executable SECURITY DEFINER warning on targeted ads, and 40 authenticated-executable SECURITY DEFINER warnings. These require scoped contract review, not blanket ACL changes.
 - Full chronological replay, live tenant/payment E2E, Edge Function parity, Auth/security, backup/restore, signed device build and rollback remain open. Do not deploy or certify until evidence is reconciled. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC542 — SMM source parity restored, launch still gated — 2026-10-13
+
+- Live Supabase `smm-gateway` v10 had seven source files, while the PR candidate only contained an older `index.ts` and lacked six imported modules. Those six modules were restored and the entrypoint updated from the active source.
+- Re-fetched all seven files and confirmed exact text equality to active v10 source. The launch gate explicitly fails closed with `SMM_DEFERRED` unless both enablement and post-launch approval flags are true.
+- Source-only PR commit: `57be194aa4f0d35eff9ea1c00f59fd3a91edf3a2`. Exact-head CI workflows were queued at first inspection; no result counted as passing yet. No function was deployed or enabled.
+- Continue with exact-head CI, SMM security review in isolation, and full chronological migration replay. Production release remains BLOCKED / NOT CERTIFIED.
