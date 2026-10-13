@@ -73,3 +73,37 @@ Deno.test("S07_ORDER_006: pricing rejects rounded zero charge and overflow outco
     sellingPrice: Number.MAX_VALUE, providerCost: 0, quantity: Number.MAX_SAFE_INTEGER,
   }).ok, false);
 });
+
+Deno.test("S07_ORDER_007: local, reserved, IPv6, and oversized target URLs are rejected", () => {
+  const invalidTargets = [
+    "https://host.local",
+    "https://host.internal",
+    "https://host.localhost",
+    "https://host.example",
+    "https://[::1]/profile",
+    "https://example.com/" + "x".repeat(2049),
+  ];
+  for (const target_url of invalidTargets) {
+    assertEquals(validateSmmOrderInput({
+      service_id: "service-1",
+      target_url,
+      quantity: 1,
+      idempotency_key: "order_key_12345678",
+    }).ok, false);
+  }
+});
+
+Deno.test("S07_ORDER_008: quantities beyond safe integer range and malformed service IDs fail closed", () => {
+  for (const input of [
+    { service_id: "", quantity: 1 },
+    { service_id: "x".repeat(129), quantity: 1 },
+    { service_id: "service-1", quantity: Number.MAX_SAFE_INTEGER + 1 },
+    { service_id: "service-1", quantity: "999999999999999" },
+  ]) {
+    assertEquals(validateSmmOrderInput({
+      ...input,
+      target_url: "https://example.com/profile",
+      idempotency_key: "order_key_12345678",
+    }).ok, false);
+  }
+});
