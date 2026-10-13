@@ -127,7 +127,17 @@ begin
     raise exception 'USER_CONTEXT_MISMATCH';
   end if;
   if not public.mnty_can_platform_admin() then
-    raise exception 'PLATFORM_ADMIN_REQUIRED';
+    -- TEMPORARY DISPOSABLE-TEST DIAGNOSTIC. Remove before release; no production apply.
+    raise exception 'PLATFORM_ADMIN_REQUIRED'
+      using detail = pg_catalog.format(
+        'settlement guard denied: uid=%s, matching_platform_admin_rows=%s, current_user=%s',
+        auth.uid(),
+        (select count(*) from public.user_memberships m
+         where m.user_id=auth.uid() and m.tenant_id='MNTY-PLATFORM' and m.status='ACTIVE'
+           and upper(m.role)='SUPER_ADMIN'
+           and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb),
+        current_user
+      );
   end if;
 
   select r.status into v_ride_status
