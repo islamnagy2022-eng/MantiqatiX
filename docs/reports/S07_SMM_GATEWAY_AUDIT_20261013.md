@@ -64,3 +64,11 @@ The active production function and database remain unchanged. Keep the hard defe
 ## Follow-up — isolated integration matrix
 
 Added [`S07_SMM_INTEGRATION_TEST_MATRIX_20261013.md`](./S07_SMM_INTEGRATION_TEST_MATRIX_20261013.md) to define 18 deterministic cases covering the deferred gate, auth/tenant boundaries, catalog and order validation, idempotency/concurrent wallet spending, ambiguous provider/debit outcomes, refunds, SSRF/redirects, status transitions, event persistence, redaction, and spend ceilings. This is a test plan, not execution evidence. Every integration case remains unrun until a disposable environment and mock provider are available. The entrypoint parity gap remains a blocker; PR #221 stays Draft and production remains unchanged.
+
+
+## Latest CI checkpoint — 2026-10-13
+
+- Draft PR #221 remains open, unmerged, and Draft.
+- S07 workflow run [38341031755](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38341031755) was observed in **queued** state for commit `9778eb800beeab47573fec73c777652f1666b25e`; its job was also queued when checked. No test result is available yet.
+- Other repository workflows observed on the same commit were also queued. No deployment or production change is inferred from a queued workflow.
+- The integration matrix is documentation only; none of its 18 cases should be counted as executed.
