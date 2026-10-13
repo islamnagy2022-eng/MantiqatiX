@@ -49,10 +49,12 @@ const required = [
   "20261013200000_rc523_mantigo_financial_report_canonical_columns.sql"
 ];
 const liveLedgerOrderAliases = [
-  ["20261001090000_harden_provider_onboarding_authority.sql", "20261001164107_harden_provider_onboarding_authority.sql"],
+  ["20261001090000_harden_provider_onboarding_authority.sql", "20261001164107_20261001090000_harden_provider_onboarding_authority.sql"],
   ["20261001165000_grant_provider_onboarding_authenticated_insert.sql", "20261001164222_grant_provider_onboarding_authenticated_insert.sql"],
-  ["20261001100000_lock_provider_onboarding_direct_writes.sql", "20261001164327_lock_provider_onboarding_direct_writes.sql"],
+  ["20261001100000_lock_provider_onboarding_direct_writes.sql", "20261001164327_20261001100000_lock_provider_onboarding_direct_writes.sql"],
   ["20261001193000_grant_provider_onboarding_service_role.sql", "20261001170235_provider_onboarding_service_role_rpc_grants.sql"],
+  ["20261002090000_super_admin_platform_authority_reconciliation.sql", "20261002044021_20261002090000_super_admin_platform_authority_reconciliation.sql"],
+  ["20261002010000_rc238_fix_settlement_journal_posting.sql", "20261002083009_fix_settlement_journal_posting_order.sql"],
   ["20261002190000_rc228_digital_page_products_orders.sql", "20261002073217_rc228_digital_page_products_orders.sql"],
   ["20261002191000_rc229_digital_page_payment_columns.sql", "20261002073331_rc229_digital_page_payment_columns.sql"],
   ["20261002192000_rc230_digital_page_payment_events.sql", "20261002073419_rc230_digital_page_payment_events.sql"],
