@@ -216,3 +216,18 @@ Current repository-only verification:
 - S03 report and both SQL files are present on `security/s03-audit-isolated-20261013`.
 - No SQL runner was available in the session; syntax/runtime execution and result output remain **NOT VERIFIED**.
 - Test counts remain **0 passed / 0 failed / 2 files not run**. Do not interpret unexecuted assertions or diagnostic statuses as test results.
+
+
+### Fresh targeted production catalog recheck — 2026-10-13
+
+A subsequent SELECT-only query rechecked the current live definitions/configuration for the five candidate functions and the private legal helper overloads. The observed values were:
+
+| Function | Live observation | Classification |
+|---|---|---|
+| `public.get_mnty_targeted_advertisements(...)` | `search_path=public, pg_temp`; anon and authenticated EXECUTE true | Intentional public endpoint; RC451 hardening not evidenced in live catalog |
+| `public.list_open_mantigo_rides_backend(uuid)` | authenticated EXECUTE true; active/verified/available captain guard absent | Confirmed source/production divergence; authorization impact follows product contract and call path |
+| `public.list_mantigo_customer_rides_backend(uuid,text)` | authenticated EXECUTE true; `to_jsonb(b)` / `to_jsonb(f)` pattern present | Data-minimization candidate; caller is limited to own rides, so field-level exposure needs contract review |
+| `public.create_mantigo_bid_backend(...)` | authenticated EXECUTE true; caller-supplied captain name/phone persistence pattern present | Identity/contact integrity candidate; no exploit confirmed until profile-authority contract is established |
+| `private.legal_is_admin()` and `private.legal_is_admin(uuid)` | both have empty search path; anon EXECUTE false; authenticated EXECUTE true | UUID overload reachability remains unresolved because private schema API exposure/call path was not established |
+
+This recheck was catalog-only and did not invoke any application RPC. It supports the report classifications above; it is not behavioral proof. The open-ride and ad search-path findings agree with the production migration-ledger gap already documented.
