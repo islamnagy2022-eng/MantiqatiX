@@ -140,3 +140,14 @@ test('S09-UX-003: SMM order refresh prevents duplicate in-flight requests and re
   assert.match(smm, /button\.textContent='جارٍ التحديث…'/, 'refresh should show a pending state');
   assert.match(smm, /finally\{if\(button\?\.isConnected\)/, 'refresh should restore the button after success or failure');
 });
+
+
+test('S09-UX-004: digital-page editor locks save/publish/unpublish actions while pending', () => {
+  const editor = read('web/digital-page-editor.js');
+  assert.match(editor, /const button=\$\('pageForm'\)\.querySelector\('\[type="submit"\]'\);if\(button\.disabled\)return/, 'save action should prevent duplicate submissions');
+  assert.match(editor, /button\.textContent='جارٍ الحفظ…'/, 'save action should expose pending feedback');
+  assert.match(editor, /const button=\$\('publish'\);if\(button\.disabled\)return/, 'publish action should prevent duplicate submissions');
+  assert.match(editor, /button\.textContent='جارٍ النشر…'/, 'publish action should expose pending feedback');
+  assert.match(editor, /finally\{button\.disabled=false;button\.textContent=original\}/, 'action buttons should be restored after success or failure');
+  assert.match(editor, /تعذر إلغاء النشر/, 'unpublish errors should be handled visibly');
+});
