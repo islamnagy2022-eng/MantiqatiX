@@ -52,11 +52,9 @@ jobs:
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
           provider_onboarding_migration="supabase/migrations/20261001085000_test_only_approved_provider_onboarding_requests_baseline.sql"
-          if [ "$audit_rc" -eq 0 ]; then
-            node scripts/validate-smm-replay-baselines.mjs > s04-replay-evidence/test-baseline-validation.log 2>&1
-            baseline_rc=$?
-            echo "smm_baseline_validation_exit=$baseline_rc" | tee -a s04-replay-evidence/report.txt
-          fi
+          node scripts/validate-smm-replay-baselines.mjs > s04-replay-evidence/test-baseline-validation.log 2>&1
+          baseline_rc=$?
+          echo "test_baseline_validation_exit=$baseline_rc" | tee -a s04-replay-evidence/report.txt
           if [ "$baseline_rc" -eq 0 ]; then
             for file in "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"; do test ! -e "$file"; done
             cp "$admins_baseline" "$admins_migration"
