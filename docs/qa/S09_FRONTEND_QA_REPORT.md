@@ -20,7 +20,7 @@ This work is limited to frontend QA. It does not modify Auth logic, SQL/migratio
 
 ## Added independent checks
 
-- tests/s09-frontend-qa.test.mjs: Node built-in test cases for entry route metadata, local HTML asset references, visible boot-status/no-JavaScript fallback, module wiring for SMM/digital-page routes, and known private-key/server-role secret markers.
+- tests/s09-frontend-qa.test.mjs: Node built-in test cases for entry route metadata, local HTML asset references, visible boot-status/no-JavaScript fallback, module wiring for SMM/digital-page routes, known private-key/server-role secret markers, responsive CSS contracts, editor native form constraints, and digital-page error/status handling.
 - .github/workflows/s09-frontend-qa.yml: isolated CI gate to run those checks and syntax-check browser JS without modifying production or core application logic.
 
 These are static smoke/contract checks, not browser automation. They do not prove user journeys, responsive rendering, keyboard accessibility, session-expiry recovery, network-failure UI, 4xx/5xx handling, or role-based dashboards work at runtime.
@@ -42,11 +42,11 @@ These are static smoke/contract checks, not browser automation. They do not prov
 
 - node --test tests/s09-frontend-qa.test.mjs
 - for file in web/*.js; do node --check "$file"; done
-- CI workflow: S09 Frontend QA.
+- CI workflow: S09 Frontend QA. The latest observed run before the most recent test expansion was queued; re-check the exact-head run after the commit before recording any result.
 
 ## Branch hygiene
 
-The initial working branch was found to contain 112 changed files / 213 commits relative to `main`; draft PR #223 was closed without merging. A clean branch was created from `main`, and only the three S09 QA files are being carried forward. Verify the resulting diff before opening any replacement PR.
+The initial working branch was found to contain 112 changed files / 213 commits relative to `main`; draft PR #223 was closed without merging. A clean branch was created from `main`, and only the three S09 QA files are being carried forward. Clean branch verified against main: three files only before the latest test expansion. Re-verify the final diff and CI head after each follow-up commit.
 
 ## Evidence and close criteria
 
