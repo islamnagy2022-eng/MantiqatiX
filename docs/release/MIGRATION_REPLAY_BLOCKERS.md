@@ -864,3 +864,16 @@ Safe disposable-only response on the migration-owning branch:
 - Added exact-copy, untracked, and no-data-write checks in the replay workflow. Temporary version `20260927140497` sorts before the commission fixture at `20260927140498`, approval fixture at `20260927140499`, and historical ALTER at `20260927140500`.
 
 The next replay on code head `8ada230565bb9fd8f2ba745440fb3c4175b4c612` was pending at last check. The previous run demonstrates that the commission-policy preflight no longer stops the replay; it is not a full replay PASS. Keep historical provenance unresolved and production release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SMM trigger creation dependency (SQLSTATE 42883)
+
+Exact failed replay run [38350577917](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350577917) stopped at `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql` because `public.smm_bootstrap_first_admin()` did not exist in the disposable database. A read-only live catalog query confirms the function exists in production, is SECURITY DEFINER with `search_path=public`, and cannot be executed directly by `anon` or `authenticated`.
+
+Root cause: the tracked migration history contains the privilege-lockdown migration but not the earlier function-creation migration. A live-derived, explicitly test-only function fixture exists, but the full reset did not materialize it before the lockdown migration. The replay workflow was changed in commit `ae5f6f63672a0aa2947f3d20fc70cae7e99ff6d0` to:
+1. Reset the disposable database only through temporary version `20260927033924`.
+2. Apply the reviewed function definition directly to the disposable Postgres container.
+3. Apply the real historical lockdown migration `20260927033925` and verify PUBLIC/anon/authenticated EXECUTE is denied.
+4. Continue the rest of the migration chain.
+
+Run [38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354483080) is still in progress at Supabase service startup. This is a harness correction plus a test-only compatibility baseline, **not** recovery of historical DDL. Do not alter production or treat the chain as PASS until the full replay finishes and all later gaps are resolved.
