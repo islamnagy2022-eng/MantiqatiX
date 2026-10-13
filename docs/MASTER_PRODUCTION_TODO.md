@@ -1671,3 +1671,18 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Full chronological migration replay and production migration application evidence remain unverified. The last observed production ledger ends at RC424; do not apply pending migrations without approved rollout and reconciled baseline.
 - [ ] Production tenant isolation E2E, real Paymob/payment and finance settlement E2E, Edge Function source/deployment parity, leaked-password protection, scoped SECURITY DEFINER/RLS remediation, backup/restore rehearsal, browser/device E2E, Android signing, rollback rehearsal, and final owner-approved certification remain open.
 - Release state: **BLOCKED / NOT CERTIFIED**. No production changes, merge, or release were performed in this work batch.
+
+
+## RC539 — Exact-head CI and current release blockers — 2026-10-13
+
+- [x] Confirmed PR #218 current head `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc`, still OPEN / DRAFT / UNMERGED.
+- [x] Confirmed exact-head Recovered Migration Focused Integration run [38328931209](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38328931209): 13/13 jobs SUCCESS; jobs were inspected individually and include RC450, RC457, RC458 and RC523 contracts.
+- [x] Confirmed exact-head migration version uniqueness [38328931204], platform-admin scope [38328931224], privacy boundary [38328931311], audit atomicity [38328931256], migration immutability [38328931250], collision guard [38328931298], module validation [38328931253], audit append-only ACL [38328931287], and backend boundary [38328931240] completed SUCCESS.
+- [x] Confirmed Pages workflow [38328931310] validation SUCCESS but deploy SKIPPED for PR event; this does not establish a production deployment.
+- [ ] Full chronological migration replay from reconciled baseline remains NOT RUN; legacy DDL prerequisites must be resolved from authoritative contracts, without fake stub dependencies or migration-history rewrites.
+- [ ] Live ledger remains observed through RC424; required release migrations are not proven applied. Do not apply them without explicit production-change approval.
+- [ ] Runtime tenant-isolation E2E, real payment/settlement E2E, deployed Edge Function/source parity, Auth and scoped RLS/SECURITY DEFINER remediation, backup/restore rehearsal, browser/device/Android signing, rollback rehearsal, and owner-approved final certification remain open.
+- [ ] Administration/Operations has no authoritative task/work-item source evidenced in the read-only inventory; define source-of-truth schema and lifecycle plus tenant/RBAC/audit regression tests before claiming acceptance.
+- [ ] SMM remains isolated pending dedicated authorization, provider timeout/ambiguity, persistence and terminal-state review; no SMM launch.
+- **Safety:** no production mutation, migration application, Auth/RLS/Grant changes, Edge Function deployment, financial movement, merge or release.
+- **Release:** BLOCKED / NOT CERTIFIED.
