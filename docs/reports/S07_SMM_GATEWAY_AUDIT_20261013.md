@@ -59,3 +59,8 @@ Added isolated Deno test files for the helper modules already matching deployed 
 Updated `.github/workflows/s07-smm-gateway-contract.yml` to run `deno test --no-check supabase/functions/smm-gateway/*.test.ts`, so these helper tests run alongside the seven launch-gate tests. The workflow then still runs the source-parity validator. **The helper tests have been committed but have not yet been confirmed by a completed CI run.** Even if they pass, they do not cover gateway integration, real database transactionality, wallet/provider ambiguity, or prove the branch entrypoint matches v10.
 
 The active production function and database remain unchanged. Keep the hard defer gate and PR #221 draft; do not merge or deploy until the entrypoint parity gap and isolated integration-test blockers are resolved.
+
+
+## Follow-up — isolated integration matrix
+
+Added [`S07_SMM_INTEGRATION_TEST_MATRIX_20261013.md`](./S07_SMM_INTEGRATION_TEST_MATRIX_20261013.md) to define 18 deterministic cases covering the deferred gate, auth/tenant boundaries, catalog and order validation, idempotency/concurrent wallet spending, ambiguous provider/debit outcomes, refunds, SSRF/redirects, status transitions, event persistence, redaction, and spend ceilings. This is a test plan, not execution evidence. Every integration case remains unrun until a disposable environment and mock provider are available. The entrypoint parity gap remains a blocker; PR #221 stays Draft and production remains unchanged.
