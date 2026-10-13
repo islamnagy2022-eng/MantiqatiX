@@ -20,11 +20,12 @@ This work is limited to frontend QA. It does not modify Auth logic, SQL/migratio
 
 ## Added independent checks
 
-- tests/s09-frontend-qa.test.mjs: Node built-in test cases for entry route metadata, local HTML asset references, visible boot-status/no-JavaScript fallback, module wiring for SMM/digital-page routes, known private-key/server-role secret markers, responsive CSS contracts, editor native form constraints, digital-page error/status handling, safe SMM order-refresh event binding, quantity/duplicate-submit guards, and duplicate in-flight order-status refresh protection (pending state plus control restoration in `finally`).
-- `web/smm.js`: removed the inline `onclick` interpolation for order IDs; refresh buttons now use an HTML-escaped `data-sync-order` attribute and explicit event listeners. The status class token is escaped before insertion. SMM order submission now rejects non-finite/fractional quantities and disables the submit button while the request is in flight, restoring it if the request fails.
-- .github/workflows/s09-frontend-qa.yml: isolated CI gate to run those checks and syntax-check browser JS without modifying production or core application logic.
+- tests/s09-frontend-qa.test.mjs: Node built-in test cases for entry route metadata, local HTML asset references, visible boot-status/no-JavaScript fallback, module wiring for SMM/digital-page routes, known private-key/server-role secret markers, responsive CSS contracts, editor native form constraints, digital-page error/status handling, safe SMM order-refresh event binding, quantity/duplicate-submit guards, duplicate in-flight order-status refresh protection, and editor save/publish/unpublish pending states with visible error recovery.
+- `web/smm.js`: removed the inline `onclick` interpolation for order IDs; refresh buttons now use an HTML-escaped `data-sync-order` attribute and explicit event listeners. The status class token is escaped before insertion. SMM order submission now rejects non-finite/fractional quantities and disables the submit button while the request is in flight, restoring it if the request fails. Order refresh now also locks its initiating button until completion.
+- `web/digital-page-editor.js`: save, publish, and unpublish controls now prevent repeated in-flight clicks, show pending labels, restore controls in `finally`, and surface unpublish failures instead of leaving an unhandled rejection.
+- `.github/workflows/s09-frontend-qa.yml`: isolated CI gate to run those checks and syntax-check browser JS without modifying production or core application logic.
 
-These are static smoke/contract checks, not browser automation. The SMM event-binding and refresh-lock changes are source-level hardening and still require the exact-head CI result plus runtime verification. They do not prove user journeys, responsive rendering, keyboard accessibility, session-expiry recovery, network-failure UI, 4xx/5xx handling, or role-based dashboards work at runtime.
+These are static smoke/contract checks, not browser automation. The SMM event-binding/refresh-lock and editor pending-state changes are source-level hardening and still require the exact-head CI result plus runtime verification. They do not prove user journeys, responsive rendering, keyboard accessibility, session-expiry recovery, network-failure UI, 4xx/5xx handling, or role-based dashboards work at runtime.
 
 ## Required runtime/E2E scenarios — pending
 
@@ -47,7 +48,7 @@ These are static smoke/contract checks, not browser automation. The SMM event-bi
 
 ## Branch hygiene
 
-The initial working branch was found to contain 112 changed files / 213 commits relative to `main`; draft PR #223 was closed without merging. A clean branch was created from `main`, and only the three S09 QA files are being carried forward. Clean branch verified against main: the current change set contains four files only (S09 workflow, QA report, QA tests, and `web/smm.js`). Re-verify the final diff and CI head after each follow-up commit.
+The initial working branch was found to contain 112 changed files / 213 commits relative to `main`; draft PR #223 was closed without merging. A clean branch was created from `main`, and only the three S09 QA files are being carried forward. Clean branch verified against main: the current change set contains five files only (S09 workflow, QA report, QA tests, `web/smm.js`, and `web/digital-page-editor.js`). Re-verify the final diff and CI head after each follow-up commit.
 
 ## Evidence and close criteria
 
