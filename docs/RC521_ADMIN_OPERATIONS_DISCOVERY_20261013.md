@@ -158,3 +158,15 @@ These non-zero values preserve previously documented work. They are provisional 
 - No production changes, financial operations, merge, or release. Certification remains blocked pending completed CI and required production/runtime evidence.
 
 - Test-review correction: RC523 test assertions were adjusted to the single row inserted by its fixture (gross 250, commission 25, captain_amount 200, paid_amount 250, unsettled_amount 200). This remains unverified until the CI job completes.
+
+## Refreshed live verification — 2026-10-13 01:55 UTC
+
+This section supersedes earlier observations only for the exact checks listed below. It is read-only production evidence; no production state was changed.
+
+- Supabase project `moyhiluyhjsujhwlyeuu` responded `ACTIVE_HEALTHY`; PostgreSQL reports version `17.6`. SQL check timestamp: `2026-10-13 01:55:57.874835+00`.
+- Live migration ledger: 283 rows; latest recorded version `20261008222845`. The following source candidates are not recorded as applied: `20261009120000` (RC425), `20261010030000` (RC441), `20261012040000` (RC462), `20261013190000` (RC522), and `20261013200000` (RC523). This confirms source presence on the PR branch is not evidence of live application.
+- Live catalog recheck: `get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, and `expire_stale_mantigo_rides_backend` are all `SECURITY DEFINER`, executable by `authenticated`, configured with `search_path=public`, and their current definitions do not contain `mnty_can_platform_admin` or `PLATFORM_ADMIN_REQUIRED`. Treat this as a P0 release blocker; do not call settlement/expiry RPCs against production as a test.
+- Supabase Security Advisor observation timestamp: `2026-10-13T01:55:50.433Z`. It reports 40 authenticated-executable SECURITY DEFINER functions, one anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), and one RLS-enabled table without policies (`public.digital_page_payment_events`). These findings require contract-by-contract review; do not apply blanket revocations or generic RLS policies.
+- Live `smm-gateway`: version 10, status `ACTIVE`, `verify_jwt=true`. The deployed source contains `SMM_INITIAL_LAUNCH_DEFERRED=true` and returns `503 SMM_DEFERRED` before authentication, database/provider requests, or wallet operations. This is source inspection, not a live HTTP runtime test.
+- GitHub run evidence available for the PR’s current revision includes successful disposable-PostgreSQL platform-admin scope tests (run `38334032981`) and recovered-migration focused integration jobs (run `38334033016`). These results do not remediate or certify the live database.
+- Release decision remains `BLOCKED / NOT CERTIFIED`. Safe next step is to reconcile and rehearse the complete migration sequence in an isolated database, then follow the approved release path. No production migrations, grants/RLS/Auth changes, Edge Function deployments, financial operations, or merge were performed.
