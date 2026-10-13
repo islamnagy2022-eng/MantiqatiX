@@ -298,7 +298,37 @@ jobs:
           smm_bootstrap_baseline="supabase/tests/baselines/smm_bootstrap_first_admin.sql"
           test -f "$smm_bootstrap_baseline"
 
-          supabase db reset --local --version 20260927033924
+          # Supabase CLI's db reset --version did not stop before the next migration in
+          # the observed CI run: it attempted 20260927033925 before the live-derived
+          # function baseline was injected. Enforce the cutoff at the filesystem boundary:
+          # temporarily remove every later migration from the disposable replay directory.
+          # The EXIT trap restores every file even when reset fails.
+          replay_migration_stash="$(mktemp -d)"
+          restore_future_migrations() {
+            shopt -s nullglob
+            for file in "$replay_migration_stash"/*.sql; do
+              mv "$file" supabase/migrations/
+            done
+            rmdir "$replay_migration_stash" 2>/dev/null || true
+          }
+          trap restore_future_migrations EXIT
+          shopt -s nullglob
+          for file in supabase/migrations/*.sql; do
+            name="$(basename "$file")"
+            version="${name%%_*}"
+            if [[ "$version" =~ ^[0-9]{14}$ ]] && [[ "$version" > "20260927033924" ]]; then
+              mv "$file" "$replay_migration_stash/"
+            fi
+          done
+          test -f supabase/migrations/20260927033924_test_only_live_derived_smm_bootstrap_first_admin.sql
+          if [[ -e supabase/migrations/20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql ]]; then
+            echo "P0 BLOCKED: future SMM lockdown migration was not isolated before reset." >&2
+            exit 1
+          fi
+          echo "Temporarily isolated $(find "$replay_migration_stash" -maxdepth 1 -type f -name '*.sql' | wc -l) future migrations; reset cutoff is enforced by file presence, not CLI version parsing."
+          supabase db reset --local
+          restore_future_migrations
+          trap - EXIT
 
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client
