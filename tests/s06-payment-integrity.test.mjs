@@ -12,7 +12,8 @@ test("S06-01 payment intent requires authenticated non-anonymous user", () => {
   assert.match(payment, /user\.is_anonymous/);
 });
 test("S06-02 payment intent requires order and bounded idempotency key", () => {
-  assert.match(payment, /const orderId = String\(body\.orderId/);\n  assert.match(payment, /const idempotencyKey = String\(body\.idempotencyKey/);
+  assert.match(payment, /const orderId = String\(body\.orderId/);
+  assert.match(payment, /const idempotencyKey = String\(body\.idempotencyKey/);
   assert.match(payment, /idempotencyKey\.length > 200/);
   assert.match(payment, /create_payment_intent_backend/);
 });
