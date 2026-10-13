@@ -130,11 +130,16 @@ A read-only comparison of all **33** recovered archive files against the live mi
 
 The existing semantic reconciliation record documents unresolved source-versus-ledger differences for RC169, RC172, RC199, RC206, and RC207. In particular, RC199 may create a policy already introduced by a later ledger statement when replayed in repository filename order, and the RC207 repository source omits a function replacement present in the recorded ledger statement. These discrepancies prevent claiming a production-equivalent rebuild.
 
-## 6. Files changed by S04
+## 6. Files changed by this S04 continuation branch
 
-- `scripts/audit-migration-chain-s04.mjs` — filename format, global version uniqueness, required source presence, recovered archive count, and SHA-256 inventory for target migrations.
-- `.github/workflows/s04-migration-chain-clean-replay.yml` — isolated replay attempt, first-error extraction, and evidence artifact.
-- `docs/release/s04-migration-chain-clean-replay-report.md` — independent report.
+- `scripts/audit-migration-chain-s04.mjs` — expanded source audit across both directories; keeps executable migration uniqueness separate from archival inventory, reports invalid names, duplicate executable versions, recovered-only collisions, cross-directory version overlaps, conflicting same-name copies, required RC source presence, and SHA-256 values.
+- `.github/workflows/s04-migration-chain-clean-replay.yml` — adds a push trigger limited to this isolated `s04/ledger-reconciliation-20261013` branch so the source audit and disposable replay can be rechecked without merging PR #218.
+- `docs/release/S04_MIGRATION_LEDGER_NAME_INVENTORY_20261013.json` — row-level live ledger/source name-stem candidates and unmatched records.
+- `docs/release/S04_RC40_ARCHIVE_RECONCILIATION_20261013.json` — checksum-verified RC40 archive inventory, exact filename overlaps, content hashes, missing candidate sources, and credit-control mismatch evidence.
+- `docs/release/s04-migration-chain-clean-replay-report.md` — adds ledger name-stem and RC40 archive reconciliation results.
+- `docs/SESSION_LOG.md` — append-only execution evidence.
+
+The two JSON reports are read-only evidence. No historical migration SQL or production ledger was rewritten. The branch's updated S04 workflow run [38338010686](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338010686) was QUEUED at the latest check; no result is claimed for the updated audit script on this branch.
 
 No changes were made to `.github/workflows/mantigo-platform-admin-scope.yml` or S02 administrative-function tests.
 
