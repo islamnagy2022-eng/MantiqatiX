@@ -710,3 +710,19 @@ This is consistent with the unresolved source/chronology mismatch documented abo
 The dependency preflight was tightened to include `credit_policies`, which is required by the foreign key in `credit_accounts` and was also missing from the candidate's earlier chronological creation history. The exact-head run [38280663419](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/38280663419) now fails with the specific message: `no approved isolated compatibility baseline exists for public.credit_policies before 20260920155456_harden_credit_status_authorization.sql`. It stops before Docker/Supabase startup, as intended. This is a more complete dependency diagnosis, not a replay fix.
 
 Do not create this baseline automatically from inferred schema. If a test-only compatibility fixture is later explicitly approved, it must cover the complete dependency chain and be provenance-marked, isolated to disposable replay, and tested for exact live-derived shape without pretending to recover historical DDL.
+
+
+## Owner approval — disposable credit schema compatibility baseline — 2026-10-13
+
+The owner approved a **new live-derived compatibility schema for disposable CI replay only** after the missing historical credit DDL could not be recovered from the inspected Git history, migration ledger, or RC40 archive. This approval does not make the fixture historical DDL, does not authorize production changes, and does not resolve why the production ledger lacks the original creation migration.
+
+Three fixtures have now been added under `supabase/tests/baselines/`:
+- `credit_policies.sql`
+- `credit_accounts.sql`
+- `credit_periods.sql`
+
+The disposable replay workflow injects temporary, untracked copies at versions `20260920155450`, `20260920155451`, and `20260920155452`, immediately before the dependent `20260920155456_harden_credit_status_authorization.sql`. The fixtures include the observed column types/defaults, generated stored amount columns, constraints, indexes, and RLS enabled/forced state. The later committed `20260920211717_security_definer_surface_reduction_and_finance_rls.sql` remains responsible for creating finance-read policies; those policies are intentionally not duplicated in the baseline. Extra restrictive policies seen in the current live catalog are not inserted because their creation lineage is not represented in the applied ledger.
+
+The validator now checks explicit approval/provenance wording, required schema shape, generated columns, RLS, no-data constraints, timestamp ordering, temporary-file collision avoidance, and the presence of the ordered finance-policy migration. The workflow verifies exact fixture copies and that temporary migration files remain untracked.
+
+**Interpretation:** a passing replay with these fixtures will prove that the current candidate migrations can replay after a clearly disclosed live-derived compatibility starting point. It will **not** prove historical migration fidelity, explain the production ledger gap, or certify production parity. A fresh exact-head CI run and all other release gates remain required. Production database, migration ledger, financial data, grants, RLS, Auth, secrets, and deployed functions remain unchanged.
