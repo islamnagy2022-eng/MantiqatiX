@@ -50,15 +50,32 @@ const migrationFiles = inventory(migrationDir);
 const recoveredFiles = inventory(recoveredDir);
 const allFiles = [...migrationFiles, ...recoveredFiles];
 const invalidNames = allFiles.filter(file => !file.validName);
-const byVersion = new Map();
-for (const file of allFiles) {
-  if (!file.version) continue;
-  byVersion.set(file.version, [...(byVersion.get(file.version) ?? []), file]);
+function groupByVersion(files) {
+  const byVersion = new Map();
+  for (const file of files) {
+    if (!file.version) continue;
+    byVersion.set(file.version, [...(byVersion.get(file.version) ?? []), file]);
+  }
+  return byVersion;
 }
-const duplicateVersions = [...byVersion.entries()]
-  .filter(([, files]) => files.length > 1)
+function duplicateGroups(files) {
+  return [...groupByVersion(files).entries()]
+    .filter(([, grouped]) => grouped.length > 1)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([version, grouped]) => ({ version, files: grouped.map(file => ({path:file.path,name:file.name,sha256:file.sha256})) }));
+}
+const duplicateVersions = duplicateGroups(migrationFiles);
+const recoveredDuplicateVersions = duplicateGroups(recoveredFiles);
+const migrationVersions = groupByVersion(migrationFiles);
+const recoveredVersions = groupByVersion(recoveredFiles);
+const crossDirectoryVersionCollisions = [...migrationVersions.entries()]
+  .filter(([version]) => recoveredVersions.has(version))
   .sort(([a], [b]) => a.localeCompare(b))
-  .map(([version, files]) => ({ version, files: files.map(file => ({path:file.path,name:file.name,sha256:file.sha256})) }));
+  .map(([version, migrationGroup]) => ({
+    version,
+    migrations: migrationGroup.map(file => ({path:file.path,name:file.name,sha256:file.sha256})),
+    recovered: recoveredVersions.get(version).map(file => ({path:file.path,name:file.name,sha256:file.sha256}))
+  }));
 
 const byName = new Map();
 for (const file of allFiles) byName.set(file.name, [...(byName.get(file.name) ?? []), file]);
@@ -78,8 +95,11 @@ const report = {
   recovered_archive_is_executable: false,
   total_sql_file_count: allFiles.length,
   invalid_filename_count: invalidNames.length,
-  unique_filename_version_count: byVersion.size,
-  duplicate_version_groups: duplicateVersions,
+  executable_unique_filename_version_count: groupByVersion(migrationFiles).size,
+  executable_duplicate_version_groups: duplicateVersions,
+  recovered_archive_unique_filename_version_count: groupByVersion(recoveredFiles).size,
+  recovered_archive_duplicate_version_groups: recoveredDuplicateVersions,
+  cross_directory_version_collisions: crossDirectoryVersionCollisions,
   duplicate_basename_groups: duplicateNames.map(([name, files]) => ({name,paths:files.map(file=>file.path)})),
   conflicting_duplicate_copies: conflictingCopies,
   missing_required_sources: missingRequired,
@@ -95,13 +115,19 @@ const report = {
 console.log(JSON.stringify(report, null, 2));
 if (invalidNames.length) console.error("Invalid migration filenames:", invalidNames.map(file=>file.path).join(", "));
 if (duplicateVersions.length) {
-  for (const {version,files} of duplicateVersions) console.error(`Duplicate migration version ${version}: ${files.map(file=>file.path).join(" | ")}`);
+  for (const {version,files} of duplicateVersions) console.error(`Duplicate executable migration version ${version}: ${files.map(file=>file.path).join(" | ")}`);
+}
+if (recoveredDuplicateVersions.length) {
+  console.warn("Recovered archive contains duplicate versions; archive is not executable and needs source reconciliation:", JSON.stringify(recoveredDuplicateVersions));
+}
+if (crossDirectoryVersionCollisions.length) {
+  console.warn("Version prefixes occur in both executable and archival directories; compare exact content and keep recovered archive non-executable:", JSON.stringify(crossDirectoryVersionCollisions));
 }
 if (conflictingCopies.length) {
   for (const item of conflictingCopies) console.error(`Same filename with different content: ${item.name}`);
 }
 if (missingRequired.length) console.error("Missing required migration sources:", missingRequired.join(", "));
 assert.equal(invalidNames.length, 0, "Every migration filename in both source directories must use the 14-digit timestamp convention");
-assert.equal(duplicateVersions.length, 0, "Migration versions must be globally unique across executable and recovered source inventories");
+assert.equal(duplicateVersions.length, 0, "Migration versions must be unique within supabase/migrations; recovered archive versions are reported separately because that directory is non-executable");
 assert.equal(conflictingCopies.length, 0, "Same-name copies across source directories must have identical SHA-256");
 assert.equal(missingRequired.length, 0, "Every required S04 migration source must exist in supabase/migrations");
