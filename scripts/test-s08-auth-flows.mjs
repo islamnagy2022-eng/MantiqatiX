@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 
 const app = fs.readFileSync("web/app.js", "utf8");
 const smm = fs.readFileSync("web/smm.js", "utf8");
+const customerRegistration = fs.readFileSync("supabase/functions/mnty-customer-registration/index.ts", "utf8");
+const registrationReview = fs.readFileSync("supabase/functions/mnty-registration-review/index.ts", "utf8");
 const checks = [];
 function check(name, fn) {
   try { fn(); checks.push({ name, status: "PASS" }); }
@@ -72,6 +74,28 @@ check("Auth boot does not silently sign out a user", () => {
 });
 check("Only one explicit sign-out call exists in the main web auth source", () =>
   assert.equal([...app.matchAll(/sb\.auth\.signOut\(\)/g)].length, 1));
+
+check("Customer registration function validates bearer token with Auth", () => {
+  has(customerRegistration, 'req.headers.get("Authorization")', "authorization header");
+  has(customerRegistration, "admin.auth.getUser(token)", "server-side token validation");
+  has(customerRegistration, "actor.is_anonymous", "anonymous-user rejection");
+});
+check("Customer registration constrains tenant and uses atomic RPC", () => {
+  has(customerRegistration, 'tenantId !== "MNTY-PLATFORM"', "canonical customer tenant");
+  has(customerRegistration, '"activate_customer_registration_atomic"', "atomic activation RPC");
+});
+check("Registration review validates actor and uses atomic review RPC", () => {
+  has(registrationReview, "admin.auth.getUser(token)", "server-side token validation");
+  has(registrationReview, "actor.is_anonymous", "anonymous-user rejection");
+  has(registrationReview, '"review_registration_request_atomic"', "atomic review RPC");
+  has(registrationReview, "request_id_and_decision_required", "required request/decision");
+});
+check("Registration endpoints restrict method and browser origin", () => {
+  for (const source of [customerRegistration, registrationReview]) {
+    has(source, 'req.method !== "POST"', "POST-only guard");
+    has(source, 'origin !== allowedOrigin', "origin allow-list guard");
+  }
+});
 
 const failures = checks.filter(x => x.status === "FAIL");
 for (const result of checks) {
