@@ -208,3 +208,22 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Resolve the payment webhook ACL finding via source-path analysis and tests; do not apply grants or migrations to production without a separate explicit authorization.
 - Continue with safe P0/P1 work while honoring the previously recorded SMM feature freeze for initial launch; do not weaken SMM tests to force green.
 - No PR merge, deployment, production migration, production data write, or production privilege change occurred.
+
+## 2026-10-13 — SESSION-004 — Continue chronological migration replay
+
+### Exact-head evidence
+- Candidate head at inspection: 6b481ca4ea8d1b8d8855871db49b2ca262ad1801 on reconcile/rc425-458-current-main-20261011.
+- PR #207 is open/draft/unmerged. PR #218 is open/draft/unmerged.
+- Replay run 38349796102 at earlier head 5221973aad1cb37ebd411e6d896c57732da111d3 passed the historical-baseline preflight and disposable fixture injection, started the local Supabase stack after transient Docker Hub rate limits, and advanced through payment_provider_events. It then failed at migration 20260920211717_security_definer_surface_reduction_and_finance_rls.sql with ERROR: relation "public.settlement_attempts" does not exist (SQLSTATE 42P01), specifically while creating settlement_attempts_finance_read.
+- Read-only live catalog queries recovered 13 columns, the PK, amount CHECK, 3 FKs, unique (obligation_id, external_reference), idx_settlement_attempts_obligation, RLS enabled/forced, and current SELECT policy. The fixture contains schema only, no policy, grants, or data. Current ACL also denies service_role direct SELECT/INSERT and authenticated/anon SELECT/INSERT; no grants were changed.
+- Added supabase/tests/baselines/settlement_attempts.sql as a catalog-derived disposable-only compatibility baseline at version 20260920211715, immediately before the existing payment_provider_events baseline at 20260920211716 and policy migration 20260920211717.
+- Updated the replay workflow to inject the settlement fixture only in disposable CI, verify byte-for-byte copy, verify temporary files are untracked, and include it in the no-data-import guard.
+- Updated scripts/validate-historical-schema-baseline.mjs to fail closed on fixture provenance/schema/constraint/index/RLS/no-policy/no-grant/no-data drift, timestamp collisions, and historical finance-policy contract drift.
+- Exact-head workflow run set for 6b481ca4ea8d1b8d8855871db49b2ca262ad1801 is still pending/in progress as of this entry; replay run 38350384105 has not yet produced a conclusion. The previous full replay remains FAIL; the new candidate replay is NOT VERIFIED.
+- No production DDL, data, privileges, Auth, RLS, deployment, merge, or financial records were changed.
+
+### Next executable actions
+1. Inspect run 38350384105 after completion; if validator fails, correct the exact assertion rather than relaxing the gate.
+2. If replay proceeds, diagnose the next chronological migration error and recover its source/schema evidence; do not assume this fixture closes all replay gaps.
+3. Investigate the separate live payment-webhook service_role ACL mismatch only through source analysis and disposable tests; any production privilege change requires separate explicit authorization.
+4. Keep release BLOCKED / NOT CERTIFIED until full exact-head replay and all P0 gates have evidence.
