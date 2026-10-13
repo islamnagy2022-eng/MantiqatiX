@@ -2,11 +2,11 @@ import { assertEquals, assertRejects, assertThrows } from "https://deno.land/std
 import { assertSafeProviderEndpoint, normalizeProviderBalance, readProviderJson } from "./provider-transport.ts";
 
 Deno.test("S07_PROVIDER_001: only allowlisted HTTPS provider hosts are accepted", () => {
-  assertEquals(assertSafeProviderEndpoint("https://api.provider.example/v2", "api.provider.example").hostname, "api.provider.example");
-  assertThrows(() => assertSafeProviderEndpoint("https://evil.example/api", "api.provider.example"));
-  assertThrows(() => assertSafeProviderEndpoint("http://api.provider.example", "api.provider.example"));
-  assertThrows(() => assertSafeProviderEndpoint("https://user:pass@api.provider.example", "api.provider.example"));
-  assertThrows(() => assertSafeProviderEndpoint("https://api.provider.example:8443", "api.provider.example"));
+  assertEquals(assertSafeProviderEndpoint("https://api.provider.com/v2", "api.provider.com").hostname, "api.provider.com");
+  assertThrows(() => assertSafeProviderEndpoint("https://evil.example/api", "api.provider.com"));
+  assertThrows(() => assertSafeProviderEndpoint("http://api.provider.com", "api.provider.com"));
+  assertThrows(() => assertSafeProviderEndpoint("https://user:pass@api.provider.com", "api.provider.com"));
+  assertThrows(() => assertSafeProviderEndpoint("https://api.provider.com:8443", "api.provider.com"));
 });
 
 Deno.test("S07_PROVIDER_002: private, local, and IP literal hosts are rejected", () => {
@@ -23,8 +23,8 @@ Deno.test("S07_PROVIDER_002: private, local, and IP literal hosts are rejected",
 });
 
 Deno.test("S07_PROVIDER_003: empty allowlist fails closed", () => {
-  assertThrows(() => assertSafeProviderEndpoint("https://api.provider.example", undefined));
-  assertThrows(() => assertSafeProviderEndpoint("https://api.provider.example", " , "));
+  assertThrows(() => assertSafeProviderEndpoint("https://api.provider.com", undefined));
+  assertThrows(() => assertSafeProviderEndpoint("https://api.provider.com", " , "));
 });
 
 Deno.test("S07_PROVIDER_004: provider response requires JSON content type and successful status", async () => {
