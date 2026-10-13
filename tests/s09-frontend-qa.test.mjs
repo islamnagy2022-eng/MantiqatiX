@@ -174,7 +174,7 @@ test('S09-UX-005: reopening a digital page loads every field used by the editor 
 
 test('S09-FIN-001: admin credit UI validates positive amount and locks duplicate submissions', () => {
   const smm = read('web/smm.js');
-  assert.match(smm, /userId= document\.getElementById\('uid'\)/i);
+  assert.match(smm, /userId=\s*document\.getElementById\('uid'\)/i);
   assert.match(smm, /amount<=0/);
   assert.match(smm, /if\(button\.disabled\)return/);
   assert.match(smm, /button\.textContent='جارٍ إضافة الرصيد…'/);
