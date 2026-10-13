@@ -44,3 +44,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Next step:** require atomic event/state RPCs, replay ownership/status assertions, row-count checks, concurrent delivery/fault-injection tests, and sandbox reconciliation on exact candidate SHA.
 - **Session C report commit:** `5b93601ac16b163e2f42e99d9aa845b368dcacb4`.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C live SMM source recheck — 2026-10-13
+
+- **Verified live state:** `smm-gateway` is ACTIVE v10, `verify_jwt=true`, deployed source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. Read-only fetched source has `SMM_INITIAL_LAUNCH_DEFERRED=true` and returns `503 SMM_DEFERRED` for non-OPTIONS POST actions before authentication or any DB/provider/wallet operation.
+- **Qualification:** no live HTTP negative probe was performed because the connected tools did not expose a safe invoke path; therefore runtime status/body and zero-side-effect telemetry remain NOT VERIFIED. Do not mark SMM runtime PASS from source alone.
+- **Verified live DB state:** 283 migration ledger rows, last `20261008222845 / rc424_atomic_digital_page_payment_webhook`.
+- **Action performed:** appended live evidence and limitations to Session C acceptance report.
+- **Not performed:** no function invocation, production write, migration, secret/config change, deployment, or financial operation.
+- **Next step:** obtain an authorized safe negative runtime probe through an approved staging or operator route and capture version/hash/response/side-effect evidence. Continue tracking replay and payment blockers.
+- **Report commit:** `3123878584f143c3ff5df5de322221192f6a3c38`.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
