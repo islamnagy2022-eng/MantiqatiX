@@ -13,3 +13,20 @@ for(const [src,marker,label] of [
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
 console.log('RC424 digital pages/payment boundary validation: PASS');
+
+// S05 payment callback regression contract: the verified-signature gate must
+// precede every digital-page payment RPC invocation in the webhook source.
+for (const [marker,label] of [
+  ['async function hmacSha512Hex','Paymob HMAC-SHA512 implementation'],
+  ['async function verify','provider signature verifier'],
+  ['if(!HMAC_SECRET)return json({error:"PAYMENT_CALLBACK_NOT_CONFIGURED"','missing HMAC secret fails closed'],
+  ['INVALID_PROVIDER_SIGNATURE','invalid signature rejection'],
+  ['p_signature_verified:true','signature assertion passed only after verification']
+]) {
+  if (!webhook.includes(marker)) throw new Error('S05 webhook signature contract missing: '+label);
+}
+const signatureGate = webhook.indexOf('if(!(await verify(obj,order,source,value(raw.hmac??obj.hmac))))');
+const digitalPaymentRpc = webhook.indexOf('admin.rpc("process_verified_digital_page_payment_backend"');
+if (signatureGate < 0 || digitalPaymentRpc < 0 || signatureGate >= digitalPaymentRpc) {
+  throw new Error('S05 webhook signature gate must occur before the digital-page payment RPC');
+}
