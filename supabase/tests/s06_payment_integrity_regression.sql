@@ -54,6 +54,20 @@ begin
   end;
   if not rejected then raise exception 'NULL callback status was not rejected'; end if;
 
+  -- Unknown status values must be rejected explicitly as well as NULL.
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      target,'paymob:s06-invalid-status','TRANSACTION','PROCESSING',true,249.50,'EGP',
+      's06-invalid-status','s06-provider-order','{"suite":"S06","case":"invalid-status"}'::jsonb
+    );
+    raise exception 'TEST_FAILED: unsupported callback status unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_EVENT_STATUS_INVALID' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'unsupported callback status was not rejected'; end if;
+
   -- Zero and negative provider amounts must fail before an event is persisted.
   foreach n in array array[0, -1] loop
     rejected := false;
