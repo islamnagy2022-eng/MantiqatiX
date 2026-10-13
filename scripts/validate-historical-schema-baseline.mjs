@@ -173,6 +173,54 @@ if (!approvalPolicyMigration || approvalPolicyPriorCreation || !approvalPolicyBa
   process.exit(1);
 }
 
+// Validate both catalog-derived journal finance-read policies that the historical
+// ALTER POLICY migration expects to exist. The fixture is disposable-only, not source recovery.
+const journalFinancePolicyBaselinePath = "supabase/tests/baselines/journal_finance_read_policies.sql";
+const journalFinancePolicyBaseline = fs.readFileSync(journalFinancePolicyBaselinePath, "utf8");
+const journalFinancePolicyVersion = "20260927140495";
+const journalFinancePolicyTemporaryName = journalFinancePolicyVersion + "_test_only_live_derived_journal_finance_read_policies.sql";
+const journalFinancePolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const journalFinancePolicyPriorCreation = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < journalFinancePolicyMigration?.name.slice(0, 14) &&
+  /create\s+policy\s+journal_entries_finance_read\s+on\s+(?:public\s*\.\s*)?journal_entries\b/i.test(sql)
+) || migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < journalFinancePolicyMigration?.name.slice(0, 14) &&
+  /create\s+policy\s+journal_entry_lines_finance_read\s+on\s+(?:public\s*\.\s*)?journal_entry_lines\b/i.test(sql)
+);
+const journalFinancePolicyBaselineValid =
+  /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(journalFinancePolicyBaseline) &&
+  /2026-10-13/.test(journalFinancePolicyBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(journalFinancePolicyBaseline) &&
+  /NOT recovered historical policy-creation DDL/i.test(journalFinancePolicyBaseline) &&
+  /MUST NOT be applied to production/i.test(journalFinancePolicyBaseline) &&
+  /CREATE POLICY journal_entries_finance_read[\s\S]*ON public\.journal_entries[\s\S]*FOR\s+SELECT\s+TO\s+authenticated/i.test(journalFinancePolicyBaseline) &&
+  /um\.tenant_id::text = journal_entries\.tenant_id::text/i.test(journalFinancePolicyBaseline) &&
+  /CREATE POLICY journal_entry_lines_finance_read[\s\S]*ON public\.journal_entry_lines[\s\S]*FOR\s+SELECT\s+TO\s+authenticated/i.test(journalFinancePolicyBaseline) &&
+  /je\.id::text = journal_entry_lines\.journal_entry_id::text/i.test(journalFinancePolicyBaseline) &&
+  /um\.tenant_id::text = je\.tenant_id::text/i.test(journalFinancePolicyBaseline) &&
+  /um\.user_id = \(SELECT auth\.uid\(\)\)/i.test(journalFinancePolicyBaseline) &&
+  /um\.status::text = 'ACTIVE'/i.test(journalFinancePolicyBaseline) &&
+  /OWNER[\s\S]*ADMIN[\s\S]*MANAGER[\s\S]*FINANCE[\s\S]*ACCOUNTANT[\s\S]*FINANCE_MANAGER/i.test(journalFinancePolicyBaseline) &&
+  !/create table|alter table|\bgrant\b|\brevoke\b|create trigger/i.test(journalFinancePolicyBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.)/im.test(journalFinancePolicyBaseline);
+const journalFinancePolicyFailureReasons = [
+  ["missing ALTER POLICY migration", !journalFinancePolicyMigration],
+  ["earlier source policy creator exists; fixture may duplicate history", journalFinancePolicyPriorCreation],
+  ["live-derived fixture contract invalid", !journalFinancePolicyBaselineValid],
+  ["temporary migration file already exists", fs.existsSync(path.join(migrationDirectory, journalFinancePolicyTemporaryName))],
+  ["temporary version collision", migrations.some(({ name }) => name.slice(0, 14) === journalFinancePolicyVersion)],
+  ["temporary version is not earlier than ALTER POLICY", !journalFinancePolicyMigration || journalFinancePolicyVersion >= journalFinancePolicyMigration.name.slice(0, 14)],
+  ["expected ordered ALTER POLICY statements absent", !journalFinancePolicyMigration ||
+    !/alter policy journal_entries_finance_read on public\.journal_entries to authenticated;/i.test(journalFinancePolicyMigration.sql) ||
+    !/alter policy journal_entry_lines_finance_read on public\.journal_entry_lines to authenticated;/i.test(journalFinancePolicyMigration.sql)],
+].filter(([, failed]) => failed);
+if (journalFinancePolicyFailureReasons.length) {
+  for (const [reason] of journalFinancePolicyFailureReasons) console.error("P0 BLOCKED journal finance policy baseline: " + reason);
+  process.exit(1);
+}
+
 // Validate the catalog-derived general-ledger finance-read policy required by the same
 // historical ALTER POLICY migration. This is a disposable-only compatibility fixture.
 const generalLedgerPolicyBaselinePath = "supabase/tests/baselines/general_ledger_finance_read.sql";
