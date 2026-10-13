@@ -877,3 +877,14 @@ Root cause: the tracked migration history contains the privilege-lockdown migrat
 4. Continue the rest of the migration chain.
 
 Run [38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354483080) is still in progress at Supabase service startup. This is a harness correction plus a test-only compatibility baseline, **not** recovery of historical DDL. Do not alter production or treat the chain as PASS until the full replay finishes and all later gaps are resolved.
+
+
+## 2026-10-13 — Next historical source gap: marketing_leads
+
+- Read-only production catalog evidence confirms `public.marketing_leads` exists with UUID PK, requester/business/provider FKs, status/source check constraints, `idx_mkt_leads_status`, RLS + FORCE RLS, and the live policies `Users view own marketing leads`, `Users create marketing leads`, and `CRM managers view marketing leads`.
+- Read-only `supabase_migrations.schema_migrations` query returned no migration whose name identifies marketing-lead creation. Repository search also found no earlier committed `CREATE TABLE public.marketing_leads` migration. The chronological replay fails at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` because its `ALTER POLICY "Users view own marketing leads"` cannot run without the table/policy.
+- Added `supabase/tests/baselines/marketing_leads.sql` as a catalog-derived, test-only compatibility fixture and temporary migration version `20260927140496`. It contains no operational data and is injected only into a disposable replay. It includes only the owner-read policy required by the historical `ALTER POLICY`; later RC444/RC452 remain the owners of CRM-manager/insert policies.
+- The baseline validator now checks the exact live-derived table shape, FK/check constraints, RLS, policy, no-data/no-grant/no-trigger properties, missing prior creator, and ordering before the historical policy migration. The workflow verifies exact copy/untracked status before starting Supabase.
+- Workflow harness root fixes: replaced unstable Docker container discovery with a local DB URL; removed the unsupported `supabase migration up --local --version` usage, which returned the CLI version instead of targeting a migration. The workflow now applies the ACL SQL directly in disposable Postgres for the preflight assertion, then runs the normal migration runner so it records/replays the idempotent statement.
+- Latest replay run [38356535239](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356535239) has passed source/baseline validation and exact-copy checks, and is in disposable Supabase startup. Full chronological replay remains **IN PROGRESS / NOT VERIFIED**.
+- The test-only baseline is not historical-source recovery. Do not apply it to production, insert live rows, or treat replay as PASS until all subsequent migrations complete.
