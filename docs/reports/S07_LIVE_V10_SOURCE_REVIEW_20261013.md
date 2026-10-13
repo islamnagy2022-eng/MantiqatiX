@@ -128,3 +128,10 @@ A fresh read of the current `agent/s07-smm-gateway` branch confirms that `supaba
 The hard-coded `SMM_INITIAL_LAUNCH_DEFERRED=true` check occurs before authenticated action dispatch, so this stale action path remains blocked while the gate is intact. It must not be enabled by changing the constant or environment flags until the entrypoint is reconciled with the v10 helper modules and tests. The existing static validator already requires the v10 imports and is expected to fail against this entrypoint; retain that failure as a release block.
 
 This is a source-level finding only. No provider call, service sync, wallet mutation, migration, live function update, or deployment was performed.
+
+
+### Follow-up checkpoint — endpoint-policy failure isolated for next run
+
+The latest S07 CI run completed with 22 passing tests and one failure in the combined provider-endpoint test. The error was `Provider endpoint rejected by outbound URL policy`; the combined test did not identify which endpoint assertion triggered it. To avoid guessing at a fix, the test was split into separate cases for: an allowlisted HTTPS host, an unlisted host, HTTP, embedded credentials, and a non-standard port. This is test-only instrumentation to identify the exact failing condition on the next workflow run.
+
+The gateway entrypoint remains stale relative to deployed v10, and the validator intentionally blocks it. Do not remove the parity assertions or open the hard launch gate to make CI pass. The split-test run is queued; the endpoint-policy failure is not yet resolved.
