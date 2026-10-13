@@ -33,9 +33,11 @@ security definer
 set search_path = ''
 as $function$
 declare
-  v_user uuid := auth.uid();
+  v_user uuid;
   v_result jsonb;
 begin
+  -- Read request identity at execution time, not as a declaration initializer.
+  v_user := auth.uid();
   if v_user is null or p_admin_user_id is null or v_user <> p_admin_user_id then
     raise exception 'USER_CONTEXT_MISMATCH';
   end if;
@@ -77,12 +79,14 @@ security definer
 set search_path = ''
 as $function$
 declare
-  v_auth uuid := auth.uid();
+  v_auth uuid;
   v_from timestamptz := coalesce(p_from, 'epoch'::timestamptz);
   v_to timestamptz := coalesce(p_to, 'infinity'::timestamptz);
   v_ledger jsonb;
 begin
-  if v_auth is null or v_auth <> p_admin_user_id then
+  -- Read request identity at execution time, not as a declaration initializer.
+  v_auth := auth.uid();
+  if v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id then
     raise exception 'AUTH_REQUIRED';
   end if;
   if not public.mnty_can_platform_admin() then
