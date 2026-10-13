@@ -78,7 +78,39 @@ jobs:
           rename_legacy_alias "20261002191000_rc229_digital_page_payment_columns.sql" "20261002073331_rc229_digital_page_payment_columns.sql" &&
           rename_legacy_alias "20261002192000_rc230_digital_page_payment_events.sql" "20261002073419_rc230_digital_page_payment_events.sql" &&
           rename_legacy_alias "20261002110000_rc248_digital_page_content_publishing.sql" "20261002090131_rc248_digital_page_content_publishing.sql" &&
-          rename_legacy_alias "20261002100000_rc256_critical_fk_indexes.sql" "20261002094419_rc256_critical_fk_indexes.sql"
+          rename_legacy_alias "20261002100000_rc256_critical_fk_indexes.sql" "20261002094419_rc256_critical_fk_indexes.sql" &&
+          rename_legacy_alias "20261001200000_provider_location_markaz_baseline.sql" "20261001173313_provider_location_center_baseline.sql" &&
+          rename_legacy_alias "20261001201000_provider_location_center_policy.sql" "20261001173412_provider_location_center_policy.sql" &&
+          rename_legacy_alias "20261002123000_rc258_centralized_server_rbac.sql" "20261002122425_rc258_centralized_server_rbac.sql" &&
+          rename_legacy_alias "20261002123500_rc258_use_central_rbac_admin_ad.sql" "20261002122515_rc258_use_central_rbac_admin_ad.sql" &&
+          rename_legacy_alias "20261002150000_rc264_registration_review_audit_notifications.sql" "20261002142519_rc264_registration_review_audit_notifications.sql" &&
+          rename_legacy_alias "20261004004500_rc339_seed_mantiqati_official_showcase.sql" "20261004005819_rc339_seed_mantiqati_official_showcase.sql" &&
+          rename_legacy_alias "20261006110000_rc_mantigo_production_completion_v1.sql" "20261006101048_rc_mantigo_production_completion_v1.sql" &&
+          rename_legacy_alias "20261006133000_mantigo_p0_security_audit_notification_hardening.sql" "20261006103016_mantigo_p0_security_audit_notification_hardening.sql" &&
+          rename_legacy_alias "20261006150000_mantigo_matching_idempotency_v1.sql" "20261006103232_mantigo_matching_idempotency_v1.sql" &&
+          rename_legacy_alias "20261006121810_mantigo_rating_immutability_v1.sql" "20261006121907_mantigo_rating_immutability_v1.sql" &&
+          rename_legacy_alias "20261006170000_mantigo_trip_reason_hardening_v1.sql" "20261006131243_mantigo_trip_reason_hardening_v1.sql" &&
+          rename_legacy_alias "20261006171000_mantigo_notification_lifecycle_v1.sql" "20261006140601_mantigo_notification_lifecycle_v1.sql" &&
+          rename_legacy_alias "20261006172000_mantigo_stale_expiration_engine_v1.sql" "20261006140650_mantigo_stale_expiration_engine_v1.sql" &&
+          rename_legacy_alias "20261006173000_mantigo_state_integrity_constraints_v1.sql" "20261006141819_mantigo_state_integrity_constraints_v1.sql" &&
+          rename_legacy_alias "20261006174000_mantigo_acceptance_integrity_trigger_v1.sql" "20261006142022_mantigo_acceptance_integrity_trigger_v1.sql" &&
+          rename_legacy_alias "20261006175000_mantigo_cancellation_reason_policy_v1.sql" "20261006142337_mantigo_cancellation_reason_policy_v1.sql" &&
+          rename_legacy_alias "20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql" "20261006144647_mantigo_customer_tracking_and_finance_indexes_v1.sql" &&
+          rename_legacy_alias "20261006181000_mantigo_admin_dashboard_kpi_rpc_v1.sql" "20261006144733_mantigo_admin_dashboard_kpi_rpc_v1.sql" &&
+          rename_legacy_alias "20261006184500_mantigo_captain_earnings_dashboard_v2.sql" "20261006154605_mantigo_captain_earnings_dashboard_v2.sql" &&
+          rename_legacy_alias "20261006190000_mantigo_admin_financial_report_v1.sql" "20261006154704_mantigo_admin_financial_report_v1.sql" &&
+          rename_legacy_alias "20261006214500_mantigo_financial_config_rls_v1.sql" "20261006184441_mantigo_financial_config_rls_v1.sql" &&
+          rename_legacy_alias "20261007001000_mantigo_abuse_rate_limits_v1.sql" "20261006212355_mantigo_abuse_rate_limits_v1.sql" &&
+          rename_legacy_alias "20261007002000_mantigo_rate_limit_idempotency_compat_v1.sql" "20261006212705_mantigo_rate_limit_idempotency_compat_v1.sql" &&
+          rename_legacy_alias "20261006235500_job_application_backend_submit_v1.sql" "20261007011733_job_application_backend_submit_v1.sql" &&
+          rename_legacy_alias "20261007021500_reverse_bidding_server_authority_v1.sql" "20261007011736_reverse_bidding_server_authority_v1.sql" &&
+          rename_legacy_alias "20261007030000_cleanup_duplicate_job_application_index_v1.sql" "20261007011740_cleanup_duplicate_job_application_index_v1.sql" &&
+          rename_legacy_alias "20261007060000_education_request_server_authority_v1.sql" "20261007021723_education_request_server_authority_v1.sql" &&
+          rename_legacy_alias "20261007023000_remove_duplicate_mantigo_bids_index_v1.sql" "20261007022318_remove_duplicate_mantigo_bids_index_v1.sql" &&
+          rename_legacy_alias "20261007064000_mantigo_rate_limit_internal_boundary_v1.sql" "20261007064228_mantigo_rate_limit_internal_boundary_v1.sql" &&
+          rename_legacy_alias "20261007073000_harden_private_order_status_trigger_execute_v1.sql" "20261007065754_harden_private_order_status_trigger_execute_v1.sql" &&
+          rename_legacy_alias "20261008000001_rc422_security_definer_caller_contract_v1.sql" "20261007223944_rc422_security_definer_caller_contract_v1.sql" &&
+          rename_legacy_alias "20261008000002_rc423_restrictive_authenticated_guard_policies.sql" "20261008125422_rc423_convert_authenticated_guard_policies_to_restrictive.sql"
             normalization_rc=$?
             if [ "$normalization_rc" -eq 0 ]; then
               node scripts/validate-migration-version-uniqueness.mjs > s04-replay-evidence/normalized-version-validation.log 2>&1
