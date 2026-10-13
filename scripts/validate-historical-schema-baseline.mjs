@@ -980,7 +980,7 @@ const providerBaselineVersion = "20260927074158";
 const credentialsBaselineVersion = "20260927074159";
 const adminsBaselineVersion = "20260927033923";
 const createsAdminsTable = migrations.some(({ sql }) =>
-  /\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:(?:"?public"?)\\s*\\.\\s*)?"?smm_admins"?\\b/i.test(sql)
+  /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:(?:"?public"?)\s*\.\s*)?"?smm_admins"?\b/i.test(sql)
 );
 
 for (const baselinePath of [adminsBaselinePath, providerBaselinePath, credentialsBaselinePath]) {
@@ -1013,12 +1013,12 @@ const credentialsChecks = [
 
 const adminsBaseline = fs.readFileSync(adminsBaselinePath, "utf8");
 const adminsChecks = [
-  ["admin table has exact observed UUID user_id and timestamp columns", /user_id\\s+uuid\\s+not\\s+null/i.test(adminsBaseline) && /created_at\\s+timestamptz\\s+not\\s+null\\s+default\\s+now\\(\\)/i.test(adminsBaseline)],
-  ["admin table has primary key and auth.users cascade foreign key", /primary\\s+key\\s*\\(\\s*user_id\\s*\\)/i.test(adminsBaseline) && /foreign\\s+key\\s*\\(\\s*user_id\\s*\\)[\\s\\S]*references\\s+auth\\.users\\s*\\(\\s*id\\s*\\)[\\s\\S]*on\\s+delete\\s+cascade/i.test(adminsBaseline)],
-  ["admin table enables RLS without inventing policies or FORCE RLS", /enable\\s+row\\s+level\\s+security/i.test(adminsBaseline) && !/force\\s+row\\s+level\\s+security|create\\s+policy/i.test(adminsBaseline)],
-  ["admin table has no direct privileges and matches observed service_role ACL", /revoke\\s+all[\\s\\S]*from\\s+public\\s*,\\s*anon\\s*,\\s*authenticated\\s*,\\s*service_role/i.test(adminsBaseline) && /grant\\s+references\\s*,\\s*trigger\\s*,\\s*truncate[\\s\\S]*to\\s+service_role/i.test(adminsBaseline)],
+  ["admin table has exact observed UUID user_id and timestamp columns", /user_id\s+uuid\s+not\s+null/i.test(adminsBaseline) && /created_at\s+timestamptz\s+not\s+null\s+default\s+now\(\)/i.test(adminsBaseline)],
+  ["admin table has primary key and auth.users cascade foreign key", /primary\s+key\s*\(\s*user_id\s*\)/i.test(adminsBaseline) && /foreign\s+key\s*\(\s*user_id\s*\)[\s\S]*references\s+auth\.users\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i.test(adminsBaseline)],
+  ["admin table enables RLS without inventing policies or FORCE RLS", /enable\s+row\s+level\s+security/i.test(adminsBaseline) && !/force\s+row\s+level\s+security|create\s+policy/i.test(adminsBaseline)],
+  ["admin table has no direct privileges and matches observed service_role ACL", /revoke\s+all[\s\S]*from\s+public\s*,\s*anon\s*,\s*authenticated\s*,\s*service_role/i.test(adminsBaseline) && /grant\s+references\s*,\s*trigger\s*,\s*truncate[\s\S]*to\s+service_role/i.test(adminsBaseline)],
   ["admin baseline has approved source provenance and test-only warning", /2026-10-14/i.test(adminsBaseline) && /moyhiluyhjsujhwlyeuu/i.test(adminsBaseline) && /read-only PostgreSQL catalog introspection/i.test(adminsBaseline) && /NOT recovered historical DDL/i.test(adminsBaseline) && /Never apply this file to production/i.test(adminsBaseline)],
-  ["admin baseline contains no production data or operational mutations", !/^\\s*(?:insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+public\\.)/im.test(adminsBaseline)],
+  ["admin baseline contains no production data or operational mutations", !/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+public\.)/im.test(adminsBaseline)],
 ];
 const failed = [...providerChecks, ...credentialsChecks, ...adminsChecks].filter(([, ok]) => !ok);
 if (failed.length) {
