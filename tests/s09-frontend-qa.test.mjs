@@ -118,3 +118,16 @@ test('S09-FORM-002: SMM rejects non-finite/fractional quantities and prevents du
   assert.match(smm, /submit\.disabled=false/, 'submit must be restored after a request failure');
   assert.match(smm, /submit\.textContent=['"]جارٍ إرسال الطلب/, 'in-flight state should be visible to the user');
 });
+
+
+test('S09-SEC-003: SMM admin actions bind provider/service IDs through DOM data attributes', () => {
+  const smm = read('web/smm.js');
+  assert.match(smm, /data-config-provider=/, 'provider configuration must use a data attribute');
+  assert.match(smm, /data-sync-provider=/, 'provider sync must use a data attribute');
+  assert.match(smm, /data-set-price=/, 'price save must use a data attribute');
+  assert.match(smm, /querySelectorAll\('\[data-config-provider\]'\)/, 'provider configuration handler must be bound from the DOM');
+  assert.match(smm, /querySelectorAll\('\[data-sync-provider\]'\)/, 'provider sync handler must be bound from the DOM');
+  assert.match(smm, /querySelectorAll\('\[data-set-price\]'\)/, 'price save handler must be bound from the DOM');
+  assert.doesNotMatch(smm, /onclick=["'](?:configProvider|syncProvider|setPrice)\(/i, 'dynamic admin IDs must not be interpolated into inline handlers');
+  assert.match(smm, /input\.dataset\.priceService===String\(id\)/, 'price editor lookup must match its data ID without constructing selectors');
+});
