@@ -21,3 +21,16 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## Session C autonomous continuation — 2026-10-13
+
+- **Verified fact:** repository `main` observed at `8a56358d505d2c12878440037f7f24ba65d2ea10`; release remains blocked.
+- **Verified fact:** migration replay run [38347561816](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38347561816) failed before Supabase startup/replay because the second shell step referenced `credit_policies_baseline` without declaring it. The same verification step also lacks local declarations for the other two credit baseline paths and all three corresponding temporary migration paths.
+- **Action performed:** posted a coordination comment on PR #207: [6138521154](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138521154). No workflow edit made because the file is owned by the active migration-reconciliation workstream.
+- **Verified fact:** MantiGO S02 integration run [38343317017](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343317017) failed with `AUTH_REQUIRED` inside the financial-report RPC after the simulated JWT subject was switched to platform admin. RC462 malformed-permission test printed PASS, but full integration failed.
+- **Action performed:** posted a coordination comment on PR #219: [6138522148](https://github.com/islamnagy2022-eng/MantiqatiX/pull/219#issuecomment-6138522148), asking the owner to verify the exact checkout SHA, executed RC523 body, and identity observed at the failure point.
+- **Not performed:** no production writes, migration applications, Auth/RLS/GRANT changes, financial mutations, Edge Function deployments, merges, or release.
+- **Next step:** re-check new exact-head CI for PR #207 and PR #219 after owners' fixes; inspect replay logs beyond the bootstrap step and require full MantiGO behavioral success. Continue independent read-only checks meanwhile.
+- **Session C branch checkpoint commit:** `83b4bd72328d78754a1fd5c195825a8dcf3a5420`.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
