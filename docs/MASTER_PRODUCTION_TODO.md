@@ -1693,3 +1693,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Leaked Password Protection is still disabled; enablement remains an authorized Supabase Auth/dashboard action and has not been changed in this session.
 - The `digital_page_payment_events` no-policy condition remains fail-closed by design until the service-role/RPC access path and least-privilege grants are explicitly reconciled.
 - Source: read-only Supabase Security Advisor snapshot observed at `2026-10-13T13:18:40.718Z`. Release remains BLOCKED.
+
+
+### S06 conflicting-event race — 2026-10-13 13:19 UTC
+- [x] Added and ran a second two-session regression that races `SUCCEEDED` and `FAILED` callbacks using the same provider event ID. Exact-head [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421) passed; the log confirms `S06 conflicting callback race: PASS`.
+- Verified behavior: exactly one conflicting callback can win, the other returns `DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH`, only one event remains, and the order status matches the persisted event.
+- This is isolated PostgreSQL evidence only; it does not certify real Paymob/settlement/refund or production ledger E2E. Candidate [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237) remains DRAFT/unmerged.
