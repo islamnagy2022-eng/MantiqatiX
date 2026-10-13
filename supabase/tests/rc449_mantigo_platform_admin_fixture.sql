@@ -17,16 +17,15 @@ returns uuid
 language plpgsql
 volatile
 as $function$
+declare
+  v_uid uuid;
 begin
-  -- Temporary disposable-test diagnostic: reveal only whether the platform fixture
-  -- identity reaches each call site. This file is never deployed to production.
-  if current_setting('request.jwt.claim.sub',true) = '10000000-0000-4000-8000-000000000044' then
-    raise notice 'RC449_AUTH_DIAG setting=% context=%',
-      current_setting('request.jwt.claim.sub',true), pg_catalog.pg_context;
-  end if;
-  -- PL/pgSQL avoids SQL-function inlining so each simulated request reads the
-  -- current JWT subject rather than a value folded into the enclosing DO statement.
-  return nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
+  -- Execute dynamically: current_setting() is STABLE and a cached PL/pgSQL
+  -- expression can retain the first simulated JWT subject for the entire DO block.
+  -- Each invocation must read the current request GUC, as a separate HTTP request would.
+  execute 'select nullif(current_setting(''request.jwt.claim.sub'', true), '''')::uuid'
+    into v_uid;
+  return v_uid;
 end
 $function$;
 
