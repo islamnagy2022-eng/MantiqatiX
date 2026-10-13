@@ -19,12 +19,7 @@ begin
   -- Read request identity at execution time, not as a declaration initializer.
   v_auth := auth.uid();
   if v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id then
-    -- TEMPORARY DISPOSABLE-TEST DIAGNOSTIC. Remove before release; no production apply.
-    raise exception 'AUTH_REQUIRED'
-      using detail = pg_catalog.format(
-        'report identity mismatch: v_auth=%s, supplied_actor=%s, live_auth_uid=%s, current_user=%s',
-        v_auth, p_admin_user_id, auth.uid(), current_user
-      );
+    raise exception 'AUTH_REQUIRED';
   end if;
   if not public.mnty_can_platform_admin() then
     raise exception 'PLATFORM_ADMIN_REQUIRED';
