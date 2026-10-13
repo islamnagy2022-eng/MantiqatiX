@@ -135,3 +135,15 @@ This is a source-level finding only. No provider call, service sync, wallet muta
 The latest S07 CI run completed with 22 passing tests and one failure in the combined provider-endpoint test. The error was `Provider endpoint rejected by outbound URL policy`; the combined test did not identify which endpoint assertion triggered it. To avoid guessing at a fix, the test was split into separate cases for: an allowlisted HTTPS host, an unlisted host, HTTP, embedded credentials, and a non-standard port. This is test-only instrumentation to identify the exact failing condition on the next workflow run.
 
 The gateway entrypoint remains stale relative to deployed v10, and the validator intentionally blocks it. Do not remove the parity assertions or open the hard launch gate to make CI pass. The split-test run is queued; the endpoint-policy failure is not yet resolved.
+
+
+## Follow-up checkpoint — current S07 and S09 CI evidence
+
+Date: 2026-10-13
+
+- S07 run `38342505446` completed **failure** at the intentional source-parity validator. All **44 Deno helper tests passed** (0 failed); the static validator then rejected the stale entrypoint because it does not import `./provider-transport.ts` and the other v10 helpers. This is the desired fail-closed result; do not weaken the validator to get a green run.
+- The validator's failure output still shows the legacy entrypoint has the old `sync_services` behavior (`selling_price = provider rate`, `active = true`, raw provider metadata) and legacy automatic refund logic. The hard launch gate is still ahead of the action dispatch. Keep the gateway disabled until the entrypoint is reconciled and isolated action tests pass.
+- S09 frontend QA run `38342361759` completed **success** at commit `3cd6eec1d48c3bc3e741587235fb7667840c1bcc`. Its 18 Node smoke tests passed, and the JS syntax check that had failed on an earlier head now passed. This is static/frontend smoke evidence only; it does not establish browser E2E, backend authorization, or production readiness.
+- Separate `Deploy MantiqatiX Web` workflow run `38342505487` completed successfully on the S07 branch, but a workflow-level success alone is not evidence of a production deployment. The Pages workflow's deploy job is gated to `main` pushes or manual dispatch; inspect the individual job before making any deployment claim.
+
+No live SMM function, database privilege, secret, provider, wallet, or production deployment was changed in this checkpoint.
