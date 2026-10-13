@@ -25,9 +25,15 @@ const required=[
 ];
 for(const [src,marker,label] of required){if(!src.includes(marker))throw new Error('Finance boundary marker missing: '+label);}
 if(payment.includes('body.amount') && !payment.includes('order.total')) throw new Error('Payment flow appears to trust client amount');
-if (/\.from\(["']payment_provider_events["']\)\s*\.\s*(?:select|insert|update|upsert|delete)\b/i.test(paymob) ||
-    paymob.includes('from("subscription_payment_intents").update') ||
-    paymob.includes('from("digital_page_orders").update')) {
-  throw new Error('Paymob webhook must not directly read or write provider-event/payment state; use atomic authoritative RPCs');
+const forbiddenWebhookTableWrites = [
+  /\.from\(["']payment_provider_events["']\)\s*\.\s*(?:insert|update|upsert|delete)\b/i,
+  /\.from\(["']payment_intents["']\)\s*\.\s*(?:insert|update|upsert|delete)\b/i,
+  /\.from\(["']subscription_payment_intents["']\)\s*\.\s*(?:insert|update|upsert|delete)\b/i,
+  /\.from\(["']digital_page_orders["']\)\s*\.\s*(?:insert|update|upsert|delete)\b/i,
+  /\.from\(["']mantigo_financial_ledger["']\)\s*\.\s*(?:insert|update|upsert|delete)\b/i
+];
+if (/\.from\(["']payment_provider_events["']\)\s*\.\s*select\b/i.test(paymob) ||
+    forbiddenWebhookTableWrites.some(pattern => pattern.test(paymob))) {
+  throw new Error('Paymob webhook must not directly read provider-event dedupe state or write payment/financial state; use atomic authoritative RPCs');
 }
 console.log('RC260 finance/payment boundary validation: PASS');
