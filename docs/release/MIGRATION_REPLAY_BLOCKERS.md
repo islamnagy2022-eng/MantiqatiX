@@ -782,3 +782,13 @@ A fresh read-only information_schema.columns query on the same project returned 
 - Implemented in branch: catalog-verified disposable baseline, fail-closed schema/policy validation, and exact-copy/untracked/no-data CI injection guard.
 - NOT VERIFIED yet: exact-head CI result for the latest source changes; complete chronological replay; final schema parity; webhook service-role write success in production; end-to-end payment/idempotency behavior.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-13 — Settlement attempts replay blocker
+
+Exact-head replay run 38349796102 (candidate 5221973aad1cb37ebd411e6d896c57732da111d3) passed preflight and disposable-only baseline injection, then failed in 20260920211717_security_definer_surface_reduction_and_finance_rls.sql while creating settlement_attempts_finance_read: ERROR: relation "public.settlement_attempts" does not exist (SQLSTATE 42P01).
+
+Read-only catalog evidence on project moyhiluyhjsujhwlyeuu recovered the current settlement_attempts shape: id, tenant_id, obligation_id, provider, destination_id, amount, currency, status, external_reference, failure_code, failure_message, created_at, updated_at; PK(id); CHECK(amount > 0); FKs to payout_destinations, financial_obligations and tenants with ON DELETE RESTRICT; UNIQUE(obligation_id, external_reference); index idx_settlement_attempts_obligation on (obligation_id, created_at DESC); RLS enabled and forced; current finance-read policy SELECT-only for authenticated roles OWNER/ADMIN/FINANCE/ACCOUNTANT/FINANCE_MANAGER. The observed index/creation source was not found in tracked migration history, so it is represented only in the disposable compatibility fixture.
+
+Implemented supabase/tests/baselines/settlement_attempts.sql and validator checks. CI injects it as 20260920211715_test_only_live_derived_settlement_attempts_baseline.sql before the existing payment_provider_events fixture and historical policy migration. Fixture deliberately omits policy/grants/data and is not historical DDL. No production change.
+
+Latest candidate head after this work: 6b481ca4ea8d1b8d8855871db49b2ca262ad1801. Replay run 38350384105 is pending/in progress; its outcome is NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
