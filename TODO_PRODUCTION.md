@@ -5,6 +5,14 @@
 
 ## Session Update — 2026-10-13 (evidence-backed; not a release approval)
 
+### Fresh read-only migration inventory — 2026-10-13
+- Live Supabase migration ledger: **283** applied entries; last observed version is `20261008222845` (`rc424_atomic_digital_page_payment_webhook`).
+- `main` contains **139** migration SQL files and **133** distinct 14-digit filename versions; **5 duplicate-version groups** contain 11 files.
+- Normalized-name comparison matched **106/283** ledger entries to at least one filename on current `main`; **177** ledger entries did not match a current-main filename by normalized name.
+- Three normalized filename names collide across distinct source files (`rc336_harden_authenticated_security_definer_search_paths`, `mantigo_financial_config_rls_hardening_v1`, `mantigo_legacy_rpc_boundary_hardening_v1`). These need hash/statement-level reconciliation, not name-only resolution.
+- **Interpretation:** this is a reconciliation inventory, not proof that every unmatched ledger entry is missing source. Version timestamps differ between applied ledger versions and SQL filenames; recovered source/archive and ledger statement evidence must be reconciled individually. Normalized names are not proof of SQL byte identity.
+- Read-only only: no migration ledger, production schema, data, grants, or deployment was changed.
+
 ### P0 — Current release blockers (revalidated)
 - [ ] **Clean migration replay — BLOCKED.** S04 clean replay normalizes known duplicate version prefixes only in the disposable CI checkout and preserves SQL SHA-256, but replay then stops at missing historical baseline dependencies. A prior exact-head run failed because `public.marketing_project_participants` was absent before migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`; another isolated replay surfaced missing `public.smm_provider_credentials`. Do not fabricate schema or skip migrations.
 - [ ] **Migration history/source convergence — BLOCKED.** Five duplicate migration-version groups were detected. Renaming committed history was rejected by the immutability gate; PR #233 is explicitly blocked/do-not-merge. PR #234 is a disposable-normalization experiment and remains blocked/superseded. Reconcile each live migration record to authoritative source before any release.
