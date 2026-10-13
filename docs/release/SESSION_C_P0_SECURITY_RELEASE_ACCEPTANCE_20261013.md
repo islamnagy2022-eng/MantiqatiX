@@ -80,3 +80,13 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 1. Wait for PR #207 owner/branch to add the six missing local path assignments to the verification step, preserving all exact-copy/untracked/no-data assertions; then inspect the new exact-head replay run and continue diagnosing any actual migration failure.
 2. Wait for PR #219 owner to diagnose `AUTH_REQUIRED` against the exact workflow checkout SHA and executed RC523 function; require a complete passing behavioral run, not just static validation.
 3. Continue independent read-only release checks and keep this record updated. Do not alter the owned S02 or migration-chain workflow files without coordination.
+
+
+## Payment webhook independent review — 2026-10-13
+
+- **Source inspected:** PR #220 branch `test/s06-payment-integrity-20261013`, `supabase/functions/paymob-webhook/index.ts`, blob SHA `04d502fb2e01b1f751e10f6ac68b4814ccf220d5`.
+- **Verified source findings:** subscription and MantiGO branches acknowledge an existing provider event based only on `provider + external_event_id` without checking its bound intent/order and compatible status; generic payment-intent branch retrieves `payment_intent_id` but does not compare it with the current intent before returning idempotent success. MantiGO failure/success processing persists event and ledger state in separate REST calls and does not check affected-row count; generic failure inserts event and updates intent separately and ignores the update result. Subscription failure updates status separately and uses a different event-persistence path.
+- **Risk:** cross-entity replay can be incorrectly acknowledged, and partial failures or status races can leave provider-event records inconsistent with payment state. Source inspection is not proof that all deployed branches share the same code.
+- **Coordination:** posted review to [PR #220](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220), comment [6138530408](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138530408), requesting branch-specific replay tests, atomic event/state transitions, affected-row checks, concurrent delivery/fault injection, and sandbox reconciliation.
+- **Not performed:** no payment/refund/settlement operation, no production write, no Edge Function deployment, no changes to S06-owned files.
+- **Next step:** require the S06 owner to fix and test cross-intent replay and atomicity on an exact candidate SHA; independently verify its CI result before changing the release gate.
