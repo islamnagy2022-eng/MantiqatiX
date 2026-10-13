@@ -118,3 +118,31 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - **Action performed:** posted coordination comment [6138548754](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138548754). No PR-owned workflow changes were made.
 - **Next step:** update the PR trigger to include its intended base branch or rebase to main, then verify an actual exact-head CI run. Static validator source is not a passing CI result.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C follow-up — exact-head CI recheck (2026-10-13)
+
+### PR #207 — replay moved past fixture guard; chronological replay still fails
+
+- **Run inspected:** [38347614461](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38347614461), job `replay-all-migrations`.
+- **Verified:** schema preflight and temporary fixture copy/untracked/no-row guards passed, so the previous `credit_policies_baseline: unbound variable` failure is no longer the terminal error in this run.
+- **Environment limitation:** Supabase local startup encountered repeated Docker Hub `toomanyrequests: Rate exceeded` responses.
+- **New replay failure:** `ERROR: relation "public.payment_provider_events" does not exist (SQLSTATE 42P01)`.
+- **Interpretation:** this is a distinct migration source/ordering/provenance blocker. Do not fabricate a fixture or reorder historical migrations without authoritative lineage. Full replay remains **FAIL / NOT VERIFIED**.
+- **Coordination:** posted [follow-up comment 6138654676](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138654676).
+
+### PR #219 — exact behavior test remains failed
+
+- **Run inspected:** [38337855864](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38337855864), job `platform-admin-postgres`.
+- **Verified:** static contract passed 25/25 and RC462 malformed-permission regression printed PASS, but the behavior suite failed at `rc449-test.sql:245` with `PLATFORM_ADMIN_REQUIRED` during authorized settlement. A later run also failed at the financial-report path with `AUTH_REQUIRED`.
+- **Interpretation:** no full behavior-suite pass. Identity/guard evaluation in test setup needs isolation and exact executed-function inspection. A stale STABLE guard evaluation is only a hypothesis; do not weaken authorization or run production settlement.
+- **Coordination:** posted [follow-up comment 6138655168](https://github.com/islamnagy2022-eng/MantiqaTix/pull/219#issuecomment-6138655168).
+
+### PR #220 and #225 — current CI interpretation
+
+- **PR #220:** the focused S06 Payment Integrity Regression job passed on the inspected head, but the separate S04 Migration Chain Clean Replay job failed; deployment was cancelled. This does not close webhook atomicity/replay gaps or certify the release.
+- **PR #225:** no workflow run was returned for exact head `acb6466afbfdadd76570ab9404aa37551e1a2b92`. Its current base/filter mismatch remains unresolved; source validator presence is not CI evidence.
+
+## Current release decision
+
+**BLOCKED / NOT CERTIFIED.** No production writes, migration application, financial mutation, Edge Function deployment, merge, or release were performed. Continue only through read-only verification, disposable CI, and owner-coordinated source fixes.
