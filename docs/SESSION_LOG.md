@@ -174,3 +174,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #228: validator + disposable PostgreSQL pass; Deno check fails before source diagnostics because transitive `npm:openai@^4.52.5` is not provisioned in node_modules. Posted root-cause and proposed `deno check --node-modules-dir=auto --no-lock ...` correction at [comment 6138974795](https://github.com/islamnagy2022-eng/MantiqatiX/pull/228#issuecomment-6138974795). Keep type-check required and rerun exact head.
 - PR #225 SMM static security regression passed at head `4117a7788f2ec632269e46870dea51863fe274ef`, [run 38351776942](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351776942); this does not establish live gateway denial.
 - No production changes. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Exact-head replay failure update — 2026-10-13 05:33 UTC
+
+- PR #207 run [38351761328](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351761328) completed FAIL at migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`: `commission_transactions_finance_read` policy missing. Preflight, test-only baseline injection, and service startup passed; the chronological chain has not passed.
+- Read-only source search found only the ALTER statement; live `pg_policies` confirms the policy exists with active same-tenant finance-role SELECT scope. Posted root-cause and safe remediation options at [PR #207 comment 6138988836](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138988836). No fixture added without approval and no production changes.
+- PR #228 Deno type-check remains blocked on transitive npm package provisioning, despite static and PostgreSQL tests passing; see [6138974795](https://github.com/islamnagy2022-eng/MantiqatiX/pull/228#issuecomment-6138974795).
+- Release remains **BLOCKED / NOT CERTIFIED**.
