@@ -110,3 +110,11 @@ Do not label the release ready until required CI on the final candidate passes, 
 - [ ] **P0: live SMM containment** — PR #225 static security contract passes at [run 38351776942](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351776942), but live gateway HTTP denial and deployed version/hash proof remain NOT VERIFIED.
 - [ ] Continue to treat release as **BLOCKED / NOT CERTIFIED** until live authorization/payment controls, complete chronological replay, backup/restore, tenant isolation, and exact production acceptance evidence pass.
 - Safety boundary: no production migrations, grants, Auth/RLS changes, financial mutations, Edge Function deploys, or PR merges performed.
+
+
+## New P0 dependency gap — 2026-10-13 05:33 UTC
+
+- [ ] **Migration replay still FAILS** on exact PR #207 head `1b85a440a647f29428d2183f392b0ad0c63b7607`, run [38351761328](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351761328). Failure: migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` alters missing policy `commission_transactions_finance_read`.
+- [ ] Recover authoritative policy creation history or obtain explicit approval for an isolated, live-derived test-only policy baseline that preserves the exact active-same-tenant finance-role predicate. Do not broaden, skip, or rewrite the historical migration. Root-cause note: [comment 6138988836](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138988836).
+- [ ] PR #228: keep Deno type-check enabled; provision transitive npm dependencies and rerun exact head after [comment 6138974795](https://github.com/islamnagy2022-eng/MantiqatiX/pull/228#issuecomment-6138974795).
+- No production change made; release **BLOCKED / NOT CERTIFIED**.
