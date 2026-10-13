@@ -53,6 +53,7 @@ jobs:
           bookings_baseline="supabase/tests/baselines/bookings.sql"
           legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
           settlement_baseline="supabase/tests/baselines/settlement_backend_10arg.sql"
+          settlement_attempts_baseline="supabase/tests/baselines/settlement_attempts.sql"
           credit_policies_baseline="supabase/tests/baselines/credit_policies.sql"
           credit_accounts_baseline="supabase/tests/baselines/credit_accounts.sql"
           credit_periods_baseline="supabase/tests/baselines/credit_periods.sql"
@@ -67,12 +68,13 @@ jobs:
           bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
           settlement_migration="supabase/migrations/20260920095705_test_only_live_derived_settlement_baseline.sql"
+          settlement_attempts_migration="supabase/migrations/20260920211715_test_only_live_derived_settlement_attempts_baseline.sql"
           credit_policies_migration="supabase/migrations/20260920155450_test_only_live_derived_credit_policies_baseline.sql"
           credit_accounts_migration="supabase/migrations/20260920155451_test_only_live_derived_credit_accounts_baseline.sql"
           credit_periods_migration="supabase/migrations/20260920155452_test_only_live_derived_credit_periods_baseline.sql"
           payment_provider_events_migration="supabase/migrations/20260920211716_test_only_live_derived_payment_provider_events_baseline.sql"
-          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$legacy_functions_baseline" "$settlement_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline"; do test -f "$file"; done
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration" "$settlement_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"; do test ! -e "$file"; done
+          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" $legacy_functions_baseline" "$settlement_baseline" "$settlement_attempts_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline"; do test -f "$file"; done
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" $legacy_functions_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"; do test ! -e "$file"; done
           cp "$legacy_businesses_baseline" "$legacy_businesses_migration"
           cp "$legacy_products_baseline" "$legacy_products_migration"
           cp "$legacy_orders_baseline" "$legacy_orders_migration"
@@ -83,6 +85,7 @@ jobs:
           cp "$bookings_baseline" "$bookings_migration"
           cp "$legacy_functions_baseline" "$legacy_functions_migration"
           cp "$settlement_baseline" "$settlement_migration"
+          cp "$settlement_attempts_baseline" "$settlement_attempts_migration"
           cp "$credit_policies_baseline" "$credit_policies_migration"
           cp "$credit_accounts_baseline" "$credit_accounts_migration"
           cp "$credit_periods_baseline" "$credit_periods_migration"
@@ -132,12 +135,13 @@ jobs:
           cmp -s "$bookings_baseline" "$bookings_migration"
           cmp -s "$legacy_functions_baseline" "$legacy_functions_migration"
           cmp -s "$settlement_baseline" "$settlement_migration"
+          cmp -s "$settlement_attempts_baseline" "$settlement_attempts_migration"
           cmp -s "$credit_policies_baseline" "$credit_policies_migration"
           cmp -s "$credit_accounts_baseline" "$credit_accounts_migration"
           cmp -s "$credit_periods_baseline" "$credit_periods_migration"
           cmp -s "$payment_provider_events_baseline" "$payment_provider_events_migration"
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$legacy_functions_migration" "$settlement_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
-          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" $legacy_functions_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
+          ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|copy[[:space:]]+(public|private)\.)' "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$profiles_migration" "$providers_migration" $credentials_migration" "$bookings_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"
           echo "PASS: exact untracked temporary baseline copies; no production rows are imported. Function fixtures are definition-only and are never invoked by replay."
 
       - name: Setup Supabase CLI
