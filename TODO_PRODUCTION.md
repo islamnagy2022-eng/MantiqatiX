@@ -471,3 +471,14 @@ This checkpoint supplements, and does not erase, earlier records. PR heads and e
 - This confirms the immediate replay failure location, but does not establish the missing table's authoritative historical DDL. The live catalog remains evidence of current state only. Keep PR #235 fail-closed; do not invent a migration or add a live-derived disposable fixture without explicit user approval.
 - No production DDL/grants/data, secrets, payments, SMM provider calls, merge to `main`, or production deployment was performed. Release remains **BLOCKED — NOT PRODUCTION CERTIFIED**.
 - Next executable action: continue searching authoritative repository history/archive and migration ledger evidence for the table's creation source; if none is recoverable, request the narrowly scoped decision on a clearly labeled disposable-CI-only compatibility fixture before making that change. Then rerun the complete chronological disposable replay.
+
+
+## 2026-10-13 — Migration ledger reconciliation checkpoint
+
+- [x] Confirmed live ledger records `20260927140545_remove_anonymous_sensitive_policy_access_v2`; tracked migration file remains `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`.
+- [x] Closed PR #240 unmerged after exact-head migration-history immutability check failed. The guard intentionally rejects historical file deletion/rename; do not bypass it or duplicate the same SQL under a second version.
+- [x] Added decision record: `docs/RC52_MIGRATION_LEDGER_RECONCILIATION_DECISION_20261013.md`.
+- [x] Rechecked PR #239 exact-head checks: Backend-only Module Boundary, MantiGO privacy boundary, and Module Professionalization passed; Pages validation passed but deployment was skipped for the pull_request event.
+- [ ] Recover authoritative applied SQL/checksum for version `20260927140545` and authoritative creation DDL/order for `public.marketing_project_participants`.
+- [ ] Re-run complete chronological disposable migration replay after provenance is resolved.
+- **Release remains BLOCKED — NOT PRODUCTION CERTIFIED.** No production schema/data/ledger mutation, merge to main, or deployment occurred.
