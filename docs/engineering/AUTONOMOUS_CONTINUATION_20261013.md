@@ -562,3 +562,15 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 2. Reconcile PR #207's current `mergeable=false` state without overwriting other sessions' commits.
 3. Continue clean replay one proven dependency at a time; never synthesize a historical source migration or claim historical provenance from catalog-derived fixtures.
 4. Re-run SMM source/unit/security regression on PR #225's exact latest SHA and preserve the release block until P0 live RPC authorization is fixed through the separately approved release path.
+
+
+## Replay checkpoint result and SMM event-baseline wiring — 2026-10-13 14:23 UTC
+
+- Staged replay run [#38411957851](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38411957851) proved the previous skip was a runner-ordering issue: when the test-only 40492 migration was isolated from later versions, Supabase applied it, and both the local migration ledger row and the expected `settlement_transactions_finance_read` policy were present. The staged checkpoint itself therefore **PASS** on commit `bfdaf276fede8fd852b08c6ed58ccfc382687381`.
+- The run then proceeded to `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` and failed on `ERROR: relation "public.smm_order_events" does not exist (SQLSTATE 42P01)`. This is the next real dependency gap.
+- Root cause: the repository already contains an explicitly labeled catalog-derived disposable-only baseline at `supabase/tests/baselines/smm_order_events.sql`, and the historical-schema validator requires it, but the replay workflow did not inject it. The existing baseline creates only the table plus its observed owner-read policy, no rows and no grants.
+- Fixed the workflow wiring in PR #207 branch commit `3cda510e07822252dff19b283a4d60ea1dd552d4`: inject the existing approved baseline as temporary migration `20260927140491_test_only_live_derived_smm_order_events_baseline.sql`, verify exact-copy/untracked status, and place it before the 40492 policy checkpoint. This is disposable replay only and does not add or modify a committed historical migration.
+- New exact-head CI is **NOT VERIFIED** yet. Because the temporary table baseline includes a foreign key to `public.smm_orders`, the next run may reveal whether that dependency also lacks historical creation source; if it does, stop and capture the error rather than adding a guessed table schema.
+- PR #207 briefly reported `mergeable=false` after the new commit; recheck mergeability before any review action. No merge is authorized.
+- SMM security CI run [#38411840045](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38411840045) passed static security-contract validation, service-role boundary validation, Deno type checking, and the SMM helper unit tests on the preceding code-bearing revision. The subsequent PR #225 update was documentation-only; exact latest SHA status should still be rechecked.
+- Release remains `BLOCKED / NOT CERTIFIED`: production MantiGO admin RPCs remain unguarded; Paymob webhook v8 has source/ACL drift and missing RPC dependencies; clean historical migration provenance is not yet recovered. No production state changed.
