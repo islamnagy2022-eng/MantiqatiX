@@ -16,6 +16,7 @@ on:
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql"
+      - "supabase/migrations/20261013200000_rc523_mantigo_financial_report_canonical_columns.sql"
       - "supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
