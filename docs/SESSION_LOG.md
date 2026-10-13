@@ -295,3 +295,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Searched repository sources for the missing SMM schema creation. `supabase/tests/rc456_smm_service_role_fixture.sql` contains table definitions, but it is explicitly a disposable test fixture and explicitly disclaims synthesizing the historical baseline. It is not authoritative migration history and must not be promoted into executable migrations.
 - Appended exact-head CI evidence and fixture provenance to `docs/release/s04-migration-chain-clean-replay-report.md`.
 - No migration SQL, production schema/data/ledger, grants/RLS/Auth, or Edge Functions were modified. No production writes, merge, or deployment. S04 remains **BLOCKED / NOT CERTIFIED** pending authentic source recovery and reviewed duplicate-version reconciliation.
+
+
+## RC551 — SMM schema-source provenance search — 2026-10-13
+
+- Reviewed merged PR #203 metadata and diff. It corrects only the disposable RC456 SMM ACL test fixture and explicitly reiterates that it does not resolve the historical full-replay blocker.
+- Searched current repository sources for `CREATE TABLE public.smm_providers`, `public.smm_provider_credentials`, and related SMM table definitions. Search surfaced the RC456 test fixture and documentation, but no authoritative historical table-creation migration source.
+- Recorded the provenance result and its limits in the S04 report. A bounded repository search is not proof that no source exists on other branches or in verified archives.
+- No SQL migration changed; no baseline migration synthesized; no production writes, merge, or deployment.
