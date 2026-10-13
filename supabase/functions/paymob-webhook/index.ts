@@ -48,7 +48,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
      console.error("SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId,e.code??"DB_ERROR");
      return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
    }
-   return json({ok:true,status:String(processed?.status??"ACTIVE"),result:processed,requestId},200,requestId)
+   return json({ok:true,status:String(processed?.status??"ACTIVE"),idempotent:processed?.idempotent===true,requestId},200,requestId)
  }
  const {data:digitalByRef}=await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
  const {data:digitalByOrder}=digitalByRef?{data:null}:await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
@@ -126,5 +126,5 @@ const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_i
    const result=failed&&typeof failed==="object"?failed as Record<string,unknown>:{};
    return json({ok:true,status:value(result.status)||"FAILED",idempotent:result.idempotent===true,requestId},200,requestId);
  }
- const {data:processed,error:e}=await admin.rpc("process_verified_provider_payment",{p_event_id:eventId,p_tenant_id:intent.tenant_id,p_provider:"PAYMOB",p_external_event_id:eventId,p_payment_intent_id:intent.id,p_event_type:"TRANSACTION",p_signature_verified:true,p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_platform_received_amount:amount});if(e)return json({error:"PAYMENT_PROCESSING_FAILED",requestId},500,requestId);return json({ok:true,status:"SUCCEEDED",result:processed,requestId},200,requestId)
+ const {data:processed,error:e}=await admin.rpc("process_verified_provider_payment",{p_event_id:eventId,p_tenant_id:intent.tenant_id,p_provider:"PAYMOB",p_external_event_id:eventId,p_payment_intent_id:intent.id,p_event_type:"TRANSACTION",p_signature_verified:true,p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_platform_received_amount:amount});if(e)return json({error:"PAYMENT_PROCESSING_FAILED",requestId},500,requestId);return json({ok:true,status:"SUCCEEDED",idempotent:processed?.idempotent===true,requestId},200,requestId)
 }catch(e){return json({error:"CALLBACK_FAILED",requestId},500,requestId)}})
