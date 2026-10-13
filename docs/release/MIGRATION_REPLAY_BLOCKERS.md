@@ -755,3 +755,30 @@ The validator now checks explicit approval/provenance wording, required schema s
 - Candidate source commit `42e13ccbf2aec909ec22c6b735cdcc3799b58e15` ran replay workflow [38348433595](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38348433595).
 - The validator passed the credit-baseline checks with unconstrained `numeric` amount types and then failed closed at the documented `payment_provider_events` historical dependency before Supabase startup. This confirms the new type checks accept the corrected fixture shape; it does **not** constitute a full replay pass.
 - The replay remains **BLOCKED / NOT CERTIFIED** until authoritative creation DDL for `payment_provider_events` is recovered or the owner separately approves a properly evidenced disposable-only schema contract. Do not use a guessed table shape to proceed.
+## 2026-10-13 — Read-only catalog recovery and next replay dependency
+
+### payment_provider_events schema evidence
+
+The previous preflight stopped at 20260920211717_security_definer_surface_reduction_and_finance_rls.sql because no earlier repository migration creates public.payment_provider_events. A fresh read-only catalog query against project moyhiluyhjsujhwlyeuu on 2026-10-13 recovered its current schema shape:
+
+- Columns in order: id varchar NOT NULL, tenant_id varchar NOT NULL, provider varchar NOT NULL, event_type varchar NOT NULL, payment_intent_id varchar NULL, external_event_id varchar NOT NULL, status varchar NOT NULL DEFAULT 'RECEIVED', signature_verified boolean NOT NULL DEFAULT false, payload_hash varchar NULL, raw_payload jsonb NOT NULL DEFAULT '{}'::jsonb, processed_at timestamptz NULL, error_message text NULL, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP.
+- Constraints: primary key (id); unique (provider, external_event_id); payment_intent_id references payment_intents(id) ON DELETE SET NULL; tenant_id references tenants(id) ON DELETE RESTRICT.
+- Existing secondary indexes: idx_payment_provider_events_payment_intent_id and idx_payment_provider_events_tenant_id; the chronological RC256 migration is responsible for creating these indexes during replay.
+- Current security metadata: RLS enabled and FORCE RLS enabled. The existing payment_provider_events_finance_read policy is SELECT-only for authenticated, scoped by active tenant membership and the OWNER/ADMIN/FINANCE/ACCOUNTANT/FINANCE_MANAGER role set. The ordered historical policy migration remains the only source for that policy; the fixture intentionally contains no policy or grants.
+- A read-only privilege query returned ACL postgres=arwdDxtm/postgres, authenticated=rm/postgres, service_role=Dxtm/postgres; anon has no SELECT/INSERT, authenticated has SELECT but no INSERT, and service_role has no SELECT/INSERT/UPDATE/DELETE table privileges according to has_table_privilege. This is a separate P0 payment-webhook runtime concern because the repository/live webhook source reads this table and the write path must be verified against actual privileges/RPCs before launch. Do not grant privileges in production as part of replay work; establish the intended least-privilege write boundary and a separately authorized rollout plan.
+- No table rows, provider payloads, event IDs, credentials, or other production data were queried or copied.
+
+### Disposable-only fixture
+
+Added supabase/tests/baselines/payment_provider_events.sql as a read-only-catalog-verified compatibility fixture. It defines the observed columns and constraints, enables and forces RLS, and intentionally excludes policies/grants and all data. CI copies it byte-for-byte to 20260920211716_test_only_live_derived_payment_provider_events_baseline.sql in the disposable workspace only, immediately before the ordered finance-read policy migration. The validator checks the fixture's documented provenance, critical shape, RLS/FORCE RLS, absence of policies/grants/data-import statements, timestamp order, and the policy migration's expected role contract. This is not recovered historical DDL and is never for production use.
+
+### Credit typmod correction
+
+A fresh read-only information_schema.columns query on the same project returned numeric_precision=18 and numeric_scale=2 for all seven amount/generated columns across credit_policies, credit_accounts, and credit_periods. The earlier candidate edit changing these to unconstrained numeric was incorrect and has been reverted in all three fixtures and the validator. Current source now requires numeric(18,2), matching the latest live catalog evidence. This correction supersedes the interim type claim in the 2026-10-13 execution trail; no production change was made.
+
+### Evidence status
+
+- Verified by read-only live catalog queries: current table columns/defaults, constraints, indexes, RLS/FORCE RLS, finance-read policy, and table ACL as described above.
+- Implemented in branch: catalog-verified disposable baseline, fail-closed schema/policy validation, and exact-copy/untracked/no-data CI injection guard.
+- NOT VERIFIED yet: exact-head CI result for the latest source changes; complete chronological replay; final schema parity; webhook service-role write success in production; end-to-end payment/idempotency behavior.
+- Release remains BLOCKED / NOT CERTIFIED.
