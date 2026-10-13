@@ -1559,3 +1559,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Session C continuation — 2026-10-13 (latest evidence)
+
+- [ ] **P0 / BLOCKED — MantiGO admin authorization:** live four RPCs still observed as SECURITY DEFINER with broad tenant-role authorization; RC449/RC462 source candidates are not production remediation. PR #219 integration run [38343317017](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343317017) failed with `AUTH_REQUIRED` inside the financial-report RPC after simulated identity switch. Require exact-head full behavioral pass.
+- [ ] **P0 / BLOCKED — full migration replay:** PR #207 run [38347561816](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38347561816) stopped before Supabase/replay because the workflow verification step referenced undeclared `credit_policies_baseline` under `set -u`. Add six local variable declarations in that step, retain copy/untracked/no-data assertions, and rerun; only then evaluate chronological replay results.
+- [ ] **P0 / BLOCKED — SMM containment:** PR #221's source-level deferred-launch gate does not prove deployed runtime denial; obtain approved exact-version/hash and negative runtime evidence.
+- [ ] **P0 / BLOCKED — payment/webhook atomicity:** PR #220 still documents cross-entity replay validation, separate event/state writes, concurrent delivery, and provider sandbox reconciliation gaps.
+- [ ] **P1 / NOT VERIFIED — governance/DR:** confirm branch protection and required checks; demonstrate isolated backup restore with measured RPO/RTO and rollback rehearsal.
+- **Coordination:** Session C posted findings to PR #207 comment [6138521154](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138521154) and PR #219 comment [6138522148](https://github.com/islamnagy2022-eng/MantiqatiX/pull/219#issuecomment-6138522148). Session C did not modify those workstreams' owned workflow/migration/test files.
+- **Production safety:** no production writes, migration applications, Auth/RLS/GRANT changes, financial mutations, Edge Function deployments, merges, or releases were performed.
+- **Release decision:** `BLOCKED / NOT CERTIFIED`. Do not infer replay success from a workflow bootstrap fix; do not infer MantiGO authorization success from the isolated RC462 test alone.
