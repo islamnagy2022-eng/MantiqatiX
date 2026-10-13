@@ -56,7 +56,8 @@ create table public.user_memberships (
   business_id uuid,
   branch_id varchar,
   role varchar not null,
-  status varchar not null
+  status varchar not null,
+  created_at timestamptz not null default current_timestamp
 );
 create table public.businesses (
   id uuid primary key,
