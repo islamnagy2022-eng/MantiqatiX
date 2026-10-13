@@ -94,6 +94,25 @@ BEGIN
     RAISE EXCEPTION 'S03: expected 4 privileged functions to inspect, found %', v_count;
   END IF;
 
+
+  -- High-priority data-minimization guard: customer ride output should use an
+  -- explicit field allowlist, not serialize every bid/financial-ledger column.
+  -- Current production definition uses to_jsonb(b) and to_jsonb(f), so this
+  -- assertion is expected to flag the current implementation until reviewed.
+  SELECT pg_get_functiondef(p.oid)
+    INTO v_def
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public'
+    AND p.proname = 'list_mantigo_customer_rides_backend'
+    AND p.prosecdef;
+
+  IF v_def IS NULL THEN
+    RAISE EXCEPTION 'S03: customer ride listing function not found';
+  END IF;
+  IF v_def ILIKE '%to_jsonb(b)%' OR v_def ILIKE '%to_jsonb(f)%' THEN
+    RAISE EXCEPTION 'S03: customer ride RPC serializes full bid/financial rows; use an explicit public-field allowlist';
+  END IF;
+
   RAISE NOTICE 'S03 read-only SECURITY DEFINER contract assertions passed';
 END
 $s03$;
