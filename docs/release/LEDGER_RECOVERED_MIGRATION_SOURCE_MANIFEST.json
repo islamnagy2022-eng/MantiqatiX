@@ -1,0 +1,110 @@
+{
+  "recovery_date": "2026-10-14",
+  "source_project_id": "moyhiluyhjsujhwlyeuu",
+  "source_table": "supabase_migrations.schema_migrations",
+  "method": "Copied statements[1] verbatim from the live production migration ledger; no DDL was inferred or synthesized.",
+  "original_file_bytes_recovered": false,
+  "migration_statement_bytes_recovered": true,
+  "note": "The SQL statement text is recovered from the production ledger. This does not prove byte-for-byte identity with the original local migration files; keep release certification blocked until the complete source/ledger comparison and replay pass.",
+  "migrations": [
+    {
+      "version": "20261001113451",
+      "name": "restore_authenticated_read_grants_notifications_marketing_projects",
+      "path": "supabase/migrations/20261001113451_restore_authenticated_read_grants_notifications_marketing_projects.sql",
+      "statement_count": 1,
+      "bytes": 195,
+      "statement_sha256": "e5124a8c2d8c077d004ba8de2822b4b30af363cfbab546123432d159b2a1581d",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261001163708",
+      "name": "provider_onboarding_requests",
+      "path": "supabase/migrations/20261001163708_provider_onboarding_requests.sql",
+      "statement_count": 1,
+      "bytes": 11047,
+      "statement_sha256": "663bf2d0fd93677967af876c18e93634b753a770a36fb27434780fde9fcb7812",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261001164118",
+      "name": "harden_provider_onboarding_tenant_scope",
+      "path": "supabase/migrations/20261001164118_harden_provider_onboarding_tenant_scope.sql",
+      "statement_count": 1,
+      "bytes": 3227,
+      "statement_sha256": "79bd034309a1b4313d11b474eeb5ecb00e1b7d5ad7725ef3ca83e8af0543cce6",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261001173122",
+      "name": "provider_location_selector_public_read",
+      "path": "supabase/migrations/20261001173122_provider_location_selector_public_read.sql",
+      "statement_count": 1,
+      "bytes": 375,
+      "statement_sha256": "35222bd1d695ea3dee843328d069149cd331e119965a4d1a78732c9b8d06fe52",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261005053703",
+      "name": "rc368_complete_sector_categories_27",
+      "path": "supabase/migrations/20261005053703_rc368_complete_sector_categories_27.sql",
+      "statement_count": 1,
+      "bytes": 495,
+      "statement_sha256": "224c25db88da6fab905db9e2d2b4aa0381e3c036f523d5c8fca071a62fe44d0b",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261006101110",
+      "name": "rc_mantigo_captain_read_contract_v1",
+      "path": "supabase/migrations/20261006101110_rc_mantigo_captain_read_contract_v1.sql",
+      "statement_count": 1,
+      "bytes": 1914,
+      "statement_sha256": "4986d47192c9a9adb4b12083f28615fa2bca7c99204de668e037d7563a85053c",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261006122809",
+      "name": "mantigo_financial_config_explicit_deny_policy_v1",
+      "path": "supabase/migrations/20261006122809_mantigo_financial_config_explicit_deny_policy_v1.sql",
+      "statement_count": 1,
+      "bytes": 322,
+      "statement_sha256": "a7939fa1d1ccdea93f5d46254c0145b265784d58056709f3bb575c5d5521c4e1",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261006122824",
+      "name": "mantigo_financial_config_policy_cleanup_v1",
+      "path": "supabase/migrations/20261006122824_mantigo_financial_config_policy_cleanup_v1.sql",
+      "statement_count": 1,
+      "bytes": 200,
+      "statement_sha256": "326e9e902dd060f646840e5f6cc79df84e135a0c419b6774c37eb748cbc73d87",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261006141122",
+      "name": "mantigo_trip_status_notification_merge_v1",
+      "path": "supabase/migrations/20261006141122_mantigo_trip_status_notification_merge_v1.sql",
+      "statement_count": 1,
+      "bytes": 4802,
+      "statement_sha256": "2c40d5355fd13ae3113465b6b7ca169f09c817ec685d92c057230896e0dd3751",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261006145156",
+      "name": "commission_engine_idempotency_and_preview_v1",
+      "path": "supabase/migrations/20261006145156_commission_engine_idempotency_and_preview_v1.sql",
+      "statement_count": 1,
+      "bytes": 1797,
+      "statement_sha256": "dadd573bad9970c9b211df2b63abbd5f33eef54cb96af8639df652186eb437e8",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20261006233409",
+      "name": "job_application_idempotency_v1",
+      "path": "supabase/migrations/20261006233409_job_application_idempotency_v1.sql",
+      "statement_count": 1,
+      "bytes": 122,
+      "statement_sha256": "c196c1fe3d594eb48d8059f8b8d16b55544cd82aec550ad664a881d42950eb3d",
+      "source": "live_production_ledger_statements[1]"
+    }
+  ]
+}
