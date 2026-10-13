@@ -270,7 +270,34 @@ jobs:
           exit 1
 
       - name: Replay every migration in repository timestamp order
-        run: supabase db reset --local
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The historical archive contains the EXECUTE-lockdown migration but not its
+          # function's creation DDL. Keep the approved live-derived definition test-only:
+          # replay up to its version, inject it into this disposable DB, then run the real
+          # lockdown migration and assert its ACL contract before continuing the full chain.
+          smm_bootstrap_baseline="supabase/tests/baselines/smm_bootstrap_first_admin.sql"
+          test -f "$smm_bootstrap_baseline"
+
+          supabase db reset --local --version 20260927033924
+
+          db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1 || true)"
+          if [ -z "$db_container" ]; then
+            echo "P0 BLOCKED: disposable Supabase PostgreSQL container not found." >&2
+            exit 1
+          fi
+          docker cp "$smm_bootstrap_baseline" "$db_container:/tmp/smm_bootstrap_first_admin.sql"
+          docker exec "$db_container" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f /tmp/smm_bootstrap_first_admin.sql
+          docker exec "$db_container" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -Atqc "SELECT to_regprocedure('public.smm_bootstrap_first_admin()') IS NOT NULL" | grep -qx t
+
+          # Apply and verify the historical ACL migration separately so a later unrelated
+          # failure cannot obscure whether the SMM trigger's direct EXECUTE was revoked.
+          supabase migration up --local --version 20260927033925
+          docker exec "$db_container" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -Atqc "SELECT NOT has_function_privilege('anon', p.oid, 'EXECUTE') AND NOT has_function_privilege('authenticated', p.oid, 'EXECUTE') AND NOT EXISTS (SELECT 1 FROM aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE') FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'smm_bootstrap_first_admin' AND pg_get_function_identity_arguments(p.oid) = ''" | grep -qx t
+
+          # Continue through every remaining migration in timestamp order.
+          supabase migration up --local
 
       - name: Record local migration ledger
         run: supabase migration list --local
