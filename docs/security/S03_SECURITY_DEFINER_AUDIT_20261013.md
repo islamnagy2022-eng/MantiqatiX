@@ -555,3 +555,27 @@ The current advisor response did not include the earlier leaked-password-protect
 ### Gate status
 
 No production settings, Auth configuration, database privileges, or Edge Function deployment were changed. No tests are represented as passed. The broader release remains **BLOCKED — NOT CERTIFIED** because runtime role-based tests, S03 test execution, source recovery/parity, and the remaining data-minimization/product-contract decisions are still outstanding.
+
+
+## Adjacent deployed Edge Function review — bounded-input and payment callback notes
+
+This appendix records cross-boundary observations found while checking the live deployment; it does not expand the SECURITY DEFINER count and does not claim exploitability without isolated verification.
+
+### Deployed artifact identities observed
+
+- `mnty-push-dispatch`: ACTIVE v2, `verify_jwt=false`, SHA-256 `3a3cb93a869e11bce2ab12eca2171434e6809cc63babcdf4ff8a5864d2c4aaa9`.
+- `payment-webhook`: ACTIVE v1, `verify_jwt=false`, SHA-256 `1a415557f2fccaec6704fcc01a4b71dbaedc95b5f9c611fef23781c4b18d8642`.
+- `paymob-webhook`: ACTIVE v8, `verify_jwt=false`, SHA-256 `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca`.
+- `mantigo-payment-intent`: ACTIVE v3, `verify_jwt=false`, SHA-256 `e011da9e9ec073084fc1dc68da0502936405869a50268dfe9f4fef3606d7ac23`.
+
+### Review items
+
+1. **Request body limits:** these four deployed functions parse a request using `req.json()` or read the full request text without an explicit application-level byte cap in the retrieved source. This is a resource-exhaustion hardening gap to validate against platform-level limits. Add a bounded streaming reader/content-length check and tests for oversized and malformed bodies before certifying; do not infer that an exploitable denial of service has been demonstrated.
+2. **Push-dispatch response data:** after checking `x-mnty-push-secret` against the database-held secret, the function selects subscriptions for the caller-supplied `user_id`, dispatches push notifications, and returns that same `user_id` plus delivery counts. Confirm the secret's callers/custody, rate limiting, authorization to target a user, and whether the user ID belongs in responses. The secret check is a meaningful control; the source alone does not establish unauthorized access.
+3. **Payment webhook trust boundary:** `payment-webhook` authenticates the full raw body with HMAC-SHA256 over `timestamp + "." + body`, enforces a five-minute timestamp window, and then calls `process_verified_provider_payment` only after checking `signatureVerified === true`. Because the HMAC secret authenticates the upstream sender rather than directly verifying the provider signature here, document and test the upstream sender's provider-verification and secret-custody contract. Timestamp freshness limits replay duration but is not a durable event-idempotency guarantee by itself.
+4. **Paymob callback idempotency/race review:** the deployed callback validates the Paymob HMAC and amount/currency matching and uses provider-event lookups or database RPCs in several paths. Some branches check for an existing event before a separate write/update; concurrency safety depends on unique constraints and conditional/atomic database operations. Verify each subscription, digital-page, MantiGO-ledger, and generic payment-intent path under duplicate/concurrent delivery in an isolated environment. Do not infer that all branches share the same atomicity guarantees.
+5. **MantiGO payment-intent concurrency:** the handler checks a ledger row for `REQUIRED`/ `PENDING`, may create a provider intention, then persists the provider details with an update conditioned on `payment_status = 'REQUIRED'`. A concurrent request may race to create another provider intention; a zero-row conditional update may not itself be surfaced as an error by the database client. Test concurrent requests and make provider-intent creation/persistence atomic or explicitly verify the updated row before returning a newly created client secret. This is a race-condition candidate requiring isolated reproduction, not a confirmed financial exploit.
+
+### Validation boundary
+
+No deployed function was invoked, no provider was contacted, and no payment, ride, push subscription, wallet, or order rows were read or changed for this appendix. No runtime tests were executed. These observations should be converted into isolated negative/concurrency tests and exact deployed-source parity checks before release certification.
