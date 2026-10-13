@@ -442,3 +442,30 @@ Read-only catalog inspection was extended to effective table/column privileges, 
 - No policy, grant, schema, Auth setting, or production data was changed.
 - Required before certification: resolve public-provider column contract, resolve MantiGo pre-acceptance phone/plate disclosure, run isolated role-based negative tests, inspect SMM gateway/RPC/Edge Function authorization, and execute the authored S03 SQL tests in an isolated database.
 - Status remains **BLOCKED — NOT CERTIFIED**; no tests are represented as passed.
+
+
+## Adjacent SMM gateway source review — main branch, not production parity
+
+Reviewed `supabase/functions/smm-gateway/index.ts` from `main` (blob SHA `26101b48d9ab4135b1174e39907f87bfc593076b`) to follow the SMM direct-table boundary into its trusted server-side gateway. This is a source review only. The production `smm-gateway` was previously recorded as deployed version 6 and not matching the current source; therefore none of these observations establish deployed runtime behavior until the deployed source/version is captured and compared.
+
+### SMM-GW-1 — provider call has no explicit timeout (availability / stuck-request risk)
+
+The shared `call()` helper uses `fetch(p.api_url, ...)` without an `AbortSignal`/deadline. A slow or non-responsive provider can keep an Edge Function invocation open and increase concurrency/resource pressure. Add a bounded timeout and classify timeout separately from definitive provider rejection; validate configured provider URLs against an approved scheme/host policy as part of provider onboarding.
+
+### SMM-GW-2 — automatic refund on ambiguous provider outcome (financial integrity risk)
+
+`place_order` inserts an order and debits the wallet before calling the external provider. Its catch path attempts `smm_refund_wallet` for every thrown error, including network errors or malformed/ambiguous provider responses that may occur after the provider accepted the order. The refund result is not checked, and the order status update result is not checked either. A provider-side accepted order plus a local timeout/response parse failure can therefore create a provider/customer/accounting mismatch; a failed refund can leave an inconsistent wallet/order state without a surfaced reconciliation state.
+
+Required hardening design: use a stable client idempotency key persisted before provider submission; persist provider submission intent and attempt IDs; distinguish definitive rejection from unknown outcome; on unknown outcome retain a `RECONCILIATION_REQUIRED`/equivalent state rather than automatically refunding; reconcile with provider status before refund; verify and record the refund RPC outcome and every critical persistence result. Implement only with isolated financial tests and a reviewed migration/API contract.
+
+### SMM-GW-3 — provider status sync lacks terminal-state and persistence guards
+
+`order_status` derives a new status from provider response and updates the order without an explicit terminal-state transition guard. It does not check the result of the order update or event insert, and returns success based on the derived status even if persistence failed. Add a centralized allowed-transition matrix, monotonic terminal-state rules, idempotent event persistence, and explicit handling when either write fails. Test repeated/out-of-order status responses and terminal states in disposable PostgreSQL.
+
+### SMM-GW-4 — error/result and write handling require contract minimization
+
+The gateway returns raw provider result in `order_status` and provider-derived error text in `place_order`. Review these payloads for provider internals, customer data, or sensitive metadata before exposing them to clients. Admin/provider reads and service sync also need validation of provider configuration and provider response fields; no provider call was executed during this review.
+
+### SMM gateway status
+
+These are actionable source-level risks, not proof of a live incident. Do not treat the `main` source as deployed truth: the deployed version 6/source mismatch must be reconciled first. Do not deploy or mutate production under this audit. Required evidence includes source/version parity, isolated tests for timeouts/ambiguous acceptance/refund failures/status races, and financial-ledger reconciliation. Release remains **BLOCKED — NOT CERTIFIED**.
