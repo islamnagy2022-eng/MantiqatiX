@@ -614,3 +614,21 @@ Candidate fix is in draft PR [#241](https://github.com/islamnagy2022-eng/Mantiqa
 2. Read the final result of run #38413885499; fix any fixture/function contract mismatch and rerun until RC425 and RC428–RC430 integration tests pass.
 3. Keep PRs #207, #225, and #241 unmerged/unreleased pending review, exact-head CI, and the approved production migration path.
 4. Continue P0 authorization and financial integrity review without production writes.
+
+
+## Verified Paymob atomic SQL regression and next SMM replay attempt — 2026-10-13 17:34 UTC
+
+- Latest PR #241 head: `c64df227fc5566fff327e6a1e26212e887d5bf5b`. Run [#38414086540](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38414086540) completed **SUCCESS**:
+  - Static atomic-webhook contract: PASS.
+  - RC425 MantiGO atomicity integration: PASS.
+  - RC428/RC429/RC430 failure/replay/terminal-state integration: PASS.
+  - Deno type-check of `supabase/functions/paymob-webhook/index.ts`: PASS.
+- The SQL regression suite caught an additional real RC430 defect: the function updated `subscription_payment_intents.provider_transaction_id`, but then used the stale pre-update row variable `v.provider_transaction_id` when inserting `business_subscriptions.provider_reference`. The test failed on the required `provider_reference NOT NULL` constraint. Candidate migration RC430 was corrected to insert the authenticated `p_provider_transaction_id` argument directly; the subsequent exact-branch integration run passed.
+- This is verified on disposable PostgreSQL only. PR #241 remains draft/open/unmerged. Live `paymob-webhook` v8 and production migrations remain unchanged. No provider transaction or production payment was executed.
+- SMM replay: new test-only baseline for `smm_wallet_transactions` is now included at `20260927140488`, before the SMM services/orders/order-events baselines (`40489`–`40491`). It was derived from read-only production catalog evidence, contains no rows or direct grants, and includes only the existing owner-read policy required by the later historical ALTER POLICY statement.
+- Latest replay attempt [#38414218162](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38414218162) was queued after the SMM baseline additions; its outcome is not yet verified.
+
+### Next actions
+1. Follow run #38414218162 to the next SQL outcome and continue resolving missing historical SMM table/policy dependencies with read-only schema evidence and disposable-only fixtures.
+2. Keep PR #241 draft/unmerged despite passing SQL/typing checks; obtain review and ensure RC425/RC428–RC430 migrations are released atomically with the webhook source in the approved release pipeline.
+3. Continue P0 live MantiGO authorization blocker remediation only through an explicitly approved production release process.
