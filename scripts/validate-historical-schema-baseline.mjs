@@ -1155,5 +1155,30 @@ for (const [version, temporaryName] of [
     process.exit(1);
   }
 }
+
+ // Wallet transactions policy fixture: exact predicate from read-only live pg_policies.
+ // Test-only compatibility input; not historical DDL and never for production.
+ const walletTransactionsPolicyMigration = migrations.find(({ name }) => name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql");
+ const walletTransactionsPolicyBaselinePath = "supabase/tests/baselines/wallet_transactions_finance_read.sql";
+ const walletTransactionsPolicyBaseline = fs.existsSync(walletTransactionsPolicyBaselinePath) ? fs.readFileSync(walletTransactionsPolicyBaselinePath, "utf8") : "";
+ const walletTransactionsPolicyBaselineVersion = "20260927140485";
+ const walletTransactionsPolicyTemporaryName = walletTransactionsPolicyBaselineVersion + "_test_only_live_derived_wallet_transactions_finance_read.sql";
+ const walletTransactionsPolicyBaselineValid =
+   /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(walletTransactionsPolicyBaseline) &&
+   /moyhiluyhjsujhwlyeuu/.test(walletTransactionsPolicyBaseline) &&
+   /2026-10-13/.test(walletTransactionsPolicyBaseline) &&
+   /NOT recovered historical policy-creation DDL/.test(walletTransactionsPolicyBaseline) &&
+   /MUST NOT be applied to production/.test(walletTransactionsPolicyBaseline) &&
+   /CREATE POLICY wallet_transactions_finance_read[\s\S]*ON public\.wallet_transactions[\s\S]*FOR SELECT[\s\S]*TO authenticated[\s\S]*um\.tenant_id::text = wallet_transactions\.tenant_id::text[\s\S]*um\.status::text = 'ACTIVE'[\s\S]*OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER/.test(walletTransactionsPolicyBaseline) &&
+   !/\b(insert\s+into|copy\s+(public|private)\.)/i.test(walletTransactionsPolicyBaseline);
+ if (!walletTransactionsPolicyMigration || !walletTransactionsPolicyBaselineValid ||
+     fs.existsSync(path.join(migrationDirectory, walletTransactionsPolicyTemporaryName)) ||
+     migrations.some(({ name }) => name.slice(0, 14) === walletTransactionsPolicyBaselineVersion) ||
+     walletTransactionsPolicyBaselineVersion >= walletTransactionsPolicyMigration.name.slice(0, 14) ||
+     !/alter policy wallet_transactions_finance_read on public\.wallet_transactions to authenticated;/i.test(walletTransactionsPolicyMigration.sql)) {
+   console.error("P0 BLOCKED: wallet_transactions finance-read test fixture failed provenance, tenant-scope, no-data, no-collision, or ordering validation.");
+   process.exit(1);
+ }
+
 console.log("Disposable compatibility preflight PASS: approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived function compatibility fixture validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
