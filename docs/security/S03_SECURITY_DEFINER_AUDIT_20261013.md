@@ -497,3 +497,21 @@ A fresh read of the live migration ledger confirms the latest applied migration 
 - No grants, policies, Auth settings, migrations, or production data were changed.
 - No role-based tests or S03 SQL tests were executed; there are still zero tests claimed as passed.
 - Release remains **BLOCKED — NOT CERTIFIED** until warning reconciliation, SMM deployed/source parity, product decisions on pre-acceptance bid identity disclosure, and isolated negative tests are complete.
+
+
+## Follow-up verification — sensitive RLS predicate review — 2026-10-13
+
+Reviewed live `pg_policies` definitions for the selected payment, wallet, ledger, tenant, order, ride, and bidding tables. This was metadata-only; no business rows were read and no role switching or write simulation was performed.
+
+### Positive policy observations (catalog only)
+
+- `general_ledger`, `payment_intents`, `payment_financial_reconciliations`, `payment_provider_events`, `wallet_accounts`, and `wallet_transactions` have SELECT policies requiring an active `user_memberships` row for the record's tenant and a finance/owner/admin-type role (with the precise allowed role list varying by table).
+- `orders` policies require a non-anonymous authenticated session for tenant/member/provider paths and scope access by customer identity, active tenant membership/role, or assigned provider identity. UPDATE policy is narrower than SELECT and limited to a role allowlist.
+- `mantigo_rides` SELECT is scoped to the owning customer or platform admin; `mantigo_bids` SELECT is scoped to the bid's captain, the customer owning the associated ride, or platform admin. Restrictive policies exclude anonymous Auth sessions.
+- `indrive_bids` INSERT binds provider identity to `auth.uid()`, requires `OFFERED` state, and delegates eligibility to `private.can_submit_indrive_bid`; SELECT/UPDATE predicates use `private.can_read_indrive_bid` and exclude anonymous Auth sessions. In the exact privilege snapshot, authenticated UPDATE and DELETE table privileges were false, so those policies alone do not establish a direct client mutation path.
+- `tenant_modules` reads require active membership in the row's tenant; management policies restrict changes to active OWNER/ADMIN membership. `tenant_payment_methods` management is restricted to active OWNER/ADMIN/MANAGER membership. `tenants` direct UPDATE has an explicit false policy, while SELECT requires active membership and a non-anonymous session.
+- Legacy `fashion_orders` and `restaurant_orders` have restrictive active-membership scope boundaries tied to tenant, business, and branch, alongside owner/admin policies.
+
+### Remaining uncertainty
+
+These policy definitions are encouraging static evidence, not proof of effective API behavior. Effective access also depends on grants, role inheritance, views, SECURITY DEFINER functions, PostgREST schema exposure, JWT claims, and the deployed application path. Isolated positive/negative tests remain mandatory, particularly for cross-tenant reads, anonymous Auth sessions, captain bid/contact disclosure, and payment/provider-event field minimization. No vulnerability or successful test is asserted solely from this catalog review.
