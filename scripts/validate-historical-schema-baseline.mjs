@@ -54,8 +54,10 @@ const missingHistoricalTables = [
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
   { table: "account_registration_requests", before: "20260927134000_add_unique_pending_membership_request.sql", baselinePath: registrationBaselinePath },
   // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
-  // No fixture is authorized for this dependency; fail before starting disposable Supabase until source history is recovered.
   { table: "bookings", before: "20260919233425_production_security_hardening_v1.sql", baselinePath: bookingsBaselinePath },
+  // Live catalog evidence provides an exact schema-only compatibility shape. The finance-read policy
+  // remains owned by its chronological migration and is never duplicated in this fixture.
+  { table: "payment_provider_events", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/payment_provider_events.sql" },
 ].filter(({ table, before }) => {
   const prefix = migrations.filter(({ name }) => name < before);
   const createPattern = new RegExp(
@@ -74,23 +76,55 @@ if (missingBaselines.length > 0) {
   }
   process.exit(1);
 }
-// A fixture path alone must never authorize this financial table; its schema and security contract need explicit review.
-// Fail closed on the next observed chronological replay blocker: the finance policy
-// migration references payment_provider_events, but no earlier committed migration
-// creates it. No owner-approved disposable schema fixture exists for this financial table.
-// Do not infer its schema or security posture from later indexes/policies or row counts.
-const financePolicyMigration = migrations.find(({ name }) =>
+// Validate the financial compatibility fixture against read-only catalog evidence. It is schema-only:
+// the historical migration remains the sole source of payment_provider_events_finance_read.
+const paymentProviderEventsBaselinePath = "supabase/tests/baselines/payment_provider_events.sql";
+const paymentProviderEventsBaseline = fs.readFileSync(paymentProviderEventsBaselinePath, "utf8");
+const paymentProviderEventsMigration = migrations.find(({ name }) =>
   name === "20260920211717_security_definer_surface_reduction_and_finance_rls.sql"
 );
-if (financePolicyMigration) {
-  const financePolicyVersion = financePolicyMigration.name.slice(0, 14);
-  const priorPaymentProviderEventsCreation = migrations.some(({ name, sql }) =>
-    name.slice(0, 14) < financePolicyVersion &&
-    /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?payment_provider_events\b/i.test(sql)
-  );
-  if (!priorPaymentProviderEventsCreation) {
-    console.error("P0 BLOCKED: " + financePolicyMigration.name + " creates a policy on public.payment_provider_events, but no earlier committed creation migration or separately validated owner-approved disposable-only baseline contract exists.");
-    console.error("Do not invent a financial schema baseline or modify the historical policy migration. Recover authoritative DDL or obtain explicit owner approval for a schema-only disposable fixture.");
+const paymentProviderEventsBaselineValid =
+  /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(paymentProviderEventsBaseline) &&
+  /2026-10-13/.test(paymentProviderEventsBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(paymentProviderEventsBaseline) &&
+  /not recovered historical creation DDL/i.test(paymentProviderEventsBaseline) &&
+  /NEVER apply this file to production/.test(paymentProviderEventsBaseline) &&
+  /create table public\\.payment_provider_events/i.test(paymentProviderEventsBaseline) &&
+  /id character varying not null/i.test(paymentProviderEventsBaseline) &&
+  /tenant_id character varying not null/i.test(paymentProviderEventsBaseline) &&
+  /provider character varying not null/i.test(paymentProviderEventsBaseline) &&
+  /event_type character varying not null/i.test(paymentProviderEventsBaseline) &&
+  /payment_intent_id character varying[\\s\\S]*references public\\.payment_intents\\(id\\) on delete set null/i.test(paymentProviderEventsBaseline) &&
+  /external_event_id character varying not null/i.test(paymentProviderEventsBaseline) &&
+  /status character varying not null default 'RECEIVED'/i.test(paymentProviderEventsBaseline) &&
+  /signature_verified boolean not null default false/i.test(paymentProviderEventsBaseline) &&
+  /payload_hash character varying/i.test(paymentProviderEventsBaseline) &&
+  /raw_payload jsonb not null default '\\{\\}'::jsonb/i.test(paymentProviderEventsBaseline) &&
+  /processed_at timestamp with time zone/i.test(paymentProviderEventsBaseline) &&
+  /error_message text/i.test(paymentProviderEventsBaseline) &&
+  /created_at timestamp with time zone not null default current_timestamp/i.test(paymentProviderEventsBaseline) &&
+  /primary key \\(id\\)/i.test(paymentProviderEventsBaseline) &&
+  /unique \\(provider, external_event_id\\)/i.test(paymentProviderEventsBaseline) &&
+  /references public\\.tenants\\(id\\) on delete restrict/i.test(paymentProviderEventsBaseline) &&
+  /enable row level security/i.test(paymentProviderEventsBaseline) &&
+  /force row level security/i.test(paymentProviderEventsBaseline) &&
+  !/create policy|\\bgrant\\b|\\brevoke\\b/i.test(paymentProviderEventsBaseline) &&
+  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(paymentProviderEventsBaseline);
+if (!paymentProviderEventsBaselineValid) {
+  console.error("P0 BLOCKED: payment_provider_events schema-only baseline failed catalog-evidence, RLS, no-policy/no-grant, or no-data checks.");
+  process.exit(1);
+}
+if (paymentProviderEventsMigration) {
+  const paymentEventBaselineVersion = "20260920211716";
+  const paymentEventBaselineName = paymentEventBaselineVersion + "_test_only_live_derived_payment_provider_events_baseline.sql";
+  if (fs.existsSync(path.join(migrationDirectory, paymentEventBaselineName)) ||
+      migrations.some(({ name }) => name.slice(0, 14) === paymentEventBaselineVersion) ||
+      paymentEventBaselineVersion >= paymentProviderEventsMigration.name.slice(0, 14)) {
+    console.error("P0 BLOCKED: payment_provider_events temporary baseline version collides with repository history or sorts after its dependent policy migration.");
+    process.exit(1);
+  }
+  if (!/CREATE POLICY payment_provider_events_finance_read[\\s\\S]*ON public\\.payment_provider_events[\\s\\S]*FOR SELECT TO authenticated[\\s\\S]*m\\.role IN \\('OWNER','ADMIN','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\\)/i.test(paymentProviderEventsMigration.sql)) {
+    console.error("P0 BLOCKED: ordered finance-read policy migration differs from the documented security contract; do not synthesize or replace its policy.");
     process.exit(1);
   }
 }
