@@ -30,6 +30,10 @@ check("integration rejects forged p_admin_user_id on all four privileged RPCs",
 check("unauthenticated and forged-identity attempts assert no settlement/expiration side effects",
   integration.includes("unauthenticated calls caused settlement/expiration side effects") &&
   integration.includes("forged admin UUID calls caused settlement/expiration side effects"));
+check("auth regressions assert expected rejection identifiers rather than accepting arbitrary errors",
+  integration.includes("sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED')") &&
+  integration.includes("sqlerrm='USER_CONTEXT_MISMATCH'"));
+
 
 check("integration denies anon on ride expiration and preserves authenticated entrypoint grants",
   integration.includes("anon must not execute platform ride expiration") &&
