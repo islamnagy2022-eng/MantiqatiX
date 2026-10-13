@@ -50,7 +50,7 @@
 
 - No restore was initiated. The available connected Supabase actions do not provide a safe, isolated restore-from-backup verification path; restoring the production project would be unsafe. A controlled restore test must target a separate disposable project/environment and verify schema, row counts/checksums, auth/storage requirements, and application smoke tests.
 - Read-only unified-log query returned 884 entries in the available window across edge, connection-pool, database, storage, auth, PostgREST, and function sources.
-- Message-level triage found five occurrences of `Warp server error: Thread killed by timeout manager`, three more repeated timeout messages, and one PostgreSQL `syntax error at or near "with"` occurrence. These are log-message counts, not confirmed incidents or a full alert audit; correlate timestamps, endpoints, and query plans before classifying.
+- Message-level triage found nine occurrences of `Warp server error: Thread killed by timeout manager`, and one PostgreSQL `syntax error at or near "with"` occurrence. These are log-message counts, not confirmed incidents or a full alert audit; correlate timestamps, endpoints, and query plans before classifying.
 - Backup schedule/retention, PITR eligibility, restore-point selection, alert delivery, on-call ownership, and recovery-time/recovery-point objectives have not been independently evidenced here.
 
 ## Clean migration replay gate
