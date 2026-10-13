@@ -15,7 +15,7 @@ CREATE TABLE public.credit_accounts (
   credit_policy_id character varying NOT NULL,
   approved_limit numeric NOT NULL DEFAULT 0,
   outstanding_amount numeric NOT NULL DEFAULT 0,
-  available_amount numeric(18,2) GENERATED ALWAYS AS (GREATEST((approved_limit - outstanding_amount), (0)::numeric)) STORED,
+  available_amount numeric GENERATED ALWAYS AS (GREATEST((approved_limit - outstanding_amount), (0)::numeric)) STORED,
   status character varying NOT NULL DEFAULT 'ACTIVE',
   next_due_date date,
   last_payment_at timestamptz,
