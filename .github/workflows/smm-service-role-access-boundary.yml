@@ -30,7 +30,9 @@ on:
       - "supabase/functions/smm-gateway/request-validation.ts"
       - "supabase/functions/smm-gateway/smm-gateway.test.ts"
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
+      - "supabase/migrations/20261013210000_rc524_smm_service_role_privilege_reset.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
+      - "supabase/tests/rc524_smm_service_role_privilege_reset.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
       - ".github/workflows/smm-service-role-access-boundary.yml"
 permissions:
