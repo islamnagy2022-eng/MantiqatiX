@@ -63,6 +63,7 @@ const missingHistoricalTables = [
   { table: "settlement_attempts", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/settlement_attempts.sql" },
   { table: "payment_provider_events", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/payment_provider_events.sql" },
   // The archived source changes this live RLS policy but does not create its table.
+  { table: "smm_wallet_transactions", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_wallet_transactions.sql" },
   { table: "smm_services", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_services.sql" },
   { table: "smm_orders", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_orders.sql" },
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
@@ -591,6 +592,39 @@ if (!smmBootstrapLockdownMigration || smmBootstrapPriorCreation || !smmBootstrap
     smmBootstrapBaselineVersion >= smmBootstrapLockdownMigration.name.slice(0, 14) ||
     !/revoke execute on function public\.smm_bootstrap_first_admin\(\) from public, anon, authenticated;/i.test(smmBootstrapLockdownMigration.sql)) {
   console.error("P0 BLOCKED: live-derived smm_bootstrap_first_admin fixture or its ordered EXECUTE lockdown contract is invalid.");
+  process.exit(1);
+}
+
+// Validate the live-derived SMM wallet-transaction table and owner-read policy
+// required by the historical migration that changes policy role scope.
+const smmWalletTransactionsBaselinePath = "supabase/tests/baselines/smm_wallet_transactions.sql";
+const smmWalletTransactionsBaseline = fs.readFileSync(smmWalletTransactionsBaselinePath, "utf8");
+const smmWalletTransactionsPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const smmWalletTransactionsBaselineVersion = "20260927140488";
+const smmWalletTransactionsTemporaryName = smmWalletTransactionsBaselineVersion + "_test_only_live_derived_smm_wallet_transactions_baseline.sql";
+const smmWalletTransactionsBaselineValid =
+  /READ-ONLY CATALOG-VERIFIED TEST-ONLY COMPATIBILITY BASELINE/.test(smmWalletTransactionsBaseline) &&
+  /2026-10-13/.test(smmWalletTransactionsBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(smmWalletTransactionsBaseline) &&
+  /NOT recovered historical creation DDL/.test(smmWalletTransactionsBaseline) &&
+  /MUST NEVER be applied to production/.test(smmWalletTransactionsBaseline) &&
+  /create table public\.smm_wallet_transactions/i.test(smmWalletTransactionsBaseline) &&
+  /id uuid primary key default gen_random_uuid\(\)/i.test(smmWalletTransactionsBaseline) &&
+  /user_id uuid not null references auth\.users\(id\) on delete cascade/i.test(smmWalletTransactionsBaseline) &&
+  /amount numeric\(18,8\) not null/i.test(smmWalletTransactionsBaseline) &&
+  /type text not null check \(type = any \(array\['CREDIT','DEBIT','REFUND','ADJUSTMENT'\]::text\[\]\)\)/i.test(smmWalletTransactionsBaseline) &&
+  /reference_id uuid/i.test(smmWalletTransactionsBaseline) &&
+  /alter table public\.smm_wallet_transactions enable row level security/i.test(smmWalletTransactionsBaseline) &&
+  /create policy smm_wallet_tx_owner_read[\s\S]*for select[\s\S]*to authenticated[\s\S]*auth\.uid\(\)[\s\S]*user_id/i.test(smmWalletTransactionsBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+public\.)/im.test(smmWalletTransactionsBaseline) &&
+  !/force row level security|\bgrant\b|\btrigger\b/i.test(smmWalletTransactionsBaseline);
+if (!smmWalletTransactionsPolicyMigration || !smmWalletTransactionsBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, smmWalletTransactionsTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === smmWalletTransactionsBaselineVersion) ||
+    smmWalletTransactionsBaselineVersion >= smmWalletTransactionsPolicyMigration.name.slice(0, 14)) {
+  console.error("P0 BLOCKED: SMM wallet transaction live-derived baseline or chronological policy contract is invalid.");
   process.exit(1);
 }
 
