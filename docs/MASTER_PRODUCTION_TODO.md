@@ -1739,3 +1739,27 @@ Evidence report: `docs/release/module-progress-report.md`.
 - Migration inventory: 283 production ledger rows, 160 repository migration files, 126 filenames timestamped at/before RC424 and 34 after it. Count-based indicator is 126/283 = 44.5%; exact mapping remains unverified. No `supabase/config.toml` or separate migration archive exists under `supabase/`. See `docs/release/migration-source-inventory-gap.md`.
 - **0/33** required post-RC424 migrations are proven applied; live ledger ends at `20261008222845`. Full chronological replay is NOT RUN and cannot be certified from the current source inventory.
 - Keep release BLOCKED while authentic historical source recovery, complete per-version ledger reconciliation, replay, and all mandatory E2E/security/recovery/device gates remain open.
+
+
+## Autonomous execution checkpoint — 2026-10-13 05:15 UTC
+
+This dated section supersedes older status statements above where they refer to a prior SMM version or prior replay result. Earlier entries remain preserved as historical evidence.
+
+### Verified
+- SMM gateway deployed-source check: Supabase reports ACTIVE v10, `verify_jwt=true`, entrypoint SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. The deployed entrypoint matches PR #218 source at `77012649e41fe22077538c39cd8593bf696ab33e` after newline normalization and contains the hard-disabled `SMM_INITIAL_LAUNCH_DEFERRED=true` gate. It returns `503 SMM_DEFERRED` before identity lookup, body parsing, provider, order, or wallet operations. No live HTTP request was sent.
+- SMM regression CI run [38349997044](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349997044) passed the source contract validator, service-role boundary validator, Deno type check, and SMM unit/negative-input tests on code-bearing commit `b1c43c1affeffd44e7e44d4ce07b554bc59a354d`, tested as synthetic merge commit `55974e2` against PR #218 head `77012649e41fe22077538c39cd8593bf696ab33e`. Later changes on that branch were documentation-only.
+- Live SMM ACL metadata: no direct SELECT/INSERT/UPDATE/DELETE grants to `anon`, `authenticated`, or `service_role` for the eight SMM tables. Secret/wallet RPCs remain service-role-executable and denied to ordinary client roles. RC456 candidate grants are not proven applied live; do not disable the hard launch gate before an approved post-launch rollout and tests.
+- Payment idempotency metadata exists in production: `payment_intents(tenant_id,idempotency_key)`, `payment_events(event_id)`, and `payment_provider_events(provider,external_event_id)` are unique.
+- Production MantiGO P0 recheck: `get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, and `expire_stale_mantigo_rides_backend` remain SECURITY DEFINER, executable by authenticated, configured with `search_path=public`, and do not call `mnty_can_platform_admin()`.
+
+### Current blockers
+- **P0 live authorization:** the four MantiGO RPCs above remain unsafe until the reviewed RC449/RC462 path is approved, applied through the production change process, and verified with live denial/allowance tests. Disposable candidate tests passing is not production proof.
+- **P1 chronological replay:** PR #207 run [38349796102](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349796102) passed baseline preflight and temporary-fixture integrity checks, started disposable Supabase, then failed at `20260920211717_security_definer_surface_reduction_and_finance_rls.sql` with `relation "public.settlement_attempts" does not exist (SQLSTATE 42P01)`. Read-only catalog inspection confirms the live table exists with RLS and FORCE RLS, but a read-only migration-ledger search found no `CREATE TABLE/ALTER TABLE settlement_attempts` statement. No baseline was created because prior approvals for SMM and credit tables do not automatically approve a new financial-table fixture.
+- **Payment deployment parity:** deployed `payment-intent` v6, `paymob-webhook` v8, `digital-page-payment-intent` v3, `subscription-payment-intent` v2, and `mantigo-payment-intent` v3 do not exactly match the PR #207 candidate entrypoints. `payment-webhook` v1 does match. This is a source/deployment parity blocker, not automatic proof of an exploitable incident; no webhook or payment request was executed.
+- SMM source/unit checks pass on the tested code commit, but HTTP side-effect tests and allowed-path post-launch tests remain NOT VERIFIED.
+- The separate diagnostic PR #226 was closed as superseded because PR #207 already owns the historical baseline validator and approved SMM fixtures. It was not merged.
+
+### Safety and release decision
+No production migrations, schema/data writes, grants, Auth/RLS changes, Edge Function deployments, wallet/payment operations, merges, or production releases were performed in this checkpoint.
+
+**Current release decision: `BLOCKED / NOT CERTIFIED`.** Next actions: continue PR #207 replay from the settlement-attempts lineage gap, obtain authoritative historical DDL or explicit approval for a clearly labeled disposable-only financial schema baseline, verify the exact next replay result, and keep production MantiGO authorization blocked until an approved deployment and live tests exist.
