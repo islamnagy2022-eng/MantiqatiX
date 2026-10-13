@@ -26,6 +26,74 @@ begin
   insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference,amount,captain_amount)
   values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null,999,888);
 
+  -- Unauthenticated caller cannot use a supplied platform-admin UUID as authority.
+  perform pg_catalog.set_config('request.jwt.claim.sub','',false);
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(platform_admin);
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'unauthenticated caller read platform dashboard'; end if;
+
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'unauthenticated caller read platform financial report'; end if;
+
+  rejected:=false;
+  begin
+    perform public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'unauthenticated caller reached settlement'; end if;
+
+  rejected:=false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(platform_admin,30);
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'unauthenticated caller reached ride expiration'; end if;
+  if (select settlement_status from public.mantigo_financial_ledger where ride_id='ride-rc449') <> 'READY'
+     or (select status from public.mantigo_rides where id='ride-stale-open') <> 'OPEN' then
+    raise exception 'unauthenticated calls caused settlement/expiration side effects';
+  end if;
+
+  -- A tenant identity cannot be overridden by spoofing p_admin_user_id.
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(platform_admin);
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'forged admin UUID read platform dashboard'; end if;
+
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'forged admin UUID read platform financial report'; end if;
+
+  rejected:=false;
+  begin
+    perform public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'forged admin UUID reached settlement'; end if;
+
+  rejected:=false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(platform_admin,30);
+  exception when others then rejected:=true;
+  end;
+  if not rejected then raise exception 'forged admin UUID reached ride expiration'; end if;
+  if (select settlement_status from public.mantigo_financial_ledger where ride_id='ride-rc449') <> 'READY'
+     or (select status from public.mantigo_rides where id='ride-stale-open') <> 'OPEN' then
+    raise exception 'forged admin UUID calls caused settlement/expiration side effects';
+  end if;
+
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
     raise exception 'tenant OWNER must not be treated as platform administrator';
