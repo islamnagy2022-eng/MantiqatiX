@@ -50,6 +50,8 @@ assert.match(rc523, /v_auth is null or p_admin_user_id is null or v_auth <> p_ad
 assert.match(rc523Test, /RC523 report must not be null/, "RC523 regression test must assert a non-null report response");
 assert.match(rc523Test, /gross_amount,commission_amount,captain_net_amount,[\s\S]*?amount,captain_amount/, "RC523 regression fixture must include canonical and legacy columns together");
 assert.match(rc523Test, /250,25,200,0\.10,'PAID','READY',999,888/, "RC523 regression fixture must deliberately diverge canonical and legacy amounts");
+assert.match(rc523Test, /drop column amount,[\s\S]*?drop column captain_amount/, "RC523 must be re-executed after removing legacy ledger aliases");
+assert.match(rc523Test, /RC523 must execute with canonical columns only/, "RC523 must prove compatibility with the canonical-only ledger schema");
 for (const field of ["ledger_count", "gross", "commission", "captain_amount", "paid_count", "paid_amount", "settled_count", "settled_amount", "unsettled_count", "unsettled_amount"]) {
   assert.ok(rc523Test.includes(`'RC523 ${field}`) || rc523Test.includes(`(v_report->>'${field}')`), `RC523 regression test must cover ${field}`);
 }
