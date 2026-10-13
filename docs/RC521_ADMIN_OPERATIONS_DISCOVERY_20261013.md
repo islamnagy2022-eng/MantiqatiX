@@ -156,3 +156,5 @@ These non-zero values preserve previously documented work. They are provisional 
 - Added the dedicated `mantigo-financial-report-rc523-integration` job to the focused integration workflow and included the RC523 migration/test paths in the trigger filters.
 - Current focused workflow run: [38326313929](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38326313929). At inspection, the RC523 job was queued; no pass is claimed.
 - No production changes, financial operations, merge, or release. Certification remains blocked pending completed CI and required production/runtime evidence.
+
+- Test-review correction: RC523 test assertions were adjusted to the single row inserted by its fixture (gross 250, commission 25, captain_amount 200, paid_amount 250, unsettled_amount 200). This remains unverified until the CI job completes.
