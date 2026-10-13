@@ -1628,3 +1628,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify the updated preflight on exact commit `8eca1e956cd256256f79d734f4886b211f2a5336` and capture the full dependency list.
 - [ ] BLOCKED: recover authoritative historical DDL or obtain explicit approval for a provenance-documented disposable-only compatibility baseline; do not infer credit schema from RC40 because known live/archive differences remain.
 - [ ] Do not merge PR #207 or apply post-RC424 migrations until clean replay and separate production reconciliation are approved.
+
+
+## 2026-10-13 — SMM trigger ACL replay root-cause checkpoint
+
+- [x] Read-only production catalog confirms `public.smm_bootstrap_first_admin()` exists as a `SECURITY DEFINER` trigger function with `search_path=public`; direct EXECUTE is denied to `anon` and `authenticated`.
+- [x] Latest failed replay identified the exact first SQL error: `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql` fails with SQLSTATE `42883` because the preceding historical creation DDL is absent from the committed migration archive.
+- [x] The prior CI workflow had an approved test-only live-derived fixture but the full `supabase db reset --local` run did not execute the temporary version `20260927033924` before the historical lockdown, so the fixture was not present at the failure point.
+- [x] Updated the migration replay workflow in commit `ae5f6f63672a0aa2947f3d20fc70cae7e99ff6d0`: reset the disposable database only through version `20260927033924`, inject the documented function fixture directly into the disposable Postgres container, apply the actual lockdown migration separately, assert PUBLIC/anon/authenticated cannot EXECUTE it, then continue the remaining migrations.
+- [ ] **P0 NOT VERIFIED:** exact-head run [38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354483080) is in progress at disposable Supabase service startup; no replay result yet.
+- [ ] Historical DDL provenance remains unresolved; the fixture is test-only and does not claim canonical history recovery. Do not merge or deploy based on a partial replay.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
