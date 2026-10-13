@@ -147,3 +147,17 @@ Date: 2026-10-13
 - Separate `Deploy MantiqatiX Web` workflow run `38342505487` completed successfully on the S07 branch, but a workflow-level success alone is not evidence of a production deployment. The Pages workflow's deploy job is gated to `main` pushes or manual dispatch; inspect the individual job before making any deployment claim.
 
 No live SMM function, database privilege, secret, provider, wallet, or production deployment was changed in this checkpoint.
+
+
+## Follow-up checkpoint — v10 entrypoint source reconciliation committed
+
+Date: 2026-10-13
+
+A read-only retrieval of the active Supabase Edge Function `smm-gateway` returned ACTIVE version 10, `verify_jwt=true`, and function source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. The returned `index.ts` content was copied into the isolated S07 branch and fetched back from GitHub for exact content comparison.
+
+- Branch `supabase/functions/smm-gateway/index.ts` now matches the returned live v10 entrypoint content exactly: **19,650 characters, exact comparison true**.
+- The five v10 helper imports (`provider-transport.ts`, `order-validation.ts`, `request-validation.ts`, `order-status.ts`, and `catalog-normalization.ts`) are present in the reconciled entrypoint; the helper files had already been verified byte-identical to the live source in the previous checkpoint.
+- `SMM_INITIAL_LAUNCH_DEFERRED=true` remains in the source. The code path is still blocked before authenticated action dispatch. The legacy automatic refund call is absent from the reconciled entrypoint.
+- Commit: `93e282449fb579861c3300bbbed77fe2b34cf6eb`.
+
+This is a source-reconciliation change to the draft branch only. It did **not** deploy or modify the live Edge Function, database grants, secrets, provider, wallet, or campaigns. It also does not by itself prove runtime behavior, database privilege sufficiency, or release readiness. The S07 CI workflow must pass against this exact head, and isolated authorization/provider/fault-injection tests remain required before any future launch-gate change.
