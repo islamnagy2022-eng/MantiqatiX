@@ -1649,3 +1649,39 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P1 NOT VERIFIED:** latest replay [38356535239](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356535239) passed baseline validation/exact-copy checks and is still starting disposable Supabase; chronological replay has not completed.
 - [ ] Canonical historical DDL provenance remains unresolved. Test-only baseline is not a production migration and must not be applied to production.
 - Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — Current continuation: payment concurrency, SMM ACL, replay blockers
+
+### Verified on isolated CI
+- [x] S06 concurrent duplicate callback test: two independent PostgreSQL sessions submitted the same verified success event; exactly one non-idempotent result and one idempotent replay were observed; final order was `PAID` and exactly one `SUCCEEDED` event remained. Exact-head workflow [38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801) passed.
+- [x] SMM RC524 least-privilege ACL reset migration + PostgreSQL integration passed in disposable CI [38400557008](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400557008) and branch follow-up [38400580077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400580077). Candidate PR [#236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236) is DRAFT and unmerged.
+- [x] The core S06 adversarial regression and concurrency assertion printed PASS in [run 38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801). Candidate PR [#237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237) is DRAFT and unmerged.
+- [x] Exact-head validation batch on PR #207 candidate commit `bcc0f646304a20b3188e7bc45323b25b3e134162`: Migration Version Uniqueness, Migration History Immutability, SMM Deferred Module Validation, Module Professionalization Validation, Open PR Migration Collision Guard, Paymob Webhook Target Lookup, Approval Action Audit Atomicity, Marketing Campaign Backend, Marketing CRM Tenant Scope, MantiGO privacy boundary, Backend-only Module Boundary, and SMM Service Role Access Boundary passed. Pages validation passed but the deploy job was skipped; no deployment occurred.
+
+### P0 — release gates still open
+- [ ] **BLOCKED — clean chronological replay:** [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed. The historical source gap is not solved by filename normalization; do not skip migrations, alter historical files, or invent schema/function DDL.
+- [ ] **BLOCKED — marketing schema provenance:** [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) adds a fail-closed preflight for `public.marketing_project_participants`; exact live catalog inspection is evidence of current shape, not proof of original creation DDL. No guessed baseline was added.
+- [ ] **BLOCKED — SMM live ACL:** production read-only inspection found `service_role` TRUNCATE on SMM tables. RC524 is candidate-only; production ACL is unchanged until a separately reviewed/approved rollout.
+- [ ] **NOT VERIFIED — SMM runtime denial:** deployed `smm-gateway` remains active (v10, `verify_jwt=true`) but the launch-deferred flag must be confirmed by live negative API tests. Keep SMM launch deferred and do not activate campaigns.
+- [ ] **NOT VERIFIED — Paymob/finance E2E:** concurrency regression is isolated CI evidence only; real provider transactions, refunds, settlement, GL reconciliation, and production ledger consistency remain unverified.
+- [ ] **NOT VERIFIED — full production release:** Auth/browser/device E2E, tenant isolation, leaked-password protection, per-function Security Advisor triage, backup/restore RPO/RTO, monitoring/alerts, rollback rehearsal, and final regression remain open.
+- [ ] **NOT VERIFIED — repository governance:** require protected main, required reviews/status checks, and direct/force-push restrictions before release; do not alter repository settings without authorized approval.
+
+### Current candidate PRs
+- [PR #207](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207): RC425–RC458 source/replay reconciliation; DRAFT.
+- [PR #220](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220): S06 payment/finance contracts; DRAFT.
+- [PR #221](https://github.com/islamnagy2022-eng/MantiqatiX/pull/221): S07 deferred SMM gateway safety contract; DRAFT.
+- [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235): marketing participant baseline fail-closed guard; DRAFT.
+- [PR #236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236): RC524 SMM ACL least-privilege reset; DRAFT.
+- [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237): S06 concurrent callback regression; DRAFT.
+- [PR #233](https://github.com/islamnagy2022-eng/MantiqatiX/pull/233) and [PR #234](https://github.com/islamnagy2022-eng/MantiqatiX/pull/234): superseded/blocked replay experiments; do not merge.
+
+### Next executable sequence
+1. Inspect exact first SQL failure from latest replay run and update `docs/release/MIGRATION_REPLAY_BLOCKERS.md` with evidence; no bypasses.
+2. Recover authoritative original DDL/history for the next missing relation/function, or obtain explicit approval for a provenance-documented disposable-only baseline. Existing SMM/marketing baseline approvals are narrow and do not expand automatically.
+3. Continue S06 contract coverage for conflicting duplicate events, amount/currency/order mismatch, and terminal-state transitions in disposable PostgreSQL; keep real Paymob E2E WAIT until a separately authorized test transaction.
+4. Keep SMM deferred; verify source/runtime parity and negative API behavior without deploying or changing production.
+5. Re-run exact-head CI, full replay, and release-gate evidence review. Do not merge/deploy until every P0 gate is VERIFIED.
+
+**Release decision: BLOCKED / NOT CERTIFIED. No production migration, Edge Function deployment, financial mutation, merge, or release approval was performed by this continuation.**
