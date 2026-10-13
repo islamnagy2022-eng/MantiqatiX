@@ -54,3 +54,15 @@ The separate detailed finding in `S03_PAYMOB_LATE_FAILURE_TRANSITION_20261013.md
 ## Release decision
 
 All items above are source-review findings to validate, not confirmed runtime exploits. Keep release **BLOCKED — NOT CERTIFIED** until isolated concurrency, timeout, replay, payload-boundary, and persistence-fault tests pass; the live source is reconciled with the reviewed branch; and an approved deployment is verified by re-fetching the deployed artifact.
+
+
+## 5. Paymob event identity and failure-path consistency
+
+The deployed Paymob webhook constructs `eventId` as `paymob:${value(obj.id)}` and then checks `if (!eventId)`. Because the prefix is always non-empty, this check does not reject a missing/empty provider transaction ID; multiple malformed signed events can collapse to the same `paymob:` key. Require a validated non-empty provider transaction ID and provider order/reference before constructing any idempotency key.
+
+Additional path-specific observations:
+- **Subscription failure:** status is conditionally changed from `PENDING` to `FAILED`, but this branch returns without inserting the provider event that the earlier replay check reads. A repeated callback can therefore re-enter the branch; its update may affect zero rows without error and still return a failure response.
+- **MantiGO failure/success:** the provider event is inserted before the ledger update. The update filters on `payment_status = 'PENDING'`, but the handler does not verify the affected row count. A duplicate/out-of-order event may be recorded while the ledger remains in a different terminal state, yet the handler can return `ok:true`.
+- **Generic payment-intent failure:** the live branch inserts a failed event and updates the intent by ID without a pending-state predicate. The open S06 branch adds the predicate but still needs an atomic event/state transition and affected-row outcome handling.
+
+Add disposable regression cases for missing transaction IDs, subscription failure replay, Mantigo already-final state, and event/status consistency. No production callbacks were sent.
