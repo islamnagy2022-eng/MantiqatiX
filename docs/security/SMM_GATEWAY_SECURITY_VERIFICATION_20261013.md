@@ -18,10 +18,17 @@
 ## Verification performed in this branch
 - Added a static security-contract validator checking gate order, authorization, tenant/user scoping, idempotency, secret/log boundaries, outbound transport and ACL contract.
 - Added a dedicated GitHub Actions workflow to run the static validator, existing service-role validator, Deno type check and SMM unit tests on relevant changes.
-- Exact-head CI status: NOT VERIFIED until GitHub Actions executes for the resulting commit SHA.
+- SMM code-contract CI: **PASS** on code-bearing commit `b1c43c1affeffd44e7e44d4ce07b554bc59a354d`, tested as synthetic merge commit `55974e2` against PR #218 base `77012649e41fe22077538c39cd8593bf696ab33e`. Run [#38349997044](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349997044) passed the source contract validator, service-role boundary validator, Deno type check, and SMM unit/negative-input tests. The current branch head is later documentation-only; the runtime/validator files have not changed since the passing code commit.
 - Local runtime execution: NOT RUN; the GitHub connector does not provide a local Deno/PostgreSQL runtime in this session.
 - HTTP negative tests against a running Edge Function: NOT RUN. The existing unit tests validate helper behavior, not end-to-end HTTP responses or absence of database/provider side effects at runtime.
-- Live deployed parity: NOT VERIFIED in this work session. Previously recorded read-only evidence in PR #218 comments says deployed version 10 has JWT verification enabled and the same deferred gate; that evidence is not a new runtime request test.
+- Live deployed parity: **VERIFIED by read-only source comparison**. Supabase reports `smm-gateway` ACTIVE v10, `verify_jwt=true`, entrypoint SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. Retrieved deployed `index.ts` is byte-for-byte identical after newline normalization to the PR #218 source at `77012649e41fe22077538c39cd8593bf696ab33e` (19,650 characters). It includes `SMM_INITIAL_LAUNCH_DEFERRED=true` and returns `503 SMM_DEFERRED` before user lookup, body parsing, provider transport, wallet RPCs, or order writes. This is source/deployment parity evidence, not a live HTTP request test.
+
+## Current verified state
+
+- Static contract and helper unit tests pass on the code-bearing commit noted above.
+- Deployed v10 source matches the reviewed PR #218 source and is hard-disabled at the handler entrypoint.
+- No live HTTP request or provider call was performed. No production deployment, migration, grant, Auth/RLS, wallet, payment, or data mutation was performed in this session.
+- Global release remains **BLOCKED / NOT CERTIFIED** by the independent MantiGO live authorization and chronological migration replay blockers.
 
 ## Required before any launch
 1. Keep SMM deferred until an approved release change removes/changes the hard-coded kill switch through reviewed source and CI.
@@ -32,7 +39,7 @@
 6. Run full required release gates, exact-head CI, backup/restore and rollback evidence; release stays BLOCKED / NOT CERTIFIED until independently verified.
 
 ## Risk notes
-- The current hard-disabled flag prevents SMM requests from reaching auth or business logic, which is fail-closed but means allowed-path HTTP behavior has not been proven.
+- The current hard-disabled flag in the deployed v10 source prevents SMM requests from reaching auth or business logic, which is fail-closed but means allowed-path HTTP behavior has not been proven.
 - Static checks cannot prove runtime side-effect ordering, JWT verification at the gateway edge, actual database grants, deployed/source parity, or provider behavior.
 - The gateway's `order_status` path has no local try/catch around its provider call; top-level catch returns a generic 500, but runtime timeout/response behavior still needs integration coverage.
 - Provider result parsing recognizes a returned order identifier but does not locally validate every provider-specific error shape; provider contract fixtures are still needed.
