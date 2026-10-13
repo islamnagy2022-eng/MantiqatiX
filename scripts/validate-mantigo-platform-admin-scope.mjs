@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const migration = fs.readFileSync("supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_integration.sql", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8");
 const checks = [];
 function check(name, ok) {
   checks.push({ name, ok: Boolean(ok) });
@@ -53,6 +54,10 @@ check("auth regressions assert expected rejection identifiers rather than accept
 check("multi-identity test session forces fresh plans and restores planner setting",
   integration.includes("SET plan_cache_mode = force_custom_plan;") &&
   integration.includes("RESET plan_cache_mode;"));
+check("disposable auth.uid fixture models JWT subject switches without changing production auth",
+  fixture.includes("VOLATILE is intentional in this disposable fixture only") &&
+  /create or replace function auth\.uid\(\)[\s\S]*?language sql\s+volatile/i.test(fixture));
+
 
 
 
