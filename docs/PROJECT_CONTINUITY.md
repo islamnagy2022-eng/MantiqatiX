@@ -619,3 +619,7 @@ Read the latest SESSION-003 entry in docs/SESSION_LOG.md and the dated section i
 - Migration replay: [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed. Current marketing participant catalog was inspected read-only; [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) fails closed pending provenance/approval rather than guessing DDL.
 - Do not merge, deploy, apply migrations, change production secrets/Auth, mutate financial data, or weaken SMM validation. Continue with exact failure evidence and authoritative historical DDL recovery.
 - Release state: **BLOCKED / NOT CERTIFIED**.
+
+
+- Latest S06 exact-head validation: [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421) passed both duplicate idempotency and conflicting-status concurrency; see PR #237. This remains isolated test evidence, not real payment acceptance.
+- Security Advisor was refreshed at 2026-10-13T13:18:40.718Z: 40 authenticated SECURITY DEFINER execute warnings, one anon-executable SECURITY DEFINER, 90 anonymous-policy warnings, leaked-password protection disabled, and one RLS-enabled/no-policy INFO. Do not mass-revoke or disable without per-item review.
