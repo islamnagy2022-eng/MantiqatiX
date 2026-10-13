@@ -1624,3 +1624,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **P0 / PR #219 MantiGO authorization:** current-head run failed. Isolate request identity contexts and pass the full PostgreSQL behavioral suite without weakening authorization.
 - [ ] **P0 / PR #220 payments:** S06 focused regression passing is insufficient; S04 clean replay failed, webhook atomicity/cross-intent replay/concurrency/fault-injection remain unverified.
 - Global release remains **BLOCKED / NOT CERTIFIED**. No production writes, migration application, Auth/RLS/grant/secret changes, financial mutation, merge, or deployment.
+
+
+## Fresh live gate evidence — 2026-10-13
+
+- [ ] **P0 / live MantiGO authorization:** read-only SQL reconfirmed four global `SECURITY DEFINER` RPCs remain executable by `authenticated`, use `search_path=public`, and lack the `mnty_can_platform_admin()` guard. Requires reviewed candidate migration/replay and approved rollout; no production mutation performed.
+- [ ] **P1 / Security Advisor:** current snapshot has 94 findings (90 anonymous-policy warnings, 40 authenticated SECURITY DEFINER execute warnings, one anon-executable SECURITY DEFINER warning, one leaked-password-protection warning, one RLS-enabled/no-policy INFO item). Triage individually; do not apply blanket policy changes.
+- [ ] **P1 / SMM live containment:** deployed `smm-gateway` v10 has source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`; source has hard deferred flag and early 503 gate, but live HTTP negative test remains NOT VERIFIED.
+- [ ] **P1 / migration ledger:** 283 applied versions, latest `20261008222845 / rc424_atomic_digital_page_payment_webhook`; selected RC449/RC462/RC522/RC523 candidate versions remain absent from the ledger.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
