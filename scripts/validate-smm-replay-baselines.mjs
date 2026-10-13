@@ -49,12 +49,7 @@ for (const [table, item] of Object.entries(baselines)) {
     assert.ok(tableCreateMigration, "canonical provider onboarding CREATE TABLE migration must exist");
     assert.ok(firstReference.slice(0, 14) < tableCreateMigration.slice(0, 14), "provider onboarding source-order gap must remain explicit");
   } else {
-    if (table === "provider_onboarding_requests") {
-    assert.ok(tableCreateMigration, "canonical provider onboarding CREATE TABLE migration must exist");
-    assert.ok(firstReference.slice(0, 14) < tableCreateMigration.slice(0, 14), "provider onboarding source-order gap must remain explicit");
-  } else {
     assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
-  }
   }
 }
 
