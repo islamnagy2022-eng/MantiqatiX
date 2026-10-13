@@ -87,3 +87,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The migration validator tracks 33 required migration source files and asserts their filesystem presence and timestamp order. It also requires live reconciliation evidence, ordered replay, tenant isolation, payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM parity, and Auth security settings before certification.
 - No code behavior changed in this session entry. No production mutation, migration application, Auth/grant/RLS change, Edge Function deployment, financial operation, merge, or release was performed.
 - Next: inspect completed exact-head CI jobs/logs when available; fix only reproducible failures, then perform disposable full-chain replay and close mandatory runtime gates. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 — SESSION-009 — Add RC523 canonical financial-report integration contract
+
+- Verified source finding: RC523 calculates report totals from canonical `gross_amount` and `captain_net_amount`, while preserving the external JSON key `captain_amount`.
+- Added `supabase/tests/rc523_mantigo_financial_report_integration.sql`. It intentionally gives legacy `amount` and `captain_amount` values that disagree with canonical values, then checks gross, commission, paid, settled, unsettled totals and JSON-key compatibility.
+- Added a disposable PostgreSQL CI job that applies RC441 → RC449 → RC462 → RC523 and runs the focused regression test. Added the RC523 migration/test paths to both pull-request and main-branch path filters.
+- Not yet verified: test SQL and workflow are source additions only until the exact-head job completes successfully and its logs are inspected. No local PostgreSQL execution was available through the connected GitHub source actions.
+- Not performed: no production database write, migration application, financial transaction, grants/RLS/Auth change, Edge Function deployment, merge, or release.
+- Next: inspect exact-head CI, fix only reproducible test/setup failures, and continue mandatory runtime gates. Release remains BLOCKED / NOT CERTIFIED.
