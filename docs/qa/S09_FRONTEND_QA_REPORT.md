@@ -53,3 +53,10 @@ The initial working branch was found to contain 112 changed files / 213 commits 
 ## Evidence and close criteria
 
 This report records the test harness and explicit gaps; it does not claim that GitHub Actions has passed until an exact-head run is completed. E2E remains unverified until browser-based scenarios execute against an isolated test deployment and synthetic test identities. Production must not be called ready based on these checks alone.
+
+
+### S09-FIN-002 — Service price editor
+- Added frontend rejection of blank, non-finite, zero, and negative selling prices.
+- Added in-flight duplicate-save guard and pending button feedback with restoration after success/failure.
+- Server-side price validation and authorization remain mandatory and are outside S09 scope.
+- Verification remains pending until the exact-head CI run completes; this is source-level coverage, not browser E2E.
