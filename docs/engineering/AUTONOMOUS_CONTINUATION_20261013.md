@@ -457,3 +457,13 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 1. Poll run #38406227251 and inspect the next first chronological replay error; do not skip or rewrite historical migrations.
 2. Continue only with schema/policy compatibility baselines backed by read-only catalog evidence and the project's approved disposable-only baseline process. Record all historical-source limitations.
 3. Recheck PR #207's mergeability/CI and PR #218's four-RPC production blocker. Do not merge/deploy or alter production.
+
+
+## Replay continuation checkpoint — marketing subscription dependencies (2026-10-13 13:39 UTC)
+
+- Exact replay run [#38406227251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406227251) completed FAIL after passing preflight, disposable Supabase startup, and the earlier marketing projects/participants tables. It stopped at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` because `public.marketing_provider_subscriptions` was absent.
+- Read-only production catalog evidence established the missing table's parent dependency `public.marketing_plans`; neither table's canonical CREATE TABLE source was found in the repository or applied migration statement ledger.
+- Added catalog-derived `marketing_plans` and `marketing_provider_subscriptions` schema-only compatibility definitions to the existing disposable-only marketing baseline, in dependency order. Extended the preflight validator for their constraints, FK graph, indexes/policies, RLS and least-privilege grants; the new baseline-specific static checks passed.
+- Latest PR #207 head after these changes: `4307e952d23961883b23ebfa8fda16faec00c768`. New exact-head CI is starting; replay run id `38406719880` is pending/in progress and no result is claimed yet. Migration-history immutability already passed for this head; version uniqueness, SMM boundary, tenant-scope, Paymob lookup, and remaining checks are pending/running.
+- A fresh read-only production catalog query reconfirmed the four global MantiGO RPCs remain `SECURITY DEFINER`, `search_path=public`, executable by `authenticated`, and do not call `mnty_can_platform_admin()`. This P0 production issue is unchanged.
+- No production migration, table/policy/grant/Auth/RLS change, row mutation, deployment, or release was performed. The temporary marketing fixtures are synthetic, current-catalog-derived CI scaffolding, not historical DDL recovery. Release remains **BLOCKED / NOT CERTIFIED**.
