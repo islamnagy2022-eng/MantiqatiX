@@ -467,3 +467,12 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Latest PR #207 head after these changes: `4307e952d23961883b23ebfa8fda16faec00c768`. New exact-head CI is starting; replay run id `38406719880` is pending/in progress and no result is claimed yet. Migration-history immutability already passed for this head; version uniqueness, SMM boundary, tenant-scope, Paymob lookup, and remaining checks are pending/running.
 - A fresh read-only production catalog query reconfirmed the four global MantiGO RPCs remain `SECURITY DEFINER`, `search_path=public`, executable by `authenticated`, and do not call `mnty_can_platform_admin()`. This P0 production issue is unchanged.
 - No production migration, table/policy/grant/Auth/RLS change, row mutation, deployment, or release was performed. The temporary marketing fixtures are synthetic, current-catalog-derived CI scaffolding, not historical DDL recovery. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Fresh production ledger and release gate — 2026-10-13 13:40 UTC
+
+- Re-read the live Supabase migration ledger using SELECT only. The latest 25 applied versions end at `20261008222845 / rc424_atomic_digital_page_payment_webhook`; neither RC449 nor RC462 appears in the applied tail. The candidate MantiGO platform-admin fix is therefore not live.
+- Re-ran the live `pg_catalog.pg_proc` authorization check. The same four RPCs remain `SECURITY DEFINER=true`, `search_path=public`, callable by `authenticated`, and do not call `mnty_can_platform_admin()`. This remains a verified P0 production blocker.
+- PR #218's RC449/RC462 candidate previously passed its disposable PostgreSQL regression tests, including 15/15 platform-admin scope checks and malformed-permissions regression. That is candidate evidence only; it does not change the live ledger or production function definitions.
+- Latest PR #207 head remains `4307e952d23961883b23ebfa8fda16faec00c768`; migration-history immutability and migration-version uniqueness checks passed. S04 run [#38406719880](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406719880) is still in disposable Supabase startup; the chronological replay has not started on that run, so its result is **NOT VERIFIED**.
+- No production mutation, migration, function deployment, Auth/RLS/grant change, wallet/payment action, merge, or release was performed. Final state remains **BLOCKED / NOT CERTIFIED**.
