@@ -80,6 +80,7 @@ jobs:
           echo "disposable_alias_normalization_exit=$normalization_rc" | tee -a s04-replay-evidence/report.txt
           if [ "$normalization_rc" -eq 0 ]; then
             echo "legacy_duplicate_aliases_normalized_on_disposable_runner=true" | tee -a s04-replay-evidence/report.txt
+            echo "digital_page_migration_order_aliases_normalized=true" | tee -a s04-replay-evidence/report.txt
           fi
 
           # These compatibility fixtures are injected only into this disposable runner.
