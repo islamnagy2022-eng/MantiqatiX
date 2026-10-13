@@ -16,7 +16,7 @@ declare
   v_to timestamptz := coalesce(p_to, 'infinity'::timestamptz);
   v_ledger jsonb;
 begin
-  if v_auth is null or v_auth <> p_admin_user_id then
+  if v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id then
     raise exception 'AUTH_REQUIRED';
   end if;
   if not public.mnty_can_platform_admin() then
