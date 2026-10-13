@@ -350,3 +350,33 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Repository search found no tracked canonical creation migration in the current source tree; the master production TODO mentions it only as trigger-only. This supports treating the replay error as a historical source gap, not broadening its ACL or synthesizing production history.
 - Added evidence/comment to PR #207: https://github.com/islamnagy2022-eng/MantiqatiX/pull/207 (comment ID `6138870917`). No files in the migration-owning PR were edited. A disposable-only function baseline still requires canonical source/provenance or explicit owner approval.
 - Latest observed PR #207 head `9556b9a9dde205d30000a830be67f001704b996a`; run [#38351107774](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351107774) is pending. Do not carry forward an old run's failure as the latest verdict, and do not report a pass until this exact-head run completes.
+
+
+## Root-cause checkpoint — production MantiGO authorization drift and SMM CI — 2026-10-13 05:28 UTC
+
+### SMM exact-head regression
+
+- PR #225 current head: `04b6513cff0131c7dab003c7a6d9a98d8dc430b3`, draft/open/unmerged.
+- Exact-head workflow [#38351175629](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351175629) completed **SUCCESS** for the SMM static contract, service-role ACL validator, Deno type-check, and SMM unit/negative-input tests.
+- This is source/isolated test evidence only. It does not certify the live provider path because the deployed gateway remains intentionally hard-disabled.
+
+### MantiGO P0 — observed live behavior, source candidate, and root cause
+
+- Read-only live catalog query retrieved the actual definitions of `get_mantigo_admin_dashboard_backend(uuid)`, `get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)`, `settle_mantigo_captain_backend(uuid,text,text)`, and `expire_stale_mantigo_rides_backend(uuid,integer)`.
+- All four live functions are `SECURITY DEFINER`, use `search_path=public`, are executable by `authenticated`, and authorize broad tenant roles (`OWNER`, `ADMIN`, `OPERATIONS`, etc.) rather than calling `mnty_can_platform_admin()`. The dashboard/report read platform-wide ride and financial ledger totals; settlement mutates ledger/journal state; expiry changes ride state.
+- Candidate migration `20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql` already replaces these guards with a strict active `SUPER_ADMIN` membership in tenant `MNTY-PLATFORM`, explicit `scope=PLATFORM` and `full_control=true`, and `search_path=''`. RC462 further hardens malformed permission JSON handling.
+- **Root cause is deployment/migration-chain drift, not a missing code patch:** the hardening source and disposable integration tests exist, but the live catalog still has the pre-hardening definitions. Do not make another duplicate migration or claim the production risk is fixed by a green candidate CI.
+- Existing integration test `supabase/tests/rc449_mantigo_platform_admin_integration.sql` tests rejection of tenant OWNER/ADMIN/OPERATIONS_MANAGER for all four functions and verifies authorized platform settlement/idempotency in disposable PostgreSQL.
+- Required root fix is a single fully reconciled, chronological, approved migration batch after the live ledger checkpoint, replayed from a clean disposable database and then separately approved for production rollout. Do not apply RC449/RC462 alone or directly mutate production functions/grants in this session.
+
+### Migration replay current checkpoint
+
+- Latest observed PR #207 head: `136600157e02889b36b267dfd8632542662ceec3`.
+- Exact-head run [#38351334323](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351334323) is **IN PROGRESS** at disposable Supabase service startup. The next chronological replay step has not yet been verified; no PASS is claimed.
+- Historical source gap remains: `public.smm_bootstrap_first_admin()` exists in the live catalog as trigger-only SECURITY DEFINER but no canonical tracked creation migration was found. Do not synthesize it into production history. Continue seeking canonical source/ledger provenance or explicitly approved test-only compatibility evidence.
+- Financial fixture review remains open: `settlement_attempts` compatibility fixture must match observed `numeric(14,4)` and `varchar(8)` types and must not be treated as canonical historical DDL. Preserve its schema-only/test-only provenance and no-data/no-policy/no-grant constraints.
+
+### Safety / release
+
+- No production migration, schema, data, grant, Auth/RLS, function, wallet, settlement, payment, Edge Function, or deployment change was made.
+- Release remains **BLOCKED / NOT CERTIFIED**. Exact next action: wait for run #38351334323; if startup succeeds, capture the first chronological SQL failure and reconcile from authoritative source evidence, not by skipping migrations or weakening guards.
