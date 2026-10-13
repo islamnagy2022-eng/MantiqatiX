@@ -396,3 +396,12 @@ Remediation references:
 - [Leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
 
 **Safety:** this was an advisor read only. No production settings, policies, grants, migrations, schema, or data were modified.
+
+
+### Anonymous-policy warning reconciliation — catalog read
+
+To avoid treating the Security Advisor output as confirmed access, I queried `pg_policies` directly for policies whose role list contains `anon` or `public` in `public` and `storage`. The query returned **20 policies: 14 SELECT policies and 6 restrictive ALL policies with both `USING (false)` and `WITH CHECK (false)`**.
+
+The SELECT policies inspected include several explicitly public contracts (published digital pages, active marketing catalog, active Egypt geographic areas, official showcase businesses, published legal documents, and public profile-media bucket objects). The six restrictive policies are deny boundaries on ERP purchase orders/receipts/stock transfers, legacy idempotency, SMM admin records, and SMM provider credentials.
+
+This does not reconcile every one of the 90 advisor `auth_allow_anonymous_sign_ins` findings: the advisor and direct catalog query may classify anonymous sessions/role inheritance differently, and the query only reports explicit `anon`/`public` role entries. Treat the difference as a verification task. Next step is to inspect the full policy set and table grants for each advisor-flagged table, then verify effective access with negative tests in an isolated database. No policy or grant was changed.
