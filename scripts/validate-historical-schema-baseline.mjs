@@ -83,12 +83,12 @@ const creditBaselineSpecs = [
   {
     path: "supabase/tests/baselines/credit_accounts.sql",
     table: "credit_accounts",
-    required: /approved_limit numeric\(18,2\) not null default 0[\s\S]*outstanding_amount numeric\(18,2\) not null default 0[\s\S]*available_amount numeric\(18,2\) generated always as[\s\S]*references public\.credit_policies\(id\)[\s\S]*unique \(tenant_id, business_id\)/i,
+    required: /approved_limit numeric\(18,2\) not null default 0[\s\S]*outstanding_amount numeric\(18,2\) not null default 0[\s\S]*available_amount numeric\(18,2\) generated always as[\s\S]*unique \(tenant_id, business_id\)[\s\S]*references public\.credit_policies\(id\)/i,
   },
   {
     path: "supabase/tests/baselines/credit_periods.sql",
     table: "credit_periods",
-    required: /billed_amount numeric\(18,2\) not null default 0[\s\S]*paid_amount numeric\(18,2\) not null default 0[\s\S]*outstanding_amount numeric\(18,2\) generated always as[\s\S]*period_end >= period_start[\s\S]*unique \(credit_account_id, period_start, period_end\)/i,
+    required: /billed_amount numeric\(18,2\) not null default 0[\s\S]*paid_amount numeric\(18,2\) not null default 0[\s\S]*outstanding_amount numeric\(18,2\) generated always as[\s\S]*unique \(credit_account_id, period_start, period_end\)[\s\S]*period_end >= period_start/i,
   },
 ];
 for (const spec of creditBaselineSpecs) {
