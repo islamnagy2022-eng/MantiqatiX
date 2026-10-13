@@ -31,3 +31,25 @@ Deno.test("S07_GATE_005: truthy-looking values do not enable launch", () => {
     assertEquals(getSmmLaunchDecision("true", value).enabled, false);
   }
 });
+
+Deno.test("S07_GATE_006: false and empty values fail closed", () => {
+  for (const value of ["", "false", "FALSE", "0", "no"]) {
+    assertEquals(getSmmLaunchDecision(value, "true"), {
+      enabled: false, status: 503, error: "SMM_DEFERRED",
+    });
+    assertEquals(getSmmLaunchDecision("true", value), {
+      enabled: false, status: 503, error: "SMM_DEFERRED",
+    });
+  }
+});
+
+Deno.test("S07_GATE_007: all non-approved flag pairs fail closed", () => {
+  const values = [undefined, "", "false", "TRUE", "1", "yes", " true", "true "];
+  for (const enabledFlag of values) {
+    for (const approvalFlag of values) {
+      assertEquals(getSmmLaunchDecision(enabledFlag, approvalFlag), {
+        enabled: false, status: 503, error: "SMM_DEFERRED",
+      });
+    }
+  }
+});
