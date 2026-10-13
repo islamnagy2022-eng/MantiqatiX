@@ -170,7 +170,7 @@ const marketingLeadsBaselineValid =
   /marketing_leads_requester_user_id_fkey[\s\S]*references auth\.users\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
   /marketing_leads_requester_business_id_fkey[\s\S]*references public\.businesses\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
   /marketing_leads_assigned_provider_id_fkey[\s\S]*references public\.marketing_provider_profiles\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
-  /create index idx_mkt_leads_status on public\.marketing_leads \(status, created_at desc\)/i.test(marketingLeadsBaseline) &&
+  /create index idx_mkt_leads_status on public\.marketing_leads\s*\(status, created_at desc\)/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_leads enable row level security/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_leads force row level security/i.test(marketingLeadsBaseline) &&
   /CREATE POLICY "Users view own marketing leads"[\s\S]*ON public\.marketing_leads[\s\S]*FOR SELECT TO authenticated[\s\S]*auth\.uid\(\)[\s\S]*requester_user_id/i.test(marketingLeadsBaseline) &&
