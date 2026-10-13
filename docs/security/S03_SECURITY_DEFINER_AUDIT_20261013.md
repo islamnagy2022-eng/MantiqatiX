@@ -405,3 +405,40 @@ To avoid treating the Security Advisor output as confirmed access, I queried `pg
 The SELECT policies inspected include several explicitly public contracts (published digital pages, active marketing catalog, active Egypt geographic areas, official showcase businesses, published legal documents, and public profile-media bucket objects). The six restrictive policies are deny boundaries on ERP purchase orders/receipts/stock transfers, legacy idempotency, SMM admin records, and SMM provider credentials.
 
 This does not reconcile every one of the 90 advisor `auth_allow_anonymous_sign_ins` findings: the advisor and direct catalog query may classify anonymous sessions/role inheritance differently, and the query only reports explicit `anon`/`public` role entries. Treat the difference as a verification task. Next step is to inspect the full policy set and table grants for each advisor-flagged table, then verify effective access with negative tests in an isolated database. No policy or grant was changed.
+
+
+## Sensitive-table and column-privilege reconciliation — 2026-10-13
+
+Read-only catalog inspection was extended to effective table/column privileges, RLS flags, and policy expressions for financial, MantiGo, marketing-provider, and SMM tables. These are catalog observations, not live API exploit tests.
+
+### Finding S03-R1 — public marketing-provider profile exposes non-public-looking columns (HIGH REVIEW / contract not confirmed)
+
+- `public.marketing_provider_profiles` has RLS enabled and FORCE RLS enabled. Its public SELECT policy is `Public can view active marketing providers` for roles `anon, authenticated` with predicate `status = 'ACTIVE'`.
+- Catalog privilege checks returned `anon_select = true` for every column in the table, not only display fields. The accessible column set includes `owner_user_id`, `business_id`, `ranking_weight`, `settings`, `created_at`, and `updated_at`, alongside public-facing name, description, specialties, service areas, portfolio, status, and image path.
+- This confirms broad anonymous column access for rows passing the active-status policy. It does not prove that `settings` currently contains secrets or that the owner ID is confidential; no row values were queried. However, the privilege boundary is broader than a minimal public-directory projection.
+- Recommendation: inspect the intended public provider-card contract and the `settings` JSON schema; preferably expose a narrow public view/RPC with only approved display fields and grant anonymous SELECT only on those fields or the curated surface. Preserve active-only row filtering. Do not apply a change until caller inventory and public directory regression tests are prepared.
+
+### Finding S03-R2 — MantiGo bids expose phone and plate fields to all customers owning the ride (HIGH REVIEW / product contract not confirmed)
+
+- `public.mantigo_bids` has RLS and FORCE RLS enabled. Its SELECT policy permits the bid's captain (`captain_id = auth.uid()`), the customer owning the associated ride, or platform admin.
+- The table includes `captain_phone` and `vehicle_plate`, in addition to captain name/rating, vehicle details, offer price, ETA, message, status, and timestamps.
+- Therefore, an authenticated customer who owns a ride can read row-level bid records that include phone and plate for bids on that ride, not only the accepted bid, subject to the policy predicate. This is a confirmed catalog-level exposure path; whether it violates the product contract depends on whether contact/plate details are intentionally disclosed before bid acceptance.
+- Recommendation: product owner must decide disclosure timing. If only the accepted captain should be contactable/identifiable, split public offer fields from private contact/vehicle identifiers or expose a narrow customer-facing view/RPC that reveals those fields only after acceptance. Add negative tests for another customer's ride and pre-acceptance bids. No live row values were read.
+
+### Positive control — SMM direct table access is not granted to client roles
+
+- Catalog checks showed `anon` and `authenticated` lack direct SELECT privileges on `smm_orders`, `smm_order_events`, `smm_wallets`, `smm_wallet_transactions`, `smm_admins`, `smm_providers`, and `smm_provider_credentials`, including the `api_key_ciphertext` column.
+- Existing RLS policies include owner-read rules on orders/wallet data, public read of active `smm_services`, and explicit false-deny policies for admin/credential tables. Since direct SELECT grants are absent, those RLS rules do not independently create a direct-table SELECT path for client roles. This is a positive control for direct table access, not proof that all SMM gateway/RPC/Edge Function paths are safe; the SMM gateway remains in scope for separate authorization and secret-handling tests.
+
+### Financial catalog posture — partial positive control, not runtime certification
+
+- Catalog checks showed RLS plus FORCE RLS on `general_ledger`, `wallet_accounts`, `wallet_transactions`, `payment_intents`, `payment_events`, `settlement_transactions`, and `subscription_payment_intents`.
+- Their observed SELECT policies are scoped to active tenant memberships and finance/admin/owner-type roles, or are owner-specific where applicable. `payment_events.raw_payload` and provider/idempotency references exist in schema, so any future RPC response that serializes whole rows still needs field-level review.
+- `mantigo_financial_ledger` has RLS enabled but not FORCE RLS, with a SELECT policy limited to the ride's customer or captain. Direct table SELECT privileges for `anon` and `authenticated` were false in the catalog snapshot, so that policy alone did not grant direct table SELECT. SECURITY DEFINER functions returning ledger rows still require the previously documented field-minimization review.
+
+### Scope and release decision
+
+- These checks queried schema metadata and privileges only; no customer, payment, bid, credential, or wallet row data was read.
+- No policy, grant, schema, Auth setting, or production data was changed.
+- Required before certification: resolve public-provider column contract, resolve MantiGo pre-acceptance phone/plate disclosure, run isolated role-based negative tests, inspect SMM gateway/RPC/Edge Function authorization, and execute the authored S03 SQL tests in an isolated database.
+- Status remains **BLOCKED — NOT CERTIFIED**; no tests are represented as passed.
