@@ -35,7 +35,7 @@ fi
 } | tee -a "$log"
 
 # Standard Supabase database roles are environment prerequisites, not application-schema stubs.
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN' >> "$log" 2>&1 || true
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN' >> "$log" 2>&1
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN' >> "$log" 2>&1 || true
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN' >> "$log" 2>&1 || true
 
