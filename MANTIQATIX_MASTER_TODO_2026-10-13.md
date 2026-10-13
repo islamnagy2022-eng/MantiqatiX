@@ -93,3 +93,11 @@ Do not label the release ready until required CI on the final candidate passes, 
 - PR #225 advanced to `e108a42fe43b83fc927d6a083fe87e0c8bfa87ba`; exact-head SMM source/security regression [38351557549](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351557549) passed. Still static-only, and its base is a non-main branch; no live gateway HTTP denial/deploy proof.
 - **New root cause on PR #220:** candidate `paymob-webhook/index.ts` still directly reads/writes subscription intents, provider events, digital-page orders, MantiGO ledger, and notifications, while the new atomic failure/MantiGO RPC migrations are not called by the handler. The live service_role ACL denies DML on several of these tables. Added review comment [6138943387](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138943387): converge every callback branch on least-privilege RPCs, remove unsupported direct table access, and test it; do not widen table grants.
 - Release remains **BLOCKED / NOT CERTIFIED**; no production writes, grants, RLS/Auth changes, migrations, function deployments, merges, or payment mutations.
+
+
+## Replay acceptance stabilization — 2026-10-13 05:31 UTC
+
+- PR #207 head advanced to `1b85a440a647f29428d2183f392b0ad0c63b7607`. Replay run [38351754864](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351754864) is pending for older SHA `287d89d728652fc8985cf8cea3fd7f763c56477f`; the earlier run [38351724719](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351724719) for `e7fcd20f5c9a125d2a99590cb56a688086ab95cb` was cancelled. Neither proves current-head replay.
+- Posted coordination comment [6138956619](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138956619): stabilize the candidate long enough for replay or dispatch a final exact-SHA run after the last commit.
+- PR #220 now has a concrete webhook source/ACL gap documented in comment [6138943387](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138943387). Candidate atomic failure/MantiGO RPCs exist but the handler still uses direct table paths; do not call this fixed until the handler converges on RPC-only processing and tests pass.
+- Release remains **BLOCKED / NOT CERTIFIED**; production unchanged.
