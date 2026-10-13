@@ -274,3 +274,25 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The deployed callback HMAC and payment processing path was inspected without reading event rows or provider payloads. No live payment callback was sent.
 - No production schema, data, grants, RLS, Auth, secrets, edge functions, deployment, or PR merge was changed.
 - Release remains BLOCKED / NOT CERTIFIED. Next: check current exact-head CI; capture the next replay SQL failure if present; verify RPC migration signatures and tests in parallel.
+
+## 2026-10-13 — SESSION-003 — Refresh release TODO; S06 concurrency and SMM ACL evidence
+
+### Verified source/CI work
+- S06 concurrency candidate [PR #237](https://github.com/islamnagy2022-eng/MantiqatiX/pull/237) adds a disposable PostgreSQL two-session duplicate Paymob callback regression. Exact-head [run 38402862801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38402862801) passed; log includes `S06 payment-integrity adversarial regressions: PASS` and `S06 concurrent payment callback idempotency: PASS`. Exactly one request returned `idempotent=false`, one `idempotent=true`, and the test asserted one successful event plus PAID order state.
+- SMM RC524 least-privilege candidate [PR #236](https://github.com/islamnagy2022-eng/MantiqatiX/pull/236) passed its disposable PostgreSQL integration in [run 38400557008](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400557008) and follow-up [run 38400580077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400580077). This validates candidate SQL only; it was not applied to production.
+- PR #207 candidate exact head `bcc0f646304a20b3188e7bc45323b25b3e134162` passed targeted migration uniqueness/immutability, module boundary, SMM deferred/service-role, marketing/CRM, Paymob target lookup, approval audit atomicity, and module professionalization workflows. Pages validation succeeded but its deploy job was skipped.
+- Latest disposable migration replay [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) failed; the historical source/replay chain is still not clean. Do not treat targeted green CI as a full release pass.
+- Read-only live catalog inspection of `public.marketing_project_participants` confirmed columns, constraints, RLS/FORCE RLS, policies, and grants. This is current-state evidence only and does not recover canonical creation DDL. [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) adds a fail-closed preflight without guessed SQL.
+- Live SMM service-role TRUNCATE privileges remain a production finding; candidate RC524 does not alter live ACLs. The SMM gateway remains deferred and no production change was made.
+
+### TODO and release decision
+- Updated `docs/MASTER_PRODUCTION_TODO.md` with exact run/PR references, current P0/P1 blockers, and the next executable sequence. This is an append-only update; prior status history is retained.
+- No production DDL/data/ACL/Auth change, Edge Function deployment, financial test transaction, PR merge, or release approval was performed.
+- **Release remains BLOCKED / NOT CERTIFIED.**
+
+### Next action
+1. Retrieve the exact failing SQL and earliest missing dependency from run 38356679251; append evidence to `docs/release/MIGRATION_REPLAY_BLOCKERS.md`.
+2. Recover authoritative DDL/history or request narrow approval for a documented disposable-only baseline. Never infer schema/function definitions or skip the historical migration.
+3. Continue isolated S06 conflict/mismatch/terminal-state tests; do not use real Paymob transactions without separate approval.
+4. Preserve SMM feature freeze; test the deployed API's deferred/deny behavior read-only and do not deploy.
+5. Re-run exact-head checks and full replay after source provenance is resolved.
