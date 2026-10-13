@@ -435,3 +435,7 @@ Canonical detailed register: `docs/MASTER_PRODUCTION_TODO.md`. Chronological evi
 - [ ] [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) is a fail-closed marketing schema provenance guard, not a schema fix.
 - [ ] PR #207, #220, #221, #235, #236, and #237 remain draft/unmerged at this checkpoint. PR #233/#234 are blocked experiments; do not merge.
 - **Release: BLOCKED / NOT CERTIFIED.** No production migration, Edge Function deployment, financial mutation, merge, or release approval occurred in this continuation.
+
+
+- [x] Latest S06 conflicting-status concurrency regression passed at exact head: [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421). This is disposable PostgreSQL only.
+- [ ] Security Advisor refresh (2026-10-13): 40 authenticated SECURITY DEFINER, 1 anon SECURITY DEFINER, 90 anonymous-policy warnings, leaked-password protection disabled, and one RLS-enabled/no-policy INFO finding; per-item triage remains open.
