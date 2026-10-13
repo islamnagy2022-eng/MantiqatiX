@@ -109,3 +109,12 @@ Do not roll back to the vulnerable function bodies or rewrite applied migration 
 - **Advisor interpretation:** the advisor also reports anonymous-role policies on multiple tables. These findings require per-policy intent and predicate review; do not apply blanket RLS/grant changes based on lint labels alone.
 - **Action performed:** evidence recorded in this Session C report. No branch protection, Auth, RLS, grants, production data, or deployment settings were modified.
 - **Next action:** a repository administrator must enable branch protection and required checks under a separately reviewed governance change; an authorized Auth owner must enable and verify leaked-password protection. Both remain open gates.
+
+
+## PR #225 SMM CI trigger review — 2026-10-13
+
+- **Verified:** PR #225 `security/smm-gateway-runtime-verification-20261013` head `acb6466afbfdadd76570ab9404aa37551e1a2b92` targets base branch `docs/rc521-admin-operations-discovery-20261013`, not `main`.
+- **Verified:** `.github/workflows/smm-gateway-security-regression.yml` has `pull_request.branches: [main]`. GitHub evaluates this filter against the PR base branch, so the workflow will not trigger for PR #225 while it targets the current non-main base. The push trigger may still run on matching branch pushes, but no workflow run was returned for this head by the current query.
+- **Action performed:** posted coordination comment [6138548754](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138548754). No PR-owned workflow changes were made.
+- **Next step:** update the PR trigger to include its intended base branch or rebase to main, then verify an actual exact-head CI run. Static validator source is not a passing CI result.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
