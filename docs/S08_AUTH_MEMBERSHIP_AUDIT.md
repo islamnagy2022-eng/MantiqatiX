@@ -34,7 +34,7 @@ Added `scripts/test-s08-auth-flows.mjs` on this branch. It adds source-contract 
 
 - Repository source was inspected through the connected GitHub source view on `main`.
 - The uploaded RC40 ZIP is a different Android-oriented snapshot; its SHA-256 is `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`. It must not be treated as the current web source.
-- The local environment could not clone the repository because outbound DNS/network access was unavailable. Therefore the new script has **not yet been executed against a local checkout**; do not mark its assertions PASS until CI or a checkout run confirms them.
+- A live source-contract evaluation against the fetched `main` blobs passed **13/13 assertions** (main blob SHA `e009bd28460772e07b0ff2e892d77787a0c2996f`; SMM blob SHA `982c4d62fb31f917e20e3f39b58326a49f88ce5f`). The new script also passed `node --check` syntax validation locally. The script itself has **not yet been executed against a local checkout** because outbound DNS/network access prevented cloning; its full repository-run result remains pending.
 - No production settings, secrets, user accounts, memberships, RLS policies, deployment, merge, or release were changed.
 
 ## Next actions
