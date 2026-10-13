@@ -88,3 +88,9 @@ Next executable action: inspect exact-head workflow run for the current PR #207 
 - Run 38350577917 progressed through settlement_attempts and failed at 20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql because public.smm_bootstrap_first_admin() is missing from prior repository history (SQLSTATE 42883).
 - Live catalog confirms the function exists with SECURITY DEFINER, RETURNS trigger, search_path public, postgres-only ACL. Added disposable-only definition fixture `supabase/tests/baselines/smm_bootstrap_first_admin.sql` at temporary replay version 20260927033924; subsequent historical migration still applies the EXECUTE revoke. No trigger is created or invoked by replay; no SMM feature work is resumed.
 - Validator and CI injection/byte-identity/untracked checks added. Current candidate head: ee839091a7494300a85eb094595549f136c47ac2. Exact-head replay run 38350836940 pending; do not claim replay success.
+
+## P1 migration replay — registration baseline chronology correction
+- Exact replay evidence from run 38350881761: migration 20260927065247_mnty_atomic_registration_review.sql failed because public.account_registration_requests did not exist. The previous disposable baseline version 20260927074155 came too late.
+- Split the registration fixture into schema-only at 20260927065246 and policy/grant-only at 20260927074155; the pending unique index remains owned by the existing 20260927134000 migration.
+- Updated workflow exact-copy/untracked/no-data guards and validator checks for both layers. Candidate code head 14cae3a824dbac5e2da85ad90d05b1c303a460b4; exact-head replay outcome NOT VERIFIED.
+- Verified uploaded RC40 archive hash e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e. Its migration 20260921154500 references but does not create settlement_attempts and is absent from production's applied migration ledger.
