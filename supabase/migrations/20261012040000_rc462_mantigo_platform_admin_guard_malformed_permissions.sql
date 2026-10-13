@@ -1,9 +1,11 @@
 -- RC462: make the MantiGO platform-admin permission check fail closed for malformed JSON values.
 -- Forward-only correction: RC449 is historical candidate migration and must remain immutable.
+-- VOLATILE is intentional: the guard reads request-scoped auth context, which must be
+-- re-evaluated when the session JWT subject changes; this also makes multi-identity tests faithful.
 create or replace function public.mnty_can_platform_admin()
 returns boolean
 language sql
-stable
+volatile
 security definer
 set search_path = ''
 as $function$
