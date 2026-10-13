@@ -1,0 +1,78 @@
+name: MantiGO Paymob Webhook Atomicity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/migrations/20261013080000_atomic_mantigo_paymob_webhook_processing.sql"
+      - "supabase/tests/fixtures/mantigo_paymob_atomicity_schema.sql"
+      - "supabase/tests/rc_atomic_mantigo_paymob_webhook.sql"
+      - "scripts/validate-mantigo-webhook-atomicity.mjs"
+      - ".github/workflows/mantigo-paymob-atomicity.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/migrations/20261013080000_atomic_mantigo_paymob_webhook_processing.sql"
+      - "supabase/tests/fixtures/mantigo_paymob_atomicity_schema.sql"
+      - "supabase/tests/rc_atomic_mantigo_paymob_webhook.sql"
+      - "scripts/validate-mantigo-webhook-atomicity.mjs"
+      - ".github/workflows/mantigo-paymob-atomicity.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mantigo-paymob-atomicity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  atomicity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate atomic webhook boundary
+        run: node scripts/validate-mantigo-webhook-atomicity.mjs
+
+      - name: Start isolated PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name mantiqatix-paymob-atomicity \
+            --env POSTGRES_PASSWORD=postgres \
+            --env POSTGRES_DB=postgres \
+            --publish 127.0.0.1:54329:5432 \
+            postgres:15
+          for attempt in $(seq 1 30); do
+            if docker exec mantiqatix-paymob-atomicity pg_isready -U postgres -d postgres; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs mantiqatix-paymob-atomicity
+          exit 1
+
+      - name: Apply isolated schema fixture and candidate migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/tests/fixtures/mantigo_paymob_atomicity_schema.sql
+          docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261013080000_atomic_mantigo_paymob_webhook_processing.sql
+
+      - name: Test replay, mismatch, concurrency identity, rollback, and legacy repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec -i mantiqatix-paymob-atomicity psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/tests/rc_atomic_mantigo_paymob_webhook.sql
+
+      - name: Collect PostgreSQL diagnostics on failure
+        if: failure()
+        run: docker logs mantiqatix-paymob-atomicity || true
+
+      - name: Stop isolated PostgreSQL
+        if: always()
+        run: docker rm --force mantiqatix-paymob-atomicity || true
