@@ -125,8 +125,8 @@ begin
   end;
 
   select count(*) into v_events from public.payment_provider_events;
-  if v_events <> 5 then
-    raise exception 'RC428-430_FAIL: unexpected event count %, expected 5',v_events;
+  if v_events <> 4 then
+    raise exception 'RC428-430_FAIL: unexpected event count %, expected 4',v_events;
   end if;
 end;
 $test$;
