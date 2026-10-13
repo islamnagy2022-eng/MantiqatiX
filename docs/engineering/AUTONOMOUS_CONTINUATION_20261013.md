@@ -400,3 +400,13 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Scope of PASS: source security-contract validator and SMM unit/static checks included in that workflow only. It does not certify live post-launch functionality, migration replay, provider end-to-end behavior, wallet/payment E2E, or production readiness.
 - PR #225 remains draft/open/unmerged. Production SMM remains fail-closed; no production deployment or flag change was made.
 - Independent current blockers remain: PR #207 chronological replay is being repaired from one missing historical policy dependency at a time using read-only production catalog evidence and disposable-only fixtures; the live MantiGO global-admin RPC authorization issue is still P0.
+
+
+## Root-cause correction — SMM trigger privilege migration (2026-10-13 06:03 UTC)
+
+- Exact prior failure: run [#38350577917](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350577917), migration `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql`, SQLSTATE `42883` function does not exist.
+- Production read-only catalog confirms the trigger function exists and direct EXECUTE is denied to `anon`/`authenticated`; no production changes made.
+- Root source gap: the tracked archive has the revoke migration but not the historical create-function migration. The approved live-derived test fixture was being copied as a temporary migration, yet it did not appear in the reset's executed migration log before the revoke migration.
+- Updated the migration-owning PR #207 workflow in commit `ae5f6f63672a0aa2947f3d20fc70cae7e99ff6d0` to reset the disposable DB through version `20260927033924`, inject the fixture via the running disposable Postgres container, apply the real lockdown migration `20260927033925`, assert PUBLIC/anon/authenticated cannot execute it, then continue the rest of the chain.
+- Current exact-head replay run [#38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38354483080) is **IN PROGRESS** at disposable service startup. The ACL-specific result and subsequent chronological replay are not verified yet.
+- This correction does not reconstruct canonical history; the live-derived fixture remains disposable-only. PR #207 stays unmerged; release remains **BLOCKED / NOT CERTIFIED**.
