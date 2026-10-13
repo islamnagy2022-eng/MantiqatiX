@@ -6,6 +6,8 @@ DECLARE
   v_oid oid;
   v_def text;
   v_cfg text;
+  v_missing text;
+  v_payment_intent_type text;
 BEGIN
   v_oid := to_regprocedure('public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,text,jsonb)');
   IF v_oid IS NULL THEN
@@ -38,6 +40,40 @@ BEGIN
     RAISE EXCEPTION 'S05 contract failed: atomic lock/event/ledger/idempotency boundaries missing';
   END IF;
 
-  RAISE NOTICE 'S05 MantiGO static function contract passed; behavioral transaction tests remain required.';
+  -- Validate every payment-event column used by the new function before applying it.
+  SELECT string_agg(required.column_name, ', ')
+    INTO v_missing
+  FROM (VALUES
+    ('id'), ('tenant_id'), ('provider'), ('event_type'), ('payment_intent_id'),
+    ('external_event_id'), ('status'), ('signature_verified'), ('raw_payload'), ('processed_at')
+  ) AS required(column_name)
+  WHERE NOT EXISTS (
+    SELECT 1 FROM information_schema.columns c
+    WHERE c.table_schema='public'
+      AND c.table_name='payment_provider_events'
+      AND c.column_name=required.column_name
+  );
+  IF v_missing IS NOT NULL THEN
+    RAISE EXCEPTION 'S05 contract failed: payment_provider_events missing columns: %', v_missing;
+  END IF;
+
+  SELECT data_type INTO v_payment_intent_type
+  FROM information_schema.columns
+  WHERE table_schema='public' AND table_name='payment_provider_events'
+    AND column_name='payment_intent_id';
+  IF v_payment_intent_type NOT IN ('text', 'character varying') THEN
+    RAISE EXCEPTION 'S05 review blocked: payment_provider_events.payment_intent_id must store MantiGO text ledger IDs; actual type=%', v_payment_intent_type;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname='public' AND tablename='payment_provider_events'
+      AND indexdef ILIKE '%UNIQUE%'
+      AND indexdef ILIKE '%(provider, external_event_id)%'
+  ) THEN
+    RAISE EXCEPTION 'S05 contract failed: unique (provider, external_event_id) constraint/index missing';
+  END IF;
+
+  RAISE NOTICE 'S05 MantiGO static function/schema contract passed; behavioral transaction tests remain required.';
 END
 $s05$;
