@@ -1638,3 +1638,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Dated master entrypoint
 
 - Dated execution checkpoint: [`MANTIQATIX_MASTER_TODO_2026-10-13.md`](../MANTIQATIX_MASTER_TODO_2026-10-13.md). Keep its release status and priority blockers synchronized with this detailed task inventory and `docs/SESSION_LOG.md`.
+
+
+## Latest execution evidence — 2026-10-13
+
+- [x] PR #225 SMM source/ACL/type/unit-negative-input CI passed on current head `cbb8d541616f8fbd3abf7c3f9cecb5aaaed86ff0`: [run 38350429554](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350429554). Live HTTP deny behavior remains NOT VERIFIED.
+- [ ] PR #207 migration replay current head `56dc3375ec8cde875d886e1aa95b2329889139b0` fails before replay at [run 38350541588](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350541588): `settlement_attempts_baseline: unbound variable` in the second shell step. The variable is declared only in the first step and referenced in the second. Coordination comment: [6138798133](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138798133).
+- [ ] Settlement schema-only fixture requires exact `numeric(14,4)` / `varchar(8)` parity and explicit approval/provenance; the earlier finance-policy validator failure should be rerun after fixing the shell bootstrap because the current policy source matches the validator regex on independent read-only check.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
