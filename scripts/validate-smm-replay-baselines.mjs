@@ -25,11 +25,6 @@ const baselines = {
     version: "20261001163708",
     temporaryName: "20261001163708_test_only_approved_provider_onboarding_requests_baseline.sql",
   },
-  provider_onboarding_requests: {
-    path: path.join(baselineDir, "provider_onboarding_requests.sql"),
-    version: "20261001163708",
-    temporaryName: "20261001163708_test_only_approved_provider_onboarding_requests_baseline.sql",
-  },
 };
 const files = fs.readdirSync(migrationDir).filter(name => name.endsWith(".sql")).sort();
 const source = Object.fromEntries(files.map(name => [name, fs.readFileSync(path.join(migrationDir, name), "utf8")]));
