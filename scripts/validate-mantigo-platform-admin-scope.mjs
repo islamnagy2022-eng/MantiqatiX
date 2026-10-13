@@ -17,6 +17,20 @@ check("global stale-ride expiration checks the platform-admin guard", migration.
 check("integration rejects tenant OWNER, ADMIN, and OPERATIONS_MANAGER", integration.includes("tenant OWNER must not be treated") && integration.includes("tenant ADMIN with admin permission") && integration.includes("tenant OPERATIONS_MANAGER"));
 check("integration exercises global dashboard, report, settlement, and expiration", integration.includes("tenant OWNER read platform-wide dashboard") && integration.includes("tenant OWNER read platform-wide financial report") && integration.includes("global settlement mutation") && integration.includes("global ride expiration mutation"));
 check("integration allows explicit platform SUPER_ADMIN and checks grants", integration.includes("explicit platform SUPER_ADMIN") && integration.includes("has_function_privilege('anon'"));
+check("integration rejects unauthenticated callers on all four privileged RPCs",
+  integration.includes("unauthenticated caller read platform dashboard") &&
+  integration.includes("unauthenticated caller read platform financial report") &&
+  integration.includes("unauthenticated caller reached settlement") &&
+  integration.includes("unauthenticated caller reached ride expiration"));
+check("integration rejects forged p_admin_user_id on all four privileged RPCs",
+  integration.includes("forged admin UUID read platform dashboard") &&
+  integration.includes("forged admin UUID read platform financial report") &&
+  integration.includes("forged admin UUID reached settlement") &&
+  integration.includes("forged admin UUID reached ride expiration"));
+check("unauthenticated and forged-identity attempts assert no settlement/expiration side effects",
+  integration.includes("unauthenticated calls caused settlement/expiration side effects") &&
+  integration.includes("forged admin UUID calls caused settlement/expiration side effects"));
+
 check("integration denies anon on ride expiration and preserves authenticated entrypoint grants",
   integration.includes("anon must not execute platform ride expiration") &&
   integration.includes("authenticated role must retain intended RPC entrypoint grants") &&
