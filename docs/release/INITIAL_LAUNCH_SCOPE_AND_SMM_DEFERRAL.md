@@ -108,3 +108,10 @@ Fresh workflows triggered by the latest scope/evidence update have completed:
 - Pages workflow [38158496932](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38158496932): validation passed; deploy job skipped. No production deployment is claimed.
 
 These results improve confidence in core modules but do not clear the full production gate: chronological migration replay, exact live ledger reconciliation after RC424, server-side SMM containment, backup/restore rehearsal, production parity and branch-protection evidence are still outstanding.
+
+## 2026-10-14 — Safe SMM entry and immutable initial-launch gate
+
+- The main landing-page SMM card is now clickable, but it opens only `web/smm.html`, the static noindex development notice. The SMM storefront JavaScript remains excluded from the published artifact; the internal `التسويق والإعلان` module remains in the initial launch scope.
+- The candidate `smm-gateway` now includes `SMM_INITIAL_LAUNCH_DEFERRED=true` and denies requests with HTTP 503 before authentication, database, wallet, or provider actions. Both `MNTY_SMM_ENABLED=true` and `MNTY_SMM_POST_LAUNCH_APPROVED=true` are required in addition to the source-level constant being changed in a reviewed post-launch release; environment flags alone cannot activate SMM.
+- Read-only production inspection independently found the live gateway v10 already uses this hard source gate and returns `SMM_DEFERRED` before authentication. No Edge Function was deployed or changed in production.
+- Static source review passed 12/12 landing/deferred-boundary checks before the hard-gate change and 7/7 focused hard-gate checks after it. The latest GitHub SMM deferred validation is queued; wait for the exact-head CI result before accepting the patch.
