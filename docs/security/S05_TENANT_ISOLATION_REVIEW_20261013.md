@@ -154,3 +154,12 @@ Added `supabase/tests/S05_tenant_isolation_policy_contract.sql` on branch `secur
 - Synthetic multi-user runtime tests: NOT RUN.
 - Production changes, merge, deployment: NONE.
 - Release gate: **BLOCKED / NOT CERTIFIED**.
+
+
+### Policy combination semantics — additional check
+
+A fresh catalog query included `pg_policies.permissive`. The `authenticated_sessions_only`, `deny_anonymous_users`, `mnt_non_anonymous_boundary`, and `non_anonymous_authenticated_guard` policies observed on `tenants`, `branches`, `organizations`, and `tenant_modules` are **RESTRICTIVE**, not PERMISSIVE. Therefore, they do not independently grant access through permissive-policy OR semantics. This is important positive static evidence and avoids incorrectly treating the guard policies themselves as an access bypass.
+
+The static contract was strengthened in commit `802d9ef969d9fedb5363ac92b80c1425de5278fc` to fail if these guard policies are changed away from RESTRICTIVE or are missing. This test is still unexecuted; no CI run is associated with the reviewed commits so far.
+
+Repeated restrictive guard policies appear redundant and increase policy complexity, but no cleanup is proposed in this S05 scope. Effective behavior must still be confirmed with synthetic-user behavioral tests.
