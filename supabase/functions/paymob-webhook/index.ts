@@ -22,9 +22,25 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  if(sub){
    if(!sub.provider_order_id||String(sub.provider_order_id)!==paymobOrderId)return json({error:"SUBSCRIPTION_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
    if(Math.abs(Number(sub.amount)-amount)>0.01||String(sub.currency).toUpperCase()!==currency)return json({error:"SUBSCRIPTION_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
-   const {data:existing}=await admin.from("payment_provider_events").select("id").eq("provider","PAYMOB").eq("external_event_id",eventId).maybeSingle();if(existing)return json({ok:true,idempotent:true,requestId},200,requestId)
-   if(!success){const {error:e}=await admin.from("subscription_payment_intents").update({status:"FAILED",provider_transaction_id:value(obj.id),updated_at:new Date().toISOString()}).eq("id",sub.id).eq("status","PENDING");if(e)return json({error:"SUBSCRIPTION_FAILURE_PERSISTENCE",requestId},500,requestId);return json({ok:true,status:"FAILED",requestId},200,requestId)}
-   const {data:processed,error:e}=await admin.rpc("process_verified_subscription_payment",{p_event_id:`paymob-sub:${value(obj.id)}`,p_external_event_id:eventId,p_subscription_payment_intent_id:sub.id,p_provider_transaction_id:value(obj.id),p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_signature_verified:true});if(e)return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);return json({ok:true,status:String(processed?.status??"ACTIVE"),result:processed,requestId},200,requestId)
+   const subscriptionPaymentArgs={p_event_id:`paymob-sub:${value(obj.id)}`,p_external_event_id:eventId,p_subscription_payment_intent_id:sub.id,p_provider_transaction_id:value(obj.id),p_provider_confirmed_amount:amount,p_provider_confirmed_currency:currency,p_provider_order_id:paymobOrderId,p_signature_verified:true,p_raw_payload:raw};
+   if(!success){
+     const {data:failedSubscription,error:failureError}=await admin.rpc("process_verified_subscription_payment_failure",subscriptionPaymentArgs);
+     if(failureError){
+       const message=String(failureError.message??"");
+       if(message.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH")||message.includes("SUBSCRIPTION_PAYMENT_EVENT_REPLAY_MISMATCH")||message.includes("SUBSCRIPTION_PAYMENT_TRANSACTION_MISMATCH"))return json({error:"SUBSCRIPTION_PAYMENT_EVENT_CONFLICT",requestId},409,requestId);
+       if(message.includes("SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND"))return json({error:"SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId);
+       return json({error:"SUBSCRIPTION_FAILURE_PERSISTENCE",requestId},500,requestId);
+     }
+     return json({ok:true,status:String(failedSubscription?.status??"FAILED"),result:failedSubscription,requestId},200,requestId);
+   }
+   const {data:processed,error:successError}=await admin.rpc("process_verified_subscription_payment_backend",subscriptionPaymentArgs);
+   if(successError){
+     const message=String(successError.message??"");
+     if(message.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH")||message.includes("SUBSCRIPTION_PAYMENT_EVENT_REPLAY_MISMATCH")||message.includes("SUBSCRIPTION_PAYMENT_TRANSACTION_MISMATCH"))return json({error:"SUBSCRIPTION_PAYMENT_EVENT_CONFLICT",requestId},409,requestId);
+     if(message.includes("SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND"))return json({error:"SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId);
+     return json({error:"SUBSCRIPTION_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
+   }
+   return json({ok:true,status:String(processed?.status??"ACTIVE"),result:processed,requestId},200,requestId)
  }
  const {data:digitalByRef}=await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
  const {data:digitalByOrder}=digitalByRef?{data:null}:await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
