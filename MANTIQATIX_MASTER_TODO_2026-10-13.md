@@ -94,3 +94,9 @@ Next executable action: inspect exact-head workflow run for the current PR #207 
 - Split the registration fixture into schema-only at 20260927065246 and policy/grant-only at 20260927074155; the pending unique index remains owned by the existing 20260927134000 migration.
 - Updated workflow exact-copy/untracked/no-data guards and validator checks for both layers. Candidate code head 14cae3a824dbac5e2da85ad90d05b1c303a460b4; exact-head replay outcome NOT VERIFIED.
 - Verified uploaded RC40 archive hash e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e. Its migration 20260921154500 references but does not create settlement_attempts and is absent from production's applied migration ledger.
+
+## P1 replay continuation — approval policy source gap
+- Run 38351334323 failed at 20260927140500_remove_anonymous_sensitive_policy_access_v2.sql because approval_requests_scoped_read was not created earlier in the replay.
+- Read-only live catalog confirms the policy exists with authenticated SELECT and tenant/requester/finance-role-like visibility scope; repository and RC40 archive search did not recover its creation migration.
+- Added policy-only disposable fixture `supabase/tests/baselines/approval_requests_scoped_read.sql` at temporary version 20260927140499, with validator and CI exact-copy/untracked/no-data guards. No table DDL, grants, or data in this fixture.
+- Candidate code head e7fcd20f5c9a125d2a99590cb56a688086ab95cb; exact-head replay NOT VERIFIED.
