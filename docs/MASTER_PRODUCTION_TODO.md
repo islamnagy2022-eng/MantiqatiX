@@ -1694,3 +1694,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Exact-head checks now queued: Backend-only Module Boundary [38329261941], Migration Version Uniqueness [38329261943], Web workflow [38329261830], Audit Log ACL [38329261699], migration immutability [38329261728], platform-admin scope [38329261733], focused PostgreSQL integration [38329261773], module validation [38329261803], collision guard [38329261829], MantiGO privacy [38329261878], approval/audit atomicity [38329261801]. Queue status is NOT PASS; check them only after completion.
 - [ ] Production migration reconciliation, chronological replay, tenant-isolation/payment E2E, deployed Edge Function parity, Auth/security, backup restore, signed device build and rollback remain release blockers.
 - Release remains BLOCKED / NOT CERTIFIED; no production changes or release actions performed.
+
+
+## RC541 — Fresh live Supabase and exact-head CI verification — 2026-10-13
+
+- [x] Read-only Supabase migration ledger confirmed 283 rows, latest `20261008222845` RC424; post-RC424 migrations are not recorded as applied.
+- [x] Read-only Edge Function inventory recorded active versions: payment-intent v6, paymob-webhook v8, subscription-payment-intent v2, erp-purchase-receive v1, digital-page-payment-intent v3, smm-gateway v10. Version labels do not certify source parity.
+- [x] Fresh Security Advisor observed 1 INFO RLS-no-policy finding on `digital_page_payment_events`, 1 anon-executable SECURITY DEFINER warning for public targeted ads, and 40 authenticated-executable SECURITY DEFINER warnings requiring scoped review. No grants or policies changed.
+- [x] Exact current-head CI for `173da30eef28a86356b4077abf06ce02f60cfed8` completed successfully: focused integration [38329295442] (13 jobs), migration uniqueness [38329295349], Pages validation [38329295538] (deploy skipped), audit ACL [38329295385], approval atomicity [38329295335], module validation [38329295383], backend boundary [38329295355], collision guard [38329295462], privacy [38329295409], platform-admin [38329295487], migration immutability [38329295477].
+- [ ] Full ordered migration replay, runtime tenant/payment/finance E2E, function source parity, Auth/security remediation, restore rehearsal, signed device build and rollback remain unverified. Do not apply production migrations without a reviewed, explicitly approved rollout and reconciled baseline.
+- Release remains BLOCKED / NOT CERTIFIED.
