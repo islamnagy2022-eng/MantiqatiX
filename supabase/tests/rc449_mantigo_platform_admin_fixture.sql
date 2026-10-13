@@ -9,10 +9,13 @@ end;
 $roles$;
 
 create schema if not exists auth;
+-- VOLATILE is intentional in this disposable fixture only: the integration block
+-- changes request.jwt.claim.sub to emulate distinct HTTP requests in one SQL transaction.
+-- Production Supabase auth.uid() is not altered by this fixture.
 create or replace function auth.uid()
 returns uuid
 language sql
-stable
+volatile
 as $function$
   select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
 $function$;
