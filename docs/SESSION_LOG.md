@@ -97,3 +97,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Not yet verified: test SQL and workflow are source additions only until the exact-head job completes successfully and its logs are inspected. No local PostgreSQL execution was available through the connected GitHub source actions.
 - Not performed: no production database write, migration application, financial transaction, grants/RLS/Auth change, Edge Function deployment, merge, or release.
 - Next: inspect exact-head CI, fix only reproducible test/setup failures, and continue mandatory runtime gates. Release remains BLOCKED / NOT CERTIFIED.
+
+
+- Test review follow-up: corrected RC523 expected totals to match the isolated fixture's actual single inserted ledger row. The test does not run the separate RC441 data-seeding integration script, so it now expects one row and validates gross=250, commission=25, captain_amount=200, paid_amount=250, and unsettled_amount=200. This correction is source-reviewed only; CI must still execute it.
