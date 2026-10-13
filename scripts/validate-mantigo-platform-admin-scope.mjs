@@ -72,10 +72,12 @@ check("integration denies anon on ride expiration and preserves authenticated en
   integration.includes("has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE')"));
 check("integration verifies authorized settlement persistence and replay safety", integration.includes("authorized platform admin settlement failed") && integration.includes("settlement replay did not return idempotent success") && integration.includes("settlement replay duplicated audit or notification"));
 const rc523 = fs.readFileSync("supabase/migrations/20261013200000_rc523_mantigo_financial_report_canonical_columns.sql", "utf8");
-check("RC523 canonical financial report reads JWT identity at execution time and rejects NULL actor IDs",
+check("RC523 canonical financial report reads JWT identity at execution time and distinguishes missing auth from mismatched actor IDs",
   rc523.includes("v_auth := auth.uid();") &&
   !rc523.includes("v_auth uuid := auth.uid();") &&
-  rc523.includes("if v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id then"));
+  rc523.includes("if v_auth is null or p_admin_user_id is null then") &&
+  rc523.includes("if v_auth <> p_admin_user_id then") &&
+  rc523.includes("raise exception 'USER_CONTEXT_MISMATCH'"));
 
 const rc462 = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
 const rc462Test = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
