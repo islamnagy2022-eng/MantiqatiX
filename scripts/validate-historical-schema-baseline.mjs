@@ -608,21 +608,21 @@ const smmOrderEventsBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(smmOrderEventsBaseline) &&
   /NOT recovered historical creation DDL/.test(smmOrderEventsBaseline) &&
   /MUST NEVER be applied to production/.test(smmOrderEventsBaseline) &&
-  /create table public\\.smm_order_events/i.test(smmOrderEventsBaseline) &&
-  /id uuid primary key default gen_random_uuid\\(\\)/i.test(smmOrderEventsBaseline) &&
-  /order_id uuid not null references public\\.smm_orders\\(id\\) on delete cascade/i.test(smmOrderEventsBaseline) &&
+  /create table public\.smm_order_events/i.test(smmOrderEventsBaseline) &&
+  /id uuid primary key default gen_random_uuid\(\)/i.test(smmOrderEventsBaseline) &&
+  /order_id uuid not null references public\.smm_orders\(id\) on delete cascade/i.test(smmOrderEventsBaseline) &&
   /event_type text not null/i.test(smmOrderEventsBaseline) &&
-  /payload jsonb not null default '\\{\\}'::jsonb/i.test(smmOrderEventsBaseline) &&
-  /created_at timestamptz not null default now\\(\\)/i.test(smmOrderEventsBaseline) &&
-  /alter table public\\.smm_order_events enable row level security/i.test(smmOrderEventsBaseline) &&
-  /create policy smm_order_events_owner_read[\\s\\S]*for select[\\s\\S]*to authenticated[\\s\\S]*o\\.id = smm_order_events\\.order_id[\\s\\S]*o\\.user_id = \\(select auth\\.uid\\(\\)\\)/i.test(smmOrderEventsBaseline) &&
-  !/^\\s*(?:insert\\s+into|copy\\s+public\\.)/im.test(smmOrderEventsBaseline) &&
-  !/force row level security|\\bgrant\\b|\\btrigger\\b/i.test(smmOrderEventsBaseline);
+  /payload jsonb not null default '\{\}'::jsonb/i.test(smmOrderEventsBaseline) &&
+  /created_at timestamptz not null default now\(\)/i.test(smmOrderEventsBaseline) &&
+  /alter table public\.smm_order_events enable row level security/i.test(smmOrderEventsBaseline) &&
+  /create policy smm_order_events_owner_read[\s\S]*for select[\s\S]*to authenticated[\s\S]*o\.id = smm_order_events\.order_id[\s\S]*o\.user_id = \(select auth\.uid\(\)\)/i.test(smmOrderEventsBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+public\.)/im.test(smmOrderEventsBaseline) &&
+  !/force row level security|\bgrant\b|\btrigger\b/i.test(smmOrderEventsBaseline);
 if (!smmOrderEventsPolicyMigration || !smmOrderEventsBaselineValid ||
     fs.existsSync(path.join(migrationDirectory, smmOrderEventsTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === smmOrderEventsBaselineVersion) ||
     smmOrderEventsBaselineVersion >= smmOrderEventsPolicyMigration.name.slice(0, 14) ||
-    !/alter policy smm_order_events_owner_read on public\\.smm_order_events to authenticated;/i.test(smmOrderEventsPolicyMigration.sql)) {
+    !/alter policy smm_order_events_owner_read on public\.smm_order_events to authenticated;/i.test(smmOrderEventsPolicyMigration.sql)) {
   console.error("P0 BLOCKED: SMM order-event live-derived baseline or chronological policy-alter contract is invalid.");
   process.exit(1);
 }
