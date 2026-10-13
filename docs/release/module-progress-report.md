@@ -17,6 +17,7 @@ These percentages are evidence-based coverage measures, not claims that a module
 | Exact deployed Edge Function source parity | **32/37 = 86.5%** | All 37 active functions were compared; 32 are byte-for-byte matched after restoring missing Deno config files, and 5 have source differences requiring review (not automatic overwrite) |
 | Required post-RC424 production migrations proven applied | **0/33 = 0%** | Live ledger still ends at `20261008222845` / RC424; no required post-RC424 migrations are proven applied |
 | Migration source inventory (count-based) | **126/283 = 44.5%** | 126 source files have filename timestamps at or before the live RC424 ledger ceiling, versus 283 live ledger rows; this is an inventory signal, not exact version reconciliation. There are 160 source files total, including 34 after the ceiling |
+| Ledger-derived archive recovery | **33/185 = 17.8%** | 33 candidate rows without exact version/name matches now have SQL statement-derived archive files under `supabase/recovered-migrations/`; these are not yet validated by full chronological replay |
 | Full chronological migration replay | **NOT RUN** | No score assigned; a partial fixture run is not a full replay |
 | Full production E2E certification | **NOT VERIFIED** | No production-ready percentage is asserted without tenant/payment/finance/backup/device evidence |
 | Exact-head PR workflow set at prior source head | **11/12 succeeded; 1 queued** | On head `d9a6b18995b34ec4a467c16207270ff99427fc48`, the focused migration integration workflow remained queued; queued is not PASS. Subsequent source/config commits triggered a fresh CI set, which must be rechecked on the current head |
@@ -102,7 +103,7 @@ These 24 canonical codes passed the feature-flag alias mapping contract. The 100
 
 ## Release blockers that dominate overall readiness
 
-1. **Migration chain:** live ledger has 283 recorded migrations and ends at RC424. The repo contains 160 migration source files, of which 126 have filename timestamps at/before RC424 and 34 are later candidates. Full per-version source reconciliation and chronological replay remain blocked; the release gate tracks 33 required later migration sources, and 0/33 are proven applied.
+1. **Migration chain:** live ledger has 283 recorded migrations and ends at RC424. The repo contains 160 migration source files, of which 126 have filename timestamps at/before RC424 and 34 are later candidates. There are 185 rows without exact version or suffix-name matches; 33/185 (17.8%) now have ledger-derived archive files outside the CLI migration path. Full per-version source reconciliation and chronological replay remain blocked; 0/33 required later migrations are proven applied.
 2. **Security:** live Security Advisor reports 40 authenticated-executable SECURITY DEFINER functions requiring per-function review, one anon-executable targeted-advertisement SECURITY DEFINER warning, one RLS-enabled/no-policy table (`digital_page_payment_events`, intentionally fail-closed pending access-contract verification), and leaked-password protection warning(s). Do not blanket-revoke or add broad RLS policies.
 3. **Performance:** current Advisor reports 105 unindexed foreign keys, 375 auth/RLS init-plan warnings, 124 unused-index notices, and 28 multiple-permissive-policy warnings. These need query/usage analysis, not blind schema changes.
 4. **Critical runtime acceptance:** two-tenant isolation, live Paymob, finance/settlement, notification delivery, backup/restore rehearsal, signed Android/device release, rollback, and post-deployment smoke remain unverified or external.
@@ -110,7 +111,8 @@ These 24 canonical codes passed the feature-flag alias mapping contract. The 100
 
 ## Next work sequence
 
-1. Re-run and finish exact-head focused migration integration.
+1. Continue safe recovery/reconciliation of the production ledger source: 33/185 candidate archive rows are recovered so far; a later bulk write batch was denied by repository write safeguards, and no alternate route was used to bypass that denial.
+2. Re-run and finish exact-head focused migration integration.
 2. Build a disposable PostgreSQL chronological replay from the authoritative baseline; resolve only real historical dependencies, never stubs or rewritten history.
 3. Continue exact source parity comparison for the remaining live Edge Functions and capture results.
 4. Close security findings function-by-function and complete owner-controlled Auth settings.
