@@ -63,3 +63,28 @@ To prevent the current static validator from certifying that stale source, the v
 The added tests `S07_GATE_006` and `S07_GATE_007` cover false/empty flags and all non-approved flag pairs. They have been committed but have not yet been confirmed by a completed Deno CI run.
 
 No live function, secrets, database grants, provider, wallet, or production deployment was changed. Keep PR #221 draft and do not certify it for production until source parity and isolated integration tests are complete.
+
+
+## Follow-up checkpoint — live helper parity and CI evidence
+
+Date: 2026-10-13
+
+A read-only retrieval of the active Supabase Edge Function `smm-gateway` (version 10; reported function SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`) was compared against the S07 branch files.
+
+| File | Live bytes | Branch bytes | Result |
+|---|---:|---:|---|
+| `launch-gate.ts` | 479 | 479 | Byte-identical |
+| `provider-transport.ts` | 3,180 | 3,180 | Byte-identical |
+| `order-status.ts` | 820 | 820 | Byte-identical |
+| `catalog-normalization.ts` | 2,872 | 2,872 | Byte-identical |
+| `order-validation.ts` | 3,988 | 3,988 | Byte-identical |
+| `request-validation.ts` | 2,159 | 2,159 | Byte-identical |
+| `index.ts` | 19,650 | 10,678 | **Different; parity not established** |
+
+This narrows the tracked-file parity gap: all six helper files currently in the branch match the deployed v10 helper contents byte-for-byte, while the entrypoint is materially different and does not import/use the v10 safety helpers. This is not full source parity, and the function-level SHA-256 must not be represented as an individual-file hash.
+
+### CI observation
+
+The GitHub Actions run `38338350751` completed the seven Deno launch-gate unit tests successfully (**7 passed, 0 failed**) but failed the static validator at the expected source-parity assertion because the branch entrypoint does not import `./provider-transport.ts`. This confirms that the guard is actively blocking the stale entrypoint; it does not certify the gateway or the production runtime.
+
+The newer validator revision that checks actual import declarations was committed separately as `2b0c468b7196a226f62f69d2b87981971f3d23ef`. Its workflow result is not yet confirmed. Do not weaken the assertion to turn CI green. Next source-parity work must reconcile the entrypoint's behavior in reviewed, bounded changes, preserve the hard deferred-launch gate, and then run isolated tests. No production function, database privilege, secret, wallet, provider, or deployment was changed during this read-only comparison.
