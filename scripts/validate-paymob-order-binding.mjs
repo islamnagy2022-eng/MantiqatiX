@@ -58,7 +58,7 @@ const checks = [
   ["RC431 digital-page payment RPC rejects a null status", digitalHardeningMigration.includes("if p_status is null or p_status not in ('SUCCEEDED', 'FAILED')")],
   ["RC431 digital-page callback rejects conflicting status on replay", digitalHardeningMigration.includes("DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH") && digitalHardeningMigration.includes("v_event.status is distinct from p_status")],
   ["Lookup rejects ambiguous merchant references", lookupMigration.includes("PAYMENT_TARGET_AMBIGUOUS_MERCHANT_REFERENCE")],
-  ["Lookup rejects ambiguous provider-order IDs instead of choosing LIMIT 1", lookupMigration.includes("PAYMENT_TARGET_AMBIGUOUS_PROVIDER_ORDER") && !/\\bLIMIT\\s+1\\b/i.test(lookupMigration)],
+  ["Lookup rejects ambiguous provider-order IDs instead of choosing LIMIT 1", lookupMigration.includes("PAYMENT_TARGET_AMBIGUOUS_PROVIDER_ORDER") && !/\bLIMIT\s+1\b/i.test(lookupMigration)],
   ["Lookup uses fixed search_path and is service-role-only", lookupMigration.includes("SET search_path = public, pg_temp") && lookupMigration.includes("REVOKE ALL ON FUNCTION public.resolve_paymob_webhook_target(text,text)") && lookupMigration.includes("TO service_role;")],
   ["Subscription webhook binds intent to signed provider order", webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("sub.provider_order_id")],
   ["Subscription callback arriving before provider-order persistence is retryable", webhook.includes("SUBSCRIPTION_PROVIDER_CORRELATION_PENDING") && webhook.includes("retryable:true") && webhook.includes('sub.status==="PENDING"')],
