@@ -115,7 +115,7 @@ Added `supabase/tests/security/s03_security_definer_contract.sql`. It uses catal
 2. actor/admin guards on selected privileged operations;
 3. explicit `search_path` on callable SECURITY DEFINER functions in scope, excluding the four S02-owned functions.
 
-**Execution status: NOT RUN.** No isolated PostgreSQL runner was executed as part of this audit turn. A test file existing is not a passing test. Production was not used to run behavioral tests.
+**Execution status: NOT RUN.** No isolated PostgreSQL runner was available/executed in this audit turn. The data-minimization assertion is expected to flag the current `to_jsonb(b)`/`to_jsonb(f)` pattern if run against the current definition; that is a predicted result from source inspection, not an observed test failure. A test file existing is not a passing test. Production was not used to run behavioral tests.
 
 ## Required next steps
 
@@ -130,5 +130,5 @@ Added `supabase/tests/security/s03_security_definer_contract.sql`. It uses catal
 ## Evidence caveats
 
 - This is a snapshot of live catalog/Advisor evidence at audit time.
-- The broad catalog inventory is verified; the full body/call-site audit of all 45 overloads is **not complete**.
-- Test pass/fail counts: **0 passed, 0 failed, 1 test file added but not run**. Do not report this as a successful test run.
+- All **45 function definitions** in the in-scope inventory were retrieved and inspected at definition level. Caller/call-site review, tenant-contract validation, and behavioral/adversarial runtime coverage remain incomplete; source review is not equivalent to runtime certification.
+- Test pass/fail counts: **0 passed, 0 failed, 1 test file added but not run**. One assertion is expected to flag the current broad-row serialization pattern; no execution result is claimed.
