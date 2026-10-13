@@ -1730,3 +1730,12 @@ Evidence report: `docs/release/module-progress-report.md`.
 - Mandatory runtime gates remain open: tenant isolation, live Paymob/finance E2E, notification delivery, backup/restore, Android signing/device checks, rollback, and production smoke.
 
 **Release remains BLOCKED / NOT CERTIFIED.** Do not treat wiring percentages as a release-readiness score.
+
+
+## RC544 — Edge Function convergence and historical migration source gap — 2026-10-13
+
+- Current live inventory: 37 ACTIVE Edge Functions. Exact source audit: 32/37 (86.5%) byte-for-byte matched; 5 have differences requiring review. See `docs/release/module-progress-report.md` for the function-by-function divergence summary. Do not replace hardened branch sources with weaker live copies without a reviewed deployment plan.
+- Restored exact Deno configs missing from repo for `payment-webhook`, `mnty-provider-onboarding-submit`, and `mnty-provider-onboarding-review`. These are source-only updates; no deployment occurred.
+- Migration inventory: 283 production ledger rows, 160 repository migration files, 126 filenames timestamped at/before RC424 and 34 after it. Count-based indicator is 126/283 = 44.5%; exact mapping remains unverified. No `supabase/config.toml` or separate migration archive exists under `supabase/`. See `docs/release/migration-source-inventory-gap.md`.
+- **0/33** required post-RC424 migrations are proven applied; live ledger ends at `20261008222845`. Full chronological replay is NOT RUN and cannot be certified from the current source inventory.
+- Keep release BLOCKED while authentic historical source recovery, complete per-version ledger reconciliation, replay, and all mandatory E2E/security/recovery/device gates remain open.
