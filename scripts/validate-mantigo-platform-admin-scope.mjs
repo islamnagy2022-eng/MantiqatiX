@@ -25,3 +25,19 @@ check("integration verifies authorized settlement persistence and replay safety"
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");
+
+const rc462 = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
+const rc462Test = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
+const focusedWorkflow = fs.readFileSync(".github/workflows/recovered-migration-focused-integration.yml", "utf8");
+check("RC462 malformed JSON guard must use JSON containment rather than unsafe text-to-boolean casts",
+  rc462.includes("m.permissions @> '{\"scope\":\"PLATFORM\",\"full_control\":true}'::jsonb") &&
+  !rc462.includes("(m.permissions ->> 'full_control')::boolean"));
+check("RC462 regression covers malformed string, false, and valid true permissions",
+  rc462Test.includes('"full_control":"not-a-boolean"') &&
+  rc462Test.includes('"full_control":false') &&
+  rc462Test.includes('"full_control":true') &&
+  rc462Test.includes("without raising for malformed full_control"));
+check("RC462 malformed-permission regression is selected and executed by focused CI after RC462 migration",
+  focusedWorkflow.includes("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql") &&
+  focusedWorkflow.includes('docker cp supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql "$pg_container:/tmp/rc462_test.sql"') &&
+  focusedWorkflow.indexOf("-f /tmp/rc462_migration.sql") < focusedWorkflow.indexOf("-f /tmp/rc462_test.sql"));
