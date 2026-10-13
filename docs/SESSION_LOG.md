@@ -279,3 +279,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added a push trigger limited to the isolated branch `s04/ledger-reconciliation-20261013` so the S04 source audit and disposable replay can run without merging or publishing PR #218.
 - The updated branch run [38338010686](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338010686) was QUEUED at last inspection; no CI pass is claimed. The prior authoritative Supabase CLI replay still fails at `20260927074200_harden_smm_table_api_privileges.sql` due to missing `public.smm_provider_credentials`.
 - No executable migration SQL, production schema/data/ledger, Auth, grants, RLS, or Edge Functions were modified. No merge/deploy occurred. S04 remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC549 — Remove superseded experimental replay runner — 2026-10-13
+
+- Removed the temporary standalone replay script/workflow/report from the earlier isolated branch `s04/migration-chain-clean-replay-20261013` after re-reading the latest PR #218 and discovering that it already contains the authoritative Supabase CLI replay workflow and first-failure evidence. This avoids leaving a second, weaker vanilla-PostgreSQL runner that would treat archival `recovered-migrations` as executable.
+- Retained the current continuation branch `s04/ledger-reconciliation-20261013`, which is based on PR #218's then-current head and contains only the enhanced source audit, isolated-branch trigger, row-level inventory reports, and documentation/session-log updates. No PR #218 changes were pushed.
+- Current S04 run [38338075186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338075186) remains QUEUED at last check. The earlier authoritative clean replay remains failed at the missing `public.smm_provider_credentials` prerequisite. No new SQL replay result is claimed.
+- No production database writes, migration applications, ledger rewrites, deployments, merges, or releases occurred. S04 remains **BLOCKED / NOT CERTIFIED**.
