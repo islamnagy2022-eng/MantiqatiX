@@ -83,6 +83,28 @@ begin
   end;
   if not rejected then raise exception 'amount/currency mismatch was not rejected'; end if;
 
+  -- A previously accepted event cannot be replayed against a different order.
+  insert into public.digital_page_orders
+    (id,provider,amount,currency,provider_order_id,payment_status,fulfillment_status)
+  values
+    ('10000000-0000-4000-8000-000000006062','PAYMOB',249.50,'EGP','s06-provider-order-2','PENDING','REQUESTED');
+  perform public.process_verified_digital_page_payment_backend(
+    '10000000-0000-4000-8000-000000006062','paymob:s06-cross-order','TRANSACTION','SUCCEEDED',true,249.50,'EGP',
+    's06-cross-order','s06-provider-order-2','{"suite":"S06","case":"cross-order-seed"}'::jsonb
+  );
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      target,'paymob:s06-cross-order','TRANSACTION','SUCCEEDED',true,249.50,'EGP',
+      's06-cross-order','s06-provider-order','{"suite":"S06","case":"cross-order-replay"}'::jsonb
+    );
+    raise exception 'TEST_FAILED: event replay across orders unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_EVENT_ORDER_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'event replay across orders was not rejected'; end if;
+
   select count(*) into n from public.digital_page_payment_events
     where digital_page_order_id=target;
   if n <> 0 then raise exception 'rejected callbacks persisted % provider events',n; end if;
