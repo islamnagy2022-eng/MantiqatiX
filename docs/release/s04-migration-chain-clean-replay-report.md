@@ -12,6 +12,8 @@ A fresh read-only query of `supabase_migrations.schema_migrations` returned **28
 
 The candidate RC425–RC441, RC449, RC462, RC522, and RC523 migrations are **not proven applied**. The queried target versions were absent from the live ledger. No production migration, schema, data, permission, or migration-ledger write was performed.
 
+A separate read-only ledger search found the same first-migration name under live version `20260927074210 / harden_smm_table_api_privileges`, while the repository filename is `20260927074200_harden_smm_table_api_privileges.sql` (10-second version mismatch). The source contains only privilege revocations; it does not create `public.smm_provider_credentials`. The table exists in the live schema, but no ledger statement returned by the exact-name search records its creation. Treat this as an unresolved baseline/source-identity gap; do not rewrite the live ledger version.
+
 ## 2. Source inventory and ordering
 
 The PR branch contains **160 SQL files** in `supabase/migrations/` and **33** in `supabase/recovered-migrations/`. The source-chain preflight reported **193 total files**, **187 unique 14-digit versions**, and **five duplicate-version groups**. All 20 explicit required sources (RC425–RC432, RC434–RC441, RC449, RC462, RC522, RC523) were present in the preflight. RC433 has no matching source; confirm from authoritative evidence whether RC433 was ever a defined migration. Absence alone does not establish a missing applied migration.
