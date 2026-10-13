@@ -238,3 +238,20 @@ This recheck was catalog-only and did not invoke any application RPC. It support
 A SELECT-only static scan cross-checked function-body relation-reference tokens against actual public relation names for in-scope functions whose configured path is exactly `search_path=public`. It returned **0 matching unqualified references to existing public relations**. A separate lexical scan found no `EXECUTE` token in the retrieved function definitions.
 
 Interpretation: this reduces the specific risk of temporary-table shadowing for the patterns tested, because no unqualified reference matching a live public table/view was found in this heuristic scan. It is **not** a PostgreSQL parser-level guarantee and does not replace review of every expression, type/function resolution, SQL constructed in strings, or actual API exposure. Several functions already use `search_path=public, pg_temp`, which explicitly places the temp schema last; the public ad RPC remains the known source-only RC451 hardening gap, although its application table references are schema-qualified.
+
+
+### Cross-function authorization heuristic sweep — 2026-10-13
+
+A further SELECT-only catalog sweep covered all 45 in-scope callable SECURITY DEFINER function definitions. It recorded whether each definition mentions `auth.uid()`, contains a common identity-comparison pattern, checks anonymous JWT state, uses tenant/business/branch scope predicates, locks rows, or contains mutation statements. This is a triage matrix, not a vulnerability detector: helper functions such as `mnty_can` correctly delegate authorization, while read-only/public functions may not need actor identity.
+
+Specific review conclusions:
+- The financial/payment path has explicit user/tenant/order checks, pricing snapshot checks, amount/currency checks, idempotency checks, and row locking in `create_payment_intent_backend`.
+- `create_job_backend` binds the supplied user to `auth.uid()` and requires an active tenant/business membership in an allowed role before insert.
+- `submit_job_application_backend` binds applicant identity to `auth.uid()`, validates required fields, verifies the job exists, and prevents duplicate applications per job/user.
+- Private InDrive helpers have explicit empty search paths and were not found to be anon-executable in the catalog inventory. Their full authorization semantics still require caller-chain and adversarial runtime review.
+- `private.legal_is_admin(uuid)` is executable by authenticated according to PostgreSQL privilege checks, but `private` schema API exposure could not be confirmed from database settings (the inspected `pgrst.db_schemas` setting was null). Its direct API reachability is therefore **unresolved**, not a confirmed vulnerability. Its use in legal write RPCs passes a target actor UUID; callers must be reviewed to ensure an untrusted actor cannot use that predicate to authorize themselves.
+- The scan does not establish that all user-provided fields are safe or that all state transitions are complete. No business RPCs were invoked.
+
+### Environment decision required for behavioral tests
+
+Supabase organization discovery returned one organization, `manteqti` (ID `uahatcrnwfexfdmkrdkr`). I have not requested a cost quote or created a branch because the Supabase connector requires asking the user to select the organization before quoting branch cost, and explicit cost confirmation before branch creation. Until that confirmation, runtime tests remain unexecuted.
