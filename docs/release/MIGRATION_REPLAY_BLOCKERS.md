@@ -888,3 +888,33 @@ Run [38354483080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/3
 - Workflow harness root fixes: replaced unstable Docker container discovery with a local DB URL; removed the unsupported `supabase migration up --local --version` usage, which returned the CLI version instead of targeting a migration. The workflow now applies the ACL SQL directly in disposable Postgres for the preflight assertion, then runs the normal migration runner so it records/replays the idempotent statement.
 - Latest replay run [38356535239](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356535239) has passed source/baseline validation and exact-copy checks, and is in disposable Supabase startup. Full chronological replay remains **IN PROGRESS / NOT VERIFIED**.
 - The test-only baseline is not historical-source recovery. Do not apply it to production, insert live rows, or treat replay as PASS until all subsequent migrations complete.
+
+
+## 2026-10-13 — Latest chronological replay failure: marketing participants
+
+Exact-head disposable replay [run 38356679251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356679251) progressed through the approved disposable-only historical fixtures and then failed at:
+
+`20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`
+
+with:
+
+`ERROR: relation "public.marketing_project_participants" does not exist (SQLSTATE 42P01)`
+
+### Read-only live catalog evidence
+A read-only query confirmed that `public.marketing_project_participants` exists in the live project and has:
+- UUID primary key `id`; UUID `project_id` and `provider_id`; role, allocation_percent, agreed_value, status, created_at columns.
+- FK `project_id → marketing_projects(id) ON DELETE CASCADE`; FK `provider_id → marketing_provider_profiles(id) ON DELETE RESTRICT`.
+- Unique key `(project_id, provider_id, role)`, check constraints for allocation (0–100), nonnegative agreed value, role set, and status set.
+- RLS enabled and FORCE RLS enabled.
+- One intended provider SELECT policy plus three overlapping authenticated non-anonymous guards; these policies require separate contextual review and must not be blindly copied into a fixture.
+- The only explicit non-owner table grants returned by the catalog query for `service_role` were REFERENCES, TRIGGER, and TRUNCATE; this is not proof of the complete function execution path.
+
+### Decision
+- [PR #235](https://github.com/islamnagy2022-eng/MantiqatiX/pull/235) adds a fail-closed preflight so this missing historical dependency is reported before starting the local Supabase stack.
+- No test baseline was fabricated for this table. Existing approved disposable baselines for SMM tables and other historical objects do not automatically authorize a marketing participant baseline.
+- Current live schema is not a substitute for canonical historical creation DDL; policies/grants/ownership and dependency order need provenance and explicit review.
+
+### Next step
+Recover the original creation migration or obtain explicit, narrowly scoped approval for a disposable-only live-derived schema snapshot for this exact table. If approved, record schema hash/provenance, include no production rows, verify policy/grant expectations separately, and inject only in the disposable test workspace before the first dependent migration. Do not add it to `supabase/migrations` and never apply it to production.
+
+Release remains **BLOCKED / NOT CERTIFIED**.
