@@ -440,3 +440,20 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - Steps passed: SMM security-contract validator, service-role ACL boundary validator, Deno type-check, and SMM unit/negative-input tests.
 - This closes the previous `NOT VERIFIED` status for the candidate SMM source/unit gate at this exact head. It does not prove post-launch provider functionality: the deployed `smm-gateway` remains intentionally fail-closed with `SMM_INITIAL_LAUNCH_DEFERRED=true`, and its live source is still the base PR #218 version.
 - PR #225 remains draft/open/unmerged. Do not enable SMM or deploy without separate release approval.
+
+
+## Root-cause replay work — marketing project dependencies (2026-10-13 13:36 UTC)
+
+- Latest confirmed PR #207 clean-replay run before this change, [#38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600), passed the historical-baseline preflight and temporary-baseline copy/untracked checks, started disposable Supabase, and reached `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`. It failed on missing `public.marketing_project_participants` (SQLSTATE 42P01).
+- Read-only production catalog queries inspected both `marketing_projects` and `marketing_project_participants` columns, defaults, constraints/FKs, indexes, RLS/force-RLS, policy predicates/roles, and table grants. Read-only `supabase_migrations.schema_migrations` search found no canonical CREATE TABLE DDL for either; only the policy ALTER migration refers to them. No operational rows were read or copied.
+- Added the two tables to the existing owner-approved test-only `supabase/tests/baselines/marketing_leads.sql` compatibility fixture, in dependency order: marketing leads → projects → project participants. The fixture contains no data, explicitly revokes broad table grants, preserves observed least-privilege grants, and includes the current catalog policy predicates needed by the historical ALTER POLICY migration.
+- Extended `scripts/validate-historical-schema-baseline.mjs` to verify both table definitions, dependencies, constraints, indexes, RLS, policy predicates, grants, and the exact chronological ALTER POLICY statements. First CI attempt failed closed because two index assertions did not account for the catalog's explicit `USING btree` clause. Fixed the validator to accept that explicit index method; this was a validator bug, not a schema change.
+- Pushed to the migration-owning PR #207 branch only after checking its head was unchanged. Latest PR #207 head is `b30aa0fe1e41fe7f0216a8fa816dc17a65e71b74`. New run [#38406227251](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406227251) has passed the historical baseline preflight, exact-copy/untracked checks, migration version uniqueness, and migration history immutability. Disposable Supabase service startup is in progress; the full replay result is **NOT VERIFIED** yet.
+- The baseline remains synthetic/live-derived, not recovered historical DDL. This change only affects isolated CI fixtures and does not modify production schema, data, grants, Auth, RLS, or migration history.
+- PR #225's exact-head SMM regression run [#38356801037](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38356801037) passed: static SMM contract validator, service-role boundary validator, Deno check, and 7 unit tests. This explicitly does not claim live HTTP/runtime test coverage or launch readiness.
+- Production release remains **BLOCKED / NOT CERTIFIED**: four MantiGO global admin/report/settlement/expiry RPCs still have the previously verified live authorization defect; migration provenance and full clean replay remain open.
+
+### Next exact actions
+1. Poll run #38406227251 and inspect the next first chronological replay error; do not skip or rewrite historical migrations.
+2. Continue only with schema/policy compatibility baselines backed by read-only catalog evidence and the project's approved disposable-only baseline process. Record all historical-source limitations.
+3. Recheck PR #207's mergeability/CI and PR #218's four-RPC production blocker. Do not merge/deploy or alter production.
