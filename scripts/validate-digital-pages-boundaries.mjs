@@ -35,7 +35,8 @@ if (signatureGate < 0 || digitalPaymentRpc < 0 || signatureGate >= digitalPaymen
 // exact MantiGO ledger intent before an event can be persisted or the ledger changed.
 for (const [marker,label] of [
   ['MANTIGO_PROVIDER_ORDER_MISMATCH','MantiGO provider/order mismatch rejection'],
-  ['metadata.paymob_intention_order_id','stored Paymob intention order ID'],
+  ['mantigoMetadata.paymob_intention_order_id','stored Paymob intention order ID'],
+  ['String(mantigoMetadata.paymob_intention_order_id)!==paymobOrderId','exact signed order ID equality'],
   ['mantigo.provider!=="PAYMOB"','MantiGO ledger provider binding'],
   ['mantigo.provider_intent_id','MantiGO provider intent existence']
 ]) {
