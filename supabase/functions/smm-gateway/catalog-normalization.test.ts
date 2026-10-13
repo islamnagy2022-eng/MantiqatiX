@@ -47,3 +47,56 @@ Deno.test("S07_CATALOG_005: service text is bounded and control characters are r
   assertEquals(row?.name, "Safe name");
   assertEquals(String(row?.description).length, 1000);
 });
+
+Deno.test("S07_CATALOG_006: blank or unsupported provider identifiers are rejected", () => {
+  for (const raw of [
+    { service: "   ", rate: 1, min: 1, max: 10 },
+    { service: {}, rate: 1, min: 1, max: 10 },
+    { rate: 1, min: 1, max: 10 },
+    { service: "svc", rate: "   ", min: 1, max: 10 },
+  ]) {
+    assertEquals(normalizeProviderService(raw, "p1"), null);
+  }
+});
+
+Deno.test("S07_CATALOG_007: zero, equal-cost, negative, and non-finite existing prices never stay active", () => {
+  const cases = [
+    { selling_price: 0, active: true },
+    { selling_price: 2, active: true },
+    { selling_price: -1, active: true },
+    { selling_price: Number.POSITIVE_INFINITY, active: true },
+    { selling_price: "not-a-price", active: true },
+  ];
+  for (const existing of cases) {
+    const row = normalizeProviderService(
+      { service: "svc", rate: 2, min: 1, max: 10 },
+      "p1",
+      existing,
+    );
+    assertEquals(row?.active, false);
+    if (existing.selling_price === -1 || existing.selling_price === Number.POSITIVE_INFINITY || existing.selling_price === "not-a-price") {
+      assertEquals(row?.selling_price, 0);
+    }
+  }
+});
+
+Deno.test("S07_CATALOG_008: normalized output contains no unapproved provider fields", () => {
+  const row = normalizeProviderService({
+    service: "svc",
+    rate: 1,
+    min: 1,
+    max: 10,
+    api_key: "secret",
+    token: "secret",
+    raw_payload: { nested: "secret" },
+    extra_field: "not allowlisted",
+  }, "p1");
+  assertEquals(Object.keys(row ?? {}).sort(), [
+    "active", "cancel", "category", "description", "dripfeed",
+    "external_service_id", "max_quantity", "metadata", "min_quantity",
+    "name", "platform", "provider_cost", "provider_id", "refill",
+    "selling_price",
+  ].sort());
+  assertEquals(JSON.stringify(row).includes("secret"), false);
+  assertEquals(JSON.stringify(row).includes("not allowlisted"), false);
+});
