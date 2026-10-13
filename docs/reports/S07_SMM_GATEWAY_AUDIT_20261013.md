@@ -72,3 +72,23 @@ Added [`S07_SMM_INTEGRATION_TEST_MATRIX_20261013.md`](./S07_SMM_INTEGRATION_TEST
 - S07 workflow run [38341031755](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38341031755) was observed in **queued** state for commit `9778eb800beeab47573fec73c777652f1666b25e`; its job was also queued when checked. No test result is available yet.
 - Other repository workflows observed on the same commit were also queued. No deployment or production change is inferred from a queued workflow.
 - The integration matrix is documentation only; none of its 18 cases should be counted as executed.
+
+
+## Follow-up checkpoint — bounded request parser tests added
+
+Date: 2026-10-13
+
+Added `supabase/functions/smm-gateway/request-validation.test.ts` (commit `1f269b2e6859daf34912d5451a7093db9a8bb191`) with five uniquely named cases:
+- accepts JSON object bodies and vendor `+json` media types;
+- rejects missing/unsupported content types;
+- enforces declared and streamed byte limits and rejects malformed content-length;
+- rejects malformed JSON, invalid UTF-8, arrays, and primitive JSON values;
+- rejects missing request bodies.
+
+This test file is included by the existing `deno test --no-check supabase/functions/smm-gateway/*.test.ts` workflow glob. It has **not** been run locally or confirmed by completed CI.
+
+## CI status rechecked
+
+At this checkpoint, workflow run [38341065311](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38341065311), associated with PR head `6e24a9e4a0c5971fe7cf18a924d1dbbfe2ef5a50`, and its S07 job were still **queued**. This run predates the new request parser test commit, so it cannot validate that test. Do not count any of the newly added helper tests as passing until a completed run on a commit containing them is inspected.
+
+The source-parity validator remains intentionally fail-closed: current `index.ts` lacks imports for the v10 safety helpers and retains the legacy automatic refund path. No validator relaxation, entrypoint overwrite, merge, deployment, secret update, migration, provider call, campaign submission, or wallet mutation was performed. PR #221 remains Draft and **BLOCKED / NOT CERTIFIED**.
