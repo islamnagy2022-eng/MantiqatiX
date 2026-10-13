@@ -55,7 +55,7 @@
 
 ## Clean migration replay gate
 
-[S04 Migration Chain Clean Replay run](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38340039976): **FAIL / BLOCKED**. The workflow recorded `source_audit_exit=1`, `supabase_start_exit=1`, and `clean_replay_exit=NOT_RUN`. Therefore this run did not prove a clean full-chain replay. Resolve the source audit and local Supabase startup failures, then rerun.
+[S04 Migration Chain Clean Replay run](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38340039976): **FAIL / BLOCKED**. The source audit found five duplicate migration-version groups: `20260928020000`, `20260928060000`, `20260928190000`, `20260928200000` (three files), and `20260928210000`. It found no missing entries from its explicit required-source list; RC433 is marked `NOT_FOUND_NOT_VERIFIED_GAP`, not proven to be a missing deployed migration. Separately, `supabase start` failed because pulls from `public.ecr.aws/supabase/*` were rate-limited (`toomanyrequests: Rate exceeded`), so `clean_replay_exit=NOT_RUN`. A read-only production ledger query returned 283 recorded migrations with latest version `20261008222845`; none of the five duplicate version values appeared in the queried ledger. Do not rename/resequence source migrations until the complete migration-source/ledger reconciliation establishes the correct mapping. This run did not prove a clean full-chain replay.
 
 ## Safety boundary
 
