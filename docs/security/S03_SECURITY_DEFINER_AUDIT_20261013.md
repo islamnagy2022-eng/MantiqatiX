@@ -143,3 +143,33 @@ Added `supabase/tests/security/s03_security_definer_contract.sql`. It uses catal
 - This is a snapshot of live catalog/Advisor evidence at audit time.
 - All **45 function definitions** in the in-scope inventory were retrieved and inspected at definition level. Caller/call-site review, tenant-contract validation, and behavioral/adversarial runtime coverage remain incomplete; source review is not equivalent to runtime certification.
 - Test pass/fail counts: **0 passed, 0 failed, 1 test file added but not run**. One assertion is expected to flag the current broad-row serialization pattern; no execution result is claimed.
+
+## Follow-up evidence reconciliation — 2026-10-13
+
+### Open-ride privacy contract cross-check
+
+A repository search found the source-only migration `supabase/migrations/20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql` and its disposable integration test `supabase/tests/rc446_mantigo_open_ride_integration.sql`. The migration comment explicitly describes the intended boundary as active + verified + available captain access and sets `search_path = pg_catalog`; its integration test expects ordinary authenticated users and pending/unverified/offline/busy captains to be denied. These files are repository evidence, not proof of production deployment or product-owner approval.
+
+The live production definition inspected for `public.list_open_mantigo_rides_backend(uuid)` does not contain that captain-profile guard. Therefore the source-vs-production mismatch is **confirmed**; the privacy/authorization impact remains dependent on the approved product contract and actual client call path. The RC446 migration is source-only and was not applied by this audit. Do not merge it or apply it to production as part of S03.
+
+### Schema and temporary-object privilege snapshot
+
+Additional read-only production catalog checks returned:
+- `anon` TEMP privilege on the database: true.
+- `authenticated` TEMP privilege on the database: true.
+- `anon` and `authenticated` CREATE on schema `public`: false.
+- `anon` USAGE on schema `private`: false; `authenticated` USAGE: true.
+
+This makes isolated shadow-object tests important for SECURITY DEFINER functions. The inventory contains explicit `search_path` settings, including deliberately empty paths on several `private` helpers. An explicit setting is not by itself proof of safe name resolution: the effective path, relation qualification, function resolution, and schema/API exposure must be evaluated together. No shadow-object test was run against production, and no privileges were changed. A text-level scan is not a substitute for PostgreSQL parser/runtime verification.
+
+### Existing source evidence for customer ride serialization
+
+The live definition and the repository migration `20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql` both serialize full bid and financial rows using `to_jsonb(b)` and `to_jsonb(f)`. The source confirms this is not just a stale test expectation. Whether each field is intentionally visible to the ride owner still requires a field-by-field contract review; fields of concern include non-selected bidders' contact/vehicle details and internal payment/settlement/provider/idempotency metadata.
+
+### Updated status
+
+- Confirmed source/production mismatch: 1 (open-ride captain gate absent from live function while the source-only RC446 contract expects it).
+- Confirmed exploitable vulnerabilities: **0**; the source/production mismatch is a verified contract divergence, not yet a proven unauthorized disclosure without the call-path/product-contract confirmation.
+- High-priority privacy candidates requiring contract confirmation: customer ride full-row serialization and open-ride visibility; caller-supplied captain name/phone on bids.
+- Test execution remains **NOT RUN**: 0 passed, 0 failed. No result was inferred from source inspection.
+- Production remains read-only throughout this follow-up. No RPC execution, DML, DDL, GRANT/REVOKE, migration, merge, or deploy was performed.
