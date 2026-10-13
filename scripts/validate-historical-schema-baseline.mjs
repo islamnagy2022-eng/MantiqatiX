@@ -188,7 +188,7 @@ const marketingLeadsBaselineValid =
   /marketing_projects_client_business_id_fkey[\s\S]*references public\.businesses\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
   /marketing_projects_management_mode_check/i.test(marketingLeadsBaseline) &&
   /marketing_projects_status_check/i.test(marketingLeadsBaseline) &&
-  /create index idx_mkt_projects_status on public\.marketing_projects\s*\(status, created_at desc\)/i.test(marketingLeadsBaseline) &&
+  /create index idx_mkt_projects_status on public\.marketing_projects(?:\s+using\s+btree)?\s*\(status, created_at desc\)/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_projects enable row level security/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_projects force row level security/i.test(marketingLeadsBaseline) &&
   /CREATE POLICY "Project clients can view own marketing projects"[\s\S]*ON public\.marketing_projects[\s\S]*FOR SELECT TO authenticated[\s\S]*um\.user_id = \(SELECT auth\.uid\(\) AS uid\)[\s\S]*um\.status::text = 'ACTIVE'::text/i.test(marketingLeadsBaseline) &&
@@ -201,7 +201,7 @@ const marketingLeadsBaselineValid =
   /marketing_project_participants_role_check/i.test(marketingLeadsBaseline) &&
   /marketing_project_participants_status_check/i.test(marketingLeadsBaseline) &&
   /marketing_project_participants_allocation_percent_check/i.test(marketingLeadsBaseline) &&
-  /create index idx_mkt_project_participants_provider on public\.marketing_project_participants\s*\(provider_id\)/i.test(marketingLeadsBaseline) &&
+  /create index idx_mkt_project_participants_provider on public\.marketing_project_participants(?:\s+using\s+btree)?\s*\(provider_id\)/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_project_participants enable row level security/i.test(marketingLeadsBaseline) &&
   /alter table public\.marketing_project_participants force row level security/i.test(marketingLeadsBaseline) &&
   /CREATE POLICY "Providers view assigned projects"[\s\S]*ON public\.marketing_project_participants[\s\S]*FOR SELECT TO authenticated[\s\S]*p\.owner_user_id = \(SELECT auth\.uid\(\) AS uid\)/i.test(marketingLeadsBaseline) &&
