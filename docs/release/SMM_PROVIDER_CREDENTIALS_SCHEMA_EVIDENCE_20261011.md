@@ -1,6 +1,6 @@
 # SMM Provider Credentials — Live Schema Evidence
 
-**Status:** READ-ONLY EVIDENCE ONLY — NOT an authoritative historical baseline and NOT approved for migration replay.
+**Status:** READ-ONLY EVIDENCE ONLY — owner-approved for isolated disposable replay only as of 2026-10-11 per PR #207. This is NOT authoritative historical creation DDL and is NOT approved for production migration/application.
 
 **Observed:** 2026-10-11, Supabase project `moyhiluyhjsujhwlyeuu`, via read-only catalog introspection.
 
@@ -26,7 +26,7 @@ No credential values or customer/provider records were read or copied into this 
 
 The historical migration `20260927074200_harden_smm_table_api_privileges.sql` references this table, but no committed migration currently creates it. The production table's current shape does not prove its original creation DDL, creation time, prior constraints, or whether any intervening schema changes occurred.
 
-Do **not** resolve this by adding a backdated migration, changing the already-applied migration history, or silently seeding a replay fixture. Before the empty-database migration replay can pass, recover the original DDL from repository history or obtain explicit owner approval for a separately versioned schema baseline that documents its production provenance and scope. Until then, `validate-historical-schema-baseline.mjs` must fail closed and the release remains `NOT CERTIFIED`.
+Do **not** resolve this by adding a backdated migration or changing the already-applied migration history. Owner approval recorded in PR #207 covers only the separately versioned, live-derived baseline used in isolated disposable replay; it does not convert that baseline into historical DDL or authorize production application. The replay harness must inject the baseline only into a disposable workspace, verify its exact schema/security shape, and keep the provenance limitation visible. Release remains `NOT CERTIFIED` until the full ordered replay and all other release gates pass.
 
 ## Evidence limits
 
