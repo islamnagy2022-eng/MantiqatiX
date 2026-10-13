@@ -4,6 +4,7 @@ import path from "node:path";
 const migrationDirectory = "supabase/migrations";
 const providerBaselinePath = "supabase/tests/baselines/smm_providers.sql";
 const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentials.sql";
+const adminsBaselinePath = "supabase/tests/baselines/smm_admins.sql";
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests_schema.sql";
 const registrationSecurityBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
@@ -64,6 +65,8 @@ const missingHistoricalTables = [
   { table: "payment_provider_events", before: "20260920211717_security_definer_surface_reduction_and_finance_rls.sql", baselinePath: "supabase/tests/baselines/payment_provider_events.sql" },
   // The archived source changes this live RLS policy but does not create its table.
   { table: "smm_wallet_transactions", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_wallet_transactions.sql" },
+  // Exact live schema is approved for disposable replay only; it is not recovered historical DDL.
+  { table: "smm_admins", before: "20260928150000_rc151_backend_only_erp_smm_table_privileges.sql", baselinePath: adminsBaselinePath },
   { table: "smm_services", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_services.sql" },
   { table: "smm_orders", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_orders.sql" },
   { table: "smm_order_events", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: "supabase/tests/baselines/smm_order_events.sql" },
@@ -975,8 +978,12 @@ const createsProvidersTable = migrations.some(({ sql }) =>
 );
 const providerBaselineVersion = "20260927074158";
 const credentialsBaselineVersion = "20260927074159";
+const adminsBaselineVersion = "20260927033923";
+const createsAdminsTable = migrations.some(({ sql }) =>
+  /\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:(?:"?public"?)\\s*\\.\\s*)?"?smm_admins"?\\b/i.test(sql)
+);
 
-for (const baselinePath of [providerBaselinePath, credentialsBaselinePath]) {
+for (const baselinePath of [adminsBaselinePath, providerBaselinePath, credentialsBaselinePath]) {
   if (!fs.existsSync(baselinePath)) {
     console.error("P0 BLOCKED: owner-approved test-only schema baseline is missing at " + baselinePath);
     process.exit(1);
@@ -1004,17 +1011,31 @@ const credentialsChecks = [
   ["credentials baseline is explicitly test-only", /TEST-ONLY SCHEMA BASELINE/i.test(credentialsBaseline) && /Never apply this file to production/i.test(credentialsBaseline)],
 ];
 
-const failed = [...providerChecks, ...credentialsChecks].filter(([, ok]) => !ok);
+const adminsBaseline = fs.readFileSync(adminsBaselinePath, "utf8");
+const adminsChecks = [
+  ["admin table has exact observed UUID user_id and timestamp columns", /user_id\\s+uuid\\s+not\\s+null/i.test(adminsBaseline) && /created_at\\s+timestamptz\\s+not\\s+null\\s+default\\s+now\\(\\)/i.test(adminsBaseline)],
+  ["admin table has primary key and auth.users cascade foreign key", /primary\\s+key\\s*\\(\\s*user_id\\s*\\)/i.test(adminsBaseline) && /foreign\\s+key\\s*\\(\\s*user_id\\s*\\)[\\s\\S]*references\\s+auth\\.users\\s*\\(\\s*id\\s*\\)[\\s\\S]*on\\s+delete\\s+cascade/i.test(adminsBaseline)],
+  ["admin table enables RLS without inventing policies or FORCE RLS", /enable\\s+row\\s+level\\s+security/i.test(adminsBaseline) && !/force\\s+row\\s+level\\s+security|create\\s+policy/i.test(adminsBaseline)],
+  ["admin table has no direct privileges and matches observed service_role ACL", /revoke\\s+all[\\s\\S]*from\\s+public\\s*,\\s*anon\\s*,\\s*authenticated\\s*,\\s*service_role/i.test(adminsBaseline) && /grant\\s+references\\s*,\\s*trigger\\s*,\\s*truncate[\\s\\S]*to\\s+service_role/i.test(adminsBaseline)],
+  ["admin baseline has approved source provenance and test-only warning", /2026-10-14/i.test(adminsBaseline) && /moyhiluyhjsujhwlyeuu/i.test(adminsBaseline) && /read-only PostgreSQL catalog introspection/i.test(adminsBaseline) && /NOT recovered historical DDL/i.test(adminsBaseline) && /Never apply this file to production/i.test(adminsBaseline)],
+  ["admin baseline contains no production data or operational mutations", !/^\\s*(?:insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+public\\.)/im.test(adminsBaseline)],
+];
+const failed = [...providerChecks, ...credentialsChecks, ...adminsChecks].filter(([, ok]) => !ok);
 if (failed.length) {
   for (const [name] of failed) console.error("P0 BLOCKED: test baseline validation failed: " + name);
   process.exit(1);
 }
-if (createsCredentialsTable || createsProvidersTable) {
+if (createsCredentialsTable || createsProvidersTable || createsAdminsTable) {
   console.error("P0 BLOCKED: do not add guessed/backdated production migrations for the SMM baseline tables; reconcile any authoritative historical creation migration before replay.");
   process.exit(1);
 }
 if (!firstCredentialReference) {
   console.error("P0 BLOCKED: no migration references smm_provider_credentials; expected historical privilege migration was not found.");
+  process.exit(1);
+}
+const firstAdminsReference = migrations.find(({ sql }) => /smm_admins/i.test(sql));
+if (!firstAdminsReference || adminsBaselineVersion >= firstAdminsReference.name.slice(0, 14)) {
+  console.error("P0 BLOCKED: SMM admins baseline does not sort before its first dependent migration.");
   process.exit(1);
 }
 const legacyPrivilegeMigration = migrations.find(({ name }) =>
@@ -1149,6 +1170,7 @@ if (firstCredentialReference.name.slice(0, 14) <= credentialsBaselineVersion) {
 for (const [version, temporaryName] of [
   [providerBaselineVersion, providerBaselineVersion + "_test_only_approved_smm_providers_baseline.sql"],
   [credentialsBaselineVersion, credentialsBaselineVersion + "_test_only_approved_smm_provider_credentials_baseline.sql"],
+  [adminsBaselineVersion, adminsBaselineVersion + "_test_only_approved_smm_admins_baseline.sql"],
 ]) {
   if (fs.existsSync(path.join(migrationDirectory, temporaryName))) {
     console.error("P0 BLOCKED: temporary test-only migration filename already exists in repository: " + temporaryName);
