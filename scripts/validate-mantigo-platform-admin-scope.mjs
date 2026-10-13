@@ -50,6 +50,10 @@ check("unauthenticated and forged-identity attempts assert no settlement/expirat
 check("auth regressions assert expected rejection identifiers rather than accepting arbitrary errors",
   integration.includes("sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED')") &&
   integration.includes("sqlerrm='USER_CONTEXT_MISMATCH'"));
+check("multi-identity test session forces fresh plans and restores planner setting",
+  integration.includes("SET plan_cache_mode = force_custom_plan;") &&
+  integration.includes("RESET plan_cache_mode;"));
+
 
 
 check("integration denies anon on ride expiration and preserves authenticated entrypoint grants",
