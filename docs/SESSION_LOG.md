@@ -166,3 +166,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Coordination comment [6138956619](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138956619) asks to stabilize the replay candidate or dispatch a run against the final SHA.
 - PR #220's RPC/table ACL mismatch is recorded in [comment 6138943387](https://github.com/islamnagy2022-eng/MantiqatiX/pull/220#issuecomment-6138943387); candidate RPC definitions are insufficient until every handler branch calls the supported server-side path and isolated tests pass.
 - Release remains **BLOCKED / NOT CERTIFIED**. No production changes.
+
+
+## Root-cause continuation — 2026-10-13 05:32 UTC
+
+- PR #207 current head `1b85a440a647f29428d2183f392b0ad0c63b7607`; exact-head replay [38351761328](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351761328) has passed preflight and disposable baseline injection, but Supabase startup remains in progress and chronological replay has not started.
+- PR #228: validator + disposable PostgreSQL pass; Deno check fails before source diagnostics because transitive `npm:openai@^4.52.5` is not provisioned in node_modules. Posted root-cause and proposed `deno check --node-modules-dir=auto --no-lock ...` correction at [comment 6138974795](https://github.com/islamnagy2022-eng/MantiqatiX/pull/228#issuecomment-6138974795). Keep type-check required and rerun exact head.
+- PR #225 SMM static security regression passed at head `4117a7788f2ec632269e46870dea51863fe274ef`, [run 38351776942](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351776942); this does not establish live gateway denial.
+- No production changes. Release remains **BLOCKED / NOT CERTIFIED**.
