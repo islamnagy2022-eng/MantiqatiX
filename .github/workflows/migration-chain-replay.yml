@@ -39,7 +39,7 @@ jobs:
       - name: Fail closed if the historical schema baseline is missing
         run: node scripts/validate-historical-schema-baseline.mjs
 
-      - name: Inject approved live-derived compatibility baselines into disposable replay only
+      - name: Inject verified test-only compatibility baselines into disposable replay only
         shell: bash
         run: |
           set -euo pipefail
@@ -87,7 +87,7 @@ jobs:
           cp "$credit_accounts_baseline" "$credit_accounts_migration"
           cp "$credit_periods_baseline" "$credit_periods_migration"
           cp "$payment_provider_events_baseline" "$payment_provider_events_migration"
-          echo "Injected approved live-derived compatibility baselines into disposable CI only."
+          echo "Injected catalog-verified test-only compatibility baselines into disposable CI only."
           echo "These are not historical creation migrations and must never be applied to production."
 
       - name: Verify temporary baselines are exact copies and untracked
