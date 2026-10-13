@@ -294,12 +294,15 @@ jobs:
           psql "$db_url" -v ON_ERROR_STOP=1 -f "$smm_bootstrap_baseline"
           psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT to_regprocedure('public.smm_bootstrap_first_admin()') IS NOT NULL" | grep -qx t
 
-          # Apply and verify the historical ACL migration separately so a later unrelated
-          # failure cannot obscure whether the SMM trigger's direct EXECUTE was revoked.
-          supabase migration up --local --version 20260927033925
+          # Apply the actual historical SQL directly for an isolated preflight assertion.
+          # Supabase CLI's migration-up command has no target-version flag; after this direct
+          # assertion, the ordinary migration runner reapplies the idempotent REVOKE and records
+          # the migration in its own ledger.
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/migrations/20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT NOT has_function_privilege('anon', p.oid, 'EXECUTE') AND NOT has_function_privilege('authenticated', p.oid, 'EXECUTE') AND NOT EXISTS (SELECT 1 FROM aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE') FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'smm_bootstrap_first_admin' AND pg_get_function_identity_arguments(p.oid) = ''" | grep -qx t
 
-          # Continue through every remaining migration in timestamp order.
+          # Continue through every remaining migration in timestamp order. The targeted REVOKE
+          # is safe to replay and will be recorded normally in the local migration ledger.
           supabase migration up --local
 
       - name: Record local migration ledger
