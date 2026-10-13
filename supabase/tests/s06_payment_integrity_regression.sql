@@ -7,6 +7,20 @@ declare
   n integer;
   result jsonb;
 begin
+  -- Empty/whitespace provider event IDs must be rejected before any lookup or write.
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      target,'   ','TRANSACTION','SUCCEEDED',true,249.50,'EGP',
+      's06-empty-event','s06-provider-order','{"suite":"S06","case":"empty-event-id"}'::jsonb
+    );
+    raise exception 'TEST_FAILED: empty event ID unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_EVENT_ID_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'empty event ID was not rejected'; end if;
+
   insert into public.digital_page_orders
     (id,provider,amount,currency,provider_order_id,payment_status,fulfillment_status)
   values
