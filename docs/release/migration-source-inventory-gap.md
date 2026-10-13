@@ -23,3 +23,14 @@ The existing RC424 alias is known: ledger version `20261008222845`, source filen
 5. Keep production blocked until full replay, required forward migrations, E2E, security, backup/restore, and rollback evidence pass.
 
 **Current status: BLOCKED / NOT CERTIFIED.** No production mutation was made while measuring this gap.
+
+
+## RC545 — Ledger-derived source recovery archive — 2026-10-13
+
+- Read-only inspection confirmed the production migration ledger has **283/283 rows with stored statement arrays**; 272 rows have one stored statement and 11 rows have multiple statement elements.
+- The current tracked migration directory has 160 files. A comparison by exact filename version or exact suffix name found 185 ledger rows with neither an exact version match nor an exact suffix-name match; some may still map to renamed/timestamp-alias source files and must be reconciled by statement comparison before declaring them missing.
+- Restored the first **33/185 = 17.8%** of these candidate historical sources to `supabase/recovered-migrations/`, using only the SQL statement arrays read from the production ledger. Multi-statement arrays were reconstructed with statement terminators; these are ledger-derived archive files, not claimed byte-for-byte originals.
+- All 33 recovered files passed a lightweight recognizable-secret pattern scan; no matching secret pattern was found. This is not a substitute for a full secret review or SQL execution test.
+- The archive is intentionally outside `supabase/migrations/` so Supabase CLI will not execute duplicate/alias migrations automatically. No production migration or database write occurred.
+- A further bulk source-write batch was denied by repository write safeguards; no alternate route was used to bypass that denial. Continue with reviewed batches only if the permitted repository write path allows them.
+- Next: reconcile the 98 name-matched live rows against their stored statements, verify archive file contents, and build a disposable chronological replay only after aliases and source order are proven.
