@@ -173,6 +173,46 @@ if (!approvalPolicyMigration || approvalPolicyPriorCreation || !approvalPolicyBa
   process.exit(1);
 }
 
+// Validate the catalog-derived general-ledger finance-read policy required by the same
+// historical ALTER POLICY migration. This is a disposable-only compatibility fixture.
+const generalLedgerPolicyBaselinePath = "supabase/tests/baselines/general_ledger_finance_read.sql";
+const generalLedgerPolicyBaseline = fs.readFileSync(generalLedgerPolicyBaselinePath, "utf8");
+const generalLedgerPolicyVersion = "20260927140497";
+const generalLedgerPolicyTemporaryName = generalLedgerPolicyVersion + "_test_only_live_derived_general_ledger_finance_read.sql";
+const generalLedgerPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const generalLedgerPolicyPriorCreation = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < generalLedgerPolicyMigration?.name.slice(0, 14) &&
+  /create\\s+policy\\s+general_ledger_finance_read\\s+on\\s+(?:public\\s*\\.\\s*)?general_ledger\\b/i.test(sql)
+);
+const generalLedgerPolicyBaselineValid =
+  /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(generalLedgerPolicyBaseline) &&
+  /2026-10-13/.test(generalLedgerPolicyBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(generalLedgerPolicyBaseline) &&
+  /NOT recovered historical policy-creation DDL/i.test(generalLedgerPolicyBaseline) &&
+  /MUST NOT be applied to production/i.test(generalLedgerPolicyBaseline) &&
+  /CREATE POLICY general_ledger_finance_read[\\s\\S]*ON public\\.general_ledger[\\s\\S]*FOR\\s+SELECT\\s+TO\\s+authenticated/i.test(generalLedgerPolicyBaseline) &&
+  /um\\.tenant_id::text = general_ledger\\.tenant_id::text/i.test(generalLedgerPolicyBaseline) &&
+  /um\\.user_id = \\(SELECT auth\\.uid\\(\\)\\)/i.test(generalLedgerPolicyBaseline) &&
+  /um\\.status::text = 'ACTIVE'/i.test(generalLedgerPolicyBaseline) &&
+  /OWNER[\\s\\S]*ADMIN[\\s\\S]*MANAGER[\\s\\S]*FINANCE[\\s\\S]*ACCOUNTANT[\\s\\S]*FINANCE_MANAGER/i.test(generalLedgerPolicyBaseline) &&
+  !/create table|alter table|\\bgrant\\b|\\brevoke\\b|create trigger/i.test(generalLedgerPolicyBaseline) &&
+  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(generalLedgerPolicyBaseline);
+const generalLedgerPolicyFailureReasons = [
+  ["missing ALTER POLICY migration", !generalLedgerPolicyMigration],
+  ["earlier source policy creator exists; fixture may duplicate history", generalLedgerPolicyPriorCreation],
+  ["live-derived fixture contract invalid", !generalLedgerPolicyBaselineValid],
+  ["temporary migration file already exists", fs.existsSync(path.join(migrationDirectory, generalLedgerPolicyTemporaryName))],
+  ["temporary version collision", migrations.some(({ name }) => name.slice(0, 14) === generalLedgerPolicyVersion)],
+  ["temporary version is not earlier than ALTER POLICY", !generalLedgerPolicyMigration || generalLedgerPolicyVersion >= generalLedgerPolicyMigration.name.slice(0, 14)],
+  ["expected ordered ALTER POLICY statement absent", !generalLedgerPolicyMigration || !/alter policy general_ledger_finance_read on public\\.general_ledger to authenticated;/i.test(generalLedgerPolicyMigration.sql)],
+].filter(([, failed]) => failed);
+if (generalLedgerPolicyFailureReasons.length) {
+  for (const [reason] of generalLedgerPolicyFailureReasons) console.error("P0 BLOCKED general_ledger_finance_read: " + reason);
+  process.exit(1);
+}
+
 // Validate the catalog-derived commission finance-read policy required by the ordered
 // ALTER POLICY migration. This is test-only compatibility, never historical-source recovery.
 const commissionPolicyBaselinePath = "supabase/tests/baselines/commission_transactions_finance_read.sql";
