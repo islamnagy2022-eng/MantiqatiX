@@ -24,6 +24,9 @@ Supabase project: moyhiluyhjsujhwlyeuu
 4. Migration 20261002192000_rc230_digital_page_payment_events.sql defines the event table with order FK, unique external_event_id, provider/event/status/signature fields, raw payload and timestamp; it enables RLS and revokes all privileges from anon and authenticated.
 5. Existing repository notes docs/RC334_SECURITY_GATE_REVERIFICATION.md and docs/RC337_CURRENT_SECURITY_RELEASE_GATE.md state that the no-policy payment-event ledger is deliberate and that direct client access is not granted. The anonymous targeted-advertisement SECURITY DEFINER endpoint is documented as an intentionally narrow public read boundary. This does not certify its current live behavior; verify it separately with function-level runtime tests.
 
+
+6. Live Supabase Security Advisor was rechecked at 2026-10-13T02:26:12.710Z: one RLS-enabled/no-policy finding for public.digital_page_payment_events, one anon-executable SECURITY DEFINER function (public.get_mnty_targeted_advertisements), and 40 authenticated-executable SECURITY DEFINER function findings. Advisor findings are not automatically confirmed vulnerabilities; each function needs caller/authorization-path review. This S05 review did not invoke or mutate any such function.
+
 ## Test identity design (synthetic only)
 
 Create fixtures only in disposable PostgreSQL/Supabase local or isolated branch DB, never in production:
