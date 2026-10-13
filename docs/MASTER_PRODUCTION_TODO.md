@@ -1614,3 +1614,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Payment webhook main parity follow-up — 2026-10-13
 
 - [ ] **P0 / payment integrity:** current-main webhook blob `c03384ce019484b77139d924c4621f6b23903071` lacks the `.eq("status","PENDING")` predicate present on PR #220 candidate blob `04d502fb2e01b1f751e10f6ac68b4814ccf220d5`. Candidate still performs event insert and intent update separately and does not validate update errors/affected-row count. Require transactional DB RPC, replay binding checks, and concurrency/fault-injection tests; then verify deployed-source parity.
+
+
+## Session C latest verified blockers — 2026-10-13
+
+- [ ] **P0 / PR #207 migration preflight:** run [38349544642](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349544642) fails before replay because the validator's `payment_provider_events` index contract conflicts with the approved disposable-only fixture: RC256 creates the tenant index; the fixture contains the payment-intent index absent from tracked creation history. Reconcile test-only contract/provenance; do not rewrite production history.
+- [ ] **P0 / PR #218 migration replay:** run [38343250122](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38343250122) fails because `public.smm_provider_credentials` is absent before `20260927074200_harden_smm_table_api_privileges.sql`. Coordinate isolated baseline injection or recover authoritative DDL.
+- [ ] **P1 / PR #225 SMM CI:** run [38349321482](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349321482) fails because redirect assertion checks `provider-transport.ts` while `redirect:"error"` exists in `index.ts`. Correct the validator and add behavioral coverage; require exact-head CI PASS.
+- [ ] **P0 / PR #219 MantiGO authorization:** current-head run failed. Isolate request identity contexts and pass the full PostgreSQL behavioral suite without weakening authorization.
+- [ ] **P0 / PR #220 payments:** S06 focused regression passing is insufficient; S04 clean replay failed, webhook atomicity/cross-intent replay/concurrency/fault-injection remain unverified.
+- Global release remains **BLOCKED / NOT CERTIFIED**. No production writes, migration application, Auth/RLS/grant/secret changes, financial mutation, merge, or deployment.
