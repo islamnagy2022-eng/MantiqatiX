@@ -325,3 +325,20 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 ### Current release verdict
 
 **BLOCKED / NOT CERTIFIED.** SMM static/unit regression is green at its exact tested SHA. Full chronological migration replay is still unresolved; live MantiGO RPC authorization is a P0 production blocker. No merge, production migration, data mutation, grants/Auth/RLS change, wallet/payment operation, or deployment was performed.
+
+
+## Payment callback atomicity workstream — 2026-10-13 05:23 UTC
+
+- Opened draft PR #227: https://github.com/islamnagy2022-eng/MantiqatiX/pull/227 (branch `security/paymob-mantigo-atomic-rpc-wiring-20261013`, based on PR #218 head).
+- Read-only production catalog confirms `payment_provider_events.payment_intent_id` references `payment_intents(id)`, while the Paymob MantiGO callback was writing a `mantigo_financial_ledger.id` into that field. The old callback also split event insert, ledger update, and notification into separate REST calls.
+- Corrected the candidate callback to call the existing RC425 `process_verified_mantigo_payment_backend` RPC, which uses the dedicated `mantigo_payment_provider_events` table and an atomic ledger/event/notification transaction. The callback now passes a minimized normalized binding payload and no longer writes those tables directly.
+- Added static contract checks to forbid direct event/ledger/notification writes inside the MantiGO callback branch and a focused workflow that runs the existing RC425 disposable PostgreSQL integration.
+- Exact-head workflow [#38351020381](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38351020381) completed **SUCCESS** for both `static-boundary` and `disposable-postgres` jobs at code head `e69b6f7e3bf3f2672835a736d61bec60f573e144`. This proves the candidate's static boundary and RC425 isolated PostgreSQL tests; it does not prove a real signed Paymob sandbox E2E or production deployment.
+- PR #227 remains **OPEN / DRAFT / UNMERGED**. No production deployment or payment was performed.
+
+## Latest migration replay failure — 2026-10-13 05:23 UTC
+
+- PR #207 has advanced to head `6ec626662d90cad8926fc129433ae73d3aa15290` at this checkpoint.
+- Exact run [#38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) now passes the temporary-baseline verification shell and proceeds farther through the chronological migrations, but fails at `20260927033925_harden_smm_bootstrap_trigger_execute_privilege.sql` with `ERROR: function public.smm_bootstrap_first_admin() does not exist (SQLSTATE 42883)`.
+- This is the next missing historical function dependency in the disposable replay, not a reason to synthesize a production migration or stub a function. PR #207 remains the migration-history owner; resolve through authoritative source/ledger evidence and test-only compatibility only with explicit provenance/approval.
+- The new run still concludes **FAIL**; full migration replay remains **NOT VERIFIED**.
