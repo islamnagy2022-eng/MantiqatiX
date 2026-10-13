@@ -25,7 +25,9 @@ const required=[
 ];
 for(const [src,marker,label] of required){if(!src.includes(marker))throw new Error('Finance boundary marker missing: '+label);}
 if(payment.includes('body.amount') && !payment.includes('order.total')) throw new Error('Payment flow appears to trust client amount');
-if(paymob.includes('from("payment_provider_events").insert') || paymob.includes('from("subscription_payment_intents").update') || paymob.includes('from("digital_page_orders").update')) {
-  throw new Error('Paymob webhook must not perform direct payment/event state writes; use atomic authoritative RPCs');
+if (/\.from\(["']payment_provider_events["']\)\s*\.\s*(?:select|insert|update|upsert|delete)\b/i.test(paymob) ||
+    paymob.includes('from("subscription_payment_intents").update') ||
+    paymob.includes('from("digital_page_orders").update')) {
+  throw new Error('Paymob webhook must not directly read or write provider-event/payment state; use atomic authoritative RPCs');
 }
 console.log('RC260 finance/payment boundary validation: PASS');
