@@ -61,3 +61,11 @@ Do not label the release ready until required CI on the final candidate passes, 
 - [ ] **P1 / PR #207 replay bootstrap**: current head `56dc3375ec8cde875d886e1aa95b2329889139b0`, run [38350541588](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350541588) fails before replay with `settlement_attempts_baseline: unbound variable`. The variable is missing from declarations in the second workflow shell step; comment [6138798133](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207#issuecomment-6138798133). No workflow edit from Session C.
 - [ ] **P0 / settlement fixture fidelity**: disposable-only `settlement_attempts` baseline still uses unbounded `numeric` and `character varying`, while read-only production catalog reports `numeric(14,4)` and `varchar(8)`. Preserve exact typmods and confirm approval/provenance before relying on this new financial fixture. Prior finance-policy validator failure must be rechecked after bootstrap fix because current source SQL matches the static regex on independent inspection.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Queue checkpoint — 2026-10-13 05:19 UTC
+
+- PR #207 current head `61c994c47b7b27f498a26463dda658694ffcb719`; replay [38350704904](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350704904) is QUEUED. Earlier head `56dc3375ec8cde875d886e1aa95b2329889139b0` failed before replay on the missing second-shell `settlement_attempts_baseline` variable; recheck that fix on the current head when queued CI runs.
+- PR #225 current head `67bf1c5b7b57c69393245fa5dfc4e55901dcb160`; [run 38350675472](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38350675472) PASS for source/ACL/type/unit-negative-input checks. Live HTTP deny remains NOT VERIFIED.
+- PR #219 MantiGO behavioral PostgreSQL suite still FAILS at `AUTH_REQUIRED` in an authorized path; PR #220 focused S06 payment tests pass but S04 replay fails.
+- Release remains **BLOCKED / NOT CERTIFIED**; no production writes, migrations, security configuration changes, merge, or deployment.
