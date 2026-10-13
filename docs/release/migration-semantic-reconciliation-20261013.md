@@ -2,7 +2,8 @@
 
 **Repository:** `islamnagy2022-eng/MantiqaTiX`  
 **PR:** #218 (draft, unmerged)  
-**Reviewed branch head:** `ca520738fde2fcac405840312ef52a8a1d3df44f`  
+**Reviewed code/test head:** `ca520738fde2fcac405840312ef52a8a1d3df44f`  
+**Documentation refresh commit:** `b2c2eab3a78c0a96eb59d3f0756f87b1b9278be4` (no PR-triggered workflow run was returned for this docs-only commit at the time of recheck).  
 **Supabase project:** `moyhiluyhjsujhwlyeuu`  
 **Method:** read-only comparison of repository migration files with `supabase_migrations.schema_migrations.statements`. No production schema or data was changed.
 
@@ -26,7 +27,7 @@
 
 ## CI snapshot — refreshed for reviewed head `ca520738fde2fcac405840312ef52a8a1d3df44f`
 
-The following GitHub Actions runs associated with this candidate were observed completed successfully:
+The following GitHub Actions runs associated with the tested code head `ca520738fde2fcac405840312ef52a8a1d3df44f` were observed completed successfully. They are not represented as checks on the later documentation-only commit:
 
 - Migration History Immutability — run `38333772074`
 - Open PR Migration Collision Guard — run `38333772068`
