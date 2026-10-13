@@ -7,6 +7,7 @@ const credentialsBaselinePath = "supabase/tests/baselines/smm_provider_credentia
 const registrationBaselinePath = "supabase/tests/baselines/account_registration_requests_schema.sql";
 const registrationSecurityBaselinePath = "supabase/tests/baselines/account_registration_requests.sql";
 const marketingProfileBaselinePath = "supabase/tests/baselines/marketing_provider_profiles.sql";
+const marketingLeadsBaselinePath = "supabase/tests/baselines/marketing_leads.sql";
 const legacyBusinessesBaselinePath = "supabase/tests/baselines/legacy_businesses.sql";
 const settlementBaselinePath = "supabase/tests/baselines/settlement_backend_10arg.sql";
 const legacyProductsBaselinePath = "supabase/tests/baselines/legacy_products.sql";
@@ -53,6 +54,7 @@ const missingHistoricalTables = [
   { table: "credit_accounts", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_accounts.sql" },
   { table: "credit_periods", before: "20260920155456_harden_credit_status_authorization.sql", baselinePath: "supabase/tests/baselines/credit_periods.sql" },
   { table: "marketing_provider_profiles", before: "20260927103103_add_provider_profile_media.sql", baselinePath: marketingProfileBaselinePath },
+  { table: "marketing_leads", before: "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql", baselinePath: marketingLeadsBaselinePath },
   { table: "account_registration_requests", before: "20260927065247_mnty_atomic_registration_review.sql", baselinePath: registrationBaselinePath },
   // RC production hardening enables RLS on bookings, but neither committed history nor the applied ledger creates it.
   { table: "bookings", before: "20260919233425_production_security_hardening_v1.sql", baselinePath: bookingsBaselinePath },
@@ -138,6 +140,48 @@ if (paymentProviderEventsMigration) {
     console.error("P0 BLOCKED: ordered finance-read policy migration differs from the documented security contract; do not synthesize or replace its policy.");
     process.exit(1);
   }
+}
+
+// Validate the live-derived marketing_leads table and its minimal owner-read policy,
+// which the historical ALTER POLICY migration expects but no earlier committed migration creates.
+const marketingLeadsBaseline = fs.readFileSync(marketingLeadsBaselinePath, "utf8");
+const marketingLeadsVersion = "20260927140496";
+const marketingLeadsTemporaryName = marketingLeadsVersion + "_test_only_live_derived_marketing_leads.sql";
+const marketingLeadsPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const marketingLeadsPriorCreator = migrations.some(({ name, sql }) =>
+  name.slice(0, 14) < marketingLeadsPolicyMigration?.name.slice(0, 14) &&
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_leads\b/i.test(sql)
+);
+const marketingLeadsBaselineValid =
+  /OWNER-APPROVED TEST-ONLY LIVE-DERIVED TABLE\/POLICY BASELINE/.test(marketingLeadsBaseline) &&
+  /2026-10-13/.test(marketingLeadsBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(marketingLeadsBaseline) &&
+  /NOT recovered historical DDL/i.test(marketingLeadsBaseline) &&
+  /MUST NOT be applied to production/i.test(marketingLeadsBaseline) &&
+  /CREATE TABLE public\.marketing_leads/i.test(marketingLeadsBaseline) &&
+  /requester_user_id uuid/i.test(marketingLeadsBaseline) &&
+  /requester_business_id uuid/i.test(marketingLeadsBaseline) &&
+  /assigned_provider_id uuid/i.test(marketingLeadsBaseline) &&
+  /required_services jsonb not null default '\[\]'::jsonb/i.test(marketingLeadsBaseline) &&
+  /marketing_leads_status_check/i.test(marketingLeadsBaseline) &&
+  /marketing_leads_source_check/i.test(marketingLeadsBaseline) &&
+  /marketing_leads_requester_user_id_fkey[\s\S]*references auth\.users\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
+  /marketing_leads_requester_business_id_fkey[\s\S]*references public\.businesses\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
+  /marketing_leads_assigned_provider_id_fkey[\s\S]*references public\.marketing_provider_profiles\(id\) on delete set null/i.test(marketingLeadsBaseline) &&
+  /create index idx_mkt_leads_status on public\.marketing_leads \(status, created_at desc\)/i.test(marketingLeadsBaseline) &&
+  /alter table public\.marketing_leads enable row level security/i.test(marketingLeadsBaseline) &&
+  /alter table public\.marketing_leads force row level security/i.test(marketingLeadsBaseline) &&
+  /CREATE POLICY "Users view own marketing leads"[\s\S]*ON public\.marketing_leads[\s\S]*FOR SELECT TO authenticated[\s\S]*auth\.uid\(\)[\s\S]*requester_user_id/i.test(marketingLeadsBaseline) &&
+  !/insert\s+into|copy\s+public\.|create trigger|\bgrant\b|\brevoke\b/i.test(marketingLeadsBaseline);
+if (!marketingLeadsPolicyMigration || marketingLeadsPriorCreator || !marketingLeadsBaselineValid ||
+    fs.existsSync(path.join(migrationDirectory, marketingLeadsTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === marketingLeadsVersion) ||
+    marketingLeadsVersion >= marketingLeadsPolicyMigration.name.slice(0, 14) ||
+    !/alter policy "Users view own marketing leads" on public\.marketing_leads to authenticated;/i.test(marketingLeadsPolicyMigration.sql)) {
+  console.error("P0 BLOCKED: marketing_leads test-only baseline, provenance, timestamp, or ordered ALTER POLICY contract is invalid.");
+  process.exit(1);
 }
 
 // Validate the catalog-derived policy that the historical migration alters but no earlier
