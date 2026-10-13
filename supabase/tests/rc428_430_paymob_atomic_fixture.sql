@@ -91,7 +91,8 @@ create table public.business_subscriptions (
   provider_reference text not null,
   source_payment_intent_id uuid not null references public.subscription_payment_intents(id),
   idempotency_key text not null,
-  created_by uuid not null
+  created_by uuid not null,
+  updated_at timestamptz not null default now()
 );
 
 -- The integration exercises the payment transaction boundary, not the legal subsystem.
