@@ -184,7 +184,7 @@ const generalLedgerPolicyMigration = migrations.find(({ name }) =>
 );
 const generalLedgerPolicyPriorCreation = migrations.some(({ name, sql }) =>
   name.slice(0, 14) < generalLedgerPolicyMigration?.name.slice(0, 14) &&
-  /create\\s+policy\\s+general_ledger_finance_read\\s+on\\s+(?:public\\s*\\.\\s*)?general_ledger\\b/i.test(sql)
+  /create\s+policy\s+general_ledger_finance_read\s+on\s+(?:public\s*\.\s*)?general_ledger\b/i.test(sql)
 );
 const generalLedgerPolicyBaselineValid =
   /READ-ONLY CATALOG-DERIVED TEST-ONLY POLICY COMPATIBILITY BASELINE/.test(generalLedgerPolicyBaseline) &&
@@ -192,13 +192,13 @@ const generalLedgerPolicyBaselineValid =
   /moyhiluyhjsujhwlyeuu/.test(generalLedgerPolicyBaseline) &&
   /NOT recovered historical policy-creation DDL/i.test(generalLedgerPolicyBaseline) &&
   /MUST NOT be applied to production/i.test(generalLedgerPolicyBaseline) &&
-  /CREATE POLICY general_ledger_finance_read[\\s\\S]*ON public\\.general_ledger[\\s\\S]*FOR\\s+SELECT\\s+TO\\s+authenticated/i.test(generalLedgerPolicyBaseline) &&
-  /um\\.tenant_id::text = general_ledger\\.tenant_id::text/i.test(generalLedgerPolicyBaseline) &&
-  /um\\.user_id = \\(SELECT auth\\.uid\\(\\)\\)/i.test(generalLedgerPolicyBaseline) &&
-  /um\\.status::text = 'ACTIVE'/i.test(generalLedgerPolicyBaseline) &&
-  /OWNER[\\s\\S]*ADMIN[\\s\\S]*MANAGER[\\s\\S]*FINANCE[\\s\\S]*ACCOUNTANT[\\s\\S]*FINANCE_MANAGER/i.test(generalLedgerPolicyBaseline) &&
-  !/create table|alter table|\\bgrant\\b|\\brevoke\\b|create trigger/i.test(generalLedgerPolicyBaseline) &&
-  !/^\\s*(?:insert\\s+into|copy\\s+(?:public|private)\\.)/im.test(generalLedgerPolicyBaseline);
+  /CREATE POLICY general_ledger_finance_read[\s\S]*ON public\.general_ledger[\s\S]*FOR\s+SELECT\s+TO\s+authenticated/i.test(generalLedgerPolicyBaseline) &&
+  /um\.tenant_id::text = general_ledger\.tenant_id::text/i.test(generalLedgerPolicyBaseline) &&
+  /um\.user_id = \(SELECT auth\.uid\(\)\)/i.test(generalLedgerPolicyBaseline) &&
+  /um\.status::text = 'ACTIVE'/i.test(generalLedgerPolicyBaseline) &&
+  /OWNER[\s\S]*ADMIN[\s\S]*MANAGER[\s\S]*FINANCE[\s\S]*ACCOUNTANT[\s\S]*FINANCE_MANAGER/i.test(generalLedgerPolicyBaseline) &&
+  !/create table|alter table|\bgrant\b|\brevoke\b|create trigger/i.test(generalLedgerPolicyBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.)/im.test(generalLedgerPolicyBaseline);
 const generalLedgerPolicyFailureReasons = [
   ["missing ALTER POLICY migration", !generalLedgerPolicyMigration],
   ["earlier source policy creator exists; fixture may duplicate history", generalLedgerPolicyPriorCreation],
@@ -206,7 +206,7 @@ const generalLedgerPolicyFailureReasons = [
   ["temporary migration file already exists", fs.existsSync(path.join(migrationDirectory, generalLedgerPolicyTemporaryName))],
   ["temporary version collision", migrations.some(({ name }) => name.slice(0, 14) === generalLedgerPolicyVersion)],
   ["temporary version is not earlier than ALTER POLICY", !generalLedgerPolicyMigration || generalLedgerPolicyVersion >= generalLedgerPolicyMigration.name.slice(0, 14)],
-  ["expected ordered ALTER POLICY statement absent", !generalLedgerPolicyMigration || !/alter policy general_ledger_finance_read on public\\.general_ledger to authenticated;/i.test(generalLedgerPolicyMigration.sql)],
+  ["expected ordered ALTER POLICY statement absent", !generalLedgerPolicyMigration || !/alter policy general_ledger_finance_read on public\.general_ledger to authenticated;/i.test(generalLedgerPolicyMigration.sql)],
 ].filter(([, failed]) => failed);
 if (generalLedgerPolicyFailureReasons.length) {
   for (const [reason] of generalLedgerPolicyFailureReasons) console.error("P0 BLOCKED general_ledger_finance_read: " + reason);
