@@ -231,3 +231,10 @@ A subsequent SELECT-only query rechecked the current live definitions/configurat
 | `private.legal_is_admin()` and `private.legal_is_admin(uuid)` | both have empty search path; anon EXECUTE false; authenticated EXECUTE true | UUID overload reachability remains unresolved because private schema API exposure/call path was not established |
 
 This recheck was catalog-only and did not invoke any application RPC. It supports the report classifications above; it is not behavioral proof. The open-ride and ad search-path findings agree with the production migration-ledger gap already documented.
+
+
+### Name-resolution heuristic scan — 2026-10-13
+
+A SELECT-only static scan cross-checked function-body relation-reference tokens against actual public relation names for in-scope functions whose configured path is exactly `search_path=public`. It returned **0 matching unqualified references to existing public relations**. A separate lexical scan found no `EXECUTE` token in the retrieved function definitions.
+
+Interpretation: this reduces the specific risk of temporary-table shadowing for the patterns tested, because no unqualified reference matching a live public table/view was found in this heuristic scan. It is **not** a PostgreSQL parser-level guarantee and does not replace review of every expression, type/function resolution, SQL constructed in strings, or actual API exposure. Several functions already use `search_path=public, pg_temp`, which explicitly places the temp schema last; the public ad RPC remains the known source-only RC451 hardening gap, although its application table references are schema-qualified.
