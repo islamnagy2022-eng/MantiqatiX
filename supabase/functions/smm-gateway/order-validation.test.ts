@@ -98,7 +98,7 @@ Deno.test("S07_ORDER_008: quantities beyond safe integer range and malformed ser
     { service_id: "", quantity: 1 },
     { service_id: "x".repeat(129), quantity: 1 },
     { service_id: "service-1", quantity: Number.MAX_SAFE_INTEGER + 1 },
-    { service_id: "service-1", quantity: "999999999999999" },
+    { service_id: "service-1", quantity: "9999999999999999" },
   ]) {
     assertEquals(validateSmmOrderInput({
       ...input,
