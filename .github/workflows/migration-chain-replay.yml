@@ -53,6 +53,7 @@ jobs:
           credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
           bookings_baseline="supabase/tests/baselines/bookings.sql"
           approval_policy_baseline="supabase/tests/baselines/approval_requests_scoped_read.sql"
+          commission_policy_baseline="supabase/tests/baselines/commission_transactions_finance_read.sql"
           legacy_functions_baseline="supabase/tests/baselines/legacy_security_definer_functions.sql"
           smm_bootstrap_baseline="supabase/tests/baselines/smm_bootstrap_first_admin.sql"
           settlement_baseline="supabase/tests/baselines/settlement_backend_10arg.sql"
@@ -71,6 +72,7 @@ jobs:
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
           bookings_migration="supabase/migrations/20260919233424_test_only_approved_bookings_baseline.sql"
           approval_policy_migration="supabase/migrations/20260927140499_test_only_live_derived_approval_requests_scoped_read.sql"
+          commission_policy_migration="supabase/migrations/20260927140498_test_only_live_derived_commission_transactions_finance_read.sql"
           legacy_functions_migration="supabase/migrations/20260927074160_test_only_live_derived_security_definer_baseline.sql"
           smm_bootstrap_migration="supabase/migrations/20260927033924_test_only_live_derived_smm_bootstrap_first_admin.sql"
           settlement_migration="supabase/migrations/20260920095705_test_only_live_derived_settlement_baseline.sql"
@@ -79,8 +81,8 @@ jobs:
           credit_accounts_migration="supabase/migrations/20260920155451_test_only_live_derived_credit_accounts_baseline.sql"
           credit_periods_migration="supabase/migrations/20260920155452_test_only_live_derived_credit_periods_baseline.sql"
           payment_provider_events_migration="supabase/migrations/20260920211716_test_only_live_derived_payment_provider_events_baseline.sql"
-          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$registration_security_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$approval_policy_baseline" "$legacy_functions_baseline" "$smm_bootstrap_baseline" "$settlement_baseline" "$settlement_attempts_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline"; do test -f "$file"; done
-          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"; do test ! -e "$file"; done
+          for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$registration_security_baseline" "$profiles_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$approval_policy_baseline" "$commission_policy_baseline" "$legacy_functions_baseline" "$smm_bootstrap_baseline" "$settlement_baseline" "$settlement_attempts_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline"; do test -f "$file"; done
+          for file in "$legacy_businesses_migration" "$legacy_products_migration" "$legacy_orders_migration" "$registration_migration" "$registration_security_migration" "$profiles_migration" "$providers_migration" "$credentials_migration" "$bookings_migration" "$approval_policy_migration" "$commission_policy_migration" "$legacy_functions_migration" "$smm_bootstrap_migration" "$settlement_migration" "$settlement_attempts_migration" "$credit_policies_migration" "$credit_accounts_migration" "$credit_periods_migration" "$payment_provider_events_migration"; do test ! -e "$file"; done
           cp "$legacy_businesses_baseline" "$legacy_businesses_migration"
           cp "$legacy_products_baseline" "$legacy_products_migration"
           cp "$legacy_orders_baseline" "$legacy_orders_migration"
@@ -91,6 +93,7 @@ jobs:
           cp "$credentials_baseline" "$credentials_migration"
           cp "$bookings_baseline" "$bookings_migration"
           cp "$approval_policy_baseline" "$approval_policy_migration"
+          cp "$commission_policy_baseline" "$commission_policy_migration"
           cp "$legacy_functions_baseline" "$legacy_functions_migration"
           cp "$smm_bootstrap_baseline" "$smm_bootstrap_migration"
           cp "$settlement_baseline" "$settlement_migration"
@@ -152,6 +155,7 @@ jobs:
           cmp -s "$credentials_baseline" "$credentials_migration"
           cmp -s "$bookings_baseline" "$bookings_migration"
           cmp -s "$approval_policy_baseline" "$approval_policy_migration"
+          cmp -s "$commission_policy_baseline" "$commission_policy_migration"
           cmp -s "$legacy_functions_baseline" "$legacy_functions_migration"
           cmp -s "$smm_bootstrap_baseline" "$smm_bootstrap_migration"
           cmp -s "$settlement_baseline" "$settlement_migration"
