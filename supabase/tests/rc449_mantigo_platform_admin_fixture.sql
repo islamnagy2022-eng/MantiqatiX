@@ -14,10 +14,14 @@ create schema if not exists auth;
 -- Production Supabase auth.uid() is not altered by this fixture.
 create or replace function auth.uid()
 returns uuid
-language sql
+language plpgsql
 volatile
 as $function$
-  select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
+begin
+  -- PL/pgSQL avoids SQL-function inlining so each simulated request reads the
+  -- current JWT subject rather than a value folded into the enclosing DO statement.
+  return nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
+end
 $function$;
 
 create table public.user_memberships (
