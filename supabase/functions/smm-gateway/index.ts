@@ -1,6 +1,9 @@
+import { getSmmLaunchDecision } from "./launch-gate.ts";
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const cors={"Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
+// Hard gate: SMM remains deferred until an explicitly reviewed post-launch release.
+const SMM_INITIAL_LAUNCH_DEFERRED=true;
 const json=(b:any,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const URL=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,admin=createClient(URL,KEY);
 async function getUser(req:Request){const a=req.headers.get("Authorization")||"";const t=a.replace(/^Bearer\s+/i,"");if(!t)return null;const r=await admin.auth.getUser(t);const user=r.error?null:r.data.user;return !user||user.is_anonymous?null:user;}
@@ -9,6 +12,8 @@ async function secret(id:string){const r=await admin.rpc("smm_get_provider_secre
 async function call(p:any,k:string,a:string,x:any={}){const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));const r=await fetch(p.api_url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString()});const t=await r.text();let d:any;try{d=JSON.parse(t)}catch{d={raw:t}}if(!r.ok)throw new Error("Provider HTTP "+r.status);return d;}
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
+ const launch=getSmmLaunchDecision(Deno.env.get("MNTY_SMM_ENABLED"),Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED"));
+ if(SMM_INITIAL_LAUNCH_DEFERRED||!launch.enabled)return json({error:"SMM_DEFERRED",message:"SMM launch is deferred."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
   const b=await req.json(),a=b.action;
