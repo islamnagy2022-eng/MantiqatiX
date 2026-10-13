@@ -154,3 +154,20 @@ No changes were made to `.github/workflows/mantigo-platform-admin-scope.yml` or 
 - Release status: **BLOCKED / NOT CERTIFIED**
 
 Closure requires restoring/reconciling the missing earlier baseline source, globally unique migration versions, resolution of source/ledger semantic discrepancies, successful chronological replay from a disposable empty environment, and exact-head CI evidence. Do not skip a failed migration or mark this task complete based only on source presence.
+
+
+## 5. Exact-head CI replay result — 2026-10-13
+
+The isolated S04 workflow completed on tested commit `d8cc0c71f06baeae64221d4cf6a675436d05df5c` (run [38338075186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338075186)) with **failure**, not pass. The source audit returned exit code 1 because the executable migration directory still contains the five duplicate version groups listed above. Supabase CLI initialization succeeded, but local stack startup/replay stopped at the first SQL migration:
+
+- First failing migration: `20260927074200_harden_smm_table_api_privileges.sql`
+- PostgreSQL error: `relation "public.smm_provider_credentials" does not exist` (`SQLSTATE 42P01`)
+- Later migrations were not executed in this run.
+
+The failure matches the earlier authoritative clean-replay finding; it does not establish that any candidate migration was applied in production. Evidence artifact: [S04 run 38338075186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338075186).
+
+### SMM schema source leads checked
+
+Repository search found `supabase/tests/rc456_smm_service_role_fixture.sql`, which defines `public.smm_providers` and `public.smm_provider_credentials` for disposable integration testing. Its own header explicitly says it is a test fixture and does not synthesize the missing historical migration baseline. It is therefore useful for schema-shape comparison, but **not** a valid substitute for the authentic historical DDL or a replay prerequisite. No production migration was added or changed to work around the failure.
+
+**Disposition:** S04 remains `BLOCKED / NOT CERTIFIED`. The next valid unblock is authoritative recovery/reconciliation of the historical SMM table-creation source plus reviewed resolution of executable migration-version collisions. Do not skip the failing migration, promote the test fixture into production history, or infer application from current table existence.
