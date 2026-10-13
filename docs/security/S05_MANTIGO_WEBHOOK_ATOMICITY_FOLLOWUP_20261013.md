@@ -51,3 +51,20 @@ Use disposable database state and synthetic fixtures only:
 - GitHub combined status query returned no status entries for the reviewed commit; this is not a pass.
 - No production database mutation, real payment, merge, or deployment was performed.
 - S05 remains **BLOCKED / NOT CERTIFIED** until the atomic path and the broader two-tenant RLS behavioral suite pass in an isolated environment and deployment parity is verified.
+
+## Follow-up implementation on the S05 branch
+
+A source-level remediation draft has now been committed for review:
+
+- Migration: `supabase/migrations/20261013040000_s05_atomic_mantigo_paymob_webhook.sql`
+- Webhook delegates MantiGO event persistence and ledger transition to the transactional RPC rather than issuing separate writes: `supabase/functions/paymob-webhook/index.ts`
+- Static catalog contract: `supabase/tests/S05_mantigo_atomic_payment_contract.sql`
+- Static source release gate: `scripts/validate-digital-pages-boundaries.mjs`
+
+These are **unapplied, unexecuted source changes**. No claim is made that the SQL compiles or that transaction behavior passes. The migration must first be validated against the exact `payment_provider_events` schema and the target PostgreSQL/Supabase version in an isolated disposable environment. Then run SQL parsing/migration tests, the static contract, and behavioral fault-injection/concurrency tests. A static source-marker check is not a substitute for those tests.
+
+The atomic function uses a row lock and puts event insertion plus ledger update in one transaction. Existing-event handling rejects event/ledger/status inconsistencies instead of acknowledging them as successful replays. Notification delivery remains outside the payment transaction and is best-effort; if durable notification delivery is required, add an outbox or retryable notification job separately.
+
+## Updated gate
+
+**Still BLOCKED / NOT CERTIFIED.** No CI result was found for the latest source commits; no isolated database behavior test was run; no migration was applied; no production changes, merge, deployment, or real payment occurred.
