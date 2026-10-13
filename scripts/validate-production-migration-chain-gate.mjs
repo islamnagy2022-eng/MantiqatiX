@@ -70,7 +70,7 @@ for (const requiredField of [
   /scope\.disable_evidence_ref/,
 ]) assert.match(smmScope, requiredField, "deferred SMM must require live deny-gate evidence, version/hash, and negative testing");
 assert.match(smmScope, /requiredRuntimeGates = \[/, "active SMM must retain its own runtime safety gate list");
-for (const gate of ["smm_gateway_parity", "smm_acl_boundary", "smm_order_refund_safety", "smm_provider_timeout_safety"]) {
+for (const gate of ["smm_gateway_parity", "smm_acl_boundary", "smm_order_refund_safety", "smm_provider_timeout_safety", "smm_order_idempotency"]) {
   assert.ok(smmScope.includes(JSON.stringify(gate)), `active SMM must require ${gate}`);
 }
 assert.match(source, /reconciliation\.erp_atomic_receiving_e2e==="PASS"/, "ERP atomic receiving E2E must pass");
