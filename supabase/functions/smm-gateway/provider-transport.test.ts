@@ -44,3 +44,20 @@ Deno.test("S07_PROVIDER_006: provider balance must be finite and non-negative", 
   assertEquals(normalizeProviderBalance({ balance: -1 }), null);
   assertEquals(normalizeProviderBalance(null), null);
 });
+
+
+Deno.test("S07_PROVIDER_007: empty bodies and invalid UTF-8 are rejected", async () => {
+  await assertRejects(() => readProviderJson(new Response(null, {
+    headers: { "content-type": "application/json" },
+  })));
+  const invalidUtf8 = new Response(new Uint8Array([0xff, 0xfe]), {
+    headers: { "content-type": "application/json" },
+  });
+  await assertRejects(() => readProviderJson(invalidUtf8));
+});
+
+Deno.test("S07_PROVIDER_008: structured JSON media types are accepted", async () => {
+  assertEquals(await readProviderJson(new Response('{"ok":true}', {
+    headers: { "content-type": "application/problem+json; charset=utf-8" },
+  })), { ok: true });
+});
