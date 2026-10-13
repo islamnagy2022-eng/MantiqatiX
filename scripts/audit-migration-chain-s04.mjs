@@ -49,6 +49,11 @@ const required = [
   "20261013200000_rc523_mantigo_financial_report_canonical_columns.sql"
 ];
 const liveLedgerOrderAliases = [
+  ["20261001164200_provider_onboarding_final.sql", "20261001163708_provider_onboarding_requests.sql"],
+  ["20261001090000_harden_provider_onboarding_authority.sql", "20261001164107_harden_provider_onboarding_authority.sql"],
+  ["20261001165000_grant_provider_onboarding_authenticated_insert.sql", "20261001164222_grant_provider_onboarding_authenticated_insert.sql"],
+  ["20261001100000_lock_provider_onboarding_direct_writes.sql", "20261001164327_lock_provider_onboarding_direct_writes.sql"],
+  ["20261001193000_grant_provider_onboarding_service_role.sql", "20261001170235_provider_onboarding_service_role_rpc_grants.sql"],
   ["20261002190000_rc228_digital_page_products_orders.sql", "20261002073217_rc228_digital_page_products_orders.sql"],
   ["20261002191000_rc229_digital_page_payment_columns.sql", "20261002073331_rc229_digital_page_payment_columns.sql"],
   ["20261002192000_rc230_digital_page_payment_events.sql", "20261002073419_rc230_digital_page_payment_events.sql"],
@@ -76,6 +81,10 @@ const report = {
   missing_required_sources: missingRequired,
   live_ledger_order_aliases: liveLedgerOrderAliases.map(([source, target]) => ({ source, target })),
   invalid_live_ledger_order_aliases: missingLiveLedgerOrderAliases,
+  known_unrecovered_live_ledger_migrations: [
+    { version: "20261001164118", name: "harden_provider_onboarding_tenant_scope", source_status: "NOT_FOUND_IN_REPOSITORY" }
+  ],
+  clean_history_certified: false,
   disposable_normalization_required: approvedDuplicateGroups.length > 0 || liveLedgerOrderAliases.length > 0,
   rc433_sources: rc433,
   rc433_status: rc433.length ? "SOURCE_PRESENT" : "NOT_FOUND_NOT_VERIFIED_GAP",
@@ -84,7 +93,7 @@ const report = {
   required_source_sha256: Object.fromEntries(required.filter(name => fs.existsSync(path.join(migrationDir, name))).map(name => [name, digest(name)])),
   first_12_migration_files: files.slice(0, 12),
   latest_12_migration_files: files.slice(-12),
-  result: invalidNames.length || unapprovedDuplicateVersions.length || missingRequired.length || missingLiveLedgerOrderAliases.length ? "FAIL" : "PASS_WITH_APPROVED_DISPOSABLE_NORMALIZATION"
+  result: invalidNames.length || unapprovedDuplicateVersions.length || missingRequired.length || missingLiveLedgerOrderAliases.length ? "FAIL" : "PASS_WITH_APPROVED_DISPOSABLE_NORMALIZATION_AND_KNOWN_SOURCE_GAP"
 };
 console.log(JSON.stringify(report, null, 2));
 if (invalidNames.length) console.error("Invalid migration filenames:", invalidNames.join(", "));
