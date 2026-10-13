@@ -626,3 +626,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Re-fetched all seven files and confirmed exact text equality to active v10 source. The launch gate explicitly fails closed with `SMM_DEFERRED` unless both enablement and post-launch approval flags are true.
 - Source-only PR commit: `57be194aa4f0d35eff9ea1c00f59fd3a91edf3a2`. Exact-head CI workflows were queued at first inspection; no result counted as passing yet. No function was deployed or enabled.
 - Continue with exact-head CI, SMM security review in isolation, and full chronological migration replay. Production release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC543 — Latest module progress / release evidence — 2026-10-13
+
+- Evidence-based module metrics and all 28 domain codes are documented in `docs/release/module-progress-report.md`.
+- Runtime wiring contract: 28/28 domain modules PASS (100% for catalog/workspace/table-binding coverage); canonical UI feature-flag mappings: 24/24 PASS (100%). Neither measure claims full functional or production completion.
+- Current production inventory: 283 migration ledger rows ending at RC424 (`20261008222845`); 37 ACTIVE Edge Functions. Six function sources were exact-compared to live source in this batch; do not infer parity for the other 31 from this sample.
+- 33 required post-RC424 migrations are tracked by the release gate; 0/33 are proven applied. Full chronological replay remains NOT RUN.
+- SMM regression and isolated PostgreSQL ACL CI passed; SMM stays deferred/disabled and undeployed. The latest focused migration integration run was still queued at the last check.
+- Current Advisor blockers: 40 authenticated-executable SECURITY DEFINER functions, one anon-executable public advertisement function, one RLS-enabled/no-policy payment-events table intentionally fail-closed pending access-contract verification, and leaked-password-protection warning(s). Performance Advisor counts 105 unindexed FKs, 375 auth/RLS init-plan notices, 124 unused-index notices, and 28 multiple-permissive-policy notices.
+- Release status: **BLOCKED / NOT CERTIFIED**. No production migrations, grants/RLS/Auth changes, function deployments, real payment operations, merge, or release occurred.
