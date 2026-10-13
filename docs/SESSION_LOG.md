@@ -287,3 +287,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Retained the current continuation branch `s04/ledger-reconciliation-20261013`, which is based on PR #218's then-current head and contains only the enhanced source audit, isolated-branch trigger, row-level inventory reports, and documentation/session-log updates. No PR #218 changes were pushed.
 - Current S04 run [38338075186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338075186) remains QUEUED at last check. The earlier authoritative clean replay remains failed at the missing `public.smm_provider_credentials` prerequisite. No new SQL replay result is claimed.
 - No production database writes, migration applications, ledger rewrites, deployments, merges, or releases occurred. S04 remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC550 — Exact-head S04 replay failure and SMM fixture provenance — 2026-10-13
+
+- Rechecked S04 workflow run [38338075186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38338075186), tested commit `d8cc0c71f06baeae64221d4cf6a675436d05df5c`: completed **failure**. The source audit exits 1 on the known executable duplicate-version groups; Supabase CLI init succeeds, then local stack startup stops at `20260927074200_harden_smm_table_api_privileges.sql` with missing `public.smm_provider_credentials` (SQLSTATE `42P01`). No later migration was executed.
+- Searched repository sources for the missing SMM schema creation. `supabase/tests/rc456_smm_service_role_fixture.sql` contains table definitions, but it is explicitly a disposable test fixture and explicitly disclaims synthesizing the historical baseline. It is not authoritative migration history and must not be promoted into executable migrations.
+- Appended exact-head CI evidence and fixture provenance to `docs/release/s04-migration-chain-clean-replay-report.md`.
+- No migration SQL, production schema/data/ledger, grants/RLS/Auth, or Edge Functions were modified. No production writes, merge, or deployment. S04 remains **BLOCKED / NOT CERTIFIED** pending authentic source recovery and reviewed duplicate-version reconciliation.
