@@ -18,6 +18,20 @@ A fresh read-only call to Supabase project `moyhiluyhjsujhwlyeuu` returned 283 m
 
 The following candidates are **not established as applied** by their source-file presence. Existing release evidence says RC449, RC462, RC522, and RC523 were not present in the ledger; the remaining post-RC424 candidates also require exact ledger reconciliation. This report does not infer applied state from source files.
 
+## Read-only ledger-to-source inventory (name-stem candidates)
+
+A fresh read-only comparison of all 283 live ledger rows against the 193 source SQL files strips only the 14-digit filename prefix and `.sql` suffix for candidate name matching. This is a discovery heuristic, not proof that source bytes equal the applied SQL.
+
+- **131/283** live ledger rows have at least one same-name-stem source candidate.
+- **152/283** live ledger rows have no same-name-stem source candidate in the two inspected directories.
+- **62** source files have no same-name-stem entry in the live ledger.
+- Only **49** live ledger versions exactly match a source filename's 14-digit prefix.
+- RC424 is a known example of a name-stem match with differing version: ledger `20261008222845`, source filename prefix `20261009010000`. It must be reconciled by exact statement identity, not filename assumptions.
+
+Machine-readable row-level inventory: `docs/release/S04_MIGRATION_LEDGER_NAME_INVENTORY_20261013.json`.
+
+These figures are **not** a declaration that the other 152 migrations were never applied. They are unresolved source/alias reconciliation work. This source gap alone prevents an evidence-backed claim that all production migrations can be reconstructed from the current files.
+
 ## Source inventory
 
 | Source location | SQL files observed |
