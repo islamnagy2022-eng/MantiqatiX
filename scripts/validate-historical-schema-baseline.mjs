@@ -173,6 +173,64 @@ if (!approvalPolicyMigration || approvalPolicyPriorCreation || !approvalPolicyBa
   process.exit(1);
 }
 
+// Validate the live-derived marketing tables that the historical policy migration
+// alters before the later RC99 policy replacement. This is disposable-only, not source recovery.
+const marketingSchemaBaselinePath = "supabase/tests/baselines/marketing_commission_schema.sql";
+const marketingSchemaBaseline = fs.readFileSync(marketingSchemaBaselinePath, "utf8");
+const marketingSchemaVersion = "20260927140494";
+const marketingSchemaTemporaryName = marketingSchemaVersion + "_test_only_live_derived_marketing_commission_schema.sql";
+const marketingSchemaPolicyMigration = migrations.find(({ name }) =>
+  name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
+);
+const marketingSchemaReplacementMigration = migrations.find(({ name }) =>
+  name === "20260928010000_rc99_g5_provider_services_rls_hardening.sql"
+);
+const marketingSchemaPriorCreators = [
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_services\b/i,
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_provider_services\b/i,
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?marketing_commission_rules\b/i,
+].some(pattern => migrations.some(({ sql }) => pattern.test(sql)));
+const marketingSchemaBaselineValid =
+  /TEST-ONLY LIVE-DERIVED MARKETING SCHEMA COMPATIBILITY BASELINE/.test(marketingSchemaBaseline) &&
+  /2026-10-13/.test(marketingSchemaBaseline) &&
+  /moyhiluyhjsujhwlyeuu/.test(marketingSchemaBaseline) &&
+  /NOT recovered historical creation DDL/i.test(marketingSchemaBaseline) &&
+  /MUST NOT be applied to production/i.test(marketingSchemaBaseline) &&
+  /CREATE TABLE public\.marketing_services[\s\S]*CREATE TABLE public\.marketing_provider_services[\s\S]*CREATE TABLE public\.marketing_commission_rules/i.test(marketingSchemaBaseline) &&
+  /FOREIGN KEY \(service_id\) REFERENCES public\.marketing_services\(id\) ON DELETE CASCADE/i.test(marketingSchemaBaseline) &&
+  /FOREIGN KEY \(service_id\) REFERENCES public\.marketing_services\(id\) ON DELETE SET NULL/i.test(marketingSchemaBaseline) &&
+  /marketing_provider_services_provider_id_service_id_key UNIQUE \(provider_id, service_id\)/i.test(marketingSchemaBaseline) &&
+  /ALTER TABLE public\.marketing_services ENABLE ROW LEVEL SECURITY[\s\S]*ALTER TABLE public\.marketing_services FORCE ROW LEVEL SECURITY/i.test(marketingSchemaBaseline) &&
+  /ALTER TABLE public\.marketing_provider_services ENABLE ROW LEVEL SECURITY[\s\S]*ALTER TABLE public\.marketing_provider_services FORCE ROW LEVEL SECURITY/i.test(marketingSchemaBaseline) &&
+  /ALTER TABLE public\.marketing_commission_rules ENABLE ROW LEVEL SECURITY[\s\S]*ALTER TABLE public\.marketing_commission_rules FORCE ROW LEVEL SECURITY/i.test(marketingSchemaBaseline) &&
+  /CREATE POLICY "Public can view active marketing services"/i.test(marketingSchemaBaseline) &&
+  /CREATE POLICY "Public can view active provider services"/i.test(marketingSchemaBaseline) &&
+  /CREATE POLICY "Authenticated can view active commission rules"/i.test(marketingSchemaBaseline) &&
+  /CREATE POLICY authenticated_sessions_only ON public\.marketing_services AS RESTRICTIVE/i.test(marketingSchemaBaseline) &&
+  /CREATE POLICY mnt_non_anonymous_boundary ON public\.marketing_provider_services AS RESTRICTIVE/i.test(marketingSchemaBaseline) &&
+  /CREATE POLICY non_anonymous_authenticated_guard ON public\.marketing_commission_rules AS RESTRICTIVE/i.test(marketingSchemaBaseline) &&
+  !/CREATE POLICY marketing_services_admin_manage|CREATE POLICY marketing_provider_services_owner_manage/i.test(marketingSchemaBaseline) &&
+  !/^\s*(?:insert\s+into|copy\s+(?:public|private)\.|update\s+public\.|delete\s+from\s+public\.)/im.test(marketingSchemaBaseline);
+const marketingSchemaFailureReasons = [
+  ["earlier or later committed table creator exists; fixture may duplicate source history", marketingSchemaPriorCreators],
+  ["live-derived schema/policy contract invalid", !marketingSchemaBaselineValid],
+  ["missing policy ALTER migration", !marketingSchemaPolicyMigration],
+  ["missing later RC99 replacement migration", !marketingSchemaReplacementMigration],
+  ["temporary migration file already exists", fs.existsSync(path.join(migrationDirectory, marketingSchemaTemporaryName))],
+  ["temporary version collision", migrations.some(({ name }) => name.slice(0, 14) === marketingSchemaVersion)],
+  ["temporary version is not earlier than policy ALTER", !marketingSchemaPolicyMigration || marketingSchemaVersion >= marketingSchemaPolicyMigration.name.slice(0, 14)],
+  ["commission policy ALTER is missing", !marketingSchemaPolicyMigration || !/alter policy "Authenticated can view active commission rules" on public\.marketing_commission_rules to authenticated;/i.test(marketingSchemaPolicyMigration.sql)],
+  ["RC99 policy replacement contract changed", !marketingSchemaReplacementMigration ||
+    !/drop policy if exists "authenticated_sessions_only" on public\.marketing_services/i.test(marketingSchemaReplacementMigration.sql) ||
+    !/drop policy if exists "authenticated_sessions_only" on public\.marketing_provider_services/i.test(marketingSchemaReplacementMigration.sql) ||
+    !/create policy marketing_services_admin_manage/i.test(marketingSchemaReplacementMigration.sql) ||
+    !/create policy marketing_provider_services_owner_manage/i.test(marketingSchemaReplacementMigration.sql)],
+].filter(([, failed]) => failed);
+if (marketingSchemaFailureReasons.length) {
+  for (const [reason] of marketingSchemaFailureReasons) console.error("P0 BLOCKED marketing schema baseline: " + reason);
+  process.exit(1);
+}
+
 // Validate both catalog-derived journal finance-read policies that the historical
 // ALTER POLICY migration expects to exist. The fixture is disposable-only, not source recovery.
 const journalFinancePolicyBaselinePath = "supabase/tests/baselines/journal_finance_read_policies.sql";
