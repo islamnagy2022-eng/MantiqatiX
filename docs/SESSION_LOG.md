@@ -262,3 +262,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added `docs/release/S04_RC40_ARCHIVE_RECONCILIATION_20261013.json` and updated the S04 report. No SQL migrations were changed or added to executable history; no production mutation, deployment, merge, or release occurred.
 - Current S04 branch remains `s04/ledger-reconciliation-20261013`. Release remains **BLOCKED / NOT CERTIFIED**.
 - Next: inspect the archive's credit-control SQL against the live catalog and ledger statements as a semantic candidate only; continue seeking the authentic missing SMM table creation source or retain the owner-approved disposable-only schema baseline. Do not use the archive file as an applied migration without evidence.
+
+
+## RC547 — RC40 credit-control source is not an exact production baseline — 2026-10-13
+
+- Read-only production catalog inspection confirmed `credit_policies`, `credit_accounts`, and `credit_periods` exist and are empty at inspection; no row data was queried for replay.
+- The RC40 archive contains `20260920185000_production_credit_control.sql`, but no ledger row has that exact version/name. The archive's related `20260920190000_harden_credit_status_authorization.sql` is not byte-identical to the applied ledger statement at `20260920155456`: live statement 2,248 bytes / MD5 `82af7a802839a630d5dc4201ce3ce8a1`; archive source 2,335 bytes / MD5 `9161bd24cfc0c49b1249c00deac33be9`.
+- Semantic comparison found material live-vs-archive schema differences: `credit_policies.grace_days` live default 0 vs archive 7; `suspend_after_days` live 15 vs archive 30; `block_new_credit` live true vs archive false; credit amount columns live `numeric` vs archive `numeric(14,2)`. Do not use the archive migration as a replay baseline or insert it into executable history without a separately reviewed decision.
+- Updated `docs/release/S04_RC40_ARCHIVE_RECONCILIATION_20261013.json` and the S04 report. Production operations remained read-only; no migration, baseline, grant, policy, or data was applied or modified.
+- S04 remains **BLOCKED / NOT CERTIFIED**. The first existing Supabase clean-replay failure remains `20260927074200_harden_smm_table_api_privileges.sql` due to missing `public.smm_provider_credentials`; the owner-approved test-only SMM baseline is separate from recovery of authentic historical DDL.
