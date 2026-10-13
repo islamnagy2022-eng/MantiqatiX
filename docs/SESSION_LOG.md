@@ -109,3 +109,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Verification:** Source diff and companion contract were inspected; no claim of local execution or CI success. Exact-head workflow remains the required verification.
 - **Safety:** No production database operation, migration application, finance operation, Edge Function deployment, merge, or release.
 - **Next:** Inspect exact-head CI after queue completion and resolve any reproducible failure. Release remains BLOCKED / NOT CERTIFIED.
+
+
+- RC523 hardening follow-up: tightened the report actor guard to reject `p_admin_user_id IS NULL` explicitly before platform-scope authorization. This closes a SQL three-valued-logic edge case where `auth.uid() <> NULL` evaluates to NULL rather than TRUE. Source change only; the null/mismatch negative test is still pending and CI has not passed.
