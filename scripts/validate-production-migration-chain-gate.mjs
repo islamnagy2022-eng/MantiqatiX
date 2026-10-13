@@ -73,6 +73,7 @@ assert.match(smmScope, /requiredRuntimeGates = \[/, "active SMM must retain its 
 for (const gate of ["smm_gateway_parity", "smm_acl_boundary", "smm_order_refund_safety", "smm_provider_timeout_safety", "smm_order_idempotency"]) {
   assert.ok(smmScope.includes(JSON.stringify(gate)), `active SMM must require ${gate}`);
 }
+assert.match(source, /smm_order_idempotency: reconciliation\.smm_order_idempotency/, "production verifier must pass the explicit order idempotency evidence into the active SMM gate");
 assert.match(source, /reconciliation\.erp_atomic_receiving_e2e==="PASS"/, "ERP atomic receiving E2E must pass");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
 assert.match(source, /reconciliation\.security_definer_acl_review==="PASS"/, "all exposed SECURITY DEFINER ACLs must be reviewed");
