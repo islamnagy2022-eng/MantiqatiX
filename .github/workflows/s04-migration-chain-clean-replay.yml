@@ -6,6 +6,7 @@ on:
       - 'supabase/migrations/**'
       - 'supabase/recovered-migrations/**'
       - 'scripts/audit-migration-chain-s04.mjs'
+      - 'docs/release/s04-migration-chain-clean-replay-report.md'
       - '.github/workflows/s04-migration-chain-clean-replay.yml'
   workflow_dispatch:
 permissions:
