@@ -36,7 +36,7 @@ jobs:
       - name: Validate digital-page payment boundary
         run: node scripts/validate-digital-pages-boundaries.mjs
       - name: Type-check checkout Edge Function
-        run: deno check --no-lock supabase/functions/digital-page-payment-intent/index.ts
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/digital-page-payment-intent/index.ts
 
   disposable-postgres:
     runs-on: ubuntu-latest
