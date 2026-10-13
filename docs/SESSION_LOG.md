@@ -101,3 +101,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #225 exact-head run [38349321482](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38349321482) fails at validator line 62 because it searches for `redirect:"error"` in `provider-transport.ts`, but the actual fetch option is in `index.ts`. Comment [6138691421](https://github.com/islamnagy2022-eng/MantiqatiX/pull/225#issuecomment-6138691421). This is a source-contract test bug candidate; no PR-owned file changed.
 - PR #219 current-head run remains FAIL; PR #220 focused S06 job passes but S04 replay fails and deployment was cancelled.
 - No production operations, merge, or deployment. **BLOCKED / NOT CERTIFIED**.
+
+
+## Session C fresh read-only production gate recheck — 2026-10-13 05:12 UTC
+
+- Supabase migration inventory returned **283** applied versions; latest remains `20261008222845 / rc424_atomic_digital_page_payment_webhook`. `20261010170000`, `20261010180000`, `20261011010000`, and `20261011020000` are absent. The repository alias `20260927074200` is not the recorded live version; live ledger contains `20260927074210 / harden_smm_table_api_privileges`.
+- Read-only `pg_proc` query reconfirmed four global MantiGO RPCs are `SECURITY DEFINER`, `search_path=public`, executable by `authenticated`, and the function bodies do not contain `mnty_can_platform_admin`: `expire_stale_mantigo_rides_backend`, `get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`. P0 authorization issue remains open; no RPC mutation was called.
+- Supabase Security Advisor returned 94 findings: 90 anonymous-policy warnings, 40 authenticated SECURITY DEFINER execute warnings, one anon-executable SECURITY DEFINER function warning, one leaked-password-protection warning, and one RLS-enabled/no-policy informational item. These are triage findings, not 94 independently confirmed exploitable vulnerabilities. Auth/RLS/grants were not changed.
+- Live `smm-gateway` remains ACTIVE v10, `verify_jwt=true`, deployed source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`. Read-only source fetch confirms `SMM_INITIAL_LAUNCH_DEFERRED=true` and the 503 gate precedes `getUser(req)`; this is deployed-source evidence only, not a live HTTP negative-test pass.
+- Release remains **BLOCKED / NOT CERTIFIED**. No production writes, migrations, Auth/RLS/grant/secret changes, financial mutations, Edge Function deployment, merge, or release occurred.
