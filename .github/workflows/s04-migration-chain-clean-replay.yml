@@ -41,6 +41,42 @@ jobs:
           audit_rc=$?
           echo "source_audit_exit=$audit_rc" | tee -a s04-replay-evidence/report.txt
 
+          # Resolve only the five catalog-reconciled duplicate timestamp groups on this disposable runner.
+          # Never rename or rewrite the historical source files in Git or the production ledger.
+          normalization_rc=125
+          if [ "$audit_rc" -eq 0 ]; then
+            rename_legacy_alias() {
+              local source="$1"
+              local target="$2"
+              test -f "supabase/migrations/$source"
+              if [ -e "supabase/migrations/$target" ]; then
+                echo "P0 BLOCKED: canonical replay target already exists: $target" >&2
+                return 1
+              fi
+              mv "supabase/migrations/$source" "supabase/migrations/$target"
+            }
+            rename_legacy_alias "20260928020000_rc101_g6_rls_permissive_policy_hardening.sql" "20260928101022_rc101_g6_rls_permissive_policy_hardening.sql" &&
+            rename_legacy_alias "20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql" "20260928104107_rc102_g8_crm_notification_support_rls_hardening.sql" &&
+            rename_legacy_alias "20260928060000_restore_registration_request_dml_grants.sql" "20260928034100_restore_registration_request_dml_grants.sql" &&
+            rename_legacy_alias "20260928060000_rc109_harden_order_support_tenant_boundaries.sql" "20260928112420_rc109_harden_order_support_tenant_boundaries.sql" &&
+            rename_legacy_alias "20260928190000_rc162_mantigo_trip_state_machine.sql" "20260928124303_rc162_mantigo_trip_state_machine.sql" &&
+            rename_legacy_alias "20260928200000_rc164_mantigo_direct_delete_lockdown.sql" "20260928125655_rc164_mantigo_direct_delete_lockdown.sql" &&
+            rename_legacy_alias "20260928200000_rc164_retire_legacy_mantigo_mutator.sql" "20260928125731_rc164_retire_legacy_mantigo_mutator.sql" &&
+            rename_legacy_alias "20260928190000_rc200_cross_tenant_customer_payment_authorization.sql" "20260928154527_rc200_cross_tenant_customer_payment_authorization.sql" &&
+            rename_legacy_alias "20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql" "20260928161513_rc206_geographic_ad_targeting_and_nearest_fallback.sql" &&
+            rename_legacy_alias "20260928210000_rc172_restore_medical_booking_contract.sql" "20260928131753_rc172_restore_medical_booking_contract.sql" &&
+            rename_legacy_alias "20260928210000_rc207_official_global_mnty_cover_ads.sql" "20260928174954_rc207_official_global_mnty_cover_ads.sql"
+            normalization_rc=$?
+            if [ "$normalization_rc" -eq 0 ]; then
+              node scripts/validate-migration-version-uniqueness.mjs > s04-replay-evidence/normalized-version-validation.log 2>&1
+              normalization_rc=$?
+            fi
+          fi
+          echo "disposable_alias_normalization_exit=$normalization_rc" | tee -a s04-replay-evidence/report.txt
+          if [ "$normalization_rc" -eq 0 ]; then
+            echo "legacy_duplicate_aliases_normalized_on_disposable_runner=true" | tee -a s04-replay-evidence/report.txt
+          fi
+
           # These compatibility fixtures are injected only into this disposable runner.
           # They are not source migrations and must never be committed under supabase/migrations.
           baseline_rc=125
@@ -52,8 +88,10 @@ jobs:
           providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
           credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
           provider_onboarding_migration="supabase/migrations/20261001085000_test_only_approved_provider_onboarding_requests_baseline.sql"
-          node scripts/validate-smm-replay-baselines.mjs > s04-replay-evidence/test-baseline-validation.log 2>&1
-          baseline_rc=$?
+          if [ "$audit_rc" -eq 0 ] && [ "$normalization_rc" -eq 0 ]; then
+            node scripts/validate-smm-replay-baselines.mjs > s04-replay-evidence/test-baseline-validation.log 2>&1
+            baseline_rc=$?
+          fi
           echo "test_baseline_validation_exit=$baseline_rc" | tee -a s04-replay-evidence/report.txt
           if [ "$baseline_rc" -eq 0 ]; then
             for file in "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"; do test ! -e "$file"; done
@@ -118,7 +156,7 @@ jobs:
           fi
 
           rm -f "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
-          if [ "$audit_rc" -ne 0 ] || [ "$baseline_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
+          if [ "$audit_rc" -ne 0 ] || [ "$normalization_rc" -ne 0 ] || [ "$baseline_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
             echo "status=FAIL_BLOCKED" | tee -a s04-replay-evidence/report.txt
             echo "S04_RESULT=FAIL_BLOCKED" >> "$GITHUB_STEP_SUMMARY"
             cat s04-replay-evidence/report.txt >> "$GITHUB_STEP_SUMMARY"
