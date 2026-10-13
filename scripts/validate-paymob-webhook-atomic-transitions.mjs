@@ -35,6 +35,6 @@ check("normal payment resolves and compares provider_order_id before processing"
 check("normal failure uses atomic RC428 RPC", normal.includes('admin.rpc("process_verified_provider_payment_failure"'));
 check("normal success remains server-authoritative RPC", normal.includes('admin.rpc("process_verified_provider_payment"'));
 check("normal failure does not write event ledger or intent directly", !normal.includes('.from("payment_provider_events").insert') && !normal.includes('.from("payment_intents").update'));
-check("no early duplicate-event shortcut bypasses intent binding", !subscription.includes("idempotent:true") || subscription.includes("process_verified_subscription_payment_failure"));
+check("normal payment branch delegates replay binding to its atomic RPC", !normal.includes('.from("payment_provider_events").select') && !normal.includes('.from("payment_provider_events").insert'));
 
 console.log("Paymob webhook atomic transition contract: PASS (static source checks only; SQL/HTTP E2E is separate).");
