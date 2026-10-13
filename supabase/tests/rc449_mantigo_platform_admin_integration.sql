@@ -1,6 +1,23 @@
 -- RC449 behavioral integration test. Run only in disposable PostgreSQL.
 -- The test deliberately changes JWT identity in one backend session. RC462's VOLATILE guard
 -- must re-evaluate request-scoped identity instead of reusing the first caller's result.
+-- Diagnostic wrapper used only by this disposable integration script. It reproduces the
+-- nested SECURITY DEFINER execution context without performing any financial mutation.
+create or replace function public.rc449_test_platform_admin_context()
+returns jsonb
+language sql
+volatile
+security definer
+set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object(
+    'uid', auth.uid(),
+    'guard', public.mnty_can_platform_admin(),
+    'current_user', current_user,
+    'session_user', session_user
+  )
+$function$;
+
 SET plan_cache_mode = force_custom_plan;
 do $test$
 declare
@@ -158,6 +175,13 @@ begin
     raise exception 'explicit platform SUPER_ADMIN with full_control should pass';
   end if;
 
+  -- Reproduce the authorization helper from inside SECURITY DEFINER execution context.
+  -- This isolates nested execution-context behavior before invoking financial RPCs.
+  result := public.rc449_test_platform_admin_context();
+  if result->>'uid' is distinct from platform_admin::text or result->>'guard' is distinct from 'true' then
+    raise exception 'nested security-definer context mismatch: %', result;
+  end if;
+
   -- The report must use the canonical financial ledger columns, not legacy aliases.
   result := public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
   if (result->>'gross')::numeric <> 100
@@ -261,3 +285,5 @@ $test$;
 RESET plan_cache_mode;
 
 select 'RC449 platform-admin scope integration: PASS' as result;
+-- Remove the disposable diagnostic helper on successful completion.
+drop function if exists public.rc449_test_platform_admin_context();
