@@ -15,6 +15,7 @@ const headers={"Access-Control-Allow-Origin":origin,"Access-Control-Allow-Header
 const json=(b:unknown,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...headers,"Content-Type":"application/json","Cache-Control":"no-store"}});
 
 Deno.serve(async req=>{
+ const requestId=crypto.randomUUID();
  if(req.method==="OPTIONS")return json({});
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
  if(req.headers.get("Origin")&&req.headers.get("Origin")!==origin)return json({error:"ORIGIN_NOT_ALLOWED"},403);
