@@ -111,6 +111,55 @@ BEGIN
     RAISE EXCEPTION 'S05 contract failed: start_business_trial_backend must remain backend-only';
   END IF;
 
+
+  -- Anonymous-session guards must remain RESTRICTIVE. If any becomes
+  -- PERMISSIVE, it may accidentally widen access when policies are OR-combined.
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname='public'
+      AND tablename IN ('tenants','branches','organizations','tenant_modules')
+      AND policyname IN (
+        'authenticated_sessions_only',
+        'deny_anonymous_users',
+        'mnt_non_anonymous_boundary',
+        'non_anonymous_authenticated_guard'
+      )
+      AND permissive <> 'RESTRICTIVE'
+  ) THEN
+    RAISE EXCEPTION 'S05 contract failed: a non-anonymous guard policy is not RESTRICTIVE';
+  END IF;
+
+  IF EXISTS (
+    SELECT required.tablename, required.policyname
+    FROM (VALUES
+      ('tenants','authenticated_sessions_only'),
+      ('tenants','deny_anonymous_users'),
+      ('tenants','mnt_non_anonymous_boundary'),
+      ('tenants','non_anonymous_authenticated_guard'),
+      ('branches','authenticated_sessions_only'),
+      ('branches','deny_anonymous_users'),
+      ('branches','mnt_non_anonymous_boundary'),
+      ('branches','non_anonymous_authenticated_guard'),
+      ('organizations','authenticated_sessions_only'),
+      ('organizations','deny_anonymous_users'),
+      ('organizations','mnt_non_anonymous_boundary'),
+      ('organizations','non_anonymous_authenticated_guard'),
+      ('tenant_modules','authenticated_sessions_only'),
+      ('tenant_modules','deny_anonymous_users'),
+      ('tenant_modules','mnt_non_anonymous_boundary'),
+      ('tenant_modules','non_anonymous_authenticated_guard')
+    ) AS required(tablename,policyname)
+    WHERE NOT EXISTS (
+      SELECT 1 FROM pg_policies p
+      WHERE p.schemaname='public'
+        AND p.tablename=required.tablename
+        AND p.policyname=required.policyname
+        AND p.permissive='RESTRICTIVE'
+    )
+  ) THEN
+    RAISE EXCEPTION 'S05 contract failed: expected restrictive anonymous-session guard missing or changed';
+  END IF;
+
   RAISE NOTICE 'S05 static policy contract passed; behavioral tenant-isolation tests remain required.';
 END
 $s05$;
