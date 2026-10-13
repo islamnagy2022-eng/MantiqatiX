@@ -503,3 +503,12 @@ Read-only comparison of deployed Edge Function `index.ts` against PR #207 branch
 - PR #207 current head is `7016250e763a4b0729fd2bb3c4553c79ea5e47ce`. Migration-history immutability passed; migration-version uniqueness is running. Replay run [#38408000724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408000724) is still pending without a job assigned in the available status response. Earlier run #38407801526 was cancelled after the branch advanced, so it does not verify the corrected exact-copy step.
 - No further commit is being made to PR #207 while its replay run is pending, to avoid cancelling the queued replay through workflow concurrency. Resume by polling #38408000724, then inspect the exact logs before changing any code.
 - Production release remains **BLOCKED / NOT CERTIFIED**; no production writes/deployment/merge occurred.
+
+
+## Settlement policy baseline checkpoint — 2026-10-13 13:52 UTC
+
+- Replay run [#38408000724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408000724) passed preflight and temporary-baseline copy/untracked verification, then failed at `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql` because `settlement_transactions_finance_read` was absent.
+- Read-only production policy inspection confirmed the finance-read policy is same-tenant, active-membership, finance-role scoped; RLS and FORCE RLS are enabled; anon has no direct SELECT. No settlement/payment rows were read.
+- Added `supabase/tests/baselines/settlement_transactions_finance_read.sql` (policy only), CI injection at `20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql`, and validator checks for policy scope, provenance, ordering and no table/grant/data changes. Appended the finding to both `docs/release/MIGRATION_REPLAY_BLOCKERS.md` and `docs/MASTER_PRODUCTION_TODO.md`.
+- Latest replay branch head after documentation: `33e813e87330212dc49741a545f50d15cd4dc3d4`. The next exact-head run must verify the new fixture and continue replay; no PASS is claimed.
+- The production ledger remains at RC424 and the four global MantiGO RPCs remain unguarded in live catalog. No production mutation, deployment, merge, or release occurred. Status remains **BLOCKED / NOT CERTIFIED**.
