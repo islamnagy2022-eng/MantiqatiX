@@ -66,7 +66,7 @@ check("Duplicate pending/approved registration protection exists", () =>
   has(app, ".in('status',['PENDING','APPROVED'])", "duplicate registration protection"));
 check("Auth boot does not silently sign out a user", () => {
   const start = app.indexOf("async function bootAuth(){");
-  const end = app.indexOf("async function renderApp()", start);
+  const end = app.indexOf("async function renderApp(", start);
   assert.ok(start >= 0 && end > start, "bootAuth boundary is present");
   lacks(app.slice(start, end), "sb.auth.signOut()", "automatic sign out during boot");
 });
