@@ -92,3 +92,11 @@ test("S06-16 replay idempotency and ownership are decided by atomic RPCs, not un
   assert.match(webhook, /process_verified_mantigo_payment_backend/);
   assert.match(webhook, /process_verified_digital_page_payment_backend/);
 });
+
+test("S06-17 merchant reference must match the resolved entity even when provider-order lookup succeeds", () => {
+  assert.match(webhook, /SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /DIGITAL_PAGE_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /MANTIGO_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /PAYMENT_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /merchant_order_id:merchantRef/);
+});
