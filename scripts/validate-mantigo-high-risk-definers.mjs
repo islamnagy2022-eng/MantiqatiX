@@ -33,7 +33,7 @@ for (const rpc of [
   'expire_stale_mantigo_rides_backend'
 ]) {
   const row=sql.split('\n').find(line=>line.includes(rpc));
-  if (!row || !row.includes(',true,false)')) {
+  if (!row || !row.includes(',false,true,true,true,false)')) {
     throw new Error('MantiGO platform RPC is not configured to require guard and empty search_path: '+rpc);
   }
 }
