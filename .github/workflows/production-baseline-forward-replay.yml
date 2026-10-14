@@ -9,6 +9,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "scripts/replay-from-production-schema-baseline.sh"
       - "scripts/validate-production-schema-baseline.mjs"
+      - "scripts/tests/validate-production-schema-baseline.test.mjs"
       - ".github/workflows/production-baseline-forward-replay.yml"
   workflow_dispatch:
 
@@ -31,6 +32,9 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: latest
+
+      - name: Test baseline validator fail-closed contract
+        run: node --test scripts/tests/validate-production-schema-baseline.test.mjs
 
       - name: Verify baseline provenance and explicit review
         env:
