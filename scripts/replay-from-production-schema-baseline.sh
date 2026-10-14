@@ -47,7 +47,7 @@ while IFS= read -r file; do
 
   # RC424's deployed ledger version differs from its source filename version.
   # The verified exact-statement mapping prevents replaying that already-applied source.
-  if [[ "$version" == "$ALIAS_VERSION" && "$ALIAS_LEDGER_VERSION" < "$CHECKPOINT" ]]; then
+  if [[ "$version" == "$ALIAS_VERSION" && ( "$ALIAS_LEDGER_VERSION" < "$CHECKPOINT" || "$ALIAS_LEDGER_VERSION" == "$CHECKPOINT" ) ]]; then
     echo "SKIP_APPLIED_LEDGER_ALIAS $name ledger_version=$ALIAS_LEDGER_VERSION exact_statement_match=true" | tee -a "$REPORT"
     continue
   fi
