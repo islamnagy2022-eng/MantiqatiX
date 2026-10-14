@@ -146,3 +146,19 @@ A subsequent read-only catalog query confirmed the current production definition
 
 **Interpretation:** the live function definition is useful forensic evidence of the current deployed behavior, but it is not proof of the original migration, creation time, or intended historical source. Do not copy it into an invented historical migration or alter the revocation migration to conceal the gap. Recover a trusted source/backup or document an explicitly reviewed forward baseline strategy in a separate decision before any code change. No production writes were made by these queries.
 
+### S04 run 160 — repeatable failure confirmation
+
+**Run:** [38499702486](https://github.com/islamnagy2022-eng/MantiQaTix/actions/runs/38499702486)  
+**Tested commit:** `f09fef2dc50b70d72373eb20a5f4dea0101f7fcf`  
+**Artifact:** [11865107597](https://github.com/islamnagy2022-eng/MantiQaTix/actions/runs/38499702486/artifacts/11865107597)
+
+This run independently repeated the same first blocker after the validator fix:
+
+- Source audit, normalized-version validation, recovered-source validation, disposable alias normalization, and test-baseline validation all returned `0`.
+- Supabase local initialization returned `0`; startup returned `1`.
+- First failing migration: `20260927095000_revoke_unused_security_definer_execute.sql`.
+- First error: `function public.counter_offer_indrive_bid(uuid, uuid, numeric) does not exist (SQLSTATE 42883)`.
+- Result: `FAIL_BLOCKED`; no chronological full-chain replay completed.
+
+This repeat confirms the failure is reproducible with the current source chain, not a one-off baseline-validator error. The production catalog evidence recorded above is from read-only queries and does not establish the historical source file. The next safe action remains source recovery/reconciliation, not a conditional revoke or an invented migration. Production remains unchanged and release remains uncertified.
+
