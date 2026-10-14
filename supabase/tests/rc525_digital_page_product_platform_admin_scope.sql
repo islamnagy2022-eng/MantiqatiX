@@ -5,6 +5,7 @@ declare
   v_using text;
   v_check text;
   v_public_read_exists boolean;
+  v_public_read_qual text;
 begin
   select p.*
     into v_policy
@@ -48,18 +49,29 @@ begin
     raise exception 'RC525_WITH_CHECK_SCOPE_INCOMPLETE';
   end if;
 
-  select exists (
+  if exists (
     select 1
     from pg_catalog.pg_policy p
     join pg_catalog.pg_class c on c.oid = p.polrelid
     join pg_catalog.pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public'
       and c.relname = 'digital_page_products'
-      and p.polname = 'digital_page_products_public_read'
-      and p.polcmd = 'r'
-  ) into v_public_read_exists;
+      and p.polname = 'digital_page_products_admin_write'
+  ) then
+    raise exception 'RC525_BROAD_LEGACY_ADMIN_POLICY_REMAINS';
+  end if;
 
-  if not v_public_read_exists then
+  select pg_catalog.pg_get_expr(p.polqual, p.polrelid)
+    into v_public_read_qual
+  from pg_catalog.pg_policy p
+  join pg_catalog.pg_class c on c.oid = p.polrelid
+  join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public'
+    and c.relname = 'digital_page_products'
+    and p.polname = 'digital_page_products_public_read'
+    and p.polcmd = 'r';
+
+  if v_public_read_qual is null or v_public_read_qual not ilike '%active%true%' then
     raise exception 'RC525_PUBLIC_ACTIVE_READ_POLICY_MISSING';
   end if;
 end
