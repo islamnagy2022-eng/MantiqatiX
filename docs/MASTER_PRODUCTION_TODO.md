@@ -1739,3 +1739,19 @@ Evidence report: `docs/release/module-progress-report.md`.
 - Migration inventory: 283 production ledger rows, 160 repository migration files, 126 filenames timestamped at/before RC424 and 34 after it. Count-based indicator is 126/283 = 44.5%; exact mapping remains unverified. No `supabase/config.toml` or separate migration archive exists under `supabase/`. See `docs/release/migration-source-inventory-gap.md`.
 - **0/33** required post-RC424 migrations are proven applied; live ledger ends at `20261008222845`. Full chronological replay is NOT RUN and cannot be certified from the current source inventory.
 - Keep release BLOCKED while authentic historical source recovery, complete per-version ledger reconciliation, replay, and all mandatory E2E/security/recovery/device gates remain open.
+
+## S04 continuation — reproducible missing RPC prerequisite (2026-10-14)
+
+- [x] Correct the disposable test-baseline validator so it distinguishes original source timestamps from live-ledger normalized replay ordering. Verified by `test_baseline_validation_exit=0` on S04 run 159 and run 160.
+- [x] Capture the first actual Supabase startup blocker and repeat it on a subsequent run.
+- [x] Read-only production catalog inspection for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: function exists; SECURITY DEFINER; owner `postgres`; `anon` and `authenticated` cannot execute it; definition fingerprint `b0032d51962bddf93a74a679e8449644`.
+- [x] Read-only search of production migration ledger statement arrays: no match for the function's creation; current tracked migration source search also did not identify its definition.
+- [ ] **BLOCKED — recover and authenticate the historical source/backup for `counter_offer_indrive_bid`, or approve a separately reviewed baseline strategy based on authoritative evidence. Do not synthesize historical DDL, make the revoke conditional, or mutate production.**
+- [ ] After source reconciliation, rerun disposable chronological replay and record the next first error (if any); do not certify based on test-only baseline replay.
+- [ ] Update this TODO only with verified evidence; production gate remains `BLOCKED / NOT CERTIFIED`.
+
+Evidence:
+- S04 run 159: https://github.com/islamnagy2022-eng/MantiQaTix/actions/runs/38499236142
+- S04 run 160: https://github.com/islamnagy2022-eng/MantiQaTix/actions/runs/38499702486
+- S04 report: https://github.com/islamnagy2022-eng/MantiQaTix/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/s04-migration-chain-clean-replay-report.md
+
