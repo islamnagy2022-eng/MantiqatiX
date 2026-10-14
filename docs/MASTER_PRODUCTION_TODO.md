@@ -1581,3 +1581,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] OPEN: reconcile overlapping migration source files in PR #84/#202/#207/#218, check uniqueness and timestamp order, verify dependencies, and perform full disposable chronological replay.
 - [ ] OPEN: prove required post-RC424 migrations applied, Edge Function/runtime parity, tenant isolation, payment/finance E2E, Auth security settings, and backup/restore evidence.
 - **Decision:** keep production release BLOCKED / NOT CERTIFIED; do not apply or merge the migration batch before chain reconciliation.
+
+
+## 2026-10-14 — Required migration inventory complete (source-only)
+- [x] Parsed the canonical 28-file required release migration list from `scripts/production/verify-production.mjs` and checked every exact filename on `main`.
+- [x] Result: **12/28 present; 16/28 missing**. Missing RC425–RC432 and RC434–RC441; present RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. Full table in `docs/SCHEMA_RECONCILIATION.md`.
+- [x] Confirmed overlapping candidate migration files exist in open PRs #84/#202/#207/#218; RC434 pairwise patch equality checked only for #84 vs #202.
+- [ ] BLOCKED: reconcile candidate source/test/dependency chain and duplicate-version checks; perform disposable chronological replay; verify no post-RC424 migration is falsely marked applied.
+- **Domain 2 status:** BLOCKED pending source reconciliation/replay. Do not merge the migration batch or mutate production.
