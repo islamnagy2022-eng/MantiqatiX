@@ -173,3 +173,15 @@ The read-only SQL contract in `scripts/verify-mantigo-high-risk-definers.sql` wa
 - A separate fresh live function-definition query still confirms production `mnty_can_platform_admin()` delegates to `mnty_can('admin', NULL, NULL, NULL)`, and live financial report/settlement RPCs still use broad active-membership role checks. The P0 MantiGO cross-scope authorization risk remains **OPEN** because RC449/RC462 are candidate migrations and the live migration ledger still ends at RC424.
 
 No production SQL was changed. The read-only contract's live result does not close the P0 gate.
+
+## Fresh production read-only check — MantiGO guard still unapplied
+
+Read-only Supabase verification on 2026-10-14 after the passing candidate CI confirms the live project remains behind the recovery branch:
+
+- The production migration ledger still ends at `20261008222845 / rc424_atomic_digital_page_payment_webhook`; RC449, RC462, and RC526 are not shown as applied.
+- Live `public.mnty_can_platform_admin()` still delegates to `public.mnty_can('admin', null, null, null)` and has `search_path = public, pg_temp`, not the explicit platform-scope implementation in RC449/RC462.
+- Live `get_mantigo_admin_financial_report_backend` still authorizes broad active membership roles (including tenant OWNER/ADMIN/OPERATIONS) and aggregates the platform-wide `mantigo_financial_ledger` without calling `mnty_can_platform_admin()`.
+- Live `settle_mantigo_captain_backend` still authorizes broad active membership roles and reaches platform-wide settlement without calling `mnty_can_platform_admin()`.
+- Both finance RPCs deny `anon` EXECUTE but allow `authenticated` EXECUTE. This does not cure the authorization gap inside the functions.
+
+These are catalog/function-definition observations, not a live exploit attempt. They reaffirm the **P0 release blocker**. Do not apply RC449/RC462/RC526 or any other migration until the full chronological replay and reviewed migration bundle pass, and a separately approved production migration window exists. No production changes were made.
