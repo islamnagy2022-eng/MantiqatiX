@@ -15,6 +15,12 @@ assert.match(migration, /drop policy if exists "CRM managers view marketing prov
 assert.match(migration, /Assigned providers view assigned marketing leads/);
 assert.match(migration, /drop policy if exists "Users create marketing leads"/);
 assert.match(migration, /drop policy if exists "Owners manage their marketing provider profile"/);
+assert.match(migration, /drop policy if exists "marketing_services_admin_manage"/);
+assert.match(migration, /on public\\.marketing_services/);
+assert.match(migration, /platform_admin\\.tenant_id = 'MNTY-PLATFORM'/);
+assert.match(fixture, /create table public\\.marketing_services/);
+assert.match(integration, /tenant manager mutated the shared marketing catalogue/);
+assert.match(integration, /platform admin cannot manage the shared marketing catalogue/);
 assert.match(fixture, /alter table public\.user_memberships enable row level security/);
 assert.match(fixture, /alter table public\.businesses enable row level security/);
 assert.match(integration, /manager A crossed tenant boundary/);
