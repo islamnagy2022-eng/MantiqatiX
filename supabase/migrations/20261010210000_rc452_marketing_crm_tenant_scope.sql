@@ -200,7 +200,7 @@ create policy "marketing_services_admin_manage"
     )
   )
   with check (
-    coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false
+    coalesce(auth.jwt() ->> 'is_anonymous', 'false') <> 'true'
     and exists (
       select 1
       from public.user_memberships platform_admin
