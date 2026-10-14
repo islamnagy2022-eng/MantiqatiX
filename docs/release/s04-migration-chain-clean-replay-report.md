@@ -106,3 +106,30 @@ No changes were made to `.github/workflows/mantigo-platform-admin-scope.yml` or 
 - Release status: **BLOCKED / NOT CERTIFIED**
 
 Closure requires restoring/reconciling the missing earlier baseline source, globally unique migration versions, resolution of source/ledger semantic discrepancies, successful chronological replay from a disposable empty environment, and exact-head CI evidence. Do not skip a failed migration or mark this task complete based only on source presence.
+
+## Follow-up evidence — S04 run 159 (2026-10-14)
+
+**Tested head:** `124b60db2b58b72aa6458cb66f8e477a681e691f`  
+**Workflow run:** [38499236142](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38499236142)  
+**Evidence artifact:** [11865441240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38499236142/artifacts/11865441240)  
+**Job:** `115641970393` — `Disposable Supabase clean replay and source audit`
+
+The follow-up corrected the test-baseline validator and reached local Supabase startup, but the run remains **`FAIL_BLOCKED`**, not a clean replay or release certification:
+
+- `source_audit_exit=0`
+- `normalized_version_validation_exit=0`
+- `ledger_recovered_source_validation_exit=0`
+- `disposable_alias_normalization_exit=0`
+- `test_baseline_validation_exit=0`
+- `temporary_test_baselines_injected=true` — test-only compatibility fixtures were added to the disposable runner; these are not historical source migrations.
+- `supabase_init_exit=0`
+- `supabase_start_exit=1`
+- `clean_replay_exit=FAILED_DURING_SUPABASE_START`
+- `first_failure=Applying migration 20260927095000_revoke_unused_security_definer_execute.sql...`
+- `first_error=ERROR: function public.counter_offer_indrive_bid(uuid, uuid, numeric) does not exist (SQLSTATE 42883)`
+- `status=FAIL_BLOCKED`
+
+A separate read-only check of the live production catalog confirmed that `public.counter_offer_indrive_bid(uuid,uuid,numeric)` exists there as a SECURITY DEFINER function owned by `postgres`. A read-only scan of the live migration ledger's stored statement arrays returned **zero matches** for that function name. This establishes a source-history gap between the current repository replay chain and the live database; it does not identify the authentic original function body or authorize synthesizing one. The other nine function names referenced by this revocation migration are present in ledger statements, but their earlier authoritative source files still need full-chain reconciliation.
+
+**Disposition:** do not weaken or make the revocation migration conditional merely to pass replay; that could hide a missing historical prerequisite. Recover the authentic creation source for `counter_offer_indrive_bid` from trusted history/backup or establish the correct historical baseline, then rerun the disposable chronological replay. Keep production read-only, and do not merge or certify release based on this run.
+
