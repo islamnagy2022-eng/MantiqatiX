@@ -53,3 +53,16 @@ The Pages workflow validated but skipped its deploy job because the production g
 ## Production boundary
 
 No production schema, migration ledger, RLS, grants, Auth settings, Edge Functions, secrets, wallet balances, payment records, or customer data were changed as part of this source-search continuation.
+
+
+## Fresh live-state refresh — 2026-10-14
+
+Read-only Supabase inventory was rechecked after the cross-branch search:
+
+- The applied migration ledger still ends at `20261008222845 / rc424_atomic_digital_page_payment_webhook`. Candidate RC425–RC462 and later migrations are not thereby proven applied; do not infer they are live.
+- The deployed `smm-gateway` is now **ACTIVE version 10**, `verify_jwt=true`, source SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`.
+- Unlike the older version evidence, the currently retrieved version 10 source includes `SMM_INITIAL_LAUNCH_DEFERRED=true` and checks this hard gate before authenticating/routing any POST action. The helper defaults to `SMM_DEFERRED`/503 unless both enablement and post-launch approval flags are exactly `true`. Since the source constant is hard-coded true, the deployed handler is statically fail-closed in this version. This is source inspection, **not a live negative HTTP test**; the latter remains unverified because no function invocation test was run in this continuation.
+- The function's source also includes a 15-second provider request timeout, safe provider endpoint validation, redirect rejection, and bounded JSON parsing. These are source-level observations, not a complete SMM wallet/provider acceptance test.
+- PR #248 head `5beb4aac30393617a246a99932e95857651be4ab` has focused passing CI evidence recorded above. A documentation-only audit commit `3f228e979546ab920ccd790abd92e5b87f51aef8` was added to the PR branch and verified by fetching the exact file back. No workflow runs or combined statuses were returned for that documentation commit at the time of check, so it has no new exact-head CI certification.
+
+This updates the prior SMM deployment observation: the currently fetched live function is v10, not the previously documented v8/v6 snapshots. The broader production release remains blocked by unresolved historical replay provenance and other unverified acceptance gates.
