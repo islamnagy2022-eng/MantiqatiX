@@ -38,9 +38,18 @@ Deno.serve(async req=>{
   if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret&&metadata.paymob_intention_order_id){
     return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
   }
-  // A pending ledger without a complete persisted intent may represent a concurrent request
-  // or a previous partial failure. Do not create another external Paymob intent blindly.
-  if(ledger.payment_status==="PENDING")return json({error:"PAYMENT_INTENT_RECOVERY_REQUIRED"},409,requestId);
+  // A pending ledger or a prior external-intent claim requires reconciliation. Do not
+  // issue another Paymob intention when a previous provider request may have succeeded.
+  if(ledger.payment_status==="PENDING"||metadata.paymob_intent_claim)return json({error:"PAYMENT_INTENT_RECOVERY_REQUIRED"},409,requestId);
+
+  // Claim this REQUIRED ledger before calling Paymob. Only one concurrent request can win.
+  const claimToken=crypto.randomUUID();
+  const claimMetadata={...metadata,paymob_intent_claim:{token:claimToken,created_at:new Date().toISOString()}};
+  const {data:claimed,error:claimError}=await admin.from("mantigo_financial_ledger").update({
+    metadata:claimMetadata,updated_at:new Date().toISOString()
+  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider_intent_id",null).select("id").maybeSingle();
+  if(claimError)return json({error:"PAYMENT_INTENT_CLAIM_FAILED"},500,requestId);
+  if(!claimed)return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
 
   const amount=Number(ledger.gross_amount);
   const currency=String(ledger.currency||"EGP").toUpperCase();
@@ -71,14 +80,16 @@ Deno.serve(async req=>{
   const providerIntentId=String(provider.id??"");
   const providerOrderId=String(provider.intention_order_id??"");
   if(!providerResponse.ok||!clientSecret||!providerIntentId||!providerOrderId){
+    // Keep the claim: a timeout or malformed provider response may hide a created intention.
+    // Reconciliation must resolve this claim before another external intention is attempted.
     console.error(JSON.stringify({requestId,stage:"paymob_intention",httpStatus:providerResponse.status}));
-    return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT"},502,requestId);
+    return json({error:"PAYMENT_PROVIDER_INTENT_UNCONFIRMED",recoveryRequired:true},502,requestId);
   }
 
   const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:providerOrderId,paymob_payment_methods:provider.payment_methods??null};
   const {data:persistedIntent,error:updateError}=await admin.from("mantigo_financial_ledger").update({
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED").select("id").maybeSingle();
+  }).eq("id",ledger.id).eq("payment_status","REQUIRED").eq("metadata->paymob_intent_claim->>token",claimToken).is("provider_intent_id",null).select("id").maybeSingle();
   if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
   // PostgREST can return no error when the compare-and-set predicate matches zero rows.
   // Never hand the caller a checkout secret unless the exact ledger transition was persisted.
