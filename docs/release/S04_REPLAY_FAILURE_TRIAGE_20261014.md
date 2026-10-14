@@ -47,3 +47,21 @@ Repository search found `smm_provider_credentials` creation in `supabase/tests/r
 5. Keep production blocked until the full replay and independent release/security gates pass.
 
 **No production changes were made. No migration was applied. No missing historical SQL was invented.**
+
+
+## New read-only source-versus-ledger SQL comparison — 2026-10-14
+
+The live stored statements were compared against the source files on `fix/s04-replay-normalization-20261013` after whitespace normalization. This comparison was read-only and did not execute any migration.
+
+| Applied ledger version/name | Source file on recovery branch | Source chars | Stored ledger SQL chars | Normalized text match |
+|---|---|---:|---:|---|
+| `20260928131753 / rc172_restore_medical_booking_contract` | `20260928210000_rc172_restore_medical_booking_contract.sql` | 5,528 | 5,746 | No |
+| `20260928161513 / rc206_geographic_ad_targeting_and_nearest_fallback` | `20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql` | 5,323 | 5,646 | No |
+| `20260928174954 / rc207_official_global_mnty_cover_ads` | `20260928210000_rc207_official_global_mnty_cover_ads.sql` | 3,607 | 7,056 | No |
+| `20260928154527 / rc200_cross_tenant_customer_payment_authorization` | `20260928190000_rc200_cross_tenant_customer_payment_authorization.sql` | 4,000 | 3,987 | No |
+
+The RC206 stored SQL starts with `-- MNTY geographic advertisement targeting + nearest fallback`, whereas the source starts with a longer RC206 description; later content also differs. RC207 has a particularly large stored/source length gap (7,056 vs 3,607 characters), so this must be treated as a substantive reconciliation task rather than a filename-only normalization. RC172 also differs after whitespace normalization. RC200's first normalized difference is the source header comments, so its length delta alone does not establish a semantic difference; compare executable tokens before deciding whether that entry is materially divergent.
+
+These measurements are triage evidence, not a semantic proof or permission to replace applied history. Before any clean replay is certified, produce a reviewed token/statement diff for each mismatch, identify the exact authoritative source or approved reconciliation, and test the result in a fresh disposable database. Do not rename applied migrations, overwrite the stored ledger, or copy the live SQL into historical migration files without explicit review. The original missing-dependency blockers (including `counter_offer_indrive_bid`, `smm_provider_credentials`, credit tables, and `marketing_project_participants`) remain separate and unresolved.
+
+No production schema, ledger, data, grants, Auth settings, Edge Functions, or financial records were changed.
