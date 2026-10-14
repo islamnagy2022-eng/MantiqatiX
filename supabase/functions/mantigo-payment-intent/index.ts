@@ -42,15 +42,6 @@ Deno.serve(async req=>{
   // issue another Paymob intention when a previous provider request may have succeeded.
   if(ledger.payment_status==="PENDING"||metadata.paymob_intent_claim)return json({error:"PAYMENT_INTENT_RECOVERY_REQUIRED"},409,requestId);
 
-  // Claim this REQUIRED ledger before calling Paymob. Only one concurrent request can win.
-  const claimToken=crypto.randomUUID();
-  const claimMetadata={...metadata,paymob_intent_claim:{token:claimToken,created_at:new Date().toISOString()}};
-  const {data:claimed,error:claimError}=await admin.from("mantigo_financial_ledger").update({
-    metadata:claimMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider_intent_id",null).select("id").maybeSingle();
-  if(claimError)return json({error:"PAYMENT_INTENT_CLAIM_FAILED"},500,requestId);
-  if(!claimed)return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
-
   const amount=Number(ledger.gross_amount);
   const currency=String(ledger.currency||"EGP").toUpperCase();
   if(!Number.isFinite(amount)||amount<=0)return json({error:"INVALID_FARE"},409,requestId);
@@ -64,6 +55,15 @@ Deno.serve(async req=>{
   if(!phone||!email)return json({error:"CUSTOMER_BILLING_CONTACT_REQUIRED"},422,requestId);
   const city=String(user.user_metadata?.city??"NA").trim()||"NA";
   const state=String(user.user_metadata?.state??city).trim()||"NA";
+
+  // Claim this REQUIRED ledger before calling Paymob. Only one concurrent request can win.
+  const claimToken=crypto.randomUUID();
+  const claimMetadata={...metadata,paymob_intent_claim:{token:claimToken,created_at:new Date().toISOString()}};
+  const {data:claimed,error:claimError}=await admin.from("mantigo_financial_ledger").update({
+    metadata:claimMetadata,updated_at:new Date().toISOString()
+  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider_intent_id",null).select("id").maybeSingle();
+  if(claimError)return json({error:"PAYMENT_INTENT_CLAIM_FAILED"},500,requestId);
+  if(!claimed)return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
 
   const providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
     method:"POST",
