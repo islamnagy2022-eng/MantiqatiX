@@ -4,6 +4,7 @@ do $test$
 declare
   v_user uuid := '10000000-0000-4000-8000-000000000046';
   v_allowed boolean;
+  v_rejected boolean;
 begin
   insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions)
   values (
@@ -25,11 +26,68 @@ begin
     raise exception 'RC462 malformed string full_control must not grant platform access';
   end if;
 
+  -- The guard must protect the actual high-risk financial RPCs, not only return false.
+  v_rejected := false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(v_user, null, null);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC462 malformed full_control reached the platform-wide financial report';
+  end if;
+
+  v_rejected := false;
+  begin
+    perform public.settle_mantigo_captain_backend(v_user, 'ride-does-not-exist', 'BANK_TRANSFER');
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC462 malformed full_control reached the platform-wide settlement RPC';
+  end if;
+
   update public.user_memberships
      set permissions = '{"scope":"PLATFORM","full_control":false}'::jsonb
    where id = 'platform-malformed-rc462';
   if public.mnty_can_platform_admin() then
     raise exception 'RC462 boolean false full_control must deny platform access';
+  end if;
+
+  v_rejected := false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(v_user, null, null);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC462 boolean false reached the platform-wide financial report';
+  end if;
+
+  v_rejected := false;
+  begin
+    perform public.settle_mantigo_captain_backend(v_user, 'ride-does-not-exist', 'BANK_TRANSFER');
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC462 boolean false reached the platform-wide settlement RPC';
   end if;
 
   update public.user_memberships
