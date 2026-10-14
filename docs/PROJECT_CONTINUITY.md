@@ -579,3 +579,7 @@ This status is intentional and must remain until the open gates above are indepe
 - Canonical handoff rule: TODO + append-only session log + continuity updates are required for each batch; update resume last; reread from GitHub and verify all links/statuses.
 - Reuse valid prior evidence unless code/commit/runtime/config changed, a check failed/cancelled, evidence is stale, conflicting evidence appears, scope was incomplete, or a mandatory gate requires a fresh run. State the trigger in the record.
 - Current status remains Domain 1 PARTIAL, Domain 2 BLOCKED, global release BLOCKED / NOT CERTIFIED. No production mutation was performed.
+
+
+## 2026-10-14 migration reconciliation update
+The canonical matrix `docs/release/migration-reconciliation-matrix-20261014.json` now records all 28 release-required migration filenames, the current-main inventory, live-ledger state, candidate PR metadata, and fresh patch-text comparisons. It is an inventory artifact, not release certification. Main remains 12/28 present and 16/28 missing; live ledger remains at RC424 in this snapshot. Dependency/order review is incomplete and disposable replay has not run. Global release remains `BLOCKED / NOT CERTIFIED`. See the latest `docs/SESSION_LOG.md` entry and continue from the live PR head; do not repeat the just-completed comparisons unless candidate inputs change.
