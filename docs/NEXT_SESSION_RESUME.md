@@ -1,9 +1,9 @@
 # MantiqaTiX — Next Session Resume
 
-**Last updated:** 2026-10-14 02:35 UTC  
+**Last updated:** 2026-10-14 02:37 UTC  
 **Working branch:** `docs/rc521-admin-operations-discovery-20261013`  
 **Current PR:** [#218](https://github.com/islamnagy2022-eng/MantiqatiX/pull/218) — OPEN, DRAFT, UNMERGED  
-**Latest verified PR head at update:** `4c61137d20d72527c3fc5132d0611cbc46ca8d65`  
+**PR head at last metadata check before this resume refresh:** `b57c80af92ae42f19a49922280fecc3856195b93`  
 **Production release gate:** BLOCKED / NOT CERTIFIED  
 **Website:** https://islamnagy2022-eng.github.io/MantiqaTiX/
 
@@ -12,8 +12,7 @@
 1. Read this file, then `docs/MASTER_PRODUCTION_TODO.md`, `docs/PROJECT_CONTINUITY.md`,
    `docs/SESSION_LOG.md`, and `docs/release/s04-migration-chain-clean-replay-report.md`
    from this branch before changing code.
-2. Recheck PR #218 state/head and exact-head CI. The documentation head
-   `5b01aede91340bd9281dda97da6ebc46d45bdfcc` has completed PR-triggered checks: focused migration integration, approval atomicity, SMM service-role boundary, backend-only boundary, audit-log ACL, migration uniqueness/immutability/collision, MantiGO admin/privacy, and module validation succeeded; web validation succeeded but deploy was skipped. S04 run 168 failed at the known missing-RPC blocker. Any documentation commit created during this continuation needs its own exact-head CI recheck.
+2. Recheck PR #218 state/head and exact-head CI. The tested merge ref for PR head `5a14e6484e97bf8a412de635b25949afc8490ae9` has completed PR-triggered checks: focused migration integration, approval atomicity, SMM service-role boundary, backend-only boundary, audit-log ACL, migration uniqueness/immutability/collision, MantiGO admin/privacy, and module validation succeeded; web validation succeeded but deploy was skipped. S04 run 168 and follow-up run `38501518479` failed at the same missing-RPC blocker. The latest PR head `b57c80af92ae42f19a49922280fecc3856195b93` had no PR-triggered workflow runs returned at the last check; never attribute the previous head's CI results to it.
 3. Continue only with trusted-source recovery for
    `public.counter_offer_indrive_bid(uuid,uuid,numeric)` or a separately reviewed
    forward-baseline design. Do not implement a guessed historical migration.
@@ -30,7 +29,7 @@
 
 ## Current evidence
 
-- S04 runs 159, 160, 168, and the latest follow-up run 38501518479 reproducibly stop at
+- S04 runs 159, 160, 168, and follow-up run 38501518479 reproducibly stop at
   `20260927095000_revoke_unused_security_definer_execute.sql` with
   `function public.counter_offer_indrive_bid(uuid, uuid, numeric) does not exist`
   (SQLSTATE 42883).
@@ -40,6 +39,8 @@
 - The production migration-ledger statement scan and current indexed source searches found no
   creation statement. Seven related InDrive/reverse-bidding migration files across candidate
   branches did not define it. This is a bounded search, not proof that no trusted backup exists.
+- SMM additional blocker: live catalog evidence says `public.smm_orders.idempotency_key` is absent and no idempotency index exists. Keep SMM deferred; review a forward-only schema change and concurrency/idempotency tests before enablement. See RC547 in the master TODO.
+- Latest follow-up S04 run: [38501518479](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479), checked out merge ref `9e49246` (`5a14e648...` into base), artifact [11866516003](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479/artifacts/11866516003); same SQLSTATE 42883. Test-only provider-onboarding/SMM baselines were injected.
 - Proposal-only decision record:
   `docs/release/counter-offer-rpc-forward-baseline-decision.md`.
 - Updated evidence report:
