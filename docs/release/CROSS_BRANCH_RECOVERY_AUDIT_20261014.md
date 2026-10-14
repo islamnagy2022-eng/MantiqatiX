@@ -272,3 +272,24 @@ PR #248 now points to head `7079caaf3617bc7a4c4af52a013f8dc6f2b93742`. GitHub Ac
 The latest head has no failed result among these reviewed runs, but the passing focused checks do not prove chronological replay or production authorization safety. The read-only live database finding remains: the production ledger ends at RC424, and the deployed MantiGO financial report and settlement functions still lack the proposed explicit platform-admin guard. Do not merge or deploy this Draft PR until historical replay provenance is resolved, the migration bundle passes full replay, and the P0 finding is handled in an explicitly approved production window.
 
 No production changes were made by this verification.
+
+
+## Read-only verification of S04 duplicate-version normalization targets — 2026-10-14 20:53 +03:00
+
+I queried the live `supabase_migrations.schema_migrations` ledger for all 11 target versions used by `scripts/prepare-s04-replay-normalization-v2.mjs` on the separate `fix/s04-replay-normalization-20261013` branch. All 11 target version/name pairs exist in the live ledger and match the intended migration names:
+
+- `20260928034100 restore_registration_request_dml_grants`
+- `20260928101022 rc101_g6_rls_permissive_policy_hardening`
+- `20260928104107 rc102_g8_crm_notification_support_rls_hardening`
+- `20260928112420 rc109_harden_order_support_tenant_boundaries`
+- `20260928124303 rc162_mantigo_trip_state_machine`
+- `20260928125655 rc164_mantigo_direct_delete_lockdown`
+- `20260928125731 rc164_retire_legacy_mantigo_mutator`
+- `20260928131753 rc172_restore_medical_booking_contract`
+- `20260928154527 rc200_cross_tenant_customer_payment_authorization`
+- `20260928161513 rc206_geographic_ad_targeting_and_nearest_fallback`
+- `20260928174954 rc207_official_global_mnty_cover_ads`
+
+This provides authoritative ledger support for the *target filenames/versions* used in that branch's disposable-only normalization script. It does **not** prove that renaming the source files is sufficient to make the full chain semantically replayable: the separate reconciliation report still documents material source-versus-ledger SQL differences for RC172, RC206, and RC207, plus an ordering/policy duplication issue for RC199. The script's own scope is a temporary checkout; do not apply those renames to production history or blindly transplant the divergent branch.
+
+The focused live-ledger query also does not recover the original creation DDL for `counter_offer_indrive_bid`, `credit_accounts`, `credit_periods`, or `marketing_project_participants`. Those historical source gaps remain open. No production schema, migration ledger, data, grants, Auth settings, Edge Functions, or financial records were changed.
