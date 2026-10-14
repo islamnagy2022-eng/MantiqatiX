@@ -78,3 +78,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Actions not performed:** no production DDL, migration application, data change, function deployment, secret change, financial transaction, merge, or release approval.
 - **Next action:** complete the 28-row source/PR/live-ledger migration reconciliation matrix and dependency review; run chronological replay only in a disposable environment.
 - **Release:** BLOCKED / NOT CERTIFIED.
+
+
+### SESSION-007 — canonical 28-migration matrix refresh (2026-10-14 UTC)
+- Scope: read-only release-source/ledger reconciliation; no production mutation.
+- Refreshed PR #247 state and PR #84/#202/#207/#218 metadata and migration patches. PR #247 remains open draft/unmerged at the time of the initial refresh.
+- Re-read live Supabase migration ledger: 283 rows; first `20260808000000`; latest `20261008222845` / `rc424_atomic_digital_page_payment_webhook`.
+- Created `docs/release/migration-reconciliation-matrix-20261014.json` (28 required rows; 12 current-main sources present, 16 missing; all required post-RC424 versions absent from live ledger snapshot).
+- Fresh pairwise patch comparison: #84/#202 = 16 common, 0 differences; #84/#207 = 16/0; #84/#218 = 16/0; #207/#218 = 33/0. #202/#207 and #202/#218 each have one differing shared migration patch outside the required 28: `20261011030000_rc458_erp_branch_organization_scope.sql`.
+- Findings are limited to filename inventory and patch-text equality. Dependency graph and chronological disposable replay remain NOT COMPLETED / NOT RUN. No migrations, deployments, production data, secrets, or PR merge were changed.
+- Result: Domain 2 remains BLOCKED; global release remains `BLOCKED / NOT CERTIFIED`.
+- Next: inspect authoritative candidate migration contents and dependencies, identify a safe source-recovery branch without duplicate timestamps, then perform isolated full-chain replay and evidence capture. Never apply to production as part of this batch.
