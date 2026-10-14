@@ -40,3 +40,42 @@ Inventory repository migration filenames and all open candidate PR migration pat
 - A byte-for-byte patch comparison of RC434 in PR #84 and PR #202 returned identical patch text (7151 characters). The historical claim of a content conflict is not supported by this pairwise comparison, but overlap across all candidate PRs and migration version uniqueness still require full review.
 - Current `main` still lacks required post-RC424 source files; PRs #84/#202/#207/#218 contain overlapping candidate migrations. No production application is authorized by this evidence.
 - **Next executable step:** compare all 28 required filenames against main, each open candidate PR, and live ledger; verify duplicate version definitions and timestamp ordering; inspect dependency edges; then run the complete chain only in a disposable PostgreSQL/Supabase environment.
+
+
+## Full required-migration source inventory — current main, 2026-10-14
+**Result: 12/28 required migration source files present; 16/28 absent.** Presence means the exact expected filename was retrievable from `main`; it does not imply applied-to-production or replayed.
+
+| Expected migration | Current `main` source | Live ledger evidence |
+|---|---|---|
+| `20261009120000_rc425_atomic_mantigo_paymob_payment.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009130000_rc426_digital_page_provider_order_binding.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009140000_rc427_one_active_payment_intent_per_order.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009150000_rc428_atomic_provider_failure_webhook.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009160000_rc429_atomic_subscription_failure_webhook.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009170000_rc430_atomic_subscription_success_webhook.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009190000_rc432_smm_wallet_transaction_idempotency.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009200000_rc434_atomic_erp_purchase_receiving.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009210000_rc435_subscription_provider_intent_claim.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009220000_rc436_atomic_financial_journal.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009230000_rc437_purchase_order_lines_receiving_limits.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261009240000_rc438_purchase_order_creation_with_lines.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261010010000_rc439_encrypted_checkout_recovery.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261010020000_rc440_exposed_security_definer_search_path.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261010030000_rc441_platform_admin_scope_hardening.sql` | MISSING | Latest ledger RC424; not proven applied |
+| `20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010120000_rc442_approval_action_audit_atomicity.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010140000_rc444_crm_business_scope_rls.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010150000_rc447_matrimony_profile_privacy_boundary.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010161000_rc448_matrimony_request_lifecycle_authority.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010175000_rc449a_financial_journal_schema_prerequisites.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010180000_rc450_financial_journal_service_role_boundary.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010200000_rc451_targeted_ads_empty_search_path.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010210000_rc452_marketing_crm_tenant_scope.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261010220000_rc453_marketing_campaign_backend.sql` | PRESENT | Not proven applied solely by source presence |
+| `20261011010000_rc456_smm_service_role_access_boundary.sql` | PRESENT | Not proven applied solely by source presence |
+
+**Missing group:** RC425–RC432 and RC434–RC441 (16 files). **Present group:** RC446, RC442, RC444, RC447–RC450, RC451–RC453, RC456 (12 files). This is filename/source inventory only; the non-sequential RC numbers follow immutable timestamp order in the release verifier and must not be reordered by RC label.
+
+**Candidate overlap:** PR #84, #202, #207 and #218 all carry overlapping post-RC424 migrations. RC434 patch text in PR #84 and #202 was identical in a direct full-string comparison, but no candidate is approved by this inventory. Compare all required migration contents, prerequisites, tests, exact version uniqueness and ordered replay before merge.
