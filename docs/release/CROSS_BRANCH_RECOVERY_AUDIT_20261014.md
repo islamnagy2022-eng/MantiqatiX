@@ -227,7 +227,7 @@ The report-only commit `7fc56cf676efdfa3c54bb6a3183a03fc39949bda` was checked af
 The successful run set confirms focused candidate tests only. It does not resolve the missing historical dependency source, certify chronological replay, or close the read-only live P0 MantiGO authorization finding. PR #248 remains Draft and unmerged. No production changes were made.
 
 
-## Additional read-only ledger-source search — 2026-10-14 17:5x UTC
+## Additional read-only ledger-source search — 2026-10-14 17:48 UTC
 
 A targeted read-only query searched the production `supabase_migrations.schema_migrations.statements` arrays for:
 
