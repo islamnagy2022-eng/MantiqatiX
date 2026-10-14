@@ -66,3 +66,20 @@ Read-only Supabase inventory was rechecked after the cross-branch search:
 - PR #248 head `5beb4aac30393617a246a99932e95857651be4ab` has focused passing CI evidence recorded above. A documentation-only audit commit `3f228e979546ab920ccd790abd92e5b87f51aef8` was added to the PR branch and verified by fetching the exact file back. No workflow runs or combined statuses were returned for that documentation commit at the time of check, so it has no new exact-head CI certification.
 
 This updates the prior SMM deployment observation: the currently fetched live function is v10, not the previously documented v8/v6 snapshots. The broader production release remains blocked by unresolved historical replay provenance and other unverified acceptance gates.
+
+
+## Security-advisor refresh — 2026-10-14 05:11 UTC
+
+Read-only Supabase security advisors were queried for project `moyhiluyhjsujhwlyeuu`. Findings below are triage signals, not proof that every flagged policy is exploitable; policy expressions and function bodies must be reviewed before changing grants or RLS.
+
+- **RLS enabled with no policy (1):** `public.digital_page_payment_events`. This normally means API roles have no policy-authorized rows; inspect intended service/backend access and payment-event processing before adding any policy. Remediation guidance: https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+- **SECURITY DEFINER callable by anon (1):** `public.get_mnty_targeted_advertisements(...)`. Review whether public invocation is intentional, ensure location/targeting inputs cannot expose restricted campaign data, and add appropriate bounds/rate controls if needed. Do not revoke blindly before tracing public ad delivery. Guidance: https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
+- **SECURITY DEFINER callable by authenticated (40):** advisor flagged 40 functions. Audit each function's internal authorization, tenant/business/platform scope, actor-ID binding, and financial side effects. This warning alone does not establish a vulnerability; do not bulk-revoke EXECUTE because some functions may be intended authenticated RPCs. Guidance: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+- **Anonymous-role policy warnings (90 tables):** advisor output flags policies on 90 tables/storage objects as applying to anonymous users. These may reflect role targeting rather than a confirmed bypass; inspect each policy's USING/WITH CHECK expressions, especially finance, payment, tenant, CRM/marketing, notification/push, SMM wallet/orders, and ride tables. Prioritize verifying that any policy meant for signed-in users excludes `anon`; do not mass-edit policies without negative tests. Guidance: https://supabase.com/docs/guides/database/database-advisors?queryGroups=lint&lint=0012_auth_allow_anonymous_sign_ins
+- **Leaked-password protection disabled (1):** Supabase Auth advisor reports compromised-password checks are disabled. The product's current primary sign-in flow is email OTP, so verify actual Auth configuration and whether password sign-in is enabled before selecting remediation; do not change Auth settings in production during this audit. Guidance: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+### Deployment-workflow clarification
+
+The workflow for documentation commit `d49ba7707b7e7aae839615038cfe9baeda6595f5` completed with overall conclusion `success`, but the job-level evidence shows `validate = success` and `deploy = skipped`. Therefore this is **not** evidence of a new production deployment or release certification. Existing exact-head focused tests are useful but do not close chronological migration replay, tenant-isolation, payment/finance E2E, backup/restore, Edge Function contract, or Auth configuration gates.
+
+No production SQL, RLS/grant changes, Auth setting changes, Edge Function deployment, or financial writes were performed during this refresh. Release remains **BLOCKED / NOT CERTIFIED**.
