@@ -558,3 +558,10 @@ This status is intentional and must remain until the open gates above are indepe
 - RC434 patch comparison between PR #84 and PR #202 was byte-identical (7151 characters); older notes about that specific pair conflicting are not confirmed by this comparison. Other overlapping PR migration candidates remain unreviewed.
 - Next action is complete source/ledger/PR matrix, dependency and timestamp validation, then disposable chronological replay. No production migration or PR merge was performed.
 - Release state remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-14 — Required migration inventory (source-only)
+- Parsed the 28 required release migration filenames from the main-branch release verifier and fetched each expected path.
+- Exact source inventory: **12/28 present, 16/28 missing**. Missing RC425–RC432 and RC434–RC441; present RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. See `docs/SCHEMA_RECONCILIATION.md`.
+- Live ledger remains at RC424. Source presence or a candidate PR is not proof of application. Open PRs #84/#202/#207/#218 overlap; keep them unmerged pending full reconciliation and disposable replay.
+- Domain 2 remains BLOCKED. No production mutation or deployment was performed.
