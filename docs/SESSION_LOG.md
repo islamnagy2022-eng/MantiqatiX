@@ -66,3 +66,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Interpretation:** prior reports of RC434 content conflict are not supported by these pairwise comparisons. However, the PRs differ in non-migration source and in additional migration files; identical shared SQL does not make the whole PRs equivalent.
 - **Not performed:** no merge, production migration, deployment, or runtime/financial E2E.
 - **Next:** whole-set uniqueness/order/dependency checks and full disposable chronological replay; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-14 — SESSION-006 — Establish mandatory cross-session continuity
+
+- **User requirement:** preserve all work across deleted/new sessions, prevent unnecessary duplicate reviews/comparisons, and remain on the approved release plan.
+- **Added files:** `docs/SESSION_CONTINUITY_PROTOCOL.md` and `docs/NEXT_SESSION_RESUME.md` on `docs/production-baseline-recovery-2026-10-14` under draft PR #247.
+- **Protocol covers:** source-of-truth hierarchy; required statuses; evidence metadata for every work batch; no-repeat triggers; release/migration/security safety; start/close checklists; required handoff template.
+- **Resume records:** current baseline, PR/branch, live migration ledger, 28-file inventory (12 present/16 missing), completed candidate-patch comparisons, Security Advisor observations, current blockers, and the exact next action.
+- **No-repeat decisions recorded:** do not repeat PR #84/#202, #207/#218, or #84/#207 shared-migration patch comparisons unless a relevant input changes or contradictory evidence appears.
+- **Actions not performed:** no production DDL, migration application, data change, function deployment, secret change, financial transaction, merge, or release approval.
+- **Next action:** complete the 28-row source/PR/live-ledger migration reconciliation matrix and dependency review; run chronological replay only in a disposable environment.
+- **Release:** BLOCKED / NOT CERTIFIED.
