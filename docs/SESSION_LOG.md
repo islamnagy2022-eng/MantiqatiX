@@ -250,3 +250,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Workflow lookup for commit `4c61137d20d72527c3fc5132d0611cbc46ca8d65` returned no runs; no CI pass is claimed for that documentation head or subsequent documentation-only commits.
 - No migration code was added; no production DB/schema/ACL/RLS/Auth change, function deployment, merge, or release occurred.
 - Release remains **BLOCKED / NOT CERTIFIED**. Next: recover an authoritative source/backup or obtain explicit review of the separate forward-baseline proposal; only then implement and rerun the disposable chronological replay.
+
+
+## RC546 — Exact-head CI refresh and S04 run 168 — 2026-10-14
+
+- Re-fetched PR #218 metadata: OPEN, DRAFT, UNMERGED; base `8a56358d505d2c12878440037f7f24ba65d2ea10`; tested head at start of this session `5b01aede91340bd9281dda97da6ebc46d45bdfcc`.
+- Checked completed PR-triggered workflow runs for that head. Focused recovered-migration integration and the listed approval atomicity, SMM boundary, backend-only boundary, audit-log ACL, migration uniqueness/immutability/collision, MantiGO platform-admin/privacy, and module validation workflows passed. Web validation passed; deploy was skipped.
+- S04 run [38500724335](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38500724335) completed as failure. Evidence artifact [11865404343](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38500724335/artifacts/11865404343), SHA-256 `e5ba5108e4bde3f708b4767bfdd43e1c1d682856e4c7d6d25c8a9f4da1074930`.
+- Actual logged result: source and normalization checks passed; test-only provider-onboarding/SMM baselines injected; Supabase init passed; Supabase start failed at `20260927095000_revoke_unused_security_definer_execute.sql` because `public.counter_offer_indrive_bid(uuid, uuid, numeric)` does not exist in the replay chain (SQLSTATE 42883). This is a third reproducible stop, not clean replay.
+- Updated the S04 report, master TODO, and next-session resume with the exact run/head and safe next actions. No production writes, migration changes, deployment, merge, Auth/RLS/grant change, or financial action occurred.
+- **State:** release remains BLOCKED / NOT CERTIFIED. Recheck exact-head CI after these documentation commits; do not inherit previous-head CI as proof for a newer SHA.
