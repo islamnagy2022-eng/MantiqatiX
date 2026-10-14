@@ -97,8 +97,8 @@ const liveLedgerDuplicateAliases = [
   ["20261007030000_cleanup_duplicate_job_application_index_v1.sql", "20261006235323_cleanup_duplicate_job_application_index_v1.sql"],
 ];
 const normalizeSql = name => fs.readFileSync(path.join(migrationDir, name), "utf8")
-  .replace(/^\\s*--.*$/gm, "")
-  .replace(/\\s+/g, " ")
+  .replace(/^\s*--.*$/gm, "")
+  .replace(/\s+/g, " ")
   .trim()
   .toLowerCase();
 const invalidLiveLedgerDuplicateAliases = liveLedgerDuplicateAliases.filter(([source, target]) =>
