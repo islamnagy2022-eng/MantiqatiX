@@ -85,17 +85,36 @@ if (!token || !repository || !Number.isInteger(currentPrNumber) || currentPrNumb
 }
 
 async function githubGet(url) {
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: "Bearer " + token,
-      "X-GitHub-Api-Version": "2022-11-28"
+  const maxAttempts = 5;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: "Bearer " + token,
+          "X-GitHub-Api-Version": "2022-11-28"
+        }
+      });
+      if (response.ok) return response.json();
+
+      const retryable = response.status === 429 || [500, 502, 503, 504].includes(response.status);
+      if (!retryable || attempt === maxAttempts - 1) {
+        throw new Error("GitHub API request failed (" + response.status + "): " + url);
+      }
+      const retryAfter = Number(response.headers.get("retry-after") || 0);
+      const delayMs = retryAfter > 0
+        ? Math.min(retryAfter * 1000, 10000)
+        : Math.min(300 * (2 ** attempt), 5000);
+      console.warn("Retrying transient GitHub API " + response.status + " response in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    } catch (error) {
+      if (attempt === maxAttempts - 1 || !(error instanceof TypeError)) throw error;
+      const delayMs = Math.min(300 * (2 ** attempt), 5000);
+      console.warn("Retrying transient GitHub API network error in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
     }
-  });
-  if (!response.ok) {
-    throw new Error("GitHub API request failed (" + response.status + "): " + url);
   }
-  return response.json();
+  throw new Error("GitHub API request exhausted retry budget: " + url);
 }
 
 async function getAllPages(url) {
