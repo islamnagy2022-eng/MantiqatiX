@@ -21,3 +21,17 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-14 — SESSION-002 — Start domain-by-domain production closure
+
+- **User decision:** proceed one domain at a time, closing each with evidence before moving on.
+- **Repository verified:** `islamnagy2022-eng/MantiqaTix`, default branch `main`; latest commit returned by GitHub commit search is `8a56358d505d2c12878440037f7f24ba65d2ea10` (2026-10-11T03:47:11Z).
+- **Documentation discrepancy:** existing continuity record cited `735f0451...` as current HEAD. A new append-only correction is being added; historical entries are preserved.
+- **Supabase read-only evidence:** project `moyhiluyhjsujhwlyeuu` is `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`, region `us-east-2`; migration ledger has 283 rows, latest `20261008222845` / RC424.
+- **Security Advisor evidence:** observed at `2026-10-14T01:47:56.708Z`: RLS enabled/no policy on `public.digital_page_payment_events`; anon-executable SECURITY DEFINER targeted-ad RPC; 40 authenticated-executable SECURITY DEFINER findings. Findings are open for scoped review.
+- **Actions performed:** created a documentation-only branch and prepared baseline, audit, and schema reconciliation records; append-only updates record the current state and next action.
+- **Not performed:** no production SQL mutation, migration application, Edge Function deployment, PR merge, financial transaction, or release approval.
+- **Domain 1 status:** PARTIAL — baseline evidence is captured, but source-to-live schema/migration parity and requirement-level scoring are not yet proven.
+- **Next action:** inventory current repository migration files and open PR candidates against the live 283-row ledger, then validate chain uniqueness/order and isolated replay before changing production.
+- **Release state:** BLOCKED / NOT CERTIFIED.
