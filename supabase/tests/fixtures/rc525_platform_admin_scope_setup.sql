@@ -16,7 +16,7 @@ create or replace function auth.uid()
 returns uuid
 language sql
 stable
-as $function$ select null::uuid $function$;
+as $function$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $function$;
 
 create table public.user_memberships (
   user_id uuid not null,
@@ -58,3 +58,8 @@ create policy digital_page_products_public_read
   for select
   to anon, authenticated
   using (active = true);
+
+grant usage on schema auth to authenticated;
+grant execute on function auth.uid() to authenticated;
+grant select on public.user_memberships to authenticated;
+grant select, insert, update, delete on public.digital_page_products to authenticated;
