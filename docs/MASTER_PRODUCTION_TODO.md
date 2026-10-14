@@ -1755,3 +1755,18 @@ Evidence:
 - S04 run 160: https://github.com/islamnagy2022-eng/MantiQaTix/actions/runs/38499702486
 - S04 report: https://github.com/islamnagy2022-eng/MantiQaTix/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/s04-migration-chain-clean-replay-report.md
 
+
+
+## S04 continuation — reviewed decision path for missing counter-offer RPC (2026-10-14)
+
+- [x] Rechecked bounded GitHub source history: no indexed commit/code match for `counter_offer_indrive_bid`; inspected seven InDrive/reverse-bidding migration files across candidate PR branches and found no definition. This does not prove no external backup exists.
+- [x] Added proposal-only decision record: `docs/release/counter-offer-rpc-forward-baseline-decision.md`.
+- [ ] **WAIT / BLOCKED:** recover authentic historical source from a trusted backup/deployment artifact, or obtain explicit review approval for the separate forward-baseline strategy.
+- [ ] Do not write migration code until provenance/behavior/ACL/search_path/dependency review is complete.
+- [ ] After approval and implementation on a reviewed branch, rerun disposable chronological replay; do not treat the test-only baseline workflow as a clean replay.
+- [ ] Keep production unchanged; no migration, grants, RLS, Auth, function deployment, merge, or release was performed.
+- Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence:
+- Decision proposal: https://github.com/islamnagy2022-eng/MantiqatiX/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/counter-offer-rpc-forward-baseline-decision.md
+- S04 report: https://github.com/islamnagy2022-eng/MantiqatiX/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/s04-migration-chain-clean-replay-report.md
