@@ -1,3 +1,12 @@
+# Baseline capture result — prerequisite missing (2026-10-14)
+
+- The marker-triggered read-only capture workflow ran as [Actions run 38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) and failed closed before connecting to the database because the GitHub Actions secret SUPABASE_DB_URL is absent. It performed no query, dump, or production write.
+- The baseline-forward replay workflow correctly failed closed in [run 38629765358](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629765358) because the reviewed snapshot/manifest do not yet exist. This is not a SQL replay failure; replay never started.
+- Next required action is to add the protected SUPABASE_DB_URL secret in repository Settings → Secrets and variables → Actions, then run the capture workflow with its explicit confirmation input. Do not share the connection string in chat. The snapshot must still pass security review and isolated forward replay before it can satisfy the replay gate.
+- The Pages validation workflow passed in [run 38629765389](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629765389), but the deploy job was skipped because PR #248 remains Draft. The release remains **BLOCKED / NOT CERTIFIED**.
+
+---
+
 # Durable historical-migration recovery path (2026-10-14)
 
 - Added the canonical schema-baseline recovery protocol in [docs/release/CANONICAL_SCHEMA_BASELINE_RECOVERY.md](https://github.com/islamnagy2022-eng/MantiqaTiX/blob/recovery/verified-rc425-441-sources-20261014/docs/release/CANONICAL_SCHEMA_BASELINE_RECOVERY.md). It deliberately distinguishes a current live-schema snapshot from historical migration source; no missing historical SQL is reconstructed or relabeled.
