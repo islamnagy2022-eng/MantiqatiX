@@ -251,3 +251,24 @@ A targeted read-only cross-check was performed against the two S04 replay branch
 This narrows the next action: preserve the historical revoke migration unchanged and keep the replay gate blocked until an approved historical source or a separately approved test-only baseline is available. Do not transplant the divergent branch wholesale; it remains a separate, large change set requiring independent review.
 
 No production changes were made during this source cross-check.
+
+
+## New exact-head CI verification — 2026-10-14 18:02 UTC
+
+PR #248 now points to head `7079caaf3617bc7a4c4af52a013f8dc6f2b93742`. GitHub Actions was queried for that exact SHA; the following focused checks completed successfully:
+
+- [RC462 malformed-permission regression](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674365): **PASS**, disposable PostgreSQL.
+- [MantiGO platform-admin scope hardening](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674356): **PASS**, disposable PostgreSQL.
+- [Marketing CRM tenant scope](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674355): **PASS**, validator and disposable PostgreSQL integration.
+- [Migration history immutability](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674261): **PASS**.
+- [Migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674266): **PASS**.
+- [Open-PR migration collision guard](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674330): **PASS**.
+- [MantiGO open-ride privacy](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674314): **PASS**.
+- [Approval-action audit atomicity](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674218): **PASS**.
+- [Backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674254): **PASS**.
+- [Module professionalization validation](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674213): **PASS**.
+- [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38611674299): validation **PASS**; deployment job **SKIPPED** by the release gate.
+
+The latest head has no failed result among these reviewed runs, but the passing focused checks do not prove chronological replay or production authorization safety. The read-only live database finding remains: the production ledger ends at RC424, and the deployed MantiGO financial report and settlement functions still lack the proposed explicit platform-admin guard. Do not merge or deploy this Draft PR until historical replay provenance is resolved, the migration bundle passes full replay, and the P0 finding is handled in an explicitly approved production window.
+
+No production changes were made by this verification.
