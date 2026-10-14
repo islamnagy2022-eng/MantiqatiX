@@ -42,7 +42,24 @@ begin
     ('ledger-recovery','ride-recovery',v_customer,'PAYMOB','{"paymob_intention_order_id":"9002"}',75,'EGP','PENDING'),
     ('ledger-binding','ride-binding',v_customer,'PAYMOB','{"paymob_intention_order_id":"9003"}',50,'EGP','PENDING');
 
-  -- A valid verified success is atomic across event, ledger, and notification.
+  -- A success must fail atomically if the platform commission has not been configured.
+  begin
+    perform public.process_verified_mantigo_payment_backend(
+      'ledger-binding','paymob:TX-NO-CONFIG','PAID',true,50,'EGP','TX-NO-CONFIG',
+      '{"provider":"PAYMOB","transaction_id":"TX-NO-CONFIG","merchant_order_id":"ledger-binding","provider_order_id":"9003","amount_cents":"5000","currency":"EGP","success":true}'::jsonb
+    );
+    raise exception 'missing commission configuration unexpectedly succeeded';
+  exception when others then
+    if sqlerrm not like '%MANTIGO_COMMISSION_NOT_CONFIGURED%' then raise; end if;
+  end;
+  select count(*) into v_events from public.mantigo_payment_provider_events where ledger_id='ledger-binding';
+  select payment_status into v_status from public.mantigo_financial_ledger where id='ledger-binding';
+  if v_events <> 0 or v_status <> 'PENDING' then
+    raise exception 'missing commission config must not persist event or payment state';
+  end if;
+  insert into public.mantigo_financial_config(id,commission_rate) values (true,10);
+
+  -- A valid verified success is atomic across event, ledger, accounting fields, and notification.
   v_result := public.process_verified_mantigo_payment_backend(
     'ledger-success','paymob:TX-SUCCESS','PAID',true,100,'EGP','TX-SUCCESS',
     '{"provider":"PAYMOB","transaction_id":"TX-SUCCESS","merchant_order_id":"ledger-success","provider_order_id":"9001","amount_cents":"10000","currency":"EGP","success":true}'::jsonb
@@ -53,6 +70,13 @@ begin
   select * into v_ledger from public.mantigo_financial_ledger where id='ledger-success';
   if v_ledger.payment_status <> 'PAID' or v_ledger.provider_transaction_id <> 'TX-SUCCESS' or v_ledger.payment_confirmed_at is null then
     raise exception 'ledger success state was not fully persisted';
+  end if;
+  if v_ledger.payment_method <> 'CARD'
+     or v_ledger.commission_rate <> 10
+     or v_ledger.commission_amount <> 10
+     or v_ledger.captain_net_amount <> 90
+     or v_ledger.settlement_status <> 'READY' then
+    raise exception 'successful Paymob payment must atomically lock commission and make settlement ready';
   end if;
   select count(*) into v_events from public.mantigo_payment_provider_events where ledger_id='ledger-success';
   select count(*) into v_notifications from public.notifications where entity_id='ride-success';
@@ -152,6 +176,11 @@ begin
     '{"provider":"PAYMOB","transaction_id":"TX-RECOVER","merchant_order_id":"ledger-recovery","provider_order_id":"9002","amount_cents":"7500","currency":"EGP","success":true}'::jsonb
   );
   if v_result->>'status' <> 'PAID' then raise exception 'distinct success did not recover failed payment: %',v_result; end if;
+  select * into v_ledger from public.mantigo_financial_ledger where id='ledger-recovery';
+  if v_ledger.commission_rate <> 10 or v_ledger.commission_amount <> 7.5
+     or v_ledger.captain_net_amount <> 67.5 or v_ledger.settlement_status <> 'READY' then
+    raise exception 'recovered success must atomically restore canonical commission and settlement fields';
+  end if;
   select count(*) into v_events from public.mantigo_payment_provider_events where ledger_id='ledger-recovery';
   select count(*) into v_notifications from public.notifications where entity_id='ride-recovery';
   if v_events <> 2 or v_notifications <> 2 then
