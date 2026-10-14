@@ -29,7 +29,7 @@ check("integration denies anon on ride expiration and preserves authenticated en
 check("integration verifies authorized settlement persistence and replay safety", integration.includes("authorized platform admin settlement failed") && integration.includes("settlement replay did not return idempotent success") && integration.includes("settlement replay duplicated audit or notification"));
 check("RC462 regression rejects malformed, Boolean-false, and string-true permissions", malformedPermissionsTest.includes("malformed string full_control") && malformedPermissionsTest.includes("boolean false full_control") && malformedPermissionsTest.includes("JSON string true must not grant platform access"));
 check("RC462 regression checks actual financial report and settlement RPCs fail closed", malformedPermissionsTest.includes("JSON string true reached platform-wide financial report") && malformedPermissionsTest.includes("JSON string true reached platform-wide settlement RPC"));
-check("RC462 regression preserves explicit JSON Boolean true", malformedPermissionsTest.includes("'full_control':true") && malformedPermissionsTest.includes("valid explicit platform permission must continue to allow access"));
+check("RC462 regression preserves explicit JSON Boolean true", malformedPermissionsTest.includes('"full_control":true') && malformedPermissionsTest.includes("valid explicit platform permission must continue to allow access"));
 check("read-only live contract normalizes RPC signatures without argument names",
   liveContract.includes("oidvectortypes(p.proargtypes)") &&
   liveContract.includes("replace(pg_catalog.oidvectortypes(p.proargtypes), ', ', ',')"));
