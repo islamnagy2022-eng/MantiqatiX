@@ -2,6 +2,8 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const source = fs.readFileSync("supabase/functions/paymob-webhook/index.ts", "utf8");
+const mantigoMigration = fs.readFileSync("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql", "utf8");
+const mantigoIntegration = fs.readFileSync("supabase/tests/rc425_mantigo_paymob_integration.sql", "utf8");
 const subscriptionStart = source.indexOf("if(sub){");
 const digitalStart = source.indexOf("const {data:digitalByRef}", subscriptionStart);
 const mantigoStart = source.indexOf("if(mantigo){");
@@ -31,6 +33,11 @@ check("digital page RPC binds provider order ID", digital.includes("p_provider_o
 check("MantiGO transitions use atomic RC425 RPC", mantigo.includes('admin.rpc("process_verified_mantigo_payment_backend"'));
 check("MantiGO payload binds transaction, merchant, provider order, amount, currency and result", ["transaction_id:value(obj.id)", "merchant_order_id:merchantRef", "provider_order_id:paymobOrderId", "amount_cents:value(obj.amount_cents)", "success:success?\"true\":\"false\""].every(x => mantigo.includes(x)));
 check("MantiGO branch has no direct event, ledger or notification writes", !mantigo.includes('.from("payment_provider_events")') && !mantigo.includes('.from("mantigo_financial_ledger").update') && !mantigo.includes('.from("notifications").insert'));
+check("MantiGO successful webhook requires configured commission before event insert", mantigoMigration.includes("MANTIGO_COMMISSION_NOT_CONFIGURED") && mantigoMigration.indexOf("MANTIGO_COMMISSION_NOT_CONFIGURED") < mantigoMigration.indexOf("insert into public.mantigo_payment_provider_events"));
+check("MantiGO commission and captain net are calculated from locked ledger amount", mantigoMigration.includes("round(v_ledger.gross_amount * v_commission_rate / 100, 2)") && mantigoMigration.includes("round(v_ledger.gross_amount - v_commission_amount, 2)"));
+check("MantiGO PAID transition atomically locks commission, CARD method and READY settlement", mantigoMigration.includes("payment_method = 'CARD'") && mantigoMigration.includes("commission_rate = case when p_status = 'PAID' then v_commission_rate") && mantigoMigration.includes("commission_amount = case when p_status = 'PAID' then v_commission_amount") && mantigoMigration.includes("captain_net_amount = case when p_status = 'PAID' then v_captain_net_amount") && mantigoMigration.includes("settlement_status = case when p_status = 'PAID' then 'READY'"));
+check("MantiGO tests prove missing commission config rolls back payment event and state", mantigoIntegration.includes("MANTIGO_COMMISSION_NOT_CONFIGURED") && mantigoIntegration.includes("missing commission config must not persist event or payment state"));
+check("MantiGO tests assert exact commission, net and settlement fields on success and recovery", mantigoIntegration.includes("v_ledger.commission_amount <> 10") && mantigoIntegration.includes("v_ledger.captain_net_amount <> 90") && mantigoIntegration.includes("v_ledger.commission_amount <> 7.5") && mantigoIntegration.includes("v_ledger.captain_net_amount <> 67.5") && mantigoIntegration.includes("v_ledger.settlement_status <> 'READY'"));
 
 check("normal payment resolves and compares provider_order_id before processing", normal.includes("provider_order_id") && normal.includes("String(intent.provider_order_id)!==paymobOrderId"));
 check("normal failure uses atomic RC428 RPC", normal.includes('admin.rpc("process_verified_provider_payment_failure"'));
