@@ -571,3 +571,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Full patch comparison found no differing shared migration patches across PR #84/#202, #207/#218, or #84/#207 (16 and 33 common-file comparisons as applicable).
 - This refines older conflict notes: examined shared SQL is identical, but candidate PRs still differ in non-migration source and additional migration files. No PR merge approval follows from this result.
 - Keep migration gate BLOCKED until whole-chain version/order/dependency validation and disposable replay pass.
+
+
+## 2026-10-14 — Mandatory cross-session continuity system added
+- Added `docs/SESSION_CONTINUITY_PROTOCOL.md` as the required procedure for every new/resumed session and every work-batch handoff.
+- Added `docs/NEXT_SESSION_RESUME.md` as the first file to read. It records the active branch/PR, evidence already captured, current domain state, checks that must not be repeated without a trigger, and the exact next action.
+- Canonical handoff rule: TODO + append-only session log + continuity updates are required for each batch; update resume last; reread from GitHub and verify all links/statuses.
+- Reuse valid prior evidence unless code/commit/runtime/config changed, a check failed/cancelled, evidence is stale, conflicting evidence appears, scope was incomplete, or a mandatory gate requires a fresh run. State the trigger in the record.
+- Current status remains Domain 1 PARTIAL, Domain 2 BLOCKED, global release BLOCKED / NOT CERTIFIED. No production mutation was performed.
