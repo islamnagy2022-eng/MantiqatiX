@@ -49,12 +49,19 @@ for (const [table, item] of Object.entries(baselines)) {
   if (table === "provider_onboarding_requests") {
     assert.ok(tableCreateMigration, "canonical provider onboarding CREATE TABLE migration must exist");
     const authorityMigration = files.find(name =>
-      /drop\s+policy\s+if\s+exists\s+provider_onboarding_self_insert\s+on\s+public\.provider_onboarding_requests/i.test(source[name])
+      name.includes("harden_provider_onboarding_authority.sql")
     );
     assert.ok(authorityMigration, "provider onboarding authority migration must remain present");
+    const authoritySourceVersionMatch = authorityMigration.match(/^\d{14}_(\d{14})_harden_provider_onboarding_authority\.sql$/);
+    const authoritySourceVersion = authoritySourceVersionMatch?.[1] ?? authorityMigration.slice(0, 14);
+    assert.equal(
+      authoritySourceVersion,
+      "20261001090000",
+      "original provider onboarding authority source timestamp must remain visible after disposable live-ledger normalization"
+    );
     assert.ok(
-      authorityMigration.slice(0, 14) < tableCreateMigration.slice(0, 14),
-      "known provider onboarding migration-order defect must remain explicit: " + authorityMigration + " precedes " + tableCreateMigration
+      tableCreateMigration.slice(0, 14) < authorityMigration.slice(0, 14),
+      "disposable replay must follow the verified live-ledger order: table creation precedes the normalized authority migration"
     );
   } else {
     assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
@@ -99,7 +106,17 @@ const providerCreate = providerCreateName ? source[providerCreateName] : null;
 assert.ok(providerAuthority && providerCreate, "provider onboarding dependency and later canonical CREATE TABLE migration must both exist");
 assert.match(providerAuthority, /drop\s+policy\s+if\s+exists\s+provider_onboarding_self_insert\s+on\s+public\.provider_onboarding_requests/i);
 assert.match(providerCreate, /create\s+table\s+if\s+not\s+exists\s+public\.provider_onboarding_requests/i);
-assert.ok("20261001085000" < providerAuthorityName.slice(0, 14) && providerAuthorityName.slice(0, 14) < providerCreateName.slice(0, 14), "fixture must document rather than hide the out-of-order dependency");
+const providerAuthoritySourceVersionMatch = providerAuthorityName.match(/^\d{14}_(\d{14})_harden_provider_onboarding_authority\.sql$/);
+const providerAuthoritySourceVersion = providerAuthoritySourceVersionMatch?.[1] ?? providerAuthorityName.slice(0, 14);
+assert.ok(
+  "20261001085000" < providerCreateName.slice(0, 14) &&
+  providerCreateName.slice(0, 14) < providerAuthorityName.slice(0, 14),
+  "test fixture must precede table creation and disposable replay must follow the verified live-ledger order"
+);
+assert.ok(
+  providerAuthoritySourceVersion < providerCreateName.slice(0, 14),
+  "original authority filename timestamp must continue to expose the historical source-order defect"
+);
 
 const credentials = fs.readFileSync(baselines.smm_provider_credentials.path, "utf8");
 assert.match(credentials, /api_key_ciphertext\s+text\s*,/i);
