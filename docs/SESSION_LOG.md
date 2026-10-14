@@ -57,3 +57,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Action:** updated documentation only; no merge, migration application, production DDL, Edge Function deployment, or financial transaction.
 - **Next action:** compare full SQL and test fixtures across candidate PRs, resolve exact version/filename uniqueness and dependency ordering, and run complete chronological replay in disposable PostgreSQL/Supabase.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-14 — SESSION-005 — Compare shared migration patches across candidate PRs
+
+- **Action:** fetched full PR patch sets and compared common `supabase/migrations/*.sql` patch content.
+- **Results:** PR #84 vs #202: no differing shared migration patches; PR #207 vs #218: 33 common migration files and no differing patches; PR #84 vs #207: 16 common migration files and no differing patches.
+- **Interpretation:** prior reports of RC434 content conflict are not supported by these pairwise comparisons. However, the PRs differ in non-migration source and in additional migration files; identical shared SQL does not make the whole PRs equivalent.
+- **Not performed:** no merge, production migration, deployment, or runtime/financial E2E.
+- **Next:** whole-set uniqueness/order/dependency checks and full disposable chronological replay; release remains BLOCKED / NOT CERTIFIED.
