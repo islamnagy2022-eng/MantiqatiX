@@ -35,7 +35,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check MantiGO payment intent
-        run: deno check --no-lock supabase/functions/mantigo-payment-intent/index.ts
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/mantigo-payment-intent/index.ts
       - name: Run RC446 privacy integration tests
         shell: bash
         run: |
