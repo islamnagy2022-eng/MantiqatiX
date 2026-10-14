@@ -179,15 +179,15 @@ create policy "Assigned providers view assigned marketing leads"
     )
   );
 
-// marketing_services is a shared platform catalogue (it has no tenant/business key).
-// Do not let a tenant OWNER/ADMIN mutate definitions that affect every tenant.
+-- marketing_services is a shared platform catalogue (it has no tenant/business key).
+-- Do not let a tenant OWNER/ADMIN mutate definitions that affect every tenant.
 drop policy if exists "marketing_services_admin_manage" on public.marketing_services;
 create policy "marketing_services_admin_manage"
   on public.marketing_services
   for all
   to authenticated
   using (
-    coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false
+    coalesce(auth.jwt() ->> 'is_anonymous', 'false') <> 'true'
     and exists (
       select 1
       from public.user_memberships platform_admin
