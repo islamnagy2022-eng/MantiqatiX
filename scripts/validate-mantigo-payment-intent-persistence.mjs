@@ -2,7 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const source = fs.readFileSync("supabase/functions/mantigo-payment-intent/index.ts", "utf8");
-const migration = fs.readFileSync("supabase/migrations/20261014240000_rc526_mantigo_payment_intent_claim.sql", "utf8");
+const migration = fs.readFileSync("supabase/migrations/20261014233000_rc526_mantigo_payment_intent_claim.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc526_mantigo_payment_intent_integration.sql", "utf8");
 function check(label, condition) {
   assert.ok(condition, label);
