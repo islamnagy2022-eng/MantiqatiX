@@ -95,7 +95,7 @@ const providerOnboarding = fs.readFileSync(baselines.provider_onboarding_request
 assert.match(providerOnboarding, /2026-10-14/i);
 assert.match(providerOnboarding, /moyhiluyhjsujhwlyeuu/i);
 assert.match(providerOnboarding, /NOT recovered historical DDL/i);
-assert.match(providerOnboarding, /must never be applied to production/i);
+assert.match(providerOnboarding, /never apply this file to production|must never be applied to production/i);
 assert.match(providerOnboarding, /registration_request_id\s+uuid\s+not\s+null/i);
 assert.match(providerOnboarding, /references\s+public\.account_registration_requests\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i);
 assert.match(providerOnboarding, /references\s+auth\.users\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i);
