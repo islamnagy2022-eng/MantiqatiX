@@ -90,6 +90,34 @@ begin
     raise exception 'RC462 boolean false reached the platform-wide settlement RPC';
   end if;
 
+  -- A JSON string "true" must not be coerced into a Boolean authorization grant.
+  update public.user_memberships
+     set permissions = '{"scope":"PLATFORM","full_control":"true"}'::jsonb
+   where id = 'platform-malformed-rc462';
+  if public.mnty_can_platform_admin() then
+    raise exception 'RC462 JSON string true must not grant platform access';
+  end if;
+
+  v_rejected := false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(v_user, null, null);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then
+    raise exception 'JSON string true reached platform-wide financial report';
+  end if;
+
+  v_rejected := false;
+  begin
+    perform public.settle_mantigo_captain_backend(v_user, 'ride-does-not-exist', 'BANK_TRANSFER');
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then
+    raise exception 'JSON string true reached platform-wide settlement RPC';
+  end if;
+
   update public.user_memberships
      set permissions = '{"scope":"PLATFORM","full_control":true}'::jsonb
    where id = 'platform-malformed-rc462';
