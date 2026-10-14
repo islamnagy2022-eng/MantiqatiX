@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql", "utf8");
+const catalogueMigration = fs.readFileSync("supabase/migrations/20261015010000_rc526_marketing_services_platform_scope.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc452_marketing_crm_scope_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc452_marketing_crm_scope_integration.sql", "utf8");
 
@@ -15,10 +16,10 @@ assert.match(migration, /drop policy if exists "CRM managers view marketing prov
 assert.match(migration, /Assigned providers view assigned marketing leads/);
 assert.match(migration, /drop policy if exists "Users create marketing leads"/);
 assert.match(migration, /drop policy if exists "Owners manage their marketing provider profile"/);
-assert.match(migration, /drop policy if exists "marketing_services_admin_manage"/);
-assert.match(migration, /on public\\.marketing_services/);
-assert.match(migration, /platform_admin\\.tenant_id = 'MNTY-PLATFORM'/);
-assert.match(fixture, /create table public\\.marketing_services/);
+assert.match(catalogueMigration, /drop policy if exists "marketing_services_admin_manage"/);
+assert.match(catalogueMigration, /on public\.marketing_services/);
+assert.match(catalogueMigration, /platform_admin\.tenant_id = 'MNTY-PLATFORM'/);
+assert.match(fixture, /create table public\.marketing_services/);
 assert.match(integration, /tenant manager mutated the shared marketing catalogue/);
 assert.match(integration, /platform admin cannot manage the shared marketing catalogue/);
 assert.match(integration, /anonymous session mutated the shared marketing catalogue/);
