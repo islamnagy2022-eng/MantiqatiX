@@ -1779,3 +1779,11 @@ Evidence:
 - Keep source recovery / proposal review open. Do not invent historical DDL, add a temporary function stub, conditionally skip the revoke, or change production.
 - **WAIT / NOT VERIFIED:** live production E2E, full chronological clean replay, backup/restore rehearsal, release signing/device tests, and all mandatory runtime gates remain open.
 - The production release gate remains **BLOCKED / NOT CERTIFIED**. This section records evidence from head `5b01aede...`; the documentation commit that adds this note must itself receive a fresh exact-head CI check before any status is upgraded.
+
+
+## RC547 — SMM order idempotency schema mismatch — 2026-10-14
+
+- **BLOCKED / SMM DEFERRED:** read-only production catalog evidence recorded in PR #218 shows `public.smm_orders.idempotency_key` is absent and no idempotency index exists for `public.smm_orders`.
+- The candidate SMM `place_order` path attempts to insert `idempotency_key` and treats SQLSTATE `23505` as replay. Without a reconciled schema prerequisite, that path is incompatible with the observed live table and must not be enabled.
+- Required before SMM can be considered launchable: a separately reviewed forward-only migration for the column and uniqueness strategy; explicit legacy-row/null/duplicate semantics; disposable PostgreSQL tests for first request, same-key replay, different-user same key, different-payload conflict, and concurrent duplicate requests; exact-head CI; full migration-chain review; and an approved rollout/rollback plan.
+- Do not edit applied historical migrations or deploy/apply a new migration to production from this finding alone. This is a release blocker record, not deployment authorization.
