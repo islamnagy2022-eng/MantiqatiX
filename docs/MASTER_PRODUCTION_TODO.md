@@ -1604,3 +1604,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] No-repeat rule: reuse prior evidence unless relevant inputs changed, a check failed/cancelled, evidence is stale, contradictory evidence appeared, scope was missing, or a fresh release gate is required. Record the reason whenever repeating a check.
 - [ ] OPEN: finish the 28-row migration reconciliation matrix and disposable chronological replay; current domain remains BLOCKED and release remains NOT CERTIFIED.
 - **Current active PR:** #247 (draft, documentation-only) — https://github.com/islamnagy2022-eng/MantiqaTix/pull/247.
+
+
+## 2026-10-14 — canonical migration matrix batch
+- [x] Create canonical 28-row matrix: `docs/release/migration-reconciliation-matrix-20261014.json` — DONE (artifact created; source/ledger reconciliation not certified).
+- [x] Refresh candidate PR heads/states and shared migration patch comparisons for #84/#202/#207/#218 — DONE (evidence summarized in the matrix).
+- [ ] Recover the 16 missing RC425–RC432 and RC434–RC441 SQL files from authoritative candidate sources into a review-only candidate branch; do not synthesize SQL or merge PRs by filename alone — TODO.
+- [ ] Build and review dependency edges, timestamp order, duplicate version/alias collisions, and semantic prerequisites for the full chain — TODO.
+- [ ] Run the complete chronological chain and relevant tests only in a disposable PostgreSQL/Supabase environment — NOT RUN.
+- [ ] Reconcile resulting schema/function/policy/grant diffs and tenant/payment/finance/security E2E evidence — NOT VERIFIED.
+- [ ] Re-read the live ledger before any release decision; do not apply production migrations without explicit authorization and all release preconditions — BLOCKED.
+- Release state remains `BLOCKED / NOT CERTIFIED`. Matrix creation is not verification of replay or production readiness.
