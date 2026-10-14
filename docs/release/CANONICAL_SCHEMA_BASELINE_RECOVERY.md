@@ -51,4 +51,7 @@ A one-time capture can be triggered by an explicitly marked commit on the recove
 
 ## Current state
 
+- The first automated capture attempt (Actions run [38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240)) failed safely at the preflight because repository secret SUPABASE_DB_URL is not configured. No database connection was made, no schema was dumped, and no production change occurred.
+- To complete the baseline capture, configure that protected Actions secret in GitHub repository Settings → Secrets and variables → Actions, then run **Capture Read-Only Production Schema Baseline** with confirm_schema_only_capture=true. Do not send the connection string in chat. The workflow will still create only a Draft PR after the dump passes the safety checks.
+
 The capture/replay automation and fail-closed production-gate fallback have been added to PR #248. The live snapshot has **not** yet been captured or reviewed, and the baseline-forward replay has **not** passed. Therefore the historical replay blocker is not yet considered resolved and no release is certified.
