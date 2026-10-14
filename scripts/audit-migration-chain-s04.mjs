@@ -85,7 +85,6 @@ const liveLedgerOrderAliases = [
   ["20261007002000_mantigo_rate_limit_idempotency_compat_v1.sql", "20261006212705_mantigo_rate_limit_idempotency_compat_v1.sql"],
   ["20261006235500_job_application_backend_submit_v1.sql", "20261006235123_job_application_backend_submit_v1.sql"],
   ["20261007021500_reverse_bidding_server_authority_v1.sql", "20261006231828_reverse_bidding_server_authority_v1.sql"],
-  ["20261007030000_cleanup_duplicate_job_application_index_v1.sql", "20261006235323_cleanup_duplicate_job_application_index_v1.sql"],
   ["20261007060000_education_request_server_authority_v1.sql", "20261007021723_education_request_server_authority_v1.sql"],
   ["20261007023000_remove_duplicate_mantigo_bids_index_v1.sql", "20261007022318_remove_duplicate_mantigo_bids_index_v1.sql"],
   ["20261007064000_mantigo_rate_limit_internal_boundary_v1.sql", "20261007064228_mantigo_rate_limit_internal_boundary_v1.sql"],
@@ -94,6 +93,19 @@ const liveLedgerOrderAliases = [
   ["20261008000002_rc423_restrictive_authenticated_guard_policies.sql", "20261008125422_rc423_convert_authenticated_guard_policies_to_restrictive.sql"],
   ["20261009010000_rc424_atomic_digital_page_payment_webhook.sql", "20261008222845_rc424_atomic_digital_page_payment_webhook.sql"],
 ];
+const liveLedgerDuplicateAliases = [
+  ["20261007030000_cleanup_duplicate_job_application_index_v1.sql", "20261006235323_cleanup_duplicate_job_application_index_v1.sql"],
+];
+const normalizeSql = name => fs.readFileSync(path.join(migrationDir, name), "utf8")
+  .replace(/^\\s*--.*$/gm, "")
+  .replace(/\\s+/g, " ")
+  .trim()
+  .toLowerCase();
+const invalidLiveLedgerDuplicateAliases = liveLedgerDuplicateAliases.filter(([source, target]) =>
+  !fs.existsSync(path.join(migrationDir, source)) ||
+  !fs.existsSync(path.join(migrationDir, target)) ||
+  normalizeSql(source) !== normalizeSql(target)
+);
 const missingLiveLedgerOrderAliases = liveLedgerOrderAliases.filter(([source, target]) =>
   !fs.existsSync(path.join(migrationDir, source)) ||
   fs.existsSync(path.join(migrationDir, target))
@@ -115,6 +127,8 @@ const report = {
   missing_required_sources: missingRequired,
   live_ledger_order_aliases: liveLedgerOrderAliases.map(([source, target]) => ({ source, target })),
   invalid_live_ledger_order_aliases: missingLiveLedgerOrderAliases,
+  live_ledger_duplicate_aliases: liveLedgerDuplicateAliases.map(([source, target]) => ({ source, target })),
+  invalid_live_ledger_duplicate_aliases: invalidLiveLedgerDuplicateAliases,
   known_unrecovered_live_ledger_migrations: [
     { version: "20261001113451", name: "restore_authenticated_read_grants_notifications_marketing_projects", source_status: "NOT_FOUND_IN_REPOSITORY" },
     { version: "20261001163708", name: "provider_onboarding_requests", source_status: "TEST_ONLY_BASELINE_NOT_HISTORICAL_DDL" },
@@ -149,3 +163,4 @@ assert.equal(invalidNames.length, 0, "Every migration filename must use the 14-d
 assert.equal(unapprovedDuplicateVersions.length, 0, "Only the exact approved legacy duplicate groups may be normalized in disposable CI");
 assert.equal(missingRequired.length, 0, "Every required S04 migration source must exist");
 assert.equal(missingLiveLedgerOrderAliases.length, 0, "Digital-page migration sources and their live-ledger replay aliases must remain reconciled");
+assert.equal(invalidLiveLedgerDuplicateAliases.length, 0, "A duplicate migration alias may be removed only when both tracked SQL bodies are equivalent");
