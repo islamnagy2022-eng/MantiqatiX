@@ -162,3 +162,14 @@ PR #248 head verified through the GitHub API: `553a53121bc6326f9846eccb066c03cb7
 The earlier failed run on commit `be9bab11bbf25792bd512c893646b7338808585a` is superseded by the corrected latest head; the failure exposed an attempted edit to the established RC452 migration and SQL fixture defects. RC452 was restored to match `main`, and the shared-catalogue change was moved into the forward-only RC526 migration. Do not count the failed run as a current-head failure, but retain it as remediation history.
 
 **Release remains BLOCKED / NOT CERTIFIED.** These passing checks validate focused source contracts and isolated PostgreSQL behavior, not production application of RC526/RC462/RC449, clean chronological migration replay, the live P0 MantiGO financial authorization findings, full tenant-isolation E2E, payments/finance E2E, Auth configuration, backup/restore rehearsal, or deployed function parity. No production changes were made.
+
+## Read-only MantiGO SECURITY DEFINER contract — 2026-10-14
+
+The read-only SQL contract in `scripts/verify-mantigo-high-risk-definers.sql` was improved on the recovery branch:
+
+- Signature matching now normalizes PostgreSQL's argument-type spacing instead of using `pg_get_function_identity_arguments`, which includes argument names and caused valid functions to be incorrectly reported as `MISSING`.
+- The contract explicitly allows an empty `search_path` only for the five RPC/guard functions covered by RC449, provided source review confirms non-system references are schema-qualified. This avoids treating the hardened `SET search_path = ''` pattern as a false failure after a future approved migration.
+- Executed the equivalent read-only grant/search-path check against live production. All 11 expected SECURITY DEFINER signatures matched, had `anon EXECUTE = false`, `authenticated EXECUTE = true`, and passed the current search-path contract. This is a privilege/search-path check only; it is **not** authorization certification.
+- A separate fresh live function-definition query still confirms production `mnty_can_platform_admin()` delegates to `mnty_can('admin', NULL, NULL, NULL)`, and live financial report/settlement RPCs still use broad active-membership role checks. The P0 MantiGO cross-scope authorization risk remains **OPEN** because RC449/RC462 are candidate migrations and the live migration ledger still ends at RC424.
+
+No production SQL was changed. The read-only contract's live result does not close the P0 gate.
