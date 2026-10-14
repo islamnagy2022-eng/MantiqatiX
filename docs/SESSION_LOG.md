@@ -46,3 +46,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Actions performed:** updated the documentation branch with an evidence refinement; no production DDL, migrations, financial transactions, deployments, or merges were performed.
 - **Next action:** build a full matrix of 28 required migration files across main and candidate PRs #84/#202/#207/#218; check version collisions, ordering and dependencies; then run isolated replay.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-14 — SESSION-004 — Complete required migration filename inventory
+
+- **Method:** parsed the 28 exact required release migration filenames from `scripts/production/verify-production.mjs` on `main`; attempted direct current-main fetch for each expected path.
+- **Result:** 12/28 required source files present; 16/28 missing. Missing RC425–RC432 and RC434–RC441. Present RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. The exact matrix is recorded in `docs/SCHEMA_RECONCILIATION.md`.
+- **Live ledger:** 283 rows, latest RC424; required post-RC424 migrations are not proven applied.
+- **Candidate PRs:** #84/#202/#207/#218 contain overlapping required migration files. RC434 in #84 and #202 was byte-identical in pairwise patch comparison, but full chain/candidate review remains open.
+- **Action:** updated documentation only; no merge, migration application, production DDL, Edge Function deployment, or financial transaction.
+- **Next action:** compare full SQL and test fixtures across candidate PRs, resolve exact version/filename uniqueness and dependency ordering, and run complete chronological replay in disposable PostgreSQL/Supabase.
+- **Release state:** BLOCKED / NOT CERTIFIED.
