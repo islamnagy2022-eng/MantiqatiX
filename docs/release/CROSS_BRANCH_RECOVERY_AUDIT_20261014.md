@@ -238,3 +238,16 @@ A targeted read-only query searched the production `supabase_migrations.schema_m
 All three searches returned zero matching migration rows. This confirms that the queried production migration statement arrays did not provide the missing original DDL. It does **not** prove the objects were never created or that no trusted backup/repository artifact contains their source. The live function/catalog remains distinct from historical source provenance.
 
 Consequently, no historical baseline was fabricated, no migration was skipped, and no SQL was applied. Next source recovery should focus on a trusted database backup/export or an authoritative deployment/repository artifact that contains the original migration body. If that cannot be found, request a separate, narrowly scoped approval for a clearly labelled disposable-only baseline; do not put such a fixture under `supabase/migrations/` or imply it is recovered history.
+
+
+## Additional historical-source cross-check — 2026-10-14 20:50 +03:00
+
+A targeted read-only cross-check was performed against the two S04 replay branches, `fix/s04-replay-normalization-20261013` and `s04/migration-chain-clean-replay-20261013`, and the divergent `fix/replay-marketing-project-baselines-20261013` branch.
+
+- The revoke migration `supabase/migrations/20260927095000_revoke_unused_security_definer_execute.sql` has the same blob SHA `8d3fb7330680056b45b4992d298ce1363f069e9d` on all three branches. It still references `public.counter_offer_indrive_bid(uuid,uuid,numeric)` without its original creation DDL being recovered in those branches.
+- The test-only `supabase/tests/baselines/legacy_security_definer_functions.sql` exists on the divergent marketing-baseline branch with blob SHA `ed4270f8fbfa2881fbfd6b251161ec4cbe7fd2c7`, but is absent from both S04 replay branches. Its header identifies it as a live-derived disposable fixture, explicitly not historical creation DDL. This does not close provenance or authorize importing it into PR #248.
+- Targeted GitHub code search for `counter_offer_indrive_bid`, `credit_accounts`, and `20260927074160` did not find an authoritative creation migration. The `credit_accounts` search only surfaced a later policy-alteration migration, not a CREATE TABLE source.
+
+This narrows the next action: preserve the historical revoke migration unchanged and keep the replay gate blocked until an approved historical source or a separately approved test-only baseline is available. Do not transplant the divergent branch wholesale; it remains a separate, large change set requiring independent review.
+
+No production changes were made during this source cross-check.
