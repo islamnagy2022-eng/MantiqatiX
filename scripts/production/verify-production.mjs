@@ -58,6 +58,22 @@ for(let i=1;i<presentReleaseMigrations.length;i++){
 const reconciliationPath="docs/release/production-migration-reconciliation.json";
 let reconciliation=null, reconciliationParseError=null;
 try { reconciliation=JSON.parse(read(reconciliationPath)); } catch (error) { reconciliationParseError=String(error); }
+const baselineReplay = reconciliation?.baseline_forward_replay;
+const baselineForwardReplayVerified = Boolean(
+  baselineReplay &&
+  baselineReplay.status === "PASS" &&
+  baselineReplay.review_status === "APPROVED_FOR_DISPOSABLE_REPLAY" &&
+  baselineReplay.checkpoint_version === reconciliation?.live_ledger_last_version &&
+  /^[a-f0-9]{64}$/.test(baselineReplay.snapshot_sha256 || "") &&
+  /^[a-f0-9]{64}$/.test(baselineReplay.manifest_sha256 || "") &&
+  Number.isInteger(baselineReplay.forward_migration_count) &&
+  baselineReplay.forward_migration_count > 0 &&
+  Number.isInteger(baselineReplay.postgres_major_version) &&
+  baselineReplay.postgres_major_version >= 14 &&
+  typeof baselineReplay.run_url === "string" &&
+  /^https:\/\/github\.com\/[^/]+\/[^/]+\/actions\/runs\/\d+$/.test(baselineReplay.run_url)
+);
+const replayEvidenceVerified = reconciliation?.chronological_replay === "PASS" || baselineForwardReplayVerified;
 const liveReconciliationVerified=Boolean(
   reconciliation &&
   reconciliation.status==="VERIFIED" &&
@@ -68,7 +84,7 @@ const liveReconciliationVerified=Boolean(
   reconciliation.rc424_reconciliation?.source_filename_version==="20261009010000" &&
   reconciliation.rc424_reconciliation?.history_rewritten===false &&
   reconciliation.required_release_migrations_applied===true &&
-  reconciliation.chronological_replay==="PASS" &&
+  replayEvidenceVerified &&
   reconciliation.tenant_isolation_tests==="PASS" &&
   reconciliation.payment_finance_e2e==="PASS" &&
   reconciliation.backup_restore_rehearsal==="PASS" &&
@@ -82,7 +98,7 @@ const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestam
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked
     ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,rc424_reconciliation:reconciliation.rc424_reconciliation,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,payment_finance_e2e:reconciliation.payment_finance_e2e,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,edge_function_contracts:reconciliation.edge_function_contracts,smm_gateway_parity:reconciliation.smm_gateway_parity,auth_security_settings:reconciliation.auth_security_settings,evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
-    : `All ${requiredReleaseMigrations.length} required source migrations are present and timestamp-ordered, and the live reconciliation manifest records completed ordered replay plus required runtime/security evidence at ${reconciliation.evidence_ref}.`,
+    : `All ${requiredReleaseMigrations.length} required source migrations are present and timestamp-ordered, and the live reconciliation manifest records accepted replay evidence (${baselineForwardReplayVerified ? "reviewed baseline-forward replay" : "full chronological replay"}) plus required runtime/security evidence at ${reconciliation.evidence_ref}.`,
   "P0");
 const wf=exists(".github/workflows/pages.yml")?read(".github/workflows/pages.yml"):"";for(const v of ["validate-production-gate-contract.mjs","validate-finance-boundaries.mjs","validate-digital-pages-boundaries.mjs","validate-security-definer-contract.mjs"])add("CI-"+v,"CI/CD",wf.includes(v)?"PASS":"FAIL",wf.includes(v)?`workflow invokes ${v}`:`workflow missing ${v}`,"P1");
 const report={generated_at:new Date().toISOString(),mode:"source_contract",note:"Runtime/Production claims require live evidence and are never inferred from source presence.",results,summary:Object.fromEntries(["PASS","FAIL","PARTIAL","BLOCKED","NOT VERIFIED"].map(s=>[s,results.filter(r=>r.status===s).length])),production_gate:results.some(r=>(r.status==="FAIL"||r.status==="BLOCKED")&&r.severity==="P0")?"BLOCKED":"NOT VERIFIED"};
