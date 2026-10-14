@@ -539,3 +539,14 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## 2026-10-14 baseline correction — evidence-led domain closure
+- Current main reference from GitHub commit search: [`8a56358d505d2c12878440037f7f24ba65d2ea10`](https://github.com/islamnagy2022-eng/MantiqaTix/commit/8a56358d505d2c12878440037f7f24ba65d2ea10), created 2026-10-11T03:47:11Z. The prior header reference `735f0451...` is stale; this correction is append-only and does not rewrite history.
+- New baseline/audit records: `docs/PRODUCTION_BASELINE.md`, `docs/PRODUCTION_AUDIT.md`, `docs/SCHEMA_RECONCILIATION.md`.
+- Production Supabase project `moyhiluyhjsujhwlyeuu` reports `ACTIVE_HEALTHY`; this is infrastructure health metadata only, not release certification.
+- Read-only migration ledger: 283 rows, latest `20261008222845` / RC424. Source-to-live reconciliation remains NOT VERIFIED; no migration was applied.
+- Security Advisor snapshot 2026-10-14T01:47:56.708Z: `digital_page_payment_events` RLS enabled/no policies; `get_mnty_targeted_advertisements` executable by anon as SECURITY DEFINER; 40 authenticated SECURITY DEFINER findings. These require contextual review, not blanket policy/grant changes.
+- Domain-by-domain method: requirements matrix → implementation → tests → security review → evidence → closure. Status remains BLOCKED / NOT CERTIFIED until mandatory release gates are independently evidenced.
+- No production DDL, data mutation, function deployment, PR merge, or release approval was performed in this batch.
+- Next action: read-only source/live migration reconciliation and complete schema/RLS/grant inventory.
