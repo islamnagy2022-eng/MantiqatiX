@@ -42,11 +42,14 @@ if (capture) {
   validateSchemaOnly(sql);
   const versions = readLedgerVersions();
   const sourceProjectRef = process.env.SUPABASE_PROJECT_REF || "moyhiluyhjsujhwlyeuu";
+  const postgresMajor = Number(process.env.BASELINE_POSTGRES_MAJOR_VERSION || "0");
+  if (!Number.isInteger(postgresMajor) || postgresMajor < 14 || postgresMajor > 99) fail("PostgreSQL major version was not captured from the live database");
   const manifest = {
     format: "mantiqatix-production-schema-baseline/v1",
     review_status: "PENDING_REVIEW",
     purpose: "test-only bootstrap for isolated forward migration replay; not historical migration source",
     source_project_ref: sourceProjectRef,
+    postgres_major_version: postgresMajor,
     capture_method: "Supabase CLI db dump; schema-only; no rows or custom roles",
     captured_at_utc: new Date().toISOString(),
     captured_from_commit: process.env.GITHUB_SHA || "unknown",
@@ -81,6 +84,7 @@ validateSchemaOnly(sql);
 let manifest;
 try { manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")); } catch { fail("provenance manifest is invalid JSON"); }
 if (manifest.format !== "mantiqatix-production-schema-baseline/v1") fail("unsupported manifest format");
+if (!Number.isInteger(manifest.postgres_major_version) || manifest.postgres_major_version < 14) fail("manifest PostgreSQL major version is missing or invalid");
 if (manifest.schema_only !== true || manifest.data_included !== false || manifest.production_writes_performed !== false || manifest.deployment_approved !== false) fail("snapshot safety flags do not match the test-only contract");
 if (manifest.schema_snapshot_sha256 !== sha256(sql)) fail("schema snapshot SHA-256 does not match the manifest");
 if (process.env.REQUIRE_BASELINE_REVIEW === "1" && manifest.review_status !== "APPROVED_FOR_DISPOSABLE_REPLAY") fail("baseline has not passed explicit disposable-replay review");
