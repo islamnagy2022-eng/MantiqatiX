@@ -21,6 +21,7 @@ assert.match(migration, /platform_admin\\.tenant_id = 'MNTY-PLATFORM'/);
 assert.match(fixture, /create table public\\.marketing_services/);
 assert.match(integration, /tenant manager mutated the shared marketing catalogue/);
 assert.match(integration, /platform admin cannot manage the shared marketing catalogue/);
+assert.match(integration, /anonymous session mutated the shared marketing catalogue/);
 assert.match(fixture, /alter table public\.user_memberships enable row level security/);
 assert.match(fixture, /alter table public\.businesses enable row level security/);
 assert.match(integration, /manager A crossed tenant boundary/);
@@ -30,4 +31,4 @@ assert.match(integration, /explicit platform SUPER_ADMIN should see all six fixt
 assert.match(integration, /manager inserted a lead for another tenant/);
 assert.match(integration, /provider attached profile to another tenant business/);
 
-console.log("RC452 marketing CRM tenant/business scope contract: PASS (23 assertions)");
+console.log("RC452 marketing CRM tenant/business scope contract: PASS (24 assertions)");
