@@ -1,3 +1,14 @@
+# Continued security and replay hardening — 2026-10-14
+
+- Read-only Supabase verification still shows the four MantiGO platform-wide RPCs are `SECURITY DEFINER`, executable by `authenticated`, use `search_path=public`, and do not call `mnty_can_platform_admin()`. The live guard itself still has `search_path=public, pg_temp` and does not require the exact JSON Boolean `full_control: true`. This remains a critical production release blocker; no live changes were made.
+- Expanded `supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql` so malformed string values, Boolean false, and JSON string `"true"` are also rejected by `get_mantigo_admin_dashboard_backend` and `expire_stale_mantigo_rides_backend`, and valid JSON Boolean true still permits these two guarded calls in the disposable fixture.
+- Corrected a bug in `scripts/replay-from-production-schema-baseline.sh`: the verified RC424 source filename must be skipped when its reconciled ledger version is **equal to** the baseline checkpoint, not only when older. Added a release-contract assertion so this equality case cannot regress.
+- Current branch head: `4d0dba369638ca4eb0de41d4bcc9d8662463f719`; focused CI has been triggered and is pending at this checkpoint. The last completed RC462 regression on the prior head passed, but the expanded coverage awaits this head's run.
+- The baseline capture remains blocked because GitHub Actions lacks the protected `SUPABASE_DB_URL` secret; its attempt failed before any database connection. The baseline replay is not yet valid evidence because the snapshot has not been captured/reviewed. PR #248 remains Draft and production remains **BLOCKED / NOT CERTIFIED**.
+- No production DB/migration changes, OTP changes, deploys, merges, settlements, or financial actions were performed.
+
+---
+
 # Baseline capture result — prerequisite missing (2026-10-14)
 
 - The marker-triggered read-only capture workflow ran as [Actions run 38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) and failed closed before connecting to the database because the GitHub Actions secret SUPABASE_DB_URL is absent. It performed no query, dump, or production write.
