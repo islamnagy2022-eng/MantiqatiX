@@ -55,6 +55,23 @@ begin
     raise exception 'RC462 malformed full_control reached the platform-wide settlement RPC';
   end if;
 
+  -- Every platform-wide RPC must enforce the same guard, not only the finance endpoints.
+  v_rejected := false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(v_user);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'malformed full_control reached the platform dashboard'; end if;
+
+  v_rejected := false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(v_user, 30);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'malformed full_control reached the stale-ride expiration RPC'; end if;
+
   update public.user_memberships
      set permissions = '{"scope":"PLATFORM","full_control":false}'::jsonb
    where id = 'platform-malformed-rc462';
@@ -90,6 +107,22 @@ begin
     raise exception 'RC462 boolean false reached the platform-wide settlement RPC';
   end if;
 
+  v_rejected := false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(v_user);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'boolean false reached the platform dashboard'; end if;
+
+  v_rejected := false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(v_user, 30);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'boolean false reached the stale-ride expiration RPC'; end if;
+
   -- A JSON string "true" must not be coerced into a Boolean authorization grant.
   update public.user_memberships
      set permissions = '{"scope":"PLATFORM","full_control":"true"}'::jsonb
@@ -118,12 +151,32 @@ begin
     raise exception 'JSON string true reached platform-wide settlement RPC';
   end if;
 
+  v_rejected := false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(v_user);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'JSON string true reached the platform dashboard'; end if;
+
+  v_rejected := false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(v_user, 30);
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'JSON string true reached the stale-ride expiration RPC'; end if;
+
   update public.user_memberships
      set permissions = '{"scope":"PLATFORM","full_control":true}'::jsonb
    where id = 'platform-malformed-rc462';
   if not public.mnty_can_platform_admin() then
     raise exception 'RC462 valid explicit platform permission must continue to allow access';
   end if;
+
+  -- A valid Boolean grant keeps authorized dashboard and expiration access working.
+  perform public.get_mantigo_admin_dashboard_backend(v_user);
+  perform public.expire_stale_mantigo_rides_backend(v_user, 30);
 end
 $test$;
 
