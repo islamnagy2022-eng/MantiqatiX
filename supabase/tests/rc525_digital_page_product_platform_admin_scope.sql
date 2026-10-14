@@ -76,3 +76,66 @@ begin
   end if;
 end
 $test$;
+
+-- Behavioral RLS regression: tenant admins and incompletely scoped platform admins must not mutate the global catalog.
+-- The entire data test rolls back; these rows exist only in disposable CI.
+begin;
+insert into public.user_memberships(user_id, tenant_id, status, role, permissions) values
+  ('70000000-0000-4000-8000-000000000001','tenant-a','ACTIVE','ADMIN','{"scope":"TENANT","full_control":true}'::jsonb),
+  ('70000000-0000-4000-8000-000000000002','MNTY-PLATFORM','ACTIVE','ADMIN','{"scope":"PLATFORM","full_control":true}'::jsonb),
+  ('70000000-0000-4000-8000-000000000003','MNTY-PLATFORM','ACTIVE','SUPER_ADMIN','{"scope":"PLATFORM","full_control":false}'::jsonb),
+  ('70000000-0000-4000-8000-000000000004','MNTY-PLATFORM','ACTIVE','SUPER_ADMIN','{"scope":"PLATFORM","full_control":true}'::jsonb);
+insert into public.digital_page_products(id, active)
+values ('71000000-0000-4000-8000-000000000001', true);
+set local role authenticated;
+do $behavior$
+declare
+  v_rows integer;
+begin
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000001',true);
+  begin
+    insert into public.digital_page_products(active) values (true);
+    raise exception 'RC525_TENANT_ADMIN_INSERT_ALLOWED';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000002',true);
+  begin
+    insert into public.digital_page_products(active) values (true);
+    raise exception 'RC525_PLATFORM_ADMIN_ROLE_INSERT_ALLOWED';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000003',true);
+  begin
+    insert into public.digital_page_products(active) values (true);
+    raise exception 'RC525_MISSING_FULL_CONTROL_INSERT_ALLOWED';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000004',true);
+  insert into public.digital_page_products(active) values (true);
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000001',true);
+  update public.digital_page_products
+  set active = false
+  where id = '71000000-0000-4000-8000-000000000001';
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'RC525_TENANT_ADMIN_UPDATE_ALLOWED';
+  end if;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000004',true);
+  update public.digital_page_products
+  set active = false
+  where id = '71000000-0000-4000-8000-000000000001';
+  get diagnostics v_rows = row_count;
+  if v_rows <> 1 then
+    raise exception 'RC525_PLATFORM_ADMIN_UPDATE_DENIED';
+  end if;
+end
+$behavior$;
+rollback;
