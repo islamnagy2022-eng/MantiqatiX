@@ -1,0 +1,520 @@
+{
+  "schema_version": "1.0",
+  "generated_at_utc": "2026-10-14",
+  "repository": "islamnagy2022-eng/MantiqaTix",
+  "main_sha": "8a56358d505d2c12878440037f7f24ba65d2ea10",
+  "production_supabase_project": "moyhiluyhjsujhwlyeuu",
+  "evidence": {
+    "verifier": "scripts/production/verify-production.mjs on main",
+    "live_ledger_read": "Supabase list_migrations, read-only",
+    "live_ledger_count": 283,
+    "live_ledger_first_version": "20260808000000",
+    "live_ledger_latest_version": "20261008222845",
+    "live_ledger_latest_name": "rc424_atomic_digital_page_payment_webhook",
+    "candidate_pr_heads": {
+      "84": "934f2fc28ec61bdfc5023479b0e796e743244eb1",
+      "202": "56dc3853be48fee413cbaf551fd350fe3f1df3ed",
+      "207": "c8b6a925bcfbb8b4a50a30ba6282d0eea95667a6",
+      "218": "5a234d40c08b9d961e69fc7293a759fcc3d5d1f8"
+    },
+    "candidate_pr_states": {
+      "84": "OPEN_DRAFT",
+      "202": "CLOSED_UNMERGED",
+      "207": "OPEN_DRAFT",
+      "218": "OPEN_DRAFT"
+    },
+    "patch_comparison": {
+      "84_vs_202": "16 common migration patches; 0 differences",
+      "84_vs_207": "16 common migration patches; 0 differences",
+      "84_vs_218": "16 common migration patches; 0 differences",
+      "207_vs_218": "33 common migration patches; 0 differences",
+      "202_vs_207": "18 common migration patches; 1 difference outside required 28: 20261011030000_rc458_erp_branch_organization_scope.sql",
+      "202_vs_218": "18 common migration patches; 1 difference outside required 28: 20261011030000_rc458_erp_branch_organization_scope.sql"
+    },
+    "note": "Patch comparisons concern changed-file patch text only; they do not prove dependencies, whole-chain replay, schema equivalence, or production safety."
+  },
+  "summary": {
+    "required_migrations": 28,
+    "main_present": 12,
+    "main_missing": 16,
+    "live_ledger_contains_required_post_rc424_versions": 0,
+    "disposable_replay": "NOT RUN",
+    "dependency_order_review": "NOT COMPLETED",
+    "release_gate": "BLOCKED / NOT CERTIFIED"
+  },
+  "rows": [
+    {
+      "sequence": 1,
+      "filename": "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
+      "version": "20261009120000",
+      "release_label": "425",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 2,
+      "filename": "20261009130000_rc426_digital_page_provider_order_binding.sql",
+      "version": "20261009130000",
+      "release_label": "426",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 3,
+      "filename": "20261009140000_rc427_one_active_payment_intent_per_order.sql",
+      "version": "20261009140000",
+      "release_label": "427",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 4,
+      "filename": "20261009150000_rc428_atomic_provider_failure_webhook.sql",
+      "version": "20261009150000",
+      "release_label": "428",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 5,
+      "filename": "20261009160000_rc429_atomic_subscription_failure_webhook.sql",
+      "version": "20261009160000",
+      "release_label": "429",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 6,
+      "filename": "20261009170000_rc430_atomic_subscription_success_webhook.sql",
+      "version": "20261009170000",
+      "release_label": "430",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 7,
+      "filename": "20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql",
+      "version": "20261009180000",
+      "release_label": "431",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 8,
+      "filename": "20261009190000_rc432_smm_wallet_transaction_idempotency.sql",
+      "version": "20261009190000",
+      "release_label": "432",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 9,
+      "filename": "20261009200000_rc434_atomic_erp_purchase_receiving.sql",
+      "version": "20261009200000",
+      "release_label": "434",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 10,
+      "filename": "20261009210000_rc435_subscription_provider_intent_claim.sql",
+      "version": "20261009210000",
+      "release_label": "435",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 11,
+      "filename": "20261009220000_rc436_atomic_financial_journal.sql",
+      "version": "20261009220000",
+      "release_label": "436",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 12,
+      "filename": "20261009230000_rc437_purchase_order_lines_receiving_limits.sql",
+      "version": "20261009230000",
+      "release_label": "437",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 13,
+      "filename": "20261009240000_rc438_purchase_order_creation_with_lines.sql",
+      "version": "20261009240000",
+      "release_label": "438",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 14,
+      "filename": "20261010010000_rc439_encrypted_checkout_recovery.sql",
+      "version": "20261010010000",
+      "release_label": "439",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 15,
+      "filename": "20261010020000_rc440_exposed_security_definer_search_path.sql",
+      "version": "20261010020000",
+      "release_label": "440",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 16,
+      "filename": "20261010030000_rc441_platform_admin_scope_hardening.sql",
+      "version": "20261010030000",
+      "release_label": "441",
+      "main_source": "MISSING",
+      "candidate_prs": [
+        84,
+        202,
+        207,
+        218
+      ],
+      "candidate_patch_comparison": "EXACT PATCH TEXT IDENTICAL in all shared pairwise comparisons of PR #84/#202/#207/#218 at fetched heads",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_MISSING_FROM_MAIN"
+    },
+    {
+      "sequence": 17,
+      "filename": "20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql",
+      "version": "20261010060000",
+      "release_label": "446",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 18,
+      "filename": "20261010120000_rc442_approval_action_audit_atomicity.sql",
+      "version": "20261010120000",
+      "release_label": "442",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 19,
+      "filename": "20261010140000_rc444_crm_business_scope_rls.sql",
+      "version": "20261010140000",
+      "release_label": "444",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 20,
+      "filename": "20261010150000_rc447_matrimony_profile_privacy_boundary.sql",
+      "version": "20261010150000",
+      "release_label": "447",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 21,
+      "filename": "20261010161000_rc448_matrimony_request_lifecycle_authority.sql",
+      "version": "20261010161000",
+      "release_label": "448",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 22,
+      "filename": "20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql",
+      "version": "20261010170000",
+      "release_label": "449",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 23,
+      "filename": "20261010175000_rc449a_financial_journal_schema_prerequisites.sql",
+      "version": "20261010175000",
+      "release_label": "449a",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 24,
+      "filename": "20261010180000_rc450_financial_journal_service_role_boundary.sql",
+      "version": "20261010180000",
+      "release_label": "450",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 25,
+      "filename": "20261010200000_rc451_targeted_ads_empty_search_path.sql",
+      "version": "20261010200000",
+      "release_label": "451",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 26,
+      "filename": "20261010210000_rc452_marketing_crm_tenant_scope.sql",
+      "version": "20261010210000",
+      "release_label": "452",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 27,
+      "filename": "20261010220000_rc453_marketing_campaign_backend.sql",
+      "version": "20261010220000",
+      "release_label": "453",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    },
+    {
+      "sequence": 28,
+      "filename": "20261011010000_rc456_smm_service_role_access_boundary.sql",
+      "version": "20261011010000",
+      "release_label": "456",
+      "main_source": "PRESENT",
+      "candidate_prs": [],
+      "candidate_patch_comparison": "Not a changed path in candidate PR migration patches; source presence documented in docs/SCHEMA_RECONCILIATION.md",
+      "live_ledger": "NOT FOUND; live ledger latest version is 20261008222845 (RC424)",
+      "timestamp_order": "After RC424; chronological order must follow filename timestamp, not RC label",
+      "dependency_review": "NOT COMPLETED",
+      "disposable_replay": "NOT RUN",
+      "disposition": "BLOCKED_SOURCE_PRESENT_BUT_NOT_APPLIED_OR_REPLAY_CERTIFIED"
+    }
+  ],
+  "safety": "Read-only reconciliation only. Do not merge PRs, deploy functions, alter production data, or apply production migrations from this matrix."
+}
