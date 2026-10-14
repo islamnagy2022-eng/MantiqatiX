@@ -185,3 +185,24 @@ Read-only Supabase verification on 2026-10-14 after the passing candidate CI con
 - Both finance RPCs deny `anon` EXECUTE but allow `authenticated` EXECUTE. This does not cure the authorization gap inside the functions.
 
 These are catalog/function-definition observations, not a live exploit attempt. They reaffirm the **P0 release blocker**. Do not apply RC449/RC462/RC526 or any other migration until the full chronological replay and reviewed migration bundle pass, and a separately approved production migration window exists. No production changes were made.
+
+
+## Exact-head CI refresh — 2026-10-14 16:08 UTC
+
+The latest PR #248 head `49cb770b8922368f6cd82fa218deb200ea607bb6` was checked through the GitHub Actions API. The following focused checks completed successfully on that exact head:
+
+- [Marketing CRM tenant scope](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302436): **PASS**, including disposable PostgreSQL tenant-scope integration and source validation.
+- [MantiGO platform-admin scope hardening](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302438): **PASS**, disposable PostgreSQL behavioral job.
+- [RC462 malformed-permission regression](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302603): **PASS**, malformed string denies without exception; boolean false denies; explicit boolean true allows.
+- [Migration history immutability](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302902): **PASS**.
+- [Migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302777): **PASS**.
+- [Open-PR migration collision guard](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302963): **PASS**.
+- [MantiGO open-ride privacy boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302914): **PASS**.
+- [Approval-action audit atomicity](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595303051): **PASS**.
+- [Backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302532): **PASS**.
+- [Module professionalization validation](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302617): **PASS**.
+- [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595302542): validation **PASS**, deployment **SKIPPED** by the release gate.
+
+These results certify only the listed candidate source checks and disposable PostgreSQL tests. They do not certify a clean chronological replay, nor do they change the live production migration ledger. The production P0 MantiGO financial authorization gap remains open until the reviewed forward-only migration bundle is replayed, approved, and applied in a separately authorized window. The historical dependencies for the clean replay also remain unresolved. PR #248 remains open and Draft; do not merge or deploy based on these focused passes.
+
+No production database, Auth, Edge Functions, secrets, customer records, financial records, or deployed website were changed by this verification.
