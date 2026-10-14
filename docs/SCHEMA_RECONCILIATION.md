@@ -79,3 +79,12 @@ Inventory repository migration filenames and all open candidate PR migration pat
 **Missing group:** RC425–RC432 and RC434–RC441 (16 files). **Present group:** RC446, RC442, RC444, RC447–RC450, RC451–RC453, RC456 (12 files). This is filename/source inventory only; the non-sequential RC numbers follow immutable timestamp order in the release verifier and must not be reordered by RC label.
 
 **Candidate overlap:** PR #84, #202, #207 and #218 all carry overlapping post-RC424 migrations. RC434 patch text in PR #84 and #202 was identical in a direct full-string comparison, but no candidate is approved by this inventory. Compare all required migration contents, prerequisites, tests, exact version uniqueness and ordered replay before merge.
+
+
+## Candidate SQL comparison refinement — 2026-10-14
+- Full PR patch comparisons completed for shared migration filenames:
+  - PR #84 vs #202: **0 differing shared migration patches**.
+  - PR #207 vs #218: **33 common migration files; 0 differing patches**.
+  - PR #84 vs #207: **16 common migration files; 0 differing patches**.
+- Thus the previously documented RC434 discrepancy is not supported by the examined shared migration patch content; RC434 and the other shared migration patches compared byte-for-byte identical in these pairs.
+- This is not a chain-approval decision. PRs differ materially in non-migration files, carry different additional migration sets, and still need whole-chain uniqueness/order/dependency checks plus isolated replay. Do not merge any of them solely based on matching shared SQL.
