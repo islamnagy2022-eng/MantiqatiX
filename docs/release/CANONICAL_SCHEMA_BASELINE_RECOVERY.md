@@ -30,6 +30,8 @@ This avoids depending on the missing pre-checkpoint DDL in future clean forward-
 
 ## How the first capture is performed
 
+A one-time capture can be triggered by an explicitly marked commit on the recovery branch; the workflow still uses only a protected secret, performs read-only database operations, and fails closed if the secret or validation is missing. A manual workflow dispatch with the confirmation checkbox is also supported.
+
 1. Configure a protected GitHub Actions repository secret named SUPABASE_DB_URL for the project database connection. Prefer a read-only database role where the Supabase permissions permit schema dumping. Never put the connection string in repository files or workflow inputs.
 2. In GitHub Actions, run **Capture Read-Only Production Schema Baseline** on the recovery branch and explicitly check confirm_schema_only_capture=true.
 3. The workflow checks the live migration ledger, captures the schema, scans the dump, writes the provenance manifest, and opens a Draft PR containing only the schema snapshot and manifest.
