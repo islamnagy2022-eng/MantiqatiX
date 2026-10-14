@@ -114,3 +114,18 @@ A read-only `pg_policies` review of finance, notifications, push, SMM-wallet, st
 - Reviewed examples for `payment_intents` and `wallet_transactions` are tenant-bound to `um.tenant_id = row.tenant_id`; `mantigo_financial_ledger`, `notifications`, `push_subscriptions`, `smm_wallets`, and `smm_wallet_transactions` owner-read policies bind rows to `auth.uid()`. These spot-checks are not a complete tenant-isolation certification.
 
 Remediation priority: review the live Auth anonymous-sign-in setting without changing the configured email-OTP flow; add disposable-database negative tests for anonymous-session access and cross-tenant marketing reads/writes; verify RC452 and the MantiGO scope candidates in clean chronological replay before any production change.
+
+
+## Latest exact-head CI refresh — 2026-10-14 05:13 UTC
+
+The current PR #248 head was rechecked after the latest documentation update:
+
+- Current head: `b7b656f40acbf4aa8c0f24b306da929403491a08`.
+- [RC462 isolated PostgreSQL malformed-permission regression](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440025): **PASS**. This proves the RC441+RC462 disposable fixture denies malformed-string and boolean-false permissions without an exception, and permits the exact valid boolean true case in that fixture. It does not prove RC462 is deployed to production.
+- [Migration history immutability](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440010): **PASS**.
+- [Migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440017): **PASS**.
+- [Open-PR migration collision guard](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440015): **PASS**.
+- [Module professionalization](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440058), [backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440093), [MantiGO open-ride privacy](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440004), and [approval-action audit atomicity](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440016): **PASS**.
+- [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440062): validation **PASS**, deployment **SKIPPED** by the release gate.
+
+These checks are now attached to the exact current PR head, but they are focused CI checks. They do not close the live P0 MantiGO authorization issue, live marketing RLS scope issue, chronological migration replay, real tenant-isolation E2E, payment/finance E2E, Auth configuration, backup/restore, or deployed function parity. The PR remains Draft and unmerged. No production changes were made.
