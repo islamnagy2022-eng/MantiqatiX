@@ -129,3 +129,20 @@ The current PR #248 head was rechecked after the latest documentation update:
 - [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38515440062): validation **PASS**, deployment **SKIPPED** by the release gate.
 
 These checks are now attached to the exact current PR head, but they are focused CI checks. They do not close the live P0 MantiGO authorization issue, live marketing RLS scope issue, chronological migration replay, real tenant-isolation E2E, payment/finance E2E, Auth configuration, backup/restore, or deployed function parity. The PR remains Draft and unmerged. No production changes were made.
+
+## Security follow-up — RC526 shared marketing catalogue and exact-head CI
+
+Implementation commit under test: `099240b92bc66b4772a01a9d0d7c24a1ba8140e3` (2026-10-14).
+
+- Restored `supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql` byte-for-byte to the version on `main`; do not edit applied/established migration files.
+- Added forward-only candidate `supabase/migrations/20261015010000_rc526_marketing_services_platform_scope.sql`. Because `marketing_services` is a shared catalogue without tenant/business key columns, its write policy now requires an active `SUPER_ADMIN` membership in `MNTY-PLATFORM`, `scope=PLATFORM`, and exact `full_control=true`. Anonymous Auth sessions are denied writes. Public reads of active catalogue services remain controlled by the separate public-read policy.
+- Extended the disposable PostgreSQL RC452 integration fixture to apply RC526 and assert tenant-manager write denial, anonymous-session write denial, and platform-admin write success. Fixed a test-fixture delimiter defect discovered from CI logs; no production schema was changed.
+- Exact-head checks on commit `099240b92bc66b4772a01a9d0d7c24a1ba8140e3`:
+  - [Marketing CRM tenant/business scope + RC526 PostgreSQL integration](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874768): **PASS**.
+  - [Migration history immutability](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874944): **PASS**; confirms the prior RC452 migration is restored and RC526 is forward-only.
+  - [Migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581875083): **PASS**.
+  - [Open-PR migration collision guard](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874632): **PASS**.
+  - [RC462 malformed-permission regression](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874688): **PASS**.
+  - [MantiGO open-ride privacy](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874798), [approval-action audit atomicity](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874493), [backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874505), and [module professionalization](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874674): **PASS**.
+  - [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874542): validation **PASS**, deploy **SKIPPED** by the release gate.
+- These are candidate migration/source and disposable-fixture results only. RC526 is **not applied to production**. The live migration ledger still needs fresh verification; the known chronological replay gaps and P0 MantiGO financial authorization risks remain release blockers. No production database, Auth configuration, Edge Function, financial records, or deployment was changed.
