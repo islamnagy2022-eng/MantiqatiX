@@ -199,3 +199,28 @@ This third reproducible stop confirms the blocker remains after the prior valida
 At this same PR head, the focused recovered-migration integration workflow completed successfully, as did the listed approval atomicity, SMM service-role boundary, backend-only boundary, audit-log append-only ACL, migration uniqueness/immutability/collision, MantiGO platform-admin/privacy, and module validation workflows. The web validation job succeeded but the deploy job was skipped. These scoped CI results do not override S04 failure or certify production readiness.
 
 **Production remains read-only. Release remains BLOCKED / NOT CERTIFIED.**
+
+
+## Follow-up — S04 run 38501518479 on latest documented PR head — 2026-10-14
+
+**Run:** [38501518479](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479)  
+**Evidence artifact:** [11866516003](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479/artifacts/11866516003)  
+**Result:** `FAIL_BLOCKED`; this workflow is explicitly named “Not Clean Replay”.
+
+The completed job log confirms:
+
+- `source_audit_exit=0`
+- `normalized_version_validation_exit=0`
+- `ledger_recovered_source_validation_exit=0`
+- `disposable_alias_normalization_exit=0`
+- `test_baseline_validation_exit=0`
+- Temporary provider-onboarding and SMM baselines were injected; they are test-only fixtures, not historical DDL.
+- `supabase_init_exit=0`; `supabase_start_exit=1`.
+- First failure remains `20260927095000_revoke_unused_security_definer_execute.sql`.
+- First error remains `function public.counter_offer_indrive_bid(uuid, uuid, numeric) does not exist (SQLSTATE 42883)`.
+
+This follow-up reproduces the same blocker after preflight succeeds. It is not evidence of clean replay. Preserve the fail-closed decision: do not fabricate the missing function, alter the revoke to be conditional, or change production. Continue trusted-source recovery or request explicit review of the documented forward-baseline proposal.
+
+At the latest checked head `5a14e6484e97bf8a412de635b25949afc8490ae9`, the other reported PR checks completed successfully in their scoped areas; web validation succeeded and deployment was skipped. These do not override the S04 failure.
+
+**Release remains BLOCKED / NOT CERTIFIED. No production changes were made.**
