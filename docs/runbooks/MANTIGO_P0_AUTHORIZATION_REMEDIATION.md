@@ -66,3 +66,12 @@ Run read-only verification and attach results to the change record:
 ## Evidence status as of 2026-10-14
 
 Focused disposable PostgreSQL tests for RC441/RC462 and related CI checks passed on PR #248 candidate commits. Production catalog inspection still showed the old broad authorization implementation and the applied ledger still ended at RC424. No production migration was applied by this work. This runbook documents safe prerequisites; it does not claim remediation is deployed or authorize deployment.
+
+
+## Additional test-fidelity limitation — 2026-10-14
+
+Review of `supabase/tests/rc449_mantigo_platform_admin_fixture.sql` and `supabase/tests/rc449_mantigo_platform_admin_integration.sql` confirms that the disposable fixture defines a **test-only stand-in** for `public.create_settlement_and_post_journal(...)`. The stand-in returns a JSON result and deliberately performs no journal/accounting writes.
+
+Therefore the passing RC449 integration test is meaningful evidence for the platform-admin authorization gate, settlement RPC ledger-state transition, audit/notification behavior, and replay/idempotency against the fixture. It is **not** evidence that the real production journal writer posts balanced journal entries, applies the correct account mappings, or remains atomic with settlement in the actual schema. Those require a separate isolated integration test using the authoritative journal schema/function and real database constraints, with no production financial writes.
+
+Do not remove the stand-in's warning, relabel this test as financial E2E, or run the production journal writer as part of the authorization remediation window. Keep the accounting E2E gate open until the real journal path is validated in an approved disposable/staging environment.
