@@ -31,3 +31,12 @@ For every migration version in the live ledger and repository:
 
 ## Next action
 Inventory repository migration filenames and all open candidate PR migration paths; compare them with the 283-row live ledger; then run duplicate/version/dependency checks and isolated replay. Keep all database work read-only until the reconciliation report is complete.
+
+
+## Addendum — current-main verification (2026-10-14)
+- Direct source lookups on `main` returned NOT_FOUND for the expected RC425, RC434 and RC439 migration paths. This agrees with the current release verifier's required-migration gate.
+- `scripts/production/verify-production.mjs` and `scripts/validate-production-migration-chain-gate.mjs` both enumerate 28 required release migration files and require a reconciliation manifest, immutable RC424 history, chronological disposable replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function contracts, SMM parity and Auth security settings before release certification.
+- The existing manifest `docs/release/production-migration-reconciliation.json` records an exact statement match for RC424: ledger statement count 1, source bytes 7208, ledger statement bytes 7208, `exact_statement_match=true`, `history_rewritten=false`. The timestamp difference is recorded as a legacy version alias. Do not reopen RC424 by renaming or rewriting the applied history.
+- A byte-for-byte patch comparison of RC434 in PR #84 and PR #202 returned identical patch text (7151 characters). The historical claim of a content conflict is not supported by this pairwise comparison, but overlap across all candidate PRs and migration version uniqueness still require full review.
+- Current `main` still lacks required post-RC424 source files; PRs #84/#202/#207/#218 contain overlapping candidate migrations. No production application is authorized by this evidence.
+- **Next executable step:** compare all 28 required filenames against main, each open candidate PR, and live ledger; verify duplicate version definitions and timestamp ordering; inspect dependency edges; then run the complete chain only in a disposable PostgreSQL/Supabase environment.
