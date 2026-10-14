@@ -133,3 +133,16 @@ A separate read-only check of the live production catalog confirmed that `public
 
 **Disposition:** do not weaken or make the revocation migration conditional merely to pass replay; that could hide a missing historical prerequisite. Recover the authentic creation source for `counter_offer_indrive_bid` from trusted history/backup or establish the correct historical baseline, then rerun the disposable chronological replay. Keep production read-only, and do not merge or certify release based on this run.
 
+### Read-only production catalog evidence — missing replay prerequisite
+
+A subsequent read-only catalog query confirmed the current production definition and its access boundary:
+
+- Signature: `public.counter_offer_indrive_bid(uuid,uuid,numeric)`
+- Definition fingerprint: `md5(pg_get_functiondef(...)) = b0032d51962bddf93a74a679e8449644`
+- Owner: `postgres`; `SECURITY DEFINER`; function-level `search_path=public`
+- ACL inspection: `anon` and `authenticated` cannot execute it; the recorded ACL is `postgres=X/postgres`.
+- The inspected body checks for a non-null, non-anonymous authenticated UID, validates nonnegative price, and updates only a bid attached to the supplied request when the request belongs to that UID and is not completed/cancelled.
+- A read-only search of all stored statement elements in `supabase_migrations.schema_migrations` returned **zero matches** for `counter_offer_indrive_bid`. A repository source search likewise did not identify its creation in the current tracked migration sources; the nearby `20261007021500_reverse_bidding_server_authority_v1.sql` defines the backend request/bid creation RPCs, not this counter-offer RPC.
+
+**Interpretation:** the live function definition is useful forensic evidence of the current deployed behavior, but it is not proof of the original migration, creation time, or intended historical source. Do not copy it into an invented historical migration or alter the revocation migration to conceal the gap. Recover a trusted source/backup or document an explicitly reviewed forward baseline strategy in a separate decision before any code change. No production writes were made by these queries.
+
