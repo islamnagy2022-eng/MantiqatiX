@@ -1,0 +1,102 @@
+name: Capture Read-Only Production Schema Baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_schema_only_capture:
+        description: "Confirm this workflow may read the live migration ledger and export schema definitions only (no rows, no production writes)."
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: production-schema-baseline-capture
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: inputs.confirm_schema_only_capture == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: moyhiluyhjsujhwlyeuu
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Require database connection secret without printing it
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
+            echo "::error::Missing repository secret SUPABASE_DB_URL. Use a protected connection string with read-only access where available."
+            exit 1
+          fi
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Capture migration ledger versions (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -Atc \
+            "SELECT version::text FROM supabase_migrations.schema_migrations ORDER BY version::text;" \
+            > /tmp/mantiqatix-ledger-versions.txt
+          test -s /tmp/mantiqatix-ledger-versions.txt
+          echo "Read-only migration ledger export completed."
+          echo "Applied migration count: $(wc -l < /tmp/mantiqatix-ledger-versions.txt | tr -d ' ')"
+
+      - name: Dump schema only (no data, no roles, no writes)
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          mkdir -p supabase/tests/baselines
+          supabase db dump --db-url "$SUPABASE_DB_URL" --file supabase/tests/baselines/production_schema_snapshot.sql
+          test -s supabase/tests/baselines/production_schema_snapshot.sql
+          echo "Supabase CLI schema-only dump completed."
+
+      - name: Validate schema-only snapshot and generate provenance manifest
+        shell: bash
+        env:
+          BASELINE_LEDGER_VERSIONS_FILE: /tmp/mantiqatix-ledger-versions.txt
+          SUPABASE_PROJECT_REF: moyhiluyhjsujhwlyeuu
+        run: |
+          set -euo pipefail
+          node scripts/validate-production-schema-baseline.mjs --capture
+          git diff --check
+
+      - name: Open draft review PR for the schema-only artifact
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          branch: recovery/production-schema-baseline-${{ github.run_id }}
+          delete-branch: true
+          add-paths: |
+            supabase/tests/baselines/production_schema_snapshot.sql
+            supabase/tests/baselines/production_schema_snapshot.manifest.json
+          commit-message: "test(db): capture reviewed production schema baseline"
+          title: "[DRAFT] test(db): capture schema-only production baseline for disposable replay"
+          draft: true
+          body: |
+            ## Purpose
+            Capture the live schema as a test-only bootstrap so isolated forward-migration replay no longer depends on missing historical creation DDL.
+
+            ## Provenance and safety
+            - Generated with the Supabase CLI schema-only dump from the configured project.
+            - The workflow only reads the migration ledger and dumps schema definitions. It does not apply migrations or mutate production.
+            - The validator rejects common secret/token patterns and COPY data payloads.
+            - The manifest pins the snapshot SHA-256 and the exact applied migration-version list hash/count/checkpoint.
+            - Snapshot remains **PENDING_REVIEW** and is never deployable migration source.
+
+            ## Required review before use
+            Review all schema objects, RLS policies, grants, triggers, and SECURITY DEFINER functions. Confirm no sensitive implementation detail was captured. Only then may the manifest be explicitly marked APPROVED_FOR_DISPOSABLE_REPLAY. Never place the snapshot in supabase/migrations or apply it to production.
