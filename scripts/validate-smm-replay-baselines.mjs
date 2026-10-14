@@ -60,6 +60,10 @@ for (const [table, item] of Object.entries(baselines)) {
       "original provider onboarding authority source timestamp must remain visible after disposable live-ledger normalization"
     );
     assert.ok(
+      authoritySourceVersion < tableCreateMigration.slice(0, 14),
+      "historical source order defect must remain explicit: the original authority timestamp predates the tracked table creation"
+    );
+    assert.ok(
       tableCreateMigration.slice(0, 14) < authorityMigration.slice(0, 14),
       "disposable replay must follow the verified live-ledger order: table creation precedes the normalized authority migration"
     );
