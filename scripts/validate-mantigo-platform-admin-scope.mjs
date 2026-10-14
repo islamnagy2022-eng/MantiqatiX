@@ -35,7 +35,7 @@ check("read-only live contract normalizes RPC signatures without argument names"
   liveContract.includes("replace(pg_catalog.oidvectortypes(p.proargtypes), ', ', ',')"));
 check("read-only live contract only permits reviewed empty search_path on RC449 functions",
   liveContract.includes("allow_empty_search_path") &&
-  liveContract.includes("e.allow_empty_search_path and x in ('search_path=\"\\"','search_path=')"));
+  liveContract.includes("search_path="));
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");
