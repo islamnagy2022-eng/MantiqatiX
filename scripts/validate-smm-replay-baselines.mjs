@@ -85,12 +85,14 @@ assert.match(providerOnboarding, /primary\s+key\s*\(\s*id\s*\)/i);
 assert.match(providerOnboarding, /unique\s*\(\s*registration_request_id\s*\)/i);
 assert.match(providerOnboarding, /enable\s+row\s+level\s+security/i);
 assert.doesNotMatch(providerOnboarding, /force\s+row\s+level\s+security|create\s+policy/i);
-const providerAuthority = source["20261001090000_harden_provider_onboarding_authority.sql"];
-const providerCreate = source["20261001164200_provider_onboarding_final.sql"];
+const providerAuthorityName = files.find(name => name.includes("harden_provider_onboarding_authority.sql"));
+const providerAuthority = providerAuthorityName ? source[providerAuthorityName] : null;
+const providerCreateName = files.find(name => name.endsWith("_provider_onboarding_final.sql"));
+const providerCreate = providerCreateName ? source[providerCreateName] : null;
 assert.ok(providerAuthority && providerCreate, "provider onboarding dependency and later canonical CREATE TABLE migration must both exist");
 assert.match(providerAuthority, /drop\s+policy\s+if\s+exists\s+provider_onboarding_self_insert\s+on\s+public\.provider_onboarding_requests/i);
 assert.match(providerCreate, /create\s+table\s+if\s+not\s+exists\s+public\.provider_onboarding_requests/i);
-assert.ok("20261001085000" < "20261001090000" && "20261001090000" < "20261001164200", "fixture must document rather than hide the out-of-order dependency");
+assert.ok("20261001085000" < providerAuthorityName.slice(0, 14) && providerAuthorityName.slice(0, 14) < providerCreateName.slice(0, 14), "fixture must document rather than hide the out-of-order dependency");
 
 const credentials = fs.readFileSync(baselines.smm_provider_credentials.path, "utf8");
 assert.match(credentials, /api_key_ciphertext\s+text\s*,/i);
