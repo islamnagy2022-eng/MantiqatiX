@@ -27,6 +27,17 @@ begin
     null;
   end;
 
+  -- Anonymous Auth sessions must not mutate the shared catalogue even if a user id is present.
+  perform set_config('request.jwt.claims','{"is_anonymous":true}',false);
+  begin
+    insert into public.marketing_services(id,code,name_ar,name_en,category_code,status)
+    values ('60000000-0000-4000-8000-000000000004','ANON-SERVICE','خدمة مجهولة','Anonymous service','SMM','ACTIVE');
+    raise exception 'anonymous session mutated the shared marketing catalogue';
+  exception when insufficient_privilege then
+    null;
+  end;
+  perform set_config('request.jwt.claims','{}',false);
+
   perform set_config('request.jwt.claim.sub',tenant_admin_a::text,false);
   if not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001')
      or not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000002') then
