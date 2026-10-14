@@ -1,6 +1,6 @@
 # MantiqaTiX — Next Session Resume
 
-**Last updated:** 2026-10-14  
+**Last updated:** 2026-10-14 02:25 UTC  
 **Working branch:** `docs/rc521-admin-operations-discovery-20261013`  
 **Current PR:** [#218](https://github.com/islamnagy2022-eng/MantiqatiX/pull/218) — OPEN, DRAFT, UNMERGED  
 **Latest verified PR head at update:** `4c61137d20d72527c3fc5132d0611cbc46ca8d65`  
@@ -13,8 +13,7 @@
    `docs/SESSION_LOG.md`, and `docs/release/s04-migration-chain-clean-replay-report.md`
    from this branch before changing code.
 2. Recheck PR #218 state/head and exact-head CI. The documentation head
-   `4c61137d20d72527c3fc5132d0611cbc46ca8d65` had no associated workflow runs returned
-   at the last check; do not claim CI passed for this commit.
+   `5b01aede91340bd9281dda97da6ebc46d45bdfcc` has completed PR-triggered checks: focused migration integration, approval atomicity, SMM service-role boundary, backend-only boundary, audit-log ACL, migration uniqueness/immutability/collision, MantiGO admin/privacy, and module validation succeeded; web validation succeeded but deploy was skipped. S04 run 168 failed at the known missing-RPC blocker. Any documentation commit created during this continuation needs its own exact-head CI recheck.
 3. Continue only with trusted-source recovery for
    `public.counter_offer_indrive_bid(uuid,uuid,numeric)` or a separately reviewed
    forward-baseline design. Do not implement a guessed historical migration.
@@ -31,7 +30,7 @@
 
 ## Current evidence
 
-- S04 runs 159 and 160 reproducibly stop at
+- S04 runs 159, 160, and 168 reproducibly stop at
   `20260927095000_revoke_unused_security_definer_execute.sql` with
   `function public.counter_offer_indrive_bid(uuid, uuid, numeric) does not exist`
   (SQLSTATE 42883).
@@ -47,8 +46,8 @@
   `docs/release/s04-migration-chain-clean-replay-report.md`.
 - Updated master TODO:
   `docs/MASTER_PRODUCTION_TODO.md`.
-- Production ledger last verified at RC424 / `20261008222845`; 0/33 required post-RC424
-  migrations proven applied; full chronological replay not completed.
+- S04 run 168: [38500724335](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38500724335), tested head `5b01aede91340bd9281dda97da6ebc46d45bdfcc`, confirms `supabase_init_exit=0`, `supabase_start_exit=1`, first failure at `20260927095000_revoke_unused_security_definer_execute.sql`, same SQLSTATE 42883. Test-only provider-onboarding/SMM baselines were injected, so this is explicitly not a clean replay.
+- Production ledger last verified at RC424 / `20261008222845`; 0/33 required post-RC424 migrations proven applied; full chronological replay not completed.
 - No production writes, migration applications, function deployments, merge, or release occurred.
 
 ## Safety invariants
