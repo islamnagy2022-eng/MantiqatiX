@@ -1,18 +1,19 @@
 -- Read-only release regression contract for high-risk SECURITY DEFINER boundaries.
 -- This script intentionally performs no writes and is safe to run in production.
-with expected(signature, expect_anon, expect_auth) as (
+-- allow_empty_search_path is reserved for RC449-hardened functions whose non-system references are schema-qualified.
+with expected(signature, expect_anon, expect_auth, allow_empty_search_path) as (
  values
- ('public.create_payment_intent_backend(character varying,uuid,numeric,character varying,character varying,character varying,character varying)',false,true),
- ('public.mnty_active_membership(character varying,uuid,character varying)',false,true),
- ('public.mnty_can(text,character varying,uuid,character varying)',false,true),
- ('public.mnty_can_platform_admin()',false,true),
- ('public.preview_commission_backend(character varying,uuid,character varying,numeric)',false,true),
- ('public.get_mantigo_admin_dashboard_backend(uuid)',false,true),
- ('public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)',false,true),
- ('public.get_mantigo_captain_earnings_backend(uuid)',false,true),
- ('public.review_mantigo_captain_application(uuid,uuid,text,text,text,text,jsonb)',false,true),
- ('public.settle_mantigo_captain_backend(uuid,text,text)',false,true),
- ('public.expire_stale_mantigo_rides_backend(uuid,integer)',false,true)
+ ('public.create_payment_intent_backend(character varying,uuid,numeric,character varying,character varying,character varying,character varying)',false,true,false),
+ ('public.mnty_active_membership(character varying,uuid,character varying)',false,true,false),
+ ('public.mnty_can(text,character varying,uuid,character varying)',false,true,false),
+ ('public.mnty_can_platform_admin()',false,true,true),
+ ('public.preview_commission_backend(character varying,uuid,character varying,numeric)',false,true,false),
+ ('public.get_mantigo_admin_dashboard_backend(uuid)',false,true,true),
+ ('public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)',false,true,true),
+ ('public.get_mantigo_captain_earnings_backend(uuid)',false,true,false),
+ ('public.review_mantigo_captain_application(uuid,uuid,text,text,text,text,jsonb)',false,true,false),
+ ('public.settle_mantigo_captain_backend(uuid,text,text)',false,true,true),
+ ('public.expire_stale_mantigo_rides_backend(uuid,integer)',false,true,true)
  ), actual as (
  select 'public.'||p.proname||'('||pg_get_function_identity_arguments(p.oid)||')' signature,
         has_function_privilege('anon',p.oid,'EXECUTE') anon_exec,
@@ -26,7 +27,12 @@ select e.signature,e.expect_anon,e.expect_auth,
        a.anon_exec,a.auth_exec,a.prosecdef,a.proconfig,
        case when a.signature is null then 'MISSING'
             when a.anon_exec<>e.expect_anon or a.auth_exec<>e.expect_auth or not a.prosecdef then 'FAIL'
-            when not exists(select 1 from unnest(coalesce(a.proconfig,'{}'::text[])) x where x like 'search_path=%public%') then 'FAIL_SEARCH_PATH'
+            when not exists(
+              select 1
+              from unnest(coalesce(a.proconfig,'{}'::text[])) x
+              where x like 'search_path=%public%'
+                 or (e.allow_empty_search_path and x in ('search_path=""','search_path='))
+            ) then 'FAIL_SEARCH_PATH'
             else 'PASS' end result
 from expected e left join actual a using(signature)
 order by e.signature;
