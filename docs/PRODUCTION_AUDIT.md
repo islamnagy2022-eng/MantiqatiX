@@ -38,3 +38,10 @@ This is a living evidence register. Findings below are limited to observations o
 - RC434 patches in PR #84 and PR #202 were fetched and compared byte-for-byte; the patch text was identical (7151 characters). Older session notes describing competing RC434 definitions are therefore not confirmed by this specific comparison; broader PR/source reconciliation remains open.
 - Open candidate PRs #84, #202, #207 and #218 contain overlapping migration filenames. Keep them unmerged until the full candidate set, uniqueness guard, dependencies and disposable replay are reconciled.
 - The release-gate report and manifest still say required post-RC424 migrations are not proven applied, chronological replay is NOT RUN, tenant isolation and payment/finance E2E are NOT VERIFIED, and backup/restore rehearsal is NOT VERIFIED.
+
+
+## Required migration inventory result — 2026-10-14
+- Compared all 28 filenames in `scripts/production/verify-production.mjs` against exact current-main paths.
+- **12/28 present; 16/28 missing.** Missing: RC425–RC432 and RC434–RC441. Present: RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. See `docs/SCHEMA_RECONCILIATION.md` for the exact filename matrix.
+- This is repository source presence only. Production ledger still ends at RC424, so none of the post-RC424 required migrations is proven applied by this check.
+- PR #84, #202, #207 and #218 overlap on required migration filenames. No merge or production application was performed.
