@@ -26,15 +26,16 @@ for (const marker of [
 ]) {
   if (!sql.includes(marker)) throw new Error('MantiGO release security marker missing: '+marker);
 }
-for (const rpc of [
-  'get_mantigo_admin_dashboard_backend',
-  'get_mantigo_admin_financial_report_backend',
-  'settle_mantigo_captain_backend',
-  'expire_stale_mantigo_rides_backend'
-]) {
+const requiredPlatformRows = [
+  ["get_mantigo_admin_dashboard_backend", ",false,true,true,true,false)"],
+  ["get_mantigo_admin_financial_report_backend", ",false,true,true,true,false)"],
+  ["settle_mantigo_captain_backend", ",false,true,true,true,false)"],
+  ["expire_stale_mantigo_rides_backend", ",false,true,true,true,false)"]
+];
+for (const [rpc, tuple] of requiredPlatformRows) {
   const row=sql.split('\n').find(line=>line.includes(rpc));
-  if (!row || !row.includes(',false,true,true,true,false)')) {
-    throw new Error('MantiGO platform RPC is not configured to require guard and empty search_path: '+rpc);
+  if (!row || !row.includes(tuple)) {
+    throw new Error('MantiGO platform RPC must require the platform guard and empty search_path: '+rpc);
   }
 }
 console.log('MantiGO high-risk SECURITY DEFINER regression contract: PASS');
