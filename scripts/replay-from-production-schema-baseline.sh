@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="${GITHUB_WORKSPACE:-$(git rev-parse --show-toplevel)}"
 cd "$ROOT"
 : "${LOCAL_DB_URL:?LOCAL_DB_URL must point only to the disposable local Supabase database}"
+node -e 'const u = new URL(process.env.LOCAL_DB_URL); if (!["127.0.0.1", "localhost", "::1"].includes(u.hostname) || u.port !== "54322") { console.error("BASELINE_BLOCKED: refusing to run against a non-local/non-disposable database URL"); process.exit(1); }'
 
 export REQUIRE_BASELINE_REVIEW=1
 node scripts/validate-production-schema-baseline.mjs --verify
