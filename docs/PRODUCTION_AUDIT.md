@@ -45,3 +45,10 @@ This is a living evidence register. Findings below are limited to observations o
 - **12/28 present; 16/28 missing.** Missing: RC425–RC432 and RC434–RC441. Present: RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. See `docs/SCHEMA_RECONCILIATION.md` for the exact filename matrix.
 - This is repository source presence only. Production ledger still ends at RC424, so none of the post-RC424 required migrations is proven applied by this check.
 - PR #84, #202, #207 and #218 overlap on required migration filenames. No merge or production application was performed.
+
+
+## Candidate PR migration-content comparison — 2026-10-14
+- Fetched full PR patches and compared common migration-file patches byte-for-byte across PR #84 vs #202, PR #207 vs #218, and PR #84 vs #207.
+- Shared migration-file comparisons: #84/#202 had no differing shared migration patches; #207/#218 had 33 common migration files and no differing common migration patches; #84/#207 had 16 common migration files and no differing common migration patches.
+- This refines the prior concern: the compared shared SQL migration patches are identical in these pairs. The PRs still differ in application/Edge Function/web/validation files, and each candidate set has additional files not shared by the others. Therefore do not infer the whole PRs are interchangeable or safe to merge.
+- Full migration dependency analysis, all-candidate version uniqueness, complete ordered disposable replay, and integration/security evidence remain open.
