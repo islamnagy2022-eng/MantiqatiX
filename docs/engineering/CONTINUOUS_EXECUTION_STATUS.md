@@ -433,3 +433,13 @@ All Supabase production queries were read-only. No production migrations, table 
 - No production migrations, schema/data changes, RLS/GRANT/Auth changes, Edge Function deployments, payments/settlements, merge, or release were performed. Email OTP flow remains unchanged.
 - Remaining blockers: acquire a properly scoped read-only credential through GitHub secret settings; capture and review the schema-only baseline; perform approved disposable baseline-forward replay; recover authoritative provenance for historical migration dependencies (including `counter_offer_indrive_bid(uuid,uuid,numeric)` and the credit/marketing objects); and obtain fresh independent read-only production security evidence. Do not infer historical migration source from live object existence.
 - Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Follow-up source defect found and fixed — 2026-10-14
+
+- Re-read `scripts/validate-production-schema-baseline.mjs` after the blocked replay and found an over-escaped regular expression in the manifest checkpoint validator. It was matching a literal backslash-plus-`d` sequence instead of a 14-digit migration version, so a valid manifest checkpoint would be rejected.
+- Corrected the checkpoint check to `/^\d{14}$/` in commit `e6fd7b715de8119158e231b2414cf746bbc36db7`.
+- The sibling ledger-line validator already used the correct 14-digit expression.
+- Validation status: source reread confirms the corrected expression. GitHub reported no workflow runs and no combined status entries for this new HEAD at the time of checking. Therefore this fix is **not yet CI-verified**; do not claim the baseline replay passes. The baseline snapshot/manifest is still absent and no production database operation was run.
+- PR #248 remains open and Draft. Current mergeability metadata is false; investigate conflicts/recompute after fresh GitHub state and do not merge.
+- Release remains **BLOCKED / NOT CERTIFIED**.
