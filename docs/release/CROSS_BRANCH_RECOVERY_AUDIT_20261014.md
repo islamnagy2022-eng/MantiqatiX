@@ -83,3 +83,21 @@ Read-only Supabase security advisors were queried for project `moyhiluyhjsujhwly
 The workflow for documentation commit `d49ba7707b7e7aae839615038cfe9baeda6595f5` completed with overall conclusion `success`, but the job-level evidence shows `validate = success` and `deploy = skipped`. Therefore this is **not** evidence of a new production deployment or release certification. Existing exact-head focused tests are useful but do not close chronological migration replay, tenant-isolation, payment/finance E2E, backup/restore, Edge Function contract, or Auth configuration gates.
 
 No production SQL, RLS/grant changes, Auth setting changes, Edge Function deployment, or financial writes were performed during this refresh. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Focused live authorization-source review — 2026-10-14
+
+A read-only catalog query confirmed these live SECURITY DEFINER RPC grants and source configuration:
+
+| RPC | `anon` EXECUTE | `authenticated` EXECUTE | Live authorization observation |
+|---|---:|---:|---|
+| `get_mnty_targeted_advertisements(...)` | Yes | Yes | Public ad-discovery path; function filters to active/approved/in-date ads and clamps limit to 1–50. Still requires a reviewed public-data contract; do not revoke anon blindly. |
+| `get_mantigo_admin_financial_report_backend(...)` | No | Yes | Live body checks `auth.uid() = p_admin_user_id`, then accepts generic active membership roles such as OWNER/ADMIN/OPERATIONS and aggregates across the entire `mantigo_financial_ledger` without a platform-scope guard. **P0 cross-scope financial disclosure risk.** |
+| `settle_mantigo_captain_backend(...)` | No | Yes | Live body checks caller ID and a broad active membership role list, then mutates platform-wide ledger/journal/audit state; no `mnty_can_platform_admin()` call in the live definition. **P0 cross-scope financial mutation risk.** |
+| `accept_mantigo_bid_backend(...)` | No | Yes | SECURITY DEFINER; per-function authorization must be reviewed before classifying the advisor warning as exploitable. |
+
+The source-only candidate `supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql` already exists on this recovery branch and replaces the two MantiGO global RPC guards with `mnty_can_platform_admin()`, requiring an active `SUPER_ADMIN` membership in `MNTY-PLATFORM` with explicit platform scope/full-control permissions. Its original boolean cast is hardened by the separate RC462 candidate to avoid malformed permission strings throwing. However, **the live migration ledger still ends at RC424**; RC449/RC462 are not proven applied in production. Do not claim these fixes are live.
+
+The RC449 source has a static/integration contract in `scripts/validate-mantigo-platform-admin-scope.mjs` and `supabase/tests/rc449_mantigo_platform_admin_integration.sql`. Next verification must run these against a disposable database with tenant OWNER/ADMIN/OPERATIONS_MANAGER denial cases and explicit platform SUPER_ADMIN allow cases, then rerun chronological migration replay from a clean database. Do not apply RC449/RC462 directly to production to bypass the migration chain.
+
+This live function-definition review strengthens the release decision: **P0 remains open until scope enforcement is proven in the actual production definitions or safely applied through the reviewed migration pipeline, with negative tests and evidence.** No production changes were made.
