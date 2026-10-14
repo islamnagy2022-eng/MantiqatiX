@@ -176,3 +176,26 @@ A proposal-only decision record was added at
 `docs/release/counter-offer-rpc-forward-baseline-decision.md`. It prefers recovery of authentic historical source; a forward-baseline strategy is only a fallback proposal requiring explicit review. It does not authorize migration code or production changes.
 
 **No code migration was created. No production change was made. No clean replay was completed. Release remains BLOCKED / NOT CERTIFIED.**
+
+
+## Follow-up — S04 run 168 on exact PR head (2026-10-14)
+
+**Run:** [38500724335](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38500724335)  
+**Tested commit:** `5b01aede91340bd9281dda97da6ebc46d45bdfcc`  
+**Evidence artifact:** [11865404343](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38500724335/artifacts/11865404343)  
+**Result:** `FAIL_BLOCKED` — not a clean replay.
+
+Observed from the completed job logs:
+
+- Source audit, normalized-version validation, recovered-source validation, disposable alias normalization, and test-baseline validation all returned `0`.
+- Test-only provider-onboarding and SMM baselines were injected; the workflow explicitly records these as catalog-derived fixtures, not historical DDL.
+- `supabase_init_exit=0`; `supabase_start_exit=1`.
+- First failing migration: `20260927095000_revoke_unused_security_definer_execute.sql`.
+- First error: `ERROR: function public.counter_offer_indrive_bid(uuid, uuid, numeric) does not exist (SQLSTATE 42883)`.
+- The artifact SHA-256 reported by GitHub is `e5ba5108e4bde3f708b4767bfdd43e1c1d682856e4c7d6d25c8a9f4da1074930`.
+
+This third reproducible stop confirms the blocker remains after the prior validator correction. It does not provide the missing RPC source, and test-only baselines do not satisfy clean replay. Do not alter the revoke migration to be conditional, synthesize the function body, or apply any production change. Continue with authenticated historical-source recovery or an explicitly reviewed forward-baseline decision.
+
+At this same PR head, the focused recovered-migration integration workflow completed successfully, as did the listed approval atomicity, SMM service-role boundary, backend-only boundary, audit-log append-only ACL, migration uniqueness/immutability/collision, MantiGO platform-admin/privacy, and module validation workflows. The web validation job succeeded but the deploy job was skipped. These scoped CI results do not override S04 failure or certify production readiness.
+
+**Production remains read-only. Release remains BLOCKED / NOT CERTIFIED.**
