@@ -565,3 +565,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Exact source inventory: **12/28 present, 16/28 missing**. Missing RC425–RC432 and RC434–RC441; present RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. See `docs/SCHEMA_RECONCILIATION.md`.
 - Live ledger remains at RC424. Source presence or a candidate PR is not proof of application. Open PRs #84/#202/#207/#218 overlap; keep them unmerged pending full reconciliation and disposable replay.
 - Domain 2 remains BLOCKED. No production mutation or deployment was performed.
+
+
+## 2026-10-14 — Candidate migration comparison refinement
+- Full patch comparison found no differing shared migration patches across PR #84/#202, #207/#218, or #84/#207 (16 and 33 common-file comparisons as applicable).
+- This refines older conflict notes: examined shared SQL is identical, but candidate PRs still differ in non-migration source and additional migration files. No PR merge approval follows from this result.
+- Keep migration gate BLOCKED until whole-chain version/order/dependency validation and disposable replay pass.
