@@ -1589,3 +1589,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Confirmed overlapping candidate migration files exist in open PRs #84/#202/#207/#218; RC434 pairwise patch equality checked only for #84 vs #202.
 - [ ] BLOCKED: reconcile candidate source/test/dependency chain and duplicate-version checks; perform disposable chronological replay; verify no post-RC424 migration is falsely marked applied.
 - **Domain 2 status:** BLOCKED pending source reconciliation/replay. Do not merge the migration batch or mutate production.
+
+
+## 2026-10-14 — Candidate migration patch comparison
+- [x] Compared full shared migration patches: PR #84 vs #202 (0 differences); #207 vs #218 (33 common migration files, 0 differences); #84 vs #207 (16 common migration files, 0 differences).
+- [x] Refined the earlier conflict note: the examined shared SQL patches are identical; broader PRs are not equivalent because their non-migration files and extra migrations differ.
+- [ ] OPEN: full chain uniqueness/order/dependency review and disposable chronological replay remain mandatory before merging or applying any post-RC424 migration batch.
