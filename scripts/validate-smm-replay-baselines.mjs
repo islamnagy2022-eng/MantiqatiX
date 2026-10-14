@@ -113,9 +113,9 @@ assert.match(providerCreate, /create\s+table\s+if\s+not\s+exists\s+public\.provi
 const providerAuthoritySourceVersionMatch = providerAuthorityName.match(/^\d{14}_(\d{14})_harden_provider_onboarding_authority\.sql$/);
 const providerAuthoritySourceVersion = providerAuthoritySourceVersionMatch?.[1] ?? providerAuthorityName.slice(0, 14);
 assert.ok(
-  "20261001085000" < providerCreateName.slice(0, 14) &&
-  providerCreateName.slice(0, 14) < providerAuthorityName.slice(0, 14),
-  "test fixture must precede table creation and disposable replay must follow the verified live-ledger order"
+  "20261001085000" < providerAuthorityName.slice(0, 14) &&
+  providerAuthorityName.slice(0, 14) < providerCreateName.slice(0, 14),
+  "test fixture must precede the normalized authority migration, which must precede the later canonical onboarding migration"
 );
 assert.ok(
   providerAuthoritySourceVersion < providerCreateName.slice(0, 14),
