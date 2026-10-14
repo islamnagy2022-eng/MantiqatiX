@@ -30,4 +30,4 @@ assert.match(integration, /explicit platform SUPER_ADMIN should see all six fixt
 assert.match(integration, /manager inserted a lead for another tenant/);
 assert.match(integration, /provider attached profile to another tenant business/);
 
-console.log("RC452 marketing CRM tenant/business scope contract: PASS (17 assertions)");
+console.log("RC452 marketing CRM tenant/business scope contract: PASS (23 assertions)");
