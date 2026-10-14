@@ -48,7 +48,14 @@ for (const [table, item] of Object.entries(baselines)) {
   const tableCreateMigration = files.find(name => new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i").test(source[name]));
   if (table === "provider_onboarding_requests") {
     assert.ok(tableCreateMigration, "canonical provider onboarding CREATE TABLE migration must exist");
-    assert.ok(firstReference.slice(0, 14) < tableCreateMigration.slice(0, 14), "known provider onboarding migration-order defect must remain explicit");
+    const authorityMigration = files.find(name =>
+      /drop\\s+policy\\s+if\\s+exists\\s+provider_onboarding_self_insert\\s+on\\s+public\\.provider_onboarding_requests/i.test(source[name])
+    );
+    assert.ok(authorityMigration, "provider onboarding authority migration must remain present");
+    assert.ok(
+      authorityMigration.slice(0, 14) < tableCreateMigration.slice(0, 14),
+      "known provider onboarding migration-order defect must remain explicit: " + authorityMigration + " precedes " + tableCreateMigration
+    );
   } else {
     assert.doesNotMatch(allSource, new RegExp("\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:public\\.)?" + table + "\\b", "i"), table + " must not gain guessed or duplicate tracked CREATE TABLE DDL");
   }
