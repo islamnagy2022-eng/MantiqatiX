@@ -1,6 +1,12 @@
 name: Capture Read-Only Production Schema Baseline
 
 on:
+  push:
+    branches:
+      - recovery/verified-rc425-441-sources-20261014
+    paths:
+      - ".github/workflows/capture-production-schema-baseline.yml"
+      - "docs/release/CANONICAL_SCHEMA_BASELINE_RECOVERY.md"
   workflow_dispatch:
     inputs:
       confirm_schema_only_capture:
@@ -19,7 +25,7 @@ concurrency:
 
 jobs:
   capture:
-    if: inputs.confirm_schema_only_capture == true
+    if: (github.event_name == 'workflow_dispatch' && inputs.confirm_schema_only_capture == true) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[capture-schema-baseline]'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
