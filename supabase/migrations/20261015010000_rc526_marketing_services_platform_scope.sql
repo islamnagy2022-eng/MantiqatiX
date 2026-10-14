@@ -15,8 +15,7 @@ create policy "marketing_services_admin_manage"
         and platform_admin.status = 'ACTIVE'
         and upper(platform_admin.role) = 'SUPER_ADMIN'
         and platform_admin.tenant_id = 'MNTY-PLATFORM'
-        and platform_admin.permissions ->> 'scope' = 'PLATFORM'
-        and platform_admin.permissions ->> 'full_control' = 'true'
+        and platform_admin.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb
     )
   )
   with check (
@@ -28,7 +27,6 @@ create policy "marketing_services_admin_manage"
         and platform_admin.status = 'ACTIVE'
         and upper(platform_admin.role) = 'SUPER_ADMIN'
         and platform_admin.tenant_id = 'MNTY-PLATFORM'
-        and platform_admin.permissions ->> 'scope' = 'PLATFORM'
-        and platform_admin.permissions ->> 'full_control' = 'true'
+        and platform_admin.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb
     )
   );
