@@ -71,3 +71,11 @@ Before continuing, refresh only the minimal live state that can invalidate this 
 ## Close-of-session requirement
 
 Before stopping, update the master TODO, append a unique session-log entry, update continuity when needed, then update this resume file **last** with the actual final branch/commit/PR/check status and one exact next action. Verify the files were committed and reread from GitHub. Never rely on chat memory alone.
+
+
+## Continuation correction — 2026-10-14 (supersedes the earlier matrix-creation next action)
+- The canonical matrix has now been created at `docs/release/migration-reconciliation-matrix-20261014.json`; do not recreate it or repeat the completed shared-patch comparisons unless inputs change.
+- Latest verified live migration ledger snapshot: 283 rows, latest `20261008222845` / `rc424_atomic_digital_page_payment_webhook`. All 28 required post-RC424 release migrations are absent from that ledger snapshot. Current-main source inventory: 12 present, 16 missing (RC425–RC432 and RC434–RC441).
+- Fresh candidate PR states/heads and patch comparisons are captured in the matrix and latest `docs/SESSION_LOG.md`. #202 is closed/unmerged; #84/#207/#218 are open drafts. Matching patches do not authorize merge or production application.
+- **Exact next action:** inspect migration prerequisites/dependencies and the one out-of-scope RC458 patch difference across candidates; recover authoritative SQL sources for the 16 missing files into a review-only branch with exact version uniqueness and ordering; validate the full chain in a disposable PostgreSQL/Supabase environment; capture test and schema-diff evidence. Do not run production DDL or merge PRs.
+- Acceptance remains unmet until all 28 rows have source/ledger identity reconciled, version/alias uniqueness and dependency order verified, chronological disposable replay passes, and relevant runtime/security/finance tests are evidenced. Release remains `BLOCKED / NOT CERTIFIED`.
