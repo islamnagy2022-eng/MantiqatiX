@@ -1,0 +1,36 @@
+name: Digital Page Product Platform Admin Scope
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261014230000_rc525_digital_page_product_platform_admin_scope.sql"
+      - "scripts/validate-digital-page-product-admin-scope.mjs"
+      - "supabase/tests/rc525_digital_page_product_platform_admin_scope.sql"
+      - ".github/workflows/digital-page-product-platform-admin-scope.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261014230000_rc525_digital_page_product_platform_admin_scope.sql"
+      - "scripts/validate-digital-page-product-admin-scope.mjs"
+      - "supabase/tests/rc525_digital_page_product_platform_admin_scope.sql"
+      - ".github/workflows/digital-page-product-platform-admin-scope.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-policy-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate least-privilege policy contract
+        run: node scripts/validate-digital-page-product-admin-scope.mjs
+      - name: Verify SQL regression assertions are present
+        run: |
+          grep -q "RC525_POLICY_MISSING" supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
+          grep -q "RC525_USING_SCOPE_INCOMPLETE" supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
+          grep -q "RC525_WITH_CHECK_SCOPE_INCOMPLETE" supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
+          grep -q "RC525_PUBLIC_ACTIVE_READ_POLICY_MISSING" supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
