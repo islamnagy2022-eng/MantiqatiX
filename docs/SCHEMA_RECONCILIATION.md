@@ -88,3 +88,11 @@ Inventory repository migration filenames and all open candidate PR migration pat
   - PR #84 vs #207: **16 common migration files; 0 differing patches**.
 - Thus the previously documented RC434 discrepancy is not supported by the examined shared migration patch content; RC434 and the other shared migration patches compared byte-for-byte identical in these pairs.
 - This is not a chain-approval decision. PRs differ materially in non-migration files, carry different additional migration sets, and still need whole-chain uniqueness/order/dependency checks plus isolated replay. Do not merge any of them solely based on matching shared SQL.
+
+
+## Canonical 28-row matrix refresh — 2026-10-14
+- Added `docs/release/migration-reconciliation-matrix-20261014.json` from the current release verifier's 28 required filenames, the read-only live migration ledger, current-main source inventory, and fresh candidate PR metadata/patches.
+- Main inventory remains 12 present / 16 missing (RC425–RC432 and RC434–RC441). All 28 required post-RC424 versions are absent from the live ledger snapshot; ledger count 283, latest `20261008222845` / `rc424_atomic_digital_page_payment_webhook`.
+- Candidate state at capture: #84 OPEN DRAFT (head `934f2fc28ec61bdfc5023479b0e796e743244eb1`); #202 CLOSED, UNMERGED (head `56dc3853be48fee413cbaf551fd350fe3f1df3ed`); #207 OPEN DRAFT (head `c8b6a925bcfbb8b4a50a30ba6282d0eea95667a6`); #218 OPEN DRAFT (head `5a234d40c08b9d961e69fc7293a759fcc3d5d1f8`).
+- Fresh shared migration patch comparisons: #84/#202 16 common, 0 differences; #84/#207 16 common, 0 differences; #84/#218 16 common, 0 differences; #207/#218 33 common, 0 differences. #202/#207 and #202/#218 each have one difference outside the required 28: `20261011030000_rc458_erp_branch_organization_scope.sql`.
+- This matrix is inventory/patch evidence only. Dependency graph review is NOT COMPLETED and disposable chronological replay is NOT RUN. Release remains `BLOCKED / NOT CERTIFIED`; no production changes were made.
