@@ -57,6 +57,21 @@ jobs:
               fi
               mv "supabase/migrations/$source" "supabase/migrations/$target"
             }
+            dedupe_verified_identical_legacy_alias() {
+              local source="$1"
+              local target="$2"
+              test -f "supabase/migrations/$source"
+              test -f "supabase/migrations/$target"
+              local source_sql target_sql
+              source_sql="$(sed -E '/^[[:space:]]*--/d; s/[[:space:]]+/ /g; s/^ //; s/ $//' "supabase/migrations/$source" | tr '[:upper:]' '[:lower:]')"
+              target_sql="$(sed -E '/^[[:space:]]*--/d; s/[[:space:]]+/ /g; s/^ //; s/ $//' "supabase/migrations/$target" | tr '[:upper:]' '[:lower:]')"
+              if [ -z "$source_sql" ] || [ "$source_sql" != "$target_sql" ]; then
+                echo "P0 BLOCKED: duplicate migration bodies differ: $source vs $target" >&2
+                return 1
+              fi
+              rm -- "supabase/migrations/$source"
+              echo "verified_duplicate_alias_removed_from_disposable_replay=$source (canonical=$target)" | tee -a s04-replay-evidence/report.txt
+            }
             rename_legacy_alias "20260928020000_rc101_g6_rls_permissive_policy_hardening.sql" "20260928101022_rc101_g6_rls_permissive_policy_hardening.sql" &&
             rename_legacy_alias "20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql" "20260928104107_rc102_g8_crm_notification_support_rls_hardening.sql" &&
             rename_legacy_alias "20260928060000_restore_registration_request_dml_grants.sql" "20260928034100_restore_registration_request_dml_grants.sql" &&
@@ -104,7 +119,7 @@ jobs:
           rename_legacy_alias "20261007002000_mantigo_rate_limit_idempotency_compat_v1.sql" "20261006212705_mantigo_rate_limit_idempotency_compat_v1.sql" &&
           rename_legacy_alias "20261006235500_job_application_backend_submit_v1.sql" "20261006235123_job_application_backend_submit_v1.sql" &&
           rename_legacy_alias "20261007021500_reverse_bidding_server_authority_v1.sql" "20261006231828_reverse_bidding_server_authority_v1.sql" &&
-          rename_legacy_alias "20261007030000_cleanup_duplicate_job_application_index_v1.sql" "20261006235323_cleanup_duplicate_job_application_index_v1.sql" &&
+          dedupe_verified_identical_legacy_alias "20261007030000_cleanup_duplicate_job_application_index_v1.sql" "20261006235323_cleanup_duplicate_job_application_index_v1.sql" &&
           rename_legacy_alias "20261007060000_education_request_server_authority_v1.sql" "20261007021723_education_request_server_authority_v1.sql" &&
           rename_legacy_alias "20261007023000_remove_duplicate_mantigo_bids_index_v1.sql" "20261007022318_remove_duplicate_mantigo_bids_index_v1.sql" &&
           rename_legacy_alias "20261007064000_mantigo_rate_limit_internal_boundary_v1.sql" "20261007064228_mantigo_rate_limit_internal_boundary_v1.sql" &&
@@ -148,6 +163,7 @@ jobs:
           if [ "$audit_rc" -eq 0 ] && [ "$normalization_rc" -eq 0 ]; then
             node scripts/validate-smm-replay-baselines.mjs > s04-replay-evidence/test-baseline-validation.log 2>&1
             baseline_rc=$?
+            if [ "$baseline_rc" -ne 0 ]; then cat s04-replay-evidence/test-baseline-validation.log >&2; fi
           fi
           echo "test_baseline_validation_exit=$baseline_rc" | tee -a s04-replay-evidence/report.txt
           if [ "$baseline_rc" -eq 0 ]; then
