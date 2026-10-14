@@ -1595,3 +1595,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Compared full shared migration patches: PR #84 vs #202 (0 differences); #207 vs #218 (33 common migration files, 0 differences); #84 vs #207 (16 common migration files, 0 differences).
 - [x] Refined the earlier conflict note: the examined shared SQL patches are identical; broader PRs are not equivalent because their non-migration files and extra migrations differ.
 - [ ] OPEN: full chain uniqueness/order/dependency review and disposable chronological replay remain mandatory before merging or applying any post-RC424 migration batch.
+
+
+## 2026-10-14 — Mandatory cross-session continuity system
+- [x] Added `docs/SESSION_CONTINUITY_PROTOCOL.md`: mandatory session-start/close checklists, source-of-truth hierarchy, status vocabulary, evidence requirements, no-repeat rules, and release safety constraints.
+- [x] Added `docs/NEXT_SESSION_RESUME.md`: concise exact handoff, verified evidence, current blockers, and the next action for any new session.
+- [x] Protocol rule: every batch updates master TODO + append-only session log + continuity when needed, and updates the resume file last; reread records from GitHub to verify.
+- [x] No-repeat rule: reuse prior evidence unless relevant inputs changed, a check failed/cancelled, evidence is stale, contradictory evidence appeared, scope was missing, or a fresh release gate is required. Record the reason whenever repeating a check.
+- [ ] OPEN: finish the 28-row migration reconciliation matrix and disposable chronological replay; current domain remains BLOCKED and release remains NOT CERTIFIED.
+- **Current active PR:** #247 (draft, documentation-only) — https://github.com/islamnagy2022-eng/MantiqaTix/pull/247.
