@@ -35,3 +35,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Domain 1 status:** PARTIAL — baseline evidence is captured, but source-to-live schema/migration parity and requirement-level scoring are not yet proven.
 - **Next action:** inventory current repository migration files and open PR candidates against the live 283-row ledger, then validate chain uniqueness/order and isolated replay before changing production.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-14 — SESSION-003 — Reconcile migration evidence without production mutation
+
+- **Verified on current main:** required migration paths RC425 (`20261009120000...`), RC434 (`20261009200000...`) and RC439 (`20261010010000...`) return NOT_FOUND. Release verifier and chain-gate contract enumerate 28 required release migrations.
+- **RC424 correction:** the current reconciliation manifest records exact SQL statement equality between the live ledger and source (one statement, 7208 bytes each), `history_rewritten=false`; source filename timestamp differs from live ledger version and is explicitly treated as a legacy alias. Do not rename or rewrite applied history.
+- **RC434 pairwise comparison:** fetched the RC434 patch from PR #84 and PR #202 and compared full patch strings; they are identical at 7151 characters. This does not settle all overlapping PR chain questions.
+- **Current release evidence:** reconciliation manifest remains BLOCKED; required post-RC424 migrations not proven applied; chronological replay NOT RUN; tenant isolation, payment/finance E2E, Edge Function contracts, SMM parity and Auth settings NOT VERIFIED; backup/restore not verified.
+- **Actions performed:** updated the documentation branch with an evidence refinement; no production DDL, migrations, financial transactions, deployments, or merges were performed.
+- **Next action:** build a full matrix of 28 required migration files across main and candidate PRs #84/#202/#207/#218; check version collisions, ordering and dependencies; then run isolated replay.
+- **Release state:** BLOCKED / NOT CERTIFIED.
