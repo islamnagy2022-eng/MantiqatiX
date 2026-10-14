@@ -25,15 +25,13 @@ begin
   if v_policy.polcmd <> '*' then
     raise exception 'RC525_POLICY_MUST_COVER_ALL_MUTATIONS';
   end if;
-  if not ('authenticated' = any(v_policy.polroles::regrole[]::text[])) then
-    -- Catalog OIDs are checked separately below because role casts vary by PostgreSQL version.
-    if not exists (
-      select 1 from pg_catalog.pg_roles r
-      where r.rolname = 'authenticated'
-        and r.oid = any(v_policy.polroles)
-    ) then
-      raise exception 'RC525_POLICY_ROLE_MISMATCH';
-    end if;
+  if not exists (
+    select 1
+    from pg_catalog.pg_roles r
+    where r.rolname = 'authenticated'
+      and r.oid = any(v_policy.polroles)
+  ) then
+    raise exception 'RC525_POLICY_ROLE_MISMATCH';
   end if;
   if v_using not ilike '%MNTY-PLATFORM%'
      or v_using not ilike '%SUPER_ADMIN%'
