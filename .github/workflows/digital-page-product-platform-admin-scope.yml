@@ -6,6 +6,7 @@ on:
       - "supabase/migrations/20261014230000_rc525_digital_page_product_platform_admin_scope.sql"
       - "scripts/validate-digital-page-product-admin-scope.mjs"
       - "supabase/tests/rc525_digital_page_product_platform_admin_scope.sql"
+      - "supabase/tests/fixtures/rc525_platform_admin_scope_setup.sql"
       - ".github/workflows/digital-page-product-platform-admin-scope.yml"
   push:
     branches: [main]
@@ -21,6 +22,20 @@ permissions:
 jobs:
   static-policy-contract:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc525_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rc525_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,3 +49,15 @@ jobs:
           grep -q "RC525_USING_SCOPE_INCOMPLETE" supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
           grep -q "RC525_WITH_CHECK_SCOPE_INCOMPLETE" supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
           grep -q "RC525_PUBLIC_ACTIVE_READ_POLICY_MISSING" supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
+      - name: Apply disposable policy fixture
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d rc525_test -v ON_ERROR_STOP=1 -f supabase/tests/fixtures/rc525_platform_admin_scope_setup.sql
+      - name: Apply candidate migration in disposable PostgreSQL
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d rc525_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261014230000_rc525_digital_page_product_platform_admin_scope.sql
+      - name: Execute SQL policy regression assertions
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d rc525_test -v ON_ERROR_STOP=1 -f supabase/tests/rc525_digital_page_product_platform_admin_scope.sql
