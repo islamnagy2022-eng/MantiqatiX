@@ -162,3 +162,17 @@ This run independently repeated the same first blocker after the validator fix:
 
 This repeat confirms the failure is reproducible with the current source chain, not a one-off baseline-validator error. The production catalog evidence recorded above is from read-only queries and does not establish the historical source file. The next safe action remains source recovery/reconciliation, not a conditional revoke or an invented migration. Production remains unchanged and release remains uncertified.
 
+
+
+## Follow-up — bounded source-history search and forward-baseline decision record (2026-10-14)
+
+A further bounded source-history search was performed after the repeatable run-160 blocker:
+- GitHub indexed commit searches for `counter_offer_indrive_bid` and `counter offer indrive` returned no matches.
+- Current indexed repository code search returned only the revocation migration reference, not a creation definition.
+- Seven related InDrive/reverse-bidding migration files across candidate PR branches were fetched and inspected; none defined the missing function.
+- This is not proof that an authoritative backup or unreachable Git object does not exist.
+
+A proposal-only decision record was added at
+`docs/release/counter-offer-rpc-forward-baseline-decision.md`. It prefers recovery of authentic historical source; a forward-baseline strategy is only a fallback proposal requiring explicit review. It does not authorize migration code or production changes.
+
+**No code migration was created. No production change was made. No clean replay was completed. Release remains BLOCKED / NOT CERTIFIED.**
