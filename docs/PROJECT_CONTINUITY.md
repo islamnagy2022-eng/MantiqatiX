@@ -550,3 +550,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Domain-by-domain method: requirements matrix → implementation → tests → security review → evidence → closure. Status remains BLOCKED / NOT CERTIFIED until mandatory release gates are independently evidenced.
 - No production DDL, data mutation, function deployment, PR merge, or release approval was performed in this batch.
 - Next action: read-only source/live migration reconciliation and complete schema/RLS/grant inventory.
+
+
+## 2026-10-14 — Migration gate refinement
+- Direct current-main lookups confirmed RC425, RC434 and RC439 required migration files are absent; the production verifier tracks 28 required release migration files.
+- RC424 SQL content is documented as exactly matching the live ledger statement (7208 bytes), with the source filename timestamp difference preserved as a legacy alias. Do not rename or rewrite RC424 history.
+- RC434 patch comparison between PR #84 and PR #202 was byte-identical (7151 characters); older notes about that specific pair conflicting are not confirmed by this comparison. Other overlapping PR migration candidates remain unreviewed.
+- Next action is complete source/ledger/PR matrix, dependency and timestamp validation, then disposable chronological replay. No production migration or PR merge was performed.
+- Release state remains **BLOCKED / NOT CERTIFIED**.
