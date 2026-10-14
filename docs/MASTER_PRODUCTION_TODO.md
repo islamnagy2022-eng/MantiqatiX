@@ -1572,3 +1572,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Do not start production DDL or deploy candidate migrations until the migration chain and release gate are reconciled.
 - **Domain 1 status:** PARTIAL. The baseline is now documented, but requirement-level coverage and migration/schema parity remain open.
 - **Next domain:** schema/migration reconciliation (read-only first), then security caller-contract review and P0 E2E gates.
+
+
+## 2026-10-14 — Migration gate evidence refinement
+- [x] Direct main lookups confirmed the required RC425, RC434 and RC439 migration files are absent from `main` (NOT_FOUND); the release verifier enumerates 28 required release migrations.
+- [x] RC424 legacy version alias is documented as reconciled: live ledger version `20261008222845`, source filename version `20261009010000`, exact SQL statement match (7208 bytes), history not rewritten.
+- [x] Pairwise comparison of RC434 migration patch in PR #84 vs #202: identical content (7151 characters); previous historical conflict claim is not confirmed by this pairwise comparison.
+- [ ] OPEN: reconcile overlapping migration source files in PR #84/#202/#207/#218, check uniqueness and timestamp order, verify dependencies, and perform full disposable chronological replay.
+- [ ] OPEN: prove required post-RC424 migrations applied, Edge Function/runtime parity, tenant isolation, payment/finance E2E, Auth security settings, and backup/restore evidence.
+- **Decision:** keep production release BLOCKED / NOT CERTIFIED; do not apply or merge the migration batch before chain reconciliation.
