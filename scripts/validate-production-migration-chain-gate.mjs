@@ -69,6 +69,8 @@ assert.ok(baselineValidator.includes("PENDING_REVIEW"), "schema baseline must fa
 assert.ok(baselineReplayScript.includes('u.port !== "54322"'), "baseline replay must refuse non-local database URLs");
 assert.ok(baselineReplayScript.includes("DROP SCHEMA IF EXISTS public CASCADE"), "only the disposable local schema is reset before replay");
 assert.ok(baselineReplayScript.includes("exact_statement_match"), "RC424 alias skip must require exact source/ledger reconciliation");
+assert.ok(baselineReplayScript.includes('"$ALIAS_LEDGER_VERSION" == "$CHECKPOINT"'), "RC424 alias must be skipped when its verified ledger version equals the baseline checkpoint");
+assert.ok(baselineReplayScript.includes('"$ALIAS_LEDGER_VERSION" < "$CHECKPOINT"'), "RC424 alias must also be skipped if its verified ledger version predates the baseline checkpoint");
 assert.ok(baselineReplayWorkflow.includes('REQUIRE_BASELINE_REVIEW: "1"'), "forward replay must require reviewed baseline approval");
 assert.equal(reconciliationManifest.baseline_forward_replay?.status, "NOT RUN", "missing baseline evidence must remain explicitly NOT RUN");
 assert.equal(reconciliationManifest.verified, false, "the production reconciliation must remain unverified until live gates pass");
