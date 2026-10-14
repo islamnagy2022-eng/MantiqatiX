@@ -1787,3 +1787,12 @@ Evidence:
 - The candidate SMM `place_order` path attempts to insert `idempotency_key` and treats SQLSTATE `23505` as replay. Without a reconciled schema prerequisite, that path is incompatible with the observed live table and must not be enabled.
 - Required before SMM can be considered launchable: a separately reviewed forward-only migration for the column and uniqueness strategy; explicit legacy-row/null/duplicate semantics; disposable PostgreSQL tests for first request, same-key replay, different-user same key, different-payload conflict, and concurrent duplicate requests; exact-head CI; full migration-chain review; and an approved rollout/rollback plan.
 - Do not edit applied historical migrations or deploy/apply a new migration to production from this finding alone. This is a release blocker record, not deployment authorization.
+
+
+## RC548 — S04 run 38501518479 repeat confirmation — 2026-10-14
+
+- **VERIFIED:** [S04 run 38501518479](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479) failed after source audit, normalized version checks, recovered-source validation, alias normalization, and test-baseline validation returned exit code 0.
+- **BLOCKED:** the workflow injected catalog-derived test-only provider-onboarding and SMM baselines, initialized Supabase, then failed during startup at `20260927095000_revoke_unused_security_definer_execute.sql` with `SQLSTATE 42883` because `public.counter_offer_indrive_bid(uuid,uuid,numeric)` is absent from the replay chain.
+- Evidence artifact: [11866516003](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479/artifacts/11866516003).
+- This is another reproduction of the same blocker, not clean replay. Do not repeat the run without a source/decision change; do not synthesize historical DDL or touch production.
+- Release gate remains **BLOCKED / NOT CERTIFIED**.
