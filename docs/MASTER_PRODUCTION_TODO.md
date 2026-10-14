@@ -1559,3 +1559,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-14 — Domain-by-domain closure kickoff (baseline snapshot)
+- [x] Created `docs/PRODUCTION_BASELINE.md` from current GitHub/Supabase evidence.
+- [x] Created `docs/PRODUCTION_AUDIT.md` and `docs/SCHEMA_RECONCILIATION.md` to separate observations from unverified gates.
+- [x] Current main commit from GitHub search: `8a56358d505d2c12878440037f7f24ba65d2ea10`; earlier continuity HEAD `735f0451...` is stale and corrected by a newer append-only note.
+- [x] Read-only production query: 283 migration ledger rows; latest `20261008222845` / RC424; no migration was applied.
+- [x] Supabase project health metadata: `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`, region `us-east-2`.
+- [x] Security Advisor snapshot at `2026-10-14T01:47:56.708Z`: one RLS-no-policy INFO for `digital_page_payment_events`, one anon SECURITY DEFINER warning for targeted ads, and 40 authenticated SECURITY DEFINER warnings.
+- [ ] **OPEN / NOT VERIFIED:** exact source-to-live migration reconciliation, full schema/RLS/grants inventory, per-function authorization review, current release workflow result, and complete evidence-weighted requirement matrix.
+- [ ] Do not start production DDL or deploy candidate migrations until the migration chain and release gate are reconciled.
+- **Domain 1 status:** PARTIAL. The baseline is now documented, but requirement-level coverage and migration/schema parity remain open.
+- **Next domain:** schema/migration reconciliation (read-only first), then security caller-contract review and P0 E2E gates.
