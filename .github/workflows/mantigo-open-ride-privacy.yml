@@ -26,6 +26,16 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Validate MantiGO payment-intent persistence contract
+        run: node scripts/validate-mantigo-payment-intent-persistence.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check MantiGO payment intent
+        run: deno check --no-lock supabase/functions/mantigo-payment-intent/index.ts
       - name: Run RC446 privacy integration tests
         shell: bash
         run: |
