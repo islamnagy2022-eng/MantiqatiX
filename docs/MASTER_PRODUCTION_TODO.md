@@ -1770,3 +1770,12 @@ Evidence:
 Evidence:
 - Decision proposal: https://github.com/islamnagy2022-eng/MantiqatiX/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/counter-offer-rpc-forward-baseline-decision.md
 - S04 report: https://github.com/islamnagy2022-eng/MantiqatiX/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/s04-migration-chain-clean-replay-report.md
+
+
+## RC546 — Exact-head CI refresh and S04 run 168 — 2026-10-14
+
+- **VERIFIED — scoped CI only:** PR #218 head `5b01aede91340bd9281dda97da6ebc46d45bdfcc` completed focused recovered-migration integration, approval-action atomicity, SMM service-role boundary, backend-only module boundary, audit-log append-only ACL, migration-version uniqueness, migration-history immutability, open-PR collision guard, MantiGO platform-admin scope, MantiGO open-ride privacy, and module professionalization checks successfully. Web validation passed; the web deploy job was **skipped**, so this run is not deployment evidence.
+- **BLOCKED — S04 run 168:** [run 38500724335](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38500724335) failed on the same missing `public.counter_offer_indrive_bid(uuid,uuid,numeric)` reference in `20260927095000_revoke_unused_security_definer_execute.sql` (SQLSTATE 42883). Provider-onboarding and SMM test-only baselines were injected; therefore the result is not clean replay.
+- Keep source recovery / proposal review open. Do not invent historical DDL, add a temporary function stub, conditionally skip the revoke, or change production.
+- **WAIT / NOT VERIFIED:** live production E2E, full chronological clean replay, backup/restore rehearsal, release signing/device tests, and all mandatory runtime gates remain open.
+- The production release gate remains **BLOCKED / NOT CERTIFIED**. This section records evidence from head `5b01aede...`; the documentation commit that adds this note must itself receive a fresh exact-head CI check before any status is upgraded.
