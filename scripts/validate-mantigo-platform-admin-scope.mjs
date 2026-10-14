@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const migration = fs.readFileSync("supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_integration.sql", "utf8");
+const liveContract = fs.readFileSync("scripts/verify-mantigo-high-risk-definers.sql", "utf8");
 const checks = [];
 function check(name, ok) {
   checks.push({ name, ok: Boolean(ok) });
@@ -22,6 +23,12 @@ check("integration denies anon on ride expiration and preserves authenticated en
   integration.includes("authenticated role must retain intended RPC entrypoint grants") &&
   integration.includes("has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE')"));
 check("integration verifies authorized settlement persistence and replay safety", integration.includes("authorized platform admin settlement failed") && integration.includes("settlement replay did not return idempotent success") && integration.includes("settlement replay duplicated audit or notification"));
+check("read-only live contract normalizes RPC signatures without argument names",
+  liveContract.includes("oidvectortypes(p.proargtypes)") &&
+  liveContract.includes("replace(pg_catalog.oidvectortypes(p.proargtypes), ', ', ',')"));
+check("read-only live contract only permits reviewed empty search_path on RC449 functions",
+  liveContract.includes("allow_empty_search_path") &&
+  liveContract.includes("e.allow_empty_search_path and x in ('search_path=\"\"','search_path=')"));
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");
