@@ -29,3 +29,12 @@ This is a living evidence register. Findings below are limited to observations o
 - No blanket grant revocations, broad RLS policies, production DDL, fake payments, secret exposure, or direct deployment to make a checklist look green.
 - Preserve historical records and append corrections when evidence supersedes them.
 - A green project-health status is not production-readiness evidence.
+
+
+## Addendum — read-only migration-source check (2026-10-14)
+- The current `main` source does **not** contain the required post-RC424 migration files checked directly, including RC425 (`20261009120000_rc425_atomic_mantigo_paymob_payment.sql`), RC434 (`20261009200000_rc434_atomic_erp_purchase_receiving.sql`), and RC439 (`20261010010000_rc439_encrypted_checkout_recovery.sql`). Each direct `fetch_file` returned NOT_FOUND on `main`.
+- The release verifier on `main` lists 28 required release migration files; these must be inventoried as a complete set, not patched one at a time without the chain context.
+- The reconciliation manifest documents a **successful exact SQL-statement match for RC424** (7208 bytes in both source and live ledger statement) and explicitly says preserve the legacy ledger version `20261008222845` while retaining source filename prefix `20261009010000`. This resolves the RC424 statement-identity question, but does not prove post-RC424 migrations are applied or the full chain replays.
+- RC434 patches in PR #84 and PR #202 were fetched and compared byte-for-byte; the patch text was identical (7151 characters). Older session notes describing competing RC434 definitions are therefore not confirmed by this specific comparison; broader PR/source reconciliation remains open.
+- Open candidate PRs #84, #202, #207 and #218 contain overlapping migration filenames. Keep them unmerged until the full candidate set, uniqueness guard, dependencies and disposable replay are reconciled.
+- The release-gate report and manifest still say required post-RC424 migrations are not proven applied, chronological replay is NOT RUN, tenant isolation and payment/finance E2E are NOT VERIFIED, and backup/restore rehearsal is NOT VERIFIED.
