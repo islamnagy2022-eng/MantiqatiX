@@ -1,6 +1,6 @@
 # MantiqaTiX — Next Session Resume
 
-**Last updated:** 2026-10-14 02:25 UTC  
+**Last updated:** 2026-10-14 02:35 UTC  
 **Working branch:** `docs/rc521-admin-operations-discovery-20261013`  
 **Current PR:** [#218](https://github.com/islamnagy2022-eng/MantiqatiX/pull/218) — OPEN, DRAFT, UNMERGED  
 **Latest verified PR head at update:** `4c61137d20d72527c3fc5132d0611cbc46ca8d65`  
@@ -30,7 +30,7 @@
 
 ## Current evidence
 
-- S04 runs 159, 160, and 168 reproducibly stop at
+- S04 runs 159, 160, 168, and the latest follow-up run 38501518479 reproducibly stop at
   `20260927095000_revoke_unused_security_definer_execute.sql` with
   `function public.counter_offer_indrive_bid(uuid, uuid, numeric) does not exist`
   (SQLSTATE 42883).
