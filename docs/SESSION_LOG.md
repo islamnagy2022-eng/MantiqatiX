@@ -238,3 +238,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - SMM regression CI passed on prior code head; the latest branch commits restoring Deno config and recording evidence triggered new workflows. At last check the focused migration integration run was queued, and current-head workflows need fresh recheck. Queued is not PASS.
 - No production migration, database mutation, Auth/RLS/grant change, Edge Function deployment, real financial operation, merge, or release occurred.
 - **Release remains BLOCKED / NOT CERTIFIED.**
+
+
+## RC545 — Bounded missing-RPC source search and reviewed recovery proposal — 2026-10-14
+
+- Re-read the current S04 report, master TODO, project continuity, and session log on the working branch. The documented `docs/NEXT_SESSION_RESUME.md` and `docs/SESSION_CONTINUITY_PROTOCOL.md` were absent at the expected paths; added a durable `docs/NEXT_SESSION_RESUME.md` with verified state and safe next actions.
+- Bounded source recovery search: GitHub indexed commit searches for `counter_offer_indrive_bid` and `counter offer indrive` returned no matches; indexed code search surfaced only the revocation reference; seven related InDrive/reverse-bidding SQL files across candidate PR branches were fetched and inspected without finding the RPC definition. This does not prove there is no trusted external backup or unreachable Git object.
+- Added proposal-only decision record `docs/release/counter-offer-rpc-forward-baseline-decision.md`. It prefers authenticated historical source recovery; a forward-baseline strategy remains a fallback proposal requiring explicit review and is not implementation authorization.
+- Updated `docs/release/s04-migration-chain-clean-replay-report.md` and `docs/MASTER_PRODUCTION_TODO.md` to record the bounded search and decision path.
+- PR #218 remains OPEN / DRAFT / UNMERGED. Latest observed head after the report/TODO commits was `4c61137d20d72527c3fc5132d0611cbc46ca8d65`; adding the resume file and this session log advances the branch further, so re-fetch the exact head before relying on any CI status.
+- Workflow lookup for commit `4c61137d20d72527c3fc5132d0611cbc46ca8d65` returned no runs; no CI pass is claimed for that documentation head or subsequent documentation-only commits.
+- No migration code was added; no production DB/schema/ACL/RLS/Auth change, function deployment, merge, or release occurred.
+- Release remains **BLOCKED / NOT CERTIFIED**. Next: recover an authoritative source/backup or obtain explicit review of the separate forward-baseline proposal; only then implement and rerun the disposable chronological replay.
