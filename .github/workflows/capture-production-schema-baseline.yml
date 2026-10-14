@@ -43,7 +43,8 @@ jobs:
         with:
           version: latest
 
-      - name: Capture migration ledger versions (read-only)
+      - name: Capture migration ledger versions and PostgreSQL version (read-only)
+        id: postgres-version
         shell: bash
         run: |
           set -euo pipefail
@@ -52,10 +53,14 @@ jobs:
             "SELECT version::text FROM supabase_migrations.schema_migrations ORDER BY version::text;" \
             > /tmp/mantiqatix-ledger-versions.txt
           test -s /tmp/mantiqatix-ledger-versions.txt
-          echo "Read-only migration ledger export completed."
+          psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -Atc "SHOW server_version_num;" \
+            | awk '{ print int($1 / 10000) }' > /tmp/mantiqatix-postgres-major.txt
+          test -s /tmp/mantiqatix-postgres-major.txt
+          echo "major=$(cat /tmp/mantiqatix-postgres-major.txt)" >> "$GITHUB_OUTPUT"
+          echo "Read-only migration ledger and PostgreSQL version capture completed."
           echo "Applied migration count: $(wc -l < /tmp/mantiqatix-ledger-versions.txt | tr -d ' ')"
 
-      - name: Dump schema only (no data, no roles, no writes)
+      - name: Dump schema only (no data, no writes)
         shell: bash
         run: |
           set -euo pipefail
@@ -69,6 +74,7 @@ jobs:
         shell: bash
         env:
           BASELINE_LEDGER_VERSIONS_FILE: /tmp/mantiqatix-ledger-versions.txt
+          BASELINE_POSTGRES_MAJOR_VERSION: ${{ steps.postgres-version.outputs.major }}
           SUPABASE_PROJECT_REF: moyhiluyhjsujhwlyeuu
         run: |
           set -euo pipefail
@@ -93,9 +99,9 @@ jobs:
 
             ## Provenance and safety
             - Generated with the Supabase CLI schema-only dump from the configured project.
-            - The workflow only reads the migration ledger and dumps schema definitions. It does not apply migrations or mutate production.
+            - The workflow only reads the migration ledger, PostgreSQL version, and schema definitions. It does not apply migrations or mutate production.
             - The validator rejects common secret/token patterns and COPY data payloads.
-            - The manifest pins the snapshot SHA-256 and the exact applied migration-version list hash/count/checkpoint.
+            - The manifest pins the snapshot SHA-256, PostgreSQL major version, and exact applied migration-version list hash/count/checkpoint.
             - Snapshot remains **PENDING_REVIEW** and is never deployable migration source.
 
             ## Required review before use
