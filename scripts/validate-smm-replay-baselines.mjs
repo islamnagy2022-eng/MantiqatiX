@@ -49,7 +49,7 @@ for (const [table, item] of Object.entries(baselines)) {
   if (table === "provider_onboarding_requests") {
     assert.ok(tableCreateMigration, "canonical provider onboarding CREATE TABLE migration must exist");
     const authorityMigration = files.find(name =>
-      /drop\\s+policy\\s+if\\s+exists\\s+provider_onboarding_self_insert\\s+on\\s+public\\.provider_onboarding_requests/i.test(source[name])
+      /drop\s+policy\s+if\s+exists\s+provider_onboarding_self_insert\s+on\s+public\.provider_onboarding_requests/i.test(source[name])
     );
     assert.ok(authorityMigration, "provider onboarding authority migration must remain present");
     assert.ok(
