@@ -4,7 +4,7 @@
 -- in Supabase project moyhiluyhjsujhwlyeuu. No production rows or user data were queried.
 -- This is NOT recovered historical DDL and does NOT repair the source migration-order defect.
 -- The tracked chain references this table at 20261001090000, before its tracked CREATE TABLE at 20261001164200.
--- This fixture only lets disposable CI continue to find downstream blockers; it must never be applied to production.
+-- This fixture only lets disposable CI continue to find downstream blockers. Never apply this file to production.
 -- No policies are included: chronological migrations own policy creation and FORCE RLS.
 
 create table public.provider_onboarding_requests (
