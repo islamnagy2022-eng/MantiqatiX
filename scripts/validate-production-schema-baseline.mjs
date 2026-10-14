@@ -33,6 +33,7 @@ function validateSchemaOnly(sql) {
   if (/^\s*COPY\s+.+\s+FROM\s+stdin\s*;?\s*$/im.test(sql)) fail("snapshot contains COPY data payloads");
   if (/\b(?:sb_secret_[A-Za-z0-9_-]{16,}|sbp_[A-Za-z0-9_-]{24,}|sk-[A-Za-z0-9]{20,}|AKIA[A-Z0-9]{16})\b/.test(sql)) fail("snapshot matched a known secret/token pattern; do not publish it");
   if (/postgres(?:ql)?:\/\/[^\s'"]+:[^\s'"]+@/i.test(sql)) fail("snapshot contains a database connection string; do not publish it");
+  if (/(?:api[_-]?key|secret|password|access[_-]?token|private[_-]?key)\s*[:=]\s*['"][^'"]{12,}['"]/i.test(sql)) fail("snapshot contains a credential-like assignment; do not publish it");
   if (/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/.test(sql)) fail("snapshot matched a JWT-shaped token; do not publish it");
 }
 
