@@ -86,7 +86,7 @@ let manifest;
 try { manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")); } catch { fail("provenance manifest is invalid JSON"); }
 if (manifest.format !== "mantiqatix-production-schema-baseline/v1") fail("unsupported manifest format");
 if (typeof manifest.source_project_ref !== "string" || !manifest.source_project_ref.trim()) fail("source project ref is missing");
-if (!/^\\d{14}$/.test(manifest.last_applied_migration_version || "")) fail("manifest ledger checkpoint is missing or invalid");
+if (!/^\d{14}$/.test(manifest.last_applied_migration_version || "")) fail("manifest ledger checkpoint is missing or invalid");
 if (!Number.isInteger(manifest.applied_migration_count) || manifest.applied_migration_count < 1) fail("manifest migration count is missing or invalid");
 if (!/^[a-f0-9]{64}$/.test(manifest.applied_migration_versions_sha256 || "")) fail("manifest ledger-version hash is missing or invalid");
 if (!Number.isInteger(manifest.postgres_major_version) || manifest.postgres_major_version < 14) fail("manifest PostgreSQL major version is missing or invalid");
