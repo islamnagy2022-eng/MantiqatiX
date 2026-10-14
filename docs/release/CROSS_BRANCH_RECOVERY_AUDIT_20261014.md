@@ -206,3 +206,22 @@ The latest PR #248 head `49cb770b8922368f6cd82fa218deb200ea607bb6` was checked t
 These results certify only the listed candidate source checks and disposable PostgreSQL tests. They do not certify a clean chronological replay, nor do they change the live production migration ledger. The production P0 MantiGO financial authorization gap remains open until the reviewed forward-only migration bundle is replayed, approved, and applied in a separately authorized window. The historical dependencies for the clean replay also remain unresolved. PR #248 remains open and Draft; do not merge or deploy based on these focused passes.
 
 No production database, Auth, Edge Functions, secrets, customer records, financial records, or deployed website were changed by this verification.
+
+
+## Follow-up exact-head CI — 2026-10-14 16:12 UTC
+
+The report-only commit `7fc56cf676efdfa3c54bb6a3183a03fc39949bda` was checked after GitHub Actions completed. All relevant focused checks on that exact head succeeded:
+
+- [Migration history immutability](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926000): **PASS**.
+- [Migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926196): **PASS**.
+- [Open-PR migration collision guard](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926202): **PASS**.
+- [RC462 malformed-permission regression](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926256): **PASS**.
+- [Marketing CRM tenant scope](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926009): **PASS**.
+- [MantiGO platform-admin scope hardening](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926667): **PASS**.
+- [MantiGO open-ride privacy boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595925970): **PASS**.
+- [Approval-action audit atomicity](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926071): **PASS**.
+- [Backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926628): **PASS**.
+- [Module professionalization](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926028): **PASS**.
+- [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926080): validation **PASS**, deployment **SKIPPED** by the release gate.
+
+The successful run set confirms focused candidate tests only. It does not resolve the missing historical dependency source, certify chronological replay, or close the read-only live P0 MantiGO authorization finding. PR #248 remains Draft and unmerged. No production changes were made.
