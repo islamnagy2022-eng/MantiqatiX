@@ -15,7 +15,7 @@ with expected(signature, expect_anon, expect_auth, allow_empty_search_path) as (
  ('public.settle_mantigo_captain_backend(uuid,text,text)',false,true,true),
  ('public.expire_stale_mantigo_rides_backend(uuid,integer)',false,true,true)
  ), actual as (
- select 'public.'||p.proname||'('||pg_get_function_identity_arguments(p.oid)||')' signature,
+ select 'public.'||p.proname||'('||pg_catalog.oidvectortypes(p.proargtypes)||')' signature,
         has_function_privilege('anon',p.oid,'EXECUTE') anon_exec,
         has_function_privilege('authenticated',p.oid,'EXECUTE') auth_exec,
         p.prosecdef,
