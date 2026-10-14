@@ -58,12 +58,11 @@ Deno.serve(async req=>{
 
   // Claim this REQUIRED ledger before calling Paymob. Only one concurrent request can win.
   const claimToken=crypto.randomUUID();
-  const claimMetadata={...metadata,paymob_intent_claim:{token:claimToken,created_at:new Date().toISOString()}};
-  const {data:claimed,error:claimError}=await admin.from("mantigo_financial_ledger").update({
-    metadata:claimMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider_intent_id",null).select("id").maybeSingle();
+  const {data:claimed,error:claimError}=await admin.rpc("claim_mantigo_payment_intent_backend",{
+    p_ledger_id:ledger.id,p_claim_token:claimToken
+  });
   if(claimError)return json({error:"PAYMENT_INTENT_CLAIM_FAILED"},500,requestId);
-  if(!claimed)return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
+  if(claimed!==true)return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
 
   const providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
     method:"POST",
@@ -86,14 +85,14 @@ Deno.serve(async req=>{
     return json({error:"PAYMENT_PROVIDER_INTENT_UNCONFIRMED",recoveryRequired:true},502,requestId);
   }
 
-  const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:providerOrderId,paymob_payment_methods:provider.payment_methods??null};
-  const {data:persistedIntent,error:updateError}=await admin.from("mantigo_financial_ledger").update({
-    provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED").eq("metadata->paymob_intent_claim->>token",claimToken).is("provider_intent_id",null).select("id").maybeSingle();
-  if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
-  // PostgREST can return no error when the compare-and-set predicate matches zero rows.
-  // Never hand the caller a checkout secret unless the exact ledger transition was persisted.
-  if(!persistedIntent)return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
+  const {data:persistedIntent,error:updateError}=await admin.rpc("finalize_mantigo_payment_intent_backend",{
+    p_ledger_id:ledger.id,p_claim_token:claimToken,p_provider_intent_id:providerIntentId,
+    p_provider_order_id:providerOrderId,p_client_secret:clientSecret,p_payment_methods:provider.payment_methods??null
+  });
+  if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED",recoveryRequired:true},500,requestId);
+  // The RPC compares the exact claim token and ledger state inside PostgreSQL.
+  // Never hand the caller a checkout secret unless finalization returned true.
+  if(persistedIntent!==true)return json({error:"PAYMENT_INTENT_STATE_CHANGED",recoveryRequired:true},409,requestId);
   return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret,checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(clientSecret)}`:null,requestId},200,requestId);
  }catch(error){
   console.error(JSON.stringify({requestId,error:String(error)}));
