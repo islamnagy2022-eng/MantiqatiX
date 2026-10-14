@@ -225,3 +225,16 @@ The report-only commit `7fc56cf676efdfa3c54bb6a3183a03fc39949bda` was checked af
 - [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38595926080): validation **PASS**, deployment **SKIPPED** by the release gate.
 
 The successful run set confirms focused candidate tests only. It does not resolve the missing historical dependency source, certify chronological replay, or close the read-only live P0 MantiGO authorization finding. PR #248 remains Draft and unmerged. No production changes were made.
+
+
+## Additional read-only ledger-source search — 2026-10-14 17:5x UTC
+
+A targeted read-only query searched the production `supabase_migrations.schema_migrations.statements` arrays for:
+
+- creation SQL for `public.counter_offer_indrive_bid` (including `CREATE FUNCTION` and `CREATE OR REPLACE FUNCTION` forms);
+- `CREATE TABLE` statements for `public.credit_accounts`;
+- `CREATE TABLE` statements for `public.marketing_project_participants`.
+
+All three searches returned zero matching migration rows. This confirms that the queried production migration statement arrays did not provide the missing original DDL. It does **not** prove the objects were never created or that no trusted backup/repository artifact contains their source. The live function/catalog remains distinct from historical source provenance.
+
+Consequently, no historical baseline was fabricated, no migration was skipped, and no SQL was applied. Next source recovery should focus on a trusted database backup/export or an authoritative deployment/repository artifact that contains the original migration body. If that cannot be found, request a separate, narrowly scoped approval for a clearly labelled disposable-only baseline; do not put such a fixture under `supabase/migrations/` or imply it is recovered history.
