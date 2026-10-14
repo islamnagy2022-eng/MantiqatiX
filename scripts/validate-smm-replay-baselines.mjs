@@ -45,11 +45,11 @@ for (const [table, item] of Object.entries(baselines)) {
 }
 
 const admins = fs.readFileSync(baselines.smm_admins.path, "utf8");
-assert.match(admins, /user_id\\s+uuid\\s+not\\s+null/i);
-assert.match(admins, /primary\\s+key\\s*\\(\\s*user_id\\s*\\)/i);
-assert.match(admins, /references\\s+auth\\.users\\s*\\(\\s*id\\s*\\)[\\s\\S]*on\\s+delete\\s+cascade/i);
-assert.match(admins, /enable\\s+row\\s+level\\s+security/i);
-assert.doesNotMatch(admins, /create\\s+policy|force\\s+row\\s+level\\s+security/i);
+assert.match(admins, /user_id\s+uuid\s+not\s+null/i);
+assert.match(admins, /primary\s+key\s*\(\s*user_id\s*\)/i);
+assert.match(admins, /references\s+auth\.users\s*\(\s*id\s*\)[\s\S]*on\s+delete\s+cascade/i);
+assert.match(admins, /enable\s+row\s+level\s+security/i);
+assert.doesNotMatch(admins, /create\s+policy|force\s+row\s+level\s+security/i);
 
 const providers = fs.readFileSync(baselines.smm_providers.path, "utf8");
 assert.match(providers, /id\s+uuid\s+not\s+null\s+default\s+gen_random_uuid\(\)/i);
