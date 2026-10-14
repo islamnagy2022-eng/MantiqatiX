@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PG_MAJOR="$(node -e 'const m=require("./supabase/tests/baselines/production_schema_snapshot.manifest.json"); process.stdout.write(String(m.postgres_major_version))')"
+          PG_MAJOR="$(node -e 'const m=require(process.env.GITHUB_WORKSPACE + "/supabase/tests/baselines/production_schema_snapshot.manifest.json"); process.stdout.write(String(m.postgres_major_version))')"
           [[ "$PG_MAJOR" =~ ^[0-9]+$ ]]
           mkdir -p /tmp/mantiqatix-baseline-project
           cd /tmp/mantiqatix-baseline-project
