@@ -70,6 +70,41 @@ begin
     raise exception 'platform admin cannot manage the shared marketing catalogue';
   end if;
 
+  -- A JSON string "true" is not the Boolean true and must not grant platform privileges.
+  perform set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000018',false);
+  if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000003') then
+    raise exception 'string full_control granted platform-wide marketing lead visibility';
+  end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then
+    raise exception 'string full_control granted platform-wide provider visibility';
+  end if;
+
+  begin
+    insert into public.marketing_services(id,code,name_ar,name_en,category_code,status)
+    values ('60000000-0000-4000-8000-000000000006','STRING-TRUE-SERVICE','خدمة غير مصرح بها','String true service','SMM','ACTIVE');
+    raise exception 'string full_control mutated the shared marketing catalogue';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into public.marketing_leads(id,requester_user_id,requester_business_id,title)
+    values ('50000000-0000-4000-8000-000000000009','30000000-0000-4000-8000-000000000018','30000000-0000-4000-8000-000000000003','String true spoofed lead');
+    raise exception 'string full_control submitted a lead for an unrelated business';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into public.marketing_provider_profiles(id,business_id,owner_user_id,name_ar,status)
+    values ('40000000-0000-4000-8000-000000000007','30000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000018','String true spoofed provider','PENDING');
+    raise exception 'string full_control attached provider profile to an unrelated business';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub',platform_admin::text,false);
+
   -- A manager cannot spoof another business as the requester of a lead.
   perform set_config('request.jwt.claim.sub',manager_a::text,false);
   begin
