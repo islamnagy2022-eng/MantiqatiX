@@ -48,7 +48,11 @@ assert.match(source, /reconciliation\.source_ledger_identity_reconciled===true/,
 assert.match(source, /reconciliation\.rc424_reconciliation\?\.exact_statement_match===true/, "RC424 reconciliation must be backed by exact ledger statement equality");
 assert.match(source, /reconciliation\.rc424_reconciliation\?\.history_rewritten===false/, "applied migration history must remain immutable");
 assert.match(source, /reconciliation\.required_release_migrations_applied===true/, "all required migrations must be proven applied");
-assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered disposable replay must pass");
+assert.match(source, /const baselineForwardReplayVerified=Boolean\(/, "reviewed baseline-forward replay must be an explicit evidence alternative");
+assert.match(source, /baselineReplay\.review_status === "APPROVED_FOR_DISPOSABLE_REPLAY"/, "baseline replay must require explicit review approval");
+assert.match(source, /baselineReplay\.checkpoint_version === reconciliation\?\.live_ledger_last_version/, "baseline checkpoint must match the live migration-ledger checkpoint");
+assert.match(source, /baselineReplay\.forward_migration_count > 0/, "baseline replay must apply at least one forward migration");
+assert.match(source, /replayEvidenceVerified/, "the release gate must accept either full chronological replay or reviewed baseline-forward replay");
 assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
 assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
