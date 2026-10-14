@@ -146,3 +146,19 @@ Implementation commit under test: `099240b92bc66b4772a01a9d0d7c24a1ba8140e3` (20
   - [MantiGO open-ride privacy](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874798), [approval-action audit atomicity](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874493), [backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874505), and [module professionalization](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874674): **PASS**.
   - [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38581874542): validation **PASS**, deploy **SKIPPED** by the release gate.
 - These are candidate migration/source and disposable-fixture results only. RC526 is **not applied to production**. The live migration ledger still needs fresh verification; the known chronological replay gaps and P0 MantiGO financial authorization risks remain release blockers. No production database, Auth configuration, Edge Function, financial records, or deployment was changed.
+
+## Exact-head CI confirmation — 2026-10-14 14:36 UTC
+
+PR #248 head verified through the GitHub API: `553a53121bc6326f9846eccb066c03cb7c261b5b`. All listed checks below completed successfully on that exact head:
+
+- [Marketing CRM tenant/business scope and RC526 PostgreSQL integration](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582069949): **PASS** (both source validator and disposable PostgreSQL integration).
+- [Migration history immutability](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582069956): **PASS**.
+- [Migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582069848): **PASS**.
+- [Open-PR migration collision guard](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582069972): **PASS**.
+- [RC462 malformed-permission PostgreSQL regression](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582070295): **PASS**.
+- [MantiGO open-ride privacy](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582070369), [approval-action audit atomicity](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582069806), [backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582070026), and [module professionalization](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582069955): **PASS**.
+- [Pages/deployment workflow](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38582069912): validation **PASS**, deployment **SKIPPED** by the release gate.
+
+The earlier failed run on commit `be9bab11bbf25792bd512c893646b7338808585a` is superseded by the corrected latest head; the failure exposed an attempted edit to the established RC452 migration and SQL fixture defects. RC452 was restored to match `main`, and the shared-catalogue change was moved into the forward-only RC526 migration. Do not count the failed run as a current-head failure, but retain it as remediation history.
+
+**Release remains BLOCKED / NOT CERTIFIED.** These passing checks validate focused source contracts and isolated PostgreSQL behavior, not production application of RC526/RC462/RC449, clean chronological migration replay, the live P0 MantiGO financial authorization findings, full tenant-isolation E2E, payments/finance E2E, Auth configuration, backup/restore rehearsal, or deployed function parity. No production changes were made.
