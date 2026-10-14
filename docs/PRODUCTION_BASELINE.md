@@ -45,3 +45,9 @@ Do not convert unknowns to PASS. A domain is not closed solely because code exis
 Verified: current main reference, production project health, migration ledger count/latest version, current Security Advisor categories, and stale continuity HEAD references.
 Open: migration source-to-ledger reconciliation; current full schema/RLS inventory; complete per-function SECURITY DEFINER review; current CI/release gate result; independent requirement-by-requirement evidence matrix.
 Next domain: schema/migration reconciliation and safe release/security boundaries, with no production mutation.
+
+
+## Addendum — migration baseline refinement (2026-10-14)
+- RC424 itself is not an unresolved SQL-content mismatch: the existing production reconciliation manifest documents an exact 7208-byte SQL statement match between the live ledger and source file, with immutable history preserved. The filename timestamp difference is treated as a legacy alias.
+- The actual open migration gap is post-RC424: required migration files RC425/RC434/RC439 were directly confirmed absent from current `main`, and the release verifier tracks a 28-file required set. Full chronological replay and required migrations being applied remain unverified/false.
+- RC434 migration patch in PR #84 and PR #202 compared identical byte-for-byte. Broader candidate PR overlap and chain replay remain open; no PR is being merged as part of this audit.
