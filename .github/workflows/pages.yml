@@ -64,6 +64,7 @@ jobs:
           node scripts/validate-booking-payment-flow.mjs
           node scripts/validate-release-preflight.mjs
           node scripts/validate-admin-workspace.mjs
+          node scripts/validate-account-ui-navigation.mjs
           node scripts/validate-rbac-workspace.mjs
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs

@@ -539,3 +539,25 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## 2026-10-16 — Latest resume point: account workspace UI
+
+- PR [#250](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/250) remains OPEN/DRAFT on `feat/account-workspace-switch-20261015`, head `0d98cbd412bf3093c243b72dc104accadeefa01c`.
+- Account UI has compact workspace rows, no displayed tenant UUID, and a dashboard entry gated by an active privileged membership. Click-time authorization refresh fails closed, disables the button while checking, reuses the existing privileged router, and restores the button in `finally`.
+- Exact-head GitHub Actions runs 38806310508, 38806310360, 38806310230 and 38806310429 all succeeded. The Pages validation job passed; the deploy job was skipped for the PR. The account navigation regression guard passed 15 checks in the CI log.
+- Authenticated browser/mobile tests remain **NOT VERIFIED**. Do not mark production certification based on these source/CI checks.
+- PR [#251](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/251) remains open and overlaps with the dashboard-entry implementation; do not merge both independently.
+- No production deployment, merge, database mutation, Auth/RLS/grant change, or payment action was performed.
+- The wider release state remains **BLOCKED / NOT CERTIFIED**; continue the migration chain, live payment/SMM parity, security configuration, cross-tenant E2E, backup/restore, and release-device evidence tasks recorded in the master TODO.
+
+
+## 2026-10-16 — Fresh production parity checkpoint
+
+- Supabase `moyhiluyhjsujhwlyeuu` is `ACTIVE_HEALTHY`; migration ledger is still at 283 migrations ending `20261008222845 / rc424_atomic_digital_page_payment_webhook`. RC425–RC440 remain unapplied in the ledger.
+- Live normal payment-intent v8 does not persist the provider order ID and returns Paymob client secret; live webhook v10's merchant-reference lookup does not compare the stored provider order ID. RC426 production parity remains NOT VERIFIED.
+- Live subscription-payment-intent v4 returns `clientSecret`; live schema lacks RC439 ciphertext/IV/key-version columns. RC439 is NOT DEPLOYED.
+- Supabase Security Advisor: leaked-password protection disabled; 40 authenticated-callable SECURITY DEFINER functions, one anonymous-callable SECURITY DEFINER function, and one RLS-enabled/no-policy table require scoped review. No blanket permission changes are authorized.
+- Live SMM gateway v12 differs from main/PR source but includes a hard launch defer, platform-scoped SUPER_ADMIN fallback, bounded body, safe endpoint validation and 15s timeout. Runtime validation and source reconciliation remain outstanding.
+- PR #84 comments 6202249306 and 6202279613 record RC431 advisory-lock comparison, the concurrent test gap, and fresh production parity blockers.
+- No production changes or payments were performed. Overall release remains BLOCKED / NOT CERTIFIED pending isolated migration replay, exact-head CI, sandbox payment E2E, security configuration/review, browser/device E2E, backup/restore and rollback evidence.
