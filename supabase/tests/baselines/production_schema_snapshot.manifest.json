@@ -1,0 +1,25 @@
+{
+  "format": "mantiqatix-production-schema-baseline/v1",
+  "review_status": "PENDING_REVIEW",
+  "purpose": "test-only bootstrap for isolated forward migration replay; not historical migration source",
+  "source_project_ref": "moyhiluyhjsujhwlyeuu",
+  "postgres_major_version": 17,
+  "capture_method": "Supabase CLI db dump; schema-only; no rows or custom roles",
+  "captured_at_utc": "2026-10-15T01:30:02.029Z",
+  "captured_from_commit": "246000b59d0804daa37394e9d2d49876bb87b3ed",
+  "workflow_run_id": "38665888010",
+  "last_applied_migration_version": "20261008222845",
+  "applied_migration_count": 283,
+  "applied_migration_versions_sha256": "0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2",
+  "schema_snapshot_sha256": "ee16d095177110de67dac57f1b9a1e67610b40a3712981e850eff17d637a67a2",
+  "schema_only": true,
+  "data_included": false,
+  "production_writes_performed": false,
+  "deployment_approved": false,
+  "notes": [
+    "This is a snapshot of the observed live schema at the recorded migration-ledger checkpoint, not a reconstruction of historical DDL.",
+    "Never place this file in supabase/migrations and never apply it to production.",
+    "Review object definitions, policies, grants, SECURITY DEFINER functions, and the manifest before changing review_status.",
+    "The snapshot must be replayed only in a disposable Supabase/PostgreSQL environment, followed by migrations newer than last_applied_migration_version."
+  ]
+}
