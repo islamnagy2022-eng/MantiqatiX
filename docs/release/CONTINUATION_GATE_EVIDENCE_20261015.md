@@ -35,3 +35,20 @@ These source files are candidates only. They must pass ordered migration-chain v
 - Preserve Supabase email OTP sign-in/verification.
 - No guessed historical DDL, fake migration history, broad RLS policies, or blanket grant changes.
 - No production migration, edge deployment, secrets/auth changes, or merge without explicit approval and completed gates.
+
+
+## Additional live-definition review (read-only; 2026-10-15)
+Targeted `pg_get_functiondef` review confirms these are not merely advisor labels; the live bodies have specific authorization patterns requiring remediation/review:
+
+- `get_mnty_targeted_advertisements(...)` is SECURITY DEFINER, executable by `anon` and `authenticated`, and uses `search_path=public, pg_temp`. Its body returns approved active advertisement creative/target URLs and uses geo targeting. Determine whether anonymous access is intentional; if public by design, use a hardened fixed/empty search path with schema-qualified references and verify no sensitive rows/fields can be returned. Do not revoke blindly before checking frontend dependency.
+- `get_mantigo_admin_dashboard_backend(uuid)` checks caller UUID equality and membership in a broad operations/admin role list, then aggregates platform-wide rides and financial ledger totals. It does not visibly constrain those totals to the caller's tenant/business scope. Require explicit platform-admin scope if the report is platform-wide, or enforce tenant/business filters.
+- `get_mantigo_admin_financial_report_backend(uuid, timestamptz, timestamptz)` similarly checks UUID equality and broad role names, then aggregates the full MantiGO financial ledger. Role name alone is not sufficient proof of platform-wide authorization.
+- `expire_stale_mantigo_rides_backend(uuid, integer)` checks UUID equality and broad membership roles, then expires all stale open rides. This is a mutation callable by authenticated; verify whether intended caller should be a narrowly scoped operations/platform admin and whether an Edge/service-only boundary is required.
+- `settle_mantigo_captain_backend(uuid, text, text)` checks UUID equality and finance/admin role names before creating a settlement and journal entries. It must require explicit authorized financial scope, strong audit integrity, and negative tests for cross-tenant/non-platform roles.
+
+These are concrete authorization review findings from current live definitions, not a claim of exploitability. RC462's candidate source should be verified against the live function definition before claiming it is deployed; current PR remains unmerged.
+
+## Follow-up priority
+P0: establish and test an explicit platform-admin authorization boundary for platform-wide dashboard/report/expiry/settlement operations; review the anonymous ad RPC search_path/grants and intended public contract.  
+P1: tenant isolation tests for CRM, payment event access, and every SECURITY DEFINER RPC accepting caller-supplied user/business/tenant IDs.  
+P2: performance advisor triage after security invariants are tested; do not perform blanket index or policy changes.
