@@ -35,13 +35,16 @@ wait "$pid2"
 
 cat /tmp/s06-concurrent-1.json
 cat /tmp/s06-concurrent-2.json
+grep -q '"payment_status": "PAID"' /tmp/s06-concurrent-1.json
+grep -q '"payment_status": "PAID"' /tmp/s06-concurrent-2.json
+grep -Eq '"idempotent": (true|false)' /tmp/s06-concurrent-1.json
+grep -Eq '"idempotent": (true|false)' /tmp/s06-concurrent-2.json
 
 docker exec "$pg_container" psql -U postgres -d "$db" -v ON_ERROR_STOP=1 -c "
 DO \$verify\$
 DECLARE
   event_count integer;
   order_status text;
-  success_count integer;
 BEGIN
   SELECT count(*) INTO event_count
   FROM public.digital_page_payment_events
@@ -49,12 +52,6 @@ BEGIN
   SELECT payment_status INTO order_status
   FROM public.digital_page_orders
   WHERE id='10000000-0000-4000-8000-000000006099';
-  SELECT count(*) INTO success_count
-  FROM (VALUES
-    (pg_read_file('/tmp/s06-concurrent-1.json')),
-    (pg_read_file('/tmp/s06-concurrent-2.json'))
-  ) AS outputs(value)
-  WHERE value LIKE '%PAID%';
   IF event_count <> 1 THEN
     RAISE EXCEPTION 'S06 concurrent duplicate expected one event, got %', event_count;
   END IF;
