@@ -1627,3 +1627,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Validation limitation:** this GitHub connector exposes no workflow-dispatch action, so I could not trigger the replay workflow on this integration branch in this execution. No successful replay is claimed. The earlier exact-head run still failed before replay because the baseline files were absent from the checkout.
 - Next: have the security reviewer inspect the exact candidate snapshot and manifest, then trigger the replay workflow on this integration branch/immutable commit. Only if approved, change the review status through the documented review process and run the disposable local replay. Never target production.
 - No production mutation, migration, merge, deployment, or payment transaction was performed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Session update — 2026-10-16 — PR #252 integration CI evidence
+
+- Opened draft PR #252 for the integration candidate; it is **open, draft, and not merged**: https://github.com/islamnagy2022-eng/MantiqatiX/pull/252
+- Exact baseline replay workflow run: [38817921303](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38817921303), tested merge checkout `952ed46730291cb868412960df5b3ad08ca8f426`.
+- The checkout now contains all three baseline artifacts; the earlier missing-file/provenance failure is no longer the observed failure.
+- Validator fail-closed tests: **10/10 passed**.
+- Baseline verification then failed closed with the exact message `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`, because the manifest intentionally remains `PENDING_REVIEW`.
+- The isolated Supabase stack and restore/replay steps were skipped. This run does **not** prove forward migrations replay successfully and produced no replay evidence artifact.
+- Additional observed CI successes on the same integration PR: Migration Version Uniqueness (run `38817921286`), Migration History Immutability (`38817921205`), Open PR Migration Collision Guard (`38817921287`), Digital Pages Payment Source Contract (`38817921328`), Marketing CRM Tenant Scope (`38817921282`), and MantiGO Platform Admin Scope Hardening (`38817921380`). Other checks were still in progress at the time of this update; do not treat the entire PR check suite as complete.
+- Static inventory of the schema-only snapshot (not a complete security review): 16,203 lines; 145 SECURITY DEFINER function definitions; 485 CREATE POLICY statements; 234 row-level-security enable/force statements; no COPY-from-stdin data payloads or obvious token-pattern matches found by the simple scanner. This inventory is triage evidence only; each privileged function, grant, policy, and object still requires semantic review.
+- No manifest review status was changed. No production migration, write, deployment, Auth/RLS change, or financial transaction was performed. PR #252 remains draft and unmerged; release remains **BLOCKED / NOT CERTIFIED**.
