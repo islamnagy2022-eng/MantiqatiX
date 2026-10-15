@@ -97,7 +97,7 @@ test("S06-18 webhook rejects oversized request bodies before signature verificat
   assert.match(webhook, /async function readBoundedJson\(req:Request,maxBytes=65536\)/);
   assert.match(webhook, /REQUEST_BODY_TOO_LARGE/);
   assert.match(webhook, /status:413/);
-  assert.ok(webhook.indexOf("readBoundedJson(req)") < webhook.indexOf("verify(obj,order,source"));
+  assert.ok(webhook.indexOf("readBoundedJson(req)") < webhook.indexOf("if(!(await verify(obj,order,source"));
   assert.doesNotMatch(webhook, /const raw=await req\.json\(\)/);
 });
 
