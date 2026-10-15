@@ -93,6 +93,14 @@ test("S06-16 replay idempotency and ownership are decided by atomic RPCs, not un
   assert.match(webhook, /process_verified_digital_page_payment_backend/);
 });
 
+test("S06-18 webhook rejects oversized request bodies before signature verification", () => {
+  assert.match(webhook, /async function readBoundedJson\(req:Request,maxBytes=65536\)/);
+  assert.match(webhook, /REQUEST_BODY_TOO_LARGE/);
+  assert.match(webhook, /status:413/);
+  assert.ok(webhook.indexOf("readBoundedJson(req)") < webhook.indexOf("verify(obj,order,source"));
+  assert.doesNotMatch(webhook, /const raw=await req\.json\(\)/);
+});
+
 test("S06-17 merchant reference must match the resolved entity even when provider-order lookup succeeds", () => {
   assert.match(webhook, /SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH/);
   assert.match(webhook, /DIGITAL_PAGE_MERCHANT_REFERENCE_MISMATCH/);
