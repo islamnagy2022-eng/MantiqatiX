@@ -1578,3 +1578,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] NOT VERIFIED: no workflow run has yet exercised the new preflight. Do not treat this as a successful connection or schema capture.
 - [ ] BLOCKED: correct `SUPABASE_DB_URL` in GitHub repository Secrets locally, using the URI copied from Supabase Connect for the selected connection mode. Never paste the real URI/password into chat.
 - **Safety:** no production SQL writes, role changes, password reset, migrations, deployment, or merge occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Session update — 2026-10-15 — Supabase CLI installer rate-limit mitigation
+- [x] Inspected the latest isolated replay run [38663014381](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38663014381). It failed before any baseline tests or database replay because `supabase/setup-cli@v1` could not resolve `latest` after a GitHub API rate limit (`Failed to resolve latest Supabase CLI release: rate limit exceeded`). This is an installer-resolution failure, not evidence about the baseline itself.
+- [x] Updated the two recovery workflows to `supabase/setup-cli@v3`, whose release notes document npm-based CLI installation and support for `latest`, to avoid the old GitHub-release lookup path.
+- [x] Workflow commits: replay `d6a4792e11e5b2d0c6d1901b0a6393b1960e7c05`; capture `0cef596e85c5880f4c5fecb447fd7df73c07514c`.
+- [ ] NOT VERIFIED: these changes need a new workflow run; no successful CLI installation/replay/capture is claimed.
+- **Safety:** no production DB writes, migrations, grants/RLS/Auth changes, secret edits, deployments, or PR merge performed. Release remains BLOCKED / NOT CERTIFIED.
