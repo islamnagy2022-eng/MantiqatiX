@@ -1640,3 +1640,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Additional observed CI successes on the same integration PR: Migration Version Uniqueness (run `38817921286`), Migration History Immutability (`38817921205`), Open PR Migration Collision Guard (`38817921287`), Digital Pages Payment Source Contract (`38817921328`), Marketing CRM Tenant Scope (`38817921282`), and MantiGO Platform Admin Scope Hardening (`38817921380`). Other checks were still in progress at the time of this update; do not treat the entire PR check suite as complete.
 - Static inventory of the schema-only snapshot (not a complete security review): 16,203 lines; 145 SECURITY DEFINER function definitions; 485 CREATE POLICY statements; 234 row-level-security enable/force statements; no COPY-from-stdin data payloads or obvious token-pattern matches found by the simple scanner. This inventory is triage evidence only; each privileged function, grant, policy, and object still requires semantic review.
 - No manifest review status was changed. No production migration, write, deployment, Auth/RLS change, or financial transaction was performed. PR #252 remains draft and unmerged; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Static audit correction — SECURITY DEFINER counting method
+
+- Correction to the quick inventory above: the first broad text scan counted comments containing the phrase `SECURITY DEFINER`. A stricter scan limited to function language declarations finds **136 actual SECURITY DEFINER function definitions**, not 145.
+- All 136 have an explicit function-level `SET search_path` in the captured SQL. Distribution: empty search path 23; `public` 85; `public, pg_temp` 25; `pg_catalog, public` 1; `public, vault` 2.
+- This is still not a semantic security approval. In particular, functions whose path includes `public`, `pg_temp`, or `vault` need contextual review of schema trust, object qualification, grants, and function behavior. The static scan cannot prove that each function is safe.
