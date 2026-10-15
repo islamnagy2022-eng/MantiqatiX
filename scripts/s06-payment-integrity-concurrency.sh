@@ -37,8 +37,10 @@ cat /tmp/s06-concurrent-1.json
 cat /tmp/s06-concurrent-2.json
 grep -q '"payment_status": "PAID"' /tmp/s06-concurrent-1.json
 grep -q '"payment_status": "PAID"' /tmp/s06-concurrent-2.json
-grep -Eq '"idempotent": (true|false)' /tmp/s06-concurrent-1.json
-grep -Eq '"idempotent": (true|false)' /tmp/s06-concurrent-2.json
+true_count="$(grep -h -o '"idempotent": true' /tmp/s06-concurrent-1.json /tmp/s06-concurrent-2.json | wc -l)"
+false_count="$(grep -h -o '"idempotent": false' /tmp/s06-concurrent-1.json /tmp/s06-concurrent-2.json | wc -l)"
+test "$true_count" -eq 1
+test "$false_count" -eq 1
 
 docker exec "$pg_container" psql -U postgres -d "$db" -v ON_ERROR_STOP=1 -c "
 DO \$verify\$
