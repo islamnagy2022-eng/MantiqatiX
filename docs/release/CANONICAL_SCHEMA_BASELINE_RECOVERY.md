@@ -74,3 +74,7 @@ The capture workflow is being corrected to check out `main` into a separate `bas
 The Draft PR action will use `path: baseline-pr` and `base: main`, keeping the workflow edits and recovery branch history out of the baseline-only PR. This avoids asking for broader workflow permissions. The snapshot remains pending review and must not be applied to production.
 
 **Current status:** capture output was generated and validated in run 38629754240, but the artifact was not pushed to a PR by that run. The corrected workflow must be manually dispatched and its new run must prove that the baseline-only Draft PR is created. The baseline still requires human security review and disposable forward replay; production remains **BLOCKED / NOT CERTIFIED**.
+
+## Trigger note — recovery branch workflow dispatch
+
+GitHub only exposes the manual `workflow_dispatch` button when the workflow definition is present on the repository default branch. This recovery workflow is intentionally being developed on the recovery branch, so the button may not appear in the Actions UI. For the approved one-time read-only capture, a documentation-only commit with the exact marker `[capture-schema-baseline]` on the configured recovery branch triggers the same guarded capture job. This trigger does not apply migrations or write to production; it reads the migration ledger and schema only, validates the snapshot, and attempts to open a Draft PR containing only the baseline snapshot and manifest.
