@@ -73,6 +73,9 @@ $test$;
 -- ledger row, then observes the committed claim and must lose.
 create extension if not exists dblink;
 
+insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
+values('52600000-0000-4000-8000-000000000003','ride-rc526-concurrent','52600000-0000-4000-8000-000000000004',125,'REQUIRED','{}'::jsonb);
+
 do $concurrency$
 declare
   v_ledger uuid := '52600000-0000-4000-8000-000000000003';
@@ -80,8 +83,6 @@ declare
   v_second boolean;
   v_sent integer;
 begin
-  insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
-  values(v_ledger,'ride-rc526-concurrent','52600000-0000-4000-8000-000000000004',125,'REQUIRED','{}'::jsonb);
 
   perform public.dblink_connect('rc526_claim_a','dbname=' || current_database());
   perform public.dblink_connect('rc526_claim_b','dbname=' || current_database());
