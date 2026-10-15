@@ -62,3 +62,15 @@ The capture/replay automation and fail-closed production-gate fallback have been
 The previous statement that SUPABASE_DB_URL was absent is superseded by the latest Actions evidence. Run [38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) confirms the secret was present and non-empty. The failure occurred when connecting to `aws-0-us-east-2.pooler.supabase.com:5432`, with `FATAL: (ENOTIDENTIFIER) no tenant identifier provided`; the dump and manifest steps were skipped. This points to a pooler URI/username tenant-format problem, but the masked secret has not been inspected, and the exact root cause is not yet proven.
 
 Do not paste the connection URI or password into chat. The direct-connection template shared during troubleshooting still contains `[YOUR-PASSWORD]` and is not a valid credential. Do not rerun the capture until the correct connection mode and username are confirmed. The limited reader role also needs its migration-ledger access and effective read-only grants resolved before automation use. No production write or migration was performed; release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-15 baseline capture and PR permission correction
+
+The latest capture run [38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) successfully installed the Supabase CLI, read the migration ledger and PostgreSQL version, dumped schema definitions only, and passed the snapshot/provenance validator. No production writes or migrations were performed. The final Draft-PR step failed because the GitHub Actions token was asked to push a branch whose tree included a workflow-file change relative to the repository default branch; the token does not have the required workflow permission.
+
+The capture workflow is being corrected to check out `main` into a separate `baseline-pr/` worktree and copy only these two generated files into that isolated tree:
+- `supabase/tests/baselines/production_schema_snapshot.sql`
+- `supabase/tests/baselines/production_schema_snapshot.manifest.json`
+
+The Draft PR action will use `path: baseline-pr` and `base: main`, keeping the workflow edits and recovery branch history out of the baseline-only PR. This avoids asking for broader workflow permissions. The snapshot remains pending review and must not be applied to production.
+
+**Current status:** capture output was generated and validated in run 38629754240, but the artifact was not pushed to a PR by that run. The corrected workflow must be manually dispatched and its new run must prove that the baseline-only Draft PR is created. The baseline still requires human security review and disposable forward replay; production remains **BLOCKED / NOT CERTIFIED**.
