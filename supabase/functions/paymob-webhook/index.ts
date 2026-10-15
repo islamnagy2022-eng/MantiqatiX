@@ -7,10 +7,33 @@ const json=(body:unknown,status=200,requestId="")=>new Response(JSON.stringify(b
 const value=(v:unknown)=>v===null||v===undefined?"":typeof v==="boolean"?(v?"true":"false"):String(v)
 async function hmacSha512Hex(secret:string,input:string){const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-512"},false,["sign"]);const sig=await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(input));return [...new Uint8Array(sig)].map(b=>b.toString(16).padStart(2,"0")).join("")}
 function safeEqual(a:string,b:string){if(a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0}
+async function readBoundedJson(req:Request,maxBytes=65536):Promise<{ok:true;value:Record<string,unknown>}|{ok:false;status:400|413;error:"INVALID_JSON"|"REQUEST_BODY_TOO_LARGE"}>{
+ const reader=req.body?.getReader()
+ if(!reader)return {ok:false,status:400,error:"INVALID_JSON"}
+ const chunks:Uint8Array[]=[]
+ let total=0
+ try{
+  while(true){
+   const part=await reader.read()
+   if(part.done)break
+   total+=part.value.byteLength
+   if(total>maxBytes){await reader.cancel();return {ok:false,status:413,error:"REQUEST_BODY_TOO_LARGE"}}
+   chunks.push(part.value)
+  }
+ }finally{reader.releaseLock()}
+ const bytes=new Uint8Array(total)
+ let offset=0
+ for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength}
+ try{
+  const parsed=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes))
+  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))return {ok:false,status:400,error:"INVALID_JSON"}
+  return {ok:true,value:parsed as Record<string,unknown>}
+ }catch{return {ok:false,status:400,error:"INVALID_JSON"}}
+}
 async function verify(obj:Record<string,unknown>,order:Record<string,unknown>,source:Record<string,unknown>,supplied:string){if(!HMAC_SECRET||!supplied)return false;const plain=[obj.amount_cents,obj.created_at,obj.currency,obj.error_occured,obj.has_parent_transaction,obj.id,obj.integration_id,obj.is_3d_secure,obj.is_auth,obj.is_capture,obj.is_refunded,obj.is_standalone_payment,obj.is_voided,order.id,obj.owner,obj.pending,source.pan,source.sub_type,source.type,obj.success].map(value).join("");return safeEqual((await hmacSha512Hex(HMAC_SECRET,plain)).toLowerCase(),supplied.toLowerCase())}
 Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.randomUUID();try{
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED",requestId},405,requestId);if(!HMAC_SECRET)return json({error:"PAYMENT_CALLBACK_NOT_CONFIGURED",requestId},503,requestId)
- const raw=await req.json().catch(()=>null) as Record<string,unknown>|null;if(!raw)return json({error:"INVALID_JSON",requestId},400,requestId)
+ const parsedBody=await readBoundedJson(req);if(!parsedBody.ok)return json({error:parsedBody.error,requestId},parsedBody.status,requestId);const raw=parsedBody.value
  const obj=(raw.obj&&typeof raw.obj==="object"?raw.obj:raw) as Record<string,unknown>;const order=(obj.order&&typeof obj.order==="object"?obj.order:{}) as Record<string,unknown>;const source=(obj.source_data&&typeof obj.source_data==="object"?obj.source_data:{}) as Record<string,unknown>
  if(!(await verify(obj,order,source,value(raw.hmac??obj.hmac))))return json({error:"INVALID_PROVIDER_SIGNATURE",requestId},401,requestId)
  const eventId=`paymob:${value(obj.id)}`;const merchantRef=value(order.merchant_order_id);const paymobOrderId=value(order.id);const amount=Number(obj.amount_cents??0)/100;const currency=value(obj.currency).toUpperCase();const success=obj.success===true||value(obj.success).toLowerCase()==="true"
