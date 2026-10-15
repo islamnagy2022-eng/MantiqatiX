@@ -5,6 +5,7 @@ on:
     paths:
       - 'supabase/tests/s06_payment_integrity_regression.sql'
       - 'tests/s06-payment-integrity.test.mjs'
+      - 'scripts/s06-payment-integrity-concurrency.sh'
       - 'supabase/functions/paymob-webhook/**'
       - 'supabase/functions/digital-page-payment-intent/**'
       - '.github/workflows/s06-payment-integrity.yml'
@@ -66,3 +67,11 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+
+      - name: Run concurrent duplicate callback regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          bash scripts/s06-payment-integrity-concurrency.sh "$pg_container"
