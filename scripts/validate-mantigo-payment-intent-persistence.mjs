@@ -30,5 +30,6 @@ check("unconfirmed provider response retains claim and blocks blind retry", sour
 check("finalization RPC compares claim token and REQUIRED state inside PostgreSQL", finalizeIndex >= 0 && migration.includes("metadata -> 'paymob_intent_claim' ->> 'token' = p_claim_token") && migration.includes("payment_status = 'REQUIRED'"));
 check("database error or unsuccessful finalization prevents checkout secret delivery", persistenceFailureIndex >= 0 && persistenceLostIndex >= 0 && persistenceLostIndex < checkoutResponseIndex && persistenceFailureIndex < checkoutResponseIndex);
 check("integration tests prove one claim winner, wrong-token rejection and finalization recovery", integration.includes("RC526_CLAIM_MUST_ALLOW_ONLY_ONE_WINNER") && integration.includes("RC526_WRONG_CLAIM_MUST_NOT_FINALIZE") && integration.includes("RC526_FINALIZED_LEDGER_CONTRACT_MISMATCH"));
+check("integration tests exercise claim races through two independent PostgreSQL sessions", integration.includes("dblink_send_query") && integration.includes("RC526_CONCURRENT_CLAIM_MUST_HAVE_EXACTLY_ONE_WINNER"));
 check("edge function does not directly mutate the financial ledger", !source.includes('.from("mantigo_financial_ledger").update('));
 console.log("MantiGO payment-intent persistence safety: PASS (static contract plus disposable SQL integration tests; live Paymob E2E remains separate).");
