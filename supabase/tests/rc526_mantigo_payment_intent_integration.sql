@@ -67,4 +67,59 @@ begin
 end
 $test$;
 
-select 'RC526 MantiGO payment-intent claim/finalize integration: PASS' as result;
+
+-- Prove claim exclusivity with two independent PostgreSQL sessions.
+-- Session A keeps its transaction open after claiming; session B blocks on the same
+-- ledger row, then observes the committed claim and must lose.
+create extension if not exists dblink;
+
+do $concurrency$
+declare
+  v_ledger uuid := '52600000-0000-4000-8000-000000000003';
+  v_first boolean;
+  v_second boolean;
+  v_sent integer;
+begin
+  insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
+  values(v_ledger,'ride-rc526-concurrent','52600000-0000-4000-8000-000000000004',125,'REQUIRED','{}'::jsonb);
+
+  perform public.dblink_connect('rc526_claim_a','dbname=' || current_database());
+  perform public.dblink_connect('rc526_claim_b','dbname=' || current_database());
+  perform public.dblink_exec('rc526_claim_a','begin');
+  perform public.dblink_exec('rc526_claim_b','begin');
+
+  select claimed into v_first
+  from public.dblink(
+    'rc526_claim_a',
+    format('select public.claim_mantigo_payment_intent_backend(%L::uuid,%L::text)',v_ledger::text,'concurrent-token-a')
+  ) as result(claimed boolean);
+
+  if v_first is not true then
+    raise exception 'RC526_CONCURRENT_CLAIM_FIRST_SESSION_MUST_WIN';
+  end if;
+
+  select public.dblink_send_query(
+    'rc526_claim_b',
+    format('select public.claim_mantigo_payment_intent_backend(%L::uuid,%L::text)',v_ledger::text,'concurrent-token-b')
+  ) into v_sent;
+  if v_sent <> 1 then
+    raise exception 'RC526_CONCURRENT_CLAIM_SECOND_SESSION_DID_NOT_START';
+  end if;
+
+  -- The second session is blocked on the row lock until session A commits.
+  perform public.dblink_exec('rc526_claim_a','commit');
+
+  select claimed into v_second
+  from public.dblink_get_result('rc526_claim_b') as result(claimed boolean);
+
+  perform public.dblink_exec('rc526_claim_b','commit');
+  perform public.dblink_disconnect('rc526_claim_a');
+  perform public.dblink_disconnect('rc526_claim_b');
+
+  if v_second is not false then
+    raise exception 'RC526_CONCURRENT_CLAIM_MUST_HAVE_EXACTLY_ONE_WINNER';
+  end if;
+end
+$concurrency$;
+
+select 'RC526 MantiGO payment-intent concurrent claim/finalize integration: PASS' as result;
