@@ -21,3 +21,15 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-15 — SESSION-002 — Read-only baseline capture connection diagnosis
+
+- **Verified:** GitHub Actions run [38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) reaches the configured Supabase Session Pooler host `aws-0-us-east-2.pooler.supabase.com:5432`; the capture step fails with PostgreSQL `FATAL: (ENOTIDENTIFIER) no tenant identifier provided`. Later schema dump/validation/PR steps were skipped; no baseline artifact was created.
+- **Verified:** The repository secret `SUPABASE_DB_URL` exists and is non-empty at workflow runtime; the earlier assumption that the secret was absent is superseded. The secret value itself is masked and was not inspected or shared in chat.
+- **Inference, not yet verified:** The pooler error is consistent with a pooler username/tenant format mismatch (expected project-qualified pooler username such as `postgres.moyhiluyhjsujhwlyeuu`) or a malformed connection URI. Do not assume this is the only issue until the connection is tested safely.
+- **Verified:** User shared a template direct URI containing `[YOUR-PASSWORD]`; this is a placeholder and is not a usable credential. Do not put it into GitHub Secrets.
+- **Action performed:** Reviewed current workflow and job logs. Confirmed capture queries are read-only and subsequent steps are skipped on failure. No workflow rerun was started.
+- **Not performed:** No production DDL/data change, GRANT/REVOKE/ALTER ROLE, password reset, Edge Function deployment, PR merge, migration execution, or release certification.
+- **Next safe action:** Use Supabase Connect to copy the correct URI for the intended connection mode; validate that the username matches that mode. Before using the limited reader role, resolve its missing `supabase_migrations` USAGE/SELECT permissions and ensure its effective privileges are read-only (current PUBLIC grants on `net._http_response` and `net.http_request_queue` make it unsuitable for automation until assessed). Do not expose passwords in chat.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
