@@ -1559,3 +1559,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Session update — 2026-10-16 — Baseline replay gate recheck
+
+- **PR #249 head at inspection:** `90a3d743adb3ac3b55c634d92bb0a9d39c9af5ad`; PR remains open and Draft. The independent migration-version file is present at `supabase/tests/baselines/production_schema_migration_versions.txt`.
+- **Ledger evidence:** manifest records 283 applied versions, checkpoint `20261008222845`, and SHA-256 `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`. Prior evidence says 283/283 ordered versions matched the live ledger with zero positional differences. This is historical read-only evidence, not a new live query in this session.
+- **Manifest:** `review_status` remains `PENDING_REVIEW`; `deployment_approved` is false. Do not change either value without human security review.
+- **Replay workflow evidence:** run [38806150939](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38806150939) failed at “Verify baseline provenance and explicit review” with `BASELINE_BLOCKED: snapshot or provenance manifest is missing`. The disposable stack creation and replay steps were skipped. The validator’s 10 fail-closed contract tests passed.
+- **Root-cause assessment:** the failed run is associated with PR #248’s source-recovery branch, while the baseline snapshot/manifest are supplied by the separate PR #249 branch. The replay job checkout therefore did not contain the baseline files at that tested revision. This is a branch/integration dependency, not evidence that the snapshot itself failed replay.
+- **Next safe action:** make the replay workflow consume a reviewed baseline from an explicit immutable commit/ref, or run the replay from a dedicated integration branch containing both candidate source and baseline files. Preserve the pending review gate; do not mark approved merely to make CI green.
+- **No production mutation, migration, merge, deployment, or financial transaction was performed. Release remains BLOCKED / NOT CERTIFIED.**
