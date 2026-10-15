@@ -21,3 +21,52 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-13 — SESSION-002 — Exact-head release evidence refresh
+
+- **Baseline used for this documentation branch:** `8a56358d505d2c12878440037f7f24ba65d2ea10` (parent of documentation-only branch `docs/production-evidence-refresh-20261013`).
+- **Rechecked PR heads:** #207 `854935bf0bdd524bb7bf28453a7c34253c731e71`; #220 `9abe223bbca6bdd861109883fd581eb2125d6948`; #221 `91fcf6b1578e71b2a0c86e1a39d5f8cb448ce97f`; #235 `2fc3227c063361d1d963e00be6d33802a400ae04`; #236 `70b2ea3e75c68c27272566ab59ed671f659804a4`; #237 `0f0d12ff56195031e36ebd73a17732876f8b4f8d`; #238 `84926bd6462f417fb37d8ba3045596f50f7e88d4`.
+- **Verified CI:** #207 migration replay failed [38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600); #220 isolated payment regressions passed [38357928701](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928701), while clean replay failed [38357928636](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928636); #221 SMM deferred contract passed [38342839169](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38342839169); #237 concurrent callback test passed [38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421); #238 docs/boundary/Pages PR checks passed [38404753733](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404753733).
+- **Not verified:** exact-head CI for #236 was not returned by the current Actions lookup; no production application of RC524; no real Paymob E2E; no production deployment implied by PR Pages validation.
+- **Action performed:** prepared evidence-only updates for `TODO_PRODUCTION.md`, `docs/TODO_MASTER_DEVELOPMENT.md`, and this append-only session log on a dedicated documentation branch. No source/migration/production mutation.
+- **Blockers preserved:** authoritative historical schema gaps, migration chain replay, tenant/auth E2E, Paymob/finance E2E, managed Auth setting, backup/restore/rollback, browser/PWA/device and signed Android evidence.
+- **Next action:** use authoritative migration/archive/live-schema provenance to repair the clean-replay prerequisites; do not synthesize missing DDL. Then rerun clean replay and exact-head tests, review the smallest independently deployable source changes, and obtain explicit approval before production rollout.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-003 — Exact-head CI correction
+
+- Corrected the earlier incomplete PR #236 Actions lookup: exact-head run [38400580077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400580077) passed the SMM service-role ACL boundary at `70b2ea3e75c68c27272566ab59ed671f659804a4`, event `push`; scope is disposable PostgreSQL only.
+- Verified PR #239 exact-head runs: Pages [38406024136](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406024136) validation passed and deploy was skipped; backend boundary [38406023940](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406023940), module validation [38406024107](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406024107), and MantiGO privacy [38406023924](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406023924) passed.
+- Reconfirmed the historical migration source gap: the tracked migration tree is not a complete reproduction of live history, and authoritative creation DDL for `marketing_project_participants` was not recovered. No guessed DDL or baseline added.
+- No production deployment, production DDL/ACL change, merge, live payment, or SMM provider call performed. Release remains **BLOCKED / NOT CERTIFIED**.
+- Next action: recover authoritative historical schema provenance or obtain explicit narrowly scoped approval for a disposable-only baseline; then rerun full chronological replay and keep production blocked until all live gates pass.
+
+
+## 2026-10-13 — SESSION-004 — Read-only marketing schema evidence
+
+- Read the live catalog for `public.marketing_project_participants` in Supabase project `moyhiluyhjsujhwlyeuu` without selecting business rows or mutating the database.
+- Catalog evidence recorded in `TODO_PRODUCTION.md`: eight columns, PK/unique/check/FK constraints, provider index, RLS enabled+forced, current assigned-provider SELECT policy, and three restrictive authenticated-only policies.
+- This verifies current shape, not historical creation provenance or original policy timeline. The replay branch remains fail-closed; no fixture, production DDL, grants, data, merge, deployment, or provider/payment call was applied.
+- Added evidence clarification to PR #235 conversation. Next decision gate: either supply authoritative historical migration/archive source, or explicitly approve a clearly labeled **disposable-CI-only** live-derived compatibility fixture. Even if approved, production remains blocked until full chronological replay passes.
+- PR #239 exact-head workflows for commit `65ad27f48143b19fb0e034896cc6c053684258b3` all completed successfully: Pages validation [38406976891](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406976891) with deploy skipped for pull_request event; Backend-only Module Boundary [38406976456](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406976456); Module Professionalization [38406977987](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406977987); MantiGO privacy [38406978137](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406978137). Corresponding push-triggered runs also passed. These are validation checks, not production deployment evidence.
+- Release state remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-005 — Current-head CI and replay failure confirmation
+
+- Rechecked PR #239 head `1a8ae62c73f96ef0bdb1c531bae992a9b1ce4cec`. MantiGO privacy [38407873435](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407873435), Module Professionalization [38407871975](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407871975), and Backend-only Module Boundary [38407872230](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407872230) passed. Pages validation [38407871986](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407871986) passed while deploy was skipped for the pull_request event; no deployment is claimed.
+- Inspected failed replay job logs for [run 38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600): after applying migration `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`, statement 29 fails with SQLSTATE `42P01` because `public.marketing_project_participants` is missing when policy `Providers view assigned projects` is altered. Post-failure ledger/final verification steps were skipped.
+- This narrows the immediate failure but does not recover historical creation DDL. Current live catalog cannot be treated as proof of historical schema provenance. No guessed DDL or fixture added; PR #235 remains fail-closed pending authoritative provenance or explicit approval for a disposable-CI-only fixture.
+- No production mutation, merge, deployment, live payment, or SMM provider call. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-13 — SESSION-006 — Ledger mismatch guardrail and exact-head CI
+
+- Added `docs/RC52_MIGRATION_LEDGER_RECONCILIATION_DECISION_20261013.md` on the documentation branch. It records that live ledger version `20260927140545` and tracked file version `20260927140500` are a verified discrepancy, but migration name similarity is not proof of deployed SQL equivalence.
+- Rechecked the rename experiment PR #240. Exact-head [Migration History Immutability run 38408794930](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38408794930) failed as designed because `--no-renames` represents a historical rename as deletion plus addition. Closed PR #240 unmerged; did not bypass the guard.
+- Rechecked documentation PR #239 latest head `fed8398cd2a8d1438af7cf8f6fbbaacee8881784`: [Backend-only Module Boundary 38409204661](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38409204661), [MantiGO Open Ride Privacy Boundary 38409204329](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38409204329), and [Module Professionalization Validation 38409204559](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38409204559) passed. [Pages workflow 38409204570](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38409204570) validation passed and deploy was skipped because this is a pull_request event. These checks do not prove production deployment.
+- Repeated source search across main and likely marketing/replay branches did not find an authoritative `CREATE TABLE public.marketing_project_participants` migration or approved baseline fixture. The known live catalog is still current-state evidence only.
+- Next action: recover the applied SQL/checksum from an authoritative migration artifact or backup, and independently recover the table's historical creation DDL/order. Preserve historical source, do not duplicate the migration under the live version, do not mutate the live ledger, and do not create a live-derived fixture without explicit approval. Rerun full chronological disposable replay once provenance is resolved.
+- No production schema/data/grants/secrets, payment, SMM provider call, merge to `main`, or production deployment was performed. **Release remains BLOCKED — NOT PRODUCTION CERTIFIED.**

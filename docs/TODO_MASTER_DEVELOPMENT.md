@@ -789,3 +789,8 @@ Account → Own Business → Menu Plan → Order → Payment → Fulfillment →
 3. Add Menu public content model/section generation and QR/share.
 4. Close service-detail route.
 5. Continue release gates: payment E2E → storage E2E → backup/restore → rollback → browser regression → security → production certification.
+
+
+# SESSION CHECKPOINT — 2026-10-13
+
+Current continuation branch: `docs/production-evidence-refresh-20261013`, based on `8a56358d505d2c12878440037f7f24ba65d2ea10`. Exact-head review found the clean migration replay still failing on PR #207 (run [38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600)) and PR #220 (run [38357928636](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928636)). Isolated S06 payment tests passed on #220 and #237, but do not certify live payment processing. PR #236 exact-head CI was not returned by the current lookup. Production remains BLOCKED / NOT CERTIFIED. See `TODO_PRODUCTION.md` and `docs/SESSION_LOG.md` for the complete evidence map, exact SHAs, links, safety boundaries, and next executable step.

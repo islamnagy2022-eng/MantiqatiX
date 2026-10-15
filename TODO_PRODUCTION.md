@@ -421,3 +421,64 @@
 - [🟢] Public footer dead-end links fixed: About, Terms and Privacy now open real in-app information dialogs instead of `href="#"` no-op anchors.
 - [🟢] Dialog accessibility implemented: `role="dialog"`, `aria-modal`, labelled heading, Escape close, backdrop close and initial focus.
 - [🟡] CI for RC314 remains pending/in progress at documentation time; no production gate was marked closed from this UI change alone.
+
+
+## Evidence refresh — 2026-10-13 (read-only GitHub verification)
+
+This checkpoint supplements, and does not erase, earlier records. PR heads and exact-head Actions runs were inspected.
+
+### Current PR evidence
+
+- PR #207 head `854935bf0bdd524bb7bf28453a7c34253c731e71`: multiple validation jobs passed, but **Disposable Supabase Migration Chain Replay failed**: [run 38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600). Clean rebuild remains BLOCKED.
+- PR #220 head `9abe223bbca6bdd861109883fd581eb2125d6948`: **S06 Payment Integrity Regressions passed** in [run 38357928701](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928701); **S04 Migration Chain Clean Replay failed** in [run 38357928636](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38357928636). Payment regression PASS is limited to the isolated suite.
+- PR #221 head `91fcf6b1578e71b2a0c86e1a39d5f8cb448ce97f`: S07 deferred-launch contract passed in [run 38342839169](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38342839169). SMM stays deferred; no provider execution is authorized.
+- PR #235 head `2fc3227c063361d1d963e00be6d33802a400ae04`: open Draft, reported non-mergeable. The historical `marketing_project_participants` baseline is missing; fail-closed preflight is a diagnostic guard, not a schema repair.
+- PR #236 head `70b2ea3e75c68c27272566ab59ed671f659804a4`: open Draft. The exact-head Actions lookup returned no workflow runs, so current-head CI is **NOT VERIFIED** from this lookup. Earlier isolated evidence does not prove live ACL changes.
+- PR #237 head `0f0d12ff56195031e36ebd73a17732876f8b4f8d`: concurrent duplicate callback test passed in [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421). This is disposable PostgreSQL evidence, not a live Paymob transaction.
+- PR #238 head `84926bd6462f417fb37d8ba3045596f50f7e88d4`: documentation validation, backend boundary, ride privacy boundary and Pages workflow checks passed in [run 38404753733](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404753733). This PR remains open Draft; a PR Pages workflow is not proof of a production deployment.
+- PR #233 is a blocked filename-rename experiment; do not merge.
+- PR #234 is superseded/blocked clean-replay normalization; do not use as final acceptance evidence or merge.
+
+### Production decision and next action
+
+- Production remains **BLOCKED — NOT PRODUCTION CERTIFIED**.
+- No production migration, grant, live data, secret, payment, SMM provider call, merge to `main`, or production deployment was performed by this evidence refresh.
+- Do not apply RC524 or other source-only migrations until exact-head tests, independent review, migration ordering, live-ledger compatibility and rollback are approved.
+- Immediate technical blocker: recover/verify authoritative historical schema provenance for missing tables (including `marketing_project_participants` and `smm_provider_credentials`), reconcile migration ledger versus source by content hash, then rerun the disposable full replay without speculative DDL.
+- External P0 gates remain open: multi-user/tenant E2E, customer/provider/order/notification E2E, authorized Paymob production test, refunds/settlement/GL reconciliation, Auth leaked-password protection, browser/device/PWA, backup/restore/rollback and Android signed-device testing.
+
+
+## Correction — exact-head Actions and schema provenance (2026-10-13)
+
+- PR #239 head `e17de08a58ce3cdb9942b2b8df972c4b1feec755`: Pages validation run [38406024136](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406024136) passed, but the `deploy` job was **SKIPPED** because this was a `pull_request` event. This is not a production deployment. Backend-only Module Boundary [38406023940](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406023940), Module Professionalization [38406024107](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406024107), and MantiGO privacy boundary [38406023924](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38406023924) passed on the same head.
+- Correction to the earlier “not returned” note for PR #236: direct Actions API query by exact SHA found [run 38400580077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38400580077), SMM Service Role Access Boundary **PASS** at `70b2ea3e75c68c27272566ab59ed671f659804a4` (event `push`). It applies RC456/RC524 only in disposable PostgreSQL fixtures; it does not establish production ACL changes or full migration-chain success.
+- Schema provenance remains unresolved: the repository's [RC51 drift record](https://github.com/islamnagy2022-eng/MantiqatiX/blob/8a56358d505d2c12878440037f7f24ba65d2ea10/docs/RC51_LIVE_MIGRATION_DRIFT_VERIFICATION.md) explicitly says the tracked migration tree is not a complete reproduction of live history. PR #235 records that source/archive/history search did not recover creation DDL for `marketing_project_participants`. No speculative DDL or baseline was added.
+- Release remains **BLOCKED — NOT PRODUCTION CERTIFIED**. No merge to `main`, production deployment, production schema/ACL change, live payment, or SMM provider call was performed by this checkpoint.
+
+
+## Read-only live schema evidence — 2026-10-13
+
+- Queried Supabase project `moyhiluyhjsujhwlyeuu` using read-only catalog queries only; no application rows were selected and no schema/data/grants were changed.
+- Live `public.marketing_project_participants` shape: columns `id uuid default gen_random_uuid()`, `project_id uuid`, `provider_id uuid`, `role varchar`, nullable `allocation_percent numeric`, `agreed_value numeric default 0`, `status varchar default 'ACTIVE'`, `created_at timestamptz default now()`; primary key; unique `(project_id, provider_id, role)`; checks for allocation 0–100, agreed value >= 0, role in MANAGER/EXECUTOR/SPECIALIST/REFERRER, status in ACTIVE/COMPLETED/REMOVED; FKs to `marketing_projects(id) ON DELETE CASCADE` and `marketing_provider_profiles(id) ON DELETE RESTRICT`; provider index; RLS enabled and forced.
+- Current catalog policies include `Providers view assigned projects` plus three restrictive authenticated-only policies. The historical source/ordering for those policies is not established by a current catalog snapshot.
+- Decision: **do not** convert the live shape into a replay fixture yet. Current live schema is useful evidence but not historical migration provenance, and the earlier PR explicitly required separate approval for a disposable-only fixture. Keep the fail-closed replay guard. No speculative migration or baseline was committed.
+
+
+## 2026-10-13 — SESSION-005 — Current-head CI and replay failure confirmation
+
+- Rechecked PR #239 head `1a8ae62c73f96ef0bdb1c531bae992a9b1ce4cec`. Exact-head PR checks completed successfully: MantiGO Open Ride Privacy Boundary [38407873435](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407873435), Module Professionalization Validation [38407871975](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407871975), and Backend-only Module Boundary [38407872230](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407872230). Pages validation [38407871986](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38407871986) passed, but its `deploy` job was skipped for the pull-request event; this is not deployment evidence.
+- Re-read the failed clean replay job log from [run 38404099600](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38404099600). It applies migrations through `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`, then fails at statement 29 with SQLSTATE `42P01`: relation `public.marketing_project_participants` does not exist, at `alter policy "Providers view assigned projects" ... to authenticated`. The ledger-record and final verification steps are skipped after failure.
+- This confirms the immediate replay failure location, but does not establish the missing table's authoritative historical DDL. The live catalog remains evidence of current state only. Keep PR #235 fail-closed; do not invent a migration or add a live-derived disposable fixture without explicit user approval.
+- No production DDL/grants/data, secrets, payments, SMM provider calls, merge to `main`, or production deployment was performed. Release remains **BLOCKED — NOT PRODUCTION CERTIFIED**.
+- Next executable action: continue searching authoritative repository history/archive and migration ledger evidence for the table's creation source; if none is recoverable, request the narrowly scoped decision on a clearly labeled disposable-CI-only compatibility fixture before making that change. Then rerun the complete chronological disposable replay.
+
+
+## 2026-10-13 — Migration ledger reconciliation checkpoint
+
+- [x] Confirmed live ledger records `20260927140545_remove_anonymous_sensitive_policy_access_v2`; tracked migration file remains `20260927140500_remove_anonymous_sensitive_policy_access_v2.sql`.
+- [x] Closed PR #240 unmerged after exact-head migration-history immutability check failed. The guard intentionally rejects historical file deletion/rename; do not bypass it or duplicate the same SQL under a second version.
+- [x] Added decision record: `docs/RC52_MIGRATION_LEDGER_RECONCILIATION_DECISION_20261013.md`.
+- [x] Rechecked PR #239 exact-head checks: Backend-only Module Boundary, MantiGO privacy boundary, and Module Professionalization passed; Pages validation passed but deployment was skipped for the pull_request event.
+- [ ] Recover authoritative applied SQL/checksum for version `20260927140545` and authoritative creation DDL/order for `public.marketing_project_participants`.
+- [ ] Re-run complete chronological disposable migration replay after provenance is resolved.
+- **Release remains BLOCKED — NOT PRODUCTION CERTIFIED.** No production schema/data/ledger mutation, merge to main, or deployment occurred.
