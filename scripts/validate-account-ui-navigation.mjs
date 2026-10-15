@@ -36,4 +36,4 @@ requireMatch('existing membership switch flow is retained', /data-membership-ope
 requireMatch('mobile dashboard entry styles exist', /@media\s*\(max-width:\s*620px\)[\s\S]*?\.mx-account-dashboard-entry__button\{width:100%!important\}/, css);
 
 if (process.exitCode) process.exit(1);
-console.log('Account UI/navigation regression guard passed (11 checks).');
+console.log('Account UI/navigation regression guard passed (12 checks).');
