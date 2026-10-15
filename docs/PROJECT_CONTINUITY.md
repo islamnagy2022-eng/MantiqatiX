@@ -539,3 +539,11 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## RC526 — Baseline capture connection diagnosis — 2026-10-15
+- Latest checked workflow: [run 38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240), failed at the read-only migration-ledger query with `FATAL: (ENOTIDENTIFIER) no tenant identifier provided` from the Session Pooler. The secret is present/non-empty; the prior missing-secret statement is superseded by runtime evidence.
+- No schema snapshot/manifest exists from this attempt; downstream steps were skipped. Most likely cause is an invalid pooler username/tenant URI, pending validation of the actual secret (which GitHub masks).
+- Reader role remains unsuitable for CI until migration-ledger access and effective read-only grants are resolved; PUBLIC grants expose write privileges on two `net` tables. Do not revoke extension grants blindly.
+- No production writes, role changes, password resets, migrations, deployments, or merges were made. Release remains **BLOCKED / NOT CERTIFIED**.
+- Resume point: use Supabase Connect to obtain the correct connection URI for the intended mode, verify mode-specific username, then test connection before rerunning capture.

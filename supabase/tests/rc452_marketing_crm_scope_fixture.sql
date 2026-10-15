@@ -4,6 +4,9 @@ create schema auth;
 create or replace function auth.uid() returns uuid language sql stable as $$
  select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
 $$;
+create or replace function auth.jwt() returns jsonb language sql stable as $$
+ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb
+$$;
 grant usage on schema auth to authenticated;
 grant execute on function auth.uid() to authenticated;
 create table public.businesses(id uuid primary key,tenant_id text not null,name text not null);
@@ -37,7 +40,8 @@ insert into public.user_memberships(id,user_id,tenant_id,business_id,role,status
 ('tenant-super-c','30000000-0000-4000-8000-000000000014','TENANT-C','30000000-0000-4000-8000-000000000004','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'),
 ('platform-admin','30000000-0000-4000-8000-000000000015','MNTY-PLATFORM',null,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'),
 ('provider-a','30000000-0000-4000-8000-000000000016','TENANT-A','30000000-0000-4000-8000-000000000001','SERVICE_PROVIDER','ACTIVE','{}'),
-('lead-owner','30000000-0000-4000-8000-000000000017','TENANT-B','30000000-0000-4000-8000-000000000003','CUSTOMER','ACTIVE','{}');
+('lead-owner','30000000-0000-4000-8000-000000000017','TENANT-B','30000000-0000-4000-8000-000000000003','CUSTOMER','ACTIVE','{}'),
+('platform-string-true','30000000-0000-4000-8000-000000000018','MNTY-PLATFORM',null,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":"true"}');
 insert into public.marketing_provider_profiles(id,business_id,owner_user_id,name_ar,status) values
 ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000016','Provider A','ACTIVE'),
 ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001',null,'Pending Provider A','PENDING'),
@@ -50,3 +54,25 @@ insert into public.marketing_leads(id,requester_user_id,requester_business_id,ti
 ('50000000-0000-4000-8000-000000000004',null,'30000000-0000-4000-8000-000000000004','Lead C',null),
 ('50000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000017',null,'Personal Lead',null),
 ('50000000-0000-4000-8000-000000000006',null,'30000000-0000-4000-8000-000000000003','Assigned Lead B','40000000-0000-4000-8000-000000000001');
+
+create table public.marketing_services(
+ id uuid primary key,
+ code text not null,
+ name_ar text not null,
+ name_en text not null,
+ category_code text not null,
+ description text,
+ status text not null default 'ACTIVE',
+ created_at timestamptz not null default now()
+);
+alter table public.marketing_services enable row level security;
+create policy marketing_services_admin_manage on public.marketing_services
+ for all to authenticated
+ using (exists(select 1 from public.user_memberships m where m.user_id=auth.uid() and m.status='ACTIVE' and upper(m.role) in ('SUPER_ADMIN','ADMIN','OWNER')))
+ with check (exists(select 1 from public.user_memberships m where m.user_id=auth.uid() and m.status='ACTIVE' and upper(m.role) in ('SUPER_ADMIN','ADMIN','OWNER')));
+create policy "Public can view active marketing services" on public.marketing_services
+ for select to anon, authenticated using (status='ACTIVE');
+grant select on public.marketing_services to anon, authenticated;
+grant insert, update, delete on public.marketing_services to authenticated;
+insert into public.marketing_services(id,code,name_ar,name_en,category_code,status)
+values ('60000000-0000-4000-8000-000000000001','SOCIAL','إدارة حسابات التواصل','Social Media Management','SMM','ACTIVE');

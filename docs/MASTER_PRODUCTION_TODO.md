@@ -1559,3 +1559,57 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Session update — 2026-10-15 — Baseline capture connection diagnosis
+- [x] Reviewed Actions run [38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) and the failed step log.
+- [x] Corrected the prior status assumption: repository secret `SUPABASE_DB_URL` exists and is non-empty at runtime; the workflow reaches `aws-0-us-east-2.pooler.supabase.com:5432`.
+- [ ] BLOCKED: PostgreSQL rejects the Session Pooler connection with `FATAL: (ENOTIDENTIFIER) no tenant identifier provided`. Most likely pooler username/tenant URI mismatch, but the actual masked secret value is not visible and has not been changed.
+- [ ] BLOCKED: no schema snapshot or provenance manifest was created; baseline replay remains unverified.
+- [ ] BLOCKED: `mantiqatix_schema_reader` cannot access `supabase_migrations` (schema USAGE and ledger SELECT both false). Its effective privileges on `net._http_response` and `net.http_request_queue` include write operations via PUBLIC, so do not use it in automation until the least-privilege design is resolved.
+- [x] No workflow rerun, password reset, production SQL write, migration, deployment, or PR merge was performed.
+- **Next executable step:** copy the exact connection URI from Supabase Connect for the chosen connection mode; confirm its username is mode-correct without exposing the password. Then validate connectivity before another capture run.
+- **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## Session update — 2026-10-15 — Safe pooler-URI preflight added
+- [x] Added a fail-closed connection-URI shape check to `.github/workflows/capture-production-schema-baseline.yml` before any database connection. It validates URI protocol, host/database presence, the project-qualified Session Pooler username format, and the obvious `[YOUR-PASSWORD]` placeholder without printing credentials.
+- [x] Workflow change commit: `801bacc69eac9a20ac6b37b0b97113fcce6a024e`.
+- [ ] NOT VERIFIED: no workflow run has yet exercised the new preflight. Do not treat this as a successful connection or schema capture.
+- [ ] BLOCKED: correct `SUPABASE_DB_URL` in GitHub repository Secrets locally, using the URI copied from Supabase Connect for the selected connection mode. Never paste the real URI/password into chat.
+- **Safety:** no production SQL writes, role changes, password reset, migrations, deployment, or merge occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Session update — 2026-10-15 — Supabase CLI installer rate-limit mitigation
+- [x] Inspected the latest isolated replay run [38663014381](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38663014381). It failed before any baseline tests or database replay because `supabase/setup-cli@v1` could not resolve `latest` after a GitHub API rate limit (`Failed to resolve latest Supabase CLI release: rate limit exceeded`). This is an installer-resolution failure, not evidence about the baseline itself.
+- [x] Updated the two recovery workflows to `supabase/setup-cli@v3`, whose release notes document npm-based CLI installation and support for `latest`, to avoid the old GitHub-release lookup path.
+- [x] Workflow commits: replay `d6a4792e11e5b2d0c6d1901b0a6393b1960e7c05`; capture `0cef596e85c5880f4c5fecb447fd7df73c07514c`.
+- [ ] NOT VERIFIED: these changes need a new workflow run; no successful CLI installation/replay/capture is claimed.
+- **Safety:** no production DB writes, migrations, grants/RLS/Auth changes, secret edits, deployments, or PR merge performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Session update — 2026-10-15 — Account dashboard, payment concurrency, and baseline evidence
+- [x] PR #251 adds a role-gated **لوحة التحكم** entry in `web/app.js`, reuses the existing `openPrivilegedWorkspace()` flow, and preserves PR #75's live membership refresh behavior. Latest observed PR checks passed for web validation, MantiGO open-ride privacy, backend-only module boundary, and module professionalization; the deploy job was skipped. Runtime/mobile E2E remains NOT VERIFIED.
+- [x] PR #245 now includes a two-independent-PostgreSQL-session concurrency test using `dblink`: session B races the claim while session A holds the row lock; expected result is exactly one winner. Static validation also requires the concurrency test to remain present.
+- [ ] NOT VERIFIED: the new RC526 independent-session SQL test has not yet run on the updated PR head; wait for exact-head CI and review any database-extension/connection assumptions before treating concurrency as PASS.
+- [x] Hardened the baseline validator to require the independent ordered migration-ledger export during verification; it now fails closed if the evidence file is absent and always checks checkpoint, count, ordering/uniqueness, and SHA-256.
+- [x] Updated the read-only capture workflow to preserve the ordered ledger-version list as `supabase/tests/baselines/production_schema_migration_versions.txt`, include it in the review artifact, and trigger replay validation when it changes. Added negative tests for missing evidence, duplicate/out-of-order versions, wrong checkpoint/count/hash.
+- [ ] BLOCKED: the existing PR #249 baseline does not yet contain the independently captured ledger export. Do not reconstruct or fabricate it from the manifest; a fresh authorized read-only capture is needed after the `SUPABASE_DB_URL` pooler-URI issue is resolved. No capture workflow was dispatched in this batch.
+- [x] Exact-head CI confirms baseline-validator negative tests PASS; reviewed forward replay correctly fails closed with `BASELINE_BLOCKED: snapshot or provenance manifest is missing`, before isolated database creation. PR #248 still lacks the baseline artifacts, and PR #249 does not yet provide independently captured ledger evidence.
+- **Safety:** no PR merge, production migration/write, Auth/RLS/grant change, real Paymob request, or production deployment was performed by this batch.
+- **Release state:** **BLOCKED / NOT CERTIFIED**. DONE ≠ VERIFIED.
+
+## Session update — 2026-10-15 — RC431 duplicate-event serialization
+- [x] Reconciled the divergent RC431 candidate against the exact source already present on PR #220: copied the existing transaction-scoped advisory lock for duplicate provider event IDs into the recovery branch rather than inventing a new implementation. This closes the race where concurrent deliveries for the same event could target different orders before either event row is inserted.
+- [x] Hardened `scripts/validate-digital-pages-boundaries.mjs` to fail if the RC431 advisory-lock marker is removed.
+- [x] Exact-head CI confirmed the RC431 payment source contract PASS, migration-version uniqueness PASS, migration-history immutability PASS, and cross-PR migration collision guard PASS after source convergence. The deployment job was skipped; this is not a production release.
+- [ ] BLOCKED: PR #248 still needs independently captured and reviewed baseline provenance/ledger evidence; do not fabricate or approve it implicitly.
+- [ ] BLOCKED: all production migration/release gates remain open. No merge, production database change, real payment, or production deploy was performed.
+- [x] Follow-up to collision guard: aligned the same RC431 migration source in open PRs #84, #207, and #218 to the canonical source already used by PR #220 and PR #248. PR #248 collision guard now passes against the updated open-PR set. No PR was merged; other branches still require their own CI.
+
+
+## RC baseline ledger evidence — 2026-10-16
+- Read-only Supabase migration inventory was compared position-by-position with `supabase_migrations.schema_migrations`: 283/283 versions match, zero positional mismatches; latest applied version is `20261008222845`.
+- Independent ordered evidence file added to PR #249: `supabase/tests/baselines/production_schema_migration_versions.txt`.
+- Live ledger SHA-256 computed from the ordered versions plus trailing newline: `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`, matching the existing manifest.
+- This is read-only ledger provenance verification; no production writes were performed. The schema snapshot still requires security review and explicit disposable-replay approval. PR #249 remains Draft; do not change `review_status` or claim the forward replay passed until review and isolated replay complete.
