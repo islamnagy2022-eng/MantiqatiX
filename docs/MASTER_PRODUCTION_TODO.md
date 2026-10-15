@@ -1647,3 +1647,23 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Correction to the quick inventory above: the first broad text scan counted comments containing the phrase `SECURITY DEFINER`. A stricter scan limited to function language declarations finds **136 actual SECURITY DEFINER function definitions**, not 145.
 - All 136 have an explicit function-level `SET search_path` in the captured SQL. Distribution: empty search path 23; `public` 85; `public, pg_temp` 25; `pg_catalog, public` 1; `public, vault` 2.
 - This is still not a semantic security approval. In particular, functions whose path includes `public`, `pg_temp`, or `vault` need contextual review of schema trust, object qualification, grants, and function behavior. The static scan cannot prove that each function is safe.
+
+
+## Continuation — 2026-10-16 — migration-chain and platform-admin security review
+
+### Exact integration candidate status
+- PR #252 remains **OPEN / DRAFT / UNMERGED**. Current head: `8efddfd527c6b86c6cf960d3933fa3fa82fab206`; no production changes are authorized by this PR.
+- Replay run `38817921303` proved the baseline artifacts were present in the merge checkout and all 10 fail-closed validator contract tests passed. It stopped at the intended review gate: `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`. The disposable database and replay steps did not run; no successful replay claim is permitted.
+- The current source candidate includes recovered RC425–RC432 and RC434–RC441 migration files, plus RC462. **RC433 remains absent** from this candidate. Historical source notes also identify an overlapping RC434 proposal in stale draft PR #84. Preserve immutable migration history; reconcile the missing source and duplicate proposal before claiming a complete chronological chain.
+
+### Platform-wide MantiGO privileged RPCs — source evidence vs production evidence
+- The captured production schema snapshot (checkpoint `20261008222845`) contains the pre-RC449 definitions of the dashboard, financial report, settlement, and stale-ride expiry SECURITY DEFINER RPCs. Those captured definitions authorize based on tenant roles or membership and do not call `mnty_can_platform_admin()`.
+- The source migration `supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql` exists in the reviewed source tree. It requires an active `SUPER_ADMIN` membership on `MNTY-PLATFORM` with `scope=PLATFORM` and `full_control=true` before platform-wide dashboard/report/settlement/expiry operations. Its integration fixture rejects tenant OWNER, ADMIN, OPERATIONS_MANAGER, and tenant-scoped SUPER_ADMIN, while testing authorized platform-admin settlement idempotency and stale-ride expiry audit/notifications.
+- The repository's latest documented read-only production catalog evidence (status document last updated 2026-10-11) says the live versions of these four RPCs still lacked this guard and RC449 was not recorded in the live ledger. This was **not freshly re-queried in this continuation**; treat it as the last documented live finding, not a new 2026-10-16 live observation.
+- Required action: after baseline review and the full ordered replay are reconciled, obtain an approved rollout for the complete dependency chain; then re-check the live migration ledger, exact RPC definitions, and tenant-negative/platform-positive cases. Do not apply RC449 alone out of sequence and do not manually edit grants/functions in production.
+
+### Current decision
+- Baseline manifest remains `PENDING_REVIEW`; do not self-approve it.
+- The review must explicitly inspect SECURITY DEFINER functions, their `search_path`, grants, RLS policies, tenant/platform scope, and dependent migrations before permitting isolated replay.
+- No migration was run, no production state was queried or changed during this continuation, no Auth/RLS/grant/secret changes were made, and no financial operation or deployment occurred.
+- Release remains **BLOCKED / NOT CERTIFIED** until the reviewed full migration chain passes in disposable PostgreSQL, required production checks are freshly verified after an approved rollout, and runtime/payment/restore/rollback gates have evidence.
