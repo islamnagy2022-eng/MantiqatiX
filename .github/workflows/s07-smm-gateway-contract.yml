@@ -1,0 +1,34 @@
+name: S07 SMM Gateway Contract
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/smm-gateway/**"
+      - "scripts/validate-s07-smm-gateway.mjs"
+      - ".github/workflows/s07-smm-gateway-contract.yml"
+  push:
+    branches:
+      - "agent/s07-smm-gateway"
+    paths:
+      - "supabase/functions/smm-gateway/**"
+      - "scripts/validate-s07-smm-gateway.mjs"
+      - ".github/workflows/s07-smm-gateway-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  s07-smm-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test SMM gateway safety helpers
+        run: deno test --no-check supabase/functions/smm-gateway/*.test.ts
+      - name: Validate gateway wiring and safety contract
+        run: node scripts/validate-s07-smm-gateway.mjs

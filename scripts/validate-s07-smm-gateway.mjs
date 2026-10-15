@@ -1,0 +1,66 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+
+const edgePath = "supabase/functions/smm-gateway/index.ts";
+const gatePath = "supabase/functions/smm-gateway/launch-gate.ts";
+const testsPath = "supabase/functions/smm-gateway/launch-gate.test.ts";
+const edge = fs.readFileSync(edgePath, "utf8");
+const gate = fs.readFileSync(gatePath, "utf8");
+const tests = fs.readFileSync(testsPath, "utf8");
+
+// These assertions intentionally fail closed if the helper exists but the gateway
+// does not actually enforce it. A helper-only unit test is not launch-gate evidence.
+assert.match(edge, /getSmmLaunchDecision/, "gateway must import and enforce launch-gate helper");
+assert.match(edge, /SMM_INITIAL_LAUNCH_DEFERRED\s*=\s*true/, "initial SMM launch must remain deferred in source");
+assert.match(edge, /SMM_DEFERRED/, "gateway must return the stable deferred error code");
+assert.match(edge, /status:\s*503|json\([^;]*503/s, "deferred requests must receive HTTP 503");
+assert.match(gate, /enabledFlag\s*===\s*"true"\s*&&\s*postLaunchApprovalFlag\s*===\s*"true"/, "launch must require both exact approval flags");
+assert.match(gate, /status:\s*503,\s*error:\s*"SMM_DEFERRED"/, "gate must fail closed with 503 SMM_DEFERRED");
+for (const id of ["S07_GATE_001", "S07_GATE_002", "S07_GATE_003", "S07_GATE_004", "S07_GATE_005", "S07_GATE_006", "S07_GATE_007"]) {
+  assert.ok(tests.includes(id), `missing uniquely named launch-gate test ${id}`);
+}
+
+
+// Fail closed on source parity: launch gating alone is not enough to certify the
+// older gateway entrypoint. Require the v10 safety modules and ambiguity handling.
+// Require real import declarations rather than matching helper filenames in comments.
+for (const modulePath of [
+  "./provider-transport.ts",
+  "./order-validation.ts",
+  "./request-validation.ts",
+  "./order-status.ts",
+  "./catalog-normalization.ts",
+]) {
+  const escaped = modulePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(edge, new RegExp("\\bfrom\\s+[\"\']" + escaped + "[\"\']"),
+    `gateway source is not v10 safety-parity complete; missing import ${modulePath}`);
+}
+
+// Ignore comments when checking outcome markers so documentation alone cannot satisfy parity.
+const edgeWithoutComments = edge.replace(/\/\*[\s\S]*?\*\/|(^|[^:])\/\/.*$/gm, "$1");
+for (const marker of [
+  "PROVIDER_RESULT_UNKNOWN",
+  "WALLET_DEBIT_RESULT_UNKNOWN",
+  "PROVIDER_ACCEPTED_PERSISTENCE_PENDING",
+]) {
+  assert.ok(new RegExp("\\b" + marker + "\\b").test(edgeWithoutComments),
+    `gateway source is not v10 safety-parity complete; missing outcome marker ${marker}`);
+}
+assert.doesNotMatch(edgeWithoutComments, /smm_refund_wallet/, "ambiguous provider outcomes must not trigger automatic refund");
+
+// Source-level high-risk mutation points: no provider credential may be returned
+// from read actions, and user data reads must remain user-scoped.
+const catalogStart = edge.indexOf('if(a==="catalog")');
+const accountStart = edge.indexOf('if(a==="my_data")', catalogStart);
+const configureStart = edge.indexOf('if(a==="configure_provider")', accountStart);
+assert.ok(catalogStart >= 0, "catalog action anchor must exist");
+assert.ok(accountStart > catalogStart, "my_data action anchor must follow catalog");
+assert.ok(configureStart > accountStart, "configure_provider action anchor must follow my_data");
+{
+  const catalog = edge.slice(catalogStart, accountStart);
+  const account = edge.slice(accountStart, configureStart);
+  assert.doesNotMatch(catalog, /api_key|provider_secret|provider_cost|metadata/, "catalog must not expose provider secrets or internal cost metadata");
+  assert.match(account, /\.eq\("user_id",user\.id\)/, "my_data must scope reads to the authenticated user");
+}
+
+console.log("S07 SMM gateway static contract: PASS");
