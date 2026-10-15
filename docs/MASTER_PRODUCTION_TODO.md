@@ -1667,3 +1667,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The review must explicitly inspect SECURITY DEFINER functions, their `search_path`, grants, RLS policies, tenant/platform scope, and dependent migrations before permitting isolated replay.
 - No migration was run, no production state was queried or changed during this continuation, no Auth/RLS/grant/secret changes were made, and no financial operation or deployment occurred.
 - Release remains **BLOCKED / NOT CERTIFIED** until the reviewed full migration chain passes in disposable PostgreSQL, required production checks are freshly verified after an approved rollout, and runtime/payment/restore/rollback gates have evidence.
+
+
+## CI recheck — 2026-10-16 — reviewed baseline gate behaves fail-closed
+
+- Exact-head workflow run [38826621240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38826621240) on integration candidate `29591a75fe39f556f15b9b0b0ee47e53655fd998` completed the 10 baseline-validator contract tests with 10/10 passing.
+- The replay job then stopped at `Verify baseline provenance and explicit review` with `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`, because the manifest remains `PENDING_REVIEW`. Creating the isolated Supabase stack and forward replay were skipped as intended. This is a successful safety block, not a replay pass.
+- Migration History Immutability, Migration Version Uniqueness, RC462 malformed-permission regression, MantiGO platform-admin scope, Digital Pages Payment Source Contract, Backend-only Module Boundary, Marketing CRM Tenant Scope, Module Professionalization Validation, Open PR Migration Collision Guard, Approval Action Audit Atomicity, and MantiGO Open Ride Privacy workflows all reported success on that candidate head. These checks do not certify production deployment or full migration replay.
+- Protected-file compliance: restored `docs/SESSION_LOG.md` to the exact content from `main` because this project explicitly prohibits editing that file. Subsequent updates must continue using `docs/MASTER_PRODUCTION_TODO.md` or the approved release evidence docs only.
+- The migration replay still has a separately documented historical dependency blocker: authoritative historical DDL for `public.smm_provider_credentials` has not been recovered. Do not reconstruct it from the live table shape or a test fixture and claim historical replay parity. Recover the authoritative source or explicitly redesign the disposable bootstrap strategy with review.
+- No production migrations, grants/RLS/Auth changes, Edge Function deployments, financial transactions, or data writes were performed. Release remains `BLOCKED / NOT CERTIFIED`.
