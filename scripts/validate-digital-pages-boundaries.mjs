@@ -23,6 +23,7 @@ for (const [marker,label] of [
   ["DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH","provider order binding"],
   ["DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH","replay status consistency"],
   ["for update","row-locking for order/event processing"],
+  ["pg_advisory_xact_lock(hashtextextended(p_external_event_id, 0))","serialize cross-order deliveries sharing one provider event ID"],
   ["DIGITAL_PAGE_PAYMENT_STATE_CHANGED","conditional payment state transition guard"],
   ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from public;","PUBLIC execute revoked"],
   ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from anon;","anon execute revoked"],
