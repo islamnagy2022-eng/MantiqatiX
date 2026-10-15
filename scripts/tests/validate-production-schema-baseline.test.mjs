@@ -91,7 +91,7 @@ test("fails closed when independent migration ledger evidence is missing", () =>
 test("rejects duplicate migration versions in independent ledger evidence", () => {
   const f = fixture();
   try {
-    fs.writeFileSync(f.ledgerPath, versions[0] + "\\n" + versions[0] + "\\n");
+    fs.writeFileSync(f.ledgerPath, versions[0] + "\n" + versions[0] + "\n");
     const result = verify(f);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /contains duplicate versions/);
@@ -101,7 +101,7 @@ test("rejects duplicate migration versions in independent ledger evidence", () =
 test("rejects out-of-order migration versions in independent ledger evidence", () => {
   const f = fixture();
   try {
-    fs.writeFileSync(f.ledgerPath, [...versions].reverse().join("\\n") + "\\n");
+    fs.writeFileSync(f.ledgerPath, [...versions].reverse().join("\n") + "\n");
     const result = verify(f);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /not ordered ascending/);
