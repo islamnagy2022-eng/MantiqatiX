@@ -1687,3 +1687,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The latest exact-head replay workflow [38826721589](https://github.com/islamnagy2022-eng/MantiqTiX/actions/runs/38826721589) completed the 10 fail-closed validator tests, then stopped at the explicit-review check with `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`. Local Supabase startup and forward replay were skipped. The failure is expected until an authorized reviewer approves the baseline; it must not be reclassified as a replay pass.
 - Protected file check: `docs/SESSION_LOG.md` is now identical to `main` and no longer appears in PR #252's changed-file list. The TODO is the working status register.
 - No production migration, schema/data write, Auth/RLS/grant change, Edge Function deployment, payment, settlement, or release occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Baseline security review inventory artifact
+- Added `docs/release/BASELINE_SECURITY_REVIEW_INVENTORY_20261016.md` on this branch with 144 parsed SECURITY DEFINER function signatures and per-function review placeholders. Static classification: 25 use empty search_path and 119 use a path containing `public` and/or `pg_temp`; all remain **NOT REVIEWED**.
+- The inventory is a reviewer aid only; it does not claim the 119 functions are exploitable, and it does not mark the schema baseline approved. The review must include EXECUTE grants, body-level identity/scope checks, schema qualification, RLS, and intended caller exposure.
