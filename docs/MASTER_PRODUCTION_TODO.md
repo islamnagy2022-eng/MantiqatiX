@@ -1567,3 +1567,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] NOT VERIFIED: authenticated privileged/non-privileged browser and mobile interaction for the account workspace flow.
 - [ ] Production release remains BLOCKED / NOT CERTIFIED by the independent P0 gates already listed above. This UI PR does not close migration, live payment/SMM parity, Auth security, cross-tenant E2E, backup/restore, or device-release gates.
 - No merge or production deployment performed.
+
+
+## 2026-10-16 — Fresh live release blockers (read-only verification)
+- [ ] BLOCKED: production migration ledger remains at RC424; RC425–RC440 are not applied. Preserve history; do not bulk-push or repair migration history blindly.
+- [ ] BLOCKED: live normal Paymob intent does not persist provider-order correlation; webhook merchant-reference path does not compare provider order ID. RC426 source contract not production-verified.
+- [ ] BLOCKED: live subscription checkout returns clientSecret and live schema lacks RC439 encrypted-secret columns. Do not deploy encryption-dependent code until secret provisioning, schema and rollback are staged/tested together.
+- [ ] BLOCKED: RC431 advisory-lock candidate should be retained; add a real concurrent cross-order event replay test in disposable PostgreSQL.
+- [ ] BLOCKED: Auth leaked-password protection disabled; review 40 authenticated-callable and one anonymous-callable SECURITY DEFINER findings individually; explicitly review RLS-enabled/no-policy `digital_page_payment_events` before changing policy.
+- [x] Read-only SMM source recheck: live v12 has hard launch defer, platform-scoped SUPER_ADMIN fallback, bounded parsing, safe endpoint validation and 15-second provider timeout. Source drift/runtime E2E remain open; do not rely on older source snapshot claims.
+- [ ] Final release remains NOT CERTIFIED until isolated full migration replay, signed Paymob sandbox E2E, multi-tenant authorization tests, backup/restore, rollback, monitoring, and release-device verification pass.
+- No production schema/data, function deployment, secret, payment, or Auth setting was changed.
