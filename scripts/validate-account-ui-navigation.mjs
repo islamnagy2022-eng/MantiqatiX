@@ -11,7 +11,8 @@ function requireMatch(label, pattern, source = app) {
 }
 
 const accountStart = app.indexOf('function accountView');
-const accountEnd = app.indexOf('\nfunction ', accountStart + 20);
+const nextFunction = /\n(?:async\s+)?function\s+/.exec(app.slice(accountStart + 20));
+const accountEnd = nextFunction ? accountStart + 20 + nextFunction.index : -1;
 if (accountStart < 0 || accountEnd < 0) {
   console.error('FAIL: accountView function boundaries found');
   process.exit(1);
