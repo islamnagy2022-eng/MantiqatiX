@@ -12,4 +12,27 @@ for(const [src,marker,label] of [
 ]) if(!src.includes(marker)) throw new Error('Digital page boundary marker missing: '+label);
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
-console.log('RC424 digital pages/payment boundary validation: PASS');
+
+
+// RC431 source contract: validate the hardened replacement, not only the original RC424 implementation.
+const hardenedPayment = fs.readFileSync('supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql','utf8');
+for (const [marker,label] of [
+  ["set search_path = ''","empty SECURITY DEFINER search_path"],
+  ["p_status is null or p_status not in ('SUCCEEDED', 'FAILED')","NULL/invalid provider status rejection"],
+  ["p_external_event_id is distinct from ('paymob:' || p_provider_transaction_id)","event/transaction ID binding"],
+  ["DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH","provider order binding"],
+  ["DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH","replay status consistency"],
+  ["for update","row-locking for order/event processing"],
+  ["DIGITAL_PAGE_PAYMENT_STATE_CHANGED","conditional payment state transition guard"],
+  ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from public;","PUBLIC execute revoked"],
+  ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from anon;","anon execute revoked"],
+  ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from authenticated;","authenticated execute revoked"],
+  ["grant execute on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) to service_role;","service_role-only execute grant"]
+]) {
+  if (!hardenedPayment.toLowerCase().includes(marker.toLowerCase())) {
+    throw new Error('RC431 hardened payment source contract missing: '+label);
+  }
+}
+
+console.log('RC424/RC431 digital pages/payment boundary validation: PASS');
+
