@@ -44,6 +44,10 @@ begin
     raise exception 'DIGITAL_PAGE_EVENT_TRANSACTION_MISMATCH';
   end if;
 
+  -- Serialize all deliveries sharing one provider event ID before locking the target order.
+  -- This closes the cross-order race where two sessions both observe no event and race to insert it.
+  perform pg_advisory_xact_lock(hashtextextended(p_external_event_id, 0));
+
   select * into v_order
   from public.digital_page_orders
   where id = p_order_id and provider = 'PAYMOB'
