@@ -1613,3 +1613,17 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Independent ordered evidence file added to PR #249: `supabase/tests/baselines/production_schema_migration_versions.txt`.
 - Live ledger SHA-256 computed from the ordered versions plus trailing newline: `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`, matching the existing manifest.
 - This is read-only ledger provenance verification; no production writes were performed. The schema snapshot still requires security review and explicit disposable-replay approval. PR #249 remains Draft; do not change `review_status` or claim the forward replay passed until review and isolated replay complete.
+
+
+## Session update — 2026-10-16 — Baseline replay dependency integration candidate
+
+- Created isolated candidate branch `integration/baseline-replay-candidates-20261016` from PR #248 head `e1a040e597bf677b1d3d992ddb5f236d64f7aa21`; no PR was merged and `main` was not modified.
+- Staged the three baseline artifacts from PR #249 without changing their bytes:
+  - `production_schema_snapshot.manifest.json` blob SHA `4c278e9ed76b34ce632221e46f1e41ca25c33d06`
+  - `production_schema_snapshot.sql` blob SHA `8d096904c777b4c7eae096014b45c59859c96cee` (820,374 bytes)
+  - `production_schema_migration_versions.txt` blob SHA `41fb3fd9883ee91c2bb7101d5e4b5dc11ebebff9` (283 ordered versions)
+- Re-fetched all three files from the integration branch and confirmed their blob SHAs match the PR #249 source artifacts.
+- The manifest still has `review_status: PENDING_REVIEW` and `deployment_approved: false`. This integration candidate is **not** authorization to replay. The expected next gate is explicit human review; no status was changed to force CI green.
+- **Validation limitation:** this GitHub connector exposes no workflow-dispatch action, so I could not trigger the replay workflow on this integration branch in this execution. No successful replay is claimed. The earlier exact-head run still failed before replay because the baseline files were absent from the checkout.
+- Next: have the security reviewer inspect the exact candidate snapshot and manifest, then trigger the replay workflow on this integration branch/immutable commit. Only if approved, change the review status through the documented review process and run the disposable local replay. Never target production.
+- No production mutation, migration, merge, deployment, or payment transaction was performed. Release remains **BLOCKED / NOT CERTIFIED**.
