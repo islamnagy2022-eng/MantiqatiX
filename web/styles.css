@@ -451,3 +451,11 @@ linear-gradient(180deg,transparent 60%,#6ca8d520 61%);pointer-events:none}
 .mx-account-actions{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0}
 .mx-account-actions .btn{width:auto!important}
 @media(max-width:620px){.mx-workspace-section-head{align-items:flex-start}.mx-workspace-item{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;padding:12px}.mx-workspace-item__icon{width:42px;height:42px;flex-basis:42px}.mx-workspace-item__action{grid-column:1/-1;width:100%!important}.mx-account-actions{display:grid;grid-template-columns:1fr 1fr}.mx-account-actions #account-dashboard{grid-column:1/-1;width:100%!important}.mx-workspace-section-head .mx-account-count{white-space:nowrap}}
+
+/* Account dashboard entry: visible only for accounts with an active privileged membership. */
+.mx-account-dashboard-entry{margin:16px 0 22px;padding:18px;border:1px solid #d6e4ff;background:linear-gradient(135deg,#f8fbff,#fff)}
+.mx-account-dashboard-entry .section-head{align-items:center;gap:14px}
+.mx-account-dashboard-entry .section-head h3{margin:4px 0 6px}
+.mx-account-dashboard-entry__button{width:auto!important;min-width:190px;min-height:46px}
+.mx-account-dashboard-entry__button:disabled{opacity:.7;cursor:wait}
+@media(max-width:620px){.mx-account-dashboard-entry{padding:15px}.mx-account-dashboard-entry .section-head{align-items:flex-start}.mx-account-dashboard-entry__button{width:100%!important}}
