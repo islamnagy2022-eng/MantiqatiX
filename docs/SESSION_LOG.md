@@ -21,3 +21,15 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-16 — SESSION-002 — Account workspace regression guard and exact-head CI
+
+- **Verified baseline:** account-workspace PR [#250](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/250) head `0d98cbd412bf3093c243b72dc104accadeefa01c`; PR remains OPEN and DRAFT. PR #251 remains a separate open overlapping implementation; do not merge both independently.
+- **Action performed:** strengthened `scripts/validate-account-ui-navigation.mjs` so dashboard authorization assertions are scoped to the click handler and enforce the sequence refresh → fail closed on refresh error → check active privileged membership → route. Added assertions that the button is disabled during checking and restored in `finally`; the guard reports 15 checks.
+- **Verified CI:** exact-head workflows all completed successfully: Deploy MantiqatiX Web run [38806310508](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38806310508), Backend-only Module Boundary [38806310360](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38806310360), MantiGO Open Ride Privacy Boundary [38806310230](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38806310230), and Module Professionalization Validation [38806310429](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38806310429). Relevant PostgreSQL integration jobs and the MantiGO privacy integration passed. Pages validation passed and its deploy job was skipped because this was a PR; this is not production deployment.
+- **Verified source check:** the CI log explicitly shows `node scripts/validate-account-ui-navigation.mjs` and `Account UI/navigation regression guard passed (15 checks).`
+- **Not verified:** authenticated browser/mobile interaction with privileged and non-privileged accounts. No real OTP/browser/device test was performed.
+- **Not performed:** no merge, deployment, production schema/data mutation, Auth/RLS/grant change, or payment operation.
+- **Release status:** production certification remains **BLOCKED / NOT CERTIFIED** by the broader release gates documented below; a successful feature PR CI does not close those gates.
+- **Next action:** obtain authorized authenticated browser/device verification for PR #250; keep it draft until then. Separately continue the documented production blockers (migration-source reconciliation, live payment/SMM parity, leaked-password protection, cross-tenant E2E, backup/restore and release-device evidence) without bypassing release controls.

@@ -1559,3 +1559,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-16 — Account workspace regression guard (feature PR only)
+- [x] PR #250 account navigation regression guard strengthened; exact-head CI confirms 15-check validator passes.
+- [x] Exact-head workflow runs 38806310508, 38806310360, 38806310230 and 38806310429 completed successfully; Pages deploy job was skipped for the PR.
+- [ ] NOT VERIFIED: authenticated privileged/non-privileged browser and mobile interaction for the account workspace flow.
+- [ ] Production release remains BLOCKED / NOT CERTIFIED by the independent P0 gates already listed above. This UI PR does not close migration, live payment/SMM parity, Auth security, cross-tenant E2E, backup/restore, or device-release gates.
+- No merge or production deployment performed.

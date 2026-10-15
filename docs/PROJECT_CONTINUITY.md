@@ -539,3 +539,14 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## 2026-10-16 — Latest resume point: account workspace UI
+
+- PR [#250](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/250) remains OPEN/DRAFT on `feat/account-workspace-switch-20261015`, head `0d98cbd412bf3093c243b72dc104accadeefa01c`.
+- Account UI has compact workspace rows, no displayed tenant UUID, and a dashboard entry gated by an active privileged membership. Click-time authorization refresh fails closed, disables the button while checking, reuses the existing privileged router, and restores the button in `finally`.
+- Exact-head GitHub Actions runs 38806310508, 38806310360, 38806310230 and 38806310429 all succeeded. The Pages validation job passed; the deploy job was skipped for the PR. The account navigation regression guard passed 15 checks in the CI log.
+- Authenticated browser/mobile tests remain **NOT VERIFIED**. Do not mark production certification based on these source/CI checks.
+- PR [#251](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/251) remains open and overlaps with the dashboard-entry implementation; do not merge both independently.
+- No production deployment, merge, database mutation, Auth/RLS/grant change, or payment action was performed.
+- The wider release state remains **BLOCKED / NOT CERTIFIED**; continue the migration chain, live payment/SMM parity, security configuration, cross-tenant E2E, backup/restore, and release-device evidence tasks recorded in the master TODO.
