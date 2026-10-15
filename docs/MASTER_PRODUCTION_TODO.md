@@ -1598,3 +1598,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] NOT VERIFIED: the new validator tests and capture/replay workflow edits await exact-head CI. The existing replay remains blocked before isolated database creation.
 - **Safety:** no PR merge, production migration/write, Auth/RLS/grant change, real Paymob request, or production deployment was performed by this batch.
 - **Release state:** **BLOCKED / NOT CERTIFIED**. DONE ≠ VERIFIED.
+
+## Session update — 2026-10-15 — RC431 duplicate-event serialization
+- [x] Reconciled the divergent RC431 candidate against the exact source already present on PR #220: copied the existing transaction-scoped advisory lock for duplicate provider event IDs into the recovery branch rather than inventing a new implementation. This closes the race where concurrent deliveries for the same event could target different orders before either event row is inserted.
+- [x] Hardened `scripts/validate-digital-pages-boundaries.mjs` to fail if the RC431 advisory-lock marker is removed.
+- [ ] NOT VERIFIED: exact-head PR checks for the latest RC431 commits have not yet been returned by the GitHub status endpoint. Do not mark the RC431 source-contract check PASS until CI confirms it.
+- [ ] BLOCKED: PR #248 still needs independently captured and reviewed baseline provenance/ledger evidence; do not fabricate or approve it implicitly.
+- [ ] BLOCKED: all production migration/release gates remain open. No merge, production database change, real payment, or production deploy was performed.
