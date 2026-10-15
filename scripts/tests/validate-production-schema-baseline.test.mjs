@@ -78,6 +78,69 @@ test("rejects a schema snapshot whose SHA-256 differs from the manifest", () => 
   } finally { f.cleanup(); }
 });
 
+
+test("fails closed when independent migration ledger evidence is missing", () => {
+  const f = fixture();
+  try {
+    const result = verify(f, { BASELINE_LEDGER_VERSIONS_FILE: path.join(f.cwd, "missing-ledger.txt") });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /read-only migration ledger export is missing/);
+  } finally { f.cleanup(); }
+});
+
+test("rejects duplicate migration versions in independent ledger evidence", () => {
+  const f = fixture();
+  try {
+    fs.writeFileSync(f.ledgerPath, versions[0] + "\\n" + versions[0] + "\\n");
+    const result = verify(f);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /contains duplicate versions/);
+  } finally { f.cleanup(); }
+});
+
+test("rejects out-of-order migration versions in independent ledger evidence", () => {
+  const f = fixture();
+  try {
+    fs.writeFileSync(f.ledgerPath, [...versions].reverse().join("\\n") + "\\n");
+    const result = verify(f);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /not ordered ascending/);
+  } finally { f.cleanup(); }
+});
+
+test("rejects migration ledger checkpoint mismatch", () => {
+  const f = fixture();
+  try {
+    f.manifest.last_applied_migration_version = "20261015000000";
+    fs.writeFileSync(f.manifestPath, JSON.stringify(f.manifest));
+    const result = verify(f);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /checkpoint does not match/);
+  } finally { f.cleanup(); }
+});
+
+test("rejects migration ledger count mismatch", () => {
+  const f = fixture();
+  try {
+    f.manifest.applied_migration_count = versions.length + 1;
+    fs.writeFileSync(f.manifestPath, JSON.stringify(f.manifest));
+    const result = verify(f);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /count does not match/);
+  } finally { f.cleanup(); }
+});
+
+test("rejects migration ledger SHA-256 mismatch", () => {
+  const f = fixture();
+  try {
+    f.manifest.applied_migration_versions_sha256 = "0".repeat(64);
+    fs.writeFileSync(f.manifestPath, JSON.stringify(f.manifest));
+    const result = verify(f);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /hash does not match/);
+  } finally { f.cleanup(); }
+});
+
 test("fails closed when explicit disposable-replay review is missing", () => {
   const f = fixture();
   try {
