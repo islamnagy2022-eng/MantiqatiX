@@ -44,6 +44,39 @@ jobs:
             exit 1
           fi
 
+      - name: Validate connection URI shape without printing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          node --input-type=module <<'NODE'
+          const raw = process.env.SUPABASE_DB_URL;
+          let u;
+          try { u = new URL(raw); } catch {
+            console.error("::error::SUPABASE_DB_URL is not a valid URI. Copy the full connection URI from Supabase Connect; do not use a template containing [YOUR-PASSWORD].");
+            process.exit(1);
+          }
+          if (!["postgres:", "postgresql:"].includes(u.protocol)) {
+            console.error("::error::SUPABASE_DB_URL must use postgresql:// or postgres://.");
+            process.exit(1);
+          }
+          const user = decodeURIComponent(u.username || "");
+          const host = (u.hostname || "").toLowerCase();
+          if (!host || !u.pathname || u.pathname === "/") {
+            console.error("::error::SUPABASE_DB_URL is missing the database host or database name.");
+            process.exit(1);
+          }
+          if (host.endsWith(".pooler.supabase.com") && !user.endsWith(".moyhiluyhjsujhwlyeuu")) {
+            console.error("::error::Session Pooler URI username must include the project tenant suffix (expected username format: postgres.<project-ref>). Copy the Session Pooler URI from Supabase Connect and keep the password private.");
+            process.exit(1);
+          }
+          if (decodeURIComponent(u.password || "").includes("[YOUR-PASSWORD]")) {
+            console.error("::error::SUPABASE_DB_URL still contains the password placeholder; replace it in GitHub Secrets locally, never in chat.");
+            process.exit(1);
+          }
+          console.log("Connection URI structure validated without printing credentials.");
+          NODE
+
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
