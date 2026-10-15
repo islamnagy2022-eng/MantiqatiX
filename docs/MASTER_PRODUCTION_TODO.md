@@ -1559,3 +1559,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Session update — 2026-10-15 — Baseline capture connection diagnosis
+- [x] Reviewed Actions run [38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) and the failed step log.
+- [x] Corrected the prior status assumption: repository secret `SUPABASE_DB_URL` exists and is non-empty at runtime; the workflow reaches `aws-0-us-east-2.pooler.supabase.com:5432`.
+- [ ] BLOCKED: PostgreSQL rejects the Session Pooler connection with `FATAL: (ENOTIDENTIFIER) no tenant identifier provided`. Most likely pooler username/tenant URI mismatch, but the actual masked secret value is not visible and has not been changed.
+- [ ] BLOCKED: no schema snapshot or provenance manifest was created; baseline replay remains unverified.
+- [ ] BLOCKED: `mantiqatix_schema_reader` cannot access `supabase_migrations` (schema USAGE and ledger SELECT both false). Its effective privileges on `net._http_response` and `net.http_request_queue` include write operations via PUBLIC, so do not use it in automation until the least-privilege design is resolved.
+- [x] No workflow rerun, password reset, production SQL write, migration, deployment, or PR merge was performed.
+- **Next executable step:** copy the exact connection URI from Supabase Connect for the chosen connection mode; confirm its username is mode-correct without exposing the password. Then validate connectivity before another capture run.
+- **Release state:** BLOCKED / NOT CERTIFIED.
