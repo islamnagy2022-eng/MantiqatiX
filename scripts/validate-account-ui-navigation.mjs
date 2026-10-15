@@ -34,11 +34,28 @@ if (dashboardIdCount !== 1) {
 }
 requireMatch('dashboard entry is conditional on active privileged membership', /const canAccessDashboard=memberships\.some\(m=>m\.status==='ACTIVE'&&\['SUPER_ADMIN','OWNER','ADMIN','MANAGER'\]/, account);
 requireMatch('dashboard button is rendered only for allowed membership', /canAccessDashboard\?'<section class="card mx-account-dashboard-entry"/, account);
-requireMatch('dashboard click refreshes membership before authorization', /account-dashboard[\s\S]*?await loadLiveData\(\);\s*if\(live\.error\)/, account);
+const dashboardHandlerStart = account.indexOf("getElementById('account-dashboard')?.addEventListener('click',async()=>{");
+const dashboardHandlerEnd = account.indexOf("\n});", dashboardHandlerStart);
+if (dashboardHandlerStart < 0 || dashboardHandlerEnd < 0) {
+  console.error('FAIL: dashboard click handler boundaries found');
+  process.exitCode = 1;
+} else {
+  const dashboardHandler = account.slice(dashboardHandlerStart, dashboardHandlerEnd);
+  const refreshIndex = dashboardHandler.indexOf('await loadLiveData()');
+  const errorGuardIndex = dashboardHandler.indexOf('if(live.error)');
+  const authorizationIndex = dashboardHandler.indexOf("const allowed=(live.memberships||[]).some");
+  const routeIndex = dashboardHandler.indexOf('await openPrivilegedWorkspace()');
+  if (!(refreshIndex >= 0 && errorGuardIndex > refreshIndex && authorizationIndex > errorGuardIndex && routeIndex > authorizationIndex)) {
+    console.error('FAIL: dashboard click must refresh, fail closed, authorize, then route');
+    process.exitCode = 1;
+  }
+  requireMatch('dashboard action is disabled during authorization refresh', /button\.disabled=true[\s\S]*?جارٍ التحقق من الصلاحية/, dashboardHandler);
+  requireMatch('dashboard action is restored after success or failure', /finally\{[\s\S]*?currentButton\.disabled=false/, dashboardHandler);
+}
 requireMatch('dashboard click denies access when privileged membership is absent', /if\(!allowed\)\{showToast\('لا تملك صلاحية الوصول إلى لوحة التحكم\.'/ , account);
 requireMatch('dashboard uses existing privileged workspace router', /await openPrivilegedWorkspace\(\)/, account);
 requireMatch('existing membership switch flow is retained', /data-membership-open[\s\S]*?await switchMembership\(id\)/, account);
 requireMatch('mobile dashboard entry styles exist', /@media\s*\(max-width:\s*620px\)[\s\S]*?\.mx-account-dashboard-entry__button\{width:100%!important\}/, css);
 
 if (process.exitCode) process.exit(1);
-console.log('Account UI/navigation regression guard passed (13 checks).');
+console.log('Account UI/navigation regression guard passed (15 checks).');
