@@ -7,6 +7,7 @@ on:
       - "supabase/migrations/**"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
+      - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "scripts/replay-from-production-schema-baseline.sh"
       - "scripts/validate-production-schema-baseline.mjs"
       - "scripts/tests/validate-production-schema-baseline.test.mjs"
