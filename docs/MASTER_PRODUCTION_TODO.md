@@ -1605,3 +1605,4 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] NOT VERIFIED: exact-head PR checks for the latest RC431 commits have not yet been returned by the GitHub status endpoint. Do not mark the RC431 source-contract check PASS until CI confirms it.
 - [ ] BLOCKED: PR #248 still needs independently captured and reviewed baseline provenance/ledger evidence; do not fabricate or approve it implicitly.
 - [ ] BLOCKED: all production migration/release gates remain open. No merge, production database change, real payment, or production deploy was performed.
+- [x] Follow-up to collision guard: aligned the same RC431 migration source in open PRs #84, #207, and #218 to the canonical source already used by PR #220 and PR #248. No PR was merged; each branch must pass its own CI, and the PR #248 collision guard must be rerun against the updated open-PR set.
