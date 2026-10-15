@@ -27,6 +27,11 @@ if (/النطاق:\s*['"]\s*\+esc\(m\.tenant_id\)/.test(account)) {
   console.error('FAIL: internal tenant identifier is rendered in account UI');
   process.exitCode = 1;
 }
+const dashboardIdCount = (app.match(/id="account-dashboard"/g) || []).length;
+if (dashboardIdCount !== 1) {
+  console.error('FAIL: dashboard action must have exactly one unique DOM id');
+  process.exitCode = 1;
+}
 requireMatch('dashboard entry is conditional on active privileged membership', /const canAccessDashboard=memberships\.some\(m=>m\.status==='ACTIVE'&&\['SUPER_ADMIN','OWNER','ADMIN','MANAGER'\]/, account);
 requireMatch('dashboard button is rendered only for allowed membership', /canAccessDashboard\?'<section class="card mx-account-dashboard-entry"/, account);
 requireMatch('dashboard click refreshes membership before authorization', /account-dashboard[\s\S]*?await loadLiveData\(\);\s*if\(live\.error\)/, account);
@@ -36,4 +41,4 @@ requireMatch('existing membership switch flow is retained', /data-membership-ope
 requireMatch('mobile dashboard entry styles exist', /@media\s*\(max-width:\s*620px\)[\s\S]*?\.mx-account-dashboard-entry__button\{width:100%!important\}/, css);
 
 if (process.exitCode) process.exit(1);
-console.log('Account UI/navigation regression guard passed (12 checks).');
+console.log('Account UI/navigation regression guard passed (13 checks).');
