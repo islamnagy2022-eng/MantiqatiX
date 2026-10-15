@@ -110,6 +110,15 @@ test("S06-17 merchant reference must match the resolved entity even when provide
 });
 
 
+test("S06-21 digital-page event identity is serialized before target-order locking", () => {
+  const migration = read("supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql");
+  const eventLock = migration.indexOf("pg_advisory_xact_lock(hashtextextended(p_external_event_id, 0))");
+  const orderLock = migration.indexOf("select * into v_order");
+  assert.ok(eventLock >= 0, "provider event advisory lock must exist");
+  assert.ok(orderLock >= 0, "target order lock must exist");
+  assert.ok(eventLock < orderLock, "event identity must be serialized before locking the target order");
+});
+
 test("S06-20 bounded webhook body parser and replay protections remain source-wired", () => {
   const mantigo = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
   const normalFailure = read("supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql");
