@@ -43,3 +43,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not performed:** No production database mutation, role changes, password reset, migration, deployment, or merge.
 - **Next step:** Correct the masked GitHub secret locally using the exact Supabase Connect URI for the selected connection mode, then manually dispatch the capture workflow with the confirmation checkbox. Review output for safe preflight pass before proceeding.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-15 — SESSION-004 — Supabase CLI installer rate limit
+
+- **Verified:** Replay workflow run [38663014381](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38663014381) stopped at `supabase/setup-cli@v1` with `Failed to resolve latest Supabase CLI release: rate limit exceeded`. Baseline validation and replay did not run.
+- **Action performed:** Changed the capture and forward-replay recovery workflows to `supabase/setup-cli@v3`, which uses npm-based CLI installation and supports `latest` per the action release notes.
+- **Commits:** replay `d6a4792e11e5b2d0c6d1901b0a6393b1960e7c05`; capture `0cef596e85c5880f4c5fecb447fd7df73c07514c`.
+- **Not verified:** no new run has yet proved the v3 action succeeds in this repository. No production database mutation, secret edit, migration, deployment, or merge occurred.
+- **Next step:** inspect the new CI runs; then resume baseline connection correction only after CLI installation succeeds.
+- **Release state:** BLOCKED / NOT CERTIFIED.
