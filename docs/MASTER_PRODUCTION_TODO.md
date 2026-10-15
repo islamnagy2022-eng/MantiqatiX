@@ -1559,3 +1559,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+## Session update — 2026-10-15 — RC526 concurrency verification
+- [x] Fixed the disposable PostgreSQL concurrency test to drain the asynchronous dblink result before issuing the second session's COMMIT; commit `ca796578397b9d999103a82892e2f13f59400c3b`.
+- [x] Verified RC526 with CI on the PR merge ref: independent-session claim race and finalization integration passed; static contract, migration version uniqueness, migration history immutability, backend-only module boundary, approval-audit atomicity, and module professionalization checks passed.
+- [x] Open PR migration-collision guard passed for PR #245. Web deploy workflow was cancelled; no production deployment was performed.
+- [ ] BLOCKED: live Paymob end-to-end behavior is not verified; no real payment was attempted.
+- [ ] BLOCKED: PR #248 production-baseline replay fails closed because the snapshot/provenance manifest is missing on its branch. Do not bypass explicit review or fabricate independent migration-ledger evidence.
+- [ ] BLOCKED: PR #248 collides with PR #220 on migration version `20261009180000` (RC431). Reconcile a canonical release path; do not rename an already-applied migration to silence the guard.
+- [ ] Production release remains **BLOCKED / NOT CERTIFIED**; no PR merge, production database mutation, permissions change, or production deployment was performed.
