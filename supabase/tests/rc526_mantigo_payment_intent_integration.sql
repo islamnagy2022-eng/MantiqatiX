@@ -112,6 +112,10 @@ begin
 
   select claimed into v_second
   from public.dblink_get_result('rc526_claim_b') as result(claimed boolean);
+  -- dblink async results must be drained through the terminal empty result before
+  -- issuing another command on the same connection.
+  perform claimed
+  from public.dblink_get_result('rc526_claim_b') as result(claimed boolean);
 
   perform public.dblink_exec('rc526_claim_b','commit');
   perform public.dblink_disconnect('rc526_claim_a');
