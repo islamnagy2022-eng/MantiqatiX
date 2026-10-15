@@ -6,6 +6,7 @@ on:
       - 'supabase/tests/s06_payment_integrity_regression.sql'
       - 'tests/s06-payment-integrity.test.mjs'
       - 'scripts/s06-payment-integrity-concurrency.sh'
+      - 'scripts/s06-payment-integrity-concurrency.sh'
       - 'supabase/functions/paymob-webhook/**'
       - 'supabase/functions/digital-page-payment-intent/**'
       - '.github/workflows/s06-payment-integrity.yml'
