@@ -109,7 +109,24 @@ test("S06-17 merchant reference must match the resolved entity even when provide
   assert.match(webhook, /merchant_order_id:merchantRef/);
 });
 
-test("S06-18 generic Paymob callbacks require the stored provider-order ID before either transition", () => {
+
+test("S06-20 bounded webhook body parser and replay protections remain source-wired", () => {
+  const mantigo = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
+  const normalFailure = read("supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql");
+  const subscriptionFailure = read("supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql");
+  const subscriptionSuccess = read("supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql");
+
+  assert.match(mantigo, /v_event\.ledger_id is distinct from v_ledger\.id/);
+  assert.match(mantigo, /v_event\.status is distinct from p_status/);
+  assert.match(normalFailure, /v_event\.payment_intent_id::text is distinct from p_payment_intent_id/);
+  assert.match(normalFailure, /PAYMENT_FAILURE_REPLAY_STATUS_MISMATCH/);
+  assert.match(subscriptionFailure, /v_existing\.event_type is distinct from 'SUBSCRIPTION_FAILURE'/);
+  assert.match(subscriptionFailure, /v_existing\.raw_payload->>'subscription_payment_intent_id' is distinct from p_subscription_payment_intent_id::text/);
+  assert.match(subscriptionSuccess, /v_existing\.event_type is distinct from 'SUBSCRIPTION_SUCCESS'/);
+  assert.match(subscriptionSuccess, /v_existing\.raw_payload->>'subscription_payment_intent_id' is distinct from p_subscription_payment_intent_id::text/);
+});
+
+test("S06-19 generic Paymob callbacks require the stored provider-order ID before either transition", () => {
   assert.match(webhook, /PAYMENT_PROVIDER_ORDER_MISMATCH/);
   assert.match(webhook, /!intent\.provider_order_id\|\|String\(intent\.provider_order_id\)!==paymobOrderId/);
 });
