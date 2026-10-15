@@ -1,0 +1,260 @@
+name: S04 Migration Replay with Test-Only Baselines (Not Clean Replay)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/recovered-migrations/**'
+      - 'scripts/audit-migration-chain-s04.mjs'
+      - 'scripts/validate-smm-replay-baselines.mjs'
+      - 'docs/release/s04-migration-chain-clean-replay-report.md'
+      - '.github/workflows/s04-migration-chain-clean-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  clean-replay:
+    name: Disposable Supabase clean replay and source audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact tested revision
+        uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Audit sources and attempt clean replay
+        id: replay
+        shell: bash
+        run: |
+          set +e
+          mkdir -p s04-replay-evidence
+          echo "MANTIQATIX S04 REPLAY WITH TEST-ONLY BASELINES — NOT CLEAN REPLAY" > s04-replay-evidence/report.txt
+          echo "test_baselines_used=true" >> s04-replay-evidence/report.txt
+          echo "clean_replay_certified=false" >> s04-replay-evidence/report.txt
+          echo "tested_commit=${GITHUB_SHA}" >> s04-replay-evidence/report.txt
+          echo "tested_ref=${GITHUB_REF}" >> s04-replay-evidence/report.txt
+          echo "timestamp_utc=$(date -u +%FT%TZ)" >> s04-replay-evidence/report.txt
+          echo "production_touched=false" >> s04-replay-evidence/report.txt
+
+          node scripts/audit-migration-chain-s04.mjs > s04-replay-evidence/source-audit.json 2> s04-replay-evidence/source-audit.stderr
+          audit_rc=$?
+          echo "source_audit_exit=$audit_rc" | tee -a s04-replay-evidence/report.txt
+          echo "known_unrecovered_live_ledger_migration=20261001164118_harden_provider_onboarding_tenant_scope" | tee -a s04-replay-evidence/report.txt
+          echo "historical_ddl_synthesized=false" | tee -a s04-replay-evidence/report.txt
+
+          # Resolve only the five catalog-reconciled duplicate timestamp groups on this disposable runner.
+          # Never rename or rewrite the historical source files in Git or the production ledger.
+          normalization_rc=125
+          if [ "$audit_rc" -eq 0 ]; then
+            rename_legacy_alias() {
+              local source="$1"
+              local target="$2"
+              test -f "supabase/migrations/$source"
+              if [ -e "supabase/migrations/$target" ]; then
+                echo "P0 BLOCKED: canonical replay target already exists: $target" >&2
+                return 1
+              fi
+              mv "supabase/migrations/$source" "supabase/migrations/$target"
+            }
+            dedupe_verified_identical_legacy_alias() {
+              local source="$1"
+              local target="$2"
+              test -f "supabase/migrations/$source"
+              test -f "supabase/migrations/$target"
+              local source_sql target_sql
+              source_sql="$(sed -E '/^[[:space:]]*--/d; s/[[:space:]]+/ /g; s/^ //; s/ $//' "supabase/migrations/$source" | tr '[:upper:]' '[:lower:]')"
+              target_sql="$(sed -E '/^[[:space:]]*--/d; s/[[:space:]]+/ /g; s/^ //; s/ $//' "supabase/migrations/$target" | tr '[:upper:]' '[:lower:]')"
+              if [ -z "$source_sql" ] || [ "$source_sql" != "$target_sql" ]; then
+                echo "P0 BLOCKED: duplicate migration bodies differ: $source vs $target" >&2
+                return 1
+              fi
+              rm -- "supabase/migrations/$source"
+              echo "verified_duplicate_alias_removed_from_disposable_replay=$source (canonical=$target)" | tee -a s04-replay-evidence/report.txt
+            }
+            rename_legacy_alias "20260928020000_rc101_g6_rls_permissive_policy_hardening.sql" "20260928101022_rc101_g6_rls_permissive_policy_hardening.sql" &&
+            rename_legacy_alias "20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql" "20260928104107_rc102_g8_crm_notification_support_rls_hardening.sql" &&
+            rename_legacy_alias "20260928060000_restore_registration_request_dml_grants.sql" "20260928034100_restore_registration_request_dml_grants.sql" &&
+            rename_legacy_alias "20260928060000_rc109_harden_order_support_tenant_boundaries.sql" "20260928112420_rc109_harden_order_support_tenant_boundaries.sql" &&
+            rename_legacy_alias "20260928190000_rc162_mantigo_trip_state_machine.sql" "20260928124303_rc162_mantigo_trip_state_machine.sql" &&
+            rename_legacy_alias "20260928200000_rc164_mantigo_direct_delete_lockdown.sql" "20260928125655_rc164_mantigo_direct_delete_lockdown.sql" &&
+            rename_legacy_alias "20260928200000_rc164_retire_legacy_mantigo_mutator.sql" "20260928125731_rc164_retire_legacy_mantigo_mutator.sql" &&
+            rename_legacy_alias "20260928190000_rc200_cross_tenant_customer_payment_authorization.sql" "20260928154527_rc200_cross_tenant_customer_payment_authorization.sql" &&
+            rename_legacy_alias "20260928200000_rc206_geographic_ad_targeting_and_nearest_fallback.sql" "20260928161513_rc206_geographic_ad_targeting_and_nearest_fallback.sql" &&
+            rename_legacy_alias "20260928210000_rc172_restore_medical_booking_contract.sql" "20260928131753_rc172_restore_medical_booking_contract.sql" &&
+            rename_legacy_alias "20260928210000_rc207_official_global_mnty_cover_ads.sql" "20260928174954_rc207_official_global_mnty_cover_ads.sql" &&
+          rename_legacy_alias "20261001090000_harden_provider_onboarding_authority.sql" "20261001164107_20261001090000_harden_provider_onboarding_authority.sql" &&
+          rename_legacy_alias "20261001165000_grant_provider_onboarding_authenticated_insert.sql" "20261001164222_grant_provider_onboarding_authenticated_insert.sql" &&
+          rename_legacy_alias "20261001100000_lock_provider_onboarding_direct_writes.sql" "20261001164327_20261001100000_lock_provider_onboarding_direct_writes.sql" &&
+          rename_legacy_alias "20261001193000_grant_provider_onboarding_service_role.sql" "20261001170235_provider_onboarding_service_role_rpc_grants.sql" &&
+          rename_legacy_alias "20261002090000_super_admin_platform_authority_reconciliation.sql" "20261002044021_20261002090000_super_admin_platform_authority_reconciliation.sql" &&
+          rename_legacy_alias "20261002010000_rc238_fix_settlement_journal_posting.sql" "20261002083009_fix_settlement_journal_posting_order.sql" &&
+          rename_legacy_alias "20261002190000_rc228_digital_page_products_orders.sql" "20261002073217_rc228_digital_page_products_orders.sql" &&
+          rename_legacy_alias "20261002191000_rc229_digital_page_payment_columns.sql" "20261002073331_rc229_digital_page_payment_columns.sql" &&
+          rename_legacy_alias "20261002192000_rc230_digital_page_payment_events.sql" "20261002073419_rc230_digital_page_payment_events.sql" &&
+          rename_legacy_alias "20261002110000_rc248_digital_page_content_publishing.sql" "20261002090131_rc248_digital_page_content_publishing.sql" &&
+          rename_legacy_alias "20261002100000_rc256_critical_fk_indexes.sql" "20261002094419_rc256_critical_fk_indexes.sql" &&
+          rename_legacy_alias "20261001200000_provider_location_markaz_baseline.sql" "20261001173313_provider_location_center_baseline.sql" &&
+          rename_legacy_alias "20261001201000_provider_location_center_policy.sql" "20261001173412_provider_location_center_policy.sql" &&
+          rename_legacy_alias "20261002123000_rc258_centralized_server_rbac.sql" "20261002122425_rc258_centralized_server_rbac.sql" &&
+          rename_legacy_alias "20261002123500_rc258_use_central_rbac_admin_ad.sql" "20261002122515_rc258_use_central_rbac_admin_ad.sql" &&
+          rename_legacy_alias "20261002150000_rc264_registration_review_audit_notifications.sql" "20261002142519_rc264_registration_review_audit_notifications.sql" &&
+          rename_legacy_alias "20261004004500_rc339_seed_mantiqati_official_showcase.sql" "20261004005819_rc339_seed_mantiqati_official_showcase.sql" &&
+          rename_legacy_alias "20261006110000_rc_mantigo_production_completion_v1.sql" "20261006101048_rc_mantigo_production_completion_v1.sql" &&
+          rename_legacy_alias "20261006133000_mantigo_p0_security_audit_notification_hardening.sql" "20261006103016_mantigo_p0_security_audit_notification_hardening.sql" &&
+          rename_legacy_alias "20261006150000_mantigo_matching_idempotency_v1.sql" "20261006103232_mantigo_matching_idempotency_v1.sql" &&
+          rename_legacy_alias "20261006121810_mantigo_rating_immutability_v1.sql" "20261006121907_mantigo_rating_immutability_v1.sql" &&
+          rename_legacy_alias "20261006170000_mantigo_trip_reason_hardening_v1.sql" "20261006131243_mantigo_trip_reason_hardening_v1.sql" &&
+          rename_legacy_alias "20261006171000_mantigo_notification_lifecycle_v1.sql" "20261006140601_mantigo_notification_lifecycle_v1.sql" &&
+          rename_legacy_alias "20261006172000_mantigo_stale_expiration_engine_v1.sql" "20261006140650_mantigo_stale_expiration_engine_v1.sql" &&
+          rename_legacy_alias "20261006173000_mantigo_state_integrity_constraints_v1.sql" "20261006141819_mantigo_state_integrity_constraints_v1.sql" &&
+          rename_legacy_alias "20261006174000_mantigo_acceptance_integrity_trigger_v1.sql" "20261006142022_mantigo_acceptance_integrity_trigger_v1.sql" &&
+          rename_legacy_alias "20261006175000_mantigo_cancellation_reason_policy_v1.sql" "20261006142337_mantigo_cancellation_reason_policy_v1.sql" &&
+          rename_legacy_alias "20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql" "20261006144647_mantigo_customer_tracking_and_finance_indexes_v1.sql" &&
+          rename_legacy_alias "20261006181000_mantigo_admin_dashboard_kpi_rpc_v1.sql" "20261006144733_mantigo_admin_dashboard_kpi_rpc_v1.sql" &&
+          rename_legacy_alias "20261006184500_mantigo_captain_earnings_dashboard_v2.sql" "20261006154605_mantigo_captain_earnings_dashboard_v2.sql" &&
+          rename_legacy_alias "20261006190000_mantigo_admin_financial_report_v1.sql" "20261006154704_mantigo_admin_financial_report_v1.sql" &&
+          rename_legacy_alias "20261006214500_mantigo_financial_config_rls_v1.sql" "20261006184441_mantigo_financial_config_rls_v1.sql" &&
+          rename_legacy_alias "20261007001000_mantigo_abuse_rate_limits_v1.sql" "20261006212355_mantigo_abuse_rate_limits_v1.sql" &&
+          rename_legacy_alias "20261007002000_mantigo_rate_limit_idempotency_compat_v1.sql" "20261006212705_mantigo_rate_limit_idempotency_compat_v1.sql" &&
+          rename_legacy_alias "20261006235500_job_application_backend_submit_v1.sql" "20261006235123_job_application_backend_submit_v1.sql" &&
+          rename_legacy_alias "20261007021500_reverse_bidding_server_authority_v1.sql" "20261006231828_reverse_bidding_server_authority_v1.sql" &&
+          dedupe_verified_identical_legacy_alias "20261007030000_cleanup_duplicate_job_application_index_v1.sql" "20261006235323_cleanup_duplicate_job_application_index_v1.sql" &&
+          rename_legacy_alias "20261007060000_education_request_server_authority_v1.sql" "20261007021723_education_request_server_authority_v1.sql" &&
+          rename_legacy_alias "20261007023000_remove_duplicate_mantigo_bids_index_v1.sql" "20261007022318_remove_duplicate_mantigo_bids_index_v1.sql" &&
+          rename_legacy_alias "20261007064000_mantigo_rate_limit_internal_boundary_v1.sql" "20261007064228_mantigo_rate_limit_internal_boundary_v1.sql" &&
+          rename_legacy_alias "20261007073000_harden_private_order_status_trigger_execute_v1.sql" "20261007065754_harden_private_order_status_trigger_execute_v1.sql" &&
+          rename_legacy_alias "20261008000001_rc422_security_definer_caller_contract_v1.sql" "20261007223944_rc422_security_definer_caller_contract_v1.sql" &&
+          rename_legacy_alias "20261008000002_rc423_restrictive_authenticated_guard_policies.sql" "20261008125422_rc423_convert_authenticated_guard_policies_to_restrictive.sql" &&
+          rename_legacy_alias "20261009010000_rc424_atomic_digital_page_payment_webhook.sql" "20261008222845_rc424_atomic_digital_page_payment_webhook.sql"
+            normalization_rc=$?
+            if [ "$normalization_rc" -eq 0 ]; then
+              node scripts/validate-migration-version-uniqueness.mjs > s04-replay-evidence/normalized-version-validation.log 2>&1
+              version_validation_rc=$?
+              node scripts/validate-ledger-recovered-migrations.mjs > s04-replay-evidence/ledger-recovered-source-validation.log 2>&1
+              ledger_validation_rc=$?
+              echo "normalized_version_validation_exit=$version_validation_rc" | tee -a s04-replay-evidence/report.txt
+              echo "ledger_recovered_source_validation_exit=$ledger_validation_rc" | tee -a s04-replay-evidence/report.txt
+              if [ "$version_validation_rc" -eq 0 ] && [ "$ledger_validation_rc" -eq 0 ]; then
+                normalization_rc=0
+              else
+                normalization_rc=1
+              fi
+            fi
+          fi
+          echo "disposable_alias_normalization_exit=$normalization_rc" | tee -a s04-replay-evidence/report.txt
+          if [ "$normalization_rc" -eq 0 ]; then
+            echo "legacy_duplicate_aliases_normalized_on_disposable_runner=true" | tee -a s04-replay-evidence/report.txt
+            echo "live_ledger_source_order_aliases_normalized=true" | tee -a s04-replay-evidence/report.txt
+            echo "live_ledger_order_alias_count=43" | tee -a s04-replay-evidence/report.txt
+          fi
+
+          # These compatibility fixtures are injected only into this disposable runner.
+          # They are not source migrations and must never be committed under supabase/migrations.
+          baseline_rc=125
+          admins_baseline="supabase/tests/baselines/smm_admins.sql"
+          providers_baseline="supabase/tests/baselines/smm_providers.sql"
+          credentials_baseline="supabase/tests/baselines/smm_provider_credentials.sql"
+          provider_onboarding_baseline="supabase/tests/baselines/provider_onboarding_requests.sql"
+          admins_migration="supabase/migrations/20260927033923_test_only_approved_smm_admins_baseline.sql"
+          providers_migration="supabase/migrations/20260927074158_test_only_approved_smm_providers_baseline.sql"
+          credentials_migration="supabase/migrations/20260927074159_test_only_approved_smm_provider_credentials_baseline.sql"
+          provider_onboarding_migration="supabase/migrations/20261001085000_test_only_approved_provider_onboarding_requests_baseline.sql"
+          if [ "$audit_rc" -eq 0 ] && [ "$normalization_rc" -eq 0 ]; then
+            node scripts/validate-smm-replay-baselines.mjs > s04-replay-evidence/test-baseline-validation.log 2>&1
+            baseline_rc=$?
+            if [ "$baseline_rc" -ne 0 ]; then cat s04-replay-evidence/test-baseline-validation.log >&2; fi
+          fi
+          echo "test_baseline_validation_exit=$baseline_rc" | tee -a s04-replay-evidence/report.txt
+          if [ "$baseline_rc" -eq 0 ]; then
+            for file in "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"; do test ! -e "$file"; done
+            cp "$admins_baseline" "$admins_migration"
+            cp "$providers_baseline" "$providers_migration"
+            cp "$credentials_baseline" "$credentials_migration"
+            cp "$provider_onboarding_baseline" "$provider_onboarding_migration"
+            cmp -s "$admins_baseline" "$admins_migration"
+            cmp -s "$providers_baseline" "$providers_migration"
+            cmp -s "$credentials_baseline" "$credentials_migration"
+            cmp -s "$provider_onboarding_baseline" "$provider_onboarding_migration"
+            for file in "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"; do ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; done
+            ! grep -Eiq '^[[:space:]]*(insert[[:space:]]+into|update[[:space:]]+public\.|delete[[:space:]]+from|copy[[:space:]]+(public|private)\.)' "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
+            echo "temporary_test_baselines_injected=true" | tee -a s04-replay-evidence/report.txt
+            echo "temporary_provider_onboarding_baseline_injected=true (catalog-derived fixture only; not historical DDL)" | tee -a s04-replay-evidence/report.txt
+            echo "provider_onboarding_authority_and_grant_source_order_normalized_to_live_ledger=true" | tee -a s04-replay-evidence/report.txt
+            echo "temporary_smm_baselines_injected=true (approved admins/providers/credentials test-only fixtures)" | tee -a s04-replay-evidence/report.txt
+            echo "smm_admins_baseline_injected=true (catalog-derived fixture only; not recovered historical DDL)" | tee -a s04-replay-evidence/report.txt
+          else
+            echo "temporary_smm_baselines_injected=false" | tee -a s04-replay-evidence/report.txt
+            echo "smm_admins_baseline_injected=false (baseline validation failed or earlier preflight blocked)" | tee -a s04-replay-evidence/report.txt
+          fi
+
+          init_rc=125
+          start_rc=125
+          replay_rc=125
+          if [ "$audit_rc" -eq 0 ] && [ "$normalization_rc" -eq 0 ] && [ "$baseline_rc" -eq 0 ]; then
+            supabase init --force > s04-replay-evidence/supabase-init.log 2>&1
+            init_rc=$?
+          else
+            echo "Supabase startup skipped because source audit, disposable normalization, or test-baseline validation failed." | tee -a s04-replay-evidence/report.txt
+            cat s04-replay-evidence/source-audit.stderr >&2 || true
+            cat s04-replay-evidence/test-baseline-validation.log >&2 || true
+          fi
+          echo "supabase_init_exit=$init_rc" | tee -a s04-replay-evidence/report.txt
+          if [ "$init_rc" -eq 0 ]; then
+            supabase start > s04-replay-evidence/supabase-start.log 2>&1
+            start_rc=$?
+          fi
+          echo "supabase_start_exit=$start_rc" | tee -a s04-replay-evidence/report.txt
+
+          if [ "$start_rc" -eq 0 ]; then
+            supabase db reset --local --debug > s04-replay-evidence/clean-replay.log 2>&1
+            replay_rc=$?
+            echo "clean_replay_exit=$replay_rc" | tee -a s04-replay-evidence/report.txt
+            rm -f "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
+            error_line=$(grep -n -m1 -E 'ERROR:|Error:|duplicate migration version|failed to apply' s04-replay-evidence/clean-replay.log | cut -d: -f1)
+            if [ -n "$error_line" ]; then
+              first_failed_migration=$(head -n "$error_line" s04-replay-evidence/clean-replay.log | grep -E 'Applying migration|Applying:' | tail -n 1)
+              if [ -z "$first_failed_migration" ]; then
+                first_failed_migration="No migration application line precedes the first reported error; likely CLI/preflight failure."
+              fi
+              echo "first_failure=$first_failed_migration" | tee -a s04-replay-evidence/report.txt
+              echo "first_error=$(sed -n "${error_line}p" s04-replay-evidence/clean-replay.log)" | tee -a s04-replay-evidence/report.txt
+            else
+              echo "first_failure=No matching error marker detected; inspect full clean-replay.log and exit code." | tee -a s04-replay-evidence/report.txt
+            fi
+          else
+            startup_error_line=$(grep -n -m1 -E 'ERROR:|Error:|SQLSTATE|duplicate migration version|does not exist' s04-replay-evidence/supabase-start.log | cut -d: -f1)
+            if [ -n "$startup_error_line" ]; then
+              first_failed_migration=$(head -n "$startup_error_line" s04-replay-evidence/supabase-start.log | grep -E 'Applying migration' | tail -n 1)
+              if [ -z "$first_failed_migration" ]; then
+                first_failed_migration="Supabase startup/preflight failed before a migration application line."
+              fi
+              echo "clean_replay_exit=FAILED_DURING_SUPABASE_START" | tee -a s04-replay-evidence/report.txt
+              echo "first_failure=$first_failed_migration" | tee -a s04-replay-evidence/report.txt
+              echo "first_error=$(sed -n "${startup_error_line}p" s04-replay-evidence/supabase-start.log)" | tee -a s04-replay-evidence/report.txt
+            else
+              echo "clean_replay_exit=FAILED_DURING_SUPABASE_START" | tee -a s04-replay-evidence/report.txt
+              echo "first_failure=Supabase local stack did not start; inspect init/start logs." | tee -a s04-replay-evidence/report.txt
+            fi
+          fi
+
+          rm -f "$admins_migration" "$providers_migration" "$credentials_migration" "$provider_onboarding_migration"
+          if [ "$audit_rc" -ne 0 ] || [ "$normalization_rc" -ne 0 ] || [ "$baseline_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
+            echo "status=FAIL_BLOCKED" | tee -a s04-replay-evidence/report.txt
+            echo "S04_RESULT=FAIL_BLOCKED" >> "$GITHUB_STEP_SUMMARY"
+            cat s04-replay-evidence/report.txt >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "status=PASS_WITH_TEST_BASELINES_NOT_CLEAN" | tee -a s04-replay-evidence/report.txt
+          echo "S04_RESULT=BLOCKED_TEST_BASELINE_USED — not a clean replay or release certification" >> "$GITHUB_STEP_SUMMARY"
+          cat s04-replay-evidence/report.txt >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+      - name: Upload independent S04 replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s04-clean-replay-evidence-${{ github.sha }}
+          path: s04-replay-evidence/
+          if-no-files-found: warn
+          retention-days: 30

@@ -44,4 +44,18 @@ assert.match(integration, /RC456 SMM service-role access boundary: PASS/, "isola
 assert.match(integration, /direct client privilege unexpectedly present/, "integration must reject direct client table access");
 assert.match(integration, /provider credentials must remain RPC-only/, "integration must keep provider credentials inaccessible to the service role");
 
+
+const smmMigrationFiles = fs.readdirSync("supabase/migrations").filter((name) => name.endsWith(".sql"));
+const smmMigrationSql = smmMigrationFiles.map((name) => fs.readFileSync(`supabase/migrations/${name}`, "utf8")).join("\n");
+const hasIdempotencyColumnMigration = /alter\s+table\s+(?:public\.)?smm_orders\s+add\s+column(?:\s+if\s+not\s+exists)?\s+idempotency_key\b/i.test(smmMigrationSql);
+const hasUserScopedUniqueIdempotencyIndex = /create\s+unique\s+index[\s\S]*?on\s+(?:public\.)?smm_orders\s*\(\s*user_id\s*,\s*idempotency_key\s*\)/i.test(smmMigrationSql);
+const idempotencySchemaReady = hasIdempotencyColumnMigration && hasUserScopedUniqueIdempotencyIndex;
+const idempotencyLaunchGateIsClosed = /const\s+SMM_INITIAL_LAUNCH_DEFERRED\s*=\s*true\s*;/.test(edge);
+assert.match(edge, /idempotency_key:validatedOrder\.idempotencyKey/, "order creation must persist the request idempotency key");
+assert.match(edge, /\.eq\("idempotency_key",validatedOrder\.idempotencyKey\)/, "idempotency replay lookup must use the request key");
+assert.ok(
+  idempotencySchemaReady || idempotencyLaunchGateIsClosed,
+  "SMM must remain hard-disabled until a forward migration provides idempotency_key and a user-scoped unique index"
+);
+
 console.log("SMM service-role access boundary contract: PASS");

@@ -32,12 +32,30 @@ const required = [
   "20261010200000_rc451_targeted_ads_empty_search_path.sql",
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
-  "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261011020000_rc457_financial_journal_idempotency_rpc_convergence.sql",
+  "20261011030000_rc458_erp_branch_organization_scope.sql",
+  "20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql",
+  "20261013190000_rc522_audit_log_append_only.sql",
+  "20261013200000_rc523_mantigo_financial_report_canonical_columns.sql"
 ];
-assert.equal(required.length, 28, "release gate must track the complete 28-file migration source set");
+assert.equal(required.length, 33, "release gate must track all 33 required migration sources, including current forward-only security, finance, ERP, and admin fixes");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
+for (const name of required) assert.ok(fs.existsSync(`supabase/migrations/${name}`), `required migration source is missing: ${name}`);
+const rc523 = fs.readFileSync("supabase/migrations/20261013200000_rc523_mantigo_financial_report_canonical_columns.sql", "utf8");
+const rc523Test = fs.readFileSync("supabase/tests/rc523_mantigo_financial_report_integration.sql", "utf8");
+assert.match(rc523, /v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id/, "RC523 must reject null and mismatched report actors explicitly");
+assert.match(rc523Test, /RC523 report must not be null/, "RC523 regression test must assert a non-null report response");
+assert.match(rc523Test, /gross_amount,commission_amount,captain_net_amount,[\s\S]*?amount,captain_amount/, "RC523 regression fixture must include canonical and legacy columns together");
+assert.match(rc523Test, /250,25,200,0\.10,'PAID','READY',999,888/, "RC523 regression fixture must deliberately diverge canonical and legacy amounts");
+assert.match(rc523Test, /drop column amount,[\s\S]*?drop column captain_amount/, "RC523 must be re-executed after removing legacy ledger aliases");
+assert.match(rc523Test, /RC523 must execute with canonical columns only/, "RC523 must prove compatibility with the canonical-only ledger schema");
+for (const field of ["ledger_count", "gross", "commission", "captain_amount", "paid_count", "paid_amount", "settled_count", "settled_amount", "unsettled_count", "unsettled_amount"]) {
+  assert.ok(rc523Test.includes(`'RC523 ${field}`) || rc523Test.includes(`(v_report->>'${field}')`), `RC523 regression test must cover ${field}`);
+}
+assert.match(rc523Test, /not \(v_report \? 'captain_amount'\) or \(v_report \? 'captain_net_amount'\)/, "RC523 regression test must preserve the external JSON key contract");
 assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrations or timestamp conflicts must block release certification");
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");

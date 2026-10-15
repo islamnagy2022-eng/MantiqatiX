@@ -44,6 +44,8 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
+          node scripts/validate-admin-workspace.mjs
+          node scripts/validate-mantigo-platform-admin-scope.mjs
 
   matrimony-privacy-postgres:
     runs-on: ubuntu-latest

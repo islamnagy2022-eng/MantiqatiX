@@ -1559,3 +1559,240 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## RC523 — MantiGO platform financial report canonical-column correction — 2026-10-13
+
+- [x] Preserve migration history: restored RC449 to exact main-branch content; do not edit historical migrations.
+- [x] Add forward-only migration `20261013200000_rc523_mantigo_financial_report_canonical_columns.sql`.
+- [x] Keep public JSON contract key `captain_amount` while sourcing it from `captain_net_amount`; source gross and paid amount from `gross_amount`.
+- [x] Poison legacy fixture aliases (999/888) while canonical values are 100/90 to make the regression assertion meaningful.
+- [x] Update the platform-admin integration workflow to apply RC449, then RC523, then the integration test in disposable PostgreSQL.
+- [x] Exact candidate SHA `d83a7be0b5482c3c55e9c0536e6bce09625ea645`: platform-admin scope, audit append-only ACL, migration history immutability, migration version uniqueness, migration collision guard, module professionalization, backend-only boundary, approval/audit atomicity, MantiGO privacy boundary, and web validation all passed.
+- [ ] Production E2E and approved migration/release process remain outstanding. The PR deploy job was skipped; do not claim production deployment.
+- **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## Cross-module dependency — authoritative task source — 2026-10-13
+
+- [x] Read-only production table inventory checked for task/work-item sources.
+- [x] Confirmed the relevant inventory includes approval_requests, approval_actions, audit_logs, marketing_projects, marketing_project_participants, notifications, and consent_audit_log; no authoritative public tasks/work_items table was found.
+- [ ] Define a dedicated task/work-item source of truth, lifecycle, owner/dependency/due-date/acceptance fields, and audit contract before marking the Administration & Operations task-closure gate complete.
+- [ ] Add tenant/RBAC/RLS tests and end-to-end closure/reopen/audit tests before production release.
+- **Constraint:** do not fabricate tasks or silently treat notifications/approvals as tasks; no production schema change was made.
+
+
+## RC524 — Restore missing required migration source files — 2026-10-13
+
+- [x] Restored exact copies of 16 migration files RC425–RC432 and RC434–RC441 from the reconciled PR #207 branch into the current PR #218 branch.
+- [x] Compared source blob SHA values across PR #207, PR #202, and PR #84; all 16 files were identical across those candidate heads.
+- [x] Verified all 16 files now exist on the current candidate and match the PR #207 blob SHA values.
+- [x] Expanded scripts/validate-production-migration-chain-gate.mjs from 28 to 30 required migration source entries to include RC522 and RC523.
+- [ ] Run and inspect exact-head CI after these changes.
+- [ ] Full chronological migration replay remains NOT VERIFIED. Historical function-creation dependencies and other baseline issues remain blockers; source presence is not evidence of successful replay or production application.
+- [ ] Add/verify focused behavioral tests for the restored migrations before any release approval.
+- Safety: no production database changes, no migration-ledger edits, no Edge Function deployment, no financial/wallet mutations, no merge/release.
+- Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC525 — Restore focused migration integration coverage — 2026-10-13
+
+- [x] Restored disposable PostgreSQL fixtures and integration SQL for RC425, RC431, RC434, RC435, RC436, RC439, and RC440 from the reconciled branch.
+- [x] Added .github/workflows/recovered-migration-focused-integration.yml with seven isolated integration jobs for those contracts.
+- [ ] Exact-head CI is queued at SHA d4403cc8c7c9dca8fe0bcacdb5897da58f56c4b8; do not mark any job passed until its completed result is observed.
+- [ ] RC432 SMM wallet contract remains deferred; full ordered migration replay and earlier legacy function DDL dependencies remain unresolved.
+- [ ] Production E2E, migration approval/application, tenant isolation, payment/finance E2E, Auth/security, backup/restore and device release gates remain open.
+- Safety: source and CI only; no production mutation, migration application, Edge Function deployment, financial transaction, merge, or release.
+- Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC526 — Required migration files must exist — 2026-10-13
+
+- [x] Strengthened the production migration-chain validator: each of the 30 required migration entries must now exist as an actual file in supabase/migrations, not only appear in the verifier source.
+- [x] Before the change, confirmed all 30 required migration files existed in the current candidate tree.
+- [ ] Exact-head CI after this guard is queued; inspect final results before claiming a pass.
+- [ ] Chronological full replay, legacy function DDL prerequisites, production migration approval/application, and runtime E2E remain open.
+- Safety: repository-only change; no production SQL or deployment.
+- Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC527 — Expand focused regression coverage and migration inventory — 2026-10-13
+
+- [x] Restored exact RC457/RC458/RC462 migration sources and RC457/RC441/RC437/RC458 integration fixtures/tests from reconciled PR #207.
+- [x] Added five disposable PostgreSQL jobs for finance journal boundaries/idempotency, platform-admin scope, order-line quantity controls, and ERP branch organization scope. Focused workflow now contains 12 integration jobs.
+- [x] Expanded migration-chain gate to 33 required sources in timestamp order, including RC457, RC458 and RC462; all are subject to filesystem presence checks.
+- [ ] Wait for and inspect exact-head CI results; queued is not passed.
+- [ ] Full chronological replay and legacy DDL dependency fixes remain open, along with live tenant/payment/Auth/security, restore rehearsal, device, and release evidence.
+- Safety: repository/CI only; no production SQL, data, grants/RLS/Auth, Edge Functions, money movement, merge, or release.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC528 — Exact-head CI recheck and deploy-gate audit — 2026-10-13
+
+- [x] Rechecked PR #218 exact head: `5fd777dacda37e97f4289cb408423135d464ffe7`; PR remains draft/open/unmerged.
+- [x] Rechecked exact-head CI run states. All inspected current-head runs remained queued at retrieval; none is marked passed on that basis.
+- [x] Reviewed Pages workflow condition: deploy requires validation and only runs for main-branch push or explicit workflow_dispatch, not pull_request. Source review is not deployment proof.
+- [x] Confirmed the migration-chain gate includes 33 required source filenames and checks their presence/order; its live reconciliation contract still requires production migration application evidence, chronological replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function contracts/parity, and Auth security.
+- [ ] Inspect all exact-head CI conclusions and logs after they complete; queued status is not a pass.
+- [ ] Complete chronological disposable migration replay and resolve historical DDL prerequisites without stubs or migration-history rewrites.
+- [ ] Complete mandatory production/runtime gates before certification.
+- Safety: no production SQL/data, migration ledger, grants/RLS/Auth, Edge Functions, financial/wallet operations, merge, or release changed.
+- Release state: BLOCKED / NOT CERTIFIED.
+
+
+## RC529 — RC523 canonical MantiGO financial-report regression test — 2026-10-13
+
+- [x] Added disposable PostgreSQL regression assertions using conflicting canonical and legacy ledger values. Checks cover gross, commission, paid, settled, unsettled totals and preservation of JSON key `captain_amount`.
+- [x] Added a focused CI job applying RC441 → RC449 → RC462 → RC523 before running the test.
+- [x] Added RC523 migration and test paths to the focused workflow's pull-request and main-branch trigger filters.
+- [ ] Inspect the new job's exact-head result and logs; source presence is not a passing integration test.
+- [ ] Continue chronological full replay and mandatory live tenant/payment/Auth/security/backup/device gates.
+- Safety: repository/test workflow only; no production SQL, migration application, financial transaction, merge, or release.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+- Test review correction: RC523 integration test expectations now match the one ledger row inserted by this isolated test (gross 250, commission 25, captain_amount 200, paid amount 250, unsettled amount 200). CI execution remains pending; do not mark passed based on source review.
+
+
+## RC530 — Align production verifier with full migration release contract — 2026-10-13
+
+- [x] Updated `scripts/production/verify-production.mjs` required migration list to include RC457, RC458, RC462, RC522, and RC523 after RC456, ordered by immutable filename timestamp.
+- [x] Confirmed the companion `scripts/validate-production-migration-chain-gate.mjs` already declares and checks all 33 required source names.
+- [ ] Wait for and inspect exact-head CI; static source alignment is not a passing runtime result.
+- Safety: source-only; no production DB mutation, migration application, financial operation, merge, or release.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC538 — Record focused CI results and keep production gates blocked — 2026-10-13
+
+- [x] Focused integration workflow `38328375015` on tested code commit `0ede84686f0fc68fa9b6f544e86c8692916e41fd` completed successfully: all 13 jobs passed, including RC450 and RC457 financial journal integrations and RC523 financial-report integration.
+- [x] Other source-validation workflows for that candidate commit passed: Migration History Immutability, Open PR Migration Collision Guard, Migration Version Uniqueness, Audit Log Append-only ACL, Approval Action Audit Atomicity, MantiGO Platform Admin Scope Hardening, Backend-only Module Boundary, Module Professionalization Validation, and MantiGO Open Ride Privacy Boundary.
+- [!] The `Deploy MantiqatiX Web` workflow for this candidate was cancelled; no deployment is claimed.
+- [ ] The current PR head contains documentation-only commits after the tested code commit; run/confirm required checks for the final exact head before merge approval.
+- [ ] Full chronological migration replay and production migration application evidence remain unverified. The last observed production ledger ends at RC424; do not apply pending migrations without approved rollout and reconciled baseline.
+- [ ] Production tenant isolation E2E, real Paymob/payment and finance settlement E2E, Edge Function source/deployment parity, leaked-password protection, scoped SECURITY DEFINER/RLS remediation, backup/restore rehearsal, browser/device E2E, Android signing, rollback rehearsal, and final owner-approved certification remain open.
+- Release state: **BLOCKED / NOT CERTIFIED**. No production changes, merge, or release were performed in this work batch.
+
+
+## RC539 — Exact-head CI and current release blockers — 2026-10-13
+
+- [x] Confirmed PR #218 current head `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc`, still OPEN / DRAFT / UNMERGED.
+- [x] Confirmed exact-head Recovered Migration Focused Integration run [38328931209](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38328931209): 13/13 jobs SUCCESS; jobs were inspected individually and include RC450, RC457, RC458 and RC523 contracts.
+- [x] Confirmed exact-head migration version uniqueness [38328931204], platform-admin scope [38328931224], privacy boundary [38328931311], audit atomicity [38328931256], migration immutability [38328931250], collision guard [38328931298], module validation [38328931253], audit append-only ACL [38328931287], and backend boundary [38328931240] completed SUCCESS.
+- [x] Confirmed Pages workflow [38328931310] validation SUCCESS but deploy SKIPPED for PR event; this does not establish a production deployment.
+- [ ] Full chronological migration replay from reconciled baseline remains NOT RUN; legacy DDL prerequisites must be resolved from authoritative contracts, without fake stub dependencies or migration-history rewrites.
+- [ ] Live ledger remains observed through RC424; required release migrations are not proven applied. Do not apply them without explicit production-change approval.
+- [ ] Runtime tenant-isolation E2E, real payment/settlement E2E, deployed Edge Function/source parity, Auth and scoped RLS/SECURITY DEFINER remediation, backup/restore rehearsal, browser/device/Android signing, rollback rehearsal, and owner-approved final certification remain open.
+- [ ] Administration/Operations has no authoritative task/work-item source evidenced in the read-only inventory; define source-of-truth schema and lifecycle plus tenant/RBAC/audit regression tests before claiming acceptance.
+- [ ] SMM remains isolated pending dedicated authorization, provider timeout/ambiguity, persistence and terminal-state review; no SMM launch.
+- **Safety:** no production mutation, migration application, Auth/RLS/Grant changes, Edge Function deployment, financial movement, merge or release.
+- **Release:** BLOCKED / NOT CERTIFIED.
+
+
+## RC540 — Current exact-head checks after continuity update — 2026-10-13
+
+- [x] Recorded RC539 evidence in continuity documents. This produced new documentation-only PR head `f608bc76bfc898f3aa4116fbd3777f2b378bb64b`.
+- [ ] Exact-head checks now queued: Backend-only Module Boundary [38329261941], Migration Version Uniqueness [38329261943], Web workflow [38329261830], Audit Log ACL [38329261699], migration immutability [38329261728], platform-admin scope [38329261733], focused PostgreSQL integration [38329261773], module validation [38329261803], collision guard [38329261829], MantiGO privacy [38329261878], approval/audit atomicity [38329261801]. Queue status is NOT PASS; check them only after completion.
+- [ ] Production migration reconciliation, chronological replay, tenant-isolation/payment E2E, deployed Edge Function parity, Auth/security, backup restore, signed device build and rollback remain release blockers.
+- Release remains BLOCKED / NOT CERTIFIED; no production changes or release actions performed.
+
+
+## RC541 — Fresh live Supabase and exact-head CI verification — 2026-10-13
+
+- [x] Read-only Supabase migration ledger confirmed 283 rows, latest `20261008222845` RC424; post-RC424 migrations are not recorded as applied.
+- [x] Read-only Edge Function inventory recorded active versions: payment-intent v6, paymob-webhook v8, subscription-payment-intent v2, erp-purchase-receive v1, digital-page-payment-intent v3, smm-gateway v10. Version labels do not certify source parity.
+- [x] Fresh Security Advisor observed 1 INFO RLS-no-policy finding on `digital_page_payment_events`, 1 anon-executable SECURITY DEFINER warning for public targeted ads, and 40 authenticated-executable SECURITY DEFINER warnings requiring scoped review. No grants or policies changed.
+- [x] Exact current-head CI for `173da30eef28a86356b4077abf06ce02f60cfed8` completed successfully: focused integration [38329295442] (13 jobs), migration uniqueness [38329295349], Pages validation [38329295538] (deploy skipped), audit ACL [38329295385], approval atomicity [38329295335], module validation [38329295383], backend boundary [38329295355], collision guard [38329295462], privacy [38329295409], platform-admin [38329295487], migration immutability [38329295477].
+- [ ] Full ordered migration replay, runtime tenant/payment/finance E2E, function source parity, Auth/security remediation, restore rehearsal, signed device build and rollback remain unverified. Do not apply production migrations without a reviewed, explicitly approved rollout and reconciled baseline.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC542 — SMM active-source parity restoration (source only) — 2026-10-13
+
+- [x] Compared live Supabase `smm-gateway` v10 file inventory to PR #218 candidate; found six imported modules absent from repository source.
+- [x] Restored `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`; updated `index.ts` from the active v10 source.
+- [x] Re-fetched all seven source files and verified exact text parity with the active deployed v10 files.
+- [x] Confirmed the source launch gate returns `SMM_DEFERRED` unless both the enablement and post-launch approval flags are true; no deployment or launch enabled.
+- [ ] Exact-head CI triggered on source commit `57be194aa4f0d35eff9ea1c00f59fd3a91edf3a2` was QUEUED at first inspection. Check results before considering merge.
+- [ ] SMM security review/acceptance, full migration replay, production tenant/payment E2E, Auth/RLS/SECURITY DEFINER remediation, backup/restore and rollback evidence remain open. No production release.
+
+
+## RC543 — Module progress percentages and fresh production blockers — 2026-10-13
+
+Evidence report: `docs/release/module-progress-report.md`.
+
+- **28/28 = 100%** of the defined domain-module runtime-wiring check passes (canonical catalog + routed workspace + expected live-table binding). This is wiring coverage, not production feature-completion.
+- **24/24 = 100%** of canonical UI feature-flag code mappings pass CI.
+- **6/37 = 16.2%** of currently ACTIVE Edge Functions were exact-compared to live source in this batch: payment-intent, paymob-webhook, subscription-payment-intent, erp-purchase-receive, digital-page-payment-intent, and smm-gateway. This is the number checked, not the parity percentage of all functions.
+- **0/33 = 0%** of required post-RC424 release migrations are proven applied in production; live ledger remains at `20261008222845` / RC424. Chronological replay remains NOT RUN.
+- SMM source regression CI passed (run `38329947697`), including Deno check/tests and isolated PostgreSQL ACL integration. SMM is still deferred/disabled and not deployed from this PR.
+- Exact-head focused migration integration remained queued at last check (run `38329947672`); do not count queued as passed.
+- Fresh Security Advisor still reports 40 authenticated SECURITY DEFINER warnings, one anon-executable targeted-advertisement function warning, one RLS-enabled/no-policy table, and leaked-password-protection warning(s). Performance Advisor reports 105 unindexed FKs, 375 auth/RLS init-plan warnings, 124 unused-index notices, and 28 multiple-permissive-policy warnings. Review each in context; do not blanket revoke or add broad policies.
+- Mandatory runtime gates remain open: tenant isolation, live Paymob/finance E2E, notification delivery, backup/restore, Android signing/device checks, rollback, and production smoke.
+
+**Release remains BLOCKED / NOT CERTIFIED.** Do not treat wiring percentages as a release-readiness score.
+
+
+## RC544 — Edge Function convergence and historical migration source gap — 2026-10-13
+
+- Current live inventory: 37 ACTIVE Edge Functions. Exact source audit: 32/37 (86.5%) byte-for-byte matched; 5 have differences requiring review. See `docs/release/module-progress-report.md` for the function-by-function divergence summary. Do not replace hardened branch sources with weaker live copies without a reviewed deployment plan.
+- Restored exact Deno configs missing from repo for `payment-webhook`, `mnty-provider-onboarding-submit`, and `mnty-provider-onboarding-review`. These are source-only updates; no deployment occurred.
+- Migration inventory: 283 production ledger rows, 160 repository migration files, 126 filenames timestamped at/before RC424 and 34 after it. Count-based indicator is 126/283 = 44.5%; exact mapping remains unverified. No `supabase/config.toml` or separate migration archive exists under `supabase/`. See `docs/release/migration-source-inventory-gap.md`.
+- **0/33** required post-RC424 migrations are proven applied; live ledger ends at `20261008222845`. Full chronological replay is NOT RUN and cannot be certified from the current source inventory.
+- Keep release BLOCKED while authentic historical source recovery, complete per-version ledger reconciliation, replay, and all mandatory E2E/security/recovery/device gates remain open.
+
+## S04 continuation — reproducible missing RPC prerequisite (2026-10-14)
+
+- [x] Correct the disposable test-baseline validator so it distinguishes original source timestamps from live-ledger normalized replay ordering. Verified by `test_baseline_validation_exit=0` on S04 run 159 and run 160.
+- [x] Capture the first actual Supabase startup blocker and repeat it on a subsequent run.
+- [x] Read-only production catalog inspection for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: function exists; SECURITY DEFINER; owner `postgres`; `anon` and `authenticated` cannot execute it; definition fingerprint `b0032d51962bddf93a74a679e8449644`.
+- [x] Read-only search of production migration ledger statement arrays: no match for the function's creation; current tracked migration source search also did not identify its definition.
+- [ ] **BLOCKED — recover and authenticate the historical source/backup for `counter_offer_indrive_bid`, or approve a separately reviewed baseline strategy based on authoritative evidence. Do not synthesize historical DDL, make the revoke conditional, or mutate production.**
+- [ ] After source reconciliation, rerun disposable chronological replay and record the next first error (if any); do not certify based on test-only baseline replay.
+- [ ] Update this TODO only with verified evidence; production gate remains `BLOCKED / NOT CERTIFIED`.
+
+Evidence:
+- S04 run 159: https://github.com/islamnagy2022-eng/MantiQaTix/actions/runs/38499236142
+- S04 run 160: https://github.com/islamnagy2022-eng/MantiQaTix/actions/runs/38499702486
+- S04 report: https://github.com/islamnagy2022-eng/MantiQaTix/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/s04-migration-chain-clean-replay-report.md
+
+
+
+## S04 continuation — reviewed decision path for missing counter-offer RPC (2026-10-14)
+
+- [x] Rechecked bounded GitHub source history: no indexed commit/code match for `counter_offer_indrive_bid`; inspected seven InDrive/reverse-bidding migration files across candidate PR branches and found no definition. This does not prove no external backup exists.
+- [x] Added proposal-only decision record: `docs/release/counter-offer-rpc-forward-baseline-decision.md`.
+- [ ] **WAIT / BLOCKED:** recover authentic historical source from a trusted backup/deployment artifact, or obtain explicit review approval for the separate forward-baseline strategy.
+- [ ] Do not write migration code until provenance/behavior/ACL/search_path/dependency review is complete.
+- [ ] After approval and implementation on a reviewed branch, rerun disposable chronological replay; do not treat the test-only baseline workflow as a clean replay.
+- [ ] Keep production unchanged; no migration, grants, RLS, Auth, function deployment, merge, or release was performed.
+- Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence:
+- Decision proposal: https://github.com/islamnagy2022-eng/MantiqatiX/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/counter-offer-rpc-forward-baseline-decision.md
+- S04 report: https://github.com/islamnagy2022-eng/MantiqatiX/blob/docs/rc521-admin-operations-discovery-20261013/docs/release/s04-migration-chain-clean-replay-report.md
+
+
+## RC546 — Exact-head CI refresh and S04 run 168 — 2026-10-14
+
+- **VERIFIED — scoped CI only:** PR #218 head `5b01aede91340bd9281dda97da6ebc46d45bdfcc` completed focused recovered-migration integration, approval-action atomicity, SMM service-role boundary, backend-only module boundary, audit-log append-only ACL, migration-version uniqueness, migration-history immutability, open-PR collision guard, MantiGO platform-admin scope, MantiGO open-ride privacy, and module professionalization checks successfully. Web validation passed; the web deploy job was **skipped**, so this run is not deployment evidence.
+- **BLOCKED — S04 run 168:** [run 38500724335](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38500724335) failed on the same missing `public.counter_offer_indrive_bid(uuid,uuid,numeric)` reference in `20260927095000_revoke_unused_security_definer_execute.sql` (SQLSTATE 42883). Provider-onboarding and SMM test-only baselines were injected; therefore the result is not clean replay.
+- Keep source recovery / proposal review open. Do not invent historical DDL, add a temporary function stub, conditionally skip the revoke, or change production.
+- **WAIT / NOT VERIFIED:** live production E2E, full chronological clean replay, backup/restore rehearsal, release signing/device tests, and all mandatory runtime gates remain open.
+- The production release gate remains **BLOCKED / NOT CERTIFIED**. This section records evidence from head `5b01aede...`; the documentation commit that adds this note must itself receive a fresh exact-head CI check before any status is upgraded.
+
+
+## RC547 — SMM order idempotency schema mismatch — 2026-10-14
+
+- **BLOCKED / SMM DEFERRED:** read-only production catalog evidence recorded in PR #218 shows `public.smm_orders.idempotency_key` is absent and no idempotency index exists for `public.smm_orders`.
+- The candidate SMM `place_order` path attempts to insert `idempotency_key` and treats SQLSTATE `23505` as replay. Without a reconciled schema prerequisite, that path is incompatible with the observed live table and must not be enabled.
+- Required before SMM can be considered launchable: a separately reviewed forward-only migration for the column and uniqueness strategy; explicit legacy-row/null/duplicate semantics; disposable PostgreSQL tests for first request, same-key replay, different-user same key, different-payload conflict, and concurrent duplicate requests; exact-head CI; full migration-chain review; and an approved rollout/rollback plan.
+- Do not edit applied historical migrations or deploy/apply a new migration to production from this finding alone. This is a release blocker record, not deployment authorization.
+
+
+## RC548 — S04 run 38501518479 repeat confirmation — 2026-10-14
+
+- **VERIFIED:** [S04 run 38501518479](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479) failed after source audit, normalized version checks, recovered-source validation, alias normalization, and test-baseline validation returned exit code 0.
+- **BLOCKED:** the workflow injected catalog-derived test-only provider-onboarding and SMM baselines, initialized Supabase, then failed during startup at `20260927095000_revoke_unused_security_definer_execute.sql` with `SQLSTATE 42883` because `public.counter_offer_indrive_bid(uuid,uuid,numeric)` is absent from the replay chain.
+- Evidence artifact: [11866516003](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38501518479/artifacts/11866516003).
+- This is another reproduction of the same blocker, not clean replay. Do not repeat the run without a source/decision change; do not synthesize historical DDL or touch production.
+- Release gate remains **BLOCKED / NOT CERTIFIED**.

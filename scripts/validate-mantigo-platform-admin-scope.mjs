@@ -22,6 +22,24 @@ check("integration denies anon on ride expiration and preserves authenticated en
   integration.includes("authenticated role must retain intended RPC entrypoint grants") &&
   integration.includes("has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE')"));
 check("integration verifies authorized settlement persistence and replay safety", integration.includes("authorized platform admin settlement failed") && integration.includes("settlement replay did not return idempotent success") && integration.includes("settlement replay duplicated audit or notification"));
+const rc462 = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
+const rc462Test = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
+const adminWorkflow = fs.readFileSync(".github/workflows/mantigo-platform-admin-scope.yml", "utf8");
+check("RC462 malformed JSON guard must use JSON containment rather than unsafe text-to-boolean casts",
+  rc462.includes("m.permissions @> '{\"scope\":\"PLATFORM\",\"full_control\":true}'::jsonb") &&
+  !rc462.includes("(m.permissions ->> 'full_control')::boolean"));
+check("RC462 regression covers malformed string, false, and valid true permissions",
+  rc462Test.includes('"full_control":"not-a-boolean"') &&
+  rc462Test.includes('"full_control":false') &&
+  rc462Test.includes('"full_control":true') &&
+  rc462Test.includes("without raising for malformed full_control"));
+check("RC462 malformed-permission regression is selected by the platform-admin workflow and run after its migration",
+  adminWorkflow.includes("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql") &&
+  adminWorkflow.includes("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql") &&
+  adminWorkflow.includes('docker cp supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql "$pg_container:/tmp/rc462-test.sql"') &&
+  adminWorkflow.indexOf("-f /tmp/rc462.sql") < adminWorkflow.indexOf("-f /tmp/rc462-test.sql") &&
+  adminWorkflow.indexOf("-f /tmp/rc462-test.sql") < adminWorkflow.indexOf("-f /tmp/rc523.sql"));
+
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");

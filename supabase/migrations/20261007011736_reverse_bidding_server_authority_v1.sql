@@ -1,0 +1,11 @@
+alter table public.indrive_requests add column if not exists idempotency_key text;
+create unique index if not exists indrive_requests_owner_idempotency_uq on public.indrive_requests(owner_user_id,idempotency_key) where idempotency_key is not null;
+create unique index if not exists indrive_bids_request_provider_uq on public.indrive_bids(request_id,provider_user_id);
+revoke insert, update on public.indrive_requests from anon,authenticated;
+revoke insert, update, delete on public.indrive_bids from anon,authenticated;
+alter function public.create_indrive_request_backend(uuid,text,text,text,text,numeric,text,text,text) set search_path=public,pg_temp;
+alter function public.create_indrive_bid_backend(uuid,uuid,text,text,numeric,text,text) set search_path=public,pg_temp;
+revoke all on function public.create_indrive_request_backend(uuid,text,text,text,text,numeric,text,text,text) from public,anon;
+grant execute on function public.create_indrive_request_backend(uuid,text,text,text,text,numeric,text,text,text) to authenticated;
+revoke all on function public.create_indrive_bid_backend(uuid,uuid,text,text,numeric,text,text) from public,anon;
+grant execute on function public.create_indrive_bid_backend(uuid,uuid,text,text,numeric,text,text) to authenticated;

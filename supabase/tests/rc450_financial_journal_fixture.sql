@@ -31,6 +31,24 @@ as $function$
   select nullif(current_setting('request.jwt.claim.role', true), '')
 $function$;
 
+-- Minimal legacy RPC signatures required by RC436's ALTER FUNCTION hardening.
+-- These fail closed and exist only in this disposable test fixture; RC436/RC450 replace
+-- the backend implementation before integration assertions execute.
+create or replace function public.post_financial_journal(p_entry jsonb, p_lines jsonb)
+returns jsonb language plpgsql set search_path = public, pg_temp
+as $fixture$
+begin
+  raise exception 'FIXTURE_LEGACY_RPC_MUST_NOT_BE_CALLED';
+end;
+$fixture$;
+create or replace function public.post_financial_journal_backend(p_user_id uuid, p_entry jsonb, p_lines jsonb)
+returns jsonb language plpgsql set search_path = public, pg_temp
+as $fixture$
+begin
+  raise exception 'FIXTURE_LEGACY_RPC_MUST_NOT_BE_CALLED';
+end;
+$fixture$;
+
 create table public.user_memberships (
   user_id uuid not null,
   tenant_id varchar not null,
@@ -38,7 +56,8 @@ create table public.user_memberships (
   business_id uuid,
   branch_id varchar,
   role varchar not null,
-  status varchar not null
+  status varchar not null,
+  created_at timestamptz not null default current_timestamp
 );
 create table public.businesses (
   id uuid primary key,
@@ -80,6 +99,7 @@ create table public.journal_entries (
   total_credit numeric not null,
   entry_date date not null,
   posted_at timestamptz not null,
+  created_at timestamptz not null default current_timestamp,
   created_by uuid not null
 );
 create table public.journal_entry_lines (
