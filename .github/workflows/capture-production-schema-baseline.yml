@@ -120,10 +120,29 @@ jobs:
           node scripts/validate-production-schema-baseline.mjs --capture
           git diff --check
 
+      - name: Prepare isolated baseline-only review branch from main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: baseline-pr
+          persist-credentials: true
+
+      - name: Copy only reviewed-baseline candidates into isolated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p baseline-pr/supabase/tests/baselines
+          cp supabase/tests/baselines/production_schema_snapshot.sql baseline-pr/supabase/tests/baselines/
+          cp supabase/tests/baselines/production_schema_snapshot.manifest.json baseline-pr/supabase/tests/baselines/
+          git -C baseline-pr diff --check
+          git -C baseline-pr status --short
+
       - name: Open draft review PR for the schema-only artifact
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ github.token }}
+          path: baseline-pr
+          base: main
           branch: recovery/production-schema-baseline-${{ github.run_id }}
           delete-branch: true
           add-paths: |
