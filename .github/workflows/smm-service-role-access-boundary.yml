@@ -5,6 +5,13 @@ on:
       - "**"
     paths:
       - "supabase/functions/smm-gateway/index.ts"
+      - "supabase/functions/smm-gateway/launch-gate.ts"
+      - "supabase/functions/smm-gateway/provider-transport.ts"
+      - "supabase/functions/smm-gateway/order-status.ts"
+      - "supabase/functions/smm-gateway/catalog-normalization.ts"
+      - "supabase/functions/smm-gateway/order-validation.ts"
+      - "supabase/functions/smm-gateway/request-validation.ts"
+      - "supabase/functions/smm-gateway/smm-gateway.test.ts"
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
@@ -13,6 +20,13 @@ on:
     branches: [main]
     paths:
       - "supabase/functions/smm-gateway/index.ts"
+      - "supabase/functions/smm-gateway/launch-gate.ts"
+      - "supabase/functions/smm-gateway/provider-transport.ts"
+      - "supabase/functions/smm-gateway/order-status.ts"
+      - "supabase/functions/smm-gateway/catalog-normalization.ts"
+      - "supabase/functions/smm-gateway/order-validation.ts"
+      - "supabase/functions/smm-gateway/request-validation.ts"
+      - "supabase/functions/smm-gateway/smm-gateway.test.ts"
       - "supabase/migrations/20261011010000_rc456_smm_service_role_access_boundary.sql"
       - "supabase/tests/rc456_smm_service_role_*.sql"
       - "scripts/validate-smm-service-role-boundary.mjs"
@@ -33,6 +47,7 @@ jobs:
           deno-version: v2.x
       - run: node scripts/validate-smm-service-role-boundary.mjs
       - run: deno check --no-lock supabase/functions/smm-gateway/index.ts
+      - run: deno test --no-lock supabase/functions/smm-gateway/smm-gateway.test.ts
 
   smm-service-role-postgres:
     runs-on: ubuntu-latest

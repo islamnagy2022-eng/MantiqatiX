@@ -539,3 +539,111 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## 2026-10-13 continuation — RC524 migration-source recovery
+
+- Current working branch: docs/rc521-admin-operations-discovery-20261013; PR #218 remains draft and unmerged.
+- Restored 16 missing RC425–RC441 migration files from PR #207 after verifying identical blob SHAs across PR #207, #202, and #84 for those exact files. The current candidate's blobs were rechecked against PR #207 and matched.
+- Updated the migration-chain gate source list from 28 to 30 required migrations, including RC522 and RC523.
+- Important distinction: source recovery does not imply migration replay success or production application. Earlier clean-replay dependencies, missing focused tests in this branch, live E2E/security evidence, and owner-approved production change process remain unresolved.
+- Continue with exact-head CI and safe disposable replay/source-contract validation. Never change production or merge/release without explicit approval and evidence.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC525 focused integration coverage
+
+- Restored test fixtures/integration SQL from the reconciled PR #207 source for RC425, RC431, RC434, RC435, RC436, RC439 and RC440, then added a separate seven-job disposable-PostgreSQL workflow.
+- Exact candidate at recording time: d4403cc8c7c9dca8fe0bcacdb5897da58f56c4b8. The focused workflow and related checks were queued; no queued result is counted as a pass.
+- SMM RC432 is still deferred, and chronological full replay still has historical DDL dependencies. Production migration status remains unchanged.
+- Continue by inspecting exact-head CI outcomes and fixing only reproducible source/test failures. No production writes, deployments, merges or releases without explicit approval.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC526 source-presence gate
+
+- Added a filesystem existence assertion for all 30 migration files tracked by the production migration-chain gate. The candidate tree was checked first and all 30 were present after RC524 recovery.
+- Current code candidate: 7cf34432de0d5b604121e00f662f04771de18568. Exact-head CI is queued and not yet considered passed.
+- No production changes. Continue from CI results and full replay prerequisites; never certify based on source presence alone.
+- Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC527 focused finance/ERP/admin coverage
+
+- Restored RC457, RC458 and RC462 source migrations and matching test files from reconciled PR #207; SHA verification passed for these exact sources.
+- Added five isolated PostgreSQL jobs; focused migration workflow now has 12 integration jobs. Added RC457/RC458/RC462 to the fail-closed migration-chain inventory (33 required files, timestamp ordered).
+- Exact-head CI has been triggered but is not yet confirmed complete. Do not report a pass until a completed check is inspected.
+- Production remains unchanged. Release is still BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC528 exact-head CI and deployment-gate audit
+
+- Exact PR #218 head: `5fd777dacda37e97f4289cb408423135d464ffe7`. PR remains draft/open/unmerged.
+- At the latest direct check, all inspected Actions runs on this head were still queued, including the 12-job focused migration workflow. No new pass is claimed. Run links: [focused migration integration](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38325620091), [migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38325620083), [Pages validate/deploy workflow](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38325620138).
+- Reviewed `.github/workflows/pages.yml`: deployment needs validation and is conditioned on main push or manual dispatch; pull_request runs validate but do not deploy. This does not prove a deployment occurred.
+- The migration-chain validator tracks 33 required sources and enforces source existence and timestamp order, while requiring live reconciliation, chronological replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function parity/contracts, and Auth-security evidence for certification.
+- No production mutation or release action was performed. Continue from exact-head CI results and disposable replay; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-13 continuation — RC529 canonical financial-report integration coverage
+
+- Added `supabase/tests/rc523_mantigo_financial_report_integration.sql` to verify the RC523 report uses canonical `gross_amount` and `captain_net_amount` even when legacy `amount`/`captain_amount` differ, while keeping the external JSON key `captain_amount`.
+- Added a disposable PostgreSQL CI job applying RC441 → RC449 → RC462 → RC523, plus RC523 migration/test paths in both focused-workflow trigger filters.
+- This is implemented source, not yet a passing test. Inspect exact-head CI and logs when complete. No production changes or release; BLOCKED / NOT CERTIFIED.
+
+- RC523 test-review correction: assertions now match the fixture's one inserted ledger row. Expected canonical totals are gross 250, commission 25, captain_amount 200, paid_amount 250, and unsettled_amount 200. This is a source correction only; no CI pass is claimed.
+
+- RC530: aligned `scripts/production/verify-production.mjs` with the companion 33-source release contract by adding RC457, RC458, RC462, RC522 and RC523 in filename timestamp order. This source correction awaits exact-head CI; release remains blocked.
+
+
+## Latest verified continuation — 2026-10-13 (RC539)
+
+- PR #218 remains a draft and unmerged. Current head verified from GitHub: `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc`.
+- Exact-head focused integration [38328931209] passed 13/13 disposable PostgreSQL jobs; exact-head migration uniqueness, platform-admin scope, privacy, audit atomicity, history immutability, collision guard, module validation, audit append-only ACL, and backend boundary runs also succeeded. Pages validation passed but its deploy job was skipped on the PR event.
+- Production release remains BLOCKED / NOT CERTIFIED because the current reconciliation manifest says required release migrations are not applied/proven and chronological replay is NOT RUN; live ledger last observed at RC424. Other open release evidence includes tenant-isolation and payment/finance E2E, Edge Function parity, Auth/security remediation, backup/restore, signed device build and rollback.
+- Administration & Operations remains partial: no authoritative task/work-item table/source was found in the read-only inventory.
+- Next action: complete isolated chronological replay by resolving evidence-backed historical DDL prerequisites; do not introduce fake stubs, rewrite applied migration history, modify production, deploy, merge or release without explicit approval.
+
+
+## Exact-head recheck — RC540 (2026-10-13)
+
+- Latest documentation head on PR #218: `f608bc76bfc898f3aa4116fbd3777f2b378bb64b`. CI was retriggered due to documentation changes. Eleven checks were QUEUED at inspection; none is counted as passed until completed.
+- The immediately preceding code candidate `b643ead63ba1da53cf735b0b5b37f7c1734bb5dc` had focused PostgreSQL integration 13/13 and the listed source validators passing.
+- Release remains BLOCKED / NOT CERTIFIED: migration reconciliation says required migrations are not applied/proven and chronological replay is NOT RUN; live runtime and disaster-recovery gates remain open.
+
+
+## RC541 — Latest live-state check (2026-10-13)
+
+- Current PR #218 candidate `173da30eef28a86356b4077abf06ce02f60cfed8` has completed the required observed CI set successfully, including 13/13 focused disposable PostgreSQL integration jobs. The Pages deploy job was skipped for the PR event.
+- Fresh read-only Supabase inventory confirms 283 recorded migrations, latest RC424 version `20261008222845`; post-RC424 migrations are not recorded as applied. Active functions include payment-intent v6, paymob-webhook v8, subscription-payment-intent v2, erp-purchase-receive v1, digital-page-payment-intent v3, and smm-gateway v10; version numbers alone do not prove source parity.
+- Security Advisor snapshot: 1 INFO RLS-enabled/no-policy finding on `digital_page_payment_events`, 1 anon-executable SECURITY DEFINER warning on targeted ads, and 40 authenticated-executable SECURITY DEFINER warnings. These require scoped contract review, not blanket ACL changes.
+- Full chronological replay, live tenant/payment E2E, Edge Function parity, Auth/security, backup/restore, signed device build and rollback remain open. Do not deploy or certify until evidence is reconciled. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC542 — SMM source parity restored, launch still gated — 2026-10-13
+
+- Live Supabase `smm-gateway` v10 had seven source files, while the PR candidate only contained an older `index.ts` and lacked six imported modules. Those six modules were restored and the entrypoint updated from the active source.
+- Re-fetched all seven files and confirmed exact text equality to active v10 source. The launch gate explicitly fails closed with `SMM_DEFERRED` unless both enablement and post-launch approval flags are true.
+- Source-only PR commit: `57be194aa4f0d35eff9ea1c00f59fd3a91edf3a2`. Exact-head CI workflows were queued at first inspection; no result counted as passing yet. No function was deployed or enabled.
+- Continue with exact-head CI, SMM security review in isolation, and full chronological migration replay. Production release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC543 — Latest module progress / release evidence — 2026-10-13
+
+- Evidence-based module metrics and all 28 domain codes are documented in `docs/release/module-progress-report.md`.
+- Runtime wiring contract: 28/28 domain modules PASS (100% for catalog/workspace/table-binding coverage); canonical UI feature-flag mappings: 24/24 PASS (100%). Neither measure claims full functional or production completion.
+- Current production inventory: 283 migration ledger rows ending at RC424 (`20261008222845`); 37 ACTIVE Edge Functions. Six function sources were exact-compared to live source in this batch; do not infer parity for the other 31 from this sample.
+- 33 required post-RC424 migrations are tracked by the release gate; 0/33 are proven applied. Full chronological replay remains NOT RUN.
+- SMM regression and isolated PostgreSQL ACL CI passed; SMM stays deferred/disabled and undeployed. The latest focused migration integration run was still queued at the last check.
+- Current Advisor blockers: 40 authenticated-executable SECURITY DEFINER functions, one anon-executable public advertisement function, one RLS-enabled/no-policy payment-events table intentionally fail-closed pending access-contract verification, and leaked-password-protection warning(s). Performance Advisor counts 105 unindexed FKs, 375 auth/RLS init-plan notices, 124 unused-index notices, and 28 multiple-permissive-policy notices.
+- Release status: **BLOCKED / NOT CERTIFIED**. No production migrations, grants/RLS/Auth changes, function deployments, real payment operations, merge, or release occurred.
+
+
+## RC544 — Current source parity and migration replay baseline — 2026-10-13
+
+- 37 ACTIVE production Edge Functions; 32/37 (86.5%) exact live/repository source parity confirmed in the current audit. Five textual divergences remain: catalog-admin (format-only/semantically equivalent on inspected actions), financial-journal, business-branch-admin, mnty-customer-registration, and digital-page-order-create. The latter four need security/contract review; do not deploy or overwrite blindly.
+- Restored missing exact Deno import-map files for `payment-webhook`, `mnty-provider-onboarding-submit`, and `mnty-provider-onboarding-review`; source-only, not deployed.
+- 283 live migration ledger rows vs 160 repository migration source files; 126 source filenames at/before RC424, 34 later. Count-based indicator 126/283 = 44.5%, not exact reconciliation. There is no `supabase/config.toml` or separate migration archive under `supabase/`. The historical source gap blocks full chronological replay.
+- 0/33 required post-RC424 migrations are proven applied; ledger still ends at RC424. Full chronological replay NOT RUN.
+- Current objective module measures: 28/28 runtime wiring contracts pass; 24/24 canonical UI feature-flag mappings pass. These do not imply full feature/E2E production readiness.
+- Current-head CI must be rechecked after the latest source/config and documentation commits; any queued check is NOT PASS. Release remains **BLOCKED / NOT CERTIFIED**.

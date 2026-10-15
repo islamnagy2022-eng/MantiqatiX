@@ -1,0 +1,141 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const read = (path) => readFileSync(path, "utf8");
+const payment = read("supabase/functions/payment-intent/index.ts");
+const webhook = read("supabase/functions/paymob-webhook/index.ts");
+const digital = read("supabase/functions/digital-page-payment-intent/index.ts");
+
+test("S06-01 payment intent requires authenticated non-anonymous user", () => {
+  assert.match(payment, /admin\.auth\.getUser\(token\)/);
+  assert.match(payment, /user\.is_anonymous/);
+});
+test("S06-02 payment intent requires order and bounded idempotency key", () => {
+  assert.match(payment, /const orderId = String\(body\.orderId/);
+  assert.match(payment, /const idempotencyKey = String\(body\.idempotencyKey/);
+  assert.match(payment, /idempotencyKey\.length > 200/);
+  assert.match(payment, /create_payment_intent_backend/);
+});
+test("S06-03 payment amount is sourced from authoritative order and backend intent", () => {
+  assert.match(payment, /p_amount:\s*order\.total/);
+  assert.match(payment, /intent\.amount/);
+  assert.match(payment, /order\.total_amount/);
+  assert.match(payment, /Authoritative pricing changed/);
+});
+test("S06-04 payment rejects unavailable pricing authority and non-payable order states", () => {
+  assert.match(payment, /pricing_hash.*pricing_version.*pricing_authority/);
+  assert.match(payment, /PENDING.*CREATED/);
+  assert.match(payment, /Order is not payable/);
+});
+test("S06-05 payment validates currency through authoritative order and persists provider reference", () => {
+  assert.match(payment, /currency:\s*String\(order\.currency/);
+  assert.match(payment, /provider_intent_id:\s*String\(provider\.id\)/);
+});
+test("S06-06 provider webhook verifies HMAC before financial processing", () => {
+  assert.match(webhook, /HMAC_SECRET/);
+  assert.match(webhook, /hmacSha512Hex/);
+  assert.match(webhook, /safeEqual/);
+  assert.ok(webhook.indexOf("verify(obj,order,source") < webhook.indexOf("process_verified_provider_payment"));
+});
+test("S06-07 webhook rejects invalid signatures before processing", () => {
+  assert.match(webhook, /INVALID_PROVIDER_SIGNATURE/);
+  assert.match(webhook, /return json\(\{error:"INVALID_PROVIDER_SIGNATURE"/);
+});
+test("S06-08 webhook checks event identity and amount/currency against intent", () => {
+  assert.match(webhook, /const eventId=`paymob:\$\{value\(obj\.id\)\}`/);
+  assert.match(webhook, /PAYMENT_AMOUNT_CURRENCY_MISMATCH/);
+  assert.match(webhook, /external_event_id.*eventId/s);
+});
+test("S06-09 failed payment callbacks use atomic server-authoritative RPC", () => {
+  assert.match(webhook, /process_verified_provider_payment_failure/);
+  assert.match(webhook, /process_verified_subscription_payment_failure/);
+  assert.match(webhook, /process_verified_mantigo_payment_backend/);
+  assert.doesNotMatch(webhook, /from\("payment_intents"\)\.update/);
+  assert.doesNotMatch(webhook, /from\("subscription_payment_intents"\)\.update/);
+  assert.doesNotMatch(webhook, /from\("mantigo_financial_ledger"\)\.update/);
+});
+test("S06-10 normal payment processing delegates to verified backend RPC", () => {
+  assert.match(webhook, /process_verified_provider_payment/);
+  assert.match(webhook, /p_signature_verified:true/);
+});
+test("S06-11 digital-page flow claims idempotency before provider call and handles in-progress race", () => {
+  assert.match(digital, /claim_digital_page_payment_intent_backend/);
+  assert.match(digital, /PAYMENT_INTENT_IN_PROGRESS/);
+  assert.ok(digital.indexOf("claim_digital_page_payment_intent_backend") < digital.indexOf('fetch(PAYMOB_BASE_URL'));
+});
+test("S06-12 digital-page provider failure releases claim", () => {
+  assert.match(digital, /release_digital_page_payment_intent_claim_backend/);
+  assert.match(digital, /PAYMENT_PROVIDER_REJECTED/);
+  assert.match(digital, /PAYMENT_PROVIDER_UNAVAILABLE/);
+});
+test("S06-13 digital-page provider intent is finalized via backend RPC", () => {
+  assert.match(digital, /finalize_digital_page_payment_intent_backend/);
+  assert.match(digital, /PAYMENT_PERSISTENCE_FAILED/);
+});
+
+test("S06-14 subscription webhook calls the canonical atomic success RPC with provider-order binding", () => {
+  assert.match(webhook, /process_verified_subscription_payment_backend/);
+  assert.match(webhook, /p_provider_order_id:paymobOrderId/);
+  assert.match(webhook, /p_raw_payload:raw/);
+  assert.doesNotMatch(webhook, /rpc\("process_verified_subscription_payment"/);
+});
+
+test("S06-15 all webhook payment state transitions avoid direct table DML", () => {
+  assert.doesNotMatch(webhook, /from\("(payment_intents|subscription_payment_intents|mantigo_financial_ledger|payment_provider_events)"\)\.(update|insert|upsert|delete)/);
+});
+
+test("S06-16 replay idempotency and ownership are decided by atomic RPCs, not unbound event lookups", () => {
+  assert.doesNotMatch(webhook, /from\("payment_provider_events"\)\.select\("id(?:,payment_intent_id)?"\)/);
+  assert.match(webhook, /process_verified_provider_payment_failure/);
+  assert.match(webhook, /process_verified_subscription_payment_failure/);
+  assert.match(webhook, /process_verified_mantigo_payment_backend/);
+  assert.match(webhook, /process_verified_digital_page_payment_backend/);
+});
+
+test("S06-18 webhook rejects oversized request bodies before signature verification", () => {
+  assert.match(webhook, /async function readBoundedJson\(req:Request,maxBytes=65536\)/);
+  assert.match(webhook, /REQUEST_BODY_TOO_LARGE/);
+  assert.match(webhook, /status:413/);
+  assert.ok(webhook.indexOf("readBoundedJson(req)") < webhook.indexOf("if(!(await verify(obj,order,source"));
+  assert.doesNotMatch(webhook, /const raw=await req\.json\(\)/);
+});
+
+test("S06-17 merchant reference must match the resolved entity even when provider-order lookup succeeds", () => {
+  assert.match(webhook, /SUBSCRIPTION_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /DIGITAL_PAGE_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /MANTIGO_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /PAYMENT_MERCHANT_REFERENCE_MISMATCH/);
+  assert.match(webhook, /merchant_order_id:merchantRef/);
+});
+
+
+test("S06-21 digital-page event identity is serialized before target-order locking", () => {
+  const migration = read("supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql");
+  const eventLock = migration.indexOf("pg_advisory_xact_lock(hashtextextended(p_external_event_id, 0))");
+  const orderLock = migration.indexOf("select * into v_order");
+  assert.ok(eventLock >= 0, "provider event advisory lock must exist");
+  assert.ok(orderLock >= 0, "target order lock must exist");
+  assert.ok(eventLock < orderLock, "event identity must be serialized before locking the target order");
+});
+
+test("S06-20 bounded webhook body parser and replay protections remain source-wired", () => {
+  const mantigo = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
+  const normalFailure = read("supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql");
+  const subscriptionFailure = read("supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql");
+  const subscriptionSuccess = read("supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql");
+
+  assert.match(mantigo, /v_event\.ledger_id is distinct from v_ledger\.id/);
+  assert.match(mantigo, /v_event\.status is distinct from p_status/);
+  assert.match(normalFailure, /v_event\.payment_intent_id::text is distinct from p_payment_intent_id/);
+  assert.match(normalFailure, /PAYMENT_FAILURE_REPLAY_STATUS_MISMATCH/);
+  assert.match(subscriptionFailure, /v_existing\.event_type is distinct from 'SUBSCRIPTION_FAILURE'/);
+  assert.match(subscriptionFailure, /v_existing\.raw_payload->>'subscription_payment_intent_id' is distinct from p_subscription_payment_intent_id::text/);
+  assert.match(subscriptionSuccess, /v_existing\.event_type is distinct from 'SUBSCRIPTION_SUCCESS'/);
+  assert.match(subscriptionSuccess, /v_existing\.raw_payload->>'subscription_payment_intent_id' is distinct from p_subscription_payment_intent_id::text/);
+});
+
+test("S06-19 generic Paymob callbacks require the stored provider-order ID before either transition", () => {
+  assert.match(webhook, /PAYMENT_PROVIDER_ORDER_MISMATCH/);
+  assert.match(webhook, /!intent\.provider_order_id\|\|String\(intent\.provider_order_id\)!==paymobOrderId/);
+});

@@ -24,7 +24,7 @@ begin
     ('ride-rc449',tenant_owner,'COMPLETED',pg_catalog.now()-interval '1 hour');
 
   insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference,amount,captain_amount)
-  values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null,100,90);
+  values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null,999,888);
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
@@ -77,6 +77,16 @@ begin
   perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
   if not public.mnty_can_platform_admin() then
     raise exception 'explicit platform SUPER_ADMIN with full_control should pass';
+  end if;
+
+  -- The report must use the canonical financial ledger columns, not legacy aliases.
+  result := public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
+  if (result->>'gross')::numeric <> 100
+     or (result->>'commission')::numeric <> 10
+     or (result->>'captain_amount')::numeric <> 90
+     or (result->>'paid_amount')::numeric <> 100
+     or (result->>'unsettled_amount')::numeric <> 90 then
+    raise exception 'platform financial report returned incorrect canonical ledger totals: %',result;
   end if;
 
   if has_function_privilege('anon','public.mnty_can_platform_admin()','EXECUTE') then

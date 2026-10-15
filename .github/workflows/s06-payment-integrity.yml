@@ -1,0 +1,78 @@
+name: S06 Payment Integrity Regressions
+on:
+  pull_request:
+    branches: ['**']
+    paths:
+      - 'supabase/tests/s06_payment_integrity_regression.sql'
+      - 'tests/s06-payment-integrity.test.mjs'
+      - 'scripts/s06-payment-integrity-concurrency.sh'
+      - 'scripts/s06-payment-integrity-concurrency.sh'
+      - 'supabase/functions/paymob-webhook/**'
+      - 'supabase/functions/digital-page-payment-intent/**'
+      - '.github/workflows/s06-payment-integrity.yml'
+      - 'supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/tests/s06_payment_integrity_regression.sql'
+      - 'tests/s06-payment-integrity.test.mjs'
+      - 'supabase/functions/paymob-webhook/**'
+      - 'supabase/functions/digital-page-payment-intent/**'
+      - '.github/workflows/s06-payment-integrity.yml'
+      - 'supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql'
+permissions:
+  contents: read
+jobs:
+  s06-payment-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_s06_payment_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_s06_payment_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Record exact tested source revision
+        run: git rev-parse HEAD
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Paymob webhook runtime
+        run: deno check --no-lock supabase/functions/paymob-webhook/index.ts
+      - name: Run S06 webhook and payment-intent source regressions
+        run: node --test tests/s06-payment-integrity.test.mjs
+      - name: Prepare disposable PostgreSQL roles and fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc431_digital_page_payment_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/s06_payment_integrity_regression.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_s06_payment_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+
+      - name: Run concurrent duplicate callback regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          bash scripts/s06-payment-integrity-concurrency.sh "$pg_container"

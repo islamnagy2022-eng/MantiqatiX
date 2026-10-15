@@ -2,6 +2,7 @@ import fs from 'node:fs';
 const payment=fs.readFileSync('supabase/functions/payment-intent/index.ts','utf8');
 const settlement=fs.readFileSync('supabase/functions/settlement-create/index.ts','utf8');
 const paymob=fs.readFileSync('supabase/functions/paymob-webhook/index.ts','utf8');
+const paymentFailureRpc=fs.readFileSync('supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql','utf8');
 const required=[
   [payment,'admin.auth.getUser','payment auth verification'],
   [payment,'create_payment_intent_backend','server payment-intent boundary'],
@@ -11,7 +12,9 @@ const required=[
   [settlement,'create_settlement_backend','settlement backend boundary'],
   [paymob,'hmacSha512Hex','Paymob HMAC verification'],
   [paymob,'safeEqual','constant-time signature comparison'],
-  [paymob,'payment_provider_events','provider event idempotency'],
+  [paymentFailureRpc,'public.payment_provider_events','provider event idempotency persistence'],
+  [paymentFailureRpc,'EXTERNAL_EVENT_REPLAY_MISMATCH','provider event entity binding'],
+  [paymentFailureRpc,'PAYMENT_FAILURE_REPLAY_STATUS_MISMATCH','provider event replay status binding'],
   [paymob,'process_verified_provider_payment','verified payment processing'],
   [paymob,'process_verified_subscription_payment','verified subscription processing']
 ];
