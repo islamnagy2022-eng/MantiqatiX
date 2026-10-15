@@ -1606,3 +1606,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: PR #248 still needs independently captured and reviewed baseline provenance/ledger evidence; do not fabricate or approve it implicitly.
 - [ ] BLOCKED: all production migration/release gates remain open. No merge, production database change, real payment, or production deploy was performed.
 - [x] Follow-up to collision guard: aligned the same RC431 migration source in open PRs #84, #207, and #218 to the canonical source already used by PR #220 and PR #248. PR #248 collision guard now passes against the updated open-PR set. No PR was merged; other branches still require their own CI.
+
+
+## RC baseline ledger evidence — 2026-10-16
+- Read-only Supabase migration inventory was compared position-by-position with `supabase_migrations.schema_migrations`: 283/283 versions match, zero positional mismatches; latest applied version is `20261008222845`.
+- Independent ordered evidence file added to PR #249: `supabase/tests/baselines/production_schema_migration_versions.txt`.
+- Live ledger SHA-256 computed from the ordered versions plus trailing newline: `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`, matching the existing manifest.
+- This is read-only ledger provenance verification; no production writes were performed. The schema snapshot still requires security review and explicit disposable-replay approval. PR #249 remains Draft; do not change `review_status` or claim the forward replay passed until review and isolated replay complete.
