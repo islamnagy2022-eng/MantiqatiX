@@ -33,3 +33,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not performed:** No production DDL/data change, GRANT/REVOKE/ALTER ROLE, password reset, Edge Function deployment, PR merge, migration execution, or release certification.
 - **Next safe action:** Use Supabase Connect to copy the correct URI for the intended connection mode; validate that the username matches that mode. Before using the limited reader role, resolve its missing `supabase_migrations` USAGE/SELECT permissions and ensure its effective privileges are read-only (current PUBLIC grants on `net._http_response` and `net.http_request_queue` make it unsuitable for automation until assessed). Do not expose passwords in chat.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-15 — SESSION-003 — Connection URI preflight
+
+- **Action performed:** Added a fail-closed URI shape preflight to the schema-baseline capture workflow. It validates URI protocol, host/database presence, project-qualified Session Pooler username suffix, and the obvious password placeholder without printing credentials.
+- **Commit:** `801bacc69eac9a20ac6b37b0b97113fcce6a024e` on recovery branch.
+- **Not verified:** The new workflow step has not run yet. This is static workflow hardening only, not proof that the secret is corrected or the database connection succeeds.
+- **Not performed:** No production database mutation, role changes, password reset, migration, deployment, or merge.
+- **Next step:** Correct the masked GitHub secret locally using the exact Supabase Connect URI for the selected connection mode, then manually dispatch the capture workflow with the confirmation checkbox. Review output for safe preflight pass before proceeding.
+- **Release state:** BLOCKED / NOT CERTIFIED.
