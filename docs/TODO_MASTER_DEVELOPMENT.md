@@ -13,6 +13,23 @@
 
 ---
 
+## Session Resume — 2026-10-13
+
+المرجع التنفيذي الحالي: `TODO_PRODUCTION.md` في جذر المستودع، قسم `Session Update — 2026-10-13`.
+
+### حالة آخر عمل موثق
+- SMM least privilege: PR #236 (RC524)؛ اختبار PostgreSQL معزول ناجح، والترحيل غير مطبق على الإنتاج.
+- S06 concurrent duplicate callback: PR #237؛ تشغيل CI #38402862801 ناجح على الرأس المختبر.
+- Migration chain: BLOCKED؛ إعادة البناء النظيف تكشف فجوات مصدر/خط أساس تاريخي. لا تعِد تسمية ترحيلات تاريخية ولا تخترع DDL.
+- Marketing historical dependency: PR #235 يضيف preflight يفشل بأمان حتى يتوفر مصدر موثوق أو baseline اختباري معتمد.
+- SMM launch remains deferred; no merge, production migration, campaign activation, provider call, or real payment was performed.
+- PR #233 rename experiment is BLOCKED/DO NOT MERGE; PR #234 is superseded and not release evidence.
+
+### قاعدة الاستئناف الإلزامية
+ابدأ بمراجعة حالة PRs والـCI على **exact head SHA** قبل كتابة كود جديد. تابع أول بند آمن قابل للتنفيذ: مطابقة migration ledger إلى مصادر موثوقة، ثم استكمال baseline validator وإعادة replay مع الاحتفاظ بالأدلة. لا تغيّر الحالات إلى VERIFIED بناءً على وجود ملفات أو نجاح اختبار جزئي فقط.
+
+---
+
 # 0) MASTER SESSION PROMPT — يُقرأ أولًا في كل جلسة
 
 نفّذ تطوير MNTY / MantiqatiX من آخر Baseline مستقر ومتحقق منه، ولا تعِد البناء من الصفر.
