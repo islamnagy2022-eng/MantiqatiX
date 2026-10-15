@@ -13,7 +13,7 @@ if (capture === verify) {
 
 const snapshotPath = "supabase/tests/baselines/production_schema_snapshot.sql";
 const manifestPath = "supabase/tests/baselines/production_schema_snapshot.manifest.json";
-const ledgerPath = process.env.BASELINE_LEDGER_VERSIONS_FILE || "/tmp/mantiqatix-ledger-versions.txt";
+const ledgerPath = process.env.BASELINE_LEDGER_VERSIONS_FILE || "supabase/tests/baselines/production_schema_migration_versions.txt";
 const sha256 = (value) => crypto.createHash("sha256").update(value).digest("hex");
 const fail = (message) => { console.error("BASELINE_BLOCKED: " + message); process.exit(1); };
 
@@ -93,12 +93,10 @@ if (!Number.isInteger(manifest.postgres_major_version) || manifest.postgres_majo
 if (manifest.schema_only !== true || manifest.data_included !== false || manifest.production_writes_performed !== false || manifest.deployment_approved !== false) fail("snapshot safety flags do not match the test-only contract");
 if (manifest.schema_snapshot_sha256 !== sha256(sql)) fail("schema snapshot SHA-256 does not match the manifest");
 if (process.env.REQUIRE_BASELINE_REVIEW === "1" && manifest.review_status !== "APPROVED_FOR_DISPOSABLE_REPLAY") fail("baseline has not passed explicit disposable-replay review");
-if (fs.existsSync(ledgerPath)) {
-  const versions = readLedgerVersions();
-  if (manifest.last_applied_migration_version !== versions.at(-1)) fail("manifest checkpoint does not match the captured migration ledger export");
-  if (manifest.applied_migration_count !== versions.length) fail("manifest migration count does not match the ledger export");
-  if (manifest.applied_migration_versions_sha256 !== sha256(versions.join("\n") + "\n")) fail("manifest ledger hash does not match the captured migration ledger export");
-}
+const versions = readLedgerVersions();
+if (manifest.last_applied_migration_version !== versions.at(-1)) fail("manifest checkpoint does not match the captured migration ledger export");
+if (manifest.applied_migration_count !== versions.length) fail("manifest migration count does not match the ledger export");
+if (manifest.applied_migration_versions_sha256 !== sha256(versions.join("\n") + "\n")) fail("manifest ledger hash does not match the captured migration ledger export");
 console.log("BASELINE_VERIFY=PASS");
 console.log("BASELINE_REVIEW_STATUS=" + manifest.review_status);
 console.log("BASELINE_LEDGER_CHECKPOINT=" + manifest.last_applied_migration_version);
