@@ -1570,3 +1570,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] No workflow rerun, password reset, production SQL write, migration, deployment, or PR merge was performed.
 - **Next executable step:** copy the exact connection URI from Supabase Connect for the chosen connection mode; confirm its username is mode-correct without exposing the password. Then validate connectivity before another capture run.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## Session update — 2026-10-15 — Safe pooler-URI preflight added
+- [x] Added a fail-closed connection-URI shape check to `.github/workflows/capture-production-schema-baseline.yml` before any database connection. It validates URI protocol, host/database presence, the project-qualified Session Pooler username format, and the obvious `[YOUR-PASSWORD]` placeholder without printing credentials.
+- [x] Workflow change commit: `801bacc69eac9a20ac6b37b0b97113fcce6a024e`.
+- [ ] NOT VERIFIED: no workflow run has yet exercised the new preflight. Do not treat this as a successful connection or schema capture.
+- [ ] BLOCKED: correct `SUPABASE_DB_URL` in GitHub repository Secrets locally, using the URI copied from Supabase Connect for the selected connection mode. Never paste the real URI/password into chat.
+- **Safety:** no production SQL writes, role changes, password reset, migrations, deployment, or merge occurred. Release remains **BLOCKED / NOT CERTIFIED**.
