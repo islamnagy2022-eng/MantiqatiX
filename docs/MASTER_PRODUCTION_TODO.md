@@ -1586,3 +1586,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Workflow commits: replay `d6a4792e11e5b2d0c6d1901b0a6393b1960e7c05`; capture `0cef596e85c5880f4c5fecb447fd7df73c07514c`.
 - [ ] NOT VERIFIED: these changes need a new workflow run; no successful CLI installation/replay/capture is claimed.
 - **Safety:** no production DB writes, migrations, grants/RLS/Auth changes, secret edits, deployments, or PR merge performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Session update — 2026-10-15 — Account dashboard, payment concurrency, and baseline evidence
+- [x] PR #251 adds a role-gated **لوحة التحكم** entry in `web/app.js`, reuses the existing `openPrivilegedWorkspace()` flow, and preserves PR #75's live membership refresh behavior. Latest observed PR checks passed for web validation, MantiGO open-ride privacy, backend-only module boundary, and module professionalization; the deploy job was skipped. Runtime/mobile E2E remains NOT VERIFIED.
+- [x] PR #245 now includes a two-independent-PostgreSQL-session concurrency test using `dblink`: session B races the claim while session A holds the row lock; expected result is exactly one winner. Static validation also requires the concurrency test to remain present.
+- [ ] NOT VERIFIED: the new RC526 independent-session SQL test has not yet run on the updated PR head; wait for exact-head CI and review any database-extension/connection assumptions before treating concurrency as PASS.
+- [x] Hardened the baseline validator to require the independent ordered migration-ledger export during verification; it now fails closed if the evidence file is absent and always checks checkpoint, count, ordering/uniqueness, and SHA-256.
+- [x] Updated the read-only capture workflow to preserve the ordered ledger-version list as `supabase/tests/baselines/production_schema_migration_versions.txt`, include it in the review artifact, and trigger replay validation when it changes. Added negative tests for missing evidence, duplicate/out-of-order versions, wrong checkpoint/count/hash.
+- [ ] BLOCKED: the existing PR #249 baseline does not yet contain the independently captured ledger export. Do not reconstruct or fabricate it from the manifest; a fresh authorized read-only capture is needed after the `SUPABASE_DB_URL` pooler-URI issue is resolved. No capture workflow was dispatched in this batch.
+- [ ] NOT VERIFIED: the new validator tests and capture/replay workflow edits await exact-head CI. The existing replay remains blocked before isolated database creation.
+- **Safety:** no PR merge, production migration/write, Auth/RLS/grant change, real Paymob request, or production deployment was performed by this batch.
+- **Release state:** **BLOCKED / NOT CERTIFIED**. DONE ≠ VERIFIED.
