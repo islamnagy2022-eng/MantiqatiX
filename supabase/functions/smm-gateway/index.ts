@@ -64,7 +64,7 @@ Deno.serve(async(req)=>{
    if(o.error||w.error){console.error("[smm-gateway] account read failed",o.error?.code||w.error?.code||"DB_ERROR");return json({error:"ACCOUNT_DATA_READ_FAILED"},500);}
    const walletInitialized=Boolean(w.data);
    const walletBalance=walletInitialized?Number(w.data.balance):null;
-   if(walletInitialized&&(!Number.isFinite(walletBalance)||walletBalance<0)){console.error("[smm-gateway] wallet balance invalid");return json({error:"WALLET_BALANCE_INVALID"},500);}
+   if(walletInitialized&&(walletBalance===null||!Number.isFinite(walletBalance)||walletBalance<0)){console.error("[smm-gateway] wallet balance invalid");return json({error:"WALLET_BALANCE_INVALID"},500);}
    return json({orders:o.data||[],wallet_initialized:walletInitialized,wallet_status:walletInitialized?"READY":"NOT_INITIALIZED",balance:walletBalance,is_admin:await isAdmin(user.id)});
   }
   if(a==="configure_provider"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const providerId=typeof b.provider_id==="string"?b.provider_id.trim():"";const apiKey=typeof b.api_key==="string"?b.api_key:"";if(!providerId||providerId.length>128||!apiKey.trim()||apiKey.length>4096||/[\\u0000-\\u001f\\u007f]/.test(apiKey))return json({error:"INVALID_PROVIDER_CREDENTIAL"},400);const r=await admin.rpc("smm_set_provider_secret",{p_provider_id:providerId,p_actor_user_id:user.id,p_secret:apiKey});if(r.error)return json({error:"PROVIDER_CREDENTIAL_UPDATE_FAILED"},400);return json({ok:true});}
