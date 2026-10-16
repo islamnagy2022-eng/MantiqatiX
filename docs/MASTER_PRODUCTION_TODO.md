@@ -1588,3 +1588,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: execute RC565 on disposable PostgreSQL and run authorization, return-contract, empty-range, date-boundary, invalid-window, and tenant/platform-scope regression tests.
 - [ ] BLOCKED: PR #282 remains draft/unmerged and GitHub reports mergeability false; reconcile the branch against current main and canonical migration recovery work before review/merge.
 - [ ] Production migration/function rollout, financial transactions, payment E2E, tenant-isolation E2E, and backup/restore rehearsal remain NOT VERIFIED. Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Replay dependency correction — 2026-10-17
+
+- [x] Refined replay inventory: owner-approved test-only schema baselines for `smm_providers` and `smm_provider_credentials` exist on the separate draft reconciliation branch; these resolve those two schema bootstrap dependencies for disposable CI only, not historical provenance or production rollout.
+- [ ] BLOCKED: complete replay still lacks authoritative historical creation DDL for legacy `public.counter_offer_indrive_bid(uuid,uuid,numeric)`, referenced by `20260927095000_revoke_unused_security_definer_execute.sql`. Do not add placeholder function definitions or skip/modify the revoke migration. Recover source history or obtain explicit approval for a separate test-only function baseline.
+- [ ] BLOCKED: PR #282 is source recovery + RC565 source fix, not full replay. Keep the production gate **BLOCKED / NOT CERTIFIED** until isolated chronological replay, authorization regressions, payment/finance E2E, and recovery evidence pass.
