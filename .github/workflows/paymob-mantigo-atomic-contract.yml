@@ -5,6 +5,10 @@ on:
     paths:
       - "supabase/functions/paymob-webhook/index.ts"
       - "supabase/functions/digital-page-payment-intent/index.ts"
+      - "supabase/functions/subscription-payment-intent/index.ts"
+      - "supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql"
+      - "supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql"
+      - "supabase/migrations/20261016180000_rc529_atomic_subscription_provider_intent_finalize.sql"
       - "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql"
       - "supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql"
       - "scripts/tests/paymob_mantigo_atomic_contract.py"
