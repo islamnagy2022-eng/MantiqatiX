@@ -110,3 +110,32 @@ In the ordinary payment-intent failure branch, the update sets `status='FAILED'`
 5. Do not assume provider event ordering; verify Paymob's documented callback semantics before finalizing transition policy.
 
 This is a code-path risk, not evidence that such an event occurred in production.
+
+## Finding PAY-04 — Atomic payment-failure RPC migrations are not wired into the reviewed webhook source
+
+**Severity:** High for release readiness / payment-state integrity; runtime impact not yet reproduced  
+**Confidence:** High for the source-to-source mismatch on this branch; deployment parity and migration replay remain unverified.
+
+The integration candidate contains these intended database-side atomic paths:
+- RC425: `public.process_verified_mantigo_payment_backend(...)`
+- RC428: `public.process_verified_provider_payment_failure(...)`
+- RC429: `public.process_verified_subscription_payment_failure(...)`
+- RC430: `public.process_verified_subscription_payment_backend(...)`
+
+But the current `supabase/functions/paymob-webhook/index.ts` reviewed on this same branch does not call those matching functions for the corresponding branches:
+- MantiGO still inserts into `payment_provider_events` and updates `mantigo_financial_ledger` through separate client requests.
+- Ordinary failed payments still insert an event and directly update `payment_intents`, without checking the update result.
+- Failed subscription callbacks still directly update `subscription_payment_intents`; they do not persist a failed provider event through RC429's atomic function.
+- The successful subscription branch calls `process_verified_subscription_payment` with a different argument contract from RC430's `process_verified_subscription_payment_backend`.
+
+This means the presence of the atomic migrations alone does not close MGO-PAY-01 / PAY-02 / PAY-03. The branch currently contains both the proposed atomic database functions and a webhook source path that does not use them. Do not infer that these migrations are deployed or that the deployed webhook matches this branch.
+
+### Required correction and proof
+1. Reconcile the webhook to the reviewed RPC contracts, including exact parameter mapping and returned state handling; avoid maintaining two competing implementations.
+2. Add source-contract checks that fail if these webhook branches regress to direct split writes, and test the expected RPC names/arguments.
+3. In disposable Supabase/PostgreSQL, run failure-injection, duplicate/replay, concurrent callback, and late failure-after-success tests for all three payment categories.
+4. First resolve the migration-chain blockers and explicit baseline review gate; then run the ordered disposable replay and required integration tests.
+5. Verify deployed source/version only after a separately approved rollout. Do not deploy or change production payment/security boundaries as part of this documentation pass.
+
+**Status:** OPEN — source contract not converged; runtime and deployed parity NOT VERIFIED. Release remains **BLOCKED / NOT CERTIFIED**.
+
