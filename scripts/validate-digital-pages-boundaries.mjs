@@ -19,6 +19,20 @@ for (const [src, marker, label] of [
   [trustedFinalization, "set search_path = ''", 'empty finalizer search path'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
 if (/userClient\.rpc\("finalize_digital_page_payment_intent_backend"/.test(payment)) throw new Error("Authenticated client must not finalize provider intent IDs");
+// Fail closed if a later recovered migration re-exposes the five-argument overload.
+const migrationDir = 'supabase/migrations';
+const fiveArgAclEvents = [];
+for (const filename of fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql')).sort()) {
+  const sql = fs.readFileSync(migrationDir + '/' + filename, 'utf8');
+  const aclPattern = /(grant\\s+execute\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+to\\s+authenticated|revoke\\s+all\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+from\\s+authenticated)/ig;
+  for (const match of sql.matchAll(aclPattern)) {
+    fiveArgAclEvents.push({ filename, index: match.index ?? 0, grants: /^grant/i.test(match[0]) });
+  }
+}
+fiveArgAclEvents.sort((a, b) => a.filename.localeCompare(b.filename) || a.index - b.index);
+if (fiveArgAclEvents.length && fiveArgAclEvents[fiveArgAclEvents.length - 1].grants) {
+  throw new Error('Five-argument digital-page finalizer remains executable by authenticated after migration replay');
+}
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
 console.log('RC424 digital pages/payment boundary validation: PASS');
