@@ -1,0 +1,56 @@
+name: Digital Page Payment Finalization Isolation
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/functions/digital-page-payment-intent/index.ts"
+      - "supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql"
+      - "supabase/tests/digital_page_payment_intent_server_only_finalization.sql"
+      - "supabase/tests/digital_page_payment_intent_server_only_finalization_setup.sql"
+      - "scripts/validate-digital-pages-boundaries.mjs"
+      - ".github/workflows/digital-page-payment-finalization-isolation.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/digital-page-payment-intent/index.ts"
+      - "supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql"
+      - "supabase/tests/digital_page_payment_intent_server_only_finalization.sql"
+      - "supabase/tests/digital_page_payment_intent_server_only_finalization_setup.sql"
+      - "scripts/validate-digital-pages-boundaries.mjs"
+      - ".github/workflows/digital-page-payment-finalization-isolation.yml"
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Prepare minimal disposable schema fixture
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/tests/digital_page_payment_intent_server_only_finalization_setup.sql
+      - name: Apply candidate migration to disposable PostgreSQL only
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql
+      - name: Verify grants and authenticated denial plus trusted success
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/tests/digital_page_payment_intent_server_only_finalization.sql
+      - name: Validate source contract
+        run: node scripts/validate-digital-pages-boundaries.mjs
