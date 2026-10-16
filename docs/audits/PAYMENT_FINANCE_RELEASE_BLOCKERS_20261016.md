@@ -105,3 +105,19 @@ This is a version/file-presence comparison, not proof that every missing migrati
 ## Safety decision
 
 Keep production unchanged and keep the release gate **BLOCKED / NOT CERTIFIED** until the P0 findings have reviewed forward-only fixes and reproducible staging evidence. This audit document does not itself close any release gate.
+
+
+## Follow-up — journal balance trigger confirms a second settlement blocker
+
+A further read-only catalog inspection confirmed that `journal_entries` has a `BEFORE INSERT OR UPDATE` trigger named `trg_validate_journal_balance`. When an entry is marked `POSTED`, it recomputes debit and credit from `journal_entry_lines`, rejects a difference greater than `0.0001` with `DOUBLE_ENTRY_IMBALANCE`, and overwrites header totals with the actual line totals. A separate `AFTER INSERT OR UPDATE` trigger posts lines to `general_ledger`.
+
+The live settlement helper's PARTNER branch writes:
+- debit account 5030 = `p_gross`
+- credit account 1020 = `p_net`
+- credit account 2050 = `p_voucher`
+
+But the helper's own breakdown rule requires `p_gross = p_platform_fee + p_net + p_voucher`. With a nonzero platform fee, the partner journal lines are unbalanced by that fee. If the missing chart-of-accounts entries are provisioned without correcting the accounting design, posting is expected to fail at the journal-balance trigger. This is a static/code-path conclusion; no settlement was attempted.
+
+A read-only aggregate query also returned zero rows in `chart_of_accounts`, `settlement_transactions`, `journal_entries`, and `journal_entry_lines` at the time of inspection. The live MantiGO ledger likewise had zero rows, so there is no live financial sample from which to infer the intended account mapping or validate historical settlement totals.
+
+**Decision:** do not change the partner equation or create accounts based on assumptions. Obtain the approved accounting entry model first. Then test at least: gross 100 / fee 10 / net 90 / voucher 0; voucher-funded cases; merchant payout; duplicate and concurrent retries; and full rollback when posting or audit logging fails. Every posted journal must balance from its actual lines, not merely from header values.
