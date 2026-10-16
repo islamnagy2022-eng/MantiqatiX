@@ -23,7 +23,7 @@ Compared the deployed Edge Function `index.ts` source returned by Supabase again
 | --- | --- | --- |
 | `catalog-admin` | Live and repository entrypoint lengths differ (approximately 3,467 vs 3,135 characters). Full semantic diff has not been certified. | Fetch/compare complete source and review authorization, tenant scoping, and catalog mutation behavior. |
 | `financial-journal` | Production is on an older entrypoint. The existing rollout runbook records wildcard CORS, legacy RPC use, and missing verified-actor forwarding in the deployed implementation. | Follow `docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md`; do not deploy until RC449A/RC450 prerequisites, reviewed migration order, ACLs, and staging tests are proven. |
-| `smm-gateway` | Live v12 source has helper modules missing from `main`. | Tracked separately in draft PR #254; preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not deploy or enable SMM as part of source recovery. |
+| `smm-gateway` | Historical audit observed live v12 drift. Follow-up verification deployed tracked `main` source as v13 and confirmed exact entrypoint parity. | Deployment preserved `SMM_INITIAL_LAUNCH_DEFERRED=true`; no SMM launch, provider, wallet, payment, or database enablement occurred. See follow-up verification below. |
 | `business-branch-admin` | Live entrypoint is shorter than repository source (3,715 vs 3,875 characters); byte parity is false. | Inspect complete semantic diff and verify membership-query failure handling and tenant/business/branch authorization before deciding direction of sync. |
 | `mnty-customer-registration` | Live entrypoint is shorter than repository source (2,056 vs 2,300 characters); byte parity is false. | Inspect complete semantic diff and verify token validation and the customer-membership activation RPC contract. |
 | `digital-page-order-create` | Live entrypoint is longer than repository source (4,052 vs 3,953 characters); live source includes a publishable-key fallback in its ANON constant. | Inspect complete semantic diff and verify request validation, business membership checks, idempotency, and price derivation before deciding direction of sync. |
@@ -80,3 +80,17 @@ Both functions set an empty `search_path` and check that the tenant is active. T
 
 **Decision remains unchanged:** do not replace the deployed RPC call merely to match `main`. Reconcile the intended invariants and audit requirements, add isolated integration tests for concurrency, duplicate memberships, pending-request cleanup, and audit-write failure, then propose a reviewed migration/source change. No production mutation was made during this inspection.
 
+
+
+## Follow-up verification — SMM Gateway deployment (2026-10-16, UTC)
+
+The source recovery in PR #254 was deployed to Supabase as `smm-gateway` version 13 after a pre-deployment source guard verified that the entrypoint imports all six required helper modules, preserves the explicit launch-deferred constant, evaluates the launch gate before user authentication, returns `SMM_DEFERRED` with HTTP 503 while launch is deferred, and distinguishes an uninitialized wallet from a zero balance.
+
+Read-only post-deployment inspection confirmed:
+
+- The live function is `ACTIVE`, version `13`, with `verify_jwt=true`.
+- The deployed `index.ts` is byte-for-byte equal to the tracked `main` entrypoint at the time of deployment.
+- The deployed source retains `SMM_INITIAL_LAUNCH_DEFERRED=true`; this is source parity only, not approval to enable the standalone SMM storefront.
+- No database migration, wallet, payment, provider credential, Auth, or RLS change was performed as part of this deployment.
+
+This supersedes the earlier historical statement above that no Edge Function was deployed during the initial parity audit. It applies only to `smm-gateway`; the other five drifted functions remain subject to separate review. The financial-journal release gate remains blocked: the live ledger still has 283 migrations through `20261008222845`, and RC449A/RC450 are not applied.
