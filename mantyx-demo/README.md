@@ -13,7 +13,10 @@
 Open `index.html` in a browser or serve this folder using any static HTTP server. No build step or external runtime dependency is required; Google Fonts is optional and the page falls back to system fonts.
 
 ## Included demo areas
-Dashboard, orders, customers/CRM, service providers, sector/service catalog, SMM campaigns, finance/wallets, inventory/purchasing, content, analytics, tasks, notifications, users/roles, security/audit, monitoring/backup, and settings.
+The prototype includes the core workspace plus domain workspaces for fashion/tailoring, grocery, restaurants/kitchen, medical appointments, maintenance, professional services, MantiGO/bidding, matrimony, jobs, education, used-item listings, marketing agency operations, SMM, commissions/packages, registrations, support/governance, finance, inventory, and administration.
+
+## Screen completion blueprint
+See [SCREEN_BLUEPRINT_AR.md](./SCREEN_BLUEPRINT_AR.md) for the Arabic screen inventory, required states and workflows, known source mappings, security boundaries, release blockers, and an implementation order intended to accelerate correct MantiqatiX completion.
 
 ## Integration method
 1. Review workflows and visual behavior with stakeholders.
