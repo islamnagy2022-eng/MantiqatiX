@@ -131,6 +131,8 @@ assert "client_secret_ciphertext: _ciphertext" in SUBSCRIPTION_INTENT
 assert "client_secret_iv: _iv" in SUBSCRIPTION_INTENT
 assert "client_secret_key_version: _keyVersion" in SUBSCRIPTION_INTENT
 assert "paymentIntent:safeIntent" in SUBSCRIPTION_INTENT
+assert "function publicIntent(intent:Row):Row" in SUBSCRIPTION_INTENT
+assert "paymentIntent:publicIntent(intent)" in SUBSCRIPTION_INTENT
 assert "provider_creation_state='CLAIMED'" in CLAIM_MIGRATION
 assert "client_secret_ciphertext" in ENCRYPTION_MIGRATION
 assert "client_secret_iv" in ENCRYPTION_MIGRATION
