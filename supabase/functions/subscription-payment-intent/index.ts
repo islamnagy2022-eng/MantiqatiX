@@ -36,15 +36,18 @@ async function decryptSecret(ciphertext:string,iv:string,version:string){
  const clear=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(iv)},key,unb64(ciphertext));
  return new TextDecoder().decode(clear);
 }
-function checkoutResponse(intent:Row,clientSecret:string,requestId:string){
+function publicIntent(intent:Row):Row{
  const {
   client_secret_ciphertext: _ciphertext,
   client_secret_iv: _iv,
   client_secret_key_version: _keyVersion,
   ...safeIntent
  }=intent;
+ return safeIntent;
+}
+function checkoutResponse(intent:Row,clientSecret:string,requestId:string){
  const checkoutUrl=publicKey?"https://accept.paymob.com/unifiedcheckout/?publicKey="+encodeURIComponent(publicKey)+"&clientSecret="+encodeURIComponent(clientSecret):null;
- return json({paymentIntent:safeIntent,clientSecret,checkoutUrl,amount:Number(intent.amount),currency:str(intent.currency),requestId},200,requestId);
+ return json({paymentIntent:publicIntent(intent),clientSecret,checkoutUrl,amount:Number(intent.amount),currency:str(intent.currency),requestId},200,requestId);
 }
 async function recoverCheckout(intent:Row,requestId:string){
  const ciphertext=str(intent.client_secret_ciphertext),iv=str(intent.client_secret_iv),version=str(intent.client_secret_key_version);
@@ -83,7 +86,7 @@ Deno.serve(async req=>{
     if(message.includes("SUBSCRIPTION_IDEMPOTENCY_MISMATCH"))return json({error:"IDEMPOTENCY_KEY_MISMATCH",requestId},409,requestId);
     return json({error:"SUBSCRIPTION_PAYMENT_INTENT_REJECTED",requestId},400,requestId);
   }
-  if(str(intent.status).toUpperCase()==="SUCCEEDED")return json({paymentIntent:intent,requestId},200,requestId);
+  if(str(intent.status).toUpperCase()==="SUCCEEDED")return json({paymentIntent:publicIntent(intent),requestId},200,requestId);
 
   if(str(intent.provider_intent_id)&&str(intent.provider_order_id)){
     if(str(intent.client_secret_ciphertext)&&str(intent.client_secret_iv)&&str(intent.client_secret_key_version))return await recoverCheckout(intent,requestId);
