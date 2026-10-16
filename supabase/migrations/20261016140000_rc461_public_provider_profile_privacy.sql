@@ -23,7 +23,7 @@ from public.marketing_provider_profiles p
 join public.businesses b on b.id = p.business_id
 where p.status = 'ACTIVE'
   and b.status = 'ACTIVE'
-  and coalesce((b.settings->>'showcase')::boolean, false) = true;
+  and b.settings @> '{"showcase":true}'::jsonb;
 
 revoke all on public.public_marketing_provider_profiles from public;
 grant select on public.public_marketing_provider_profiles to anon, authenticated;
