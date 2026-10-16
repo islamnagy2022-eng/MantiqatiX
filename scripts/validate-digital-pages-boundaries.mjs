@@ -18,6 +18,7 @@ for (const [src, marker, label] of [
   [trustedFinalization, 'to service_role', 'service role execute grant'],
   [trustedFinalization, "set search_path = ''", 'empty finalizer search path'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
+if (/userClient\\.rpc\\(\"finalize_digital_page_payment_intent_backend\"/.test(payment)) throw new Error('Authenticated client must not finalize provider intent IDs');
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
 console.log('RC424 digital pages/payment boundary validation: PASS');
