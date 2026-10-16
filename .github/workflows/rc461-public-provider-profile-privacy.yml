@@ -44,6 +44,8 @@ jobs:
           as $function$
             select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
           $function$;
+          grant usage on schema auth to authenticated;
+          grant execute on function auth.uid() to authenticated;
           create table public.businesses (
             id uuid primary key,
             status text not null default 'ACTIVE',
