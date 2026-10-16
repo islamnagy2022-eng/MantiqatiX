@@ -31,29 +31,56 @@ for (const [src, marker, label] of [
   [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) to service_role', 'five-argument finalizer service-role-only grant'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
 if (/userClient\.rpc\("finalize_digital_page_payment_intent_backend"/.test(payment)) throw new Error("Authenticated client must not finalize provider intent IDs");
-// Fail closed if a later recovered migration re-exposes the five-argument overload.
+// Fail closed if a later migration re-exposes either finalizer overload to PUBLIC or authenticated.
+// Scan ACL statements in filename order, then statement order, and treat the conditional revoke
+// of a recovered five-argument overload as an ACL event at the point where it appears.
 const migrationDir = 'supabase/migrations';
-const fiveArgAclEvents = [];
+const finalizerAclEvents = [];
+const overloads = [
+  { signature: 'four', pattern: /grant\\s+(?:all|execute)\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+to\\s+(public|authenticated)|revoke\\s+all\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+from\\s+(public|authenticated)/ig },
+  { signature: 'five', pattern: /grant\\s+(?:all|execute)\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+to\\s+(public|authenticated)|revoke\\s+all\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+from\\s+(public|authenticated)/ig },
+];
 for (const filename of fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql')).sort()) {
   const sql = fs.readFileSync(migrationDir + '/' + filename, 'utf8');
-  const aclPattern = /(grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+to\s+authenticated|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+from\s+authenticated)/ig;
-  for (const match of sql.matchAll(aclPattern)) {
-    fiveArgAclEvents.push({ filename, index: match.index ?? 0, grants: /^grant/i.test(match[0]) });
+  for (const overload of overloads) {
+    overload.pattern.lastIndex = 0;
+    for (const match of sql.matchAll(overload.pattern)) {
+      finalizerAclEvents.push({
+        filename,
+        index: match.index ?? 0,
+        signature: overload.signature,
+        role: (match[1] || match[2] || '').toLowerCase(),
+        grants: /^grant/i.test(match[0]),
+      });
+    }
   }
 }
-// The forward migration conditionally revokes every execution grant from the recovered
-// overload. Represent that dynamic revoke as the final ACL event for chronological replay.
+// The migration conditionally revokes all roles from a recovered five-argument overload.
+// The static scanner cannot execute PL/pgSQL, so model that dynamic revoke explicitly.
 if (trustedFinalization.includes("to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)')") &&
     trustedFinalization.includes('from public, anon, authenticated, service_role')) {
-  fiveArgAclEvents.push({
+  finalizerAclEvents.push({
     filename: '20261016100000_digital_page_payment_intent_server_only_finalization.sql',
-    index: Number.MAX_SAFE_INTEGER,
+    index: Number.MAX_SAFE_INTEGER - 2,
+    signature: 'five',
+    role: 'public',
+    grants: false,
+  }, {
+    filename: '20261016100000_digital_page_payment_intent_server_only_finalization.sql',
+    index: Number.MAX_SAFE_INTEGER - 1,
+    signature: 'five',
+    role: 'authenticated',
     grants: false,
   });
 }
-fiveArgAclEvents.sort((a, b) => a.filename.localeCompare(b.filename) || a.index - b.index);
-if (fiveArgAclEvents.length && fiveArgAclEvents[fiveArgAclEvents.length - 1].grants) {
-  throw new Error('Five-argument digital-page finalizer remains executable by authenticated after migration replay');
+finalizerAclEvents.sort((a, b) => a.filename.localeCompare(b.filename) || a.index - b.index);
+for (const signature of ['four', 'five']) {
+  for (const role of ['public', 'authenticated']) {
+    const events = finalizerAclEvents.filter(event => event.signature === signature && event.role === role);
+    if (events.length && events[events.length - 1].grants) {
+      throw new Error(signature + '-argument digital-page finalizer remains executable by ' + role + ' after migration replay');
+    }
+  }
 }
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
