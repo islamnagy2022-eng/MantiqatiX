@@ -50,3 +50,16 @@ After a provider returns an order ID, the gateway updates the order to `PROCESSI
 ## Safety
 
 No source implementation, migration, database grant, RLS/Auth setting, provider secret, production wallet, real provider order, payment, deployment, or merge was changed by this review. These are static findings to reproduce and remediate in an isolated environment. MantiqaTiX release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## SMM-FIN-05 — Missing wallet row is silently represented as zero balance
+
+The `my_data` action uses `maybeSingle()` for the wallet and returns `Number(w.data?.balance||0)`. A missing wallet row is therefore indistinguishable from a real zero balance. This conflicts with the project's narrow-read contract, which requires the wallet's cardinality and missing-row semantics to be verified and database errors to remain explicit.
+
+**Required fix:** define the intended no-wallet behavior from the authoritative schema/workflow. Return an explicit `wallet_not_initialized` state or create the wallet through an approved idempotent path; do not silently mask an unexpected missing row.
+
+## SMM-FIN-06 — Admin dashboard data reads can fail silently
+
+The `admin_data` action does not check the errors from its three parallel reads before returning `p.data||[]`, `s.data||[]`, and `o.data||[]`. A database error can therefore look like a successful empty provider/service/order inventory.
+
+**Required fix:** check each query result, return an explicit non-success error with a request/correlation ID, and do not expose raw database error details to the client.
