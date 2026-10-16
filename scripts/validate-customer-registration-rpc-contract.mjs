@@ -19,7 +19,7 @@ assert.doesNotMatch(edge, /rpc\("ensure_customer_membership_for_user"/, "do not 
 assert.match(atomic, /pg_advisory_xact_lock\(hashtextextended\(p_user_id::text, 0\)\)/, "atomic activation uses its per-user lock");
 assert.match(atomic, /account_registration_requests[\s\S]*?status = 'CANCELLED'/, "atomic activation cancels pending customer registration requests");
 assert.match(atomic, /'CUSTOMER_REGISTRATION_ACTIVATED'/, "atomic activation writes its audit event");
-assert.doesNotMatch(atomic, /exception when others then\s*-- Membership creation is the invariant[\s\S]*?null;/, "atomic activation must not suppress audit-write failures");
+assert.doesNotMatch(atomic, /exception when others then/i, "atomic activation must not suppress audit-write failures");
 
 assert.match(invariant, /p_user_id::text \|\| ':CUSTOMER:' \|\| p_tenant_id/, "base membership invariant uses a user/customer/tenant lock");
 assert.match(invariant, /business_id,branch_id,role,permissions,status/, "base membership invariant explicitly initializes business/branch scope");
