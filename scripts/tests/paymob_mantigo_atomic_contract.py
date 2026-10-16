@@ -137,12 +137,16 @@ assert "paymentIntent:publicIntent(intent)" in SUBSCRIPTION_INTENT
 assert "provider_creation_state='CLAIMED'" in CLAIM_MIGRATION
 assert "v_intent.created_by is distinct from p_actor_user_id" in CLAIM_MIGRATION
 assert "v_intent.created_by <> p_actor_user_id" not in CLAIM_MIGRATION
+assert "upper(coalesce(p_billing_cycle,'')) not in ('MONTHLY','ANNUAL')" in CLAIM_MIGRATION
+assert "upper(p_billing_cycle) not in ('MONTHLY','ANNUAL')" not in CLAIM_MIGRATION
 assert "client_secret_ciphertext" in ENCRYPTION_MIGRATION
 assert "client_secret_iv" in ENCRYPTION_MIGRATION
 assert "client_secret_key_version" in ENCRYPTION_MIGRATION
 assert "for update" in FINALIZE_MIGRATION.lower()
 assert "provider_creation_state is distinct from 'CLAIMED'" in FINALIZE_MIGRATION
 assert "provider_creation_state <> 'CLAIMED'" not in FINALIZE_MIGRATION
+assert "v.status is distinct from 'PENDING'" in FINALIZE_MIGRATION
+assert "v.status <> 'PENDING'" not in FINALIZE_MIGRATION
 assert "grant execute" in FINALIZE_MIGRATION.lower() and "to service_role" in FINALIZE_MIGRATION.lower()
 print("PASS: subscription intent uses RC435 claim, RC439 AES-GCM fields, and RC529 atomic correlation finalizer.")
 print("LIMIT: static source contract only; disposable PostgreSQL and Paymob sandbox tests remain required.")
