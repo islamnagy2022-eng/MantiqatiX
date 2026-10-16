@@ -91,8 +91,12 @@ print("PASS: MantiGO, order failure, subscription failure, and subscription succ
 print("LIMIT: static contract tests only; PostgreSQL replay, RPC integration, and provider sandbox remain required.")
 
 
+# The finalizer is a trusted server-only RPC; the authenticated client may claim/release but never finalize.
 # RC426 requires the provider order correlation to be persisted by the Edge Function.
 DIGITAL_INTENT = (ROOT / "supabase/functions/digital-page-payment-intent/index.ts").read_text()
+assert 'admin.rpc("finalize_digital_page_payment_intent_backend"' in DIGITAL_INTENT
+assert 'userClient.rpc("finalize_digital_page_payment_intent_backend"' not in DIGITAL_INTENT
+assert "reconciliationRequired:true" in DIGITAL_INTENT
 DIGITAL_BINDING_MIGRATION = (ROOT / "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql").read_text()
 assert 'p_provider_order_id:providerOrderId' in DIGITAL_INTENT
 assert 'PAYMENT_PROVIDER_ORDER_CORRELATION_MISSING' in DIGITAL_INTENT
