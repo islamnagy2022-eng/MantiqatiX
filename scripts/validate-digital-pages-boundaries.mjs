@@ -13,12 +13,17 @@ for(const [src,marker,label] of [
 ]) if(!src.includes(marker)) throw new Error('Digital page boundary marker missing: '+label);
 for (const [src, marker, label] of [
   [payment, 'admin.rpc("finalize_digital_page_payment_intent_backend"', 'server-role finalization after provider response'],
+  [payment, 'p_provider_order_id:providerOrderId', 'provider order correlation persisted server-side'],
+  [payment, 'PAYMENT_PROVIDER_ORDER_ID_MISSING', 'missing provider order ID fails closed'],
   [trustedFinalization, 'request.jwt.claim.role', 'trusted role check'],
   [trustedFinalization, 'from authenticated', 'authenticated execute revoked'],
   [trustedFinalization, 'to service_role', 'service role execute grant'],
   [trustedFinalization, "set search_path = ''", 'empty finalizer search path'],
   [trustedFinalization, "to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)')", 'replay-safe five-argument overload detection'],
-  [trustedFinalization, 'from public, anon, authenticated, service_role', 'five-argument overload denied to client and service roles'],
+  [trustedFinalization, 'from public, anon, authenticated, service_role', 'old five-argument overload grants cleared before redefinition'],
+  [trustedFinalization, 'p_provider_order_id text', 'five-argument provider order correlation input'],
+  [trustedFinalization, 'set provider_order_id = p_provider_order_id', 'provider order ID stored on the order'],
+  [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) to service_role', 'five-argument finalizer service-role-only grant'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
 if (/userClient\.rpc\("finalize_digital_page_payment_intent_backend"/.test(payment)) throw new Error("Authenticated client must not finalize provider intent IDs");
 // Fail closed if a later recovered migration re-exposes the five-argument overload.
