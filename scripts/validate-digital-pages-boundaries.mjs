@@ -17,6 +17,8 @@ for (const [src, marker, label] of [
   [trustedFinalization, 'from authenticated', 'authenticated execute revoked'],
   [trustedFinalization, 'to service_role', 'service role execute grant'],
   [trustedFinalization, "set search_path = ''", 'empty finalizer search path'],
+  [trustedFinalization, "to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)')", 'replay-safe five-argument overload detection'],
+  [trustedFinalization, 'from public, anon, authenticated, service_role', 'five-argument overload denied to client and service roles'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
 if (/userClient\.rpc\("finalize_digital_page_payment_intent_backend"/.test(payment)) throw new Error("Authenticated client must not finalize provider intent IDs");
 // Fail closed if a later recovered migration re-exposes the five-argument overload.
@@ -28,6 +30,16 @@ for (const filename of fs.readdirSync(migrationDir).filter(name => name.endsWith
   for (const match of sql.matchAll(aclPattern)) {
     fiveArgAclEvents.push({ filename, index: match.index ?? 0, grants: /^grant/i.test(match[0]) });
   }
+}
+// The forward migration conditionally revokes every execution grant from the recovered
+// overload. Represent that dynamic revoke as the final ACL event for chronological replay.
+if (trustedFinalization.includes("to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)')") &&
+    trustedFinalization.includes('from public, anon, authenticated, service_role')) {
+  fiveArgAclEvents.push({
+    filename: '20261016100000_digital_page_payment_intent_server_only_finalization.sql',
+    index: Number.MAX_SAFE_INTEGER,
+    grants: false,
+  });
 }
 fiveArgAclEvents.sort((a, b) => a.filename.localeCompare(b.filename) || a.index - b.index);
 if (fiveArgAclEvents.length && fiveArgAclEvents[fiveArgAclEvents.length - 1].grants) {
