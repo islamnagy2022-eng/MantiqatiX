@@ -55,3 +55,15 @@ This means the hardened `financial-journal` source on `main` is not a deploy-rea
 2. Add focused regression tests for any confirmed behavior gap.
 3. For financial-journal, satisfy the RC449A → RC450 → Edge Function rollout order in the existing runbook.
 4. Keep all changes in reviewed pull requests and require CI on the exact proposed head.
+
+## Follow-up semantic finding — `mnty-customer-registration` (2026-10-16)
+
+A direct read-only comparison of the deployed entrypoint and tracked `main` source confirms a material RPC-name difference, not just formatting:
+
+- **Deployed source:** calls `private.ensure_customer_membership_for_user`.
+- **Tracked `main` source:** calls `private.activate_customer_registration_atomic`.
+- Both sources verify the bearer token, reject anonymous users, restrict the tenant to `MNTY-PLATFORM`, and reject foreign browser origins. However, the RPC change can alter database behavior and depends on the deployed private-schema function, grants, and migration state.
+- The deployed response maps activation errors using the same broad message matching but has a different fallback error message.
+
+**Decision:** do not bulk-sync or deploy either variant based on source parity alone. Before any change, verify both RPC definitions, execute grants, authorization semantics, and migration presence in a non-production environment; then add behavioral tests for existing/new customer membership and replay/idempotency. Production deployment remains out of scope without explicit approval.
+
