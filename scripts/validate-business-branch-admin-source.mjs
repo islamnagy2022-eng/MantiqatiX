@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 const source = fs.readFileSync("supabase/functions/business-branch-admin/index.ts", "utf8");
 
-assert.doesNotMatch(source, /\\\\n/, "source must not contain literal backslash-n sequences outside strings");
+assert.doesNotMatch(source, /\\n/, "source must not contain literal backslash-n sequences outside strings");
 assert.match(source, /if\(me\)return out\(\{error:"MEMBERSHIP_READ_FAILED"\},500\)/, "membership query errors must fail closed");
 assert.match(source, /BUSINESS_MANAGEMENT_REQUIRED/, "branch creation must remain role-gated");
 assert.match(source, /SUPER_ADMIN/, "platform admin branch must remain explicitly scoped");
