@@ -48,7 +48,7 @@ begin
     return v;
   end if;
 
-  if v.status <> 'PENDING'
+  if v.status is distinct from 'PENDING'
      or v.provider_creation_state is distinct from 'CLAIMED'
      or v.provider_intent_id is not null
      or v.provider_order_id is not null then
