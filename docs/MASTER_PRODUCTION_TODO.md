@@ -1572,3 +1572,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Complete chronological replay of all required migrations; production ledger still observed at RC424 during this session.
 - [ ] Resolve missing historical migration chain and RC434 collisions before any merge/deploy.
 - [ ] Production apply, release approval, payment E2E, tenant-isolation E2E, and backup-restore rehearsal remain NOT VERIFIED / BLOCKED.
+
+- [x] Local Node.js source-contract check for RC565 passed in scratch environment.
+- [x] Opened draft PR [#282](https://github.com/islamnagy2022-eng/MantiqatiX/pull/282); do not merge while draft and migration/replay blockers remain.
+- [ ] GitHub CI checks are not yet evidenced for the current branch head; no check runs/statuses were returned at last query.
