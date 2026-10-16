@@ -38,9 +38,17 @@ jobs:
           psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
           create role anon nologin;
           create role authenticated nologin;
+          create table public.businesses (
+            id uuid primary key,
+            status text not null default 'ACTIVE',
+            settings jsonb not null default '{}'::jsonb
+          );
+          insert into public.businesses (id,status,settings) values
+            ('00000000-0000-0000-0000-000000000021','ACTIVE','{"showcase":true}'),
+            ('00000000-0000-0000-0000-000000000022','ACTIVE','{"showcase":false}');
           create table public.marketing_provider_profiles (
             id uuid primary key,
-            business_id uuid,
+            business_id uuid references public.businesses(id),
             name_ar text,
             name_en text,
             provider_kind text,
@@ -58,11 +66,12 @@ jobs:
           );
           grant select on public.marketing_provider_profiles to anon, authenticated;
           insert into public.marketing_provider_profiles
-            (id, name_ar, provider_kind, status, owner_user_id, settings, ranking_weight)
+(id, business_id, name_ar, provider_kind, status, owner_user_id, settings, ranking_weight)
           values
-            ('00000000-0000-0000-0000-000000000001','مقدم منشور','MARKETING','ACTIVE','00000000-0000-0000-0000-000000000011',
+            ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000021','مقدم منشور','MARKETING','ACTIVE','00000000-0000-0000-0000-000000000011',
              '{"branding":{"logo_path":"public/logo.png"},"internal_note":"secret"}',99),
-            ('00000000-0000-0000-0000-000000000002','مقدم غير منشور','MARKETING','PENDING','00000000-0000-0000-0000-000000000012','{}',100);
+            ('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000021','مقدم غير منشور','MARKETING','PENDING','00000000-0000-0000-0000-000000000012','{}',100),
+            ('00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000022','نشاط غير معروض','MARKETING','ACTIVE','00000000-0000-0000-0000-000000000013','{}',101);
           SQL
       - name: Apply candidate migration to disposable PostgreSQL only
         env:
