@@ -139,7 +139,8 @@ assert "client_secret_ciphertext" in ENCRYPTION_MIGRATION
 assert "client_secret_iv" in ENCRYPTION_MIGRATION
 assert "client_secret_key_version" in ENCRYPTION_MIGRATION
 assert "for update" in FINALIZE_MIGRATION.lower()
-assert "provider_creation_state <> 'CLAIMED'" in FINALIZE_MIGRATION
+assert "provider_creation_state is distinct from 'CLAIMED'" in FINALIZE_MIGRATION
+assert "provider_creation_state <> 'CLAIMED'" not in FINALIZE_MIGRATION
 assert "grant execute" in FINALIZE_MIGRATION.lower() and "to service_role" in FINALIZE_MIGRATION.lower()
 print("PASS: subscription intent uses RC435 claim, RC439 AES-GCM fields, and RC529 atomic correlation finalizer.")
 print("LIMIT: static source contract only; disposable PostgreSQL and Paymob sandbox tests remain required.")
