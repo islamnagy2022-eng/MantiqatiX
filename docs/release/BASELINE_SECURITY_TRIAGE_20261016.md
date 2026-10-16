@@ -128,14 +128,15 @@ But the current `supabase/functions/paymob-webhook/index.ts` reviewed on this sa
 - Failed subscription callbacks still directly update `subscription_payment_intents`; they do not persist a failed provider event through RC429's atomic function.
 - The successful subscription branch calls `process_verified_subscription_payment` with a different argument contract from RC430's `process_verified_subscription_payment_backend`.
 
-This means the presence of the atomic migrations alone does not close MGO-PAY-01 / PAY-02 / PAY-03. The branch currently contains both the proposed atomic database functions and a webhook source path that does not use them. Do not infer that these migrations are deployed or that the deployed webhook matches this branch.
+The initial review found that the atomic migrations were not wired into the webhook. On 2026-10-16, the integration candidate was updated in commit `a07959751bc454e92005fa9a78f1d1e55ce5fdec` to route MantiGO processing to `process_verified_mantigo_payment_backend`, ordinary failed payments to `process_verified_provider_payment_failure`, and subscription callbacks to the RC429/RC430 RPCs. The previous direct split writes for those branches were removed from the candidate source.
 
-### Required correction and proof
-1. Reconcile the webhook to the reviewed RPC contracts, including exact parameter mapping and returned state handling; avoid maintaining two competing implementations.
-2. Add source-contract checks that fail if these webhook branches regress to direct split writes, and test the expected RPC names/arguments.
-3. In disposable Supabase/PostgreSQL, run failure-injection, duplicate/replay, concurrent callback, and late failure-after-success tests for all three payment categories.
-4. First resolve the migration-chain blockers and explicit baseline review gate; then run the ordered disposable replay and required integration tests.
-5. Verify deployed source/version only after a separately approved rollout. Do not deploy or change production payment/security boundaries as part of this documentation pass.
+The finance boundary validator was also extended in commit `341bb82d6ffa94b7bf99199ff4bd2bdbe81afaae` to require the atomic RPC markers and reject the old direct-write patterns. This is a source-level change only; no successful CI result for these latest commits has been observed in this pass.
 
-**Status:** OPEN — source contract not converged; runtime and deployed parity NOT VERIFIED. Release remains **BLOCKED / NOT CERTIFIED**.
+### Required proof before closure
+1. Obtain successful CI results on the exact current head, including the Pages validation workflow that runs `scripts/validate-finance-boundaries.mjs`.
+2. Run disposable Supabase/PostgreSQL failure-injection, duplicate/replay, concurrent callback, and late failure-after-success tests for MantiGO, ordinary payments, and subscriptions.
+3. Resolve the historical migration-chain blockers and explicit baseline review gate, then run the ordered disposable replay.
+4. Verify deployed source/version only after a separately approved rollout. Do not deploy or change production payment/security boundaries as part of this candidate update.
+
+**Status:** PARTIALLY ADDRESSED IN CANDIDATE SOURCE — CI, runtime, migration replay, and deployed parity NOT VERIFIED. Release remains **BLOCKED / NOT CERTIFIED**.
 
