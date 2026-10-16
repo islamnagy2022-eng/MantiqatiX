@@ -5,6 +5,7 @@ declare
   tenant_admin uuid := '10000000-0000-4000-8000-000000000527';
   tenant_owner uuid := '10000000-0000-4000-8000-000000000528';
   tenant_super_admin uuid := '10000000-0000-4000-8000-000000000529';
+  platform_string_true uuid := '10000000-0000-4000-8000-000000000530';
   result jsonb;
   rejected boolean;
   cfg text;
@@ -35,7 +36,8 @@ begin
     ('platform-admin',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
     ('tenant-admin',tenant_admin,'TENANT-A','ADMIN','ACTIVE','{"admin":true}'::jsonb),
     ('tenant-owner',tenant_owner,'TENANT-B','OWNER','ACTIVE','{"admin":true}'::jsonb),
-    ('tenant-super-admin',tenant_super_admin,'TENANT-C','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
+    ('tenant-super-admin',tenant_super_admin,'TENANT-C','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
+    ('platform-string-true',platform_string_true,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":"true"}'::jsonb);
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
@@ -44,6 +46,11 @@ begin
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_super_admin::text,false);
   if public.mnty_can_platform_admin() then
     raise exception 'tenant-scoped SUPER_ADMIN must not be treated as platform administrator';
+  end if;
+
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_string_true::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'JSON string "true" must not satisfy boolean full_control';
   end if;
 
   insert into public.mantigo_financial_ledger
