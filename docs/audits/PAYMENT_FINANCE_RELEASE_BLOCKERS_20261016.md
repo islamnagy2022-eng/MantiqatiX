@@ -47,11 +47,11 @@ A read-only query also returned no rows for `chart_of_accounts` with `tenant_id=
 
 ## P0 — Paymob webhook writes event and ledger in separate operations
 
-Live `paymob-webhook` MantiGO path inserts `payment_provider_events` and separately updates `mantigo_financial_ledger`. The normal order failure path likewise inserts a provider event and separately updates `payment_intents`. The live entrypoint matches the tracked `main` source byte-for-byte in the audit performed on 2026-10-16.
+Live `supabase/functions/paymob-webhook/index.ts` has mixed transaction boundaries. The MantiGO path inserts `payment_provider_events`, then separately updates `mantigo_financial_ledger`; the ordinary order **failure** path inserts a provider event, then separately updates `payment_intents`; subscription **failure** directly updates `subscription_payment_intents` without using the atomic success RPC. By contrast, ordinary order success, digital-page payment, and subscription success call RPCs. The live entrypoint matches tracked `main` source byte-for-byte in the audit performed on 2026-10-16.
 
 **Impact:** if the event insert commits but the state update fails, a retry may observe the event and return idempotent success without completing the state transition. This is a code-level failure/retry risk; no live payment was triggered.
 
-**Required fix/test:** one database transaction/RPC per verified provider event, with a unique idempotency key and state transition. Test duplicate delivery, concurrent delivery, failure between logical writes, invalid signature, amount/currency mismatch, provider-order mismatch, and retry after transient database failure.
+**Required fix/test:** route every payment result (including failure) through a transaction/RPC that records the provider event and performs the matching state transition atomically. Verify that a repeated event is acknowledged only after the corresponding state transition is durable and that an existing event is matched to the same payment/ledger intent and status. Test duplicate delivery, concurrent delivery, injected failure between logical writes, invalid signature, amount/currency mismatch, provider-order mismatch, and retry after transient database failure. Keep customer notifications outside the payment commit only if notification failure is explicitly non-fatal and retriable.
 
 ## P0 — RC426 candidate signature is incompatible with deployed caller
 
@@ -73,9 +73,9 @@ RC435 adds subscription intent-claiming behavior, while the deployed `subscripti
 
 Live table `marketing_provider_profiles` has RLS enabled and forced. Live grants include `SELECT` for `anon` and `authenticated`; a permissive SELECT policy permits `anon,authenticated` to read rows where `status='ACTIVE'`. A separate authenticated policy permits CRM-role reads, and owner-management policy permits owners to manage their own rows.
 
-Candidate PR #274 revokes direct SELECT from `anon`, but the reviewed migration does not also revoke direct SELECT from `authenticated`. A public view alone therefore does not close the authenticated direct-table surface.
+Candidate PR #274 now removes the broad `Public can view active marketing providers` policy that applied to both `anon` and `authenticated`, revokes direct table access from `anon`, and retains authenticated grants so owner/CRM access can be constrained by the narrower RLS policies. Its isolated fixture tests an ordinary authenticated user (expected zero direct rows) and the owner (expected access to the owned row/settings). Latest candidate CI is now confirmed successful on SHA `5f21c90576d576dc70424f62165e432f3186b1e3` for `Public Provider Profile Privacy Boundary`, `Migration Version Uniqueness`, `Migration History Immutability`, `Open PR Migration Collision Guard`, and the other listed module-boundary checks. This is isolated CI evidence only; production behavior remains unverified.
 
-**Required fix/test:** revoke direct SELECT from both public-facing roles as appropriate, preserve narrowly scoped CRM/owner workflows through a reviewed server-side boundary, and test access to internal fields (including `settings` and `ranking_weight`) as anon, ordinary authenticated user, owner, CRM manager, and platform admin. Verify the view exposes only allowlisted public columns and filters by both provider and business publication state.
+**Remaining test gap:** exercise the public view's allowlisted columns and provider/business publication-state filters, and test CRM manager and platform admin access explicitly. Do not claim the full production privacy boundary is certified until the candidate migration is applied in an approved staging environment and the migration chain is replayed.
 
 ## P0 — Migration source chain is not reconstructible from current repository state
 
@@ -143,3 +143,20 @@ Draft PR #274: https://github.com/islamnagy2022-eng/MantiqatiX/pull/274
 - The isolated fixture was expanded to exercise RLS as an ordinary authenticated user and as the profile owner. The newest workflow run for SHA `5f21c90576d576dc70424f62165e432f3186b1e3` was queued at the time of this note; do not claim the latest revision's CI has passed until that run completes.
 
 Neither PR has been merged, and neither migration has been applied to production. The production migration ledger remains at RC424; migration-chain reconstruction/replay and the accounting-approved settlement model remain release blockers.
+
+## Follow-up — webhook transaction boundary review (2026-10-16)
+
+The tracked `paymob-webhook/index.ts` was re-read after the RC461 checks completed. Current flow classification from source:
+
+- **MantiGO:** event insert and ledger update are separate PostgREST operations; notification insert is a third operation whose error is not checked.
+- **Ordinary payment failure:** event insert and payment-intent update are separate operations; the update result is not checked before returning HTTP 200.
+- **Subscription failure:** directly updates a pending intent to FAILED; it does not persist a matching provider event through the same atomic success RPC.
+- **Ordinary payment success:** calls `process_verified_provider_payment` RPC.
+- **Digital-page payment:** calls `process_verified_digital_page_payment_backend` RPC; notification is written separately and logged as non-fatal.
+- **Subscription success:** calls `process_verified_subscription_payment` RPC.
+
+This means the issue is not that every webhook branch is non-atomic: it is specifically the MantiGO and failure branches, plus notification delivery being outside the core payment transaction. The candidate RC425 migration introduces `process_verified_mantigo_payment_backend`, but the current Edge Function still does not call it. RC425 is candidate-only and must not be deployed independently of the authoritative migration replay and a reviewed Edge Function/RPC contract.
+
+**Additional correctness requirement:** for all branches, idempotency must bind the provider event ID to the same internal intent/ledger ID and the same final status. A duplicate callback must not be treated as complete merely because an event row exists if the associated state transition is absent or inconsistent.
+
+No production payment was triggered, and no production state was changed during this follow-up.
