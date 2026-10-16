@@ -19,6 +19,8 @@ on:
   push:
     branches:
       - "fix/paymob-mantigo-webhook-atomic-rc425-20261016"
+      - "fix/paymob-order-subscription-atomic-rc428-430-20261016"
+      - "fix/subscription-paymob-claim-encryption-rc529-20261016"
 
 permissions:
   contents: read
