@@ -92,3 +92,21 @@ This is a static consistency finding, not evidence of a production incident.
 - Disposable database failure-injection and concurrency tests pass.
 - Reviewed source and deployed webhook version match.
 - Post-deployment read-only verification follows separately approved rollout. No production changes or real-money tests are authorized by this finding.
+
+
+## Finding PAY-03 — Late failed callback can downgrade an already successful payment intent
+
+**Severity:** High for state integrity pending provider-contract and runtime validation  
+**Confidence:** High for the source-level missing state guard; actual callback sequence and deployed parity are unverified.
+
+In the ordinary payment-intent failure branch, the update sets `status='FAILED'` using only `.eq("id", intent.id)`; it does not constrain the prior state or compare the callback against an already accepted successful provider transaction. Event deduplication only blocks a previously seen external event ID. If a distinct, validly signed failure event for the same intent arrives after a success event, this branch can overwrite the intent status to `FAILED` (assuming the update succeeds). The source does not demonstrate a guard against that transition.
+
+### Recommended remediation (not applied)
+
+1. Enforce a monotonic payment state machine in the database: a final successful state must not be downgraded by a later failure callback.
+2. Bind the payment intent to the expected provider order/transaction identifiers and reject contradictory events for the same payment attempt.
+3. Make event ingestion and state transition atomic, with explicit outcomes for duplicate, stale, contradictory, and terminal-state callbacks.
+4. Test both callback orders (failure then success, success then failure), different event IDs for the same intent, and concurrent delivery in a disposable database and provider sandbox.
+5. Do not assume provider event ordering; verify Paymob's documented callback semantics before finalizing transition policy.
+
+This is a code-path risk, not evidence that such an event occurred in production.
