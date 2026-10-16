@@ -87,6 +87,20 @@ for source, function_name in (
     assert "for update" in source.lower(), f"row lock missing in {function_name}"
     assert "external_event_id" in source, f"event idempotency binding missing in {function_name}"
 
+# SECURITY: SQL three-valued logic must not let NULL provider/amount bindings pass.
+assert "upper(v_intent.provider::text) is distinct from upper(p_provider)" in ORDER_FAILURE_MIGRATION
+assert "v_intent.amount is null" in ORDER_FAILURE_MIGRATION
+assert "upper(v_intent.currency::text) is distinct from upper(v_order.currency::text)" in ORDER_FAILURE_MIGRATION
+assert "upper(v_intent.provider) is distinct from 'PAYMOB'" in SUB_FAILURE_MIGRATION
+assert "v_intent.amount is null" in SUB_FAILURE_MIGRATION
+assert "upper(v_intent.currency) is distinct from upper(p_provider_confirmed_currency)" in SUB_FAILURE_MIGRATION
+assert "upper(v.provider) is distinct from 'PAYMOB'" in SUB_SUCCESS_MIGRATION
+assert "v.amount is null" in SUB_SUCCESS_MIGRATION
+assert "upper(v.currency) is distinct from upper(p_provider_confirmed_currency)" in SUB_SUCCESS_MIGRATION
+assert "upper(v_intent.provider::text) <> upper(p_provider)" not in ORDER_FAILURE_MIGRATION
+assert "upper(v_intent.provider) <> 'PAYMOB'" not in SUB_FAILURE_MIGRATION
+assert "upper(v.provider) <> 'PAYMOB'" not in SUB_SUCCESS_MIGRATION
+
 print("PASS: MantiGO, order failure, subscription failure, and subscription success use their candidate atomic RPC contracts.")
 print("LIMIT: static contract tests only; PostgreSQL replay, RPC integration, and provider sandbox remain required.")
 
