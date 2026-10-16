@@ -3,9 +3,18 @@ do $$
 declare
   v_cols text[];
   v_def text;
+  v_column_select boolean;
 begin
   if has_table_privilege('anon', 'public.marketing_provider_profiles', 'select') then
     raise exception 'FAIL: anon still has direct SELECT on marketing_provider_profiles';
+  end if;
+  select coalesce(bool_or(has_column_privilege('anon', 'public.marketing_provider_profiles', a.attname, 'select')), false)
+    into v_column_select
+  from pg_attribute a
+  where a.attrelid = 'public.marketing_provider_profiles'::regclass
+    and a.attnum > 0 and not a.attisdropped;
+  if v_column_select then
+    raise exception 'FAIL: anon retains column-level SELECT on marketing_provider_profiles';
   end if;
   if not has_table_privilege('anon', 'public.public_marketing_provider_profiles', 'select') then
     raise exception 'FAIL: anon cannot read the sanitized public provider view';
