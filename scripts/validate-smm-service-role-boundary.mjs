@@ -34,6 +34,11 @@ assert.doesNotMatch(catalog, /provider_cost|external_service_id|metadata/, "cata
 assert.match(account, /\.eq\("user_id",user\.id\)/g, "both order and wallet reads must be scoped to the verified bearer user");
 assert.match(account, /select\("id,service_id,quantity,selling_price,status,provider_order_id,created_at,updated_at"\)/, "account orders must use an explicit field allowlist");
 assert.match(account, /if\(o\.error\|\|w\.error\)/, "failed reads must return an error, not a successful empty/zero response");
+assert.match(account, /wallet_initialized:walletInitialized/, "wallet existence must be explicit in the account contract");
+assert.match(account, /wallet_status:walletInitialized\?"READY":"NOT_INITIALIZED"/, "a missing wallet must be distinguishable from a zero-balance wallet");
+assert.match(account, /balance:walletBalance/, "wallet balance must preserve null for an uninitialized wallet");
+assert.doesNotMatch(account, /Number\(w\.data\?\.balance\|\|0\)/, "missing wallet rows must not be silently converted to zero balance");
+assert.match(account, /Number\.isFinite\(walletBalance\)/, "invalid persisted wallet balances must fail closed");
 
 assert.match(migration, /revoke all on table[\s\S]*from public, anon, authenticated/i, "direct client table access must be revoked");
 assert.match(migration, /grant select on table[\s\S]*public\.smm_admins[\s\S]*public\.smm_providers[\s\S]*public\.smm_wallets[\s\S]*to service_role/i, "trusted read grants must be limited to the required tables");
