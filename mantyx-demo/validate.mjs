@@ -18,6 +18,6 @@ for(const [text,marker,label] of [
 ]) assert.ok(text.includes(marker),`Missing ${label}: ${marker}`);
 assert.ok(!/supabase\.co|functions\/v1|SUPABASE_SERVICE_ROLE_KEY|PAYMOB_SECRET|service_role/i.test(html+js+css),"Demo must not contain production endpoints or privileged secret markers");
 assert.ok(!/fetch\s*\(|createClient\s*\(|localStorage|sessionStorage/i.test(js),"Demo JS must not call APIs or persist data");
-assert.ok(html.includes('id="action-dialog"')&&js.includes('$("#dialog-dialog")')===false,"Dialog markup and script contract");
+assert.ok(html.includes('id="action-dialog"')&&js.includes('$("#action-dialog").showModal()')&&js.includes('$("#dialog-title").textContent'),"Dialog markup and script contract");
 assert.ok(css.includes("@media(max-width:560px)"),"Mobile responsive rules required");
 console.log("Mantyx demo safety/static contract: PASS");
