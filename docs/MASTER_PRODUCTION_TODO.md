@@ -1746,3 +1746,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Add disposable DB failure-injection, duplicate-event, concurrency, and late-failure-after-success tests. Resolve the missing historical migration source and baseline review gate before claiming replay success.
 - [ ] Deployed source parity and runtime behavior remain NOT VERIFIED. No production code, migration, grant, RLS/Auth setting, payment, or deployment was changed in this pass; release remains **BLOCKED / NOT CERTIFIED**.
 
+## Payment webhook atomic-RPC convergence — 2026-10-16 update
+
+- [x] Updated the integration candidate `supabase/functions/paymob-webhook/index.ts` in commit `a07959751bc454e92005fa9a78f1d1e55ce5fdec`: MantiGO uses RC425's `process_verified_mantigo_payment_backend`; ordinary failed payments use RC428's `process_verified_provider_payment_failure`; subscription failures and successes use RC429/RC430's corresponding backend RPCs.
+- [x] Extended `scripts/validate-finance-boundaries.mjs` in commit `341bb82d6ffa94b7bf99199ff4bd2bdbe81afaae` to require the RPC call sites and reject the old direct split-write patterns.
+- [ ] **NOT VERIFIED:** no successful CI run on the exact latest head was available during this pass; no local Supabase runtime or failure-injection tests were run.
+- [ ] **REQUIRED:** verify the source contract in CI; exercise duplicate event, transaction/order mismatch, concurrent callbacks, failed DB writes, and late failure after success in disposable PostgreSQL/Supabase; then resolve the missing RC433 source and explicit baseline review gate before claiming replay success.
+- No production code, migration, grants, RLS/Auth settings, secrets, payment, settlement, or deployment was changed. PR #252 remains Draft/unmerged; release remains **BLOCKED / NOT CERTIFIED**.
