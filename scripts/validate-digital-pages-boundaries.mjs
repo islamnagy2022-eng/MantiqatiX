@@ -13,4 +13,5 @@ for(const [src,marker,label] of [
 ]) if(!src.includes(marker)) throw new Error('Digital page boundary marker missing: '+label);
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
+if(payment.includes('userClient.rpc("finalize_digital_page_payment_intent_backend"')) throw new Error('Authenticated client must not execute trusted payment finalization');
 console.log('RC424 digital pages/payment boundary validation: PASS');
