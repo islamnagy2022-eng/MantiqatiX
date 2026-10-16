@@ -2,6 +2,7 @@ import fs from 'node:fs';
 const payment=fs.readFileSync('supabase/functions/payment-intent/index.ts','utf8');
 const settlement=fs.readFileSync('supabase/functions/settlement-create/index.ts','utf8');
 const paymob=fs.readFileSync('supabase/functions/paymob-webhook/index.ts','utf8');
+const smm=fs.readFileSync('supabase/functions/smm-gateway/index.ts','utf8');
 const required=[
   [payment,'admin.auth.getUser','payment auth verification'],
   [payment,'create_payment_intent_backend','server payment-intent boundary'],
@@ -36,4 +37,6 @@ for(const [marker,label] of forbiddenSplitWrites){if(paymob.includes(marker))thr
 for(const field of ['provider:"PAYMOB"','transaction_id:value(obj.id)','merchant_order_id:merchantRef','provider_order_id:paymobOrderId','amount_cents:String(obj.amount_cents??"")']){
   if(!paymob.includes(field))throw new Error('MantiGO RPC payload binding missing: '+field);
 }
+// SMM admin reporting must never disguise failed reads as an empty dashboard.
+if(!smm.includes('if(p.error||s.error||o.error)')||!smm.includes('ADMIN_DATA_READ_FAILED'))throw new Error('SMM admin dashboard must fail closed on read errors');
 console.log('RC260 finance/payment boundary validation: PASS');
