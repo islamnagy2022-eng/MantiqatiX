@@ -1,5 +1,5 @@
 -- RC461 regression: run after the migration in a disposable PostgreSQL/Supabase database.
-do $$
+do $rc461_test$
 declare
   v_cols text[];
   v_def text;
@@ -35,4 +35,4 @@ begin
     raise exception 'FAIL: public provider view does not restrict rows to ACTIVE profiles';
   end if;
   raise notice 'PASS: anon table SELECT revoked; sanitized active-provider view is readable and excludes internal fields';
-end $$;
+end $rc461_test$;
