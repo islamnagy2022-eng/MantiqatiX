@@ -52,3 +52,40 @@ for marker in (
 
 print("PASS: MantiGO Paymob webhook is wired to the RC425 atomic RPC contract.")
 print("LIMIT: static contract test only; it does not execute PostgreSQL or prove the migration chain.")
+
+
+# The other verified webhook branches must also use their atomic candidate RPCs.
+assert 'admin.rpc("process_verified_provider_payment_failure"' in WEBHOOK
+assert 'admin.rpc("process_verified_subscription_payment_failure"' in WEBHOOK
+assert 'admin.rpc("process_verified_subscription_payment_backend"' in WEBHOOK
+assert "p_provider_order_id:" in WEBHOOK
+assert "p_raw_payload:" in WEBHOOK
+
+order_start = WEBHOOK.index('const {data:intentByRef}')
+order_block = WEBHOOK[order_start:]
+assert 'admin.from("payment_provider_events").insert' not in order_block
+assert 'admin.from("payment_intents").update' not in order_block
+assert 'process_verified_provider_payment_failure' in order_block
+
+sub_start = WEBHOOK.index('const {data:subByRef}')
+sub_end = WEBHOOK.index('const {data:digitalByRef}', sub_start)
+sub_block = WEBHOOK[sub_start:sub_end]
+assert 'process_verified_subscription_payment_failure' in sub_block
+assert 'process_verified_subscription_payment_backend' in sub_block
+assert 'admin.from("subscription_payment_intents").update' not in sub_block
+assert 'admin.from("payment_provider_events").select' not in sub_block
+
+ORDER_FAILURE_MIGRATION = (ROOT / "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql").read_text()
+SUB_FAILURE_MIGRATION = (ROOT / "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql").read_text()
+SUB_SUCCESS_MIGRATION = (ROOT / "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql").read_text()
+for source, function_name in (
+    (ORDER_FAILURE_MIGRATION, "process_verified_provider_payment_failure"),
+    (SUB_FAILURE_MIGRATION, "process_verified_subscription_payment_failure"),
+    (SUB_SUCCESS_MIGRATION, "process_verified_subscription_payment_backend"),
+):
+    assert f"create or replace function public.{function_name}" in source
+    assert "for update" in source.lower(), f"row lock missing in {function_name}"
+    assert "external_event_id" in source, f"event idempotency binding missing in {function_name}"
+
+print("PASS: MantiGO, order failure, subscription failure, and subscription success use their candidate atomic RPC contracts.")
+print("LIMIT: static contract tests only; PostgreSQL replay, RPC integration, and provider sandbox remain required.")
