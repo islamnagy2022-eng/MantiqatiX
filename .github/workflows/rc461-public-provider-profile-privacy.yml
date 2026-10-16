@@ -1,0 +1,80 @@
+name: Public Provider Profile Privacy Boundary
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261016140000_rc461_public_provider_profile_privacy.sql"
+      - "supabase/tests/rc461_public_provider_profile_privacy.sql"
+      - ".github/workflows/rc461-public-provider-profile-privacy.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261016140000_rc461_public_provider_profile_privacy.sql"
+      - "supabase/tests/rc461_public_provider_profile_privacy.sql"
+      - ".github/workflows/rc461-public-provider-profile-privacy.yml"
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Prepare disposable schema fixture
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon nologin;
+          create role authenticated nologin;
+          create table public.marketing_provider_profiles (
+            id uuid primary key,
+            business_id uuid,
+            name_ar text,
+            name_en text,
+            provider_kind text,
+            description text,
+            service_areas jsonb not null default '[]'::jsonb,
+            status text not null,
+            is_verified boolean not null default false,
+            is_featured boolean not null default false,
+            profile_image_path text,
+            settings jsonb not null default '{}'::jsonb,
+            ranking_weight integer not null default 0,
+            owner_user_id uuid,
+            created_at timestamptz not null default now(),
+            updated_at timestamptz not null default now()
+          );
+          grant select on public.marketing_provider_profiles to anon, authenticated;
+          insert into public.marketing_provider_profiles
+            (id, name_ar, provider_kind, status, owner_user_id, settings, ranking_weight)
+          values
+            ('00000000-0000-0000-0000-000000000001','مقدم منشور','MARKETING','ACTIVE','00000000-0000-0000-0000-000000000011',
+             '{"branding":{"logo_path":"public/logo.png"},"internal_note":"secret"}',99),
+            ('00000000-0000-0000-0000-000000000002','مقدم غير منشور','MARKETING','PENDING','00000000-0000-0000-0000-000000000012','{}',100);
+          SQL
+      - name: Apply candidate migration to disposable PostgreSQL only
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/migrations/20261016140000_rc461_public_provider_profile_privacy.sql
+      - name: Verify grants and public column allowlist
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/tests/rc461_public_provider_profile_privacy.sql
+      - name: Verify runtime view only returns active providers
+        env:
+          PGPASSWORD: postgres
+        run: |
+          test "$(psql -h localhost -U postgres -d postgres -Atc "select count(*) from public.public_marketing_provider_profiles")" = "1"
+          test "$(psql -h localhost -U postgres -d postgres -Atc "select public_branding_logo_path from public.public_marketing_provider_profiles limit 1")" = "public/logo.png"
