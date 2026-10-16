@@ -127,6 +127,10 @@ assert "client_secret_iv" in SUBSCRIPTION_INTENT
 assert "client_secret_key_version" in SUBSCRIPTION_INTENT
 assert "outcome_unknown===true" in SUBSCRIPTION_INTENT
 assert "reconciliationRequired:true" in SUBSCRIPTION_INTENT
+assert "client_secret_ciphertext: _ciphertext" in SUBSCRIPTION_INTENT
+assert "client_secret_iv: _iv" in SUBSCRIPTION_INTENT
+assert "client_secret_key_version: _keyVersion" in SUBSCRIPTION_INTENT
+assert "paymentIntent:safeIntent" in SUBSCRIPTION_INTENT
 assert "provider_creation_state='CLAIMED'" in CLAIM_MIGRATION
 assert "client_secret_ciphertext" in ENCRYPTION_MIGRATION
 assert "client_secret_iv" in ENCRYPTION_MIGRATION
