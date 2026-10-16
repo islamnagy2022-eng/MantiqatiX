@@ -37,7 +37,7 @@ begin
     raise exception 'SUBSCRIPTION_INVALID_REQUEST';
   end if;
   if upper(p_tier_code)='FREE_COMMISSION' then raise exception 'FREE_TIER_REQUIRES_NO_PAYMENT'; end if;
-  if upper(p_billing_cycle) not in ('MONTHLY','ANNUAL') then raise exception 'SUBSCRIPTION_INVALID_BILLING_CYCLE'; end if;
+  if upper(coalesce(p_billing_cycle,'')) not in ('MONTHLY','ANNUAL') then raise exception 'SUBSCRIPTION_INVALID_BILLING_CYCLE'; end if;
   if not exists (
     select 1 from public.user_memberships m
     where m.user_id=p_actor_user_id and m.business_id=p_business_id and m.status='ACTIVE'
@@ -103,7 +103,7 @@ begin
   where i.id=p_intent_id
   for update;
   if not found then raise exception 'SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND'; end if;
-  if v_intent.created_by <> p_actor_user_id then raise exception 'SUBSCRIPTION_PAYMENT_INTENT_FORBIDDEN'; end if;
+  if v_intent.created_by is distinct from p_actor_user_id then raise exception 'SUBSCRIPTION_PAYMENT_INTENT_FORBIDDEN'; end if;
 
   if not exists (
     select 1 from public.user_memberships m
