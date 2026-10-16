@@ -45,3 +45,14 @@ grant execute on function public.finalize_digital_page_payment_intent_backend(uu
 
 comment on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text)
 is 'Trusted server-only finalization after the provider intention API returns a valid provider intent ID; never callable by authenticated clients.';
+
+-- If the recovered RC426 chain contains the separate five-argument overload,
+-- keep it non-callable until its provider-order correlation contract is reviewed.
+-- Dynamic SQL makes this migration replay-safe when that overload is absent.
+do $migration$
+begin
+  if to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)') is not null then
+    execute 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) from public, anon, authenticated, service_role';
+  end if;
+end;
+$migration$;
