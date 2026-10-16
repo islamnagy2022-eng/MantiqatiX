@@ -89,3 +89,15 @@ for source, function_name in (
 
 print("PASS: MantiGO, order failure, subscription failure, and subscription success use their candidate atomic RPC contracts.")
 print("LIMIT: static contract tests only; PostgreSQL replay, RPC integration, and provider sandbox remain required.")
+
+
+# RC426 requires the provider order correlation to be persisted by the Edge Function.
+DIGITAL_INTENT = (ROOT / "supabase/functions/digital-page-payment-intent/index.ts").read_text()
+DIGITAL_BINDING_MIGRATION = (ROOT / "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql").read_text()
+assert 'p_provider_order_id:providerOrderId' in DIGITAL_INTENT
+assert 'PAYMENT_PROVIDER_ORDER_CORRELATION_MISSING' in DIGITAL_INTENT
+assert 'reconciliationRequired:true' in DIGITAL_INTENT
+assert "p_provider_order_id text" in DIGITAL_BINDING_MIGRATION
+assert "provider_order_id = p_provider_order_id" in DIGITAL_BINDING_MIGRATION
+assert "p_provider_order_id" in DIGITAL_BINDING_MIGRATION
+print("PASS: digital-page payment intent passes the RC426 provider-order binding.")
