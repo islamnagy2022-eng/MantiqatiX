@@ -37,8 +37,8 @@ if (/userClient\.rpc\("finalize_digital_page_payment_intent_backend"/.test(payme
 const migrationDir = 'supabase/migrations';
 const finalizerAclEvents = [];
 const overloads = [
-  { signature: 'four', pattern: /grant\\s+(?:all|execute)\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+to\\s+(public|authenticated)|revoke\\s+all\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+from\\s+(public|authenticated)/ig },
-  { signature: 'five', pattern: /grant\\s+(?:all|execute)\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+to\\s+(public|authenticated)|revoke\\s+all\\s+on\\s+function\\s+public\\.finalize_digital_page_payment_intent_backend\\s*\\(\\s*uuid\\s*,\\s*uuid\\s*,\\s*text\\s*,\\s*text\\s*,\\s*text\\s*\\)\\s+from\\s+(public|authenticated)/ig },
+  { signature: 'four', pattern: /grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*\)\s+to\s+(public|authenticated)|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*\)\s+from\s+(public|authenticated)/ig },
+  { signature: 'five', pattern: /grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+to\s+(public|authenticated)|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+from\s+(public|authenticated)/ig },
 ];
 for (const filename of fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql')).sort()) {
   const sql = fs.readFileSync(migrationDir + '/' + filename, 'utf8');
