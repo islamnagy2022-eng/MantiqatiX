@@ -1705,3 +1705,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Reviewed Production Baseline Forward Replay run [38827010080](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/38827010080) failed at the intended explicit-review gate. The 10 validator tests passed; baseline review remains pending, so isolated Supabase startup and forward replay were skipped. This is a correct safety block, not a migration replay failure and not a replay pass.
 - [x] Web deployment workflow run [38827010396](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/38827010396) reported validation success but the deploy job was **skipped**; this PR run does not mean the website was deployed.
 - **Safety:** no production query or mutation, migration, Auth/RLS/grant change, Edge Function deployment, real payment, settlement, PR merge, or production release occurred in this pass. PR #252 remains Draft and unmerged. Baseline remains `PENDING_REVIEW`; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Security triage follow-up — MantiGO webhook consistency — 2026-10-16
+
+- [x] Static source review identified finding MGO-PAY-01 in [`docs/release/BASELINE_SECURITY_TRIAGE_20261016.md`](release/BASELINE_SECURITY_TRIAGE_20261016.md): the MantiGO branch of `supabase/functions/paymob-webhook/index.ts` persists a provider event through one API call and updates the financial ledger in a separate API call. If the first succeeds and the second fails, a retry can see the existing event and return idempotent success before retrying the ledger update. The ledger update also does not inspect affected-row count.
+- [ ] NOT VERIFIED: this is a source-level failure-mode analysis; the deployed webhook parity and runtime impact have not been established, and no failure-injection test has run.
+- [ ] REQUIRED: test the event-insert/ledger-update failure and retry sequence in disposable Supabase; replace the split writes with a single atomic database transaction/RPC, explicit state/result handling, and duplicate/concurrency tests before closing the finding.
+- **Safety:** no webhook code, database function, grant, RLS/Auth setting, production data, payment, or deployment was changed. Keep production payment/settlement and release gates open pending evidence.
