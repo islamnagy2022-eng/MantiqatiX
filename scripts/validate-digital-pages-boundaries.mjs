@@ -23,6 +23,10 @@ for (const [src, marker, label] of [
   [trustedFinalization, "to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)')", 'replay-safe five-argument overload detection'],
   [trustedFinalization, 'from public, anon, authenticated, service_role', 'old five-argument overload grants cleared before redefinition'],
   [trustedFinalization, 'p_provider_order_id text', 'five-argument provider order correlation input'],
+  [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from public', 'four-argument finalizer PUBLIC grant revoked'],
+  [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from anon', 'four-argument finalizer anon grant revoked'],
+  [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from authenticated', 'four-argument finalizer authenticated grant revoked'],
+  [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) to service_role', 'four-argument finalizer service-role grant explicitly preserved'],
   [trustedFinalization, 'provider_order_id = p_provider_order_id', 'provider order ID stored on the order'],
   [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) to service_role', 'five-argument finalizer service-role-only grant'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
