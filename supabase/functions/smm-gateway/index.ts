@@ -63,7 +63,7 @@ Deno.serve(async(req)=>{
    ]);
    if(o.error||w.error){console.error("[smm-gateway] account read failed",o.error?.code||w.error?.code||"DB_ERROR");return json({error:"ACCOUNT_DATA_READ_FAILED"},500);}
    const walletInitialized=Boolean(w.data);
-   const walletBalance=walletInitialized?Number(w.data.balance):null;
+   const walletBalance=w.data?Number(w.data.balance):null;
    if(walletInitialized&&(walletBalance===null||!Number.isFinite(walletBalance)||walletBalance<0)){console.error("[smm-gateway] wallet balance invalid");return json({error:"WALLET_BALANCE_INVALID"},500);}
    return json({orders:o.data||[],wallet_initialized:walletInitialized,wallet_status:walletInitialized?"READY":"NOT_INITIALIZED",balance:walletBalance,is_admin:await isAdmin(user.id)});
   }
