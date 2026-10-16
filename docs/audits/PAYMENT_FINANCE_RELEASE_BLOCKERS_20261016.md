@@ -160,3 +160,45 @@ This means the issue is not that every webhook branch is non-atomic: it is speci
 **Additional correctness requirement:** for all branches, idempotency must bind the provider event ID to the same internal intent/ledger ID and the same final status. A duplicate callback must not be treated as complete merely because an event row exists if the associated state transition is absent or inconsistent.
 
 No production payment was triggered, and no production state was changed during this follow-up.
+
+
+## Follow-up — atomic Paymob callbacks and subscription checkout recovery (2026-10-16)
+
+### RC461 final CI confirmation
+The latest RC461 candidate SHA `5f21c90576d576dc70424f62165e432f3186b1e3` completed the `Public Provider Profile Privacy Boundary`, `Migration Version Uniqueness`, `Migration History Immutability`, and `Open PR Migration Collision Guard` workflows successfully. This remains candidate-only evidence; PR #274 is still draft and unmerged.
+
+### RC428/RC429/RC430 — atomic callback wiring
+Draft PR #278: https://github.com/islamnagy2022-eng/MantiqatiX/pull/278
+
+- Ordinary provider payment failure now calls the RC428 atomic failure RPC rather than inserting an event and updating the payment intent in separate requests.
+- Subscription failure and success now call the RC429/RC430 candidate RPCs with provider order binding, verified amount/currency, event identity, and raw payload.
+- The old subscription pre-check that returned idempotent success merely because a provider-event row existed has been removed.
+- The digital-page payment-intent caller now supplies the provider order ID required by RC426. If the provider created an intention but the response lacks correlation, the caller returns a reconciliation-required error instead of releasing the claim and blindly retrying.
+- Static source-contract workflow succeeded on PR #278 head SHA `828b53f55d172d09bb8c05d24b9a68f26db259df`: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38935174027
+- This is not proof of PostgreSQL transactional behavior. Failure injection, concurrent duplicate callbacks, provider sandbox, and chronological migration replay are still required.
+
+### RC435/RC439/RC529 — subscription intention creation and checkout recovery
+Draft PR #279: https://github.com/islamnagy2022-eng/MantiqatiX/pull/279
+
+- The subscription-payment-intent Edge Function now uses the RC435 claimable-intent creation and provider-creation claim path rather than the legacy create-then-update path.
+- Provider attempts with unknown outcomes are not blindly retried; they return a reconciliation-required response.
+- Checkout client secrets are encrypted in the Edge Function using AES-256-GCM and a 32-byte base64 environment secret. The database candidate stores ciphertext, IV, and key version only.
+- RC529 adds a service-role-only finalizer that locks the claimed intent and atomically persists provider intent/order correlation and encrypted recovery fields.
+- Static source-contract workflow succeeded on the PR #279 head SHA `20393176aaccbe47569b4f8636c150228f3ed2c2`: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38935398029
+- Before rollout, provision and verify the encryption secrets, review key rotation/recovery, add failure-injection and Paymob sandbox tests, and replay RC435/RC439/RC529 in chronological order in a disposable database. If finalization fails after Paymob creates an intention, operational reconciliation remains required.
+
+### RC530 — platform scope for MantiGO dashboard and settlement
+Draft PR #280: https://github.com/islamnagy2022-eng/MantiqatiX/pull/280
+
+- The platform-wide dashboard and captain-settlement SECURITY DEFINER functions now require the strict RC528 platform predicate instead of accepting broad role names such as tenant ADMIN/OWNER.
+- The candidate sets an empty search_path and tests platform admin, tenant admin, tenant owner, tenant-scoped SUPER_ADMIN, JSON-string `full_control`, actor spoofing, and settlement state guard.
+- Isolated PostgreSQL workflow succeeded on SHA `f287e53ce34bbf1a071e4e42824464c23d47fc59`: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38935602513
+- This only addresses authorization. It does **not** make settlement accounting safe or functional.
+
+## Accounting stop-ship — unchanged
+A fresh read-only inspection of the live settlement function reconfirmed contradictory partner invariants: it first requires `gross = platform_fee + net + voucher`, then requires `net + voucher = gross`. For any non-zero platform fee these conditions cannot both hold. The function's partner journal also debits account 5030 for gross but credits 1020 for net and 2050 for voucher, leaving platform fee unrepresented; the live journal-balance trigger recomputes amounts from lines and can reject an unbalanced posted entry. Prior read-only checks found no chart-of-account or journal rows to establish the intended mapping.
+
+**Do not invent account codes, post journals, or settle payouts.** A finance/accounting owner must approve the economic treatment and chart-of-account mapping before this can be safely implemented and integration-tested. Until then, the settlement function is not release-certified even though the new candidate restricts who can invoke it.
+
+## Release status
+All of the above PRs remain draft/unmerged and candidate-only. No production migrations, Edge Function deployments, live payments, settlements, or production writes were performed. The source migration chain remains unreconstructed and the release remains **BLOCKED / NOT CERTIFIED**.
