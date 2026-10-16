@@ -18,6 +18,13 @@ assert.match(adminGuard, /p\.scope==="PLATFORM"/, "membership must carry PLATFOR
 assert.match(adminGuard, /p\.full_control===true/, "membership must have explicit full control");
 assert.doesNotMatch(adminGuard, /includes\(String\(m\.role\)\.toUpperCase\(\)\)/, "tenant OWNER/ADMIN roles must not grant global SMM administration");
 
+assert.match(edge, /const SMM_INITIAL_LAUNCH_DEFERRED=true/, "SMM launch must remain explicitly deferred until a reviewed release changes the gate");
+const launchStart = edge.indexOf("const launch=getSmmLaunchDecision");
+const userStart = edge.indexOf("const user=await getUser(req)", launchStart);
+assert.ok(launchStart >= 0 && userStart > launchStart, "launch gate must run before authentication and all action routing");
+const launchGuard = edge.slice(launchStart, userStart);
+assert.match(launchGuard, /SMM_INITIAL_LAUNCH_DEFERRED\|\|!launch\.enabled/, "default-deny launch gate must block all SMM actions");
+assert.match(launchGuard, /SMM_DEFERRED/, "deferred launch must return the explicit SMM_DEFERRED response");
 assert.match(edge, /user\.is_anonymous\?null:user/, "anonymous Auth sessions must be rejected");
 assert.match(edge, /"Cache-Control":"no-store"/, "personal account responses must not be cached");
 const catalogStart = edge.indexOf('if(a==="catalog")');
