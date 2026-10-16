@@ -26,4 +26,20 @@ revoke all on public.public_marketing_provider_profiles from public;
 grant select on public.public_marketing_provider_profiles to anon, authenticated;
 
 -- Public clients must use the allowlisted view, never the full internal row.
-revoke select on public.marketing_provider_profiles from anon;
+revoke all privileges on public.marketing_provider_profiles from anon;
+
+-- Also remove any column-level SELECT grants, which table-level REVOKE alone does not remove.
+do $
+declare
+  v_column record;
+begin
+  for v_column in
+    select a.attname
+    from pg_attribute a
+    where a.attrelid = 'public.marketing_provider_profiles'::regclass
+      and a.attnum > 0
+      and not a.attisdropped
+  loop
+    execute format('revoke select (%I) on table public.marketing_provider_profiles from anon', v_column.attname);
+  end loop;
+end $;
