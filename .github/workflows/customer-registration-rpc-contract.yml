@@ -1,0 +1,33 @@
+name: Customer Registration RPC Contract
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/mnty-customer-registration/index.ts"
+      - "supabase/migrations/20260929150000_rc213_customer_direct_activation.sql"
+      - "supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql"
+      - "scripts/validate-customer-registration-rpc-contract.mjs"
+      - ".github/workflows/customer-registration-rpc-contract.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/mnty-customer-registration/index.ts"
+      - "supabase/migrations/20260929150000_rc213_customer_direct_activation.sql"
+      - "supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql"
+      - "scripts/validate-customer-registration-rpc-contract.mjs"
+      - ".github/workflows/customer-registration-rpc-contract.yml"
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate customer registration RPC behavior boundary
+        run: node scripts/validate-customer-registration-rpc-contract.mjs
