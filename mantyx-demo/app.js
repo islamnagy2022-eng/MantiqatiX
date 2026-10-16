@@ -1,7 +1,7 @@
 (() => {
   const $ = (s, root=document) => root.querySelector(s);
   const $$ = (s, root=document) => [...root.querySelectorAll(s)];
-  const state = { view:"overview", query:"", extras:[], notice:true };
+  const state = { view:"overview", query:"", statusFilter:"", extras:[], notice:true };
   const navNames = {
     overview:"نظرة عامة",modules:"دليل الوحدات والشاشات",control:"التحكم الكامل",orders:"الطلبات",customers:"العملاء وCRM",providers:"مقدمو الخدمات",catalog:"القطاعات والكتالوج",
     smm:"التسويق الإلكتروني SMM",marketing:"التسويق والإعلان وإدارة الوكالة",finance:"المالية والمحافظ",commissions:"العمولات والباقات والاشتراكات",inventory:"المخزون والمشتريات",content:"المحتوى والمنصة",
@@ -133,8 +133,15 @@
   function settings(){return '<section class="panel">'+panelHead("إعدادات بيئة العرض","تغييرات محلية على الواجهة فقط")+'<div class="list-row"><div class="grow"><b>وضع البيانات التجريبية</b><small>كل الأسماء والمعاملات والأرقام مولدة للاختبار</small></div><span class="toggle on"></span></div><div class="list-row"><div class="grow"><b>الاتصال بقاعدة إنتاج</b><small>محظور في هذه النسخة ولا يوجد إعداد اتصال</small></div><span class="toggle"></span></div><div class="list-row"><div class="grow"><b>إرسال إشعارات خارجية</b><small>لا يوجد SMS أو بريد أو Push فعلي</small></div><span class="toggle"></span></div><div class="metric-note">لتحويل هذه الواجهة إلى نظام متصل، يجب ربط كل عملية بخدمة خلفية معتمدة، ومصادقة، وصلاحيات، واختبارات تكامل مستقلة. لا يُعد العرض الحالي بديلًا عن ذلك.</div></section>'}
   function tableView(view){const m=moduleTable(view);if(!m)return '<div class="module-grid">'+moduleCards.map(c=>'<button class="module-card" data-view="'+c[0]+'"><span class="stat-icon '+c[4]+'">'+c[3]+'</span><h3>'+c[1]+'</h3><p>'+c[2]+'</p><div class="module-foot"><span>'+c[5]+'</span><b>فتح الوحدة ←</b></div></button>').join("")+'</div>';
     const query=state.query.trim().toLowerCase();
-    const filtered=m.rows.filter(row=>!query||row.join(" ").replace(/<[^>]*>/g," ").toLowerCase().includes(query));
-    return '<p class="section-note">'+m.desc+'</p><div class="toolbar"><div class="filter-row"><input class="filter-input" id="table-filter" value="'+escapeHtml(state.query)+'" placeholder="تصفية الصفوف الحالية..."><select class="filter-input" id="status-filter"><option value="">كل الحالات</option><option>مكتمل</option><option>نشط</option><option>قيد التنفيذ</option><option>بانتظار التأكيد</option></select></div><span class="cell-secondary">عدد الصفوف في العرض: '+filtered.length+'</span></div><section class="panel table-panel">'+panelHead(navNames[view],"بيانات مولدة للعرض والمراجعة")+(filtered.length?table(m.heads,filtered):'<div class="empty-state"><div class="empty-icon">⌕</div><strong>لا توجد نتائج مطابقة</strong><span>جرّب تعديل عبارة البحث.</span></div>')+'</section><div class="metric-note">ملاحظة: هذه الشاشة نموذج واجهة وبيانات فقط. لم يتم تنفيذ عمليات قاعدة بيانات أو تغيير حالة فعلية.</div>';
+    const filtered=m.rows.filter(row=>{
+      const plain=row.join(" ").replace(/<[^>]*>/g," ").toLowerCase();
+      const matchesQuery=!query||plain.includes(query);
+      const matchesStatus=!state.statusFilter||plain.includes(state.statusFilter.toLowerCase());
+      return matchesQuery&&matchesStatus;
+    });
+    const extraRows=state.extras.filter(x=>x.view===view);
+    const extrasHtml=extraRows.length?'<section class="panel">'+panelHead("عناصر أُضيفت في جلسة العرض","لا تُحفظ بعد إغلاق الصفحة")+'<div class="table-wrap"><table><thead><tr><th>العنصر</th><th>التصنيف</th><th>وقت الإضافة</th><th>الحالة</th></tr></thead><tbody>'+extraRows.map(x=>'<tr><td>'+escapeHtml(x.name)+'</td><td>'+escapeHtml(x.category)+'</td><td>'+escapeHtml(x.created)+'</td><td>'+status("جلسة تجريبية","info")+'</td></tr>').join("")+'</tbody></table></div></section>':'';
+    return '<p class="section-note">'+m.desc+'</p><div class="toolbar"><div class="filter-row"><input class="filter-input" id="table-filter" value="'+escapeHtml(state.query)+'" placeholder="تصفية الصفوف الحالية..."><select class="filter-input" id="status-filter"><option value="">كل الحالات</option><option '+(state.statusFilter==="مكتمل"?"selected":"")+'>مكتمل</option><option '+(state.statusFilter==="نشط"?"selected":"")+'>نشط</option><option '+(state.statusFilter==="قيد التنفيذ"?"selected":"")+'>قيد التنفيذ</option><option '+(state.statusFilter==="بانتظار التأكيد"?"selected":"")+'>بانتظار التأكيد</option><option '+(state.statusFilter==="مراجعة"?"selected":"")+'>مراجعة</option><option '+(state.statusFilter==="بانتظار المراجعة"?"selected":"")+'>بانتظار المراجعة</option></select></div><span class="cell-secondary">عدد الصفوف في العرض: '+filtered.length+'</span></div><section class="panel table-panel">'+panelHead(navNames[view],"بيانات مولدة للعرض والمراجعة")+(filtered.length?table(m.heads,filtered):'<div class="empty-state"><div class="empty-icon">⌕</div><strong>لا توجد نتائج مطابقة</strong><span>جرّب تعديل عبارة البحث أو الحالة.</span></div>')+'</section>'+extrasHtml+'<div class="metric-note">ملاحظة: هذه الشاشة نموذج واجهة وبيانات فقط. لم يتم تنفيذ عمليات قاعدة بيانات أو تغيير حالة فعلية.</div>';
   }
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
   function render(){
@@ -147,12 +154,13 @@
     $("#sidebar").classList.remove("open");
   }
   function toast(message){const t=$("#toast");t.textContent=message;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),2600)}
-  function switchView(view){if(!navNames[view])return;state.view=view;state.query="";render();window.scrollTo({top:0,behavior:"smooth"})}
+  function switchView(view){if(!navNames[view])return;state.view=view;state.query="";state.statusFilter="";$("#global-search").value="";render();window.scrollTo({top:0,behavior:"smooth"})}
   document.addEventListener("click",e=>{
     const v=e.target.closest("[data-view]");if(v){e.preventDefault();switchView(v.dataset.view);return}
   });
   $("#global-search").addEventListener("input",e=>{state.query=e.target.value;if(state.view==="overview"&&state.query){state.view="orders";render()}else render()});
   document.addEventListener("input",e=>{if(e.target.id==="table-filter"){state.query=e.target.value;const pos=e.target.selectionStart;render();const n=$("#table-filter");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
+  document.addEventListener("change",e=>{if(e.target.id==="status-filter"){state.statusFilter=e.target.value;render()}});
   $("#menu-toggle").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
   $("#dismiss-notice").addEventListener("click",()=>{$(".notice").remove();state.notice=false});
   $("#top-notifications").addEventListener("click",()=>switchView("notifications"));
@@ -165,8 +173,8 @@
   $("#action-form").addEventListener("submit",e=>{
     if(e.submitter?.id==="save-demo-action"){
       e.preventDefault();const name=$("#action-name").value.trim();if(!name){$("#action-name").focus();return}
-      state.extras.push({name,category:$("#action-category").value,created:new Date().toLocaleString("ar-EG")});
-      $("#action-dialog").close();toast("تم حفظ العنصر في جلسة العرض فقط");if(state.view==="tasks"||state.view==="orders")render();
+      state.extras.push({name,category:$("#action-category").value,view:state.view,created:new Date().toLocaleString("ar-EG")});
+      $("#action-dialog").close();toast("تم حفظ العنصر في جلسة العرض فقط");render();
     }
   });
   $("#action-dialog").addEventListener("click",e=>{if(e.target.id==="action-dialog")$("#action-dialog").close()});
