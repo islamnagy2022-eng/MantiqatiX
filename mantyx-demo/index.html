@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#111c34">
+  <title>Mantyx | بيئة تجريبية مستقلة</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="demo-banner"><span class="pulse"></span><strong>بيئة تجريبية مستقلة</strong><span>بيانات وهمية فقط — لا يوجد اتصال بالإنتاج أو بوابة دفع حقيقية</span><span class="demo-tag">MANTYX DEMO</span></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" data-view="overview" aria-label="Mantyx الرئيسية">
+        <span class="brand-mark">M<span>✦</span></span>
+        <span><b>MANTYX</b><small>Enterprise Workspace</small></span>
+      </a>
+      <div class="workspace-switch"><span class="workspace-icon">M</span><span><b>المساحة التجريبية</b><small>Demo Workspace</small></span><span class="chevron">⌄</span></div>
+      <div class="nav-label">مساحة العمل</div>
+      <nav id="main-nav" aria-label="التنقل الرئيسي">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span>نظرة عامة</button>
+        <button class="nav-item" data-view="orders"><span class="nav-icon">▤</span>الطلبات</button>
+        <button class="nav-item" data-view="customers"><span class="nav-icon">♙</span>العملاء وCRM</button>
+        <button class="nav-item" data-view="providers"><span class="nav-icon">⌂</span>مقدمو الخدمات</button>
+        <button class="nav-item" data-view="catalog"><span class="nav-icon">▦</span>القطاعات والكتالوج</button>
+        <button class="nav-item" data-view="smm"><span class="nav-icon">◉</span>التسويق الإلكتروني SMM</button>
+        <button class="nav-item" data-view="finance"><span class="nav-icon">◈</span>المالية والمحافظ</button>
+        <button class="nav-item" data-view="inventory"><span class="nav-icon">▧</span>المخزون والمشتريات</button>
+        <button class="nav-item" data-view="content"><span class="nav-icon">▣</span>المحتوى والمنصة</button>
+        <button class="nav-item" data-view="analytics"><span class="nav-icon">⌁</span>التحليلات والتقارير</button>
+        <button class="nav-item" data-view="tasks"><span class="nav-icon">☷</span>العمليات والمهام</button>
+        <button class="nav-item" data-view="notifications"><span class="nav-icon">♧</span>الإشعارات</button>
+      </nav>
+      <div class="nav-label">الإدارة والحوكمة</div>
+      <nav>
+        <button class="nav-item" data-view="users"><span class="nav-icon">♧</span>المستخدمون والصلاحيات</button>
+        <button class="nav-item" data-view="security"><span class="nav-icon">⬡</span>الأمان وسجل التدقيق</button>
+        <button class="nav-item" data-view="monitoring"><span class="nav-icon">◷</span>المراقبة والنسخ الاحتياطي</button>
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>الإعدادات</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="avatar">MX</div><div class="user-meta"><b>مراجع النظام</b><small>صلاحية تجريبية</small></div><span class="online-dot"></span></div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="menu-toggle" aria-label="فتح القائمة">☰</button>
+        <div class="breadcrumbs"><span>Mantyx</span><span class="crumb-sep">/</span><b id="crumb">نظرة عامة</b></div>
+        <div class="top-actions">
+          <label class="searchbox"><span>⌕</span><input id="global-search" type="search" placeholder="ابحث في بيانات العرض..." aria-label="بحث عام"><kbd>⌘ K</kbd></label>
+          <button class="icon-button notification-button" id="top-notifications" aria-label="الإشعارات">♧<i></i></button>
+          <div class="top-avatar">MX</div>
+        </div>
+      </header>
+      <section class="page-wrap">
+        <div class="page-heading">
+          <div><div class="eyebrow"><span class="eyebrow-dot"></span>لوحة التحكم المؤسسية</div><h1 id="page-title">نظرة عامة</h1><p id="page-description">صورة تشغيلية موحدة للمنصة — أرقام العرض أدناه تجريبية وليست بيانات حقيقية.</p></div>
+          <div class="heading-actions"><button class="button button-ghost" id="export-btn">↓ تصدير العرض</button><button class="button button-primary" id="primary-action">＋ إنشاء طلب تجريبي</button></div>
+        </div>
+        <div class="notice"><span class="notice-icon">ⓘ</span><div><b>وضع المعاينة الآمن</b><span>جميع التغييرات داخل هذه الصفحة مؤقتة. لا يتم إرسال بيانات أو أموال أو إشعارات إلى أي نظام خارجي.</span></div><button id="dismiss-notice" aria-label="إخفاء التنبيه">×</button></div>
+        <div id="view-root" aria-live="polite"></div>
+        <footer><span>© 2026 Mantyx — بيئة مراجعة داخلية</span><span><i class="online-dot"></i> الوضع التجريبي يعمل محليًا داخل المتصفح</span></footer>
+      </section>
+    </main>
+  </div>
+  <dialog id="action-dialog" class="action-dialog">
+    <form method="dialog" id="action-form">
+      <div class="dialog-head"><div><span class="dialog-kicker">DEMO ACTION</span><h2 id="dialog-title">إنشاء عنصر تجريبي</h2></div><button class="icon-button" value="cancel" aria-label="إغلاق">×</button></div>
+      <p id="dialog-description">لن يتم إرسال بيانات إلى أي خدمة خارجية.</p>
+      <label class="field-label" for="action-name">الاسم أو الوصف</label><input id="action-name" class="field-input" maxlength="100" placeholder="اكتب وصفًا تجريبيًا..." required>
+      <label class="field-label" for="action-category">التصنيف</label><select id="action-category" class="field-input"><option>طلب جديد</option><option>عميل محتمل</option><option>مهمة تشغيلية</option><option>حملة تسويقية</option></select>
+      <div class="dialog-actions"><button class="button button-ghost" value="cancel">إلغاء</button><button class="button button-primary" id="save-demo-action" value="default">حفظ في العرض فقط</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
