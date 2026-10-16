@@ -47,13 +47,14 @@ begin
   if not found then
     raise exception 'SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND';
   end if;
-  if upper(v_intent.provider) <> 'PAYMOB'
+  if upper(v_intent.provider) is distinct from 'PAYMOB'
      or v_intent.provider_order_id is null
      or v_intent.provider_order_id <> p_provider_order_id then
     raise exception 'SUBSCRIPTION_PROVIDER_ORDER_MISMATCH';
   end if;
-  if abs(v_intent.amount - round(p_provider_confirmed_amount, 2)) > 0.01
-     or upper(v_intent.currency) <> upper(p_provider_confirmed_currency) then
+  if v_intent.amount is null
+     or abs(v_intent.amount - round(p_provider_confirmed_amount, 2)) > 0.01
+     or upper(v_intent.currency) is distinct from upper(p_provider_confirmed_currency) then
     raise exception 'SUBSCRIPTION_PAYMENT_AMOUNT_MISMATCH';
   end if;
 
