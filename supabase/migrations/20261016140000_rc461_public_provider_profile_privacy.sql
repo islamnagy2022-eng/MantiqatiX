@@ -31,6 +31,10 @@ grant select on public.public_marketing_provider_profiles to anon, authenticated
 -- Public clients must use the allowlisted view, never the full internal row.
 revoke all privileges on public.marketing_provider_profiles from anon;
 
+-- This permissive policy previously let every authenticated user read active internal rows,
+-- including settings and ranking_weight. Public discovery now goes through the allowlisted view.
+drop policy if exists "Public can view active marketing providers" on public.marketing_provider_profiles;
+
 -- Also remove any column-level SELECT grants, which table-level REVOKE alone does not remove.
 do $rc461$
 declare
