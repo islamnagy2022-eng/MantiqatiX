@@ -135,6 +135,8 @@ assert "paymentIntent:safeIntent" not in SUBSCRIPTION_INTENT
 assert "function publicIntent(intent:Row):Row" in SUBSCRIPTION_INTENT
 assert "paymentIntent:publicIntent(intent)" in SUBSCRIPTION_INTENT
 assert "provider_creation_state='CLAIMED'" in CLAIM_MIGRATION
+assert "v_intent.created_by is distinct from p_actor_user_id" in CLAIM_MIGRATION
+assert "v_intent.created_by <> p_actor_user_id" not in CLAIM_MIGRATION
 assert "client_secret_ciphertext" in ENCRYPTION_MIGRATION
 assert "client_secret_iv" in ENCRYPTION_MIGRATION
 assert "client_secret_key_version" in ENCRYPTION_MIGRATION
