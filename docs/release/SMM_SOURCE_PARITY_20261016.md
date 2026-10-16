@@ -15,13 +15,13 @@ This branch restores the exact source files returned by the connected Supabase p
 
 The function source contains these files: `index.ts`, `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`.
 
-The current `main` source did not contain the six imported helper modules. The gateway's index file is now restored from the live source response, and the imported modules are added unchanged so Deno can resolve the imports.
+The current `main` source did not contain the six imported helper modules. The six helper modules are restored byte-for-byte from the live source. The gateway index was also restored from the live response, then received one narrow fail-safe correction: `my_data` now returns `wallet_initialized`, `wallet_status`, and a nullable `balance` instead of silently translating a missing wallet row to a numeric zero. This matches the documented SMM narrow-read contract and does not initialize or mutate a wallet.
 
 ## Important launch and safety boundary
 
 The deployed source has `SMM_INITIAL_LAUNCH_DEFERRED=true` and a launch gate that rejects all actions with `SMM_DEFERRED`. The source parity change preserves this default-deny behavior. It does not enable SMM orders, contact external providers, alter wallet balances, or perform provider synchronization.
 
-The source contains defensive request-size validation, provider endpoint validation, provider transport timeout, normalized catalog and order validation, request idempotency, and explicit reconciliation responses for ambiguous provider outcomes. These are source-level observations, not proof of runtime correctness.
+The source contains defensive request-size validation, provider endpoint validation, provider transport timeout, normalized catalog and order validation, request idempotency, and explicit reconciliation responses for ambiguous provider outcomes. The wallet read now distinguishes a missing wallet from a legitimate zero balance. These are source-level observations, not proof of runtime correctness.
 
 ## Verification required
 
