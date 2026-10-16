@@ -1,6 +1,30 @@
 -- RC526: align the platform MantiGO financial report with canonical ledger columns.
 -- Forward-only fix. Do not edit the historical RC449 migration.
 -- Apply only after the approved migration chain has been reconciled and replayed.
+-- This migration deliberately owns the platform scope predicate so it cannot inherit
+-- the older broad/null-scope mnty_can('admin', NULL, NULL, NULL) behavior.
+create or replace function public.mnty_can_platform_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select exists (
+    select 1
+    from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id = 'MNTY-PLATFORM'
+      and m.status = 'ACTIVE'
+      and upper(m.role) = 'SUPER_ADMIN'
+      and coalesce(m.permissions ->> 'scope' = 'PLATFORM', false)
+      and coalesce((m.permissions ->> 'full_control')::boolean, false)
+  )
+$function$;
+
+revoke all on function public.mnty_can_platform_admin() from public, anon;
+grant execute on function public.mnty_can_platform_admin() to authenticated;
+
 create or replace function public.get_mantigo_admin_financial_report_backend(
   p_admin_user_id uuid,
   p_from timestamptz default null,
@@ -54,3 +78,5 @@ grant execute on function public.get_mantigo_admin_financial_report_backend(uuid
 
 comment on function public.get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz) is
   'RC526: platform-scoped MantiGO financial report using canonical gross_amount and captain_net_amount ledger columns.';
+comment on function public.mnty_can_platform_admin() is
+  'RC526: platform scope requires an active SUPER_ADMIN membership for MNTY-PLATFORM with PLATFORM scope and full_control.';
