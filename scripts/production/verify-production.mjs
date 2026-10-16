@@ -47,7 +47,8 @@ const requiredReleaseMigrations=[
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
-  "20261016100000_digital_page_payment_intent_server_only_finalization.sql"
+  "20261016100000_digital_page_payment_intent_server_only_finalization.sql",
+  "20261016180000_rc529_atomic_subscription_provider_intent_finalize.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
