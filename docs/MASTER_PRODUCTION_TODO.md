@@ -1576,3 +1576,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Local Node.js source-contract check for RC565 passed in scratch environment.
 - [x] Opened draft PR [#282](https://github.com/islamnagy2022-eng/MantiqatiX/pull/282); do not merge while draft and migration/replay blockers remain.
 - [ ] GitHub CI checks are not yet evidenced for the current branch head; no check runs/statuses were returned at last query.
+
+
+## 2026-10-17 — RC565 exact-head CI and live-schema evidence (append-only correction)
+
+- [x] Exact-head checks passed on PR #282 head `1d3dec9b6fc3c3cfd15e785c34d6992af234d7ff`: migration version uniqueness (run 38972815308), migration history immutability (38972815385), cross-PR migration collision guard (38972815388), MantiGO privacy integration (38972815408), approval-action audit atomicity (38972815488), module professionalization (38972815484), and Pages validation (38972815505).
+- [x] Pages workflow `validate` succeeded and `deploy` was skipped on this pull request. Do not call this a production deployment.
+- [x] Pages validation's command block invokes `node scripts/validate-mantigo-financial-report.mjs`; this is source-contract validation, not SQL execution.
+- [x] Read-only live schema check confirmed all RC565-referenced ledger columns exist; the live function still references missing `amount` and `captain_amount`.
+- [ ] BLOCKED: isolated chronological replay remains unrun. No `supabase/config.toml` was found at the tested branch path, and authoritative DDL for legacy `public.smm_provider_credentials` remains a documented replay blocker.
+- [ ] BLOCKED: execute RC565 on disposable PostgreSQL and run authorization, return-contract, empty-range, date-boundary, invalid-window, and tenant/platform-scope regression tests.
+- [ ] BLOCKED: PR #282 remains draft/unmerged and GitHub reports mergeability false; reconcile the branch against current main and canonical migration recovery work before review/merge.
+- [ ] Production migration/function rollout, financial transactions, payment E2E, tenant-isolation E2E, and backup/restore rehearsal remain NOT VERIFIED. Production gate remains **BLOCKED / NOT CERTIFIED**.
