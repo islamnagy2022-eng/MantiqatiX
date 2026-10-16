@@ -61,9 +61,9 @@ begin
     raise exception 'ORDER_NOT_FOUND';
   end if;
 
-  if v_intent.tenant_id::text <> p_tenant_id
-     or v_order.tenant_id::text <> p_tenant_id
-     or upper(v_intent.provider::text) <> upper(p_provider) then
+  if v_intent.tenant_id::text is distinct from p_tenant_id
+     or v_order.tenant_id::text is distinct from p_tenant_id
+     or upper(v_intent.provider::text) is distinct from upper(p_provider) then
     raise exception 'TENANT_OR_PROVIDER_MISMATCH';
   end if;
   if v_order.status = 'CANCELLED' then
@@ -80,10 +80,11 @@ begin
     raise exception 'PRICING_BINDING_MISMATCH';
   end if;
   if v_order.total is null
+     or v_intent.amount is null
      or abs(v_intent.amount - v_order.total) > 0.01
      or abs(p_provider_confirmed_amount - v_order.total) > 0.01
-     or upper(v_intent.currency::text) <> upper(v_order.currency::text)
-     or upper(p_provider_confirmed_currency) <> upper(v_order.currency::text) then
+     or upper(v_intent.currency::text) is distinct from upper(v_order.currency::text)
+     or upper(p_provider_confirmed_currency) is distinct from upper(v_order.currency::text) then
     raise exception 'PROVIDER_FINANCIAL_MISMATCH';
   end if;
 
