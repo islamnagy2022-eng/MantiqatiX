@@ -121,3 +121,25 @@ But the helper's own breakdown rule requires `p_gross = p_platform_fee + p_net +
 A read-only aggregate query also returned zero rows in `chart_of_accounts`, `settlement_transactions`, `journal_entries`, and `journal_entry_lines` at the time of inspection. The live MantiGO ledger likewise had zero rows, so there is no live financial sample from which to infer the intended account mapping or validate historical settlement totals.
 
 **Decision:** do not change the partner equation or create accounts based on assumptions. Obtain the approved accounting entry model first. Then test at least: gross 100 / fee 10 / net 90 / voucher 0; voucher-funded cases; merchant payout; duplicate and concurrent retries; and full rollback when posting or audit logging fails. Every posted journal must balance from its actual lines, not merely from header values.
+
+
+## Follow-up work opened on 2026-10-16
+
+### RC528 — MantiGO financial report contract and platform authorization
+
+Draft PR #276: https://github.com/islamnagy2022-eng/MantiqatiX/pull/276
+
+- The candidate forward migration uses the canonical ledger columns `gross_amount` and `captain_net_amount`, avoiding legacy `amount` and `captain_amount` references.
+- It defines `mnty_can_platform_admin()` locally with an explicit active `SUPER_ADMIN` membership for `MNTY-PLATFORM`, JSON boolean `full_control: true`, and `scope: PLATFORM`; it does not depend on the current broad/null-scope helper.
+- The disposable PostgreSQL 17 test deliberately omits the legacy columns and checks report totals, date range, actor identity, tenant-only admin, tenant OWNER, tenant-scoped SUPER_ADMIN, and string-valued `"full_control":"true"`.
+- CI on candidate SHA `e1a12171b715ccda0f535fc6dcfce25ecedc7af2`: isolated PostgreSQL contract, migration immutability, migration version uniqueness, and cross-PR migration collision checks reported success. This is candidate-only evidence, not production deployment evidence.
+
+### RC461 — public provider profile privacy
+
+Draft PR #274: https://github.com/islamnagy2022-eng/MantiqatiX/pull/274
+
+- A further review found that revoking direct SELECT from `anon` alone was insufficient: the permissive `Public can view active marketing providers` policy also applied to `authenticated` users and could expose internal columns on active rows.
+- The candidate now drops that broad table policy while retaining direct table grants for authenticated owner/CRM workflows, which must continue to be controlled by their more specific RLS policies.
+- The isolated fixture was expanded to exercise RLS as an ordinary authenticated user and as the profile owner. The newest workflow run for SHA `5f21c90576d576dc70424f62165e432f3186b1e3` was queued at the time of this note; do not claim the latest revision's CI has passed until that run completes.
+
+Neither PR has been merged, and neither migration has been applied to production. The production migration ledger remains at RC424; migration-chain reconstruction/replay and the accounting-approved settlement model remain release blockers.
