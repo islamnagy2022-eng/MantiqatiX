@@ -539,3 +539,47 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## 2026-10-14 baseline correction — evidence-led domain closure
+- Current main reference from GitHub commit search: [`8a56358d505d2c12878440037f7f24ba65d2ea10`](https://github.com/islamnagy2022-eng/MantiqaTix/commit/8a56358d505d2c12878440037f7f24ba65d2ea10), created 2026-10-11T03:47:11Z. The prior header reference `735f0451...` is stale; this correction is append-only and does not rewrite history.
+- New baseline/audit records: `docs/PRODUCTION_BASELINE.md`, `docs/PRODUCTION_AUDIT.md`, `docs/SCHEMA_RECONCILIATION.md`.
+- Production Supabase project `moyhiluyhjsujhwlyeuu` reports `ACTIVE_HEALTHY`; this is infrastructure health metadata only, not release certification.
+- Read-only migration ledger: 283 rows, latest `20261008222845` / RC424. Source-to-live reconciliation remains NOT VERIFIED; no migration was applied.
+- Security Advisor snapshot 2026-10-14T01:47:56.708Z: `digital_page_payment_events` RLS enabled/no policies; `get_mnty_targeted_advertisements` executable by anon as SECURITY DEFINER; 40 authenticated SECURITY DEFINER findings. These require contextual review, not blanket policy/grant changes.
+- Domain-by-domain method: requirements matrix → implementation → tests → security review → evidence → closure. Status remains BLOCKED / NOT CERTIFIED until mandatory release gates are independently evidenced.
+- No production DDL, data mutation, function deployment, PR merge, or release approval was performed in this batch.
+- Next action: read-only source/live migration reconciliation and complete schema/RLS/grant inventory.
+
+
+## 2026-10-14 — Migration gate refinement
+- Direct current-main lookups confirmed RC425, RC434 and RC439 required migration files are absent; the production verifier tracks 28 required release migration files.
+- RC424 SQL content is documented as exactly matching the live ledger statement (7208 bytes), with the source filename timestamp difference preserved as a legacy alias. Do not rename or rewrite RC424 history.
+- RC434 patch comparison between PR #84 and PR #202 was byte-identical (7151 characters); older notes about that specific pair conflicting are not confirmed by this comparison. Other overlapping PR migration candidates remain unreviewed.
+- Next action is complete source/ledger/PR matrix, dependency and timestamp validation, then disposable chronological replay. No production migration or PR merge was performed.
+- Release state remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-14 — Required migration inventory (source-only)
+- Parsed the 28 required release migration filenames from the main-branch release verifier and fetched each expected path.
+- Exact source inventory: **12/28 present, 16/28 missing**. Missing RC425–RC432 and RC434–RC441; present RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. See `docs/SCHEMA_RECONCILIATION.md`.
+- Live ledger remains at RC424. Source presence or a candidate PR is not proof of application. Open PRs #84/#202/#207/#218 overlap; keep them unmerged pending full reconciliation and disposable replay.
+- Domain 2 remains BLOCKED. No production mutation or deployment was performed.
+
+
+## 2026-10-14 — Candidate migration comparison refinement
+- Full patch comparison found no differing shared migration patches across PR #84/#202, #207/#218, or #84/#207 (16 and 33 common-file comparisons as applicable).
+- This refines older conflict notes: examined shared SQL is identical, but candidate PRs still differ in non-migration source and additional migration files. No PR merge approval follows from this result.
+- Keep migration gate BLOCKED until whole-chain version/order/dependency validation and disposable replay pass.
+
+
+## 2026-10-14 — Mandatory cross-session continuity system added
+- Added `docs/SESSION_CONTINUITY_PROTOCOL.md` as the required procedure for every new/resumed session and every work-batch handoff.
+- Added `docs/NEXT_SESSION_RESUME.md` as the first file to read. It records the active branch/PR, evidence already captured, current domain state, checks that must not be repeated without a trigger, and the exact next action.
+- Canonical handoff rule: TODO + append-only session log + continuity updates are required for each batch; update resume last; reread from GitHub and verify all links/statuses.
+- Reuse valid prior evidence unless code/commit/runtime/config changed, a check failed/cancelled, evidence is stale, conflicting evidence appears, scope was incomplete, or a mandatory gate requires a fresh run. State the trigger in the record.
+- Current status remains Domain 1 PARTIAL, Domain 2 BLOCKED, global release BLOCKED / NOT CERTIFIED. No production mutation was performed.
+
+
+## 2026-10-14 migration reconciliation update
+The canonical matrix `docs/release/migration-reconciliation-matrix-20261014.json` now records all 28 release-required migration filenames, the current-main inventory, live-ledger state, candidate PR metadata, and fresh patch-text comparisons. It is an inventory artifact, not release certification. Main remains 12/28 present and 16/28 missing; live ledger remains at RC424 in this snapshot. Dependency/order review is incomplete and disposable replay has not run. Global release remains `BLOCKED / NOT CERTIFIED`. See the latest `docs/SESSION_LOG.md` entry and continue from the live PR head; do not repeat the just-completed comparisons unless candidate inputs change.

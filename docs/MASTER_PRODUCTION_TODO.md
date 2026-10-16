@@ -1559,3 +1559,59 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-14 — Domain-by-domain closure kickoff (baseline snapshot)
+- [x] Created `docs/PRODUCTION_BASELINE.md` from current GitHub/Supabase evidence.
+- [x] Created `docs/PRODUCTION_AUDIT.md` and `docs/SCHEMA_RECONCILIATION.md` to separate observations from unverified gates.
+- [x] Current main commit from GitHub search: `8a56358d505d2c12878440037f7f24ba65d2ea10`; earlier continuity HEAD `735f0451...` is stale and corrected by a newer append-only note.
+- [x] Read-only production query: 283 migration ledger rows; latest `20261008222845` / RC424; no migration was applied.
+- [x] Supabase project health metadata: `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`, region `us-east-2`.
+- [x] Security Advisor snapshot at `2026-10-14T01:47:56.708Z`: one RLS-no-policy INFO for `digital_page_payment_events`, one anon SECURITY DEFINER warning for targeted ads, and 40 authenticated SECURITY DEFINER warnings.
+- [ ] **OPEN / NOT VERIFIED:** exact source-to-live migration reconciliation, full schema/RLS/grants inventory, per-function authorization review, current release workflow result, and complete evidence-weighted requirement matrix.
+- [ ] Do not start production DDL or deploy candidate migrations until the migration chain and release gate are reconciled.
+- **Domain 1 status:** PARTIAL. The baseline is now documented, but requirement-level coverage and migration/schema parity remain open.
+- **Next domain:** schema/migration reconciliation (read-only first), then security caller-contract review and P0 E2E gates.
+
+
+## 2026-10-14 — Migration gate evidence refinement
+- [x] Direct main lookups confirmed the required RC425, RC434 and RC439 migration files are absent from `main` (NOT_FOUND); the release verifier enumerates 28 required release migrations.
+- [x] RC424 legacy version alias is documented as reconciled: live ledger version `20261008222845`, source filename version `20261009010000`, exact SQL statement match (7208 bytes), history not rewritten.
+- [x] Pairwise comparison of RC434 migration patch in PR #84 vs #202: identical content (7151 characters); previous historical conflict claim is not confirmed by this pairwise comparison.
+- [ ] OPEN: reconcile overlapping migration source files in PR #84/#202/#207/#218, check uniqueness and timestamp order, verify dependencies, and perform full disposable chronological replay.
+- [ ] OPEN: prove required post-RC424 migrations applied, Edge Function/runtime parity, tenant isolation, payment/finance E2E, Auth security settings, and backup/restore evidence.
+- **Decision:** keep production release BLOCKED / NOT CERTIFIED; do not apply or merge the migration batch before chain reconciliation.
+
+
+## 2026-10-14 — Required migration inventory complete (source-only)
+- [x] Parsed the canonical 28-file required release migration list from `scripts/production/verify-production.mjs` and checked every exact filename on `main`.
+- [x] Result: **12/28 present; 16/28 missing**. Missing RC425–RC432 and RC434–RC441; present RC446, RC442, RC444, RC447–RC450, RC451–RC453 and RC456. Full table in `docs/SCHEMA_RECONCILIATION.md`.
+- [x] Confirmed overlapping candidate migration files exist in open PRs #84/#202/#207/#218; RC434 pairwise patch equality checked only for #84 vs #202.
+- [ ] BLOCKED: reconcile candidate source/test/dependency chain and duplicate-version checks; perform disposable chronological replay; verify no post-RC424 migration is falsely marked applied.
+- **Domain 2 status:** BLOCKED pending source reconciliation/replay. Do not merge the migration batch or mutate production.
+
+
+## 2026-10-14 — Candidate migration patch comparison
+- [x] Compared full shared migration patches: PR #84 vs #202 (0 differences); #207 vs #218 (33 common migration files, 0 differences); #84 vs #207 (16 common migration files, 0 differences).
+- [x] Refined the earlier conflict note: the examined shared SQL patches are identical; broader PRs are not equivalent because their non-migration files and extra migrations differ.
+- [ ] OPEN: full chain uniqueness/order/dependency review and disposable chronological replay remain mandatory before merging or applying any post-RC424 migration batch.
+
+
+## 2026-10-14 — Mandatory cross-session continuity system
+- [x] Added `docs/SESSION_CONTINUITY_PROTOCOL.md`: mandatory session-start/close checklists, source-of-truth hierarchy, status vocabulary, evidence requirements, no-repeat rules, and release safety constraints.
+- [x] Added `docs/NEXT_SESSION_RESUME.md`: concise exact handoff, verified evidence, current blockers, and the next action for any new session.
+- [x] Protocol rule: every batch updates master TODO + append-only session log + continuity when needed, and updates the resume file last; reread records from GitHub to verify.
+- [x] No-repeat rule: reuse prior evidence unless relevant inputs changed, a check failed/cancelled, evidence is stale, contradictory evidence appeared, scope was missing, or a fresh release gate is required. Record the reason whenever repeating a check.
+- [ ] OPEN: finish the 28-row migration reconciliation matrix and disposable chronological replay; current domain remains BLOCKED and release remains NOT CERTIFIED.
+- **Current active PR:** #247 (draft, documentation-only) — https://github.com/islamnagy2022-eng/MantiqaTix/pull/247.
+
+
+## 2026-10-14 — canonical migration matrix batch
+- [x] Create canonical 28-row matrix: `docs/release/migration-reconciliation-matrix-20261014.json` — DONE (artifact created; source/ledger reconciliation not certified).
+- [x] Refresh candidate PR heads/states and shared migration patch comparisons for #84/#202/#207/#218 — DONE (evidence summarized in the matrix).
+- [ ] Recover the 16 missing RC425–RC432 and RC434–RC441 SQL files from authoritative candidate sources into a review-only candidate branch; do not synthesize SQL or merge PRs by filename alone — TODO.
+- [ ] Build and review dependency edges, timestamp order, duplicate version/alias collisions, and semantic prerequisites for the full chain — TODO.
+- [ ] Run the complete chronological chain and relevant tests only in a disposable PostgreSQL/Supabase environment — NOT RUN.
+- [ ] Reconcile resulting schema/function/policy/grant diffs and tenant/payment/finance/security E2E evidence — NOT VERIFIED.
+- [ ] Re-read the live ledger before any release decision; do not apply production migrations without explicit authorization and all release preconditions — BLOCKED.
+- Release state remains `BLOCKED / NOT CERTIFIED`. Matrix creation is not verification of replay or production readiness.
