@@ -37,8 +37,14 @@ async function decryptSecret(ciphertext:string,iv:string,version:string){
  return new TextDecoder().decode(clear);
 }
 function checkoutResponse(intent:Row,clientSecret:string,requestId:string){
+ const {
+  client_secret_ciphertext: _ciphertext,
+  client_secret_iv: _iv,
+  client_secret_key_version: _keyVersion,
+  ...safeIntent
+ }=intent;
  const checkoutUrl=publicKey?"https://accept.paymob.com/unifiedcheckout/?publicKey="+encodeURIComponent(publicKey)+"&clientSecret="+encodeURIComponent(clientSecret):null;
- return json({paymentIntent:intent,clientSecret,checkoutUrl,amount:Number(intent.amount),currency:str(intent.currency),requestId},200,requestId);
+ return json({paymentIntent:safeIntent,clientSecret,checkoutUrl,amount:Number(intent.amount),currency:str(intent.currency),requestId},200,requestId);
 }
 async function recoverCheckout(intent:Row,requestId:string){
  const ciphertext=str(intent.client_secret_ciphertext),iv=str(intent.client_secret_iv),version=str(intent.client_secret_key_version);
