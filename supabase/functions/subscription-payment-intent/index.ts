@@ -84,7 +84,14 @@ Deno.serve(async req=>{
     return json({error:"SUBSCRIPTION_CHECKOUT_RECOVERY_UNAVAILABLE",reconciliationRequired:true,requestId},409,requestId);
   }
 
-  // Validate the active encryption key before claiming an attempt or calling Paymob.
+  const email=str(user.email).trim();
+  const meta=(user.user_metadata??{}) as Record<string,unknown>;
+  const phone=str(user.phone??meta.phone??meta.phone_number).trim();
+  const firstName=str(meta.first_name??meta.firstName??user.email?.split("@")[0]??"Customer").slice(0,50);
+  const lastName=str(meta.last_name??meta.lastName??"Customer").slice(0,50);
+  if(!email||!phone)return json({error:"CUSTOMER_BILLING_CONTACT_REQUIRED",requestId},422,requestId);
+
+  // Validate the active encryption key and billing data before claiming an attempt.
   if(!rawEncryptionKey(encryptionKeyVersion))return json({error:"CHECKOUT_ENCRYPTION_KEY_NOT_CONFIGURED",requestId},503,requestId);
   const {data:claimData,error:claimError}=await admin.rpc("claim_subscription_provider_intent_creation_backend",{
     p_intent_id:str(intent.id),p_actor_user_id:user.id
@@ -100,13 +107,6 @@ Deno.serve(async req=>{
     if(str(claimedIntent.provider_intent_id)&&str(claimedIntent.provider_order_id))return await recoverCheckout(claimedIntent,requestId);
     return json({error:"SUBSCRIPTION_PROVIDER_INTENT_NOT_READY",requestId},409,requestId);
   }
-
-  const email=str(user.email).trim();
-  const meta=(user.user_metadata??{}) as Record<string,unknown>;
-  const phone=str(user.phone??meta.phone??meta.phone_number).trim();
-  const firstName=str(meta.first_name??meta.firstName??user.email?.split("@")[0]??"Customer").slice(0,50);
-  const lastName=str(meta.last_name??meta.lastName??"Customer").slice(0,50);
-  if(!email||!phone)return json({error:"CUSTOMER_BILLING_CONTACT_REQUIRED",requestId,reconciliationRequired:true},422,requestId);
 
   let paymob:Record<string,unknown>|null=null;
   try{
