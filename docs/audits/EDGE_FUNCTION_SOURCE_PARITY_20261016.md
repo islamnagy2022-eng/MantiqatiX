@@ -67,3 +67,16 @@ A direct read-only comparison of the deployed entrypoint and tracked `main` sour
 
 **Decision:** do not bulk-sync or deploy either variant based on source parity alone. Before any change, verify both RPC definitions, execute grants, authorization semantics, and migration presence in a non-production environment; then add behavioral tests for existing/new customer membership and replay/idempotency. Production deployment remains out of scope without explicit approval.
 
+### Production database verification — customer registration RPCs
+
+A read-only query against the connected production database confirms **both** private-schema RPCs currently exist and are executable by `service_role`, while `authenticated` and `anon` do not have direct execute permission:
+
+| RPC | Security definer | Behavior confirmed in definition |
+|---|---:|---|
+| `activate_customer_registration_atomic` | Yes | Takes a per-user advisory lock; cancels pending CUSTOMER registration requests; inserts membership with required audit-log write; returns existing active membership when present. |
+| `ensure_customer_membership_for_user` | Yes | Takes a per-user/customer/tenant advisory lock; includes `business_id` and `branch_id` in the insert; returns existing membership deterministically; wraps audit-log insertion in an exception handler that suppresses audit failures. |
+
+Both functions set an empty `search_path` and check that the tenant is active. They are **not behaviorally interchangeable**: their locking keys, registration-request handling, membership insert columns, existing-membership selection, and audit failure behavior differ.
+
+**Decision remains unchanged:** do not replace the deployed RPC call merely to match `main`. Reconcile the intended invariants and audit requirements, add isolated integration tests for concurrency, duplicate memberships, pending-request cleanup, and audit-write failure, then propose a reviewed migration/source change. No production mutation was made during this inspection.
+
