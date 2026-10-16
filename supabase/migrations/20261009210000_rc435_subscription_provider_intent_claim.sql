@@ -103,7 +103,7 @@ begin
   where i.id=p_intent_id
   for update;
   if not found then raise exception 'SUBSCRIPTION_PAYMENT_INTENT_NOT_FOUND'; end if;
-  if v_intent.created_by <> p_actor_user_id then raise exception 'SUBSCRIPTION_PAYMENT_INTENT_FORBIDDEN'; end if;
+  if v_intent.created_by is distinct from p_actor_user_id then raise exception 'SUBSCRIPTION_PAYMENT_INTENT_FORBIDDEN'; end if;
 
   if not exists (
     select 1 from public.user_memberships m
