@@ -15,6 +15,20 @@ const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabas
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
+const digitalFinalizerMigrationPath="supabase/migrations/20261007003432_digital_page_payment_intent_claim_boundary_v1.sql";
+const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
+const digitalFinalizerUsesUserClient=/userClient\\.rpc\\(\\s*["']finalize_digital_page_payment_intent_backend["']/.test(digital);
+const digitalFinalizerGrantsAuthenticated=/grant execute on function public\\.finalize_digital_page_payment_intent_backend\\([^;]+\\) to authenticated\\s*;/i.test(digitalFinalizerMigration);
+const digitalFinalizerRevokesAuthenticated=/revoke all on function public\\.finalize_digital_page_payment_intent_backend\\([^;]+\\) from authenticated\\s*;/i.test(digitalFinalizerMigration);
+const digitalFinalizerGrantsServiceRole=/grant execute on function public\\.finalize_digital_page_payment_intent_backend\\([^;]+\\) to service_role\\s*;/i.test(digitalFinalizerMigration);
+const digitalFinalizerGateStatus=!digital||!digitalFinalizerMigration?"NOT VERIFIED":digitalFinalizerUsesUserClient&&digitalFinalizerGrantsAuthenticated?"BLOCKED":!digitalFinalizerUsesUserClient&&digitalFinalizerRevokesAuthenticated&&digitalFinalizerGrantsServiceRole?"PASS":"NOT VERIFIED";
+add("DIG-FINALIZE-TRUST-BOUNDARY","SECURITY",digitalFinalizerGateStatus,
+  digitalFinalizerGateStatus==="BLOCKED"
+    ?"Authenticated clients invoke the SECURITY DEFINER finalizer directly and the source migration grants EXECUTE to authenticated; require reviewed server-only finalization contract and isolated regression evidence."
+    :digitalFinalizerGateStatus==="PASS"
+      ?"Finalization is not called through the user-scoped client and the source migration revokes authenticated EXECUTE while granting service_role."
+      :"Cannot prove a safe finalization trust boundary from the checked source/migration pair.",
+  "P0");
 const md=path.join(root,"supabase","migrations"), mf=exists("supabase/migrations")?fs.readdirSync(md).filter(x=>x.endsWith(".sql")):[];
 const dup=[...new Set(mf.filter((f,i,a)=>a.indexOf(f)!==i))];
 add("DB-MIGRATION-UNIQUE","DATABASE",dup.length?"FAIL":"PASS",dup.length?JSON.stringify(dup):`checked ${mf.length} migration filenames`,dup.length?"P0":"P1");
