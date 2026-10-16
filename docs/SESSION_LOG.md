@@ -35,3 +35,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **CI status:** the first SMM service-role boundary run for the initial parity commit succeeded (`38835204752`). The latest exact-head run for `ddf4cf1c5a29b1f04e67490f845a126123499be7` was queued when this entry was recorded; do not call the final patch verified until that run and the relevant workflows complete successfully.
 - **Safety:** no production migration, Edge Function deployment, wallet mutation, provider call, payment, Auth/RLS/grant change, merge, or release was performed. `SMM_INITIAL_LAUNCH_DEFERRED=true` remains in the gateway source.
 - **Next action:** inspect exact-head SMM/Deno/CI results and correct any failures. Keep PR #254 draft until verified and reviewed. Then continue from the first open P0 release gate; do not approve the production schema baseline while its 144 SECURITY DEFINER inventory remains marked NOT REVIEWED, and do not bypass the explicit disposable-replay review gate.
+
+
+## 2026-10-16 — SESSION-002 follow-up — Exact-head source-contract verification
+
+- **Code commit tested:** `fff1579a1db50702c846cfa02bd276d7978cb215`.
+- **SMM Service Role Access Boundary:** PASS — workflow run [38835432470](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835432470). Both the source validator + Deno check and isolated PostgreSQL ACL integration job succeeded.
+- **Module Professionalization Validation:** PASS — run [38835432480](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835432480).
+- **Backend-only Module Boundary:** PASS — run [38835432475](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835432475).
+- **MantiGO Open Ride Privacy Boundary:** PASS — run [38835432478](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835432478).
+- **Web release workflow:** run [38835432469](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835432469) succeeded for the PR source-validation workflow; this is not a production deployment.
+- **Failure corrected:** an earlier Deno check correctly rejected a nullable access at commit `ddf4cf1c5a29b1f04e67490f845a126123499be7`. The balance expression now narrows the wallet row directly, and the subsequent exact-code-commit checks passed.
+- **Disposition:** PR #254 remains Draft pending independent review. No production deployment, migration, merge, or SMM activation occurred.
+- **Next action:** continue P0 review in the migration-recovery candidate; keep the production schema baseline `PENDING_REVIEW` until all required per-function security review and disposable-replay approval are complete.
