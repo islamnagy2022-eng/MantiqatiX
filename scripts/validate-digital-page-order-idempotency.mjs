@@ -16,6 +16,7 @@ assert.match(source, /if\(oe\.code===\"23505\"\)/, "concurrent duplicate inserts
 assert.match(source, /if\(re\|\|!retry\)/, "a missing row after a unique conflict must not return HTTP 200 with a null order");
 assert.match(source, /if\(ue\|\|!user\|\|user\.is_anonymous\)/, "authenticated non-anonymous actor check must remain");
 assert.match(source, /BUSINESS_SCOPE_FORBIDDEN/, "business membership enforcement must remain");
-assert.match(source, /pricing_hash:pricingHash/, "order must retain the validated pricing snapshot");
+assert.match(source, /pricing_hash:pricingHash/, "order must retain the pricing snapshot for audit");
+assert.doesNotMatch(source, /String\(o\.pricing_hash\)===pricingHash/, "a price change must not invalidate a legitimate retry of the same request");
 
 console.log("Digital page order idempotency source contract: PASS");
