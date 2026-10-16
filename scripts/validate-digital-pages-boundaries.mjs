@@ -24,7 +24,7 @@ const migrationDir = 'supabase/migrations';
 const fiveArgAclEvents = [];
 for (const filename of fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql')).sort()) {
   const sql = fs.readFileSync(migrationDir + '/' + filename, 'utf8');
-  const aclPattern = /(grant\s+execute\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+to\s+authenticated|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+from\s+authenticated)/ig;
+  const aclPattern = /(grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+to\s+authenticated|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+from\s+authenticated)/ig;
   for (const match of sql.matchAll(aclPattern)) {
     fiveArgAclEvents.push({ filename, index: match.index ?? 0, grants: /^grant/i.test(match[0]) });
   }
