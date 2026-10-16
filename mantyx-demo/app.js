@@ -115,7 +115,7 @@
   document.addEventListener("click",e=>{
     const v=e.target.closest("[data-view]");if(v){e.preventDefault();switchView(v.dataset.view);return}
   });
-  $("#global-search").addEventListener("input",e=>{state.query=e.target.value;if(state.view==="overview"&&state.query)switchView("orders");else render()});
+  $("#global-search").addEventListener("input",e=>{state.query=e.target.value;if(state.view==="overview"&&state.query){state.view="orders";render()}else render()});
   document.addEventListener("input",e=>{if(e.target.id==="table-filter"){state.query=e.target.value;const pos=e.target.selectionStart;render();const n=$("#table-filter");if(n){n.focus();n.setSelectionRange(pos,pos)}}});
   $("#menu-toggle").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
   $("#dismiss-notice").addEventListener("click",()=>{$(".notice").remove();state.notice=false});
@@ -125,7 +125,7 @@
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
     a.href=url;a.download="mantyx-demo-view.json";a.click();URL.revokeObjectURL(url);toast("تم تصدير ملخص عرض تجريبي فقط");
   });
-  $("#primary-action").addEventListener("click",()=>{$("#action-title").textContent=state.view==="smm"?"إنشاء حملة تجريبية":state.view==="tasks"?"إنشاء مهمة تجريبية":"إنشاء عنصر تجريبي";$("#action-name").value="";$("#action-dialog").showModal()});
+  $("#primary-action").addEventListener("click",()=>{$("#dialog-title").textContent=state.view==="smm"?"إنشاء حملة تجريبية":state.view==="tasks"?"إنشاء مهمة تجريبية":"إنشاء عنصر تجريبي";$("#action-name").value="";$("#action-dialog").showModal()});
   $("#action-form").addEventListener("submit",e=>{
     if(e.submitter?.id==="save-demo-action"){
       e.preventDefault();const name=$("#action-name").value.trim();if(!name){$("#action-name").focus();return}
