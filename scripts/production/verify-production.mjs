@@ -17,6 +17,20 @@ const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
 const digitalFinalizerMigrationPath="supabase/migrations/20261007003432_digital_page_payment_intent_claim_boundary_v1.sql";
 const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
+const digitalFinalizerUsesUserClient=digital.includes('userClient.rpc("finalize_digital_page_payment_intent_backend"');
+const digitalFinalizerGrantsAuthenticated=digitalFinalizerMigration.includes("grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) to authenticated;");
+const digitalFinalizerRevokesAuthenticated=digitalFinalizerMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) from authenticated;");
+const digitalFinalizerGrantsServiceRole=digitalFinalizerMigration.includes("grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) to service_role;");
+const digitalFinalizerGateStatus=!digital||!digitalFinalizerMigration?"NOT VERIFIED":digitalFinalizerUsesUserClient&&digitalFinalizerGrantsAuthenticated?"BLOCKED":!digitalFinalizerUsesUserClient&&digitalFinalizerRevokesAuthenticated&&digitalFinalizerGrantsServiceRole?"PASS":"NOT VERIFIED";
+add("DIG-FINALIZE-TRUST-BOUNDARY","SECURITY",digitalFinalizerGateStatus,
+  digitalFinalizerGateStatus==="BLOCKED"
+    ?"Authenticated clients invoke the SECURITY DEFINER finalizer directly and the source migration grants EXECUTE to authenticated; server-only finalization and isolated regression evidence are required."
+    :digitalFinalizerGateStatus==="PASS"
+      ?"Finalization uses a trusted server path and the source migration revokes authenticated EXECUTE while granting service_role."
+      :"Cannot prove a safe digital-page finalization trust boundary from checked source.",
+  "P0");
+const digitalFinalizerMigrationPath="supabase/migrations/20261007003432_digital_page_payment_intent_claim_boundary_v1.sql";
+const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
 const digitalFinalizerUsesUserClient=/userClient\\.rpc\\(\\s*["']finalize_digital_page_payment_intent_backend["']/.test(digital);
 const digitalFinalizerGrantsAuthenticated=/grant execute on function public\\.finalize_digital_page_payment_intent_backend\\([^;]+\\) to authenticated\\s*;/i.test(digitalFinalizerMigration);
 const digitalFinalizerRevokesAuthenticated=/revoke all on function public\\.finalize_digital_page_payment_intent_backend\\([^;]+\\) from authenticated\\s*;/i.test(digitalFinalizerMigration);
