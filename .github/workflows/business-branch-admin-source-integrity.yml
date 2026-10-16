@@ -1,0 +1,31 @@
+name: Business Branch Admin Source Integrity
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/business-branch-admin/index.ts"
+      - "scripts/validate-business-branch-admin-source.mjs"
+      - ".github/workflows/business-branch-admin-source-integrity.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/business-branch-admin/index.ts"
+      - "scripts/validate-business-branch-admin-source.mjs"
+      - ".github/workflows/business-branch-admin-source-integrity.yml"
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate business branch admin source
+        run: node scripts/validate-business-branch-admin-source.mjs
