@@ -1559,3 +1559,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-17 remediation update — RC565 (source-only, not release-certified)
+
+- [x] Confirmed from live catalog that `mantigo_financial_ledger` uses `gross_amount` and `captain_net_amount`, while the deployed financial-report RPC references `amount` and `captain_amount`.
+- [x] Authored forward-only RC565 migration on `fix/mantigo-financial-report-columns-20261017`; it fixes those columns and requires platform-scoped authorization through `mnty_can_platform_admin()`.
+- [x] Added source-contract validator and wired it into the Pages workflow.
+- [x] Appended evidence and exact commits to `docs/SESSION_LOG.md`.
+- [ ] Run source-contract validator on CI and review all resulting checks.
+- [ ] Run RC565 against isolated PostgreSQL and test positive/negative platform-admin access, empty results, date boundaries, and invalid windows.
+- [ ] Complete chronological replay of all required migrations; production ledger still observed at RC424 during this session.
+- [ ] Resolve missing historical migration chain and RC434 collisions before any merge/deploy.
+- [ ] Production apply, release approval, payment E2E, tenant-isolation E2E, and backup-restore rehearsal remain NOT VERIFIED / BLOCKED.
