@@ -42,3 +42,29 @@ The current source does **not** establish that this enables a fraudulent PAID st
 ## Safety / release state
 
 No code, migration, grant, RLS, Auth setting, secret, production schema, payment, or deployment was changed as part of this triage. This artifact is a review finding, not approval to alter the production security boundary. Baseline manifest remains `PENDING_REVIEW`; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Finding MGO-PAY-01 — MantiGO webhook event insert and ledger update are not atomic
+
+**Severity:** High for payment-state integrity pending runtime validation  
+**Confidence:** High for the source-level ordering; production deployment parity and exact failure impact are not verified.
+
+In `supabase/functions/paymob-webhook/index.ts`, the MantiGO path checks whether `payment_provider_events` already contains the event ID, inserts a new event row, and only then updates `mantigo_financial_ledger`. These operations are separate Supabase API calls, not one database transaction/RPC. If event insertion succeeds but the ledger update fails, the handler returns `MANTIGO_PAYMENT_UPDATE_FAILED`; a retry then encounters the already-inserted event and returns `idempotent:true` before retrying the ledger update. The ledger may therefore remain `PENDING` despite a recorded provider event. The update also filters on `payment_status='PENDING'` but the source does not inspect affected-row count, so a zero-row transition is not distinguished from a successful state change.
+
+This is a source-level consistency risk, not proof that production has suffered a bad payment state.
+
+### Recommended remediation (not applied)
+
+1. Move event deduplication, provider-event persistence, amount/currency/order binding, and ledger transition into a single SECURITY DEFINER RPC or other database transaction with a unique event key and explicit result states.
+2. Make duplicate-event handling reconcile the authoritative ledger state rather than blindly returning idempotent success when the event row exists.
+3. Treat a zero-row ledger transition as a distinct outcome; verify whether the state is already final and consistent with the same provider event.
+4. Add disposable database tests for event insert success + ledger update failure, duplicate retries, concurrent same-event delivery, duplicate different events for the same ride, and pre-finalized ledger state.
+5. Keep notification delivery outside the financial transaction, but persist a retryable notification/outbox status if delivery reliability is required.
+
+### Closure evidence required
+
+- Confirm the source deployed to the target project matches the reviewed handler.
+- Reproduce the failure/retry case in disposable Supabase/PostgreSQL.
+- Verify the atomic remediation and concurrency/idempotency tests.
+- After a separately approved rollout, perform read-only verification and a controlled provider sandbox E2E; no real-money test is implied by this finding.
+
