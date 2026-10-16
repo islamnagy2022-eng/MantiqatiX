@@ -1724,3 +1724,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **SMM-FIN-04 — NOT VERIFIED:** post-provider order update and event-insert results are not consistently checked before success is returned; add failure-injection and reconciliation tests.
 - [ ] **Required next work:** implement/test the idempotent order/debit/refund transaction in a disposable environment, add explicit provider-timeout reconciliation states, check every mutation result, and verify pricing sync semantics. Do not run real provider orders or wallet mutations as a test.
 - **Safety:** this pass only created a review artifact and updated this register. No SMM implementation, migration, ACL, RLS/Auth setting, provider secret, wallet, production database, provider call, deployment, or PR merge was changed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+- [ ] **SMM-FIN-05 — REVIEW REQUIRED:** `my_data` maps a missing `smm_wallets` row to numeric zero. Establish authoritative missing-wallet semantics and return an explicit state or use an approved idempotent initialization path.
+- [ ] **SMM-FIN-06 — NOT VERIFIED:** `admin_data` does not inspect all three query errors and can return empty arrays on database failure. Return explicit errors rather than false-success empty inventories.
