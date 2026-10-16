@@ -21,3 +21,15 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-17 — SESSION-REMEDIATION — RC565 MantiGO financial report source fix (review required)
+
+- **Live evidence:** Supabase project `moyhiluyhjsujhwlyeuu` reported 283 applied migrations through `20261008222845` (RC424). Do not infer later migrations are applied.
+- **Live schema evidence:** `public.mantigo_financial_ledger` contains `gross_amount`, `commission_amount`, and `captain_net_amount`; the deployed `get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)` references nonexistent `amount` and `captain_amount`.
+- **Live authorization evidence:** deployed report RPC authorizes broad tenant roles and does not require platform scope. The existing RC449 source has a platform-admin predicate but still contains the bad amount-column references.
+- **Change authored on branch:** `fix/mantigo-financial-report-columns-20261017`. Added forward migration `20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql`, which uses the live ledger columns, requires `public.mnty_can_platform_admin()`, rejects invalid time windows, sets an empty search_path, and explicitly grants EXECUTE only to authenticated after revoking PUBLIC/anon.
+- **CI source contract:** added `scripts/validate-mantigo-financial-report.mjs` and wired it into `.github/workflows/pages.yml`. This checks source markers only; it is not proof of PostgreSQL execution.
+- **Commit sequence:** `0b7e3c10f5ff5c54f6cec4aea636a833f525df0a` (migration), `bc29518478a75c4e90c5b328c33075d05901a29a` (contract test), `92e4dba1e604523ad9389ea33b3545cda82c50eb` (workflow).
+- **Not performed:** no migration was applied to Supabase production; no live function was replaced; no payment or settlement was created; no PR was merged; no production deployment was approved.
+- **Still required:** execute the new source-contract test in CI; run migration on isolated PostgreSQL against a representative schema and test authorized/unauthorized actors and empty/boundary date windows; validate all migration-chain dependencies; then open/update a reviewed PR. Production gate remains **BLOCKED / NOT CERTIFIED**.
