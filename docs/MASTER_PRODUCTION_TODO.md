@@ -1738,3 +1738,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 
 - [ ] **PAY-03 — HIGH PRIORITY / NOT VERIFIED:** the ordinary payment-intent failure callback updates by intent ID only and can set `FAILED` without a prior-state guard. A distinct signed failure event arriving after success could downgrade the state. Add a monotonic state machine, provider-attempt binding, and success/failure ordering + concurrency tests in a disposable environment.
+
+## Payment webhook source-to-RPC convergence — 2026-10-16
+
+- [ ] **PAY-04 — HIGH PRIORITY / OPEN:** on the integration candidate, RC425/RC428/RC429/RC430 define atomic MantiGO, normal-payment-failure, subscription-failure, and subscription-success paths, but `supabase/functions/paymob-webhook/index.ts` still uses split direct writes for MantiGO/normal failures and direct table mutation for subscription failures; the subscription-success call also uses a different RPC name/argument contract than RC430.
+- [ ] Do not count the atomic migration files as remediation until the webhook is wired to the matching reviewed contracts and source-contract tests enforce the call sites.
+- [ ] Add disposable DB failure-injection, duplicate-event, concurrency, and late-failure-after-success tests. Resolve the missing historical migration source and baseline review gate before claiming replay success.
+- [ ] Deployed source parity and runtime behavior remain NOT VERIFIED. No production code, migration, grant, RLS/Auth setting, payment, or deployment was changed in this pass; release remains **BLOCKED / NOT CERTIFIED**.
+
