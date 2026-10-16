@@ -33,3 +33,7 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Commit sequence:** `0b7e3c10f5ff5c54f6cec4aea636a833f525df0a` (migration), `bc29518478a75c4e90c5b328c33075d05901a29a` (contract test), `92e4dba1e604523ad9389ea33b3545cda82c50eb` (workflow).
 - **Not performed:** no migration was applied to Supabase production; no live function was replaced; no payment or settlement was created; no PR was merged; no production deployment was approved.
 - **Still required:** execute the new source-contract test in CI; run migration on isolated PostgreSQL against a representative schema and test authorized/unauthorized actors and empty/boundary date windows; validate all migration-chain dependencies; then open/update a reviewed PR. Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+- **Local source-contract test:** ran the fetched RC565 migration and validator in a scratch Node.js environment; result: `RC565 MantiGO financial report source contract: PASS`. This is static/source evidence only, not PostgreSQL execution.
+- **Draft PR opened:** [#282](https://github.com/islamnagy2022-eng/MantiqatiX/pull/282), head branch `fix/mantigo-financial-report-columns-20261017`, head SHA at PR creation `75c1f5ad3abf90a0c51cfe10c890c5194ea41743`. The PR includes 16 recovered historical migration sources and RC565; keep draft because the RC434 authoritative-source collision and full replay remain unresolved.
+- **GitHub checks:** no status checks/workflow runs were returned for head SHA at the time of this check. Do not treat CI as passed.
