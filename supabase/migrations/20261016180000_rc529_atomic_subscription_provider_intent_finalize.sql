@@ -49,7 +49,7 @@ begin
   end if;
 
   if v.status <> 'PENDING'
-     or v.provider_creation_state <> 'CLAIMED'
+     or v.provider_creation_state is distinct from 'CLAIMED'
      or v.provider_intent_id is not null
      or v.provider_order_id is not null then
     raise exception 'SUBSCRIPTION_PROVIDER_INTENT_NOT_CLAIMED';
