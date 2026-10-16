@@ -94,3 +94,24 @@ Three of the six baseline source mismatches have now been addressed through revi
 | `business-branch-admin` | Restore actual TypeScript line breaks where literal backslash-n text was embedded | PR #259 merged as `90afc3f40b4457fe20c827a5ea60681c56649507` | Supabase reports ACTIVE version 5, `verify_jwt=true`; live source has no literal backslash-n sequences and retains membership fail-closed and role/business guards. |
 
 No production migration, database row, grant, Auth/RLS policy, wallet, payment, or provider configuration was changed as part of these three deployments. The remaining mismatches are still gated: `financial-journal` is blocked by unapplied RC449A/RC450 prerequisites; `smm-gateway` source recovery does not authorize launch; `mnty-customer-registration` has non-interchangeable RPC behavior that needs isolated tests and an explicit design decision.
+
+
+## Follow-up evidence — 2026-10-16, post-merge
+
+### Customer registration RPC contract
+
+- PR #261 added a static guard and a staging acceptance matrix documenting why `private.activate_customer_registration_atomic` (RC213) and `private.ensure_customer_membership_for_user` (RC215) are not interchangeable.
+- PR #264 added disposable PostgreSQL integration tests for first activation, replay, pending-request cleanup differences, required-vs-best-effort audit writes, tenant activation checks, platform business/branch scope, and service-role-only execution grants.
+- PR #264 merged as `cbfd31b9446064d0e6bc9065554a5b71d4121e6c`. Its exact-head PostgreSQL integration job and source-contract job passed. This is isolated test evidence only; production RPC behavior was not changed and the live Edge Function RPC mismatch remains intentionally unresolved pending an explicit invariant decision.
+
+### SMM gateway source deployment
+
+- After PR #262 restored source parity on current `main`, the `smm-gateway` Edge Function was deployed with all seven source files from that commit.
+- Supabase live verification: status `ACTIVE`, version `13`, `verify_jwt=true`, bundle SHA-256 `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`.
+- The deployed entrypoint exactly matches the tracked `main` source. `SMM_INITIAL_LAUNCH_DEFERRED=true` remains hard-coded and the gate runs before authentication/action routing, returning `SMM_DEFERRED` (503). Missing wallet rows remain distinguishable from initialized zero-balance wallets.
+- This is a source deployment, **not** SMM launch approval. No provider calls, wallet mutations, orders, or production migrations were performed.
+
+### Current release gate result
+
+- Production Health Monitor passed for the current main commit, but the Production Verification Engine intentionally failed closed: the migration source chain RC425–RC441 is incomplete in `main`, the live ledger remains reconciled only through RC424, and chronological replay, tenant isolation, payment/finance E2E, backup/restore, and other release evidence remain unverified.
+- Do not treat a green health monitor or a successful source/test workflow as production certification. Do not bulk-apply migrations or rewrite the live ledger to silence the gate.
