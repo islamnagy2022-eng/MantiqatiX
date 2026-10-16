@@ -59,15 +59,19 @@ for (const filename of fs.readdirSync(migrationDir).filter(name => name.endsWith
 // The static scanner cannot execute PL/pgSQL, so model that dynamic revoke explicitly.
 if (trustedFinalization.includes("to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)')") &&
     trustedFinalization.includes('from public, anon, authenticated, service_role')) {
+  const dynamicRevokeIndex = trustedFinalization.indexOf(
+    "execute 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) from public, anon, authenticated, service_role'"
+  );
+  if (dynamicRevokeIndex < 0) throw new Error('Dynamic five-argument finalizer revoke could not be located');
   finalizerAclEvents.push({
     filename: '20261016100000_digital_page_payment_intent_server_only_finalization.sql',
-    index: Number.MAX_SAFE_INTEGER - 2,
+    index: dynamicRevokeIndex,
     signature: 'five',
     role: 'public',
     grants: false,
   }, {
     filename: '20261016100000_digital_page_payment_intent_server_only_finalization.sql',
-    index: Number.MAX_SAFE_INTEGER - 1,
+    index: dynamicRevokeIndex,
     signature: 'five',
     role: 'authenticated',
     grants: false,
