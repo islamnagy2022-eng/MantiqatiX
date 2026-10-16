@@ -38,6 +38,12 @@ jobs:
           psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
           create role anon nologin;
           create role authenticated nologin;
+          create schema auth;
+          create or replace function auth.uid()
+          returns uuid language sql stable
+          as $function$
+            select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
+          $function$;
           create table public.businesses (
             id uuid primary key,
             status text not null default 'ACTIVE',
@@ -65,6 +71,14 @@ jobs:
             updated_at timestamptz not null default now()
           );
           grant select on public.marketing_provider_profiles to anon, authenticated;
+          alter table public.marketing_provider_profiles enable row level security;
+          create policy "Public can view active marketing providers"
+            on public.marketing_provider_profiles for select to anon, authenticated
+            using (status='ACTIVE');
+          create policy "Owners manage their marketing provider profile"
+            on public.marketing_provider_profiles for all to authenticated
+            using (owner_user_id=auth.uid())
+            with check (owner_user_id=auth.uid());
           insert into public.marketing_provider_profiles
           (id, business_id, name_ar, provider_kind, status, owner_user_id, settings, ranking_weight)
           values
@@ -87,3 +101,6 @@ jobs:
         run: |
           test "$(psql -h localhost -U postgres -d postgres -Atc "select count(*) from public.public_marketing_provider_profiles")" = "1"
           test "$(psql -h localhost -U postgres -d postgres -Atc "select public_branding_logo_path from public.public_marketing_provider_profiles limit 1")" = "public/logo.png"
+          test "$(psql -h localhost -U postgres -d postgres -qAtc "set role authenticated; set request.jwt.claim.sub='00000000-0000-0000-0000-000000000099'; select count(*) from public.marketing_provider_profiles")" = "0"
+          test "$(psql -h localhost -U postgres -d postgres -qAtc "set role authenticated; set request.jwt.claim.sub='00000000-0000-0000-0000-000000000011'; select count(*) from public.marketing_provider_profiles")" = "1"
+          test "$(psql -h localhost -U postgres -d postgres -qAtc "set role authenticated; set request.jwt.claim.sub='00000000-0000-0000-0000-000000000011'; select count(*) from public.marketing_provider_profiles where settings ? 'internal_note'")" = "1"
