@@ -19,6 +19,17 @@ begin
   if not has_table_privilege('anon', 'public.public_marketing_provider_profiles', 'select') then
     raise exception 'FAIL: anon cannot read the sanitized public provider view';
   end if;
+  if not has_table_privilege('authenticated', 'public.marketing_provider_profiles', 'select') then
+    raise exception 'FAIL: authenticated CRM/owner workflows lost their direct table grant';
+  end if;
+  if exists (
+    select 1 from pg_policies
+    where schemaname='public'
+      and tablename='marketing_provider_profiles'
+      and policyname='Public can view active marketing providers'
+  ) then
+    raise exception 'FAIL: broad public policy still grants authenticated users access to internal provider rows';
+  end if;
   select array_agg(column_name order by column_name) into v_cols
   from information_schema.columns
   where table_schema='public' and table_name='public_marketing_provider_profiles';
@@ -34,5 +45,5 @@ begin
   if position('ACTIVE' in upper(v_def)) = 0 then
     raise exception 'FAIL: public provider view does not restrict rows to ACTIVE profiles';
   end if;
-  raise notice 'PASS: anon table SELECT revoked; sanitized active-provider view is readable and excludes internal fields';
+  raise notice 'PASS: anon table SELECT revoked; broad authenticated public policy removed; sanitized active-provider view is allowlisted';
 end $rc461_test$;
