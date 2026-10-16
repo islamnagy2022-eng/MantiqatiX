@@ -1,0 +1,26 @@
+name: Mantyx Demo Safety and Syntax
+on:
+  pull_request:
+    paths:
+      - "mantyx-demo/**"
+      - ".github/workflows/mantyx-demo.yml"
+  push:
+    branches:
+      - "mantyx/parallel-demo-20261016"
+    paths:
+      - "mantyx-demo/**"
+      - ".github/workflows/mantyx-demo.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: JavaScript syntax
+        run: node --check mantyx-demo/app.js
+      - name: Demo safety contract
+        run: node mantyx-demo/validate.mjs
