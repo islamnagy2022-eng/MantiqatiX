@@ -63,8 +63,11 @@ Deno.serve(async req=>{
    // require reconciliation rather than retrying blindly.
    return json({error:"PAYMENT_PROVIDER_ORDER_CORRELATION_MISSING",reconciliationRequired:true},502);
  }
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
- if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
+ const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
+ if(fe||finalized!==true){
+   // The provider intention may already exist; keep the claim for reconciliation instead of retrying blindly.
+   return json({error:"PAYMENT_PERSISTENCE_FAILED",reconciliationRequired:true},500);
+ }
  const clientSecret=String(p.client_secret);
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
  return json({orderId:row.id,status:"PENDING",provider:"PAYMOB",clientSecret,checkoutUrl,amount,currency:row.currency});
