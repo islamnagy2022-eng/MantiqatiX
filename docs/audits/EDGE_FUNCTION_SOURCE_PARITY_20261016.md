@@ -32,6 +32,15 @@ Compared the deployed Edge Function `index.ts` source returned by Supabase again
 
 The other 31 entrypoints matched byte-for-byte in this read-only comparison. Exact source parity is not a substitute for authorization, RLS, financial-integrity, dependency, or runtime tests.
 
+## Financial-journal release blocker — confirmed against live ledger
+
+A fresh read-only query of the live migration ledger returned 283 entries, with latest applied version `20261008222845` (`rc424_atomic_digital_page_payment_webhook`). The following source migrations exist on `main` but are **absent** from the live ledger:
+
+- `20261010175000_rc449a_financial_journal_schema_prerequisites.sql`
+- `20261010180000_rc450_financial_journal_service_role_boundary.sql`
+
+This means the hardened `financial-journal` source on `main` is not a deploy-ready drop-in for production. RC450 explicitly preflights the schema columns introduced/restored by RC449A. Do not deploy the Edge Function independently, and do not apply either migration ad hoc. Use the reviewed sequence and acceptance criteria in `docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md`; the baseline replay/review gate remains independent and blocked.
+
 ## Release and safety boundaries
 
 - No Edge Function was deployed or modified in Supabase during this audit.
