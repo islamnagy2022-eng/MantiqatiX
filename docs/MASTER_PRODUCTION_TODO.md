@@ -1713,3 +1713,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] NOT VERIFIED: this is a source-level failure-mode analysis; the deployed webhook parity and runtime impact have not been established, and no failure-injection test has run.
 - [ ] REQUIRED: test the event-insert/ledger-update failure and retry sequence in disposable Supabase; replace the split writes with a single atomic database transaction/RPC, explicit state/result handling, and duplicate/concurrency tests before closing the finding.
 - **Safety:** no webhook code, database function, grant, RLS/Auth setting, production data, payment, or deployment was changed. Keep production payment/settlement and release gates open pending evidence.
+
+
+## SMM financial integrity triage — 2026-10-16
+
+- [x] Reviewed the exact SMM gateway source on this candidate and the captured SMM wallet RPC bodies. Findings are documented in [`docs/release/SMM_FINANCIAL_INTEGRITY_REVIEW_20261016.md`](release/SMM_FINANCIAL_INTEGRITY_REVIEW_20261016.md).
+- [ ] **SMM-FIN-01 — NOT VERIFIED / HIGH PRIORITY:** order insert, wallet debit, and provider submission are separate operations without a client idempotency key bound to a unique order/debit. Duplicate submits can create duplicate charges; provider timeout is ambiguous and should not trigger an automatic refund until reconciliation.
+- [ ] **SMM-FIN-02 — NOT VERIFIED / HIGH PRIORITY:** captured `smm_refund_wallet` credits balance and inserts a refund transaction without enforcing a unique refund reference in the function body. Prove at-most-once refund in disposable DB and add an atomic idempotency constraint before release.
+- [ ] **SMM-FIN-03 — REVIEW REQUIRED:** `sync_services` writes the provider `rate` to both `provider_cost` and `selling_price`. Confirm provider rate units and preserve retail pricing/manual overrides; do not silently erase margin.
+- [ ] **SMM-FIN-04 — NOT VERIFIED:** post-provider order update and event-insert results are not consistently checked before success is returned; add failure-injection and reconciliation tests.
+- [ ] **Required next work:** implement/test the idempotent order/debit/refund transaction in a disposable environment, add explicit provider-timeout reconciliation states, check every mutation result, and verify pricing sync semantics. Do not run real provider orders or wallet mutations as a test.
+- **Safety:** this pass only created a review artifact and updated this register. No SMM implementation, migration, ACL, RLS/Auth setting, provider secret, wallet, production database, provider call, deployment, or PR merge was changed. Release remains **BLOCKED / NOT CERTIFIED**.
