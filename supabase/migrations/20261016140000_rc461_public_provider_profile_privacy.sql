@@ -20,7 +20,10 @@ select
   p.created_at,
   p.updated_at
 from public.marketing_provider_profiles p
-where p.status = 'ACTIVE';
+join public.businesses b on b.id = p.business_id
+where p.status = 'ACTIVE'
+  and b.status = 'ACTIVE'
+  and coalesce((b.settings->>'showcase')::boolean, false) = true;
 
 revoke all on public.public_marketing_provider_profiles from public;
 grant select on public.public_marketing_provider_profiles to anon, authenticated;
@@ -29,7 +32,7 @@ grant select on public.public_marketing_provider_profiles to anon, authenticated
 revoke all privileges on public.marketing_provider_profiles from anon;
 
 -- Also remove any column-level SELECT grants, which table-level REVOKE alone does not remove.
-do $
+do $rc461$
 declare
   v_column record;
 begin
@@ -42,4 +45,4 @@ begin
   loop
     execute format('revoke select (%I) on table public.marketing_provider_profiles from anon', v_column.attname);
   end loop;
-end $;
+end $rc461$;
