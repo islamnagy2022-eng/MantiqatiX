@@ -1728,3 +1728,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [ ] **SMM-FIN-05 — REVIEW REQUIRED:** `my_data` maps a missing `smm_wallets` row to numeric zero. Establish authoritative missing-wallet semantics and return an explicit state or use an approved idempotent initialization path.
 - [ ] **SMM-FIN-06 — NOT VERIFIED:** `admin_data` does not inspect all three query errors and can return empty arrays on database failure. Return explicit errors rather than false-success empty inventories.
+
+
+## Payment callback failure-path review — 2026-10-16
+
+- [ ] **PAY-02 — NOT VERIFIED:** ordinary failed-payment callback inserts the provider event, then updates `payment_intents` without checking the update result; it can return HTTP 200 while state persistence failed. A retry can be short-circuited by the already-persisted event. Make dedupe + state transition atomic and test injected DB failures, zero-row updates, duplicate callbacks, and late failure after success.
+- [ ] **MGO-PAY-01 — NOT VERIFIED:** MantiGO provider event insert and ledger transition remain separate calls; retry can return idempotent success without retrying a failed ledger transition. Requires atomic transaction/RPC and concurrency/failure-injection tests.
+- Source-level evidence and remediation are recorded in [`docs/release/BASELINE_SECURITY_TRIAGE_20261016.md`](release/BASELINE_SECURITY_TRIAGE_20261016.md). These findings are not evidence of a production incident; deployed source parity is still unverified.
