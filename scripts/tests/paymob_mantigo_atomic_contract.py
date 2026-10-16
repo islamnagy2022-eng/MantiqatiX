@@ -101,3 +101,34 @@ assert "p_provider_order_id text" in DIGITAL_BINDING_MIGRATION
 assert "provider_order_id = p_provider_order_id" in DIGITAL_BINDING_MIGRATION
 assert "p_provider_order_id" in DIGITAL_BINDING_MIGRATION
 print("PASS: digital-page payment intent passes the RC426 provider-order binding.")
+
+
+# RC435/RC439/RC529 subscription intent creation must be single-claim and encrypted-recoverable.
+SUBSCRIPTION_INTENT = (ROOT / "supabase/functions/subscription-payment-intent/index.ts").read_text()
+CLAIM_MIGRATION = (ROOT / "supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql").read_text()
+ENCRYPTION_MIGRATION = (ROOT / "supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql").read_text()
+FINALIZE_MIGRATION = (ROOT / "supabase/migrations/20261016180000_rc529_atomic_subscription_provider_intent_finalize.sql").read_text()
+for rpc in (
+    "create_subscription_payment_intent_claimable_backend",
+    "claim_subscription_provider_intent_creation_backend",
+    "finalize_subscription_provider_intent_creation_backend",
+):
+    assert f'admin.rpc("{rpc}"' in SUBSCRIPTION_INTENT, f"subscription intent does not call {rpc}"
+assert 'admin.rpc("create_subscription_payment_intent_backend"' not in SUBSCRIPTION_INTENT
+assert 'admin.from("subscription_payment_intents").update' not in SUBSCRIPTION_INTENT
+assert "PAYMOB_CLIENT_SECRET_ENCRYPTION_KEY" in SUBSCRIPTION_INTENT
+assert 'name:"AES-GCM"' in SUBSCRIPTION_INTENT
+assert "client_secret_ciphertext" in SUBSCRIPTION_INTENT
+assert "client_secret_iv" in SUBSCRIPTION_INTENT
+assert "client_secret_key_version" in SUBSCRIPTION_INTENT
+assert "outcome_unknown===true" in SUBSCRIPTION_INTENT
+assert "reconciliationRequired:true" in SUBSCRIPTION_INTENT
+assert "provider_creation_state='CLAIMED'" in CLAIM_MIGRATION
+assert "client_secret_ciphertext" in ENCRYPTION_MIGRATION
+assert "client_secret_iv" in ENCRYPTION_MIGRATION
+assert "client_secret_key_version" in ENCRYPTION_MIGRATION
+assert "for update" in FINALIZE_MIGRATION.lower()
+assert "provider_creation_state <> 'CLAIMED'" in FINALIZE_MIGRATION
+assert "grant execute" in FINALIZE_MIGRATION.lower() and "to service_role" in FINALIZE_MIGRATION.lower()
+print("PASS: subscription intent uses RC435 claim, RC439 AES-GCM fields, and RC529 atomic correlation finalizer.")
+print("LIMIT: static source contract only; disposable PostgreSQL and Paymob sandbox tests remain required.")
