@@ -21,3 +21,17 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-16 — SESSION-002 — SMM gateway source parity and explicit wallet-read state
+
+- **User requirement:** Continue MantiqatiX from the current project state, in a continuous and evidence-driven sequence; do not restart the application or create a second production site.
+- **Repository baseline rechecked:** `main` remains at `e10a11794401e81e6d441498d91edeeaa328fff7`. Existing production release gate remains BLOCKED / NOT CERTIFIED.
+- **Read-only Supabase evidence:** project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY; production migration ledger contains 283 entries through `20261008222845` (RC424). Later candidate migrations are not applied to production.
+- **Source drift confirmed:** deployed `smm-gateway` is version 12 with observed bundle SHA-256 `80fe058973fafdee71e3c9637469077bf115dc2a29014f5f347b5a54ebe90994`; the repository's `main` had only the older `index.ts` and lacked six imported helper modules.
+- **Changes prepared:** branch `fix/smm-gateway-source-parity-v12-20261016`, PR #254. Added the six helper modules from the live source response and restored the deployed gateway implementation as the source baseline.
+- **SMM-FIN-05 correction:** `my_data` now distinguishes a missing wallet from a real zero-balance wallet using `wallet_initialized`, `wallet_status`, and nullable `balance`; invalid persisted balances fail closed. Added regression assertions to `scripts/validate-smm-service-role-boundary.mjs`.
+- **Source comparison:** all seven source files were initially verified byte-for-byte against the read-only deployed source; the six helper modules remain exact matches. The index differs only for the narrow missing-wallet response correction.
+- **CI status:** the first SMM service-role boundary run for the initial parity commit succeeded (`38835204752`). The latest exact-head run for `ddf4cf1c5a29b1f04e67490f845a126123499be7` was queued when this entry was recorded; do not call the final patch verified until that run and the relevant workflows complete successfully.
+- **Safety:** no production migration, Edge Function deployment, wallet mutation, provider call, payment, Auth/RLS/grant change, merge, or release was performed. `SMM_INITIAL_LAUNCH_DEFERRED=true` remains in the gateway source.
+- **Next action:** inspect exact-head SMM/Deno/CI results and correct any failures. Keep PR #254 draft until verified and reviewed. Then continue from the first open P0 release gate; do not approve the production schema baseline while its 144 SECURITY DEFINER inventory remains marked NOT REVIEWED, and do not bypass the explicit disposable-replay review gate.
