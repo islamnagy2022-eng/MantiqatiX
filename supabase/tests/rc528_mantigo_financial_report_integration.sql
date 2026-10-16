@@ -111,3 +111,98 @@ end;
 $test$;
 
 select 'RC528 MantiGO financial report: PASS' as result;
+
+
+-- RC530: platform dashboard and settlement must use the same strict platform scope.
+do $rc530$
+declare
+  platform_admin uuid := '10000000-0000-4000-8000-000000000526';
+  tenant_admin uuid := '10000000-0000-4000-8000-000000000527';
+  tenant_owner uuid := '10000000-0000-4000-8000-000000000528';
+  tenant_super_admin uuid := '10000000-0000-4000-8000-000000000529';
+  platform_string_true uuid := '10000000-0000-4000-8000-000000000530';
+  result jsonb;
+  rejected boolean;
+begin
+  if has_function_privilege('anon','public.get_mantigo_admin_dashboard_backend(uuid)','EXECUTE')
+     or has_function_privilege('anon','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE') then
+    raise exception 'anon must not execute platform dashboard or settlement';
+  end if;
+  if not has_function_privilege('authenticated','public.get_mantigo_admin_dashboard_backend(uuid)','EXECUTE')
+     or not has_function_privilege('authenticated','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE') then
+    raise exception 'authenticated role must reach in-function platform scope guard';
+  end if;
+
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
+  result := public.get_mantigo_admin_dashboard_backend(platform_admin);
+  if (result->>'rides_total')::integer <> 2
+     or (result->>'revenue')::numeric <> 1149
+     or (result->>'commission')::numeric <> 114 then
+    raise exception 'unexpected dashboard totals: %',result;
+  end if;
+
+  rejected := false;
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_admin::text,false);
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(tenant_admin);
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'tenant admin unexpectedly read platform dashboard'; end if;
+
+  rejected := false;
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(tenant_owner);
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'tenant owner unexpectedly read platform dashboard'; end if;
+
+  rejected := false;
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_super_admin::text,false);
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(tenant_super_admin);
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'tenant-scoped super admin unexpectedly read platform dashboard'; end if;
+
+  rejected := false;
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_string_true::text,false);
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(platform_string_true);
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'string full_control unexpectedly read platform dashboard'; end if;
+
+  rejected := false;
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_admin::text,false);
+  begin
+    perform public.settle_mantigo_captain_backend(tenant_admin,'fixture-open-ride','BANK_TRANSFER');
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'tenant admin unexpectedly reached platform settlement'; end if;
+
+  rejected := false;
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
+  begin
+    perform public.settle_mantigo_captain_backend(tenant_admin,'fixture-open-ride','BANK_TRANSFER');
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'settlement actor spoof unexpectedly succeeded'; end if;
+
+  rejected := false;
+  begin
+    perform public.settle_mantigo_captain_backend(platform_admin,'fixture-open-ride','BANK_TRANSFER');
+  exception when others then
+    if sqlerrm='RIDE_NOT_COMPLETED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'platform admin settlement did not reach ride-state guard'; end if;
+end;
+$rc530$;
+
+select 'RC530 MantiGO platform scope: PASS' as result;
