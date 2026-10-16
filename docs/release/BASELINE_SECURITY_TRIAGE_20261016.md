@@ -68,3 +68,27 @@ This is a source-level consistency risk, not proof that production has suffered 
 - Verify the atomic remediation and concurrency/idempotency tests.
 - After a separately approved rollout, perform read-only verification and a controlled provider sandbox E2E; no real-money test is implied by this finding.
 
+
+
+## Finding PAY-02 — Failed-payment branch acknowledges success without verifying payment-intent mutation
+
+**Severity:** Medium for payment-state integrity pending runtime validation  
+**Confidence:** High for the source-level unchecked result; deployed parity and runtime impact are unverified.
+
+In the ordinary `payment_intents` branch of `supabase/functions/paymob-webhook/index.ts`, when a correctly signed Paymob callback indicates `success=false`, the handler inserts a `payment_provider_events` row and then updates `payment_intents.status='FAILED'`. The result of the update is not checked. The handler returns HTTP 200 with `status:'FAILED'` even if the update returns a database error or the conditional/target update affects no row. Since the provider event was already persisted, a later retry can hit the event deduplication check and return idempotent success without retrying the failed state transition.
+
+This is a static consistency finding, not evidence of a production incident.
+
+### Recommended remediation (not applied)
+
+1. Perform provider-event deduplication and payment-intent state transition atomically in a database RPC/transaction.
+2. Validate the current payment-intent state and explicitly distinguish already-final, conflicting-final, missing, and failed-transition outcomes.
+3. Check all database mutation results; never return a successful terminal state if persistence failed.
+4. Add isolated tests for update failure after event insertion, zero-row update, repeated failure callback, a failure callback arriving after a successful payment, and concurrent success/failure callbacks.
+5. Ensure event uniqueness and state-transition rules prevent a late failure callback from downgrading a previously successful intent.
+
+### Closure evidence required
+
+- Disposable database failure-injection and concurrency tests pass.
+- Reviewed source and deployed webhook version match.
+- Post-deployment read-only verification follows separately approved rollout. No production changes or real-money tests are authorized by this finding.
