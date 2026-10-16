@@ -48,3 +48,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Failure corrected:** an earlier Deno check correctly rejected a nullable access at commit `ddf4cf1c5a29b1f04e67490f845a126123499be7`. The balance expression now narrows the wallet row directly, and the subsequent exact-code-commit checks passed.
 - **Disposition:** PR #254 remains Draft pending independent review. No production deployment, migration, merge, or SMM activation occurred.
 - **Next action:** continue P0 review in the migration-recovery candidate; keep the production schema baseline `PENDING_REVIEW` until all required per-function security review and disposable-replay approval are complete.
+
+
+## 2026-10-16 — SESSION-002 follow-up — Default-deny SMM launch regression guard
+
+- Added a source-contract regression assertion that `SMM_INITIAL_LAUNCH_DEFERRED=true` remains explicit, the launch gate executes before auth/action routing, and the disabled path returns `SMM_DEFERRED`.
+- **Code commit:** `de6d35251d67c3cdc56f4e280c2af07672aa2f4e`.
+- **SMM Service Role Access Boundary:** PASS — [run 38835539691](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835539691); source validator, Deno type-check, and PostgreSQL ACL fixture all passed.
+- **Module Professionalization Validation:** PASS — [run 38835540153](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835540153).
+- **Backend-only Module Boundary:** PASS — [run 38835539684](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835539684).
+- **MantiGO Open Ride Privacy Boundary:** PASS — [run 38835539695](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835539695).
+- **Web release workflow:** PASS — [run 38835539714](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38835539714); PR validation only, no production deployment.
+- **Safety:** SMM remains disabled by the launch gate. No production migration, deployment, wallet mutation, provider call, payment, merge, or release occurred.
+- **Disposition:** PR #254 remains Draft for independent review. The next project priority remains the unresolved migration-chain/baseline security review and other P0 production gates.
