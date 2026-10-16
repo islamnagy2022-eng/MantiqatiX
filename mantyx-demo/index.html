@@ -68,8 +68,7 @@
     <form method="dialog" id="action-form">
       <div class="dialog-head"><div><span class="dialog-kicker">DEMO ACTION</span><h2 id="dialog-title">إنشاء عنصر تجريبي</h2></div><button class="icon-button" value="cancel" aria-label="إغلاق">×</button></div>
       <p id="dialog-description">لن يتم إرسال بيانات إلى أي خدمة خارجية.</p>
-      <label class="field-label" for="action-name">الاسم أو الوصف</label><input id="action-name" class="field-input" maxlength="100" placeholder="اكتب وصفًا تجريبيًا..." required>
-      <label class="field-label" for="action-category">التصنيف</label><select id="action-category" class="field-input"><option>طلب جديد</option><option>عميل محتمل</option><option>مهمة تشغيلية</option><option>حملة تسويقية</option></select>
+      <div id="action-fields" class="action-fields"></div>
       <div class="dialog-actions"><button class="button button-ghost" value="cancel">إلغاء</button><button class="button button-primary" id="save-demo-action" value="default">حفظ في العرض فقط</button></div>
     </form>
   </dialog>
