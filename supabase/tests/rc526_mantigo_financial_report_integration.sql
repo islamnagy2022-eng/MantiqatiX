@@ -3,6 +3,8 @@ do $test$
 declare
   platform_admin uuid := '10000000-0000-4000-8000-000000000526';
   tenant_admin uuid := '10000000-0000-4000-8000-000000000527';
+  tenant_owner uuid := '10000000-0000-4000-8000-000000000528';
+  tenant_super_admin uuid := '10000000-0000-4000-8000-000000000529';
   result jsonb;
   rejected boolean;
   cfg text;
@@ -31,7 +33,18 @@ begin
 
   insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions) values
     ('platform-admin',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
-    ('tenant-admin',tenant_admin,'TENANT-A','ADMIN','ACTIVE','{"admin":true}'::jsonb);
+    ('tenant-admin',tenant_admin,'TENANT-A','ADMIN','ACTIVE','{"admin":true}'::jsonb),
+    ('tenant-owner',tenant_owner,'TENANT-B','OWNER','ACTIVE','{"admin":true}'::jsonb),
+    ('tenant-super-admin',tenant_super_admin,'TENANT-C','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
+
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'tenant OWNER must not be treated as platform administrator';
+  end if;
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_super_admin::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'tenant-scoped SUPER_ADMIN must not be treated as platform administrator';
+  end if;
 
   insert into public.mantigo_financial_ledger
     (id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,payment_status,settlement_status,created_at)
