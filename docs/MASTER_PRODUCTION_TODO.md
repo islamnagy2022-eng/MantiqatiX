@@ -1559,3 +1559,197 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## Session update — 2026-10-15 — Baseline capture connection diagnosis
+- [x] Reviewed Actions run [38629754240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38629754240) and the failed step log.
+- [x] Corrected the prior status assumption: repository secret `SUPABASE_DB_URL` exists and is non-empty at runtime; the workflow reaches `aws-0-us-east-2.pooler.supabase.com:5432`.
+- [ ] BLOCKED: PostgreSQL rejects the Session Pooler connection with `FATAL: (ENOTIDENTIFIER) no tenant identifier provided`. Most likely pooler username/tenant URI mismatch, but the actual masked secret value is not visible and has not been changed.
+- [ ] BLOCKED: no schema snapshot or provenance manifest was created; baseline replay remains unverified.
+- [ ] BLOCKED: `mantiqatix_schema_reader` cannot access `supabase_migrations` (schema USAGE and ledger SELECT both false). Its effective privileges on `net._http_response` and `net.http_request_queue` include write operations via PUBLIC, so do not use it in automation until the least-privilege design is resolved.
+- [x] No workflow rerun, password reset, production SQL write, migration, deployment, or PR merge was performed.
+- **Next executable step:** copy the exact connection URI from Supabase Connect for the chosen connection mode; confirm its username is mode-correct without exposing the password. Then validate connectivity before another capture run.
+- **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## Session update — 2026-10-15 — Safe pooler-URI preflight added
+- [x] Added a fail-closed connection-URI shape check to `.github/workflows/capture-production-schema-baseline.yml` before any database connection. It validates URI protocol, host/database presence, the project-qualified Session Pooler username format, and the obvious `[YOUR-PASSWORD]` placeholder without printing credentials.
+- [x] Workflow change commit: `801bacc69eac9a20ac6b37b0b97113fcce6a024e`.
+- [ ] NOT VERIFIED: no workflow run has yet exercised the new preflight. Do not treat this as a successful connection or schema capture.
+- [ ] BLOCKED: correct `SUPABASE_DB_URL` in GitHub repository Secrets locally, using the URI copied from Supabase Connect for the selected connection mode. Never paste the real URI/password into chat.
+- **Safety:** no production SQL writes, role changes, password reset, migrations, deployment, or merge occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Session update — 2026-10-15 — Supabase CLI installer rate-limit mitigation
+- [x] Inspected the latest isolated replay run [38663014381](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38663014381). It failed before any baseline tests or database replay because `supabase/setup-cli@v1` could not resolve `latest` after a GitHub API rate limit (`Failed to resolve latest Supabase CLI release: rate limit exceeded`). This is an installer-resolution failure, not evidence about the baseline itself.
+- [x] Updated the two recovery workflows to `supabase/setup-cli@v3`, whose release notes document npm-based CLI installation and support for `latest`, to avoid the old GitHub-release lookup path.
+- [x] Workflow commits: replay `d6a4792e11e5b2d0c6d1901b0a6393b1960e7c05`; capture `0cef596e85c5880f4c5fecb447fd7df73c07514c`.
+- [ ] NOT VERIFIED: these changes need a new workflow run; no successful CLI installation/replay/capture is claimed.
+- **Safety:** no production DB writes, migrations, grants/RLS/Auth changes, secret edits, deployments, or PR merge performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Session update — 2026-10-15 — Account dashboard, payment concurrency, and baseline evidence
+- [x] PR #251 adds a role-gated **لوحة التحكم** entry in `web/app.js`, reuses the existing `openPrivilegedWorkspace()` flow, and preserves PR #75's live membership refresh behavior. Latest observed PR checks passed for web validation, MantiGO open-ride privacy, backend-only module boundary, and module professionalization; the deploy job was skipped. Runtime/mobile E2E remains NOT VERIFIED.
+- [x] PR #245 now includes a two-independent-PostgreSQL-session concurrency test using `dblink`: session B races the claim while session A holds the row lock; expected result is exactly one winner. Static validation also requires the concurrency test to remain present.
+- [ ] NOT VERIFIED: the new RC526 independent-session SQL test has not yet run on the updated PR head; wait for exact-head CI and review any database-extension/connection assumptions before treating concurrency as PASS.
+- [x] Hardened the baseline validator to require the independent ordered migration-ledger export during verification; it now fails closed if the evidence file is absent and always checks checkpoint, count, ordering/uniqueness, and SHA-256.
+- [x] Updated the read-only capture workflow to preserve the ordered ledger-version list as `supabase/tests/baselines/production_schema_migration_versions.txt`, include it in the review artifact, and trigger replay validation when it changes. Added negative tests for missing evidence, duplicate/out-of-order versions, wrong checkpoint/count/hash.
+- [ ] BLOCKED: the existing PR #249 baseline does not yet contain the independently captured ledger export. Do not reconstruct or fabricate it from the manifest; a fresh authorized read-only capture is needed after the `SUPABASE_DB_URL` pooler-URI issue is resolved. No capture workflow was dispatched in this batch.
+- [x] Exact-head CI confirms baseline-validator negative tests PASS; reviewed forward replay correctly fails closed with `BASELINE_BLOCKED: snapshot or provenance manifest is missing`, before isolated database creation. PR #248 still lacks the baseline artifacts, and PR #249 does not yet provide independently captured ledger evidence.
+- **Safety:** no PR merge, production migration/write, Auth/RLS/grant change, real Paymob request, or production deployment was performed by this batch.
+- **Release state:** **BLOCKED / NOT CERTIFIED**. DONE ≠ VERIFIED.
+
+## Session update — 2026-10-15 — RC431 duplicate-event serialization
+- [x] Reconciled the divergent RC431 candidate against the exact source already present on PR #220: copied the existing transaction-scoped advisory lock for duplicate provider event IDs into the recovery branch rather than inventing a new implementation. This closes the race where concurrent deliveries for the same event could target different orders before either event row is inserted.
+- [x] Hardened `scripts/validate-digital-pages-boundaries.mjs` to fail if the RC431 advisory-lock marker is removed.
+- [x] Exact-head CI confirmed the RC431 payment source contract PASS, migration-version uniqueness PASS, migration-history immutability PASS, and cross-PR migration collision guard PASS after source convergence. The deployment job was skipped; this is not a production release.
+- [ ] BLOCKED: PR #248 still needs independently captured and reviewed baseline provenance/ledger evidence; do not fabricate or approve it implicitly.
+- [ ] BLOCKED: all production migration/release gates remain open. No merge, production database change, real payment, or production deploy was performed.
+- [x] Follow-up to collision guard: aligned the same RC431 migration source in open PRs #84, #207, and #218 to the canonical source already used by PR #220 and PR #248. PR #248 collision guard now passes against the updated open-PR set. No PR was merged; other branches still require their own CI.
+
+
+## RC baseline ledger evidence — 2026-10-16
+- Read-only Supabase migration inventory was compared position-by-position with `supabase_migrations.schema_migrations`: 283/283 versions match, zero positional mismatches; latest applied version is `20261008222845`.
+- Independent ordered evidence file added to PR #249: `supabase/tests/baselines/production_schema_migration_versions.txt`.
+- Live ledger SHA-256 computed from the ordered versions plus trailing newline: `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`, matching the existing manifest.
+- This is read-only ledger provenance verification; no production writes were performed. The schema snapshot still requires security review and explicit disposable-replay approval. PR #249 remains Draft; do not change `review_status` or claim the forward replay passed until review and isolated replay complete.
+
+
+## Session update — 2026-10-16 — Baseline replay dependency integration candidate
+
+- Created isolated candidate branch `integration/baseline-replay-candidates-20261016` from PR #248 head `e1a040e597bf677b1d3d992ddb5f236d64f7aa21`; no PR was merged and `main` was not modified.
+- Staged the three baseline artifacts from PR #249 without changing their bytes:
+  - `production_schema_snapshot.manifest.json` blob SHA `4c278e9ed76b34ce632221e46f1e41ca25c33d06`
+  - `production_schema_snapshot.sql` blob SHA `8d096904c777b4c7eae096014b45c59859c96cee` (820,374 bytes)
+  - `production_schema_migration_versions.txt` blob SHA `41fb3fd9883ee91c2bb7101d5e4b5dc11ebebff9` (283 ordered versions)
+- Re-fetched all three files from the integration branch and confirmed their blob SHAs match the PR #249 source artifacts.
+- The manifest still has `review_status: PENDING_REVIEW` and `deployment_approved: false`. This integration candidate is **not** authorization to replay. The expected next gate is explicit human review; no status was changed to force CI green.
+- **Validation limitation:** this GitHub connector exposes no workflow-dispatch action, so I could not trigger the replay workflow on this integration branch in this execution. No successful replay is claimed. The earlier exact-head run still failed before replay because the baseline files were absent from the checkout.
+- Next: have the security reviewer inspect the exact candidate snapshot and manifest, then trigger the replay workflow on this integration branch/immutable commit. Only if approved, change the review status through the documented review process and run the disposable local replay. Never target production.
+- No production mutation, migration, merge, deployment, or payment transaction was performed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Session update — 2026-10-16 — PR #252 integration CI evidence
+
+- Opened draft PR #252 for the integration candidate; it is **open, draft, and not merged**: https://github.com/islamnagy2022-eng/MantiqatiX/pull/252
+- Exact baseline replay workflow run: [38817921303](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38817921303), tested merge checkout `952ed46730291cb868412960df5b3ad08ca8f426`.
+- The checkout now contains all three baseline artifacts; the earlier missing-file/provenance failure is no longer the observed failure.
+- Validator fail-closed tests: **10/10 passed**.
+- Baseline verification then failed closed with the exact message `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`, because the manifest intentionally remains `PENDING_REVIEW`.
+- The isolated Supabase stack and restore/replay steps were skipped. This run does **not** prove forward migrations replay successfully and produced no replay evidence artifact.
+- Additional observed CI successes on the same integration PR: Migration Version Uniqueness (run `38817921286`), Migration History Immutability (`38817921205`), Open PR Migration Collision Guard (`38817921287`), Digital Pages Payment Source Contract (`38817921328`), Marketing CRM Tenant Scope (`38817921282`), and MantiGO Platform Admin Scope Hardening (`38817921380`). Other checks were still in progress at the time of this update; do not treat the entire PR check suite as complete.
+- Static inventory of the schema-only snapshot (not a complete security review): 16,203 lines; 145 SECURITY DEFINER function definitions; 485 CREATE POLICY statements; 234 row-level-security enable/force statements; no COPY-from-stdin data payloads or obvious token-pattern matches found by the simple scanner. This inventory is triage evidence only; each privileged function, grant, policy, and object still requires semantic review.
+- No manifest review status was changed. No production migration, write, deployment, Auth/RLS change, or financial transaction was performed. PR #252 remains draft and unmerged; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Static audit correction — SECURITY DEFINER counting method
+
+- Correction to the quick inventory above: the first broad text scan counted comments containing the phrase `SECURITY DEFINER`. A stricter scan limited to function language declarations finds **136 actual SECURITY DEFINER function definitions**, not 145.
+- All 136 have an explicit function-level `SET search_path` in the captured SQL. Distribution: empty search path 23; `public` 85; `public, pg_temp` 25; `pg_catalog, public` 1; `public, vault` 2.
+- This is still not a semantic security approval. In particular, functions whose path includes `public`, `pg_temp`, or `vault` need contextual review of schema trust, object qualification, grants, and function behavior. The static scan cannot prove that each function is safe.
+
+
+## Continuation — 2026-10-16 — migration-chain and platform-admin security review
+
+### Exact integration candidate status
+- PR #252 remains **OPEN / DRAFT / UNMERGED**. Current head: `8efddfd527c6b86c6cf960d3933fa3fa82fab206`; no production changes are authorized by this PR.
+- Replay run `38817921303` proved the baseline artifacts were present in the merge checkout and all 10 fail-closed validator contract tests passed. It stopped at the intended review gate: `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`. The disposable database and replay steps did not run; no successful replay claim is permitted.
+- The current source candidate includes recovered RC425–RC432 and RC434–RC441 migration files, plus RC462. **RC433 remains absent** from this candidate. Historical source notes also identify an overlapping RC434 proposal in stale draft PR #84. Preserve immutable migration history; reconcile the missing source and duplicate proposal before claiming a complete chronological chain.
+
+### Platform-wide MantiGO privileged RPCs — source evidence vs production evidence
+- The captured production schema snapshot (checkpoint `20261008222845`) contains the pre-RC449 definitions of the dashboard, financial report, settlement, and stale-ride expiry SECURITY DEFINER RPCs. Those captured definitions authorize based on tenant roles or membership and do not call `mnty_can_platform_admin()`.
+- The source migration `supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql` exists in the reviewed source tree. It requires an active `SUPER_ADMIN` membership on `MNTY-PLATFORM` with `scope=PLATFORM` and `full_control=true` before platform-wide dashboard/report/settlement/expiry operations. Its integration fixture rejects tenant OWNER, ADMIN, OPERATIONS_MANAGER, and tenant-scoped SUPER_ADMIN, while testing authorized platform-admin settlement idempotency and stale-ride expiry audit/notifications.
+- The repository's latest documented read-only production catalog evidence (status document last updated 2026-10-11) says the live versions of these four RPCs still lacked this guard and RC449 was not recorded in the live ledger. This was **not freshly re-queried in this continuation**; treat it as the last documented live finding, not a new 2026-10-16 live observation.
+- Required action: after baseline review and the full ordered replay are reconciled, obtain an approved rollout for the complete dependency chain; then re-check the live migration ledger, exact RPC definitions, and tenant-negative/platform-positive cases. Do not apply RC449 alone out of sequence and do not manually edit grants/functions in production.
+
+### Current decision
+- Baseline manifest remains `PENDING_REVIEW`; do not self-approve it.
+- The review must explicitly inspect SECURITY DEFINER functions, their `search_path`, grants, RLS policies, tenant/platform scope, and dependent migrations before permitting isolated replay.
+- No migration was run, no production state was queried or changed during this continuation, no Auth/RLS/grant/secret changes were made, and no financial operation or deployment occurred.
+- Release remains **BLOCKED / NOT CERTIFIED** until the reviewed full migration chain passes in disposable PostgreSQL, required production checks are freshly verified after an approved rollout, and runtime/payment/restore/rollback gates have evidence.
+
+
+## CI recheck — 2026-10-16 — reviewed baseline gate behaves fail-closed
+
+- Exact-head workflow run [38826621240](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/38826621240) on integration candidate `29591a75fe39f556f15b9b0b0ee47e53655fd998` completed the 10 baseline-validator contract tests with 10/10 passing.
+- The replay job then stopped at `Verify baseline provenance and explicit review` with `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`, because the manifest remains `PENDING_REVIEW`. Creating the isolated Supabase stack and forward replay were skipped as intended. This is a successful safety block, not a replay pass.
+- Migration History Immutability, Migration Version Uniqueness, RC462 malformed-permission regression, MantiGO platform-admin scope, Digital Pages Payment Source Contract, Backend-only Module Boundary, Marketing CRM Tenant Scope, Module Professionalization Validation, Open PR Migration Collision Guard, Approval Action Audit Atomicity, and MantiGO Open Ride Privacy workflows all reported success on that candidate head. These checks do not certify production deployment or full migration replay.
+- Protected-file compliance: restored `docs/SESSION_LOG.md` to the exact content from `main` because this project explicitly prohibits editing that file. Subsequent updates must continue using `docs/MASTER_PRODUCTION_TODO.md` or the approved release evidence docs only.
+- The migration replay still has a separately documented historical dependency blocker: authoritative historical DDL for `public.smm_provider_credentials` has not been recovered. Do not reconstruct it from the live table shape or a test fixture and claim historical replay parity. Recover the authoritative source or explicitly redesign the disposable bootstrap strategy with review.
+- No production migrations, grants/RLS/Auth changes, Edge Function deployments, financial transactions, or data writes were performed. Release remains `BLOCKED / NOT CERTIFIED`.
+
+
+## Baseline security inventory triage — 2026-10-16
+
+- Read the schema-only baseline artifact (820,374 characters / 16,203 lines) and cross-checked its metadata against the 283-version ledger list and checkpoint `20261008222845`. The SQL snapshot contains no `COPY ... FROM stdin` data payload. Simple pattern screening did not find common database-URI, known-token, JWT-shaped, or quoted credential-assignment patterns; this is only a screening result, not proof that no secret or sensitive implementation detail exists.
+- A static inventory pass found 144 function definitions marked `SECURITY DEFINER`; 119 have a configured `search_path` containing `public` and/or `pg_temp`, while 25 use an empty search path. This is a triage count from the snapshot, not a vulnerability count: each function's grants, body, object qualification, RLS assumptions, and intended exposure must be reviewed individually.
+- The snapshot also contains 485 `CREATE POLICY` statements, 468 `GRANT` statements, and 167 `REVOKE` statements. These make human security review material; do not bulk-revoke permissions or automatically rewrite policies based on counts.
+- The latest exact-head replay workflow [38826721589](https://github.com/islamnagy2022-eng/MantiqTiX/actions/runs/38826721589) completed the 10 fail-closed validator tests, then stopped at the explicit-review check with `BASELINE_BLOCKED: baseline has not passed explicit disposable-replay review`. Local Supabase startup and forward replay were skipped. The failure is expected until an authorized reviewer approves the baseline; it must not be reclassified as a replay pass.
+- Protected file check: `docs/SESSION_LOG.md` is now identical to `main` and no longer appears in PR #252's changed-file list. The TODO is the working status register.
+- No production migration, schema/data write, Auth/RLS/grant change, Edge Function deployment, payment, settlement, or release occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Baseline security review inventory artifact
+- Added `docs/release/BASELINE_SECURITY_REVIEW_INVENTORY_20261016.md` on this branch with 144 parsed SECURITY DEFINER function signatures and per-function review placeholders. Static classification: 25 use empty search_path and 119 use a path containing `public` and/or `pg_temp`; all remain **NOT REVIEWED**.
+- The inventory is a reviewer aid only; it does not claim the 119 functions are exploitable, and it does not mark the schema baseline approved. The review must include EXECUTE grants, body-level identity/scope checks, schema qualification, RLS, and intended caller exposure.
+
+
+
+## Security triage follow-up — 2026-10-16 — digital-page payment finalizer
+
+- [x] Reviewed the source of `public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)`, the claim migration, the `digital-page-payment-intent` Edge Function, and the Paymob webhook source on the integration candidate.
+- [x] Recorded finding DPAY-01 in [`docs/release/BASELINE_SECURITY_TRIAGE_20261016.md`](release/BASELINE_SECURITY_TRIAGE_20261016.md). The finalizer is SECURITY DEFINER and EXECUTE is granted to `authenticated`; the function checks `auth.uid() = p_user_id`, order ownership, and claim token, but does not itself prove `p_provider_intent_id` was returned by Paymob. Since a caller can invoke the claim RPC directly and choose its claim token, this trust boundary deserves isolation testing and likely a server-only finalization design.
+- [ ] NOT VERIFIED: no disposable runtime exploit/reproduction has been run. The supported impact so far is potential poisoning/denial of checkout for the order owner; payment fraud is **not established** by this static review.
+- [ ] REQUIRED: reviewer to inspect the deployed function grants/version, confirm webhook/provider binding behavior, and test direct authenticated RPC invocation in disposable Supabase. Proposed remediation is documented only; no grants, migrations, or Edge Function source were changed.
+- [x] Exact-head CI on candidate commit `56fe9a24259cd3ebffdca696a5d924d372f1a719`: Digital Pages Payment Source Contract, Migration History Immutability, RC462 malformed-permission regression, Approval Action Audit Atomicity, Migration Version Uniqueness, MantiGO Platform Admin Scope Hardening, Backend-only Module Boundary, Marketing CRM Tenant Scope, Module Professionalization Validation, Open PR Migration Collision Guard, and MantiGO Open Ride Privacy Boundary all completed successfully.
+- [x] Reviewed Production Baseline Forward Replay run [38827010080](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/38827010080) failed at the intended explicit-review gate. The 10 validator tests passed; baseline review remains pending, so isolated Supabase startup and forward replay were skipped. This is a correct safety block, not a migration replay failure and not a replay pass.
+- [x] Web deployment workflow run [38827010396](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/38827010396) reported validation success but the deploy job was **skipped**; this PR run does not mean the website was deployed.
+- **Safety:** no production query or mutation, migration, Auth/RLS/grant change, Edge Function deployment, real payment, settlement, PR merge, or production release occurred in this pass. PR #252 remains Draft and unmerged. Baseline remains `PENDING_REVIEW`; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Security triage follow-up — MantiGO webhook consistency — 2026-10-16
+
+- [x] Static source review identified finding MGO-PAY-01 in [`docs/release/BASELINE_SECURITY_TRIAGE_20261016.md`](release/BASELINE_SECURITY_TRIAGE_20261016.md): the MantiGO branch of `supabase/functions/paymob-webhook/index.ts` persists a provider event through one API call and updates the financial ledger in a separate API call. If the first succeeds and the second fails, a retry can see the existing event and return idempotent success before retrying the ledger update. The ledger update also does not inspect affected-row count.
+- [ ] NOT VERIFIED: this is a source-level failure-mode analysis; the deployed webhook parity and runtime impact have not been established, and no failure-injection test has run.
+- [ ] REQUIRED: test the event-insert/ledger-update failure and retry sequence in disposable Supabase; replace the split writes with a single atomic database transaction/RPC, explicit state/result handling, and duplicate/concurrency tests before closing the finding.
+- **Safety:** no webhook code, database function, grant, RLS/Auth setting, production data, payment, or deployment was changed. Keep production payment/settlement and release gates open pending evidence.
+
+
+## SMM financial integrity triage — 2026-10-16
+
+- [x] Reviewed the exact SMM gateway source on this candidate and the captured SMM wallet RPC bodies. Findings are documented in [`docs/release/SMM_FINANCIAL_INTEGRITY_REVIEW_20261016.md`](release/SMM_FINANCIAL_INTEGRITY_REVIEW_20261016.md).
+- [ ] **SMM-FIN-01 — NOT VERIFIED / HIGH PRIORITY:** order insert, wallet debit, and provider submission are separate operations without a client idempotency key bound to a unique order/debit. Duplicate submits can create duplicate charges; provider timeout is ambiguous and should not trigger an automatic refund until reconciliation.
+- [ ] **SMM-FIN-02 — NOT VERIFIED / HIGH PRIORITY:** captured `smm_refund_wallet` credits balance and inserts a refund transaction without enforcing a unique refund reference in the function body. Prove at-most-once refund in disposable DB and add an atomic idempotency constraint before release.
+- [ ] **SMM-FIN-03 — REVIEW REQUIRED:** `sync_services` writes the provider `rate` to both `provider_cost` and `selling_price`. Confirm provider rate units and preserve retail pricing/manual overrides; do not silently erase margin.
+- [ ] **SMM-FIN-04 — NOT VERIFIED:** post-provider order update and event-insert results are not consistently checked before success is returned; add failure-injection and reconciliation tests.
+- [ ] **Required next work:** implement/test the idempotent order/debit/refund transaction in a disposable environment, add explicit provider-timeout reconciliation states, check every mutation result, and verify pricing sync semantics. Do not run real provider orders or wallet mutations as a test.
+- **Safety:** this pass only created a review artifact and updated this register. No SMM implementation, migration, ACL, RLS/Auth setting, provider secret, wallet, production database, provider call, deployment, or PR merge was changed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+- [ ] **SMM-FIN-05 — REVIEW REQUIRED:** `my_data` maps a missing `smm_wallets` row to numeric zero. Establish authoritative missing-wallet semantics and return an explicit state or use an approved idempotent initialization path.
+- [ ] **SMM-FIN-06 — NOT VERIFIED:** `admin_data` does not inspect all three query errors and can return empty arrays on database failure. Return explicit errors rather than false-success empty inventories.
+
+
+## Payment callback failure-path review — 2026-10-16
+
+- [ ] **PAY-02 — NOT VERIFIED:** ordinary failed-payment callback inserts the provider event, then updates `payment_intents` without checking the update result; it can return HTTP 200 while state persistence failed. A retry can be short-circuited by the already-persisted event. Make dedupe + state transition atomic and test injected DB failures, zero-row updates, duplicate callbacks, and late failure after success.
+- [ ] **MGO-PAY-01 — NOT VERIFIED:** MantiGO provider event insert and ledger transition remain separate calls; retry can return idempotent success without retrying a failed ledger transition. Requires atomic transaction/RPC and concurrency/failure-injection tests.
+- Source-level evidence and remediation are recorded in [`docs/release/BASELINE_SECURITY_TRIAGE_20261016.md`](release/BASELINE_SECURITY_TRIAGE_20261016.md). These findings are not evidence of a production incident; deployed source parity is still unverified.
+
+
+- [ ] **PAY-03 — HIGH PRIORITY / NOT VERIFIED:** the ordinary payment-intent failure callback updates by intent ID only and can set `FAILED` without a prior-state guard. A distinct signed failure event arriving after success could downgrade the state. Add a monotonic state machine, provider-attempt binding, and success/failure ordering + concurrency tests in a disposable environment.
+
+## Payment webhook source-to-RPC convergence — 2026-10-16
+
+- [ ] **PAY-04 — HIGH PRIORITY / OPEN:** on the integration candidate, RC425/RC428/RC429/RC430 define atomic MantiGO, normal-payment-failure, subscription-failure, and subscription-success paths, but `supabase/functions/paymob-webhook/index.ts` still uses split direct writes for MantiGO/normal failures and direct table mutation for subscription failures; the subscription-success call also uses a different RPC name/argument contract than RC430.
+- [ ] Do not count the atomic migration files as remediation until the webhook is wired to the matching reviewed contracts and source-contract tests enforce the call sites.
+- [ ] Add disposable DB failure-injection, duplicate-event, concurrency, and late-failure-after-success tests. Resolve the missing historical migration source and baseline review gate before claiming replay success.
+- [ ] Deployed source parity and runtime behavior remain NOT VERIFIED. No production code, migration, grant, RLS/Auth setting, payment, or deployment was changed in this pass; release remains **BLOCKED / NOT CERTIFIED**.
+
+## Payment webhook atomic-RPC convergence — 2026-10-16 update
+
+- [x] Updated the integration candidate `supabase/functions/paymob-webhook/index.ts` in commit `a07959751bc454e92005fa9a78f1d1e55ce5fdec`: MantiGO uses RC425's `process_verified_mantigo_payment_backend`; ordinary failed payments use RC428's `process_verified_provider_payment_failure`; subscription failures and successes use RC429/RC430's corresponding backend RPCs.
+- [x] Extended `scripts/validate-finance-boundaries.mjs` in commit `341bb82d6ffa94b7bf99199ff4bd2bdbe81afaae` to require the RPC call sites and reject the old direct split-write patterns.
+- [ ] **NOT VERIFIED:** no successful CI run on the exact latest head was available during this pass; no local Supabase runtime or failure-injection tests were run.
+- [ ] **REQUIRED:** verify the source contract in CI; exercise duplicate event, transaction/order mismatch, concurrent callbacks, failed DB writes, and late failure after success in disposable PostgreSQL/Supabase; then resolve the missing RC433 source and explicit baseline review gate before claiming replay success.
+- No production code, migration, grants, RLS/Auth settings, secrets, payment, settlement, or deployment was changed. PR #252 remains Draft/unmerged; release remains **BLOCKED / NOT CERTIFIED**.

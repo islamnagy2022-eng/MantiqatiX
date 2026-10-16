@@ -4,6 +4,11 @@ import { spawnSync } from "node:child_process";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
+const baselineCaptureWorkflow = fs.readFileSync(".github/workflows/capture-production-schema-baseline.yml", "utf8");
+const baselineReplayWorkflow = fs.readFileSync(".github/workflows/production-baseline-forward-replay.yml", "utf8");
+const baselineValidator = fs.readFileSync("scripts/validate-production-schema-baseline.mjs", "utf8");
+const baselineReplayScript = fs.readFileSync("scripts/replay-from-production-schema-baseline.sh", "utf8");
+const reconciliationManifest = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
 const required = [
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261009130000_rc426_digital_page_provider_order_binding.sql",
@@ -48,7 +53,27 @@ assert.match(source, /reconciliation\.source_ledger_identity_reconciled===true/,
 assert.match(source, /reconciliation\.rc424_reconciliation\?\.exact_statement_match===true/, "RC424 reconciliation must be backed by exact ledger statement equality");
 assert.match(source, /reconciliation\.rc424_reconciliation\?\.history_rewritten===false/, "applied migration history must remain immutable");
 assert.match(source, /reconciliation\.required_release_migrations_applied===true/, "all required migrations must be proven applied");
-assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered disposable replay must pass");
+assert.match(source, /const baselineForwardReplayVerified\s*=\s*Boolean\(/, "reviewed baseline-forward replay must be an explicit evidence alternative");
+assert.match(source, /baselineReplay\.review_status === "APPROVED_FOR_DISPOSABLE_REPLAY"/, "baseline replay must require explicit review approval");
+assert.match(source, /baselineReplay\.checkpoint_version === reconciliation\?\.live_ledger_last_version/, "baseline checkpoint must match the live migration-ledger checkpoint");
+assert.match(source, /baselineReplay\.forward_migration_count > 0/, "baseline replay must apply at least one forward migration");
+assert.match(source, /replayEvidenceVerified/, "the release gate must accept either full chronological replay or reviewed baseline-forward replay");
+assert.ok(baselineCaptureWorkflow.includes("workflow_dispatch:"), "production schema capture must be manual only");
+assert.ok(baselineCaptureWorkflow.includes("confirm_schema_only_capture"), "schema capture must require explicit read-only confirmation");
+assert.ok(baselineCaptureWorkflow.includes("supabase db dump"), "schema capture must use the official schema-only dump path");
+assert.ok(baselineCaptureWorkflow.includes("peter-evans/create-pull-request@v7"), "captured schema must go through a draft review PR");
+assert.doesNotMatch(baselineCaptureWorkflow, /supabase db push|migration repair|apply_migration/i, "schema capture must not mutate production migrations");
+assert.ok(baselineValidator.includes("schema_snapshot_sha256"), "schema baseline must be hash-pinned");
+assert.ok(baselineValidator.includes("production_writes_performed: false"), "schema baseline manifest must explicitly deny production writes");
+assert.ok(baselineValidator.includes("PENDING_REVIEW"), "schema baseline must fail closed before human review");
+assert.ok(baselineReplayScript.includes('u.port !== "54322"'), "baseline replay must refuse non-local database URLs");
+assert.ok(baselineReplayScript.includes("DROP SCHEMA IF EXISTS public CASCADE"), "only the disposable local schema is reset before replay");
+assert.ok(baselineReplayScript.includes("exact_statement_match"), "RC424 alias skip must require exact source/ledger reconciliation");
+assert.ok(baselineReplayScript.includes('"$ALIAS_LEDGER_VERSION" == "$CHECKPOINT"'), "RC424 alias must be skipped when its verified ledger version equals the baseline checkpoint");
+assert.ok(baselineReplayScript.includes('"$ALIAS_LEDGER_VERSION" < "$CHECKPOINT"'), "RC424 alias must also be skipped if its verified ledger version predates the baseline checkpoint");
+assert.ok(baselineReplayWorkflow.includes('REQUIRE_BASELINE_REVIEW: "1"'), "forward replay must require reviewed baseline approval");
+assert.equal(reconciliationManifest.baseline_forward_replay?.status, "NOT RUN", "missing baseline evidence must remain explicitly NOT RUN");
+assert.equal(reconciliationManifest.verified, false, "the production reconciliation must remain unverified until live gates pass");
 assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
 assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");

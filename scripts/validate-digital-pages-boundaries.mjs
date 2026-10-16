@@ -12,4 +12,75 @@ for(const [src,marker,label] of [
 ]) if(!src.includes(marker)) throw new Error('Digital page boundary marker missing: '+label);
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
-console.log('RC424 digital pages/payment boundary validation: PASS');
+
+
+// RC431 source contract: validate the hardened replacement, not only the original RC424 implementation.
+const hardenedPayment = fs.readFileSync('supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql','utf8');
+for (const [marker,label] of [
+  ["set search_path = ''","empty SECURITY DEFINER search_path"],
+  ["p_status is null or p_status not in ('SUCCEEDED', 'FAILED')","NULL/invalid provider status rejection"],
+  ["p_external_event_id is distinct from ('paymob:' || p_provider_transaction_id)","event/transaction ID binding"],
+  ["DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH","provider order binding"],
+  ["DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH","replay status consistency"],
+  ["for update","row-locking for order/event processing"],
+  ["pg_advisory_xact_lock(hashtextextended(p_external_event_id, 0))","serialize cross-order deliveries sharing one provider event ID"],
+  ["DIGITAL_PAGE_PAYMENT_STATE_CHANGED","conditional payment state transition guard"],
+  ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from public;","PUBLIC execute revoked"],
+  ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from anon;","anon execute revoked"],
+  ["revoke all on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) from authenticated;","authenticated execute revoked"],
+  ["grant execute on function public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) to service_role;","service_role-only execute grant"]
+]) {
+  if (!hardenedPayment.toLowerCase().includes(marker.toLowerCase())) {
+    throw new Error('RC431 hardened payment source contract missing: '+label);
+  }
+}
+
+
+
+// RC426-RC430 source contracts: provider correlation and webhook paths must remain hardened together.
+const sourceContracts = [
+  ['supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql', [
+    ["p_provider_order_id text","provider order is an explicit argument"],
+    ["PAYMOB_PROVIDER_CORRELATION_REQUIRED","provider correlation required"],
+    ["auth.uid() <> p_user_id","payment intent owner binding"],
+    ["metadata->'payment_intent_claim'->>'token' = p_claim_token","claim token binding"],
+    ["set search_path = ''","empty SECURITY DEFINER search_path"]
+  ]],
+  ['supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql', [
+    ["RC427_DUPLICATE_ACTIVE_PAYMENT_INTENTS_REQUIRE_RECONCILIATION","fail closed on pre-existing duplicate intents"],
+    ["uq_payment_intents_one_active_per_order","unique active intent index"],
+    ["where upper(status) in ('CREATED', 'PENDING', 'SUCCEEDED')","active intent predicate"]
+  ]],
+  ['supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql', [
+    ["PAYMENT_FAILURE_SIGNATURE_REQUIRED","signed failure callback required"],
+    ["PAYMENT_PROVIDER_ORDER_MISMATCH","provider order binding"],
+    ["PRICING_BINDING_MISMATCH","immutable pricing binding"],
+    ["PAYMENT_FAILURE_REPLAY_STATUS_MISMATCH","failure replay status consistency"],
+    ["grant execute on function public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb) to service_role;","service-role-only failure processor"]
+  ]],
+  ['supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql', [
+    ["SUBSCRIPTION_PAYMENT_TRANSACTION_MISMATCH","subscription transaction/event binding"],
+    ["SUBSCRIPTION_PROVIDER_ORDER_MISMATCH","subscription provider order binding"],
+    ["SUBSCRIPTION_PAYMENT_EVENT_REPLAY_MISMATCH","subscription replay correlation"],
+    ["grant execute on function public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb) to service_role;","service-role-only subscription failure processor"]
+  ]],
+  ['supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql', [
+    ["SUBSCRIPTION_PAYMENT_TRANSACTION_MISMATCH","subscription success transaction/event binding"],
+    ["SUBSCRIPTION_PROVIDER_ORDER_MISMATCH","subscription success provider order binding"],
+    ["SUBSCRIPTION_PAYMENT_EVENT_REPLAY_MISMATCH","subscription success replay correlation"],
+    ["PAID_PENDING_LEGAL","do not activate when legal authorization is missing"],
+    ["grant execute on function public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb) to service_role;","service-role-only subscription success processor"]
+  ]]
+];
+for (const [pathName, checks] of sourceContracts) {
+  const source = fs.readFileSync(pathName, 'utf8').toLowerCase();
+  for (const [marker,label] of checks) {
+    if (!source.includes(marker.toLowerCase())) {
+      throw new Error(pathName+' source contract missing: '+label);
+    }
+  }
+}
+
+console.log('RC424-RC430/RC431 digital pages/payment boundary validation: PASS');
+
+

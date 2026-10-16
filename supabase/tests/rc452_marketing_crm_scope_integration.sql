@@ -17,6 +17,27 @@ begin
   if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then raise exception 'manager A cannot read pending provider in own business'; end if;
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then raise exception 'manager A read pending provider from another tenant'; end if;
 
+  -- Shared marketing catalogue is platform-global: tenant managers cannot mutate it.
+  perform set_config('request.jwt.claim.sub',manager_a::text,false);
+  begin
+    insert into public.marketing_services(id,code,name_ar,name_en,category_code,status)
+    values ('60000000-0000-4000-8000-000000000002','TENANT-SPOOF','خدمة غير مصرح بها','Unauthorized service','SMM','ACTIVE');
+    raise exception 'tenant manager mutated the shared marketing catalogue';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  -- Anonymous Auth sessions must not mutate the shared catalogue even if a user id is present.
+  perform set_config('request.jwt.claims','{"is_anonymous":true}',false);
+  begin
+    insert into public.marketing_services(id,code,name_ar,name_en,category_code,status)
+    values ('60000000-0000-4000-8000-000000000004','ANON-SERVICE','خدمة مجهولة','Anonymous service','SMM','ACTIVE');
+    raise exception 'anonymous session mutated the shared marketing catalogue';
+  exception when insufficient_privilege then
+    null;
+  end;
+  perform set_config('request.jwt.claims','{}',false);
+
   perform set_config('request.jwt.claim.sub',tenant_admin_a::text,false);
   if not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001')
      or not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000002') then
@@ -40,6 +61,49 @@ begin
   perform set_config('request.jwt.claim.sub',platform_admin::text,false);
   if (select count(*) from public.marketing_leads) <> 6 then raise exception 'explicit platform SUPER_ADMIN should see all six fixture leads'; end if;
   if (select count(*) from public.marketing_provider_profiles where status='PENDING') <> 2 then raise exception 'explicit platform SUPER_ADMIN should see pending providers across tenants'; end if;
+
+  -- Explicit platform scope can manage the shared catalogue.
+  perform set_config('request.jwt.claim.sub',platform_admin::text,false);
+  insert into public.marketing_services(id,code,name_ar,name_en,category_code,status)
+  values ('60000000-0000-4000-8000-000000000003','PLATFORM-SERVICE','خدمة المنصة','Platform service','SMM','ACTIVE');
+  if not exists(select 1 from public.marketing_services where id='60000000-0000-4000-8000-000000000003') then
+    raise exception 'platform admin cannot manage the shared marketing catalogue';
+  end if;
+
+  -- A JSON string "true" is not the Boolean true and must not grant platform privileges.
+  perform set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000018',false);
+  if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000003') then
+    raise exception 'string full_control granted platform-wide marketing lead visibility';
+  end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then
+    raise exception 'string full_control granted platform-wide provider visibility';
+  end if;
+
+  begin
+    insert into public.marketing_services(id,code,name_ar,name_en,category_code,status)
+    values ('60000000-0000-4000-8000-000000000006','STRING-TRUE-SERVICE','خدمة غير مصرح بها','String true service','SMM','ACTIVE');
+    raise exception 'string full_control mutated the shared marketing catalogue';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into public.marketing_leads(id,requester_user_id,requester_business_id,title)
+    values ('50000000-0000-4000-8000-000000000009','30000000-0000-4000-8000-000000000018','30000000-0000-4000-8000-000000000003','String true spoofed lead');
+    raise exception 'string full_control submitted a lead for an unrelated business';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into public.marketing_provider_profiles(id,business_id,owner_user_id,name_ar,status)
+    values ('40000000-0000-4000-8000-000000000007','30000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000018','String true spoofed provider','PENDING');
+    raise exception 'string full_control attached provider profile to an unrelated business';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub',platform_admin::text,false);
 
   -- A manager cannot spoof another business as the requester of a lead.
   perform set_config('request.jwt.claim.sub',manager_a::text,false);
