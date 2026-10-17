@@ -1609,3 +1609,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [x] A second schema audit compared the disposable test table against `20261006152000_mantigo_financial_ledger_v1.sql` and found the fixture had omitted production-required `captain_id`, `idempotency_key`, and some ledger checks/defaults. Updated the fixture and all three test records to satisfy those constraints; added a source-contract assertion for the fixture's key constraints.
 - [ ] The prior exact-head RC526 integration passed before this fixture-parity correction. Re-run and inspect the new exact-head workflow before treating the stronger fixture as verified.
+
+
+### RC526 privacy hardening and duplicate-candidate cleanup — 2026-10-17
+
+- [x] Because the ledger RLS policy permits both customer and captain reads, moved raw claim tokens and Paymob checkout client secrets to separate RLS-protected tables with explicit service-role-only grants; ledger metadata now contains only a timestamp claim marker and non-secret provider correlation.
+- [x] Claim/finalize/release RPCs now store and compare claim tokens only in the protected claim table. Integration coverage asserts client roles cannot SELECT either internal table, raw tokens do not enter ledger metadata, secrets are stored separately, and NULL HTTP status cannot release a claim.
+- [x] Closed superseded Draft PR #245 after migrating its intended work to canonical PR #289. A collision-check run started before #245 was closed and failed on that duplicate; re-run the collision guard on the latest head after closure.
+- [ ] Exact-head PostgreSQL + Deno validation for this latest security hardening remains pending. Do not merge or deploy while pending.
