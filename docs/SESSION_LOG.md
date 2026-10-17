@@ -101,3 +101,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Evidence:** Paymob Create Intention docs describe the response fields: https://developers.paymob.com/paymob-docs/intention-apis/create-intention.
 - **CI:** exact-head Deno + RC526 workflow result remains pending/not returned; no PASS is claimed.
 - **Safety:** no production mutation, real provider call, payment, merge, or deploy. Release remains BLOCKED / NOT CERTIFIED.
+
+
+### Follow-up correction — Paymob response amount units (2026-10-17)
+
+- Review of the current official Paymob Create Intention response example showed `intention_detail.amount` represented in currency units (example response amount `10` for currency `EGP`), while the request's `amount` is explicitly cents. Comparing the response value to `amountCents` would risk rejecting valid intentions.
+- Corrected the candidate to compare `intention_detail.amount` to the ledger's major-unit `amount`, while retaining exact currency and `special_reference` correlation. The static validator now enforces this response-unit contract.
+- Source: https://developers.paymob.com/paymob-docs/intention-apis/create-intention. The documentation sample is not a live provider test; exact-head CI and sandbox E2E remain required.
+- Latest code commit: `a9400f6a5a5b5d0fb049f12825d03e2ee7b8f06e`; validator commit: `3bbb563d02bd70b35327fa847df590129c77ff71`.
+- No production change or provider request. Status remains pending verification.
