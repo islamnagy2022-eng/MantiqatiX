@@ -1588,3 +1588,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: RC434's line-level purchase quantity limits/dependencies must be reviewed with RC437/RC438 in order. Missing RC425–RC432 and RC434–RC441 source files remain on main.
 - [ ] BLOCKED: authoritative historical creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing. The current schema snapshot contains the live definition but does not establish historical provenance.
 - [ ] BLOCKED: PR #282 remains Draft/unmerged until full chronological disposable replay, tenant isolation, payment/finance E2E, and backup/restore gates pass. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC526 MantiGO Paymob claim boundary (draft candidate)
+
+- [x] Added a database-backed claim/finalize boundary before the external Paymob request. The conditional row update serializes contenders; only one request can claim a REQUIRED ledger.
+- [x] Corrected RPC signatures and disposable fixture to use `text`, matching the authoritative `mantigo_financial_ledger.id text primary key` schema.
+- [x] Claim eligibility requires `provider IS NULL`, no provider intent ID, and no existing claim. Partial or PENDING state fails closed.
+- [x] Provider call is bounded to 15 seconds. Timeout/network ambiguity, incomplete provider response, and failed finalization retain the claim and require reconciliation instead of blind retry.
+- [x] Added disposable PostgreSQL tests for role grants, wrong-token rejection, finalization, metadata preservation, and a two-session dblink claim race. Added source contract + Deno type-check + PostgreSQL workflow gates to existing PR-triggered workflows.
+- [ ] Exact-head CI and PostgreSQL behavior remain pending. This is a source candidate only; full RC425–RC441 chronological replay remains blocked by missing historical provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- [ ] Operator reconciliation for abandoned/ambiguous claims is still required; never auto-clear them.
+- **Production impact:** none. No production DDL/data change, live Paymob request, payment, deployment, or merge.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
