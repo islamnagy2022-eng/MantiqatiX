@@ -3,7 +3,7 @@
 -- Finalization only succeeds for the exact claim token and REQUIRED ledger state.
 
 create or replace function public.claim_mantigo_payment_intent_backend(
-  p_ledger_id uuid,
+  p_ledger_id text,
   p_claim_token text
 )
 returns boolean
@@ -25,7 +25,7 @@ begin
   where id = p_ledger_id
     and payment_status = 'REQUIRED'
     and provider_intent_id is null
-    and (provider is null or provider = 'PAYMOB')
+    and provider is null
     and not (coalesce(metadata, '{}'::jsonb) ? 'paymob_intent_claim');
 
   return found;
@@ -33,7 +33,7 @@ end;
 $function$;
 
 create or replace function public.finalize_mantigo_payment_intent_backend(
-  p_ledger_id uuid,
+  p_ledger_id text,
   p_claim_token text,
   p_provider_intent_id text,
   p_provider_order_id text,
@@ -74,7 +74,7 @@ begin
 end;
 $function$;
 
-revoke all on function public.claim_mantigo_payment_intent_backend(uuid, text) from public, anon, authenticated;
-revoke all on function public.finalize_mantigo_payment_intent_backend(uuid, text, text, text, text, jsonb) from public, anon, authenticated;
-grant execute on function public.claim_mantigo_payment_intent_backend(uuid, text) to service_role;
-grant execute on function public.finalize_mantigo_payment_intent_backend(uuid, text, text, text, text, jsonb) to service_role;
+revoke all on function public.claim_mantigo_payment_intent_backend(text, text) from public, anon, authenticated;
+revoke all on function public.finalize_mantigo_payment_intent_backend(text, text, text, text, text, jsonb) from public, anon, authenticated;
+grant execute on function public.claim_mantigo_payment_intent_backend(text, text) to service_role;
+grant execute on function public.finalize_mantigo_payment_intent_backend(text, text, text, text, text, jsonb) to service_role;
