@@ -1615,3 +1615,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: complete chronological replay still needs authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; do not stub or bypass.
 - [ ] BLOCKED: integrate RC462 with RC565 in a reviewed, collision-free release candidate and run tenant-vs-platform authorization regression after ordered replay.
 - Production remains untouched; release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC565 PostgreSQL regression result — 2026-10-17
+
+- [x] PASS: exact-head workflow [38993005417](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005417) applied RC449 then RC565 in disposable PostgreSQL and passed both the platform-admin authorization integration and the new RC565 report behavior regression.
+- [x] PASS: migration version uniqueness [38993005451](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005451) and migration history immutability [38993005429](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005429) on the same code head.
+- [x] PASS: Pages/web validation; deploy job skipped, so no production deployment.
+- [ ] Pending: exact-head cross-PR migration collision guard, module-professionalization, and MantiGO privacy checks must finish before overall PR suite is called green.
+- [ ] Pending: RC462 malformed-permission PostgreSQL regression in PR #248.
+- [ ] BLOCKED: complete chronological replay needs authoritative historical DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`; no placeholder or bypass permitted.
+- [ ] BLOCKED: live production platform-scope correction and RC565 rollout are not deployed. Live ledger remains RC424; release remains **BLOCKED / NOT CERTIFIED**.
