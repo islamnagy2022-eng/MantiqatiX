@@ -94,6 +94,43 @@ end
 $test$;
 
 
+
+-- A provider-intent uniqueness conflict must roll back ledger finalization and keep the claim.
+insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
+values('52600000-0000-4000-8000-000000000010','ride-rc526-duplicate-intent','52600000-0000-4000-8000-000000000011','52600000-0000-4000-8000-000000000012',125,'REQUIRED','RC526-test-duplicate-intent','{}'::jsonb);
+
+do $duplicate_intent$
+declare
+  v_ledger text := '52600000-0000-4000-8000-000000000010';
+  v_claimed boolean;
+  v_conflict boolean := false;
+  v_status text;
+  v_provider text;
+  v_metadata jsonb;
+begin
+  select public.claim_mantigo_payment_intent_backend(v_ledger,'duplicate-intent-token') into v_claimed;
+  if v_claimed is not true then raise exception 'RC526_DUPLICATE_INTENT_CLAIM_FAILED'; end if;
+
+  begin
+    perform public.finalize_mantigo_payment_intent_backend(v_ledger,'duplicate-intent-token','intent-1','order-duplicate','secret-duplicate',null);
+  exception when unique_violation then
+    v_conflict := true;
+  end;
+  if not v_conflict then raise exception 'RC526_DUPLICATE_PROVIDER_INTENT_MUST_FAIL'; end if;
+
+  select payment_status,provider,metadata into v_status,v_provider,v_metadata
+  from public.mantigo_financial_ledger where id=v_ledger;
+  if v_status <> 'REQUIRED'
+     or v_provider is not null
+     or not (v_metadata ? 'paymob_intent_claim')
+     or not exists(select 1 from public.mantigo_payment_intent_claims where ledger_id=v_ledger and claim_token='duplicate-intent-token')
+     or exists(select 1 from public.mantigo_payment_intent_secrets where ledger_id=v_ledger) then
+    raise exception 'RC526_FAILED_FINALIZATION_MUST_ROLL_BACK_AND_KEEP_CLAIM';
+  end if;
+end
+$duplicate_intent$;
+
+
 -- Definitive provider rejection may release the exact claim; ambiguous statuses may not.
 insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
 values('52600000-0000-4000-8000-000000000005','ride-rc526-rejection','52600000-0000-4000-8000-000000000006','52600000-0000-4000-8000-000000000008',125,'REQUIRED','RC526-test-rejection','{"preserved":"yes"}'::jsonb);
