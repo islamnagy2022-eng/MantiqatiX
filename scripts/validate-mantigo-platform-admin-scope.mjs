@@ -30,7 +30,7 @@ check("RC462 avoids casting permission text to Boolean", !guardFix.includes("->>
 check("RC462 preserves empty search_path and removes public/anon execution", guardFix.includes("set search_path = ''") && guardFix.includes("revoke all on function public.mnty_can_platform_admin() from public, anon"));
 check("RC462 regression denies malformed string, false Boolean, and string true", malformedPermissionsTest.includes("malformed string full_control") && malformedPermissionsTest.includes("boolean false full_control") && malformedPermissionsTest.includes("JSON string true must not grant platform access"));
 check("RC462 regression verifies guarded dashboard, financial report, settlement, and expiration", malformedPermissionsTest.includes("platform-wide financial report") && malformedPermissionsTest.includes("platform-wide settlement RPC") && malformedPermissionsTest.includes("platform dashboard") && malformedPermissionsTest.includes("stale-ride expiration RPC"));
-check("RC462 regression preserves valid explicit JSON Boolean true", malformedPermissionsTest.includes('\\\"full_control\\\":true') && malformedPermissionsTest.includes("valid explicit platform permission must continue to allow access"));
+check("RC462 regression preserves valid explicit JSON Boolean true", malformedPermissionsTest.includes('"full_control":true') && malformedPermissionsTest.includes("valid explicit platform permission must continue to allow access"));
 
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
