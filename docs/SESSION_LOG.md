@@ -71,3 +71,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Live Supabase was checked read-only again: 283 migration records through `20261008222845`; the RC425 MantiGo provider-event table and processor RPC remain absent.
 - Full chronological replay remains blocked by missing authoritative historical creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub or bypass the historical revoke.
 - No production changes were made. Production gate remains **BLOCKED / NOT CERTIFIED** pending replay, tenant-isolation and payment/finance E2E, backup/restore, deployed Edge Function parity, SMM launch-scope/parity, and Auth security evidence.
+
+
+## 2026-10-17 — RC428–RC430 integration fixture fix
+
+- **Failed evidence:** workflow run [39001434526](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39001434526), job `rc428-430-payment-webhooks`, failed at RC430 subscription activation because the disposable fixture's `business_subscriptions` table lacked `updated_at`.
+- **Fix:** added `updated_at timestamptz not null default now()` to `supabase/tests/rc428_430_payment_webhook_fixture.sql` in commit `bbc9772061dab0a35732bbddbb7e05bab92a9ad6`. This aligns the fixture with the production migration's write contract; no production schema was touched.
+- **Status:** pending fresh exact-head CI. Further fixture mismatches, if any, must be fixed based on observed errors rather than guessed.
