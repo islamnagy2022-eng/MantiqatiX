@@ -1,12 +1,9 @@
 -- TEST-ONLY SYNTHETIC SHOWCASE OWNER SEED FOR DISPOSABLE MIGRATION REPLAY
 -- The committed RC339 showcase seed references this fixed owner UUID; production schema capture excludes rows.
 -- This fixture creates a non-login synthetic auth identity only in disposable CI, plus its public profile.
+-- It runs before RC215's auth.users trigger migration, whose backfill then creates the CUSTOMER membership.
 -- Email is reserved under invalid.example; password hash is empty; no tokens or credentials are issued.
 -- NEVER apply this file to production.
-
--- The legacy RC215 trigger creates a CUSTOMER membership before the public.users profile exists.
--- Disable only that trigger while constructing this synthetic fixture; restore it before continuing.
-ALTER TABLE auth.users DISABLE TRIGGER on_mnty_auth_user_created_customer_membership;
 
 INSERT INTO auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -59,9 +56,3 @@ ON CONFLICT (id) DO UPDATE SET
   current_region = EXCLUDED.current_region,
   updated_at = now();
 
-ALTER TABLE auth.users ENABLE TRIGGER on_mnty_auth_user_created_customer_membership;
-
-SELECT private.ensure_customer_membership_for_user(
-  'f7914ac7-4b03-4456-afdd-e386f2ac6a5b'::uuid,
-  'MNTY-PLATFORM'
-);

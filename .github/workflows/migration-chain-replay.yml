@@ -112,7 +112,7 @@ jobs:
           settlement_transactions_policy_migration="supabase/migrations/20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql"
           wallet_accounts_policy_migration="supabase/migrations/20260927140486_test_only_live_derived_wallet_accounts_finance_read.sql"
           wallet_transactions_policy_migration="supabase/migrations/20260927140485_test_only_live_derived_wallet_transactions_finance_read.sql"
-          platform_user_seed_migration="supabase/migrations/20261004005817_test_only_mnty_showcase_owner_user_seed.sql"
+          platform_user_seed_migration="supabase/migrations/20260930090000_test_only_mnty_showcase_owner_user_seed.sql"
           platform_organization_seed_migration="supabase/migrations/20261004005818_test_only_mnty_main_organization_seed.sql"
           platform_tenant_seed_migration="supabase/migrations/20260929073243_test_only_mnty_platform_tenant_seed.sql"
           for file in "$legacy_businesses_baseline" "$legacy_products_baseline" "$legacy_orders_baseline" "$registration_baseline" "$registration_security_baseline" "$profiles_baseline" "$marketing_leads_baseline" "$admins_baseline" "$providers_baseline" "$credentials_baseline" "$bookings_baseline" "$approval_policy_baseline" "$marketing_schema_baseline" "$journal_finance_policy_baseline" "$general_ledger_policy_baseline" "$commission_policy_baseline" "$legacy_functions_baseline" "$smm_bootstrap_baseline" "$smm_wallets_baseline" "$smm_wallet_transactions_baseline" "$smm_services_baseline" "$smm_orders_baseline" "$smm_order_events_baseline" "$settlement_baseline" "$settlement_attempts_baseline" "$credit_policies_baseline" "$credit_accounts_baseline" "$credit_periods_baseline" "$payment_provider_events_baseline" "$payment_events_policy_baseline" "$settlement_transactions_policy_baseline" "$wallet_accounts_policy_baseline" "$wallet_transactions_policy_baseline" "$platform_tenant_seed_baseline" "$platform_organization_seed_baseline" "$platform_user_seed_baseline"; do test -f "$file"; done
@@ -222,7 +222,7 @@ jobs:
           settlement_transactions_policy_migration="supabase/migrations/20260927140492_test_only_live_derived_settlement_transactions_finance_read.sql"
           wallet_accounts_policy_migration="supabase/migrations/20260927140486_test_only_live_derived_wallet_accounts_finance_read.sql"
           wallet_transactions_policy_migration="supabase/migrations/20260927140485_test_only_live_derived_wallet_transactions_finance_read.sql"
-          platform_user_seed_migration="supabase/migrations/20261004005817_test_only_mnty_showcase_owner_user_seed.sql"
+          platform_user_seed_migration="supabase/migrations/20260930090000_test_only_mnty_showcase_owner_user_seed.sql"
           platform_organization_seed_migration="supabase/migrations/20261004005818_test_only_mnty_main_organization_seed.sql"
           platform_tenant_seed_migration="supabase/migrations/20260929073243_test_only_mnty_platform_tenant_seed.sql"
           smm_order_events_migration="supabase/migrations/20260927140491_test_only_live_derived_smm_order_events_baseline.sql"

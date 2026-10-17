@@ -95,11 +95,13 @@ if (platformOrganizationSeedFailures.length) {
 }
 
 const platformUserSeedBaselinePath = "supabase/tests/baselines/mnty_showcase_owner_user_seed.sql";
-const platformUserSeedVersion = "20261004005817";
+const platformUserSeedVersion = "20260930090000";
 const platformUserSeedTemporaryName = platformUserSeedVersion + "_test_only_mnty_showcase_owner_user_seed.sql";
 const platformUserSeedConsumerSourceName = "20261004004500_rc339_seed_mantiqati_official_showcase.sql";
 const platformUserSeedConsumerReplayVersion = "20261004005819";
 const platformUserSeedConsumer = migrations.find(({ name }) => name === platformUserSeedConsumerSourceName);
+const platformUserSeedTriggerMigrationName = "20260930100000_rc215_customer_membership_invariant.sql";
+const platformUserSeedTriggerMigration = migrations.find(({ name }) => name === platformUserSeedTriggerMigrationName);
 const platformUserSeedBaseline = fs.existsSync(platformUserSeedBaselinePath)
   ? fs.readFileSync(platformUserSeedBaselinePath, "utf8")
   : "";
@@ -116,9 +118,8 @@ const platformUserSeedBaselineValid =
   /INSERT INTO auth\.users\s*\([\s\S]*?id, aud, role, email, encrypted_password, email_confirmed_at[\s\S]*?raw_app_meta_data, raw_user_meta_data, created_at, updated_at/i.test(platformUserSeedBaseline) &&
   /f7914ac7-4b03-4456-afdd-e386f2ac6a5b/i.test(platformUserSeedBaseline) &&
   /showcase-owner@invalid\.example/i.test(platformUserSeedBaseline) &&
-  /ALTER TABLE auth\.users DISABLE TRIGGER on_mnty_auth_user_created_customer_membership/i.test(platformUserSeedBaseline) &&
-  /ALTER TABLE auth\.users ENABLE TRIGGER on_mnty_auth_user_created_customer_membership/i.test(platformUserSeedBaseline) &&
-  /SELECT private\.ensure_customer_membership_for_user\([\s\S]*f7914ac7-4b03-4456-afdd-e386f2ac6a5b[\s\S]*MNTY-PLATFORM/i.test(platformUserSeedBaseline) &&
+  !/ALTER TABLE auth\.users (?:DISABLE|ENABLE) TRIGGER/i.test(platformUserSeedBaseline) &&
+  !/SELECT private\.ensure_customer_membership_for_user/i.test(platformUserSeedBaseline) &&
   /INSERT INTO public\.users\s*\([\s\S]*?id, tenant_id, organization_id, name, email, role, roles/i.test(platformUserSeedBaseline) &&
   /'MNTY-PLATFORM'[\s\S]*'OWNER'[\s\S]*ON CONFLICT \(id\) DO UPDATE/i.test(platformUserSeedBaseline) &&
   platformUserSeedDml.length === 2 &&
@@ -129,7 +130,9 @@ const platformUserSeedFailures = [
   ["invalid synthetic showcase owner fixture", !platformUserSeedBaselineValid],
   ["temporary showcase owner migration already exists", fs.existsSync(path.join(migrationDirectory, platformUserSeedTemporaryName))],
   ["temporary showcase owner version collision", migrations.some(({ name }) => name.slice(0, 14) === platformUserSeedVersion)],
+  ["missing RC215 trigger migration", !platformUserSeedTriggerMigration],
   ["temporary showcase owner seed does not follow tenant seed", platformUserSeedVersion <= platformTenantSeedVersion],
+  ["temporary showcase owner seed is not before RC215 trigger migration", !platformUserSeedTriggerMigration || platformUserSeedVersion >= platformUserSeedTriggerMigration.name.slice(0, 14)],
   ["temporary showcase owner seed is not before organization seed", platformUserSeedVersion >= platformOrganizationSeedVersion],
   ["temporary showcase owner seed is not before canonical RC339 replay version", platformUserSeedVersion >= platformUserSeedConsumerReplayVersion],
   ["RC339 replay alias is missing for showcase owner", !replayWorkflowForOrganizationSeed.includes('rename_legacy_alias "20261004004500_rc339_seed_mantiqati_official_showcase.sql" "20261004005819_rc339_seed_mantiqati_official_showcase.sql"')]
