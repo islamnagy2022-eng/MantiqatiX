@@ -35,8 +35,14 @@ Deno.serve(async req=>{
   if(!["REQUIRED","PENDING"].includes(String(ledger.payment_status)))return json({error:"RIDE_NOT_PAYABLE",paymentStatus:ledger.payment_status},409,requestId);
 
   const metadata=(ledger.metadata&&typeof ledger.metadata==="object"?ledger.metadata:{}) as Record<string,unknown>;
-  if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret){
+  if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret&&metadata.paymob_intention_order_id){
     return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
+  }
+  // A pending ledger, partial provider correlation, or prior claim requires reconciliation.
+  // Never create a second provider intention from ambiguous or partially persisted state.
+  if(ledger.payment_status==="PENDING"||metadata.paymob_intent_claim||
+     ledger.provider||ledger.provider_intent_id||metadata.paymob_client_secret||metadata.paymob_intention_order_id){
+    return json({error:"PAYMENT_INTENT_RECOVERY_REQUIRED",recoveryRequired:true},409,requestId);
   }
 
   const amount=Number(ledger.gross_amount);
@@ -53,7 +59,17 @@ Deno.serve(async req=>{
   const city=String(user.user_metadata?.city??"NA").trim()||"NA";
   const state=String(user.user_metadata?.state??city).trim()||"NA";
 
-  const providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
+  // Claim this REQUIRED ledger before calling Paymob. Only one concurrent request can win.
+  const claimToken=crypto.randomUUID();
+  const {data:claimed,error:claimError}=await admin.rpc("claim_mantigo_payment_intent_backend",{
+    p_ledger_id:ledger.id,p_claim_token:claimToken
+  });
+  if(claimError)return json({error:"PAYMENT_INTENT_CLAIM_FAILED"},500,requestId);
+  if(claimed!==true)return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
+
+  let providerResponse:Response;
+  try{
+   providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
     method:"POST",
     headers:{"Authorization":`Token ${PAYMOB_SECRET_KEY}`,"Content-Type":"application/json"},
     body:JSON.stringify({
@@ -62,20 +78,32 @@ Deno.serve(async req=>{
       billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city,country:"EG",email,floor:"NA",state},
       special_reference:ledger.id,expiration:3600,notification_url:PAYMOB_CALLBACK_URL
     })
-  });
+   signal:AbortSignal.timeout(15000)
+   });
+  }catch(error){
+   // The claim deliberately remains in place: timeout/network failure cannot prove Paymob rejected the request.
+   console.error(JSON.stringify({requestId,stage:"paymob_intention_outcome_unknown",error:String(error)}));
+   return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",recoveryRequired:true},503,requestId);
+  }
   const provider=await providerResponse.json().catch(()=>({})) as Record<string,unknown>;
   const clientSecret=String(provider.client_secret??"");
   const providerIntentId=String(provider.id??"");
-  if(!providerResponse.ok||!clientSecret||!providerIntentId){
+  const providerOrderId=String(provider.intention_order_id??"");
+  if(!providerResponse.ok||!clientSecret||!providerIntentId||!providerOrderId){
+    // Keep the claim: a timeout or malformed provider response may hide a created intention.
+    // Reconciliation must resolve this claim before another external intention is attempted.
     console.error(JSON.stringify({requestId,stage:"paymob_intention",httpStatus:providerResponse.status}));
-    return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT"},502,requestId);
+    return json({error:"PAYMENT_PROVIDER_INTENT_UNCONFIRMED",recoveryRequired:true},502,requestId);
   }
 
-  const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:provider.intention_order_id??null,paymob_payment_methods:provider.payment_methods??null};
-  const {error:updateError}=await admin.from("mantigo_financial_ledger").update({
-    provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED");
-  if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
+  const {data:persistedIntent,error:updateError}=await admin.rpc("finalize_mantigo_payment_intent_backend",{
+    p_ledger_id:ledger.id,p_claim_token:claimToken,p_provider_intent_id:providerIntentId,
+    p_provider_order_id:providerOrderId,p_client_secret:clientSecret,p_payment_methods:provider.payment_methods??null
+  });
+  if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED",recoveryRequired:true},500,requestId);
+  // The RPC compares the exact claim token and ledger state inside PostgreSQL.
+  // Never hand the caller a checkout secret unless finalization returned true.
+  if(persistedIntent!==true)return json({error:"PAYMENT_INTENT_STATE_CHANGED",recoveryRequired:true},409,requestId);
   return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret,checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(clientSecret)}`:null,requestId},200,requestId);
  }catch(error){
   console.error(JSON.stringify({requestId,error:String(error)}));
