@@ -1701,3 +1701,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Any forward-only security/behavior change needs separate design review and tests. A later migration alone cannot make the earlier revoke succeed in a blank replay.
 - [ ] Do not create/apply a production migration or enable the baseline until required approval, ACL review, pinned provenance, and disposable-only isolation are established.
 - Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Forward replay evidence update (SESSION-RESUME-VERIFY-003)
+
+- [x] Exact-head PR #289 checks on `74f6768eba37898ef13c66fa057ecb71ebbc3e81` inspected and logged; all 11 listed workflows passed, with web deployment skipped.
+- [x] Test-only forward replay on `test/production-baseline-forward-replay-20261017` at `a79b2caa5b883817f5c1b550d044b09780f06820` passed run [39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892), including isolated Supabase restore and forward migrations after RC424 checkpoint. Do not infer a migration count until the exact artifact is read.
+- [ ] **Still BLOCKED:** recover authoritative historical creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. The forward-baseline replay is not full blank-database chronological replay.
+- [ ] Review baseline security findings and artifact contents before using this test-only path as release evidence. Do not change PR #284 manifest from PENDING_REVIEW; the test-only approval on its isolated branch is not production or merge approval.
+- [ ] After historical provenance/replay decision, complete tenant-isolation, Paymob Sandbox, backup/restore, deployed Edge Function parity, and Auth/SMM release gates.
+- Release gate remains **BLOCKED / NOT CERTIFIED**; no production mutation or deployment occurred.
