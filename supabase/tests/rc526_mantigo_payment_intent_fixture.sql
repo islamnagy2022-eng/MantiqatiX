@@ -28,3 +28,50 @@ create table public.mantigo_financial_ledger (
 create unique index mantigo_financial_provider_intent_uidx
   on public.mantigo_financial_ledger(provider, provider_intent_id)
   where provider_intent_id is not null;
+
+
+-- Disposable auth/admin/audit fixtures for the operator reconciliation RPC.
+create schema if not exists auth;
+create or replace function auth.uid()
+returns uuid
+language sql
+stable
+as $function$
+  select nullif(pg_catalog.current_setting('request.jwt.claim.sub', true), '')::uuid
+$function$;
+
+create table public.user_memberships (
+  user_id uuid not null,
+  tenant_id text not null,
+  status text not null,
+  role text not null,
+  permissions jsonb not null default '{}'::jsonb
+);
+
+create or replace function public.mnty_can_platform_admin()
+returns boolean
+language sql
+stable
+as $function$
+  select exists (
+    select 1 from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id = 'MNTY-PLATFORM'
+      and m.status = 'ACTIVE'
+      and upper(m.role) = 'SUPER_ADMIN'
+      and coalesce(m.permissions ->> 'scope' = 'PLATFORM', false)
+      and coalesce((m.permissions ->> 'full_control')::boolean, false)
+  )
+$function$;
+
+create table public.audit_logs (
+  id text primary key,
+  tenant_id text,
+  actor_user_id uuid,
+  action text not null,
+  entity_type text,
+  entity_id text,
+  old_values jsonb,
+  new_values jsonb,
+  result text
+);
