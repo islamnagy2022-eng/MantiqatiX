@@ -79,6 +79,9 @@ Deno.serve(async (req) => {
   }
 
   const intent = (rpc.data ?? {}) as Record<string, unknown>;
+  if (intent.idempotent === true && ["CREATED", "PENDING", "SUCCEEDED"].includes(String(intent.status ?? "").toUpperCase())) {
+    return json({ error: "PAYMENT_INTENT_ALREADY_INITIALIZED", requestId }, 409, requestId);
+  }
   const paymentIntentId = String(intent.id ?? "");
   if (!paymentIntentId) return json({ error: "Payment intent creation failed", requestId }, 500, requestId);
 
@@ -108,23 +111,51 @@ Deno.serve(async (req) => {
     special_reference: paymentIntentId, expiration: 3600, notification_url: PAYMOB_CALLBACK_URL
   };
 
-  const response = await fetch("https://accept.paymob.com/v1/intention/", {
-    method: "POST", headers: { "Authorization": `Token ${PAYMOB_SECRET_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(paymobPayload)
-  });
-  const provider = await response.json().catch(() => ({}));
-  if (!response.ok || !provider?.id || !provider?.client_secret) {
-    await admin.from("payment_intents").update({ status: "FAILED", updated_at: new Date().toISOString() }).eq("id", paymentIntentId);
-    console.error(JSON.stringify({ requestId, stage: "paymob_intention", httpStatus: response.status }));
-    return json({ error: "Payment provider rejected the payment intent", requestId }, 502, requestId);
+  let response: Response;
+  let provider: Record<string, unknown> = {};
+  try {
+    response = await fetch("https://accept.paymob.com/v1/intention/", {
+      method: "POST", headers: { "Authorization": `Token ${PAYMOB_SECRET_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(paymobPayload)
+    });
+    provider = await response.json().catch(() => ({})) as Record<string, unknown>;
+  } catch {
+    // Paymob may have created an intention even if the network response was lost.
+    // Keep the DB intent active and block retries until reconciliation.
+    console.error(JSON.stringify({ requestId, stage: "paymob_intention", outcome: "UNKNOWN" }));
+    return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliationRequired: true, requestId }, 502, requestId);
   }
 
-  const { error: updateError } = await admin.from("payment_intents").update({
-    provider_intent_id: String(provider.id), status: "PENDING", updated_at: new Date().toISOString()
-  }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion);
+  const providerOrderId = String(provider?.intention_order_id ?? provider?.order_id ?? "");
+  if (response.status >= 400 && response.status < 500) {
+    const { data: failedIntent, error: failError } = await admin.from("payment_intents")
+      .update({ status: "FAILED", updated_at: new Date().toISOString() })
+      .eq("id", paymentIntentId).eq("status", "CREATED").is("provider_intent_id", null)
+      .select("id").maybeSingle();
+    if (failError || !failedIntent) {
+      console.error(JSON.stringify({ requestId, stage: "persist_definitive_provider_rejection", code: failError?.code ?? "NO_ROW" }));
+      return json({ error: "PAYMENT_REJECTION_PERSISTENCE_FAILED", reconciliationRequired: true, requestId }, 500, requestId);
+    }
+    console.error(JSON.stringify({ requestId, stage: "paymob_intention", httpStatus: response.status, outcome: "REJECTED" }));
+    return json({ error: "PAYMENT_PROVIDER_REJECTED", requestId }, 502, requestId);
+  }
 
-  if (updateError) {
-    console.error(JSON.stringify({ requestId, stage: "persist_provider_intent", code: updateError.code }));
-    return json({ error: "Payment intent persistence failed", requestId }, 500, requestId);
+  if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId) {
+    // HTTP 5xx, malformed JSON, or missing provider identifiers are ambiguous.
+    // Do not mark FAILED: a provider intention may exist despite the incomplete response.
+    console.error(JSON.stringify({ requestId, stage: "paymob_intention", httpStatus: response.status, outcome: "UNKNOWN" }));
+    return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliationRequired: true, requestId }, 502, requestId);
+  }
+
+  const { data: persistedIntent, error: updateError } = await admin.from("payment_intents").update({
+    provider_intent_id: String(provider.id), provider_order_id: providerOrderId,
+    status: "PENDING", updated_at: new Date().toISOString()
+  }).eq("id", paymentIntentId).eq("status", "CREATED").is("provider_intent_id", null)
+    .eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion)
+    .select("id").maybeSingle();
+
+  if (updateError || !persistedIntent) {
+    console.error(JSON.stringify({ requestId, stage: "persist_provider_intent", code: updateError?.code ?? "NO_ROW" }));
+    return json({ error: "PAYMENT_INTENT_PERSISTENCE_UNKNOWN", reconciliationRequired: true, requestId }, 500, requestId);
   }
 
   return json({ id: paymentIntentId, provider: "PAYMOB", status: "PENDING", amount, currency: String(order.currency).toUpperCase(),
