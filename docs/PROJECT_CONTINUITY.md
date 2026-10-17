@@ -683,3 +683,15 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - **Function dependency:** the replay workflow already injects the live-derived function baseline with `counter_offer_indrive_bid` before the revoke migration. This is test-only compatibility evidence, not historical provenance and not production DDL.
 - **Current actionable gate:** explicit owner approval is pending for the combined test-only fixtures in `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md`: (A) `marketing_provider_services` schema plus active public-read policy, and (B) minimum `MNTY-MAIN` organization row, with no auth users or memberships. The proposal remains not approved; do not implement/inject the fixtures until explicit approval or recovery of trusted source.
 - **Next:** obtain that exact approval, then run the replay once on the new exact SHA and record the actual first failing migration. Production remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+## Latest verified continuation checkpoint — 2026-10-18
+
+- Active remediation branch: `reconcile/rc425-458-current-main-20261011` (PR #207, Draft).
+- Exact replay blocker from run [39072680440](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39072680440): `20261006101048_rc_mantigo_production_completion_v1.sql` grants EXECUTE on `public.list_open_mantigo_rides_backend(uuid)` before the function exists in the replay chain.
+- A test-only baseline was added at `supabase/tests/baselines/mantigo_open_rides_function.sql`, derived from the captured production schema snapshot at the RC424 checkpoint. The workflow injects it only as temporary migration `20261006101047_test_only_live_derived_mantigo_open_rides_baseline.sql` in disposable CI, before the historical GRANT. Static validation explicitly preserves the limitation that the original function-creation migration/version remains unknown.
+- Current replay evidence at time of this checkpoint: [run 39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044), SHA `8c3814ec12206769a6be546a9afc7ed80450554d`, was pending. Check this run first; do not rerun unchanged inputs without reason.
+- PR #290 tenant-isolation verifier static contract passed at SHA `95860b316f4dfcbc157d1d32be50d4aa1fcce2d9` ([run 39079194583](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079194583)). Behavioral tenant isolation remains NOT VERIFIED.
+- The separate proposed replay fixtures for `marketing_provider_services` and the minimum `MNTY-MAIN` organization row remain **not approved**. Do not inject those fixtures without explicit owner approval or trusted original source recovery.
+- No production schema/data mutation, migration application, Edge Function deployment, real payment, merge, or release occurred.
+- **Production gate: BLOCKED / NOT CERTIFIED.** Next action: inspect run 39079676044, record the first subsequent SQL error or a full PASS, and update the test ledger before changing any next blocker.
