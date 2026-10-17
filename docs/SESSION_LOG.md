@@ -81,3 +81,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Extended disposable PostgreSQL tests for table grants, token/secret metadata isolation, private claim storage, and NULL status rejection. Exact-head CI for this final hardening is pending.
 - Closed duplicate Draft PR #245 in favor of canonical PR #289. The collision-guard run that started before closure failed because both PRs contained RC526; rerun is required against a fresh head after the duplicate was closed.
 - No production schema/data changes, live Paymob requests, deployments, or merges.
+
+
+## 2026-10-17 — RC526 audited operator recovery RPC added
+
+- Added `reconcile_mantigo_payment_intent_backend` to address abandoned/ambiguous claim recovery. It requires authenticated identity matching `p_admin_user_id`, the central platform-admin guard, an evidence reference, and a ledger still in REQUIRED state with a private claim and no provider/secret state.
+- `PROVIDER_INTENT_ABSENT` clears the claim only after evidence-backed platform-admin approval and leaves the ledger REQUIRED for safe retry. `PROVIDER_INTENT_CONFIRMED` requires provider intent/order IDs, client secret, exact amount and currency match; it atomically sets PENDING, stores the client secret in the service-only table, clears the claim, and records audit evidence. The client secret is excluded from audit fields.
+- Added disposable PostgreSQL coverage for non-admin denial, confirmed absence, confirmed intent, amount mismatch, audit writes, and claim/secret isolation. The RC526 SQL integration passed on the initial operator-RPC commit; the subsequent audit payload improvement (include confirmed amount/currency in audit old/new values) needs fresh exact-head CI.
+- Prior exact-head commit `a37cfbfda6877a828a96118bfdb05dc3210af542` passed all eight PR workflows, including the RC526 PostgreSQL job, Deno type-check, MantiGO privacy integration, migration uniqueness/history/collision gates, approval audit atomicity, backend-only boundary, module professionalization, and Pages validation. Deployment was skipped. Current head is newer, so that evidence is not a substitute for the latest rerun.
+- No production migration, live Paymob request, payment, deployment, or merge occurred. Full production release remains BLOCKED / NOT CERTIFIED.
