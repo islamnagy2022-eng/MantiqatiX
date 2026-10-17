@@ -1860,3 +1860,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **BLOCKED:** explicit approval remains required for the combined test-only `marketing_provider_services` schema/policy fixture and minimum `MNTY-MAIN` organization-row fixture in `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md`. Do not inject until approval or trusted original source recovery.
 - [ ] After approval/recovery, run a new exact-head disposable replay once, capture the SQL failure or PASS, update the ledger, and continue fixing the next chronological failure. Do not repeat the same run on unchanged inputs.
 - Production release remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+## 2026-10-18 — Newly verified replay blocker (supplemental; does not close replay gate)
+
+- [x] Identified the exact current replay failure from Actions log [39072680440](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39072680440): migration `20261006101048_rc_mantigo_production_completion_v1.sql` attempts `GRANT EXECUTE` on `public.list_open_mantigo_rides_backend(uuid)` before that function exists in the replay chain.
+- [x] Confirmed the captured live schema-only snapshot at RC424 checkpoint `20261008222845` contains the pre-RC446 function body. Added a test-only compatibility baseline and disposable-runner-only temporary migration version `20261006101047` on the replay branch. Added a static guard for provenance, contract, no data mutation, workflow copy verification, and version collision.
+- [ ] **NOT VERIFIED:** exact-head replay [39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044) was pending at last inspection. Inspect logs and record the next exact failure or PASS; do not infer success.
+- [ ] **HISTORICAL PROVENANCE STILL OPEN:** this baseline is copied from the live schema snapshot and is not the original creation migration. It can only support disposable replay of later migration behavior; it does not certify historical source provenance or production release.
+- [ ] **UNCHANGED APPROVAL GATE:** proposed `marketing_provider_services` and `MNTY-MAIN` replay fixtures remain unapproved; do not add them without explicit approval or trusted original source recovery.
+- Overall production state remains **BLOCKED / NOT CERTIFIED**. No production migrations, schema/data writes, deployments, payments, merges, or releases occurred.
