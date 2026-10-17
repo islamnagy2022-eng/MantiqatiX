@@ -385,3 +385,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) on 8b4dfda8ea8d1632786caad49b13b745b137a0e6 was pending/in progress when logged; awaiting its final outcome. Intermediate runs were cancelled after subsequent commits and are not passes.
 - Test policy: prior failure was inspected, not rerun. The fixed replay is a new test execution because the workflow/validator ordering inputs changed. No other manual tests were intentionally rerun.
 - Next: read exact-head run result/log; if it fails, capture the next first error and fix only that root cause. If it passes, record the new scope and keep historical provenance/production gate blockers open.
+
+
+### Validator correction — 2026-10-17
+
+- During code review of the first ordering fix, caught a validator design mistake before treating CI as passing: the validator runs **before** the workflow injects temporary migrations, so looking up the provider-profile baseline in the already-loaded migration list would always return absent.
+- Corrected the validator to compare the known temporary baseline version directly against the prerequisite version constant 20260927074156. The existing earlier check validates the provider-profile baseline file itself. First-consumer ordering remains asserted against committed migration 20260927132904.
+- Correction commit: d1eff709f01927f30a676f9bd96d20ae122f7837. A new exact-head workflow result is required because validator code changed. No manual test rerun was performed.
+- At time of this note, replay runs for prior intermediate commits were queued/in progress; none is a pass for the corrected validator. The final exact-head replay must be identified by its own SHA and logged after completion.
