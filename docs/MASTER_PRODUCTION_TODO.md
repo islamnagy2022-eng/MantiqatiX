@@ -1739,3 +1739,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Inspect exact full replay run [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) and capture the true result. If it fails, resolve only the next first failure, then rerun because the workflow/source changed.
 - [ ] Keep historical provenance unresolved even if baseline-assisted full replay passes.
 - Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Cross-branch replay blocker update
+
+- [x] Recorded full replay run `39010790236` as FAIL with exact first SQL error (RC339 FK to missing `MNTY-MAIN` organization).
+- [x] Verified read-only production organization row and applied ledger entry `20260927131555`; no original migration source path exists in Git history.
+- [x] Created privacy-aware repair decision document on the recovery branch; no PII-bearing original statement was copied into public source.
+- [ ] Await review/approval for exact-source privacy handling or a test-only baseline before changing replay inputs.

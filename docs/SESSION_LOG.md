@@ -211,3 +211,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Corrected exact-pair collision handling and enabled the recovery branch's push trigger in commits `aec8572...` and `e3bf384...`. Exact run [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) was still running at the time of this entry; next action is inspect that run and record its actual outcome before any further replay attempt.
 - SMM approved test-only schema baselines exist; they do not recover the original table-creation migration. The counter-offer function fixture is likewise live-derived, not historical source.
 - No production migration, grant, RLS/Auth change, Edge Function deployment, payment, merge, or release occurred.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-007 — RC339 replay failure
+
+- Full replay run [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed on the first SQL error after alias normalization: missing `organizations.id='MNTY-MAIN'` during RC339 showcase seed.
+- Read-only production inspection confirmed the organization row exists. The migration ledger includes applied bootstrap `20260927131555` (`bootstrap_mnty_owner_islam_nagy_v2`), but no corresponding source file/commit is in repository history.
+- The authoritative applied statement contains an owner email; no public source copy was created. Recovery decision is documented in `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md` on recovery branch commit `6b57a9d...`.
+- **Next action:** obtain explicit approval for privacy-reviewed exact-source handling or a minimal test-only organization baseline, then rerun full replay once after that input changes. Do not treat the baseline-assisted forward replay PASS as a full historical replay PASS.
+- Release remains **BLOCKED / NOT CERTIFIED**.

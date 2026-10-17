@@ -662,3 +662,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Full chronological replay on recovery branch was blocked before SQL by one duplicate alias collision. Exact-pair normalization was fixed in `aec8572...`; branch trigger enabled in `e3bf384...`. Inspect run `39010790236` next; it was in progress when this checkpoint was written.
 - Do not conflate the two replay strategies. Snapshot-forward replay passed; empty-schema chronological replay is still unverified until run `39010790236` completes. Even a baseline-assisted pass does not recover original historical DDL.
 - Production remains **BLOCKED / NOT CERTIFIED**; no production mutation, deployment, payment, merge, or release.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-007 checkpoint
+
+- Latest cross-branch full replay [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) **failed** at RC339: missing organization row `MNTY-MAIN` in the empty database. Alias normalization now succeeds.
+- Production read-only query confirmed `MNTY-MAIN` exists; applied ledger version `20260927131555` (`bootstrap_mnty_owner_islam_nagy_v2`) exists, but no source migration file/commit was found. Exact ledger statement contains owner email; do not publish it without privacy review.
+- Recovery branch commit `6b57a9dac5682f402eee96350903d38285d4509d` documents privacy-safe options. No fixture/source recovery applied yet.
+- Next: resolve approval/privacy path, then rerun full replay only after replay input changes. The forward-only snapshot test passed 32 migrations but does not close this blocker.
+- Production release remains **BLOCKED / NOT CERTIFIED**.

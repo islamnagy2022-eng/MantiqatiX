@@ -270,3 +270,13 @@ No production mutations, migrations, deployments, payments, merges, or releases 
 - Existing owner-approved test-only baselines are present on the recovery branch: `supabase/tests/baselines/smm_providers.sql` blob `3ee0ae125b4271880218af5419e10d604b356e93`, and `supabase/tests/baselines/smm_provider_credentials.sql` blob `99b937330b360fc8c310563a9ab66128f82b81c0`. They are schema-only, injected in disposable replay before `20260927074200_harden_smm_table_api_privileges.sql`, and do not recover historical creation migrations.
 - The `counter_offer_indrive_bid` definition remains a live-derived test baseline rather than authenticated historical creation DDL. If the full replay passes with that fixture injected, label it a baseline-assisted disposable replay, not proof of authentic historical provenance.
 - Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-007 — full replay first SQL failure
+
+- Full disposable replay [run 39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236), exact SHA `e3bf38487f4f2e180dec4482cde581c05a4f4ec7`, **FAIL** at RC339 after successfully passing historical-baseline preflight, test-only baseline injection, Supabase startup, and the alias-normalization step.
+- First SQL error: SQLSTATE `23503`, constraint `businesses_organization_id_fkey`; RC339's official showcase seed references `organizations.id='MNTY-MAIN'`, which is absent in the empty replay database.
+- Read-only production evidence confirms `MNTY-MAIN` exists (tenant `MNTY-PLATFORM`, name `MNTY Main Organization`, code `MNTY-ORG`, status `ACTIVE`). Applied ledger row `20260927131555 / bootstrap_mnty_owner_islam_nagy_v2` exists with one 1,286-character statement (MD5 `6eec2cb0d371be273949a444f6dc8272`); the expected migration path has no Git commit history.
+- The applied bootstrap statement includes an owner email in its Auth-user lookup/error text. Do not commit the unredacted statement into the public repository without privacy review.
+- Proposal/triage: `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md` on recovery branch, commit `6b57a9dac5682f402eee96350903d38285d4509d`. Choices are privacy-reviewed exact-source recovery or explicitly approved minimal test-only seed for disposable replay. Neither path has been implemented/approved yet.
+- No rerun until the source/fixture changes under the chosen path. No production mutation.
