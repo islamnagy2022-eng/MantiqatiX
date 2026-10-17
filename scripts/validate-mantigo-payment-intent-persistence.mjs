@@ -18,5 +18,20 @@ const checks = [
 for (const [label, pattern] of checks) {
   if (!pattern.test(source)) throw new Error('MantiGO payment-intent persistence contract missing: ' + label);
 }
-console.log('MantiGO payment-intent persistence source contract: PASS (' + checks.length + '/' + checks.length + ')');
+
+const providerRequest = source.indexOf('fetch("https://accept.paymob.com/v1/intention/"');
+const pendingGuard = source.indexOf('PAYMENT_INTENT_STATE_REQUIRES_RECONCILIATION');
+const partialStateGuard = source.indexOf('PAYMENT_INTENT_STATE_INCONSISTENT');
+const persistenceUpdate = source.indexOf('const {data:updatedRows,error:updateError}');
+const zeroRowGuard = source.indexOf('if(!updatedRows||updatedRows.length!==1)');
+const successResponse = source.lastIndexOf('return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret');
+if (providerRequest < 0 || pendingGuard < 0 || partialStateGuard < 0 ||
+    pendingGuard >= providerRequest || partialStateGuard >= providerRequest) {
+  throw new Error('MantiGO payment-intent state guards must execute before the Paymob request');
+}
+if (persistenceUpdate < 0 || zeroRowGuard < persistenceUpdate ||
+    successResponse < zeroRowGuard) {
+  throw new Error('MantiGO checkout credentials must only be returned after confirmed persistence');
+}
+console.log('MantiGO payment-intent persistence source contract: PASS (' + checks.length + '/' + checks.length + ' patterns + 2 order checks)');
 console.log('Scope: source contract only; not a live Paymob, concurrency, or production test.');
