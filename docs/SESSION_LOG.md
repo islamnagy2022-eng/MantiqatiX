@@ -37,3 +37,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Queried `supabase_migrations.schema_migrations` for any recorded migration statement containing `counter_offer_indrive_bid`; result was zero rows. GitHub source search likewise located only `20260927095000_revoke_unused_security_definer_execute.sql` plus docs, not a versioned creation migration.
 - This improves our evidence but does not establish the original migration timestamp/order or prove the live definition is identical to the function at the historical replay point. We must not fabricate a migration source or silently bypass the revoke.
 - Read-only checks only; no production schema, function, grants, data, or migration ledger were modified. Full chronological replay remains **BLOCKED / NOT CERTIFIED** pending authoritative provenance.
+
+
+## 2026-10-17 — scoped manual review of schema-baseline public surfaces
+
+- Reviewed the captured definition of `public.get_mnty_targeted_advertisements(...)`: it returns ad creative/target metadata only, uses schema-qualified table references, filters local/global ads to ACTIVE+APPROVED and time windows, and caps results to 50. It is SECURITY DEFINER and callable by anon/authenticated; schema CREATE denial still needs role-level disposable proof. Disposition: appears scoped to public ad delivery but not production-certified.
+- Reviewed `public.platform_brand_assets`: CHECK restricts keys to PRIMARY_LOGO/PRIMARY_MARK, but public SELECT with `USING (true)` exposes `asset_path` and `original_asset_path`. Since the snapshot has no rows, public-asset path safety cannot be verified from this artifact. Follow-up is read-only path/bucket verification; if original paths are private, propose a reviewed forward-only policy/view change. Do not alter manifest status.
+- Review notes appended to `docs/release/SCHEMA_BASELINE_REVIEW_20261017.md` on PR #284 branch. Baseline remains PENDING_REVIEW; no production changes, grants, data reads from user tables, or deployment.
