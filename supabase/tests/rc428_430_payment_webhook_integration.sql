@@ -96,7 +96,7 @@ begin
   if (select status from public.subscription_payment_intents where id=sub_success_id) <> 'SUCCEEDED' then
     raise exception 'RC430 did not finalize subscription payment intent';
   end if;
-  if not exists(select 1 from public.business_subscriptions where business_id=business_id and status='ACTIVE' and source_payment_intent_id=sub_success_id) then
+  if not exists(select 1 from public.business_subscriptions bs where bs.business_id='10000000-0000-4000-8000-000000004300'::uuid and bs.status='ACTIVE' and bs.source_payment_intent_id=sub_success_id) then
     raise exception 'RC430 did not create an active subscription';
   end if;
   result := public.process_verified_subscription_payment_backend(
