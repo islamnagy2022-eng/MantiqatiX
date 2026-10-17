@@ -70,6 +70,15 @@ fi
 echo "POST_REPLAY_CHECK counter_offer_rpc_privilege_contract.sql" | tee -a "$REPORT"
 psql "$LOCAL_DB_URL" -X -v ON_ERROR_STOP=1 -f supabase/tests/baselines/counter_offer_rpc_privilege_contract.sql 2>&1 | tee -a "$REPORT"
 
+echo "POST_REPLAY_CHECK tenant-isolation verifier static contract" | tee -a "$REPORT"
+node scripts/validate-tenant-isolation-verifier.mjs 2>&1 | tee -a "$REPORT"
+
+echo "POST_REPLAY_CHECK synthetic two-tenant fixture" | tee -a "$REPORT"
+psql "$LOCAL_DB_URL" -X -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql 2>&1 | tee -a "$REPORT"
+
+echo "POST_REPLAY_CHECK two-user/two-tenant RLS behavior" | tee -a "$REPORT"
+psql "$LOCAL_DB_URL" -X -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql 2>&1 | tee -a "$REPORT"
+
 {
   echo
   echo "status=PASS"

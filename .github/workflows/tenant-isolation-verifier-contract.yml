@@ -1,0 +1,30 @@
+name: Tenant Isolation Verifier Contract
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "scripts/verify-tenant-isolation.sql"
+      - "scripts/validate-tenant-isolation-verifier.mjs"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
+      - ".github/workflows/tenant-isolation-verifier-contract.yml"
+  pull_request:
+    paths:
+      - "scripts/verify-tenant-isolation.sql"
+      - "scripts/validate-tenant-isolation-verifier.mjs"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
+      - ".github/workflows/tenant-isolation-verifier-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  fail-closed-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/validate-tenant-isolation-verifier.mjs
