@@ -125,3 +125,41 @@ Append new results chronologically. Keep old results, mark them superseded/stale
 - **Observed result:** the commit-workflow lookup returned an empty list. This connector only exposes PR-triggered runs; an empty result is **INCONCLUSIVE**, not PASS, FAIL, or proof that no workflow ran.
 - **Test suite rerun:** none intentionally launched in this batch.
 - **Required follow-up:** inspect the live PR/checks UI or use a workflow-run lookup that can see the branch's runs. Record each actual result before claiming the documentation commits passed CI.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-002 — latest branch head, CI results, and RC-BLOCKER-001 provenance search
+
+- **Working branch / PR:** `fix/rc526-mantigo-intent-claim-20261017`, [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Exact HEAD verified:** `67ff58063d616cd077ab8ac91a82acb7f805ae32`; base `main` at `f4059890c656d53d1235ba28d97f703ab35c7299`.
+- **Diff reuse decision:** compare `35a9da40dcca1be0448ebe3cceb7da619bafe87e...67ff58063d616cd077ab8ac91a82acb7f805ae32` returned 11 commits and only five documentation paths (`docs/CONTINUATION_PROTOCOL.md`, `docs/MASTER_PRODUCTION_TODO.md`, `docs/PROJECT_CONTINUITY.md`, `docs/SESSION_LOG.md`, `docs/TEST_EXECUTION_LEDGER.md`). No executable code, test, workflow, dependency, or runtime config changed in that range. Therefore prior RC526 code-test evidence at `35a9da40...` remains reusable for that code scope; it was not intentionally rerun.
+
+### CI results inspected at exact HEAD `67ff58063d616cd077ab8ac91a82acb7f805ae32`
+
+These were automatic GitHub Actions runs, not manually rerun tests. Every result below is scoped to its named workflow only.
+
+| Stable record | Workflow / result | Evidence |
+|---|---|---|
+| CI-289-HEAD-001 | Open PR Migration Collision Guard — PASS | [39009838137](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838137) |
+| CI-289-HEAD-002 | Migration Version Uniqueness — PASS | [39009838047](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838047) |
+| CI-289-HEAD-003 | Migration History Immutability — PASS | [39009838052](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838052) |
+| CI-289-HEAD-004 | Approval Action Audit Atomicity — PASS | [39009838104](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838104) |
+| CI-289-HEAD-005 | MantiGO Open Ride Privacy Boundary — PASS (PR event) | [39009838110](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838110) |
+| CI-289-HEAD-006 | Backend-only Module Boundary — PASS (PR event) | [39009838061](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838061) |
+| CI-289-HEAD-007 | Module Professionalization Validation — PASS (PR event) | [39009838100](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838100) |
+| CI-289-HEAD-008 | Module Professionalization Validation — PASS (push event) | [39009836978](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009836978) |
+| CI-289-HEAD-009 | Backend-only Module Boundary — PASS (push event) | [39009836834](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009836834) |
+| CI-289-HEAD-010 | MantiGO Open Ride Privacy Boundary — PASS (push event) | [39009836894](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009836894) |
+| CI-289-HEAD-011 | Deploy MantiqatiX Web workflow — validation PASS; deploy job SKIPPED for PR | [39009838063](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39009838063) |
+
+- **Scope limitation:** these results do not include a new RC526 PostgreSQL/Deno integration run at the docs-only HEAD. The previously successful RC526 + Deno/RC446 run remains [39008171037](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171037) on code SHA `35a9da40dcca1be0448ebe3cceb7da619bafe87e`. Passing CI does not certify production, full chronological migration replay, live Paymob, tenant isolation, or backup recovery.
+- **Status lookup:** commit status API returned `pending` with zero legacy status entries; the actual workflow/check-run records above were inspected directly. Do not interpret zero legacy statuses as a failure or as an all-checks pass beyond the listed runs.
+
+### RC-BLOCKER-001 — additional provenance investigation (still BLOCKED)
+
+- Queried repository code search for `counter_offer_indrive_bid`; returned only documentation and the later revoke migration, with no function-creation migration.
+- Queried commit history for `supabase/migrations/20260927095000_revoke_unused_security_definer_execute.sql`; only creation commit found was `aaae0b57db23b487c9089a74421094f268b0ab00` (message `security: revoke unused privileged RPC execution`), whose diff adds the revoke file only. It contains no creation DDL.
+- Checked the revoke migration on these refs: `main`, `reconcile/rc425-441-migration-sources-20261011`, `reconcile/rc425-441-migration-sources-clean-20261011`, `recovery/historical-migrations-rc425-rc441-20261016`, `recovery/rc425-441-source-only-20261016`, `recovery/verified-rc425-441-sources-20261014`, and `fix/production-gate-migration-chain-20261011`. All returned the same blob SHA `8d3fb7330680056b45b4992d298ce1363f069e9d` for the revoke file; this confirms consistency of that file across these refs, not provenance of the function creation.
+- Inspected `20261007021500_reverse_bidding_server_authority_v1.sql` on `main` and recovery/reconcile branches. It creates `create_indrive_request_backend` and `create_indrive_bid_backend`, not `counter_offer_indrive_bid`; its timestamp is later than the revoke migration and therefore cannot, by itself, satisfy that earlier replay dependency.
+- **Root cause status:** CONFIRMED replay dependency gap; original creation source/version remains UNKNOWN. Existing live `pg_get_functiondef` is current-state evidence only and does not establish historical order.
+- **Permanent correction / acceptance:** continue searching authoritative historical PRs/commits, trusted source backup/release artifact, or verified migration archive. If none exists, prepare a separately reviewed forward-only repair plan with a new version and explicit maintainer approval; never backdate, fabricate historical DDL, seed the replay database silently, or skip the revoke.
+- **No production changes; no manual tests rerun; no merge/deploy/payment.** Release remains BLOCKED / NOT CERTIFIED.
