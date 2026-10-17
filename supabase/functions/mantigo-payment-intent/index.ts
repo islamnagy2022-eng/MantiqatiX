@@ -39,6 +39,16 @@ Deno.serve(async req=>{
     return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
   }
 
+  // A PENDING ledger without a complete persisted Paymob intent is ambiguous.
+  // Never create another provider intent from that state; require reconciliation.
+  if(String(ledger.payment_status)==="PENDING"){
+    return json({error:"PAYMENT_INTENT_STATE_REQUIRES_RECONCILIATION",requestId},409,requestId);
+  }
+  // A REQUIRED ledger must not already contain partial provider state.
+  if(ledger.provider||ledger.provider_intent_id||metadata.paymob_client_secret||metadata.paymob_intention_order_id){
+    return json({error:"PAYMENT_INTENT_STATE_INCONSISTENT",requestId},409,requestId);
+  }
+
   const amount=Number(ledger.gross_amount);
   const currency=String(ledger.currency||"EGP").toUpperCase();
   if(!Number.isFinite(amount)||amount<=0)return json({error:"INVALID_FARE"},409,requestId);
@@ -72,10 +82,18 @@ Deno.serve(async req=>{
   }
 
   const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:provider.intention_order_id??null,paymob_payment_methods:provider.payment_methods??null};
-  const {error:updateError}=await admin.from("mantigo_financial_ledger").update({
+  const {data:updatedRows,error:updateError}=await admin.from("mantigo_financial_ledger").update({
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED");
-  if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
+  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider_intent_id",null).select("id");
+  if(updateError){
+    console.error(JSON.stringify({requestId,stage:"persist_paymob_intent",error:updateError.message}));
+    return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED",requestId},500,requestId);
+  }
+  // PostgREST can return no error when a conditional UPDATE affects zero rows.
+  // Only disclose checkout credentials after confirming exactly one row persisted.
+  if(!updatedRows||updatedRows.length!==1){
+    return json({error:"PAYMENT_INTENT_STATE_CHANGED",requestId},409,requestId);
+  }
   return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret,checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(clientSecret)}`:null,requestId},200,requestId);
  }catch(error){
   console.error(JSON.stringify({requestId,error:String(error)}));
