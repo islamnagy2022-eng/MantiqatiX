@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import crypto from "node:crypto";
-import assert from "node:assert/strict";
 
 const root = process.env.GITHUB_WORKSPACE || process.cwd();
 const base = root + "/supabase/tests/baselines/";
@@ -45,7 +44,7 @@ for (let i = 0; i < lines.length; i++) {
   const m = lines[i].match(/^CREATE OR REPLACE FUNCTION "([^"]+)"\."([^"]+)"\(/);
   if (!m) { fail("could not parse SECURITY DEFINER function declaration at line " + (i + 1)); }
   const [, schema, name] = m;
-  const revoke = snapshot.includes(`REVOKE ALL ON FUNCTION "${schema}"."${name}"(`) && snapshot.includes(`REVOKE ALL ON FUNCTION "${schema}"."${name}"(`) && new RegExp(`REVOKE ALL ON FUNCTION "\${schema}"\."\${name}"\\([^\\n]* FROM PUBLIC;`).test(snapshot);
+  const revoke = lines.some(line => line.trim().startsWith(`REVOKE ALL ON FUNCTION "${schema}"."${name}"(`) && line.includes(" FROM PUBLIC;"));
   const hasPath = /SET "search_path" TO /i.test(block);
   securityDefiner.push({ schema, name, hasPath, hasPublicRevoke: revoke });
 }
