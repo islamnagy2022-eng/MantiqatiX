@@ -84,3 +84,11 @@ Next safe implementation requires a MantiGO-specific atomic claim/finalize/relea
 - **Impact:** no production DB writes, migrations, Paymob requests, real payments, deployments, or merges.
 - **Next:** verify exact-head workflow results; correct any validator/runtime issues; then continue the claim/RPC design only in a branch consistent with the unresolved RC425–RC441 migration chronology.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Paymob validator syntax regression and correction
+
+- Reviewed Pages workflow log [39002899839](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39002899839) after the new source validator was added. Node reported `SyntaxError: Invalid regular expression flags` at the ambiguity-marker regex because URL slash/backslash escaping was over-escaped.
+- Corrected the four new validator regex literals in commit `176cc373402e3f5f24c4a2762fae1dd9d0dab5b1`; the assertions now use a simple marker-to-fetch ordering pattern and properly escaped JavaScript regex literals.
+- Exact-head Actions after the correction were not visible at log time; this correction is not yet recorded as CI-verified. Earlier source-level evaluation passed 9/9 assertions, but that did not parse/execute the validator itself and therefore did not catch the syntax issue.
+- No production changes, migrations, live Paymob requests, deployments, or merges.
