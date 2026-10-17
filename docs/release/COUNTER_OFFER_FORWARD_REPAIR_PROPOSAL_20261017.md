@@ -83,3 +83,20 @@ Before implementation, review the complete restricted live catalog export and de
 ## Safety state
 
 No production changes, migrations, grants, RLS/Auth changes, function deployments, payments, merges, or releases occurred during this investigation. The production release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Addendum — disposable forward-replay evidence (2026-10-17)
+
+Path B has now been exercised **only on the dedicated test branch** `test/production-baseline-forward-replay-20261017`, whose local manifest is marked `APPROVED_FOR_DISPOSABLE_REPLAY`. This does not change the manifest in PR #284, which remains `PENDING_REVIEW`.
+
+- Exact test-branch commit: `a79b2caa5b883817f5c1b550d044b09780f06820` (`test(db): include RC526 in reviewed baseline forward replay`).
+- Workflow: [Reviewed Production Baseline Forward Replay run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) — PASS.
+- The job completed baseline fail-closed tests, provenance/review verification, PostgreSQL 17 isolated Supabase startup, snapshot restore plus forward migration replay, evidence-artifact upload, and stack shutdown.
+- Snapshot checkpoint: `20261008222845`; applied ledger count: 283. Snapshot SHA-256: `ee16d095177110de67dac57f1b9a1e67610b40a3712981e850eff17d637a67a2`. Ledger SHA-256: `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`.
+- Exact-run artifact `production-baseline-forward-replay-39010395892` exists (2336 bytes, not expired when inspected). Its contents were not independently read; no migration count is claimed here.
+
+### Scope and disposition
+
+This is evidence that migrations newer than the captured live-schema checkpoint can replay in the guarded disposable environment on that exact commit, including the RC526 migration included by the commit. It is **not** evidence of a clean empty-database chronological replay, and it does not recover the original historical migration identity for `counter_offer_indrive_bid`. It does not authorize production application, merging PR #284, or release.
+
+The historical-provenance blocker therefore remains open. Continue Path A searches for authentic source/backup provenance. Do not invent or backdate DDL, do not alter the historical revoke migration, and do not promote the test-only snapshot into `supabase/migrations/`.
