@@ -55,6 +55,7 @@ Deno.serve(async req=>{
   const currency=String(ledger.currency||"EGP").toUpperCase();
   if(!Number.isFinite(amount)||amount<=0)return json({error:"INVALID_FARE"},409,requestId);
   const amountCents=Math.round(amount*100);
+  if(Math.abs(amount*100-amountCents)>1e-7)return json({error:"INVALID_FARE_PRECISION"},409,requestId);
   const name=String(user.user_metadata?.full_name??user.email?.split("@")[0]??"Customer");
   const parts=name.trim().split(/\s+/);
   const firstName=parts[0]||"Customer";
