@@ -77,3 +77,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - RC462 remains canonical in PR #248; its workflow was corrected there to use the real RC449 migration/fixture and the RC462 test is now included as a job in the existing module-professionalization workflow, which is active on the PR. Its exact-head PostgreSQL regression is queued/not yet passed.
 - The full chronological migration replay still lacks authoritative historical creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not stub it or skip/alter the historical revoke migration.
 - No production SQL/function replacement, migration, payment, settlement, deployment, or merge was performed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC565 PostgreSQL regression PASS (exact code head)
+
+- **PASS — exact head `44fd01d6d5dafbd2b130e023a806328ebe2766ed`:** MantiGO Platform Admin Scope Hardening workflow [run 38993005417](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005417) completed successfully. The `platform-admin-postgres` job passed source validators, applied the disposable RC449 fixture + RC449 platform-scope migration + RC565 financial-report migration, and executed both RC449 authorization and RC565 behavioral SQL tests.
+- The RC565 regression proves the report uses `gross_amount` / `commission_amount` / `captain_net_amount` rather than deliberately conflicting legacy aliases; it verifies lower-inclusive/upper-exclusive date bounds, aggregates, empty-range zeros, invalid-window rejection, tenant OWNER denial, and actor identity mismatch.
+- **PASS on same head:** migration version uniqueness [run 38993005451](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005451) and migration history immutability [run 38993005429](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005429).
+- Pages/web validation passed on this head, while the deployment job was skipped. Cross-PR migration collision, module professionalization, and MantiGO privacy workflows were still in progress/queued at the time of evidence capture; do not mark the entire PR suite green yet.
+- This is focused disposable PostgreSQL evidence only; it is not a full chronological migration replay, live production RPC deployment, or payment/settlement E2E.
+- Production remains at 283 migrations through `20261008222845` (RC424); read-only live function definitions still show the old report columns and generic platform-admin helper. No production writes or deployments were performed.
+- RC462 malformed-permission regression remains in PR #248; exact-head PostgreSQL job was queued/not yet passed. Full replay still lacks authoritative creation DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
