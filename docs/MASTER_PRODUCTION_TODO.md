@@ -1711,3 +1711,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Review baseline security findings and artifact contents before using this test-only path as release evidence. Do not change PR #284 manifest from PENDING_REVIEW; the test-only approval on its isolated branch is not production or merge approval.
 - [ ] After historical provenance/replay decision, complete tenant-isolation, Paymob Sandbox, backup/restore, deployed Edge Function parity, and Auth/SMM release gates.
 - Release gate remains **BLOCKED / NOT CERTIFIED**; no production mutation or deployment occurred.
+
+
+## 2026-10-17 — Payment candidate evidence update (SESSION-RESUME-VERIFY-004)
+
+- [x] Inspected exact-head PR #286 CI at `6b87b044448b5a543b163c52d1a4517d63cf1399`: RC425 atomicity, webhook failure/success, payment-intent order correlation, migration uniqueness/immutability, collision guard, approval audit, privacy, backend boundary, and module validation all passed.
+- [ ] Still required: real Paymob Sandbox E2E with authorized sandbox credentials; these disposable integration tests are not a live provider test.
+- [ ] Still required: real two-user/two-tenant authorization E2E and backup/restore rehearsal.
+- [ ] Still blocked: authoritative historical source for `counter_offer_indrive_bid` and a defensible decision on clean chronological replay versus separately approved live-schema baseline forward replay.
+- Release gate remains **BLOCKED / NOT CERTIFIED**.
