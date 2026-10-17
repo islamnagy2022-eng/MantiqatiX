@@ -8,6 +8,7 @@ const checks = [
   ['fails closed for incomplete PENDING intent before provider request', /PAYMENT_INTENT_STATE_REQUIRES_RECONCILIATION[\s\S]*?https:\/\/accept\.paymob\.com\/v1\/intention/],
   ['rejects partial provider state before provider request', /PAYMENT_INTENT_STATE_INCONSISTENT[\s\S]*?https:\/\/accept\.paymob\.com\/v1\/intention/],
   ['conditional persistence checks current REQUIRED state', /\.eq\("payment_status","REQUIRED"\)/],
+  ['conditional persistence preserves null provider state', /\.is\("provider",null\)/],
   ['conditional persistence prevents overwrite of existing provider intent', /\.is\("provider_intent_id",null\)/],
   ['persistence returns selected row identity', /\.select\("id"\)/],
   ['persistence requires exactly one updated row before success', /if\(!updatedRows\|\|updatedRows\.length!==1\)[\s\S]*?PAYMENT_INTENT_STATE_CHANGED/],
