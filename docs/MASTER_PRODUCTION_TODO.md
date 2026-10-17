@@ -1797,3 +1797,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **BLOCKED — RC339 bootstrap replay:** choose a privacy-safe, explicitly labelled test-only fixture or another approved source-recovery path; do not guess owner identity or claim exact historical restoration if altered.
 - [ ] **BLOCKED — counter-offer replay:** original `public.counter_offer_indrive_bid(uuid,uuid,numeric)` creation DDL/version remains unavailable. No stub, backdated migration, or revoke bypass.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Exact-head CI and replay blockers (SESSION-RESUME-EXEC-015)
+
+- [x] Inspected 22 GitHub check-run records at PR #289 head `9892d8d20f4e9b378a4dd3bb567c8590ea18d43a`; RC526 integration, MantiGO privacy, targeted-ads, matrimony privacy, financial-journal, approval-audit, migration immutability, migration uniqueness, collision guard, and web validation passed. Web deploy was skipped. Full links/scope are in `docs/TEST_EXECUTION_LEDGER.md`.
+- [ ] **BLOCKED — counter-offer RPC source:** original creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` still unavailable after relevant PR/branch/migration inspection.
+- [ ] **BLOCKED — marketing provider services source:** `20260928010000_rc99_g5_provider_services_rls_hardening.sql` assumes `public.marketing_provider_services` exists; repository search did not find authoritative table-creation DDL. Full replay failed on the source-recovery SHA at [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756).
+- [ ] Search trusted historical sources/artifacts for both gaps. If no source exists, obtain explicit approval before adding any test-only baseline and label it as live-derived, not historical migration recovery. Do not rerun unchanged replay or fabricate DDL.
+- [ ] Live Paymob sandbox E2E, tenant isolation E2E, backup/restore rehearsal, and production parity remain open. Release stays **BLOCKED / NOT CERTIFIED**.
