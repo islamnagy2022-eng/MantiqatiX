@@ -1,0 +1,75 @@
+name: Payment Intent Order Correlation Integration
+on:
+  push:
+    branches:
+      - "fix/rc425-mantigo-paymob-mainline"
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  rc426-digital-page-provider-order-binding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc426_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc426_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply fixture, RC426 migration, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc426_digital_page_order_binding_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc426_digital_page_order_binding_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+
+  rc427-one-active-payment-intent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc427_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc427_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply fixture, RC427 migration, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc427_one_active_payment_intent_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc427_one_active_payment_intent_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc427_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc427_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc427_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
