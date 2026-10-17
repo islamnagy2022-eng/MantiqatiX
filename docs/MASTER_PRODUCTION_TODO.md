@@ -1597,7 +1597,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Claim eligibility requires `provider IS NULL`, no provider intent ID, and no existing claim. Partial or PENDING state fails closed.
 - [x] Provider call is bounded to 15 seconds. Timeout/network ambiguity, incomplete provider response, and failed finalization retain the claim and require reconciliation instead of blind retry.
 - [x] Added disposable PostgreSQL tests for role grants, wrong-token rejection, finalization, metadata preservation, and a two-session dblink claim race. Added source contract + Deno type-check + PostgreSQL workflow gates to existing PR-triggered workflows.
-- [ ] Exact-head CI and PostgreSQL behavior remain pending. This is a source candidate only; full RC425–RC441 chronological replay remains blocked by missing historical provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- [x] Exact-head CI verified on commit `2baa75a5dee7fe84cbef18d7a862ab9fcfc2f625`: source contract passed, disposable PostgreSQL claim/finalize/release and two-session race passed, Deno type-check passed, MantiGO privacy integration passed, and migration uniqueness/history/collision gates passed. Pages deployment was skipped; production gate remained BLOCKED.
 - [ ] Operator reconciliation for abandoned/ambiguous claims is still required; never auto-clear them.
 - **Production impact:** none. No production DDL/data change, live Paymob request, payment, deployment, or merge.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+- [x] Added `docs/PAYMOB_INTENT_RECONCILIATION.md` with read-only triage, provider-side evidence requirements, and explicit prohibitions against blind retry or direct production mutation.
