@@ -283,3 +283,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Identified a separate clean-replay gap: `20260928010000_rc99_g5_provider_services_rls_hardening.sql` references `public.marketing_provider_services` before any table-creation source was found in repository search. Full replay failure is [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756), exact source-recovery SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`. Live schema docs prove current existence only, not original DDL.
 - **Next action:** continue trusted source/artifact recovery for the table and counter-offer RPC. If absent, request/record explicit approval for a clearly labelled test-only replay baseline; do not fabricate historical migrations and do not rerun unchanged replay.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SOURCE-SWEEP-016 — archived source check and replay-baseline proposal
+
+- Searched all 33 archived recovered-migration SQL files on PR #218's source branch; no `counter_offer_indrive_bid` creation and no `marketing_provider_services` table creation found.
+- Inspected PR #218's full changed-file pagination; no patch contains either missing creation statement.
+- Verified the live-derived schema snapshot on PR #284 contains the present table definition and function definition, but its manifest remains `PENDING_REVIEW` and the snapshot does not recover historical migration order.
+- Created proposal-only document `docs/release/MARKETING_PROVIDER_SERVICES_REPLAY_BASELINE_PROPOSAL_20261017.md` at commit `be9c8c298986bcd4d01df62d2609147c753f46c0`. It requires explicit approval before adding any test-only fixture; no fixture was implemented.
+- Tests executed: none. Existing CI results remain as recorded. No replay rerun, production mutation, deploy, payment, merge, or release.
+- Next: continue source recovery if another trusted artifact exists; otherwise wait for explicit approval for the scoped test-only baseline. Keep release blocked.
