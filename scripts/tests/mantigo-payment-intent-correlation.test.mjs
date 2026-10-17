@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { matchesPaymobIntention } from "../../supabase/functions/_shared/paymob-intent-correlation.mjs";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../../supabase/functions/_shared/paymob-intent-correlation.mjs";
 
 // Paymob intention API amounts are expressed in the currency's smallest unit.
 const expected = {
@@ -76,4 +76,15 @@ test("rejects missing ledger reference and invalid expected minor-unit amounts",
   for (const amountCents of [0, -1, 12550.5, "not-a-number"]) {
     assert.equal(matchesPaymobIntention({ ...expected, amountCents }), false);
   }
+});
+
+test("accepts only positive, safe, exact major-to-minor-unit conversions", () => {
+  assert.equal(isValidPaymobAmountCents(125.5, 12550), true);
+  assert.equal(isValidPaymobAmountCents(0.01, 1), true);
+  assert.equal(isValidPaymobAmountCents(125.505, 12551), false);
+  assert.equal(isValidPaymobAmountCents(1e308, Infinity), false);
+  assert.equal(isValidPaymobAmountCents(Number.MAX_VALUE, Number.MAX_SAFE_INTEGER + 1), false);
+  assert.equal(isValidPaymobAmountCents(0, 0), false);
+  assert.equal(isValidPaymobAmountCents(-1, -100), false);
+  assert.equal(isValidPaymobAmountCents(NaN, 1), false);
 });
