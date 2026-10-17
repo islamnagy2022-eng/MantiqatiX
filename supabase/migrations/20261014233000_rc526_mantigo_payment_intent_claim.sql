@@ -87,6 +87,7 @@ as $function$
 begin
   if p_ledger_id is null
      or nullif(pg_catalog.btrim(p_claim_token), '') is null
+     or p_http_status is null
      or p_http_status not in (400, 401, 403, 404, 422) then
     raise exception 'PAYMENT_INTENT_RELEASE_STATUS_NOT_DEFINITIVE';
   end if;
