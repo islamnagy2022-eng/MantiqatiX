@@ -234,3 +234,14 @@ No production mutations, migrations, deployments, payments, merges, or releases 
   - Deploy MantiqatiX Web workflow: [39006290033](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290033) — validation job PASS; deploy job SKIPPED.
 - **Scope:** targeted disposable PostgreSQL payment/atomicity/correlation integration and repository guardrails pass on this candidate head. This does not establish live Paymob Sandbox E2E, full historical blank-database replay, tenant isolation across real users/tenants, backup/restore, or production parity.
 - **No intentional rerun:** this entry records existing exact-head CI results only. PR #286 remains Draft/unmerged; no production deployment or payment occurred.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-005 — behavioral Paymob response-correlation unit tests
+
+- **Code/test SHA at inspection:** `b5880a547e5097f4adbc727b5e57b695ed32b8ba` (latest PR #289 head at time of test creation).
+- **Change:** extracted the inline Paymob response-correlation predicate into `supabase/functions/_shared/paymob-intent-correlation.mjs`; the Edge Function uses that pure guard before finalization. Added `scripts/tests/mantigo-payment-intent-correlation.test.mjs` and wired `node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs` into the Pages validation workflow. The source-contract validator now asserts the Edge Function calls the helper before finalization.
+- **Local test command:** `node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs`.
+- **Result:** PASS — 8 tests, 8 passed, 0 failed, 0 skipped. Scenarios cover exact match, currency normalization, amount mismatch, missing/malformed/non-finite amounts, currency mismatch/missing currency, wrong ledger reference, malformed response shape, and invalid expected amount/reference.
+- **Environment/scope:** Node v22.16.0 in an isolated temporary directory using the exact helper/test source authored for this change. This is unit evidence for the pure predicate only; it does not call Paymob, exercise Supabase, or prove live provider semantics.
+- **CI status at logging time:** Pages/PR workflows for the code SHA were queued/in progress; no CI pass is claimed yet. Check the exact current head's workflow results before closing the change.
+- **Repeat policy:** do not rerun this unchanged unit suite unless source/test/dependency/environment changes or a prior result becomes inconclusive.
