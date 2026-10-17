@@ -1588,3 +1588,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: RC434's line-level purchase quantity limits/dependencies must be reviewed with RC437/RC438 in order. Missing RC425–RC432 and RC434–RC441 source files remain on main.
 - [ ] BLOCKED: authoritative historical creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing. The current schema snapshot contains the live definition but does not establish historical provenance.
 - [ ] BLOCKED: PR #282 remains Draft/unmerged until full chronological disposable replay, tenant isolation, payment/finance E2E, and backup/restore gates pass. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — MantiGO payment-intent persistence guard (candidate PR; not production-applied)
+
+- [x] Identified a source-level state mismatch: the Edge Function accepted `PENDING` without a complete persisted Paymob intent but attempted persistence only with `payment_status = REQUIRED`.
+- [x] Candidate change fails closed for incomplete `PENDING` or partial provider state.
+- [x] Candidate persistence checks the returned row set and refuses to return checkout credentials unless exactly one row was updated.
+- [x] Added a source-contract validator to the Pages validation workflow.
+- [ ] Run exact-head CI and inspect the validator result.
+- [ ] Add/complete behavioral concurrency tests; this change prevents false-success on zero-row updates but does not guarantee that concurrent requests cannot create an orphan provider intention before one wins persistence.
+- [ ] Reconcile the candidate with the atomic webhook and migration-release branches before production rollout.
+- **Safety:** no production database, provider, payment, or deployment was changed. Release remains **BLOCKED / NOT CERTIFIED**.
