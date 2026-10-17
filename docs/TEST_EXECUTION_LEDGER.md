@@ -117,3 +117,11 @@
 ## Update policy
 
 Append new results chronologically. Keep old results, mark them superseded/stale with a reason when needed, and update blocker status only with evidence. The latest checkpoint must always include exact branch/PR/HEAD and a single next executable action.
+
+
+## DOC-PROTOCOL-001 — Documentation commit workflow lookup
+- **Checkpoint SHA queried:** `6560d2fc7a055c12b4466c1b0a7692559c9e6f13`
+- **Type:** GitHub Actions status lookup (not an application test)
+- **Observed result:** the commit-workflow lookup returned an empty list. This connector only exposes PR-triggered runs; an empty result is **INCONCLUSIVE**, not PASS, FAIL, or proof that no workflow ran.
+- **Test suite rerun:** none intentionally launched in this batch.
+- **Required follow-up:** inspect the live PR/checks UI or use a workflow-run lookup that can see the branch's runs. Record each actual result before claiming the documentation commits passed CI.
