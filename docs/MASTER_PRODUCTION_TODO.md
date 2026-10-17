@@ -1619,3 +1619,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Resolve migration chronology before adding/deploying that schema change: RC425–RC441 restoration and full chronological replay remain blocked, and other candidate migration branches are still unmerged. Do not insert a new production migration into an unresolved sequence or apply it to Production.
 - [ ] Test the ambiguous provider-outcome case (request timeout after Paymob may have accepted the intention); a lease alone does not guarantee exactly-once provider creation after expiry. Require explicit reconciliation/idempotency semantics before release.
 - **Gate:** PR #287 remains Draft; no merge, deployment, database mutation, or real Paymob transaction was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — MantiGO ambiguous Paymob intention outcome guard
+
+- [x] Hardened the source-only MantiGO checkout handler so a thrown network error, Paymob HTTP 5xx, or successful-but-incomplete intention response attempts a conditional ledger metadata marker: `paymob_intent_reconciliation_required=true` with a reason and timestamp.
+- [x] Added a pre-provider guard that refuses new intention creation when that marker exists; ambiguous outcomes return retryable-looking HTTP 503 only with an explicit reconciliation error code, not checkout credentials.
+- [x] Extended `scripts/validate-mantigo-payment-intent-persistence.mjs` to assert the ambiguity marker, conditional write/row-count check, and ordering boundary.
+- [ ] Exact-head GitHub Actions have not yet been observed for the latest commit `e5832ff10dcd4e4b761d0b33c7b8066ef2a0aff2`; do not record CI PASS until workflow results appear.
+- [ ] A database-backed claim is still required to serialize concurrent requests before contacting Paymob. If the reconciliation-marker database write itself fails, the source-only marker cannot guarantee prevention of another provider request; this remains a material blocker.
+- [ ] No disposable PostgreSQL behavioral test, real Paymob call, production DB mutation, migration, deployment, or merge occurred in this change batch.
+- **State:** source hardening implemented; CI/behavioral tests pending; release remains **BLOCKED / NOT CERTIFIED**.
