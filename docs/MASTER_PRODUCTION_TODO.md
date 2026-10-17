@@ -1603,3 +1603,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
 
 - [x] Added `docs/PAYMOB_INTENT_RECONCILIATION.md` with read-only triage, provider-side evidence requirements, and explicit prohibitions against blind retry or direct production mutation.
+
+
+### RC526 fixture fidelity follow-up — 2026-10-17
+
+- [x] A second schema audit compared the disposable test table against `20261006152000_mantigo_financial_ledger_v1.sql` and found the fixture had omitted production-required `captain_id`, `idempotency_key`, and some ledger checks/defaults. Updated the fixture and all three test records to satisfy those constraints; added a source-contract assertion for the fixture's key constraints.
+- [ ] The prior exact-head RC526 integration passed before this fixture-parity correction. Re-run and inspect the new exact-head workflow before treating the stronger fixture as verified.
