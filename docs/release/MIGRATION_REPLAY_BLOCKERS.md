@@ -1004,3 +1004,13 @@ The source search was extended beyond the current migration directory:
 - Root cause: the approved schema-only SMM provider fixture included a policy that is actually owned by the chronological security-hardening migration. That duplicate obscured the real migration order.
 - Removed policy creation from `supabase/tests/baselines/smm_providers.sql`; the fixture now supplies only the observed table shape, RLS state, and ACL. Updated the validator to require the chronological migration to create both the authenticated and anonymous deny policies, then let the following migration remove the redundant anonymous policy.
 - Static source checks passed 6/6. A new exact-head replay must still confirm the migration now succeeds and reveal the next dependency. No production changes were made.
+
+
+## Exact-head alias-collision triage — 2026-10-17
+
+- **Observed failure:** [Disposable Supabase Migration Chain Replay run 38487272719](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38487272719), commit `c8b6a925bcfbb8b4a50a30ba6282d0eea95667a6`, stopped in `Normalize known legacy migration aliases in disposable replay only` before starting the full chain.
+- **Exact error:** `P0 BLOCKED: canonical replay target already exists: 20261006235323_cleanup_duplicate_job_application_index_v1.sql`.
+- **Confirmed cause:** the repository contains both `20261007030000_cleanup_duplicate_job_application_index_v1.sql` and the canonical live-ledger version `20261006235323_cleanup_duplicate_job_application_index_v1.sql`. Their SQL bodies both reduce to `drop index if exists public.job_applications_job_applicant_uq;`; the alias file has only an extra explanatory comment. This is a replay-workspace normalization collision, not a PostgreSQL migration execution failure.
+- **Fix prepared on this branch:** allow only this exact source/target pair when comment-stripped, whitespace-free, lowercased SQL bodies match; remove the duplicate alias only from the disposable CI workspace and log `SKIP_DUPLICATE_LEDGER_ALIAS`. If the pair differs, or any other target collision occurs, fail closed. Git source files and production history remain unchanged.
+- **Validation status:** code change is awaiting the new exact-head workflow run. The previous failed run must remain recorded as a failure; it is not rewritten as a pass.
+- **Separate evidence:** [Reviewed Production Baseline Forward Replay run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) passed 32 forward migrations from reviewed production schema checkpoint `20261008222845`, including RC526. This is **not** a clean chronological replay from empty schema and does not close historical migration provenance.

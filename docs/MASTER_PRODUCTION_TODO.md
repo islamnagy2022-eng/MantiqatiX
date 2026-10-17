@@ -1730,3 +1730,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Exact-head preflight/copy verification and chronological replay are pending on the next run. No replay PASS is claimed.
 - [ ] Historical policy-creation source remains unrecovered; the fixture is synthetic and disposable-only.
 - **Production release remains `BLOCKED / NOT CERTIFIED`.**
+
+
+## 2026-10-17 — Full replay normalization collision
+
+- [x] Root cause isolated for replay run [38487272719](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38487272719): duplicate cleanup migration exists under source alias and canonical live-ledger filename; SQL bodies match after comments/whitespace normalization.
+- [x] Workflow change prepared to skip only this exact duplicate in disposable CI when SQL matches; all unknown collisions still fail closed.
+- [ ] Await the new exact-head full chronological replay. Do not claim replay passes until that run completes successfully and logs the first result.
+- [ ] If replay reaches a new first failure, record it and fix its root cause before rerunning; do not repeat earlier PASS tests unnecessarily.
+- Separate forward-baseline run [39010395892](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/39010395892) passed 32 migrations from checkpoint `20261008222845`; it is not full chronological replay.
+- Production gate remains **BLOCKED / NOT CERTIFIED**.

@@ -302,3 +302,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact-head [S06 run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421) passed the added conflicting-status concurrency test. It races `SUCCEEDED` and `FAILED` for one external event ID; exactly one wins, the other raises `DIGITAL_PAGE_EVENT_REPLAY_STATUS_MISMATCH`, and the stored order/event remain consistent.
 - Fresh read-only Security Advisor snapshot at `2026-10-13T13:18:40.718Z`: 94 lint records / 133 counted findings — 90 anonymous-policy warnings, 40 authenticated-executable SECURITY DEFINER functions, one anon-executable SECURITY DEFINER function, one leaked-password-protection warning, and one RLS-enabled/no-policy INFO finding. These are triage findings, not 133 confirmed vulnerabilities. No blanket revocations or Auth settings were changed.
 - TODO register updated with this evidence. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-004 — replay normalization root-cause fix
+
+- Inspected failed run [38487272719](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38487272719), exact head `c8b6a925bcfbb8b4a50a30ba6282d0eea95667a6`. Failure occurred before Supabase replay: canonical target collision for duplicate job-application-index cleanup migration.
+- Verified both tracked files exist and their SQL bodies match after removing full-line comments and whitespace normalization. The alias source is not part of the observed live ledger; the canonical target is.
+- Changed only the disposable replay workflow logic to tolerate this single exact alias pair when normalized SQL bodies match; it removes the duplicate only in the runner. All other collisions remain fail-closed. This is not a production migration or source-history rewrite.
+- New exact-head replay is justified because the workflow implementation changed. Record the resulting run once; do not rerun it absent code/workflow/environment change or a documented failure reason.
+- Separate PASS evidence [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892): reviewed schema snapshot checkpoint `20261008222845`, 32 forward migrations applied including RC526. This does not prove full chronological replay or recover missing historical creation DDL.
+- SMM historical source remains unresolved; approved SMM provider/credentials snapshots are test-only replay aids, not recovered original migration files. Production remains untouched and release blocked.

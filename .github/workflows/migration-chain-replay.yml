@@ -337,12 +337,30 @@ jobs:
           rename_legacy_alias() {
             local source="$1"
             local target="$2"
-            test -f "supabase/migrations/$source"
-            if [[ -e "supabase/migrations/$target" ]]; then
+            local source_path="supabase/migrations/$source"
+            local target_path="supabase/migrations/$target"
+            test -f "$source_path"
+            if [[ -e "$target_path" ]]; then
+              # One known legacy duplicate exists in the repository under both names.
+              # Accept only this exact alias pair and only when normalized SQL bodies
+              # match; drop the duplicate source from the disposable runner, never Git.
+              if [[ "$source" == "20261007030000_cleanup_duplicate_job_application_index_v1.sql" &&
+                    "$target" == "20261006235323_cleanup_duplicate_job_application_index_v1.sql" ]]; then
+                local source_sql target_sql
+                source_sql="$(sed '/^[[:space:]]*--/d' "$source_path" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+                target_sql="$(sed '/^[[:space:]]*--/d' "$target_path" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+                if [[ -n "$source_sql" && "$source_sql" == "$target_sql" ]]; then
+                  rm "$source_path"
+                  echo "SKIP_DUPLICATE_LEDGER_ALIAS source=$source target=$target normalized_sql_match=true disposable_only=true"
+                  return 0
+                fi
+                echo "P0 BLOCKED: known duplicate alias SQL differs: $source -> $target" >&2
+                exit 1
+              fi
               echo "P0 BLOCKED: canonical replay target already exists: $target" >&2
               exit 1
             fi
-            mv "supabase/migrations/$source" "supabase/migrations/$target"
+            mv "$source_path" "$target_path"
           }
           rename_legacy_alias "20260928020000_rc101_g6_rls_permissive_policy_hardening.sql" "20260928101022_rc101_g6_rls_permissive_policy_hardening.sql"
           rename_legacy_alias "20260928020000_rc102_g8_crm_notification_support_rls_hardening.sql" "20260928104107_rc102_g8_crm_notification_support_rls_hardening.sql"
