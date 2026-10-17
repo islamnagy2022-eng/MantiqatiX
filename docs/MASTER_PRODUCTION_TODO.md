@@ -1654,3 +1654,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: full chronological replay of the restored RC425–RC441 history still needs authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub, skip the historical revoke, or infer the missing function's behavior.
 - [ ] BLOCKED: PR #282 remains draft and unmerged; production is still on RC424 (283 migrations through `20261008222845`). Do not deploy RC449/RC462/RC565 or claim production certification until historical replay is resolved, reviewed, and explicitly approved.
 - Overall state: **focused security/report tests PASS; production release BLOCKED / NOT CERTIFIED**.
+
+
+## Replay blocker investigation — authoritative live definition found, migration provenance still missing
+
+- [x] Read-only query against live Supabase catalog recovered the exact current definition of `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: returns `void`, SECURITY DEFINER, currently `SET search_path TO 'public'`, validates authenticated/non-anonymous caller and non-negative price, and updates only a bid belonging to the caller's editable request.
+- [x] Read-only query of `supabase_migrations.schema_migrations` for recorded migration statements containing `counter_offer_indrive_bid` returned zero rows. GitHub source search also found only the later revoke migration and documentation references, not the original creation DDL.
+- [ ] BLOCKED: live catalog definition is useful evidence but does **not** establish the original migration version/order or prove it is the exact historical definition at the point where the revoke migration runs. Do not invent a historical migration file or claim full chronological replay from a fixture alone.
+- No production writes were made during these checks.
