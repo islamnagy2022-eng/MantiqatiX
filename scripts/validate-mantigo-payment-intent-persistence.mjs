@@ -39,7 +39,7 @@ if (persistenceUpdate < 0 || zeroRowGuard < persistenceUpdate ||
 }
 const reconcileMarker = source.indexOf('const markReconciliationRequired=');
 const networkAmbiguity = source.indexOf('markReconciliationRequired("NETWORK_OUTCOME_AMBIGUOUS")');
-if (reconcileMarker < 0 || networkAmbiguity < providerRequest ||
+if (reconcileMarker < 0 || networkAmbiguity <= providerRequest ||
     source.indexOf('paymob_intent_reconciliation_required===true') > providerRequest) {
   throw new Error('Ambiguous Paymob outcomes must be quarantined and future creation blocked');
 }
