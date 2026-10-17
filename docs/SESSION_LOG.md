@@ -58,3 +58,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Tests:** disposable PostgreSQL integration test covers privilege boundary, claim exclusivity, wrong-token rejection, finalization, metadata preservation, and a two-session `dblink` race. Static contract was evaluated in memory at 16/16 assertions; exact-head Actions/SQL runtime result still pending.
 - **CI wiring:** added the validator to Pages validation and added source validation, Deno type-check, and isolated RC526 SQL integration to the existing MantiGO privacy workflow, which already exists on main.
 - **Safety:** no production DDL/data changes, live Paymob requests, payments, deployments, or merges. Chronological migration replay and operator reconciliation remain blockers.
+
+
+## 2026-10-17 — RC526 exact-head validation and reconciliation follow-up
+
+- Exact-head commit `2baa75a5dee7fe84cbef18d7a862ab9fcfc2f625` passed the RC526 static contract and disposable PostgreSQL integration workflow. Logs confirm `RC526 MantiGO payment-intent concurrent claim/finalize integration: PASS`, including definitive-rejection claim release tests and the two-session concurrency race.
+- The same commit's MantiGO privacy workflow passed the source contract, Deno type-check, and RC446 privacy integration. Migration version uniqueness, migration-history immutability, open-PR migration collision guard, approval-action audit atomicity, backend-only module boundary, module professionalization, and Pages validation all passed; deployment was skipped and the production gate remained BLOCKED.
+- Added `docs/PAYMOB_INTENT_RECONCILIATION.md` describing safe read-only triage and the evidence/authorization required for ambiguous claims. No production mutation or live Paymob request was made.
+- Remaining limits: no operator-finalization/reconciliation RPC exists yet; live Paymob E2E remains unverified; full RC425–RC441 chronological replay is still blocked by missing historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not merge/deploy the migration chain or certify production until those blockers are resolved.
