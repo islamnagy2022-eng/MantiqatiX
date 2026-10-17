@@ -54,3 +54,8 @@ Replay at SHA d1eff709f01927f30a676f9bd96d20ae122f7837 reached migration 2026092
 ## Replay checkpoint — REPLAY-ORDER-003
 
 A later full replay failed at applied migration 20260929073244 because the schema-only disposable database lacked tenant MNTY-PLATFORM, a data dependency of the inactive test-business seed. Added a synthetic, idempotent test-only tenant fixture and inject it before the consumer as untracked temporary migration 20260929073243. The validator limits the fixture to one public.tenants INSERT for MNTY-PLATFORM, no auth users or production data, and confirms timestamp ordering. Replay run 39071511736 passed fixture-copy/untracked verification and was in progress at the last check. This is not historical source recovery and does not change production; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Follow-up — REPLAY-ORDER-004
+
+The RC339 showcase migration fails in schema-only replay because its fixed owner UUID is absent from public.users/auth.users. A test-only synthetic owner fixture is now injected at 20261004005817 before organization seed 05818 and canonical consumer 05819. It uses the source UUID only in a disposable database, a reserved invalid.example email, an empty password hash, no tokens, and a public profile. Validation/exact-copy checks passed in 39072088344; full replay was still in progress. No production user was created or changed.

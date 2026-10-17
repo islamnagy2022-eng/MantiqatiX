@@ -411,3 +411,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Root cause: schema-only production snapshot excludes rows, but the applied test-business seed assumes the platform tenant row exists.
 - Added deterministic idempotent test-only fixture supabase/tests/baselines/mnty_platform_tenant_seed.sql and inject it as untracked temporary migration 20260929073243 immediately before the first consumer. Validator enforces exactly one synthetic public.tenants INSERT and dependency/timestamp order. No applied migration was edited for this issue.
 - Replay [39071511736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071511736) at code SHA 1b6fc8f297d187fe070db61de90d1770d0307090 passed exact-copy/untracked verification and was starting disposable Supabase services at the last check. Await final outcome.
+
+
+## 2026-10-17 — REPLAY-ORDER-004 — synthetic owner identity for disposable RC339 replay
+
+- Run 39071819477 at SHA da37e151f3c0c0a284b88d5205aa4c41f46b73e2 failed at 20261004005819_rc339_seed_mantiqati_official_showcase.sql with SQLSTATE 23503: fixed showcase owner UUID missing from public.users, whose FK points to auth.users.
+- Added disposable-only fixture mnty_showcase_owner_user_seed.sql. It creates only the fixed source UUID as a synthetic auth row with invalid.example email, empty password hash/no tokens, and a public.users profile. Injected at temporary version 20261004005817, after platform tenant seed and before organization seed 05818 and RC339 consumer 05819.
+- Validator and workflow checks passed for fixture shape/copy/untracked status in run 39072088344. That full replay was still starting Supabase services at the last check.
+- Migration immutability workflow [39071889905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071889905) passed and confirmed the narrowly scoped unapplied RC199 correction exception. Applied source version 20260928154527 remains unresolved.

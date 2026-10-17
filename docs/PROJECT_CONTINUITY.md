@@ -655,3 +655,12 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - Added synthetic test-only fixture supabase/tests/baselines/mnty_platform_tenant_seed.sql; injected as untracked temporary migration 20260929073243 immediately before the consumer. Validator checks exact fixture contract and timestamp ordering. This supplies synthetic test data only; it is not evidence of the original tenant-row source.
 - Exact-head replay [39071511736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071511736) at SHA 1b6fc8f297d187fe070db61de90d1770d0307090 was in progress after exact-copy/untracked verification passed.
 - No production changes. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-004 (2026-10-17)
+
+- Replay at SHA da37e151f3c0c0a284b88d5205aa4c41f46b73e2 passed synthetic tenant and organization dependencies, then failed in canonical RC339 showcase migration 20261004005819 because its fixed owner UUID was absent from public.users/auth.users.
+- Added disposable-only synthetic owner fixture mnty_showcase_owner_user_seed.sql at temporary version 20261004005817; it uses the hardcoded source UUID only in an isolated database, invalid.example email, empty password hash, no tokens, and one public profile row. It is injected after tenant seed 20260929073243 and before org seed 20261004005818 and consumer 05819.
+- Fixture validator/copy/untracked checks passed in replay run [39072088344](https://github.com/islamnagy2022-eng/MantiqatiX); full replay was in progress at last check.
+- Migration immutability [39071889905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071889905) passed with the exact one-file exception verified.
+- Historical source gap for applied version 20260928154527 and all production gates remain open; release BLOCKED / NOT CERTIFIED.
