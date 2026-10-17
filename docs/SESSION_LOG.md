@@ -319,3 +319,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - After commit `aec857203a67049d61b6473aec06c6cea84bf893`, queried Actions for the exact SHA and the PR branch; no new replay run was scheduled.
 - Root cause of missing CI trigger: the workflow file exists only on the recovery PR branch, while its push filter only includes `main`. Added this exact test branch to the push allowlist to ensure the updated disposable-only replay workflow is exercised.
 - The next run on the resulting SHA is the required verification for the alias-collision fix. No previous PASS is being rerun; this test is required because the workflow changed.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-007 — RC339 organization bootstrap source gap
+
+- Exact run [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) completed **FAIL** after the alias-normalization fix succeeded. The first SQL failure is RC339 showcase seeding: FK `businesses_organization_id_fkey`, missing `organizations.id='MNTY-MAIN'`.
+- Read-only Supabase query confirmed the organization exists in production with tenant `MNTY-PLATFORM`, name `MNTY Main Organization`, code `MNTY-ORG`, status `ACTIVE`. Ledger row `20260927131555 / bootstrap_mnty_owner_islam_nagy_v2` exists (one statement, 1,286 chars, MD5 `6eec2cb0d371be273949a444f6dc8272`) but the expected migration source has no Git history.
+- The ledger SQL contains an owner email; do not copy the unredacted statement into the public repository without privacy review. Design proposal: `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md`.
+- No organization fixture was added because explicit approval for a new test-only data baseline is not established. Next action is privacy/replay-path approval, then implement and rerun only because the replay input changed.
+- No production writes or deployment occurred. Release remains **BLOCKED / NOT CERTIFIED**.

@@ -1746,3 +1746,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [x] Added `reconcile/rc425-458-current-main-20261011` to the disposable replay workflow's push branch allowlist because the workflow is not yet present on base `main`.
 - [ ] Await exact-head run after alias-collision correction. Do not mark the full replay as passing until the run succeeds and its exact-run report is inspected.
+
+
+## 2026-10-17 — RC339 replay blocker
+
+- [x] Fixed the replay alias collision without changing Git migration history.
+- [x] New exact-head replay reached SQL execution and identified the next first failure: RC339 requires `organizations.id='MNTY-MAIN'`; row absent in the empty replay database.
+- [x] Confirmed by read-only query that production has the organization row and its migration ledger contains applied bootstrap version `20260927131555`; source path has no repository commit history.
+- [x] Documented the source gap and privacy issue in `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md`.
+- [ ] **BLOCKED pending explicit review:** choose exact-source recovery with privacy review or approve a test-only, minimum organization/tenant seed baseline for disposable replay. Do not add an unreviewed public SQL statement containing the owner email.
+- [ ] After approval, run the full disposable replay once on the changed exact SHA; record the next first failure and repeat only after a new repair.

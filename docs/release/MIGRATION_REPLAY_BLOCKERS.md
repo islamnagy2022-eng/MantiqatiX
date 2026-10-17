@@ -1021,3 +1021,13 @@ The source search was extended beyond the current migration directory:
 - The alias-normalization fix was committed at `aec857203a67049d61b6473aec06c6cea84bf893`, but no workflow run appeared for that SHA. Inspection showed this workflow file exists only on the draft recovery branch, while its `push.branches` filter allowed only `main`; the pull-request workflow definition is not present on the base branch, so the expected automatic run was not scheduled.
 - Added the exact recovery branch to the workflow's push allowlist so the disposable replay can run on the branch that contains the workflow. This is CI-trigger configuration only; it does not apply migrations to production.
 - The alias fix remains **UNVERIFIED** until a new exact-head run completes. If no run is scheduled after this commit, record that outcome and do not claim a pass.
+
+
+## Exact-head full replay result — RC339 organization bootstrap dependency (2026-10-17)
+
+- New run [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236), SHA `e3bf38487f4f2e180dec4482cde581c05a4f4ec7`, passed baseline preflight, test-only fixture injection, Supabase startup, and alias normalization, then failed on RC339 with SQLSTATE `23503`: `businesses_organization_id_fkey`, missing `organizations.id='MNTY-MAIN'`.
+- Read-only production query confirms the live organization row exists. Read-only migration-ledger query confirms an applied version `20260927131555` named `bootstrap_mnty_owner_islam_nagy_v2` with one statement, 1,286 characters, MD5 `6eec2cb0d371be273949a444f6dc8272`. The expected source path has no Git commit history.
+- The applied bootstrap statement includes an owner email in its Auth-user lookup/error text. The exact unredacted statement was not copied into the public repo. See `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md`.
+- **Root cause confirmed:** missing historical bootstrap source/data dependency in repository replay. The production schema snapshot contains no rows, so it cannot supply `MNTY-MAIN`.
+- **Next action:** choose and approve a privacy-safe recovery path: reviewed/private exact-source recovery, or an explicitly approved test-only organization seed fixture for disposable replay. No fixture was added in this commit. A later forward migration alone cannot fix the earlier replay dependency.
+- This run is recorded as **FAIL**; do not rerun until the source/fixture/workflow changes under an approved repair path.
