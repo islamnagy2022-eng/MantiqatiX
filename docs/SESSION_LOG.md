@@ -71,3 +71,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Live Supabase was checked read-only again: 283 migration records through `20261008222845`; the RC425 MantiGo provider-event table and processor RPC remain absent.
 - Full chronological replay remains blocked by missing authoritative historical creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub or bypass the historical revoke.
 - No production changes were made. Production gate remains **BLOCKED / NOT CERTIFIED** pending replay, tenant-isolation and payment/finance E2E, backup/restore, deployed Edge Function parity, SMM launch-scope/parity, and Auth security evidence.
+
+
+## 2026-10-17 — RC526 MantiGO claim boundary candidate rebuilt on restored migration branch
+
+- **Branch:** `fix/rc526-mantigo-intent-claim-mainline-20261017`, created from restored payment-chain candidate head `5a490472c767dfb073a5fb7f63315709db29a492` (PR #286).
+- **Implementation:** added `20261014233000_rc526_mantigo_payment_intent_claim.sql`, claim/finalize service-role-only RPCs, updated MantiGO Edge Function to claim before Paymob, a 15-second provider timeout, fail-closed handling for ambiguous outcomes, disposable fixture/integration tests, static contract validator, and a dedicated PostgreSQL workflow.
+- **Schema correction:** verified authoritative ledger source defines `mantigo_financial_ledger.id text primary key`; corrected the older RC526 candidate's RPC argument signatures, grants, fixture, and dblink test casts from UUID to text. The claim also rejects pre-existing provider state rather than permitting a retry.
+- **Test scope:** integration suite exercises role grants, one claim winner, wrong-token finalization rejection, successful token-bound finalization, metadata preservation, and a two-independent-session dblink race. Static in-memory contract review passed 16/16 assertions. This is not yet exact-head GitHub Actions/SQL runtime evidence.
+- **Safety:** no production schema/data changes, Paymob calls, real payments, deployment, or merge. Full RC425–RC441 replay and the original migration-provenance blocker remain open.
+- **Next:** open a dependent Draft PR against the RC425–RC441 restoration branch; inspect exact-head workflow logs, fix any SQL/type/runtime failures, and keep production blocked.
