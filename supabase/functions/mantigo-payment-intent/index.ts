@@ -45,8 +45,8 @@ Deno.serve(async req=>{
     return json({error:"PAYMENT_INTENT_STATE_REQUIRES_RECONCILIATION",requestId},409,requestId);
   }
   // A REQUIRED ledger must not already contain partial provider state.
-  if(ledger.provider||ledger.provider_intent_id||metadata.paymob_client_secret||metadata.paymob_intention_order_id){
-    return json({error:"PAYMENT_INTENT_STATE_INCONSISTENT",requestId},409,requestId);
+  if(ledger.provider||ledger.provider_intent_id||metadata.paymob_client_secret||metadata.paymob_intention_order_id||metadata.paymob_intent_reconciliation_required===true){
+    return json({error:metadata.paymob_intent_reconciliation_required===true?"PAYMENT_INTENT_REQUIRES_PROVIDER_RECONCILIATION":"PAYMENT_INTENT_STATE_INCONSISTENT",requestId},409,requestId);
   }
 
   const amount=Number(ledger.gross_amount);
@@ -63,19 +63,45 @@ Deno.serve(async req=>{
   const city=String(user.user_metadata?.city??"NA").trim()||"NA";
   const state=String(user.user_metadata?.state??city).trim()||"NA";
 
-  const providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
-    method:"POST",
-    headers:{"Authorization":`Token ${PAYMOB_SECRET_KEY}`,"Content-Type":"application/json"},
-    body:JSON.stringify({
-      amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],
-      items:[{name:"MantiGO Ride",amount:amountCents,description:`MantiGO ride ${rideId}`,quantity:1}],
-      billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city,country:"EG",email,floor:"NA",state},
-      special_reference:ledger.id,expiration:3600,notification_url:PAYMOB_CALLBACK_URL
-    })
-  });
+  // Once the provider request is sent, a network exception, 5xx, or incomplete response
+  // is ambiguous: Paymob may have created an intention even if this process cannot correlate it.
+  // Persist a reconciliation marker so subsequent calls do not blindly create another intention.
+  const markReconciliationRequired=async(reason:string)=>{
+    const {data:markedRows,error:markError}=await admin.from("mantigo_financial_ledger").update({
+      metadata:{...metadata,paymob_intent_reconciliation_required:true,paymob_intent_reconciliation_reason:reason,paymob_intent_reconciliation_at:new Date().toISOString()},
+      updated_at:new Date().toISOString()
+    }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider",null).is("provider_intent_id",null).select("id");
+    if(markError||!markedRows||markedRows.length!==1){
+      console.error(JSON.stringify({requestId,stage:"mark_paymob_reconciliation",reason,error:markError?.message??"conditional update did not affect exactly one row"}));
+      return false;
+    }
+    return true;
+  };
+  let providerResponse:Response;
+  try{
+    providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
+      method:"POST",
+      headers:{"Authorization":`Token ${PAYMOB_SECRET_KEY}`,"Content-Type":"application/json"},
+      body:JSON.stringify({
+        amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],
+        items:[{name:"MantiGO Ride",amount:amountCents,description:`MantiGO ride ${rideId}`,quantity:1}],
+        billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city,country:"EG",email,floor:"NA",state},
+        special_reference:ledger.id,expiration:3600,notification_url:PAYMOB_CALLBACK_URL
+      })
+    });
+  }catch(error){
+    await markReconciliationRequired("NETWORK_OUTCOME_AMBIGUOUS");
+    console.error(JSON.stringify({requestId,stage:"paymob_intention_network",error:String(error)}));
+    return json({error:"PAYMENT_INTENT_REQUIRES_PROVIDER_RECONCILIATION",requestId},503,requestId);
+  }
   const provider=await providerResponse.json().catch(()=>({})) as Record<string,unknown>;
   const clientSecret=String(provider.client_secret??"");
   const providerIntentId=String(provider.id??"");
+  if(providerResponse.status>=500|| (providerResponse.ok&&(!clientSecret||!providerIntentId))){
+    await markReconciliationRequired(providerResponse.status>=500?"PROVIDER_5XX_OUTCOME_AMBIGUOUS":"PROVIDER_RESPONSE_INCOMPLETE");
+    console.error(JSON.stringify({requestId,stage:"paymob_intention_ambiguous",httpStatus:providerResponse.status}));
+    return json({error:"PAYMENT_INTENT_REQUIRES_PROVIDER_RECONCILIATION",requestId},503,requestId);
+  }
   if(!providerResponse.ok||!clientSecret||!providerIntentId){
     console.error(JSON.stringify({requestId,stage:"paymob_intention",httpStatus:providerResponse.status}));
     return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT"},502,requestId);
