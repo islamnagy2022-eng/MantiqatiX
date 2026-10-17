@@ -11,6 +11,8 @@ create table public.mantigo_financial_ledger (
   commission_amount numeric(14,2) not null default 0 check (commission_amount >= 0),
   captain_net_amount numeric(14,2) not null default 0 check (captain_net_amount >= 0),
   payment_method text,
+  provider text,
+  provider_intent_id text,
   payment_status text not null default 'REQUIRED' check (payment_status in ('REQUIRED','PENDING','PAID','FAILED','REFUNDED','CASH_CONFIRMED')),
   settlement_status text not null default 'NOT_READY' check (settlement_status in ('NOT_READY','READY','SETTLED','HELD','CANCELLED')),
   payment_reference text,
