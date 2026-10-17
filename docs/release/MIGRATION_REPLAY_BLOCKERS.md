@@ -1054,3 +1054,9 @@ The source search was extended beyond the current migration directory:
 
 - Expanded the canonical recovered-source manifest to 32 ledger statements and the validator to check each entry's exact byte length and SHA-256. CI verification of the expanded assertion is pending the next approved replay run.
 - After alias normalization and the 21 recovered statements, the live-ledger name inventory has one remaining unmatched migration name: `20260927131555_bootstrap_mnty_owner_islam_nagy_v2`. This does not mean the schema is complete: `marketing_provider_services` is present in live production but its table-creation statement is absent from the applied migration ledger and remains a separate compatibility-baseline/source gap.
+
+
+## Source-integrity CI — 2026-10-17
+
+- Added a lightweight workflow `.github/workflows/ledger-source-integrity.yml` to validate all 32 ledger-recovered SQL statement byte lengths and SHA-256 values without invoking the full Supabase replay.
+- The new workflow's first exact-head run is pending. The full replay remains blocked by the missing `marketing_provider_services` creation source/baseline decision.

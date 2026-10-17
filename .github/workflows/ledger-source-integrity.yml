@@ -1,0 +1,30 @@
+name: Ledger-Recovered Source Integrity
+
+on:
+  push:
+    branches: [main, reconcile/rc425-458-current-main-20261011]
+    paths:
+      - "supabase/migrations/**"
+      - "docs/release/LEDGER_RECOVERED_MIGRATION_SOURCE_MANIFEST.json"
+      - "scripts/validate-ledger-recovered-migrations.mjs"
+      - ".github/workflows/ledger-source-integrity.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "docs/release/LEDGER_RECOVERED_MIGRATION_SOURCE_MANIFEST.json"
+      - "scripts/validate-ledger-recovered-migrations.mjs"
+      - ".github/workflows/ledger-source-integrity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-ledger-statements:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate recovered SQL statement bytes and hashes
+        run: node scripts/validate-ledger-recovered-migrations.mjs

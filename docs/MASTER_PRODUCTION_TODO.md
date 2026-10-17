@@ -1779,3 +1779,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Expanded canonical ledger-recovered manifest to 32 entries, with exact bytes/SHA-256 per statement.
 - [x] Updated validator expected count to 32; CI validation is pending the next approved replay run.
 - [ ] Keep full replay blocked until `marketing_provider_services` source/baseline decision is approved. The owner bootstrap source remains excluded due embedded owner email.
+
+
+## 2026-10-17 — Fast ledger source-integrity gate
+
+- [x] Added isolated CI workflow `.github/workflows/ledger-source-integrity.yml` for the 32-entry recovered-source manifest.
+- [ ] Confirm the first exact-head integrity workflow result before claiming the manifest validator passes.
+- [ ] Full replay still requires approved handling of `marketing_provider_services` and the privacy-sensitive owner bootstrap source.

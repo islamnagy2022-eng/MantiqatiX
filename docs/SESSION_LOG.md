@@ -353,3 +353,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Updated `scripts/validate-ledger-recovered-migrations.mjs` to assert all 32 entries and verify file byte lengths, SHA-256, and secret patterns. The script is invoked by the disposable replay workflow; this updated 32-entry assertion has not yet been CI-verified because the latest replay is blocked at the missing `marketing_provider_services` relation.
 - Full replay run `39011424756` failed at the grant migration due missing table. The source gap and proposed table+public-read test baseline are documented in `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`.
 - Do not rerun full replay until the baseline/source decision is approved and replay inputs change. Production remains untouched.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-012 — isolated source-integrity CI gate
+
+- Added `.github/workflows/ledger-source-integrity.yml`, a lightweight CI gate that runs only `scripts/validate-ledger-recovered-migrations.mjs` on changes to migration sources, the 32-entry manifest, or the validator.
+- This gate is separate from the full replay, so the source hash/byte validator can be verified without rerunning a full migration chain that is currently blocked at the missing `marketing_provider_services` table.
+- The first run on the exact workflow commit is pending; do not mark the 32-entry manifest validated until that run passes.
