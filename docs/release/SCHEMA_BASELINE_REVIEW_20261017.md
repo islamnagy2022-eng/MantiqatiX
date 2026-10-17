@@ -69,3 +69,10 @@ Before approving the baseline or enabling forward replay:
 - **Disposition:** unresolved; baseline remains `PENDING_REVIEW`.
 
 No production changes, grants, schema changes, data reads from user tables, or deployments were performed during this source review.
+
+
+## Correction — effective direct table privilege for brand assets (2026-10-17)
+
+- Follow-up ACL scan of the same schema-only snapshot found **no** `GRANT SELECT` or `GRANT ALL` on `public.platform_brand_assets` to `anon` or `authenticated`. The table's explicit role grants shown in the dump are limited to `REFERENCES, TRIGGER, TRUNCATE, MAINTAIN`; default table privileges for these roles also grant only those non-read privileges. Therefore the broad SELECT policy does **not by itself** establish that client roles can read the table; direct SELECT appears ungranted in the captured ACL state.
+- This corrects the preceding note's implication that the policy alone exposes the paths. Runtime `has_table_privilege('anon', ... , 'SELECT')` and authenticated-role checks should still be run in a disposable replay, and any public RPC/view that reads this table must be audited separately. Because the baseline contains no row values, public storage-path validation remains unavailable from this artifact.
+- Baseline remains `PENDING_REVIEW`; no production query or mutation was performed for this correction.
