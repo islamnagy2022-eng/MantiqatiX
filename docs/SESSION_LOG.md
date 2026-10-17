@@ -96,3 +96,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The MantiGO platform-admin workflow now applies the disposable fixture, RC449 platform-scope migration, RC462 malformed-permission guard and regression, RC449 authorization regression, then RC565 report fix and behavioral regression, in timestamp order.
 - The latest PR #282 code head is `2339be895579f335918cdb9a974aa9467df4e954`; all newly triggered exact-head checks are queued. The earlier focused RC449 + RC565 SQL integration passed on `44fd01d6d5dafbd2b130e023a806328ebe2766ed`; RC462's separate focused PostgreSQL regression passed on PR #248 code head `8ca3130985f15401138cfd063c26e1cc38a7851f`. The consolidated three-migration sequence has not yet completed.
 - Keep both PRs draft/unmerged while the exact-head consolidated tests and full chronological replay remain incomplete. No production changes.
+
+
+## 2026-10-17 — consolidated CI first attempt failed in static validator; corrected
+
+- The first consolidated RC449 → RC462 → RC565 run [38993169378](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993169378) failed **before SQL execution** because the newly extended `validate-mantigo-platform-admin-scope.mjs` had an invalid JavaScript string escape in the JSON-containment assertion. The PostgreSQL test step was skipped; this was a validator syntax defect, not a database behavior failure.
+- Corrected the assertion to use a JavaScript template literal in commit `1af21eb5534f7891349d0fe01da84524a8a0ae9f`. The exact-head CI batch for that fix was queued at the last observation.
+- Do not count the consolidated three-migration sequence as passed until a new exact-head run executes the static validators and PostgreSQL steps successfully.
