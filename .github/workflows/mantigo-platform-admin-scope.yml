@@ -19,6 +19,8 @@ on:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql"
+      - "supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql"
       - "supabase/migrations/20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql"
       - "supabase/tests/rc565_mantigo_financial_report_integration.sql"
       - "scripts/validate-mantigo-financial-report.mjs"
