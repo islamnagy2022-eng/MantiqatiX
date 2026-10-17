@@ -305,3 +305,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Found a similar `marketing_provider_services` definition in a **different draft PR's test-only baseline** (`supabase/tests/baselines/marketing_commission_schema.sql` on PR #218). It is live-derived/test-only, not historical source; no copying or injection was done because the current proposal requires explicit approval.
 - Next: pursue new trusted source artifacts or obtain explicit approval for the exact disposable-only baseline. Do not rerun unchanged replay or invent historical DDL. No production action, deployment, payment, merge, or release.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — SESSION-RESUME-EXEC-018 — latest-head CI and source-provenance clarification
+
+- Verified PR #289 exact head `15ea4fdee2b7c6dac7faea22f90162fd83445e56`; it remains Draft/open/unmerged.
+- Inspected 11 exact-head/associated GitHub Actions runs. RC526 PostgreSQL claim/finalization + RC446 privacy, targeted-ads, matrimony privacy, approval audit, migration uniqueness/immutability/collision guard, backend boundary, and Pages validation passed. Pages deployment was skipped. All exact run IDs and scopes are recorded in `docs/TEST_EXECUTION_LEDGER.md`.
+- Job-level verification confirmed RC526 behavioral integration ran in `39049712993`; this is CI evidence, not a live Paymob request.
+- Searched Library for the original counter-offer function and owner-bootstrap SQL. A large live-schema snapshot contains the current function body but no verified original migration identity/timestamp. The applied owner-bootstrap SQL has a hard-coded owner email/elevated permissions and the matching migration file is absent from the current `main` migration directory. It remains privacy-sensitive and cannot be restored verbatim to public source without review.
+- Reconciled prior replay evidence: forward replay from the live-derived schema baseline passed [39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548), but full chronological replay candidates failed separately at missing `MNTY-MAIN` [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) and `public.marketing_provider_services` [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756). Do not conflate baseline-assisted forward replay with clean chronological replay.
+- No manual tests were rerun. No replay rerun, fixture injection, production mutation, migration application, deployment, payment, merge, or release occurred.
+- **Next action:** continue trusted source recovery; if no source is available, request explicit review/approval for a narrowly scoped, clearly labelled test-only baseline/bootstrap, then run the changed disposable replay once and record the next first failure.
+- Production remains **BLOCKED / NOT CERTIFIED**.
