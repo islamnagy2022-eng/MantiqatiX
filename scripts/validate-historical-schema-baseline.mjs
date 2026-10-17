@@ -1333,5 +1333,44 @@ for (const [version, temporaryName] of [
    process.exit(1);
  }
 
+// MantiGO open-rides compatibility function: exact definition from the captured live
+// schema at the RC424 checkpoint, injected only into disposable replay before an earlier GRANT.
+// It is not the historical creation migration and cannot close source-provenance review.
+const mantigoOpenRidesBaselinePath = "supabase/tests/baselines/mantigo_open_rides_function.sql";
+const mantigoOpenRidesBaseline = fs.existsSync(mantigoOpenRidesBaselinePath)
+  ? fs.readFileSync(mantigoOpenRidesBaselinePath, "utf8")
+  : "";
+const mantigoOpenRidesWorkflowPath = ".github/workflows/migration-chain-replay.yml";
+const mantigoOpenRidesWorkflow = fs.existsSync(mantigoOpenRidesWorkflowPath)
+  ? fs.readFileSync(mantigoOpenRidesWorkflowPath, "utf8")
+  : "";
+const mantigoOpenRidesTemporaryVersion = "20261006101047";
+const mantigoOpenRidesTemporaryName = mantigoOpenRidesTemporaryVersion + "_test_only_live_derived_mantigo_open_rides_baseline.sql";
+const mantigoOpenRidesBaselineValid =
+  /TEST-ONLY compatibility baseline for disposable migration-chain replay/i.test(mantigoOpenRidesBaseline) &&
+  /production schema-only snapshot captured 2026-10-17T02:10:22Z/i.test(mantigoOpenRidesBaseline) &&
+  /8d096904c777b4c7eae096014b45c59859c96cee/.test(mantigoOpenRidesBaseline) &&
+  /NOT claimed to be the original creation migration/i.test(mantigoOpenRidesBaseline) &&
+  /Never apply this file to production/i.test(mantigoOpenRidesBaseline) &&
+  /CREATE OR REPLACE FUNCTION public\\.list_open_mantigo_rides_backend\\s*\\(\\s*p_user_id\\s+uuid\\s*\\)[\\s\\S]*RETURNS TABLE/i.test(mantigoOpenRidesBaseline) &&
+  /SECURITY DEFINER[\\s\\S]*SET search_path = public/i.test(mantigoOpenRidesBaseline) &&
+  /USER_CONTEXT_MISMATCH/i.test(mantigoOpenRidesBaseline) &&
+  /status IN \\('OPEN', 'OPEN_FOR_BIDS'\\)/i.test(mantigoOpenRidesBaseline) &&
+  /GROUP BY r\\.id/i.test(mantigoOpenRidesBaseline) &&
+  !/\\b(insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+(public|private)\\.)/i.test(mantigoOpenRidesBaseline);
+const mantigoOpenRidesWorkflowValid =
+  mantigoOpenRidesWorkflow.includes(mantigoOpenRidesBaselinePath) &&
+  mantigoOpenRidesWorkflow.includes(mantigoOpenRidesTemporaryName) &&
+  mantigoOpenRidesWorkflow.includes('cp "$mantigo_open_rides_baseline" "$mantigo_open_rides_migration"') &&
+  mantigoOpenRidesWorkflow.includes('cmp -s "$mantigo_open_rides_baseline" "$mantigo_open_rides_migration"') &&
+  mantigoOpenRidesWorkflow.includes('"$mantigo_open_rides_migration"; do ! git ls-files --error-unmatch "$file"');
+if (!mantigoOpenRidesBaselineValid || !mantigoOpenRidesWorkflowValid ||
+    fs.existsSync(path.join(migrationDirectory, mantigoOpenRidesTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === mantigoOpenRidesTemporaryVersion)) {
+  console.error("P0 BLOCKED: MantiGO open-rides test-only baseline failed provenance, function-contract, no-data, workflow-injection, or no-collision validation.");
+  process.exit(1);
+}
+console.warn("P0 LIMITATION: MantiGO open-rides function is live-derived test-only compatibility scaffolding; original historical creation provenance remains unresolved.");
+
 console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived function compatibility fixture validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
