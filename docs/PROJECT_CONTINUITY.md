@@ -600,3 +600,6 @@ This status is intentional and must remain until the open gates above are indepe
 - **Release gate:** BLOCKED / NOT CERTIFIED. Missing historical migration provenance, full chronological replay, live Paymob sandbox E2E, two-tenant E2E, backup/restore, and other external runtime gates remain unresolved.
 - **Next action (do not restart audit):** continue RC-BLOCKER-001 from the test ledger. Search authoritative historic branches, PR commits, tags, and trusted release artifacts for the original `counter_offer_indrive_bid(uuid,uuid,numeric)` creation migration. Log exact refs searched and results. If original provenance cannot be recovered, keep the replay blocked and prepare a separately reviewed forward-repair proposal rather than inventing or backdating history.
 - No production database/function/configuration changes, provider requests, payments, merges, or releases were performed in this documentation batch.
+
+
+- **Latest verification caveat:** GitHub's PR-triggered workflow lookup returned an empty list for checkpoint `6560d2fc7a055c12b4466c1b0a7692559c9e6f13`; this is inconclusive, not a CI pass. Before relying on the new documentation commits as CI-verified, inspect the actual PR checks/workflow runs and append exact results to the ledger.
