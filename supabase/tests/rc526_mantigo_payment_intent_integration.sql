@@ -25,6 +25,13 @@ begin
      or has_function_privilege('authenticated','public.finalize_mantigo_payment_intent_backend(text,text,text,text,text,jsonb)','EXECUTE') then
     raise exception 'RC526_FINALIZE_RPC_MUST_BE_SERVICE_ROLE_ONLY';
   end if;
+  if has_function_privilege('anon','public.release_mantigo_payment_intent_claim_backend(text,text,integer)','EXECUTE')
+     or has_function_privilege('authenticated','public.release_mantigo_payment_intent_claim_backend(text,text,integer)','EXECUTE') then
+    raise exception 'RC526_RELEASE_RPC_MUST_BE_SERVICE_ROLE_ONLY';
+  end if;
+  if not has_function_privilege('service_role','public.release_mantigo_payment_intent_claim_backend(text,text,integer)','EXECUTE') then
+    raise exception 'RC526_RELEASE_SERVICE_ROLE_GRANT_MISSING';
+  end if;
 
   insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
   values(v_ledger,'ride-rc526','52600000-0000-4000-8000-000000000002',125,'REQUIRED','{"preserved":"yes"}'::jsonb);
@@ -67,6 +74,47 @@ begin
 end
 $test$;
 
+
+-- Definitive provider rejection may release the exact claim; ambiguous statuses may not.
+insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
+values('52600000-0000-4000-8000-000000000005','ride-rc526-rejection','52600000-0000-4000-8000-000000000006',125,'REQUIRED','{"preserved":"yes"}'::jsonb);
+
+do $release_test$
+declare
+  v_ledger text := '52600000-0000-4000-8000-000000000005';
+  v_claimed boolean;
+  v_released boolean;
+  v_rejected boolean := false;
+  v_metadata jsonb;
+begin
+  select public.claim_mantigo_payment_intent_backend(v_ledger,'rejection-token') into v_claimed;
+  if v_claimed is not true then raise exception 'RC526_DEFINITIVE_REJECTION_CLAIM_FAILED'; end if;
+
+  select public.release_mantigo_payment_intent_claim_backend(v_ledger,'wrong-token',400) into v_released;
+  if v_released is not false then raise exception 'RC526_WRONG_TOKEN_MUST_NOT_RELEASE'; end if;
+
+  begin
+    perform public.release_mantigo_payment_intent_claim_backend(v_ledger,'rejection-token',500);
+  exception when others then
+    if sqlerrm <> 'PAYMENT_INTENT_RELEASE_STATUS_NOT_DEFINITIVE' then raise; end if;
+    v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'RC526_AMBIGUOUS_STATUS_MUST_NOT_RELEASE'; end if;
+
+  select public.release_mantigo_payment_intent_claim_backend(v_ledger,'rejection-token',400) into v_released;
+  if v_released is not true then raise exception 'RC526_DEFINITIVE_REJECTION_MUST_RELEASE'; end if;
+
+  select metadata into v_metadata from public.mantigo_financial_ledger where id=v_ledger;
+  if v_metadata ? 'paymob_intent_claim'
+     or v_metadata->'paymob_intent_last_rejection'->>'http_status' <> '400'
+     or v_metadata->>'preserved' <> 'yes' then
+    raise exception 'RC526_RELEASE_MUST_AUDIT_REJECTION_AND_PRESERVE_METADATA';
+  end if;
+
+  select public.claim_mantigo_payment_intent_backend(v_ledger,'retry-after-rejection') into v_claimed;
+  if v_claimed is not true then raise exception 'RC526_CONFIRMED_REJECTION_MUST_ALLOW_SAFE_RETRY'; end if;
+end
+$release_test$;
 
 -- Prove claim exclusivity with two independent PostgreSQL sessions.
 -- Session A keeps its transaction open after claiming; session B blocks on the same
