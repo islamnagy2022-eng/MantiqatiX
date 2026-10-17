@@ -1862,3 +1862,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Made the 20260928184000 candidate reuse an existing policy only when its contract matches; create when absent and fail closed on mismatch. Added a narrowly scoped, evidence-pinned immutability exception for this exact unapplied candidate.
 - [ ] Check migration-history immutability and full replay [39071093587](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071093587) at code SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0.
 - [ ] Recover authoritative source for applied version 20260928154527 or keep that provenance blocker open. No production changes or release approval.
+
+
+## 2026-10-17 — REPLAY-ORDER-003: synthetic tenant data dependency
+
+- [x] Confirmed failure 39071093587: applied migration 20260929073244 requires tenant MNTY-PLATFORM; schema-only replay has no rows.
+- [x] Added a test-only synthetic tenant seed fixture and temporary migration version 20260929073243, before the first consumer. Validator checks one synthetic insert, no auth users/production data, unique timestamp, and dependency order. The fixture is copied only in disposable CI.
+- [ ] Await exact-head replay [39071511736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071511736) at SHA 1b6fc8f297d187fe070db61de90d1770d0307090. Exact-copy/untracked verification passed; replay not yet certified.
+- Production gate remains BLOCKED / NOT CERTIFIED.

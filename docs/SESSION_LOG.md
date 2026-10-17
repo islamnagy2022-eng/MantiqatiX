@@ -345,3 +345,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added a one-file immutability exception tied to original blob SHA and the exact read-only production version-list hash; manifest remains PENDING_REVIEW and deployment_approved=false.
 - Latest candidate SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0 has source-integrity CI PASS [39071093548]. Full replay [39071093587] was pending. Intermediate replay [39071044418] is pre-final and not final evidence.
 - Next: inspect exact-head replay and migration immutability workflow. Keep production gate blocked; missing source for applied version 20260928154527 remains unresolved.
+
+
+## 2026-10-17 — REPLAY-ORDER-003 — schema-only replay needs a synthetic tenant row
+
+- Run 39071093587 at SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0 failed at 20260929073244_seed_mnty_berket_test_business.sql with SQLSTATE 23503 because tenant_id MNTY-PLATFORM was not seeded in the disposable database.
+- Root cause: schema-only production snapshot excludes rows, but the applied test-business seed assumes the platform tenant row exists.
+- Added a deterministic, idempotent test-only tenant seed fixture at supabase/tests/baselines/mnty_platform_tenant_seed.sql and inject it as untracked temporary migration 20260929073243 immediately before the first consumer. Validator enforces exactly one synthetic public.tenants INSERT and dependency/timestamp order. No applied migration was edited for this issue.
+- Current replay [39071511736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071511736) on SHA 1b6fc8f297d187fe070db61de90d1770d0307090 was in progress after exact-copy/untracked verification passed. Await final outcome.

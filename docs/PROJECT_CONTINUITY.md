@@ -790,3 +790,11 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - Candidate 20260928184000 is now idempotent for both customer policies: matching existing policies are reused; absent policies are created; mismatched contracts fail closed. The immutability exception is pinned to the original blob SHA and read-only ledger hash. Manifest remains PENDING_REVIEW.
 - Current code SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0: source integrity PASS [39071093548]; full replay [39071093587] pending at last check. Check immutability CI separately.
 - Next: inspect exact-head workflow results and fix only the next confirmed first failure. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-003 (2026-10-17)
+
+- Full replay at SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0 failed at applied migration 20260929073244 because its inactive test business references MNTY-PLATFORM and the schema-only disposable database has no tenant row.
+- Added synthetic test-only fixture supabase/tests/baselines/mnty_platform_tenant_seed.sql; injected as untracked temporary migration 20260929073243 immediately before the consumer. Validator checks exact fixture contract and timestamp ordering. This supplies synthetic test data only; it is not evidence of the original tenant-row source.
+- Exact-head replay [39071511736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071511736) at SHA 1b6fc8f297d187fe070db61de90d1770d0307090 was in progress after exact-copy/untracked verification passed.
+- No production changes. Release remains BLOCKED / NOT CERTIFIED.
