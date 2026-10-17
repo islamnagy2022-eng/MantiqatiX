@@ -66,3 +66,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Scope of candidate fix:** RC441 introduces explicit `MNTY-PLATFORM` / `SUPER_ADMIN` / `scope=PLATFORM` / `full_control=true` checks for dashboard, report, and settlement. RC565 then fixes the report's ledger column names and validates its time window. These are source-only until the chronological chain is replayed and separately approved; applying RC565 without the preceding platform-scope correction would not be safe.
 - **Remaining source robustness note:** the RC441 helper casts `permissions ->> 'full_control'` to boolean; malformed text can raise an exception (fail-closed but operationally brittle). A separate RC462 candidate was identified in prior PR work; review its provenance/order before claiming this edge case closed.
 - **Production impact:** read-only catalog/function/ACL queries only. No function was replaced and no settlement/payment was performed. Platform-wide MantiGO access remains a P0 release blocker.
+
+
+## 2026-10-17 — RC565 PostgreSQL integration wired; RC462 workflow path repair
+
+- Added `supabase/tests/rc565_mantigo_financial_report_integration.sql` to exercise the actual RC565 function on disposable PostgreSQL after RC449 and RC565 are applied in order.
+- The test intentionally sets stale fixture aliases `amount` and `captain_amount` to values different from `gross_amount` and `captain_net_amount`; it checks the half-open time window (lower bound included, upper bound excluded), report aggregates, empty-range zeros, invalid-range rejection, tenant OWNER denial, and actor/id mismatch.
+- Updated `.github/workflows/mantigo-platform-admin-scope.yml` to run both static validators and then the RC449 authorization integration followed by RC565 SQL integration. Added RC565/test/validator paths to both pull_request and main push filters.
+- Exact-head status at SHA `9c7a7580b6efb3628d9f4f0f8ff28d39a368591c`: migration version uniqueness and migration-history immutability passed; cross-PR migration collision guard passed; RC449/RC565 PostgreSQL workflow was in progress, not yet a pass. The subsequent workflow push-filter-only commit advanced to `54436d66973edbd2ae7763731855b50cae23ca17`; exact-head checks were queued at last observation.
+- RC462 remains canonical in PR #248; its workflow was corrected there to use the real RC449 migration/fixture and the RC462 test is now included as a job in the existing module-professionalization workflow, which is active on the PR. Its exact-head PostgreSQL regression is queued/not yet passed.
+- The full chronological migration replay still lacks authoritative historical creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not stub it or skip/alter the historical revoke migration.
+- No production SQL/function replacement, migration, payment, settlement, deployment, or merge was performed. Release remains **BLOCKED / NOT CERTIFIED**.
