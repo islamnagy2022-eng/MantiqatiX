@@ -365,3 +365,33 @@ No production changes, migration applications, deployments, payments, merges, or
 - **Implication:** current repository evidence still does not recover the original creation migration for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. The live-derived function snapshot remains test-only; the clean historical replay gate stays blocked.
 - **No new tests were executed during this source sweep.** Read-only GitHub and Supabase catalog queries only; no production mutation, payment, deployment, merge, or release.
 - **Next:** preserve the exact code test results from `d7fc...`; continue only with privacy-safe source restoration/test fixture design after review. Keep production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-015 — exact-head CI reconciliation and replay source sweep
+
+- **PR/branch:** [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), `fix/rc526-mantigo-intent-claim-20261017`, Draft/open/unmerged.
+- **Exact code head inspected:** `9892d8d20f4e9b378a4dd3bb567c8590ea18d43a`. This head is newer than the previous checkpoint and includes code/test changes, so prior results from `d7fc64d...` are not substituted for the exact-head results below.
+- **Tests manually rerun in this session:** none. The following are pre-existing automatic GitHub Actions checks inspected at the exact SHA; do not rerun merely to reproduce them.
+
+| Evidence ID | Check | Result | Link |
+|---|---|---|---|
+| CI-289-9892-001 | RC526 MantiGO payment-intent claim/finalization PostgreSQL integration | PASS | [39012881403](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881403) |
+| CI-289-9892-002 | RC526 payment-intent claim integration (parallel check suite) | PASS | [39012879505](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012879505) |
+| CI-289-9892-003 | MantiGO open-ride privacy integration | PASS | [39012881403](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881403) |
+| CI-289-9892-004 | Targeted Ads empty-search-path integration | PASS | [39012881397](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881397) |
+| CI-289-9892-005 | Matrimony privacy PostgreSQL integration | PASS | [39012881397](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881397) |
+| CI-289-9892-006 | Financial journal RC450 integration | PASS | [39012881328](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881328) |
+| CI-289-9892-007 | Approval-action audit PostgreSQL | PASS | [39012881328](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881328) |
+| CI-289-9892-008 | Migration-history immutability | PASS | [39012881387](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881387) |
+| CI-289-9892-009 | Migration-version uniqueness | PASS | [39012881334](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881334) |
+| CI-289-9892-010 | Cross-PR migration collision guard | PASS | [39012881341](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881341) |
+| CI-289-9892-011 | Web/Pages validation | PASS; deployment job SKIPPED | [39012881346](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881346) |
+| CI-289-9892-012 | Additional exact-head validation/approval/finance suite | PASS | [39012879629](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012879629) |
+| CI-289-9892-013 | Additional exact-head targeted-ads/privacy/validation suite | PASS | [39012879446](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012879446) |
+| CI-289-9892-014 | Additional approval-action audit | PASS | [39012881343](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012881343) |
+
+- The commit check-runs endpoint returned 22 check-run records at this SHA; they resolve to the workflows/runs above, with duplicate check suites for the same SHA. All listed checks concluded successfully except the web deployment job, which was skipped. This does not prove live Paymob behavior or production readiness.
+- **Paymob amount contract:** current code uses `supabase/functions/_shared/paymob-intent-correlation.mjs` and compares provider `intention_detail.amount` against integer `amountCents`. Node tests exist in `scripts/tests/mantigo-payment-intent-correlation.test.mjs`; exact-head Pages CI validation passed. No live sandbox request was made.
+- **RC-BLOCKER-001 follow-up:** checked PR #84's reachable source tree and relevant migrations `20261007010000_mantigo_legacy_rpc_boundary_hardening.sql`, `20261007021500_reverse_bidding_server_authority_v1.sql`, and related files. The reverse-bidding migration creates `create_indrive_request_backend` and `create_indrive_bid_backend`, not `counter_offer_indrive_bid`. Prior branch checks still show no authoritative creation DDL. Keep the historical function source/version UNKNOWN; no stub/backdated migration/revoke bypass.
+- **Additional replay blocker confirmed:** `20260928010000_rc99_g5_provider_services_rls_hardening.sql` drops/creates policies on `public.marketing_provider_services` but does not create the table. Repository code search for `create table public.marketing_provider_services` returned no result. Production-oriented docs confirm the table exists live, but that is not historical creation provenance. Full empty-database replay failure remains recorded at [run 39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756), on SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`. Do not add an inferred historical table migration. A test-only baseline for this table/public-active-read policy requires an explicit approval decision or a trusted original source artifact; until then, do not rerun the unchanged full replay.
+- **No production mutation, deployment, merge, payment, or release.** Release remains **BLOCKED / NOT CERTIFIED**.
