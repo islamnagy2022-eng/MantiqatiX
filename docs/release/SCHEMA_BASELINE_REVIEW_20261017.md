@@ -50,3 +50,22 @@ Before approving the baseline or enabling forward replay:
 - Of the 144 parsed bodies, 49 had an `anon` or `authenticated` grant in the snapshot. Only `public.get_mnty_targeted_advertisements(...)` lacked an obvious auth/role signal in its body. Manual inspection shows it returns approved active advertisement creative/target fields, filters active targeting locations, and supports public global ads; it does not query account, order, payment, or membership data. It remains a SECURITY DEFINER function with `search_path = public, pg_temp`, so review must verify schema CREATE privileges, fully-qualified object references, and that target/creative fields are intentionally public before approval.
 - The `public.platform_brand_assets` table has a CHECK constraint restricting `asset_key` to `PRIMARY_LOGO` and `PRIMARY_MARK`; its public SELECT policy exposes `asset_path`, `original_asset_path`, MIME type, version, updater ID, and timestamp. The policy is plausibly intentional for public brand assets, but verify that both paths point only to public assets and do not expose private storage keys before marking it approved.
 - These observations narrow the review but do **not** complete the full function/grant/policy review or tenant-isolation test. Manifest status remains `PENDING_REVIEW`.
+
+
+## Supplemental manual review — public targeted-ad function and brand-asset policy (2026-10-17)
+
+### `public.get_mnty_targeted_advertisements(...)`
+
+- **Reviewed snapshot definition:** function returns only advertisement ID/title, creative URL, target URL, ad-space ID, match level, and approximate distance. It reads `public.advertisements`, `public.advertisement_target_locations`, `public.platform_geo_areas`, and `public.platform_global_advertisements`; each table reference is schema-qualified.
+- Tenant/account/order/payment/membership data is not queried by this function. Local ads are filtered to `ACTIVE` + `APPROVED`, within start/end time, active geographic targets, and the selected country. Global ads are likewise filtered to `ACTIVE` + `APPROVED` and start/end time. `p_limit` is clamped to 1–50.
+- Function is `SECURITY DEFINER`, has `search_path = public, pg_temp`, and is callable by `anon` and `authenticated`. The snapshot scan found no CREATE grant to those roles on schema `public`; however, this is a schema-only snapshot and runtime privilege assertions have not been run. Keep this function in the manual review set until a disposable role-level test proves effective grants, schema CREATE denial, and intended public creative/target exposure.
+- **Disposition:** scoped read-only behavior appears consistent with public ad delivery; not independently certified for production.
+
+### `public.platform_brand_assets`
+
+- Table CHECK constraint limits `asset_key` to `PRIMARY_LOGO` and `PRIMARY_MARK`. Public SELECT policy is `USING (true)` for `anon` and `authenticated`, and exposed columns include `asset_path` and `original_asset_path`.
+- The snapshot is schema-only and contains no row values, so it cannot prove these paths refer exclusively to public assets or that `original_asset_path` does not expose private storage keys.
+- **Required follow-up:** use an authorized read-only query or asset inventory to verify the two path values and storage bucket/access policy. Do not export user data or secret values. If the original path is private, replace broad direct read with a safe public view/RPC or remove the original path from the public contract after an independently reviewed forward-only migration.
+- **Disposition:** unresolved; baseline remains `PENDING_REVIEW`.
+
+No production changes, grants, schema changes, data reads from user tables, or deployments were performed during this source review.
