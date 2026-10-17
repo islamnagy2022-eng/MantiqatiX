@@ -69,6 +69,7 @@ jobs:
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-mantigo-high-risk-definers.mjs
           node scripts/validate-mantigo-rate-limits.mjs
+          node scripts/validate-mantigo-payment-intent-persistence.mjs
           node scripts/validate-mantigo-security-test-contract.mjs
           node scripts/validate-public-security-definer-search-path.mjs
           node scripts/validate-production-gate-contract.mjs
@@ -138,7 +139,8 @@ jobs:
           grep -q "branches: branches ?? \[\]" supabase/functions/api/index.ts
 
   deploy:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    # Never publish a feature branch by manually dispatching the production Pages workflow.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: validate
     timeout-minutes: 10
     environment:
