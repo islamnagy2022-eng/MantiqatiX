@@ -78,3 +78,8 @@ The Draft PR action will use `path: baseline-pr` and `base: main`, keeping the w
 ## Trigger note — recovery branch workflow dispatch
 
 GitHub only exposes the manual `workflow_dispatch` button when the workflow definition is present on the repository default branch. This recovery workflow is intentionally being developed on the recovery branch, so the button may not appear in the Actions UI. For the approved one-time read-only capture, a documentation-only commit with the exact marker `[capture-schema-baseline]` on the configured recovery branch triggers the same guarded capture job. This trigger does not apply migrations or write to production; it reads the migration ledger and schema only, validates the snapshot, and attempts to open a Draft PR containing only the baseline snapshot and manifest.
+
+
+## Retry requested by continuation — 2026-10-17
+
+The reviewed schema snapshot and its provenance manifest are still absent from both `main` and the recovery branch. A new read-only capture attempt is being triggered by the commit marker `[capture-schema-baseline]` because the previous attempt generated/validated a schema-only dump but did not open its baseline-only Draft PR. This workflow must only read the production migration ledger, PostgreSQL major version, and schema definitions; it must not execute production DDL/DML or include table row data. Any generated snapshot remains `PENDING_REVIEW` and cannot be used for replay until human review explicitly approves it.
