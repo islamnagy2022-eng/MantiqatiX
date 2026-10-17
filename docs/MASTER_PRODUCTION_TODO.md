@@ -1671,3 +1671,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Pages validation passed; deploy job was skipped because the run is a pull request. No deployment occurred. These checks validate candidate code and disposable fixtures, not live Paymob behavior or production readiness.
 - **Not verified / still blocked:** live Paymob sandbox E2E; full chronological migration replay from RC424; authoritative creation provenance/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; tenant-isolation E2E; backup/restore rehearsal; production Edge Function parity; remaining Auth/SMM launch gates.
 - **Production impact:** none. No production DDL/DML, Edge Function deployment, live provider call, payment, merge, or release. PR #289 remains Draft; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC526 — Durable continuation and test ledger protocol (2026-10-17)
+
+- [x] Added `docs/CONTINUATION_PROTOCOL.md` with mandatory session resume steps, exact-SHA test evidence rules, no-repeat policy, root-cause closure checklist, release boundaries, and reusable new-session prompt.
+- [x] Added `docs/TEST_EXECUTION_LEDGER.md` as the append-only test ledger; existing RC526 tests and their run URLs are transcribed with explicit evidence scope and non-claims.
+- [x] Created stable blocker IDs for missing historical creation provenance of `counter_offer_indrive_bid`, the SMM credentials table replay gap, live Paymob sandbox E2E, tenant-isolation E2E, and backup/restore.
+- [ ] After these documentation commits, verify exact branch head and actual CI outcomes; append the resulting run IDs and results to the ledger. Do not assume automatic CI passed.
+- [ ] First technical blocker remains RC-BLOCKER-001. Continue from authoritative Git history/release artifacts and record each searched ref/result. Do not repeat completed tests or use speculative/backdated migration DDL.
+- Production release remains **BLOCKED / NOT CERTIFIED**. No production mutation, deployment, payment, merge, or release occurred in this batch.
