@@ -1630,3 +1630,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] A database-backed claim is still required to serialize concurrent requests before contacting Paymob. If the reconciliation-marker database write itself fails, the source-only marker cannot guarantee prevention of another provider request; this remains a material blocker.
 - [ ] No disposable PostgreSQL behavioral test, real Paymob call, production DB mutation, migration, deployment, or merge occurred in this change batch.
 - **State:** source hardening implemented; CI/behavioral tests pending; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Validator syntax failure found and corrected — 2026-10-17
+
+- [x] Inspected the actual Pages workflow log for run [39002899839](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39002899839). It failed at Node parsing of the newly added validator due to over-escaped slash/backslash characters in one regular-expression literal; this was a validator syntax error, not an application-source syntax failure.
+- [x] Corrected the four new regular-expression assertions in commit `176cc373402e3f5f24c4a2762fae1dd9d0dab5b1`.
+- [ ] Await exact-head CI on the correction before calling the validator fixed in CI. No new workflow result was visible immediately after the commit.
+- **Release state remains BLOCKED / NOT CERTIFIED.**
