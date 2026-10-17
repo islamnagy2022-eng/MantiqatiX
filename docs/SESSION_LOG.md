@@ -48,3 +48,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Remaining blockers:** RC425–RC432 and RC434–RC441 remain absent from main; historical creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)` is still missing. RC434 purchase-order line limits/dependencies need chronological verification. PR #282 remains Draft/unmerged.
 - **Not performed:** no production writes, migration execution, function/grant changes, payment/settlement, or deployment.
 - **Next:** finish baseline manual security review; then, only after explicit approval, run full disposable forward replay and runtime tenant/payment/restore tests. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC526 claim boundary rebuilt as a clean main-based candidate
+
+- **Branch:** `fix/rc526-mantigo-intent-claim-20261017`, based directly on main commit `f4059890c656d53d1235ba28d97f703ab35c7299`. This isolates RC526 changes from the separate RC425–RC441 restoration candidate and makes CI evidence attributable to the payment-intent patch.
+- **Implementation:** service-role-only, empty-search-path claim/finalize RPCs; Edge Function claims before calling Paymob; 15-second timeout; claim retained on uncertain provider/finalization outcomes; checkout credentials returned only after token-bound finalization.
+- **Schema correction:** source migration `20261006152000_mantigo_financial_ledger_v1.sql` defines ledger ID as `text`. Corrected the older RC526 candidate's UUID argument mismatch in RPCs, grants, fixture, and concurrency test. Claim refuses non-null provider state and existing provider intent/claim.
+- **Tests:** disposable PostgreSQL integration test covers privilege boundary, claim exclusivity, wrong-token rejection, finalization, metadata preservation, and a two-session `dblink` race. Static contract was evaluated in memory at 16/16 assertions; exact-head Actions/SQL runtime result still pending.
+- **CI wiring:** added the validator to Pages validation and added source validation, Deno type-check, and isolated RC526 SQL integration to the existing MantiGO privacy workflow, which already exists on main.
+- **Safety:** no production DDL/data changes, live Paymob requests, payments, deployments, or merges. Chronological migration replay and operator reconciliation remain blockers.
