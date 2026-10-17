@@ -76,3 +76,29 @@ No production changes, grants, schema changes, data reads from user tables, or d
 - Follow-up ACL scan of the same schema-only snapshot found **no** `GRANT SELECT` or `GRANT ALL` on `public.platform_brand_assets` to `anon` or `authenticated`. The table's explicit role grants shown in the dump are limited to `REFERENCES, TRIGGER, TRUNCATE, MAINTAIN`; default table privileges for these roles also grant only those non-read privileges. Therefore the broad SELECT policy does **not by itself** establish that client roles can read the table; direct SELECT appears ungranted in the captured ACL state.
 - This corrects the preceding note's implication that the policy alone exposes the paths. Runtime `has_table_privilege('anon', ... , 'SELECT')` and authenticated-role checks should still be run in a disposable replay, and any public RPC/view that reads this table must be audited separately. Because the baseline contains no row values, public storage-path validation remains unavailable from this artifact.
 - Baseline remains `PENDING_REVIEW`; no production query or mutation was performed for this correction.
+
+
+## Supplemental live ACL and brand-asset verification — 2026-10-17 (read-only)
+
+### `public.platform_brand_assets`
+
+Read-only production queries returned:
+- Exactly two rows, with keys `PRIMARY_LOGO` and `PRIMARY_MARK`.
+- Each `asset_path` equals its `original_asset_path`.
+- The paths match the repository's public static files: `assets/mantiqatix-logo.svg` and `assets/mantiqatix-mark.svg`; the corresponding files exist at `web/assets/mantiqatix-logo.svg` (blob `8a175d1c8912637b7f29383fc0836ac4f577e057`) and `web/assets/mantiqatix-mark.svg` (blob `01f7c5878b585d94a8f7509e9732488079c80e50`) on `main`.
+- Effective privilege checks returned `has_table_privilege('anon', ..., 'SELECT') = false` and the same for `authenticated`. Thus the broad `USING (true)` policy alone does not currently grant these client roles table access. No private storage URL/key was observed in the two current values.
+
+**Disposition:** the original concern about the *current two path values* pointing to private storage keys is resolved by the read-only evidence. Keep a narrower caveat: a future table-level SELECT grant could make the permissive policy effective, so the release baseline must preserve/check the no-client-SELECT grant unless a separately reviewed public-view contract is introduced. This does not certify all policies or other access paths.
+
+### `public.get_mnty_targeted_advertisements(...)`
+
+Additional read-only production ACL check returned:
+- SECURITY DEFINER = true; settings include `search_path=public, pg_temp`.
+- `anon` and `authenticated` can EXECUTE the function.
+- Neither `anon` nor `authenticated` has CREATE on schema `public`.
+
+Combined with the earlier reviewed snapshot body (schema-qualified table references; output limited to ad creative/target metadata; active/approved and active-target filters), this supports the intended public ad-discovery use case. It is **not** a disposable behavioral test and does not eliminate the need to validate the effective function contract in an isolated test database or review all other callable SECURITY DEFINER functions.
+
+**Evidence type:** read-only production catalog/metadata query plus repository asset existence check. No user-table rows, payment records, or secrets were read. No production write, DDL, grant, migration, or deployment occurred.
+
+**Gate:** keep manifest `PENDING_REVIEW`. These observations close two narrow review questions only; they do not complete the overall baseline review, tenant-isolation E2E, full function/grant/policy review, or release gate.
