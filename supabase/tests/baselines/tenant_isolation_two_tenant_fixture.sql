@@ -34,18 +34,18 @@ INSERT INTO public.businesses (id,tenant_id,organization_id,name,code,status,set
   ('30000000-0000-4000-8000-000000000001','MNTY-TEST-A','ORG-S05-TEST-A','Synthetic Business A','S05-BIZ-A','PENDING','{"showcase":false,"test_fixture":true}'::jsonb),
   ('30000000-0000-4000-8000-000000000002','MNTY-TEST-B','ORG-S05-TEST-B','Synthetic Business B','S05-BIZ-B','PENDING','{"showcase":false,"test_fixture":true}'::jsonb);
 
+INSERT INTO public.orders
+  (id,tenant_id,organization_id,business_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,currency,
+   customer_name,customer_phone,delivery_address,items_json,metadata)
+VALUES
+  ('40000000-0000-4000-8000-000000000001','MNTY-TEST-A','ORG-S05-TEST-A','30000000-0000-4000-8000-000000000001',NULL,'NEW',100,0,0,0,100,'EGP','Synthetic Customer A','0000000000','Disposable fixture A','[]'::jsonb,'{"test_fixture":true}'::jsonb),
+  ('40000000-0000-4000-8000-000000000002','MNTY-TEST-B','ORG-S05-TEST-B','30000000-0000-4000-8000-000000000002',NULL,'NEW',100,0,0,0,100,'EGP','Synthetic Customer B','0000000000','Disposable fixture B','[]'::jsonb,'{"test_fixture":true}'::jsonb);
+
 INSERT INTO public.user_memberships
   (id,user_id,tenant_id,organization_id,business_id,role,permissions,status)
 VALUES
   ('S05-TEST-A-OWNER','20000000-0000-4000-8000-000000000001','MNTY-TEST-A','ORG-S05-TEST-A','30000000-0000-4000-8000-000000000001','OWNER','[]'::jsonb,'ACTIVE'),
   ('S05-TEST-B-OWNER','20000000-0000-4000-8000-000000000002','MNTY-TEST-B','ORG-S05-TEST-B','30000000-0000-4000-8000-000000000002','OWNER','[]'::jsonb,'ACTIVE');
-
-INSERT INTO public.orders
-  (id,tenant_id,organization_id,business_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,currency,
-   customer_name,customer_phone,delivery_address,items_json,metadata)
-VALUES
-  ('40000000-0000-4000-8000-000000000001','MNTY-TEST-A','ORG-S05-TEST-A','30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','NEW',100,0,0,0,100,'EGP','Synthetic Customer A','0000000000','Disposable fixture A','[]'::jsonb,'{"test_fixture":true}'::jsonb),
-  ('40000000-0000-4000-8000-000000000002','MNTY-TEST-B','ORG-S05-TEST-B','30000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000002','NEW',100,0,0,0,100,'EGP','Synthetic Customer B','0000000000','Disposable fixture B','[]'::jsonb,'{"test_fixture":true}'::jsonb);
 
 INSERT INTO public.payment_intents
   (id,tenant_id,order_id,amount,currency,status,provider,idempotency_key,payment_method)
