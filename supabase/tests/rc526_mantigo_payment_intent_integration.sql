@@ -47,6 +47,13 @@ begin
   values(v_ledger,'ride-rc526','52600000-0000-4000-8000-000000000002','52600000-0000-4000-8000-000000000007',125,'REQUIRED','RC526-test-main','{"preserved":"yes"}'::jsonb);
 
   select public.claim_mantigo_payment_intent_backend(v_ledger,'claim-one') into v_claim_one;
+  select metadata into v_metadata from public.mantigo_financial_ledger where id=v_ledger;
+  if v_metadata->'paymob_intent_claim' ? 'token'
+     or v_metadata->'paymob_intent_claim' ? 'token_hash'
+     or v_metadata->'paymob_intent_claim' ? 'claim_token'
+     or (select claim_token from public.mantigo_payment_intent_claims where ledger_id=v_ledger) <> 'claim-one' then
+    raise exception 'RC526_CLAIM_TOKEN_MUST_STAY_OUT_OF_LEDGER_METADATA';
+  end if;
   select public.claim_mantigo_payment_intent_backend(v_ledger,'claim-two') into v_claim_two;
   if v_claim_one is not true or v_claim_two is not false then
     raise exception 'RC526_CLAIM_MUST_ALLOW_ONLY_ONE_WINNER';
