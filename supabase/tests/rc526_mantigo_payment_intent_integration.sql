@@ -33,8 +33,8 @@ begin
     raise exception 'RC526_RELEASE_SERVICE_ROLE_GRANT_MISSING';
   end if;
 
-  insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
-  values(v_ledger,'ride-rc526','52600000-0000-4000-8000-000000000002',125,'REQUIRED','{"preserved":"yes"}'::jsonb);
+  insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
+  values(v_ledger,'ride-rc526','52600000-0000-4000-8000-000000000002','52600000-0000-4000-8000-000000000007',125,'REQUIRED','RC526-test-main','{"preserved":"yes"}'::jsonb);
 
   select public.claim_mantigo_payment_intent_backend(v_ledger,'claim-one') into v_claim_one;
   select public.claim_mantigo_payment_intent_backend(v_ledger,'claim-two') into v_claim_two;
@@ -76,8 +76,8 @@ $test$;
 
 
 -- Definitive provider rejection may release the exact claim; ambiguous statuses may not.
-insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
-values('52600000-0000-4000-8000-000000000005','ride-rc526-rejection','52600000-0000-4000-8000-000000000006',125,'REQUIRED','{"preserved":"yes"}'::jsonb);
+insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
+values('52600000-0000-4000-8000-000000000005','ride-rc526-rejection','52600000-0000-4000-8000-000000000006','52600000-0000-4000-8000-000000000008',125,'REQUIRED','RC526-test-rejection','{"preserved":"yes"}'::jsonb);
 
 do $release_test$
 declare
@@ -121,8 +121,8 @@ $release_test$;
 -- ledger row, then observes the committed claim and must lose.
 create extension if not exists dblink;
 
-insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
-values('52600000-0000-4000-8000-000000000003','ride-rc526-concurrent','52600000-0000-4000-8000-000000000004',125,'REQUIRED','{}'::jsonb);
+insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
+values('52600000-0000-4000-8000-000000000003','ride-rc526-concurrent','52600000-0000-4000-8000-000000000004','52600000-0000-4000-8000-000000000009',125,'REQUIRED','RC526-test-concurrent','{}'::jsonb);
 
 do $concurrency$
 declare
