@@ -172,3 +172,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Inspected 11 workflow runs on prior exact HEAD `f801dcee6f8d6a808af14216520cac26df186d43`; all listed checks completed successfully, and web deploy was skipped. The proposal commit `b9a8946...` is documentation-only and was not represented as CI-verified at time of this log.
 - **Tests intentionally run:** none. **Production actions:** none.
 - **Next exact action:** search trusted backup/source archives for original DDL; if unrecoverable, obtain explicit approval before enabling a test-only live-derived baseline for disposable replay. Do not synthesize historical migration DDL. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-003
+
+- Verified PR #289 remains Draft/open/unmerged at exact head `74f6768eba37898ef13c66fa057ecb71ebbc3e81`. Inspected 11 exact-head CI runs; all listed validation workflows passed. Web deploy was skipped. IDs and scope are recorded in `docs/TEST_EXECUTION_LEDGER.md`.
+- Located and verified the latest test-only reviewed-baseline forward replay on separate branch `test/production-baseline-forward-replay-20261017`, exact SHA `a79b2caa5b883817f5c1b550d044b09780f06820`. Run [39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) passed all steps, including restoring the live-derived schema snapshot into isolated local Supabase and applying forward migrations newer than the RC424 checkpoint. Exact-run artifact exists; artifact contents were not independently read, so no migration count is asserted.
+- This adds forward-replay evidence only. It does not recover historical creation DDL, prove blank-database chronological replay, or clear Paymob E2E, tenant-isolation, backup/restore, or production gates.
+- No tests were intentionally rerun in this session; results were inspected and documented. No production changes, deployments, payments, merges, or releases occurred.
+- **Next action:** inspect the uploaded replay artifact if supported; continue provenance recovery and independently review the baseline security findings. Keep PR #284 pending review and all release candidates Draft until required gates pass.
+- Release remains **BLOCKED / NOT CERTIFIED**.
