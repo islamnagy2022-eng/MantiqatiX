@@ -1559,3 +1559,21 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+## 2026-10-17 — consolidated exact-head CI PASS; full replay still blocked
+
+- [x] Consolidated RC449 → RC462 → RC565 disposable PostgreSQL workflow passed on PR #282 head `6e4a3bfc6399691dc77b726f53690841888ad08f`. The static platform-admin/financial-report contracts and all PostgreSQL authorization + report behavior tests completed successfully.
+- [x] Exact-head checks passed: MantiGO Platform Admin Scope Hardening (run [38993296764](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296764)), migration version uniqueness ([38993296753](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296753)), migration history immutability ([38993296748](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296748)), cross-PR migration collision guard ([38993296745](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296745)), module-professionalization ([38993296752](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296752)), MantiGO open-ride privacy ([38993296765](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296765)), backend-only module boundary ([38993296743](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296743)), approval-action audit atomicity ([38993296815](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296815)), and web validation ([38993296776](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296776)). Web deploy job was skipped; no production deployment occurred.
+- [x] RC565 PostgreSQL regression verified canonical ledger columns despite conflicting legacy aliases, half-open date boundaries, paid/settled/unsettled totals, empty ranges, invalid windows, tenant OWNER denial, and actor identity mismatch.
+- [x] RC462 PostgreSQL regression verified malformed/string/false permission values fail closed while explicit JSON Boolean true continues to authorize platform admin; all four high-risk platform RPCs were exercised.
+- [ ] BLOCKED: full chronological replay of the restored RC425–RC441 history still needs authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub, skip the historical revoke, or infer the missing function's behavior.
+- [ ] BLOCKED: PR #282 remains draft and unmerged; production is still on RC424 (283 migrations through `20261008222845`). Do not deploy RC449/RC462/RC565 or claim production certification until historical replay is resolved, reviewed, and explicitly approved.
+- Overall state: **focused security/report tests PASS; production release BLOCKED / NOT CERTIFIED**.
+
+
+## Replay blocker investigation — authoritative live definition found, migration provenance still missing
+
+- [x] Read-only query against live Supabase catalog recovered the exact current definition of `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: returns `void`, SECURITY DEFINER, currently `SET search_path TO 'public'`, validates authenticated/non-anonymous caller and non-negative price, and updates only a bid belonging to the caller's editable request.
+- [x] Read-only query of `supabase_migrations.schema_migrations` for recorded migration statements containing `counter_offer_indrive_bid` returned zero rows. GitHub source search also found only the later revoke migration and documentation references, not the original creation DDL.
+- [ ] BLOCKED: live catalog definition is useful evidence but does **not** establish the original migration version/order or prove it is the exact historical definition at the point where the revoke migration runs. Do not invent a historical migration file or claim full chronological replay from a fixture alone.
+- No production writes were made during these checks.
