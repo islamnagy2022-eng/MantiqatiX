@@ -56,3 +56,11 @@ This ledger records tests and CI results inspected for the migration-recovery wo
 
 ## Execution discipline
 No manual test was intentionally rerun in this session. The existing GitHub Actions runs above were inspected and recorded; no production mutation, migration application, deployment, payment, merge, or release occurred.
+
+ 
+### STATIC-COMPAT-001 — replay fixture/workflow contract inspection
+- **SHA inspected:** `dcf854731f368539f3133e8f96ac03331d8aa702` (documentation-only commits after code SHA `8c3814ec12206769a6be546a9afc7ed80450554d`; executable inputs unchanged).
+- **Execution type:** assistant-side static assertions against the fetched baseline, workflow, and validator contents; not a repository test command or GitHub Actions result.
+- **Result:** PASS for 9 assertions: provenance markers, function signature, SECURITY DEFINER/search_path, actor mismatch guard, absence of DML, temporary version presence, exact copy and comparison commands, untracked-only check, and validator integration.
+- **What it proves:** the newly authored fixture and workflow wiring are internally consistent at the inspected source level.
+- **What it does not prove:** PostgreSQL accepts the fixture, the workflow executes successfully, the full migration chain replays, or production function history is recovered. CI run [39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044) remains the authoritative pending execution evidence at last check.
