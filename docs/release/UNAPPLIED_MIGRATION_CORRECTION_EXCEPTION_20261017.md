@@ -49,3 +49,8 @@ Any changed base blob, ledger version, manifest hash, or other migration path bl
 ## Follow-up evidence — replay duplicate policy
 
 Replay at SHA d1eff709f01927f30a676f9bd96d20ae122f7837 reached migration 20260928184000 and failed because order_status_history_customer_select_own already existed. Earlier migration 20260928154411 creates the same policy and is present in the captured production version list; 20260928184000 is absent. The candidate source was made idempotent with fail-closed policy-contract checks and the immutability guard was narrowed to this exact original blob and pinned read-only version list. Applied source version 20260928154527 is still missing from repository history. The production snapshot manifest remains PENDING_REVIEW, so this is a draft candidate only.
+
+
+## Replay checkpoint — REPLAY-ORDER-003
+
+A later full replay failed at applied migration 20260929073244 because the schema-only disposable database lacked tenant MNTY-PLATFORM, a data dependency of the inactive test-business seed. Added a synthetic, idempotent test-only tenant fixture and inject it before the consumer as untracked temporary migration 20260929073243. The validator limits the fixture to one public.tenants INSERT for MNTY-PLATFORM, no auth users or production data, and confirms timestamp ordering. Replay run 39071511736 passed fixture-copy/untracked verification and was in progress at the last check. This is not historical source recovery and does not change production; release remains BLOCKED / NOT CERTIFIED.
