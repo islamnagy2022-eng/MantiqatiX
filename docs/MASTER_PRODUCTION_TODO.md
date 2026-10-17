@@ -1608,3 +1608,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Pages validation log confirms `MantiGO payment-intent persistence source contract: PASS (10/10 patterns + 2 order checks)`.
 - [ ] Behavioral concurrency/provider-orphan test and database-backed claim/lease remain open; source-contract CI does not close this risk.
 - Evidence: [Actions run 39002102476](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39002102476).
+
+
+## 2026-10-17 — MantiGO concurrency follow-up audit
+
+- [x] Compared MantiGO's Paymob-intent path with the existing digital-page payment claim/finalize/release pattern in `20261007003432_digital_page_payment_intent_claim_boundary_v1.sql`.
+- [x] Confirmed the digital-page flow uses a row lock (`FOR UPDATE`), user binding (`auth.uid() = p_user_id`), a claim token/timestamp, an explicit `IN_PROGRESS` result, and token-bound finalization/release. This is a relevant design reference, not proof that it can be copied unchanged into MantiGO.
+- [x] Confirmed MantiGO currently has no equivalent claim RPC in the inspected source; PR #287's conditional final update prevents false-success when zero rows update, but it does not serialize concurrent provider-intention creation.
+- [ ] Implement a MantiGO-specific atomic claim/finalize/release boundary plus disposable PostgreSQL behavioral tests before calling the race closed.
+- [ ] Resolve migration chronology before adding/deploying that schema change: RC425–RC441 restoration and full chronological replay remain blocked, and other candidate migration branches are still unmerged. Do not insert a new production migration into an unresolved sequence or apply it to Production.
+- [ ] Test the ambiguous provider-outcome case (request timeout after Paymob may have accepted the intention); a lease alone does not guarantee exactly-once provider creation after expiry. Require explicit reconciliation/idempotency semantics before release.
+- **Gate:** PR #287 remains Draft; no merge, deployment, database mutation, or real Paymob transaction was performed. Production remains **BLOCKED / NOT CERTIFIED**.
