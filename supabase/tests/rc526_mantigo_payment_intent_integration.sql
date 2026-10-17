@@ -1,7 +1,7 @@
 -- RC526 RPC behavior tests. Disposable PostgreSQL only.
 do $test$
 declare
-  v_ledger uuid := '52600000-0000-4000-8000-000000000001';
+  v_ledger text := '52600000-0000-4000-8000-000000000001';
   v_claim_one boolean;
   v_claim_two boolean;
   v_wrong_finalize boolean;
@@ -13,16 +13,16 @@ declare
   v_secret text;
   v_metadata jsonb;
 begin
-  if has_function_privilege('anon','public.claim_mantigo_payment_intent_backend(uuid,text)','EXECUTE')
-     or has_function_privilege('authenticated','public.claim_mantigo_payment_intent_backend(uuid,text)','EXECUTE') then
+  if has_function_privilege('anon','public.claim_mantigo_payment_intent_backend(text,text)','EXECUTE')
+     or has_function_privilege('authenticated','public.claim_mantigo_payment_intent_backend(text,text)','EXECUTE') then
     raise exception 'RC526_CLAIM_RPC_MUST_BE_SERVICE_ROLE_ONLY';
   end if;
-  if not has_function_privilege('service_role','public.claim_mantigo_payment_intent_backend(uuid,text)','EXECUTE')
-     or not has_function_privilege('service_role','public.finalize_mantigo_payment_intent_backend(uuid,text,text,text,text,jsonb)','EXECUTE') then
+  if not has_function_privilege('service_role','public.claim_mantigo_payment_intent_backend(text,text)','EXECUTE')
+     or not has_function_privilege('service_role','public.finalize_mantigo_payment_intent_backend(text,text,text,text,text,jsonb)','EXECUTE') then
     raise exception 'RC526_SERVICE_ROLE_GRANTS_MISSING';
   end if;
-  if has_function_privilege('anon','public.finalize_mantigo_payment_intent_backend(uuid,text,text,text,text,jsonb)','EXECUTE')
-     or has_function_privilege('authenticated','public.finalize_mantigo_payment_intent_backend(uuid,text,text,text,text,jsonb)','EXECUTE') then
+  if has_function_privilege('anon','public.finalize_mantigo_payment_intent_backend(text,text,text,text,text,jsonb)','EXECUTE')
+     or has_function_privilege('authenticated','public.finalize_mantigo_payment_intent_backend(text,text,text,text,text,jsonb)','EXECUTE') then
     raise exception 'RC526_FINALIZE_RPC_MUST_BE_SERVICE_ROLE_ONLY';
   end if;
 
@@ -78,7 +78,7 @@ values('52600000-0000-4000-8000-000000000003','ride-rc526-concurrent','52600000-
 
 do $concurrency$
 declare
-  v_ledger uuid := '52600000-0000-4000-8000-000000000003';
+  v_ledger text := '52600000-0000-4000-8000-000000000003';
   v_first boolean;
   v_second boolean;
   v_sent integer;
@@ -92,7 +92,7 @@ begin
   select claimed into v_first
   from public.dblink(
     'rc526_claim_a',
-    format('select public.claim_mantigo_payment_intent_backend(%L::uuid,%L::text)',v_ledger::text,'concurrent-token-a')
+    format('select public.claim_mantigo_payment_intent_backend(%L::text,%L::text)',v_ledger::text,'concurrent-token-a')
   ) as result(claimed boolean);
 
   if v_first is not true then
@@ -101,7 +101,7 @@ begin
 
   select public.dblink_send_query(
     'rc526_claim_b',
-    format('select public.claim_mantigo_payment_intent_backend(%L::uuid,%L::text)',v_ledger::text,'concurrent-token-b')
+    format('select public.claim_mantigo_payment_intent_backend(%L::text,%L::text)',v_ledger::text,'concurrent-token-b')
   ) into v_sent;
   if v_sent <> 1 then
     raise exception 'RC526_CONCURRENT_CLAIM_SECOND_SESSION_DID_NOT_START';
