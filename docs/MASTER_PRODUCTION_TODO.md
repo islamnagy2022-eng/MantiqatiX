@@ -1720,3 +1720,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Still required: real two-user/two-tenant authorization E2E and backup/restore rehearsal.
 - [ ] Still blocked: authoritative historical source for `counter_offer_indrive_bid` and a defensible decision on clean chronological replay versus separately approved live-schema baseline forward replay.
 - Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC526 behavioral unit-test improvement (SESSION-RESUME-VERIFY-005)
+
+- [x] Extracted provider amount/currency/ledger-reference correlation into a pure helper used by the Edge Function before finalization.
+- [x] Added 8 unit tests and wired them into Pages validation; local Node run passed 8/8.
+- [ ] **Pending exact-head CI** for helper import/type-check, source-contract validator, Pages workflow, and related guardrails. Do not close until exact-head workflows complete successfully.
+- [ ] Still required: live Paymob Sandbox E2E, two-user/two-tenant authorization E2E, backup/restore rehearsal, and historical migration-source/replay decision.
+- Release remains **BLOCKED / NOT CERTIFIED**.
