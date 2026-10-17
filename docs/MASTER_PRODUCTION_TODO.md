@@ -1764,3 +1764,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Recovery branch restored 21 missing SQL bodies from applied ledger statements with per-entry MD5/length manifest.
 - [ ] Inspect run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) on exact source-recovery SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`.
 - [ ] Keep owner bootstrap source gap open until a privacy-reviewed recovery path or explicitly approved test-only organization seed is available.
+
+
+## 2026-10-17 — Replay source integrity and blocker
+
+- [x] Ledger source integrity CI passed for 32 recovered statement records: [run 39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639).
+- [x] Restored 21 ledger SQL sources; 282/283 ledger migration names now match after alias normalization.
+- [ ] Full replay is still blocked by missing `public.marketing_provider_services` creation source/policy provenance; see the proposal on the recovery branch.
+- [ ] Owner bootstrap source `20260927131555` remains excluded due embedded owner email; privacy review required.
+- Do not rerun full replay until the baseline/source decision is approved and inputs change.

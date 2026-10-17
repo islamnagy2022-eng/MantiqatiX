@@ -687,3 +687,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Cross-branch source recovery commit: `a474cc45a4a2a3960760482976ebb79e8c9e1eed` on recovery PR #207 branch, restoring 21 exact applied-ledger SQL statement bodies with manifest.
 - Full replay run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) is the one required run for this source set. Check its exact result next.
 - Missing owner bootstrap `20260927131555` remains intentionally excluded due hard-coded owner email. No test-only org seed is approved/implemented. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-013 checkpoint
+
+- Source integrity PASS: [run 39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639), exact SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`; all 32 manifest-listed SQL statement files passed byte-length/SHA-256 validation.
+- Full replay FAIL: [run 39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756), exact SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`; missing `public.marketing_provider_services` at the recovered grants migration. No table creation source/policy creation statement was found in the applied ledger.
+- Recovery branch proposal: [MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md](https://github.com/islamnagy2022-eng/MantiqatiX/blob/reconcile/rc425-458-current-main-20261011/docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md).
+- Bootstrap migration `20260927131555` is the only unmatched ledger migration name; exact applied SQL contains owner email, so public source recovery is paused for privacy review.
+- Next: resolve approval for the minimal test-only table + public active-read policy baseline or recover trusted source. No replay rerun until input changes. Release remains **BLOCKED / NOT CERTIFIED**.

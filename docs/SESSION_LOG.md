@@ -237,3 +237,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Recovery branch commit `a474cc45a4a2a3960760482976ebb79e8c9e1eed` restores 21 missing SQL statement bodies from the read-only applied ledger and adds provenance manifest `docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md`.
 - Exact full replay run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) is running on that exact SHA. It is the required verification for the new source set; do not rerun before reading its result.
 - The bootstrap source `20260927131555` is deliberately excluded due hard-coded owner email in the applied statement. No public copy of that statement was created. The organization seed blocker remains until privacy review or explicit approval for a test-only baseline.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-013 — source integrity pass and next blocker
+
+- [x] Source-integrity workflow [39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639) passed on exact SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`, validating 32 ledger-recovered SQL files by byte length and SHA-256.
+- [x] Read-only inventory after 21 source recoveries found 282/283 ledger migration names match source files after alias normalization; the unmatched source is `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` (excluded from public source due embedded owner email).
+- [ ] Full replay remains blocked at missing `public.marketing_provider_services` during grant migration (run `39011424756`). Live schema and policy evidence is documented on recovery branch in `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`.
+- Next action is approval for the proposed test-only table + public-active-read baseline, or a trusted original source artifact. No rerun until this replay input changes.
