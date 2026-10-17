@@ -144,7 +144,7 @@ begin
   ) values (
     v.business_id, v.tier_code, v.billing_cycle, 'ACTIVE', v.sector, now(),
     case when v.billing_cycle = 'ANNUAL' then now() + interval '1 year' else now() + interval '1 month' end,
-    'PAYMOB', v.provider_transaction_id, v.id, 'paid:' || v.id::text, v.created_by
+    'PAYMOB', p_provider_transaction_id, v.id, 'paid:' || v.id::text, v.created_by
   ) returning * into v_sub;
 
   return jsonb_build_object('ok', true, 'status', 'ACTIVE',
