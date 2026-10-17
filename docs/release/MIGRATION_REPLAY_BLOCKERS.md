@@ -1039,3 +1039,12 @@ The source search was extended beyond the current migration directory:
 - Restored 21 missing source files from exact applied SQL statement bodies, with version/name/character-count/MD5 provenance in `docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md`. These are ledger-recovered SQL bodies, not claims that original comments were recovered.
 - Excluded `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` because the applied SQL contains a hard-coded owner email. It remains the source/data prerequisite for `MNTY-MAIN`; privacy-safe recovery is still required.
 - The source additions invalidate the previous full replay result for the new head. Run the replay once on the new exact SHA; record the first SQL failure. Do not repeat other tests without an input change.
+
+
+## Full replay result — missing marketing provider services source (2026-10-17)
+
+- Exact run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756), SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`, passed alias normalization and applied recovered sources through `20260927132406`, then failed at `20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql` with SQLSTATE `42P01`: relation `public.marketing_provider_services` does not exist.
+- Read-only production catalog confirms the table exists with owner `postgres`, RLS+FORCE RLS, provider/service FKs, unique provider/service pair, ACTIVE/INACTIVE status check, and public-active SELECT plus owner-scoped management policies.
+- Source search found no tracked creation migration or applied ledger statement that creates the table; the ledger references the table in grants, RLS hardening, and showcase seeding only. The public-active SELECT policy also has no creation statement in the applied ledger.
+- Proposal: `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`. A test-only baseline would need table schema plus the observed public-active SELECT policy, while leaving grants and owner-manage policy to chronological migrations.
+- No baseline was added or injected because explicit approval for this new live-derived fixture is not established. Do not rerun until the baseline/source decision is approved and the replay inputs change.

@@ -1764,3 +1764,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Restored 21 missing historical SQL statement bodies from the authoritative applied ledger, each pinned by version, name, character count, and MD5 in `docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md`.
 - [ ] Keep `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` blocked pending privacy-reviewed exact-source handling or explicit approval for a test-only organization seed. Do not publish its owner email.
 - [ ] Run one full disposable replay on the changed source SHA and triage the next first failure. No repeated PASS tests unless their inputs change.
+
+
+## 2026-10-17 — Marketing provider services replay blocker
+
+- [x] Recorded exact replay failure `39011424756`: `42P01` missing `public.marketing_provider_services` at the recovered grants migration.
+- [x] Verified read-only live table structure, constraints, RLS/FORCE RLS, owner, and policies; no original creation statement found in the applied ledger.
+- [x] Documented a minimal baseline proposal in `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`.
+- [ ] **BLOCKED:** obtain explicit approval for the test-only table+public-active-read baseline or recover the original source from a trusted artifact. Do not add an unapproved fixture.

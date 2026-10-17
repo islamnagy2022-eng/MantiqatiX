@@ -337,3 +337,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Restored those 21 SQL bodies as canonical versioned migration source files. The owner bootstrap `20260927131555` remains excluded because its applied SQL embeds an owner email; see `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md`.
 - These source additions change replay inputs, so one new exact-head disposable replay is justified. Do not rerun unrelated PASS suites. The first failure may move earlier because previously omitted ledger migrations are now present.
 - No production changes occurred.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-010 — marketing provider services source gap
+
+- Full replay [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) failed at `20260927132904` with SQLSTATE `42P01`: `public.marketing_provider_services` is absent in the empty replay DB.
+- Read-only production inspection confirms the live table shape, constraints, owner, RLS/FORCE RLS and policies. The reviewed production schema snapshot contains its DDL, but no tracked table-creation source or applied-ledger create statement was found. The active public SELECT policy also has no ledger creation statement.
+- Added `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md` describing the evidence and a minimal test-only compatibility baseline proposal. No SQL fixture/injection was added because owner approval for this new baseline is not established.
+- Next action: approve the precise test-only baseline scope or provide trusted original source; then implement and run full replay once. No rerun without changed inputs.
