@@ -664,3 +664,12 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - Fixture validator/copy/untracked checks passed in replay run [39072088344](https://github.com/islamnagy2022-eng/MantiqatiX); full replay was in progress at last check.
 - Migration immutability [39071889905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071889905) passed with the exact one-file exception verified.
 - Historical source gap for applied version 20260928154527 and all production gates remain open; release BLOCKED / NOT CERTIFIED.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-005 (2026-10-17)
+
+- Replay at SHA 31a005c3fbffe4744f9fe5c30fdc8140a472aefd failed on the synthetic auth user because RC215's auth.users trigger inserted a CUSTOMER membership before public.users existed.
+- This confirms a real signup-ordering bug in applied migration 20260930100000_rc215_customer_membership_invariant.sql. Added forward-only migration 20261018010000_auth_user_profile_before_customer_membership.sql to create the profile first, then create the membership. Added rollback-only behavioral test.
+- The historical showcase fixture now disables only the legacy membership trigger during setup, restores it, and invokes the helper after the synthetic profile exists; this is disposable CI only.
+- Latest source integrity [39072447513] and migration immutability [39072447500] passed. Full replay [39072447514] was in progress at SHA be3cf19573595f037357c89db719c37c065755c1.
+- Historical source gap 20260928154527 remains unresolved; release BLOCKED / NOT CERTIFIED.

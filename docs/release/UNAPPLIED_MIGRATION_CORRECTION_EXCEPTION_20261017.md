@@ -59,3 +59,8 @@ A later full replay failed at applied migration 20260929073244 because the schem
 ## Follow-up — REPLAY-ORDER-004
 
 The RC339 showcase migration fails in schema-only replay because its fixed owner UUID is absent from public.users/auth.users. A test-only synthetic owner fixture is now injected at 20261004005817 before organization seed 05818 and canonical consumer 05819. It uses the source UUID only in a disposable database, a reserved invalid.example email, an empty password hash, no tokens, and a public profile. Validation/exact-copy checks passed in 39072088344; full replay was still in progress. No production user was created or changed.
+
+
+## Follow-up — REPLAY-ORDER-005 (RC215 signup trigger)
+
+A disposable replay revealed a real ordering defect in applied migration 20260930100000: the auth.users AFTER INSERT trigger attempts to insert a CUSTOMER membership before a public.users profile exists. Added forward-only migration 20261018010000_auth_user_profile_before_customer_membership.sql to create the profile before invoking the existing membership helper, plus a rollback-only behavioral regression test. The earlier showcase fixture suppresses only the legacy trigger while creating the hardcoded synthetic user, restores it, and calls the membership helper; this workaround is limited to disposable CI. Source integrity and the narrow migration immutability exception passed, but full replay was still in progress. No production changes; release remains BLOCKED / NOT CERTIFIED.
