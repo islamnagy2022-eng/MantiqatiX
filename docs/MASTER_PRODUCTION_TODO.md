@@ -1595,3 +1595,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Inspected failing exact-head candidate run [39001434526](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39001434526): the RC428–RC430 integration SQL reached RC430 but the disposable `business_subscriptions` fixture lacked `updated_at`, which the migration writes.
 - [x] Added `updated_at timestamptz not null default now()` to the disposable fixture in commit `bbc9772061dab0a35732bbddbb7e05bab92a9ad6`. This is a test-fixture correction only; no production schema changed.
 - [ ] Re-run the webhook integration against the corrected fixture and inspect for any further missing schema prerequisites. Do not mark RC428–RC430 PASS until the fresh exact-head run completes.
+
+
+### Historical migration provenance — rechecked 2026-10-17
+
+- [x] Re-inspected PR #207's earlier InDrive/bid migrations and the schema-only production snapshot. The current function body exists only in the snapshot among the inspected candidates; the later historical revoke file does not supply its creation body or timestamp.
+- [ ] BLOCKED: recover the exact historical creation migration from an authoritative source (original migration artifact, verified repository object, or backup of the migration source), then prove clean disposable replay from RC424 through RC441. Do not infer provenance from the current schema snapshot or fabricate a stub.
