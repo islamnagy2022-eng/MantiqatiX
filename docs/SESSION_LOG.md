@@ -66,3 +66,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The same commit's MantiGO privacy workflow passed the source contract, Deno type-check, and RC446 privacy integration. Migration version uniqueness, migration-history immutability, open-PR migration collision guard, approval-action audit atomicity, backend-only module boundary, module professionalization, and Pages validation all passed; deployment was skipped and the production gate remained BLOCKED.
 - Added `docs/PAYMOB_INTENT_RECONCILIATION.md` describing safe read-only triage and the evidence/authorization required for ambiguous claims. No production mutation or live Paymob request was made.
 - Remaining limits: no operator-finalization/reconciliation RPC exists yet; live Paymob E2E remains unverified; full RC425–RC441 chronological replay is still blocked by missing historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not merge/deploy the migration chain or certify production until those blockers are resolved.
+
+
+## 2026-10-17 — RC526 disposable fixture fidelity correction
+
+- During a second schema review, compared `supabase/tests/rc526_mantigo_payment_intent_fixture.sql` with the authoritative ledger migration `20261006152000_mantigo_financial_ledger_v1.sql`. The earlier fixture omitted production-required `captain_id`, `idempotency_key`, and matching status/amount constraints; tests had therefore not exercised the full insert contract.
+- Corrected the fixture and all three test records, and added a validator assertion that protects key production constraints from being dropped again. Also made the read-only reconciliation query directly runnable through `psql -v ledger_id=...`.
+- Earlier RC526 integration passed, but the stronger fixture correction still requires a fresh exact-head workflow. No production schema or data changed.
