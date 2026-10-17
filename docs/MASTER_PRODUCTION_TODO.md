@@ -1773,3 +1773,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Full replay is still blocked by missing `public.marketing_provider_services` creation source/policy provenance; see the proposal on the recovery branch.
 - [ ] Owner bootstrap source `20260927131555` remains excluded due embedded owner email; privacy review required.
 - Do not rerun full replay until the baseline/source decision is approved and inputs change.
+
+
+## 2026-10-17 — Paymob sandbox contract blocker
+
+- [x] Recorded official documentation evidence: request `amount` is cents; sample response `intention_detail.amount` is major-unit-like but does not correlate cleanly with the separate request example.
+- [ ] Verify the real response schema/amount unit in merchant sandbox before claiming checkout is production-ready. Current guard remains fail-closed.

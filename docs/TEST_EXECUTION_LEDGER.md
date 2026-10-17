@@ -328,3 +328,10 @@ No production changes, migration applications, deployments, payments, merges, or
 - Read-only production inspection confirms the table and policies exist, but no applied ledger statement or tracked source creates the table; the public-active SELECT policy also lacks a ledger creation statement. Proposal: [MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md](https://github.com/islamnagy2022-eng/MantiqatiX/blob/reconcile/rc425-458-current-main-20261011/docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md).
 - The remaining unmatched migration name is the privacy-sensitive owner bootstrap `20260927131555_bootstrap_mnty_owner_islam_nagy_v2`; its applied SQL embeds an owner email. Do not publish the unredacted statement.
 - No full replay rerun is justified until the table-source/baseline path is approved and replay inputs change. Production remains untouched; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC-BLOCKER-003 — Paymob amount-unit contract note (2026-10-17)
+
+- Official Paymob [Create Intention documentation](https://developers.paymob.com/paymob-docs/intention-apis/create-intention) explicitly says request `amount` is expressed in cents. Its sample response shows `intention_detail.amount: 10` and item amounts `5 + 5`, while the separate request example sends `amount: 2000`; this suggests the echoed response detail uses currency units, but the sample's request/response mismatch means it is not a substitute for sandbox evidence.
+- Current RC526 code sends `Math.round(ledger.gross_amount * 100)` and compares the provider's echoed `intention_detail.amount` against the ledger's major-unit amount, with currency and `special_reference` equality checks. Mismatch fails closed, keeps the claim for reconciliation, and does not return the checkout secret.
+- **Status remains BLOCKED:** no authenticated Paymob sandbox E2E has verified the actual response units/schema for this merchant integration. Do not change the comparison based solely on the documentation example.

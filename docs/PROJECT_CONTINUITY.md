@@ -696,3 +696,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Recovery branch proposal: [MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md](https://github.com/islamnagy2022-eng/MantiqatiX/blob/reconcile/rc425-458-current-main-20261011/docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md).
 - Bootstrap migration `20260927131555` is the only unmatched ledger migration name; exact applied SQL contains owner email, so public source recovery is paused for privacy review.
 - Next: resolve approval for the minimal test-only table + public active-read policy baseline or recover trusted source. No replay rerun until input changes. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-014 checkpoint
+
+- RC526 amount handling is unchanged. Official Paymob docs say request amount is in cents; their response example suggests `intention_detail.amount` is in currency units but the sample values are not a clean same-transaction correlation.
+- Exact merchant sandbox E2E remains a release blocker. Do not relax amount/currency/reference correlation without observed provider evidence.
+- Cross-branch full replay remains blocked at the missing `marketing_provider_services` source/baseline; source-integrity validation for the 32 recovered statements passed on run `39011843639`.

@@ -245,3 +245,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Read-only inventory after 21 source recoveries found 282/283 ledger migration names match source files after alias normalization; the unmatched source is `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` (excluded from public source due embedded owner email).
 - [ ] Full replay remains blocked at missing `public.marketing_provider_services` during grant migration (run `39011424756`). Live schema and policy evidence is documented on recovery branch in `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`.
 - Next action is approval for the proposed test-only table + public-active-read baseline, or a trusted original source artifact. No rerun until this replay input changes.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-014 — Paymob unit-contract evidence
+
+- Reviewed current official [Paymob Create Intention docs](https://developers.paymob.com/paymob-docs/intention-apis/create-intention). Request amount is documented in cents; the example response has `intention_detail.amount=10` with two items of 5, while the separate request example sends 2000. This is suggestive but internally mismatched example data.
+- RC526's major-unit response comparison remains fail-closed and unchanged. A real merchant sandbox E2E is still required to prove the actual response amount unit, currency, `special_reference`, identifiers, and checkout-secret behavior.
+- No test rerun was performed for this documentation-only evidence update.
