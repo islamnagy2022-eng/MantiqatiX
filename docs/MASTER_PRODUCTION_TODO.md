@@ -1779,3 +1779,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [x] Recorded official documentation evidence: request `amount` is cents; sample response `intention_detail.amount` is major-unit-like but does not correlate cleanly with the separate request example.
 - [ ] Verify the real response schema/amount unit in merchant sandbox before claiming checkout is production-ready. Current guard remains fail-closed.
+
+
+## 2026-10-17 — Paymob correlation correction and exact-head verification
+
+- [x] Corrected the Paymob response correlation contract to compare `intention_detail.amount` with the sent integer `amountCents`; added tests rejecting major-unit amounts and malformed/non-integer values.
+- [x] Exact-head CI on `d7fc64d0759b7eac303fc1dbcc33a2322115750e`: web validation and correlation unit/static checks passed; RC526 disposable PostgreSQL integration, Deno type-check, and RC446 privacy integration passed; migration history immutability, version uniqueness, cross-PR collision guard, backend-only boundary/RC450, approval audit, and module validation passed. Links are recorded in `docs/TEST_EXECUTION_LEDGER.md`.
+- [ ] **PENDING:** controlled Paymob Sandbox E2E to verify the provider's actual response and callback contract. No sandbox request was sent in this batch.
+- [ ] **BLOCKED:** historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unavailable. The main-line parent of the revoke commit had only the SMM privilege migration in its migration directory; do not invent or backdate the missing DDL.
+- Release remains **BLOCKED / NOT CERTIFIED**; no production changes, deployment, merge, payment, or release occurred.

@@ -703,3 +703,14 @@ This status is intentional and must remain until the open gates above are indepe
 - RC526 amount handling is unchanged. Official Paymob docs say request amount is in cents; their response example suggests `intention_detail.amount` is in currency units but the sample values are not a clean same-transaction correlation.
 - Exact merchant sandbox E2E remains a release blocker. Do not relax amount/currency/reference correlation without observed provider evidence.
 - Cross-branch full replay remains blocked at the missing `marketing_provider_services` source/baseline; source-integrity validation for the 32 recovered statements passed on run `39011843639`.
+
+
+## 2026-10-17 — Latest checkpoint: PAYMOB-CORRELATION-UNIT-001
+
+- **Branch:** `fix/rc526-mantigo-intent-claim-20261017`; PR #289 remains Draft/open/unmerged.
+- **Exact code SHA verified:** `d7fc64d0759b7eac303fc1dbcc33a2322115750e`.
+- **Correction:** Paymob response amount correlation now uses integer minor units `amountCents` rather than major currency units. Unit fixtures and static validator updated.
+- **Exact-head CI:** web validation/correlation unit tests passed with deploy skipped [39012428471](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428471); RC526 PostgreSQL integration + Deno type-check + RC446 privacy passed [39012428468](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428468); migration immutability [39012428479](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428479), uniqueness [39012428338](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428338), collision guard [39012428342](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428342), backend boundary/RC450 [39012428334](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428334), approval audit [39012428427](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428427), and module professionalization [39012428420](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428420) passed.
+- **Live provider verification:** not done; no Paymob sandbox request or real payment was made. Need authorized sandbox credentials and a controlled E2E.
+- **Historical replay:** original creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Main-line parent commit `33d7b626c75ee649a71b6ae6d3f5303d1a47901e` had only one migration before the revoke commit; that revoke commit added only the revoke file. This supports the missing-source finding but does not prove no external archive exists.
+- **Next:** authorized sandbox E2E when credentials are available; continue provenance search only for authoritative source artifacts. Keep production **BLOCKED / NOT CERTIFIED**.

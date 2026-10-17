@@ -109,3 +109,17 @@ The test-only baseline branch now runs `supabase/tests/baselines/counter_offer_r
 The assertion checks the post-replay function exists, retains its expected `postgres` owner, SECURITY DEFINER flag and `search_path=public`, denies EXECUTE to `anon` and `authenticated`, and denies CREATE on `public` to both client roles. This is a useful ACL regression for the **live-derived snapshot plus forward migrations** path. It does not recover historical creation DDL and does not close clean chronological replay.
 
 The test-only approval remains confined to `test/production-baseline-forward-replay-20261017`; PR #284 remains `PENDING_REVIEW`. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Addendum — direct main-line parent-tree evidence (2026-10-17)
+
+A direct GitHub API inspection of the commit immediately before the revoke migration adds a stronger repository-local provenance fact:
+
+- Parent commit `33d7b626c75ee649a71b6ae6d3f5303d1a47901e`, authored at `2026-09-27T09:45:09Z`, had exactly one file in `supabase/migrations/`: `20260927074200_harden_smm_table_api_privileges.sql`.
+- The next commit, `aaae0b57db23b487c9089a74421094f268b0ab00` at `2026-09-27T09:46:28Z`, adds only `20260927095000_revoke_unused_security_definer_execute.sql`; its diff contains the ten REVOKE statements and no function-creation DDL.
+- Additional Library search returned the 2026-10-15 schema snapshot containing the current function definition, but no separate authentic historical creation migration/archive. That snapshot remains live-derived and cannot establish the original version or body.
+- **Conclusion:** the checked main-line tree did not have a function-creation migration immediately before the revoke was added. The historical provenance gap is therefore confirmed within available repository history; external/archived provenance remains unproven. This is not authorization to backfill or rewrite migration history.
+
+## Addendum — Paymob minor-unit correlation fix (2026-10-17)
+
+A source review of the official [Paymob Create Intention documentation](https://developers.paymob.com/paymob-docs/intention-apis/create-intention) and the [official Paymob API collection example](https://github.com/PaymobAccept/API-Postman-Collections/blob/main/Paymob%20Subscription%20Module%20API.postman_collection.json) found that request amounts are expressed in cents and the response example returns `intention_detail.amount` as `1000` with item amounts `500 + 500`. The previous correlation comment incorrectly treated the response amount as major currency units. The code now compares the response against the integer `amountCents`, rejects non-integer values, and has exact-head CI passing on `d7fc64d0759b7eac303fc1dbcc33a2322115750e` (runs in `docs/TEST_EXECUTION_LEDGER.md`). Live Paymob Sandbox behavior remains unverified and is still a release gate; no provider request or payment was performed.
