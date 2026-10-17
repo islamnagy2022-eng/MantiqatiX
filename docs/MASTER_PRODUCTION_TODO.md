@@ -1681,3 +1681,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] After these documentation commits, verify exact branch head and actual CI outcomes; append the resulting run IDs and results to the ledger. Do not assume automatic CI passed.
 - [ ] First technical blocker remains RC-BLOCKER-001. Continue from authoritative Git history/release artifacts and record each searched ref/result. Do not repeat completed tests or use speculative/backdated migration DDL.
 - Production release remains **BLOCKED / NOT CERTIFIED**. No production mutation, deployment, payment, merge, or release occurred in this batch.
+
+
+## 2026-10-17 — Continuation checkpoint update (SESSION-RESUME-VERIFY-002)
+
+- [x] Verified current PR #289 head `67ff58063d616cd077ab8ac91a82acb7f805ae32`; 11 commits since RC526 tested SHA `35a9da40dcca1be0448ebe3cceb7da619bafe87e` change documentation only. Reuse prior code-test evidence; do not rerun solely because of a new session.
+- [x] Inspected 11 automatic Actions runs on the current HEAD and recorded each result in `docs/TEST_EXECUTION_LEDGER.md`. All listed validations passed; web deployment was skipped because this is a PR.
+- [ ] **BLOCKED — RC-BLOCKER-001:** additional repository/code/history/ref investigation did not find authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. The later `20261007021500_reverse_bidding_server_authority_v1.sql` creates different functions and cannot satisfy the earlier revoke dependency.
+- [ ] Next: search authoritative historical PR/file history, trusted release archives, or verified source backups. If provenance is unrecoverable, draft a forward-only repair with a new version and review/approval; do not backdate or invent migration history.
+- Release gate remains **BLOCKED / NOT CERTIFIED**. No production mutation, migration application, function deployment, payment, merge, or release occurred.
