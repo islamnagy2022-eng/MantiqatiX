@@ -1626,3 +1626,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Integration tests cover non-admin denial, absence recovery, confirmed-intent recovery, amount mismatch, audit trail, and no leaked secret/token metadata.
 - [x] Exact-head CI passed on commit `302de16b1217b2116f511d2a74bd6e9abf07a7d5`: RC526 PostgreSQL integration, operator recovery tests, Deno type-check, RC446 privacy integration, migration uniqueness/history/collision guards, approval audit atomicity, backend-only boundary, module professionalization, and Pages validation all passed. Deployment was skipped.
 - **Release gate remains BLOCKED / NOT CERTIFIED**: live Paymob E2E and the RC425–RC441/RC424 migration provenance and baseline review remain unresolved. No production changes.
+
+
+## 2026-10-17 — RC526 Paymob response-correlation hardening (verification pending)
+
+- **Finding:** the candidate MantiGO payment-intent function previously accepted a successful Paymob intention response after checking only that client secret, intention ID, and order ID were present. It did not verify the echoed intention amount, currency, or merchant `special_reference` against the claimed ledger.
+- **Change made on `fix/rc526-mantigo-intent-claim-20261017`:** before finalization, the function now requires `intention_detail.amount === amountCents`, case-normalized `intention_detail.currency === ledger currency`, and `special_reference === ledger.id`. A mismatch returns `PAYMENT_PROVIDER_INTENT_MISMATCH`, retains the claim, and requires reconciliation; it does not release the claim or expose the client secret.
+- **Regression guard added:** `scripts/validate-mantigo-payment-intent-persistence.mjs` now checks that amount/currency/reference correlation is present and runs before finalization.
+- **Source basis:** Paymob's current Create Intention documentation identifies `intention_detail.amount`, `intention_detail.currency`, and `special_reference` in the response. See https://developers.paymob.com/paymob-docs/intention-apis/create-intention.
+- **Commits:** function change `c7a16d64f9b130e1c71948b41e581aa8a1b5eb17`; validator change `c49fa93fb14eb5eb3a98eec00645b9d64059fe06`.
+- **Verification status:** code and validator are visible on the PR head, but fresh CI for the changed head has not been returned by the available workflow-run lookup. Do not mark this change PASS until Deno type-check and the relevant RC526 PostgreSQL/static workflow pass on the exact final head.
+- **Production impact:** none. No production migration, function deployment, Paymob request, payment, merge, or release was performed.
+- **Release gate:** remains **BLOCKED / NOT CERTIFIED** pending exact-head CI, full chronological migration replay, authoritative historical provenance, and the other release gates already recorded below.
