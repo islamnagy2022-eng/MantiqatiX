@@ -1584,3 +1584,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Reviewed the captured definition of `public.get_mnty_targeted_advertisements(...)`: it returns ad creative/target metadata only, uses schema-qualified table references, filters local/global ads to ACTIVE+APPROVED and time windows, and caps results to 50. It is SECURITY DEFINER and callable by anon/authenticated; schema CREATE denial still needs role-level disposable proof. Disposition: appears scoped to public ad delivery but not production-certified.
 - Reviewed `public.platform_brand_assets`: CHECK restricts keys to PRIMARY_LOGO/PRIMARY_MARK, but public SELECT with `USING (true)` exposes `asset_path` and `original_asset_path`. Since the snapshot has no rows, public-asset path safety cannot be verified from this artifact. Follow-up is read-only path/bucket verification; if original paths are private, propose a reviewed forward-only policy/view change. Do not alter manifest status.
 - Review notes appended to `docs/release/SCHEMA_BASELINE_REVIEW_20261017.md` on PR #284 branch. Baseline remains PENDING_REVIEW; no production changes, grants, data reads from user tables, or deployment.
+
+
+## 2026-10-17 — correction after snapshot ACL scan
+
+- The initial brand-assets review flagged the broad SELECT policy as a possible exposure. A subsequent scan of the captured schema snapshot found no SELECT/ALL table grant to anon/authenticated and default table privileges grant only REFERENCES/TRIGGER/TRUNCATE/MAINTAIN. Thus the policy alone does not prove direct client reads are possible; direct SELECT appears ungranted in the captured ACL state.
+- Added an append-only correction to `docs/release/SCHEMA_BASELINE_REVIEW_20261017.md`. Still require runtime `has_table_privilege` checks in disposable replay and review any public RPC/view reading the table. Snapshot contains no row values, so storage path exposure cannot be determined from it. Manifest remains `PENDING_REVIEW`.
+- No production query, write, grant, or deployment was performed.
