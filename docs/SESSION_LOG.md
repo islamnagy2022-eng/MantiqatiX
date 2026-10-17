@@ -345,3 +345,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Read-only production inspection confirms the live table shape, constraints, owner, RLS/FORCE RLS and policies. The reviewed production schema snapshot contains its DDL, but no tracked table-creation source or applied-ledger create statement was found. The active public SELECT policy also has no ledger creation statement.
 - Added `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md` describing the evidence and a minimal test-only compatibility baseline proposal. No SQL fixture/injection was added because owner approval for this new baseline is not established.
 - Next action: approve the precise test-only baseline scope or provide trusted original source; then implement and run full replay once. No rerun without changed inputs.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-011 — source recovery integrity gate
+
+- Extended `docs/release/LEDGER_RECOVERED_MIGRATION_SOURCE_MANIFEST.json` from 11 to 32 exact ledger statement records, adding byte lengths and SHA-256 hashes for the 21 sources restored at `a474cc45...`.
+- Updated `scripts/validate-ledger-recovered-migrations.mjs` to assert all 32 entries and verify file byte lengths, SHA-256, and secret patterns. The script is invoked by the disposable replay workflow; this updated 32-entry assertion has not yet been CI-verified because the latest replay is blocked at the missing `marketing_provider_services` relation.
+- Full replay run `39011424756` failed at the grant migration due missing table. The source gap and proposed table+public-read test baseline are documented in `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`.
+- Do not rerun full replay until the baseline/source decision is approved and replay inputs change. Production remains untouched.

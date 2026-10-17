@@ -1048,3 +1048,9 @@ The source search was extended beyond the current migration directory:
 - Source search found no tracked creation migration or applied ledger statement that creates the table; the ledger references the table in grants, RLS hardening, and showcase seeding only. The public-active SELECT policy also has no creation statement in the applied ledger.
 - Proposal: `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`. A test-only baseline would need table schema plus the observed public-active SELECT policy, while leaving grants and owner-manage policy to chronological migrations.
 - No baseline was added or injected because explicit approval for this new live-derived fixture is not established. Do not rerun until the baseline/source decision is approved and the replay inputs change.
+
+
+## Source integrity follow-up — 2026-10-17
+
+- Expanded the canonical recovered-source manifest to 32 ledger statements and the validator to check each entry's exact byte length and SHA-256. CI verification of the expanded assertion is pending the next approved replay run.
+- After alias normalization and the 21 recovered statements, the live-ledger name inventory has one remaining unmatched migration name: `20260927131555_bootstrap_mnty_owner_islam_nagy_v2`. This does not mean the schema is complete: `marketing_provider_services` is present in live production but its table-creation statement is absent from the applied migration ledger and remains a separate compatibility-baseline/source gap.

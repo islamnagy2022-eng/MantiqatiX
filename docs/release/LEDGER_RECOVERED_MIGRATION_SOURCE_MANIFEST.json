@@ -1,12 +1,201 @@
 {
-  "recovery_date": "2026-10-14",
+  "recovery_date": "2026-10-17",
   "source_project_id": "moyhiluyhjsujhwlyeuu",
   "source_table": "supabase_migrations.schema_migrations",
   "method": "Copied statements[1] verbatim from the live production migration ledger; no DDL was inferred or synthesized.",
   "original_file_bytes_recovered": false,
   "migration_statement_bytes_recovered": true,
-  "note": "The SQL statement text is recovered from the production ledger. This does not prove byte-for-byte identity with the original local migration files; keep release certification blocked until the complete source/ledger comparison and replay pass.",
+  "note": "The SQL statement text is recovered from the production ledger. This does not prove byte-for-byte identity with original local migration files; keep release certification blocked until the complete source/ledger comparison and replay pass. The owner bootstrap migration 20260927131555 remains excluded from the public source tree due an embedded owner email; marketing_provider_services table creation is absent from the applied migration ledger and requires separate baseline/source review.",
   "migrations": [
+    {
+      "version": "20260927132359",
+      "name": "lock_membership_client_mutations",
+      "path": "supabase/migrations/20260927132359_lock_membership_client_mutations.sql",
+      "statement_count": 1,
+      "bytes": 826,
+      "statement_sha256": "45b75fb8579c0e5b6feae3d33f0ae0415cd0953fe943a378c00c336ada5933b1",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260927132406",
+      "name": "lock_registration_direct_updates",
+      "path": "supabase/migrations/20260927132406_lock_registration_direct_updates.sql",
+      "statement_count": 1,
+      "bytes": 399,
+      "statement_sha256": "e42d1c3ad04cc7028ff393887b92ffdb6624039898ac1e4a2ffef13efd58ec19",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260927132904",
+      "name": "restore_marketing_catalog_grants_and_owner_profile_access",
+      "path": "supabase/migrations/20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql",
+      "statement_count": 1,
+      "bytes": 1295,
+      "statement_sha256": "71cb68a49eba1b0f68bc3477bd8c1e7f2105da53307679df9688f3956718134a",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260927133148",
+      "name": "restore_feature_flags_authenticated_read",
+      "path": "supabase/migrations/20260927133148_restore_feature_flags_authenticated_read.sql",
+      "statement_count": 1,
+      "bytes": 63,
+      "statement_sha256": "fd556a769643bf8575a64449629c82a2dc7d076bff70f6a899dd482621a2b891",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928051833",
+      "name": "revoke_client_non_dml_table_privileges",
+      "path": "supabase/migrations/20260928051833_revoke_client_non_dml_table_privileges.sql",
+      "statement_count": 1,
+      "bytes": 93,
+      "statement_sha256": "ff33885839538958a90ab8aafc5b2b5bf3627d7b62a9558967dfb7c726e7ff02",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928062438",
+      "name": "revoke_client_pg_net_execute",
+      "path": "supabase/migrations/20260928062438_revoke_client_pg_net_execute.sql",
+      "statement_count": 1,
+      "bytes": 136,
+      "statement_sha256": "0a6f01eaad06e0b06067291928a2e0db1568bc84629fbd8691362afd282c201c",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928062456",
+      "name": "revoke_public_pg_net_execute",
+      "path": "supabase/migrations/20260928062456_revoke_public_pg_net_execute.sql",
+      "statement_count": 1,
+      "bytes": 152,
+      "statement_sha256": "365165bbecdb9efed1b14e9084eacb4cd16440f2d7137e76f810a9488a5e6856",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928062523",
+      "name": "revoke_pg_net_http_client_execute",
+      "path": "supabase/migrations/20260928062523_revoke_pg_net_http_client_execute.sql",
+      "statement_count": 1,
+      "bytes": 334,
+      "statement_sha256": "1e4b6c4c25c5a475f616da607445d51d71cdde46af2614a19bb30dd9c3feeb8e",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928064230",
+      "name": "rc91_harden_payment_intent_order_state",
+      "path": "supabase/migrations/20260928064230_rc91_harden_payment_intent_order_state.sql",
+      "statement_count": 1,
+      "bytes": 3729,
+      "statement_sha256": "0f62a131372b20472ba023105ba4bcb4ea0124390c1f86f518e38da7eeec643b",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928064412",
+      "name": "rc92_lock_pg_net_client_execute",
+      "path": "supabase/migrations/20260928064412_rc92_lock_pg_net_client_execute.sql",
+      "statement_count": 1,
+      "bytes": 476,
+      "statement_sha256": "4b740831aa3f5f5effa681e711bf00bd45c84ae2404128dc1876c93ee1866081",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928123822",
+      "name": "rc161_mantigo_backend_workflow",
+      "path": "supabase/migrations/20260928123822_rc161_mantigo_backend_workflow.sql",
+      "statement_count": 1,
+      "bytes": 3799,
+      "statement_sha256": "ab97cc69d55e025440eb45ebf64df932998f3475b7d7311ef733f9e5852a0b3e",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928130852",
+      "name": "rc169_nearby_provider_search_active_only",
+      "path": "supabase/migrations/20260928130852_rc169_nearby_provider_search_active_only.sql",
+      "statement_count": 1,
+      "bytes": 1608,
+      "statement_sha256": "ed38f12046e08bc12b2222e94f3d9535e7d3070b8cbd82bbfa04bce795bfd0b1",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928154411",
+      "name": "rc199_marketplace_order_read_grants_v2",
+      "path": "supabase/migrations/20260928154411_rc199_marketplace_order_read_grants_v2.sql",
+      "statement_count": 1,
+      "bytes": 443,
+      "statement_sha256": "5e7ccea46e944e03cd135d7a88cc923854b9669d291b478f7766b968e28a0f8a",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928161523",
+      "name": "rc206_fix_targeted_ad_selection_tier",
+      "path": "supabase/migrations/20260928161523_rc206_fix_targeted_ad_selection_tier.sql",
+      "statement_count": 1,
+      "bytes": 2710,
+      "statement_sha256": "28337c94d2640c8ebb3cac52fc2be82ebb4f921e0618da506dea90c4781adc23",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928220657",
+      "name": "rc207b_global_ads_delivery_fill",
+      "path": "supabase/migrations/20260928220657_rc207b_global_ads_delivery_fill.sql",
+      "statement_count": 1,
+      "bytes": 3239,
+      "statement_sha256": "79e1af17998ee9bdb38660da9d981489f9c0a267b15692573bda91450ca02c4e",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260928232357",
+      "name": "rc208_egypt_wide_ad_booking_creative",
+      "path": "supabase/migrations/20260928232357_rc208_egypt_wide_ad_booking_creative.sql",
+      "statement_count": 1,
+      "bytes": 543,
+      "statement_sha256": "b0f105886c3cbd7bec339429a61a023f3e231d5a4c23d1145c04b00baaf63f6f",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260929073244",
+      "name": "seed_mnty_berket_test_business",
+      "path": "supabase/migrations/20260929073244_seed_mnty_berket_test_business.sql",
+      "statement_count": 1,
+      "bytes": 335,
+      "statement_sha256": "03a2082ba1df8e798098a8512c22d5a0c509d4dd79d39156b71712e23f722b73",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260929073307",
+      "name": "seed_mnty_berket_provider_profile",
+      "path": "supabase/migrations/20260929073307_seed_mnty_berket_provider_profile.sql",
+      "statement_count": 1,
+      "bytes": 680,
+      "statement_sha256": "71c5e8f7b5979714ab2b38c3f0d26c33154fab54d97f94d1530d8925ca8f21d0",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260929203603",
+      "name": "explicit_deny_policies_for_unexposed_sensitive_tables",
+      "path": "supabase/migrations/20260929203603_explicit_deny_policies_for_unexposed_sensitive_tables.sql",
+      "statement_count": 1,
+      "bytes": 1031,
+      "statement_sha256": "2fbe7e53ecd8eea74446a0fd41efee4afb58d762d924c6bb183ab41c57711dd5",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260930083347",
+      "name": "crm_leads_permissions",
+      "path": "supabase/migrations/20260930083347_crm_leads_permissions.sql",
+      "statement_count": 1,
+      "bytes": 1386,
+      "statement_sha256": "59ef289453ddf7240f6bbe1a7ccd6d8df3b75f288f2fef8a044f23eae9146931",
+      "source": "live_production_ledger_statements[1]"
+    },
+    {
+      "version": "20260930090621",
+      "name": "fix_marketing_leads_service_role_grant",
+      "path": "supabase/migrations/20260930090621_fix_marketing_leads_service_role_grant.sql",
+      "statement_count": 1,
+      "bytes": 69,
+      "statement_sha256": "e5a9920988eff84847142988e2f1495bf9e8b84945464fc8a123f6b1a760eb46",
+      "source": "live_production_ledger_statements[1]"
+    },
     {
       "version": "20261001113451",
       "name": "restore_authenticated_read_grants_notifications_marketing_projects",

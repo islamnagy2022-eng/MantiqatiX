@@ -1772,3 +1772,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Verified read-only live table structure, constraints, RLS/FORCE RLS, owner, and policies; no original creation statement found in the applied ledger.
 - [x] Documented a minimal baseline proposal in `docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md`.
 - [ ] **BLOCKED:** obtain explicit approval for the test-only table+public-active-read baseline or recover the original source from a trusted artifact. Do not add an unapproved fixture.
+
+
+## 2026-10-17 — Recovered source integrity gate
+
+- [x] Expanded canonical ledger-recovered manifest to 32 entries, with exact bytes/SHA-256 per statement.
+- [x] Updated validator expected count to 32; CI validation is pending the next approved replay run.
+- [ ] Keep full replay blocked until `marketing_provider_services` source/baseline decision is approved. The owner bootstrap source remains excluded due embedded owner email.

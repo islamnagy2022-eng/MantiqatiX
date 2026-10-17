@@ -10,8 +10,8 @@ assert.equal(manifest.source_table, "supabase_migrations.schema_migrations");
 assert.equal(manifest.original_file_bytes_recovered, false,
   "Do not claim the original migration file bytes were recovered");
 assert.equal(manifest.migration_statement_bytes_recovered, true);
-assert.ok(Array.isArray(manifest.migrations) && manifest.migrations.length === 11,
-  "Expected the 11 specifically recovered production-ledger migrations");
+assert.ok(Array.isArray(manifest.migrations) && manifest.migrations.length === 32,
+  "Expected the 32 specifically recovered production-ledger migrations");
 
 const seenVersions = new Set();
 for (const entry of manifest.migrations) {
@@ -32,4 +32,4 @@ for (const entry of manifest.migrations) {
     entry.version + " must not contain a recognizable embedded secret");
 }
 
-console.log("Ledger-recovered migration source check PASS: 11 SQL statements match production ledger SHA-256 and byte lengths; original file-byte identity is not claimed.");
+console.log("Ledger-recovered migration source check PASS: 32 SQL statements match production ledger SHA-256 and byte lengths; original file-byte identity is not claimed.");

@@ -41,3 +41,8 @@
 ## Remaining limitation
 
 The owner bootstrap source gap remains open because its exact applied statement contains personal information. The full replay must remain blocked at the first missing organization seed until a privacy-reviewed source-recovery route or explicitly approved test-only organization baseline is selected. No test result may be called a clean historical reconstruction while this source is absent.
+
+
+## Source inventory note — 2026-10-17
+
+The read-only ledger contains 283 applied migration rows. After normalizing the 55 documented legacy aliases and restoring the 21 ledger statement bodies, 282 ledger migration names have matching source names; the sole unmatched ledger name is `20260927131555_bootstrap_mnty_owner_islam_nagy_v2`. This filename/name comparison is not a complete schema-provenance proof: `public.marketing_provider_services` exists in production but no creation statement for it appears in the applied migration ledger, and its live public-active-read policy also has no ledger creation statement.
