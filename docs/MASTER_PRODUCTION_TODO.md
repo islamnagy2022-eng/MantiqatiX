@@ -1879,3 +1879,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Fixture contract, timestamp order, exact-copy, and untracked checks passed in run 39072088344. Migration immutability guard passed in 39071889905.
 - [ ] Await exact-head full replay [39072088344](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072088344) at SHA 31a005c3fbffe4744f9fe5c30fdc8140a472aefd.
 - Production gate remains BLOCKED / NOT CERTIFIED; original source for applied version 20260928154527 is still missing.
+
+
+## 2026-10-17 — REPLAY-ORDER-005: auth profile/membership trigger ordering
+
+- [x] Confirmed RC215 root cause: auth.users trigger inserts public.user_memberships before public.users profile exists (run 39072088344, SQLSTATE 23503).
+- [x] Added forward-only fix migration 20261018010000_auth_user_profile_before_customer_membership.sql: idempotently create profile before CUSTOMER membership.
+- [x] Added behavioral SQL regression test; it creates a synthetic auth user in a transaction and rolls back after asserting profile and membership.
+- [x] Adjusted the earlier replay-only showcase owner fixture to suppress only the legacy trigger during setup, restore it, and call the membership helper after profile creation.
+- [ ] Await full replay [39072447514](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072447514) at SHA be3cf19573595f037357c89db719c37c065755c1 and confirm the new behavioral test executes/passes.
+- Migration immutability [39072447500] and source integrity [39072447513] passed. Production release remains BLOCKED / NOT CERTIFIED.

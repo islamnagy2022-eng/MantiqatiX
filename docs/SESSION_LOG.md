@@ -361,3 +361,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added a disposable-only fixture mnty_showcase_owner_user_seed.sql. It creates only the fixed source UUID as a synthetic auth row with invalid.example email, empty password hash/no tokens, and a public.users profile. It is injected at temporary version 20261004005817, after the platform tenant seed and before organization seed 05818 and RC339 consumer 05819.
 - Validator and workflow checks passed for fixture shape/copy/untracked status in run 39072088344. That full replay was still starting Supabase services at the last check.
 - Migration immutability workflow [39071889905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071889905) passed and confirmed the narrowly scoped unapplied migration correction exception. Applied source version 20260928154527 remains unresolved.
+
+
+## 2026-10-17 — REPLAY-ORDER-005 — fix RC215 signup ordering defect
+
+- Run 39072088344 at SHA 31a005c3fbffe4744f9fe5c30fdc8140a472aefd failed during the disposable synthetic auth-user insert: RC215 trigger attempted to insert a CUSTOMER membership before public.users existed (FK user_memberships_user_id_fkey).
+- Source confirmed root cause in 20260930100000_rc215_customer_membership_invariant.sql: the auth.users AFTER INSERT trigger calls ensure_customer_membership_for_user without first creating the public.users profile.
+- Added forward-only migration 20261018010000_auth_user_profile_before_customer_membership.sql: create profile if absent, then ensure membership. Added a transaction-rolled-back behavioral test for a fresh auth user.
+- Updated the test-only historical showcase owner fixture to suppress only the legacy trigger during fixture setup, restore it, and call the membership helper explicitly. Disposable-only; no production user or schema changed.
+- Exact-head source integrity [39072447513] and migration immutability [39072447500] passed. Full replay [39072447514] was in progress on SHA be3cf19573595f037357c89db719c37c065755c1.

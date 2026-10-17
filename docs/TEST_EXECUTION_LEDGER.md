@@ -528,3 +528,15 @@ No production changes, migration applications, deployments, payments, merges, or
 - **Current test:** run 39072088344 on SHA 31a005c3fbffe4744f9fe5c30fdc8140a472aefd was in progress; Supabase service startup was running. No full-replay pass claimed.
 - **Immutability guard:** [39071889905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071889905) PASS; logs confirm the exact one-file unapplied RC199 correction exception was validated against the pinned read-only production ledger.
 - No production user, auth record, migration, payment, deployment, merge, or release was created or changed.
+
+
+## 2026-10-17 — REPLAY-ORDER-005 — RC215 auth trigger creates membership before profile
+
+- Failed run [39072088344](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072088344), exact code SHA 31a005c3fbffe4744f9fe5c30fdc8140a472aefd, result FAIL.
+- Observed error: SQLSTATE 23503 at statement 0 of the disposable synthetic auth-user fixture. Trigger on_mnty_auth_user_created_customer_membership invoked private.ensure_customer_membership_for_user, which inserted into public.user_memberships before the corresponding public.users profile row existed; FK user_memberships_user_id_fkey rejected it.
+- Root cause CONFIRMED in source: 20260930100000_rc215_customer_membership_invariant.sql installs an AFTER INSERT ON auth.users trigger that creates the CUSTOMER membership but does not create public.users first. This is a real signup-ordering defect, not merely missing test data.
+- Permanent forward fix implemented: new migration 20261018010000_auth_user_profile_before_customer_membership.sql creates the public.users profile first (idempotently) and only then calls private.ensure_customer_membership_for_user. It preserves the existing trigger, function ACL, tenant requirement, and CUSTOMER membership contract.
+- Replay fixture correction: the disposable-only synthetic showcase owner fixture now disables only the legacy membership trigger while constructing the source migration's hardcoded synthetic user, inserts the profile, re-enables the trigger, and explicitly calls the membership helper. This is needed to replay the earlier migration before the new forward fix; it is not applied to production.
+- Behavioral regression test added: supabase/tests/auth_user_profile_customer_membership_trigger.sql creates a second synthetic user inside a transaction, asserts profile and ACTIVE CUSTOMER membership, then rolls back.
+- Current exact-head CI: [39072447513](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072447513) source integrity PASS; [39072447500](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072447500) migration immutability PASS. Full replay [39072447514](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072447514) was in progress on SHA be3cf19573595f037357c89db719c37c065755c1.
+- Release remains BLOCKED / NOT CERTIFIED: the missing authoritative source for applied version 20260928154527 and other release gates remain unresolved. No production migration, auth user, payment, deployment, merge, or release occurred.
