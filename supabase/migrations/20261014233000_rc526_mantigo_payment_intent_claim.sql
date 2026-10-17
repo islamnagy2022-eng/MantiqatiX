@@ -274,9 +274,11 @@ begin
     values (
       v_audit_id, 'MNTY-PLATFORM', v_actor, 'MANTIGO_PAYMENT_INTENT_RECONCILED',
       'MANTIGO_FINANCIAL', p_ledger_id,
-      pg_catalog.jsonb_build_object('payment_status', v_ledger.payment_status, 'provider', v_ledger.provider),
+      pg_catalog.jsonb_build_object('payment_status', v_ledger.payment_status, 'provider', v_ledger.provider,
+        'gross_amount', v_ledger.gross_amount, 'currency', v_ledger.currency),
       pg_catalog.jsonb_build_object('payment_status', 'PENDING', 'provider', 'PAYMOB',
         'provider_intent_id', p_provider_intent_id, 'provider_order_id', p_provider_order_id,
+        'confirmed_amount', p_confirmed_amount, 'confirmed_currency', pg_catalog.upper(pg_catalog.btrim(p_confirmed_currency)),
         'resolution', v_resolution, 'evidence_reference', v_evidence),
       'SUCCESS'
     );
@@ -311,8 +313,10 @@ begin
   values (
     v_audit_id, 'MNTY-PLATFORM', v_actor, 'MANTIGO_PAYMENT_INTENT_RECONCILED',
     'MANTIGO_FINANCIAL', p_ledger_id,
-    pg_catalog.jsonb_build_object('payment_status', v_ledger.payment_status, 'provider', v_ledger.provider),
+    pg_catalog.jsonb_build_object('payment_status', v_ledger.payment_status, 'provider', v_ledger.provider,
+      'gross_amount', v_ledger.gross_amount, 'currency', v_ledger.currency),
     pg_catalog.jsonb_build_object('payment_status', 'REQUIRED', 'provider', null,
+      'gross_amount', v_ledger.gross_amount, 'currency', v_ledger.currency,
       'resolution', v_resolution, 'evidence_reference', v_evidence),
     'SUCCESS'
   );
