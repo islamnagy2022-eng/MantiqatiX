@@ -449,3 +449,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Tenant verifier:** PR #290 static contract workflow [39079194583](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079194583) passed at SHA `95860b316f4dfcbc157d1d32be50d4aa1fcce2d9` after adding business own/cross-tenant assertions. This is not behavioral RLS E2E evidence.
 - **Constraints preserved:** no historical production migration edited; no merge, production DDL/DML, Edge Function deployment, payment, settlement, or release performed. The separate proposed `marketing_provider_services` and `MNTY-MAIN` replay fixtures remain unapproved and were not added by this change.
 - **Release gate:** **BLOCKED / NOT CERTIFIED**. Next action: inspect run 39079676044, record the next exact SQL failure or success, and continue only with separately evidenced disposable-only compatibility baselines; do not treat baseline injection as recovery of original migration provenance.
+
+
+## 2026-10-18 — REPLAY-RESUME-005
+- Inspected completed GitHub Actions run [39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044), code SHA `8c3814ec12206769a6be546a9afc7ed80450554d`.
+- The test-only `list_open_mantigo_rides_backend(uuid)` baseline cleared its earlier missing-function grant, but the replay failed at statement 12 of `20261006101048_rc_mantigo_production_completion_v1.sql`: `public.list_mantigo_captain_rides_backend(uuid)` is missing in the disposable database.
+- Read-only Supabase catalog inspection found the captain-rides function in current live schema, with SECURITY DEFINER, `search_path=public`, and a caller identity mismatch guard. Live presence is not historical DDL provenance.
+- Next: inspect the trusted schema snapshot and tracked source for the captain-rides function. No new test-only fixture until source provenance is checked or separate explicit approval is obtained. No historical migration edits, merge, deploy, or production mutation.
+- Release remains **BLOCKED / NOT CERTIFIED**.
