@@ -1613,3 +1613,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Independent ordered evidence file added to PR #249: `supabase/tests/baselines/production_schema_migration_versions.txt`.
 - Live ledger SHA-256 computed from the ordered versions plus trailing newline: `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`, matching the existing manifest.
 - This is read-only ledger provenance verification; no production writes were performed. The schema snapshot still requires security review and explicit disposable-replay approval. PR #249 remains Draft; do not change `review_status` or claim the forward replay passed until review and isolated replay complete.
+
+
+## RC462 malformed platform-admin permission regression — 2026-10-17
+
+- [x] PASS: [Module Professionalization Validation run 38992884229](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38992884229) on code head `8ca3130985f15401138cfd063c26e1cc38a7851f`; the `mantigo-platform-admin-rc462-postgres` job passed.
+- [x] PASS: source contract and disposable PostgreSQL regression for RC449 + RC462; malformed permission strings, JSON Boolean false, and JSON string true deny platform access, while valid explicit JSON Boolean true remains allowed.
+- [ ] BLOCKED: full chronological migration replay still requires authoritative historical creation DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`; no stub/bypass.
+- [ ] BLOCKED: integrate the RC462 fix and RC565 financial-report correction in a reviewed, collision-free release candidate, replay the complete chain, and perform staged/live authorization verification.
+- Production remains untouched; PR stays draft/unmerged; release remains **BLOCKED / NOT CERTIFIED**.
