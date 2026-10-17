@@ -42,3 +42,11 @@ Before approving the baseline or enabling forward replay:
 - Use an isolated disposable database, apply only migrations newer than the checkpoint in chronological order, and record complete replay output.
 - Pass tenant-isolation, payment/finance E2E, and backup/restore rehearsal.
 - Keep PRs #248, #273, #282, and this PR unmerged until the applicable gates pass.
+
+
+## Supplemental independent scan — 2026-10-17
+
+- An independent source-text scan of snapshot blob `8d096904c777b4c7eae096014b45c59859c96cee` found 145 occurrences of `SECURITY DEFINER`; this parser extracted 144 complete function bodies because one body uses a delimiter/layout not covered by the ad-hoc parser. This is a parser coverage gap, not evidence that a function is absent. The baseline must remain pending until all 145 functions are accounted for by the authoritative audit.
+- Of the 144 parsed bodies, 49 had an `anon` or `authenticated` grant in the snapshot. Only `public.get_mnty_targeted_advertisements(...)` lacked an obvious auth/role signal in its body. Manual inspection shows it returns approved active advertisement creative/target fields, filters active targeting locations, and supports public global ads; it does not query account, order, payment, or membership data. It remains a SECURITY DEFINER function with `search_path = public, pg_temp`, so review must verify schema CREATE privileges, fully-qualified object references, and that target/creative fields are intentionally public before approval.
+- The `public.platform_brand_assets` table has a CHECK constraint restricting `asset_key` to `PRIMARY_LOGO` and `PRIMARY_MARK`; its public SELECT policy exposes `asset_path`, `original_asset_path`, MIME type, version, updater ID, and timestamp. The policy is plausibly intentional for public brand assets, but verify that both paths point only to public assets and do not expose private storage keys before marking it approved.
+- These observations narrow the review but do **not** complete the full function/grant/policy review or tenant-isolation test. Manifest status remains `PENDING_REVIEW`.
