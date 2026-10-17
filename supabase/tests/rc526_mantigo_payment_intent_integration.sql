@@ -95,6 +95,107 @@ $test$;
 
 
 
+
+-- Audited platform-admin recovery resolves ambiguous claims only with evidence.
+insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
+values
+ ('52600000-0000-4000-8000-000000000013','ride-rc526-admin-absent','52600000-0000-4000-8000-000000000014','52600000-0000-4000-8000-000000000015',125,'REQUIRED','RC526-admin-absent','{}'::jsonb),
+ ('52600000-0000-4000-8000-000000000016','ride-rc526-admin-found','52600000-0000-4000-8000-000000000017','52600000-0000-4000-8000-000000000018',125,'REQUIRED','RC526-admin-found','{}'::jsonb),
+ ('52600000-0000-4000-8000-000000000019','ride-rc526-admin-mismatch','52600000-0000-4000-8000-000000000020','52600000-0000-4000-8000-000000000021',125,'REQUIRED','RC526-admin-mismatch','{}'::jsonb);
+
+insert into public.user_memberships(user_id,tenant_id,status,role,permissions)
+values('52600000-0000-4000-8000-000000000099','MNTY-PLATFORM','ACTIVE','SUPER_ADMIN','{"scope":"PLATFORM","full_control":true}'::jsonb);
+
+select public.claim_mantigo_payment_intent_backend('52600000-0000-4000-8000-000000000013','admin-absence-token');
+select public.claim_mantigo_payment_intent_backend('52600000-0000-4000-8000-000000000016','admin-found-token');
+select public.claim_mantigo_payment_intent_backend('52600000-0000-4000-8000-000000000019','admin-mismatch-token');
+
+do $admin_reconciliation$
+declare
+  v_admin uuid := '52600000-0000-4000-8000-000000000099';
+  v_regular uuid := '52600000-0000-4000-8000-000000000098';
+  v_absent text := '52600000-0000-4000-8000-000000000013';
+  v_found text := '52600000-0000-4000-8000-000000000016';
+  v_mismatch text := '52600000-0000-4000-8000-000000000019';
+  v_denied boolean := false;
+  v_rejected boolean := false;
+  v_status text;
+  v_provider text;
+  v_intent text;
+  v_order text;
+  v_metadata jsonb;
+  v_secret text;
+  v_result jsonb;
+begin
+  if has_function_privilege('anon','public.reconcile_mantigo_payment_intent_backend(uuid,text,text,text,numeric,text,text,text,text,jsonb)','EXECUTE')
+     or has_function_privilege('service_role','public.reconcile_mantigo_payment_intent_backend(uuid,text,text,text,numeric,text,text,text,text,jsonb)','EXECUTE')
+     or not has_function_privilege('authenticated','public.reconcile_mantigo_payment_intent_backend(uuid,text,text,text,numeric,text,text,text,text,jsonb)','EXECUTE') then
+    raise exception 'RC526_RECONCILIATION_RPC_GRANT_BOUNDARY_INVALID';
+  end if;
+
+  perform set_config('request.jwt.claim.sub',v_regular::text,false);
+  begin
+    perform public.reconcile_mantigo_payment_intent_backend(v_regular,v_absent,'PROVIDER_INTENT_ABSENT','CASE-REGULAR-001',null,null,null,null,null,null);
+  exception when others then
+    if sqlerrm <> 'PAYMENT_INTENT_RECONCILIATION_PLATFORM_ADMIN_REQUIRED' then raise; end if;
+    v_denied := true;
+  end;
+  if not v_denied then raise exception 'RC526_NON_ADMIN_MUST_NOT_RECONCILE'; end if;
+  if not exists(select 1 from public.mantigo_payment_intent_claims where ledger_id=v_absent) then
+    raise exception 'RC526_DENIED_RECONCILIATION_MUST_KEEP_CLAIM';
+  end if;
+
+  perform set_config('request.jwt.claim.sub',v_admin::text,false);
+
+  select public.reconcile_mantigo_payment_intent_backend(
+    v_admin,v_absent,'PROVIDER_INTENT_ABSENT','PAYMOB-CASE-ABSENT-001',null,null,null,null,null,null
+  ) into v_result;
+  select payment_status,provider,metadata into v_status,v_provider,v_metadata
+  from public.mantigo_financial_ledger where id=v_absent;
+  if v_status <> 'REQUIRED'
+     or v_provider is not null
+     or v_metadata ? 'paymob_intent_claim'
+     or v_metadata->'paymob_intent_reconciliation'->>'evidence_reference' <> 'PAYMOB-CASE-ABSENT-001'
+     or exists(select 1 from public.mantigo_payment_intent_claims where ledger_id=v_absent)
+     or not exists(select 1 from public.audit_logs where entity_id=v_absent and action='MANTIGO_PAYMENT_INTENT_RECONCILED' and actor_user_id=v_admin) then
+    raise exception 'RC526_ADMIN_ABSENCE_RECONCILIATION_CONTRACT_MISMATCH';
+  end if;
+
+  select public.reconcile_mantigo_payment_intent_backend(
+    v_admin,v_found,'PROVIDER_INTENT_CONFIRMED','PAYMOB-CASE-FOUND-001',125,'EGP','intent-recovered','order-recovered','secret-recovered','["card"]'::jsonb
+  ) into v_result;
+  select payment_status,provider,provider_intent_id,metadata->>'paymob_intention_order_id',metadata
+    into v_status,v_provider,v_intent,v_order,v_metadata
+  from public.mantigo_financial_ledger where id=v_found;
+  select client_secret into v_secret from public.mantigo_payment_intent_secrets where ledger_id=v_found;
+  if v_status <> 'PENDING' or v_provider <> 'PAYMOB' or v_intent <> 'intent-recovered'
+     or v_order <> 'order-recovered' or v_secret <> 'secret-recovered'
+     or v_metadata ? 'paymob_intent_claim'
+     or v_metadata ? 'paymob_client_secret'
+     or exists(select 1 from public.mantigo_payment_intent_claims where ledger_id=v_found)
+     or not exists(select 1 from public.audit_logs where entity_id=v_found and action='MANTIGO_PAYMENT_INTENT_RECONCILED' and actor_user_id=v_admin) then
+    raise exception 'RC526_ADMIN_FOUND_RECONCILIATION_CONTRACT_MISMATCH';
+  end if;
+
+  begin
+    perform public.reconcile_mantigo_payment_intent_backend(v_admin,v_mismatch,'PROVIDER_INTENT_CONFIRMED','PAYMOB-CASE-MISMATCH-001',124,'EGP','intent-mismatch','order-mismatch','secret-mismatch',null);
+  exception when others then
+    if sqlerrm <> 'PAYMENT_INTENT_RECONCILIATION_PROVIDER_DETAILS_MISMATCH' then raise; end if;
+    v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'RC526_AMOUNT_MISMATCH_MUST_BE_REJECTED'; end if;
+  select payment_status,provider,metadata into v_status,v_provider,v_metadata
+  from public.mantigo_financial_ledger where id=v_mismatch;
+  if v_status <> 'REQUIRED' or v_provider is not null
+     or not (v_metadata ? 'paymob_intent_claim')
+     or not exists(select 1 from public.mantigo_payment_intent_claims where ledger_id=v_mismatch)
+     or exists(select 1 from public.mantigo_payment_intent_secrets where ledger_id=v_mismatch) then
+    raise exception 'RC526_REJECTED_RECONCILIATION_MUST_NOT_MUTATE_LEDGER';
+  end if;
+end
+$admin_reconciliation$;
+
+
 -- A provider-intent uniqueness conflict must roll back ledger finalization and keep the claim.
 insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
 values('52600000-0000-4000-8000-000000000010','ride-rc526-duplicate-intent','52600000-0000-4000-8000-000000000011','52600000-0000-4000-8000-000000000012',125,'REQUIRED','RC526-test-duplicate-intent','{}'::jsonb);
