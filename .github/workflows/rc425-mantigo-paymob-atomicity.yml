@@ -27,6 +27,8 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - name: Validate Paymob atomicity source wiring
+        run: node scripts/validate-mantigo-paymob-atomicity.mjs
       - name: Run RC425 atomic payment integration tests
         shell: bash
         run: |
