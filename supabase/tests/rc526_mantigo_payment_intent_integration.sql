@@ -94,6 +94,15 @@ begin
   if v_released is not false then raise exception 'RC526_WRONG_TOKEN_MUST_NOT_RELEASE'; end if;
 
   begin
+    perform public.release_mantigo_payment_intent_claim_backend(v_ledger,'rejection-token',null);
+  exception when others then
+    if sqlerrm <> 'PAYMENT_INTENT_RELEASE_STATUS_NOT_DEFINITIVE' then raise; end if;
+    v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'RC526_NULL_STATUS_MUST_NOT_RELEASE'; end if;
+  v_rejected := false;
+
+  begin
     perform public.release_mantigo_payment_intent_claim_backend(v_ledger,'rejection-token',500);
   exception when others then
     if sqlerrm <> 'PAYMENT_INTENT_RELEASE_STATUS_NOT_DEFINITIVE' then raise; end if;
