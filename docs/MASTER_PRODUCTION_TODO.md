@@ -1757,3 +1757,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Obtain explicit privacy/replay-path approval for exact-source handling or a minimal test-only organization seed before changing replay inputs. Do not publish owner email or rerun full replay unchanged.
 - [ ] Still required: live Paymob Sandbox E2E, two-user/two-tenant authorization E2E, backup/restore rehearsal, production Edge Function parity, and final baseline security review.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Source recovery verification
+
+- [x] Recovery branch restored 21 missing SQL bodies from applied ledger statements with per-entry MD5/length manifest.
+- [ ] Inspect run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) on exact source-recovery SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`.
+- [ ] Keep owner bootstrap source gap open until a privacy-reviewed recovery path or explicitly approved test-only organization seed is available.

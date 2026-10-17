@@ -230,3 +230,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Additional branch/PR/commit search did not recover source for the RC339 bootstrap migration. Full chronological replay [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed at the missing `MNTY-MAIN` organization seed after alias normalization passed. Do not add a test-only organization seed without explicit approval; the original statement contains an owner email.
 - No tests were intentionally rerun on identical code/environment; the second forward replay run was justified by the new post-replay assertion being wired into the script.
 - No production changes, deployments, payments, merges, or releases occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-009 — ledger source recovery batch
+
+- Recovery branch commit `a474cc45a4a2a3960760482976ebb79e8c9e1eed` restores 21 missing SQL statement bodies from the read-only applied ledger and adds provenance manifest `docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md`.
+- Exact full replay run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) is running on that exact SHA. It is the required verification for the new source set; do not rerun before reading its result.
+- The bootstrap source `20260927131555` is deliberately excluded due hard-coded owner email in the applied statement. No public copy of that statement was created. The organization seed blocker remains until privacy review or explicit approval for a test-only baseline.

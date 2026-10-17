@@ -680,3 +680,10 @@ This status is intentional and must remain until the open gates above are indepe
 - **Full chronological replay remains blocked:** [run 39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed at RC339 because the empty replay DB lacks `organizations.id='MNTY-MAIN'`. The applied bootstrap ledger entry exists but its source migration is absent from searched refs/PRs/commits. The exact source includes owner email, so privacy review is required before public source handling.
 - **Next action:** resolve the explicit privacy/replay-path decision; do not create the organization seed fixture or rerun unchanged replay without approval/input change.
 - No production mutation, migration application, deployment, payment, merge, or release occurred. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-009 checkpoint
+
+- Cross-branch source recovery commit: `a474cc45a4a2a3960760482976ebb79e8c9e1eed` on recovery PR #207 branch, restoring 21 exact applied-ledger SQL statement bodies with manifest.
+- Full replay run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) is the one required run for this source set. Check its exact result next.
+- Missing owner bootstrap `20260927131555` remains intentionally excluded due hard-coded owner email. No test-only org seed is approved/implemented. Release remains **BLOCKED / NOT CERTIFIED**.

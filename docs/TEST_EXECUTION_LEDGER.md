@@ -309,3 +309,12 @@ No production mutations, migrations, deployments, payments, merges, or releases 
 - **Next blocker:** obtain explicit privacy/replay-path approval for reviewed exact-source handling or a minimal test-only organization seed. No such fixture was added. Do not rerun full chronological replay until the replay input changes under an approved path.
 
 No production changes, migration applications, deployments, payments, merges, or releases occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-009 — applied-ledger source recovery batch
+
+- On the separate recovery PR #207 branch `reconcile/rc425-458-current-main-20261011`, commit `a474cc45a4a2a3960760482976ebb79e8c9e1eed` restores 21 missing migration SQL statement bodies from the read-only applied ledger. Provenance manifest: [LEDGER_STATEMENT_RECOVERY_20261017.md](https://github.com/islamnagy2022-eng/MantiqatiX/blob/reconcile/rc425-458-current-main-20261011/docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md).
+- Recovered statements are pinned by exact ledger version/name, character count, and MD5; automated screening found no literal email, Egyptian phone pattern, or common API/private-key pattern in these 21 statements. Original comments/formatting are not claimed beyond the statement stored in the ledger.
+- The owner bootstrap migration `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` remains excluded because the applied SQL contains a hard-coded owner email. It is documented in [ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md](https://github.com/islamnagy2022-eng/MantiqatiX/blob/reconcile/rc425-458-current-main-20261013/docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md) (recovery branch file path is canonical on the current recovery branch).
+- Exact-head full replay [run 39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756), SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`, is the only run needed for this changed replay input; it was still running at this checkpoint. Inspect its final outcome before further edits.
+- Do not rerun previously passing suites without a relevant code/test/environment change. Production remains untouched and release blocked.
