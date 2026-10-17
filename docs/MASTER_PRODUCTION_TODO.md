@@ -1826,3 +1826,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **BLOCKED — marketing provider services:** original table-creation DDL/version remains unknown. PR #218's test-only baseline is not historical source and must not be copied into this branch without explicit approval.
 - [ ] Next: continue only if a new trusted source/archive appears; otherwise obtain explicit review/approval for a labelled test-only baseline before modifying replay inputs. Then run replay once after the input changes.
 - No production mutation, migration application, deployment, payment, merge, or release. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — SESSION-RESUME-EXEC-018 checkpoint
+
+- [x] Verified exact PR #289 head `15ea4fdee2b7c6dac7faea22f90162fd83445e56` and inspected 11 associated Actions runs; RC526 claim/finalization integration and listed static/security/migration checks passed. Pages validation passed; deploy skipped. Full evidence in `docs/TEST_EXECUTION_LEDGER.md`.
+- [x] Confirmed the Library schema snapshot contains a current definition for `counter_offer_indrive_bid`, but it does not prove original migration timestamp/order and is not valid historical migration provenance.
+- [ ] **BLOCKED — historical function source:** original creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown.
+- [ ] **BLOCKED — RC339 owner bootstrap:** applied source `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` is listed in the manifest but its migration file is absent from the current `main` tree; the recorded SQL contains an owner email and elevated permissions requiring privacy/security review. Do not publish raw SQL or invent a replacement identity.
+- [ ] **BLOCKED — marketing provider services:** authoritative creation DDL for `public.marketing_provider_services` remains missing; proposal-only test baseline requires explicit approval.
+- [x] Recorded distinction between forward replay from a live-derived schema baseline (pass, [39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548)) and full chronological replay failures at missing `MNTY-MAIN` ([39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236)) and missing `marketing_provider_services` ([39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756)).
+- [ ] Next: search only for new trusted source artifacts; if unavailable, obtain explicit approval for exact test-only baseline/bootstrap changes before changing replay inputs. Run replay once after input changes only.
+- Release remains **BLOCKED / NOT CERTIFIED**; no production changes.
