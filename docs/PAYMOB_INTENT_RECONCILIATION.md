@@ -20,7 +20,7 @@ Only explicit Paymob HTTP rejections `400`, `401`, `403`, `404`, and `422`, when
 
 ## Read-only triage query
 
-Run only in an authorized, read-only session. The query deliberately excludes client-secret values and claim tokens.
+Run only in an authorized, read-only `psql` session. Supply the ledger ID as a variable, for example `psql -v ledger_id='MGO-FIN-...'`. The query deliberately excludes client-secret values and claim tokens.
 
 ```sql
 select
@@ -33,7 +33,7 @@ select
   metadata -> 'paymob_intent_last_rejection' ->> 'rejected_at' as last_definitive_rejection_at,
   updated_at
 from public.mantigo_financial_ledger
-where id = :ledger_id;
+where id = :'ledger_id';
 ```
 
 Do not run mutation SQL against production as a workaround. This guide does not authorize production access, manual updates, a provider call, or a release. Any reconciliation implementation needs an audited operator identity, evidence capture, authorization review, and disposable integration tests before production use.
