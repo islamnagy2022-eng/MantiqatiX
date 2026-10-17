@@ -118,9 +118,9 @@ Deno.serve(async req=>{
   }
 
   // Validate Paymob's echoed transaction details before binding its identifiers to this ledger.
-  // Paymob's response example represents intention_detail.amount in currency units (unlike request amount in cents).
-  // A successful HTTP response alone does not prove the amount, currency, or merchant reference match.
-  if(!matchesPaymobIntention({ledgerId:ledger.id,amount,currency,provider})){
+  // Paymob expresses intention_detail.amount in minor units, matching request amountCents.
+  // A successful HTTP response alone does not prove amount, currency, or ledger reference match.
+  if(!matchesPaymobIntention({ledgerId:ledger.id,amountCents,currency,provider})){
     console.error(JSON.stringify({requestId,stage:"paymob_intention_correlation_mismatch",httpStatus:providerResponse.status}));
     // Preserve the claim: the provider may have created a real intention that needs reconciliation.
     return json({error:"PAYMENT_PROVIDER_INTENT_MISMATCH",recoveryRequired:true},502,requestId);
