@@ -428,3 +428,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added forward-only migration 20261018010000_auth_user_profile_before_customer_membership.sql: create profile if absent, then ensure membership. Added a transaction-rolled-back behavioral test for a fresh auth user.
 - Updated the test-only historical showcase owner fixture to suppress only the legacy trigger during fixture setup, restore it, and call the membership helper explicitly. Disposable-only; no production user or schema changed.
 - Exact-head source integrity [39072447513] and migration immutability [39072447500] passed. Full replay [39072447514] was in progress on SHA be3cf19573595f037357c89db719c37c065755c1.
+
+
+## 2026-10-18 — REPLAY-RESUME-003 — current replay evidence and real next blocker
+
+- Verified PR #207 branch `reconcile/rc425-458-current-main-20261011` at SHA `5083a7e1ebd522b064688c47d76b81eaaf9cb1d4`.
+- Inspected full chronological replay run [39072680440](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072680440) on that exact SHA. Preflight, test-only baseline injection, exact-copy/untracked checks, Supabase startup, and disposable alias normalization passed; chronological replay failed. The accessible run metadata did not expose the exact SQL error, so it is not attributed to a specific migration.
+- Confirmed `legacy_security_definer_functions.sql` (blob `ed4270f8fbfa2881fbfd6b251161ec4cbe7fd2c7`) already includes `counter_offer_indrive_bid(uuid,uuid,numeric)`; validator requires its signature, SECURITY DEFINER/search_path, and ACL contract, and the replay workflow injects it before the revoke migration. This is a live-derived disposable baseline, not historical creation provenance. The historical source gap remains open for release certification, but it is not accurate to say the current replay workflow has no function fixture.
+- Reviewed earlier replay [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756); the contemporaneous proposal records missing `public.marketing_provider_services` followed by an `MNTY-MAIN` organization-row dependency. This specific error is not assumed for run 39072680440 without its log.
+- Added `docs/TEST_EXECUTION_LEDGER.md` to this branch with exact SHAs, workflow links, outcomes, evidence scope, and next action.
+- **Blocked action:** `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md` says the two proposed test-only fixtures are not approved. I did not inject them or change the workflow. Next step is explicit approval for Fixture A (`marketing_provider_services` schema/policy) and Fixture B (minimum `MNTY-MAIN` organization row), together, or trusted original source artifacts.
+- No manual tests were rerun. No production changes, migrations, deployments, payments, merges, or releases occurred. Production remains BLOCKED / NOT CERTIFIED.
