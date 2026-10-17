@@ -58,3 +58,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Limitations:** source-contract validation is not a behavioral concurrency test. Two concurrent calls may still create an orphan Paymob intention before one conditional database write wins; a database-backed claim/lease is a separate hardening requirement. Do not claim that duplicate provider-intention creation is fully prevented.
 - **Production impact:** none. No Paymob API call, production DB write, migration application, merge, or deployment was performed.
 - **Next:** exact-head CI, review, and integration with the release-gated atomic webhook work; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Exact-head CI result correction — 2026-10-17
+
+- PR #287 exact head `f3d34f5f701fdd0c5aca99e7ca183fb24aee778c` completed with 15 successful checks, zero failures, and the Pages deploy job skipped.
+- The Pages validation job log explicitly emitted `MantiGO payment-intent persistence source contract: PASS (10/10 patterns + 2 order checks)`.
+- This supersedes the earlier “exact-head CI pending” note for this source-only candidate. It does **not** establish behavioral concurrency safety, real Paymob E2E, full migration replay, or production readiness.
+- Evidence: [Actions run 39002102476](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39002102476).
