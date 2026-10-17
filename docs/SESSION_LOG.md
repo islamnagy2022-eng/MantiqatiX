@@ -66,3 +66,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The Pages validation job log explicitly emitted `MantiGO payment-intent persistence source contract: PASS (10/10 patterns + 2 order checks)`.
 - This supersedes the earlier “exact-head CI pending” note for this source-only candidate. It does **not** establish behavioral concurrency safety, real Paymob E2E, full migration replay, or production readiness.
 - Evidence: [Actions run 39002102476](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39002102476).
+
+
+## 2026-10-17 — MantiGO payment concurrency follow-up
+
+Read-only follow-up compared `supabase/functions/mantigo-payment-intent/index.ts` with the established digital-page claim/finalize/release RPC design. The digital-page migration uses a row lock, auth-user binding, token + timestamp, explicit in-progress result, and token-bound finalization/release. MantiGO does not yet have an equivalent claim RPC. PR #287's persistence guard remains useful but does not serialize concurrent calls before the Paymob request; therefore the provider-orphan/concurrency risk remains open.
+
+Next safe implementation requires a MantiGO-specific atomic claim/finalize/release design and disposable PostgreSQL behavioral tests. Migration work must wait for reconciliation of the RC425–RC441 historical migration chain and other candidate branches; do not add/deploy a migration into the unresolved sequence. Also test ambiguous provider timeouts: a lease alone cannot prove exactly-once provider creation if Paymob accepted the request but the response was lost. No Production changes, deployment, merge, or real payment occurred.
