@@ -37,7 +37,7 @@ function validateUnappliedCorrection(base, status, path, existsInBase) {
     const manifest = JSON.parse(readFileSync(unappliedCorrection.manifestPath, "utf8"));
     const appliedVersionsText = readFileSync(unappliedCorrection.appliedVersionsPath, "utf8");
     const appliedVersionsSha256 = createHash("sha256").update(appliedVersionsText).digest("hex");
-    const appliedVersions = new Set(appliedVersionsText.split(/\\r?\\n/).filter(Boolean));
+    const appliedVersions = new Set(appliedVersionsText.split(/\r?\n/).filter(Boolean));
     const priorPolicy = readFileSync("supabase/migrations/20260928154411_rc199_marketplace_order_read_grants_v2.sql", "utf8");
     const correctedSource = readFileSync(path, "utf8");
 
@@ -54,12 +54,12 @@ function validateUnappliedCorrection(base, status, path, existsInBase) {
       appliedVersions.has(unappliedCorrection.previousAppliedVersion) &&
       !appliedVersions.has(unappliedCorrection.version) &&
       /create policy order_status_history_customer_select_own/i.test(priorPolicy) &&
-      /customer_id = auth\\.uid\\(\\)/i.test(priorPolicy) &&
+      /customer_id = auth\.uid\(\)/i.test(priorPolicy) &&
       /create policy orders_customer_select_own/i.test(correctedSource) &&
       /order_status_history_customer_select_own_policy_contract_mismatch/i.test(correctedSource) &&
       /orders_customer_select_own_policy_contract_mismatch/i.test(correctedSource) &&
-      /grant select on public\\.orders to authenticated/i.test(correctedSource) &&
-      /grant select on public\\.order_status_history to authenticated/i.test(correctedSource);
+      /grant select on public\.orders to authenticated/i.test(correctedSource) &&
+      /grant select on public\.order_status_history to authenticated/i.test(correctedSource);
   } catch {
     return false;
   }
