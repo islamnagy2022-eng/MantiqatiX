@@ -558,3 +558,11 @@ jobs:
           test -d supabase/migrations
           test "$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)" -gt 0
           echo "Full disposable Supabase migration replay completed."
+
+      - name: Verify auth user profile is created before customer membership
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_url="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/auth_user_profile_customer_membership_trigger.sql
+          echo "PASS: new permanent auth users receive a public.users profile before the CUSTOMER membership trigger."

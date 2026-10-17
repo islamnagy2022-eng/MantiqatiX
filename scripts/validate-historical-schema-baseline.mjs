@@ -116,6 +116,9 @@ const platformUserSeedBaselineValid =
   /INSERT INTO auth\.users\s*\([\s\S]*?id, aud, role, email, encrypted_password, email_confirmed_at[\s\S]*?raw_app_meta_data, raw_user_meta_data, created_at, updated_at/i.test(platformUserSeedBaseline) &&
   /f7914ac7-4b03-4456-afdd-e386f2ac6a5b/i.test(platformUserSeedBaseline) &&
   /showcase-owner@invalid\.example/i.test(platformUserSeedBaseline) &&
+  /ALTER TABLE auth\.users DISABLE TRIGGER on_mnty_auth_user_created_customer_membership/i.test(platformUserSeedBaseline) &&
+  /ALTER TABLE auth\.users ENABLE TRIGGER on_mnty_auth_user_created_customer_membership/i.test(platformUserSeedBaseline) &&
+  /SELECT private\.ensure_customer_membership_for_user\([\s\S]*f7914ac7-4b03-4456-afdd-e386f2ac6a5b[\s\S]*MNTY-PLATFORM/i.test(platformUserSeedBaseline) &&
   /INSERT INTO public\.users\s*\([\s\S]*?id, tenant_id, organization_id, name, email, role, roles/i.test(platformUserSeedBaseline) &&
   /'MNTY-PLATFORM'[\s\S]*'OWNER'[\s\S]*ON CONFLICT \(id\) DO UPDATE/i.test(platformUserSeedBaseline) &&
   platformUserSeedDml.length === 2 &&
