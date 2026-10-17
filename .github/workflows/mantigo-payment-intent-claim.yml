@@ -4,7 +4,7 @@ on:
     branches:
       - "**"
   pull_request:
-    branches: [main]
+    branches: ["**"]
 permissions:
   contents: read
 jobs:
@@ -31,6 +31,11 @@ jobs:
           node-version: 22
       - name: Validate payment-intent source and migration contract
         run: node scripts/validate-mantigo-payment-intent-persistence.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check MantiGO payment intent
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/mantigo-payment-intent/index.ts
       - name: Apply RC526 fixture, claim migration, and behavioral tests
         shell: bash
         run: |
