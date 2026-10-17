@@ -1636,3 +1636,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Pending: consolidated RC449/RC462/RC565 exact-head PostgreSQL run and remaining exact-head CI after latest candidate update.
 - [ ] BLOCKED: complete chronological replay still needs authoritative creation DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
 - Production remains untouched; do not merge either PR or apply migrations to production until replay, release gates, and explicit approval are complete.
+
+
+## Consolidated CI correction — 2026-10-17
+
+- [x] Identified the first consolidated run [38993169378](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993169378) failed before SQL execution due a JavaScript syntax error in the new RC462 JSON-containment source assertion.
+- [x] Corrected the assertion in `scripts/validate-mantigo-platform-admin-scope.mjs` using a template literal.
+- [ ] Pending: rerun exact-head CI and verify the complete RC449 → RC462 → RC565 PostgreSQL integration. The failed run's SQL step was skipped and is not evidence against/for SQL behavior.
