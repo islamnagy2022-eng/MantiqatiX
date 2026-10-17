@@ -1,4 +1,24 @@
 -- RC449 behavioral integration test. Run only in disposable PostgreSQL.
+-- The test deliberately changes JWT identity in one backend session. RC462's VOLATILE guard
+-- must re-evaluate request-scoped identity instead of reusing the first caller's result.
+-- Diagnostic wrapper used only by this disposable integration script. It reproduces the
+-- nested SECURITY DEFINER execution context without performing any financial mutation.
+create or replace function public.rc449_test_platform_admin_context()
+returns jsonb
+language sql
+volatile
+security definer
+set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object(
+    'uid', auth.uid(),
+    'guard', public.mnty_can_platform_admin(),
+    'current_user', current_user,
+    'session_user', session_user
+  )
+$function$;
+
+SET plan_cache_mode = force_custom_plan;
 do $test$
 declare
   tenant_owner uuid := '10000000-0000-4000-8000-000000000041';
@@ -25,6 +45,82 @@ begin
 
   insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference,amount,captain_amount)
   values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null,999,888);
+
+  -- Unauthenticated caller cannot use a supplied platform-admin UUID as authority.
+  perform pg_catalog.set_config('request.jwt.claim.sub','',false);
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(platform_admin);
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'unauthenticated caller read platform dashboard'; end if;
+
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'unauthenticated caller read platform financial report'; end if;
+
+  rejected:=false;
+  begin
+    perform public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'unauthenticated caller reached settlement'; end if;
+
+  rejected:=false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(platform_admin,30);
+  exception when others then
+    if sqlerrm in ('USER_CONTEXT_MISMATCH','AUTH_REQUIRED') then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'unauthenticated caller reached ride expiration'; end if;
+  if (select settlement_status from public.mantigo_financial_ledger where ride_id='ride-rc449') <> 'READY'
+     or (select status from public.mantigo_rides where id='ride-stale-open') <> 'OPEN' then
+    raise exception 'unauthenticated calls caused settlement/expiration side effects';
+  end if;
+
+  -- A tenant identity cannot be overridden by spoofing p_admin_user_id.
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(platform_admin);
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'forged admin UUID read platform dashboard'; end if;
+
+  rejected:=false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'forged admin UUID read platform financial report'; end if;
+
+  rejected:=false;
+  begin
+    perform public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'forged admin UUID reached settlement'; end if;
+
+  rejected:=false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(platform_admin,30);
+  exception when others then
+    if sqlerrm='USER_CONTEXT_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'forged admin UUID reached ride expiration'; end if;
+  if (select settlement_status from public.mantigo_financial_ledger where ride_id='ride-rc449') <> 'READY'
+     or (select status from public.mantigo_rides where id='ride-stale-open') <> 'OPEN' then
+    raise exception 'forged admin UUID calls caused settlement/expiration side effects';
+  end if;
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
@@ -79,6 +175,17 @@ begin
     raise exception 'explicit platform SUPER_ADMIN with full_control should pass';
   end if;
 
+  -- Reproduce the authorization helper from inside SECURITY DEFINER execution context.
+  -- This isolates nested execution-context behavior before invoking financial RPCs.
+  result := public.rc449_test_platform_admin_context();
+  if result->>'uid' is distinct from platform_admin::text or result->>'guard' is distinct from 'true' then
+    raise exception 'nested security-definer context mismatch: %', result;
+  end if;
+  if auth.uid() is distinct from platform_admin then
+    raise exception 'request identity changed after diagnostic wrapper: uid=%, setting=%',
+      auth.uid(), current_setting('request.jwt.claim.sub',true);
+  end if;
+
   -- The report must use the canonical financial ledger columns, not legacy aliases.
   result := public.get_mantigo_admin_financial_report_backend(platform_admin,null,null);
   if (result->>'gross')::numeric <> 100
@@ -112,6 +219,21 @@ begin
      or not has_function_privilege('authenticated','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE')
      or not has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE') then
     raise exception 'authenticated role must retain intended RPC entrypoint grants; authorization is enforced inside each RPC';
+  end if;
+
+  -- Reassert the simulated request identity immediately before the mutating RPC.
+  -- If this fails, the error distinguishes fixture/session context from RPC authorization.
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
+  if auth.uid() is distinct from platform_admin then
+    raise exception 'test fixture identity drift before settlement: auth.uid=% expected=%',auth.uid(),platform_admin;
+  end if;
+  if not public.mnty_can_platform_admin() then
+    raise exception 'platform guard false immediately before settlement: uid=%, matching_active_platform_memberships=%',
+      auth.uid(),
+      (select count(*) from public.user_memberships m
+       where m.user_id=platform_admin and m.tenant_id='MNTY-PLATFORM' and m.status='ACTIVE'
+         and upper(m.role)='SUPER_ADMIN'
+         and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb);
   end if;
 
   -- Authorized platform-admin settlement is persisted and replay-safe.
@@ -164,5 +286,8 @@ begin
   end if;
 end;
 $test$;
+RESET plan_cache_mode;
 
 select 'RC449 platform-admin scope integration: PASS' as result;
+-- Remove the disposable diagnostic helper on successful completion.
+drop function if exists public.rc449_test_platform_admin_context();

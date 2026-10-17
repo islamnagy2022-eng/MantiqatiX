@@ -11,13 +11,18 @@ security definer
 set search_path = ''
 as $function$
 declare
-  v_auth uuid := auth.uid();
+  v_auth uuid;
   v_from timestamptz := coalesce(p_from, 'epoch'::timestamptz);
   v_to timestamptz := coalesce(p_to, 'infinity'::timestamptz);
   v_ledger jsonb;
 begin
-  if v_auth is null or p_admin_user_id is null or v_auth <> p_admin_user_id then
+  -- Read request identity at execution time, not as a declaration initializer.
+  v_auth := auth.uid();
+  if v_auth is null or p_admin_user_id is null then
     raise exception 'AUTH_REQUIRED';
+  end if;
+  if v_auth <> p_admin_user_id then
+    raise exception 'USER_CONTEXT_MISMATCH';
   end if;
   if not public.mnty_can_platform_admin() then
     raise exception 'PLATFORM_ADMIN_REQUIRED';
