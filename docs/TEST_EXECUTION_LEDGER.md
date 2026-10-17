@@ -443,3 +443,37 @@ No production changes, migration applications, deployments, payments, merges, or
 - **Root-cause status:** source absence is confirmed within the accessible branch/repository material scanned; external/trusted archive provenance remains unverified. No fabricated/backdated migration, conditional revoke, test-only function stub, fixture injection, or replay rerun was performed.
 - **Next safe action:** keep searching only for new authoritative/trusted artifacts, or obtain explicit review/approval for a clearly labelled test-only baseline decision. After an approved input change, run the disposable replay once and record the first failure/success; do not rerun unchanged replay.
 - No production mutation, migration application, deployment, payment, merge, or release. Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — SESSION-RESUME-EXEC-018 — exact current HEAD CI + source-provenance clarification
+
+- **Branch/PR:** `fix/rc526-mantigo-intent-claim-20261017`, [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Exact HEAD inspected:** `15ea4fdee2b7c6dac7faea22f90162fd83445e56`.
+- **CI was inspected, not manually rerun.** The following Actions runs are all associated with that exact SHA:
+
+| Evidence ID | Workflow/job scope | Result | Run |
+|---|---|---|---|
+| CI-289-15EA-001 | RC526 payment-intent claim PostgreSQL integration + MantiGO open-ride privacy/RC446 | PASS | [39049712993](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049712993) |
+| CI-289-15EA-002 | Targeted-ads search-path integration + matrimony privacy PostgreSQL + collision self-test | PASS | [39049712980](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049712980) |
+| CI-289-15EA-003 | Backend-only module boundary | PASS | [39049712949](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049712949) |
+| CI-289-15EA-004 | Approval-action audit atomicity | PASS | [39049713154](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049713154) |
+| CI-289-15EA-005 | Migration history immutability | PASS | [39049713013](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049713013) |
+| CI-289-15EA-006 | Migration version uniqueness | PASS | [39049712979](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049712979) |
+| CI-289-15EA-007 | Cross-PR migration collision guard | PASS | [39049713017](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049713017) |
+| CI-289-15EA-008 | Pages/web validation | PASS; deploy job SKIPPED | [39049713019](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049713019) |
+| CI-289-15EA-009 | Module professionalization (additional push run) | PASS | [39049708827](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049708827) |
+| CI-289-15EA-010 | MantiGO privacy (additional push run) | PASS | [39049708826](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049708826) |
+| CI-289-15EA-011 | Backend-only boundary (additional push run) | PASS | [39049708829](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39049708829) |
+
+- Job-level inspection confirmed run `39049712993` includes the `rc526-mantigo-payment-intent-claim` job and the `Apply RC526 fixture, claim migration, and behavioral tests` step. Run `39049713019` has `validate=success` and `deploy=skipped`.
+- **Scope limits:** this proves only the listed CI scopes at `15ea4f...`. It does not prove live Paymob Sandbox behavior, full clean historical replay, cross-user/tenant isolation E2E, backup/restore, or production readiness.
+
+### Additional Library evidence reviewed (not historical migration provenance)
+
+- Library search found `نص ملصق(20261015-015113).txt` (837,257 bytes) with a `CREATE OR REPLACE FUNCTION public.counter_offer_indrive_bid(uuid,uuid,numeric)` body. The snapshot definition is `RETURNS void`, `SECURITY DEFINER`, `search_path=public`; it checks authenticated non-anonymous context, rejects negative/null counter prices, and updates the bid only for the supplied request/bid when the request belongs to the caller and is not completed/cancelled.
+- This is a current-schema/snapshot artifact without a verified original migration identity/timestamp. It is **not** proof of historical creation order and must not be inserted into `supabase/migrations/` as if it were the original migration.
+- Repository migration-directory listing on `main` does not contain `20260927131555_bootstrap_mnty_owner_islam_nagy_v2.sql`; the manifest lists the applied version. Prior read-only ledger evidence says its SQL seeds `MNTY-PLATFORM`, `MNTY-MAIN`, and owner membership using an email lookup; the raw SQL includes a hard-coded owner email and elevated permissions. No exact source was found in the current GitHub branch/PR searches. Do not publish it verbatim or invent identity data.
+- Existing replay evidence must remain separately scoped: [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed on one full-replay candidate after injecting test-only compatibility baselines; [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) failed on another candidate at the missing `public.marketing_provider_services` dependency. [39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548) passed **forward replay from a live-derived schema baseline only**; it is not full chronological replay evidence.
+- **No tests intentionally rerun in this session.** CI results and source files were inspected only. No fixture was added, no replay was rerun, and no production action occurred.
+- **Next:** resolve historical source provenance if a new trusted artifact appears; otherwise obtain explicit approval for the exact labelled test-only replay baseline/bootstrap proposal before changing replay inputs. Do not infer that approval from a general “continue” instruction.
+- Release remains **BLOCKED / NOT CERTIFIED**.
