@@ -73,3 +73,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 Read-only follow-up compared `supabase/functions/mantigo-payment-intent/index.ts` with the established digital-page claim/finalize/release RPC design. The digital-page migration uses a row lock, auth-user binding, token + timestamp, explicit in-progress result, and token-bound finalization/release. MantiGO does not yet have an equivalent claim RPC. PR #287's persistence guard remains useful but does not serialize concurrent calls before the Paymob request; therefore the provider-orphan/concurrency risk remains open.
 
 Next safe implementation requires a MantiGO-specific atomic claim/finalize/release design and disposable PostgreSQL behavioral tests. Migration work must wait for reconciliation of the RC425–RC441 historical migration chain and other candidate branches; do not add/deploy a migration into the unresolved sequence. Also test ambiguous provider timeouts: a lease alone cannot prove exactly-once provider creation if Paymob accepted the request but the response was lost. No Production changes, deployment, merge, or real payment occurred.
+
+
+## 2026-10-17 — MantiGO ambiguous Paymob outcome quarantine
+
+- **Code head:** `e5832ff10dcd4e4b761d0b33c7b8066ef2a0aff2` on PR #287 branch `fix/mantigo-payment-intent-persistence-guard-20261017`.
+- **Change:** after sending a Paymob intention request, network exceptions, provider HTTP 5xx, and HTTP-success responses lacking a client secret/provider intent ID are treated as ambiguous. The handler attempts a conditional update to mark the ledger metadata `paymob_intent_reconciliation_required=true`, records reason/time, and blocks subsequent provider-intention creation when the marker is present. No checkout secret is returned for ambiguous results.
+- **Validation:** extended `scripts/validate-mantigo-payment-intent-persistence.mjs` to check the new marker, conditional update/row-count guard, and ordering. Exact-head GitHub Actions were not yet returned when recorded; CI is **PENDING**, not PASS.
+- **Important limitation:** if the conditional marker write fails, or two requests race before either writes, source metadata alone cannot provide an exactly-once provider guarantee. A DB-backed atomic claim/finalize/release boundary and disposable PostgreSQL concurrency/timeout tests remain mandatory.
+- **Impact:** no production DB writes, migrations, Paymob requests, real payments, deployments, or merges.
+- **Next:** verify exact-head workflow results; correct any validator/runtime issues; then continue the claim/RPC design only in a branch consistent with the unresolved RC425–RC441 migration chronology.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
