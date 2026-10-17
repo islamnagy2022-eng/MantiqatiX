@@ -1815,3 +1815,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [x] Caught and corrected the validator's incorrect attempt to find a temporary prerequisite migration before workflow injection. The validator now compares against the pinned prerequisite version 20260927074156, while validating the prerequisite source fixture through existing baseline checks.
 - [ ] Verify exact-head CI for correction commit d1eff709f01927f30a676f9bd96d20ae122f7837; earlier replay run 39070471838 is for pre-correction SHA and must not be counted as a pass.
+
+
+## 2026-10-17 — REPLAY-ORDER-002: duplicate policy correction candidate
+
+- [x] Captured the exact failure at 20260928184000: duplicate policy order_status_history_customer_select_own (SQLSTATE 42710).
+- [x] Verified 20260928154411 creates the policy and is in the captured applied version list; 20260928184000 is not in that list. Applied version 20260928154527 remains missing from repository source search.
+- [x] Made the 20260928184000 candidate reuse an existing policy only when its contract matches; create when absent and fail closed on mismatch. Added a narrowly scoped, evidence-pinned immutability exception for this exact unapplied candidate.
+- [ ] Check migration-history immutability and full replay [39071093587](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071093587) at code SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0.
+- [ ] Recover authoritative source for applied version 20260928154527 or keep that provenance blocker open. No production changes or release approval.

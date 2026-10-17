@@ -44,3 +44,8 @@ Any changed base blob, ledger version, manifest hash, or other migration path bl
 - The disposable full replay passes this migration without suppressing/skipping it, then continues to the next first error.
 - Policy contract tests confirm no broad grants and no change to customer-only row scope.
 - PR remains Draft until independent review. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Follow-up evidence — replay duplicate policy
+
+Replay at SHA d1eff709f01927f30a676f9bd96d20ae122f7837 reached migration 20260928184000 and failed because order_status_history_customer_select_own already existed. Earlier migration 20260928154411 creates the same policy and is present in the captured production version list; 20260928184000 is absent. The candidate source was made idempotent with fail-closed policy-contract checks and the immutability guard was narrowed to this exact original blob and pinned read-only version list. Applied source version 20260928154527 is still missing from repository history. The production snapshot manifest remains PENDING_REVIEW, so this is a draft candidate only.
