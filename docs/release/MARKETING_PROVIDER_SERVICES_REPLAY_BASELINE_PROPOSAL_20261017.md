@@ -77,3 +77,15 @@ Snapshot policy/grant observations relevant to replay:
 ## Decision
 
 **Not approved in this document.** Until the exact test-only baseline is explicitly approved, do not add it, do not rerun the unchanged replay, and do not synthesize a historical migration. The production release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Update — 2026-10-17: confirmed cause and implementation checkpoint
+
+The earlier wording “missing-object gap” described the runtime symptom but did not identify the immediate cause precisely. The fixture for public.marketing_provider_services already exists in marketing_commission_schema.sql; the failed replay log shows the first consumer was 20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql, while the temporary fixture version was 20260927140494. The fixture therefore ran too late.
+
+A fix is now implemented on PR #207's disposable replay branch:
+- temporary fixture version changed to 20260927132903;
+- validator now checks that it follows prerequisite provider-profile baseline 20260927074156 and precedes first consumer 20260927132904;
+- fixture header corrected.
+
+Exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) at 8b4dfda8ea8d1632786caad49b13b745b137a0e6 was pending/in progress when this note was recorded. This is not yet a confirmed pass. No new table fixture was added, no historical migration was changed, and no production mutation occurred. Historical-source provenance remains a separate issue.
