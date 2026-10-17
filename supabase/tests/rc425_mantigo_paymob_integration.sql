@@ -1,3 +1,21 @@
+-- Disposable-only fault injection for the RC425 atomicity test.
+create or replace function public.rc425_test_fail_notification_insert()
+returns trigger
+language plpgsql
+as $trigger$
+begin
+  if new.entity_id = 'ride-notification-failure' then
+    raise exception 'RC425_TEST_NOTIFICATION_FAILURE';
+  end if;
+  return new;
+end;
+$trigger$;
+
+drop trigger if exists rc425_test_notification_failure on public.notifications;
+create trigger rc425_test_notification_failure
+  before insert on public.notifications
+  for each row execute function public.rc425_test_fail_notification_insert();
+
 -- RC425 behavioral integration tests; run only in disposable PostgreSQL.
 do $test$
 declare
@@ -156,33 +174,12 @@ begin
   select count(*) into v_notifications from public.notifications where entity_id='ride-recovery';
   if v_events <> 2 or v_notifications <> 2 then
     raise exception 'failure then recovery should persist two events and two notifications (events %, notifications %)',v_events,v_notifications;
-  end if;
-end;
-$test$;
-
-
-  -- A notification failure must roll back both the provider event and ledger transition.
+  end if;  -- A notification failure must roll back both the provider event and ledger transition.
   insert into public.mantigo_financial_ledger
     (id,ride_id,customer_id,provider,metadata,gross_amount,currency,payment_status)
   values
     ('ledger-notification-failure','ride-notification-failure',v_customer,'PAYMOB',
       '{"paymob_intention_order_id":"9010"}',25,'EGP','PENDING');
-
-  create or replace function public.rc425_test_fail_notification_insert()
-  returns trigger
-  language plpgsql
-  as $trigger$
-  begin
-    if new.entity_id = 'ride-notification-failure' then
-      raise exception 'RC425_TEST_NOTIFICATION_FAILURE';
-    end if;
-    return new;
-  end;
-  $trigger$;
-
-  create trigger rc425_test_notification_failure
-    before insert on public.notifications
-    for each row execute function public.rc425_test_fail_notification_insert();
 
   begin
     perform public.process_verified_mantigo_payment_backend(
@@ -193,9 +190,6 @@ $test$;
   exception when others then
     if sqlerrm not like '%RC425_TEST_NOTIFICATION_FAILURE%' then raise; end if;
   end;
-
-  drop trigger rc425_test_notification_failure on public.notifications;
-  drop function public.rc425_test_fail_notification_insert();
 
   select count(*) into v_events from public.mantigo_payment_provider_events
     where ledger_id='ledger-notification-failure';
@@ -209,3 +203,9 @@ $test$;
   end if;
 
 select 'RC425 MantiGo Paymob atomicity integration: PASS' as result;
+
+end;
+$test$;
+
+drop trigger rc425_test_notification_failure on public.notifications;
+drop function public.rc425_test_fail_notification_insert();
