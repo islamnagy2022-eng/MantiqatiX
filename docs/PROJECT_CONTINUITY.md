@@ -733,3 +733,12 @@ This status is intentional and must remain until the open gates above are indepe
 - **Open replay gaps:** (1) original historical creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unavailable; (2) `20260928010000_rc99_g5_provider_services_rls_hardening.sql` assumes `public.marketing_provider_services` exists, but no authoritative creation source was found. Chronological replay failure [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) remains a failure, not a pass.
 - **Next exact action:** continue source recovery from trusted historical refs/archives for both objects. If unavailable, obtain explicit approval for a test-only live-derived baseline before altering replay inputs. No invented/backdated migration, no silent replay seeding, and no production mutation.
 - **Release:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SOURCE-SWEEP-016 checkpoint
+
+- Searched the 33 archived recovered-migration files on PR #218's branch and all changed-file pages of PR #218; no authoritative historical creation DDL found for `counter_offer_indrive_bid` or `marketing_provider_services`.
+- PR #284's schema-only snapshot contains live-derived current definitions, blob `8d096904c777b4c7eae096014b45c59859c96cee`; its manifest remains `PENDING_REVIEW`, and it cannot prove historical source order.
+- Proposal-only document committed at `be9c8c298986bcd4d01df62d2609147c753f46c0`: `docs/release/MARKETING_PROVIDER_SERVICES_REPLAY_BASELINE_PROPOSAL_20261017.md`. No fixture was created and no replay rerun.
+- **Next gate:** explicit approval is required for the scoped disposable-only baseline; otherwise continue trusted source recovery. No production mutation, deployment, payment, merge, or release.
+- Release remains **BLOCKED / NOT CERTIFIED**.
