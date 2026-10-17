@@ -1600,3 +1600,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Add/complete behavioral concurrency tests; this change prevents false-success on zero-row updates but does not guarantee that concurrent requests cannot create an orphan provider intention before one wins persistence.
 - [ ] Reconcile the candidate with the atomic webhook and migration-release branches before production rollout.
 - **Safety:** no production database, provider, payment, or deployment was changed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Exact-head CI update — 2026-10-17
+
+- [x] PR #287 head `f3d34f5f701fdd0c5aca99e7ca183fb24aee778c`: 15 checks succeeded, zero failed; web deploy was skipped for the PR.
+- [x] Pages validation log confirms `MantiGO payment-intent persistence source contract: PASS (10/10 patterns + 2 order checks)`.
+- [ ] Behavioral concurrency/provider-orphan test and database-backed claim/lease remain open; source-contract CI does not close this risk.
+- Evidence: [Actions run 39002102476](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39002102476).
