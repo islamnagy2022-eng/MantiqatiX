@@ -742,3 +742,15 @@ This status is intentional and must remain until the open gates above are indepe
 - Proposal-only document committed at `be9c8c298986bcd4d01df62d2609147c753f46c0`: `docs/release/MARKETING_PROVIDER_SERVICES_REPLAY_BASELINE_PROPOSAL_20261017.md`. No fixture was created and no replay rerun.
 - **Next gate:** explicit approval is required for the scoped disposable-only baseline; otherwise continue trusted source recovery. No production mutation, deployment, payment, merge, or release.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-EXEC-017
+
+- **Branch/PR:** `fix/rc526-mantigo-intent-claim-20261017`, [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Exact HEAD:** `dca34e89a530e0f6c998c5f405ed9fb167e40e83`.
+- **Diff check:** `9892d8d20f4e9b378a4dd3bb567c8590ea18d43...dca34e89a530e0f6c998c5f405ed9fb167e40e83` changes docs only; no test inputs or application code changed.
+- **Exact-head CI:** 11 runs inspected; RC526 payment-intent claim integration + MantiGO privacy passed [39013499658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499658). Migration uniqueness, history immutability, collision guard, approval audit, finance/backend boundaries, targeted-ads/matrimony, and web validation passed. Web deploy was skipped. Detailed evidence is in `docs/TEST_EXECUTION_LEDGER.md`.
+- **Historical source sweep:** all 142 SQL migrations at/before `20260927095000` on `reconcile/rc425-458-current-main-20261011` were scanned for the counter-offer function and provider-services table creation; no matching authoritative source found. Relevant source refs/files are logged.
+- **Open blockers:** original creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; original creation DDL/version for `public.marketing_provider_services`; privacy-safe RC339 owner bootstrap; Paymob Sandbox E2E; tenant isolation; backup/restore and remaining release gates.
+- **Next:** continue searching only if new trusted artifacts can be reached. Do not use live-derived snapshots as historical truth, do not inject a test baseline without explicit approval, and do not rerun unchanged full replay. If a scoped baseline is approved and implemented, run replay once on the changed input and record its next first failure.
+- **Release gate:** **BLOCKED / NOT CERTIFIED**. No production mutation, migration application, deployment, payment, merge, or release occurred.
