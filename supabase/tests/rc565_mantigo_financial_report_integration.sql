@@ -1,4 +1,8 @@
 -- RC565 behavioral regression. Run only in disposable PostgreSQL after RC449 and RC565.
+-- The shared RC449 fixture includes legacy aliases; remove them here to reproduce the canonical ledger schema.
+alter table public.mantigo_financial_ledger drop column if exists amount;
+alter table public.mantigo_financial_ledger drop column if exists captain_amount;
+
 do $test$
 declare
   platform_admin uuid := '10000000-0000-4000-8000-000000000044';
@@ -6,15 +10,22 @@ declare
   v_report jsonb;
   v_rejected boolean;
 begin
-  -- Deliberately make legacy aliases disagree with the authoritative ledger columns.
+  -- This test must work without legacy amount/captain_amount columns.
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='mantigo_financial_ledger'
+      and column_name in ('amount','captain_amount')
+  ) then
+    raise exception 'RC565 fixture must omit legacy report columns';
+  end if;
+
   insert into public.mantigo_financial_ledger(
     id, ride_id, captain_id, gross_amount, commission_amount, captain_net_amount,
-    commission_rate, payment_status, settlement_status, settlement_reference,
-    amount, captain_amount, created_at
+    commission_rate, payment_status, settlement_status, settlement_reference, created_at
   ) values
-    ('ledger-rc565-lower','ride-rc565-lower',tenant_owner,100,10,90,0.10,'PAID','SETTLED','SETTLE-LOWER',777,666,'2026-10-10 00:00:00+00'),
-    ('ledger-rc565-upper','ride-rc565-upper',tenant_owner,50,5,45,0.10,'CASH_CONFIRMED','READY',null,333,222,'2026-10-11 00:00:00+00'),
-    ('ledger-rc565-before','ride-rc565-before',tenant_owner,25,2.5,22.5,0.10,'PENDING','HELD',null,111,99,'2026-10-09 23:59:59+00');
+    ('ledger-rc565-lower','ride-rc565-lower',tenant_owner,100,10,90,0.10,'PAID','SETTLED','SETTLE-LOWER','2026-10-10 00:00:00+00'),
+    ('ledger-rc565-upper','ride-rc565-upper',tenant_owner,50,5,45,0.10,'CASH_CONFIRMED','READY',null,'2026-10-11 00:00:00+00'),
+    ('ledger-rc565-before','ride-rc565-before',tenant_owner,25,2.5,22.5,0.10,'PENDING','HELD',null,'2026-10-09 23:59:59+00');
 
   perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
   v_report := public.get_mantigo_admin_financial_report_backend(
