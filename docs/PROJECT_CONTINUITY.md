@@ -644,3 +644,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Reuse this exact-head evidence for those targeted suites; do not rerun without code/test/dependency/environment change or an inconclusive result.
 - **Remaining non-substitutable gates:** live Paymob Sandbox, two-user/two-tenant isolation, backup/restore, full historical source/replay decision, baseline security review, and production function parity.
 - No production action occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest checkpoint: SESSION-RESUME-VERIFY-005
+
+- **RC526 change:** the Paymob intention amount/currency/ledger-reference predicate is now a pure helper imported by the Edge Function. A new 8-case Node test suite is wired into Pages validation, and the source-contract validator asserts the helper is used before finalization.
+- **Local result:** `node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs` — 8/8 PASS on Node v22.16.0; pure-unit scope only.
+- **Exact code SHA at CI observation:** `b5880a547e5097f4adbc727b5e57b695ed32b8ba`; associated workflows were queued/in progress. Verify exact-head CI before claiming this code change passed.
+- **Next exact action:** inspect final results for the new code head; then continue source-provenance recovery and the outstanding live Paymob, tenant-isolation, and backup/restore gates.
+- **Safety:** no live Paymob request, production change, migration application, deployment, payment, merge, or release. Release remains **BLOCKED / NOT CERTIFIED**.
