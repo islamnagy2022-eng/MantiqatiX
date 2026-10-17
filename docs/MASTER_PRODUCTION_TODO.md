@@ -1588,3 +1588,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: RC434's line-level purchase quantity limits/dependencies must be reviewed with RC437/RC438 in order. Missing RC425–RC432 and RC434–RC441 source files remain on main.
 - [ ] BLOCKED: authoritative historical creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing. The current schema snapshot contains the live definition but does not establish historical provenance.
 - [ ] BLOCKED: PR #282 remains Draft/unmerged until full chronological disposable replay, tenant isolation, payment/finance E2E, and backup/restore gates pass. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC428–RC430 disposable fixture correction
+
+- [x] Inspected failing exact-head candidate run [39001434526](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39001434526): the RC428–RC430 integration SQL reached RC430 but the disposable `business_subscriptions` fixture lacked `updated_at`, which the migration writes.
+- [x] Added `updated_at timestamptz not null default now()` to the disposable fixture in commit `bbc9772061dab0a35732bbddbb7e05bab92a9ad6`. This is a test-fixture correction only; no production schema changed.
+- [ ] Re-run the webhook integration against the corrected fixture and inspect for any further missing schema prerequisites. Do not mark RC428–RC430 PASS until the fresh exact-head run completes.
