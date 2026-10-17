@@ -1870,3 +1870,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added a test-only synthetic tenant seed fixture and temporary migration version 20260929073243, before the first consumer. Validator checks one synthetic insert, no auth users/production data, unique timestamp, and dependency order. The fixture is copied only in disposable CI.
 - [ ] Await exact-head replay [39071511736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071511736) at SHA 1b6fc8f297d187fe070db61de90d1770d0307090. Exact-copy/untracked verification passed; replay not yet certified.
 - Production gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-17 — REPLAY-ORDER-004: synthetic showcase owner dependency
+
+- [x] Confirmed failure 39071819477: RC339 showcase migration requires fixed owner UUID f7914ac7-4b03-4456-afdd-e386f2ac6a5b in public.users/auth.users, omitted from schema-only capture.
+- [x] Added a synthetic non-login auth/public profile fixture using invalid.example email, empty password hash, and no tokens. Injected only into disposable CI as version 20261004005817, before org seed 05818 and RC339 consumer 05819.
+- [x] Fixture contract, timestamp order, exact-copy, and untracked checks passed in run 39072088344. Migration immutability guard passed in 39071889905.
+- [ ] Await exact-head full replay [39072088344](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072088344) at SHA 31a005c3fbffe4744f9fe5c30fdc8140a472aefd.
+- Production gate remains BLOCKED / NOT CERTIFIED; original source for applied version 20260928154527 is still missing.
