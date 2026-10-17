@@ -317,3 +317,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No manual tests were rerun. No replay rerun, fixture injection, production mutation, migration application, deployment, payment, merge, or release occurred.
 - **Next action:** continue trusted source recovery; if no source is available, request explicit review/approval for a narrowly scoped, clearly labelled test-only baseline/bootstrap, then run the changed disposable replay once and record the next first failure.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — REPLAY-ORDER-001 — fix the actual first-consumer ordering defect
+
+- Reviewed failed replay [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) job log. The exact first failure was SQLSTATE 42P01 in 20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql when it granted SELECT on missing public.marketing_provider_services.
+- Root cause: the existing disposable-only marketing_commission_schema.sql fixture was injected as temporary migration 20260927140494, which is later than the first consumer 20260927132904. The table fixture itself already existed and had the live-derived schema/constraints/policies; the problem was its temporary timestamp.
+- Updated .github/workflows/migration-chain-replay.yml to use temporary version 20260927132903; updated scripts/validate-historical-schema-baseline.mjs to assert prerequisite and first-consumer ordering; corrected fixture header. No historical migration SQL was changed.
+- Exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) on 8b4dfda8ea8d1632786caad49b13b745b137a0e6 was pending/in progress when logged; awaiting its final outcome. Intermediate runs were cancelled after subsequent commits and are not passes.
+- Test policy: prior failure was inspected, not rerun. The fixed replay is a new test execution because the workflow/validator ordering inputs changed. No other manual tests were intentionally rerun.
+- Next: read exact-head run result/log; if it fails, capture the next first error and fix only that root cause. If it passes, record the new scope and keep historical provenance/production gate blockers open.
