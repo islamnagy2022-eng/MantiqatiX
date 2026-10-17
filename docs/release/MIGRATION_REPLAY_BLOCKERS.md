@@ -1060,3 +1060,10 @@ The source search was extended beyond the current migration directory:
 
 - Added a lightweight workflow `.github/workflows/ledger-source-integrity.yml` to validate all 32 ledger-recovered SQL statement byte lengths and SHA-256 values without invoking the full Supabase replay.
 - The new workflow's first exact-head run is pending. The full replay remains blocked by the missing `marketing_provider_services` creation source/baseline decision.
+
+
+## Source-integrity validator result — 2026-10-17
+
+- [x] [Ledger-Recovered Source Integrity run 39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639) passed on exact SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`.
+- [x] All 32 manifest-listed SQL statements passed byte-length and SHA-256 comparison against their files; version uniqueness and secret-pattern checks passed.
+- [ ] Full replay remains blocked at `marketing_provider_services`; do not equate source-integrity PASS with migration replay PASS or release certification.

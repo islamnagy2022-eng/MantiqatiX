@@ -360,3 +360,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added `.github/workflows/ledger-source-integrity.yml`, a lightweight CI gate that runs only `scripts/validate-ledger-recovered-migrations.mjs` on changes to migration sources, the 32-entry manifest, or the validator.
 - This gate is separate from the full replay, so the source hash/byte validator can be verified without rerunning a full migration chain that is currently blocked at the missing `marketing_provider_services` table.
 - The first run on the exact workflow commit is pending; do not mark the 32-entry manifest validated until that run passes.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-013 — source-integrity validator PASS
+
+- New lightweight workflow [run 39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639), exact SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`, completed **SUCCESS**.
+- Step `Validate recovered SQL statement bytes and hashes` passed against the expanded 32-entry ledger-recovered migration manifest. This verifies file byte lengths, SHA-256 hashes, unique versions, and the validator's embedded-secret guard for the 32 manifest entries.
+- This does not resolve the full replay blocker. Full replay [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) remains **FAIL** at the missing `public.marketing_provider_services` relation.
+- No replay was rerun; the integrity workflow is separate and lightweight.

@@ -1786,3 +1786,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added isolated CI workflow `.github/workflows/ledger-source-integrity.yml` for the 32-entry recovered-source manifest.
 - [ ] Confirm the first exact-head integrity workflow result before claiming the manifest validator passes.
 - [ ] Full replay still requires approved handling of `marketing_provider_services` and the privacy-sensitive owner bootstrap source.
+
+
+## 2026-10-17 — Source-integrity verification
+
+- [x] The isolated 32-entry recovered-source integrity workflow passed on exact SHA `badb5c37ec239c7f4f2d4b7d2b127f4281820e8`? See canonical run [39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639) on SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`.
+- [x] Validator checked all 32 entries' byte lengths and SHA-256 hashes.
+- [ ] Full replay blocker remains unresolved; approval/source recovery for `marketing_provider_services` is required before changing replay inputs.
