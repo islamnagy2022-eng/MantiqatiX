@@ -56,6 +56,9 @@ for (const [label, source, rpc] of [
   ["RC435", rc435, "claim_subscription_provider_intent_creation_backend"]
 ]) assert.ok(source.includes(rpc), label + " migration must define " + rpc);
 assert.ok(rc439.includes("client_secret_ciphertext"), "RC439 encrypted checkout storage must be present");
+assert.ok(subscriptionIntent.includes("encryptCheckoutSecretPayload"), "subscription checkout secrets must be encrypted before persistence");
+assert.ok(subscriptionIntent.includes("PAYMOB_CHECKOUT_ENCRYPTION_KEY_"), "subscription checkout encryption key must come from server-side secrets");
+assert.ok(subscriptionIntent.includes("client_secret_ciphertext"), "subscription checkout secret persistence must use ciphertext fields");
 assert.match(rc425, /alter table public\.mantigo_payment_provider_events enable row level security;/);
 assert.match(rc425, /alter table public\.mantigo_payment_provider_events force row level security;/);
 assert.match(rc425, /set search_path = ''/);
