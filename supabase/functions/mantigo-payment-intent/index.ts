@@ -89,6 +89,19 @@ Deno.serve(async req=>{
   const clientSecret=String(provider.client_secret??"");
   const providerIntentId=String(provider.id??"");
   const providerOrderId=String(provider.intention_order_id??"");
+  // Release only for explicit rejection statuses with no provider identifiers or secret.
+  // Timeouts, 408/409/425/429, 5xx, and malformed success responses remain quarantined.
+  if(!providerResponse.ok&&[400,401,403,404,422].includes(providerResponse.status)&&!clientSecret&&!providerIntentId&&!providerOrderId){
+    const {data:released,error:releaseError}=await admin.rpc("release_mantigo_payment_intent_claim_backend",{
+      p_ledger_id:ledger.id,p_claim_token:claimToken,p_http_status:providerResponse.status
+    });
+    if(releaseError||released!==true){
+      console.error(JSON.stringify({requestId,stage:"release_definitive_provider_rejection",httpStatus:providerResponse.status,error:releaseError?.message??"claim was not released"}));
+      return json({error:"PAYMENT_PROVIDER_REJECTION_REQUIRES_RECONCILIATION",recoveryRequired:true},503,requestId);
+    }
+    return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT",retryAfterCorrection:true},502,requestId);
+  }
+
   if(!providerResponse.ok||!clientSecret||!providerIntentId||!providerOrderId){
     // Keep the claim: a timeout or malformed provider response may hide a created intention.
     // Reconciliation must resolve this claim before another external intention is attempted.
