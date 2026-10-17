@@ -1800,3 +1800,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Drafted exact candidate SQL and isolation controls for both known replay prerequisites in `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md`.
 - [ ] Await explicit approval for disposable-only baseline fixtures. No SQL fixture has been added/injected.
 - [ ] After approval, implement both fixtures + fail-closed validation in one change and run full replay once.
+
+
+## 2026-10-17 — Replay ordering fix REPLAY-ORDER-001
+
+- [x] Root cause confirmed from failed run 39011424756: marketing_provider_services fixture existed, but its temporary timestamp 20260927140494 came after first consumer migration 20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql.
+- [x] Changed disposable workflow's temporary fixture version to 20260927132903, and added validator checks that it follows the provider-profile prerequisite (20260927074156) and precedes the first consumer (20260927132904).
+- [x] Corrected fixture header; no historical migration file was modified and no production operation occurred.
+- [ ] Await exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) at SHA 8b4dfda8ea8d1632786caad49b13b745b137a0e6. Do not call it fixed until the run passes this step and the complete replay finishes.
+- [ ] If replay proceeds, triage the next first failure only; continue keeping original historical-source provenance and all production release gates separate and blocked until independently proven.
