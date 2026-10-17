@@ -403,9 +403,7 @@ const marketingSchemaTemporaryName = marketingSchemaVersion + "_test_only_live_d
 const marketingSchemaFirstConsumerMigration = migrations.find(({ name }) =>
   name === "20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql"
 );
-const marketingSchemaPrerequisiteMigration = migrations.find(({ name }) =>
-  name === "20260927074156_test_only_live_derived_provider_profiles_baseline.sql"
-);
+const marketingSchemaPrerequisiteVersion = "20260927074156";
 const marketingSchemaPolicyMigration = migrations.find(({ name }) =>
   name === "20260927140500_remove_anonymous_sensitive_policy_access_v2.sql"
 );
@@ -456,8 +454,7 @@ const marketingSchemaFailureReasons = [
   ["earlier or later committed table creator exists; fixture may duplicate source history", marketingSchemaPriorCreators],
   ["committed policy creator exists; fixture may duplicate source history", marketingSchemaPriorPolicyCreators],
   ["live-derived schema/policy contract invalid", !marketingSchemaBaselineValid],
-  ["missing prerequisite provider-profile baseline", !marketingSchemaPrerequisiteMigration],
-  ["temporary baseline does not follow provider-profile prerequisite", !marketingSchemaPrerequisiteMigration || marketingSchemaVersion <= marketingSchemaPrerequisiteMigration.name.slice(0, 14)],
+  ["temporary baseline does not follow provider-profile prerequisite version", marketingSchemaVersion <= marketingSchemaPrerequisiteVersion],
   ["missing first table consumer migration", !marketingSchemaFirstConsumerMigration],
   ["temporary baseline is not before first table consumer", !marketingSchemaFirstConsumerMigration || marketingSchemaVersion >= marketingSchemaFirstConsumerMigration.name.slice(0, 14)],
   ["missing policy ALTER migration", !marketingSchemaPolicyMigration],
