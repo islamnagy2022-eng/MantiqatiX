@@ -1598,7 +1598,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Provider call is bounded to 15 seconds. Timeout/network ambiguity, incomplete provider response, and failed finalization retain the claim and require reconciliation instead of blind retry.
 - [x] Added disposable PostgreSQL tests for role grants, wrong-token rejection, finalization, metadata preservation, and a two-session dblink claim race. Added source contract + Deno type-check + PostgreSQL workflow gates to existing PR-triggered workflows.
 - [x] Exact-head CI verified on commit `2baa75a5dee7fe84cbef18d7a862ab9fcfc2f625`: source contract passed, disposable PostgreSQL claim/finalize/release and two-session race passed, Deno type-check passed, MantiGO privacy integration passed, and migration uniqueness/history/collision gates passed. Pages deployment was skipped; production gate remained BLOCKED.
-- [ ] Operator reconciliation for abandoned/ambiguous claims is still required; never auto-clear them.
+- [x] Added an audited `reconcile_mantigo_payment_intent_backend` RPC for platform-admin resolution of ambiguous claims. It requires active platform SUPER_ADMIN authorization, evidence reference, and matching amount/currency before linking a found intent; confirmed absence clears the claim with an audit record.
 - **Production impact:** none. No production DDL/data change, live Paymob request, payment, deployment, or merge.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
 
@@ -1608,7 +1608,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 ### RC526 fixture fidelity follow-up — 2026-10-17
 
 - [x] A second schema audit compared the disposable test table against `20261006152000_mantigo_financial_ledger_v1.sql` and found the fixture had omitted production-required `captain_id`, `idempotency_key`, and some ledger checks/defaults. Updated the fixture and all three test records to satisfy those constraints; added a source-contract assertion for the fixture's key constraints.
-- [ ] The prior exact-head RC526 integration passed before this fixture-parity correction. Re-run and inspect the new exact-head workflow before treating the stronger fixture as verified.
+- [x] Exact-head PostgreSQL integration later passed on commit `a37cfbfda6877a828a96118bfdb05dc3210af542` after fixture parity correction, including provider fields and provider-intent uniqueness index.
 
 
 ### RC526 privacy hardening and duplicate-candidate cleanup — 2026-10-17
@@ -1616,4 +1616,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Because the ledger RLS policy permits both customer and captain reads, moved raw claim tokens and Paymob checkout client secrets to separate RLS-protected tables with explicit service-role-only grants; ledger metadata now contains only a timestamp claim marker and non-secret provider correlation.
 - [x] Claim/finalize/release RPCs now store and compare claim tokens only in the protected claim table. Integration coverage asserts client roles cannot SELECT either internal table, raw tokens do not enter ledger metadata, secrets are stored separately, and NULL HTTP status cannot release a claim.
 - [x] Closed superseded Draft PR #245 after migrating its intended work to canonical PR #289. A collision-check run started before #245 was closed and failed on that duplicate; re-run the collision guard on the latest head after closure.
-- [ ] Exact-head PostgreSQL + Deno validation for this latest security hardening remains pending. Do not merge or deploy while pending.
+- [x] Exact-head PostgreSQL + Deno validation passed on commit `a37cfbfda6877a828a96118bfdb05dc3210af542`; the collision guard also passed after duplicate PR #245 was closed. The later operator-reconciliation RPC and audit-payload additions require fresh exact-head CI.
+
+
+### RC526 operator recovery RPC and audit follow-up — 2026-10-17
+
+- [x] Added authenticated `reconcile_mantigo_payment_intent_backend`, guarded by `auth.uid() = p_admin_user_id` and `mnty_can_platform_admin()`; it only permits platform SUPER_ADMIN with PLATFORM scope and full control.
+- [x] The recovery RPC supports evidence-backed `PROVIDER_INTENT_ABSENT` and `PROVIDER_INTENT_CONFIRMED` resolutions. Confirmed-intent recovery requires exact amount/currency match and provider identifiers/client secret; confirmed absence accepts no provider fields. Both paths atomically clear the private claim and write an audit record; the confirmed-intent path stores the secret in the private table.
+- [x] Integration tests cover non-admin denial, absence recovery, confirmed-intent recovery, amount mismatch, audit trail, and no leaked secret/token metadata.
+- [ ] Fresh exact-head CI is pending after adding the operator RPC and adding verified amount/currency to its audit payload. Keep PR #289 Draft until all checks pass.
+- **Release gate remains BLOCKED / NOT CERTIFIED**: live Paymob E2E and the RC425–RC441/RC424 migration provenance and baseline review remain unresolved. No production changes.
