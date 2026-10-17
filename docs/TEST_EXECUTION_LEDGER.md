@@ -280,3 +280,32 @@ No production mutations, migrations, deployments, payments, merges, or releases 
 - The applied bootstrap statement includes an owner email in its Auth-user lookup/error text. Do not commit the unredacted statement into the public repository without privacy review.
 - Proposal/triage: `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md` on recovery branch, commit `6b57a9dac5682f402eee96350903d38285d4509d`. Choices are privacy-reviewed exact-source recovery or explicitly approved minimal test-only seed for disposable replay. Neither path has been implemented/approved yet.
 - No rerun until the source/fixture changes under the chosen path. No production mutation.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-008 — RC526 behavioral coverage and replay ACL contract
+
+### PR #289 exact-code CI
+
+- PR #289 code head inspected: `9f140f53075a06481ba6d3c171510cdf9f98ecf6`. The later current head `602e27cb28204ddb39a9f2a174e9bc772dba7642` differs from that code head only in documentation files, so these code results remain applicable.
+- [MantiGO Open Ride Privacy Boundary run 39010940692](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940692) — PASS. The RC526 job passed source/migration contract validation and the disposable PostgreSQL claim/finalization behavioral tests; the companion job passed Deno type-check of `mantigo-payment-intent` and RC446 privacy integration.
+- [Pages validation run 39010940726](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940726) — validation PASS; deploy job SKIPPED. This exact code includes `node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs`.
+- [Module Professionalization run 39010940698](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940698) — PASS.
+- Migration version uniqueness [39010940709](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940709), migration immutability [39010940722](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940722), open-PR collision guard [39010940724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940724), approval audit [39010940727](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940727), backend-only boundary [39010940718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940718), and MantiGO privacy [39010940692](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940692) — all PASS.
+- Local pure-unit command `node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs` — 8/8 PASS on Node v22.16.0. This checks amount, currency, ledger-reference, and malformed-response handling; it does not call Paymob or Supabase.
+
+### Test-only baseline replay with post-replay privilege assertion
+
+- Dedicated test branch: `test/production-baseline-forward-replay-20261017`, exact SHA `b32e0741a7ed5d07ade4f4847070702855f90124`.
+- [Reviewed Production Baseline Forward Replay run 39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548) — PASS, all steps completed. The post-replay SQL contract `supabase/tests/baselines/counter_offer_rpc_privilege_contract.sql` ran after the forward migrations and verified the function exists, remains SECURITY DEFINER with expected owner/search_path, is not executable by `anon` or `authenticated`, and that neither client role has CREATE on `public`.
+- Exact-run artifact: `production-baseline-forward-replay-39010917548`, artifact ID `12091784983`, 2477 bytes, not expired when inspected. The artifact bytes were not independently read.
+- Earlier run [39010912494](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010912494) passed forward replay before the post-replay SQL contract was wired. The subsequent run was justified because the replay script/test inputs changed. Do not repeat the latter run unchanged.
+- **Scope:** this is a reviewed live-schema snapshot followed by forward migrations in an isolated disposable Supabase stack. It does not prove an empty-schema chronological replay or recover original historical creation DDL. The test-only branch approval does not change PR #284's `PENDING_REVIEW` status and is not production approval.
+
+### RC339 organization bootstrap source search
+
+- Rechecked expected source path `supabase/migrations/20260927131555_bootstrap_mnty_owner_islam_nagy_v2.sql` on `main`, the active recovery branch, payment branch, and four recovery/test refs: file not found on all checked refs.
+- GitHub branch search for `bootstrap` returned no branches; PR search for `bootstrap_mnty_owner_islam_nagy_v2` and commit search for that name or version `20260927131555` returned no source-bearing results.
+- Full chronological replay [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) remains **FAIL** at RC339 because `organizations.id='MNTY-MAIN'` is absent in the empty replay database. The applied production ledger statement contains owner email; no public copy was created.
+- **Next blocker:** obtain explicit privacy/replay-path approval for reviewed exact-source handling or a minimal test-only organization seed. No such fixture was added. Do not rerun full chronological replay until the replay input changes under an approved path.
+
+No production changes, migration applications, deployments, payments, merges, or releases occurred. Release remains **BLOCKED / NOT CERTIFIED**.

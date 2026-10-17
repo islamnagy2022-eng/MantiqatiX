@@ -1747,3 +1747,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Verified read-only production organization row and applied ledger entry `20260927131555`; no original migration source path exists in Git history.
 - [x] Created privacy-aware repair decision document on the recovery branch; no PII-bearing original statement was copied into public source.
 - [ ] Await review/approval for exact-source privacy handling or a test-only baseline before changing replay inputs.
+
+
+## 2026-10-17 — RC526 tests and replay boundary checkpoint
+
+- [x] RC526 exact-head CI passed: claim/finalization disposable PostgreSQL behavioral tests, Deno type-check, RC446 privacy integration, Pages validation, and new 8-case Paymob response-correlation unit tests. See run [39010940692](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940692) and Pages validation [39010940726](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010940726); web deploy was skipped.
+- [x] Test-only baseline forward replay with post-replay `counter_offer_indrive_bid` privilege assertion passed run [39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548). This validates the current live-derived snapshot plus forward migrations only.
+- [ ] **BLOCKED — RC339:** full chronological replay [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) fails because `MNTY-MAIN` is missing in the empty replay database. The applied bootstrap migration source remains absent; additional branch/PR/commit searches found no copy.
+- [ ] Obtain explicit privacy/replay-path approval for exact-source handling or a minimal test-only organization seed before changing replay inputs. Do not publish owner email or rerun full replay unchanged.
+- [ ] Still required: live Paymob Sandbox E2E, two-user/two-tenant authorization E2E, backup/restore rehearsal, production Edge Function parity, and final baseline security review.
+- Release remains **BLOCKED / NOT CERTIFIED**.

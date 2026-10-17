@@ -671,3 +671,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Recovery branch commit `6b57a9dac5682f402eee96350903d38285d4509d` documents privacy-safe options. No fixture/source recovery applied yet.
 - Next: resolve approval/privacy path, then rerun full replay only after replay input changes. The forward-only snapshot test passed 32 migrations but does not close this blocker.
 - Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-EXEC-008
+
+- **PR #289:** Draft/open/unmerged. Code head `9f140f53075a06481ba6d3c171510cdf9f98ecf6` passed RC526 disposable PostgreSQL behavioral tests, Deno type-check, RC446 privacy integration, Pages validation with the new 8-case Node unit suite, module validation, migration guards, approval audit, and backend-only boundary. Current PR head `602e27cb28204ddb39a9f2a174e9bc772dba7642` differs by documentation only.
+- **Test-only forward replay:** [run 39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548) passed on `test/production-baseline-forward-replay-20261017` at `b32e0741a7ed5d07ade4f4847070702855f90124`, including a post-replay ACL contract for `counter_offer_indrive_bid`. Artifact ID `12091784983`; contents not independently read.
+- **Full chronological replay remains blocked:** [run 39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed at RC339 because the empty replay DB lacks `organizations.id='MNTY-MAIN'`. The applied bootstrap ledger entry exists but its source migration is absent from searched refs/PRs/commits. The exact source includes owner email, so privacy review is required before public source handling.
+- **Next action:** resolve the explicit privacy/replay-path decision; do not create the organization seed fixture or rerun unchanged replay without approval/input change.
+- No production mutation, migration application, deployment, payment, merge, or release occurred. Production remains **BLOCKED / NOT CERTIFIED**.

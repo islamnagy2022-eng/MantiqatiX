@@ -100,3 +100,12 @@ Path B has now been exercised **only on the dedicated test branch** `test/produc
 This is evidence that migrations newer than the captured live-schema checkpoint can replay in the guarded disposable environment on that exact commit, including the RC526 migration included by the commit. It is **not** evidence of a clean empty-database chronological replay, and it does not recover the original historical migration identity for `counter_offer_indrive_bid`. It does not authorize production application, merging PR #284, or release.
 
 The historical-provenance blocker therefore remains open. Continue Path A searches for authentic source/backup provenance. Do not invent or backdate DDL, do not alter the historical revoke migration, and do not promote the test-only snapshot into `supabase/migrations/`.
+
+
+## Addendum — post-replay RPC privilege contract result (2026-10-17)
+
+The test-only baseline branch now runs `supabase/tests/baselines/counter_offer_rpc_privilege_contract.sql` after forward replay. Exact run [39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548) passed on commit `b32e0741a7ed5d07ade4f4847070702855f90124`; the replay job and evidence upload completed successfully. Artifact ID `12091784983` (2477 bytes; contents not independently read).
+
+The assertion checks the post-replay function exists, retains its expected `postgres` owner, SECURITY DEFINER flag and `search_path=public`, denies EXECUTE to `anon` and `authenticated`, and denies CREATE on `public` to both client roles. This is a useful ACL regression for the **live-derived snapshot plus forward migrations** path. It does not recover historical creation DDL and does not close clean chronological replay.
+
+The test-only approval remains confined to `test/production-baseline-forward-replay-20261017`; PR #284 remains `PENDING_REVIEW`. Production remains **BLOCKED / NOT CERTIFIED**.

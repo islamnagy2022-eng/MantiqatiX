@@ -220,3 +220,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The authoritative applied statement contains an owner email; no public source copy was created. Recovery decision is documented in `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md` on recovery branch commit `6b57a9d...`.
 - **Next action:** obtain explicit approval for privacy-reviewed exact-source handling or a minimal test-only organization baseline, then rerun full replay once after that input changes. Do not treat the baseline-assisted forward replay PASS as a full historical replay PASS.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-008
+
+- Verified PR #289 code head `9f140f53075a06481ba6d3c171510cdf9f98ecf6`; later head `602e27cb28204ddb39a9f2a174e9bc772dba7642` changed docs only. Exact-head RC526 claim/finalization PostgreSQL tests, Deno type-check, RC446 privacy integration, Pages validation, Node unit tests, module validation, migration guards, approval audit, and backend-only boundary passed. Exact run links are in the test ledger; Pages deploy was skipped.
+- Added a pure Paymob correlation helper and 8 Node unit tests; local result 8/8 PASS and Pages validation on the same code passed.
+- Added a test-only post-replay SQL privilege contract for `counter_offer_indrive_bid`. Run [39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548) passed the reviewed-baseline forward replay plus this assertion in isolated local Supabase. Artifact ID `12091784983`; not independently downloaded/read.
+- Additional branch/PR/commit search did not recover source for the RC339 bootstrap migration. Full chronological replay [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed at the missing `MNTY-MAIN` organization seed after alias normalization passed. Do not add a test-only organization seed without explicit approval; the original statement contains an owner email.
+- No tests were intentionally rerun on identical code/environment; the second forward replay run was justified by the new post-replay assertion being wired into the script.
+- No production changes, deployments, payments, merges, or releases occurred. Release remains **BLOCKED / NOT CERTIFIED**.
