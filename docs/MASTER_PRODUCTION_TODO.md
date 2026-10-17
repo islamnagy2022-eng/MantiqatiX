@@ -1626,3 +1626,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Pending: RC462 malformed-permission PostgreSQL regression in PR #248.
 - [ ] BLOCKED: complete chronological replay needs authoritative historical DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`; no placeholder or bypass permitted.
 - [ ] BLOCKED: live production platform-scope correction and RC565 rollout are not deployed. Live ledger remains RC424; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Consolidated MantiGO authorization/report candidate — 2026-10-17
+
+- [x] Copied canonical RC462 migration and regression into PR #282 byte-for-byte; its migration blob SHA matches PR #248 exactly, avoiding divergent same-version sources.
+- [x] Wired disposable sequence in the MantiGO platform-admin workflow: RC449 → RC462 → RC449 authorization test → RC565 → RC565 financial-report test.
+- [x] Separate evidence exists for RC449 + RC565 SQL regression on SHA `44fd01d6d5dafbd2b130e023a806328ebe2766ed` and RC449 + RC462 malformed-permission regression on SHA `8ca3130985f15401138cfd063c26e1cc38a7851f`.
+- [ ] Pending: consolidated RC449/RC462/RC565 exact-head PostgreSQL run and remaining exact-head CI after latest candidate update.
+- [ ] BLOCKED: complete chronological replay still needs authoritative creation DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- Production remains untouched; do not merge either PR or apply migrations to production until replay, release gates, and explicit approval are complete.
