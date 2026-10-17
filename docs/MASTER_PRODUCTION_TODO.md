@@ -1815,3 +1815,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **WAITING FOR EXPLICIT APPROVAL:** the exact test-only `marketing_provider_services` baseline and disposable replay branch. Until approval, do not alter replay inputs or rerun the unchanged replay.
 - [ ] Continue trusted historical-source recovery for the counter-offer function; live-derived snapshots remain test-only.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-017
+
+- [x] Verified exact current PR #289 HEAD `dca34e89a530e0f6c998c5f405ed9fb167e40e83`; PR remains Draft/open/unmerged.
+- [x] Inspected 11 exact-head CI runs. RC526 claim/finalization PostgreSQL integration and MantiGO privacy passed; migration uniqueness/immutability/collision guard, approval audit, backend-only/finance, targeted-ads/matrimony, and web validation passed. Pages deployment was skipped. Evidence IDs are in `docs/TEST_EXECUTION_LEDGER.md`.
+- [x] Scanned 142 migration SQL files timestamped at or before the revoke migration on the accessible reconciliation branch; no historical `counter_offer_indrive_bid` creation source or `marketing_provider_services` table-creation source found.
+- [ ] **BLOCKED — counter-offer RPC:** original creation DDL/version remains unknown after the expanded scan.
+- [ ] **BLOCKED — marketing provider services:** original table-creation DDL/version remains unknown. PR #218's test-only baseline is not historical source and must not be copied into this branch without explicit approval.
+- [ ] Next: continue only if a new trusted source/archive appears; otherwise obtain explicit review/approval for a labelled test-only baseline before modifying replay inputs. Then run replay once after the input changes.
+- No production mutation, migration application, deployment, payment, merge, or release. Production remains **BLOCKED / NOT CERTIFIED**.
