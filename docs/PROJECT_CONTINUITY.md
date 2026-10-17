@@ -776,3 +776,8 @@ This status is intentional and must remain until the open gates above are indepe
 - Fix commits: bb61883da232a220fe5a526572b55be05ba3205a, 46e958ca001232b2d82cfc5c9eb257772b637ee4, 8b4dfda8ea8d1632786caad49b13b745b137a0e6.
 - Exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) was pending/in progress at last check. Next action: inspect final run status and first error if any. Do not repeat the run on the same SHA unless inconclusive/flaky or a justified regression suspicion.
 - Release gate remains BLOCKED / NOT CERTIFIED; historical DDL provenance, complete replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function parity, and Auth gates remain separate.
+
+
+### Replay validator correction checkpoint — 2026-10-17
+
+The initial ordering fix exposed a validator-ordering concern during review: temporary migrations do not exist yet when scripts/validate-historical-schema-baseline.mjs reads the committed migration directory. Replaced the attempted temporary-migration lookup with a pinned prerequisite version comparison (20260927074156), retaining the first-consumer version check (20260927132904). Correction commit d1eff709f01927f30a676f9bd96d20ae122f7837. Await exact-head CI; the prior pending run is not proof for this correction.
