@@ -2,7 +2,7 @@
 -- Source: read-only information_schema/pg_catalog snapshots from Supabase project moyhiluyhjsujhwlyeuu.
 -- Snapshot date: 2026-10-13.
 -- This is NOT recovered historical creation DDL and MUST NOT be applied to production.
--- Injected only into a fresh disposable replay before 20260927140500.
+-- Injected only into a fresh disposable replay before 20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql. The temporary version is intentionally earlier than the first migration that grants access to this table.
 -- The later RC99 migration owns replacement of the three restrictive guards on
 -- marketing_services and marketing_provider_services with the admin/owner policies.
 -- No operational rows are inserted, copied, updated, or deleted.
