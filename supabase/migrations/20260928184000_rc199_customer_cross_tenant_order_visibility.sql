@@ -23,8 +23,7 @@ BEGIN
        OR v_existing.roles <> ARRAY['authenticated'::name]
        OR v_existing.permissive <> 'PERMISSIVE'
        OR v_existing.qual IS NULL
-       OR position('customer_id' IN v_existing.qual) = 0
-       OR position('auth.uid()' IN v_existing.qual) = 0
+       OR position('customer_id = auth.uid()' IN v_existing.qual) = 0
        OR position('is_anonymous' IN v_existing.qual) = 0 THEN
       RAISE EXCEPTION 'orders_customer_select_own_policy_contract_mismatch';
     END IF;
@@ -61,9 +60,9 @@ BEGIN
        OR v_existing.roles <> ARRAY['authenticated'::name]
        OR v_existing.permissive <> 'PERMISSIVE'
        OR v_existing.qual IS NULL
-       OR position('order_id' IN v_existing.qual) = 0
-       OR position('customer_id' IN v_existing.qual) = 0
-       OR position('auth.uid()' IN v_existing.qual) = 0
+       OR position('order_status_history.order_id' IN v_existing.qual) = 0
+       OR position('o.id' IN v_existing.qual) = 0
+       OR position('o.customer_id = auth.uid()' IN v_existing.qual) = 0
        OR position('is_anonymous' IN v_existing.qual) = 0 THEN
       RAISE EXCEPTION 'order_status_history_customer_select_own_policy_contract_mismatch';
     END IF;
