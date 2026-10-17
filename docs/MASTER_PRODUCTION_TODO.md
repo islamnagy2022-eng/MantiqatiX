@@ -1559,3 +1559,106 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+## 2026-10-17 remediation update — RC565 (source-only, not release-certified)
+
+- [x] Confirmed from live catalog that `mantigo_financial_ledger` uses `gross_amount` and `captain_net_amount`, while the deployed financial-report RPC references `amount` and `captain_amount`.
+- [x] Authored forward-only RC565 migration on `fix/mantigo-financial-report-columns-20261017`; it fixes those columns and requires platform-scoped authorization through `mnty_can_platform_admin()`.
+- [x] Added source-contract validator and wired it into the Pages workflow.
+- [x] Appended evidence and exact commits to `docs/SESSION_LOG.md`.
+- [ ] Run source-contract validator on CI and review all resulting checks.
+- [ ] Run RC565 against isolated PostgreSQL and test positive/negative platform-admin access, empty results, date boundaries, and invalid windows.
+- [ ] Complete chronological replay of all required migrations; production ledger still observed at RC424 during this session.
+- [ ] Resolve missing historical migration chain and RC434 collisions before any merge/deploy.
+- [ ] Production apply, release approval, payment E2E, tenant-isolation E2E, and backup-restore rehearsal remain NOT VERIFIED / BLOCKED.
+
+- [x] Local Node.js source-contract check for RC565 passed in scratch environment.
+- [x] Opened draft PR [#282](https://github.com/islamnagy2022-eng/MantiqatiX/pull/282); do not merge while draft and migration/replay blockers remain.
+- [ ] GitHub CI checks are not yet evidenced for the current branch head; no check runs/statuses were returned at last query.
+
+
+## 2026-10-17 — RC565 exact-head CI and live-schema evidence (append-only correction)
+
+- [x] Exact-head checks passed on PR #282 head `1d3dec9b6fc3c3cfd15e785c34d6992af234d7ff`: migration version uniqueness (run 38972815308), migration history immutability (38972815385), cross-PR migration collision guard (38972815388), MantiGO privacy integration (38972815408), approval-action audit atomicity (38972815488), module professionalization (38972815484), and Pages validation (38972815505).
+- [x] Pages workflow `validate` succeeded and `deploy` was skipped on this pull request. Do not call this a production deployment.
+- [x] Pages validation's command block invokes `node scripts/validate-mantigo-financial-report.mjs`; this is source-contract validation, not SQL execution.
+- [x] Read-only live schema check confirmed all RC565-referenced ledger columns exist; the live function still references missing `amount` and `captain_amount`.
+- [ ] BLOCKED: isolated chronological replay remains unrun. No `supabase/config.toml` was found at the tested branch path, and authoritative DDL for legacy `public.smm_provider_credentials` remains a documented replay blocker.
+- [ ] BLOCKED: execute RC565 on disposable PostgreSQL and run authorization, return-contract, empty-range, date-boundary, invalid-window, and tenant/platform-scope regression tests.
+- [ ] BLOCKED: PR #282 remains draft/unmerged and GitHub reports mergeability false; reconcile the branch against current main and canonical migration recovery work before review/merge.
+- [ ] Production migration/function rollout, financial transactions, payment E2E, tenant-isolation E2E, and backup/restore rehearsal remain NOT VERIFIED. Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Replay dependency correction — 2026-10-17
+
+- [x] Refined replay inventory: owner-approved test-only schema baselines for `smm_providers` and `smm_provider_credentials` exist on the separate draft reconciliation branch; these resolve those two schema bootstrap dependencies for disposable CI only, not historical provenance or production rollout.
+- [ ] BLOCKED: complete replay still lacks authoritative historical creation DDL for legacy `public.counter_offer_indrive_bid(uuid,uuid,numeric)`, referenced by `20260927095000_revoke_unused_security_definer_execute.sql`. Do not add placeholder function definitions or skip/modify the revoke migration. Recover source history or obtain explicit approval for a separate test-only function baseline.
+- [ ] BLOCKED: PR #282 is source recovery + RC565 source fix, not full replay. Keep the production gate **BLOCKED / NOT CERTIFIED** until isolated chronological replay, authorization regressions, payment/finance E2E, and recovery evidence pass.
+
+
+## MantiGO platform-wide authorization finding — 2026-10-17
+
+- [x] Read-only audit confirms dashboard and settlement RPCs currently authorize broad active tenant membership roles despite reading/mutating globally scoped MantiGO data; `mnty_can_platform_admin()` delegates to a generic null-scope admin check.
+- [x] ACL snapshot confirms dashboard, financial report, platform-admin helper, and settlement are SECURITY DEFINER and executable by `authenticated`, not `anon`.
+- [ ] BLOCKED: validate and replay RC441 platform-scope corrections followed by RC565 financial-report column correction on disposable PostgreSQL; add positive platform SUPER_ADMIN and negative tenant OWNER/ADMIN/FINANCE regression tests for dashboard/report/settlement.
+- [ ] Review the RC462 malformed-`full_control` guard candidate and its migration ordering before claiming platform-admin helper robustness complete.
+- [ ] Do not apply RC565 independently of the platform-scope migration sequence. No production changes have been made; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC565 behavioral test and RC462 workflow follow-up
+
+- [x] Added disposable PostgreSQL regression for RC565 with intentionally conflicting legacy aliases, date-boundary assertions, payment/settlement aggregates, empty-range and invalid-range cases, tenant OWNER denial, and actor identity mismatch.
+- [x] Wired the RC565 migration/test and both static validators into the MantiGO platform-admin workflow; added pull-request and main-push path filters.
+- [x] Corrected the canonical RC462 workflow on PR #248 to reference the actual RC449 migration and fixture. Added RC462 PostgreSQL regression as a job in the existing core module-professionalization workflow; exact-head run remains queued/not verified.
+- [ ] BLOCKED: RC565 PostgreSQL integration on the latest exact head must finish successfully before calling the financial-report fix behaviorally verified.
+- [ ] BLOCKED: complete chronological replay still needs authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; do not stub or bypass.
+- [ ] BLOCKED: integrate RC462 with RC565 in a reviewed, collision-free release candidate and run tenant-vs-platform authorization regression after ordered replay.
+- Production remains untouched; release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC565 PostgreSQL regression result — 2026-10-17
+
+- [x] PASS: exact-head workflow [38993005417](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005417) applied RC449 then RC565 in disposable PostgreSQL and passed both the platform-admin authorization integration and the new RC565 report behavior regression.
+- [x] PASS: migration version uniqueness [38993005451](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005451) and migration history immutability [38993005429](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993005429) on the same code head.
+- [x] PASS: Pages/web validation; deploy job skipped, so no production deployment.
+- [ ] Pending: exact-head cross-PR migration collision guard, module-professionalization, and MantiGO privacy checks must finish before overall PR suite is called green.
+- [ ] Pending: RC462 malformed-permission PostgreSQL regression in PR #248.
+- [ ] BLOCKED: complete chronological replay needs authoritative historical DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`; no placeholder or bypass permitted.
+- [ ] BLOCKED: live production platform-scope correction and RC565 rollout are not deployed. Live ledger remains RC424; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Consolidated MantiGO authorization/report candidate — 2026-10-17
+
+- [x] Copied canonical RC462 migration and regression into PR #282 byte-for-byte; its migration blob SHA matches PR #248 exactly, avoiding divergent same-version sources.
+- [x] Wired disposable sequence in the MantiGO platform-admin workflow: RC449 → RC462 → RC449 authorization test → RC565 → RC565 financial-report test.
+- [x] Separate evidence exists for RC449 + RC565 SQL regression on SHA `44fd01d6d5dafbd2b130e023a806328ebe2766ed` and RC449 + RC462 malformed-permission regression on SHA `8ca3130985f15401138cfd063c26e1cc38a7851f`.
+- [ ] Pending: consolidated RC449/RC462/RC565 exact-head PostgreSQL run and remaining exact-head CI after latest candidate update.
+- [ ] BLOCKED: complete chronological replay still needs authoritative creation DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- Production remains untouched; do not merge either PR or apply migrations to production until replay, release gates, and explicit approval are complete.
+
+
+## Consolidated CI correction — 2026-10-17
+
+- [x] Identified the first consolidated run [38993169378](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993169378) failed before SQL execution due a JavaScript syntax error in the new RC462 JSON-containment source assertion.
+- [x] Corrected the assertion in `scripts/validate-mantigo-platform-admin-scope.mjs` using a template literal.
+- [ ] Pending: rerun exact-head CI and verify the complete RC449 → RC462 → RC565 PostgreSQL integration. The failed run's SQL step was skipped and is not evidence against/for SQL behavior.
+
+
+## 2026-10-17 — consolidated exact-head CI PASS; full replay still blocked
+
+- [x] Consolidated RC449 → RC462 → RC565 disposable PostgreSQL workflow passed on PR #282 head `6e4a3bfc6399691dc77b726f53690841888ad08f`. The static platform-admin/financial-report contracts and all PostgreSQL authorization + report behavior tests completed successfully.
+- [x] Exact-head checks passed: MantiGO Platform Admin Scope Hardening (run [38993296764](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296764)), migration version uniqueness ([38993296753](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296753)), migration history immutability ([38993296748](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296748)), cross-PR migration collision guard ([38993296745](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296745)), module-professionalization ([38993296752](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296752)), MantiGO open-ride privacy ([38993296765](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296765)), backend-only module boundary ([38993296743](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296743)), approval-action audit atomicity ([38993296815](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296815)), and web validation ([38993296776](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296776)). Web deploy job was skipped; no production deployment occurred.
+- [x] RC565 PostgreSQL regression verified canonical ledger columns despite conflicting legacy aliases, half-open date boundaries, paid/settled/unsettled totals, empty ranges, invalid windows, tenant OWNER denial, and actor identity mismatch.
+- [x] RC462 PostgreSQL regression verified malformed/string/false permission values fail closed while explicit JSON Boolean true continues to authorize platform admin; all four high-risk platform RPCs were exercised.
+- [ ] BLOCKED: full chronological replay of the restored RC425–RC441 history still needs authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub, skip the historical revoke, or infer the missing function's behavior.
+- [ ] BLOCKED: PR #282 remains draft and unmerged; production is still on RC424 (283 migrations through `20261008222845`). Do not deploy RC449/RC462/RC565 or claim production certification until historical replay is resolved, reviewed, and explicitly approved.
+- Overall state: **focused security/report tests PASS; production release BLOCKED / NOT CERTIFIED**.
+
+
+## Replay blocker investigation — authoritative live definition found, migration provenance still missing
+
+- [x] Read-only query against live Supabase catalog recovered the exact current definition of `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: returns `void`, SECURITY DEFINER, currently `SET search_path TO 'public'`, validates authenticated/non-anonymous caller and non-negative price, and updates only a bid belonging to the caller's editable request.
+- [x] Read-only query of `supabase_migrations.schema_migrations` for recorded migration statements containing `counter_offer_indrive_bid` returned zero rows. GitHub source search also found only the later revoke migration and documentation references, not the original creation DDL.
+- [ ] BLOCKED: live catalog definition is useful evidence but does **not** establish the original migration version/order or prove it is the exact historical definition at the point where the revoke migration runs. Do not invent a historical migration file or claim full chronological replay from a fixture alone.
+- No production writes were made during these checks.
