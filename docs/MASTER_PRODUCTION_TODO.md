@@ -1809,3 +1809,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Corrected fixture header; no historical migration file was modified and no production operation occurred.
 - [ ] Await exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) at SHA 8b4dfda8ea8d1632786caad49b13b745b137a0e6. Do not call it fixed until the run passes this step and the complete replay finishes.
 - [ ] If replay proceeds, triage the next first failure only; continue keeping original historical-source provenance and all production release gates separate and blocked until independently proven.
+
+
+### REPLAY-ORDER-001 validator correction — 2026-10-17
+
+- [x] Caught and corrected the validator's incorrect attempt to find a temporary prerequisite migration before workflow injection. The validator now compares against the pinned prerequisite version 20260927074156, while validating the prerequisite source fixture through existing baseline checks.
+- [ ] Verify exact-head CI for correction commit d1eff709f01927f30a676f9bd96d20ae122f7837; earlier replay run 39070471838 is for pre-correction SHA and must not be counted as a pass.
