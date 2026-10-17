@@ -48,3 +48,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Remaining blockers:** RC425–RC432 and RC434–RC441 remain absent from main; historical creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)` is still missing. RC434 purchase-order line limits/dependencies need chronological verification. PR #282 remains Draft/unmerged.
 - **Not performed:** no production writes, migration execution, function/grant changes, payment/settlement, or deployment.
 - **Next:** finish baseline manual security review; then, only after explicit approval, run full disposable forward replay and runtime tenant/payment/restore tests. Release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-17 — RC425–RC441 source restoration and atomic MantiGo Paymob callback
+
+- Created mainline PR [#286](https://github.com/islamnagy2022-eng/MantiqatiX/pull/286) on branch `fix/rc425-mantigo-paymob-mainline`.
+- Restored the 16 source migrations RC425–RC432 and RC434–RC441 using exact existing blob content from `recovery/rc425-441-source-only-20261016`; no migration was renamed or rewritten. RC434 blob is `a93a0a6827de15d50632e1deec015e20dd55b405`.
+- Updated only the MantiGo Paymob block in `supabase/functions/paymob-webhook/index.ts` to use `process_verified_mantigo_payment_backend` so event, ledger transition, and notification are one transaction.
+- Added `supabase/tests/rc425_mantigo_paymob_fixture.sql`, `supabase/tests/rc425_mantigo_paymob_integration.sql`, and `.github/workflows/rc425-mantigo-paymob-atomicity.yml`.
+- Corrected the test completion marker from a bare SQL `SELECT` inside PL/pgSQL to `RAISE NOTICE`.
+- Exact-head evidence at code commit `2d96ecaa996366daeefb29337e6e62944ef47e7e`: RC425 atomicity workflow PASS (run 39000020605); migration version uniqueness PASS (39000020622); migration history immutability PASS (39000020629); cross-PR collision guard PASS (39000020610); approval-action audit atomicity PASS (39000020642); web validation PASS (39000020639); MantiGO open-ride privacy PASS (39000020628); backend-only module boundary PASS (39000020711); module professionalization PASS (39000020625).
+- The production verification job still reports `PRODUCTION_GATE=BLOCKED` / `external_evidence=NOT_CERTIFIED`: the required migrations are not applied to the live ledger; chronological replay is NOT RUN; tenant-isolation, Paymob sandbox/finance E2E, backup/restore rehearsal, Edge Function contract parity, SMM gateway parity, and Auth security settings remain NOT VERIFIED.
+- No production migration or Edge Function deployment was performed. Do not merge or deploy until the chronological replay and remaining release evidence are reviewed.
