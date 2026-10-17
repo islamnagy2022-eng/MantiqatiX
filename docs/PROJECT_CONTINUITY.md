@@ -603,3 +603,15 @@ This status is intentional and must remain until the open gates above are indepe
 
 
 - **Latest verification caveat:** GitHub's PR-triggered workflow lookup returned an empty list for checkpoint `6560d2fc7a055c12b4466c1b0a7692559c9e6f13`; this is inconclusive, not a CI pass. Before relying on the new documentation commits as CI-verified, inspect the actual PR checks/workflow runs and append exact results to the ledger.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-VERIFY-002
+
+- **Working branch:** `fix/rc526-mantigo-intent-claim-20261017`.
+- **PR:** [#289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Exact HEAD at verification:** `67ff58063d616cd077ab8ac91a82acb7f805ae32`; base `main` `f4059890c656d53d1235ba28d97f703ab35c7299`.
+- **Diff proof:** `35a9da40dcca1be0448ebe3cceb7da619bafe87e...67ff58063d616cd077ab8ac91a82acb7f805ae32` changed documentation files only. RC526 code-test evidence on `35a9da40...` is reused with that scope qualification; no intentional test rerun occurred.
+- **Current-head CI:** 11 automatic workflow runs inspected and recorded in `docs/TEST_EXECUTION_LEDGER.md`; all listed validations passed. Pages validation passed; deployment was skipped for the PR. These results do not certify production or unresolved release gates.
+- **Open root blocker:** `RC-BLOCKER-001` — authoritative creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Code search found no creation source; revoke history only adds the revoke; `20261007021500_reverse_bidding_server_authority_v1.sql` creates different RPCs. Do not fabricate or backdate migration history.
+- **Next exact action:** search historical PR/file history and trusted release/source archives for the original function-creation DDL. If none is recoverable, prepare a separately reviewed forward-only repair proposal with a new migration version and required approval. Then resume full disposable chronological replay only after resolving this dependency.
+- **Release gate:** **BLOCKED / NOT CERTIFIED**. No production change, migration application, deployment, payment, merge, or release occurred.
