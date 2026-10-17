@@ -73,3 +73,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - During a second schema review, compared `supabase/tests/rc526_mantigo_payment_intent_fixture.sql` with the authoritative ledger migration `20261006152000_mantigo_financial_ledger_v1.sql`. The earlier fixture omitted production-required `captain_id`, `idempotency_key`, and matching status/amount constraints; tests had therefore not exercised the full insert contract.
 - Corrected the fixture and all three test records, and added a validator assertion that protects key production constraints from being dropped again. Also made the read-only reconciliation query directly runnable through `psql -v ledger_id=...`.
 - Earlier RC526 integration passed, but the stronger fixture correction still requires a fresh exact-head workflow. No production schema or data changed.
+
+
+## 2026-10-17 — RC526 claim-token and checkout-secret isolation
+
+- Security review found the MantiGO ledger's existing SELECT RLS policy allows both customer and captain reads. Storing `paymob_client_secret` and the raw claim token in ledger metadata would expose those values to the captain. This was corrected before merge: added `mantigo_payment_intent_claims` and `mantigo_payment_intent_secrets`, both RLS-enabled with no client-role grants and explicit service-role access; ledger metadata now stores only a timestamp marker. Finalize atomically writes the secret row and deletes the private claim row; release deletes the private claim row only after a definitive, non-NULL allowed status.
+- Extended disposable PostgreSQL tests for table grants, token/secret metadata isolation, private claim storage, and NULL status rejection. Exact-head CI for this final hardening is pending.
+- Closed duplicate Draft PR #245 in favor of canonical PR #289. The collision-guard run that started before closure failed because both PRs contained RC526; rerun is required against a fresh head after the duplicate was closed.
+- No production schema/data changes, live Paymob requests, deployments, or merges.
