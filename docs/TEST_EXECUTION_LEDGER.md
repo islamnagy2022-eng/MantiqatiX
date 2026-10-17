@@ -406,3 +406,40 @@ No production changes, migration applications, deployments, payments, merges, or
 - **Decision remains pending:** no explicit approval for this exact fixture/branch was inferred from the general continuation request. No test baseline was added and no replay was rerun.
 - The counter-offer source gap remains unresolved after the recovered archive scan. Do not call a live-derived snapshot historical source.
 - No manual tests, production changes, deployments, payments, merges, or releases occurred in this source sweep.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-017 — exact-head CI and exhaustive pre-revoke migration scan
+
+- **PR/branch:** [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), `fix/rc526-mantigo-intent-claim-20261017`, Draft/open/unmerged.
+- **Exact HEAD:** `dca34e89a530e0f6c998c5f405ed9fb167e40e83`.
+- **Diff reuse check:** compare `9892d8d20f4e9b378a4dd3bb567c8590ea18d43...dca34e89a530e0f6c998c5f405ed9fb167e40e83` returned 9 commits and only four existing documentation files plus the replay-baseline proposal. No application source, migration, test, workflow, dependency, or runtime configuration changed in that range. No test was rerun merely because of documentation changes.
+
+### Exact-HEAD automatic CI evidence
+
+| Evidence ID | Workflow/check | Result | Run |
+|---|---|---|---|
+| CI-289-DCA-001 | Web/Pages validation | PASS; deploy job SKIPPED | [39013499680](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499680) |
+| CI-289-DCA-002 | Migration version uniqueness | PASS | [39013499695](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499695) |
+| CI-289-DCA-003 | Migration history immutability | PASS | [39013499651](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499651) |
+| CI-289-DCA-004 | Cross-PR migration collision guard | PASS | [39013499633](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499633) |
+| CI-289-DCA-005 | Approval-action audit PostgreSQL | PASS | [39013499643](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499643) |
+| CI-289-DCA-006 | Module professionalization suite: targeted-ads search path, matrimony privacy, static validation | PASS | [39013499640](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499640) |
+| CI-289-DCA-007 | Backend-only boundary suite: financial journal RC450, approval audit, validation | PASS | [39013499635](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499635) |
+| CI-289-DCA-008 | MantiGO open-ride privacy integration + RC526 payment-intent claim integration | PASS | [39013499658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499658) |
+| CI-289-DCA-009 | Backend-only boundary (additional push run) | PASS | [39013497126](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013497126) |
+| CI-289-DCA-010 | Module professionalization (additional push run) | PASS | [39013497124](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013497124) |
+| CI-289-DCA-011 | MantiGO privacy (additional push run) | PASS | [39013497104](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013497104) |
+
+- The exact-head RC526 PostgreSQL claim/finalization integration is explicitly present in run `39013499658`; it was inspected, not manually rerun.
+- **Scope limit:** these checks do not prove a live Paymob Sandbox transaction, full chronological replay, tenant-isolation E2E across real users, backup/restore, production parity, or production readiness. The Pages deploy job was skipped.
+- **Manual tests rerun in this session:** none. All results above are existing automatic Actions evidence inspected by exact SHA.
+
+### RC-BLOCKER-001 / RC-BLOCKER-002 — expanded historical migration scan
+
+- Scanned all **142 SQL migration files** on `reconcile/rc425-458-current-main-20261011` whose filename timestamp is at or before `20260927095000`, including the separately inspected relevant InDrive/MantiGO, security-definer, marketplace, and provider/service migrations. No file contained `counter_offer_indrive_bid` / `counter_offer` creation text, and no migration contained `CREATE TABLE public.marketing_provider_services` or its `IF NOT EXISTS` variant.
+- Representative relevant files inspected include `20260920090217_production_marketplace_real_data_v1.sql`, `20260920090828_production_indrive_bidding_real_data_v1.sql`, `20260920093101_production_mantigo_real_data_v1.sql`, `20260924224046_indrive_bid_acceptance_atomicity_v1.sql`, `20260924230603_harden_indrive_server_state_transitions.sql`, `20260924230659_fix_indrive_rls_recursion_with_private_helpers.sql`, `20260924230730_move_indrive_bid_security_definers_to_private_schema.sql`, `20260925010851_mantigo_server_authority_mutations_v2.sql`, `20260925134831_mantigo_server_authoritative_state_v1.sql`, `20260925135339_mantigo_server_authoritative_create_v1.sql`, and `20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql`.
+- PR #218's draft branch contains `supabase/tests/baselines/marketing_commission_schema.sql`, which includes a live-derived/test-baseline definition for `marketing_provider_services`; it is **not** authoritative historical migration source and is not on this PR #289 branch. It does not authorize copying/injecting it into this replay.
+- The proposal `docs/release/MARKETING_PROVIDER_SERVICES_REPLAY_BASELINE_PROPOSAL_20261017.md` remains **PROPOSAL ONLY / NOT APPROVED / NOT IMPLEMENTED**. General “continue” instructions are not treated as explicit approval for that exact fixture and replay scope.
+- **Root-cause status:** source absence is confirmed within the accessible branch/repository material scanned; external/trusted archive provenance remains unverified. No fabricated/backdated migration, conditional revoke, test-only function stub, fixture injection, or replay rerun was performed.
+- **Next safe action:** keep searching only for new authoritative/trusted artifacts, or obtain explicit review/approval for a clearly labelled test-only baseline decision. After an approved input change, run the disposable replay once and record the first failure/success; do not rerun unchanged replay.
+- No production mutation, migration application, deployment, payment, merge, or release. Gate remains **BLOCKED / NOT CERTIFIED**.
