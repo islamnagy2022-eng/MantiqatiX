@@ -6,6 +6,9 @@ on:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/migrations/20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql"
+      - "supabase/tests/rc565_mantigo_financial_report_integration.sql"
+      - "scripts/validate-mantigo-financial-report.mjs"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
       - ".github/workflows/mantigo-platform-admin-scope.yml"
   push:
@@ -39,8 +42,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
-      - name: Static platform-admin contract
-        run: node scripts/validate-mantigo-platform-admin-scope.mjs
+      - name: Static platform-admin and financial-report contracts
+        run: |
+          node scripts/validate-mantigo-platform-admin-scope.mjs
+          node scripts/validate-mantigo-financial-report.mjs
       - name: Apply disposable fixture, migration, and behavioral tests
         shell: bash
         run: |
@@ -50,6 +55,10 @@ jobs:
           docker cp supabase/tests/rc449_mantigo_platform_admin_fixture.sql "$pg_container:/tmp/fixture.sql"
           docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449.sql"
           docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/rc449-test.sql"
+          docker cp supabase/migrations/20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql "$pg_container:/tmp/rc565.sql"
+          docker cp supabase/tests/rc565_mantigo_financial_report_integration.sql "$pg_container:/tmp/rc565-test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449-test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc565.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc565-test.sql
