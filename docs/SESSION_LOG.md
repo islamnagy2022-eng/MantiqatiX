@@ -90,3 +90,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added disposable PostgreSQL coverage for non-admin denial, confirmed absence, confirmed intent, amount mismatch, audit writes, and claim/secret isolation. The latest exact-head run on `302de16b1217b2116f511d2a74bd6e9abf07a7d5` passed RC526 PostgreSQL integration, Deno type-check, and RC446 privacy integration; all eight PR workflows completed successfully. Logs include `RC526 MantiGO payment-intent concurrent claim/finalize integration: PASS`.
 - Prior exact-head commit `a37cfbfda6877a828a96118bfdb05dc3210af542` passed all eight PR workflows, including the RC526 PostgreSQL job, Deno type-check, MantiGO privacy integration, migration uniqueness/history/collision gates, approval audit atomicity, backend-only boundary, module professionalization, and Pages validation. Deployment was skipped. Current head is newer, so that evidence is not a substitute for the latest rerun.
 - No production migration, live Paymob request, payment, deployment, or merge occurred. Full production release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-17 — RC526 Paymob response-correlation hardening
+
+- **Finding:** the MantiGO intent function accepted a successful Paymob response based on identifier presence only; amount, currency, and merchant reference were not cross-checked against the claimed ledger.
+- **Changed:** `supabase/functions/mantigo-payment-intent/index.ts` now verifies `intention_detail.amount`, normalized `intention_detail.currency`, and `special_reference` before finalization. A mismatch fails closed, preserves the claim for reconciliation, and never returns checkout credentials.
+- **Regression guard:** the source-contract validator checks that the correlation validation occurs before the finalize RPC.
+- **Commits:** `c7a16d64f9b130e1c71948b41e581aa8a1b5eb17` (function), `c49fa93fb14eb5eb3a98eec00645b9d64059fe06` (validator). The documentation update is on the same candidate branch.
+- **Evidence:** Paymob Create Intention docs describe the response fields: https://developers.paymob.com/paymob-docs/intention-apis/create-intention.
+- **CI:** exact-head Deno + RC526 workflow result remains pending/not returned; no PASS is claimed.
+- **Safety:** no production mutation, real provider call, payment, merge, or deploy. Release remains BLOCKED / NOT CERTIFIED.
