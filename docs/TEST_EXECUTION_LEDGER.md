@@ -215,3 +215,22 @@ These were automatic GitHub Actions runs, not manually rerun tests. Every result
 `RC-BLOCKER-001`: authoritative original creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unavailable in the searched repository history, migration ledger, and checked source refs. The forward replay is a useful separate validation path, but it is not a substitute for the missing historical provenance and must not be presented as full chronological replay.
 
 No production mutations, migrations, deployments, payments, merges, or releases occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-004 — PR #286 exact-head payment integration evidence
+
+- **PR #286:** Draft/open/unmerged, branch `fix/rc425-mantigo-paymob-mainline`, exact head `6b87b044448b5a543b163c52d1a4517d63cf1399`.
+- **Automatic exact-head CI inspected:** 17 runs (push and PR-trigger duplicates included); all returned `completed/success`. Unique workflow coverage:
+  - RC425 MantiGO Paymob Atomicity: [39006289961](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006289961)
+  - Payment Webhook Failure and Success Integration: [39006290036](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290036)
+  - Payment Intent Order Correlation Integration: [39006290107](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290107)
+  - Migration Version Uniqueness: [39006289903](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006289903)
+  - Migration History Immutability: [39006290006](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290006)
+  - Open PR Migration Collision Guard: [39006289969](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006289969)
+  - Approval Action Audit Atomicity: [39006290046](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290046)
+  - MantiGO Open Ride Privacy Boundary: [39006290034](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290034)
+  - Backend-only Module Boundary: [39006290038](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290038)
+  - Module Professionalization Validation: [39006290042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290042)
+  - Deploy MantiqatiX Web workflow: [39006290033](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39006290033) — validation job PASS; deploy job SKIPPED.
+- **Scope:** targeted disposable PostgreSQL payment/atomicity/correlation integration and repository guardrails pass on this candidate head. This does not establish live Paymob Sandbox E2E, full historical blank-database replay, tenant isolation across real users/tenants, backup/restore, or production parity.
+- **No intentional rerun:** this entry records existing exact-head CI results only. PR #286 remains Draft/unmerged; no production deployment or payment occurred.
