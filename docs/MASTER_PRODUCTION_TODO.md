@@ -1604,3 +1604,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: validate and replay RC441 platform-scope corrections followed by RC565 financial-report column correction on disposable PostgreSQL; add positive platform SUPER_ADMIN and negative tenant OWNER/ADMIN/FINANCE regression tests for dashboard/report/settlement.
 - [ ] Review the RC462 malformed-`full_control` guard candidate and its migration ordering before claiming platform-admin helper robustness complete.
 - [ ] Do not apply RC565 independently of the platform-scope migration sequence. No production changes have been made; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC565 behavioral test and RC462 workflow follow-up
+
+- [x] Added disposable PostgreSQL regression for RC565 with intentionally conflicting legacy aliases, date-boundary assertions, payment/settlement aggregates, empty-range and invalid-range cases, tenant OWNER denial, and actor identity mismatch.
+- [x] Wired the RC565 migration/test and both static validators into the MantiGO platform-admin workflow; added pull-request and main-push path filters.
+- [x] Corrected the canonical RC462 workflow on PR #248 to reference the actual RC449 migration and fixture. Added RC462 PostgreSQL regression as a job in the existing core module-professionalization workflow; exact-head run remains queued/not verified.
+- [ ] BLOCKED: RC565 PostgreSQL integration on the latest exact head must finish successfully before calling the financial-report fix behaviorally verified.
+- [ ] BLOCKED: complete chronological replay still needs authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; do not stub or bypass.
+- [ ] BLOCKED: integrate RC462 with RC565 in a reviewed, collision-free release candidate and run tenant-vs-platform authorization regression after ordered replay.
+- Production remains untouched; release gate remains **BLOCKED / NOT CERTIFIED**.
