@@ -636,3 +636,11 @@ This status is intentional and must remain until the open gates above are indepe
 - **First unresolved blocker:** `RC-BLOCKER-001`, original creation source/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Continue searching trusted source/backup archives; do not fabricate or backdate migration history.
 - **Next actions:** inspect the exact replay artifact if supported; review baseline security findings; continue source-provenance recovery. Keep PR #284 PENDING_REVIEW and all production/release gates blocked.
 - **Safety:** no production mutation, migration application, deployment, payment, merge, or release occurred.
+
+
+## 2026-10-17 — Latest evidence checkpoint: SESSION-RESUME-VERIFY-004
+
+- **Payment candidate PR #286:** exact head `6b87b044448b5a543b163c52d1a4517d63cf1399`, Draft/open/unmerged. 17 automatic CI runs were inspected; all passed, with 11 unique workflow categories including RC425 atomicity, webhook failure/success, payment-intent correlation, migration guards, and security/module boundaries. Web deployment was skipped.
+- Reuse this exact-head evidence for those targeted suites; do not rerun without code/test/dependency/environment change or an inconclusive result.
+- **Remaining non-substitutable gates:** live Paymob Sandbox, two-user/two-tenant isolation, backup/restore, full historical source/replay decision, baseline security review, and production function parity.
+- No production action occurred. Release remains **BLOCKED / NOT CERTIFIED**.
