@@ -27,7 +27,7 @@ check("integration verifies authorized settlement persistence and replay safety"
 
 const guardFix = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
 const malformedPermissionsTest = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
-check("RC462 uses exact JSON Boolean containment for platform scope and full control", guardFix.includes("m.permissions @> '{\\"scope\\":\\"PLATFORM\\",\\"full_control\\":true}'::jsonb"));
+check("RC462 uses exact JSON Boolean containment for platform scope and full control", guardFix.includes(`m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb`));
 check("RC462 avoids casting permission text to Boolean", !guardFix.includes("->> 'full_control'") && !guardFix.includes("->> 'scope'"));
 check("RC462 preserves empty search_path and removes public/anon execution", guardFix.includes("set search_path = ''") && guardFix.includes("revoke all on function public.mnty_can_platform_admin() from public, anon"));
 check("RC462 regression denies malformed string, false Boolean, and string true", malformedPermissionsTest.includes("malformed string full_control") && malformedPermissionsTest.includes("boolean false full_control") && malformedPermissionsTest.includes("JSON string true must not grant platform access"));
