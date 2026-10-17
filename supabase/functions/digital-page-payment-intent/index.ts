@@ -57,7 +57,10 @@ Deno.serve(async req=>{
    p=await res.json().catch(()=>({}));
    if(!res.ok||!p?.id||!p?.client_secret){await release();return json({error:"PAYMENT_PROVIDER_REJECTED"},502);}
  }catch{await release();return json({error:"PAYMENT_PROVIDER_UNAVAILABLE"},502);}
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id)});
+ // Finalization is server-trusted: authenticated callers must not forge a provider intent ID.
+ const providerOrderId=String((p.order&&typeof p.order==="object"?(p.order as Record<string,unknown>).id:"")??"").trim();
+ if(!providerOrderId){await release();return json({error:"PAYMENT_PROVIDER_ORDER_ID_MISSING"},502);}
+ const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
  if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
  const clientSecret=String(p.client_secret);
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
