@@ -293,3 +293,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Created proposal-only document `docs/release/MARKETING_PROVIDER_SERVICES_REPLAY_BASELINE_PROPOSAL_20261017.md` at commit `be9c8c298986bcd4d01df62d2609147c753f46c0`. It requires explicit approval before adding any test-only fixture; no fixture was implemented.
 - Tests executed: none. Existing CI results remain as recorded. No replay rerun, production mutation, deploy, payment, merge, or release.
 - Next: continue source recovery if another trusted artifact exists; otherwise wait for explicit approval for the scoped test-only baseline. Keep release blocked.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-017 — exact-head CI and broad historical source scan
+
+- Verified PR #289 remains Draft/open/unmerged; exact HEAD `dca34e89a530e0f6c998c5f405ed9fb167e40e83`.
+- Compared `9892d8d20f4e9b378a4dd3bb567c8590ea18d43...dca34e89a530e0f6c998c5f405ed9fb167e40e83`: nine commits, docs-only changes (four documentation files plus one replay-baseline proposal). No executable/test/workflow/dependency inputs changed.
+- Inspected 11 exact-head Actions runs. RC526 payment-intent claim integration and MantiGO privacy passed on run [39013499658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499658); migration version uniqueness, immutability, collision guard, approval audit, backend-only/finance, targeted-ads/matrimony and web validation also passed. Web deployment job was skipped. All run IDs and evidence scopes are recorded in `docs/TEST_EXECUTION_LEDGER.md`.
+- No manual tests were rerun.
+- Scanned all 142 migration SQL files with filename timestamp <= `20260927095000` on the accessible reconciliation branch; no source text for `counter_offer_indrive_bid` and no table-creation statement for `public.marketing_provider_services` was found. Relevant candidate files and search scope are logged in the test ledger.
+- Found a similar `marketing_provider_services` definition in a **different draft PR's test-only baseline** (`supabase/tests/baselines/marketing_commission_schema.sql` on PR #218). It is live-derived/test-only, not historical source; no copying or injection was done because the current proposal requires explicit approval.
+- Next: pursue new trusted source artifacts or obtain explicit approval for the exact disposable-only baseline. Do not rerun unchanged replay or invent historical DDL. No production action, deployment, payment, merge, or release.
+- Release remains **BLOCKED / NOT CERTIFIED**.
