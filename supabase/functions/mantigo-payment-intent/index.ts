@@ -35,13 +35,19 @@ Deno.serve(async req=>{
   if(!["REQUIRED","PENDING"].includes(String(ledger.payment_status)))return json({error:"RIDE_NOT_PAYABLE",paymentStatus:ledger.payment_status},409,requestId);
 
   const metadata=(ledger.metadata&&typeof ledger.metadata==="object"?ledger.metadata:{}) as Record<string,unknown>;
-  if(ledger.payment_status==="PENDING"&&ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret&&metadata.paymob_intention_order_id){
-    return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
+  if(ledger.payment_status==="PENDING"&&ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_intention_order_id){
+    const {data:storedSecret,error:storedSecretError}=await admin.from("mantigo_payment_intent_secrets")
+      .select("client_secret").eq("ledger_id",ledger.id).maybeSingle();
+    if(storedSecretError)return json({error:"PAYMENT_INTENT_SECRET_LOOKUP_FAILED",recoveryRequired:true},500,requestId);
+    if(storedSecret?.client_secret){
+      const clientSecret=String(storedSecret.client_secret);
+      return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret,checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(clientSecret)}`:null,requestId},200,requestId);
+    }
   }
   // A pending ledger, partial provider correlation, or prior claim requires reconciliation.
   // Never create a second provider intention from ambiguous or partially persisted state.
   if(ledger.payment_status==="PENDING"||metadata.paymob_intent_claim||
-     ledger.provider||ledger.provider_intent_id||metadata.paymob_client_secret||metadata.paymob_intention_order_id){
+     ledger.provider||ledger.provider_intent_id||metadata.paymob_intention_order_id||metadata.paymob_payment_methods){
     return json({error:"PAYMENT_INTENT_RECOVERY_REQUIRED",recoveryRequired:true},409,requestId);
   }
 
