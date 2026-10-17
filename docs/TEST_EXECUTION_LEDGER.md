@@ -177,3 +177,41 @@ These were automatic GitHub Actions runs, not manually rerun tests. Every result
 - **CI already inspected on prior exact HEAD `f801dcee6f8d6a808af14216520cac26df186d43`:** 11 automatic workflow runs completed successfully: Migration History Immutability [39010052412], Open PR Migration Collision Guard [39010052400], Migration Version Uniqueness [39010052343], Approval Action Audit Atomicity [39010052490], Module Professionalization Validation [39010052469], Backend-only Module Boundary [39010052480], MantiGO Open Ride Privacy Boundary [39010052381], plus duplicate push-triggered runs [39010048675], [39010048681], [39010048693]. Web workflow [39010052358] concluded success with deploy skipped for the PR. These are checks on `f801dcee...`, not on the later proposal commit.
 - **Tests intentionally run in this session:** none. Historical search/review only; no replay, SQL tests, production queries, migration application, deployment, payment, or merge was performed.
 - **Next action:** continue seeking a trusted original source/archive. If unavailable, request explicit review/approval for a disposable-only baseline proposal. Keep historical provenance unresolved and release blocked until the chosen replay method and all later blockers are independently verified.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-003 — reviewed-baseline forward replay and current PR head
+
+### Exact-head PR #289 checks
+
+- PR #289 remains Draft/open/unmerged. Verified head: `74f6768eba37898ef13c66fa057ecb71ebbc3e81`.
+- Automatic GitHub Actions runs on that exact SHA:
+  - Migration History Immutability — PASS: [39010308171](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308171)
+  - Migration Version Uniqueness — PASS: [39010308169](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308169)
+  - Approval Action Audit Atomicity — PASS: [39010308167](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308167)
+  - Web workflow validation — workflow PASS, deploy job skipped for PR: [39010308176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308176)
+  - Module Professionalization Validation — PASS (PR): [39010308154](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308154)
+  - Backend-only Module Boundary — PASS (PR): [39010308164](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308164)
+  - Open PR Migration Collision Guard — PASS: [39010308173](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308173)
+  - MantiGO Open Ride Privacy Boundary — PASS (PR): [39010308163](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010308163)
+  - MantiGO Open Ride Privacy Boundary — PASS (push): [39010304692](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010304692)
+  - Backend-only Module Boundary — PASS (push): [39010304784](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010304784)
+  - Module Professionalization Validation — PASS (push): [39010304686](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010304686)
+- Scope: these are static/targeted CI workflows. Web deploy was skipped; no deployment occurred. None proves production readiness or full historical chronological replay.
+
+### Disposable forward replay — PASS (separate test-only branch)
+
+- Branch: `test/production-baseline-forward-replay-20261017`.
+- Exact tested commit: `a79b2caa5b883817f5c1b550d044b09780f06820` (`test(db): include RC526 in reviewed baseline forward replay`).
+- Workflow: [Reviewed Production Baseline Forward Replay run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892).
+- Exact job steps all completed successfully: baseline validator fail-closed tests; baseline provenance/review check; isolated Supabase stack startup using PostgreSQL major 17; schema snapshot restore and forward migrations; upload of exact-run evidence artifact; isolated stack shutdown.
+- Artifact metadata observed: `production-baseline-forward-replay-39010395892`, 2336 bytes, not expired at inspection. The artifact contents/count of migrations were not independently read in this inspection, so no numeric forward-migration count is claimed.
+- The manifest checkpoint is `20261008222845`, 283 applied versions; schema snapshot SHA-256 `ee16d095177110de67dac57f1b9a1e67610b40a3712981e850eff17d637a67a2`; ledger SHA-256 `0b60096967ef51a912a08b437a10377e2f12d357dd6b25d5dc80677b1f8832b2`.
+- **What this proves:** the test-only live-schema baseline, guarded to a disposable local Supabase database, accepted the ordered migrations newer than the checkpoint on that exact test-branch commit, including the RC526 addition.
+- **What this does not prove:** original historical creation provenance for `counter_offer_indrive_bid`; blank-database historical replay; production migration approval; live Paymob; tenant isolation; backup/restore; production deployment. This test branch's `APPROVED_FOR_DISPOSABLE_REPLAY` status is scoped to that branch/test environment only, not PR #284 or production.
+- Do not rerun this exact test on the same commit/environment unless code, test, dependency, or environment changes or the prior result becomes inconclusive.
+
+### Root blocker remains open
+
+`RC-BLOCKER-001`: authoritative original creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unavailable in the searched repository history, migration ledger, and checked source refs. The forward replay is a useful separate validation path, but it is not a substitute for the missing historical provenance and must not be presented as full chronological replay.
+
+No production mutations, migrations, deployments, payments, merges, or releases occurred. Release remains **BLOCKED / NOT CERTIFIED**.
