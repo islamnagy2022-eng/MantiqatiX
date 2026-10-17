@@ -7,6 +7,8 @@ on:
       - "supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql"
+      - "scripts/validate-mantigo-platform-admin-scope.mjs"
+      - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
       - ".github/workflows/rc462-platform-admin-regression.yml"
   push:
     branches: [main]
@@ -15,6 +17,8 @@ on:
       - "supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql"
+      - "scripts/validate-mantigo-platform-admin-scope.mjs"
+      - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
       - ".github/workflows/rc462-platform-admin-regression.yml"
 
 permissions:
@@ -39,6 +43,8 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - name: Validate platform-admin source contracts
+        run: node scripts/validate-mantigo-platform-admin-scope.mjs
       - name: Prepare disposable PostgreSQL roles
         shell: bash
         run: |
