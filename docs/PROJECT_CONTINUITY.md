@@ -673,3 +673,13 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - The historical showcase fixture now disables only the legacy membership trigger during setup, restores it, and invokes the helper after the synthetic profile exists; this is disposable CI only.
 - Latest source integrity [39072447513] and migration immutability [39072447500] passed. Full replay [39072447514] was in progress at SHA be3cf19573595f037357c89db719c37c065755c1.
 - Historical source gap 20260928154527 remains unresolved; release BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-18 — Exact replay continuation checkpoint
+
+- **Branch / PR:** `reconcile/rc425-458-current-main-20261011` / [PR #207](https://github.com/islamnagy2022-eng/MantiqatiX/pull/207), Draft/unmerged.
+- **Exact head inspected:** `5083a7e1ebd522b064688c47d76b81eaaf9cb1d4`.
+- **Latest full replay evidence:** [run 39072680440](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072680440) failed at chronological replay after preflight and service startup. SQL failure detail was not present in the accessible metadata; do not infer the exact failing migration.
+- **Function dependency:** the replay workflow already injects the live-derived function baseline with `counter_offer_indrive_bid` before the revoke migration. This is test-only compatibility evidence, not historical provenance and not production DDL.
+- **Current actionable gate:** explicit owner approval is pending for the combined test-only fixtures in `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md`: (A) `marketing_provider_services` schema plus active public-read policy, and (B) minimum `MNTY-MAIN` organization row, with no auth users or memberships. The proposal remains not approved; do not implement/inject the fixtures until explicit approval or recovery of trusted source.
+- **Next:** obtain that exact approval, then run the replay once on the new exact SHA and record the actual first failing migration. Production remains **BLOCKED / NOT CERTIFIED**.
