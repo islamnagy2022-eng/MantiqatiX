@@ -188,8 +188,8 @@ set search_path = ''
 as $function$
 declare
   v_actor uuid := auth.uid();
-  v_resolution text := pg_catalog.upper(pg_catalog.btrim(pg_catalog.coalesce(p_resolution, '')));
-  v_evidence text := pg_catalog.btrim(pg_catalog.coalesce(p_evidence_reference, ''));
+  v_resolution text := pg_catalog.upper(pg_catalog.btrim(coalesce(p_resolution, '')));
+  v_evidence text := pg_catalog.btrim(coalesce(p_evidence_reference, ''));
   v_ledger public.mantigo_financial_ledger%rowtype;
   v_audit_id text := 'AUD-MG-' || pg_catalog.replace(pg_catalog.gen_random_uuid()::text, '-', '');
   v_reconciliation jsonb;
