@@ -539,3 +539,10 @@ This status is intentional and must remain until the open gates above are indepe
 - At the start of every new session, read this continuity file, then the latest entries of the session log and master TODO, then verify current GitHub/Supabase state before modifying anything.
 - Never treat an assistant message or a PR comment as proof of implementation. Only code, commit, successful test/runtime evidence, and deployment verification count.
 - Do not repeat completed audits unless new evidence or a changed baseline justifies it. Never fabricate evidence or bypass safety/release controls.
+
+
+## 2026-10-17 — scoped manual review of schema-baseline public surfaces
+
+- Reviewed the captured definition of `public.get_mnty_targeted_advertisements(...)`: it returns ad creative/target metadata only, uses schema-qualified table references, filters local/global ads to ACTIVE+APPROVED and time windows, and caps results to 50. It is SECURITY DEFINER and callable by anon/authenticated; schema CREATE denial still needs role-level disposable proof. Disposition: appears scoped to public ad delivery but not production-certified.
+- Reviewed `public.platform_brand_assets`: CHECK restricts keys to PRIMARY_LOGO/PRIMARY_MARK, but public SELECT with `USING (true)` exposes `asset_path` and `original_asset_path`. Since the snapshot has no rows, public-asset path safety cannot be verified from this artifact. Follow-up is read-only path/bucket verification; if original paths are private, propose a reviewed forward-only policy/view change. Do not alter manifest status.
+- Review notes appended to `docs/release/SCHEMA_BASELINE_REVIEW_20261017.md` on PR #284 branch. Baseline remains PENDING_REVIEW; no production changes, grants, data reads from user tables, or deployment.
