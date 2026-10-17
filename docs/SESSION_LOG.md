@@ -53,3 +53,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not verified:** no new run has yet proved the v3 action succeeds in this repository. No production database mutation, secret edit, migration, deployment, or merge occurred.
 - **Next step:** inspect the new CI runs; then resume baseline connection correction only after CLI installation succeeds.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-17 — RC462 malformed platform-admin permission regression PASS
+
+- **PASS:** Module Professionalization Validation [run 38992884229](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38992884229) completed successfully on exact code head `8ca3130985f15401138cfd063c26e1cc38a7851f`.
+- All four jobs passed: source validation, matrimony privacy PostgreSQL, targeted-ad search-path PostgreSQL, and the new `mantigo-platform-admin-rc462-postgres` job.
+- The RC462 job applied the RC449 disposable fixture, RC449 platform-scope migration, RC462 forward-only guard, and malformed-permission regression. It verifies malformed `full_control`, JSON false, and JSON string `"true"` are denied without throwing; valid explicit JSON Boolean true remains allowed; the guarded global RPCs reject invalid permission claims.
+- The workflow path mismatch was corrected to use `20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql` and `supabase/tests/rc449_mantigo_platform_admin_fixture.sql`; the regression now runs through the existing core workflow.
+- This is focused disposable PostgreSQL evidence, not a full chronological migration replay or live deployment. PR #248 remains draft/unmerged; production remains untouched and the release gate remains **BLOCKED / NOT CERTIFIED**.
