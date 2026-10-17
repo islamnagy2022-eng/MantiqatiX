@@ -623,3 +623,13 @@ Read the latest SESSION-003 entry in docs/SESSION_LOG.md and the dated section i
 
 - Latest S06 exact-head validation: [run 38403871421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38403871421) passed both duplicate idempotency and conflicting-status concurrency; see PR #237. This remains isolated test evidence, not real payment acceptance.
 - Security Advisor was refreshed at 2026-10-13T13:18:40.718Z: 40 authenticated SECURITY DEFINER execute warnings, one anon-executable SECURITY DEFINER, 90 anonymous-policy warnings, leaked-password protection disabled, and one RLS-enabled/no-policy INFO. Do not mass-revoke or disable without per-item review.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-001 (2026-10-17)
+
+- Candidate branch: reconcile/rc425-458-current-main-20261011, PR #207, Draft/unmerged.
+- Failure [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) proved the current blocker at that SHA was not an absent fixture: marketing_commission_schema.sql already created the table, but its temporary CI migration version 20260927140494 sorted after the first consumer 20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql.
+- Corrected runtime-only fixture version to 20260927132903; added fail-closed validator assertions for prerequisite and first-consumer ordering; corrected fixture comment. The file remains under supabase/tests/baselines/ and is copied to an untracked temporary migration only inside disposable CI.
+- Fix commits: bb61883da232a220fe5a526572b55be05ba3205a, 46e958ca001232b2d82cfc5c9eb257772b637ee4, 8b4dfda8ea8d1632786caad49b13b745b137a0e6.
+- Exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) was pending/in progress at last check. Next action: inspect final run status and first error if any. Do not repeat the run on the same SHA unless inconclusive/flaky or a justified regression suspicion.
+- Release gate remains BLOCKED / NOT CERTIFIED; historical DDL provenance, complete replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function parity, and Auth gates remain separate.
