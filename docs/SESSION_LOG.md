@@ -182,3 +182,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No tests were intentionally rerun in this session; results were inspected and documented. No production changes, deployments, payments, merges, or releases occurred.
 - **Next action:** inspect the uploaded replay artifact if supported; continue provenance recovery and independently review the baseline security findings. Keep PR #284 pending review and all release candidates Draft until required gates pass.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-004
+
+- Inspected PR #286 exact head `6b87b044448b5a543b163c52d1a4517d63cf1399`; 17 automatic GitHub Actions runs (including push/PR duplicates) completed successfully. Unique payment workflows RC425 atomicity, webhook failure/success, and payment-intent order correlation passed, along with migration and security guardrails. Web validation passed and deploy was skipped. Exact links and limitations are recorded in `docs/TEST_EXECUTION_LEDGER.md`.
+- These targeted integrations can be reused for this exact SHA; they are not live Paymob tests and do not prove full historical replay, tenant isolation, or restore.
+- No tests were intentionally rerun; no production mutation, migration application, deployment, payment, merge, or release occurred.
+- **Next:** continue resolving historical migration provenance and baseline security-review gates; then run the required tenant-isolation, Paymob Sandbox, and backup/restore gates when their isolated environments and authorized credentials are available.
+- Release remains **BLOCKED / NOT CERTIFIED**.
