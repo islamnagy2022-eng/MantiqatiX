@@ -204,7 +204,7 @@ begin
       v_events,v_status,v_notifications;
   end if;
 
-select 'RC425 MantiGo Paymob atomicity integration: PASS' as result;
+raise notice 'RC425 MantiGo Paymob atomicity integration: PASS';
 
 end;
 $test$;
