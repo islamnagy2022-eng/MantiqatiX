@@ -1,6 +1,6 @@
 -- RC526 disposable PostgreSQL fixture only. No production data.
 create table public.mantigo_financial_ledger (
-  id uuid primary key,
+  id text primary key,
   ride_id text not null unique,
   customer_id uuid not null,
   currency text not null default 'EGP',
