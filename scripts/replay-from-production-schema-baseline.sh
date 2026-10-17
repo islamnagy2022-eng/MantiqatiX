@@ -67,6 +67,9 @@ if [[ "$pending_count" -eq 0 ]]; then
   exit 1
 fi
 
+echo "POST_REPLAY_CHECK counter_offer_rpc_privilege_contract.sql" | tee -a "$REPORT"
+psql "$LOCAL_DB_URL" -X -v ON_ERROR_STOP=1 -f supabase/tests/baselines/counter_offer_rpc_privilege_contract.sql 2>&1 | tee -a "$REPORT"
+
 {
   echo
   echo "status=PASS"
