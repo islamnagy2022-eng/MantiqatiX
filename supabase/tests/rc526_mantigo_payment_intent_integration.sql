@@ -25,6 +25,13 @@ begin
      or has_function_privilege('authenticated','public.finalize_mantigo_payment_intent_backend(text,text,text,text,text,jsonb)','EXECUTE') then
     raise exception 'RC526_FINALIZE_RPC_MUST_BE_SERVICE_ROLE_ONLY';
   end if;
+  if has_function_privilege('anon','public.release_mantigo_payment_intent_claim_backend(text,text,integer)','EXECUTE')
+     or has_function_privilege('authenticated','public.release_mantigo_payment_intent_claim_backend(text,text,integer)','EXECUTE') then
+    raise exception 'RC526_RELEASE_RPC_MUST_BE_SERVICE_ROLE_ONLY';
+  end if;
+  if not has_function_privilege('service_role','public.release_mantigo_payment_intent_claim_backend(text,text,integer)','EXECUTE') then
+    raise exception 'RC526_RELEASE_SERVICE_ROLE_GRANT_MISSING';
+  end if;
 
   insert into public.mantigo_financial_ledger(id,ride_id,customer_id,gross_amount,payment_status,metadata)
   values(v_ledger,'ride-rc526','52600000-0000-4000-8000-000000000002',125,'REQUIRED','{"preserved":"yes"}'::jsonb);
