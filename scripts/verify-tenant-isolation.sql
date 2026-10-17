@@ -37,8 +37,8 @@ BEGIN
     RAISE EXCEPTION 'E2E_FIXTURE_MISSING_ISOLATED_OWNER_B';
   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM public.businesses WHERE tenant_id='MNTY-TEST-A' AND status='PENDING' AND coalesce(settings->>'showcase','false')<>'true')
-     OR NOT EXISTS (SELECT 1 FROM public.businesses WHERE tenant_id='MNTY-TEST-B' AND status='PENDING' AND coalesce(settings->>'showcase','false')<>'true') THEN
+  IF NOT EXISTS (SELECT 1 FROM public.businesses WHERE tenant_id='MNTY-TEST-A' AND status='INACTIVE' AND coalesce(settings->>'showcase','false')<>'true')
+     OR NOT EXISTS (SELECT 1 FROM public.businesses WHERE tenant_id='MNTY-TEST-B' AND status='INACTIVE' AND coalesce(settings->>'showcase','false')<>'true') THEN
     RAISE EXCEPTION 'E2E_FIXTURE_MISSING_PRIVATE_BUSINESS_ROWS';
   END IF;
   IF NOT EXISTS (SELECT 1 FROM public.orders WHERE tenant_id='MNTY-TEST-A')
