@@ -13,8 +13,8 @@ for (const marker of [
   "E2E_FIXTURE_MISSING_PRIVATE_BUSINESS_ROWS",
 ]) assert.ok(verifier.includes(marker), `missing fail-closed precondition: ${marker}`);
 
-assert.ok(verifier.includes("v_own_orders=0") && verifier.includes("v_own_payments=0") && verifier.includes("v_own_onboarding=0"), "must require own-tenant visibility");
-assert.ok(verifier.includes("v_cross_orders<>0") && verifier.includes("v_cross_payments<>0") && verifier.includes("v_cross_onboarding<>0"), "must deny cross-tenant visibility in both directions");
+assert.ok(verifier.includes("v_own_businesses=0") && verifier.includes("v_own_orders=0") && verifier.includes("v_own_payments=0") && verifier.includes("v_own_onboarding=0"), "must require own-tenant visibility for businesses, orders, payments, and onboarding");
+assert.ok(verifier.includes("v_cross_businesses<>0") && verifier.includes("v_cross_orders<>0") && verifier.includes("v_cross_payments<>0") && verifier.includes("v_cross_onboarding<>0"), "must deny cross-tenant visibility for businesses, orders, payments, and onboarding in both directions");
 assert.ok(verifier.includes("MNTY-TEST-A") && verifier.includes("MNTY-TEST-B"), "must use two synthetic tenants");
 assert.ok(!verifier.includes("MNTY-PLATFORM"), "must not use a platform-tenant identity for isolation tests");
 assert.ok(verifier.trimEnd().endsWith("ROLLBACK;"), "read-only verifier must rollback");
