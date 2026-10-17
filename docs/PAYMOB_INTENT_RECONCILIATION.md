@@ -13,8 +13,8 @@ Only explicit Paymob HTTP rejections `400`, `401`, `403`, `404`, and `422`, when
 1. Capture the ledger ID, request ID, approximate UTC timestamp, amount, and currency from the server-side operational record. Do not copy client secrets, API keys, or the raw claim token into tickets or chat.
 2. Read the ledger state using an authorized, read-only database session. Confirm status, provider, provider intent ID, and claim creation time. Do not update the row directly.
 3. Search Paymob's authorized merchant dashboard/support tooling by the ledger's `special_reference`, amount, currency, and time window. Confirm whether an intention exists. Do not infer absence from a single transient dashboard/search failure.
-4. If an intention exists, **do not retry creation**. Preserve the claim and escalate for a reviewed, audited reconciliation action that links the existing provider intention to the ledger. The current RC526 candidate does not provide an operator-finalization RPC.
-5. If Paymob authoritatively confirms no intention was created, preserve that evidence and escalate for an approved release procedure. The current release RPC only accepts the original exact claim token and one of the explicit definitive rejection statuses; do not fabricate an HTTP status or invoke it merely to clear a stale claim.
+4. If an intention exists, **do not retry creation**. Use the authenticated RPC `reconcile_mantigo_payment_intent_backend` with resolution `PROVIDER_INTENT_CONFIRMED`, the exact ledger amount/currency, provider intent/order IDs, the client secret obtained through an approved secure provider workflow, and the evidence reference. The RPC is limited to an active platform `SUPER_ADMIN` with `PLATFORM` scope and `full_control`; it checks amount/currency, atomically links the existing intent, stores the secret in the private table, removes the claim, and writes an audit record. Never place the client secret in an incident ticket or audit evidence reference.
+5. If Paymob authoritatively confirms no intention was created, use the same authenticated RPC with resolution `PROVIDER_INTENT_ABSENT`, a non-secret evidence reference, and all provider-detail parameters set to null. The RPC clears the claim only after platform-admin authorization and writes the decision to the audit log. Do not invoke the low-level service-role release RPC manually or fabricate an HTTP status to clear a stale claim.
 6. After an approved reconciliation, verify the ledger and provider state again, then retry only if the evidence shows no live provider intention and the approved procedure has released the claim.
 7. Record actor, UTC time, ledger ID, provider evidence/reference, decision, and verification result in the incident record. Never log or expose the client secret or provider API credentials.
 
@@ -36,7 +36,7 @@ from public.mantigo_financial_ledger
 where id = :'ledger_id';
 ```
 
-Do not run mutation SQL against production as a workaround. This guide does not authorize production access, manual updates, a provider call, or a release. Any reconciliation implementation needs an audited operator identity, evidence capture, authorization review, and disposable integration tests before production use.
+Do not run mutation SQL against production as a workaround. This guide does not authorize production access, manual updates, a provider call, or a release. The RPC's disposable integration tests cover non-admin rejection, confirmed-absence release, confirmed-intent recovery, amount mismatch rejection, audit logging, and claim/secret isolation. It remains a candidate until the migration chain is approved and the RPC is deployed through the controlled release pipeline.
 
 ## Release gate
 
