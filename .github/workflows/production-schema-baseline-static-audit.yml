@@ -1,0 +1,24 @@
+name: Production Schema Baseline Static Audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/tests/baselines/production_schema_snapshot.sql"
+      - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
+      - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "scripts/tests/production-schema-baseline-static-audit.mjs"
+      - ".github/workflows/production-schema-baseline-static-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run fail-closed schema baseline audit
+        run: node scripts/tests/production-schema-baseline-static-audit.mjs
