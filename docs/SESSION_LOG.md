@@ -148,3 +148,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - **Follow-up evidence check:** queried PR-triggered Actions for documentation checkpoint `6560d2fc7a055c12b4466c1b0a7692559c9e6f13`; the connector returned no runs. Logged as INCONCLUSIVE in `docs/TEST_EXECUTION_LEDGER.md`, not treated as a pass or as proof no workflow exists. No application tests were intentionally rerun.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-002 — branch and test evidence reconciliation
+
+- Re-read continuation protocol, test ledger, session log, production TODO, and project continuity on working branch `fix/rc526-mantigo-intent-claim-20261017`.
+- Verified PR #289 is Draft/open/unmerged; exact head is `67ff58063d616cd077ab8ac91a82acb7f805ae32`.
+- Compared tested code SHA `35a9da40dcca1be0448ebe3cceb7da619bafe87e` to current HEAD. GitHub compare returned 11 commits, and the changed-file list contains documentation only (five docs paths); prior code-test evidence was reused rather than intentionally rerunning the same tests.
+- Inspected 11 exact-head Actions workflow runs; all listed validations passed. Web workflow validation passed but deployment was skipped. Exact IDs and scope limits are recorded in `docs/TEST_EXECUTION_LEDGER.md`.
+- Continued RC-BLOCKER-001 search: repository code search found no authoritative creation migration; the revoke migration's sole history entry adds only the revoke; seven checked refs contain the same revoke file; the later reverse-bidding migration creates different RPCs. Original creation version remains unknown, so chronological replay remains blocked.
+- **Tests intentionally executed in this session:** none. **CI results inspected:** 11 runs, each logged in the ledger. **Production actions:** none.
+- **Next executable action:** search historical PR/file lists and trusted release/source artifacts for the original `counter_offer_indrive_bid(uuid,uuid,numeric)` definition; if provenance cannot be recovered, prepare a reviewed forward-only repair proposal, not a historical backfill.
+- Release remains **BLOCKED / NOT CERTIFIED**.
