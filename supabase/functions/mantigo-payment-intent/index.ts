@@ -77,8 +77,8 @@ Deno.serve(async req=>{
       items:[{name:"MantiGO Ride",amount:amountCents,description:`MantiGO ride ${rideId}`,quantity:1}],
       billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city,country:"EG",email,floor:"NA",state},
       special_reference:ledger.id,expiration:3600,notification_url:PAYMOB_CALLBACK_URL
-    })
-   signal:AbortSignal.timeout(15000)
+    }),
+    signal:AbortSignal.timeout(15000)
    });
   }catch(error){
    // The claim deliberately remains in place: timeout/network failure cannot prove Paymob rejected the request.
