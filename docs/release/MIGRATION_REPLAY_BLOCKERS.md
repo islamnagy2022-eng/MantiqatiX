@@ -1067,3 +1067,10 @@ The source search was extended beyond the current migration directory:
 - [x] [Ledger-Recovered Source Integrity run 39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639) passed on exact SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`.
 - [x] All 32 manifest-listed SQL statements passed byte-length and SHA-256 comparison against their files; version uniqueness and secret-pattern checks passed.
 - [ ] Full replay remains blocked at `marketing_provider_services`; do not equate source-integrity PASS with migration replay PASS or release certification.
+
+
+## Combined baseline decision — 2026-10-17
+
+- Created `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md` with candidate SQL and safe injection order for both known replay prerequisites: missing `marketing_provider_services` table/public-active policy and missing `MNTY-MAIN` organization row.
+- The proposal does not create files under production migrations and does not alter production. Both fixtures remain unapproved and uninjected.
+- Await explicit owner decision before adding fixtures. After approval, run full disposable replay once with both fixtures, not once per individual blocker.

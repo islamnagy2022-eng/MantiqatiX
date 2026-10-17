@@ -1793,3 +1793,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] The isolated 32-entry recovered-source integrity workflow passed on exact SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`? See canonical run [39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639) on SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`.
 - [x] Validator checked all 32 entries' byte lengths and SHA-256 hashes.
 - [ ] Full replay blocker remains unresolved; approval/source recovery for `marketing_provider_services` is required before changing replay inputs.
+
+
+## 2026-10-17 — Combined replay baseline approval
+
+- [x] Drafted exact candidate SQL and isolation controls for both known replay prerequisites in `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md`.
+- [ ] Await explicit approval for disposable-only baseline fixtures. No SQL fixture has been added/injected.
+- [ ] After approval, implement both fixtures + fail-closed validation in one change and run full replay once.

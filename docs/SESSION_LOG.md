@@ -368,3 +368,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Step `Validate recovered SQL statement bytes and hashes` passed against the expanded 32-entry ledger-recovered migration manifest. This verifies file byte lengths, SHA-256 hashes, unique versions, and the validator's embedded-secret guard for the 32 manifest entries.
 - This does not resolve the full replay blocker. Full replay [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) remains **FAIL** at the missing `public.marketing_provider_services` relation.
 - No replay was rerun; the integrity workflow is separate and lightweight.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-015 — bundled baseline decision
+
+- To avoid one replay per known blocker, drafted `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md` with two minimal test-only fixtures: (A) the live-derived `marketing_provider_services` table plus its existing public-active SELECT policy, and (B) the `MNTY-MAIN` organization row without any Auth user or membership.
+- The proposal includes exact candidate SQL, injection order, and fail-closed controls. It is not implemented or injected because explicit approval is still needed.
+- If approved, add both fixtures and validator together, then run the full disposable replay once. Keep source-provenance blockers open even if replay passes.
