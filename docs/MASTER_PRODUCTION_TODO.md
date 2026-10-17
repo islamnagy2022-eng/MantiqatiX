@@ -1588,3 +1588,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: RC434's line-level purchase quantity limits/dependencies must be reviewed with RC437/RC438 in order. Missing RC425–RC432 and RC434–RC441 source files remain on main.
 - [ ] BLOCKED: authoritative historical creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing. The current schema snapshot contains the live definition but does not establish historical provenance.
 - [ ] BLOCKED: PR #282 remains Draft/unmerged until full chronological disposable replay, tenant isolation, payment/finance E2E, and backup/restore gates pass. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC526 MantiGO Paymob claim boundary (candidate)
+
+- [x] Added a database-backed, service-role-only claim/finalize boundary before the external Paymob intention request. The claim is a conditional row update and only one concurrent request can win.
+- [x] Corrected RPC IDs to `text`, matching the authoritative `mantigo_financial_ledger.id text primary key` schema; claim eligibility requires `provider IS NULL` and no existing provider intent/claim.
+- [x] Bounded the provider request to 15 seconds. Network exceptions, timeout, malformed provider response, and failed finalization preserve the claim and require reconciliation rather than blind retry.
+- [x] Added disposable PostgreSQL integration tests including a two-session `dblink` claim race, wrong-token rejection, finalization, metadata preservation, and role-grant checks; added a dedicated workflow for static contract, Deno type-check, and SQL behavior.
+- [ ] Exact-head CI and PostgreSQL behavior have not yet been verified for this candidate branch. Full RC425–RC441 chronological replay remains a separate blocker.
+- [ ] Claim recovery requires an operator reconciliation path; do not clear claims automatically after ambiguous provider outcomes.
+- **Production impact:** none. No production DDL, live Paymob request, payment, deployment, or merge.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
