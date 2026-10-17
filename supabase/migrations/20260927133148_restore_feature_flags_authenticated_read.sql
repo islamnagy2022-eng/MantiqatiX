@@ -1,0 +1,1 @@
+grant select on public.platform_feature_flags to authenticated;

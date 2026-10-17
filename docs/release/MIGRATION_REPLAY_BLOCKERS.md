@@ -1031,3 +1031,11 @@ The source search was extended beyond the current migration directory:
 - **Root cause confirmed:** missing historical bootstrap source/data dependency in repository replay. The production schema snapshot contains no rows, so it cannot supply `MNTY-MAIN`.
 - **Next action:** choose and approve a privacy-safe recovery path: reviewed/private exact-source recovery, or an explicitly approved test-only organization seed fixture for disposable replay. No fixture was added in this commit. A later forward migration alone cannot fix the earlier replay dependency.
 - This run is recorded as **FAIL**; do not rerun until the source/fixture/workflow changes under an approved repair path.
+
+
+## Applied-ledger source recovery batch — 2026-10-17
+
+- Reconciled all 283 read-only production ledger entries against the recovery branch after its 55 alias mappings. There were 22 source-name gaps; four were already represented by alias-normalized files.
+- Restored 21 missing source files from exact applied SQL statement bodies, with version/name/character-count/MD5 provenance in `docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md`. These are ledger-recovered SQL bodies, not claims that original comments were recovered.
+- Excluded `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` because the applied SQL contains a hard-coded owner email. It remains the source/data prerequisite for `MNTY-MAIN`; privacy-safe recovery is still required.
+- The source additions invalidate the previous full replay result for the new head. Run the replay once on the new exact SHA; record the first SQL failure. Do not repeat other tests without an input change.

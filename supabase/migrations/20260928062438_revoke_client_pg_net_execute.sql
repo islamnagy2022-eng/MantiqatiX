@@ -1,0 +1,2 @@
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA net FROM anon, authenticated;
+REVOKE ALL ON ALL PROCEDURES IN SCHEMA net FROM anon, authenticated;

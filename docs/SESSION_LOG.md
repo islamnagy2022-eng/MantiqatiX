@@ -328,3 +328,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The ledger SQL contains an owner email; do not copy the unredacted statement into the public repository without privacy review. Design proposal: `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md`.
 - No organization fixture was added because explicit approval for a new test-only data baseline is not established. Next action is privacy/replay-path approval, then implement and rerun only because the replay input changed.
 - No production writes or deployment occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-008 — recover missing ledger SQL sources
+
+- Read-only inventory compared all 283 applied ledger versions against recovery-branch migrations after the 55 alias mappings. It identified 22 source-name gaps; four are already represented by alias-normalized files, leaving 22 gaps including the privacy-sensitive owner bootstrap.
+- Retrieved the exact applied SQL bodies for 21 non-bootstrap gaps from `supabase_migrations.schema_migrations.statements[1]`. Automated screening found no literal email, Egyptian phone, or common key/token pattern in those statements. Version/name/length/MD5 evidence is in `docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md`.
+- Restored those 21 SQL bodies as canonical versioned migration source files. The owner bootstrap `20260927131555` remains excluded because its applied SQL embeds an owner email; see `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md`.
+- These source additions change replay inputs, so one new exact-head disposable replay is justified. Do not rerun unrelated PASS suites. The first failure may move earlier because previously omitted ledger migrations are now present.
+- No production changes occurred.

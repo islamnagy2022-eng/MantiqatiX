@@ -1,0 +1,1 @@
+insert into public.businesses (tenant_id,name,code,status,settings) select 'MNTY-PLATFORM','MNTY Berket El Sabaa Test Provider','MNTY-BERKET-TEST','INACTIVE',jsonb_build_object('fixture',true,'purpose','production-e2e-test','location','Birket El Sabaa') where not exists (select 1 from public.businesses where code='MNTY-BERKET-TEST');

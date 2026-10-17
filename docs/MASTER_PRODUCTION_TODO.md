@@ -1756,3 +1756,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Documented the source gap and privacy issue in `docs/release/ORGANIZATION_BOOTSTRAP_SOURCE_GAP_20261017.md`.
 - [ ] **BLOCKED pending explicit review:** choose exact-source recovery with privacy review or approve a test-only, minimum organization/tenant seed baseline for disposable replay. Do not add an unreviewed public SQL statement containing the owner email.
 - [ ] After approval, run the full disposable replay once on the changed exact SHA; record the next first failure and repeat only after a new repair.
+
+
+## 2026-10-17 — Ledger source recovery batch
+
+- [x] Reconciled 283 production ledger versions against normalized recovery-branch migration sources.
+- [x] Restored 21 missing historical SQL statement bodies from the authoritative applied ledger, each pinned by version, name, character count, and MD5 in `docs/release/LEDGER_STATEMENT_RECOVERY_20261017.md`.
+- [ ] Keep `20260927131555_bootstrap_mnty_owner_islam_nagy_v2` blocked pending privacy-reviewed exact-source handling or explicit approval for a test-only organization seed. Do not publish its owner email.
+- [ ] Run one full disposable replay on the changed source SHA and triage the next first failure. No repeated PASS tests unless their inputs change.
