@@ -1788,3 +1788,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **PENDING:** controlled Paymob Sandbox E2E to verify the provider's actual response and callback contract. No sandbox request was sent in this batch.
 - [ ] **BLOCKED:** historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unavailable. The main-line parent of the revoke commit had only the SMM privilege migration in its migration directory; do not invent or backdate the missing DDL.
 - Release remains **BLOCKED / NOT CERTIFIED**; no production changes, deployment, merge, payment, or release occurred.
+
+
+## 2026-10-17 — Additional historical-source findings
+
+- [x] Read-only production migration-ledger query recovered the applied version/name and recorded SQL metadata for `20260927131555 / bootstrap_mnty_owner_islam_nagy_v2`. Its stored SQL creates `MNTY-PLATFORM`, `MNTY-MAIN`, and OWNER membership by email lookup; it contains a hard-coded owner email and elevated permissions, so no verbatim public restore was committed. Privacy/security review and a valid replay-user strategy are required.
+- [x] Searched seven additional accessible refs for migrations before the revoke timestamp; all showed only the same SMM privilege migration and no `counter_offer_indrive_bid` creation DDL.
+- [ ] **BLOCKED — RC339 bootstrap replay:** choose a privacy-safe, explicitly labelled test-only fixture or another approved source-recovery path; do not guess owner identity or claim exact historical restoration if altered.
+- [ ] **BLOCKED — counter-offer replay:** original `public.counter_offer_indrive_bid(uuid,uuid,numeric)` creation DDL/version remains unavailable. No stub, backdated migration, or revoke bypass.
+- Production remains **BLOCKED / NOT CERTIFIED**.

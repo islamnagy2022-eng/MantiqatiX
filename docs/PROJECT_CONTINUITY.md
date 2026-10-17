@@ -714,3 +714,12 @@ This status is intentional and must remain until the open gates above are indepe
 - **Live provider verification:** not done; no Paymob sandbox request or real payment was made. Need authorized sandbox credentials and a controlled E2E.
 - **Historical replay:** original creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Main-line parent commit `33d7b626c75ee649a71b6ae6d3f5303d1a47901e` had only one migration before the revoke commit; that revoke commit added only the revoke file. This supports the missing-source finding but does not prove no external archive exists.
 - **Next:** authorized sandbox E2E when credentials are available; continue provenance search only for authoritative source artifacts. Keep production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — HISTORICAL-SOURCE-SWEEP-003 checkpoint
+
+- Searched seven accessible branches for migration files earlier than `20260927095000`; no creation source for `counter_offer_indrive_bid` was found.
+- Read-only production ledger query found applied migration `20260927131555 / bootstrap_mnty_owner_islam_nagy_v2`; the recorded SQL creates the platform/main organization and owner membership by email lookup, contains a hard-coded owner email, and grants elevated platform permissions. The email was not copied to public files. Treat this as a source artifact requiring privacy/security review; a test-only adaptation must be labelled accurately and must not be claimed as the original SQL.
+- Exact code tests on `d7fc64d...` passed and are recorded in the ledger. Documentation-only commit `2b8162a...` also passed all listed PR workflows; Pages validation passed and deployment was skipped.
+- **Open:** counter-offer historical creation provenance; privacy-safe RC339 bootstrap replay; live Paymob Sandbox E2E; tenant-isolation E2E; backup/restore rehearsal; remaining release gates.
+- **Next:** design a privacy-safe, explicitly test-only bootstrap for isolated replay only after review; continue searching trusted provenance for the counter-offer function. No production changes, deployments, payments, merges, or releases. Production remains **BLOCKED / NOT CERTIFIED**.
