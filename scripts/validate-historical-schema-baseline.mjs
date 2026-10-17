@@ -1352,12 +1352,12 @@ const mantigoOpenRidesBaselineValid =
   /8d096904c777b4c7eae096014b45c59859c96cee/.test(mantigoOpenRidesBaseline) &&
   /NOT claimed to be the original creation migration/i.test(mantigoOpenRidesBaseline) &&
   /Never apply this file to production/i.test(mantigoOpenRidesBaseline) &&
-  /CREATE OR REPLACE FUNCTION public\\.list_open_mantigo_rides_backend\\s*\\(\\s*p_user_id\\s+uuid\\s*\\)[\\s\\S]*RETURNS TABLE/i.test(mantigoOpenRidesBaseline) &&
-  /SECURITY DEFINER[\\s\\S]*SET search_path = public/i.test(mantigoOpenRidesBaseline) &&
+  /CREATE OR REPLACE FUNCTION public\.list_open_mantigo_rides_backend\s*\(\s*p_user_id\s+uuid\s*\)[\s\S]*RETURNS TABLE/i.test(mantigoOpenRidesBaseline) &&
+  /SECURITY DEFINER[\s\S]*SET search_path = public/i.test(mantigoOpenRidesBaseline) &&
   /USER_CONTEXT_MISMATCH/i.test(mantigoOpenRidesBaseline) &&
-  /status IN \\('OPEN', 'OPEN_FOR_BIDS'\\)/i.test(mantigoOpenRidesBaseline) &&
-  /GROUP BY r\\.id/i.test(mantigoOpenRidesBaseline) &&
-  !/\\b(insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+(public|private)\\.)/i.test(mantigoOpenRidesBaseline);
+  /status IN \('OPEN', 'OPEN_FOR_BIDS'\)/i.test(mantigoOpenRidesBaseline) &&
+  /GROUP BY r\.id/i.test(mantigoOpenRidesBaseline) &&
+  !/\b(insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\.)/i.test(mantigoOpenRidesBaseline);
 const mantigoOpenRidesWorkflowValid =
   mantigoOpenRidesWorkflow.includes(mantigoOpenRidesBaselinePath) &&
   mantigoOpenRidesWorkflow.includes(mantigoOpenRidesTemporaryName) &&
