@@ -94,6 +94,48 @@ if (platformOrganizationSeedFailures.length) {
   process.exit(1);
 }
 
+const platformUserSeedBaselinePath = "supabase/tests/baselines/mnty_showcase_owner_user_seed.sql";
+const platformUserSeedVersion = "20261004005817";
+const platformUserSeedTemporaryName = platformUserSeedVersion + "_test_only_mnty_showcase_owner_user_seed.sql";
+const platformUserSeedConsumerSourceName = "20261004004500_rc339_seed_mantiqati_official_showcase.sql";
+const platformUserSeedConsumerReplayVersion = "20261004005819";
+const platformUserSeedConsumer = migrations.find(({ name }) => name === platformUserSeedConsumerSourceName);
+const platformUserSeedBaseline = fs.existsSync(platformUserSeedBaselinePath)
+  ? fs.readFileSync(platformUserSeedBaselinePath, "utf8")
+  : "";
+const platformUserSeedCreator = migrations.find(({ name, sql }) =>
+  name < platformUserSeedConsumerSourceName &&
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?users\b/i.test(sql)
+);
+const platformUserSeedDml = platformUserSeedBaseline.match(/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+(?:public|private)\.)/gim) || [];
+const platformUserSeedBaselineValid =
+  /TEST-ONLY SYNTHETIC SHOWCASE OWNER SEED FOR DISPOSABLE MIGRATION REPLAY/.test(platformUserSeedBaseline) &&
+  /fixed owner UUID/i.test(platformUserSeedBaseline) &&
+  /non-login synthetic auth identity only in disposable CI/i.test(platformUserSeedBaseline) &&
+  /NEVER apply this file to production/i.test(platformUserSeedBaseline) &&
+  /INSERT INTO auth\.users\s*\([\s\S]*?id, aud, role, email, encrypted_password, email_confirmed_at[\s\S]*?raw_app_meta_data, raw_user_meta_data, created_at, updated_at/i.test(platformUserSeedBaseline) &&
+  /f7914ac7-4b03-4456-afdd-e386f2ac6a5b/i.test(platformUserSeedBaseline) &&
+  /showcase-owner@invalid\.example/i.test(platformUserSeedBaseline) &&
+  /INSERT INTO public\.users\s*\([\s\S]*?id, tenant_id, organization_id, name, email, role, roles/i.test(platformUserSeedBaseline) &&
+  /'MNTY-PLATFORM'[\s\S]*'OWNER'[\s\S]*ON CONFLICT \(id\) DO UPDATE/i.test(platformUserSeedBaseline) &&
+  platformUserSeedDml.length === 2 &&
+  !/showcase-owner@(?!invalid\.example)/i.test(platformUserSeedBaseline);
+const platformUserSeedFailures = [
+  ["missing RC339 showcase seed source", !platformUserSeedConsumer],
+  ["missing public users table creator before RC339", !platformUserSeedCreator],
+  ["invalid synthetic showcase owner fixture", !platformUserSeedBaselineValid],
+  ["temporary showcase owner migration already exists", fs.existsSync(path.join(migrationDirectory, platformUserSeedTemporaryName))],
+  ["temporary showcase owner version collision", migrations.some(({ name }) => name.slice(0, 14) === platformUserSeedVersion)],
+  ["temporary showcase owner seed does not follow tenant seed", platformUserSeedVersion <= platformTenantSeedVersion],
+  ["temporary showcase owner seed is not before organization seed", platformUserSeedVersion >= platformOrganizationSeedVersion],
+  ["temporary showcase owner seed is not before canonical RC339 replay version", platformUserSeedVersion >= platformUserSeedConsumerReplayVersion],
+  ["RC339 replay alias is missing for showcase owner", !replayWorkflowForOrganizationSeed.includes('rename_legacy_alias "20261004004500_rc339_seed_mantiqati_official_showcase.sql" "20261004005819_rc339_seed_mantiqati_official_showcase.sql"')]
+].filter(([, failed]) => failed);
+if (platformUserSeedFailures.length) {
+  for (const [reason] of platformUserSeedFailures) console.error("P0 BLOCKED showcase owner seed fixture: " + reason);
+  process.exit(1);
+}
+
 const bookingsBaselinePath = "supabase/tests/baselines/bookings.sql";
 const legacyBaselineSpecs = [
   { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\s\S]*name character varying\(255\) not null[\s\S]*code character varying\(64\) not null/i },
