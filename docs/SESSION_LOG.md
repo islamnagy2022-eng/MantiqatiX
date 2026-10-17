@@ -191,3 +191,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No tests were intentionally rerun; no production mutation, migration application, deployment, payment, merge, or release occurred.
 - **Next:** continue resolving historical migration provenance and baseline security-review gates; then run the required tenant-isolation, Paymob Sandbox, and backup/restore gates when their isolated environments and authorized credentials are available.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-VERIFY-005
+
+- Added a pure, reusable Paymob intention-correlation guard and replaced the inline predicate in `mantigo-payment-intent/index.ts`. It compares the expected ledger amount, normalized currency, and exact `special_reference` before finalization; mismatches preserve the claim and return the existing recovery-required error.
+- Added 8 Node unit tests for valid match and mismatch/malformed-response cases, and wired them into Pages validation. Updated the source-contract validator to require helper usage before finalization.
+- Ran `node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs` locally in Node v22.16.0: **8/8 PASS**. This is pure-unit coverage only, not a Paymob/Supabase E2E test.
+- Exact code head when checking CI: `b5880a547e5097f4adbc727b5e57b695ed32b8ba`; workflows were queued/in progress at that observation. The next session/step must inspect exact-head CI; do not claim it passed until results are complete.
+- No live provider calls, production mutations, migrations, deployments, payments, merges, or releases occurred.
+- **Next:** verify exact-head CI (including Pages test and Deno/type checks), then continue the release blockers: historical migration provenance, tenant isolation, Paymob Sandbox, and backup/restore. Release remains **BLOCKED / NOT CERTIFIED**.
