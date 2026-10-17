@@ -335,3 +335,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Corrected the validator to compare the known temporary baseline version directly against the prerequisite version constant 20260927074156. The existing earlier check validates the provider-profile baseline file itself. First-consumer ordering remains asserted against committed migration 20260927132904.
 - Correction commit: d1eff709f01927f30a676f9bd96d20ae122f7837. A new exact-head workflow result is required because validator code changed. No manual test rerun was performed.
 - At time of this note, replay runs for prior intermediate commits were queued/in progress; none is a pass for the corrected validator. The final exact-head replay must be identified by its own SHA and logged after completion.
+
+
+## 2026-10-17 — REPLAY-ORDER-002 — duplicate policy candidate correction
+
+- Exact replay at d1eff709f01927f30a676f9bd96d20ae122f7837 failed at 20260928184000_rc199_customer_cross_tenant_order_visibility.sql with SQLSTATE 42710 because order_status_history_customer_select_own already existed.
+- Compared sources: prior migration 20260928154411 creates the same policy; production version capture run 38993809648 records 20260928154411 but not 20260928184000. It records applied version 20260928154527 without a matching source file found in repository search. Do not claim 20260928184000 recovers 20260928154527.
+- Made the unapplied candidate idempotent with fail-closed contract checks for both same-name policies; matching policy is reused, absent policy is created, mismatch raises. SELECT grants remain unchanged.
+- Added a one-file immutability exception tied to original blob SHA and the exact read-only production version-list hash; manifest remains PENDING_REVIEW and deployment_approved=false.
+- Latest candidate SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0 has source-integrity CI PASS [39071093548]. Full replay [39071093587] was pending. Intermediate replay [39071044418] is pre-final and not final evidence.
+- Next: inspect exact-head replay and migration immutability workflow. Keep production gate blocked; missing source for applied version 20260928154527 remains unresolved.

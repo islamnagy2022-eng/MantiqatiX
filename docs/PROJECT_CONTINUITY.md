@@ -781,3 +781,12 @@ This status is intentional and must remain until the open gates above are indepe
 ### Replay validator correction checkpoint — 2026-10-17
 
 The initial ordering fix exposed a validator-ordering concern during review: temporary migrations do not exist yet when scripts/validate-historical-schema-baseline.mjs reads the committed migration directory. Replaced the attempted temporary-migration lookup with a pinned prerequisite version comparison (20260927074156), retaining the first-consumer version check (20260927132904). Correction commit d1eff709f01927f30a676f9bd96d20ae122f7837. Await exact-head CI; the prior pending run is not proof for this correction.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-002 (2026-10-17)
+
+- Exact replay at d1eff709f01927f30a676f9bd96d20ae122f7837 passed the marketing table consumer and then failed at 20260928184000 with SQLSTATE 42710 due to a duplicate order_status_history_customer_select_own policy.
+- Production read-only version list captured by run 38993809648 includes 20260928154411 (which creates the policy) and omits 20260928184000. It includes applied version 20260928154527, for which no matching repository source was found.
+- Candidate 20260928184000 is now idempotent for both customer policies: matching existing policies are reused; absent policies are created; mismatched contracts fail closed. The immutability exception is pinned to the original blob SHA and read-only ledger hash. Manifest remains PENDING_REVIEW.
+- Current code SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0: source integrity PASS [39071093548]; full replay [39071093587] pending at last check. Check immutability CI separately.
+- Next: inspect exact-head workflow results and fix only the next confirmed first failure. Release remains BLOCKED / NOT CERTIFIED.
