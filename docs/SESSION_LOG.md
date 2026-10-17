@@ -88,3 +88,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - This is focused disposable PostgreSQL evidence only; it is not a full chronological migration replay, live production RPC deployment, or payment/settlement E2E.
 - Production remains at 283 migrations through `20261008222845` (RC424); read-only live function definitions still show the old report columns and generic platform-admin helper. No production writes or deployments were performed.
 - RC462 malformed-permission regression remains in PR #248; exact-head PostgreSQL job was queued/not yet passed. Full replay still lacks authoritative creation DDL for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
+
+
+## 2026-10-17 — consolidated RC449 → RC462 → RC565 candidate
+
+- **Correction to the prior note:** RC462 is now also included in PR #282 using the byte-identical canonical migration/test from PR #248. The RC462 migration blob SHA is exactly `8be8dd4537c8e79f3590b5451d9d0d8a08082787`, matching PR #248; the test source was copied byte-for-byte. No migration SQL was reconstructed or edited.
+- The MantiGO platform-admin workflow now applies the disposable fixture, RC449 platform-scope migration, RC462 malformed-permission guard and regression, RC449 authorization regression, then RC565 report fix and behavioral regression, in timestamp order.
+- The latest PR #282 code head is `2339be895579f335918cdb9a974aa9467df4e954`; all newly triggered exact-head checks are queued. The earlier focused RC449 + RC565 SQL integration passed on `44fd01d6d5dafbd2b130e023a806328ebe2766ed`; RC462's separate focused PostgreSQL regression passed on PR #248 code head `8ca3130985f15401138cfd063c26e1cc38a7851f`. The consolidated three-migration sequence has not yet completed.
+- Keep both PRs draft/unmerged while the exact-head consolidated tests and full chronological replay remain incomplete. No production changes.
