@@ -626,3 +626,13 @@ This status is intentional and must remain until the open gates above are indepe
 - **Previously checked CI:** 11 runs on `f801dcee6f8d6a808af14216520cac26df186d43` completed successfully; deploy was skipped. These results are not attributed to proposal commit `b9a8946...`.
 - **Next exact action:** search trusted archives/source backups. If none exists, request explicit approval for a disposable-only baseline; do not fabricate a historical migration. No tests were intentionally rerun, and production remains untouched.
 - **Release:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-VERIFY-003
+
+- **PR #289:** Draft/open/unmerged, head `74f6768eba37898ef13c66fa057ecb71ebbc3e81`. Exact-head CI results are recorded in `docs/TEST_EXECUTION_LEDGER.md`; all listed validation workflows passed and web deployment was skipped.
+- **Disposable forward replay:** [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) passed on separate test-only branch `test/production-baseline-forward-replay-20261017`, SHA `a79b2caa5b883817f5c1b550d044b09780f06820`. It restored the schema-only snapshot at checkpoint `20261008222845` to an isolated local Supabase stack and applied newer forward migrations. The exact-run artifact exists but its contents/count were not independently inspected.
+- **Important distinction:** this is successful forward replay from a live-derived schema baseline, not recovery of historical DDL and not full chronological replay from an empty database.
+- **First unresolved blocker:** `RC-BLOCKER-001`, original creation source/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Continue searching trusted source/backup archives; do not fabricate or backdate migration history.
+- **Next actions:** inspect the exact replay artifact if supported; review baseline security findings; continue source-provenance recovery. Keep PR #284 PENDING_REVIEW and all production/release gates blocked.
+- **Safety:** no production mutation, migration application, deployment, payment, merge, or release occurred.
