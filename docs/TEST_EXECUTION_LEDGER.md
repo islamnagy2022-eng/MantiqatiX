@@ -71,3 +71,11 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Run:** [39079623274](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079623274)
 - **Result:** FAIL at the same `20261006101048_rc_mantigo_production_completion_v1.sql` grant with SQLSTATE `42883`: `function public.list_open_mantigo_rides_backend(uuid) does not exist`.
 - **Interpretation:** this is expected pre-fix evidence and is not evidence about the new workflow commit `8c3814ec12206769a6be546a9afc7ed80450554d`; the baseline file alone is inert until the workflow injects it.
+
+ 
+### STATIC-COMPAT-002 — function body compared to captured production snapshot
+- **SHA inspected:** `dcf854731f368539f3133e8f96ac03331d8aa702` (same executable fixture content as the replay candidate).
+- **Sources:** production snapshot blob `8d096904c777b4c7eae096014b45c59859c96cee`; test baseline blob `89943262f16ae973c1cfc423412d417961dbfd96`.
+- **Result:** PASS. Extracted PL/pgSQL bodies match after whitespace/case normalization and removal of the fixture's trailing statement terminator.
+- **What it proves:** the test-only baseline body matches the function body captured in the live schema snapshot at RC424 checkpoint.
+- **What it does not prove:** original creation migration/version, historical creation ordering, SQL runtime validity, or production release readiness.
