@@ -13,6 +13,7 @@ create table public.mantigo_financial_ledger (
   payment_method text,
   provider text,
   provider_intent_id text,
+  provider_transaction_id text,
   payment_status text not null default 'REQUIRED' check (payment_status in ('REQUIRED','PENDING','PAID','FAILED','REFUNDED','CASH_CONFIRMED')),
   settlement_status text not null default 'NOT_READY' check (settlement_status in ('NOT_READY','READY','SETTLED','HELD','CANCELLED')),
   payment_reference text,
@@ -23,3 +24,7 @@ create table public.mantigo_financial_ledger (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create unique index mantigo_financial_provider_intent_uidx
+  on public.mantigo_financial_ledger(provider, provider_intent_id)
+  where provider_intent_id is not null;
