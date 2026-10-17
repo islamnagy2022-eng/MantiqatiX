@@ -19,7 +19,7 @@ const persistenceLostIndex = source.indexOf('if(persistedIntent!==true)return js
 const checkoutResponseIndex = source.lastIndexOf('return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret');
 
 check("only REQUIRED or PENDING ledgers enter the payment-intent flow", source.includes('if(!["REQUIRED","PENDING"].includes(String(ledger.payment_status)))'));
-check("a complete persisted intent requires provider ID, client secret and provider order ID", source.includes('ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret&&metadata.paymob_intention_order_id'));
+check("a complete persisted intent is reusable only from PENDING state and requires all provider identifiers", source.includes('ledger.payment_status==="PENDING"&&ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret&&metadata.paymob_intention_order_id'));
 check("incomplete PENDING ledger, partial provider state, or existing claim fails closed before a new provider request", source.includes('if(ledger.payment_status==="PENDING"||metadata.paymob_intent_claim||') && source.includes("PAYMENT_INTENT_RECOVERY_REQUIRED") && source.indexOf("PAYMENT_INTENT_RECOVERY_REQUIRED") < providerRequest);
 check("database claim RPC executes before any external Paymob request", claimIndex >= 0 && claimIndex < providerRequest);
 check("claim failure or lost race prevents external provider request", claimFailedIndex >= 0 && claimFailedIndex < providerRequest && claimLostIndex >= 0 && claimLostIndex < providerRequest);
