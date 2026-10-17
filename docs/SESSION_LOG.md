@@ -48,3 +48,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Remaining blockers:** RC425–RC432 and RC434–RC441 remain absent from main; historical creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)` is still missing. RC434 purchase-order line limits/dependencies need chronological verification. PR #282 remains Draft/unmerged.
 - **Not performed:** no production writes, migration execution, function/grant changes, payment/settlement, or deployment.
 - **Next:** finish baseline manual security review; then, only after explicit approval, run full disposable forward replay and runtime tenant/payment/restore tests. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — MantiGO payment-intent persistence guard (source-only candidate)
+
+- **Finding:** `supabase/functions/mantigo-payment-intent/index.ts` accepted both `REQUIRED` and `PENDING`, but the write was conditional on `payment_status = REQUIRED`; the handler checked only the PostgREST error and could return HTTP 200 when the conditional update affected zero rows.
+- **Change candidate:** incomplete `PENDING` state and partial provider state now fail closed; persistence requires exactly one returned row before exposing checkout credentials.
+- **Validation added:** `scripts/validate-mantigo-payment-intent-persistence.mjs` is wired into `.github/workflows/pages.yml`.
+- **Limitations:** source-contract validation is not a behavioral concurrency test. Two concurrent calls may still create an orphan Paymob intention before one conditional database write wins; a database-backed claim/lease is a separate hardening requirement. Do not claim that duplicate provider-intention creation is fully prevented.
+- **Production impact:** none. No Paymob API call, production DB write, migration application, merge, or deployment was performed.
+- **Next:** exact-head CI, review, and integration with the release-gated atomic webhook work; release remains **BLOCKED / NOT CERTIFIED**.
