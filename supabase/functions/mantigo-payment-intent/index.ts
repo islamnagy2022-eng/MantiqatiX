@@ -115,6 +115,19 @@ Deno.serve(async req=>{
     return json({error:"PAYMENT_PROVIDER_INTENT_UNCONFIRMED",recoveryRequired:true},502,requestId);
   }
 
+  // Validate Paymob's echoed transaction details before binding its identifiers to this ledger.
+  // A successful HTTP response alone does not prove the amount, currency, or merchant reference match.
+  const intentionDetail=provider.intention_detail&&typeof provider.intention_detail==="object"&&!Array.isArray(provider.intention_detail)
+    ?provider.intention_detail as Record<string,unknown>:{};
+  const confirmedAmount=Number(intentionDetail.amount);
+  const confirmedCurrency=String(intentionDetail.currency??"").toUpperCase();
+  const confirmedReference=String(provider.special_reference??"");
+  if(!Number.isFinite(confirmedAmount)||confirmedAmount!==amountCents||confirmedCurrency!==currency||confirmedReference!==ledger.id){
+    console.error(JSON.stringify({requestId,stage:"paymob_intention_correlation_mismatch",httpStatus:providerResponse.status}));
+    // Preserve the claim: the provider may have created a real intention that needs reconciliation.
+    return json({error:"PAYMENT_PROVIDER_INTENT_MISMATCH",recoveryRequired:true},502,requestId);
+  }
+
   const {data:persistedIntent,error:updateError}=await admin.rpc("finalize_mantigo_payment_intent_backend",{
     p_ledger_id:ledger.id,p_claim_token:claimToken,p_provider_intent_id:providerIntentId,
     p_provider_order_id:providerOrderId,p_client_secret:clientSecret,p_payment_methods:provider.payment_methods??null
