@@ -36,5 +36,5 @@ jobs:
         run: node scripts/validate-migration-history-immutability.mjs --self-test
       - name: Reject edits to existing migrations
         env:
-          GITHUB_BASE_REF: ${{ github.base_ref || 'main' }}
+          MIGRATION_BASE_REF: ${{ github.base_ref || 'main' }}
         run: node scripts/validate-migration-history-immutability.mjs

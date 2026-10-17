@@ -86,7 +86,7 @@ if (selfTest) {
   process.exit(0);
 }
 
-const baseRef = process.env.GITHUB_BASE_REF;
+const baseRef = process.env.MIGRATION_BASE_REF || process.env.GITHUB_BASE_REF;
 if (!baseRef) {
   console.error("GITHUB_BASE_REF is required; this validator must run in a pull_request workflow.");
   process.exit(2);
