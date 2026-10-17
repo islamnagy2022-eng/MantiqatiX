@@ -25,7 +25,7 @@ if (manifest.last_applied_migration_version !== versions.at(-1)) fail("ledger ch
 if (manifest.applied_migration_count !== versions.length) fail("ledger count mismatch");
 if (manifest.applied_migration_versions_sha256 !== sha256(versions.join("\n") + "\n")) fail("ledger hash mismatch");
 
-const publicTables = [...snapshot.matchAll(/CREATE TABLE "public"\."([^"]+)"/g)].map(m => m[1]);
+const publicTables = [...snapshot.matchAll(/CREATE TABLE (?:IF NOT EXISTS )?"public"\."([^"]+)"/g)].map(m => m[1]);
 const uniqueTables = [...new Set(publicTables)];
 const rlsEnabled = new Set([...snapshot.matchAll(/ALTER TABLE "public"\."([^"]+)" ENABLE ROW LEVEL SECURITY;/g)].map(m => m[1]));
 const missingRls = uniqueTables.filter(t => !rlsEnabled.has(t));
