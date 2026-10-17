@@ -1014,3 +1014,10 @@ The source search was extended beyond the current migration directory:
 - **Fix prepared on this branch:** allow only this exact source/target pair when comment-stripped, whitespace-free, lowercased SQL bodies match; remove the duplicate alias only from the disposable CI workspace and log `SKIP_DUPLICATE_LEDGER_ALIAS`. If the pair differs, or any other target collision occurs, fail closed. Git source files and production history remain unchanged.
 - **Validation status:** code change is awaiting the new exact-head workflow run. The previous failed run must remain recorded as a failure; it is not rewritten as a pass.
 - **Separate evidence:** [Reviewed Production Baseline Forward Replay run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) passed 32 forward migrations from reviewed production schema checkpoint `20261008222845`, including RC526. This is **not** a clean chronological replay from empty schema and does not close historical migration provenance.
+
+
+## Replay workflow trigger correction — 2026-10-17
+
+- The alias-normalization fix was committed at `aec857203a67049d61b6473aec06c6cea84bf893`, but no workflow run appeared for that SHA. Inspection showed this workflow file exists only on the draft recovery branch, while its `push.branches` filter allowed only `main`; the pull-request workflow definition is not present on the base branch, so the expected automatic run was not scheduled.
+- Added the exact recovery branch to the workflow's push allowlist so the disposable replay can run on the branch that contains the workflow. This is CI-trigger configuration only; it does not apply migrations to production.
+- The alias fix remains **UNVERIFIED** until a new exact-head run completes. If no run is scheduled after this commit, record that outcome and do not claim a pass.

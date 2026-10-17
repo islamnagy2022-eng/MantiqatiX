@@ -1740,3 +1740,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] If replay reaches a new first failure, record it and fix its root cause before rerunning; do not repeat earlier PASS tests unnecessarily.
 - Separate forward-baseline run [39010395892](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/39010395892) passed 32 migrations from checkpoint `20261008222845`; it is not full chronological replay.
 - Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Replay workflow trigger
+
+- [x] Added `reconcile/rc425-458-current-main-20261011` to the disposable replay workflow's push branch allowlist because the workflow is not yet present on base `main`.
+- [ ] Await exact-head run after alias-collision correction. Do not mark the full replay as passing until the run succeeds and its exact-run report is inspected.

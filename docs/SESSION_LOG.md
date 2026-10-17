@@ -312,3 +312,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - New exact-head replay is justified because the workflow implementation changed. Record the resulting run once; do not rerun it absent code/workflow/environment change or a documented failure reason.
 - Separate PASS evidence [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892): reviewed schema snapshot checkpoint `20261008222845`, 32 forward migrations applied including RC526. This does not prove full chronological replay or recover missing historical creation DDL.
 - SMM historical source remains unresolved; approved SMM provider/credentials snapshots are test-only replay aids, not recovered original migration files. Production remains untouched and release blocked.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-005 — make the replay fix executable in CI
+
+- After commit `aec857203a67049d61b6473aec06c6cea84bf893`, queried Actions for the exact SHA and the PR branch; no new replay run was scheduled.
+- Root cause of missing CI trigger: the workflow file exists only on the recovery PR branch, while its push filter only includes `main`. Added this exact test branch to the push allowlist to ensure the updated disposable-only replay workflow is exercised.
+- The next run on the resulting SHA is the required verification for the alias-collision fix. No previous PASS is being rerun; this test is required because the workflow changed.

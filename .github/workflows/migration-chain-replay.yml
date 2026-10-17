@@ -2,7 +2,7 @@ name: Disposable Supabase Migration Chain Replay
 
 on:
   push:
-    branches: [main]
+    branches: [main, reconcile/rc425-458-current-main-20261011]
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/**"
