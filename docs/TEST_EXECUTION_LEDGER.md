@@ -1,3 +1,23 @@
+## 2026-10-18 — REPLAY-RESUME-004
+
+### CI-REPLAY-003 — exact failure root cause recovered
+- **SHA:** `5083a7e1ebd522b064688c47d76b81eaaf9cb1d4`
+- **Workflow:** Disposable Supabase Migration Chain Replay
+- **Run:** [39072680440](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39072680440)
+- **Result:** FAIL at migration `20261006101048_rc_mantigo_production_completion_v1.sql`, statement 11: `function public.list_open_mantigo_rides_backend(uuid) does not exist`.
+- **Evidence:** [job log](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39072680440) identifies the failing `GRANT EXECUTE`. The tracked migration grants this function but does not create it; the source-only RC446 migration later replaces the function. The production schema snapshot at checkpoint `20261008222845` contains the observed pre-RC446 function definition.
+- **Action:** Added `supabase/tests/baselines/mantigo_open_rides_function.sql` (blob `89943262f16ae973c1cfc423412d417961dbfd96`) as a clearly marked test-only live-derived compatibility baseline, and updated the disposable replay workflow to inject it as temporary version `20261006101047` before the historical grant. Added fail-closed validation for provenance, function contract, no-data behavior, workflow copy/check, and absence of a version collision.
+- **Current validation commit:** `8c3814ec12206769a6be546a9afc7ed80450554d`. Replay run [39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044) was **PENDING** when last inspected; no PASS is claimed.
+- **What it proves:** the missing dependency was identified, and a replay-only compatibility input was implemented from the captured live schema.
+- **What it does not prove:** original function-creation migration/version or historical body provenance; successful full replay; runtime tenant isolation; payment/finance E2E; backup/restore; or production readiness. The baseline is not historical DDL and must never be applied to production.
+
+### CI-TENANT-001 — fail-closed verifier contract
+- **SHA:** `95860b316f4dfcbc157d1d32be50d4aa1fcce2d9`
+- **Workflow:** Tenant Isolation Verifier Contract
+- **Run:** [39079194583](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079194583)
+- **Result:** PASS for the static verifier/fixture contract after strengthening assertions for own-tenant visibility and cross-tenant denial of businesses, orders, payment intents, and onboarding.
+- **Limitation:** this is a static contract test only; it does not prove the SQL verifier passes against a disposable restored schema or that deployed production RLS provides tenant isolation.
+
 # Test Execution Ledger — Migration Recovery Branch
 
 This ledger records tests and CI results inspected for the migration-recovery work. Results are scoped to the exact SHA and workflow; a successful static or focused test is not production certification.
