@@ -64,3 +64,10 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Result:** PASS for 9 assertions: provenance markers, function signature, SECURITY DEFINER/search_path, actor mismatch guard, absence of DML, temporary version presence, exact copy and comparison commands, untracked-only check, and validator integration.
 - **What it proves:** the newly authored fixture and workflow wiring are internally consistent at the inspected source level.
 - **What it does not prove:** PostgreSQL accepts the fixture, the workflow executes successfully, the full migration chain replays, or production function history is recovered. CI run [39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044) remains the authoritative pending execution evidence at last check.
+
+ 
+### CI-REPLAY-004 — pre-injection replay reproduced the blocker
+- **SHA:** `c6e6b628c24eea86c1920dfd0b5ae066588aaa0e` (baseline file existed, but workflow injection/validator wiring had not yet landed).
+- **Run:** [39079623274](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079623274)
+- **Result:** FAIL at the same `20261006101048_rc_mantigo_production_completion_v1.sql` grant with SQLSTATE `42883`: `function public.list_open_mantigo_rides_backend(uuid) does not exist`.
+- **Interpretation:** this is expected pre-fix evidence and is not evidence about the new workflow commit `8c3814ec12206769a6be546a9afc7ed80450554d`; the baseline file alone is inert until the workflow injects it.
