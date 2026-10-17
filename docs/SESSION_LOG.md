@@ -160,3 +160,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Tests intentionally executed in this session:** none. **CI results inspected:** 11 runs, each logged in the ledger. **Production actions:** none.
 - **Next executable action:** search historical PR/file lists and trusted release/source artifacts for the original `counter_offer_indrive_bid(uuid,uuid,numeric)` definition; if provenance cannot be recovered, prepare a reviewed forward-only repair proposal, not a historical backfill.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-003 — counter-offer source investigation and repair design
+
+- Continued from the exact previous checkpoint; did not restart general audits.
+- Examined PR #218, #207, #198, and #193 changed-file patches. No authoritative historical creation migration for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` was found.
+- Located the exact live-derived definition in PR #207 test baseline (blob `ed4270f8fbfa2881fbfd6b251161ec4cbe7fd2c7`). Its own header labels it a live snapshot, not historical DDL. This improves behavioral review evidence but does not resolve source provenance.
+- Created `docs/release/COUNTER_OFFER_FORWARD_REPAIR_PROPOSAL_20261017.md` at commit `b9a8946a6b0a666775c60302d1569be522219120`. It distinguishes authentic source recovery, separately approved test-only replay baseline, and a forward-only production convergence/security change. It explicitly notes that a later migration cannot resolve the earlier revoke dependency by itself.
+- Security review points recorded: preserve captured ACL; prevent unintended default PUBLIC EXECUTE; test caller/ownership/state/price checks; separately decide concurrency semantics because the current snapshot does not explicitly lock the request row.
+- Inspected 11 workflow runs on prior exact HEAD `f801dcee6f8d6a808af14216520cac26df186d43`; all listed checks completed successfully, and web deploy was skipped. The proposal commit `b9a8946...` is documentation-only and was not represented as CI-verified at time of this log.
+- **Tests intentionally run:** none. **Production actions:** none.
+- **Next exact action:** search trusted backup/source archives for original DDL; if unrecoverable, obtain explicit approval before enabling a test-only live-derived baseline for disposable replay. Do not synthesize historical migration DDL. Release remains **BLOCKED / NOT CERTIFIED**.

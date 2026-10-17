@@ -615,3 +615,14 @@ This status is intentional and must remain until the open gates above are indepe
 - **Open root blocker:** `RC-BLOCKER-001` — authoritative creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Code search found no creation source; revoke history only adds the revoke; `20261007021500_reverse_bidding_server_authority_v1.sql` creates different RPCs. Do not fabricate or backdate migration history.
 - **Next exact action:** search historical PR/file history and trusted release/source archives for the original function-creation DDL. If none is recoverable, prepare a separately reviewed forward-only repair proposal with a new migration version and required approval. Then resume full disposable chronological replay only after resolving this dependency.
 - **Release gate:** **BLOCKED / NOT CERTIFIED**. No production change, migration application, deployment, payment, merge, or release occurred.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-003 checkpoint
+
+- **Branch:** `fix/rc526-mantigo-intent-claim-20261017`; [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Proposal commit:** `b9a8946a6b0a666775c60302d1569be522219120`, documentation-only.
+- **New evidence:** historical patch search across PR #218/#207/#198/#193 did not reveal authentic creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. PR #207 contains a live-derived test-only snapshot (blob `ed4270f8fbfa2881fbfd6b251161ec4cbe7fd2c7`), explicitly not historical source.
+- **New design artifact:** `docs/release/COUNTER_OFFER_FORWARD_REPAIR_PROPOSAL_20261017.md`. It distinguishes original source recovery, approved test-only baseline, and a separate forward-only security change. It does not add SQL or authorize changes.
+- **Previously checked CI:** 11 runs on `f801dcee6f8d6a808af14216520cac26df186d43` completed successfully; deploy was skipped. These results are not attributed to proposal commit `b9a8946...`.
+- **Next exact action:** search trusted archives/source backups. If none exists, request explicit approval for a disposable-only baseline; do not fabricate a historical migration. No tests were intentionally rerun, and production remains untouched.
+- **Release:** **BLOCKED / NOT CERTIFIED**.

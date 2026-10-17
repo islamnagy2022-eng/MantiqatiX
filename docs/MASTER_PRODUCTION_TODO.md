@@ -1690,3 +1690,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **BLOCKED — RC-BLOCKER-001:** additional repository/code/history/ref investigation did not find authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. The later `20261007021500_reverse_bidding_server_authority_v1.sql` creates different functions and cannot satisfy the earlier revoke dependency.
 - [ ] Next: search authoritative historical PR/file history, trusted release archives, or verified source backups. If provenance is unrecoverable, draft a forward-only repair with a new version and review/approval; do not backdate or invent migration history.
 - Release gate remains **BLOCKED / NOT CERTIFIED**. No production mutation, migration application, function deployment, payment, merge, or release occurred.
+
+
+## 2026-10-17 — RC-BLOCKER-001 forward-repair design checkpoint
+
+- [x] Expanded historical provenance search across PR #218, #207, #198, and #193 changed-file patches; no authoritative creation migration was found.
+- [x] Located live-derived snapshot `supabase/tests/baselines/legacy_security_definer_functions.sql` on PR #207, blob `ed4270f8fbfa2881fbfd6b251161ec4cbe7fd2c7`; verified its own header disclaims historical provenance and restricts it to disposable CI.
+- [x] Added design-only proposal `docs/release/COUNTER_OFFER_FORWARD_REPAIR_PROPOSAL_20261017.md` (commit `b9a8946a6b0a666775c60302d1569be522219120`).
+- [ ] **BLOCKED:** recover authentic creation DDL/version from a trusted historical source/archive, or obtain explicit approval for a test-only live-derived baseline for disposable replay. The latter does not close historical provenance and must be labeled accurately.
+- [ ] Any forward-only security/behavior change needs separate design review and tests. A later migration alone cannot make the earlier revoke succeed in a blank replay.
+- [ ] Do not create/apply a production migration or enable the baseline until required approval, ACL review, pinned provenance, and disposable-only isolation are established.
+- Release gate remains **BLOCKED / NOT CERTIFIED**.
