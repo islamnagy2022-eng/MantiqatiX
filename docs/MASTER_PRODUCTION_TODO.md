@@ -1851,3 +1851,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Adjusted the earlier replay-only showcase owner fixture to suppress only the legacy trigger during setup, restore it, and call the membership helper after profile creation.
 - [ ] Await full replay [39072447514](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072447514) at SHA be3cf19573595f037357c89db719c37c065755c1 and confirm the new behavioral test executes/passes.
 - Migration immutability [39072447500] and source integrity [39072447513] passed. Production release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-18 — Replay continuation correction
+
+- [x] Recorded exact full-replay failure [39072680440](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39072680440) on SHA `5083a7e1ebd522b064688c47d76b81eaaf9cb1d4`; the replay step failed after service startup. Exact SQL error was not available from the accessible metadata.
+- [x] Verified the current replay branch already injects the live-derived test-only SECURITY DEFINER function baseline before the historical revoke migration; this permits disposable replay past the missing function dependency but does not recover historical provenance.
+- [ ] **BLOCKED:** explicit approval remains required for the combined test-only `marketing_provider_services` schema/policy fixture and minimum `MNTY-MAIN` organization-row fixture in `docs/release/COMBINED_REPLAY_BASELINE_APPROVAL_20261017.md`. Do not inject until approval or trusted original source recovery.
+- [ ] After approval/recovery, run a new exact-head disposable replay once, capture the SQL failure or PASS, update the ledger, and continue fixing the next chronological failure. Do not repeat the same run on unchanged inputs.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
