@@ -84,7 +84,7 @@ Deno.serve(async req=>{
   const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:provider.intention_order_id??null,paymob_payment_methods:provider.payment_methods??null};
   const {data:updatedRows,error:updateError}=await admin.from("mantigo_financial_ledger").update({
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider_intent_id",null).select("id");
+  }).eq("id",ledger.id).eq("payment_status","REQUIRED").is("provider",null).is("provider_intent_id",null).select("id");
   if(updateError){
     console.error(JSON.stringify({requestId,stage:"persist_paymob_intent",error:updateError.message}));
     return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED",requestId},500,requestId);
