@@ -1,5 +1,15 @@
 name: Migration History Immutability
 on:
+  push:
+    branches:
+      - main
+      - reconcile/rc425-458-current-main-20261011
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
+      - "scripts/validate-migration-history-immutability.mjs"
+      - ".github/workflows/migration-history-immutability.yml"
   pull_request:
     branches:
       - main
@@ -26,5 +36,5 @@ jobs:
         run: node scripts/validate-migration-history-immutability.mjs --self-test
       - name: Reject edits to existing migrations
         env:
-          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref || 'main' }}
         run: node scripts/validate-migration-history-immutability.mjs
