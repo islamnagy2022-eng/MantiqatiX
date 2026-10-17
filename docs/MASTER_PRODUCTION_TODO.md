@@ -1806,3 +1806,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **BLOCKED — marketing provider services source:** `20260928010000_rc99_g5_provider_services_rls_hardening.sql` assumes `public.marketing_provider_services` exists; repository search did not find authoritative table-creation DDL. Full replay failed on the source-recovery SHA at [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756).
 - [ ] Search trusted historical sources/artifacts for both gaps. If no source exists, obtain explicit approval before adding any test-only baseline and label it as live-derived, not historical migration recovery. Do not rerun unchanged replay or fabricate DDL.
 - [ ] Live Paymob sandbox E2E, tenant isolation E2E, backup/restore rehearsal, and production parity remain open. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Source sweep and scoped decision required
+
+- [x] Reviewed the 33-file recovered-migration archive and all PR #218 file pages; no authoritative creation source found for `counter_offer_indrive_bid` or `marketing_provider_services`.
+- [x] Added proposal-only [test-baseline decision document](https://github.com/islamnagy2022-eng/MantiqatiX/blob/fix/rc526-mantigo-intent-claim-20261017/docs/release/MARKETING_PROVIDER_SERVICES_REPLAY_BASELINE_PROPOSAL_20261017.md), based on snapshot blob `8d096904c777b4c7eae096014b45c59859c96cee`; not implemented or enabled.
+- [ ] **WAITING FOR EXPLICIT APPROVAL:** the exact test-only `marketing_provider_services` baseline and disposable replay branch. Until approval, do not alter replay inputs or rerun the unchanged replay.
+- [ ] Continue trusted historical-source recovery for the counter-offer function; live-derived snapshots remain test-only.
+- Production remains **BLOCKED / NOT CERTIFIED**.
