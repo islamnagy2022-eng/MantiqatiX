@@ -590,3 +590,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Pages validation passed; deploy job was skipped because the run is a pull request. No deployment occurred. These checks validate candidate code and disposable fixtures, not live Paymob behavior or production readiness.
 - **Not verified / still blocked:** live Paymob sandbox E2E; full chronological migration replay from RC424; authoritative creation provenance/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; tenant-isolation E2E; backup/restore rehearsal; production Edge Function parity; remaining Auth/SMM launch gates.
 - **Production impact:** none. No production DDL/DML, Edge Function deployment, live provider call, payment, merge, or release. PR #289 remains Draft; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest durable resume checkpoint: continuation/test ledger protocol
+
+- **Working branch:** `fix/rc526-mantigo-intent-claim-20261017`; PR [#289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/unmerged at the last verified PR state. Recheck live branch head before continuing.
+- **New mandatory protocol:** read [`docs/CONTINUATION_PROTOCOL.md`](CONTINUATION_PROTOCOL.md) first. Every test run or inspected result must be recorded in [`docs/TEST_EXECUTION_LEDGER.md`](TEST_EXECUTION_LEDGER.md) and referenced in `docs/SESSION_LOG.md`. Do not rerun a PASS test on the same SHA/environment without a documented trigger.
+- **Code-test evidence remains scoped to:** `35a9da40dcca1be0448ebe3cceb7da619bafe87e`. Later docs-only commits do not themselves invalidate that evidence, but compare the actual diff and log current workflow outcomes before relying on it.
+- **Release gate:** BLOCKED / NOT CERTIFIED. Missing historical migration provenance, full chronological replay, live Paymob sandbox E2E, two-tenant E2E, backup/restore, and other external runtime gates remain unresolved.
+- **Next action (do not restart audit):** continue RC-BLOCKER-001 from the test ledger. Search authoritative historic branches, PR commits, tags, and trusted release artifacts for the original `counter_offer_indrive_bid(uuid,uuid,numeric)` creation migration. Log exact refs searched and results. If original provenance cannot be recovered, keep the replay blocked and prepare a separately reviewed forward-repair proposal rather than inventing or backdating history.
+- No production database/function/configuration changes, provider requests, payments, merges, or releases were performed in this documentation batch.
