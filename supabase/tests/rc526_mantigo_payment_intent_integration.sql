@@ -32,6 +32,16 @@ begin
   if not has_function_privilege('service_role','public.release_mantigo_payment_intent_claim_backend(text,text,integer)','EXECUTE') then
     raise exception 'RC526_RELEASE_SERVICE_ROLE_GRANT_MISSING';
   end if;
+  if has_table_privilege('anon','public.mantigo_payment_intent_claims','SELECT')
+     or has_table_privilege('authenticated','public.mantigo_payment_intent_claims','SELECT')
+     or has_table_privilege('anon','public.mantigo_payment_intent_secrets','SELECT')
+     or has_table_privilege('authenticated','public.mantigo_payment_intent_secrets','SELECT') then
+    raise exception 'RC526_INTERNAL_PAYMENT_TABLES_MUST_NOT_BE_CLIENT_READABLE';
+  end if;
+  if not has_table_privilege('service_role','public.mantigo_payment_intent_claims','SELECT')
+     or not has_table_privilege('service_role','public.mantigo_payment_intent_secrets','SELECT') then
+    raise exception 'RC526_SERVICE_ROLE_INTERNAL_TABLE_GRANTS_MISSING';
+  end if;
 
   insert into public.mantigo_financial_ledger(id,ride_id,customer_id,captain_id,gross_amount,payment_status,idempotency_key,metadata)
   values(v_ledger,'ride-rc526','52600000-0000-4000-8000-000000000002','52600000-0000-4000-8000-000000000007',125,'REQUIRED','RC526-test-main','{"preserved":"yes"}'::jsonb);
@@ -56,15 +66,17 @@ begin
     raise exception 'RC526_VALID_CLAIM_MUST_FINALIZE';
   end if;
 
-  select payment_status,provider,provider_intent_id,metadata->>'paymob_intention_order_id',
-         metadata->>'paymob_client_secret',metadata
-    into v_status,v_provider,v_intent,v_order,v_secret,v_metadata
+  select payment_status,provider,provider_intent_id,metadata->>'paymob_intention_order_id',metadata
+    into v_status,v_provider,v_intent,v_order,v_metadata
   from public.mantigo_financial_ledger where id=v_ledger;
+  select client_secret into v_secret from public.mantigo_payment_intent_secrets where ledger_id=v_ledger;
 
   if v_status <> 'PENDING' or v_provider <> 'PAYMOB' or v_intent <> 'intent-1'
      or v_order <> 'order-1' or v_secret <> 'secret-1'
      or v_metadata ? 'paymob_intent_claim'
-     or v_metadata->>'preserved' <> 'yes' then
+     or v_metadata ? 'paymob_client_secret'
+     or v_metadata->>'preserved' <> 'yes'
+     or exists(select 1 from public.mantigo_payment_intent_claims where ledger_id=v_ledger) then
     raise exception 'RC526_FINALIZED_LEDGER_CONTRACT_MISMATCH';
   end if;
 
@@ -112,6 +124,9 @@ begin
 
   select public.release_mantigo_payment_intent_claim_backend(v_ledger,'rejection-token',400) into v_released;
   if v_released is not true then raise exception 'RC526_DEFINITIVE_REJECTION_MUST_RELEASE'; end if;
+  if exists(select 1 from public.mantigo_payment_intent_claims where ledger_id=v_ledger) then
+    raise exception 'RC526_RELEASE_MUST_DELETE_PRIVATE_CLAIM_TOKEN';
+  end if;
 
   select metadata into v_metadata from public.mantigo_financial_ledger where id=v_ledger;
   if v_metadata ? 'paymob_intent_claim'
