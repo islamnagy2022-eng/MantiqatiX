@@ -74,7 +74,42 @@ begin
 end;
 $function$;
 
+create or replace function public.release_mantigo_payment_intent_claim_backend(
+  p_ledger_id text,
+  p_claim_token text,
+  p_http_status integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  if p_ledger_id is null
+     or nullif(pg_catalog.btrim(p_claim_token), '') is null
+     or p_http_status not in (400, 401, 403, 404, 422) then
+    raise exception 'PAYMENT_INTENT_RELEASE_STATUS_NOT_DEFINITIVE';
+  end if;
+
+  update public.mantigo_financial_ledger
+  set metadata = (coalesce(metadata, '{}'::jsonb) - 'paymob_intent_claim') || pg_catalog.jsonb_build_object(
+        'paymob_intent_last_rejection',
+        pg_catalog.jsonb_build_object('http_status', p_http_status, 'rejected_at', pg_catalog.now())
+      ),
+      updated_at = pg_catalog.now()
+  where id = p_ledger_id
+    and payment_status = 'REQUIRED'
+    and provider is null
+    and provider_intent_id is null
+    and metadata -> 'paymob_intent_claim' ->> 'token' = p_claim_token;
+
+  return found;
+end;
+$function$;
+
 revoke all on function public.claim_mantigo_payment_intent_backend(text, text) from public, anon, authenticated;
 revoke all on function public.finalize_mantigo_payment_intent_backend(text, text, text, text, text, jsonb) from public, anon, authenticated;
 grant execute on function public.claim_mantigo_payment_intent_backend(text, text) to service_role;
 grant execute on function public.finalize_mantigo_payment_intent_backend(text, text, text, text, text, jsonb) to service_role;
+revoke all on function public.release_mantigo_payment_intent_claim_backend(text, text, integer) from public, anon, authenticated;
+grant execute on function public.release_mantigo_payment_intent_claim_backend(text, text, integer) to service_role;
