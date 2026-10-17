@@ -2,7 +2,7 @@ name: Disposable Supabase Migration Chain Replay
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/migration-baseline-preflight-20261013]
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/**"
