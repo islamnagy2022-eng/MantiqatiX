@@ -31,8 +31,8 @@ INSERT INTO public.organizations (id,tenant_id,name,code,status,settings) VALUES
   ('ORG-S05-TEST-B','MNTY-TEST-B','Tenant Isolation Org B','S05-ORG-B','ACTIVE','{"test_fixture":true}'::jsonb);
 
 INSERT INTO public.businesses (id,tenant_id,organization_id,name,code,status,settings) VALUES
-  ('30000000-0000-4000-8000-000000000001','MNTY-TEST-A','ORG-S05-TEST-A','Synthetic Business A','S05-BIZ-A','ACTIVE','{"showcase":false,"test_fixture":true}'::jsonb),
-  ('30000000-0000-4000-8000-000000000002','MNTY-TEST-B','ORG-S05-TEST-B','Synthetic Business B','S05-BIZ-B','ACTIVE','{"showcase":false,"test_fixture":true}'::jsonb);
+  ('30000000-0000-4000-8000-000000000001','MNTY-TEST-A','ORG-S05-TEST-A','Synthetic Business A','S05-BIZ-A','PENDING','{"showcase":false,"test_fixture":true}'::jsonb),
+  ('30000000-0000-4000-8000-000000000002','MNTY-TEST-B','ORG-S05-TEST-B','Synthetic Business B','S05-BIZ-B','PENDING','{"showcase":false,"test_fixture":true}'::jsonb);
 
 INSERT INTO public.user_memberships
   (id,user_id,tenant_id,organization_id,business_id,role,permissions,status)
