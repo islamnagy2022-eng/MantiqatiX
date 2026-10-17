@@ -20,6 +20,41 @@ const migrations = files.map((name) => ({
   name,
   sql: fs.readFileSync(path.join(migrationDirectory, name), "utf8"),
 }));
+const platformTenantSeedBaselinePath = "supabase/tests/baselines/mnty_platform_tenant_seed.sql";
+const platformTenantSeedVersion = "20260929073243";
+const platformTenantSeedTemporaryName = platformTenantSeedVersion + "_test_only_mnty_platform_tenant_seed.sql";
+const platformTenantSeedConsumerName = "20260929073244_seed_mnty_berket_test_business.sql";
+const platformTenantSeedConsumer = migrations.find(({ name }) => name === platformTenantSeedConsumerName);
+const platformTenantSeedBaseline = fs.existsSync(platformTenantSeedBaselinePath)
+  ? fs.readFileSync(platformTenantSeedBaselinePath, "utf8")
+  : "";
+const platformTenantSeedCreator = migrations.find(({ name, sql }) =>
+  name < platformTenantSeedConsumerName &&
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?tenants\b/i.test(sql)
+);
+const platformTenantSeedDml = platformTenantSeedBaseline.match(/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+(?:public|private)\.)/gim) || [];
+const platformTenantSeedBaselineValid =
+  /TEST-ONLY SYNTHETIC TENANT SEED FOR DISPOSABLE MIGRATION REPLAY/.test(platformTenantSeedBaseline) &&
+  /schema-only and intentionally contains no rows/i.test(platformTenantSeedBaseline) &&
+  /NEVER apply this file to production/i.test(platformTenantSeedBaseline) &&
+  /INSERT INTO public\.tenants\s*\(id, name, code, status, settings\)/i.test(platformTenantSeedBaseline) &&
+  /SELECT 'MNTY-PLATFORM'[\s\S]*WHERE NOT EXISTS\s*\([\s\S]*FROM public\.tenants\s+WHERE id = 'MNTY-PLATFORM'/i.test(platformTenantSeedBaseline) &&
+  platformTenantSeedDml.length === 1 &&
+  !/auth\.users|insert\s+into\s+(?:auth|private)\./i.test(platformTenantSeedBaseline);
+const platformTenantSeedFailures = [
+  ["missing platform tenant seed consumer", !platformTenantSeedConsumer],
+  ["missing tenant table creator before seed consumer", !platformTenantSeedCreator],
+  ["invalid synthetic tenant seed fixture", !platformTenantSeedBaselineValid],
+  ["temporary tenant seed migration already exists", fs.existsSync(path.join(migrationDirectory, platformTenantSeedTemporaryName))],
+  ["temporary tenant seed version collision", migrations.some(({ name }) => name.slice(0, 14) === platformTenantSeedVersion)],
+  ["temporary tenant seed does not follow tenant table creation", !platformTenantSeedCreator || platformTenantSeedVersion <= platformTenantSeedCreator.name.slice(0, 14)],
+  ["temporary tenant seed is not before its first consumer", !platformTenantSeedConsumer || platformTenantSeedVersion >= platformTenantSeedConsumer.name.slice(0, 14)]
+].filter(([, failed]) => failed);
+if (platformTenantSeedFailures.length) {
+  for (const [reason] of platformTenantSeedFailures) console.error("P0 BLOCKED platform tenant seed fixture: " + reason);
+  process.exit(1);
+}
+
 const bookingsBaselinePath = "supabase/tests/baselines/bookings.sql";
 const legacyBaselineSpecs = [
   { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\s\S]*name character varying\(255\) not null[\s\S]*code character varying\(64\) not null/i },
