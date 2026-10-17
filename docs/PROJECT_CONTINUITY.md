@@ -723,3 +723,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Exact code tests on `d7fc64d...` passed and are recorded in the ledger. Documentation-only commit `2b8162a...` also passed all listed PR workflows; Pages validation passed and deployment was skipped.
 - **Open:** counter-offer historical creation provenance; privacy-safe RC339 bootstrap replay; live Paymob Sandbox E2E; tenant-isolation E2E; backup/restore rehearsal; remaining release gates.
 - **Next:** design a privacy-safe, explicitly test-only bootstrap for isolated replay only after review; continue searching trusted provenance for the counter-offer function. No production changes, deployments, payments, merges, or releases. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest checkpoint: SESSION-RESUME-EXEC-015
+
+- **PR #289 head at inspection:** `9892d8d20f4e9b378a4dd3bb567c8590ea18d43a`, Draft/open/unmerged on `fix/rc526-mantigo-intent-claim-20261017`.
+- **CI:** inspected 22 check-run records at this exact SHA. Listed RC526 PostgreSQL integration, MantiGO privacy, targeted-ads search-path, matrimony privacy, financial-journal, approval audit, migration guards, and web validation passed; web deploy was skipped. Evidence links and scope limits are in `docs/TEST_EXECUTION_LEDGER.md`.
+- **No manual tests rerun** and no production or live-provider action.
+- **Open replay gaps:** (1) original historical creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unavailable; (2) `20260928010000_rc99_g5_provider_services_rls_hardening.sql` assumes `public.marketing_provider_services` exists, but no authoritative creation source was found. Chronological replay failure [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) remains a failure, not a pass.
+- **Next exact action:** continue source recovery from trusted historical refs/archives for both objects. If unavailable, obtain explicit approval for a test-only live-derived baseline before altering replay inputs. No invented/backdated migration, no silent replay seeding, and no production mutation.
+- **Release:** **BLOCKED / NOT CERTIFIED**.
