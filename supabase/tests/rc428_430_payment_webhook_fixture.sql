@@ -74,7 +74,8 @@ create table public.business_subscriptions (
   provider_reference text,
   source_payment_intent_id uuid,
   idempotency_key text unique,
-  created_by uuid
+  created_by uuid,
+  updated_at timestamptz not null default now()
 );
 create function public.legal_assert_action(p_user_id uuid,p_action_key text,p_business_id uuid)
 returns void language plpgsql as $legal$
