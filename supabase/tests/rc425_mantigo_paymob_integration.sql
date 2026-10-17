@@ -174,7 +174,9 @@ begin
   select count(*) into v_notifications from public.notifications where entity_id='ride-recovery';
   if v_events <> 2 or v_notifications <> 2 then
     raise exception 'failure then recovery should persist two events and two notifications (events %, notifications %)',v_events,v_notifications;
-  end if;  -- A notification failure must roll back both the provider event and ledger transition.
+  end if;
+
+  -- A notification failure must roll back both the provider event and ledger transition.
   insert into public.mantigo_financial_ledger
     (id,ride_id,customer_id,provider,metadata,gross_amount,currency,payment_status)
   values
