@@ -79,3 +79,18 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Result:** PASS. Extracted PL/pgSQL bodies match after whitespace/case normalization and removal of the fixture's trailing statement terminator.
 - **What it proves:** the test-only baseline body matches the function body captured in the live schema snapshot at RC424 checkpoint.
 - **What it does not prove:** original creation migration/version, historical creation ordering, SQL runtime validity, or production release readiness.
+
+
+## 2026-10-18 — REPLAY-RESUME-005
+
+### CI-REPLAY-005 — next MantiGO function dependency
+- **Workflow:** Disposable Supabase Migration Chain Replay
+- **Run:** [39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044)
+- **Code SHA tested:** `8c3814ec12206769a6be546a9afc7ed80450554d`
+- **Result:** FAIL at migration `20261006101048_rc_mantigo_production_completion_v1.sql`, statement 12: `function public.list_mantigo_captain_rides_backend(uuid) does not exist` (`SQLSTATE 42883`).
+- **Progress:** The previous test-only baseline allowed the earlier grant for `list_open_mantigo_rides_backend(uuid)` to pass. The replay now reaches the next grant and stops on the captain-rides function.
+- **Read-only live catalog observation:** the production catalog currently exposes `list_mantigo_captain_rides_backend(uuid)` as SECURITY DEFINER with `search_path=public` and an actor mismatch guard (`p_user_id IS NULL OR p_user_id <> auth.uid()`). Its observed body joins rides to accepted bids and returns up to 100 rows. This is current live state, not proof of historical creation provenance.
+- **Next action:** inspect trusted schema-only snapshot/source history for this exact function and compare its signature/body. Do not add another replay fixture unless authoritative source or explicit owner approval permits it. Do not modify historical migrations.
+- **What this proves:** the first compatibility dependency is no longer the current replay blocker; the chain still fails at a second missing function definition.
+- **What it does not prove:** clean historical replay, full migration-chain completion, runtime authorization correctness, production parity, or release readiness.
+- **Production gate:** BLOCKED / NOT CERTIFIED. No production writes, deployment, merge, or payment occurred.
