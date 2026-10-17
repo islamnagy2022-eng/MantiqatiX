@@ -6,11 +6,13 @@ on:
     paths:
       - "scripts/verify-tenant-isolation.sql"
       - "scripts/validate-tenant-isolation-verifier.mjs"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - ".github/workflows/tenant-isolation-verifier-contract.yml"
   pull_request:
     paths:
       - "scripts/verify-tenant-isolation.sql"
       - "scripts/validate-tenant-isolation-verifier.mjs"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - ".github/workflows/tenant-isolation-verifier-contract.yml"
 
 permissions:
