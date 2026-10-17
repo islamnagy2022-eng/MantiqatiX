@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const source = fs.readFileSync("supabase/functions/mantigo-payment-intent/index.ts", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20261014233000_rc526_mantigo_payment_intent_claim.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc526_mantigo_payment_intent_integration.sql", "utf8");
+const correlation = fs.readFileSync("supabase/functions/_shared/paymob-intent-correlation.mjs", "utf8");
 function check(label, condition) {
   assert.ok(condition, label);
   console.log("PASS " + label);
@@ -21,7 +22,7 @@ const checkoutResponseIndex = source.lastIndexOf('return json({id:ledger.id,prov
 check("only REQUIRED or PENDING ledgers enter the payment-intent flow", source.includes('if(!["REQUIRED","PENDING"].includes(String(ledger.payment_status)))'));
 check("a complete persisted intent is reusable only from PENDING state and loads its secret from service-only storage", source.includes('ledger.payment_status==="PENDING"&&ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_intention_order_id') && source.includes('admin.from("mantigo_payment_intent_secrets")'));
 check("incomplete PENDING ledger, partial provider state, or existing claim fails closed before a new provider request", source.includes('if(ledger.payment_status==="PENDING"||metadata.paymob_intent_claim||') && source.includes("PAYMENT_INTENT_RECOVERY_REQUIRED") && source.indexOf("PAYMENT_INTENT_RECOVERY_REQUIRED") < providerRequest);
-check("successful provider response is correlated to the exact ledger amount, currency, and special_reference before finalization", source.includes("const confirmedAmount=Number(intentionDetail.amount)") && source.includes("confirmedAmount!==amount||confirmedCurrency!==currency||confirmedReference!==ledger.id") && !source.includes("confirmedAmount!==amountCents") && source.includes('PAYMENT_PROVIDER_INTENT_MISMATCH') && source.indexOf("confirmedAmount!==amount||confirmedCurrency!==currency||confirmedReference!==ledger.id") < finalizeIndex);
+check("successful provider response is correlated by a tested pure guard to the exact ledger amount, currency, and special_reference before finalization", source.includes('import { matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs"') && source.includes("if(!matchesPaymobIntention({ledgerId:ledger.id,amount,currency,provider}))") && correlation.includes("actualAmount === expectedAmount") && correlation.includes("actualCurrency === expectedCurrency") && correlation.includes("actualReference === expectedReference") && source.includes("PAYMENT_PROVIDER_INTENT_MISMATCH") && source.indexOf("if(!matchesPaymobIntention") < finalizeIndex);
 check("fractional fares that cannot be represented in cents fail before claim or provider request", source.includes("Math.abs(amount*100-amountCents)>1e-7") && source.includes("INVALID_FARE_PRECISION") && source.indexOf("INVALID_FARE_PRECISION") < claimIndex && source.indexOf("INVALID_FARE_PRECISION") < providerRequest);
 check("database claim RPC executes before any external Paymob request", claimIndex >= 0 && claimIndex < providerRequest);
 check("claim failure or lost race prevents external provider request", claimFailedIndex >= 0 && claimFailedIndex < providerRequest && claimLostIndex >= 0 && claimLostIndex < providerRequest);
