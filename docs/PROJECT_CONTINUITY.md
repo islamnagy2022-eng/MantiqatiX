@@ -653,3 +653,12 @@ This status is intentional and must remain until the open gates above are indepe
 - **Exact code SHA at CI observation:** `b5880a547e5097f4adbc727b5e57b695ed32b8ba`; associated workflows were queued/in progress. Verify exact-head CI before claiming this code change passed.
 - **Next exact action:** inspect final results for the new code head; then continue source-provenance recovery and the outstanding live Paymob, tenant-isolation, and backup/restore gates.
 - **Safety:** no live Paymob request, production change, migration application, deployment, payment, merge, or release. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-006 checkpoint
+
+- Active payment branch: `fix/rc526-mantigo-intent-claim-20261017`; [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289) remains Draft/unmerged.
+- Exact evidence added to the test ledger: [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) passed 32 forward migrations from reviewed schema checkpoint `20261008222845`; artifact SHA-256 `265fced47505213121b69883b2e2d25e267032be746792243fd8d01949032cb4`.
+- Full chronological replay on recovery branch was blocked before SQL by one duplicate alias collision. Exact-pair normalization was fixed in `aec8572...`; branch trigger enabled in `e3bf384...`. Inspect run `39010790236` next; it was in progress when this checkpoint was written.
+- Do not conflate the two replay strategies. Snapshot-forward replay passed; empty-schema chronological replay is still unverified until run `39010790236` completes. Even a baseline-assisted pass does not recover original historical DDL.
+- Production remains **BLOCKED / NOT CERTIFIED**; no production mutation, deployment, payment, merge, or release.

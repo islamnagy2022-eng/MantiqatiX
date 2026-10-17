@@ -245,3 +245,28 @@ No production mutations, migrations, deployments, payments, merges, or releases 
 - **Environment/scope:** Node v22.16.0 in an isolated temporary directory using the exact helper/test source authored for this change. This is unit evidence for the pure predicate only; it does not call Paymob, exercise Supabase, or prove live provider semantics.
 - **CI status at logging time:** Pages/PR workflows for the code SHA were queued/in progress; no CI pass is claimed yet. Check the exact current head's workflow results before closing the change.
 - **Repeat policy:** do not rerun this unchanged unit suite unless source/test/dependency/environment changes or a prior result becomes inconclusive.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-006 — replay evidence and alias root cause
+
+### New exact-run evidence
+
+- **Reviewed Production Baseline Forward Replay:** [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892), test-only branch `test/production-baseline-forward-replay-20261017`, exact SHA `a79b2caa5b883817f5c1b550d044b09780f06820` — **PASS**.
+- Result: `BASELINE_FORWARD_REPLAY=PASS`, checkpoint `20261008222845`, `FORWARD_MIGRATIONS_APPLIED=32`; includes RC526 and RC565. Exact-run artifact: [production-baseline-forward-replay-39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892/artifacts/12092113513), SHA-256 `265fced47505213121b69883b2e2d25e267032be746792243fd8d01949032cb4`.
+- Scope limitation: the test restores a reviewed production schema snapshot and applies only forward migrations. It proves these 32 migrations apply to that checkpoint; it does **not** prove a clean chronological replay from empty schema, recover original historical DDL, validate production parity, or certify release.
+
+### Full chronological replay — known failure and corrected runner
+
+- Previous full replay [run 38487272719](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38487272719), SHA `c8b6a925bcfbb8b4a50a30ba6282d0eea95667a6`, failed before executing migration SQL because alias normalization found both `20261007030000_cleanup_duplicate_job_application_index_v1.sql` and `20261006235323_cleanup_duplicate_job_application_index_v1.sql`.
+- Exact root cause: the alias file and canonical live-ledger file contain the same SQL body after stripping full-line comments and whitespace. Only the comment differs. A preflight of all 55 alias mappings found exactly this one source/target collision.
+- Fix committed on recovery PR #207 branch:
+  - `aec857203a67049d61b6473aec06c6cea84bf893`: exact-pair duplicate handling, normalized SQL equality required; remove duplicate only in disposable workspace; any other collision still fails closed.
+  - `e3bf38487f4f2e180dec4482cde581c05a4f4ec7`: enable push-triggered replay on the branch containing the workflow.
+- **Full replay run:** [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236), SHA `e3bf38487f4f2e180dec4482cde581c05a4f4ec7` — was in progress when this entry was prepared; do not infer a result until it completes.
+- This rerun is justified by the workflow fix; prior PASS suites were not rerun.
+
+### Historical SMM and RPC source boundary
+
+- Existing owner-approved test-only baselines are present on the recovery branch: `supabase/tests/baselines/smm_providers.sql` blob `3ee0ae125b4271880218af5419e10d604b356e93`, and `supabase/tests/baselines/smm_provider_credentials.sql` blob `99b937330b360fc8c310563a9ab66128f82b81c0`. They are schema-only, injected in disposable replay before `20260927074200_harden_smm_table_api_privileges.sql`, and do not recover historical creation migrations.
+- The `counter_offer_indrive_bid` definition remains a live-derived test baseline rather than authenticated historical creation DDL. If the full replay passes with that fixture injected, label it a baseline-assisted disposable replay, not proof of authentic historical provenance.
+- Production gate remains **BLOCKED / NOT CERTIFIED**.

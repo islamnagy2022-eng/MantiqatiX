@@ -201,3 +201,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact code head when checking CI: `b5880a547e5097f4adbc727b5e57b695ed32b8ba`; workflows were queued/in progress at that observation. The next session/step must inspect exact-head CI; do not claim it passed until results are complete.
 - No live provider calls, production mutations, migrations, deployments, payments, merges, or releases occurred.
 - **Next:** verify exact-head CI (including Pages test and Deno/type checks), then continue the release blockers: historical migration provenance, tenant isolation, Paymob Sandbox, and backup/restore. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-006 — exact-run replay evidence
+
+- Inspected [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892): PASS on exact test-only SHA `a79b2caa5b883817f5c1b550d044b09780f06820`; restored reviewed schema checkpoint `20261008222845`; applied 32 forward migrations including RC526 and RC565. Artifact ID `12092113513`, SHA-256 `265fced47505213121b69883b2e2d25e267032be746792243fd8d01949032cb4`.
+- Explicit limitation: this is forward-only replay from a production schema snapshot, not empty-schema chronological replay and not historical source provenance proof.
+- Full replay failure [38487272719] was a runner preflight alias collision, not SQL execution. Source and canonical migration both contain the same normalized SQL; only one collision was found among 55 aliases.
+- Corrected exact-pair collision handling and enabled the recovery branch's push trigger in commits `aec8572...` and `e3bf384...`. Exact run [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) was still running at the time of this entry; next action is inspect that run and record its actual outcome before any further replay attempt.
+- SMM approved test-only schema baselines exist; they do not recover the original table-creation migration. The counter-offer function fixture is likewise live-derived, not historical source.
+- No production migration, grant, RLS/Auth change, Edge Function deployment, payment, merge, or release occurred.

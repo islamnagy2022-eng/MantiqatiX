@@ -1729,3 +1729,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **Pending exact-head CI** for helper import/type-check, source-contract validator, Pages workflow, and related guardrails. Do not close until exact-head workflows complete successfully.
 - [ ] Still required: live Paymob Sandbox E2E, two-user/two-tenant authorization E2E, backup/restore rehearsal, and historical migration-source/replay decision.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Replay evidence checkpoint
+
+- [x] Verified baseline-assisted forward replay [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892): 32 forward migrations from checkpoint `20261008222845` pass, including RC526 and RC565. Artifact SHA-256: `265fced47505213121b69883b2e2d25e267032be746792243fd8d01949032cb4`.
+- [x] Root cause found for full replay run 38487272719: one duplicate migration alias/canonical pair with matching normalized SQL; 54 other alias mappings had no target collision.
+- [x] Corrected the exact collision in disposable replay only and enabled a push trigger on the recovery branch.
+- [ ] Inspect exact full replay run [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) and capture the true result. If it fails, resolve only the next first failure, then rerun because the workflow/source changed.
+- [ ] Keep historical provenance unresolved even if baseline-assisted full replay passes.
+- Release gate remains **BLOCKED / NOT CERTIFIED**.
