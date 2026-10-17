@@ -55,6 +55,45 @@ if (platformTenantSeedFailures.length) {
   process.exit(1);
 }
 
+const platformOrganizationSeedBaselinePath = "supabase/tests/baselines/mnty_main_organization_seed.sql";
+const platformOrganizationSeedVersion = "20261004005818";
+const platformOrganizationSeedTemporaryName = platformOrganizationSeedVersion + "_test_only_mnty_main_organization_seed.sql";
+const platformOrganizationSeedConsumerSourceName = "20261004004500_rc339_seed_mantiqati_official_showcase.sql";
+const platformOrganizationSeedConsumerReplayVersion = "20261004005819";
+const platformOrganizationSeedConsumer = migrations.find(({ name }) => name === platformOrganizationSeedConsumerSourceName);
+const platformOrganizationSeedBaseline = fs.existsSync(platformOrganizationSeedBaselinePath)
+  ? fs.readFileSync(platformOrganizationSeedBaselinePath, "utf8")
+  : "";
+const platformOrganizationSeedCreator = migrations.find(({ name, sql }) =>
+  name < platformOrganizationSeedConsumerSourceName &&
+  /create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\s*\.\s*)?organizations\b/i.test(sql)
+);
+const platformOrganizationSeedDml = platformOrganizationSeedBaseline.match(/^\s*(?:insert\s+into|update\s+public\.|delete\s+from|copy\s+(?:public|private)\.)/gim) || [];
+const platformOrganizationSeedBaselineValid =
+  /TEST-ONLY SYNTHETIC ORGANIZATION SEED FOR DISPOSABLE MIGRATION REPLAY/.test(platformOrganizationSeedBaseline) &&
+  /schema-only and intentionally contains no rows/i.test(platformOrganizationSeedBaseline) &&
+  /NEVER apply this file to production/i.test(platformOrganizationSeedBaseline) &&
+  /INSERT INTO public\.organizations\s*\(id, tenant_id, name, code, status, settings\)/i.test(platformOrganizationSeedBaseline) &&
+  /SELECT 'MNTY-MAIN', 'MNTY-PLATFORM'[\s\S]*WHERE NOT EXISTS\s*\([\s\S]*FROM public\.organizations\s+WHERE id = 'MNTY-MAIN'/i.test(platformOrganizationSeedBaseline) &&
+  platformOrganizationSeedDml.length === 1 &&
+  !/auth\.users|insert\s+into\s+(?:auth|private)\./i.test(platformOrganizationSeedBaseline);
+const replayWorkflowForOrganizationSeed = fs.readFileSync(".github/workflows/migration-chain-replay.yml", "utf8");
+const platformOrganizationSeedFailures = [
+  ["missing RC339 showcase seed source", !platformOrganizationSeedConsumer],
+  ["missing organization table creator before RC339", !platformOrganizationSeedCreator],
+  ["invalid synthetic organization seed fixture", !platformOrganizationSeedBaselineValid],
+  ["temporary organization seed migration already exists", fs.existsSync(path.join(migrationDirectory, platformOrganizationSeedTemporaryName))],
+  ["temporary organization seed version collision", migrations.some(({ name }) => name.slice(0, 14) === platformOrganizationSeedVersion)],
+  ["temporary organization seed does not follow tenant seed", platformOrganizationSeedVersion <= platformTenantSeedVersion],
+  ["temporary organization seed does not follow organization table creation", !platformOrganizationSeedCreator || platformOrganizationSeedVersion <= platformOrganizationSeedCreator.name.slice(0, 14)],
+  ["temporary organization seed is not before canonical RC339 replay version", platformOrganizationSeedVersion >= platformOrganizationSeedConsumerReplayVersion],
+  ["RC339 replay alias is missing", !replayWorkflowForOrganizationSeed.includes('rename_legacy_alias "20261004004500_rc339_seed_mantiqati_official_showcase.sql" "20261004005819_rc339_seed_mantiqati_official_showcase.sql"')]
+].filter(([, failed]) => failed);
+if (platformOrganizationSeedFailures.length) {
+  for (const [reason] of platformOrganizationSeedFailures) console.error("P0 BLOCKED organization seed fixture: " + reason);
+  process.exit(1);
+}
+
 const bookingsBaselinePath = "supabase/tests/baselines/bookings.sql";
 const legacyBaselineSpecs = [
   { path: legacyBusinessesBaselinePath, table: "businesses", required: /id uuid primary key[\s\S]*name character varying\(255\) not null[\s\S]*code character varying\(64\) not null/i },
