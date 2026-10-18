@@ -1920,3 +1920,26 @@ A module cannot be marked DONE until all applicable items are evidenced:
 1. Obtain terminal results for PR #286 exact-head ordered replay and disposable tenant-isolation jobs; inspect full logs if either fails.
 2. Keep PR #286/#297 and overlapping migration PRs unmerged until chronological replay, migration ownership/collision review, baseline security review, and session-log constraint reconciliation are complete.
 3. The release gate remains BLOCKED until the migration chain is safely integrated and live payment/function/grant parity, external E2E, backup/restore, and Auth settings have evidence.
+
+
+## RC528 — Candidate reconciliation snapshot — 2026-10-19
+
+### Exact GitHub state checked
+- **PR #286** — `fix/release: restore RC425–RC441 and harden Paymob payment flows`, base `main`, head `649b4a80d89a5fcc0eb85c0687fa63a36a28b688`, open/draft. It carries the consolidated migration candidates, RC526, payment finalization, baseline artifacts, and related integration workflows. At the latest check its 18 workflow runs were queued; no success is claimed yet.
+- **PR #273** — exact-source recovery of RC425–RC441, base `main`, head `ebfa17eb36e8092a697b91c7f840c56030251fd6`, open/draft. Migration version uniqueness, migration-history immutability, cross-PR collision guard, backend boundary, MantiGO privacy, module validation, and approval-audit workflows passed. Pages deploy was cancelled in PR context; this is not a production deployment.
+- **PR #295** — RC526 integration, base is the PR #286 branch (not `main`), open/draft. It adds RC526 on top of #286 and must not be treated as an independent mainline candidate.
+- **PR #289** — alternate RC526 implementation targeting `main`, open/draft and currently not mergeable. Do not merge it independently while #286/#295 are being reconciled.
+- **PR #278** — Paymob callback work is based on another payment candidate branch, not `main`; review its dependency graph before integration.
+- **PR #284** — disposable schema baseline candidate is open and currently not mergeable; its changed-file list includes `docs/SESSION_LOG.md`. Do not edit that file as part of this work; baseline artifacts require independent review before use.
+- **PR #296** — this module TODO/continuity documentation PR, open/draft. Exact-head validation, backend-only boundary, MantiGO privacy and module professionalization passed. Pages validation passed but deploy was skipped in PR context.
+
+### Decision and next actions
+1. Keep `main` and production unchanged while the consolidated migration/payment candidate is tested.
+2. Treat #286 as the principal integration candidate for review, not as release-approved: wait for its exact-head workflow results; inspect every failed job/log and correct only evidence-backed defects.
+3. Compare #286 with #273 for exact migration file identity and collision safety; do not independently merge the same historical migration files from both PRs.
+4. Review RC526 through the #286 → #295 dependency chain; do not merge #289 as a competing implementation.
+5. Review the digital-page server-only finalizer, its grants, call sites, and isolated regression tests as part of the consolidated chain; retain the release blocker until exact-source and deployed parity are proven.
+6. After a clean disposable schema replay, run fail-closed tenant isolation and payment/order correlation tests; then update the module register with exact-head evidence.
+7. Continue module implementation from shared identity/tenant authorization and the customer → provider → order → status → notification chain; in parallel, verify the already-merged marketing workspace and RC453-dependent behavior without claiming RC453 is deployed.
+8. No merge, production migration, grant/Auth/RLS change, deployment, or financial transaction is authorized by this checkpoint.
+
