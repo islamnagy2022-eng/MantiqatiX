@@ -1228,9 +1228,20 @@ function marketingWorkspace(){
 async function loadMarketingCampaignData(){
  live.marketingCampaignErrors=[];
  live.marketingCampaignUnavailable=false;
+ const campaignsQuery=sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief');
+ const participantsQuery=sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at');
+ // Explicitly scope campaign reads to the active business. If there is no active
+ // business, query zero rows rather than reading across all visible memberships.
+ if(live.businessId){
+  campaignsQuery.eq('business_id',live.businessId);
+  participantsQuery.eq('business_id',live.businessId);
+ }else{
+  campaignsQuery.limit(0);
+  participantsQuery.limit(0);
+ }
  const [campaigns,participants,providers]=await Promise.all([
-  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').order('created_at',{ascending:false}).limit(50),
-  sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').order('created_at',{ascending:false}).limit(100),
+  campaignsQuery.order('created_at',{ascending:false}).limit(50),
+  participantsQuery.order('created_at',{ascending:false}).limit(100),
   sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).limit(100)
  ]);
  live.marketingCampaignUnavailable=[campaigns.error,participants.error].some(e=>Boolean(e)&&(['42P01','PGRST205'].includes(String(e.code||''))||/relation .* does not exist|could not find the table .*schema cache/i.test(String(e.message||''))));
@@ -1242,8 +1253,9 @@ async function loadMarketingCampaignData(){
  if(providers.error)live.marketingCampaignErrors.push('marketing_provider_profiles');
 }
 function marketingCampaignWorkspace(){
- const campaigns=Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[];
- const participants=Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[];
+ const activeBusinessId=String(live.businessId||'');
+ const campaigns=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>activeBusinessId&&String(c.business_id||'')===activeBusinessId);
+ const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>activeBusinessId&&String(p.business_id||'')===activeBusinessId);
  const providers=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).filter(p=>!live.businessId||String(p.business_id||'')!==String(live.businessId));
  const role=String(live.role||'').toUpperCase();
  const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role));
