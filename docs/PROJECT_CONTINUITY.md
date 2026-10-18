@@ -695,3 +695,12 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - The separate proposed replay fixtures for `marketing_provider_services` and the minimum `MNTY-MAIN` organization row remain **not approved**. Do not inject those fixtures without explicit owner approval or trusted original source recovery.
 - No production schema/data mutation, migration application, Edge Function deployment, real payment, merge, or release occurred.
 - **Production gate: BLOCKED / NOT CERTIFIED.** Next action: inspect run 39079676044, record the first subsequent SQL error or a full PASS, and update the test ledger before changing any next blocker.
+
+
+## Current continuation checkpoint — 2026-10-18 (REPLAY-RESUME-005)
+- PR #207 remains draft/unmerged: https://github.com/islamnagy2022-eng/MantiqaTiX/pull/207
+- Disposable replay run [39079676044](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39079676044), tested code SHA `8c3814ec12206769a6be546a9afc7ed80450554d`, failed at statement 12 of `20261006101048_rc_mantigo_production_completion_v1.sql` because `public.list_mantigo_captain_rides_backend(uuid)` was absent in the disposable database.
+- The previously added `list_open_mantigo_rides_backend(uuid)` baseline let its earlier grant pass. A read-only live catalog query found the captain-rides function definition in the current live schema; this is not proof of its historical creation migration.
+- Next task: compare the exact function against trusted schema-only snapshot/source history before deciding whether any isolated replay-only compatibility fixture is appropriate. No fixture is authorized merely because the function exists live.
+- Do not alter historical migrations, merge PRs, deploy, apply production migrations, or change production data. The separate proposed `marketing_provider_services` and `MNTY-MAIN` fixtures remain unapproved.
+- **PRODUCTION_GATE = BLOCKED / NOT CERTIFIED.**
