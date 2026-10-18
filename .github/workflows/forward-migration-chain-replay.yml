@@ -9,6 +9,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "scripts/validate-digital-pages-boundaries.mjs"
+      - "supabase/tests/digital_page_payment_finalizer_post_replay.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -18,6 +19,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "scripts/validate-digital-pages-boundaries.mjs"
+      - "supabase/tests/digital_page_payment_finalizer_post_replay.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
 
 permissions:
@@ -79,6 +81,8 @@ jobs:
 
           test "$migration_count" -gt 0
           echo "FORWARD_MIGRATIONS_APPLIED=$migration_count"
+
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/digital_page_payment_finalizer_post_replay.sql
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
