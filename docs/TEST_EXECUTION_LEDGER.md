@@ -139,3 +139,14 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Verified PASS:** historical-schema baseline preflight; disposable-only compatibility injection; exact-copy/untracked verification for all temporary fixtures, including both MantiGO functions and the tracked-source financial-config table; Supabase CLI setup; disposable local config creation.
 - **Current state:** disposable Supabase service startup is still in progress. Chronological migration replay has not started; no SQL-chain result is available yet.
 - Production remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-18 — REPLAY-RESUME-011
+
+### CI-REPLAY-007 — earlier MantiGO financial-ledger consumer
+- **Prior run:** [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535), tested SHA `5a2db26e1f56d5736a0b0ead517ab24e8ad07ebd`.
+- **Result:** FAIL at `20261006140601_mantigo_notification_lifecycle_v1.sql`, statement 0: `relation public.mantigo_financial_ledger does not exist` (`SQLSTATE 42P01`). The function declaration uses `public.mantigo_financial_ledger%rowtype` before tracked table creation at `20261006152000_mantigo_financial_ledger_v1.sql`.
+- **Action:** added `supabase/tests/baselines/mantigo_financial_ledger.sql`, copied exactly from the tracked table DDL, with no data; disposable replay injects it at temporary version `20261006140559` before the earlier consumer. Added fail-closed source-DDL equality, no-DML, version/collision, exact-copy, and untracked-file checks. Historical migrations are unchanged; no production SQL was run.
+- **Static checks:** exact source DDL equality, no-DML, workflow copy/cmp/untracked guard, and timestamp ordering passed in assistant-side source inspection. This is not a CI result.
+- **Current run:** [39083670643](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083670643), SHA `39baa44417f1e9aaf7ae17118f5914adf664d50d`, pending when recorded. Do not claim replay pass until the run finishes and logs are inspected.
+- **Release gate:** BLOCKED / NOT CERTIFIED. Historical provenance remains unresolved; this compatibility baseline is disposable-test-only and must never be applied to production.
+
