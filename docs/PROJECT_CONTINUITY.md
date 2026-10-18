@@ -661,3 +661,10 @@ This status is intentional and must remain until the open gates above are indepe
 - The full candidate replay at PR #297 head `2bda9e9e28d6a6141a14f21d6c1a3b00a32d5f6d` passed: 32 ordered migrations, post-replay overload grants and finalizer source guards, and bidirectional synthetic tenant isolation.
 - Strengthened the post-replay SQL contract to additionally assert the five-argument finalizer is SECURITY DEFINER and its function body checks both user binding and claim-token binding. Exact-head rerun is pending at `e7c6d08854fe2c25d2f061846fa69e292efb1663`.
 - No production mutation/deployment or `docs/SESSION_LOG.md` change.
+
+
+## RC535 — Post-replay finalizer ACL/body contract passed — 2026-10-18
+- Full forward replay at head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed in run 39142726549: 32 ordered migrations applied, post-replay grant/function-body assertion passed, and synthetic Tenant A/B isolation passed in both directions.
+- The test confirms the legacy four-argument finalizer is disabled for anon/authenticated/service_role; only the provider-order-bound five-argument overload is service_role-executable, SECURITY DEFINER, empty search_path, and bound to trusted role, user, claim token, and provider order.
+- Latest PR #297 head `7bdd0ec5cd25d6ee156e69bac2107283a034a674` adds execution of the source production verifier in the isolated finalization workflow, asserting that the digital finalization source gate passes while the overall production gate remains BLOCKED. Exact-head CI is running; no pass claimed yet.
+- No production change, deployment, payment, or `docs/SESSION_LOG.md` edit.
