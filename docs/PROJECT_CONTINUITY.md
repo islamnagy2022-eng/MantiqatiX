@@ -555,3 +555,264 @@ This status is intentional and must remain until the open gates above are indepe
 - Only after explicit review, add an isolated disposable replay job that bootstraps from the baseline and applies newer migrations in order; never apply the baseline to production.
 - Keep PR #282 unmerged until full chronological replay, tenant isolation, payment/finance end-to-end, and backup/restore gates pass.
 - Preserve the production gate and migration collision guard; no release certification is issued.
+
+
+## 2026-10-17 — RC526 payment-intent hardening and current release blockers
+
+- Canonical candidate: Draft PR [#289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), branch `fix/rc526-mantigo-intent-claim-20261017`. It adds RC526 claim/finalize/release and platform-admin reconciliation RPCs, service-role-only tables for claim tokens and checkout secrets, fail-closed MantiGO Edge Function behavior, disposable PostgreSQL tests, Deno type-check, and a reconciliation runbook.
+- Security properties verified in disposable PostgreSQL: one winner under two-session claim race; token-bound finalize/release; no raw claim token or client secret in customer-readable ledger metadata; internal tables inaccessible to anon/authenticated; definitive non-null 4xx-only release; null/ambiguous statuses rejected; duplicate provider-intent collision rolls back atomically; operator reconciliation rejects non-admins, requires evidence and amount/currency match, and writes audit records.
+- Exact-head workflows passed on `4f82aacb36df6dcc4ea728824ae9394296fad5d5` after the runbook/TODO updates: RC526 PostgreSQL integration, Deno type-check, RC446 privacy integration, migration version uniqueness, migration-history immutability, cross-PR collision guard, approval-action audit atomicity, backend-only module boundary, module professionalization, and Pages validation. Deployment was skipped.
+- Superseded duplicate PRs #245 (older RC526 candidate) and #287 (source-only persistence guard) are closed. PR #286 has been returned to Draft because migration chronology is not certified. PR #284 remains Draft and its schema baseline manifest remains `PENDING_REVIEW`.
+- **Production remains BLOCKED / NOT CERTIFIED.** No production DDL/data mutation, live Paymob request, real payment, deployment, or merge occurred.
+- Remaining blockers are independent of the passing RC526 candidate: (1) live Paymob sandbox E2E is not verified; (2) the authoritative historical creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` is still missing, so full empty-database chronological replay must not be fabricated or bypassed; (3) PR #284 baseline still needs review of SECURITY DEFINER authorization paths, grants, RLS policies, and a disposable forward replay from RC424.
+- Next safe work: finish the current-head CI after this continuity-only update; continue baseline/provenance review without altering immutable historical migrations; only attempt Paymob E2E with approved sandbox credentials; keep PR #289 Draft until migration and provider validation gates are resolved.
+
+
+## 2026-10-17 — RC526 Paymob response correlation: exact-head CI verified
+
+- **Exact PR #289 head tested:** `3d200cab3bc9eb1700f28a4754ecaf23c6147523` on `fix/rc526-mantigo-intent-claim-20261017`.
+- **Finding and fix:** before finalizing a Paymob intention, the MantiGO Edge Function now requires the response's `intention_detail.amount` to equal the ledger's major-unit amount, the response currency to match, and `special_reference` to equal the ledger ID. Paymob's documented request amount is cents, while its example response represents `intention_detail.amount` in currency units; the comparison was corrected accordingly. Mismatches retain the claim for reconciliation and never return the checkout secret.
+- **Regression guard:** static contract now checks the amount/currency/reference comparisons and that they run before the finalize RPC. The stale order assertion was corrected to point to the actual major-unit amount check.
+- **PASS on exact head:** RC526 disposable PostgreSQL claim/finalize/release/reconciliation integration; Deno type-check; RC446 privacy integration; migration version uniqueness; migration-history immutability; open-PR migration collision guard; approval-action audit atomicity; backend-only module boundary; module professionalization validation; and Pages workflow validation.
+- **Run evidence:** RC526 + Deno/RC446 workflow [39008031246](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031246); migration version uniqueness [39008031207](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031207); migration history immutability [39008031254](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031254); collision guard [39008031211](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031211); approval audit [39008031200](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031200); backend-only boundary [39008031186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031186); module professionalization [39008031229](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031229); Pages validation [39008031213](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008031213).
+- Pages `validate` passed; its `deploy` job was **skipped** because this is a pull request. No deployment occurred.
+- **Not verified:** live Paymob sandbox E2E, production deployment parity, chronological replay from the RC424 checkpoint, historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`, tenant-isolation E2E, and backup/restore rehearsal.
+- **Production impact:** none. No production DDL/DML, Edge Function deploy, live provider request, payment, merge, or release occurred. PR #289 remains Draft. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — RC526 final hardening and exact-head CI PASS
+
+- **Exact tested code/validator head:** `35a9da40dcca1be0448ebe3cceb7da619bafe87e` on PR #289 branch `fix/rc526-mantigo-intent-claim-20261017`.
+- Added a pre-claim precision guard: fares that cannot be represented in whole minor units (cents) are rejected with `INVALID_FARE_PRECISION` before any claim or external Paymob request. This avoids creating an external intention that could later fail the amount-correlation check.
+- Tightened the static regression guard to require the exact major-unit comparison expression and explicitly reject a regression to comparing `intention_detail.amount` with `amountCents`.
+- **PASS on exact tested head:** RC526 disposable PostgreSQL integration (including concurrent claim exclusivity, finalize/release, duplicate provider-intent rollback, and admin reconciliation), Deno type-check, RC446 privacy integration, migration version uniqueness, migration-history immutability, cross-PR migration collision guard, approval-action audit atomicity, backend-only module boundary, module professionalization validation, and Pages validation.
+- **Run evidence:** [MantiGO RC526 + Deno/RC446](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171037); [migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171079); [migration history immutability](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171167); [collision guard](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171044); [approval audit](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171097); [backend-only boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171149); [module professionalization](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171062); [Pages validation](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39008171088).
+- Pages validation passed; deploy job was skipped because the run is a pull request. No deployment occurred. These checks validate candidate code and disposable fixtures, not live Paymob behavior or production readiness.
+- **Not verified / still blocked:** live Paymob sandbox E2E; full chronological migration replay from RC424; authoritative creation provenance/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; tenant-isolation E2E; backup/restore rehearsal; production Edge Function parity; remaining Auth/SMM launch gates.
+- **Production impact:** none. No production DDL/DML, Edge Function deployment, live provider call, payment, merge, or release. PR #289 remains Draft; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest durable resume checkpoint: continuation/test ledger protocol
+
+- **Working branch:** `fix/rc526-mantigo-intent-claim-20261017`; PR [#289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/unmerged at the last verified PR state. Recheck live branch head before continuing.
+- **New mandatory protocol:** read [`docs/CONTINUATION_PROTOCOL.md`](CONTINUATION_PROTOCOL.md) first. Every test run or inspected result must be recorded in [`docs/TEST_EXECUTION_LEDGER.md`](TEST_EXECUTION_LEDGER.md) and referenced in `docs/SESSION_LOG.md`. Do not rerun a PASS test on the same SHA/environment without a documented trigger.
+- **Code-test evidence remains scoped to:** `35a9da40dcca1be0448ebe3cceb7da619bafe87e`. Later docs-only commits do not themselves invalidate that evidence, but compare the actual diff and log current workflow outcomes before relying on it.
+- **Release gate:** BLOCKED / NOT CERTIFIED. Missing historical migration provenance, full chronological replay, live Paymob sandbox E2E, two-tenant E2E, backup/restore, and other external runtime gates remain unresolved.
+- **Next action (do not restart audit):** continue RC-BLOCKER-001 from the test ledger. Search authoritative historic branches, PR commits, tags, and trusted release artifacts for the original `counter_offer_indrive_bid(uuid,uuid,numeric)` creation migration. Log exact refs searched and results. If original provenance cannot be recovered, keep the replay blocked and prepare a separately reviewed forward-repair proposal rather than inventing or backdating history.
+- No production database/function/configuration changes, provider requests, payments, merges, or releases were performed in this documentation batch.
+
+
+- **Latest verification caveat:** GitHub's PR-triggered workflow lookup returned an empty list for checkpoint `6560d2fc7a055c12b4466c1b0a7692559c9e6f13`; this is inconclusive, not a CI pass. Before relying on the new documentation commits as CI-verified, inspect the actual PR checks/workflow runs and append exact results to the ledger.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-VERIFY-002
+
+- **Working branch:** `fix/rc526-mantigo-intent-claim-20261017`.
+- **PR:** [#289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Exact HEAD at verification:** `67ff58063d616cd077ab8ac91a82acb7f805ae32`; base `main` `f4059890c656d53d1235ba28d97f703ab35c7299`.
+- **Diff proof:** `35a9da40dcca1be0448ebe3cceb7da619bafe87e...67ff58063d616cd077ab8ac91a82acb7f805ae32` changed documentation files only. RC526 code-test evidence on `35a9da40...` is reused with that scope qualification; no intentional test rerun occurred.
+- **Current-head CI:** 11 automatic workflow runs inspected and recorded in `docs/TEST_EXECUTION_LEDGER.md`; all listed validations passed. Pages validation passed; deployment was skipped for the PR. These results do not certify production or unresolved release gates.
+- **Open root blocker:** `RC-BLOCKER-001` — authoritative creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Code search found no creation source; revoke history only adds the revoke; `20261007021500_reverse_bidding_server_authority_v1.sql` creates different RPCs. Do not fabricate or backdate migration history.
+- **Next exact action:** search historical PR/file history and trusted release/source archives for the original function-creation DDL. If none is recoverable, prepare a separately reviewed forward-only repair proposal with a new migration version and required approval. Then resume full disposable chronological replay only after resolving this dependency.
+- **Release gate:** **BLOCKED / NOT CERTIFIED**. No production change, migration application, deployment, payment, merge, or release occurred.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-003 checkpoint
+
+- **Branch:** `fix/rc526-mantigo-intent-claim-20261017`; [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Proposal commit:** `b9a8946a6b0a666775c60302d1569be522219120`, documentation-only.
+- **New evidence:** historical patch search across PR #218/#207/#198/#193 did not reveal authentic creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. PR #207 contains a live-derived test-only snapshot (blob `ed4270f8fbfa2881fbfd6b251161ec4cbe7fd2c7`), explicitly not historical source.
+- **New design artifact:** `docs/release/COUNTER_OFFER_FORWARD_REPAIR_PROPOSAL_20261017.md`. It distinguishes original source recovery, approved test-only baseline, and a separate forward-only security change. It does not add SQL or authorize changes.
+- **Previously checked CI:** 11 runs on `f801dcee6f8d6a808af14216520cac26df186d43` completed successfully; deploy was skipped. These results are not attributed to proposal commit `b9a8946...`.
+- **Next exact action:** search trusted archives/source backups. If none exists, request explicit approval for a disposable-only baseline; do not fabricate a historical migration. No tests were intentionally rerun, and production remains untouched.
+- **Release:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-VERIFY-003
+
+- **PR #289:** Draft/open/unmerged, head `74f6768eba37898ef13c66fa057ecb71ebbc3e81`. Exact-head CI results are recorded in `docs/TEST_EXECUTION_LEDGER.md`; all listed validation workflows passed and web deployment was skipped.
+- **Disposable forward replay:** [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) passed on separate test-only branch `test/production-baseline-forward-replay-20261017`, SHA `a79b2caa5b883817f5c1b550d044b09780f06820`. It restored the schema-only snapshot at checkpoint `20261008222845` to an isolated local Supabase stack and applied newer forward migrations. The exact-run artifact exists but its contents/count were not independently inspected.
+- **Important distinction:** this is successful forward replay from a live-derived schema baseline, not recovery of historical DDL and not full chronological replay from an empty database.
+- **First unresolved blocker:** `RC-BLOCKER-001`, original creation source/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Continue searching trusted source/backup archives; do not fabricate or backdate migration history.
+- **Next actions:** inspect the exact replay artifact if supported; review baseline security findings; continue source-provenance recovery. Keep PR #284 PENDING_REVIEW and all production/release gates blocked.
+- **Safety:** no production mutation, migration application, deployment, payment, merge, or release occurred.
+
+
+## 2026-10-17 — Latest evidence checkpoint: SESSION-RESUME-VERIFY-004
+
+- **Payment candidate PR #286:** exact head `6b87b044448b5a543b163c52d1a4517d63cf1399`, Draft/open/unmerged. 17 automatic CI runs were inspected; all passed, with 11 unique workflow categories including RC425 atomicity, webhook failure/success, payment-intent correlation, migration guards, and security/module boundaries. Web deployment was skipped.
+- Reuse this exact-head evidence for those targeted suites; do not rerun without code/test/dependency/environment change or an inconclusive result.
+- **Remaining non-substitutable gates:** live Paymob Sandbox, two-user/two-tenant isolation, backup/restore, full historical source/replay decision, baseline security review, and production function parity.
+- No production action occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest checkpoint: SESSION-RESUME-VERIFY-005
+
+- **RC526 change:** the Paymob intention amount/currency/ledger-reference predicate is now a pure helper imported by the Edge Function. A new 8-case Node test suite is wired into Pages validation, and the source-contract validator asserts the helper is used before finalization.
+- **Local result:** `node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs` — 8/8 PASS on Node v22.16.0; pure-unit scope only.
+- **Exact code SHA at CI observation:** `b5880a547e5097f4adbc727b5e57b695ed32b8ba`; associated workflows were queued/in progress. Verify exact-head CI before claiming this code change passed.
+- **Next exact action:** inspect final results for the new code head; then continue source-provenance recovery and the outstanding live Paymob, tenant-isolation, and backup/restore gates.
+- **Safety:** no live Paymob request, production change, migration application, deployment, payment, merge, or release. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-006 checkpoint
+
+- Active payment branch: `fix/rc526-mantigo-intent-claim-20261017`; [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289) remains Draft/unmerged.
+- Exact evidence added to the test ledger: [run 39010395892](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010395892) passed 32 forward migrations from reviewed schema checkpoint `20261008222845`; artifact SHA-256 `265fced47505213121b69883b2e2d25e267032be746792243fd8d01949032cb4`.
+- Full chronological replay on recovery branch was blocked before SQL by one duplicate alias collision. Exact-pair normalization was fixed in `aec8572...`; branch trigger enabled in `e3bf384...`. Inspect run `39010790236` next; it was in progress when this checkpoint was written.
+- Do not conflate the two replay strategies. Snapshot-forward replay passed; empty-schema chronological replay is still unverified until run `39010790236` completes. Even a baseline-assisted pass does not recover original historical DDL.
+- Production remains **BLOCKED / NOT CERTIFIED**; no production mutation, deployment, payment, merge, or release.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-007 checkpoint
+
+- Latest cross-branch full replay [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) **failed** at RC339: missing organization row `MNTY-MAIN` in the empty database. Alias normalization now succeeds.
+- Production read-only query confirmed `MNTY-MAIN` exists; applied ledger version `20260927131555` (`bootstrap_mnty_owner_islam_nagy_v2`) exists, but no source migration file/commit was found. Exact ledger statement contains owner email; do not publish it without privacy review.
+- Recovery branch commit `6b57a9dac5682f402eee96350903d38285d4509d` documents privacy-safe options. No fixture/source recovery applied yet.
+- Next: resolve approval/privacy path, then rerun full replay only after replay input changes. The forward-only snapshot test passed 32 migrations but does not close this blocker.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-EXEC-008
+
+- **PR #289:** Draft/open/unmerged. Code head `9f140f53075a06481ba6d3c171510cdf9f98ecf6` passed RC526 disposable PostgreSQL behavioral tests, Deno type-check, RC446 privacy integration, Pages validation with the new 8-case Node unit suite, module validation, migration guards, approval audit, and backend-only boundary. Current PR head `602e27cb28204ddb39a9f2a174e9bc772dba7642` differs by documentation only.
+- **Test-only forward replay:** [run 39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548) passed on `test/production-baseline-forward-replay-20261017` at `b32e0741a7ed5d07ade4f4847070702855f90124`, including a post-replay ACL contract for `counter_offer_indrive_bid`. Artifact ID `12091784983`; contents not independently read.
+- **Full chronological replay remains blocked:** [run 39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed at RC339 because the empty replay DB lacks `organizations.id='MNTY-MAIN'`. The applied bootstrap ledger entry exists but its source migration is absent from searched refs/PRs/commits. The exact source includes owner email, so privacy review is required before public source handling.
+- **Next action:** resolve the explicit privacy/replay-path decision; do not create the organization seed fixture or rerun unchanged replay without approval/input change.
+- No production mutation, migration application, deployment, payment, merge, or release occurred. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-009 checkpoint
+
+- Cross-branch source recovery commit: `a474cc45a4a2a3960760482976ebb79e8c9e1eed` on recovery PR #207 branch, restoring 21 exact applied-ledger SQL statement bodies with manifest.
+- Full replay run [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) is the one required run for this source set. Check its exact result next.
+- Missing owner bootstrap `20260927131555` remains intentionally excluded due hard-coded owner email. No test-only org seed is approved/implemented. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-013 checkpoint
+
+- Source integrity PASS: [run 39011843639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011843639), exact SHA `badb5c37ec239c7f6caf4d1a8bd2f4f998e871f5`; all 32 manifest-listed SQL statement files passed byte-length/SHA-256 validation.
+- Full replay FAIL: [run 39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756), exact SHA `a474cc45a4a2a3960760482976ebb79e8c9e1eed`; missing `public.marketing_provider_services` at the recovered grants migration. No table creation source/policy creation statement was found in the applied ledger.
+- Recovery branch proposal: [MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md](https://github.com/islamnagy2022-eng/MantiqatiX/blob/reconcile/rc425-458-current-main-20261011/docs/release/MARKETING_PROVIDER_SERVICES_SOURCE_GAP_20261017.md).
+- Bootstrap migration `20260927131555` is the only unmatched ledger migration name; exact applied SQL contains owner email, so public source recovery is paused for privacy review.
+- Next: resolve approval for the minimal test-only table + public active-read policy baseline or recover trusted source. No replay rerun until input changes. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SESSION-RESUME-EXEC-014 checkpoint
+
+- RC526 amount handling is unchanged. Official Paymob docs say request amount is in cents; their response example suggests `intention_detail.amount` is in currency units but the sample values are not a clean same-transaction correlation.
+- Exact merchant sandbox E2E remains a release blocker. Do not relax amount/currency/reference correlation without observed provider evidence.
+- Cross-branch full replay remains blocked at the missing `marketing_provider_services` source/baseline; source-integrity validation for the 32 recovered statements passed on run `39011843639`.
+
+
+## 2026-10-17 — Latest checkpoint: PAYMOB-CORRELATION-UNIT-001
+
+- **Branch:** `fix/rc526-mantigo-intent-claim-20261017`; PR #289 remains Draft/open/unmerged.
+- **Exact code SHA verified:** `d7fc64d0759b7eac303fc1dbcc33a2322115750e`.
+- **Correction:** Paymob response amount correlation now uses integer minor units `amountCents` rather than major currency units. Unit fixtures and static validator updated.
+- **Exact-head CI:** web validation/correlation unit tests passed with deploy skipped [39012428471](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428471); RC526 PostgreSQL integration + Deno type-check + RC446 privacy passed [39012428468](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428468); migration immutability [39012428479](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428479), uniqueness [39012428338](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428338), collision guard [39012428342](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428342), backend boundary/RC450 [39012428334](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428334), approval audit [39012428427](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428427), and module professionalization [39012428420](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39012428420) passed.
+- **Live provider verification:** not done; no Paymob sandbox request or real payment was made. Need authorized sandbox credentials and a controlled E2E.
+- **Historical replay:** original creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unknown. Main-line parent commit `33d7b626c75ee649a71b6ae6d3f5303d1a47901e` had only one migration before the revoke commit; that revoke commit added only the revoke file. This supports the missing-source finding but does not prove no external archive exists.
+- **Next:** authorized sandbox E2E when credentials are available; continue provenance search only for authoritative source artifacts. Keep production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — HISTORICAL-SOURCE-SWEEP-003 checkpoint
+
+- Searched seven accessible branches for migration files earlier than `20260927095000`; no creation source for `counter_offer_indrive_bid` was found.
+- Read-only production ledger query found applied migration `20260927131555 / bootstrap_mnty_owner_islam_nagy_v2`; the recorded SQL creates the platform/main organization and owner membership by email lookup, contains a hard-coded owner email, and grants elevated platform permissions. The email was not copied to public files. Treat this as a source artifact requiring privacy/security review; a test-only adaptation must be labelled accurately and must not be claimed as the original SQL.
+- Exact code tests on `d7fc64d...` passed and are recorded in the ledger. Documentation-only commit `2b8162a...` also passed all listed PR workflows; Pages validation passed and deployment was skipped.
+- **Open:** counter-offer historical creation provenance; privacy-safe RC339 bootstrap replay; live Paymob Sandbox E2E; tenant-isolation E2E; backup/restore rehearsal; remaining release gates.
+- **Next:** design a privacy-safe, explicitly test-only bootstrap for isolated replay only after review; continue searching trusted provenance for the counter-offer function. No production changes, deployments, payments, merges, or releases. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest checkpoint: SESSION-RESUME-EXEC-015
+
+- **PR #289 head at inspection:** `9892d8d20f4e9b378a4dd3bb567c8590ea18d43a`, Draft/open/unmerged on `fix/rc526-mantigo-intent-claim-20261017`.
+- **CI:** inspected 22 check-run records at this exact SHA. Listed RC526 PostgreSQL integration, MantiGO privacy, targeted-ads search-path, matrimony privacy, financial-journal, approval audit, migration guards, and web validation passed; web deploy was skipped. Evidence links and scope limits are in `docs/TEST_EXECUTION_LEDGER.md`.
+- **No manual tests rerun** and no production or live-provider action.
+- **Open replay gaps:** (1) original historical creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unavailable; (2) `20260928010000_rc99_g5_provider_services_rls_hardening.sql` assumes `public.marketing_provider_services` exists, but no authoritative creation source was found. Chronological replay failure [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) remains a failure, not a pass.
+- **Next exact action:** continue source recovery from trusted historical refs/archives for both objects. If unavailable, obtain explicit approval for a test-only live-derived baseline before altering replay inputs. No invented/backdated migration, no silent replay seeding, and no production mutation.
+- **Release:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — SOURCE-SWEEP-016 checkpoint
+
+- Searched the 33 archived recovered-migration files on PR #218's branch and all changed-file pages of PR #218; no authoritative historical creation DDL found for `counter_offer_indrive_bid` or `marketing_provider_services`.
+- PR #284's schema-only snapshot contains live-derived current definitions, blob `8d096904c777b4c7eae096014b45c59859c96cee`; its manifest remains `PENDING_REVIEW`, and it cannot prove historical source order.
+- Proposal-only document committed at `be9c8c298986bcd4d01df62d2609147c753f46c0`: `docs/release/MARKETING_PROVIDER_SERVICES_REPLAY_BASELINE_PROPOSAL_20261017.md`. No fixture was created and no replay rerun.
+- **Next gate:** explicit approval is required for the scoped disposable-only baseline; otherwise continue trusted source recovery. No production mutation, deployment, payment, merge, or release.
+- Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-17 — Latest verified checkpoint: SESSION-RESUME-EXEC-017
+
+- **Branch/PR:** `fix/rc526-mantigo-intent-claim-20261017`, [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Exact HEAD:** `dca34e89a530e0f6c998c5f405ed9fb167e40e83`.
+- **Diff check:** `9892d8d20f4e9b378a4dd3bb567c8590ea18d43...dca34e89a530e0f6c998c5f405ed9fb167e40e83` changes docs only; no test inputs or application code changed.
+- **Exact-head CI:** 11 runs inspected; RC526 payment-intent claim integration + MantiGO privacy passed [39013499658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39013499658). Migration uniqueness, history immutability, collision guard, approval audit, finance/backend boundaries, targeted-ads/matrimony, and web validation passed. Web deploy was skipped. Detailed evidence is in `docs/TEST_EXECUTION_LEDGER.md`.
+- **Historical source sweep:** all 142 SQL migrations at/before `20260927095000` on `reconcile/rc425-458-current-main-20261011` were scanned for the counter-offer function and provider-services table creation; no matching authoritative source found. Relevant source refs/files are logged.
+- **Open blockers:** original creation DDL/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; original creation DDL/version for `public.marketing_provider_services`; privacy-safe RC339 owner bootstrap; Paymob Sandbox E2E; tenant isolation; backup/restore and remaining release gates.
+- **Next:** continue searching only if new trusted artifacts can be reached. Do not use live-derived snapshots as historical truth, do not inject a test baseline without explicit approval, and do not rerun unchanged full replay. If a scoped baseline is approved and implemented, run replay once on the changed input and record its next first failure.
+- **Release gate:** **BLOCKED / NOT CERTIFIED**. No production mutation, migration application, deployment, payment, merge, or release occurred.
+
+
+## 2026-10-18 — Latest verified checkpoint: SESSION-RESUME-EXEC-018
+
+- **Branch/PR:** `fix/rc526-mantigo-intent-claim-20261017`, [PR #289](https://github.com/islamnagy2022-eng/MantiqatiX/pull/289), Draft/open/unmerged.
+- **Exact HEAD inspected:** `15ea4fdee2b7c6dac7faea22f90162fd83445e56`.
+- **Exact-head CI:** 11 associated workflow runs inspected; RC526 claim/finalization PostgreSQL integration, RC446 privacy, targeted-ads search path, matrimony privacy, approval audit, migration uniqueness/immutability/collision guard, backend-only boundary, and web validation passed. Web deployment was skipped. Exact evidence IDs are in `docs/TEST_EXECUTION_LEDGER.md`.
+- **Historical source update:** Library schema snapshot contains the current `counter_offer_indrive_bid` definition, but it has no verified original migration identity/timestamp and is not historical source. The migration manifest lists `20260927131555_bootstrap_mnty_owner_islam_nagy_v2`, but the source file is absent from the current `main` migration directory; the recorded SQL is privacy-sensitive because it contains an owner email and elevated seed permissions.
+- **Replay evidence distinction:** forward replay from the live-derived schema baseline passed [39010917548](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010917548), but full chronological replay candidate [39010790236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39010790236) failed at missing `MNTY-MAIN`, and candidate [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) failed at missing `public.marketing_provider_services`. These failures are not cleared by the forward-baseline pass.
+- **Open blockers:** historical creation DDL/version for `counter_offer_indrive_bid`; privacy-reviewed recovery/test-only strategy for RC339 owner bootstrap; authoritative creation DDL or approved test-only baseline for `marketing_provider_services`; live Paymob Sandbox E2E; tenant isolation E2E; backup/restore rehearsal; remaining production gates.
+- **Next exact action:** continue trusted source recovery. If no source is available, obtain explicit approval for the exact test-only baseline/bootstrap scope before changing replay inputs; then run the changed disposable replay once and record its first failure. Do not infer approval from a general continuation request.
+- **Release gate:** **BLOCKED / NOT CERTIFIED**. No production mutation, migration application, deployment, payment, merge, or release occurred.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-001 (2026-10-17)
+
+- Candidate branch: reconcile/rc425-458-current-main-20261011, PR #207, Draft/unmerged.
+- Failure [39011424756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39011424756) proved the current blocker at that SHA was not an absent fixture: marketing_commission_schema.sql already created the table, but its temporary CI migration version 20260927140494 sorted after the first consumer 20260927132904_restore_marketing_catalog_grants_and_owner_profile_access.sql.
+- Corrected runtime-only fixture version to 20260927132903; added fail-closed validator assertions for prerequisite and first-consumer ordering; corrected fixture comment. The file remains under supabase/tests/baselines/ and is copied to an untracked temporary migration only inside disposable CI.
+- Fix commits: bb61883da232a220fe5a526572b55be05ba3205a, 46e958ca001232b2d82cfc5c9eb257772b637ee4, 8b4dfda8ea8d1632786caad49b13b745b137a0e6.
+- Exact-head replay [39070471838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39070471838) was pending/in progress at last check. Next action: inspect final run status and first error if any. Do not repeat the run on the same SHA unless inconclusive/flaky or a justified regression suspicion.
+- Release gate remains BLOCKED / NOT CERTIFIED; historical DDL provenance, complete replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function parity, and Auth gates remain separate.
+
+
+### Replay validator correction checkpoint — 2026-10-17
+
+The initial ordering fix exposed a validator-ordering concern during review: temporary migrations do not exist yet when scripts/validate-historical-schema-baseline.mjs reads the committed migration directory. Replaced the attempted temporary-migration lookup with a pinned prerequisite version comparison (20260927074156), retaining the first-consumer version check (20260927132904). Correction commit d1eff709f01927f30a676f9bd96d20ae122f7837. Await exact-head CI; the prior pending run is not proof for this correction.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-002 (2026-10-17)
+
+- Exact replay at d1eff709f01927f30a676f9bd96d20ae122f7837 passed the marketing table consumer and then failed at 20260928184000 with SQLSTATE 42710 due to a duplicate order_status_history_customer_select_own policy.
+- Production read-only version list captured by run 38993809648 includes 20260928154411 (which creates the policy) and omits 20260928184000. It includes applied version 20260928154527, for which no matching repository source was found.
+- Candidate 20260928184000 is now idempotent for both customer policies: matching existing policies are reused; absent policies are created; mismatched contracts fail closed. The immutability exception is pinned to the original blob SHA and read-only ledger hash. Manifest remains PENDING_REVIEW.
+- Current code SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0: source integrity PASS [39071093548]; full replay [39071093587] pending at last check. Check immutability CI separately.
+- Next: inspect exact-head workflow results and fix only the next confirmed first failure. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-003 (2026-10-17)
+
+- Full replay at SHA cc9bb07ac7e325841a0f85d601f34cd6a41e33b0 failed at applied migration 20260929073244 because its inactive test business references MNTY-PLATFORM and the schema-only disposable database has no tenant row.
+- Added synthetic test-only fixture supabase/tests/baselines/mnty_platform_tenant_seed.sql; injected as untracked temporary migration 20260929073243 immediately before the consumer. Validator checks exact fixture contract and timestamp ordering. This supplies synthetic test data only; it is not evidence of the original tenant-row source.
+- Exact-head replay [39071511736](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071511736) at SHA 1b6fc8f297d187fe070db61de90d1770d0307090 was in progress after exact-copy/untracked verification passed.
+- No production changes. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-004 (2026-10-17)
+
+- Replay at SHA da37e151f3c0c0a284b88d5205aa4c41f46b73e2 passed the synthetic tenant and organization dependencies, then failed in canonical RC339 showcase migration 20261004005819 because its fixed owner UUID was absent from public.users/auth.users.
+- Added disposable-only synthetic owner fixture mnty_showcase_owner_user_seed.sql at temporary version 20261004005817; it uses the hardcoded source UUID only in an isolated database, invalid.example email, empty password hash, no tokens, and one public profile row. It is injected after tenant seed 20260929073243 and before org seed 20261004005818 and consumer 05819.
+- Fixture validator/copy/untracked checks passed in replay run [39072088344](https://github.com/islamnagy2022-eng/MantiqatiX); full replay was in progress at last check.
+- Migration immutability [39071889905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39071889905) passed with the exact one-file exception verified.
+- Historical source gap for applied version 20260928154527 and all production gates remain open; release BLOCKED / NOT CERTIFIED.
+
+
+## Latest replay checkpoint — REPLAY-ORDER-005 (2026-10-17)
+
+- Replay at SHA 31a005c3fbffe4744f9fe5c30fdc8140a472aefd failed on the synthetic auth user because RC215's auth.users trigger inserted a CUSTOMER membership before public.users existed.
+- This confirms a real signup-ordering bug in applied migration 20260930100000_rc215_customer_membership_invariant.sql. Added forward-only migration 20261018010000_auth_user_profile_before_customer_membership.sql to create the profile first, then create the membership. Added rollback-only behavioral test.
+- The historical showcase fixture now disables only the legacy membership trigger during setup, restores it, and invokes the helper after the synthetic profile exists; this is disposable CI only.
+- Latest source integrity [39072447513] and migration immutability [39072447500] passed. Full replay [39072447514] was in progress at SHA be3cf19573595f037357c89db719c37c065755c1.
+- Historical source gap 20260928154527 remains unresolved; release BLOCKED / NOT CERTIFIED.
