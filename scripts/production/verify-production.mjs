@@ -106,6 +106,9 @@ const liveReconciliationVerified=Boolean(
   reconciliation.auth_security_settings==="PASS" &&
   reconciliation.digital_page_finalization_trust_boundary==="PASS" &&
   reconciliation.digital_page_finalization_deployed_source_parity===true &&
+  reconciliation.financial_journal_deployed_source_parity===true &&
+  reconciliation.customer_registration_deployed_source_parity===true &&
+  reconciliation.business_register_organization_scope_deployed_source_parity===true &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
 );
@@ -119,6 +122,20 @@ add("DIG-FINALIZE-LIVE-PARITY","SECURITY",digitalFinalizerLiveParityVerified?"PA
     ?"Approved live evidence confirms the server-only finalizer grant boundary and exact deployed Edge Function source parity."
     :"Live grant/function and deployed Edge Function parity evidence is missing; source CI cannot close this production gate.",
   "P0");
+const edgeParityChecks=[
+  ["EDGE-FINANCIAL-JOURNAL-PARITY","financial_journal_deployed_source_parity","financial-journal"],
+  ["EDGE-CUSTOMER-REGISTRATION-PARITY","customer_registration_deployed_source_parity","mnty-customer-registration"],
+  ["EDGE-BUSINESS-REGISTER-SCOPE-PARITY","business_register_organization_scope_deployed_source_parity","business-register organization-scope fix"]
+];
+for(const [id,key,label] of edgeParityChecks){
+  const verified=Boolean(reconciliation && reconciliation[key]===true &&
+    typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
+    typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0);
+  add(id,"SECURITY",verified?"PASS":"BLOCKED",
+    verified?`Live evidence confirms exact deployed source parity for ${label}.`:
+      `Exact live-to-repository source parity evidence for ${label} is missing; do not treat repository-only fixes as deployed.`,
+    "P0");
+}
 const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked
