@@ -41,3 +41,11 @@ Do not run mutation SQL against production as a workaround. This guide does not 
 ## Release gate
 
 RC526's disposable PostgreSQL concurrency/finalization/release tests and Deno type-check passed on the recorded PR head. This does not verify live Paymob behavior, operator tooling, or production deployment. Full production release remains **BLOCKED / NOT CERTIFIED** until migration chronology and the remaining production gates are resolved.
+
+
+## RC526 isolated integration evidence — 2026-10-18
+
+- Added dedicated workflow `.github/workflows/rc526-mantigo-payment-intent-claim.yml` to run the provider-response correlation unit tests, source-boundary validator, and the SQL fixture + RC526 migration + RPC integration test against a disposable PostgreSQL 16 service.
+- Exact-head run [39089810858](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39089810858) passed on commit `0cbfc69921806d58ba9f7ef37294757475e3d86e`.
+- Evidence includes 9/9 provider-correlation unit tests, static checks for claim-before-provider ordering and ambiguous-outcome quarantine, and SQL assertions for role grants, private claim/secret tables, single-winner claim behavior, wrong-token rejection, finalization, duplicate provider-intent conflict rollback, and concurrent claims through two PostgreSQL sessions.
+- Scope is isolated database/source testing only. This does not prove the RC526 migration was applied in production or that live Paymob callbacks, payment settlement, tenant isolation, and end-to-end checkout are production-ready. Keep the PR Draft and release gate blocked pending the complete ordered migration replay and live acceptance evidence.
