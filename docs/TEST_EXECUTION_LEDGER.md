@@ -126,3 +126,9 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - Run [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) failed in preflight, before PostgreSQL replay, because the function-baseline untracked-file assertion expected a standalone loop token while the workflow used one combined loop. The assertion was corrected to verify the temporary migration appears in the untracked-check loop.
 - Run [39083170583](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083170583) then failed in preflight because the financial-config fixture's safety comment wrapped “must never” and “be applied” across lines, while the validator required a single space. The validator now accepts whitespace across that line break.
 - These are validator/fixture-contract failures, not SQL replay outcomes. The next run [39083192362](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083192362) was queued after the corrections; inspect its final result before proceeding.
+
+
+### REPLAY-BASELINE-004 — workflow variable scope correction
+- Run [39083237698](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083237698) passed the historical-schema preflight, including the new tracked-source DDL equality check, but failed during the temporary-copy verification step because `mantigo_financial_config_baseline` was not defined in that step's shell.
+- Corrected `.github/workflows/migration-chain-replay.yml` to define both the baseline path and temporary migration path inside the verification step before `cmp` and untracked checks.
+- New exact-head run for commit `5a2db26e1f56d5736a0b0ead517ab24e8ad07ebd` is queued at [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535). No chronological replay result is claimed yet.
