@@ -15,5 +15,7 @@ assert.match(source, /if\(tenantError\)throw tenantError;\s*if\(!tenant\)return 
 assert.match(source, /console\.error\("business-register failed",error instanceof Error\?error\.message:"unknown_error"\)/);
 assert.match(source, /return response\(\{error:"BUSINESS_REGISTER_FAILED"\},500\)/);
 assert.doesNotMatch(source, /return response\(\{error:error instanceof Error\?error\.message/);
+assert.match(source, /const body=await req\.json\(\)\.catch\(\(\)=>null\)/);
+assert.match(source, /if\(!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)\)return response\(\{error:"INVALID_JSON_BODY"\},400\)/);
 
-console.log("business-register tenant and organization security contract: PASS (12 assertions)");
+console.log("business-register tenant and organization security contract: PASS (14 assertions)");
