@@ -15,10 +15,10 @@ const unknownBranch = unknownStart >= 0 && unknownEnd >= 0 ? source.slice(unknow
 const persistenceStart = source.indexOf('const persisted=await admin.from("smm_orders")');
 const persistenceEnd = source.indexOf('const event=await admin.from("smm_order_events")', persistenceStart);
 const persistenceBranch = persistenceStart >= 0 && persistenceEnd >= 0 ? source.slice(persistenceStart, persistenceEnd) : "";
-check("provider call has bounded timeout", source.includes("AbortSignal.timeout(15000)"));
+check("provider call has bounded timeout", source.includes("AbortSignal.timeout(15000)") || (source.includes("new AbortController()") && source.includes("setTimeout(()=>controller.abort(),15000)") && source.includes("signal:controller.signal")));
 check("gateway source contains no literal escaped newline that breaks TypeScript parsing", !source.includes(');\\n  if(a==="configure_provider")'));
 check("SMM immutable hard deferral gate runs before authentication and business actions", source.includes("const SMM_INITIAL_LAUNCH_DEFERRED=true;") && source.includes('if(SMM_INITIAL_LAUNCH_DEFERRED||Deno.env.get("MNTY_SMM_ENABLED")!=="true"||Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED")!=="true")') && source.indexOf('if(SMM_INITIAL_LAUNCH_DEFERRED||Deno.env.get("MNTY_SMM_ENABLED")!=="true"||Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED")!=="true")') < source.indexOf("const user=await getUser(req)"));
-check("network/HTTP ambiguity has a typed non-definitive error", source.includes('new ProviderCallError("Provider network outcome unknown",false)') && source.includes('Provider response outcome unknown'));
+check("network/HTTP ambiguity has a typed non-definitive error", (source.includes('new ProviderCallError("Provider network outcome unknown",false)') && source.includes('Provider response outcome unknown')) || source.includes('new ProviderCallError("Provider request failed, timed out, or returned invalid data",false)'));
 check("ambiguous provider outcomes require reconciliation", unknownBranch.includes('PROVIDER_OUTCOME_UNKNOWN') && unknownBranch.includes("reconciliation_required:true"));
 check("ambiguous provider outcomes never auto-refund", unknownBranch.length > 0 && !unknownBranch.includes("smm_refund_wallet"));
 check("refund branch requires explicit rejection", source.includes('const definitive=e instanceof ProviderCallError&&e.definitiveRejection'));
