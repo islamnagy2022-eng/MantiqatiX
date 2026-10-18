@@ -668,3 +668,10 @@ This status is intentional and must remain until the open gates above are indepe
 - The test confirms the legacy four-argument finalizer is disabled for anon/authenticated/service_role; only the provider-order-bound five-argument overload is service_role-executable, SECURITY DEFINER, empty search_path, and bound to trusted role, user, claim token, and provider order.
 - Latest PR #297 head `7bdd0ec5cd25d6ee156e69bac2107283a034a674` adds execution of the source production verifier in the isolated finalization workflow, asserting that the digital finalization source gate passes while the overall production gate remains BLOCKED. Exact-head CI is running; no pass claimed yet.
 - No production change, deployment, payment, or `docs/SESSION_LOG.md` edit.
+
+
+## RC536 — Exact-head payment gate CI passed — 2026-10-18
+- PR #297 exact head `7bdd0ec5cd25d6ee156e69bac2107283a034a674` passed Digital Page Payment Finalization Isolation run 39142880851. The workflow applies the migration in disposable PostgreSQL, passes the ACL/body regression suite, runs the production source verifier, and confirms `DIG-FINALIZE-TRUST-BOUNDARY=PASS` while `PRODUCTION_GATE=BLOCKED`.
+- At the same head, Backend-only Module Boundary run 39142880886, MantiGO Open Ride Privacy Boundary run 39142880809, and Module Professionalization Validation run 39142880832 passed.
+- Full replay at code-equivalent head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed run 39142726549: 32 ordered migrations, post-replay finalizer grants/body/search_path checks and bidirectional tenant-isolation tests.
+- This closes candidate-only CI and disposable replay checks for this slice; it does not establish live production parity or authorize release. Production remains BLOCKED / NOT CERTIFIED. PR #297 is still draft and unmerged.
