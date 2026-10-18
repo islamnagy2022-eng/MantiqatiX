@@ -56,7 +56,7 @@ Observed facts:
 Unresolved checks (not inferred as passed):
 - There is no explicit latitude/longitude range validation before the distance formula. Test null, boundary, out-of-range, NaN/infinity representations where accepted, and mismatched coordinates in a disposable PostgreSQL instance; record whether the function returns bounded results or raises errors.
 - Validate the maximum output volume, global-ad exposure contract, and whether all returned fields are intentionally public.
-- Compare the live definition against the exact candidate migration (RC451 and subsequent relevant migrations) and run anonymous positive/negative regression tests before proposing any production migration.
+- Compared with candidate migration `supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql` on PR #286: RC451 changes only this function's configuration to `SET search_path = ''`, explicitly preserves anonymous execution, and relies on the schema-qualified table references observed in the live body. The live catalog still reports `search_path = public, pg_temp`, so RC451 is **not applied to production** according to the live function configuration / migration ledger. Run anonymous positive/negative regression tests and verify final migration-chain replay before any production migration.
 - Consider `SET search_path = ''` with schema-qualified object references in a reviewed forward migration, but do not apply a hotfix or revoke `anon` execution without a verified product contract and regression coverage.
 
 This body inspection narrows the review but does **not** establish full authorization safety or close the public-RPC finding.
