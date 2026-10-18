@@ -731,3 +731,9 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - Run [39083237698](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083237698) passed preflight but failed in the copy-verification step due to an undefined shell variable.
 - Corrected the workflow by declaring the config baseline and temp migration paths within that verification step. New run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535) is queued.
 - Wait for exact-head CI; do not claim chronological replay success before logs confirm it. Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Current continuation checkpoint — 2026-10-18 (REPLAY-RESUME-010)
+- Run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535) has passed preflight, compatibility fixture injection, exact-copy/untracked verification, CLI setup, and disposable local config creation.
+- Disposable Supabase services are starting; chronological replay has not begun. The next step is to inspect the exact run until the migration replay starts and reports its first result.
+- No historical migration changes, merge, production deployment, or production mutation. **PRODUCTION_GATE = BLOCKED / NOT CERTIFIED.**
