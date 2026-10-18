@@ -1742,3 +1742,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Added isolated SQL regression cases for stale claim tokens, wrong user binding, same-intent retry, conflicting intent replay, and conflicting provider-order replay; authenticated direct invocation remains denied by the ACL/role contract.
 - Exact new head: `6c4d5e931c2a3d420e1d43fe8369a81747a018d1`. The Digital Page Payment Finalization Isolation workflow and related repository CI were queued/in progress at this checkpoint; do not mark this fix PASS until the exact-head isolated PostgreSQL test completes successfully.
 - This is source/test work only. No migration was applied to production and no payment or deployment was performed.
+
+
+## RC530 — Digital-page payment finalization exact-head CI — 2026-10-18
+- Updated PR #268 exact head: `78c32697f26d53167d39e01201ad165e2cc5371c`.
+- The isolated PostgreSQL finalization workflow now passes after correcting the test fixture's role boundary. It exercises the 4- and 5-argument server-only finalizers, denies authenticated direct execution, rejects stale claim tokens and wrong-user binding, permits same-identifier retries while pending, and rejects conflicting provider-intent/provider-order replay.
+- Exact-head related CI: Digital Page Payment Finalization Isolation PASS; Migration Version Uniqueness PASS; Migration History Immutability PASS; Open PR Migration Collision Guard PASS; Module Professionalization Validation PASS; Backend-only Module Boundary PASS; MantiGO Open Ride Privacy Boundary PASS; Approval Action Audit Atomicity PASS; Pages validation PASS with deploy skipped for the PR event.
+- This verifies candidate source and disposable PostgreSQL behavior only. It does not verify production migration ledger/function grants/deployed Edge Function parity and does not authorize merge or deployment.
