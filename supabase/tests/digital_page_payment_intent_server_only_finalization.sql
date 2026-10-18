@@ -85,12 +85,19 @@ BEGIN
     'claim-four',
     'wrong-user-intent'
   ) THEN RAISE EXCEPTION 'wrong user was accepted'; END IF;
+END
+$reject_invalid_claims$;
+RESET ROLE;
+DO $invalid_state$
+BEGIN
   IF EXISTS (SELECT 1 FROM public.digital_page_orders
     WHERE id='10000000-0000-4000-8000-000000000001' AND provider_intent_id IS NOT NULL)
   THEN RAISE EXCEPTION 'rejected claim mutated order'; END IF;
 END
-$reject_invalid_claims$;
+$invalid_state$;
 
+SET ROLE service_role;
+SELECT set_config('request.jwt.claim.role', 'service_role', false);
 SELECT public.finalize_digital_page_payment_intent_backend(
   '10000000-0000-4000-8000-000000000001',
   '20000000-0000-4000-8000-000000000001',
