@@ -655,3 +655,9 @@ This status is intentional and must remain until the open gates above are indepe
 - During review of RC426 and the new finalization migration, identified that the first integration draft re-granted `service_role` EXECUTE on the legacy four-argument finalizer even though RC426 explicitly revoked it. Corrected the migration and tests to keep the legacy four-argument overload disabled for PUBLIC, anon, authenticated, and service_role; only the provider-order-bound five-argument overload is executable by service_role.
 - Added a read-only post-replay SQL check for effective overload grants, trusted-role guard, provider-order/claim binding, and empty search_path. The exact-head full replay and post-replay check are running at PR #297 head `2bda9e9e28d6a6141a14f21d6c1a3b00a32d5f6d`; do not mark this evidence PASS until the run completes.
 - No production mutation/deployment or change to `docs/SESSION_LOG.md`.
+
+
+## RC534 — Stronger post-replay security assertion — 2026-10-18
+- The full candidate replay at PR #297 head `2bda9e9e28d6a6141a14f21d6c1a3b00a32d5f6d` passed: 32 ordered migrations, post-replay overload grants and finalizer source guards, and bidirectional synthetic tenant isolation.
+- Strengthened the post-replay SQL contract to additionally assert the five-argument finalizer is SECURITY DEFINER and its function body checks both user binding and claim-token binding. Exact-head rerun is pending at `e7c6d08854fe2c25d2f061846fa69e292efb1663`.
+- No production mutation/deployment or `docs/SESSION_LOG.md` change.
