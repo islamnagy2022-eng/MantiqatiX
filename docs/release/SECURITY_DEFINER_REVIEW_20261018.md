@@ -76,6 +76,23 @@ Required audit per function:
 
 The read-only query found several functions with `search_path = public` and others with `public, pg_temp`; each must be evaluated against its exact body and caller contract. The count does not imply all functions share the same risk.
 
+## Live financial-journal Edge Function drift — 2026-10-18
+
+A separate read-only source-parity check compared the active Supabase Edge Function with the current repository source.
+
+Observed live state:
+- `financial-journal` is ACTIVE at deployed version 3.
+- Its live `index.ts` calls `admin.rpc("post_financial_journal", { p_entry, p_lines })` without a verified actor ID parameter; it also sets `Access-Control-Allow-Origin: *`.
+- Live PostgreSQL catalog ACL for both `public.post_financial_journal(jsonb,jsonb)` and `public.post_financial_journal_backend(uuid,jsonb,jsonb)` is `{postgres=X/postgres}`; read-only `has_function_privilege('service_role', ...,'EXECUTE')` returns false for both.
+- Current repository `supabase/functions/financial-journal/index.ts` instead verifies the bearer token, rejects anonymous users, requires a POSTED journal, and calls `post_financial_journal_backend` with `p_user_id: user.id`.
+- Therefore the live function and repository source are **DRIFTED**, and the live RPC privilege state does not support the deployed call. Treat the live financial-journal endpoint as **NOT VERIFIED / likely nonfunctional** until an approved, end-to-end check confirms the actual runtime response.
+
+Required disposition:
+1. Do not grant `service_role` execute on the legacy `post_financial_journal` as a quick fix; the legacy contract does not bind the caller's verified actor ID in the same way as the repository backend contract.
+2. Resolve the historical migration-chain blocker, then review and apply the RC450 service-role/actor-boundary migration in chronological order in the approved release process.
+3. Run disposable PostgreSQL regression tests and approved non-financial dry-run validation, deploy the repository source only after its backend RPC/grants are present, and verify the deployed function version/source parity.
+4. No production function, grant, migration, ledger, payment, or financial data was changed during this inspection.
+
 ## Release-gate decision
 
 - Live Security Advisor review: **VERIFIED — findings observed**, not remediation complete.
