@@ -1,6 +1,14 @@
 name: Production Schema Baseline Static Audit
 
 on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/tests/baselines/production_schema_snapshot.sql"
+      - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
+      - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "scripts/tests/production-schema-baseline-static-audit.mjs"
+      - ".github/workflows/production-schema-baseline-static-audit.yml"
   pull_request:
     branches: [main]
     paths:
