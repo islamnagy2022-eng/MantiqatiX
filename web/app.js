@@ -1350,7 +1350,7 @@ function marketingCampaignWorkspace(){
  }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
  return marketingAgencyWorkspace()+
   '<section class="records" data-marketing-campaign-workspace><div class="section-head"><div><span class="eyebrow">INTERNAL CAMPAIGN WORKFLOW</span><h2>الحملات والتعاون مع الشركاء</h2><p class="muted">إدارة داخلية للخطط والدعوات. لا يوجد نشر خارجي تلقائي أو اتصال مباشر بمنصات الإعلانات.</p></div><span class="mnty-badge">RC453</span></div>'+
-  errorPanel+campaignOperationsSummary+createForm+
+  errorPanel+campaignOperationsSummary+(canManage?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-export style="width:auto">تصدير تقرير الحملات CSV</button></div>':'')+createForm+
   '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div>'+campaignCards+'</section>'+
   inviteForm+
   '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div>'+participantCards+'</section></section>';
@@ -1363,6 +1363,37 @@ async function refreshMarketingCampaignWorkspace(){
  bindMarketingCampaignWorkspace();
 }
 function bindMarketingCampaignWorkspace(){
+ document.querySelectorAll('[data-mc-export]').forEach(button=>button.addEventListener('click',()=>{
+  const role=String(live.role||'').toUpperCase();
+  const activeBusinessId=String(live.businessId||'');
+  if(!activeBusinessId||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
+   showToast('تصدير الحملات متاح لمديري النشاط المخول فقط.','error');
+   return;
+  }
+  const rows=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>String(c.business_id||'')===activeBusinessId);
+  if(!rows.length){showToast('لا توجد حملات مرئية للتصدير.','info');return;}
+  const columns=[
+   ['title','اسم الحملة'],['objective','الهدف'],['channels','القنوات'],['budget','الميزانية'],['currency','العملة'],
+   ['status','الحالة'],['start_at','تاريخ البداية'],['end_at','تاريخ النهاية'],['created_at','تاريخ الإنشاء'],['brief','ملخص الحملة']
+  ];
+  const csvCell=value=>{
+   let text=Array.isArray(value)?value.join(' | '):String(value??'');
+   if(/^[=+@\\-\\t\\r]/.test(text))text="'"+text;
+   return '"'+text.replace(/"/g,'""')+'"';
+  };
+  const csv='\\uFEFF'+columns.map(([,label])=>csvCell(label)).join(',')+'\\r\\n'+rows.map(row=>columns.map(([key])=>csvCell(row[key])).join(',')).join('\\r\\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='mantiqatix-campaigns-'+new Date().toISOString().slice(0,10)+'.csv';
+  link.hidden=true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('تم تجهيز تقرير الحملات المرئية للنشاط الحالي.','success');
+ }));
  const createForm=document.getElementById('marketing-campaign-create-form');
  if(createForm)createForm.onsubmit=async event=>{
   event.preventDefault();
