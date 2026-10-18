@@ -754,3 +754,10 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #284 baseline candidate is not mergeable and includes `docs/SESSION_LOG.md` in its changed-file list; this session intentionally did not edit that file.
 - Current decision: no merge/deploy/production mutation. Poll exact-head CI for #286, inspect failures, prove ordered disposable replay and tenant/payment isolation, then continue module work from the shared auth/tenant and order/notification chain.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC529 — Payment finalization regression hardening — 2026-10-19
+- Added a fail-closed check in the unmerged PR #286 candidate: the five-argument digital-page finalizer refuses to overwrite an already-bound `provider_order_id` when no `provider_intent_id` is present.
+- Added a SQL regression case for the partial-binding state. Candidate head: `dbc1f555c450efe247c5d42f0c924fd3bf9e1460`.
+- Exact-head workflows for payment finalization, order correlation, webhook transitions, migration replay/immutability/uniqueness, tenant isolation and module boundaries are queued/pending; do not mark the change verified until they finish.
+- No production mutation or deployment. Release remains BLOCKED / NOT CERTIFIED.
