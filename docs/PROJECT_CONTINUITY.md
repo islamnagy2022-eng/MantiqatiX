@@ -719,3 +719,9 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - Added a definition-only baseline copied from that tracked DDL, injected only into disposable CI at temporary version `20261006122110`; the validator checks exact normalized DDL equality, no data operations, and workflow ordering/copy/untracked/collision guards.
 - Replay run [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) is pending as of this checkpoint. Verify its final result and proceed to the next first-failure blocker.
 - No historical migration was edited, no PR merged, and no production deployment/data mutation occurred. **PRODUCTION_GATE = BLOCKED / NOT CERTIFIED.**
+
+
+## Current continuation checkpoint — 2026-10-18 (REPLAY-RESUME-008)
+- The last two runs failed in preflight only: an overly strict untracked-file assertion and a line-wrap-sensitive safety-comment regex. Both were corrected in commit `f367582f216f5dcf455cfa6d9ca780452b67b4f2`.
+- New run [39083192362](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083192362) is queued. Confirm the validator passes and the replay actually starts before recording any SQL result.
+- Production gate remains **BLOCKED / NOT CERTIFIED**; no historical migration edit, merge, deployment, or production mutation.
