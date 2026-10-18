@@ -24,7 +24,7 @@
 - Exact tested PR head `7b6757830907c6843eadbcec5425bbd1da8b67b4`: marketing contract, Pages validation, backend-only boundary, MantiGO privacy, and module professionalization workflows passed. The Pages deploy job was skipped on the PR event; verify main push deployment separately.
 - PWA cache version is `mnty-web-v129`; exact versioned app and Supabase SDK URLs are precached.
 - Security review PR #291 merged as `cf522740e9dd058c28728ba582e347661ef24122`. Expanded read-only entrypoint parity spot-check: 27/29 sampled Edge Function `index.ts` files are byte-identical; the two drifted functions are `financial-journal` and `mnty-customer-registration`. Auth Advisor also warns about anonymous sign-ins and leaked-password protection. See `docs/release/SECURITY_DEFINER_REVIEW_20261018.md` and `docs/audits/CUSTOMER_REGISTRATION_RPC_DRIFT_20261016.md`.
-- Production database remains at RC424. RC453 campaign schema/RPCs and the RC450 financial-journal backend contract are not confirmed deployed. Do not perform out-of-order hotfix grants or claim production certification.
+- Production database remains at RC424. RC453 campaign schema/RPCs and the RC450 financial-journal backend contract are not confirmed deployed. The live digital-page payment RPC also lacks RC431 provider-order/event replay hardening. Do not perform out-of-order hotfix grants or claim production certification.
 - Release remains **BLOCKED / NOT CERTIFIED**.
 
 ## Historical web execution batch (superseded)
