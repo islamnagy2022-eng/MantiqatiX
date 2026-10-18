@@ -1,0 +1,29 @@
+name: Catalog Admin CORS Boundary
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/catalog-admin/index.ts"
+      - "scripts/validate-catalog-admin-cors-boundary.mjs"
+      - ".github/workflows/catalog-admin-cors-boundary.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/catalog-admin/index.ts"
+      - "scripts/validate-catalog-admin-cors-boundary.mjs"
+      - ".github/workflows/catalog-admin-cors-boundary.yml"
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate catalog admin CORS and auth contract
+        run: node scripts/validate-catalog-admin-cors-boundary.mjs
