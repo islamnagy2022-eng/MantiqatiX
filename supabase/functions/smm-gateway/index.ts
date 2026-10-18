@@ -57,7 +57,10 @@ Deno.serve(async(req)=>{
     admin.from("smm_wallets").select("balance").eq("user_id",user.id).maybeSingle()
    ]);
    if(o.error||w.error){console.error("[smm-gateway] account read failed",o.error?.code||w.error?.code||"DB_ERROR");return json({error:"ACCOUNT_DATA_READ_FAILED"},500);}
-   return json({orders:o.data||[],balance:Number(w.data?.balance||0),is_admin:await isAdmin(user.id)});
+   const walletInitialized=Boolean(w.data);
+   const walletBalance=w.data?Number(w.data.balance):null;
+   if(walletInitialized&&(walletBalance===null||!Number.isFinite(walletBalance)||walletBalance<0)){console.error("[smm-gateway] wallet balance invalid");return json({error:"WALLET_BALANCE_INVALID"},500);}
+   return json({orders:o.data||[],wallet_initialized:walletInitialized,wallet_status:walletInitialized?"READY":"NOT_INITIALIZED",balance:walletBalance,is_admin:await isAdmin(user.id)});
   }
   if(a==="admin_access")return json({is_admin:await isAdmin(user.id)});
   if(a==="configure_provider"){if(!(await isAdmin(user.id)))return json({error:"FORBIDDEN"},403);const r=await admin.rpc("smm_set_provider_secret",{p_provider_id:b.provider_id,p_actor_user_id:user.id,p_secret:b.api_key});if(r.error)return json({error:r.error.message},400);return json({ok:true});}
