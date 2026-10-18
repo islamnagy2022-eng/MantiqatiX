@@ -62,7 +62,8 @@ Deno.serve(async req=>{
    // Keep the claim; do not release it and risk creating a duplicate on retry.
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
- const providerOrderId=String(p?.intention_order_id??p?.order_id??"");
+ const providerOrderRaw=p?.intention_order_id??p?.order_id??(p?.order&&typeof p.order==="object"?(p.order as Record<string,unknown>).id:"");
+ const providerOrderId=String(providerOrderRaw??"").trim();
  if(providerResponseStatus>=400&&providerResponseStatus<500){
    // A definitive provider-side client rejection is safe to release for a fresh attempt.
    await release();
