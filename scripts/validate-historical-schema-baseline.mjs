@@ -1372,7 +1372,51 @@ if (!mantigoOpenRidesBaselineValid || !mantigoOpenRidesWorkflowValid ||
   console.error("P0 BLOCKED: MantiGO open-rides test-only baseline failed provenance, function-contract, no-data, workflow-injection, or no-collision validation.");
   process.exit(1);
 }
+
+// MantiGO financial-config table compatibility: use only the exact CREATE TABLE
+// statement from the tracked RC financial-ledger migration. This addresses the
+// replay's timestamp ordering (the earlier RLS hardening migration runs first),
+// without fabricating schema or modifying historical migrations.
+const mantigoFinancialConfigBaselinePath = "supabase/tests/baselines/mantigo_financial_config.sql";
+const mantigoFinancialConfigBaseline = fs.existsSync(mantigoFinancialConfigBaselinePath)
+  ? fs.readFileSync(mantigoFinancialConfigBaselinePath, "utf8")
+  : "";
+const mantigoFinancialConfigSource = migrations.find(({ name }) => name === "20261006152000_mantigo_financial_ledger_v1.sql");
+const mantigoFinancialConfigSourceDdl = mantigoFinancialConfigSource?.sql.match(/create table if not exists public\.mantigo_financial_config\s*\([\s\S]*?\);/i)?.[0] ?? "";
+const mantigoFinancialConfigBaselineDdl = mantigoFinancialConfigBaseline.match(/create table if not exists public\.mantigo_financial_config\s*\([\s\S]*?\);/i)?.[0] ?? "";
+const normalizeSql = (sql) => sql.replace(/\s+/g, " ").trim().replace(/;$/, "").toLowerCase();
+const mantigoFinancialConfigTemporaryVersion = "20261006122110";
+const mantigoFinancialConfigTemporaryName = mantigoFinancialConfigTemporaryVersion + "_test_only_tracked_source_mantigo_financial_config_baseline.sql";
+const mantigoFinancialConfigWorkflowPath = ".github/workflows/migration-chain-replay.yml";
+const mantigoFinancialConfigWorkflow = fs.existsSync(mantigoFinancialConfigWorkflowPath)
+  ? fs.readFileSync(mantigoFinancialConfigWorkflowPath, "utf8")
+  : "";
+const mantigoFinancialConfigBaselineValid =
+  /TEST-ONLY schema compatibility baseline for disposable migration-chain replay/i.test(mantigoFinancialConfigBaseline) &&
+  /tracked migration 20261006152000_mantigo_financial_ledger_v1\.sql/i.test(mantigoFinancialConfigBaseline) &&
+  /must never be applied to production/i.test(mantigoFinancialConfigBaseline) &&
+  /id boolean primary key default true check \(id=true\)/i.test(mantigoFinancialConfigBaseline) &&
+  /commission_rate numeric\(6,3\) not null check \(commission_rate>=0 and commission_rate<=100\)/i.test(mantigoFinancialConfigBaseline) &&
+  mantigoFinancialConfigSourceDdl.length > 0 &&
+  normalizeSql(mantigoFinancialConfigBaselineDdl) === normalizeSql(mantigoFinancialConfigSourceDdl) &&
+  !/\b(insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\.)/i.test(mantigoFinancialConfigBaseline);
+const mantigoFinancialConfigWorkflowValid =
+  mantigoFinancialConfigWorkflow.includes(mantigoFinancialConfigBaselinePath) &&
+  mantigoFinancialConfigWorkflow.includes(mantigoFinancialConfigTemporaryName) &&
+  mantigoFinancialConfigWorkflow.includes('cp "$mantigo_financial_config_baseline" "$mantigo_financial_config_migration"') &&
+  mantigoFinancialConfigWorkflow.includes('cmp -s "$mantigo_financial_config_baseline" "$mantigo_financial_config_migration"') &&
+  mantigoFinancialConfigWorkflow.includes('"$mantigo_financial_config_migration"; do ! git ls-files --error-unmatch "$file"');
+if (!mantigoFinancialConfigBaselineValid || !mantigoFinancialConfigWorkflowValid ||
+    fs.existsSync(path.join(migrationDirectory, mantigoFinancialConfigTemporaryName)) ||
+    migrations.some(({ name }) => name.slice(0, 14) === mantigoFinancialConfigTemporaryVersion) ||
+    !mantigoFinancialConfigSource || mantigoFinancialConfigTemporaryVersion >= mantigoFinancialConfigSource.name.slice(0, 14) ||
+    mantigoFinancialConfigTemporaryVersion >= "20261006122111") {
+  console.error("P0 BLOCKED: MantiGO financial-config replay baseline failed source equality, no-data, workflow-injection, or version-order validation.");
+  process.exit(1);
+}
+console.warn("P0 LIMITATION: MantiGO financial-config table replay baseline is copied from a later tracked migration only for disposable replay; chronological source ordering remains unresolved.");
+
 console.warn("P0 LIMITATION: MantiGO read functions are live-derived test-only compatibility scaffolding; original historical creation provenance remains unresolved.");
 
-console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived MantiGO function compatibility fixtures validated.");
+console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, MantiGO function fixtures, and tracked-source MantiGO financial-config fixture validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
