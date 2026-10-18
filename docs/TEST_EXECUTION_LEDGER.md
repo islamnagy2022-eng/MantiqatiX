@@ -164,3 +164,9 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Change:** commit `f3518fbad2e0e4c5d4a34d9336ff7938f0268ac8` updates RC422's static contract query to recognize calls to this reviewed actor-binding helper. It does not alter the settlement function, financial writes, grants, RLS, or helper implementation. This is a targeted reduction of a text-based false positive, not a blanket bypass.
 - **Verification status:** the change has been committed to the candidate branch, but no post-change full-replay result is available yet. Do not claim replay success.
 - **Release gate:** BLOCKED / NOT CERTIFIED pending fresh replay and remaining runtime/security/payment/backup evidence.
+
+### Correction to REPLAY-RESUME-013 — preserve migration immutability
+
+- The RC422 edit in commit `f3518fbad2e0e4c5d4a34d9336ff7938f0268ac8` caused the migration-history immutability workflow to fail, because existing migration files must not be edited. That edit has been reverted in commit `5b279c062722a3be2745c5711d917c4a0a65999a`.
+- The helper-boundary finding remains valid, but the tracked RC422 migration is restored byte-for-byte. The next solution must be append-only and must not silently skip the RC422 contract. The replay failure remains open until a compliant test/workflow strategy is validated.
+- Exact-head workflows for the revert are queued/pending; no passing result is claimed yet.
