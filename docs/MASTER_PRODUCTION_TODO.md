@@ -1693,3 +1693,6 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The reconciliation manifest records these three parity booleans as `false`; no production database, Edge Function, payment, or customer data was changed.
 - **CI constraint:** exact-head PR checks were still `queued` at the last poll for `ca10e704cb9ed7e6dea464a8eb65b52ee453f708`. The new commits require a fresh exact-head run; queued runs are not test evidence.
 - Release status remains **BLOCKED / NOT CERTIFIED** until exact-head CI completes, ordered migration replay and integration tests pass, the approved Edge Functions are deployed, and post-deploy source/grant parity is independently captured.
+
+
+- **2026-10-19 follow-up:** strengthened drifted Edge Function parity gates further: a `true` flag alone is no longer sufficient. Each of `financial-journal`, `mnty-customer-registration`, and `business-register` now requires equal 64-character repository/deployed SHA-256 hashes, a dedicated evidence reference, and a check timestamp. The reconciliation manifest leaves the booleans false and all hashes/evidence references null until an actual approved post-deployment comparison. This prevents a generic evidence link or manually asserted boolean from certifying source parity.
