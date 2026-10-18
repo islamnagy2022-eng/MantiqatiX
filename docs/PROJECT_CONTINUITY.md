@@ -595,3 +595,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Latest app implementation commit: `79e69c4dd9c1170136759f2bee025ff9b259e092` (includes the campaign search/filter feature and a follow-up correction to the CSV-export selector); TODO checkpoint: `d3f3e83b27dfba9f4d4e8d6e3e7938ca6c68e217`.
 - No tests, browser execution, review, CI, PR creation, or deployment performed, as requested. Treat all new frontend work as NOT VERIFIED.
 - Next build-first task: continue operational workflow improvements for campaign delivery/reporting while keeping all data scoped to the active business and not claiming external ads have been published.
+
+
+## 2026-10-19 — Draft PR created for campaign operations build
+- Opened draft PR [#299](https://github.com/islamnagy2022-eng/MantiqatiX/pull/299) from `feat/marketing-campaign-operations-summary-20261019` to `main`.
+- Scope: campaign summary metrics, currency-separated planned-budget totals, campaign search/status filters, and active-business-scoped CSV export; documentation checkpoints included.
+- The PR is deliberately draft and unmerged. No tests, review, browser execution, CI verification, or deployment were performed in this build-first phase.
+- TODO link update commit: `55d3c32cc75906e6be695009f89ec8ff711ed9f0`. Continue implementing within this branch/PR before entering the verification phase.
