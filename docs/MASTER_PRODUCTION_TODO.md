@@ -1809,3 +1809,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Code review found the first integration draft re-granted service_role EXECUTE on the legacy four-argument finalizer even though RC426 revoked it. The candidate migration and tests now keep that legacy overload disabled for PUBLIC, anon, authenticated, and service_role; only the provider-order-bound five-argument overload is service_role-executable.
 - A read-only post-replay assertion now checks effective overload grants, SECURITY DEFINER status, trusted-role guard, user/claim/provider-order binding, and empty search_path after the complete migration chain.
 - Exact-head rerun for the stronger post-replay assertion is pending; do not mark this gate verified until it passes. No production state changed.
+
+
+## RC534 — Post-replay finalizer ACL and body checks PASS — 2026-10-18
+- Full forward replay at candidate head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed in [run 39142726549](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39142726549): **32 ordered migrations** applied from the captured schema-only checkpoint, the read-only post-replay assertion passed, and both directions of synthetic tenant-isolation verification passed.
+- The post-replay assertion confirms the legacy four-argument finalizer has no EXECUTE for anon/authenticated/service_role; the provider-order-bound five-argument overload is executable by service_role only, is SECURITY DEFINER with empty search_path, and checks trusted role, user binding, claim token and provider-order binding.
+- The next exact-head workflow change adds the production source verifier to the isolated finalization workflow and asserts that the finalization source gate passes while the global production gate remains BLOCKED. That new workflow run is pending; do not mark its check complete until it passes.
+- This is still disposable candidate evidence, not live production ACL/source parity, Paymob sandbox E2E, or release approval.
