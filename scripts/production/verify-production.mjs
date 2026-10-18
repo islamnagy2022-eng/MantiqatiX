@@ -93,6 +93,22 @@ for(let i=1;i<presentReleaseMigrations.length;i++){
 const reconciliationPath="docs/release/production-migration-reconciliation.json";
 let reconciliation=null, reconciliationParseError=null;
 try { reconciliation=JSON.parse(read(reconciliationPath)); } catch (error) { reconciliationParseError=String(error); }
+const digitalFinalizationLiveVerified=Boolean(
+  reconciliation &&
+  reconciliation.digital_page_finalizer_live_grants==="PASS" &&
+  reconciliation.digital_page_finalizer_live_body==="PASS" &&
+  reconciliation.digital_page_edge_source_parity==="PASS" &&
+  Number.isInteger(reconciliation.digital_page_payment_intent_edge_version) &&
+  reconciliation.digital_page_payment_intent_edge_version>0 &&
+  /^[a-f0-9]{64}$/i.test(String(reconciliation.digital_page_payment_intent_source_sha256??"")) &&
+  typeof reconciliation.digital_page_finalization_verified_at==="string" &&
+  reconciliation.digital_page_finalization_verified_at.trim().length>0
+);
+add("DIG-FINALIZE-LIVE-PARITY","SECURITY",digitalFinalizationLiveVerified?"PASS":"BLOCKED",
+  digitalFinalizationLiveVerified
+    ? "Live finalizer overload grants/body and deployed Edge Function source/version are backed by explicit verification evidence."
+    : "Live digital-page finalizer parity is NOT VERIFIED. Require live grant/body inspection, exact deployed Edge Function version/source hash, and a timestamped evidence record before production certification.",
+  "P0");
 const liveReconciliationVerified=Boolean(
   reconciliation &&
   reconciliation.status==="VERIFIED" &&
@@ -110,6 +126,12 @@ const liveReconciliationVerified=Boolean(
   reconciliation.edge_function_contracts==="PASS" &&
   reconciliation.smm_gateway_parity==="PASS" &&
   reconciliation.auth_security_settings==="PASS" &&
+  reconciliation.digital_page_finalizer_live_grants==="PASS" &&
+  reconciliation.digital_page_finalizer_live_body==="PASS" &&
+  reconciliation.digital_page_edge_source_parity==="PASS" &&
+  Number.isInteger(reconciliation.digital_page_payment_intent_edge_version) && reconciliation.digital_page_payment_intent_edge_version>0 &&
+  /^[a-f0-9]{64}$/i.test(String(reconciliation.digital_page_payment_intent_source_sha256??"")) &&
+  typeof reconciliation.digital_page_finalization_verified_at==="string" && reconciliation.digital_page_finalization_verified_at.trim().length>0 &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
 );
