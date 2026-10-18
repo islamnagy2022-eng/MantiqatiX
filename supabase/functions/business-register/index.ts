@@ -19,6 +19,11 @@ Deno.serve(async(req)=>{
   const organizationId=body.organizationId?String(body.organizationId):null;
   if(!tenantId||!name)return response({error:"TENANT_AND_NAME_REQUIRED"},400);
   if(name.length>200||phone.length>64||address.length>500||city.length>120||district.length>120||sector.length>80)return response({error:"FIELD_TOO_LONG"},400);
+  // Service-role access bypasses RLS: explicitly reject inactive or nonexistent tenants.
+  const {data:tenant,error:tenantError}=await supabase.from("tenants")
+    .select("id").eq("id",tenantId).eq("status","ACTIVE").maybeSingle();
+  if(tenantError)throw tenantError;
+  if(!tenant)return response({error:"ACTIVE_TENANT_REQUIRED"},403);
   const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,role,business_id,organization_id,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").limit(20);
   if(membershipError)throw membershipError;
   const allowedRoles=new Set(["SERVICE_PROVIDER","BUSINESS_OWNER","OWNER","ADMIN"]);
@@ -51,5 +56,9 @@ Deno.serve(async(req)=>{
   const {error:approvalError}=await supabase.from("approval_requests").insert({id:requestId,tenant_id:tenantId,organization_id:resolvedOrganizationId,business_id:business.id,request_type:"CREATE",entity_type:"BUSINESS",entity_id:business.id,requested_by:user.id,status:"PENDING",priority:"NORMAL",reason:"طلب تسجيل نشاط جديد من الويب",metadata:{sector,address,phone,city,district,created_by_super_admin:!!superAdmin}});
   if(approvalError){await supabase.from("businesses").delete().eq("id",business.id);throw approvalError;}
   return response({success:true,business,approvalRequestId:requestId,pendingApproval:true});
- }catch(error){return response({error:error instanceof Error?error.message:"BUSINESS_REGISTER_FAILED"},400);}
+ }catch(error){
+  // Do not expose Postgres, schema, or provider internals to an untrusted caller.
+  console.error("business-register failed",error instanceof Error?error.message:"unknown_error");
+  return response({error:"BUSINESS_REGISTER_FAILED"},500);
+}
 });
