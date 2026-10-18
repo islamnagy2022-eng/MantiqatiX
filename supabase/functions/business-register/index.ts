@@ -22,12 +22,29 @@ Deno.serve(async(req)=>{
   const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,role,business_id,organization_id,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").limit(20);
   if(membershipError)throw membershipError;
   const allowedRoles=new Set(["SERVICE_PROVIDER","BUSINESS_OWNER","OWNER","ADMIN"]);
-  const membership=(memberships||[]).find((m)=>allowedRoles.has(String(m.role||"").toUpperCase()));
+  const requestedOrganizationId=organizationId?.trim()||null;
+  // A regular tenant member may create only inside an organization covered by
+  // their own active membership. Never trust organizationId supplied by the browser.
+  const membership=(memberships||[]).find((m)=>
+    allowedRoles.has(String(m.role||"").toUpperCase()) &&
+    (!requestedOrganizationId || String(m.organization_id||"")===requestedOrganizationId)
+  );
   const superAdmin=(memberships||[]).find((m)=>String(m.role||"").toUpperCase()==="SUPER_ADMIN"&&m.business_id==null&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
   if(!membership&&!superAdmin)return response({error:"BUSINESS_CREATE_ROLE_REQUIRED"},403);
+  if(requestedOrganizationId&&!superAdmin&&String(membership?.organization_id||"")!==requestedOrganizationId){
+    return response({error:"ORGANIZATION_SCOPE_FORBIDDEN"},403);
+  }
+  // Even platform administrators must not attach a business to an organization
+  // from another tenant or to a nonexistent organization.
+  if(requestedOrganizationId&&superAdmin){
+    const {data:organization,error:organizationError}=await supabase.from("organizations")
+      .select("id").eq("id",requestedOrganizationId).eq("tenant_id",tenantId).maybeSingle();
+    if(organizationError)throw organizationError;
+    if(!organization)return response({error:"ORGANIZATION_SCOPE_FORBIDDEN"},403);
+  }
   const {data:existing}=await supabase.from("approval_requests").select("id,business_id,status").eq("tenant_id",tenantId).eq("requested_by",user.id).eq("entity_type","BUSINESS").eq("request_type","CREATE").eq("status","PENDING").limit(1);
   if(existing?.length)return response({error:"PENDING_BUSINESS_REQUEST_EXISTS",businessId:existing[0].business_id??null},409);
-  const code=safeCode(name),resolvedOrganizationId=organizationId||membership?.organization_id||null;
+  const code=safeCode(name),resolvedOrganizationId=(requestedOrganizationId&&superAdmin)?requestedOrganizationId:(membership?.organization_id||null);
   const {data:business,error}=await supabase.from("businesses").insert({tenant_id:tenantId,organization_id:resolvedOrganizationId,name,code,status:"INACTIVE",settings:{sector,address,phone,city,district,registration_source:"web",approval_status:"PENDING"}}).select("id,name,code,status,tenant_id,organization_id").single();
   if(error)throw error;
   const requestId="APR-"+crypto.randomUUID();
