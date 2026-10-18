@@ -607,3 +607,8 @@ No production changes were made. The prior exact-head Actions runs for `ca10e704
 ## 2026-10-19 — Hash-backed source parity gate
 
 The production verifier now requires, for each drifted function (`financial-journal`, `mnty-customer-registration`, and `business-register`), a true parity flag, matching 64-character repository and deployed SHA-256 hashes, a dedicated evidence reference, and a timestamp. The reconciliation manifest deliberately records false/null values until approved post-deployment evidence exists. This is source-only hardening; no production change was performed. The PR Actions queue was still stalled at the last poll, with all 24 runs for the then-current head queued; new commits require a fresh exact-head run.
+
+
+## 2026-10-19 — business-register tenant and error boundary
+
+Added a candidate source guard in `supabase/functions/business-register/index.ts`: service-role code explicitly checks that the requested tenant exists and is ACTIVE before authorization, and unexpected errors are logged server-side but returned as generic `BUSINESS_REGISTER_FAILED` HTTP 500. Extended `scripts/tests/business-register-organization-scope.test.mjs` to assert the tenant-state guard and prevent returning raw exception messages. This remains repository-only and requires exact-head CI plus approved deployment and live parity evidence.
