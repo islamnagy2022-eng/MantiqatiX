@@ -761,3 +761,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a SQL regression case for the partial-binding state. Candidate head: `dbc1f555c450efe247c5d42f0c924fd3bf9e1460`.
 - Exact-head workflows for payment finalization, order correlation, webhook transitions, migration replay/immutability/uniqueness, tenant isolation and module boundaries are queued/pending; do not mark the change verified until they finish.
 - No production mutation or deployment. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC543 — Current repository/CI handoff — 2026-10-19
+- Main baseline observed in the current open PR metadata: `149a85c7e5c44b61421edc8391cbb82885902fae`. Production verification run `39092185609` failed; deployment was skipped. The reported blockers include missing RC425–RC441 source migrations on main, unapplied/unverified release migrations, and unverified runtime/payment/recovery gates.
+- PR #286 latest observed head is `6a109ca7500bfd19bef47958710843285a33d8f8`; it remains draft/open. At the latest poll, its exact-head migration replay, tenant-isolation E2E, payment atomicity/correlation, finalization isolation, migration collision/history checks, and Pages validation workflows were queued. Earlier successful candidate runs do not certify this newer head.
+- This documentation branch's TODO update is commit `fcb6a76ed6e5075b5becf19b3506ffff477a9b80`. PR #296 remains unmerged; its earlier exact-head checks passed at `39b92561d53af040e2b4960a99b7848cca9bf0f0`, while the current observed head had new checks queued and the PR deployment run cancelled.
+- PR #297 remains draft/non-mergeable and stacked on the RC candidate. Keep it coordinated with #286; do not merge duplicate/overlapping migration candidates independently.
+- No production migration, grant/RLS/Auth change, Edge Function deployment, payment, merge, or `docs/SESSION_LOG.md` edit occurred in this checkpoint.
+- Next action: re-poll #286 exact-head workflows; inspect any failures; reconcile historical migration provenance and candidate overlap; ensure #286 no longer introduces a forbidden `docs/SESSION_LOG.md` change before requesting owner approval. Production stays **BLOCKED / NOT CERTIFIED**.
