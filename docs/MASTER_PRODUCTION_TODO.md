@@ -1904,3 +1904,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Corrected the financial-config provenance/safety assertion to allow line wrapping between words.
 - [ ] Verify run `39083192362` completes preflight and inspect the first chronological SQL error, if any.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## REPLAY-RESUME-009 — 2026-10-18
+- [x] Confirmed financial-config schema baseline preflight passes after validator regex correction.
+- [x] Fixed shell variable scope: baseline and temporary migration variables are now declared inside the separate copy-verification step.
+- [ ] Inspect run `39083265535`; verify copy/untracked guard passes and then continue from the first actual migration error.
+- Release remains **BLOCKED / NOT CERTIFIED**.
