@@ -28,7 +28,12 @@ VALUES
   ('10000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', 'PENDING',
    '{"payment_intent_claim":{"token":"claim-four"}}'),
   ('10000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000002', 'PENDING',
-   '{"payment_intent_claim":{"token":"claim-five"}}');
+   '{"payment_intent_claim":{"token":"claim-five"}}'),
+  ('10000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000003', 'PENDING',
+   '{"payment_intent_claim":{"token":"claim-six"}}');
+UPDATE public.digital_page_orders
+SET provider_order_id = 'prebound-conflicting-order'
+WHERE id = '10000000-0000-4000-8000-000000000003';
 
 -- A direct authenticated caller must not be able to persist a caller-chosen provider ID.
 SET ROLE authenticated;
@@ -97,6 +102,31 @@ BEGIN
   THEN RAISE EXCEPTION 'rejected claim mutated order'; END IF;
 END
 $invalid_state$;
+
+SET ROLE service_role;
+SELECT set_config('request.jwt.claim.role', 'service_role', false);
+DO $reject_prebound_order$
+BEGIN
+  IF public.finalize_digital_page_payment_intent_backend(
+    '10000000-0000-4000-8000-000000000003',
+    '20000000-0000-4000-8000-000000000003',
+    'claim-six',
+    'paymob-intent-six',
+    'new-provider-order-must-not-overwrite'
+  ) THEN RAISE EXCEPTION 'pre-bound provider order without intent was overwritten'; END IF;
+END
+$reject_prebound_order$;
+RESET ROLE;
+DO $prebound_state$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.digital_page_orders
+    WHERE id='10000000-0000-4000-8000-000000000003'
+      AND provider_order_id='prebound-conflicting-order'
+      AND provider_intent_id IS NULL
+      AND payment_status='PENDING')
+  THEN RAISE EXCEPTION 'pre-bound provider order was changed after rejected finalization'; END IF;
+END
+$prebound_state$;
 
 SET ROLE service_role;
 SELECT set_config('request.jwt.claim.role', 'service_role', false);
