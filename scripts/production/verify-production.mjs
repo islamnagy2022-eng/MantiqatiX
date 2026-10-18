@@ -15,6 +15,17 @@ const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabas
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
+const mantigoIntentPath="supabase/functions/mantigo-payment-intent/index.ts";
+const mantigoIntent=exists(mantigoIntentPath)?read(mantigoIntentPath):"";
+const mantigoProviderRequest=mantigoIntent.indexOf('fetch("https://accept.paymob.com/v1/intention/"');
+const mantigoClaim=mantigoIntent.indexOf('admin.rpc("claim_mantigo_payment_intent_backend"');
+const mantigoFinalize=mantigoIntent.indexOf('admin.rpc("finalize_mantigo_payment_intent_backend"');
+const mantigoRelease=mantigoIntent.indexOf('admin.rpc("release_mantigo_payment_intent_claim_backend"');
+add("MANTIGO-PAY-SOURCE","FINANCE",mantigoIntent?"PASS":"FAIL",mantigoIntent? `exists: ${mantigoIntentPath}` : `missing: ${mantigoIntentPath}`,"P0");
+add("MANTIGO-PAY-CLAIM","FINANCE",mantigoClaim>=0&&mantigoProviderRequest>=0&&mantigoClaim<mantigoProviderRequest?"PASS":"FAIL","RC526 claim RPC must run before the external Paymob intention request.","P0");
+add("MANTIGO-PAY-FINALIZE","FINANCE",mantigoFinalize>=0&&mantigoFinalize>mantigoProviderRequest?"PASS":"FAIL","RC526 finalization RPC must persist the correlated provider response after the external request.","P0");
+add("MANTIGO-PAY-RELEASE","FINANCE",mantigoRelease>=0&&mantigoIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN")&&mantigoIntent.includes("recoveryRequired:true")?"PASS":"FAIL","Confirmed provider rejection may release its matching claim; ambiguous outcomes must preserve claim and require recovery.","P0");
+add("MANTIGO-PAY-CORRELATION","FINANCE",mantigoIntent.includes('from "../_shared/paymob-intent-correlation.mjs"')&&mantigoIntent.includes("matchesPaymobIntention")&&mantigoIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH")?"PASS":"FAIL","Paymob response must be correlated against ledger amount, currency, and reference before finalization.","P0");
 const md=path.join(root,"supabase","migrations"), mf=exists("supabase/migrations")?fs.readdirSync(md).filter(x=>x.endsWith(".sql")):[];
 const dup=[...new Set(mf.filter((f,i,a)=>a.indexOf(f)!==i))];
 add("DB-MIGRATION-UNIQUE","DATABASE",dup.length?"FAIL":"PASS",dup.length?JSON.stringify(dup):`checked ${mf.length} migration filenames`,dup.length?"P0":"P1");
