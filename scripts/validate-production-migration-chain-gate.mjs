@@ -32,9 +32,11 @@ const required = [
   "20261010200000_rc451_targeted_ads_empty_search_path.sql",
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
-  "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261016100000_digital_page_payment_intent_server_only_finalization.sql",
+  "20261016180000_rc529_atomic_subscription_provider_intent_finalize.sql"
 ];
-assert.equal(required.length, 28, "release gate must track the complete 28-file migration source set");
+assert.equal(required.length, 30, "release gate must track the complete 30-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
@@ -55,6 +57,11 @@ assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backu
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
 assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
+const finalizationMigration = fs.readFileSync("supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql", "utf8");
+assert.match(finalizationMigration, /current_setting\(['"]request.jwt.claim.role['"], true\).*service_role/, "digital-page finalization must require the service-role claim");
+assert.match(finalizationMigration, /revoke all on function public\.finalize_digital_page_payment_intent_backend\(uuid,uuid,text,text,text\) from authenticated/, "five-argument finalizer must revoke authenticated execution");
+assert.match(finalizationMigration, /grant execute on function public\.finalize_digital_page_payment_intent_backend\(uuid,uuid,text,text,text\) to service_role/, "five-argument finalizer must grant service-role execution only");
+assert.match(finalizationMigration, /set search_path = ''/, "finalizer must use an empty search_path");
 const rc451 = fs.readFileSync("supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql", "utf8");
 assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\s\S]*?\) set search_path = '';/, "RC451 must harden the public targeted-ad SECURITY DEFINER search path");
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
