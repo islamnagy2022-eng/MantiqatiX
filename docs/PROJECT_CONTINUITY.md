@@ -648,3 +648,10 @@ This status is intentional and must remain until the open gates above are indepe
 - At the same head, Backend-only Module Boundary run 39142243068, MantiGO Open Ride Privacy Boundary run 39142243080, and Module Professionalization Validation run 39142243104 passed. Digital-page finalization isolated SQL/source workflow passed at the code-equivalent prior head `1f867408e97e56ad0e068efe009840a106da00c1` (run 39142080749); later changes only adjusted the replay workflow trigger.
 - This closes the candidate's disposable forward-replay gate only. Production ledger remains RC424; no production migration/grant/deployment/payment was performed. Deployed source parity, baseline approval, live finalizer ACL verification, Paymob sandbox E2E and external release gates remain open.
 - Next: independent review of finalizer overload grants/migration compatibility, then reconcile PR #286 and its overlapping/diverged candidates. PR #297 remains draft.
+
+
+## RC533 — P0 register correction and legacy finalizer least privilege — 2026-10-18
+- Updated the module TODO candidate so digital-page payment finalization trust boundary is an explicit P0 release blocker, and added separate release-gate checkboxes for ordered migration replay and finalization boundary.
+- During review of RC426 and the new finalization migration, identified that the first integration draft re-granted `service_role` EXECUTE on the legacy four-argument finalizer even though RC426 explicitly revoked it. Corrected the migration and tests to keep the legacy four-argument overload disabled for PUBLIC, anon, authenticated, and service_role; only the provider-order-bound five-argument overload is executable by service_role.
+- Added a read-only post-replay SQL check for effective overload grants, trusted-role guard, provider-order/claim binding, and empty search_path. The exact-head full replay and post-replay check are running at PR #297 head `2bda9e9e28d6a6141a14f21d6c1a3b00a32d5f6d`; do not mark this evidence PASS until the run completes.
+- No production mutation/deployment or change to `docs/SESSION_LOG.md`.
