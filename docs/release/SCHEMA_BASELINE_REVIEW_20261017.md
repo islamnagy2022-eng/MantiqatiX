@@ -102,3 +102,12 @@ Combined with the earlier reviewed snapshot body (schema-qualified table referen
 **Evidence type:** read-only production catalog/metadata query plus repository asset existence check. No user-table rows, payment records, or secrets were read. No production write, DDL, grant, migration, or deployment occurred.
 
 **Gate:** keep manifest `PENDING_REVIEW`. These observations close two narrow review questions only; they do not complete the overall baseline review, tenant-isolation E2E, full function/grant/policy review, or release gate.
+
+
+## Parser correction and exact-head verification — 2026-10-18
+
+- Replaced the previous function-body delimiter assumption in `scripts/tests/production-schema-baseline-static-audit.mjs` with a header-based scan that stops at the dollar-quote opener. The audit now checks the `SECURITY DEFINER` and `SET search_path` attributes in the function declaration header, independent of the body's closing dollar tag.
+- Added an explicit coverage equality check between `SECURITY DEFINER` occurrences in the snapshot and parsed function headers. This is intended to fail closed if parser coverage regresses.
+- Added a branch-push trigger for the static audit so subsequent edits to the snapshot, manifest, ledger, validator, or workflow are audited on the branch as well as in pull requests.
+- Exact-head run [39089593717](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089593717) passed on `d70000e185c2e6d2c5f86d82a4c5b7a089564b02`: 283 ledger versions through `20261008222845`, 128/128 public tables with RLS enabled in the snapshot, 485 policy declarations, and 145/145 parsed SECURITY DEFINER headers with explicit `search_path` and PUBLIC execute revokes.
+- The baseline remains `PENDING_REVIEW`. These are static snapshot checks, not a full manual function/policy review, a disposable forward-migration replay, or production tenant/payment E2E. No production changes or deployment were performed.
