@@ -1849,3 +1849,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - PR #289 independently contains RC526 but its head is heavily diverged from the #286 candidate (compare result: 160 commits ahead / 61 behind relative to the #286 head) and its diff includes separate TODO/continuity/session-log changes. Do not merge PR #289 separately or assume it is a clean one-commit fix; reconcile only the relevant payment diff against the tested #286 candidate.
 - PR #295 likewise diverges from #286 by a single RC526 integration commit while 14 commits behind, and overlaps RC526 files already in #286. Avoid duplicate migration ownership.
 - Candidate #286 itself still requires baseline manual review, exact mainline reconciliation, and handling of its `docs/SESSION_LOG.md` diff under the project rule not to edit that file. No merge was performed.
+
+
+## RC540 — TODO and payment remediation PR status — 2026-10-18
+- Master module TODO PR #296 is now **ready for review** (head `88d376e3aed1eb41ef737b87297776de2d5adfb9`). Backend-only, MantiGO privacy, Module Professionalization, and Pages validation workflows passed; Pages deploy was skipped because the change is a PR.
+- Payment remediation PR #297 remains **draft**, based on the RC425–RC526 candidate branch. The code head `a661e3a1111e759919de855769c99fb3067b167f` passed its four source/security workflows; full migration replay and post-replay grants/body/tenant isolation passed at `e7c6d08854fe2c25d2f061846fa69e292efb1663`.
+- Live production parity is still BLOCKED by the actual live four-argument finalizer and Edge Function v5 user-scoped call. Do not merge or deploy based on candidate-only CI.
