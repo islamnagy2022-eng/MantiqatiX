@@ -95,3 +95,16 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **What this proves:** the first compatibility dependency is no longer the current replay blocker; the chain still fails at a second missing function definition.
 - **What it does not prove:** clean historical replay, full migration-chain completion, runtime authorization correctness, production parity, or release readiness.
 - **Production gate:** BLOCKED / NOT CERTIFIED. No production writes, deployment, merge, or payment occurred.
+
+
+## 2026-10-18 — REPLAY-RESUME-006
+
+### CI-REPLAY-006 — next missing MantiGO table prerequisite
+- **Run:** [39081172390](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081172390)
+- **Tested code SHA:** `ef5cee4e63a695dea4b5e5583fcf4427994fdeaf`
+- **Result:** FAIL during chronological replay at migration `20261006122111_mantigo_financial_config_rls_hardening_v1.sql`, statement 0: `relation public.mantigo_financial_config does not exist` (`SQLSTATE 42P01`).
+- **Progress:** The replay passed the two grants in `20261006101048_rc_mantigo_production_completion_v1.sql` after the combined disposable-only MantiGO function baseline was injected. It then reached the next migration and failed because the configuration table has no prior tracked creation migration in the replay prefix.
+- **Source inspection:** current production schema snapshot blob `8d096904c777b4c7eae096014b45c59859c96cee` contains `public.mantigo_financial_config` with columns `id boolean`, `commission_rate numeric(6,3)`, `currency text`, `updated_by uuid`, `updated_at timestamptz`, plus commission-rate and singleton-id checks. GitHub code search found RLS/ledger references but no canonical create-table migration in current tracked results; supplied `source_RC40.zip` scan also found zero references.
+- **Decision:** do not create or inject a new table fixture without explicit owner approval or recovery of authoritative original DDL. The snapshot is live-state evidence, not proof of historical table-creation provenance.
+- **Next action:** recover the original table-creation source/artifact, or obtain explicit approval for a schema-only fixture limited to disposable CI; never apply it to production. Continue preserving historical migrations.
+- **Release gate:** BLOCKED / NOT CERTIFIED. No production mutation, merge, deployment, or payment occurred.
