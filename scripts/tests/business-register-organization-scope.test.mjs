@@ -18,4 +18,4 @@ assert.doesNotMatch(source, /return response\(\{error:error instanceof Error\?er
 assert.match(source, /const body=await req\.json\(\)\.catch\(\(\)=>null\)/);
 assert.match(source, /if\(!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)\)return response\(\{error:"INVALID_JSON_BODY"\},400\)/);
 
-console.log("business-register tenant and organization security contract: PASS (14 assertions)");
+assert.match(source, /data:existing,error:existingError[\s\S]{0,260}if\(existingError\)throw existingError/);\n\nconsole.log("business-register tenant and organization security contract: PASS (15 assertions)");
