@@ -607,3 +607,9 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #268 exact head `78c32697f26d53167d39e01201ad165e2cc5371c` passed the isolated PostgreSQL finalization workflow and the related CI workflows; Pages deploy was skipped on the PR event.
 - Negative tests cover stale token, wrong user, direct authenticated invocation, same-intent retry, and conflicting intent/provider-order replay.
 - Production parity, migration ledger, grants, and deployed Edge Function behavior remain unverified; no merge/deploy/production change.
+
+
+## RC531 — Candidate integration branch prepared — 2026-10-18
+- Prepared `integration/rc425-526-digital-page-finalization-20261018` based on the RC425–RC526 candidate and layered the passing PR #268 server-only finalization implementation and regression tests on top.
+- Combined replay/source integration has not been verified by a retrievable workflow result; keep this candidate unmerged and production blocked.
+- No PR, merge, deployment, production migration or financial transaction was performed.
