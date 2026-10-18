@@ -1696,3 +1696,6 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 
 - **2026-10-19 follow-up:** strengthened drifted Edge Function parity gates further: a `true` flag alone is no longer sufficient. Each of `financial-journal`, `mnty-customer-registration`, and `business-register` now requires equal 64-character repository/deployed SHA-256 hashes, a dedicated evidence reference, and a check timestamp. The reconciliation manifest leaves the booleans false and all hashes/evidence references null until an actual approved post-deployment comparison. This prevents a generic evidence link or manually asserted boolean from certifying source parity.
+
+
+- **2026-10-19 — business-register tenant hardening:** the candidate Edge Function now explicitly requires the requested tenant to exist and have `status=ACTIVE` before membership/organization checks, because its service-role client bypasses RLS. Unexpected exceptions now return a generic `BUSINESS_REGISTER_FAILED` HTTP 500 instead of exposing database/schema error text to callers; server-side logs retain the diagnostic. The existing source-contract test now covers the active-tenant check and generic error response. This is not deployed; the release gate remains blocked pending exact-head CI and approved rollout.
