@@ -19,22 +19,10 @@ for (const marker of requiredPreflight) {
 }
 
 const tenantChecks = [
-  {
-    block: "tenant_a",
-    ownTenant: "MNTY-TEST-A",
-    otherTenant: "MNTY-TEST-B",
-    suffix: "A",
-  },
-  {
-    block: "tenant_b",
-    ownTenant: "MNTY-TEST-B",
-    otherTenant: "MNTY-TEST-A",
-    suffix: "B",
-  },
+  { block: "tenant_a", ownTenant: "MNTY-TEST-A", otherTenant: "MNTY-TEST-B", suffix: "A" },
+  { block: "tenant_b", ownTenant: "MNTY-TEST-B", otherTenant: "MNTY-TEST-A", suffix: "B" },
 ];
 for (const check of tenantChecks) {
-  const match = verifier.match(new RegExp(`DO \\\$ ${check.block} \\\$([\\s\\S]*?)\\$ ${check.block} \\\$;`.replaceAll(" ", "")));
-  // Use explicit delimiters as SQL dollar-quoted tags must be checked independently.
   const start = verifier.indexOf(`DO $${check.block}$`);
   const end = verifier.indexOf(`$${check.block}$;`, start + 1);
   assert.ok(start >= 0 && end > start, `missing complete ${check.block} verification block`);
@@ -52,9 +40,9 @@ for (const check of tenantChecks) {
 assert.ok(verifier.includes("MNTY-TEST-A") && verifier.includes("MNTY-TEST-B"), "must use two synthetic tenants");
 assert.ok(!verifier.includes("MNTY-PLATFORM"), "must not use a platform-tenant identity");
 assert.ok(verifier.trimEnd().endsWith("ROLLBACK;"), "verifier must roll back its transaction");
-assert.ok(!/\\b(INSERT|UPDATE|DELETE|MERGE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE)\\b/i.test(verifier), "verifier must not mutate database objects or rows");
+assert.ok(!/\b(INSERT|UPDATE|DELETE|MERGE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE)\b/i.test(verifier), "verifier must not mutate database objects or rows");
 
-const guardEnd = fixture.indexOf("\\nBEGIN;");
+const guardEnd = fixture.indexOf("\nBEGIN;");
 assert.ok(guardEnd > 0, "fixture must have a guard before its first transaction");
 const guard = fixture.slice(0, guardEnd);
 assert.ok(guard.includes("\\if :{?mantiqati_disposable}") && guard.includes("\\if :mantiqati_disposable") && guard.includes("\\quit 3"), "fixture must refuse execution without explicit disposable authorization");
@@ -63,11 +51,11 @@ assert.ok(fixture.includes("example.invalid") && fixture.includes('"test_fixture
 const fixtureRequirements = [
   ["tenant A", /'MNTY-TEST-A'/],
   ["tenant B", /'MNTY-TEST-B'/],
-  ["business rows", /INSERT INTO public\\.businesses[\\s\\S]*?MNTY-TEST-A[\\s\\S]*?MNTY-TEST-B/],
-  ["order rows", /INSERT INTO public\\.orders[\\s\\S]*?MNTY-TEST-A[\\s\\S]*?MNTY-TEST-B/],
-  ["payment intent rows", /INSERT INTO public\\.payment_intents[\\s\\S]*?MNTY-TEST-A[\\s\\S]*?MNTY-TEST-B/],
-  ["onboarding rows", /INSERT INTO public\\.provider_onboarding_requests[\\s\\S]*?MNTY-TEST-A[\\s\\S]*?MNTY-TEST-B/],
-  ["isolated owner identities", /INSERT INTO public\\.user_memberships[\\s\\S]*?MNTY-TEST-A[\\s\\S]*?MNTY-TEST-B/],
+  ["business rows", /INSERT INTO public\.businesses[\s\S]*?MNTY-TEST-A[\s\S]*?MNTY-TEST-B/],
+  ["order rows", /INSERT INTO public\.orders[\s\S]*?MNTY-TEST-A[\s\S]*?MNTY-TEST-B/],
+  ["payment intent rows", /INSERT INTO public\.payment_intents[\s\S]*?MNTY-TEST-A[\s\S]*?MNTY-TEST-B/],
+  ["onboarding rows", /INSERT INTO public\.provider_onboarding_requests[\s\S]*?MNTY-TEST-A[\s\S]*?MNTY-TEST-B/],
+  ["isolated owner identities", /INSERT INTO public\.user_memberships[\s\S]*?MNTY-TEST-A[\s\S]*?MNTY-TEST-B/],
 ];
 for (const [label, pattern] of fixtureRequirements) {
   assert.match(fixture, pattern, `fixture must seed both tenants for ${label}`);
