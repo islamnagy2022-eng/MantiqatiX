@@ -41,6 +41,26 @@ Required checks:
 5. In a disposable database, test anonymous calls with valid, malformed, extreme, and cross-region inputs.
 6. If public access is intended, use a hardened immutable search path and schema-qualified references, then test the intended contract before proposing a reviewed migration. Do not change production directly.
 
+
+### 2.1 Live body inspection — targeted advertisement RPC (2026-10-18)
+
+A follow-up read-only catalog inspection retrieved the complete live definition, owner, and ACL for `public.get_mnty_targeted_advertisements(...)`.
+
+Observed facts:
+- Owner: `postgres`; ACL includes `anon=X` and `authenticated=X`.
+- The function is SQL `SECURITY DEFINER` with `search_path = public, pg_temp`.
+- All four relations referenced in the body are explicitly schema-qualified: `public.advertisements`, `public.advertisement_target_locations`, `public.platform_geo_areas`, and `public.platform_global_advertisements`.
+- Normal advertisement rows are filtered to `status='ACTIVE'`, `approval_status='APPROVED'`, active start/end windows, and optional ad-space match. Target locations must be active and match the requested country code (default `EG`). Global ads are separately filtered to active/approved/time-window/ad-space.
+- The returned fields are advertisement ID, title, creative URL, target URL, ad-space ID, match level, and computed distance. The result is ranked by targeting tier and distance/time, with `p_limit` clamped to 1–50 (default 3).
+
+Unresolved checks (not inferred as passed):
+- There is no explicit latitude/longitude range validation before the distance formula. Test null, boundary, out-of-range, NaN/infinity representations where accepted, and mismatched coordinates in a disposable PostgreSQL instance; record whether the function returns bounded results or raises errors.
+- Validate the maximum output volume, global-ad exposure contract, and whether all returned fields are intentionally public.
+- Compare the live definition against the exact candidate migration (RC451 and subsequent relevant migrations) and run anonymous positive/negative regression tests before proposing any production migration.
+- Consider `SET search_path = ''` with schema-qualified object references in a reviewed forward migration, but do not apply a hotfix or revoke `anon` execution without a verified product contract and regression coverage.
+
+This body inspection narrows the review but does **not** establish full authorization safety or close the public-RPC finding.
+
 ### 3. Forty authenticated-executable SECURITY DEFINER functions
 
 The advisor count is a review queue, not a count of confirmed vulnerabilities. Several functions are backend RPCs whose implementations compare a supplied user ID with `auth.uid()` or delegate authorization to helpers. A text search for `auth.uid()` alone cannot establish correctness.
