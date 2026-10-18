@@ -1,0 +1,68 @@
+name: Customer Registration RPC Contract
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/mnty-customer-registration/index.ts"
+      - "supabase/migrations/20260929150000_rc213_customer_direct_activation.sql"
+      - "supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql"
+      - "scripts/validate-customer-registration-rpc-contract.mjs"
+      - "supabase/tests/customer_registration_rpc_*.sql"
+      - ".github/workflows/customer-registration-rpc-contract.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/mnty-customer-registration/index.ts"
+      - "supabase/migrations/20260929150000_rc213_customer_direct_activation.sql"
+      - "supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql"
+      - "scripts/validate-customer-registration-rpc-contract.mjs"
+      - "supabase/tests/customer_registration_rpc_*.sql"
+      - ".github/workflows/customer-registration-rpc-contract.yml"
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate customer registration RPC behavior boundary
+        run: node scripts/validate-customer-registration-rpc-contract.mjs
+
+  customer-registration-rpc-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: customer_registration_rpc_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d customer_registration_rpc_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply disposable fixture, both migrations, and integration assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/customer_registration_rpc_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20260929150000_rc213_customer_direct_activation.sql "$pg_container:/tmp/rc213.sql"
+          docker cp supabase/migrations/20260930100000_rc215_customer_membership_invariant.sql "$pg_container:/tmp/rc215.sql"
+          docker cp supabase/tests/customer_registration_rpc_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d customer_registration_rpc_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d customer_registration_rpc_test -v ON_ERROR_STOP=1 -f /tmp/rc213.sql
+          docker exec "$pg_container" psql -U postgres -d customer_registration_rpc_test -v ON_ERROR_STOP=1 -f /tmp/rc215.sql
+          docker exec "$pg_container" psql -U postgres -d customer_registration_rpc_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
