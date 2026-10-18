@@ -12,7 +12,7 @@ assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign read
 assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
 assert.match(app, /campaignsQuery\.eq\('business_id',live\.businessId\)/, "campaign reads must be scoped to the active business");
 assert.match(app, /participantsQuery\.eq\('business_id',live\.businessId\)/, "participant reads must be scoped to the active business");
-assert.match(app, /filter\(c=>activeBusinessId&&String\(c\.business_id\|\|'\'\)===activeBusinessId\)/, "campaign display must enforce active-business scope");
+assert.match(app, /filter\(c=>activeBusinessId&&String\(c\.business_id\|\|''\)===activeBusinessId\)/, "campaign display must enforce active-business scope");
 
 assert.match(app, /marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'/, "participant reads must use an explicit field allowlist");
 assert.match(app, /live\.marketingCampaignErrors\.push\('marketing_campaigns'\)/, "failed campaign reads must not be presented as empty");
