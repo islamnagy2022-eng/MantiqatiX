@@ -577,3 +577,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## RC527 — Master module TODO and execution order — 2026-10-18
+- Added the comprehensive module-by-module register to `docs/MASTER_PRODUCTION_TODO.md` on branch `docs/master-module-todo-and-execution-order-20261018`.
+- The register covers shared platform/identity, customer-provider-order-notification, CRM/support, marketing/agency/ads, SMM, restaurant, MantiGO, finance/accounting/wallet/settlement, ERP/inventory/purchasing, digital pages/subscriptions, sector workspaces (education/medical/pharmacy/jobs/reverse auction/general services), catalog/pricing, content, analytics, governance/audit, automation/webhooks, offline/sync, security/database, monitoring/recovery, and web/PWA/Android release.
+- Correct sequencing: (1) reconcile overlapping RC425–RC526 and payment/migration candidate PRs with authoritative sources and disposable replay; (2) fix and test the payment trust boundaries and tenant-isolation verifier; (3) validate exact-head CI and source/deployed parity; (4) continue module completion from shared authorization and the customer/provider/order/notification chain; (5) validate the merged marketing workspace and its RC453 dependency; (6) complete external runtime, backup/restore, monitoring, and signed-device release evidence.
+- PR #292 marketing workspace and PR #291 security review are already merged per the prior verified checkpoint; do not redo their completed source work. Current campaign deployment/schema and live payment parity still need evidence.
+- No merge, deployment, production migration, grant/Auth/RLS change, or financial transaction was performed as part of RC527. Production remains BLOCKED / NOT CERTIFIED.
+- `docs/SESSION_LOG.md` was not modified.
