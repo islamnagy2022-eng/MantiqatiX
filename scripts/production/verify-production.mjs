@@ -17,7 +17,7 @@ const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
 const digitalFinalizerMigrationPath="supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql";
 const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
-const digitalFinalizerMigrationNormalized=digitalFinalizerMigration.toLowerCase().replace(/\\s+/g," ").replace(/\\s*,\\s*/g,",");
+const digitalFinalizerMigrationNormalized=digitalFinalizerMigration.toLowerCase().replace(/\s+/g," ").replace(/\s*,\s*/g,",");
 const digitalFinalizerUsesUserClient=digital.includes('userClient.rpc("finalize_digital_page_payment_intent_backend"');
 const digitalFinalizerUsesAdminClient=digital.includes('admin.rpc("finalize_digital_page_payment_intent_backend"');
 const legacyFourArgDisabled=
