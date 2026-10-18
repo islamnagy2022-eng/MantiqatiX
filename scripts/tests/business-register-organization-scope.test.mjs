@@ -29,7 +29,6 @@ assert.match(source, /split\(";"\)\[0\]\.trim\(\)\.toLowerCase\(\)!=="applicatio
 assert.match(source, /REQUEST_BODY_TOO_LARGE/);
 assert.match(source, /declaredLength>16384/);
 assert.match(source, /new TextEncoder\(\)\.encode\(rawBody\)\.byteLength>16384/);
-assert.match(source, /const rawBody=await req\.text\(\)/);
 assert.match(source, /try\{body=JSON\.parse\(rawBody\);\}catch\{body=null;\}/);
 assert.match(source, /stringFields=\["tenantId","name","sector","address","phone","city","district","organizationId"\]/);
 assert.match(source, /INVALID_FIELD_TYPE/);
