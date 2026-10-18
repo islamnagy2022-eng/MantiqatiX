@@ -1816,3 +1816,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The post-replay assertion confirms the legacy four-argument finalizer has no EXECUTE for anon/authenticated/service_role; the provider-order-bound five-argument overload is executable by service_role only, is SECURITY DEFINER with empty search_path, and checks trusted role, user binding, claim token and provider-order binding.
 - The next exact-head workflow change adds the production source verifier to the isolated finalization workflow and asserts that the finalization source gate passes while the global production gate remains BLOCKED. That new workflow run is pending; do not mark its check complete until it passes.
 - This is still disposable candidate evidence, not live production ACL/source parity, Paymob sandbox E2E, or release approval.
+
+
+## RC535 — Source release gate wired into finalization CI — 2026-10-18
+- PR #297 head `7bdd0ec5cd25d6ee156e69bac2107283a034a674` passed Digital Page Payment Finalization Isolation [run 39142880851]. The workflow now runs `scripts/production/verify-production.mjs` and asserts the source `DIG-FINALIZE-TRUST-BOUNDARY` is PASS while the global `PRODUCTION_GATE` remains BLOCKED.
+- At that same head, Backend-only Module Boundary [39142880886], MantiGO Open Ride Privacy Boundary [39142880809], and Module Professionalization Validation [39142880832] passed.
+- The full migration replay at code-equivalent head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed [run 39142726549]: 32 ordered migrations, post-replay finalizer grant/SECURITY DEFINER/empty search_path/user/claim/provider-order checks, and bidirectional tenant isolation.
+- Remaining: live production source/grant parity, baseline/manual approval, Paymob sandbox E2E and external release tests. No production migration/deployment was performed; PR #297 remains draft/unmerged.
