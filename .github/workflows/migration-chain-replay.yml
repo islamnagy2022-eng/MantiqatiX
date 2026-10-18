@@ -582,7 +582,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
-          p = Path(replay_migration_stash) / "20261007223944_rc422_security_definer_caller_contract_v1.sql"
+          p = Path("supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql")
           s = p.read_text()
           old_decl = """DECLARE
             v_bad text;
