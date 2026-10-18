@@ -29,6 +29,24 @@ Required checks before closure:
 
 Do not add a permissive policy just to clear the warning.
 
+Read-only catalog follow-up:
+- `public.process_verified_digital_page_payment_backend(...)` is a `SECURITY DEFINER` RPC with `service_role` EXECUTE; direct EXECUTE is denied to `authenticated` and `anon`.
+- The table itself grants no direct SELECT/INSERT/UPDATE privilege to `anon`, `authenticated`, or `service_role`. The RPC body references the table internally. This supports a deliberate server-only boundary, but closure still requires verifying the deployed Edge Function call path and positive/negative payment-event tests.
+
+
+### Payment RPC hardening drift — RC431 (2026-10-18)
+
+The live function `public.process_verified_digital_page_payment_backend(...)` is still on the RC424 definition (`search_path = public, pg_temp`), not the RC431 candidate. The live body lacks the RC431 checks for:
+- non-null payment status;
+- binding `p_external_event_id` to `paymob:` plus the provider transaction ID;
+- rejecting an incoming provider order ID that differs from the order's already-bound `provider_order_id`;
+- rejecting the same event ID replayed with a conflicting status;
+- serializing concurrent deliveries on an event ID before locking the order.
+
+The live function updates `provider_order_id` but does not validate that the incoming provider order belongs to the target order. RC431 in PR #286 adds the checks above, `search_path = ''`, and disposable PostgreSQL assertions for mismatched provider order, NULL status, conflicting replay, and cross-order event reuse.
+
+**Disposition:** treat Paymob digital-page webhook integrity as **NOT VERIFIED** until RC431 is applied through the complete approved chronological migration chain and its integration tests pass in the release rehearsal. Do not apply RC431 alone as an out-of-order production hotfix.
+
 ### 2. `public.get_mnty_targeted_advertisements(...)` — anonymous SECURITY DEFINER
 
 The live catalog shows this function is executable by `anon` and `authenticated`, uses `SECURITY DEFINER`, and currently has `search_path = public, pg_temp`. This may be intentional for public advertisement discovery, so revoking public execution without tracing callers could break the product.
@@ -87,16 +105,28 @@ Observed live state:
 - Current repository `supabase/functions/financial-journal/index.ts` instead verifies the bearer token, rejects anonymous users, requires a POSTED journal, and calls `post_financial_journal_backend` with `p_user_id: user.id`.
 - Therefore the live function and repository source are **DRIFTED**, and the live RPC privilege state does not support the deployed call. Treat the live financial-journal endpoint as **NOT VERIFIED / likely nonfunctional** until an approved, end-to-end check confirms the actual runtime response.
 
-Read-only entrypoint parity spot-check (2026-10-18):
-- Compared the live Supabase `index.ts` with repository `main` for 24 unique active functions across payments, orders, settlements, business registration/approval, legal, ERP, subscription, AI proxy, marketing lead creation, and selected administration paths.
-- **23/24 entrypoints were byte-identical** to the corresponding repository file.
-- The only mismatch in this sample was `financial-journal`, described above. This is a bounded spot-check, not proof that all deployed Edge Functions or their import maps/configuration are in parity.
+Read-only entrypoint parity spot-check (expanded 2026-10-18):
+- Compared live Supabase `index.ts` with repository `main` for 29 unique active functions across payments, orders, settlements, business registration/approval, legal, ERP, subscription, AI proxy, marketing, SMM, and administration paths.
+- **27/29 entrypoints were byte-identical** to their corresponding repository file. This is a bounded entrypoint sample; import maps and every deployed function are not all certified by it.
+- Two source mismatches were observed:
+  1. `financial-journal`: live v3 calls legacy `post_financial_journal`; repository source calls actor-bound `post_financial_journal_backend`. The live service-role EXECUTE grants for both RPCs are false.
+  2. `mnty-customer-registration`: live v4 calls `private.ensure_customer_membership_for_user`; repository source calls `private.activate_customer_registration_atomic`. The RPCs differ materially in pending-request cleanup, lock key, membership insert scope, and whether audit-write failure aborts activation. See `docs/audits/CUSTOMER_REGISTRATION_RPC_DRIFT_20261016.md`.
+- Do not deploy either source solely to make hashes match. Financial-journal needs the reviewed RC450/RC449A migration chain; customer registration needs an explicit behavior decision and the acceptance matrix completed in a disposable/staging environment.
 
 Required disposition:
 1. Do not grant `service_role` execute on the legacy `post_financial_journal` as a quick fix; the legacy contract does not bind the caller's verified actor ID in the same way as the repository backend contract.
 2. Resolve the historical migration-chain blocker, then review and apply the RC450 service-role/actor-boundary migration in chronological order in the approved release process.
 3. Run disposable PostgreSQL regression tests and approved non-financial dry-run validation, deploy the repository source only after its backend RPC/grants are present, and verify the deployed function version/source parity.
 4. No production function, grant, migration, ledger, payment, or financial data was changed during this inspection.
+
+## Auth and performance advisor follow-up — 2026-10-18
+
+The latest read-only Supabase Advisor refresh still reports:
+- `public.digital_page_payment_events`: RLS enabled with no policies (INFO). Preserve this deny-by-default/server-only posture unless backend access tests prove a different contract is needed.
+- `public.get_mnty_targeted_advertisements(...)`: anonymous-executable `SECURITY DEFINER` (WARN); the RC451 empty-search-path migration remains unapplied in production.
+- 40 authenticated-executable `SECURITY DEFINER` function findings; this is a per-function review queue, not 40 confirmed vulnerabilities.
+- Auth settings warnings for anonymous sign-ins enabled and leaked-password protection not enabled. Do not disable anonymous sign-ins blindly before verifying its intended product usage. Leaked-password protection should be enabled through the Supabase Auth settings workflow and then verified; the connected toolset available in this session does not expose an Auth-settings mutation operation, so no setting was changed.
+- Performance Advisor also reports 28 multiple-permissive-policy groups, 375 RLS init-plan warnings, 105 unindexed foreign keys, and 123 unused indexes. Review policy groups and query plans individually; do not bulk-edit policies or add indexes without query/constraint analysis.
 
 ## Release-gate decision
 
