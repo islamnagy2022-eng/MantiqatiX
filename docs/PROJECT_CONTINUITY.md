@@ -727,3 +727,11 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #286 exact head at checkpoint: `c5db211de66730b084a97bf0e7fef6b8b581924f`; workflows were queued, not yet verified. The branch is 61 commits ahead of main in comparison and remains an unmerged candidate.
 - Closed duplicate integration PR #298 without merge after moving the changes to PR #286.
 - No production migration, grant change, deployment, or payment was executed. PR #286 still requires review of baseline provenance/security contracts and reconciliation of its docs/SESSION_LOG.md diff. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC530 — Release verifier tied to finalizer security evidence — 2026-10-19
+- Added explicit source-contract and live-parity release checks for digital-page payment finalization to the RC candidate's production verifier.
+- The required source migration set now includes the server-only finalizer migration; live release reconciliation must explicitly attest the finalizer trust boundary and exact deployed-source parity, otherwise the P0 release gate stays BLOCKED.
+- Extended the digital-page boundary validator to assert these release checks and Pages CI wiring.
+- Latest candidate head: `0da9cf004ffaaa1cba964e81d2234bb1d8feae2e`; exact-head workflows were queued, including finalization isolation and ordered replay. Do not call them passed until completed.
+- No production changes or deployment. PR #286 remains unmerged and requires baseline/security review plus reconciliation of its docs/SESSION_LOG.md diff.
