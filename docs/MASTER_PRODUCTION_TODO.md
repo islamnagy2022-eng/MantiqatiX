@@ -1943,3 +1943,11 @@ A module cannot be marked DONE until all applicable items are evidenced:
 7. Continue module implementation from shared identity/tenant authorization and the customer → provider → order → status → notification chain; in parallel, verify the already-merged marketing workspace and RC453-dependent behavior without claiming RC453 is deployed.
 8. No merge, production migration, grant/Auth/RLS change, deployment, or financial transaction is authorized by this checkpoint.
 
+
+
+## RC529 — Payment finalization regression hardening — 2026-10-19
+- In PR #286 branch `fix/rc425-mantigo-paymob-mainline`, added a fail-closed guard to the five-argument digital-page finalizer: if `provider_order_id` is already populated while `provider_intent_id` is absent, finalization rejects instead of overwriting the partial/conflicting binding.
+- Added an isolated SQL regression fixture/assertion proving the existing provider order ID remains unchanged and no provider intent is attached.
+- Candidate head after this change: `dbc1f555c450efe247c5d42f0c924fd3bf9e1460`.
+- Verification state at checkpoint: source and test assertions re-fetched from the candidate branch; the exact-head payment, replay, migration, tenant-isolation, and boundary workflows are queued/pending. **No test pass is claimed yet.**
+- This is an unmerged candidate migration only. No production migration, grant change, Edge deployment, or payment transaction was performed. Keep the release gate BLOCKED until exact-head CI, disposable replay, deployed parity and approved runtime evidence pass.
