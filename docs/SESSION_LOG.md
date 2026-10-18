@@ -96,10 +96,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
 
 
-## 2026-10-18 — RC425–RC441 migration recovery candidate update
+## 2026-10-18 — RC425–RC441 integration continuation
 
-- Candidate branch: `fix/rc425-mantigo-paymob-mainline`; PR [#286](https://github.com/islamnagy2022-eng/MantiqatiX/pull/286) remains Draft.
-- Existing isolated evidence remains bounded: forward replay from the reviewed RC424 schema checkpoint through RC525 passed [run 39089936027](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39089936027); RC526 combined replay passed separately [run 39090118306](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39090118306). Neither run applies migrations to production.
-- RC432 source was reconciled to the exact canonical blob shared with PR #207 (`7d2f8a27d173f04cbc22cec0a801818bde3aac07`) so the optional legacy four-argument wallet RPC is guarded during clean replay. Exact-head collision CI has not yet confirmed PASS after this edit.
-- PR #286 still reports a merge conflict against current main. Keep it unmerged until branch conflicts are resolved and latest-head migration collision, immutability, full replay, tenant isolation, payment/finance integration, and release gates all pass.
-- Production remains at RC424; no production migration, grant, Edge Function deployment, payment, wallet, or financial write was performed.
+- Reconciled RC432 migration source to canonical guarded blob `7d2f8a27d173f04cbc22cec0a801818bde3aac07`; no production migration was run.
+- Compared PR #286 against current main: 37 commits ahead, 6 behind; overlapping paths were the master TODO and session log. Current main application, marketing workflow, validators, CSS, home JS, index, service worker, continuity doc, and security review are retained in this merge candidate.
+- Exact-head CI was not returned for head `2950fe6e503ab3400227e7f5613f87a6448af26f`; no PASS is claimed for that head. A merge-resolution commit must trigger and pass the required CI before PR readiness can change.
+- Existing isolated replay through RC525 and separate RC526 PASS evidence are bounded; combined replay including RC526 and final candidates remains required.
+- Production remains RC424. Payment RPC RC431, financial-journal live/source drift, customer-registration behavior drift, historical migration provenance, Paymob/finance E2E, tenant isolation, backup/restore, Auth, and deployment verification remain open. No production changes were performed.

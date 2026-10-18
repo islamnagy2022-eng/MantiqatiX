@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-11:** Read `docs/SESSION_LOG.md` for the chronological record. The current release gate is **BLOCKED / NOT CERTIFIED**. Current main HEAD: `735f0451bf6dae9ed8cf681f83c4856a4b029041`. Do not rely on older RC entries below as the latest status without checking the session log.
+> **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -14,11 +14,20 @@
 - Branch: `main`
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit: `51b4d8d4c857cab3fad43ee68025cb7b6ce838a4`
-- Latest release-gate record: **RC337**
-- Final Production Gate: **OPEN**
+- Latest documented project commit: `cf522740e9dd058c28728ba582e347661ef24122`
+- Latest live production migration checkpoint: **RC424** (`20261008222845`, 283 versions)
+- Final Production Gate: **BLOCKED / NOT CERTIFIED**
 
-## Latest web execution batch
+## Latest verified web execution batch — 2026-10-18
+
+- Marketing/agency workspace is merged to main in PR #292, commit `bd08e8436ba16a5a84c0c0cfd5e346591b364bb7`. It provides tabbed leads, partner directory, projects, ads, and RC453-dependent campaign actions; missing RC453 schema triggers an explicit fallback to the existing workspace. Campaign reads are scoped to the active business.
+- Exact tested PR head `7b6757830907c6843eadbcec5425bbd1da8b67b4`: marketing contract, Pages validation, backend-only boundary, MantiGO privacy, and module professionalization workflows passed. The Pages deploy job was skipped on the PR event; verify main push deployment separately.
+- PWA cache version is `mnty-web-v129`; exact versioned app and Supabase SDK URLs are precached.
+- Security review PR #291 merged as `cf522740e9dd058c28728ba582e347661ef24122`. Expanded read-only entrypoint parity spot-check: 27/29 sampled Edge Function `index.ts` files are byte-identical; the two drifted functions are `financial-journal` and `mnty-customer-registration`. Auth Advisor also warns about anonymous sign-ins and leaked-password protection. See `docs/release/SECURITY_DEFINER_REVIEW_20261018.md` and `docs/audits/CUSTOMER_REGISTRATION_RPC_DRIFT_20261016.md`.
+- Production database remains at RC424. RC453 campaign schema/RPCs and the RC450 financial-journal backend contract are not confirmed deployed. The live digital-page payment RPC also lacks RC431 provider-order/event replay hardening. Do not perform out-of-order hotfix grants or claim production certification.
+- Release remains **BLOCKED / NOT CERTIFIED**.
+
+## Historical web execution batch (superseded)
 - RC314–RC315: restaurant workspace feedback was upgraded from browser alerts/prompts to platform-native accessible toast/modal flows; source verification confirms no `alert(` or `prompt(` remains in `web/restaurant-module.js`.
 - Public asset versions were refreshed and the PWA cache advanced to `mnty-web-v114`.
 - These changes are **IMPLEMENTED — NOT VERIFIED** until the main-branch Pages workflow completes successfully.
@@ -555,3 +564,16 @@ This status is intentional and must remain until the open gates above are indepe
 - Only after explicit review, add an isolated disposable replay job that bootstraps from the baseline and applies newer migrations in order; never apply the baseline to production.
 - Keep PR #282 unmerged until full chronological replay, tenant isolation, payment/finance end-to-end, and backup/restore gates pass.
 - Preserve the production gate and migration collision guard; no release certification is issued.
+
+
+## 2026-10-18 — guarded marketing workspace port on current main
+
+- Working branch: `feat/marketing-workspace-current-main-20261018`; Draft PR [#292](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/292).
+- Added the tabbed marketing/agency workspace for leads, provider agencies, projects, and platform ads; campaign create/invite/respond/status actions call only the RC453 backend RPCs.
+- Added SMM quick access to marketing-role and enterprise dashboards. The separate SMM storefront remains deferred by the server-side launch gate.
+- Added a fail-safe for the known production/source gap: if the RC453 campaign tables are missing, the UI shows a clear notice and falls back to the existing marketing workspace instead of presenting a campaign form that cannot work.
+- Browser mutations to `marketing_campaigns` and `marketing_campaign_participants` remain prohibited; no direct INSERT/UPDATE/DELETE calls were added.
+- Dedicated Marketing Workspace Contract run [39091349054](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349054) **PASS**: JavaScript syntax and 22 static contract assertions passed on the PR head at that run.
+- Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
+- The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
+- Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.

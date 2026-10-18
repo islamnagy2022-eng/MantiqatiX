@@ -1635,10 +1635,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
 
 
-## 2026-10-18 — RC425–RC441 migration recovery candidate update
+## 2026-10-18 — RC425–RC441 recovery candidate checkpoint
 
-- Candidate branch: `fix/rc425-mantigo-paymob-mainline`; PR [#286](https://github.com/islamnagy2022-eng/MantiqatiX/pull/286) remains Draft.
-- Existing isolated evidence remains bounded: forward replay from the reviewed RC424 schema checkpoint through RC525 passed [run 39089936027](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39089936027); RC526 combined replay passed separately [run 39090118306](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39090118306). Neither run applies migrations to production.
-- RC432 source was reconciled to the exact canonical blob shared with PR #207 (`7d2f8a27d173f04cbc22cec0a801818bde3aac07`) so the optional legacy four-argument wallet RPC is guarded during clean replay. Exact-head collision CI has not yet confirmed PASS after this edit.
-- PR #286 still reports a merge conflict against current main. Keep it unmerged until branch conflicts are resolved and latest-head migration collision, immutability, full replay, tenant isolation, payment/finance integration, and release gates all pass.
-- Production remains at RC424; no production migration, grant, Edge Function deployment, payment, wallet, or financial write was performed.
+- Candidate PR [#286](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/286) restores RC425–RC432 and RC434–RC441 migration sources and coordinates four payment Edge Functions. It remains Draft; do not merge or deploy until the exact-head checks and review gates pass.
+- RC432 is aligned to canonical blob `7d2f8a27d173f04cbc22cec0a801818bde3aac07`, including the optional legacy four-argument SMM wallet RPC guard. This is source-level evidence only; fresh exact-head collision CI is still required.
+- Current branch was 37 commits ahead and 6 behind main. Only overlapping changed paths identified by compare were `docs/MASTER_PRODUCTION_TODO.md` and `docs/SESSION_LOG.md`; current main's other changes are preserved in the integration candidate.
+- Isolated forward replay through RC525 and the separate RC526 suite have recorded PASS runs, but RC526 still needs a combined chronological replay with all final candidates. These runs do not change production.
+- Live Supabase remains at RC424. RC431 payment hardening, RC450 financial-journal contract, deployed Edge Function parity, Paymob sandbox/finance E2E, tenant isolation, backup/restore, Auth review, and deployment verification remain release blockers.
+- Do not fabricate the missing historical creation migration for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`, alter historical migrations, or apply RC431/RC450/RC453/RC526 out of order. No production changes are authorized by this candidate.
+- Release gate: **BLOCKED / NOT CERTIFIED**.
