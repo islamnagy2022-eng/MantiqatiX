@@ -1,11 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Vary":"Origin"};
+const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Vary":"Origin"};
 function response(body:Record<string,unknown>,status=200){return new Response(JSON.stringify(body),{status,headers});}
 function safeCode(name:string){const slug=name.trim().toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24)||"BUSINESS";return slug+"-"+crypto.randomUUID().slice(0,8).toUpperCase();}
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers});
  if(req.method!=="POST")return response({error:"METHOD_NOT_ALLOWED"},405);
+ if(!req.headers.get("content-type")?.toLowerCase().includes("application/json"))return response({error:"UNSUPPORTED_MEDIA_TYPE"},415);
  try{
   const authorization=req.headers.get("Authorization");
   if(!authorization?.startsWith("Bearer "))return response({error:"AUTH_REQUIRED"},401);
@@ -15,6 +16,8 @@ Deno.serve(async(req)=>{
   if(authError||!user||user.is_anonymous)return response({error:"AUTH_REQUIRED"},401);
   const body=await req.json().catch(()=>null);
   if(!body||typeof body!=="object"||Array.isArray(body))return response({error:"INVALID_JSON_BODY"},400);
+  const stringFields=["tenantId","name","sector","address","phone","city","district","organizationId"];
+  if(stringFields.some((key)=>body[key]!==undefined&&body[key]!==null&&typeof body[key]!=="string"))return response({error:"INVALID_FIELD_TYPE"},400);
   const tenantId=String(body.tenantId??"").trim(),name=String(body.name??"").trim(),sector=String(body.sector??"GENERAL").trim().toUpperCase();
   const address=String(body.address??"").trim(),phone=String(body.phone??"").trim(),city=String(body.city??"").trim(),district=String(body.district??"").trim();
   const organizationId=body.organizationId?String(body.organizationId):null;
