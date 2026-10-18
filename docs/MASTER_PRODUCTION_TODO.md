@@ -1889,3 +1889,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Inspected current schema snapshot; found table shape, but not historical creation provenance. Search of tracked references and supplied `source_RC40.zip` found no canonical create-table source.
 - [ ] Recover authoritative original DDL or obtain explicit approval for a schema-only disposable-CI fixture for `mantigo_financial_config`. Do not synthesize historical DDL or apply the fixture to production.
 - Final production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## REPLAY-RESUME-007 — 2026-10-18
+- [x] Recovered the exact MantiGO financial-config table definition from tracked migration `20261006152000_mantigo_financial_ledger_v1.sql`.
+- [x] Added a definition-only disposable-CI baseline and temporary injection before the earlier RLS consumer at `20261006122111`; original historical migrations remain unchanged.
+- [x] Added validator checks for normalized DDL equality to tracked source, no data operations, temporary version ordering, collision prevention, exact copy, and untracked status.
+- [ ] Inspect workflow [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) and continue from its first actual SQL failure; do not assume success.
+- Production gate remains **BLOCKED / NOT CERTIFIED**.
