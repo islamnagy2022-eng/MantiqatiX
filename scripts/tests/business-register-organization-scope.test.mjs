@@ -21,4 +21,11 @@ assert.match(source, /if\(!body\|\|typeof body!=="object"\|\|Array\.isArray\(bod
 assert.match(source, /const \{data:existing,error:existingError\}=await supabase\.from\("approval_requests"\)/);
 assert.match(source, /if\(existingError\)throw existingError/);
 
-console.log("business-register tenant and organization security contract: PASS (16 assertions)");
+assert.match(source, /"Access-Control-Allow-Methods":"POST, OPTIONS"/);
+assert.match(source, /"Cache-Control":"no-store"/);
+assert.match(source, /"X-Content-Type-Options":"nosniff"/);
+assert.match(source, /UNSUPPORTED_MEDIA_TYPE/);
+assert.match(source, /stringFields=\["tenantId","name","sector","address","phone","city","district","organizationId"\]/);
+assert.match(source, /INVALID_FIELD_TYPE/);
+
+console.log("business-register tenant and organization security contract: PASS (22 assertions)");
