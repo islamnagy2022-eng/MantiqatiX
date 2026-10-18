@@ -1428,8 +1428,8 @@ const mantigoFinancialLedgerBaseline = fs.existsSync(mantigoFinancialLedgerBasel
   ? fs.readFileSync(mantigoFinancialLedgerBaselinePath, "utf8")
   : "";
 const mantigoFinancialLedgerSource = migrations.find(({ name }) => name === "20261006152000_mantigo_financial_ledger_v1.sql");
-const mantigoFinancialLedgerSourceDdl = mantigoFinancialLedgerSource?.sql.match(/create table if not exists public\\.mantigo_financial_ledger\\s*\\([\\s\\S]*?\\);/i)?.[0] ?? "";
-const mantigoFinancialLedgerBaselineDdl = mantigoFinancialLedgerBaseline.match(/create table if not exists public\\.mantigo_financial_ledger\\s*\\([\\s\\S]*?\\);/i)?.[0] ?? "";
+const mantigoFinancialLedgerSourceDdl = mantigoFinancialLedgerSource?.sql.match(/create table if not exists public\.mantigo_financial_ledger\s*\([\s\S]*?\);/i)?.[0] ?? "";
+const mantigoFinancialLedgerBaselineDdl = mantigoFinancialLedgerBaseline.match(/create table if not exists public\.mantigo_financial_ledger\s*\([\s\S]*?\);/i)?.[0] ?? "";
 const mantigoFinancialLedgerTemporaryVersion = "20261006140559";
 const mantigoFinancialLedgerTemporaryName = mantigoFinancialLedgerTemporaryVersion + "_test_only_tracked_source_mantigo_financial_ledger_baseline.sql";
 const mantigoFinancialLedgerWorkflowPath = ".github/workflows/migration-chain-replay.yml";
@@ -1438,14 +1438,14 @@ const mantigoFinancialLedgerWorkflow = fs.existsSync(mantigoFinancialLedgerWorkf
   : "";
 const mantigoFinancialLedgerBaselineValid =
   /TEST-ONLY schema compatibility baseline for disposable migration-chain replay/i.test(mantigoFinancialLedgerBaseline) &&
-  /tracked migration 20261006152000_mantigo_financial_ledger_v1\\.sql/i.test(mantigoFinancialLedgerBaseline) &&
+  /tracked migration 20261006152000_mantigo_financial_ledger_v1\.sql/i.test(mantigoFinancialLedgerBaseline) &&
   /must never apply to production/i.test(mantigoFinancialLedgerBaseline) &&
   /id text primary key/i.test(mantigoFinancialLedgerBaseline) &&
-  /ride_id text not null unique references public\\.mantigo_rides\\(id\\) on delete restrict/i.test(mantigoFinancialLedgerBaseline) &&
+  /ride_id text not null unique references public\.mantigo_rides\(id\) on delete restrict/i.test(mantigoFinancialLedgerBaseline) &&
   /idempotency_key text not null unique/i.test(mantigoFinancialLedgerBaseline) &&
   mantigoFinancialLedgerSourceDdl.length > 0 &&
   normalizeSql(mantigoFinancialLedgerBaselineDdl) === normalizeSql(mantigoFinancialLedgerSourceDdl) &&
-  !/\\b(insert\\s+into|update\\s+public\\.|delete\\s+from|copy\\s+(public|private)\\.)/i.test(mantigoFinancialLedgerBaseline);
+  !/\b(insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\.)/i.test(mantigoFinancialLedgerBaseline);
 const mantigoFinancialLedgerWorkflowValid =
   mantigoFinancialLedgerWorkflow.includes(mantigoFinancialLedgerBaselinePath) &&
   mantigoFinancialLedgerWorkflow.includes(mantigoFinancialLedgerTemporaryName) &&
@@ -1453,7 +1453,7 @@ const mantigoFinancialLedgerWorkflowValid =
   mantigoFinancialLedgerWorkflow.includes('cmp -s "$mantigo_financial_ledger_baseline" "$mantigo_financial_ledger_migration"') &&
   mantigoFinancialLedgerWorkflow.includes('mantigo_financial_ledger_migration=') &&
   mantigoFinancialLedgerWorkflow.includes('git ls-files --error-unmatch "$file"') &&
-  /for file in [^\\n]*"\\$mantigo_financial_ledger_migration"[^\\n]*; do ! git ls-files --error-unmatch "\\$file"/.test(mantigoFinancialLedgerWorkflow);
+  /for file in [^\n]*"\$mantigo_financial_ledger_migration"[^\n]*; do ! git ls-files --error-unmatch "\$file"/.test(mantigoFinancialLedgerWorkflow);
 if (!mantigoFinancialLedgerBaselineValid || !mantigoFinancialLedgerWorkflowValid ||
     fs.existsSync(path.join(migrationDirectory, mantigoFinancialLedgerTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === mantigoFinancialLedgerTemporaryVersion) ||
