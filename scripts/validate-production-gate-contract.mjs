@@ -38,6 +38,12 @@ const requiredProductionGateMarkers = [
   'add("MANTIGO-PAY-FINALIZE"',
   'add("MANTIGO-PAY-RELEASE"',
   'add("MANTIGO-PAY-CORRELATION"',
+  'reconciliation.financial_journal_deployed_source_parity===true',
+  'reconciliation.customer_registration_deployed_source_parity===true',
+  'reconciliation.business_register_organization_scope_deployed_source_parity===true',
+  'EDGE-FINANCIAL-JOURNAL-PARITY',
+  'EDGE-CUSTOMER-REGISTRATION-PARITY',
+  'EDGE-BUSINESS-REGISTER-SCOPE-PARITY',
 ];
 
 const home = read('web/home.js');
