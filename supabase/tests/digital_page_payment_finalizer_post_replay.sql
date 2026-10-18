@@ -8,6 +8,7 @@ DECLARE
   v_five regprocedure := to_regprocedure('public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)');
   v_def text;
   v_config text;
+  v_security_definer boolean;
 BEGIN
   IF v_four IS NULL OR v_five IS NULL THEN
     RAISE EXCEPTION 'DIGITAL_PAGE_FINALIZER_OVERLOAD_MISSING_AFTER_REPLAY';
@@ -25,14 +26,16 @@ BEGIN
     RAISE EXCEPTION 'FIVE_ARGUMENT_FINALIZER_GRANTS_INVALID';
   END IF;
 
-  SELECT pg_get_functiondef(p.oid), coalesce(array_to_string(p.proconfig, ','), '')
-    INTO v_def, v_config
+  SELECT pg_get_functiondef(p.oid), coalesce(array_to_string(p.proconfig, ','), ''), p.prosecdef
+    INTO v_def, v_config, v_security_definer
   FROM pg_proc p
   WHERE p.oid = v_five;
 
-  IF v_def IS NULL OR v_def NOT LIKE '%TRUSTED_PAYMENT_FINALIZATION_REQUIRED%'
+  IF v_def IS NULL OR v_security_definer IS NOT TRUE
+     OR v_def NOT LIKE '%TRUSTED_PAYMENT_FINALIZATION_REQUIRED%'
      OR v_def NOT LIKE '%provider_order_id = p_provider_order_id%'
-     OR v_def NOT LIKE '%p_claim_token%' THEN
+     OR v_def NOT LIKE '%v_user_id is distinct from p_user_id%'
+     OR v_def NOT LIKE '%v_claim_token is distinct from p_claim_token%' THEN
     RAISE EXCEPTION 'FIVE_ARGUMENT_FINALIZER_BODY_CONTRACT_INVALID';
   END IF;
 
