@@ -87,6 +87,11 @@ Observed live state:
 - Current repository `supabase/functions/financial-journal/index.ts` instead verifies the bearer token, rejects anonymous users, requires a POSTED journal, and calls `post_financial_journal_backend` with `p_user_id: user.id`.
 - Therefore the live function and repository source are **DRIFTED**, and the live RPC privilege state does not support the deployed call. Treat the live financial-journal endpoint as **NOT VERIFIED / likely nonfunctional** until an approved, end-to-end check confirms the actual runtime response.
 
+Read-only entrypoint parity spot-check (2026-10-18):
+- Compared the live Supabase `index.ts` with repository `main` for 24 unique active functions across payments, orders, settlements, business registration/approval, legal, ERP, subscription, AI proxy, marketing lead creation, and selected administration paths.
+- **23/24 entrypoints were byte-identical** to the corresponding repository file.
+- The only mismatch in this sample was `financial-journal`, described above. This is a bounded spot-check, not proof that all deployed Edge Functions or their import maps/configuration are in parity.
+
 Required disposition:
 1. Do not grant `service_role` execute on the legacy `post_financial_journal` as a quick fix; the legacy contract does not bind the caller's verified actor ID in the same way as the repository backend contract.
 2. Resolve the historical migration-chain blocker, then review and apply the RC450 service-role/actor-boundary migration in chronological order in the approved release process.
