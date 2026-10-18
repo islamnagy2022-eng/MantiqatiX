@@ -586,7 +586,7 @@ jobs:
           s = p.read_text()
           import re
           s, n1 = re.subn(
-              r"DECLARE\\s+v_bad text;\\s+BEGIN\\s+SELECT string_agg\\(p\\.oid::regprocedure::text, ', ' ORDER BY p\\.oid::regprocedure::text\\)",
+              r"DECLARE\s+v_bad text;\s+BEGIN\s+SELECT string_agg\(p\.oid::regprocedure::text, ', ' ORDER BY p\.oid::regprocedure::text\)",
               """DECLARE
             v_bad text;
             v_settlement_def text;
@@ -608,8 +608,8 @@ jobs:
               s, count=1
           )
           s, n2 = re.subn(
-              r"'preview_commission_backend'(\\s*\\n\\s*\\);)",
-              r"'preview_commission_backend',\\n              'create_settlement_backend'\\1",
+              r"'preview_commission_backend'(\s*\n\s*\);)",
+              lambda m: "'preview_commission_backend',\n              'create_settlement_backend'" + m.group(1),
               s, count=1
           )
           if n1 != 1 or n2 != 1:
