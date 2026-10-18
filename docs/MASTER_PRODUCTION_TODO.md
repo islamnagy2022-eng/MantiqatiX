@@ -1823,3 +1823,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - At that same head, Backend-only Module Boundary [39142880886], MantiGO Open Ride Privacy Boundary [39142880809], and Module Professionalization Validation [39142880832] passed.
 - The full migration replay at code-equivalent head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed [run 39142726549]: 32 ordered migrations, post-replay finalizer grant/SECURITY DEFINER/empty search_path/user/claim/provider-order checks, and bidirectional tenant isolation.
 - Remaining: live production source/grant parity, baseline/manual approval, Paymob sandbox E2E and external release tests. No production migration/deployment was performed; PR #297 remains draft/unmerged.
+
+
+## RC536 — Read-only live production parity check — 2026-10-18
+- Read-only Supabase catalog query against project `moyhiluyhjsujhwlyeuu` found only `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)`: SECURITY DEFINER, `search_path=public, pg_temp`, anon EXECUTE=false, authenticated EXECUTE=true, service_role EXECUTE=false, no provider-order reference and no trusted-role guard.
+- Read-only Edge Function retrieval found live `digital-page-payment-intent` version 5 still calls `userClient.rpc("finalize_digital_page_payment_intent_backend", ...)` with the four-argument signature and does not bind provider order ID. This directly confirms that the candidate fix has **not** been deployed to production.
+- Live migration ledger remains at `20261008222845 / rc424_atomic_digital_page_payment_webhook`; the relevant RC425+ release migrations are not present in the live ledger. No production data/schema/grants/secrets/functions were changed.
+- Release stays BLOCKED. Do not hotfix the grant or deploy Edge Function independently/out of order; first complete the reviewed candidate chain, then require explicit approval and a coordinated migration/function rollout with live verification.
