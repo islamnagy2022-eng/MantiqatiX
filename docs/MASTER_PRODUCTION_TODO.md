@@ -27,7 +27,12 @@
    - وصول الإشعار وclick-through.
    - عزل مزودين من أعمال مختلفة.
 
-3. Paymob production E2E — WAIT
+3. Digital-page payment finalization trust boundary — BLOCKED
+   - Source review found the Edge Function calls finalize_digital_page_payment_intent_backend through the user-scoped client, while the current migration grants EXECUTE to authenticated.
+   - This is a trust-boundary inconsistency; source review alone does not prove payment fraud or a production exploit.
+   - Closure requires a reviewed server-only finalization contract, isolated direct-call regression tests, provider-response binding, and deployed-source parity verification.
+   - Do not change production grants or deploy remediation without explicit approval.
+4. Paymob production E2E — WAIT
    - معاملة حقيقية مصرح بها.
    - HMAC/replay/idempotency.
    - ربط الدفع بالطلب الصحيح.
