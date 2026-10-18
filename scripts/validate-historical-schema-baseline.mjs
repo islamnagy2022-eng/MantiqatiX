@@ -1365,7 +1365,9 @@ const mantigoOpenRidesWorkflowValid =
   mantigoOpenRidesWorkflow.includes(mantigoOpenRidesTemporaryName) &&
   mantigoOpenRidesWorkflow.includes('cp "$mantigo_open_rides_baseline" "$mantigo_open_rides_migration"') &&
   mantigoOpenRidesWorkflow.includes('cmp -s "$mantigo_open_rides_baseline" "$mantigo_open_rides_migration"') &&
-  mantigoOpenRidesWorkflow.includes('"$mantigo_open_rides_migration"; do ! git ls-files --error-unmatch "$file"');
+  mantigoOpenRidesWorkflow.includes('mantigo_open_rides_migration=') &&
+  mantigoOpenRidesWorkflow.includes('git ls-files --error-unmatch "$file"') &&
+  /for file in [^\n]*"\$mantigo_open_rides_migration"[^\n]*; do ! git ls-files --error-unmatch "\$file"/.test(mantigoOpenRidesWorkflow);
 if (!mantigoOpenRidesBaselineValid || !mantigoOpenRidesWorkflowValid ||
     fs.existsSync(path.join(migrationDirectory, mantigoOpenRidesTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === mantigoOpenRidesTemporaryVersion)) {
@@ -1405,7 +1407,9 @@ const mantigoFinancialConfigWorkflowValid =
   mantigoFinancialConfigWorkflow.includes(mantigoFinancialConfigTemporaryName) &&
   mantigoFinancialConfigWorkflow.includes('cp "$mantigo_financial_config_baseline" "$mantigo_financial_config_migration"') &&
   mantigoFinancialConfigWorkflow.includes('cmp -s "$mantigo_financial_config_baseline" "$mantigo_financial_config_migration"') &&
-  mantigoFinancialConfigWorkflow.includes('"$mantigo_financial_config_migration"; do ! git ls-files --error-unmatch "$file"');
+  mantigoFinancialConfigWorkflow.includes('mantigo_financial_config_migration=') &&
+  mantigoFinancialConfigWorkflow.includes('git ls-files --error-unmatch "$file"') &&
+  /for file in [^\n]*"\$mantigo_financial_config_migration"[^\n]*; do ! git ls-files --error-unmatch "\$file"/.test(mantigoFinancialConfigWorkflow);
 if (!mantigoFinancialConfigBaselineValid || !mantigoFinancialConfigWorkflowValid ||
     fs.existsSync(path.join(migrationDirectory, mantigoFinancialConfigTemporaryName)) ||
     migrations.some(({ name }) => name.slice(0, 14) === mantigoFinancialConfigTemporaryVersion) ||
