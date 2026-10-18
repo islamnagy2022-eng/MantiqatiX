@@ -1734,3 +1734,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - PR #273's RC425 migration source for the checked file is byte-identical to PR #286's copy; continue comparing the full migration set and preserve the collision guard before integration.
 - **Integration blocker:** PR #286 changes `docs/SESSION_LOG.md`; do not merge that PR as-is under the current no-edit/no-touch constraint for that file. Resolve this without modifying the session log, then re-run exact-head CI and review.
 - No production migration, grant/RLS/Auth change, Edge Function deployment, merge, or financial transaction was performed.
+
+
+## RC529 — Digital-page payment finalization regression expansion — 2026-10-18
+- Continued the P0 remediation in existing PR #268 (branch `fix/digital-page-payment-finalize-main-20261016`), not on main.
+- Hardened both 4-argument and 5-argument trusted finalizers with row locking, order/user binding, active claim-token validation, and idempotent acceptance only when the same still-pending provider intent (and, for the 5-argument overload, provider-order ID) is already bound.
+- Added isolated SQL regression cases for stale claim tokens, wrong user binding, same-intent retry, conflicting intent replay, and conflicting provider-order replay; authenticated direct invocation remains denied by the ACL/role contract.
+- Exact new head: `6c4d5e931c2a3d420e1d43fe8369a81747a018d1`. The Digital Page Payment Finalization Isolation workflow and related repository CI were queued/in progress at this checkpoint; do not mark this fix PASS until the exact-head isolated PostgreSQL test completes successfully.
+- This is source/test work only. No migration was applied to production and no payment or deployment was performed.
