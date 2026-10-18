@@ -29,7 +29,7 @@ for (const [src, marker, label] of [
   [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from public', 'four-argument finalizer PUBLIC grant revoked'],
   [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from anon', 'four-argument finalizer anon grant revoked'],
   [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from authenticated', 'four-argument finalizer authenticated grant revoked'],
-  [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) to service_role', 'four-argument finalizer service-role grant explicitly preserved'],
+  [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from service_role', 'legacy four-argument finalizer service-role grant revoked'],
   [trustedFinalization, 'provider_order_id = p_provider_order_id', 'provider order ID stored on the order'],
   [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) to service_role', 'five-argument finalizer service-role-only grant'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
@@ -40,8 +40,8 @@ if (/userClient\.rpc\("finalize_digital_page_payment_intent_backend"/.test(payme
 const migrationDir = 'supabase/migrations';
 const finalizerAclEvents = [];
 const overloads = [
-  { signature: 'four', pattern: /grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*\)\s+to\s+(public|authenticated)|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*\)\s+from\s+(public|authenticated)/ig },
-  { signature: 'five', pattern: /grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+to\s+(public|authenticated)|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+from\s+(public|authenticated)/ig },
+  { signature: 'four', pattern: /grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*\)\s+to\s+(public|authenticated|service_role)|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*\)\s+from\s+(public|authenticated|service_role)/ig },
+  { signature: 'five', pattern: /grant\s+(?:all|execute)\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+to\s+(public|authenticated|service_role)|revoke\s+all\s+on\s+function\s+public\.finalize_digital_page_payment_intent_backend\s*\(\s*uuid\s*,\s*uuid\s*,\s*text\s*,\s*text\s*,\s*text\s*\)\s+from\s+(public|authenticated|service_role)/ig },
 ];
 for (const filename of fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql')).sort()) {
   const sql = fs.readFileSync(migrationDir + '/' + filename, 'utf8');
@@ -78,6 +78,12 @@ if (trustedFinalization.includes("to_regprocedure('public.finalize_digital_page_
     signature: 'five',
     role: 'authenticated',
     grants: false,
+  }, {
+    filename: '20261016100000_digital_page_payment_intent_server_only_finalization.sql',
+    index: dynamicRevokeIndex,
+    signature: 'five',
+    role: 'service_role',
+    grants: false,
   });
 }
 finalizerAclEvents.sort((a, b) => a.filename.localeCompare(b.filename) || a.index - b.index);
@@ -88,6 +94,14 @@ for (const signature of ['four', 'five']) {
       throw new Error(signature + '-argument digital-page finalizer remains executable by ' + role + ' after migration replay');
     }
   }
+}
+const legacyServiceRoleEvents = finalizerAclEvents.filter(event => event.signature === 'four' && event.role === 'service_role');
+if (legacyServiceRoleEvents.length && legacyServiceRoleEvents[legacyServiceRoleEvents.length - 1].grants) {
+  throw new Error('Legacy four-argument digital-page finalizer remains executable by service_role');
+}
+const trustedServiceRoleEvents = finalizerAclEvents.filter(event => event.signature === 'five' && event.role === 'service_role');
+if (!trustedServiceRoleEvents.length || !trustedServiceRoleEvents[trustedServiceRoleEvents.length - 1].grants) {
+  throw new Error('Five-argument digital-page finalizer must remain service_role-only executable');
 }
 const ambiguousStart = payment.indexOf("if(providerResponseStatus<200||providerResponseStatus>=300||!p?.id||!p?.client_secret||!providerOrderId){");
 const finalizeAfterAmbiguous = payment.indexOf('const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend"', ambiguousStart);
