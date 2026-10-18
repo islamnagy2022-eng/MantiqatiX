@@ -50,9 +50,9 @@
     try {
       const [servicesRes,providersRes,servicesTotalRes,providersTotalRes]=await Promise.all([
         sb.from('marketing_services').select('category_code').eq('status','ACTIVE').limit(1000),
-        sb.from('marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').limit(1000),
+        sb.from('public_marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').limit(1000),
         sb.from('marketing_services').select('id',{count:'exact',head:true}).eq('status','ACTIVE'),
-        sb.from('marketing_provider_profiles').select('id',{count:'exact',head:true}).eq('status','ACTIVE')
+        sb.from('public_marketing_provider_profiles').select('id',{count:'exact',head:true}).eq('status','ACTIVE')
       ]);
       if(servicesRes.error || providersRes.error || servicesTotalRes.error || providersTotalRes.error) throw (servicesRes.error||providersRes.error||servicesTotalRes.error||providersTotalRes.error);
       PUBLIC_DIRECTORY_TOTALS={
@@ -128,7 +128,7 @@
   const providerMedia = provider => {
     const image=publicProfileImage(provider);
     const fallback=activityImage(provider?.provider_kind);
-    const logoPath=provider?.settings?.branding?.logo_path||'';
+    const logoPath=provider?.public_branding_logo_path||'';
     const logo=logoPath?publicProfileImage({...provider,profile_image_path:logoPath}):'';
     const text = escapeHtml((provider?.name_ar || provider?.name_en || 'مقدم خدمة').slice(0,1));
     return '<div class="mx-photo mx-photo--provider">'+(image?'<img class="mx-provider-cover" src="'+escapeHtml(image)+'" alt="'+escapeHtml(provider?.name_ar||provider?.name_en||'صورة النشاط')+'" loading="lazy">':'<img class="mx-provider-cover" src="'+fallback+'" alt="صورة النشاط" loading="lazy"><span class="mx-photo-fallback">'+text+'</span>')+(logo?'<span class="mx-provider-logo"><img src="'+escapeHtml(logo)+'" alt="لوجو النشاط" loading="lazy"></span>':'')+'</div>';
@@ -539,7 +539,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
         const [sr,pr]=await Promise.all([
           sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE') .eq('category_code',dataKey).order('created_at',{ascending:false}).limit(50),
-          sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('status','ACTIVE') .eq('provider_kind',dataKey).order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(50)
+          sb.from('public_marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,public_branding_logo_path,updated_at,created_at').eq('status','ACTIVE') .eq('provider_kind',dataKey).order('is_featured',{ascending:false}).order('created_at',{ascending:false}).limit(50)
         ]);
         if(sr.error)throw sr.error; if(pr.error)throw pr.error;
         const services=sr.data||[], providers=pr.data||[];
@@ -622,7 +622,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         const id=decodeURIComponent(h.slice(10));
         try{
           const sb=getClient(); if(!sb)return;
-          const {data,error}=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('id',id).eq('status','ACTIVE').maybeSingle();
+          const {data,error}=await sb.from('public_marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,public_branding_logo_path,updated_at,created_at').eq('id',id).eq('status','ACTIVE').maybeSingle();
           if(error||!data)return;
           return window.__MNTYOpenProviderProfilePage?.(data);
         }catch(_){return}
@@ -890,7 +890,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
           if(el) el.hidden = id==='mx-services' ? !homeSectionEnabled('SERVICE_CATALOG') : id==='mx-offers' ? !homeSectionEnabled('ADVERTISEMENTS') : !homeSectionEnabled('MARKETING');
         });
         let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
-        let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
+        let providerQuery=sb.from('public_marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,public_branding_logo_path,updated_at,created_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('created_at',{ascending:false}).limit(12);
         if(categoryCode){ const code=normCode(categoryCode); serviceQuery=serviceQuery.eq('category_code',code); providerQuery=providerQuery.eq('provider_kind',code); } else if(safeTerm){ serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%'); providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
         const adCoords=window.MNTYLocationAdapter?.state?.coords||null;
         const adsPromise=sb.rpc('get_mnty_targeted_advertisements',{
@@ -1043,7 +1043,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
     const openInitialProvider=async id=>{
       try{
         const sb=getClient(); if(!sb) throw new Error('NO_CLIENT');
-        const r=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('id',decodeURIComponent(id)).eq('status','ACTIVE').maybeSingle();
+        const r=await sb.from('public_marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,public_branding_logo_path,updated_at,created_at').eq('id',decodeURIComponent(id)).eq('status','ACTIVE').maybeSingle();
         if(r.error||!r.data) throw (r.error||new Error('NOT_FOUND'));
         openProviderProfilePage(r.data,'');
       }catch(_){ loadData(); }
