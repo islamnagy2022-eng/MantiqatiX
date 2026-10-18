@@ -591,3 +591,14 @@ This status is intentional and must remain until the open gates above are indepe
 ## Candidate security fix — business registration organization scope (2026-10-19)
 
 A service-role-backed `business-register` Edge Function accepted `organizationId` from the browser for a normal tenant member without checking that the requested organization matched an active membership. That is a potential cross-organization assignment vulnerability. The candidate branch now binds ordinary members to their membership organization and validates platform-admin organization selections against the same tenant. A focused static regression test is wired into Backend-only Module Boundary CI. Commits: `8112c511366eff12e4db50e7a7cc0ff2acefacc7`, `b57f664892e4ac1bcac0d933fcad19b29fa74312`, `aa0ac7955c07936046da69a0dd59e9c4405fbebc`. Exact-head CI is pending; this has not been deployed. The production release gate remains blocked.
+
+
+## Latest continuation — 2026-10-19
+
+PR #286 adds a production-verifier gate requiring live-to-repository source parity evidence for the drifted `financial-journal`, `mnty-customer-registration`, and `business-register` functions. The release reconciliation manifest explicitly records all three as `false` / not verified. Read-only live inspection confirmed:
+
+- `financial-journal` v3: wildcard CORS and legacy `post_financial_journal` RPC; repository candidate validates the bearer user and calls `post_financial_journal_backend`.
+- `mnty-customer-registration` v4: live `ensure_customer_membership_for_user` differs from candidate `activate_customer_registration_atomic`; acceptance semantics need to be resolved and tested before deployment.
+- `business-register` v8: live code lacks requested organization membership/tenant validation present in the branch candidate.
+
+No production changes were made. The prior exact-head Actions runs for `ca10e704cb9ed7e6dea464a8eb65b52ee453f708` remained queued at the last poll; all new commits require exact-head CI evidence. Keep PR #286 open/draft and production release **BLOCKED / NOT CERTIFIED**. Never update `docs/SESSION_LOG.md` in this workflow.
