@@ -1802,3 +1802,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Same exact head passed Backend-only Module Boundary [39142243068], MantiGO Open Ride Privacy Boundary [39142243080], and Module Professionalization Validation [39142243104]. The isolated finalization SQL/source test passed at the code-equivalent prior head `1f867408e97e56ad0e068efe009840a106da00c1` in run 39142080749; subsequent commit only adjusted the replay workflow trigger.
 - This is **candidate replay evidence**, not production migration application, deployed source/grant parity, Paymob sandbox E2E, baseline approval, or release certification. PR #297 remains draft and unmerged; production stays BLOCKED / NOT CERTIFIED.
 - Next: independent review of all finalizer overload grants and migration compatibility, then review candidate PR #286 as a whole without merging duplicate/diverged PR #295. Keep the production ledger at RC424 until independently verified.
+
+
+## RC533 — P0 payment boundary and least-privilege correction — 2026-10-18
+- Elevated digital-page payment finalization into the explicit P0 release blockers and added separate release-gate checks for the finalization trust boundary and ordered replay.
+- Code review found the first integration draft re-granted service_role EXECUTE on the legacy four-argument finalizer even though RC426 revoked it. The candidate migration and tests now keep that legacy overload disabled for PUBLIC, anon, authenticated, and service_role; only the provider-order-bound five-argument overload is service_role-executable.
+- A read-only post-replay assertion now checks effective overload grants, SECURITY DEFINER status, trusted-role guard, user/claim/provider-order binding, and empty search_path after the complete migration chain.
+- Exact-head rerun for the stronger post-replay assertion is pending; do not mark this gate verified until it passes. No production state changed.
