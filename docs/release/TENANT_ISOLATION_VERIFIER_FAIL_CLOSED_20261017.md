@@ -24,3 +24,10 @@ The behavioral SQL test is run only on a separate disposable-baseline branch aft
 - Strengthened `scripts/validate-tenant-isolation-verifier.mjs` so it inspects each tenant assertion block separately, requires own-tenant visibility and zero cross-tenant visibility for all four surfaces in both directions, rejects database mutation statements in the verifier, and verifies that both tenants are seeded in the synthetic fixture.
 - The exact-head static contract workflow passed at [run 39089428859](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089428859) for commit `8c7321216823113d1fef437c0c27f9dbad97487d`.
 - The PR remains Draft. This is static contract evidence only; the disposable PostgreSQL behavioral test and review of deployed RLS-policy parity are still pending. No production rows, migrations, functions, settings, or payments were changed.
+
+
+## Disposable behavioral E2E result — 2026-10-18
+
+- The verifier and synthetic fixture were run against a disposable Supabase instance restored from the schema-only snapshot, not production.
+- [Run 39089734987](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089734987) passed. SQL emitted positive results for both tenant directions: each synthetic owner could read its own private business, order, payment intent, and onboarding rows, while cross-tenant counts remained zero.
+- This closes the **test-harness behavioral check against the captured baseline**. It does not prove production policy parity or close the production tenant-isolation release gate. The PR remains Draft until reviewers validate the baseline and deployed-policy parity is independently established.
