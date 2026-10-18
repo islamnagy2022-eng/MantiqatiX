@@ -156,3 +156,11 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - Static source review caught a mismatch between the fixture's safety wording (“Never apply to production”) and the validator's narrower phrase check. The validator now accepts the existing explicit prohibition wording. Rechecked 10 source-level assertions: exact tracked DDL equality, no DML, provenance, safety marker, workflow injection/cmp/untracked guard, validator guard presence, and version order all pass.
 - **Candidate run:** [39083743681](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083743681), SHA `9ae3b38f5e6cfc99bc6d375d1aa0885a1e94c9ac`, was in progress at disposable Supabase service startup. No replay pass is claimed.
 
+
+## 2026-10-18 — REPLAY-RESUME-013 — narrow RC422 caller-binding false positive
+
+- **Prior run:** [39083743681](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083743681), SHA `9ae3b38f5e6cfc99bc6d375d1aa0885a1e94c9ac`, failed during chronological replay at `20261008000001_rc422_security_definer_caller_contract_v1.sql` with `RC422_AUTH_CALLER_BINDING_MISSING: create_settlement_backend(...)`.
+- **Source verification:** `20260920071316_phase28_financial_backend_authority.sql` defines `assert_financial_membership(p_tenant_id)`; it explicitly rejects NULL `auth.uid()`, queries membership using `auth.uid()`, and enforces active tenant membership plus an allowed finance role. `create_settlement_backend` delegates to this helper instead of duplicating the actor check inline.
+- **Change:** commit `f3518fbad2e0e4c5d4a34d9336ff7938f0268ac8` updates RC422's static contract query to recognize calls to this reviewed actor-binding helper. It does not alter the settlement function, financial writes, grants, RLS, or helper implementation. This is a targeted reduction of a text-based false positive, not a blanket bypass.
+- **Verification status:** the change has been committed to the candidate branch, but no post-change full-replay result is available yet. Do not claim replay success.
+- **Release gate:** BLOCKED / NOT CERTIFIED pending fresh replay and remaining runtime/security/payment/backup evidence.
