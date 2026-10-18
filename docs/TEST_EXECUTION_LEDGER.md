@@ -120,3 +120,9 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Current workflow:** [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) was pending at the time of this record. No replay PASS is claimed.
 - **Interpretation:** this isolates a repository timestamp-order dependency; it does not rewrite canonical migration history or certify production readiness.
 - **Production gate:** BLOCKED / NOT CERTIFIED.
+
+
+### REPLAY-BASELINE-003 — validator-only failures and correction
+- Run [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) failed in preflight, before PostgreSQL replay, because the function-baseline untracked-file assertion expected a standalone loop token while the workflow used one combined loop. The assertion was corrected to verify the temporary migration appears in the untracked-check loop.
+- Run [39083170583](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083170583) then failed in preflight because the financial-config fixture's safety comment wrapped “must never” and “be applied” across lines, while the validator required a single space. The validator now accepts whitespace across that line break.
+- These are validator/fixture-contract failures, not SQL replay outcomes. The next run [39083192362](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083192362) was queued after the corrections; inspect its final result before proceeding.
