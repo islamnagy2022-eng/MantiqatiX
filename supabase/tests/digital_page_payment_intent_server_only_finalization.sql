@@ -8,8 +8,8 @@ BEGIN
   IF has_function_privilege('authenticated', 'public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)', 'EXECUTE') THEN
     RAISE EXCEPTION 'authenticated can execute four-argument finalizer';
   END IF;
-  IF NOT has_function_privilege('service_role', 'public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)', 'EXECUTE') THEN
-    RAISE EXCEPTION 'service_role cannot execute four-argument finalizer';
+  IF has_function_privilege('service_role', 'public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'service_role can execute legacy four-argument finalizer';
   END IF;
   IF has_function_privilege('anon', 'public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)', 'EXECUTE') THEN
     RAISE EXCEPTION 'anon can execute five-argument finalizer';
@@ -77,13 +77,15 @@ BEGIN
     '10000000-0000-4000-8000-000000000001',
     '20000000-0000-4000-8000-000000000001',
     'stale-token',
-    'must-not-bind'
+    'must-not-bind',
+    'must-not-bind-order'
   ) THEN RAISE EXCEPTION 'stale claim token was accepted'; END IF;
   IF public.finalize_digital_page_payment_intent_backend(
     '10000000-0000-4000-8000-000000000001',
     '20000000-0000-4000-8000-000000000099',
     'claim-four',
-    'wrong-user-intent'
+    'wrong-user-intent',
+    'wrong-user-order'
   ) THEN RAISE EXCEPTION 'wrong user was accepted'; END IF;
 END
 $reject_invalid_claims$;
@@ -102,7 +104,8 @@ SELECT public.finalize_digital_page_payment_intent_backend(
   '10000000-0000-4000-8000-000000000001',
   '20000000-0000-4000-8000-000000000001',
   'claim-four',
-  'paymob-intent-four'
+  'paymob-intent-four',
+  'paymob-order-four'
 );
 SELECT public.finalize_digital_page_payment_intent_backend(
   '10000000-0000-4000-8000-000000000002',
@@ -119,6 +122,7 @@ BEGIN
     SELECT 1 FROM public.digital_page_orders
     WHERE id = '10000000-0000-4000-8000-000000000001'
       AND provider = 'PAYMOB' AND provider_intent_id = 'paymob-intent-four'
+      AND provider_order_id = 'paymob-order-four'
       AND payment_status = 'PENDING' AND NOT (metadata ? 'payment_intent_claim')
   ) THEN RAISE EXCEPTION 'four-argument trusted finalization did not persist expected state'; END IF;
   IF NOT EXISTS (
@@ -140,14 +144,16 @@ BEGIN
     '10000000-0000-4000-8000-000000000001',
     '20000000-0000-4000-8000-000000000001',
     'retry-token-no-longer-needed',
-    'paymob-intent-four'
-  ) THEN RAISE EXCEPTION 'same four-argument intent retry was not idempotent'; END IF;
+    'paymob-intent-four',
+    'paymob-order-four'
+  ) THEN RAISE EXCEPTION 'same intent/order retry was not idempotent'; END IF;
   IF public.finalize_digital_page_payment_intent_backend(
     '10000000-0000-4000-8000-000000000001',
     '20000000-0000-4000-8000-000000000001',
     'retry-token-no-longer-needed',
-    'conflicting-intent'
-  ) THEN RAISE EXCEPTION 'conflicting four-argument intent replay was accepted'; END IF;
+    'paymob-intent-four',
+    'conflicting-provider-order'
+  ) THEN RAISE EXCEPTION 'conflicting provider order replay was accepted'; END IF;
   IF NOT public.finalize_digital_page_payment_intent_backend(
     '10000000-0000-4000-8000-000000000002',
     '20000000-0000-4000-8000-000000000002',
