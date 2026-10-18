@@ -1383,7 +1383,7 @@ function bindMarketingCampaignWorkspace(){
  document.getElementById('mc-campaign-search')?.addEventListener('input',filterCampaignCards);
  document.getElementById('mc-campaign-status-filter')?.addEventListener('change',filterCampaignCards);
  filterCampaignCards();
- document.querySelectorAll('[data-mc-export]).forEach(button=>button.addEventListener('click',()=>{
+ document.querySelectorAll('[data-mc-export]').forEach(button=>button.addEventListener('click',()=>{
   const role=String(live.role||'').toUpperCase();
   const activeBusinessId=String(live.businessId||'');
   if(!activeBusinessId||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
