@@ -34,6 +34,10 @@ const requiredProductionGateMarkers = [
   '"20261014233000_rc526_mantigo_payment_intent_claim.sql"',
   'const missingReleaseMigrations=requiredReleaseMigrations.filter',
   'reconciliation.status==="VERIFIED"',
+  'add("MANTIGO-PAY-CLAIM"',
+  'add("MANTIGO-PAY-FINALIZE"',
+  'add("MANTIGO-PAY-RELEASE"',
+  'add("MANTIGO-PAY-CORRELATION"',
 ];
 
 const home = read('web/home.js');
