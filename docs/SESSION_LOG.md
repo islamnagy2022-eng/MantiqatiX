@@ -464,3 +464,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The combined MantiGO read-function compatibility baseline let the replay pass the grants in `20261006101048_rc_mantigo_production_completion_v1.sql`. The next failure is at `20261006122111_mantigo_financial_config_rls_hardening_v1.sql`: `public.mantigo_financial_config` does not exist in the disposable replay database (`SQLSTATE 42P01`).
 - Trusted current schema snapshot contains the table shape, but this is not original creation DDL. Current tracked search and supplied RC40 source archive did not yield canonical creation source.
 - No fixture was added because this would require explicit owner approval or authoritative source recovery. Do not alter historical migrations. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-18 — REPLAY-RESUME-007
+- Found the `mantigo_financial_config` creation statement in tracked migration `20261006152000_mantigo_financial_ledger_v1.sql`; the RLS hardening migration `20261006122111` runs earlier in repository timestamp order.
+- Added a test-only, definition-only baseline copied from that exact tracked DDL and wired it to temporary version `20261006122110` in disposable CI. Strengthened the validator to compare the baseline against the source migration and validate workflow wiring/order/no-collision.
+- Latest replay run [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) was pending at last inspection. No successful replay is claimed. No historical migration was changed and no production state was touched.
