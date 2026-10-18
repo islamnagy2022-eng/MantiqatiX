@@ -1911,3 +1911,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Fixed shell variable scope: baseline and temporary migration variables are now declared inside the separate copy-verification step.
 - [ ] Inspect run `39083265535`; verify copy/untracked guard passes and then continue from the first actual migration error.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## REPLAY-RESUME-010 — 2026-10-18
+- [x] Baseline validator passed on exact-head run `39083265535`.
+- [x] Disposable-only compatibility fixture injection and exact-copy/untracked guards passed.
+- [x] Supabase CLI setup and local disposable config setup passed.
+- [ ] Wait for disposable service startup, then inspect chronological replay's first failure or completion.
+- Release remains **BLOCKED / NOT CERTIFIED**.
