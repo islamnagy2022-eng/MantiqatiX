@@ -1610,3 +1610,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **RC526 MantiGO Paymob intent claim:** PASS, run [39089810858](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089810858): 9/9 provider-correlation unit tests plus disposable PostgreSQL fixture/migration/RPC integration, including concurrent claim winner, wrong-token rejection, duplicate-intent rollback, and ambiguous-outcome safeguards.
 - **Full forward migration replay:** workflow added at `.github/workflows/forward-migration-chain-replay.yml`; exact candidate commit `19bc1be6c0ce6d9d37e5fc85205ffcd406d1cb40`, run [39089936027](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089936027), was still in progress at the time of this note. Do not mark replay PASS until the run completes and its first failure (if any) is resolved and rerun.
 - No production migrations, Edge Function deployments, live payments, financial writes, or release activation were performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Forward replay result correction — 2026-10-18
+
+- [x] Completed [forward replay run 39089936027](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089936027) on source commit `19bc1be6c0ce6d9d37e5fc85205ffcd406d1cb40`.
+- [x] Restored the schema-only checkpoint at `20261008222845`, then applied 30 migration files with timestamps after that checkpoint in sorted chronological order, through the RC525 migration present on this branch.
+- [x] Ran the bidirectional two-tenant RLS verifier after the replay; both tenant A and tenant B passed own-row visibility and cross-tenant denial checks for businesses, orders, payment intents, and provider onboarding.
+- [ ] Still required: combined replay including RC526 after integration of PR #289, review of all migration provenance/dependencies, live deployed-policy parity, production payment/finance E2E, backup/restore rehearsal, and approved production application. The successful disposable replay does not authorize production deployment.
