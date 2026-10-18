@@ -10,5 +10,10 @@ assert.match(source, /from\("organizations"\)[\s\S]{0,180}\.eq\("id",requestedOr
 assert.match(source, /if\(organizationError\)throw organizationError;\s*if\(!organization\)return response\(\{error:"ORGANIZATION_SCOPE_FORBIDDEN"\},403\);/);
 assert.match(source, /resolvedOrganizationId=\(requestedOrganizationId&&superAdmin\)\?requestedOrganizationId:\(membership\?\.organization_id\|\|null\)/);
 assert.doesNotMatch(source, /resolvedOrganizationId=organizationId\|\|membership\?\.organization_id/);
+assert.match(source, /from\("tenants"\)[\s\S]{0,100}\.eq\("id",tenantId\)\.eq\("status","ACTIVE"\)\.maybeSingle\(\)/);
+assert.match(source, /if\(tenantError\)throw tenantError;\s*if\(!tenant\)return response\(\{error:"ACTIVE_TENANT_REQUIRED"\},403\);/);
+assert.match(source, /console\.error\("business-register failed",error instanceof Error\?error\.message:"unknown_error"\)/);
+assert.match(source, /return response\(\{error:"BUSINESS_REGISTER_FAILED"\},500\)/);
+assert.doesNotMatch(source, /return response\(\{error:error instanceof Error\?error\.message/);
 
-console.log("business-register organization scope contract: PASS (7 assertions)");
+console.log("business-register tenant and organization security contract: PASS (12 assertions)");
