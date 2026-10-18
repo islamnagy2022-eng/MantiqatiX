@@ -1837,3 +1837,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Added corresponding `NOT VERIFIED` fields to `docs/release/production-migration-reconciliation.json`, grounded in the read-only live check showing the legacy four-argument finalizer remains authenticated-executable and the deployed Edge Function still calls it through the user-scoped client.
 - Updated the isolated finalization workflow to assert the source boundary is PASS while live parity and global production release remain BLOCKED until evidence is recorded.
 - Latest exact-head CI is pending; do not claim this new assertion passed until the workflow finishes. No production state was modified.
+
+
+## RC538 — Live parity evidence package
+- Added a focused read-only evidence report in PR #297: `docs/release/DIGITAL_PAGE_FINALIZATION_LIVE_PARITY_20261018.md`.
+- It records the live four-argument grant/body state, deployed Edge Function v5 fingerprint and call signature, RC424 ledger checkpoint, candidate regression/replay evidence, and a controlled rollout checklist. The report deliberately marks the live boundary BLOCKED and does not claim a production fix.
