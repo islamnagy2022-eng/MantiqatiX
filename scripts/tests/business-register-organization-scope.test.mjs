@@ -24,11 +24,16 @@ assert.match(source, /if\(existingError\)throw existingError/);
 assert.match(source, /"Access-Control-Allow-Methods":"POST, OPTIONS"/);
 assert.match(source, /"Cache-Control":"no-store"/);
 assert.match(source, /"X-Content-Type-Options":"nosniff"/);
-assert.match(source, /UNSUPPORTED_MEDIA_TYPE/);
+assert.match(source, /split\(";"\)\[0\]\.trim\(\)\.toLowerCase\(\)!=="application\/json"/);
+assert.match(source, /REQUEST_BODY_TOO_LARGE/);
+assert.match(source, /declaredLength>16384/);
+assert.match(source, /new TextEncoder\(\)\.encode\(rawBody\)\.byteLength>16384/);
+assert.match(source, /const rawBody=await req\.text\(\)/);
+assert.match(source, /try\{body=JSON\.parse\(rawBody\);\}catch\{body=null;\}/);
 assert.match(source, /stringFields=\["tenantId","name","sector","address","phone","city","district","organizationId"\]/);
 assert.match(source, /INVALID_FIELD_TYPE/);
 
 assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{12\}\$\/i/);
 assert.match(source, /INVALID_TENANT_OR_ORGANIZATION_ID/);
 
-console.log("business-register tenant and organization security contract: PASS (24 assertions)");
+console.log("business-register tenant and organization security contract: PASS (29 assertions)");
