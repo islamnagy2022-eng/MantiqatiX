@@ -13,7 +13,8 @@ Deno.serve(async(req)=>{
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const {data:{user},error:authError}=await supabase.auth.getUser(token);
   if(authError||!user||user.is_anonymous)return response({error:"AUTH_REQUIRED"},401);
-  const body=await req.json();
+  const body=await req.json().catch(()=>null);
+  if(!body||typeof body!=="object"||Array.isArray(body))return response({error:"INVALID_JSON_BODY"},400);
   const tenantId=String(body.tenantId??"").trim(),name=String(body.name??"").trim(),sector=String(body.sector??"GENERAL").trim().toUpperCase();
   const address=String(body.address??"").trim(),phone=String(body.phone??"").trim(),city=String(body.city??"").trim(),district=String(body.district??"").trim();
   const organizationId=body.organizationId?String(body.organizationId):null;
