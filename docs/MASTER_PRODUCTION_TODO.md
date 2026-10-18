@@ -1682,3 +1682,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Commit sequence: `8112c511366eff12e4db50e7a7cc0ff2acefacc7` (source), `b57f664892e4ac1bcac0d933fcad19b29fa74312` (contract test), `aa0ac7955c07936046da69a0dd59e9c4405fbebc` (CI wiring).
 - Status: **IMPLEMENTED — CI PENDING — NOT DEPLOYED**. Exact-head workflows were queued when recorded. The fix is source-only; no production Edge Function, grants, RLS, migration, or customer/business records were changed.
 - Release gate remains **BLOCKED / NOT CERTIFIED** pending exact-head CI, review of customer-registration parity and behavior, approved deployment, and post-deploy negative/positive tests.
+
+
+## 2026-10-19 — Live Edge Function parity gates (PR #286)
+
+- **Implemented in source, not deployed:** production verifier now blocks certification unless exact deployed-source parity evidence is explicitly recorded for `financial-journal`, `mnty-customer-registration`, and `business-register` organization scope.
+- Live read-only comparison found `financial-journal` v3 still uses wildcard CORS and legacy `post_financial_journal`; repository candidate uses the restricted GitHub Pages origin and `post_financial_journal_backend` after validating the bearer token. Do not quick-grant the legacy RPC or deploy outside the approved migration sequence.
+- Live `mnty-customer-registration` v4 still calls `private.ensure_customer_membership_for_user`; repository candidate calls `private.activate_customer_registration_atomic`. This remains a behavioral migration decision: test repeat registration, already-active membership, missing profile, cleanup on failure, concurrent calls, and audit failure before selecting the production contract.
+- Live `business-register` v8 does not yet include the repository candidate's requested-organization membership and tenant checks. The source fix and 7-assertion static regression test are on the release branch; production parity remains false.
+- The reconciliation manifest records these three parity booleans as `false`; no production database, Edge Function, payment, or customer data was changed.
+- **CI constraint:** exact-head PR checks were still `queued` at the last poll for `ca10e704cb9ed7e6dea464a8eb65b52ee453f708`. The new commits require a fresh exact-head run; queued runs are not test evidence.
+- Release status remains **BLOCKED / NOT CERTIFIED** until exact-head CI completes, ordered migration replay and integration tests pass, the approved Edge Functions are deployed, and post-deploy source/grant parity is independently captured.
