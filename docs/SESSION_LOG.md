@@ -457,3 +457,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Read-only Supabase catalog inspection found the captain-rides function in current live schema, with SECURITY DEFINER, `search_path=public`, and a caller identity mismatch guard. Live presence is not historical DDL provenance.
 - Verified the exact captain-rides function in trusted schema-only snapshot blob `8d096904c777b4c7eae096014b45c59859c96cee`; its observed signature/body match current live catalog. Extended the existing disposable-only MantiGO baseline and validator to include this function. This still does not recover original creation provenance; the next exact-head Actions replay is pending. No historical migration edits, merge, deploy, or production mutation.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — REPLAY-RESUME-006
+- Inspected full replay run [39081172390](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081172390), code SHA `ef5cee4e63a695dea4b5e5583fcf4427994fdeaf`.
+- The combined MantiGO read-function compatibility baseline let the replay pass the grants in `20261006101048_rc_mantigo_production_completion_v1.sql`. The next failure is at `20261006122111_mantigo_financial_config_rls_hardening_v1.sql`: `public.mantigo_financial_config` does not exist in the disposable replay database (`SQLSTATE 42P01`).
+- Trusted current schema snapshot contains the table shape, but this is not original creation DDL. Current tracked search and supplied RC40 source archive did not yield canonical creation source.
+- No fixture was added because this would require explicit owner approval or authoritative source recovery. Do not alter historical migrations. Release remains BLOCKED / NOT CERTIFIED.
