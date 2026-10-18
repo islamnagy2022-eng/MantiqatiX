@@ -682,3 +682,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Read-only Edge Function retrieval found deployed `digital-page-payment-intent` v5 still calls the finalizer through `userClient.rpc` with four arguments and does not persist provider-order correlation. The candidate fix is not deployed.
 - Live migration ledger remains `20261008222845 / rc424_atomic_digital_page_payment_webhook`; the RC425+ chain is not present in live ledger. No production mutation was performed.
 - Keep release BLOCKED. Do not perform an out-of-order grant hotfix or deploy the Edge Function independently; use the reviewed ordered migration/function rollout only after explicit approval, then verify live grants, function bodies, deployed version and Paymob sandbox E2E.
+
+
+## RC538 — Explicit live finalizer parity gate — 2026-10-18
+- Added a P0 `DIG-FINALIZE-LIVE-PARITY` check to the candidate production verifier. It requires timestamped live grants/body inspection, deployed Edge Function source parity, exact deployed version, and SHA-256 hash before PASS.
+- The release reconciliation manifest now explicitly records those fields as NOT VERIFIED, based on the read-only production finding: authenticated can still execute the legacy four-argument SECURITY DEFINER finalizer, and deployed Edge Function v5 still calls it through the user-scoped client.
+- The isolated finalization workflow now asserts the candidate source gate passes while live parity and global production gate remain BLOCKED. Exact-head CI is pending.
+- No production changes were made.
