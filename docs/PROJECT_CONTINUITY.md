@@ -711,3 +711,11 @@ This status is intentional and must remain until the open gates above are indepe
 ## RC542 — Module TODO PR exact-head validation complete — 2026-10-18
 - PR #296 head `39b92561d53af040e2b4960a99b7848cca9bf0f0` passed Module Professionalization Validation run 39143545246, MantiGO Open Ride Privacy Boundary run 39143545250, Backend-only Module Boundary run 39143545248, and Pages validation run 39143545297. Pages deploy was skipped because this is a PR.
 - PR #296 remains open and ready for review; it has not been merged.
+
+
+## RC528 — Candidate chain CI and overlap audit — 2026-10-19
+- Exact PR #286 head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf` has successful candidate CI, including 31-migration forward replay from the captured schema checkpoint and synthetic two-tenant RLS assertions in a disposable database.
+- This is not production migration application, deployment parity, or release certification. Baseline review still says `PENDING_REVIEW` and requires manual security/grant/RLS/function/provenance review.
+- PR #286 changes `docs/SESSION_LOG.md`; do not modify that file in future work and resolve this diff before integration.
+- PR #295 is based on PR #286, diverged (1 ahead/14 behind at comparison), and duplicates the RC526 migration already present in PR #286. PR #273 also overlaps the RC425–RC441 migration set. Do not merge overlapping candidates independently; select one canonical ordered chain after review.
+- Next: review provenance/collision evidence, remove or reconcile the session-log diff, review RC526 and digital-page finalization contracts against the same chain, then request explicit approval before merge. No production changes were performed; release remains BLOCKED / NOT CERTIFIED.
