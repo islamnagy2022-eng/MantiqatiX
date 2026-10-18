@@ -27,7 +27,7 @@ for (const [src, marker, label] of [
   [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from public', 'four-argument finalizer PUBLIC grant revoked'],
   [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from anon', 'four-argument finalizer anon grant revoked'],
   [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from authenticated', 'four-argument finalizer authenticated grant revoked'],
-  [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) to service_role', 'four-argument finalizer service-role grant explicitly preserved'],
+  [trustedFinalization, 'revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from service_role', 'legacy four-argument finalizer disabled for service role'],
   [trustedFinalization, 'provider_order_id = p_provider_order_id', 'provider order ID stored on the order'],
   [trustedFinalization, 'grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) to service_role', 'five-argument finalizer service-role-only grant'],
 ]) if (!src.toLowerCase().includes(marker.toLowerCase())) throw new Error('Digital-page trusted-finalization boundary missing: ' + label);
