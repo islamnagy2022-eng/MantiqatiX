@@ -1261,7 +1261,7 @@ function marketingCampaignWorkspace(){
  const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>activeBusinessId&&String(p.business_id||'')===activeBusinessId);
  const providers=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).filter(p=>!live.businessId||String(p.business_id||'')!==String(live.businessId));
  const role=String(live.role||'').toUpperCase();
- const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role));
+ const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)&&!(live.marketingCampaignErrors||[]).some(e=>['marketing_campaigns','marketing_campaign_participants'].includes(e)));
  const campaignIdempotencyStorageKey='MNTYMarketingCampaignIdempotencyKey:'+String(live.businessId||'none');
  const campaignIdempotencyKey=(()=>{
   try{
