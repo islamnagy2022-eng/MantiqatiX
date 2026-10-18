@@ -586,3 +586,8 @@ This status is intentional and must remain until the open gates above are indepe
 - Candidate head at this checkpoint before this continuity-only commit: `810ced93426848567d1504a3d3ac7e1dcef08cb5` (migration/test/validator fix was `f232691ce6a0caea7b21c8cf15752178f2b4bd82`). The exact-head finalization isolation and ordered replay workflows were queued; result not yet verified.
 - Restored `docs/SESSION_LOG.md` to the exact main-branch blob so PR #286 no longer changes that protected file.
 - Production remains at RC424; no production DDL/ACL/Auth/RLS changes, Edge Function deployment, payment, or data mutation occurred. Keep release BLOCKED until exact-head tests, manual baseline/security review, external E2E, and backup/restore evidence pass.
+
+
+## Candidate security fix — business registration organization scope (2026-10-19)
+
+A service-role-backed `business-register` Edge Function accepted `organizationId` from the browser for a normal tenant member without checking that the requested organization matched an active membership. That is a potential cross-organization assignment vulnerability. The candidate branch now binds ordinary members to their membership organization and validates platform-admin organization selections against the same tenant. A focused static regression test is wired into Backend-only Module Boundary CI. Commits: `8112c511366eff12e4db50e7a7cc0ff2acefacc7`, `b57f664892e4ac1bcac0d933fcad19b29fa74312`, `aa0ac7955c07936046da69a0dd59e9c4405fbebc`. Exact-head CI is pending; this has not been deployed. The production release gate remains blocked.
