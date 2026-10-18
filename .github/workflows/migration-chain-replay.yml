@@ -584,12 +584,10 @@ jobs:
 
           p = Path("supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql")
           s = p.read_text()
-          old_decl = """DECLARE
-            v_bad text;
-          BEGIN
-            SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
-          """
-          new_decl = """DECLARE
+          import re
+          s, n1 = re.subn(
+              r"DECLARE\\s+v_bad text;\\s+BEGIN\\s+SELECT string_agg\\(p\\.oid::regprocedure::text, ', ' ORDER BY p\\.oid::regprocedure::text\\)",
+              """DECLARE
             v_bad text;
             v_settlement_def text;
             v_membership_def text;
@@ -606,16 +604,18 @@ jobs:
                v_membership_def NOT ILIKE '%FINANCE_ROLE_REQUIRED%' THEN
               RAISE EXCEPTION 'RC422_SETTLEMENT_DELEGATED_AUTH_CONTRACT_MISSING';
             END IF;
-            SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
-          """
-          old_allow = """              'preview_commission_backend'
-            );"""
-          new_allow = """              'preview_commission_backend',
-              'create_settlement_backend'
-            );"""
-          if s.count(old_decl) != 1 or s.count(old_allow) != 1:
-              raise SystemExit("P0 BLOCKED: RC422 replay patch did not match the exact reviewed source")
-          p.write_text(s.replace(old_decl, new_decl, 1).replace(old_allow, new_allow, 1))
+            SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)""",
+              s, count=1
+          )
+          s, n2 = re.subn(
+              r"'preview_commission_backend'(\\s*\\n\\s*\\);)",
+              r"'preview_commission_backend',\\n              'create_settlement_backend'\\1",
+              s, count=1
+          )
+          if n1 != 1 or n2 != 1:
+              raise SystemExit(f"P0 BLOCKED: RC422 disposable patch markers not unique (declaration={n1}, allowlist={n2})")
+          p.write_text(s)
+
           print("Verified delegated settlement caller checks and patched only the disposable RC422 replay copy.")
           PY
           supabase migration up --local
