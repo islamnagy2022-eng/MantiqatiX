@@ -508,45 +508,10 @@ jobs:
             exit 1
           fi
           echo "Temporarily isolated $(find "$replay_migration_stash" -maxdepth 1 -type f -name '*.sql' | wc -l) future migrations; reset cutoff is enforced by file presence, not CLI version parsing."
-          # RC422's historical direct-text scan misses the already-reviewed delegated
-          # financial caller guard. Patch only the disposable replay copy; the tracked
-          # historical migration is restored from HEAD immediately after reset.
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql")
-          s = p.read_text()
-          old_decl = """DECLARE
-            v_bad text;
-          BEGIN
-            SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
-          """
-          new_decl = """DECLARE
-            v_bad text;
-            v_settlement_def text;
-            v_membership_def text;
-          BEGIN
-            SELECT pg_get_functiondef('public.create_settlement_backend(character varying,character varying,character varying,numeric,numeric,numeric,numeric,character varying,character varying)'::regprocedure)
-              INTO v_settlement_def;
-            SELECT pg_get_functiondef('public.assert_financial_membership(character varying)'::regprocedure)
-              INTO v_membership_def;
-            IF v_settlement_def NOT ILIKE '%assert_financial_membership%' OR
-               v_membership_def NOT ILIKE '%auth.uid()%' THEN
-              RAISE EXCEPTION 'RC422_SETTLEMENT_DELEGATED_AUTH_CONTRACT_MISSING';
-            END IF;
-            SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
-          """
-          old_allow = """              'preview_commission_backend'
-            );"""
-          new_allow = """              'preview_commission_backend',
-              'create_settlement_backend'
-            );"""
-          if s.count(old_decl) != 1 or s.count(old_allow) != 1:
-              raise SystemExit("P0 BLOCKED: RC422 replay patch did not match the exact reviewed source")
-          p.write_text(s.replace(old_decl, new_decl, 1).replace(old_allow, new_allow, 1))
-          print("Applied exact delegated-auth exception to disposable RC422 replay copy; helper contract is asserted.")
-          PY
+          # RC422 is outside the initial reset cutoff. Patch only its disposable
+          # replay copy immediately before the remaining migrations are applied.
+          # The original tracked SQL is restored even if the replay fails.
           supabase db reset --local
-          git show "HEAD:supabase/migrations/20261008000001_rc422_security_definer_caller_contract_v1.sql" > supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql
           restore_future_migrations
           trap - EXIT
 
@@ -603,9 +568,59 @@ jobs:
           psql "$db_url" -v ON_ERROR_STOP=1 -c "SELECT schemaname, tablename, policyname, cmd, roles, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_accounts' AND policyname = 'wallet_accounts_finance_read';"
           psql "$db_url" -v ON_ERROR_STOP=1 -Atqc "SELECT EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140492') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'settlement_transactions' AND policyname = 'settlement_transactions_finance_read') AND EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140486') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_accounts' AND policyname = 'wallet_accounts_finance_read') AND EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version = '20260927140485') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'wallet_transactions' AND policyname = 'wallet_transactions_finance_read')" | grep -qx t
 
-          # Continue with the remaining migrations only after the staged baseline is present
-          # in both the local migration ledger and PostgreSQL policy catalog.
+          # Continue only after the staged baseline is present in both the migration
+          # ledger and policy catalog. RC422 has an older authenticated finance RPC whose
+          # caller binding is delegated to assert_financial_membership(auth.uid(), tenant,
+          # active status and finance role). Keep this exception in disposable CI only.
+          rc422_source_path="supabase/migrations/20261008000001_rc422_security_definer_caller_contract_v1.sql"
+          rc422_replay_path="supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql"
+          test -f "$rc422_replay_path"
+          restore_rc422_replay_source() {
+            git show "HEAD:$rc422_source_path" > "$rc422_replay_path"
+          }
+          trap restore_rc422_replay_source EXIT
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql")
+          s = p.read_text()
+          old_decl = """DECLARE
+            v_bad text;
+          BEGIN
+            SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
+          """
+          new_decl = """DECLARE
+            v_bad text;
+            v_settlement_def text;
+            v_membership_def text;
+          BEGIN
+            SELECT pg_get_functiondef('public.create_settlement_backend(character varying,character varying,character varying,numeric,numeric,numeric,numeric,character varying,character varying)'::regprocedure)
+              INTO v_settlement_def;
+            SELECT pg_get_functiondef('public.assert_financial_membership(character varying)'::regprocedure)
+              INTO v_membership_def;
+            IF v_settlement_def NOT ILIKE '%assert_financial_membership%' OR
+               v_membership_def NOT ILIKE '%auth.uid()%' OR
+               v_membership_def NOT ILIKE '%user_id = auth.uid()%' OR
+               v_membership_def NOT ILIKE '%tenant_id = p_tenant_id%' OR
+               v_membership_def NOT ILIKE '%status = ''ACTIVE''%' OR
+               v_membership_def NOT ILIKE '%FINANCE_ROLE_REQUIRED%' THEN
+              RAISE EXCEPTION 'RC422_SETTLEMENT_DELEGATED_AUTH_CONTRACT_MISSING';
+            END IF;
+            SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
+          """
+          old_allow = """              'preview_commission_backend'
+            );"""
+          new_allow = """              'preview_commission_backend',
+              'create_settlement_backend'
+            );"""
+          if s.count(old_decl) != 1 or s.count(old_allow) != 1:
+              raise SystemExit("P0 BLOCKED: RC422 replay patch did not match the exact reviewed source")
+          p.write_text(s.replace(old_decl, new_decl, 1).replace(old_allow, new_allow, 1))
+          print("Verified delegated settlement caller checks and patched only the disposable RC422 replay copy.")
+          PY
           supabase migration up --local
+          restore_rc422_replay_source
+          trap - EXIT
 
       - name: Record local migration ledger
         run: supabase migration list --local
