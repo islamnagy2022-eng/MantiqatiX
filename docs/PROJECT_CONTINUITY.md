@@ -675,3 +675,10 @@ This status is intentional and must remain until the open gates above are indepe
 - At the same head, Backend-only Module Boundary run 39142880886, MantiGO Open Ride Privacy Boundary run 39142880809, and Module Professionalization Validation run 39142880832 passed.
 - Full replay at code-equivalent head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed run 39142726549: 32 ordered migrations, post-replay finalizer grants/body/search_path checks and bidirectional tenant-isolation tests.
 - This closes candidate-only CI and disposable replay checks for this slice; it does not establish live production parity or authorize release. Production remains BLOCKED / NOT CERTIFIED. PR #297 is still draft and unmerged.
+
+
+## RC537 — Live production still uses legacy finalization — 2026-10-18
+- Read-only Supabase catalog check in project `moyhiluyhjsujhwlyeuu` found only the four-argument finalizer: SECURITY DEFINER, `search_path=public, pg_temp`, anon EXECUTE false, authenticated EXECUTE true, service_role EXECUTE false; no provider-order binding or trusted-role guard.
+- Read-only Edge Function retrieval found deployed `digital-page-payment-intent` v5 still calls the finalizer through `userClient.rpc` with four arguments and does not persist provider-order correlation. The candidate fix is not deployed.
+- Live migration ledger remains `20261008222845 / rc424_atomic_digital_page_payment_webhook`; the RC425+ chain is not present in live ledger. No production mutation was performed.
+- Keep release BLOCKED. Do not perform an out-of-order grant hotfix or deploy the Edge Function independently; use the reviewed ordered migration/function rollout only after explicit approval, then verify live grants, function bodies, deployed version and Paymob sandbox E2E.
