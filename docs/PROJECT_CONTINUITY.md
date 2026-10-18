@@ -577,3 +577,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+### RC531 — Legacy finalizer privilege bug fixed in candidate — 2026-10-19
+- Source review found a privilege-contract contradiction: the candidate's finalization migration explicitly granted `service_role` EXECUTE on the legacy four-argument digital-page finalizer, although the intended trust boundary permits only the five-argument provider-order-bound overload.
+- Fixed the forward-only candidate migration to revoke service_role from the legacy overload. Updated the isolated PostgreSQL test to assert anon/authenticated/service_role cannot execute the legacy overload; only service_role can execute the five-argument overload. The regression tests now exercise successful/idempotent binding and conflicting provider-order rejection through the five-argument overload.
+- Updated `scripts/validate-digital-pages-boundaries.mjs` so migration replay validation fails if the legacy overload is re-granted to service_role or the five-argument trusted overload loses service_role EXECUTE.
+- Candidate head at this checkpoint before this continuity-only commit: `810ced93426848567d1504a3d3ac7e1dcef08cb5` (migration/test/validator fix was `f232691ce6a0caea7b21c8cf15752178f2b4bd82`). The exact-head finalization isolation and ordered replay workflows were queued; result not yet verified.
+- Restored `docs/SESSION_LOG.md` to the exact main-branch blob so PR #286 no longer changes that protected file.
+- Production remains at RC424; no production DDL/ACL/Auth/RLS changes, Edge Function deployment, payment, or data mutation occurred. Keep release BLOCKED until exact-head tests, manual baseline/security review, external E2E, and backup/restore evidence pass.
