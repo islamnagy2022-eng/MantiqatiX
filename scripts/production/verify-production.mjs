@@ -15,6 +15,22 @@ const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabas
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
+const digitalFinalizerMigrationPath="supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql";
+const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
+const digitalFinalizerTestPath="supabase/tests/digital_page_payment_intent_server_only_finalization.sql";
+const digitalFinalizerSourceSafe=Boolean(
+  digital.includes('admin.rpc("finalize_digital_page_payment_intent_backend"') &&
+  !digital.includes('userClient.rpc("finalize_digital_page_payment_intent_backend"') &&
+  digitalFinalizerMigration.includes("from authenticated") &&
+  digitalFinalizerMigration.includes("to service_role") &&
+  exists(digitalFinalizerTestPath)
+);
+add("DIG-FINALIZE-SOURCE-CONTRACT","SECURITY",digitalFinalizerSourceSafe?"PASS":"BLOCKED",
+  digitalFinalizerSourceSafe
+    ?"Candidate uses server-role finalization, revokes authenticated EXECUTE, and includes isolated regression tests."
+    :"Server-only finalization source/migration/test contract is incomplete; direct authenticated finalization must remain blocked.",
+  "P0");
+
 const mantigoIntentPath="supabase/functions/mantigo-payment-intent/index.ts";
 const mantigoIntent=exists(mantigoIntentPath)?read(mantigoIntentPath):"";
 const mantigoProviderRequest=mantigoIntent.indexOf('fetch("https://accept.paymob.com/v1/intention/"');
@@ -58,7 +74,8 @@ const requiredReleaseMigrations=[
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
-  "20261014233000_rc526_mantigo_payment_intent_claim.sql"
+  "20261014233000_rc526_mantigo_payment_intent_claim.sql",
+  "20261016100000_digital_page_payment_intent_server_only_finalization.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
@@ -87,9 +104,21 @@ const liveReconciliationVerified=Boolean(
   reconciliation.edge_function_contracts==="PASS" &&
   reconciliation.smm_gateway_parity==="PASS" &&
   reconciliation.auth_security_settings==="PASS" &&
+  reconciliation.digital_page_finalization_trust_boundary==="PASS" &&
+  reconciliation.digital_page_finalization_deployed_source_parity===true &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
 );
+const digitalFinalizerLiveParityVerified=Boolean(
+  reconciliation &&
+  reconciliation.digital_page_finalization_trust_boundary==="PASS" &&
+  reconciliation.digital_page_finalization_deployed_source_parity===true
+);
+add("DIG-FINALIZE-LIVE-PARITY","SECURITY",digitalFinalizerLiveParityVerified?"PASS":"BLOCKED",
+  digitalFinalizerLiveParityVerified
+    ?"Approved live evidence confirms the server-only finalizer grant boundary and exact deployed Edge Function source parity."
+    :"Live grant/function and deployed Edge Function parity evidence is missing; source CI cannot close this production gate.",
+  "P0");
 const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked
