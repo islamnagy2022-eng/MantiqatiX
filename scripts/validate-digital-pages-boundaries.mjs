@@ -4,6 +4,9 @@ const payment=fs.readFileSync('supabase/functions/digital-page-payment-intent/in
 const webhook=fs.readFileSync('supabase/functions/paymob-webhook/index.ts','utf8');
 const atomicPayment=fs.readFileSync('supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql','utf8');
 const trustedFinalization=fs.readFileSync('supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql','utf8');
+const productionVerifier=fs.readFileSync('scripts/production/verify-production.mjs','utf8');
+const pagesWorkflow=fs.readFileSync('.github/workflows/pages.yml','utf8');
+
 for(const [src,marker,label] of [
  [order,'admin.auth.getUser','authenticated order creation'],[order,'idempotencyKey','order idempotency'],[order,'digital_page_products','server product pricing'],[order,'BUSINESS_SCOPE_FORBIDDEN','business scope check'],
  [payment,'p_user_id:user.id','authenticated order ownership binding'],[payment,'provider_intent_id','duplicate payment-intent guard'],[payment,'p_provider_intent_id:String(p.id)','provider correlation finalization'],
@@ -91,4 +94,11 @@ const finalizeAfterAmbiguous = payment.indexOf('const {data:finalized,error:fe}=
 if (ambiguousStart < 0 || finalizeAfterAmbiguous < 0 || payment.slice(ambiguousStart, finalizeAfterAmbiguous).includes("await release()")) throw new Error("Ambiguous Paymob response must retain claim for reconciliation, not release and risk duplicate intent");
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
+for (const [src, marker, label] of [
+  [productionVerifier, 'DIG-FINALIZE-SOURCE-CONTRACT', 'production verifier checks the server-only source contract'],
+  [productionVerifier, 'DIG-FINALIZE-LIVE-PARITY', 'production verifier blocks without live finalizer parity'],
+  [productionVerifier, 'digital_page_finalization_deployed_source_parity===true', 'live deployed-source parity is a release prerequisite'],
+  [pagesWorkflow, 'npm run verify:production', 'Pages CI runs the production verifier'],
+  [pagesWorkflow, 'validate-digital-pages-boundaries.mjs', 'Pages CI runs digital-page boundary validation'],
+]) if (!src.includes(marker)) throw new Error('Digital finalization release-gate contract missing: ' + label);
 console.log('RC424 digital pages/payment boundary validation: PASS');
