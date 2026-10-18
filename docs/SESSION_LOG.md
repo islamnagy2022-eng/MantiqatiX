@@ -496,3 +496,8 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Assistant-side static source checks passed. Exact-head CI run [39083670643](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083670643) was pending at this log entry; replay remains unverified.
 - Production remains BLOCKED / NOT CERTIFIED; no production writes, deploy, merge, or payments performed.
 
+### REPLAY-RESUME-012 — ledger fixture validator wording
+- Older SHA run [39083630633](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083630633) reproduced the missing-ledger failure because it did not yet contain the ledger-baseline workflow wiring.
+- Corrected the new fixture validator's safety-phrase check to match the fixture's explicit “Never apply to production” warning. Assistant-side checks now pass for exact DDL equality, no DML, provenance, copy/cmp/untracked wiring, and version ordering.
+- Candidate run [39083743681](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083743681) is the relevant run for SHA `9ae3b38f5e6cfc99bc6d375d1aa0885a1e94c9ac`; it was still starting disposable Supabase services when recorded. Full replay remains unverified.
+
