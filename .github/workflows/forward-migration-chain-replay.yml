@@ -8,6 +8,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "scripts/validate-digital-pages-boundaries.mjs"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -16,6 +17,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "scripts/validate-digital-pages-boundaries.mjs"
       - ".github/workflows/forward-migration-chain-replay.yml"
 
 permissions:
