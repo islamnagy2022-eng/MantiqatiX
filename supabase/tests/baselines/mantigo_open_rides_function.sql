@@ -55,3 +55,52 @@ BEGIN
   LIMIT 100;
 END;
 $function$;
+
+
+-- Additional TEST-ONLY compatibility function from the same captured schema snapshot.
+-- Snapshot blob: 8d096904c777b4c7eae096014b45c59859c96cee, RC424 checkpoint.
+-- This exact observed definition lets the earlier GRANT execute in disposable replay;
+-- it does not establish original creation provenance and must never be applied to production.
+CREATE OR REPLACE FUNCTION public.list_mantigo_captain_rides_backend(p_user_id uuid)
+RETURNS TABLE(
+  id text,
+  customer_name text,
+  vehicle_category text,
+  ride_type text,
+  pickup_location text,
+  destination_location text,
+  proposed_price numeric,
+  accepted_bid_id text,
+  status text,
+  updated_at timestamptz
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $function$
+BEGIN
+  IF p_user_id IS NULL OR p_user_id <> auth.uid() THEN
+    RAISE EXCEPTION 'USER_CONTEXT_MISMATCH';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    r.id,
+    r.customer_name,
+    r.vehicle_category,
+    r.ride_type,
+    r.pickup_location,
+    r.destination_location,
+    r.proposed_price,
+    r.accepted_bid_id,
+    r.status,
+    r.updated_at
+  FROM public.mantigo_rides r
+  JOIN public.mantigo_bids b
+    ON b.ride_id = r.id
+   AND b.captain_id = p_user_id
+   AND b.status = 'ACCEPTED'
+  ORDER BY r.updated_at DESC
+  LIMIT 100;
+END;
+$function$;
