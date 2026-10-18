@@ -62,7 +62,7 @@ $$;
 revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from public;
 revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from anon;
 revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from authenticated;
-grant execute on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) to service_role;
+revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from service_role;
 
 comment on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text)
 is 'Trusted server-only finalization after the provider intention API returns a valid provider intent ID; never callable by authenticated clients.';
