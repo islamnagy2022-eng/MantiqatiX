@@ -14,6 +14,9 @@ assert.match(app, /marketing_campaign_participants'\)\.select\('id,business_id,c
 assert.match(app, /live\.marketingCampaignErrors\.push\('marketing_campaigns'\)/, "failed campaign reads must not be presented as empty");
 assert.match(app, /live\.marketingCampaignUnavailable=/, "missing RC453 schema must be detected explicitly");
 assert.match(app, /function marketingWorkspaceEntry\(\)/, "marketing entry must fail safely when RC453 is not deployed");
+assert.match(app, /if\(live\.marketingCampaignUnavailable\)return[\s\S]{0,350}marketingAgencyWorkspace\(\)/, "missing campaign tables must retain the existing agency workspace");
+assert.match(app, /case 'التسويق والإعلان': return marketingWorkspaceEntry\(\);/, "marketing route must use the guarded workspace entry");
+assert.match(app, /if\(current==='التسويق والإعلان'\)await loadMarketingCampaignData\(\);await loadDomainModule\(current\)/, "campaign data must load before rendering the marketing workspace");
 assert.match(app, /create_marketing_campaign_backend/, "campaign creation must use the backend RPC");
 assert.match(app, /invite_marketing_campaign_partner_backend/, "partner invitation must use the backend RPC");
 assert.match(app, /respond_marketing_campaign_invitation_backend/, "partner response must use the backend RPC");
