@@ -712,3 +712,10 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - Current schema snapshot contains the table shape, but original create-table migration provenance remains unrecovered; the supplied RC40 archive scan and current tracked search did not locate canonical creation DDL.
 - Do not add a table fixture without explicit approval or recovered authoritative DDL. Do not modify historical migrations, merge PRs, deploy, or mutate production. The separate `marketing_provider_services` and `MNTY-MAIN` fixture gates remain unresolved.
 - **PRODUCTION_GATE = BLOCKED / NOT CERTIFIED.**
+
+
+## Current continuation checkpoint — 2026-10-18 (REPLAY-RESUME-007)
+- The latest blocker was a migration timestamp-order issue: `20261006122111_mantigo_financial_config_rls_hardening_v1.sql` references `public.mantigo_financial_config` before the tracked creation statement in `20261006152000_mantigo_financial_ledger_v1.sql`.
+- Added a definition-only baseline copied from that tracked DDL, injected only into disposable CI at temporary version `20261006122110`; the validator checks exact normalized DDL equality, no data operations, and workflow ordering/copy/untracked/collision guards.
+- Replay run [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) is pending as of this checkpoint. Verify its final result and proceed to the next first-failure blocker.
+- No historical migration was edited, no PR merged, and no production deployment/data mutation occurred. **PRODUCTION_GATE = BLOCKED / NOT CERTIFIED.**
