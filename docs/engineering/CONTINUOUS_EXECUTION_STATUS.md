@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-## Exact-head CI checkpoint — 2026-10-12, SMM frozen
+Last updated: 2026-10-16 — source-parity follow-ups verified; production release remains not certified
 
 Candidate branch: `reconcile/rc425-458-current-main-20261011`
 Exact head: `df1ada71e3a15535388dc62b5caff05294606f2c`
@@ -439,3 +439,29 @@ The following results were re-queried from GitHub Actions for the exact candidat
 - Latest application commit: `bba4f7ade95ca448cc423beb73726fb670c5081d`. The latest documentation commit at this checkpoint is `8fa58ec5e9e7bc37ac72e27bb4c004cbdea2eb3f`. Do not transfer CI evidence from prior SHAs; query latest exact-head runs before claiming validation.
 - The RC452/RC453 schema remains candidate-only because production ledger reconciliation stops at RC424 and chronological replay remains blocked by missing historical SECURITY DEFINER creation DDL. No production changes were performed.
 - SMM freeze remains in force; this is internal marketing workspace work only. Full launch remains **BLOCKED / NOT CERTIFIED** pending the existing global production gates and real runtime evidence.
+
+## Latest continuation — Edge Function source parity and customer RPC boundary (2026-10-16)
+
+- **Current `main` checkpoint:** `3899df67b0c972955cfcac336b59e818d56f9554` at the time of this status update.
+- **Production ledger rechecked read-only:** 283 applied migrations; latest `20261008222845` (RC424). RC449A (`20261010175000`) and RC450 (`20261010180000`) remain absent from the production ledger. Release stays **NOT CERTIFIED**; no RC449A/RC450 migration was applied.
+- **Verified production Edge Function updates:** `catalog-admin` ACTIVE v6 with allowlisted browser CORS and no wildcard origin; `digital-page-order-create` ACTIVE v4 with idempotency replay guards; `business-branch-admin` ACTIVE v5 with valid source line breaks and membership/business authorization checks. Their exact-head PRs #256, #257, and #259 were merged and the live Supabase function metadata/source was re-read after deployment.
+- **SMM source parity:** PR #262 merged the restored gateway helper modules and a narrowly scoped `my_data` response change that distinguishes a missing wallet from a legitimate zero balance. The six helper files match the currently deployed v12 source byte-for-byte; the only gateway index difference is the explicit wallet-state response. `SMM_INITIAL_LAUNCH_DEFERRED=true` remains active and the deployed function remains v12; **no SMM deployment or launch occurred**.
+- **Customer registration RPC drift:** PR #261 added a static CI contract and a staging acceptance matrix. Production `mnty-customer-registration` remains ACTIVE v4 calling `ensure_customer_membership_for_user`, while tracked `main` calls `activate_customer_registration_atomic`. The functions differ in pending-request cleanup, lock keys, membership insert scope, and audit-failure behavior. No production RPC was invoked or replaced; source convergence remains blocked until the intended invariants are approved and isolated staging integration tests pass.
+- **Exact-head CI:** PR #261 passed Customer Registration RPC Contract, Module Professionalization Validation, Backend-only Module Boundary, MantiGO privacy, and web validation. PR #262 passed SMM Service Role Access Boundary (including Deno source checks and disposable PostgreSQL ACL integration), Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy. Web validation was cancelled/skipped for PR-only runs and is not counted as a production deployment.
+- **Safety boundary:** no production migration, wallet/order/payment mutation, provider call, grant/RLS/Auth change, or financial-journal deployment occurred during this continuation.
+
+### Remaining blockers
+
+1. Complete the chronological migration-chain and disposable replay review before certifying the production baseline.
+2. Keep financial journal blocked until the approved RC449A → RC450 → matching Edge Function sequence and staging acceptance evidence are complete.
+3. Resolve customer-registration RPC behavior through a reviewed design decision and isolated tests; do not bulk-sync live and repository source.
+4. Keep SMM launch deferred until a separate approved launch change; source parity is not launch approval.
+5. Complete remaining production E2E gates in `docs/MASTER_PRODUCTION_TODO.md`, including authenticated cross-tenant browser flows and authorized Paymob/settlement tests.
+
+
+## Candidate reconciliation checkpoint — 2026-10-18
+
+- RC525 digital-page product platform-admin migration and its isolated test sources are included in the candidate; the full disposable replay including RC525 passed at run 39088687446 (SHA 63ebcaddf0d9a1599e79bf5dad59abe3eeb945d3). No migration files or replay workflow changed after that pass.
+- SMM deferred validation passed at run 39088994852 (SHA 98366516575eafc9bab2a91f12747383f6d32c5c) after adding bounded request parsing, provider-host allowlisting, redirect denial, bounded response parsing, and typed unknown-outcome handling. The hard launch gate remains enabled.
+- Business Branch Admin Source Integrity, Catalog Admin CORS Boundary, Digital Page Order Idempotency Boundary, and Customer Registration RPC Contract each passed in their respective candidate runs.
+- The website home workspace for digital pages is present in main source, but the Pages deployment is still blocked by the production verification gate. PR #207 remains draft and mergeability is still dirty after refreshing its base to current main. No production deployment or production data/schema change occurred.
