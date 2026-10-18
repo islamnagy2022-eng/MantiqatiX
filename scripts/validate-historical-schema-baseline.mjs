@@ -1466,5 +1466,5 @@ console.warn("P0 LIMITATION: MantiGO financial-ledger table replay baseline is c
 
 console.warn("P0 LIMITATION: MantiGO read functions are live-derived test-only compatibility scaffolding; original historical creation provenance remains unresolved.");
 
-console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, MantiGO function fixtures, and tracked-source MantiGO financial-config fixture validated.");
+console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, MantiGO function fixtures, and tracked-source MantiGO financial-config and financial-ledger fixtures validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
