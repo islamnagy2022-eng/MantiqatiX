@@ -1,0 +1,29 @@
+name: Digital Page Order Idempotency Boundary
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/digital-page-order-create/index.ts"
+      - "scripts/validate-digital-page-order-idempotency.mjs"
+      - ".github/workflows/digital-page-order-idempotency.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/digital-page-order-create/index.ts"
+      - "scripts/validate-digital-page-order-idempotency.mjs"
+      - ".github/workflows/digital-page-order-idempotency.yml"
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate digital page order idempotency contract
+        run: node scripts/validate-digital-page-order-idempotency.mjs
