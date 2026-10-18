@@ -1699,3 +1699,5 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 
 - **2026-10-19 — business-register tenant hardening:** the candidate Edge Function now explicitly requires the requested tenant to exist and have `status=ACTIVE` before membership/organization checks, because its service-role client bypasses RLS. Unexpected exceptions now return a generic `BUSINESS_REGISTER_FAILED` HTTP 500 instead of exposing database/schema error text to callers; server-side logs retain the diagnostic. The existing source-contract test now covers the active-tenant check and generic error response. This is not deployed; the release gate remains blocked pending exact-head CI and approved rollout.
+
+- **2026-10-19 — malformed business-registration request handling:** the candidate endpoint now converts invalid JSON, `null`, and non-object/array bodies into `INVALID_JSON_BODY` HTTP 400 instead of treating parser failures as internal server errors. The contract test asserts this behavior. This is source-only; await CI and approved deployment.
