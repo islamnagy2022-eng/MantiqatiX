@@ -635,3 +635,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Backend-only Module Boundary run 39142080933, MantiGO Open Ride Privacy Boundary run 39142080795, and Module Professionalization Validation run 39142080916 also passed at this head.
 - The earlier finalization workflow failure was a stale static assertion about the error response for missing provider-order ID; the assertion was aligned with the candidate's fail-closed ambiguous-outcome behavior and the rerun passed.
 - Combined full migration-chain replay at the finalization branch head remains NOT VERIFIED; do not infer it from the earlier RC425–RC526 replay. Production source/grant parity and Paymob sandbox E2E remain open. PR #297 remains draft; no production changes or deployment.
+
+
+## RC531 — Main release gate remains blocked — 2026-10-18
+- Latest main commit inspected: `149a85c7e5c44b61421edc8391cbb82885902fae`. Deploy MantiqatiX Web run 39092185609 failed in production verification; deployment was skipped. The report explicitly lists RC425–RC441 source migrations missing from main, required release migrations not applied, chronological replay NOT RUN, tenant isolation/payment-finance E2E/backup-restore NOT VERIFIED, and `PRODUCTION_GATE=BLOCKED`. Scheduled health monitor success is not release certification.
+- PR #297 finalization isolated test and other module/security workflows passed at `1f867408e97e56ad0e068efe009840a106da00c1`. At updated head `ec8e1008b3353f7e7082ed9711e7db487b200ba3`, module/security workflows passed and the full forward-chain replay was still running at the last poll.
+- Continue by resolving any replay failure and manually reviewing finalizer ACL/migration order. No merge, deployment, production migration, grant change, or payment was performed.
