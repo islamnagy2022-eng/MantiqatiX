@@ -68,9 +68,29 @@ END
 $deny_five$;
 RESET ROLE;
 
--- The trusted server role may finalize only when the active claim matches the order.
+-- The privileged finalizer still enforces user binding and the active claim token.
 SET ROLE service_role;
 SELECT set_config('request.jwt.claim.role', 'service_role', false);
+DO $reject_invalid_claims$
+BEGIN
+  IF public.finalize_digital_page_payment_intent_backend(
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    'stale-token',
+    'must-not-bind'
+  ) THEN RAISE EXCEPTION 'stale claim token was accepted'; END IF;
+  IF public.finalize_digital_page_payment_intent_backend(
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000099',
+    'claim-four',
+    'wrong-user-intent'
+  ) THEN RAISE EXCEPTION 'wrong user was accepted'; END IF;
+  IF EXISTS (SELECT 1 FROM public.digital_page_orders
+    WHERE id='10000000-0000-4000-8000-000000000001' AND provider_intent_id IS NOT NULL)
+  THEN RAISE EXCEPTION 'rejected claim mutated order'; END IF;
+END
+$reject_invalid_claims$;
+
 SELECT public.finalize_digital_page_payment_intent_backend(
   '10000000-0000-4000-8000-000000000001',
   '20000000-0000-4000-8000-000000000001',
@@ -103,5 +123,37 @@ BEGIN
   ) THEN RAISE EXCEPTION 'five-argument trusted finalization did not persist expected state'; END IF;
 END
 $state$;
+
+-- Same provider identifiers are idempotent; conflicting replay must fail closed.
+DO $retry_contract$
+BEGIN
+  IF NOT public.finalize_digital_page_payment_intent_backend(
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    'retry-token-no-longer-needed',
+    'paymob-intent-four'
+  ) THEN RAISE EXCEPTION 'same four-argument intent retry was not idempotent'; END IF;
+  IF public.finalize_digital_page_payment_intent_backend(
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    'retry-token-no-longer-needed',
+    'conflicting-intent'
+  ) THEN RAISE EXCEPTION 'conflicting four-argument intent replay was accepted'; END IF;
+  IF NOT public.finalize_digital_page_payment_intent_backend(
+    '10000000-0000-4000-8000-000000000002',
+    '20000000-0000-4000-8000-000000000002',
+    'retry-token-no-longer-needed',
+    'paymob-intent-five',
+    'paymob-order-five'
+  ) THEN RAISE EXCEPTION 'same five-argument intent/order retry was not idempotent'; END IF;
+  IF public.finalize_digital_page_payment_intent_backend(
+    '10000000-0000-4000-8000-000000000002',
+    '20000000-0000-4000-8000-000000000002',
+    'retry-token-no-longer-needed',
+    'paymob-intent-five',
+    'conflicting-provider-order'
+  ) THEN RAISE EXCEPTION 'conflicting provider order replay was accepted'; END IF;
+END
+$retry_contract$;
 
 SELECT 'digital_page_payment_intent_server_only_finalization=PASS' AS result;
