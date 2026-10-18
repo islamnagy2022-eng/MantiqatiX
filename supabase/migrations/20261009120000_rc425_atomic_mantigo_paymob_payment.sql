@@ -41,6 +41,9 @@ declare
   v_event public.mantigo_payment_provider_events%rowtype;
   v_inserted_id text;
   v_payload_amount numeric;
+  v_commission_rate numeric;
+  v_commission_amount numeric;
+  v_captain_net_amount numeric;
 begin
   if coalesce(p_signature_verified, false) is not true then
     raise exception 'MANTIGO_PAYMENT_SIGNATURE_REQUIRED';
@@ -123,6 +126,22 @@ begin
       'status', v_ledger.payment_status, 'ledger_id', v_ledger.id);
   end if;
 
+  -- Match the cash-payment accounting contract: only confirmed success locks the
+  -- configured commission and makes the captain balance eligible for settlement.
+  -- If the platform commission is not configured, abort before inserting the event;
+  -- the transaction remains retryable and no partial payment state is recorded.
+  if p_status = 'PAID' then
+    select c.commission_rate into v_commission_rate
+    from public.mantigo_financial_config c
+    where c.id = true
+    for share;
+    if v_commission_rate is null then
+      raise exception 'MANTIGO_COMMISSION_NOT_CONFIGURED';
+    end if;
+    v_commission_amount := round(v_ledger.gross_amount * v_commission_rate / 100, 2);
+    v_captain_net_amount := round(v_ledger.gross_amount - v_commission_amount, 2);
+  end if;
+
   insert into public.mantigo_payment_provider_events(
     id, ledger_id, provider, event_type, external_event_id,
     status, signature_verified, raw_payload, processed_at
@@ -150,7 +169,12 @@ begin
   end if;
 
   update public.mantigo_financial_ledger
-  set payment_status = p_status,
+  set payment_method = 'CARD',
+      payment_status = p_status,
+      commission_rate = case when p_status = 'PAID' then v_commission_rate else commission_rate end,
+      commission_amount = case when p_status = 'PAID' then v_commission_amount else commission_amount end,
+      captain_net_amount = case when p_status = 'PAID' then v_captain_net_amount else captain_net_amount end,
+      settlement_status = case when p_status = 'PAID' then 'READY' else settlement_status end,
       payment_reference = p_external_event_id,
       provider_transaction_id = p_provider_transaction_id,
       payment_confirmed_at = case when p_status = 'PAID' then now() else null end,
@@ -176,7 +200,11 @@ begin
   );
 
   return jsonb_build_object('ok', true, 'idempotent', false, 'already_final', false,
-    'status', p_status, 'ledger_id', v_ledger.id);
+    'status', p_status, 'ledger_id', v_ledger.id,
+    'commission_rate', case when p_status = 'PAID' then v_commission_rate else null end,
+    'commission_amount', case when p_status = 'PAID' then v_commission_amount else null end,
+    'captain_net_amount', case when p_status = 'PAID' then v_captain_net_amount else null end,
+    'settlement_status', case when p_status = 'PAID' then 'READY' else null end);
 end;
 $function$;
 
