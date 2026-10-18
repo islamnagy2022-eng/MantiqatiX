@@ -612,3 +612,6 @@ The production verifier now requires, for each drifted function (`financial-jour
 ## 2026-10-19 — business-register tenant and error boundary
 
 Added a candidate source guard in `supabase/functions/business-register/index.ts`: service-role code explicitly checks that the requested tenant exists and is ACTIVE before authorization, and unexpected errors are logged server-side but returned as generic `BUSINESS_REGISTER_FAILED` HTTP 500. Extended `scripts/tests/business-register-organization-scope.test.mjs` to assert the tenant-state guard and prevent returning raw exception messages. This remains repository-only and requires exact-head CI plus approved deployment and live parity evidence.
+
+### Follow-up: malformed business-registration payloads (2026-10-19)
+`business-register` now returns `INVALID_JSON_BODY` with HTTP 400 for malformed JSON and non-object/array bodies. Added two static contract assertions. This does not affect production until the release is approved and deployed.
