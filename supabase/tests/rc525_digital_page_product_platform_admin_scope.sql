@@ -1,0 +1,141 @@
+-- RC525 catalog regression assertions. Run after migrations in a disposable database.
+do $test$
+declare
+  v_policy pg_catalog.pg_policy%rowtype;
+  v_using text;
+  v_check text;
+  v_public_read_exists boolean;
+  v_public_read_qual text;
+begin
+  select p.*
+    into v_policy
+  from pg_catalog.pg_policy p
+  join pg_catalog.pg_class c on c.oid = p.polrelid
+  join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public'
+    and c.relname = 'digital_page_products'
+    and p.polname = 'digital_page_products_platform_admin_write';
+
+  if not found then
+    raise exception 'RC525_POLICY_MISSING';
+  end if;
+
+  v_using := pg_catalog.pg_get_expr(v_policy.polqual, v_policy.polrelid);
+  v_check := pg_catalog.pg_get_expr(v_policy.polwithcheck, v_policy.polrelid);
+
+  if v_policy.polcmd <> '*' then
+    raise exception 'RC525_POLICY_MUST_COVER_ALL_MUTATIONS';
+  end if;
+  if not exists (
+    select 1
+    from pg_catalog.pg_roles r
+    where r.rolname = 'authenticated'
+      and r.oid = any(v_policy.polroles)
+  ) then
+    raise exception 'RC525_POLICY_ROLE_MISMATCH';
+  end if;
+  if v_using not ilike '%MNTY-PLATFORM%'
+     or v_using not ilike '%SUPER_ADMIN%'
+     or v_using not ilike '%PLATFORM%'
+     or v_using not ilike '%full_control%'
+     or v_using not ilike '%ACTIVE%' then
+    raise exception 'RC525_USING_SCOPE_INCOMPLETE';
+  end if;
+  if v_check not ilike '%MNTY-PLATFORM%'
+     or v_check not ilike '%SUPER_ADMIN%'
+     or v_check not ilike '%PLATFORM%'
+     or v_check not ilike '%full_control%'
+     or v_check not ilike '%ACTIVE%' then
+    raise exception 'RC525_WITH_CHECK_SCOPE_INCOMPLETE';
+  end if;
+
+  if exists (
+    select 1
+    from pg_catalog.pg_policy p
+    join pg_catalog.pg_class c on c.oid = p.polrelid
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname = 'digital_page_products'
+      and p.polname = 'digital_page_products_admin_write'
+  ) then
+    raise exception 'RC525_BROAD_LEGACY_ADMIN_POLICY_REMAINS';
+  end if;
+
+  select pg_catalog.pg_get_expr(p.polqual, p.polrelid)
+    into v_public_read_qual
+  from pg_catalog.pg_policy p
+  join pg_catalog.pg_class c on c.oid = p.polrelid
+  join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public'
+    and c.relname = 'digital_page_products'
+    and p.polname = 'digital_page_products_public_read'
+    and p.polcmd = 'r';
+
+  if v_public_read_qual is null or v_public_read_qual not ilike '%active%true%' then
+    raise exception 'RC525_PUBLIC_ACTIVE_READ_POLICY_MISSING';
+  end if;
+end
+$test$;
+
+-- Behavioral RLS regression: tenant admins and incompletely scoped platform admins must not mutate the global catalog.
+-- The entire data test rolls back; these rows exist only in disposable CI.
+begin;
+insert into public.user_memberships(user_id, tenant_id, status, role, permissions) values
+  ('70000000-0000-4000-8000-000000000001','tenant-a','ACTIVE','ADMIN','{"scope":"TENANT","full_control":true}'::jsonb),
+  ('70000000-0000-4000-8000-000000000002','MNTY-PLATFORM','ACTIVE','ADMIN','{"scope":"PLATFORM","full_control":true}'::jsonb),
+  ('70000000-0000-4000-8000-000000000003','MNTY-PLATFORM','ACTIVE','SUPER_ADMIN','{"scope":"PLATFORM","full_control":false}'::jsonb),
+  ('70000000-0000-4000-8000-000000000004','MNTY-PLATFORM','ACTIVE','SUPER_ADMIN','{"scope":"PLATFORM","full_control":true}'::jsonb);
+insert into public.digital_page_products(id, active)
+values ('71000000-0000-4000-8000-000000000001', true);
+set local role authenticated;
+do $behavior$
+declare
+  v_rows integer;
+begin
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000001',true);
+  begin
+    insert into public.digital_page_products(active) values (true);
+    raise exception 'RC525_TENANT_ADMIN_INSERT_ALLOWED';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000002',true);
+  begin
+    insert into public.digital_page_products(active) values (true);
+    raise exception 'RC525_PLATFORM_ADMIN_ROLE_INSERT_ALLOWED';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000003',true);
+  begin
+    insert into public.digital_page_products(active) values (true);
+    raise exception 'RC525_MISSING_FULL_CONTROL_INSERT_ALLOWED';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000004',true);
+  insert into public.digital_page_products(active) values (true);
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000001',true);
+  update public.digital_page_products
+  set active = false
+  where id = '71000000-0000-4000-8000-000000000001';
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'RC525_TENANT_ADMIN_UPDATE_ALLOWED';
+  end if;
+
+  perform set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000004',true);
+  update public.digital_page_products
+  set active = false
+  where id = '71000000-0000-4000-8000-000000000001';
+  get diagnostics v_rows = row_count;
+  if v_rows <> 1 then
+    raise exception 'RC525_PLATFORM_ADMIN_UPDATE_DENIED';
+  end if;
+end
+$behavior$;
+rollback;
