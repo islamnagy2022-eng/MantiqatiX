@@ -725,3 +725,9 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - The last two runs failed in preflight only: an overly strict untracked-file assertion and a line-wrap-sensitive safety-comment regex. Both were corrected in commit `f367582f216f5dcf455cfa6d9ca780452b67b4f2`.
 - New run [39083192362](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083192362) is queued. Confirm the validator passes and the replay actually starts before recording any SQL result.
 - Production gate remains **BLOCKED / NOT CERTIFIED**; no historical migration edit, merge, deployment, or production mutation.
+
+
+## Current continuation checkpoint — 2026-10-18 (REPLAY-RESUME-009)
+- Run [39083237698](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083237698) passed preflight but failed in the copy-verification step due to an undefined shell variable.
+- Corrected the workflow by declaring the config baseline and temp migration paths within that verification step. New run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535) is queued.
+- Wait for exact-head CI; do not claim chronological replay success before logs confirm it. Production gate remains **BLOCKED / NOT CERTIFIED**.
