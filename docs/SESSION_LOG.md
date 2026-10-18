@@ -482,3 +482,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Run 39083237698 passed the historical-schema validator but failed in the temporary-copy verification step: the config baseline variable was only declared in the injection step, not in the separate verification shell.
 - Added the missing variable declarations to the verification step. Exact-head run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535) is queued.
 - This is a workflow plumbing correction; chronological SQL replay remains unverified. No production state was changed.
+
+
+## 2026-10-18 — REPLAY-RESUME-010
+- Exact-head run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535) now passes preflight, disposable compatibility fixture injection, exact-copy/untracked verification, Supabase CLI setup, and local disposable config creation.
+- Supabase service startup remains in progress; ordered migration replay has not started yet. No SQL-chain PASS is claimed.
+- No production mutation, merge, or deployment occurred.
