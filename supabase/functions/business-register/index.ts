@@ -20,10 +20,10 @@ Deno.serve(async(req)=>{
   if(stringFields.some((key)=>body[key]!==undefined&&body[key]!==null&&typeof body[key]!=="string"))return response({error:"INVALID_FIELD_TYPE"},400);
   const tenantId=String(body.tenantId??"").trim(),name=String(body.name??"").trim(),sector=String(body.sector??"GENERAL").trim().toUpperCase();
   const address=String(body.address??"").trim(),phone=String(body.phone??"").trim(),city=String(body.city??"").trim(),district=String(body.district??"").trim();
-  const organizationId=body.organizationId?String(body.organizationId):null;
+  const organizationId=typeof body.organizationId==="string"&&body.organizationId.trim()?body.organizationId.trim():null;
   if(!tenantId||!name)return response({error:"TENANT_AND_NAME_REQUIRED"},400);
   const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if(!uuidPattern.test(tenantId)||(organizationId!==null&&!uuidPattern.test(organizationId.trim())))return response({error:"INVALID_TENANT_OR_ORGANIZATION_ID"},400);
+  if(!uuidPattern.test(tenantId)||(organizationId!==null&&!uuidPattern.test(organizationId)))return response({error:"INVALID_TENANT_OR_ORGANIZATION_ID"},400);
   if(name.length>200||phone.length>64||address.length>500||city.length>120||district.length>120||sector.length>80)return response({error:"FIELD_TOO_LONG"},400);
   // Service-role access bypasses RLS: explicitly reject inactive or nonexistent tenants.
   const {data:tenant,error:tenantError}=await supabase.from("tenants")
