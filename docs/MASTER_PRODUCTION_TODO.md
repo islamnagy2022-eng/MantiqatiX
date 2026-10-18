@@ -1891,3 +1891,18 @@ A module cannot be marked DONE until all applicable items are evidenced:
 1. Poll exact-head CI, especially Digital Page Payment Finalization Isolation, RC431 integration, forward replay, migration collision/history checks, and tenant isolation.
 2. Fix any failed test at the same candidate branch and rerun all affected workflows.
 3. Review PR #286's full diff, baseline provenance, SECURITY DEFINER/RLS/grants and session-log change before requesting merge approval.
+
+
+## RC530 — Release verifier tied to finalizer security evidence — 2026-10-19
+
+- Extended the production verification engine with `DIG-FINALIZE-SOURCE-CONTRACT` and `DIG-FINALIZE-LIVE-PARITY`.
+- Added the new server-only finalization migration to the required ordered source-migration set.
+- The live reconciliation manifest must now explicitly record `digital_page_finalization_trust_boundary = PASS` and `digital_page_finalization_deployed_source_parity = true`; absent evidence keeps the P0 gate BLOCKED.
+- Extended the digital-page boundary validator to assert the production verifier's source and live-parity gates and that Pages CI invokes both the production verifier and digital-page boundary validator.
+- Latest candidate commit at this checkpoint: `0da9cf004ffaaa1cba964e81d2234bb1d8feae2e`. Exact-head workflows were queued, including Digital Page Payment Finalization Isolation, forward replay, collision/history checks, and tenant isolation; no result is claimed yet.
+- No production database/grant/Auth/RLS change or deployment was made.
+
+### Next
+1. Poll all exact-head CI jobs and fix failures on the same candidate branch.
+2. Confirm the ordered replay includes RC425–RC526 followed by the new finalization migration and that the dedicated isolated test passes.
+3. Review and reconcile the PR #286 session-log diff and manual baseline/security review before requesting integration approval.
