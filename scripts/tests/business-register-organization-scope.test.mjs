@@ -28,4 +28,7 @@ assert.match(source, /UNSUPPORTED_MEDIA_TYPE/);
 assert.match(source, /stringFields=\["tenantId","name","sector","address","phone","city","district","organizationId"\]/);
 assert.match(source, /INVALID_FIELD_TYPE/);
 
-console.log("business-register tenant and organization security contract: PASS (22 assertions)");
+assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{12\}\$\/i/);
+assert.match(source, /INVALID_TENANT_OR_ORGANIZATION_ID/);
+
+console.log("business-register tenant and organization security contract: PASS (24 assertions)");
