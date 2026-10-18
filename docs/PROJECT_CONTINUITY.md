@@ -601,3 +601,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Extended PR #268 with row-locked finalization, exact-identifier retry behavior, stale-claim and wrong-user denial tests, and conflicting intent/provider-order replay tests.
 - Exact head `6c4d5e931c2a3d420e1d43fe8369a81747a018d1`; exact-head CI was running at checkpoint time. Do not claim PASS until the isolated PostgreSQL workflow finishes.
 - No production migration, grant change, deployment, merge, or payment transaction.
+
+
+## RC530 — Digital-page payment finalization exact-head CI — 2026-10-18
+- PR #268 exact head `78c32697f26d53167d39e01201ad165e2cc5371c` passed the isolated PostgreSQL finalization workflow and the related CI workflows; Pages deploy was skipped on the PR event.
+- Negative tests cover stale token, wrong user, direct authenticated invocation, same-intent retry, and conflicting intent/provider-order replay.
+- Production parity, migration ledger, grants, and deployed Edge Function behavior remain unverified; no merge/deploy/production change.
