@@ -602,3 +602,8 @@ PR #286 adds a production-verifier gate requiring live-to-repository source pari
 - `business-register` v8: live code lacks requested organization membership/tenant validation present in the branch candidate.
 
 No production changes were made. The prior exact-head Actions runs for `ca10e704cb9ed7e6dea464a8eb65b52ee453f708` remained queued at the last poll; all new commits require exact-head CI evidence. Keep PR #286 open/draft and production release **BLOCKED / NOT CERTIFIED**. Never update `docs/SESSION_LOG.md` in this workflow.
+
+
+## 2026-10-19 — Hash-backed source parity gate
+
+The production verifier now requires, for each drifted function (`financial-journal`, `mnty-customer-registration`, and `business-register`), a true parity flag, matching 64-character repository and deployed SHA-256 hashes, a dedicated evidence reference, and a timestamp. The reconciliation manifest deliberately records false/null values until approved post-deployment evidence exists. This is source-only hardening; no production change was performed. The PR Actions queue was still stalled at the last poll, with all 24 runs for the then-current head queued; new commits require a fresh exact-head run.
