@@ -586,3 +586,12 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #292 marketing workspace and PR #291 security review are already merged per the prior verified checkpoint; do not redo their completed source work. Current campaign deployment/schema and live payment parity still need evidence.
 - No merge, deployment, production migration, grant/Auth/RLS change, or financial transaction was performed as part of RC527. Production remains BLOCKED / NOT CERTIFIED.
 - `docs/SESSION_LOG.md` was not modified.
+
+
+## RC528 — Candidate-chain inspection evidence — 2026-10-18
+- PR #286 candidate CI passed forward replay of 31 migrations from the captured RC424 schema snapshot and disposable bidirectional tenant isolation; collision guard passed for 19 open migration PRs.
+- The static baseline audit remains `REVIEW_STATUS=PENDING_REVIEW`; these CI results do not imply production migrations are applied.
+- All eight RC526 files in PR #295 were byte-identical to PR #286's branch. PR #295 adds no distinct RC526 content based on this comparison.
+- PR #286 currently modifies `docs/SESSION_LOG.md`, so it must not be merged as-is while the no-edit/no-touch constraint remains.
+- The PR #296 documentation update passed Module Professionalization Validation, Backend-only Module Boundary, and MantiGO Open Ride Privacy Boundary; Pages workflow validation succeeded but the deploy job was skipped on the PR event.
+- No production changes, merge, deployment, or financial transaction performed.
