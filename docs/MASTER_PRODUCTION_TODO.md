@@ -1933,3 +1933,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Fixed validator wording check to match the fixture's production-prohibition comment; 10 assistant-side source assertions pass.
 - [ ] Inspect candidate run [39083743681](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083743681) at SHA `9ae3b38f5e6cfc99bc6d375d1aa0885a1e94c9ac`; then fix only newly evidenced blockers.
 
+## 2026-10-18 — candidate reconciliation continuation
+
+- Current candidate work is isolated to `reconcile/rc425-458-current-main-20261011`; no production database, Auth configuration, Edge Function deployment, wallet/payment data, or live migration ledger was changed.
+- Carried the current main RC525 digital-page product platform-admin scope migration, disposable PostgreSQL fixture, integration test, validator, and workflow into the candidate branch. Added the current customer-registration RPC contract workflow/tests and refreshed business-branch, catalog-admin, and digital-page order-create source files from main.
+- Hardened the candidate SMM gateway source with POST-only handling, a 32 KiB bounded JSON body, an explicit HTTPS provider-host allowlist, redirects denied, bounded provider response parsing, and a 15-second abort timeout. The compile-time launch deferral remains hard-coded true; no SMM service was enabled.
+- Exact evidence: Business Branch Admin Source Integrity passed (run 39088719519); Catalog Admin CORS Boundary passed (run 39088723452); Digital Page Order Idempotency Boundary passed (run 39088726282); Customer Registration RPC Contract passed (run 39088687525).
+- Full disposable migration replay including the RC525 addition is still in progress at run 39088687446; do not mark it passed until the job finishes. SMM Deferred Module Validation after the validator/gateway changes is in progress at run 39088871027.
+- The earlier full replay pass at run 39088235744 applies to SHA 85375beb810e8aabeca39d29e8903a444bd86503 before RC525 was carried forward; it is not a substitute for the current exact-head replay.
+- Main's production Pages deploy remains blocked at run 39087916648. No live deployment is claimed; release remains BLOCKED / NOT CERTIFIED until exact-head CI and all runtime/security/recovery acceptance evidence pass.
