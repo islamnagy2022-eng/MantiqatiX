@@ -7,6 +7,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const todo = read('docs/MASTER_PRODUCTION_TODO.md');
 const continuity = read('docs/PROJECT_CONTINUITY.md');
 const workflow = read('.github/workflows/pages.yml');
+const productionVerifier = read('scripts/production/verify-production.mjs');
 
 const requiredTodoMarkers = [
   'E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED',
@@ -29,6 +30,12 @@ const requiredWorkflowMarkers = [
   'validate-rbac-contract.mjs',
 ];
 
+const requiredProductionGateMarkers = [
+  '"20261014233000_rc526_mantigo_payment_intent_claim.sql"',
+  'const missingReleaseMigrations=requiredReleaseMigrations.filter',
+  'reconciliation.status==="VERIFIED"',
+];
+
 const home = read('web/home.js');
 const requiredHomeMarkers = [
   'data-targeted-ad',
@@ -40,6 +47,7 @@ const missing = [
   ...requiredTodoMarkers.filter(x => !todo.includes(x)).map(x => 'TODO:' + x),
   ...requiredContinuityMarkers.filter(x => !continuity.includes(x)).map(x => 'CONTINUITY:' + x),
   ...requiredWorkflowMarkers.filter(x => !workflow.includes(x)).map(x => 'WORKFLOW:' + x),
+  ...requiredProductionGateMarkers.filter(x => !productionVerifier.includes(x)).map(x => 'PRODUCTION_GATE:' + x),
 ];
 
 if (missing.length) {
