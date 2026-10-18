@@ -719,3 +719,11 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #286 changes `docs/SESSION_LOG.md`; do not modify that file in future work and resolve this diff before integration.
 - PR #295 is based on PR #286, diverged (1 ahead/14 behind at comparison), and duplicates the RC526 migration already present in PR #286. PR #273 also overlaps the RC425–RC441 migration set. Do not merge overlapping candidates independently; select one canonical ordered chain after review.
 - Next: review provenance/collision evidence, remove or reconcile the session-log diff, review RC526 and digital-page finalization contracts against the same chain, then request explicit approval before merge. No production changes were performed; release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC529 — Digital-page server-only finalization composed into candidate — 2026-10-19
+- Updated PR #286's RC candidate branch to use the service-role admin client for digital-page payment finalization; added the forward-only server-only finalization migration, isolated PostgreSQL regression test/setup, and workflow.
+- Updated the digital-pages boundary validator for admin-only finalization and the candidate's safer ambiguous-response behavior (retain claim for reconciliation; do not release and risk duplicate provider intentions).
+- PR #286 exact head at checkpoint: `c5db211de66730b084a97bf0e7fef6b8b581924f`; workflows were queued, not yet verified. The branch is 61 commits ahead of main in comparison and remains an unmerged candidate.
+- Closed duplicate integration PR #298 without merge after moving the changes to PR #286.
+- No production migration, grant change, deployment, or payment was executed. PR #286 still requires review of baseline provenance/security contracts and reconciliation of its docs/SESSION_LOG.md diff. Release remains BLOCKED / NOT CERTIFIED.
