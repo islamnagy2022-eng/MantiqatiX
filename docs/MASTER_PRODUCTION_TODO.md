@@ -1899,7 +1899,7 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Added the new server-only finalization migration to the required ordered source-migration set.
 - The live reconciliation manifest must now explicitly record `digital_page_finalization_trust_boundary = PASS` and `digital_page_finalization_deployed_source_parity = true`; absent evidence keeps the P0 gate BLOCKED.
 - Extended the digital-page boundary validator to assert the production verifier's source and live-parity gates and that Pages CI invokes both the production verifier and digital-page boundary validator.
-- Latest candidate commit at this checkpoint: `0da9cf004ffaaa1cba964e81d2234bb1d8feae2e`. Exact-head workflows were queued, including Digital Page Payment Finalization Isolation, forward replay, collision/history checks, and tenant isolation; no result is claimed yet.
+- Latest candidate commit at this checkpoint: `23276078e53b712aaabaa15c30c8b7570a6d9647`. Exact-head workflows were queued, including Digital Page Payment Finalization Isolation, forward replay, collision/history checks, and tenant isolation; no result is claimed yet.
 - No production database/grant/Auth/RLS change or deployment was made.
 
 ### Next
