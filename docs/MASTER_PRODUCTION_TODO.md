@@ -1640,3 +1640,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added CSV export for campaign managers, scoped to the currently selected business and visible campaign records. CSV cell escaping includes formula-injection mitigation for values beginning with spreadsheet formula/control prefixes.
 - [ ] NOT VERIFIED: no tests, review, browser run, CI, or deployment performed by request; feature is committed only to branch `feat/marketing-campaign-operations-summary-20261019`.
 - [ ] Existing P0 payment/migration/tenant-isolation and production deployment blockers remain open; this UI work does not resolve or certify them.
+
+
+## 2026-10-19 — Marketing campaign discovery controls (implementation only)
+- [x] Added client-side search by campaign title/objective and status filtering to the currently loaded, active-business-scoped campaign list.
+- [x] Added a visible count of filtered versus total campaigns; filtering only changes the current view and does not mutate backend data.
+- [ ] NOT VERIFIED: implementation-only per user instruction; no tests, browser execution, review, CI, or deployment performed.
