@@ -1842,3 +1842,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## RC538 — Live parity evidence package
 - Added a focused read-only evidence report in PR #297: `docs/release/DIGITAL_PAGE_FINALIZATION_LIVE_PARITY_20261018.md`.
 - It records the live four-argument grant/body state, deployed Edge Function v5 fingerprint and call signature, RC424 ledger checkpoint, candidate regression/replay evidence, and a controlled rollout checklist. The report deliberately marks the live boundary BLOCKED and does not claim a production fix.
+
+
+## RC539 — MantiGO payment candidate overlap review
+- PR #286's RC425–RC526 candidate includes the RC526 MantiGO payment-intent claim migration and associated correlation tests; the full candidate replay passed at the documented exact head.
+- PR #289 independently contains RC526 but its head is heavily diverged from the #286 candidate (compare result: 160 commits ahead / 61 behind relative to the #286 head) and its diff includes separate TODO/continuity/session-log changes. Do not merge PR #289 separately or assume it is a clean one-commit fix; reconcile only the relevant payment diff against the tested #286 candidate.
+- PR #295 likewise diverges from #286 by a single RC526 integration commit while 14 commits behind, and overlaps RC526 files already in #286. Avoid duplicate migration ownership.
+- Candidate #286 itself still requires baseline manual review, exact mainline reconciliation, and handling of its `docs/SESSION_LOG.md` diff under the project rule not to edit that file. No merge was performed.
