@@ -1897,3 +1897,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added validator checks for normalized DDL equality to tracked source, no data operations, temporary version ordering, collision prevention, exact copy, and untracked status.
 - [ ] Inspect workflow [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) and continue from its first actual SQL failure; do not assume success.
 - Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## REPLAY-RESUME-008 — 2026-10-18
+- [x] Corrected validator's untracked-file assertion to match the actual combined workflow loop.
+- [x] Corrected the financial-config provenance/safety assertion to allow line wrapping between words.
+- [ ] Verify run `39083192362` completes preflight and inspect the first chronological SQL error, if any.
+- Release remains **BLOCKED / NOT CERTIFIED**.
