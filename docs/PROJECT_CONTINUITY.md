@@ -700,3 +700,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Compared PR #289 against the tested PR #286 candidate: #289 is heavily diverged (160 commits ahead / 61 behind relative to #286 head) and overlaps RC526 migration/function/test files. PR #295 also overlaps RC526 and is 1 commit ahead / 14 behind the current #286 head.
 - The tested #286 candidate already contains RC526 and passed its full replay; do not merge #289 or #295 as independent changes. Reconcile any unique fixes into one reviewed chain.
 - PR #286 itself still has baseline PENDING_REVIEW and a `docs/SESSION_LOG.md` diff; do not merge it under the current no-session-log-edit rule. No merge/deploy performed.
+
+
+## RC541 — Current review/CI checkpoint — 2026-10-18
+- PR #296 master module TODO is ready for review at `88d376e3aed1eb41ef737b87297776de2d5adfb9`; Backend-only, MantiGO privacy, Module Professionalization and Pages validation passed. Deploy was skipped on the PR event.
+- PR #297 remains draft. Source/security workflows passed at `a661e3a1111e759919de855769c99fb3067b167f`; full 32-migration replay and post-replay finalizer/tenant checks passed at `e7c6d08854fe2c25d2f061846fa69e292efb1663`.
+- Live production remains on RC424 with authenticated EXECUTE on the legacy four-argument finalizer and deployed Edge Function v5 calling it via user-scoped client. Do not merge/deploy until the baseline/manual review, migration ownership and coordinated production rollout are explicitly approved.
