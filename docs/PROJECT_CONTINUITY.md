@@ -587,3 +587,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Tests/review/browser execution/CI/deployment were intentionally not run in this build-first batch. Treat the work as implemented but NOT VERIFIED.
 - No merge, production migration, RLS/grant/Auth change, Edge Function deployment, or external advertising publication occurred. Existing production release blockers remain open.
 - Next build task: continue completing operational campaign tooling on this isolated branch, then update the TODO/continuity checkpoint. Run review and tests only when the user requests the verification phase.
+
+
+## 2026-10-19 — Campaign search/filter continuation
+- Continued on `feat/marketing-campaign-operations-summary-20261019`.
+- Added search by campaign title/objective, status filter, and live visible-count text to the campaign workspace. It operates only on the already-loaded campaign rows and is not a backend mutation.
+- Latest app implementation commit: `79e69c4dd9c1170136759f2bee025ff9b259e092` (includes the campaign search/filter feature and a follow-up correction to the CSV-export selector); TODO checkpoint: `d3f3e83b27dfba9f4d4e8d6e3e7938ca6c68e217`.
+- No tests, browser execution, review, CI, PR creation, or deployment performed, as requested. Treat all new frontend work as NOT VERIFIED.
+- Next build-first task: continue operational workflow improvements for campaign delivery/reporting while keeping all data scoped to the active business and not claiming external ads have been published.
