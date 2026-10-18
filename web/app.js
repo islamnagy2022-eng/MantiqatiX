@@ -94,7 +94,7 @@ const sectors=Object.freeze((window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS||[]).m
  return [p[0],p[1],p[2],s.code,s.backend];
 }));
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
-const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},marketingCampaigns:[],marketingCampaignParticipants:[],marketingCampaignProviders:[],marketingCampaignErrors:[],marketingCampaignUnavailable:false,myProviderProfile:null,loading:false,error:null};
+const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},marketingCampaigns:[],marketingCampaignParticipants:[],marketingCampaignProviders:[],marketingCampaignErrors:[],marketingCampaignUnavailable:false,marketingCampaignUnavailableReason:null,myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){
@@ -1228,23 +1228,26 @@ function marketingWorkspace(){
 async function loadMarketingCampaignData(){
  live.marketingCampaignErrors=[];
  live.marketingCampaignUnavailable=false;
- const campaignsQuery=sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief');
- const participantsQuery=sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at');
- // Explicitly scope campaign reads to the active business. If there is no active
- // business, query zero rows rather than reading across all visible memberships.
- if(live.businessId){
-  campaignsQuery.eq('business_id',live.businessId);
-  participantsQuery.eq('business_id',live.businessId);
- }else{
-  campaignsQuery.limit(0);
-  participantsQuery.limit(0);
+ live.marketingCampaignUnavailableReason=null;
+ const providersQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).limit(100);
+ if(!live.businessId){
+  // Never read campaign/participant rows across all memberships without an active business scope.
+  live.marketingCampaignUnavailable=true;
+  live.marketingCampaignUnavailableReason='NO_ACTIVE_BUSINESS';
+  live.marketingCampaigns=[];
+  live.marketingCampaignParticipants=[];
+  const providers=await providersQuery;
+  live.marketingCampaignProviders=providers.error?[]:(providers.data||[]);
+  if(providers.error)live.marketingCampaignErrors.push('marketing_provider_profiles');
+  return;
  }
  const [campaigns,participants,providers]=await Promise.all([
-  campaignsQuery.order('created_at',{ascending:false}).limit(50),
-  participantsQuery.order('created_at',{ascending:false}).limit(100),
-  sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).limit(100)
+  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').eq('business_id',live.businessId).order('created_at',{ascending:false}).limit(50),
+  sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').eq('business_id',live.businessId).order('created_at',{ascending:false}).limit(100),
+  providersQuery
  ]);
  live.marketingCampaignUnavailable=[campaigns.error,participants.error].some(e=>Boolean(e)&&(['42P01','PGRST205'].includes(String(e.code||''))||/relation .* does not exist|could not find the table .*schema cache/i.test(String(e.message||''))));
+ live.marketingCampaignUnavailableReason=live.marketingCampaignUnavailable?'SCHEMA_MISSING':null;
  live.marketingCampaigns=campaigns.error?[]:(campaigns.data||[]);
  live.marketingCampaignParticipants=participants.error?[]:(participants.data||[]);
  live.marketingCampaignProviders=providers.error?[]:(providers.data||[]);
@@ -1465,6 +1468,7 @@ function bindMarketingAgencyWorkspace(){
 }
 
 function marketingWorkspaceEntry(){
+ if(live.marketingCampaignUnavailableReason==='NO_ACTIVE_BUSINESS')return '<div class="notice" role="status"><strong>اختر عضوية نشاط تجاري نشطة.</strong> لا يتم تحميل حملات الشركات قبل تحديد نطاق نشاط واضح؛ تعرض مساحة التسويق الحالية دون جمع بيانات عدة شركات.</div>'+marketingAgencyWorkspace();
  if(live.marketingCampaignUnavailable)return '<div class="notice" role="status"><strong>لوحة الحملات الجديدة غير مفعّلة بعد.</strong> لا تزال قاعدة الإنتاج تحتاج إلى اعتماد وترحيل RC453 ضمن سلسلة الإصدار؛ لذلك نعرض مساحة التسويق الحالية ولا نُظهر نموذج إنشاء حملة غير متصل بالخادم.</div>'+marketingAgencyWorkspace();
  return marketingCampaignWorkspace();
 }
