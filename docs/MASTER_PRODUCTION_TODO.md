@@ -1633,3 +1633,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Marketing campaign operations build batch (implementation only)
+- [x] Added business-scoped campaign operations summary cards in `web/app.js`: total visible campaigns, campaigns in internal review, internally approved campaigns, pending partner invitations, accepted partner assignments, and planned budgets grouped by currency (currencies are not combined).
+- [x] Added CSV export for campaign managers, scoped to the currently selected business and visible campaign records. CSV cell escaping includes formula-injection mitigation for values beginning with spreadsheet formula/control prefixes.
+- [ ] NOT VERIFIED: no tests, review, browser run, CI, or deployment performed by request; feature is committed only to branch `feat/marketing-campaign-operations-summary-20261019`.
+- [ ] Existing P0 payment/migration/tenant-isolation and production deployment blockers remain open; this UI work does not resolve or certify them.
