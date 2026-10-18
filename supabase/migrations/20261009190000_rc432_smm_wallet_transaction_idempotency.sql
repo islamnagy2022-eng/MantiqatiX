@@ -202,7 +202,18 @@ end;
 $function$;
 
 -- Staged rollout compatibility: keep service_role execution on the legacy four-argument RPC until the new smm-gateway is deployed and smoke-tested. Ordinary client roles remain denied; revoke service_role in a later release after confirming no legacy callers remain.
-revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) from public,anon,authenticated;
+-- The legacy four-argument RPC is present in some deployed schemas but has no
+-- authoritative creation migration in the clean replay history. Revoke client
+-- execution when it exists; do not invent a stub or fail a clean replay solely
+-- because this optional legacy signature is absent.
+do $legacy_acl$
+begin
+  if pg_catalog.to_regprocedure('public.smm_admin_credit_wallet(uuid,uuid,numeric,text)') is not null then
+    execute 'revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) from public, anon, authenticated';
+    execute 'grant execute on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) to service_role';
+  end if;
+end
+$legacy_acl$;
 revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid) from public,anon,authenticated;
 grant execute on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid) to service_role;
 
