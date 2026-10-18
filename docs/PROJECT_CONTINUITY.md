@@ -628,3 +628,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Draft PR #297 (`integration/rc526-digital-finalization-20261018`) layers the server-only digital-page finalization migration/tests on top of the RC425–RC526 candidate. It preserves the candidate's handling of ambiguous Paymob responses, calls the finalizer via the admin/service-role client, and accepts provider order IDs from the existing top-level response fields or nested `order.id`.
 - Exact-head workflows for PR #297 were queued/in progress at this checkpoint; do not claim success until all complete, including isolated finalization tests and forward replay.
 - No production grant/migration/payment/deployment was changed. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## RC530 — Digital-page finalization CI evidence — 2026-10-18
+- PR #297 exact head `1f867408e97e56ad0e068efe009840a106da00c1` passed isolated finalization workflow run 39142080749, including migration application in disposable PostgreSQL, grants, authenticated direct-call denial, trusted finalization, claim/user binding, same-intent idempotency and conflicting replay rejection.
+- Backend-only Module Boundary run 39142080933, MantiGO Open Ride Privacy Boundary run 39142080795, and Module Professionalization Validation run 39142080916 also passed at this head.
+- The earlier finalization workflow failure was a stale static assertion about the error response for missing provider-order ID; the assertion was aligned with the candidate's fail-closed ambiguous-outcome behavior and the rerun passed.
+- Combined full migration-chain replay at the finalization branch head remains NOT VERIFIED; do not infer it from the earlier RC425–RC526 replay. Production source/grant parity and Paymob sandbox E2E remain open. PR #297 remains draft; no production changes or deployment.
