@@ -1919,3 +1919,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Supabase CLI setup and local disposable config setup passed.
 - [ ] Wait for disposable service startup, then inspect chronological replay's first failure or completion.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+## REPLAY-RESUME-011 — MantiGO ledger source-order dependency
+- [x] Inspect latest completed replay and recover exact SQL error: `20261006140601_mantigo_notification_lifecycle_v1.sql` references missing `public.mantigo_financial_ledger`; tracked create-table source is later at `20261006152000_mantigo_financial_ledger_v1.sql`.
+- [x] Add a disposable-only schema fixture copied exactly from tracked ledger table DDL; no data and no historical migration rewrite.
+- [x] Wire temporary replay version `20261006140559` before the consumer, with source equality, no-DML, timestamp/collision, exact-copy, and untracked-file guards.
+- [ ] Inspect exact-head CI run [39083670643](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083670643); confirm preflight and replay outcome, then repeat for each subsequent blocker.
+- [ ] Recover canonical historical migration provenance or document owner-approved release disposition; disposable compatibility fixtures do not certify historical correctness.
+- **Gate:** BLOCKED / NOT CERTIFIED. Do not merge or deploy on the basis of static checks alone.
+
