@@ -123,17 +123,22 @@ add("DIG-FINALIZE-LIVE-PARITY","SECURITY",digitalFinalizerLiveParityVerified?"PA
     :"Live grant/function and deployed Edge Function parity evidence is missing; source CI cannot close this production gate.",
   "P0");
 const edgeParityChecks=[
-  ["EDGE-FINANCIAL-JOURNAL-PARITY","financial_journal_deployed_source_parity","financial-journal"],
-  ["EDGE-CUSTOMER-REGISTRATION-PARITY","customer_registration_deployed_source_parity","mnty-customer-registration"],
-  ["EDGE-BUSINESS-REGISTER-SCOPE-PARITY","business_register_organization_scope_deployed_source_parity","business-register organization-scope fix"]
+  ["EDGE-FINANCIAL-JOURNAL-PARITY","financial_journal_deployed_source_parity","financial_journal_repository_source_sha256","financial_journal_deployed_source_sha256","financial_journal_parity_evidence_ref","financial-journal"],
+  ["EDGE-CUSTOMER-REGISTRATION-PARITY","customer_registration_deployed_source_parity","customer_registration_repository_source_sha256","customer_registration_deployed_source_sha256","customer_registration_parity_evidence_ref","mnty-customer-registration"],
+  ["EDGE-BUSINESS-REGISTER-SCOPE-PARITY","business_register_organization_scope_deployed_source_parity","business_register_organization_scope_repository_source_sha256","business_register_organization_scope_deployed_source_sha256","business_register_organization_scope_parity_evidence_ref","business-register organization-scope fix"]
 ];
-for(const [id,key,label] of edgeParityChecks){
+for(const [id,key,repositoryShaKey,deployedShaKey,evidenceKey,label] of edgeParityChecks){
+  const repositorySha=reconciliation?.[repositoryShaKey];
+  const deployedSha=reconciliation?.[deployedShaKey];
+  const evidenceRef=reconciliation?.[evidenceKey];
   const verified=Boolean(reconciliation && reconciliation[key]===true &&
-    typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
+    typeof repositorySha==="string" && /^[a-f0-9]{64}$/i.test(repositorySha) &&
+    typeof deployedSha==="string" && /^[a-f0-9]{64}$/i.test(deployedSha) && repositorySha.toLowerCase()===deployedSha.toLowerCase() &&
+    typeof evidenceRef==="string" && evidenceRef.trim().length>0 &&
     typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0);
   add(id,"SECURITY",verified?"PASS":"BLOCKED",
-    verified?`Live evidence confirms exact deployed source parity for ${label}.`:
-      `Exact live-to-repository source parity evidence for ${label} is missing; do not treat repository-only fixes as deployed.`,
+    verified?`Live evidence confirms matching SHA-256 source hashes and a dedicated evidence reference for ${label}.`:
+      `Exact source parity for ${label} requires a true parity flag, matching 64-character repository/deployed SHA-256 hashes, a dedicated evidence reference, and a check timestamp.`,
     "P0");
 }
 const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
