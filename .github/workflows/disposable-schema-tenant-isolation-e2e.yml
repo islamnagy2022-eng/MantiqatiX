@@ -1,0 +1,72 @@
+name: Disposable Schema Baseline Tenant Isolation E2E
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/tests/baselines/production_schema_snapshot.sql"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
+      - "scripts/verify-tenant-isolation.sql"
+      - "scripts/validate-tenant-isolation-verifier.mjs"
+      - ".github/workflows/disposable-schema-tenant-isolation-e2e.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/tests/baselines/production_schema_snapshot.sql"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
+      - "scripts/verify-tenant-isolation.sql"
+      - "scripts/validate-tenant-isolation-verifier.mjs"
+      - ".github/workflows/disposable-schema-tenant-isolation-e2e.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  tenant-isolation-disposable-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate fail-closed test contract
+        run: node scripts/validate-tenant-isolation-verifier.mjs
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start isolated Supabase project without repository migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_dir="$(mktemp -d)"
+          echo "MNTY_ISOLATED_TEST_DIR=$test_dir" >> "$GITHUB_ENV"
+          cd "$test_dir"
+          supabase init
+          supabase start -x studio,edge-runtime,logflare,vector
+
+      - name: Restore schema-only snapshot and run bidirectional RLS test
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_url="$(cd "$MNTY_ISOLATED_TEST_DIR" && supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          test -n "$db_url"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_schema_snapshot.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
+
+      - name: Stop isolated Supabase project
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "${MNTY_ISOLATED_TEST_DIR:-}" ] && [ -d "$MNTY_ISOLATED_TEST_DIR" ]; then
+            cd "$MNTY_ISOLATED_TEST_DIR"
+            supabase stop --no-backup || true
+          fi
