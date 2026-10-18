@@ -62,7 +62,8 @@ Deno.serve(async req=>{
    // Keep the claim; do not release it and risk creating a duplicate on retry.
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
- const providerOrderId=String(p?.intention_order_id??p?.order_id??"");
+ const providerOrderRaw=p?.intention_order_id??p?.order_id??(p?.order&&typeof p.order==="object"?(p.order as Record<string,unknown>).id:"");
+ const providerOrderId=String(providerOrderRaw??"").trim();
  if(providerResponseStatus>=400&&providerResponseStatus<500){
    // A definitive provider-side client rejection is safe to release for a fresh attempt.
    await release();
@@ -72,7 +73,8 @@ Deno.serve(async req=>{
    // 5xx, malformed, or incomplete responses are ambiguous: retain the claim for reconciliation.
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
+ // Provider identifiers are persisted only through the trusted service-role path.
+ const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
  if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
  const clientSecret=String(p.client_secret);
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
