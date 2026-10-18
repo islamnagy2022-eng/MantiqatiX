@@ -11,6 +11,11 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v_user_id uuid;
+  v_intent_id text;
+  v_status text;
+  v_claim_token text;
 begin
   if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'TRUSTED_PAYMENT_FINALIZATION_REQUIRED';
@@ -22,17 +27,33 @@ begin
     raise exception 'INVALID_PAYMENT_FINALIZATION';
   end if;
 
+  select o.user_id, o.provider_intent_id, o.payment_status,
+         o.metadata->'payment_intent_claim'->>'token'
+    into v_user_id, v_intent_id, v_status, v_claim_token
+  from public.digital_page_orders o
+  where o.id = p_order_id
+  for update;
+
+  if not found or v_user_id is distinct from p_user_id then
+    return false;
+  end if;
+
+  -- Idempotent retry is allowed only for the same still-pending provider intent.
+  if v_intent_id is not null then
+    return v_intent_id = p_provider_intent_id and v_status = 'PENDING';
+  end if;
+
+  if v_status <> 'PENDING' or v_claim_token is distinct from p_claim_token then
+    return false;
+  end if;
+
   update public.digital_page_orders
   set provider = 'PAYMOB',
       provider_intent_id = p_provider_intent_id,
       payment_status = 'PENDING',
       metadata = coalesce(metadata, '{}'::jsonb) - 'payment_intent_claim',
       updated_at = now()
-  where id = p_order_id
-    and user_id = p_user_id
-    and provider_intent_id is null
-    and payment_status = 'PENDING'
-    and metadata->'payment_intent_claim'->>'token' = p_claim_token;
+  where id = p_order_id;
 
   return found;
 end;
@@ -69,6 +90,12 @@ language plpgsql
 security definer
 set search_path = ''
 as $function$
+declare
+  v_user_id uuid;
+  v_intent_id text;
+  v_provider_order_id text;
+  v_status text;
+  v_claim_token text;
 begin
   if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'TRUSTED_PAYMENT_FINALIZATION_REQUIRED';
@@ -81,6 +108,28 @@ begin
     raise exception 'INVALID_PAYMENT_FINALIZATION';
   end if;
 
+  select o.user_id, o.provider_intent_id, o.provider_order_id, o.payment_status,
+         o.metadata->'payment_intent_claim'->>'token'
+    into v_user_id, v_intent_id, v_provider_order_id, v_status, v_claim_token
+  from public.digital_page_orders o
+  where o.id = p_order_id
+  for update;
+
+  if not found or v_user_id is distinct from p_user_id then
+    return false;
+  end if;
+
+  -- Retries may confirm the same intent/order pair, but never replace either identifier.
+  if v_intent_id is not null then
+    return v_intent_id = p_provider_intent_id
+       and v_provider_order_id = p_provider_order_id
+       and v_status = 'PENDING';
+  end if;
+
+  if v_status <> 'PENDING' or v_claim_token is distinct from p_claim_token then
+    return false;
+  end if;
+
   update public.digital_page_orders
   set provider = 'PAYMOB',
       provider_intent_id = p_provider_intent_id,
@@ -88,11 +137,7 @@ begin
       payment_status = 'PENDING',
       metadata = coalesce(metadata, '{}'::jsonb) - 'payment_intent_claim',
       updated_at = now()
-  where id = p_order_id
-    and user_id = p_user_id
-    and provider_intent_id is null
-    and payment_status = 'PENDING'
-    and metadata->'payment_intent_claim'->>'token' = p_claim_token;
+  where id = p_order_id;
 
   return found;
 end;
