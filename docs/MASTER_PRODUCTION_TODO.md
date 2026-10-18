@@ -7,94 +7,6 @@
 
 
 
-# RC527 — Master module completion register and execution order — 2026-10-18
-
-## Purpose and status semantics
-This register complements the P0–P3 production gates below. It tracks product/module completion as well as release readiness; neither one substitutes for the other.
-- **IMPLEMENTED** means source/UI or a workflow is present; it does not imply end-to-end or production verification.
-- **PARTIAL** means a documented slice exists and remaining functionality or verification is open.
-- **AUDIT REQUIRED** means inspect the current main source, database contract, route/menu entry, and related PRs before assigning a stronger status.
-- **BLOCKED** means do not advance to production until the named dependency/evidence is resolved.
-- Never mark a module complete solely because a dashboard, placeholder, CI job, or open PR exists.
-
-## Correct execution order
-
-### Track A — unblock the release-critical foundation first
-1. Reconcile RC425–RC526 candidate work and the migration/source history using the authoritative reviewed source; preserve the production ledger checkpoint at RC424 until live evidence says otherwise. No reconstructed historical DDL, no out-of-order migration, and no production mutation without explicit approval.
-2. Close the payment trust-boundary and atomicity source contracts: digital-page finalization, MantiGO Paymob intent claim/callbacks, payment webhook HMAC/order/amount/currency binding, idempotency, and server-only privileged RPC grants. Add isolated regression tests; do not merge overlapping candidates until one compatible chain is proven.
-3. Make tenant-isolation tests fail closed and run independent user/tenant/role negative tests. Do not infer isolation from static policy presence.
-4. Verify finance/settlement/report contracts, concurrency and replay handling; no fabricated or real-money test transactions without explicit approval.
-5. Converge critical Edge Function source with deployed source, then validate exact-head CI and deployed parity. Auth leaked-password protection remains an owner-controlled dashboard action.
-6. Only after safe prerequisites, run the approved external/runtime gates: payment sandbox E2E, notification/order E2E, backup/restore rehearsal, monitoring/incident drill, browser/PWA and Android release/device tests.
-
-### Track B — build and finish the product modules in dependency order
-Work in small, independently testable slices, reusing existing schema/RLS and existing module contracts wherever possible:
-1. **Shared platform foundation:** authentication, membership/tenant/business/branch scope, role/action contract, navigation, reusable record details, RTL/responsive/accessibility, safe error/telemetry and audit trail.
-2. **Core transaction chain:** customer/provider profiles and service catalog → order creation → provider acceptance/status transitions → notification delivery → payment intent/webhook → commission/settlement/ledger. Treat each boundary as its own testable module.
-3. **Operations and CRM:** orders/operations workspace, support tickets/messages, leads lifecycle, customer/provider separation, notifications and attention queue. Validate end-to-end routing and access by role.
-4. **Marketing & advertising workspace:** company/agency-scoped leads, partners/providers, projects, campaigns/ads, service assignments, budgets/results where authoritative sources exist, and reports. Campaign features depending on RC453 schema must show an explicit unavailable state until the compatible schema/RPC is verified.
-5. **Finance & ERP:** chart of accounts/journal, payment reconciliation, commissions, settlement, wallets, purchases/receipts/transfers, stock movements, and financial reports. No client-side financial authority; reconcile each metric to authoritative records.
-6. **MantiGO:** ride lifecycle, passenger/driver/operations scopes, Paymob intent claim and callback atomicity, platform-level dashboard/settlement guards, privacy boundary, and finance reports. Resolve overlapping PRs against one base before integration.
-7. **Digital pages & subscriptions:** public renderer, owner editor/fulfillment, payment intent/finalization, webhook confirmation, receipts/refunds contract, media/storage, QR/SEO/versioning and browser E2E.
-8. **Sector workspaces:** restaurant (menu, tables, inventory, orders), then audit education, medical, pharmacy, jobs/recruitment, reverse-auction and general service-provider workflows one by one. Do not claim these are complete until screens, data paths, permissions, and E2E contracts are inventoried.
-9. **Cross-cutting modules:** content/CMS, automation/notifications, analytics/reports, governance/audit, monitoring/maintenance, backup/recovery, offline/sync, performance, and accessibility. Keep each scoped to authoritative data and least privilege.
-10. **Release packaging:** web/PWA deploy and smoke, signed Android artifact and device regression, rollback, restore, monitoring, release notes and post-release smoke.
-
-## Module-by-module TODO register
-
-| Module / workstream | Current evidence/status | Remaining TODO / closure evidence |
-|---|---|---|
-| Admin / platform control center | PARTIAL; system health/security workspace recorded in earlier RCs | Audit all navigation entries and actions; role/action matrix; organization/branch scoping; health data provenance; actionable error states; keyboard/RTL/responsive checks; authenticated E2E. |
-| Identity, users, roles, memberships | Baseline implemented; runtime tenant/role E2E NOT VERIFIED | OTP/session/refresh/logout; active membership changes; IDOR denial; role-by-role and cross-tenant tests with independent sessions; owner-controlled leaked-password protection and fresh Advisor run. |
-| Customer & provider profiles/services | Source/RLS work documented; E2E NOT VERIFIED | Profile ownership, service catalog, coverage/availability, provider-only order visibility, consent/location minimization and cross-provider denial tests. |
-| Orders / operations | Core backend boundaries and order lifecycle invariants documented; runtime E2E open | Customer→provider→order→status→notification journey; allowed transitions, cancellation/refund rules, concurrent updates, branch/tenant isolation, browser E2E. |
-| Notifications / tasks / attention | Attention center implemented; task source not authoritative in prior audit | Delivery and click-through, Web Push lifecycle, duplicate/stale subscription cleanup, per-user isolation; do not invent tasks without an authoritative task source. |
-| CRM / support | CRM workspace implemented; deep E2E open | Lead lifecycle and assignment; ticket/message scope; customer/provider/staff separation; support cross-tenant tests; audit events and notifications. |
-| Marketing / agency / ads | PR #292 merged to main; tabbed leads/partners/projects/ads workspace and RC453-dependent campaign actions documented | Verify latest main Pages run; test business-scoped campaign reads and actions; audit provider directory data sanitization; define authoritative campaign/budget/performance metrics; explicit fallback until RC453 schema/RPC deployment is proven; agency-to-client isolation E2E. |
-| SMM Gateway | Several open candidate PRs; production parity/deployment not certified | Resolve provider timeout, ambiguous results, spend limits, global admin scope, credential least privilege, safe persistence and terminal states; secret redaction; provider contract tests and isolated integration tests; no deployment claim from source CI alone. |
-| Restaurant | Workspace implementation and CI documented; runtime/tenant E2E open | Menu/table/inventory/order workflows, owner/manager/staff scope, cross-branch denial, stock/order consistency, responsive/accessibility and authenticated E2E. |
-| MantiGO rides | Privacy boundary CI documented; payment candidate PRs overlap | Ride state machine and passenger/driver isolation; intent claim concurrency; callbacks/webhook atomicity; platform dashboard/settlement scope; finance-report column contract; sandbox E2E and exact-head CI. |
-| Finance / accounting / wallet / settlement | Finance workspace exists; real-money E2E NOT VERIFIED; RC450 contract/deployment mismatch noted | Verify journal schema/column contract and posting order; payment-to-commission-to-settlement-to-GL reconciliation; wallet ownership; replay/concurrency; tenant scope; do not mutate production or claim financial correctness without evidence. |
-| ERP / inventory / purchasing | AUDIT REQUIRED for each live screen/API/source contract | Products, locations, purchase orders/receipts, transfers, stock ledger, valuation and adjustments; enforce server-side authority and tenant/branch isolation; verify schema/migrations before implementing missing operations; transactional/concurrency tests. |
-| Digital pages / subscriptions | Content publishing/editor foundation documented; payment trust boundary BLOCKED; full fulfillment E2E open | Public render, owner editor, media/storage, safe publication lifecycle, server-only payment finalization, provider webhook binding, receipt/refund contract, QR/SEO/versioning, browser E2E and deployed-source parity. |
-| Catalog / pricing / coupons | IN PROGRESS | Canonical catalog per sector; server-authoritative price/discount/coupon validation; currency/tax/tenant binding where applicable; no client-side price authority; pricing regression tests. |
-| Education | AUDIT REQUIRED | Inventory current routes/screens/schema; map roles and lifecycle; implement only after confirming source/data contracts; E2E for institution isolation. |
-| Medical | AUDIT REQUIRED | Inventory current screens/data contracts; least-privilege access and sensitive-data minimization; role and tenant tests; no unsupported medical workflow assumptions. |
-| Pharmacy | AUDIT REQUIRED | Inventory catalog/stock/order flows and actual schema; authorization, inventory consistency and transaction tests; avoid inventing dispensing or prescription workflows not supported by product scope. |
-| Jobs / recruitment | AUDIT REQUIRED | Inventory employer/job/candidate/application flows; lifecycle, employer/candidate privacy and tenant/role isolation; E2E. |
-| Reverse auction / bidding | AUDIT REQUIRED | Inventory request/offer/award lifecycle; server-side price and state authority, deadline/concurrency handling, bidder isolation and replay tests. |
-| General services marketplace | PARTIAL; provider/order foundations exist | Sector catalog, provider discovery, service areas/availability, assignment and status lifecycle; cross-provider and cross-tenant E2E. |
-| Content / CMS / platform pages | AUDIT REQUIRED | Inventory current content editor/publication path; role controls, sanitization, preview/publish lifecycle and cache invalidation; verify public rendering. |
-| Analytics / reports / BI | PARTIAL; prior RC510 uses explicit loaded-record/sample semantics | Tenant/role scoping, date filters, pagination/drill-down, source provenance, reconciliation with authoritative tables; distinguish sample metrics from full-period totals; no duplicate business truth. |
-| Governance / audit | PARTIAL | Server-authoritative audit events; append-only privileges; actor/tenant scope; PII/IP/user-agent retention and redaction; integrity requirements; role-based read tests. |
-| Automation / webhooks | PARTIAL | Retry/backoff, idempotency, dead-letter/alerting, correlation IDs, signature validation and operational runbooks; verify under duplicate/concurrent delivery. |
-| Offline / sync / realtime | PARTIAL / WAIT | Per-operation endpoint, idempotency and conflict policy; device offline/online regression; do not replace polling without a verified subscription path. |
-| Security / database / migrations | BLOCKED by release chain and payment trust boundary | Source ledger and ordered replay in disposable DB; RLS and grants audit; per-function SECURITY DEFINER review; exact deployed-source parity; never edit historical migration definitions or apply unapproved production changes. |
-| Monitoring / maintenance | PARTIAL | Error/severity aggregation, alerts, incident drill, health check coverage and actionable dashboards; prove no sensitive data/secrets in logs. |
-| Backup / disaster recovery | NOT VERIFIED | Approved restore rehearsal in controlled environment; RPO/RTO; two-tenant integrity; rollback evidence. |
-| Web / PWA / Android release | Web checks exist for prior commits; current main deployment and authenticated browser flow need verification; signed Android artifact absent from evidence | Exact-main CI/deploy/smoke, authenticated browser E2E, offline cache/version behavior, accessibility/responsive checks, signed AAB/APK checksum and real-device regression. |
-
-## Definition of Done for every module
-A module cannot be marked DONE until all applicable items are evidenced:
-- [ ] Screens/routes and user journeys inventoried; no placeholder is mistaken for a real workflow.
-- [ ] Database schema/migration dependency and authoritative data source verified.
-- [ ] Server-side authorization and tenant/business/branch/role scope reviewed.
-- [ ] Loading, empty, unavailable, error, retry, duplicate-submit and concurrency states handled.
-- [ ] Responsive RTL, accessibility, keyboard and safe user-facing errors checked.
-- [ ] Unit/contract/integration tests pass at the exact candidate commit.
-- [ ] Negative tests prove unauthorized and cross-tenant operations are denied.
-- [ ] Edge/RPC/deployed source parity verified where relevant.
-- [ ] Operational logging, alerts, recovery and rollback documented for critical flows.
-- [ ] PR integrated only after base/dependency/CI review; production release remains separately gated.
-
-## Immediate next work batch
-1. Inspect and reconcile PRs #286 and #295 and related payment/migration candidates against main; do not merge the overlapping chain until its exact ordered history and clean disposable replay are proven.
-2. Continue PR #272/#268/#281 digital payment finalization review as one trust-boundary change; run isolated regression evidence and avoid competing migrations.
-3. Re-run exact-main workflows and the fail-closed tenant-isolation verifier after candidate consolidation.
-4. In parallel, audit module entrypoints/screens against the register above, beginning with the shared role/tenant boundary and the core customer/provider/order/notification chain; then verify the merged marketing workspace and its RC453 dependency.
-5. Append a concise RC checkpoint after each material verified batch. Never edit docs/SESSION_LOG.md unless explicitly authorized; keep this TODO and PROJECT_CONTINUITY current.
-
-
 ## حالات التنفيذ
 - DONE: التنفيذ/المراجعة البرمجية مكتملة بالأدلة المتاحة.
 - PARTIAL: جزء مكتمل وباقي أجزاء مفتوحة.
@@ -1856,6 +1768,94 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Payment remediation PR #297 remains **draft**, based on the RC425–RC526 candidate branch. The code head `a661e3a1111e759919de855769c99fb3067b167f` passed its four source/security workflows; full migration replay and post-replay grants/body/tenant isolation passed at `e7c6d08854fe2c25d2f061846fa69e292efb1663`.
 - Live production parity is still BLOCKED by the actual live four-argument finalizer and Edge Function v5 user-scoped call. Do not merge or deploy based on candidate-only CI.
 
+
+
+# RC527 — Master module completion register and execution order — 2026-10-18
+
+## Purpose and status semantics
+This register complements the P0–P3 production gates below. It tracks product/module completion as well as release readiness; neither one substitutes for the other.
+- **IMPLEMENTED** means source/UI or a workflow is present; it does not imply end-to-end or production verification.
+- **PARTIAL** means a documented slice exists and remaining functionality or verification is open.
+- **AUDIT REQUIRED** means inspect the current main source, database contract, route/menu entry, and related PRs before assigning a stronger status.
+- **BLOCKED** means do not advance to production until the named dependency/evidence is resolved.
+- Never mark a module complete solely because a dashboard, placeholder, CI job, or open PR exists.
+
+## Correct execution order
+
+### Track A — unblock the release-critical foundation first
+1. Reconcile RC425–RC526 candidate work and the migration/source history using the authoritative reviewed source; preserve the production ledger checkpoint at RC424 until live evidence says otherwise. No reconstructed historical DDL, no out-of-order migration, and no production mutation without explicit approval.
+2. Close the payment trust-boundary and atomicity source contracts: digital-page finalization, MantiGO Paymob intent claim/callbacks, payment webhook HMAC/order/amount/currency binding, idempotency, and server-only privileged RPC grants. Add isolated regression tests; do not merge overlapping candidates until one compatible chain is proven.
+3. Make tenant-isolation tests fail closed and run independent user/tenant/role negative tests. Do not infer isolation from static policy presence.
+4. Verify finance/settlement/report contracts, concurrency and replay handling; no fabricated or real-money test transactions without explicit approval.
+5. Converge critical Edge Function source with deployed source, then validate exact-head CI and deployed parity. Auth leaked-password protection remains an owner-controlled dashboard action.
+6. Only after safe prerequisites, run the approved external/runtime gates: payment sandbox E2E, notification/order E2E, backup/restore rehearsal, monitoring/incident drill, browser/PWA and Android release/device tests.
+
+### Track B — build and finish the product modules in dependency order
+Work in small, independently testable slices, reusing existing schema/RLS and existing module contracts wherever possible:
+1. **Shared platform foundation:** authentication, membership/tenant/business/branch scope, role/action contract, navigation, reusable record details, RTL/responsive/accessibility, safe error/telemetry and audit trail.
+2. **Core transaction chain:** customer/provider profiles and service catalog → order creation → provider acceptance/status transitions → notification delivery → payment intent/webhook → commission/settlement/ledger. Treat each boundary as its own testable module.
+3. **Operations and CRM:** orders/operations workspace, support tickets/messages, leads lifecycle, customer/provider separation, notifications and attention queue. Validate end-to-end routing and access by role.
+4. **Marketing & advertising workspace:** company/agency-scoped leads, partners/providers, projects, campaigns/ads, service assignments, budgets/results where authoritative sources exist, and reports. Campaign features depending on RC453 schema must show an explicit unavailable state until the compatible schema/RPC is verified.
+5. **Finance & ERP:** chart of accounts/journal, payment reconciliation, commissions, settlement, wallets, purchases/receipts/transfers, stock movements, and financial reports. No client-side financial authority; reconcile each metric to authoritative records.
+6. **MantiGO:** ride lifecycle, passenger/driver/operations scopes, Paymob intent claim and callback atomicity, platform-level dashboard/settlement guards, privacy boundary, and finance reports. Resolve overlapping PRs against one base before integration.
+7. **Digital pages & subscriptions:** public renderer, owner editor/fulfillment, payment intent/finalization, webhook confirmation, receipts/refunds contract, media/storage, QR/SEO/versioning and browser E2E.
+8. **Sector workspaces:** restaurant (menu, tables, inventory, orders), then audit education, medical, pharmacy, jobs/recruitment, reverse-auction and general service-provider workflows one by one. Do not claim these are complete until screens, data paths, permissions, and E2E contracts are inventoried.
+9. **Cross-cutting modules:** content/CMS, automation/notifications, analytics/reports, governance/audit, monitoring/maintenance, backup/recovery, offline/sync, performance, and accessibility. Keep each scoped to authoritative data and least privilege.
+10. **Release packaging:** web/PWA deploy and smoke, signed Android artifact and device regression, rollback, restore, monitoring, release notes and post-release smoke.
+
+## Module-by-module TODO register
+
+| Module / workstream | Current evidence/status | Remaining TODO / closure evidence |
+|---|---|---|
+| Admin / platform control center | PARTIAL; system health/security workspace recorded in earlier RCs | Audit all navigation entries and actions; role/action matrix; organization/branch scoping; health data provenance; actionable error states; keyboard/RTL/responsive checks; authenticated E2E. |
+| Identity, users, roles, memberships | Baseline implemented; runtime tenant/role E2E NOT VERIFIED | OTP/session/refresh/logout; active membership changes; IDOR denial; role-by-role and cross-tenant tests with independent sessions; owner-controlled leaked-password protection and fresh Advisor run. |
+| Customer & provider profiles/services | Source/RLS work documented; E2E NOT VERIFIED | Profile ownership, service catalog, coverage/availability, provider-only order visibility, consent/location minimization and cross-provider denial tests. |
+| Orders / operations | Core backend boundaries and order lifecycle invariants documented; runtime E2E open | Customer→provider→order→status→notification journey; allowed transitions, cancellation/refund rules, concurrent updates, branch/tenant isolation, browser E2E. |
+| Notifications / tasks / attention | Attention center implemented; task source not authoritative in prior audit | Delivery and click-through, Web Push lifecycle, duplicate/stale subscription cleanup, per-user isolation; do not invent tasks without an authoritative task source. |
+| CRM / support | CRM workspace implemented; deep E2E open | Lead lifecycle and assignment; ticket/message scope; customer/provider/staff separation; support cross-tenant tests; audit events and notifications. |
+| Marketing / agency / ads | PR #292 merged to main; tabbed leads/partners/projects/ads workspace and RC453-dependent campaign actions documented | Verify latest main Pages run; test business-scoped campaign reads and actions; audit provider directory data sanitization; define authoritative campaign/budget/performance metrics; explicit fallback until RC453 schema/RPC deployment is proven; agency-to-client isolation E2E. |
+| SMM Gateway | Several open candidate PRs; production parity/deployment not certified | Resolve provider timeout, ambiguous results, spend limits, global admin scope, credential least privilege, safe persistence and terminal states; secret redaction; provider contract tests and isolated integration tests; no deployment claim from source CI alone. |
+| Restaurant | Workspace implementation and CI documented; runtime/tenant E2E open | Menu/table/inventory/order workflows, owner/manager/staff scope, cross-branch denial, stock/order consistency, responsive/accessibility and authenticated E2E. |
+| MantiGO rides | Privacy boundary CI documented; payment candidate PRs overlap | Ride state machine and passenger/driver isolation; intent claim concurrency; callbacks/webhook atomicity; platform dashboard/settlement scope; finance-report column contract; sandbox E2E and exact-head CI. |
+| Finance / accounting / wallet / settlement | Finance workspace exists; real-money E2E NOT VERIFIED; RC450 contract/deployment mismatch noted | Verify journal schema/column contract and posting order; payment-to-commission-to-settlement-to-GL reconciliation; wallet ownership; replay/concurrency; tenant scope; do not mutate production or claim financial correctness without evidence. |
+| ERP / inventory / purchasing | AUDIT REQUIRED for each live screen/API/source contract | Products, locations, purchase orders/receipts, transfers, stock ledger, valuation and adjustments; enforce server-side authority and tenant/branch isolation; verify schema/migrations before implementing missing operations; transactional/concurrency tests. |
+| Digital pages / subscriptions | Content publishing/editor foundation documented; payment trust boundary BLOCKED; full fulfillment E2E open | Public render, owner editor, media/storage, safe publication lifecycle, server-only payment finalization, provider webhook binding, receipt/refund contract, QR/SEO/versioning, browser E2E and deployed-source parity. |
+| Catalog / pricing / coupons | IN PROGRESS | Canonical catalog per sector; server-authoritative price/discount/coupon validation; currency/tax/tenant binding where applicable; no client-side price authority; pricing regression tests. |
+| Education | AUDIT REQUIRED | Inventory current routes/screens/schema; map roles and lifecycle; implement only after confirming source/data contracts; E2E for institution isolation. |
+| Medical | AUDIT REQUIRED | Inventory current screens/data contracts; least-privilege access and sensitive-data minimization; role and tenant tests; no unsupported medical workflow assumptions. |
+| Pharmacy | AUDIT REQUIRED | Inventory catalog/stock/order flows and actual schema; authorization, inventory consistency and transaction tests; avoid inventing dispensing or prescription workflows not supported by product scope. |
+| Jobs / recruitment | AUDIT REQUIRED | Inventory employer/job/candidate/application flows; lifecycle, employer/candidate privacy and tenant/role isolation; E2E. |
+| Reverse auction / bidding | AUDIT REQUIRED | Inventory request/offer/award lifecycle; server-side price and state authority, deadline/concurrency handling, bidder isolation and replay tests. |
+| General services marketplace | PARTIAL; provider/order foundations exist | Sector catalog, provider discovery, service areas/availability, assignment and status lifecycle; cross-provider and cross-tenant E2E. |
+| Content / CMS / platform pages | AUDIT REQUIRED | Inventory current content editor/publication path; role controls, sanitization, preview/publish lifecycle and cache invalidation; verify public rendering. |
+| Analytics / reports / BI | PARTIAL; prior RC510 uses explicit loaded-record/sample semantics | Tenant/role scoping, date filters, pagination/drill-down, source provenance, reconciliation with authoritative tables; distinguish sample metrics from full-period totals; no duplicate business truth. |
+| Governance / audit | PARTIAL | Server-authoritative audit events; append-only privileges; actor/tenant scope; PII/IP/user-agent retention and redaction; integrity requirements; role-based read tests. |
+| Automation / webhooks | PARTIAL | Retry/backoff, idempotency, dead-letter/alerting, correlation IDs, signature validation and operational runbooks; verify under duplicate/concurrent delivery. |
+| Offline / sync / realtime | PARTIAL / WAIT | Per-operation endpoint, idempotency and conflict policy; device offline/online regression; do not replace polling without a verified subscription path. |
+| Security / database / migrations | BLOCKED by release chain and payment trust boundary | Source ledger and ordered replay in disposable DB; RLS and grants audit; per-function SECURITY DEFINER review; exact deployed-source parity; never edit historical migration definitions or apply unapproved production changes. |
+| Monitoring / maintenance | PARTIAL | Error/severity aggregation, alerts, incident drill, health check coverage and actionable dashboards; prove no sensitive data/secrets in logs. |
+| Backup / disaster recovery | NOT VERIFIED | Approved restore rehearsal in controlled environment; RPO/RTO; two-tenant integrity; rollback evidence. |
+| Web / PWA / Android release | Web checks exist for prior commits; current main deployment and authenticated browser flow need verification; signed Android artifact absent from evidence | Exact-main CI/deploy/smoke, authenticated browser E2E, offline cache/version behavior, accessibility/responsive checks, signed AAB/APK checksum and real-device regression. |
+
+## Definition of Done for every module
+A module cannot be marked DONE until all applicable items are evidenced:
+- [ ] Screens/routes and user journeys inventoried; no placeholder is mistaken for a real workflow.
+- [ ] Database schema/migration dependency and authoritative data source verified.
+- [ ] Server-side authorization and tenant/business/branch/role scope reviewed.
+- [ ] Loading, empty, unavailable, error, retry, duplicate-submit and concurrency states handled.
+- [ ] Responsive RTL, accessibility, keyboard and safe user-facing errors checked.
+- [ ] Unit/contract/integration tests pass at the exact candidate commit.
+- [ ] Negative tests prove unauthorized and cross-tenant operations are denied.
+- [ ] Edge/RPC/deployed source parity verified where relevant.
+- [ ] Operational logging, alerts, recovery and rollback documented for critical flows.
+- [ ] PR integrated only after base/dependency/CI review; production release remains separately gated.
+
+## Immediate next work batch
+1. Inspect and reconcile PRs #286 and #295 and related payment/migration candidates against main; do not merge the overlapping chain until its exact ordered history and clean disposable replay are proven.
+2. Continue PR #272/#268/#281 digital payment finalization review as one trust-boundary change; run isolated regression evidence and avoid competing migrations.
+3. Re-run exact-main workflows and the fail-closed tenant-isolation verifier after candidate consolidation.
+4. In parallel, audit module entrypoints/screens against the register above, beginning with the shared role/tenant boundary and the core customer/provider/order/notification chain; then verify the merged marketing workspace and its RC453 dependency.
+5. Append a concise RC checkpoint after each material verified batch. Never edit docs/SESSION_LOG.md unless explicitly authorized; keep this TODO and PROJECT_CONTINUITY current.
 
 ## RC528 — Candidate chain CI and overlap audit — 2026-10-19
 
