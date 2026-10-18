@@ -1353,9 +1353,11 @@ const mantigoOpenRidesBaselineValid =
   /NOT claimed to be the original creation migration/i.test(mantigoOpenRidesBaseline) &&
   /Never apply this file to production/i.test(mantigoOpenRidesBaseline) &&
   /CREATE OR REPLACE FUNCTION public\.list_open_mantigo_rides_backend\s*\(\s*p_user_id\s+uuid\s*\)[\s\S]*RETURNS TABLE/i.test(mantigoOpenRidesBaseline) &&
+  /CREATE OR REPLACE FUNCTION public\.list_mantigo_captain_rides_backend\s*\(\s*p_user_id\s+uuid\s*\)[\s\S]*RETURNS TABLE/i.test(mantigoOpenRidesBaseline) &&
   /SECURITY DEFINER[\s\S]*SET search_path = public/i.test(mantigoOpenRidesBaseline) &&
   /USER_CONTEXT_MISMATCH/i.test(mantigoOpenRidesBaseline) &&
   /status IN \('OPEN', 'OPEN_FOR_BIDS'\)/i.test(mantigoOpenRidesBaseline) &&
+  /b\.status = 'ACCEPTED'/i.test(mantigoOpenRidesBaseline) &&
   /GROUP BY r\.id/i.test(mantigoOpenRidesBaseline) &&
   !/\b(insert\s+into|update\s+public\.|delete\s+from|copy\s+(public|private)\.)/i.test(mantigoOpenRidesBaseline);
 const mantigoOpenRidesWorkflowValid =
@@ -1370,7 +1372,7 @@ if (!mantigoOpenRidesBaselineValid || !mantigoOpenRidesWorkflowValid ||
   console.error("P0 BLOCKED: MantiGO open-rides test-only baseline failed provenance, function-contract, no-data, workflow-injection, or no-collision validation.");
   process.exit(1);
 }
-console.warn("P0 LIMITATION: MantiGO open-rides function is live-derived test-only compatibility scaffolding; original historical creation provenance remains unresolved.");
+console.warn("P0 LIMITATION: MantiGO read functions are live-derived test-only compatibility scaffolding; original historical creation provenance remains unresolved.");
 
-console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived function compatibility fixture validated.");
+console.log("Disposable compatibility preflight PASS: digital-page compatibility fixtures, approved live-derived credit table fixtures, legacy pre-existing table fixtures, core live-derived table baselines, approved SMM fixtures, and live-derived MantiGO function compatibility fixtures validated.");
 console.warn("This is not proof of a clean historical replay: test-only live-derived baselines replace missing historical DDL only in disposable CI.");
