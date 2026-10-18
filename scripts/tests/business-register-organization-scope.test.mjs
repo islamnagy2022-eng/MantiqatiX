@@ -18,4 +18,7 @@ assert.doesNotMatch(source, /return response\(\{error:error instanceof Error\?er
 assert.match(source, /const body=await req\.json\(\)\.catch\(\(\)=>null\)/);
 assert.match(source, /if\(!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)\)return response\(\{error:"INVALID_JSON_BODY"\},400\)/);
 
-assert.match(source, /data:existing,error:existingError[\s\S]{0,260}if\(existingError\)throw existingError/);\n\nconsole.log("business-register tenant and organization security contract: PASS (15 assertions)");
+assert.match(source, /const \{data:existing,error:existingError\}=await supabase\.from\("approval_requests"\)/);
+assert.match(source, /if\(existingError\)throw existingError/);
+
+console.log("business-register tenant and organization security contract: PASS (16 assertions)");
