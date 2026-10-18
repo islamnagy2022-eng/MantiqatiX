@@ -1749,3 +1749,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The isolated PostgreSQL finalization workflow now passes after correcting the test fixture's role boundary. It exercises the 4- and 5-argument server-only finalizers, denies authenticated direct execution, rejects stale claim tokens and wrong-user binding, permits same-identifier retries while pending, and rejects conflicting provider-intent/provider-order replay.
 - Exact-head related CI: Digital Page Payment Finalization Isolation PASS; Migration Version Uniqueness PASS; Migration History Immutability PASS; Open PR Migration Collision Guard PASS; Module Professionalization Validation PASS; Backend-only Module Boundary PASS; MantiGO Open Ride Privacy Boundary PASS; Approval Action Audit Atomicity PASS; Pages validation PASS with deploy skipped for the PR event.
 - This verifies candidate source and disposable PostgreSQL behavior only. It does not verify production migration ledger/function grants/deployed Edge Function parity and does not authorize merge or deployment.
+
+
+## RC531 — Candidate integration branch prepared — 2026-10-18
+- Created isolated branch `integration/rc425-526-digital-page-finalization-20261018` from the RC425–RC526 candidate branch and layered the exact-head PR #268 finalization source, migration, workflow, and regression tests onto it.
+- Purpose: validate chronological compatibility of the server-only finalizer after the RC426 provider-order binding and RC526 claim migrations, without merging either candidate or touching main.
+- This branch is an integration candidate only. The available workflow-run lookup has not exposed its push-triggered replay result, so the combined migration-chain result remains **NOT VERIFIED** at this checkpoint.
+- No PR was opened for this integration branch, and no production change or merge was performed.
