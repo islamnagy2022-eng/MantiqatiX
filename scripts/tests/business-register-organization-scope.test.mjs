@@ -9,4 +9,4 @@ assert.match(source, /if\(requestedOrganizationId&&!superAdmin&&String\(membersh
 assert.match(source, /from\("organizations"\)[\s\S]{0,180}\.eq\("id",requestedOrganizationId\)\.eq\("tenant_id",tenantId\)\.maybeSingle\(\)/);
 assert.match(source, /if\(organizationError\)throw organizationError;\s*if\(!organization\)return response\(\{error:"ORGANIZATION_SCOPE_FORBIDDEN"\},403\);/);
 assert.match(source, /resolvedOrganizationId=\(requestedOrganizationId&&superAdmin\)\?requestedOrganizationId:\(membership\?\.organization_id\|\|null\)/);
-console.log("business-register organization scope contract: PASS (6 assertions)");
+// Regression guard: keep tenant ownership checks mandatory whenever the service-role function accepts an organization ID.\nassert.match(source, /const resolvedOrganizationId=\(requestedOrganizationId&&superAdmin\)\?requestedOrganizationId:\(membership\?\.organization_id\|\|null\)/);\nconsole.log("business-register organization scope contract: PASS (7 assertions)");
