@@ -1830,3 +1830,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Read-only Edge Function retrieval found live `digital-page-payment-intent` version 5 still calls `userClient.rpc("finalize_digital_page_payment_intent_backend", ...)` with the four-argument signature and does not bind provider order ID. This directly confirms that the candidate fix has **not** been deployed to production.
 - Live migration ledger remains at `20261008222845 / rc424_atomic_digital_page_payment_webhook`; the relevant RC425+ release migrations are not present in the live ledger. No production data/schema/grants/secrets/functions were changed.
 - Release stays BLOCKED. Do not hotfix the grant or deploy Edge Function independently/out of order; first complete the reviewed candidate chain, then require explicit approval and a coordinated migration/function rollout with live verification.
+
+
+## RC537 — Explicit live finalizer parity gate added — 2026-10-18
+- Added P0 `DIG-FINALIZE-LIVE-PARITY` to the candidate production verifier. It requires explicit timestamped evidence for live overload grants, live function body, deployed Edge Function source parity, exact Edge Function version, and SHA-256 source hash before it can PASS.
+- Added corresponding `NOT VERIFIED` fields to `docs/release/production-migration-reconciliation.json`, grounded in the read-only live check showing the legacy four-argument finalizer remains authenticated-executable and the deployed Edge Function still calls it through the user-scoped client.
+- Updated the isolated finalization workflow to assert the source boundary is PASS while live parity and global production release remain BLOCKED until evidence is recorded.
+- Latest exact-head CI is pending; do not claim this new assertion passed until the workflow finishes. No production state was modified.
