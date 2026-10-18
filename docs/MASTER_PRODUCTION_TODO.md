@@ -1876,6 +1876,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Inspected full replay run `39079676044` at code SHA `8c3814ec12206769a6be546a9afc7ed80450554d`.
 - [x] Confirmed the prior `list_open_mantigo_rides_backend(uuid)` missing-function blocker was passed after the disposable-only baseline injection.
 - [ ] Current replay blocker: `20261006101048_rc_mantigo_production_completion_v1.sql`, statement 12, missing `public.list_mantigo_captain_rides_backend(uuid)` (`SQLSTATE 42883`).
-- [ ] Inspect trusted schema-only snapshot and repository history for the exact function definition/signature before proposing any test-only compatibility baseline.
+- [x] Verified exact function signature/body against trusted schema-only snapshot blob `8d096904c777b4c7eae096014b45c59859c96cee` and current read-only live catalog.
+- [x] Extended the existing disposable-only function baseline and fail-closed validator to cover both MantiGO read functions; no historical migration was changed.
+- [ ] Run and inspect the next exact-head chronological replay; do not claim success before the workflow finishes.
 - [ ] Do not synthesize historical DDL, alter historical migrations, or add unapproved fixtures. Existing `marketing_provider_services` / `MNTY-MAIN` fixture approval gate remains separate and unresolved.
 - Final production gate remains **BLOCKED / NOT CERTIFIED**; no merge, deployment, production migration, or production data mutation.
