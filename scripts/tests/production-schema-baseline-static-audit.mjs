@@ -35,20 +35,35 @@ if (missingRls.length) fail("public tables missing RLS enablement: " + missingRl
 const policyCount = [...snapshot.matchAll(/CREATE POLICY /g)].length;
 const securityDefiner = [];
 const lines = snapshot.split("\n");
+const functionDeclarations = [];
 for (let i = 0; i < lines.length; i++) {
   if (!/^CREATE OR REPLACE FUNCTION /.test(lines[i])) continue;
+
+  // SECURITY DEFINER and SET search_path are function-header attributes.
+  // Stop at the AS dollar-quote opener rather than assuming the body ends with $;
+  // pg_dump may use different dollar tags and body delimiters.
   let j = i;
-  while (j < lines.length && !/^\$\$;?\s*$/.test(lines[j].trim()) && j < i + 600) j++;
-  const block = lines.slice(i, Math.min(lines.length, j + 1)).join("\n");
-  if (!/SECURITY DEFINER/i.test(block)) continue;
+  while (j < lines.length && j < i + 120 && !/^\s*AS\s+\$[A-Za-z_0-9]*\$\s*;?\s*$/i.test(lines[j])) j++;
+  if (j >= lines.length || j >= i + 120) {
+    fail("could not find function body opener for declaration at line " + (i + 1));
+  }
+
+  const header = lines.slice(i, j + 1).join("\n");
   const m = lines[i].match(/^CREATE OR REPLACE FUNCTION "([^"]+)"\."([^"]+)"\(/);
-  if (!m) { fail("could not parse SECURITY DEFINER function declaration at line " + (i + 1)); }
+  if (!m) fail("could not parse function declaration at line " + (i + 1));
   const [, schema, name] = m;
+  functionDeclarations.push({ schema, name, header, line: i + 1 });
+
+  if (!/\bSECURITY DEFINER\b/i.test(header)) continue;
   const revoke = lines.some(line => line.trim().startsWith(`REVOKE ALL ON FUNCTION "${schema}"."${name}"(`) && line.includes(" FROM PUBLIC;"));
-  const hasPath = /SET "search_path" TO /i.test(block);
-  securityDefiner.push({ schema, name, hasPath, hasPublicRevoke: revoke });
+  const hasPath = /SET "search_path" TO /i.test(header);
+  securityDefiner.push({ schema, name, hasPath, hasPublicRevoke: revoke, line: i + 1 });
 }
+const declaredSecurityDefinerCount = [...snapshot.matchAll(/\bSECURITY DEFINER\b/gi)].length;
 if (!securityDefiner.length) fail("no SECURITY DEFINER functions parsed");
+if (declaredSecurityDefinerCount !== securityDefiner.length) {
+  fail("SECURITY DEFINER header coverage mismatch: snapshot has " + declaredSecurityDefinerCount + " occurrences but parser accounted for " + securityDefiner.length + " function headers");
+}
 const missingPath = securityDefiner.filter(f => !f.hasPath);
 const missingRevoke = securityDefiner.filter(f => !f.hasPublicRevoke);
 if (missingPath.length) fail("SECURITY DEFINER functions missing search_path: " + missingPath.map(f => f.schema + "." + f.name).join(", "));
