@@ -15,8 +15,9 @@ assert.match(source, /if\(tenantError\)throw tenantError;\s*if\(!tenant\)return 
 assert.match(source, /console\.error\("business-register failed",error instanceof Error\?error\.message:"unknown_error"\)/);
 assert.match(source, /return response\(\{error:"BUSINESS_REGISTER_FAILED"\},500\)/);
 assert.doesNotMatch(source, /return response\(\{error:error instanceof Error\?error\.message/);
-assert.match(source, /const body=await req\.json\(\)\.catch\(\(\)=>null\)/);
+assert.match(source, /const rawBody=await req\.text\(\)/);
 assert.match(source, /if\(!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)\)return response\(\{error:"INVALID_JSON_BODY"\},400\)/);
+assert.match(source, /try\{body=JSON\.parse\(rawBody\);\}catch\{body=null;\}/);
 
 assert.match(source, /const \{data:existing,error:existingError\}=await supabase\.from\("approval_requests"\)/);
 assert.match(source, /if\(existingError\)throw existingError/);
