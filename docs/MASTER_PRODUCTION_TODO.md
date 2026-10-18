@@ -1646,3 +1646,6 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added client-side search by campaign title/objective and status filtering to the currently loaded, active-business-scoped campaign list.
 - [x] Added a visible count of filtered versus total campaigns; filtering only changes the current view and does not mutate backend data.
 - [ ] NOT VERIFIED: implementation-only per user instruction; no tests, browser execution, review, CI, or deployment performed.
+
+
+- [x] Preserved this implementation batch in Draft PR [#299](https://github.com/islamnagy2022-eng/MantiqatiX/pull/299) against `main`; PR remains unmerged and NOT VERIFIED.
