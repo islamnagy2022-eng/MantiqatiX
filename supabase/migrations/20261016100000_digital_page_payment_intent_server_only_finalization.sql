@@ -130,6 +130,12 @@ begin
     return false;
   end if;
 
+  -- Fail closed if an order ID was already bound without its matching intent.
+  -- Never overwrite a partial or conflicting provider correlation.
+  if v_provider_order_id is not null then
+    return false;
+  end if;
+
   update public.digital_page_orders
   set provider = 'PAYMOB',
       provider_intent_id = p_provider_intent_id,
