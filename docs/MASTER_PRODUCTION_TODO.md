@@ -1644,3 +1644,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Live Supabase remains at RC424. RC431 payment hardening, RC450 financial-journal contract, deployed Edge Function parity, Paymob sandbox/finance E2E, tenant isolation, backup/restore, Auth review, and deployment verification remain release blockers.
 - Do not fabricate the missing historical creation migration for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`, alter historical migrations, or apply RC431/RC450/RC453/RC526 out of order. No production changes are authorized by this candidate.
 - Release gate: **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — RC432 cross-PR collision remediation
+
+- [x] Exact-head PR #286 CI exposed a real RC432 source collision: eight open draft PRs carried the same migration path/version but a different blob (e6fafae64059671b32d8b1cf932d8f59171561d0) than the reviewed canonical source.
+- [x] Updated only the duplicated RC432 file on draft branches for PRs #282, #273, #271, #252, #248, #220, #218, and #84 to the canonical blob 7d2f8a27d173f04cbc22cec0a801818bde3aac07. Their unrelated files were left untouched; each branch update created its own commit.
+- [ ] Fresh collision-guard CI on PR #286 must confirm no remaining conflicting migration versions across open PRs. Do not infer success from the branch edits alone.
+- [ ] Keep PR #286 Draft and release BLOCKED / NOT CERTIFIED until all exact-head workflows pass and live production acceptance gates close.
