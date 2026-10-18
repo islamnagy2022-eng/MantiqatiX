@@ -1301,6 +1301,19 @@ function marketingCampaignWorkspace(){
  ):(
   '<section class="card" style="padding:16px;margin:16px 0"><h3>إنشاء الحملات متاح لمديري النشاط</h3><p class="muted">اختر عضوية نشطة مرتبطة بنشاط تجاري مخول لإدارة التسويق. الوصول الفعلي يُتحقق منه في الخادم.</p></section>'
  );
+ const campaignCountByStatus=campaigns.reduce((counts,c)=>{const status=String(c.status||'DRAFT').toUpperCase();counts[status]=(counts[status]||0)+1;return counts;},{});
+ const campaignBudgetByCurrency=campaigns.reduce((totals,c)=>{const currency=String(c.currency||'EGP').toUpperCase();const amount=Number(c.budget);if(Number.isFinite(amount)&&amount>=0)totals[currency]=(totals[currency]||0)+amount;return totals;},{});
+ const budgetSummary=Object.entries(campaignBudgetByCurrency).sort(([a],[b])=>a.localeCompare(b)).map(([currency,amount])=>amount.toLocaleString('en-US',{maximumFractionDigits:2})+' '+currency).join(' · ');
+ const pendingPartnerInvites=participants.filter(p=>String(p.status||'').toUpperCase()==='INVITED').length;
+ const acceptedPartnerAssignments=participants.filter(p=>String(p.status||'').toUpperCase()==='ACCEPTED').length;
+ const campaignOperationsSummary=workspaceCards([
+  ['إجمالي الحملات',String(campaigns.length),'الحملات التابعة للنشاط المحدد فقط'],
+  ['تحتاج مراجعة',String(campaignCountByStatus.IN_REVIEW||0),'خطط تنتظر القرار الداخلي'],
+  ['معتمدة داخليًا',String(campaignCountByStatus.APPROVED||0),'لا يعني نشرًا على منصة خارجية'],
+  ['دعوات شراكة معلقة',String(pendingPartnerInvites),'دعوات لم يصل ردها بعد'],
+  ['تعاونات مقبولة',String(acceptedPartnerAssignments),'إسنادات شراكة مقبولة'],
+  ['الميزانيات المخططة',budgetSummary||'—','مجمعة حسب العملة دون خلط العملات']
+ ]);
  const campaignCards=campaigns.length?campaigns.map(c=>{
   const mine=canManage&&String(c.business_id)===String(live.businessId);
   const next=validNext(c);
@@ -1337,7 +1350,7 @@ function marketingCampaignWorkspace(){
  }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
  return marketingAgencyWorkspace()+
   '<section class="records" data-marketing-campaign-workspace><div class="section-head"><div><span class="eyebrow">INTERNAL CAMPAIGN WORKFLOW</span><h2>الحملات والتعاون مع الشركاء</h2><p class="muted">إدارة داخلية للخطط والدعوات. لا يوجد نشر خارجي تلقائي أو اتصال مباشر بمنصات الإعلانات.</p></div><span class="mnty-badge">RC453</span></div>'+
-  errorPanel+createForm+
+  errorPanel+campaignOperationsSummary+createForm+
   '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div>'+campaignCards+'</section>'+
   inviteForm+
   '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div>'+participantCards+'</section></section>';
