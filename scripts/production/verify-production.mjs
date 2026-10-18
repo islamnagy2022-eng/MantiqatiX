@@ -15,6 +15,28 @@ const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabas
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
+const digitalFinalizerMigrationPath="supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql";
+const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
+const digitalFinalizerUsesUserClient=digital.includes('userClient.rpc("finalize_digital_page_payment_intent_backend"');
+const digitalFinalizerUsesAdminClient=digital.includes('admin.rpc("finalize_digital_page_payment_intent_backend"');
+const legacyFourArgDisabled=
+  digitalFinalizerMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from public;") &&
+  digitalFinalizerMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from anon;") &&
+  digitalFinalizerMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from authenticated;") &&
+  digitalFinalizerMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text) from service_role;");
+const providerBoundFiveArgServiceOnly=
+  digitalFinalizerMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) from public, anon, authenticated, service_role") &&
+  digitalFinalizerMigration.includes("revoke all on function public.finalize_digital_page_payment_intent_backend(uuid, uuid, text, text, text) from authenticated;") &&
+  digitalFinalizerMigration.includes("grant execute on function public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text) to service_role;");
+const digitalFinalizerGateStatus=!digital||!digitalFinalizerMigration?"NOT VERIFIED":
+  digitalFinalizerUsesUserClient||!digitalFinalizerUsesAdminClient||!legacyFourArgDisabled||!providerBoundFiveArgServiceOnly?"BLOCKED":"PASS";
+add("DIG-FINALIZE-TRUST-BOUNDARY","SECURITY",digitalFinalizerGateStatus,
+  digitalFinalizerGateStatus==="PASS"
+    ?"Source contract uses the trusted admin client; the legacy four-argument overload is disabled for all API/service roles and only the provider-order-bound five-argument overload is granted to service_role. Deployed parity and runtime evidence remain separate release gates."
+    :digitalFinalizerGateStatus==="BLOCKED"
+      ?"Digital-page finalization source or migration grants do not prove a server-only provider-order-bound finalizer; authenticated callers and the legacy overload must remain blocked."
+      :"Cannot prove a safe digital-page finalization trust boundary from checked source.",
+  "P0");
 const mantigoIntentPath="supabase/functions/mantigo-payment-intent/index.ts";
 const mantigoIntent=exists(mantigoIntentPath)?read(mantigoIntentPath):"";
 const mantigoProviderRequest=mantigoIntent.indexOf('fetch("https://accept.paymob.com/v1/intention/"');
