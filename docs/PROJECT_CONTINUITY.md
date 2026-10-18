@@ -621,3 +621,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Candidate payment/webhook/RC431/RC526, migration-collision/immutability, baseline static audit, financial-journal boundary, and module-professionalization workflows reported success. Pages validation passed; PR-context deployment was skipped.
 - Baseline review remains PENDING_REVIEW; live migration checkpoint remains RC424. PR #286 remains unmerged; do not merge its SESSION_LOG.md change or assume its full candidate is approved.
 - Next: review exact dependencies/collisions in PR #286/#295 and the baseline manual-review caveats; then consolidate the payment trust-boundary changes and proceed to authenticated module E2E. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## RC529 — Payment candidate consolidation — 2026-10-18
+- PR #295 is based on an older ancestor than the current PR #286 head; compare shows it is 1 commit ahead and 14 commits behind, with RC526 files overlapping work already included in #286. Treat #295 as a reconciliation candidate, not an independent merge.
+- Draft PR #297 (`integration/rc526-digital-finalization-20261018`) layers the server-only digital-page finalization migration/tests on top of the RC425–RC526 candidate. It preserves the candidate's handling of ambiguous Paymob responses, calls the finalizer via the admin/service-role client, and accepts provider order IDs from the existing top-level response fields or nested `order.id`.
+- Exact-head workflows for PR #297 were queued/in progress at this checkpoint; do not claim success until all complete, including isolated finalization tests and forward replay.
+- No production grant/migration/payment/deployment was changed. Production remains BLOCKED / NOT CERTIFIED.
