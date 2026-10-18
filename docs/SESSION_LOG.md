@@ -49,40 +49,57 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not performed:** no production writes, migration execution, function/grant changes, payment/settlement, or deployment.
 - **Next:** finish baseline manual security review; then, only after explicit approval, run full disposable forward replay and runtime tenant/payment/restore tests. Release remains **BLOCKED / NOT CERTIFIED**.
 
-## 2026-10-17 — RC425–RC441 source restoration and atomic MantiGo Paymob callback
 
-- Created mainline PR [#286](https://github.com/islamnagy2022-eng/MantiqatiX/pull/286) on `fix/rc425-mantigo-paymob-mainline`.
-- Restored the 16 missing historical source migrations RC425–RC432 and RC434–RC441 using exact verified Git blobs from `recovery/rc425-441-source-only-20261016`; no applied migration was renamed or rewritten. RC434 blob: `a93a0a6827de15d50632e1deec015e20dd55b405`.
-- Aligned four Edge Functions with the recovered migration contracts: `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, and `subscription-payment-intent`. The webhook routes MantiGo, normal payment failures, subscription success/failure, and digital-page callbacks through atomic RPCs with provider-order binding. Ambiguous Paymob intent creation is treated as reconciliation-required rather than blindly failed.
-- Added disposable PostgreSQL RC425 atomicity coverage, nine isolated migration regression jobs for RC431, RC432, RC434–RC440, and RC441, a cross-function/RPC wiring validator, and AES-GCM checkout-secret tests for fresh IVs, ciphertext-only persistence, round-trip decryption, and business-context binding.
-- Updated the finance boundary validator to recognize atomic provider-event RPCs rather than requiring a direct `payment_provider_events` table reference.
-- Latest code/test head `6a5148de42b61b80fa8b009e6939314f57276daf`: PASS — RC425 atomicity/source wiring and checkout crypto (run 39000507489); module professionalization with all 9 new migration regression jobs plus existing validators (39000507559); backend-only module boundary (39000507413); MantiGO privacy boundary (39000507478). On the same code state before the test-only addition, web validation passed (39000396119), migration uniqueness passed (39000396161), migration history immutability passed (39000396275), collision guard passed (39000396170), and approval-action audit atomicity passed (39000396129). The test-only addition did not change migration or Edge Function source.
-- Read-only live Supabase check: 283 migrations through `20261008222845` (RC424); `public.mantigo_payment_provider_events` and `public.process_verified_mantigo_payment_backend(...)` remain absent.
-- Live Edge Function versions are `paymob-webhook` v10, `payment-intent` v8, `digital-page-payment-intent` v5, and `subscription-payment-intent` v4. Their deployed code does not yet contain the new atomic handlers/order-binding/claim-and-encryption contracts; do not deploy handlers before corresponding migrations and required encryption secrets are ready.
-- Production verification still reports `PRODUCTION_GATE=BLOCKED` / `external_evidence=NOT_CERTIFIED`: required migrations are not applied, chronological replay is NOT RUN, and tenant-isolation, Paymob sandbox/finance E2E, backup/restore, deployed Edge Function parity, SMM launch-scope/parity, and Auth security settings remain NOT VERIFIED.
-- No production migration, Edge Function deployment, payment, grant, RLS policy, Auth setting, or financial data was changed. Do not merge/deploy until chronological replay and the remaining release evidence are reviewed.
+## 2026-10-18 — guarded marketing workspace port on current main
 
-
-## 2026-10-17 — RC426–RC430 payment callback behavioral coverage
-
-- Added disposable PostgreSQL fixtures and integration tests for RC426 digital-page provider-order binding and RC427 one-active-payment-intent-per-order uniqueness, plus a dedicated CI workflow.
-- RC426/RC427 workflow passed on commit `4617ca3fe5e65c43d24ef255b4276d0bdbcc9103`: [run 39001312667](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39001312667). It checks provider order ID persistence, user ownership, claim-token freshness, required correlation fields, RPC grants, and partial unique-index behavior for active versus FAILED intents.
-- Added a disposable shared fixture and behavioral suite for RC428–RC430 covering signature enforcement, provider-order binding, normal payment failure transition, subscription failure/success, active subscription creation, and duplicate callback idempotency. Workflow [Payment Webhook Failure and Success Integration](https://github.com/islamnagy2022-eng/MantiqatiX/actions/workflows/payment-webhook-failure-success-integration.yml) is queued on current branch head `b4211a8d5fd8c06b9d003c1e32c6471357090f66`; this suite is NOT VERIFIED until the current-head run completes green.
-- Live Supabase was checked read-only again: 283 migration records through `20261008222845`; the RC425 MantiGo provider-event table and processor RPC remain absent.
-- Full chronological replay remains blocked by missing authoritative historical creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub or bypass the historical revoke.
-- No production changes were made. Production gate remains **BLOCKED / NOT CERTIFIED** pending replay, tenant-isolation and payment/finance E2E, backup/restore, deployed Edge Function parity, SMM launch-scope/parity, and Auth security evidence.
+- Working branch: `feat/marketing-workspace-current-main-20261018`; Draft PR [#292](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/292).
+- Added the tabbed marketing/agency workspace for leads, provider agencies, projects, and platform ads; campaign create/invite/respond/status actions call only the RC453 backend RPCs.
+- Added SMM quick access to marketing-role and enterprise dashboards. The separate SMM storefront remains deferred by the server-side launch gate.
+- Added a fail-safe for the known production/source gap: if the RC453 campaign tables are missing, the UI shows a clear notice and falls back to the existing marketing workspace instead of presenting a campaign form that cannot work.
+- Browser mutations to `marketing_campaigns` and `marketing_campaign_participants` remain prohibited; no direct INSERT/UPDATE/DELETE calls were added.
+- Dedicated Marketing Workspace Contract run [39091349054](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349054) **PASS**: JavaScript syntax and 22 static contract assertions passed on the PR head at that run.
+- Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
+- The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
+- Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
 
 
-## 2026-10-17 — RC428–RC430 integration fixture fix
+## 2026-10-18 — marketing workspace merged; production parity blockers reconfirmed
 
-- **Failed evidence:** workflow run [39001434526](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39001434526), job `rc428-430-payment-webhooks`, failed at RC430 subscription activation because the disposable fixture's `business_subscriptions` table lacked `updated_at`.
-- **Fix:** added `updated_at timestamptz not null default now()` to `supabase/tests/rc428_430_payment_webhook_fixture.sql` in commit `bbc9772061dab0a35732bbddbb7e05bab92a9ad6`. This aligns the fixture with the production migration's write contract; no production schema was touched.
-- **Status:** pending fresh exact-head CI. Further fixture mismatches, if any, must be fixed based on observed errors rather than guessed.
+- [x] Merged guarded marketing/agency workspace PR [#292](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/292) as commit `bd08e8436ba16a5a84c0c0cfd5e346591b364bb7`. The main-branch app, index, service worker, and validation scripts were confirmed byte-identical to the tested branch.
+- [x] Exact tested PR head `7b6757830907c6843eadbcec5425bbd1da8b67b4`: Marketing Workspace Contract [run 39091702890](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091702890) PASS; Pages validation [run 39091702881](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091702881) PASS; backend-only boundary [run 39091702874](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091702874) PASS including approval-audit and RC450 financial-journal isolated PostgreSQL jobs; MantiGO privacy [run 39091702897](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091702897) PASS; module professionalization [run 39091702887](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091702887) PASS including matrimony privacy and targeted-ad search-path integration.
+- [x] PWA cache advanced to `mnty-web-v129`; exact versioned app entrypoint and Supabase SDK are precached. Marketing campaign reads are scoped to the active business, missing business scope fails closed, and campaign mutations are disabled when campaign data sources fail.
+- [ ] **Deployment verification remains pending.** The Pages workflow on the PR passed validation and skipped its deploy job as expected for a pull request. Do not claim the main-branch Pages deployment is live until the main push workflow/deployed URL is independently verified.
+- [x] Merged security-review documentation PR [#291](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/291), commit `cf522740e9dd058c28728ba582e347661ef24122`. Read-only live catalog review records the targeted-ad RPC RC451 mismatch and the financial-journal Edge Function drift.
+- [x] Bounded live Edge Function entrypoint parity check: 24 unique active functions sampled, 23 `index.ts` files byte-identical to repository main, one mismatch (`financial-journal`). This is not full deployment certification.
+- [ ] **Financial journal production blocker:** live Edge Function v3 calls legacy `post_financial_journal` without a verified actor ID; live ACL checks show `service_role` cannot EXECUTE either `post_financial_journal` or `post_financial_journal_backend`. Repository source uses actor-bound `post_financial_journal_backend`. Do not grant service-role access to the legacy RPC as a shortcut; resolve the migration chain and deploy the reviewed source/RPC contract together.
+- [ ] Production Supabase remains at RC424 (283 migration versions through `20261008222845`). RC453 campaign tables/RPCs are not deployed; the live campaign UI therefore falls back to the existing marketing workspace.
+- No manual production DDL/DML, grants/RLS/Auth changes, Edge Function replacement, payment, wallet write, or settlement was performed. A main-branch push workflow may run after the merge, but its deployment result was not independently observed in this session.
+- Overall release: **BLOCKED / NOT CERTIFIED** until historical migration provenance, chronological release execution, live finance/payment E2E, tenant-policy parity, backup/restore, Auth settings, and deployment verification are completed.
 
 
-## 2026-10-17 — RC425–RC441 provenance re-check
+## 2026-10-18 — expanded Edge Function parity and Auth Advisor refresh
 
-- Re-ran the missing-function investigation against the production schema-only snapshot in PR #284 and the historical migration source set in PR #207. The snapshot contains the current definition of `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; it checks authenticated ownership and request editability. That snapshot is not historical creation provenance.
-- Inspected the candidate earlier migration sources `20260924224046_indrive_bid_acceptance_atomicity_v1.sql`, `20260924230603_harden_indrive_server_state_transitions.sql`, `20260924230659_fix_indrive_rls_recursion_with_private_helpers.sql`, `20260924230730_move_indrive_bid_security_definers_to_private_schema.sql`, `20261007011736_reverse_bidding_server_authority_v1.sql`, and the September security-hardening migrations from PR #207. None contains the missing public function definition. The later `20260927095000_revoke_unused_security_definer_execute.sql` does revoke EXECUTE on that signature, but a revoke does not reconstruct its prior CREATE OR REPLACE body.
-- This confirms the blocker is historical source provenance, not an unexplored match in those candidate files. Do not synthesize a placeholder, infer the original migration timestamp from current schema state, remove the historical revoke, or use the schema snapshot as a migration.
-- PR #286 head `229152bca7816d5115af9e276289720d5c097b71` has 10 validation workflows green; its web deploy job was skipped/cancelled. These focused tests do not establish complete RC424→RC441 chronological replay. Production remains **BLOCKED / NOT CERTIFIED**.
+- [x] Expanded live-versus-main Edge Function entrypoint checks to 29 unique active functions: 27 exact matches, two drifted entrypoints.
+- [ ] BLOCKED: `financial-journal` live v3 calls the legacy RPC and service_role lacks EXECUTE; repository source is corrected, but RC450/RC449A and the chronological migration chain are not deployed.
+- [ ] BLOCKED: `mnty-customer-registration` live v4 uses `ensure_customer_membership_for_user`, while repository source uses `activate_customer_registration_atomic`. The RPCs intentionally differ; do not deploy either source blindly. Complete the existing acceptance matrix for concurrency, pending-request cleanup, audit failure, and auth.users-trigger behavior first.
+- [ ] Auth Advisor still warns that anonymous sign-ins are enabled and leaked-password protection is not enabled. Confirm the anonymous-session product contract, then enable leaked-password protection via Supabase Auth settings and verify. No Auth settings were changed because the connected tools do not expose an Auth-settings mutation operation.
+- [ ] Security Advisor still reports the policy-less RLS table, public targeted-ad SECURITY DEFINER, and 40 authenticated-executable SECURITY DEFINER entries; per-function review remains open.
+- Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — RC431 live payment RPC mismatch
+
+- [x] Read-only catalog comparison confirmed the live `process_verified_digital_page_payment_backend` still has RC424's `search_path=public, pg_temp` and body.
+- [ ] BLOCKED: live RPC lacks RC431 provider-order binding, provider-transaction/event-ID binding, NULL-status rejection, conflicting replay-status rejection, and event-ID advisory serialization. Current code records `provider_order_id` but does not validate it against the order's existing provider-order binding.
+- [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
+- [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
+- Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — RC425–RC441 migration recovery candidate update
+
+- Candidate branch: `fix/rc425-mantigo-paymob-mainline`; PR [#286](https://github.com/islamnagy2022-eng/MantiqatiX/pull/286) remains Draft.
+- Existing isolated evidence remains bounded: forward replay from the reviewed RC424 schema checkpoint through RC525 passed [run 39089936027](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39089936027); RC526 combined replay passed separately [run 39090118306](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39090118306). Neither run applies migrations to production.
+- RC432 source was reconciled to the exact canonical blob shared with PR #207 (`7d2f8a27d173f04cbc22cec0a801818bde3aac07`) so the optional legacy four-argument wallet RPC is guarded during clean replay. Exact-head collision CI has not yet confirmed PASS after this edit.
+- PR #286 still reports a merge conflict against current main. Keep it unmerged until branch conflicts are resolved and latest-head migration collision, immutability, full replay, tenant isolation, payment/finance integration, and release gates all pass.
+- Production remains at RC424; no production migration, grant, Edge Function deployment, payment, wallet, or financial write was performed.
