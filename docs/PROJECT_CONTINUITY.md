@@ -694,3 +694,9 @@ This status is intentional and must remain until the open gates above are indepe
 ## RC539 — Live digital-page payment parity evidence package
 - Added `docs/release/DIGITAL_PAGE_FINALIZATION_LIVE_PARITY_20261018.md` on PR #297, documenting the read-only live four-argument grant/body state, deployed Edge Function v5 bundle fingerprint and call signature, RC424 ledger checkpoint, candidate regression/replay evidence, and a controlled rollout checklist.
 - The document is evidence of the current mismatch, not a remediation deployment. Live parity remains BLOCKED; no production change was made.
+
+
+## RC540 — Avoid duplicate MantiGO payment migration integration — 2026-10-18
+- Compared PR #289 against the tested PR #286 candidate: #289 is heavily diverged (160 commits ahead / 61 behind relative to #286 head) and overlaps RC526 migration/function/test files. PR #295 also overlaps RC526 and is 1 commit ahead / 14 behind the current #286 head.
+- The tested #286 candidate already contains RC526 and passed its full replay; do not merge #289 or #295 as independent changes. Reconcile any unique fixes into one reviewed chain.
+- PR #286 itself still has baseline PENDING_REVIEW and a `docs/SESSION_LOG.md` diff; do not merge it under the current no-session-log-edit rule. No merge/deploy performed.
