@@ -210,6 +210,7 @@ do $legacy_acl$
 begin
   if pg_catalog.to_regprocedure('public.smm_admin_credit_wallet(uuid,uuid,numeric,text)') is not null then
     execute 'revoke all on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) from public, anon, authenticated';
+    execute 'grant execute on function public.smm_admin_credit_wallet(uuid,uuid,numeric,text) to service_role';
   end if;
 end
 $legacy_acl$;
