@@ -613,3 +613,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Prepared `integration/rc425-526-digital-page-finalization-20261018` based on the RC425–RC526 candidate and layered the passing PR #268 server-only finalization implementation and regression tests on top.
 - Combined replay/source integration has not been verified by a retrievable workflow result; keep this candidate unmerged and production blocked.
 - No PR, merge, deployment, production migration or financial transaction was performed.
+
+
+## RC528 — Isolated replay evidence — 2026-10-18
+- PR #286 exact head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf` passed the isolated forward migration replay (run 39097050740): 31 ordered forward migrations applied to a disposable restore of the captured schema-only checkpoint; synthetic Tenant A and Tenant B own-row visibility and cross-tenant denial assertions passed.
+- Disposable tenant-isolation E2E also passed (run 39097050717). This is evidence for the candidate snapshot/harness only, not production RLS parity, baseline approval, or authorization to deploy.
+- Candidate payment/webhook/RC431/RC526, migration-collision/immutability, baseline static audit, financial-journal boundary, and module-professionalization workflows reported success. Pages validation passed; PR-context deployment was skipped.
+- Baseline review remains PENDING_REVIEW; live migration checkpoint remains RC424. PR #286 remains unmerged; do not merge its SESSION_LOG.md change or assume its full candidate is approved.
+- Next: review exact dependencies/collisions in PR #286/#295 and the baseline manual-review caveats; then consolidate the payment trust-boundary changes and proceed to authenticated module E2E. Production remains BLOCKED / NOT CERTIFIED.
