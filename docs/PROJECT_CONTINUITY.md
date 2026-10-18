@@ -733,5 +733,5 @@ This status is intentional and must remain until the open gates above are indepe
 - Added explicit source-contract and live-parity release checks for digital-page payment finalization to the RC candidate's production verifier.
 - The required source migration set now includes the server-only finalizer migration; live release reconciliation must explicitly attest the finalizer trust boundary and exact deployed-source parity, otherwise the P0 release gate stays BLOCKED.
 - Extended the digital-page boundary validator to assert these release checks and Pages CI wiring.
-- Latest candidate head: `0da9cf004ffaaa1cba964e81d2234bb1d8feae2e`; exact-head workflows were queued, including finalization isolation and ordered replay. Do not call them passed until completed.
+- Latest candidate head: `23276078e53b712aaabaa15c30c8b7570a6d9647`; exact-head workflows were queued, including finalization isolation and ordered replay. Do not call them passed until completed.
 - No production changes or deployment. PR #286 remains unmerged and requires baseline/security review plus reconciliation of its docs/SESSION_LOG.md diff.
