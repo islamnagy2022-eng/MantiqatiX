@@ -476,3 +476,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Two successive disposable replay runs stopped in preflight, before PostgreSQL migration replay. Run 39081810409 exposed an overly strict untracked-file assertion; run 39083170583 exposed a line-wrap-sensitive safety-comment assertion.
 - Corrected both validator checks in commit `f367582f216f5dcf455cfa6d9ca780452b67b4f2`. The new replay run [39083192362](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083192362) is queued. No SQL replay result is yet established.
 - No historical migrations or production state were changed. Production remains blocked.
+
+
+## 2026-10-18 — REPLAY-RESUME-009
+- Run 39083237698 passed the historical-schema validator but failed in the temporary-copy verification step: the config baseline variable was only declared in the injection step, not in the separate verification shell.
+- Added the missing variable declarations to the verification step. Exact-head run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535) is queued.
+- This is a workflow plumbing correction; chronological SQL replay remains unverified. No production state was changed.
