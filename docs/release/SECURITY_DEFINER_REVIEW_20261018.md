@@ -34,6 +34,19 @@ Read-only catalog follow-up:
 - The table itself grants no direct SELECT/INSERT/UPDATE privilege to `anon`, `authenticated`, or `service_role`. The RPC body references the table internally. This supports a deliberate server-only boundary, but closure still requires verifying the deployed Edge Function call path and positive/negative payment-event tests.
 
 
+### Payment RPC hardening drift — RC431 (2026-10-18)
+
+The live function `public.process_verified_digital_page_payment_backend(...)` is still on the RC424 definition (`search_path = public, pg_temp`), not the RC431 candidate. The live body lacks the RC431 checks for:
+- non-null payment status;
+- binding `p_external_event_id` to `paymob:` plus the provider transaction ID;
+- rejecting an incoming provider order ID that differs from the order's already-bound `provider_order_id`;
+- rejecting the same event ID replayed with a conflicting status;
+- serializing concurrent deliveries on an event ID before locking the order.
+
+The live function updates `provider_order_id` but does not validate that the incoming provider order belongs to the target order. RC431 in PR #286 adds the checks above, `search_path = ''`, and disposable PostgreSQL assertions for mismatched provider order, NULL status, conflicting replay, and cross-order event reuse.
+
+**Disposition:** treat Paymob digital-page webhook integrity as **NOT VERIFIED** until RC431 is applied through the complete approved chronological migration chain and its integration tests pass in the release rehearsal. Do not apply RC431 alone as an out-of-order production hotfix.
+
 ### 2. `public.get_mnty_targeted_advertisements(...)` — anonymous SECURITY DEFINER
 
 The live catalog shows this function is executable by `anon` and `authenticated`, uses `SECURITY DEFINER`, and currently has `search_path = public, pg_temp`. This may be intentional for public advertisement discovery, so revoking public execution without tracing callers could break the product.
