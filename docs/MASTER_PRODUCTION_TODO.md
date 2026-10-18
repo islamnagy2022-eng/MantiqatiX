@@ -1928,3 +1928,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Recover canonical historical migration provenance or document owner-approved release disposition; disposable compatibility fixtures do not certify historical correctness.
 - **Gate:** BLOCKED / NOT CERTIFIED. Do not merge or deploy on the basis of static checks alone.
 
+### REPLAY-RESUME-012 — ledger fixture guard refinement
+- [x] Reproduced the missing-ledger error on pre-fix SHA/run [39083630633](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083630633); this is not the candidate with ledger fixture wiring.
+- [x] Fixed validator wording check to match the fixture's production-prohibition comment; 10 assistant-side source assertions pass.
+- [ ] Inspect candidate run [39083743681](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083743681) at SHA `9ae3b38f5e6cfc99bc6d375d1aa0885a1e94c9ac`; then fix only newly evidenced blockers.
+
