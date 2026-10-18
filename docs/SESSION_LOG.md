@@ -488,3 +488,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact-head run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535) now passes preflight, disposable compatibility fixture injection, exact-copy/untracked verification, Supabase CLI setup, and local disposable config creation.
 - Supabase service startup remains in progress; ordered migration replay has not started yet. No SQL-chain PASS is claimed.
 - No production mutation, merge, or deployment occurred.
+
+## 2026-10-18 — REPLAY-RESUME-011
+- Inspected run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535); the next chronological replay failure was missing `public.mantigo_financial_ledger` while compiling the earlier notification lifecycle function.
+- The tracked source creates the ledger later at `20261006152000_mantigo_financial_ledger_v1.sql`; no historical migration was rewritten.
+- Added a no-data, test-only exact DDL fixture and disposable CI injection at `20261006140559`, plus validator checks for normalized source equality, no DML, ordering/collision, exact copy, and untracked status.
+- Assistant-side static source checks passed. Exact-head CI run [39083670643](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083670643) was pending at this log entry; replay remains unverified.
+- Production remains BLOCKED / NOT CERTIFIED; no production writes, deploy, merge, or payments performed.
+
