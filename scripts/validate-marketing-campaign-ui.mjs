@@ -33,6 +33,7 @@ assert.match(index, /app\.js\?v=rc458-marketing-workspace-20261018/, "browser ca
 const sw = fs.readFileSync("web/sw.js", "utf8");
 assert.match(sw, /const CACHE='mnty-web-v129'/, "PWA cache must be versioned for the new shell");
 assert.match(sw, /app\.js\?v=rc458-marketing-workspace-20261018/, "service worker must precache the exact versioned app entrypoint");
+assert.match(sw, /vendor\\/supabase\\.js\\?v=supabase21172/, "service worker must precache the exact versioned Supabase SDK entrypoint");
 assert.match(index, /sw\.js\?v=rc369-marketing-cache/, "service worker registration cache key must be refreshed");
 
-console.log("Marketing workspace contract: PASS (25 assertions)");
+console.log("Marketing workspace contract: PASS (26 assertions)");
