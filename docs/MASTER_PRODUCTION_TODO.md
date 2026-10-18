@@ -1601,3 +1601,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [x] Re-inspected PR #207's earlier InDrive/bid migrations and the schema-only production snapshot. The current function body exists only in the snapshot among the inspected candidates; the later historical revoke file does not supply its creation body or timestamp.
 - [ ] BLOCKED: recover the exact historical creation migration from an authoritative source (original migration artifact, verified repository object, or backup of the migration source), then prove clean disposable replay from RC424 through RC441. Do not infer provenance from the current schema snapshot or fabricate a stub.
+
+
+## Exact evidence update — 2026-10-18
+
+- **Static schema inventory:** PASS on the schema-only checkpoint branch, run [39089593717](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089593717): 283 ledger versions through `20261008222845`, 128/128 public tables with RLS enabled in the snapshot, and 145/145 parsed SECURITY DEFINER headers with explicit search_path and PUBLIC execute revokes. Snapshot review remains pending.
+- **Tenant isolation against captured baseline:** PASS, run [39089734987](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089734987). Both synthetic tenants could read their own private business/order/payment-intent/onboarding rows and could not read the other tenant's rows. This is baseline-only evidence, not proof of live production policy parity.
+- **RC526 MantiGO Paymob intent claim:** PASS, run [39089810858](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089810858): 9/9 provider-correlation unit tests plus disposable PostgreSQL fixture/migration/RPC integration, including concurrent claim winner, wrong-token rejection, duplicate-intent rollback, and ambiguous-outcome safeguards.
+- **Full forward migration replay:** workflow added at `.github/workflows/forward-migration-chain-replay.yml`; exact candidate commit `19bc1be6c0ce6d9d37e5fc85205ffcd406d1cb40`, run [39089936027](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089936027), was still in progress at the time of this note. Do not mark replay PASS until the run completes and its first failure (if any) is resolved and rerun.
+- No production migrations, Edge Function deployments, live payments, financial writes, or release activation were performed. Production remains **BLOCKED / NOT CERTIFIED**.
