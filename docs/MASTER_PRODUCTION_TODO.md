@@ -1906,3 +1906,17 @@ A module cannot be marked DONE until all applicable items are evidenced:
 1. Poll all exact-head CI jobs and fix failures on the same candidate branch.
 2. Confirm the ordered replay includes RC425–RC526 followed by the new finalization migration and that the dedicated isolated test passes.
 3. Review and reconcile the PR #286 session-log diff and manual baseline/security review before requesting integration approval.
+
+
+## RC531 — Independent live-main gate and exact-head candidate check — 2026-10-19
+
+- Verified current `main` remains `149a85c7e5c44b61421edc8391cbb82885902fae`; the production deploy validation run [39092185609](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39092185609) failed and deploy was skipped.
+- Read the failed verifier log directly. It reports 16 required RC425–RC432 and RC434–RC441 migration sources absent from `main`, `required_release_migrations_applied=false`, chronological replay `NOT RUN`, tenant isolation/payment-finance E2E/backup-restore/Edge Function contracts/SMM parity/Auth settings `NOT VERIFIED`, and `PRODUCTION_GATE=BLOCKED`. The RC424 ledger identity matched its source exactly; preserve the existing ledger alias and do not rewrite history.
+- PR #286 current candidate head `23276078e53b712aaabaa15c30c8b7570a6d9647`: payment correlation, migration uniqueness/history, payment webhook integration, financial-journal boundary, digital-page finalization isolation and other listed checks passed. At inspection time, forward migration replay and disposable baseline tenant isolation were still in progress, and module validation/backend boundary were not complete. Pages deploy cancellation on a PR event is not a deployment failure and is not production evidence.
+- PR #296 remains open/unmerged at `6f72dfb3ad19a469fbd9028cfc20d4f01ca77a1c`; its latest observed four validation workflows succeeded, with Pages deploy skipped because the event was a PR. This does not certify product modules or production.
+- **Action boundary:** no merge, production migration, grants/RLS/Auth change, Edge Function deployment, financial operation, or production data mutation was performed.
+
+### Next executable steps
+1. Obtain terminal results for PR #286 exact-head ordered replay and disposable tenant-isolation jobs; inspect full logs if either fails.
+2. Keep PR #286/#297 and overlapping migration PRs unmerged until chronological replay, migration ownership/collision review, baseline security review, and session-log constraint reconciliation are complete.
+3. The release gate remains BLOCKED until the migration chain is safely integrated and live payment/function/grant parity, external E2E, backup/restore, and Auth settings have evidence.
