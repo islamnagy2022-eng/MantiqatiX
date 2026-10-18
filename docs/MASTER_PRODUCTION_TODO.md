@@ -1723,3 +1723,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC528 — Candidate-chain inspection evidence — 2026-10-18
+- PR #286 exact head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf`: CI workflows completed successfully, including forward migration-chain replay, disposable two-tenant isolation, payment intent/order correlation, RC431 digital-page payment integration, RC526 MantiGO intent-claim integration, migration immutability/uniqueness, and the cross-PR migration collision guard.
+- Forward replay log shows 31 migrations applied after the captured RC424 schema snapshot; both synthetic tenant checks passed bidirectionally in a disposable database. This is strong candidate-level evidence only; baseline review is still `PENDING_REVIEW`, and it does not prove that these migrations are applied to Production or authorize deployment.
+- Static baseline audit reports 283 migration versions at checkpoint `20261008222845`, 128/128 public tables with RLS, and explicitly notes manual function/grant/RLS review remains required.
+- Cross-PR migration collision guard passed for PR #286 after auditing 19 open migration PRs.
+- Compared all eight RC526 files changed by PR #295 against PR #286's base branch: every file is byte-identical. Therefore PR #295 currently adds no distinct RC526 file content relative to PR #286's branch; do not merge it as if it were an independent fix. Its base is PR #286's branch, and its own PR-triggered workflows were not returned by the workflow-run lookup.
+- PR #273's RC425 migration source for the checked file is byte-identical to PR #286's copy; continue comparing the full migration set and preserve the collision guard before integration.
+- **Integration blocker:** PR #286 changes `docs/SESSION_LOG.md`; do not merge that PR as-is under the current no-edit/no-touch constraint for that file. Resolve this without modifying the session log, then re-run exact-head CI and review.
+- No production migration, grant/RLS/Auth change, Edge Function deployment, merge, or financial transaction was performed.
