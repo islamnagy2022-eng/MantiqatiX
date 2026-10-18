@@ -1855,3 +1855,23 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Master module TODO PR #296 is now **ready for review** (head `88d376e3aed1eb41ef737b87297776de2d5adfb9`). Backend-only, MantiGO privacy, Module Professionalization, and Pages validation workflows passed; Pages deploy was skipped because the change is a PR.
 - Payment remediation PR #297 remains **draft**, based on the RC425–RC526 candidate branch. The code head `a661e3a1111e759919de855769c99fb3067b167f` passed its four source/security workflows; full migration replay and post-replay grants/body/tenant isolation passed at `e7c6d08854fe2c25d2f061846fa69e292efb1663`.
 - Live production parity is still BLOCKED by the actual live four-argument finalizer and Edge Function v5 user-scoped call. Do not merge or deploy based on candidate-only CI.
+
+
+## RC528 — Candidate chain CI and overlap audit — 2026-10-19
+
+### Verified candidate evidence (source/CI only)
+- PR #286 head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf` is 55 commits ahead of `main`, 0 behind at the time of comparison; it remains open/unmerged.
+- The exact PR #286 head has successful runs for migration version uniqueness, migration history immutability, open-PR migration collision guard, production-schema static audit, forward migration-chain replay, disposable-schema tenant-isolation E2E, RC425/RC431/RC526 payment integration, payment webhook failure/success, order correlation, financial-journal service-role boundary, and module validation. This is candidate CI evidence, not production deployment or release certification.
+- The forward replay job reports `FORWARD_MIGRATIONS_APPLIED=31` and synthetic Tenant A/Tenant B checks passed in the disposable database. This does not mean the production migration ledger advanced or that production tenant E2E was executed.
+- The schema baseline review artifact explicitly remains `PENDING_REVIEW`; manual review of security-definer bodies, grants, RLS, views/triggers, and migration provenance is still required before baseline approval.
+- PR #286 changes `docs/SESSION_LOG.md`. Per this continuation's rule, do not edit that file in future work; reconcile/remove that unrelated change through an authorized review before integration.
+- PR #295 is based on the PR #286 branch and has diverged (1 commit ahead / 14 behind in comparison). It contains the same RC526 migration path already present in PR #286. Do not merge PR #295 independently or combine its head blindly; review the unique changes and close/rebase the duplication only after an approved candidate is chosen.
+- PR #273 restores the RC425–RC441 migration files separately; it overlaps PR #286's migration set. Use the collision guard and choose one canonical ordered candidate, never merge both blindly.
+- PR #284 provides the schema-only baseline artifact and is not mergeable at its current head; its artifact is suitable only for disposable replay and remains subject to the pending manual review.
+
+### Next execution decision
+1. Treat PR #286 as the leading integration candidate for a deeper review, not as approved for merge.
+2. Resolve the PR #286 `SESSION_LOG.md` change and verify the exact snapshot/ledger provenance plus all migration collision results.
+3. Review the new RC526 claim/finalization and payment callback contracts together, including negative/replay/concurrency cases and deployed-source drift.
+4. Keep PR #268 (server-only digital-page finalization) separate until its migration and function contract is reviewed against the RC431 chain; avoid competing migrations/grant changes.
+5. Only after these reviews and exact-head tests pass, request explicit integration approval. Production remains BLOCKED / NOT CERTIFIED; no production mutation or deployment was performed in this audit.
