@@ -42,7 +42,7 @@ assert.ok(!verifier.includes("MNTY-PLATFORM"), "must not use a platform-tenant i
 assert.ok(verifier.trimEnd().endsWith("ROLLBACK;"), "verifier must roll back its transaction");
 assert.ok(!/\b(INSERT|UPDATE|DELETE|MERGE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE)\b/i.test(verifier), "verifier must not mutate database objects or rows");
 
-const guardEnd = fixture.indexOf("\nBEGIN;");
+const guardEnd = fixture.indexOf("BEGIN;");
 assert.ok(guardEnd > 0, "fixture must have a guard before its first transaction");
 const guard = fixture.slice(0, guardEnd);
 assert.ok(guard.includes("\\if :{?mantiqati_disposable}") && guard.includes("\\if :mantiqati_disposable") && guard.includes("\\quit 3"), "fixture must refuse execution without explicit disposable authorization");
