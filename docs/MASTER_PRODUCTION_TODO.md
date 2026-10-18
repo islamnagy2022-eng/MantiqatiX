@@ -1588,3 +1588,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: RC434's line-level purchase quantity limits/dependencies must be reviewed with RC437/RC438 in order. Missing RC425–RC432 and RC434–RC441 source files remain on main.
 - [ ] BLOCKED: authoritative historical creation migration/version for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing. The current schema snapshot contains the live definition but does not establish historical provenance.
 - [ ] BLOCKED: PR #282 remains Draft/unmerged until full chronological disposable replay, tenant isolation, payment/finance E2E, and backup/restore gates pass. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — Marketing workspace implementation update
+
+- [x] Ported the tabbed agency workspace and campaign planning UI onto the current main baseline in Draft PR [#292](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/292).
+- [x] Campaign and participant writes use RC453 backend RPCs; no direct browser table mutations.
+- [x] Added a fail-safe for missing RC453 campaign tables so production continues to show the existing marketing workspace with an explicit rollout notice rather than a broken create form.
+- [x] Dedicated contract CI passed on its tested head: [run 39091349054](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349054).
+- [ ] Full Pages CI and exact final PR head: pending verification; do not infer PASS from the dedicated contract workflow.
+- [ ] Production campaign create/invite/status E2E: WAIT — RC453 migration chain is not applied to production.
+- [ ] External Meta/TikTok/Google publication: NOT IMPLEMENTED/NOT CONNECTED; UI must not claim external campaigns were published.
+- Overall release: **BLOCKED / NOT CERTIFIED**.
