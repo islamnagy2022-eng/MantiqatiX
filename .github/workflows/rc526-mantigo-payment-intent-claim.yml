@@ -1,0 +1,71 @@
+name: RC526 MantiGO Paymob Intent Claim Integration
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261014233000_rc526_mantigo_payment_intent_claim.sql"
+      - "supabase/tests/rc526_mantigo_payment_intent_fixture.sql"
+      - "supabase/tests/rc526_mantigo_payment_intent_integration.sql"
+      - "scripts/tests/mantigo-payment-intent-correlation.test.mjs"
+      - "scripts/validate-mantigo-payment-intent-persistence.mjs"
+      - ".github/workflows/rc526-mantigo-payment-intent-claim.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/20261014233000_rc526_mantigo_payment_intent_claim.sql"
+      - "supabase/tests/rc526_mantigo_payment_intent_fixture.sql"
+      - "supabase/tests/rc526_mantigo_payment_intent_integration.sql"
+      - "scripts/tests/mantigo-payment-intent-correlation.test.mjs"
+      - "scripts/validate-mantigo-payment-intent-persistence.mjs"
+      - ".github/workflows/rc526-mantigo-payment-intent-claim.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc526-intent-claim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc526_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc526_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate provider response correlation and persistence boundaries
+        run: |
+          node scripts/tests/mantigo-payment-intent-correlation.test.mjs
+          node scripts/validate-mantigo-payment-intent-persistence.mjs
+
+      - name: Apply disposable fixture, migration, and RPC integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc526_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc526_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc526_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+          docker cp supabase/tests/rc526_mantigo_payment_intent_fixture.sql "$pg_container:/tmp/rc526_fixture.sql"
+          docker cp supabase/migrations/20261014233000_rc526_mantigo_payment_intent_claim.sql "$pg_container:/tmp/rc526_migration.sql"
+          docker cp supabase/tests/rc526_mantigo_payment_intent_integration.sql "$pg_container:/tmp/rc526_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc526_test -v ON_ERROR_STOP=1 -f /tmp/rc526_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc526_test -v ON_ERROR_STOP=1 -f /tmp/rc526_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc526_test -v ON_ERROR_STOP=1 -f /tmp/rc526_test.sql
