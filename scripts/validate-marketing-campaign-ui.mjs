@@ -23,6 +23,7 @@ assert.match(app, /function marketingWorkspaceEntry\(\)/, "marketing entry must 
 assert.match(app, /if\(live\.marketingCampaignUnavailable\)return[\s\S]{0,350}marketingAgencyWorkspace\(\)/, "missing campaign tables must retain the existing agency workspace");
 assert.match(app, /case 'التسويق والإعلان': return marketingWorkspaceEntry\(\);/, "marketing route must use the guarded workspace entry");
 assert.match(app, /if\(current==='التسويق والإعلان'\)await loadMarketingCampaignData\(\);await loadDomainModule\(current\)/, "campaign data must load before rendering the marketing workspace");
+assert.match(app, /const canManage=Boolean\(live\.businessId[\s\S]{0,250}marketing_campaign_participants/, "campaign mutations must be disabled when campaign read sources fail");
 assert.match(app, /create_marketing_campaign_backend/, "campaign creation must use the backend RPC");
 assert.match(app, /invite_marketing_campaign_partner_backend/, "partner invitation must use the backend RPC");
 assert.match(app, /respond_marketing_campaign_invitation_backend/, "partner response must use the backend RPC");
@@ -42,4 +43,4 @@ assert.match(sw, /app\.js\?v=rc458-marketing-workspace-20261018/, "service worke
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
 assert.match(index, /sw\.js\?v=rc369-marketing-cache/, "service worker registration cache key must be refreshed");
 
-console.log("Marketing workspace contract: PASS (31 assertions)");
+console.log("Marketing workspace contract: PASS (32 assertions)");
