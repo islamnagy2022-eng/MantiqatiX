@@ -48,7 +48,7 @@ Deno.serve(async(req)=>{
     if(organizationError)throw organizationError;
     if(!organization)return response({error:"ORGANIZATION_SCOPE_FORBIDDEN"},403);
   }
-  const {data:existing}=await supabase.from("approval_requests").select("id,business_id,status").eq("tenant_id",tenantId).eq("requested_by",user.id).eq("entity_type","BUSINESS").eq("request_type","CREATE").eq("status","PENDING").limit(1);
+  const {data:existing,error:existingError}=await supabase.from("approval_requests").select("id,business_id,status").eq("tenant_id",tenantId).eq("requested_by",user.id).eq("entity_type","BUSINESS").eq("request_type","CREATE").eq("status","PENDING").limit(1);\n  // Duplicate prevention must fail closed when its lookup cannot be trusted.\n  if(existingError)throw existingError;
   if(existing?.length)return response({error:"PENDING_BUSINESS_REQUEST_EXISTS",businessId:existing[0].business_id??null},409);
   const code=safeCode(name),resolvedOrganizationId=(requestedOrganizationId&&superAdmin)?requestedOrganizationId:(membership?.organization_id||null);
   const {data:business,error}=await supabase.from("businesses").insert({tenant_id:tenantId,organization_id:resolvedOrganizationId,name,code,status:"INACTIVE",settings:{sector,address,phone,city,district,registration_source:"web",approval_status:"PENDING"}}).select("id,name,code,status,tenant_id,organization_id").single();
