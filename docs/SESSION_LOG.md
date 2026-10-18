@@ -470,3 +470,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Found the `mantigo_financial_config` creation statement in tracked migration `20261006152000_mantigo_financial_ledger_v1.sql`; the RLS hardening migration `20261006122111` runs earlier in repository timestamp order.
 - Added a test-only, definition-only baseline copied from that exact tracked DDL and wired it to temporary version `20261006122110` in disposable CI. Strengthened the validator to compare the baseline against the source migration and validate workflow wiring/order/no-collision.
 - Latest replay run [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) was pending at last inspection. No successful replay is claimed. No historical migration was changed and no production state was touched.
+
+
+## 2026-10-18 — REPLAY-RESUME-008
+- Two successive disposable replay runs stopped in preflight, before PostgreSQL migration replay. Run 39081810409 exposed an overly strict untracked-file assertion; run 39083170583 exposed a line-wrap-sensitive safety-comment assertion.
+- Corrected both validator checks in commit `f367582f216f5dcf455cfa6d9ca780452b67b4f2`. The new replay run [39083192362](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083192362) is queued. No SQL replay result is yet established.
+- No historical migrations or production state were changed. Production remains blocked.
