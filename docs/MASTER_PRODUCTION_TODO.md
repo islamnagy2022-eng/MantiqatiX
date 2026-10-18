@@ -1881,3 +1881,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Run and inspect the next exact-head chronological replay; do not claim success before the workflow finishes.
 - [ ] Do not synthesize historical DDL, alter historical migrations, or add unapproved fixtures. Existing `marketing_provider_services` / `MNTY-MAIN` fixture approval gate remains separate and unresolved.
 - Final production gate remains **BLOCKED / NOT CERTIFIED**; no merge, deployment, production migration, or production data mutation.
+
+
+## REPLAY-RESUME-006 — 2026-10-18
+- [x] Rechecked run `39081172390` and confirmed both missing-function grants in the MantiGO completion migration now pass in disposable replay.
+- [x] Identified the next blocker: `20261006122111_mantigo_financial_config_rls_hardening_v1.sql` expects `public.mantigo_financial_config`, absent from the disposable migration prefix.
+- [x] Inspected current schema snapshot; found table shape, but not historical creation provenance. Search of tracked references and supplied `source_RC40.zip` found no canonical create-table source.
+- [ ] Recover authoritative original DDL or obtain explicit approval for a schema-only disposable-CI fixture for `mantigo_financial_config`. Do not synthesize historical DDL or apply the fixture to production.
+- Final production gate remains **BLOCKED / NOT CERTIFIED**.
