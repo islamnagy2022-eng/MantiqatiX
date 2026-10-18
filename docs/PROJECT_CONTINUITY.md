@@ -689,3 +689,8 @@ This status is intentional and must remain until the open gates above are indepe
 - The release reconciliation manifest now explicitly records those fields as NOT VERIFIED, based on the read-only production finding: authenticated can still execute the legacy four-argument SECURITY DEFINER finalizer, and deployed Edge Function v5 still calls it through the user-scoped client.
 - The isolated finalization workflow now asserts the candidate source gate passes while live parity and global production gate remain BLOCKED. Exact-head CI is pending.
 - No production changes were made.
+
+
+## RC539 — Live digital-page payment parity evidence package
+- Added `docs/release/DIGITAL_PAGE_FINALIZATION_LIVE_PARITY_20261018.md` on PR #297, documenting the read-only live four-argument grant/body state, deployed Edge Function v5 bundle fingerprint and call signature, RC424 ledger checkpoint, candidate regression/replay evidence, and a controlled rollout checklist.
+- The document is evidence of the current mismatch, not a remediation deployment. Live parity remains BLOCKED; no production change was made.
