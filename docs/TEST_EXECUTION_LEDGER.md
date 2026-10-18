@@ -132,3 +132,10 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - Run [39083237698](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083237698) passed the historical-schema preflight, including the new tracked-source DDL equality check, but failed during the temporary-copy verification step because `mantigo_financial_config_baseline` was not defined in that step's shell.
 - Corrected `.github/workflows/migration-chain-replay.yml` to define both the baseline path and temporary migration path inside the verification step before `cmp` and untracked checks.
 - New exact-head run for commit `5a2db26e1f56d5736a0b0ead517ab24e8ad07ebd` is queued at [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535). No chronological replay result is claimed yet.
+
+
+### REPLAY-BASELINE-005 — latest exact-head execution progress
+- Run [39083265535](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083265535), code SHA `5a2db26e1f56d5736a0b0ead517ab24e8ad07ebd`.
+- **Verified PASS:** historical-schema baseline preflight; disposable-only compatibility injection; exact-copy/untracked verification for all temporary fixtures, including both MantiGO functions and the tracked-source financial-config table; Supabase CLI setup; disposable local config creation.
+- **Current state:** disposable Supabase service startup is still in progress. Chronological migration replay has not started; no SQL-chain result is available yet.
+- Production remains BLOCKED / NOT CERTIFIED.
