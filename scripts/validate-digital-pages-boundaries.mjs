@@ -14,6 +14,7 @@ for(const [src,marker,label] of [
 for (const [src, marker, label] of [
   [payment, 'admin.rpc("finalize_digital_page_payment_intent_backend"', 'server-role finalization after provider response'],
   [payment, 'p_provider_order_id:providerOrderId', 'provider order correlation persisted server-side'],
+  [payment, 'p?.order&&typeof p.order==="object"', 'nested provider order response compatibility'],
   [payment, 'PAYMENT_PROVIDER_ORDER_ID_MISSING', 'missing provider order ID fails closed'],
   [payment, 'if(!providerOrderId){await release();return json({error:"PAYMENT_PROVIDER_ORDER_ID_MISSING"},502);}', 'missing provider order ID releases the active claim'],
   [trustedFinalization, 'request.jwt.claim.role', 'trusted role check'],
