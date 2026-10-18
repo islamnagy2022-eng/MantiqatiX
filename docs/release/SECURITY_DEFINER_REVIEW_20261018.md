@@ -29,6 +29,11 @@ Required checks before closure:
 
 Do not add a permissive policy just to clear the warning.
 
+Read-only catalog follow-up:
+- `public.process_verified_digital_page_payment_backend(...)` is a `SECURITY DEFINER` RPC with `service_role` EXECUTE; direct EXECUTE is denied to `authenticated` and `anon`.
+- The table itself grants no direct SELECT/INSERT/UPDATE privilege to `anon`, `authenticated`, or `service_role`. The RPC body references the table internally. This supports a deliberate server-only boundary, but closure still requires verifying the deployed Edge Function call path and positive/negative payment-event tests.
+
+
 ### 2. `public.get_mnty_targeted_advertisements(...)` — anonymous SECURITY DEFINER
 
 The live catalog shows this function is executable by `anon` and `authenticated`, uses `SECURITY DEFINER`, and currently has `search_path = public, pg_temp`. This may be intentional for public advertisement discovery, so revoking public execution without tracing callers could break the product.
