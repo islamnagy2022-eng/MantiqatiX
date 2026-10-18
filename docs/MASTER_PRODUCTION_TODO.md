@@ -1875,3 +1875,19 @@ This checkpoint does not close the production release gate because runtime E2E e
 3. Review the new RC526 claim/finalization and payment callback contracts together, including negative/replay/concurrency cases and deployed-source drift.
 4. Keep PR #268 (server-only digital-page finalization) separate until its migration and function contract is reviewed against the RC431 chain; avoid competing migrations/grant changes.
 5. Only after these reviews and exact-head tests pass, request explicit integration approval. Production remains BLOCKED / NOT CERTIFIED; no production mutation or deployment was performed in this audit.
+
+
+## RC529 — Digital-page server-only finalization composed into RC candidate — 2026-10-19
+
+- Updated the RC425–RC441/RC526 candidate branch PR #286 to call `finalize_digital_page_payment_intent_backend` through the service-role `admin` client rather than the user-scoped client.
+- Added forward migration `20261016100000_digital_page_payment_intent_server_only_finalization.sql`, revoking direct PUBLIC/anon/authenticated execution for the 4- and 5-argument finalizer overloads and granting the trusted server role. The 5-argument overload retains provider-order binding.
+- Added isolated PostgreSQL setup/regression tests and workflow for grants, direct authenticated-call denial, stale token/wrong-user rejection, trusted persistence, idempotent same-intent retry, and conflicting replay rejection.
+- Updated `scripts/validate-digital-pages-boundaries.mjs` to require the admin RPC and fail closed on malformed/ambiguous Paymob responses. The RC286 implementation retains the claim for reconciliation when provider outcome or provider-order correlation is ambiguous, avoiding an unsafe claim release that could permit duplicate intentions.
+- Candidate PR #286 now has 82 changed paths and is 61 commits ahead of main at the recorded comparison. Exact-head workflows were queued at checkpoint time, including the new Digital Page Payment Finalization Isolation workflow; no result is claimed until the runs complete.
+- The integration-only PR #298 was closed without merge after its changes were applied to the existing PR #286 candidate, avoiding a duplicate candidate PR.
+- PR #286 remains unmerged; its `docs/SESSION_LOG.md` change and baseline manual review remain unresolved. No production migration/grant/deployment or financial transaction was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+### Next
+1. Poll exact-head CI, especially Digital Page Payment Finalization Isolation, RC431 integration, forward replay, migration collision/history checks, and tenant isolation.
+2. Fix any failed test at the same candidate branch and rerun all affected workflows.
+3. Review PR #286's full diff, baseline provenance, SECURITY DEFINER/RLS/grants and session-log change before requesting merge approval.
