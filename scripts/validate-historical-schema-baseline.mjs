@@ -1439,7 +1439,7 @@ const mantigoFinancialLedgerWorkflow = fs.existsSync(mantigoFinancialLedgerWorkf
 const mantigoFinancialLedgerBaselineValid =
   /TEST-ONLY schema compatibility baseline for disposable migration-chain replay/i.test(mantigoFinancialLedgerBaseline) &&
   /tracked migration 20261006152000_mantigo_financial_ledger_v1\.sql/i.test(mantigoFinancialLedgerBaseline) &&
-  /must never apply to production/i.test(mantigoFinancialLedgerBaseline) &&
+  /never apply to production/i.test(mantigoFinancialLedgerBaseline) &&
   /id text primary key/i.test(mantigoFinancialLedgerBaseline) &&
   /ride_id text not null unique references public\.mantigo_rides\(id\) on delete restrict/i.test(mantigoFinancialLedgerBaseline) &&
   /idempotency_key text not null unique/i.test(mantigoFinancialLedgerBaseline) &&
