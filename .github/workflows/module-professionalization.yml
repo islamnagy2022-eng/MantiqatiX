@@ -36,6 +36,8 @@ jobs:
         run: node scripts/validate-module-feature-flag-codes.mjs
       - name: Customer registration RPC behavior boundary
         run: node scripts/validate-customer-registration-rpc-contract.mjs
+      - name: Business registration tenant and organization scope contract
+        run: node scripts/tests/business-register-organization-scope.test.mjs
       - name: Cross-PR migration collision detector self-test
         run: node scripts/validate-open-pr-migration-collisions.mjs --self-test
       - name: Production security validators
