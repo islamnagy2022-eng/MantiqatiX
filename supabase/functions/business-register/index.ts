@@ -6,7 +6,9 @@ function safeCode(name:string){const slug=name.trim().toUpperCase().replace(/[^A
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers});
  if(req.method!=="POST")return response({error:"METHOD_NOT_ALLOWED"},405);
- if(!req.headers.get("content-type")?.toLowerCase().includes("application/json"))return response({error:"UNSUPPORTED_MEDIA_TYPE"},415);
+ if((req.headers.get("content-type")||"").split(";")[0].trim().toLowerCase()!=="application/json")return response({error:"UNSUPPORTED_MEDIA_TYPE"},415);
+ const declaredLength=Number(req.headers.get("content-length")||0);
+ if(Number.isFinite(declaredLength)&&declaredLength>16384)return response({error:"REQUEST_BODY_TOO_LARGE"},413);
  try{
   const authorization=req.headers.get("Authorization");
   if(!authorization?.startsWith("Bearer "))return response({error:"AUTH_REQUIRED"},401);
@@ -14,7 +16,10 @@ Deno.serve(async(req)=>{
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const {data:{user},error:authError}=await supabase.auth.getUser(token);
   if(authError||!user||user.is_anonymous)return response({error:"AUTH_REQUIRED"},401);
-  const body=await req.json().catch(()=>null);
+  const rawBody=await req.text();
+  if(new TextEncoder().encode(rawBody).byteLength>16384)return response({error:"REQUEST_BODY_TOO_LARGE"},413);
+  let body:unknown=null;
+  try{body=JSON.parse(rawBody);}catch{body=null;}
   if(!body||typeof body!=="object"||Array.isArray(body))return response({error:"INVALID_JSON_BODY"},400);
   const stringFields=["tenantId","name","sector","address","phone","city","district","organizationId"];
   if(stringFields.some((key)=>body[key]!==undefined&&body[key]!==null&&typeof body[key]!=="string"))return response({error:"INVALID_FIELD_TYPE"},400);
