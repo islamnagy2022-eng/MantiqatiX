@@ -72,7 +72,7 @@ Deno.serve(async req=>{
    // 5xx, malformed, or incomplete responses are ambiguous: retain the claim for reconciliation.
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
+ const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
  if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
  const clientSecret=String(p.client_secret);
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
