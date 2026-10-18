@@ -125,6 +125,8 @@ END
 $state$;
 
 -- Same provider identifiers are idempotent; conflicting replay must fail closed.
+SET ROLE service_role;
+SELECT set_config('request.jwt.claim.role', 'service_role', false);
 DO $retry_contract$
 BEGIN
   IF NOT public.finalize_digital_page_payment_intent_backend(
@@ -155,5 +157,6 @@ BEGIN
   ) THEN RAISE EXCEPTION 'conflicting provider order replay was accepted'; END IF;
 END
 $retry_contract$;
+RESET ROLE;
 
 SELECT 'digital_page_payment_intent_server_only_finalization=PASS' AS result;
