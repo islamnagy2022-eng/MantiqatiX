@@ -1,5 +1,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { assertSafeProviderEndpoint, readProviderJson } from "./provider-transport.ts";
+import { readBoundedJson } from "./request-validation.ts";
 const cors={"Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 // Hard launch gate: environment flags alone must never enable SMM in the initial release.
 const SMM_INITIAL_LAUNCH_DEFERRED=true;
@@ -11,24 +13,30 @@ async function secret(id:string){const r=await admin.rpc("smm_get_provider_secre
 class ProviderCallError extends Error{constructor(message:string,public definitiveRejection=false){super(message);this.name="ProviderCallError";}}
 const isUuid=(v:any)=>typeof v==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 async function call(p:any,k:string,a:string,x:any={}){
+ const endpoint=assertSafeProviderEndpoint(p?.api_url,Deno.env.get("SMM_PROVIDER_HOSTS"));
  const f=new URLSearchParams();f.set("key",k);f.set("action",a);Object.entries(x).forEach(([n,v])=>f.set(n,String(v)));
- let r:Response;
- try{r=await fetch(p.api_url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString(),signal:AbortSignal.timeout(15000)});}
- catch{throw new ProviderCallError("Provider network outcome unknown",false);}
- const t=await r.text();let d:any;try{d=JSON.parse(t)}catch{throw new ProviderCallError("Provider response outcome unknown",false);}
- if(!r.ok)throw new ProviderCallError("Provider response outcome unknown",false);
- if(a==="add"&&(d?.error||d?.errors)&&!(d?.order??d?.order_id)){
-  throw new ProviderCallError("Provider explicitly rejected order",true);
- }
- return d;
+ const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);
+ try{
+  const r=await fetch(endpoint.toString(),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:f.toString(),signal:controller.signal,redirect:"error"});
+  const d:any=await readProviderJson(r);
+  if(a==="add"&&(d?.error||d?.errors)&&!(d?.order??d?.order_id)){
+   throw new ProviderCallError("Provider explicitly rejected order",true);
+  }
+  return d;
+ }catch(error){
+  if(error instanceof ProviderCallError)throw error;
+  throw new ProviderCallError("Provider request failed, timed out, or returned invalid data",false);
+ }finally{clearTimeout(timeout);}
 }
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
+ if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
  // SMM is deferred from initial launch. Fail closed before auth, DB, wallet, or provider actions.
  if(SMM_INITIAL_LAUNCH_DEFERRED||Deno.env.get("MNTY_SMM_ENABLED")!=="true"||Deno.env.get("MNTY_SMM_POST_LAUNCH_APPROVED")!=="true")return json({error:"SMM_DEFERRED",message:"خدمات التسويق الرقمي المستقلة مؤجلة حاليًا؛ استخدم قسم التسويق والإعلان داخل المنصة."},503);
  const user=await getUser(req);if(!user)return json({error:"UNAUTHORIZED"},401);
  try{
-  const b=await req.json(),a=b.action;
+  const parsedBody=await readBoundedJson(req,32*1024);if(!parsedBody.ok)return json({error:parsedBody.code},parsedBody.status);
+  const b:any=parsedBody.value,a=b.action;
   if(a==="catalog"){
    const [s,p]=await Promise.all([
     admin.from("smm_services").select("id,provider_id,platform,category,name,description,selling_price,min_quantity,max_quantity,refill,cancel,dripfeed").eq("active",true).order("platform").order("category").limit(500),
