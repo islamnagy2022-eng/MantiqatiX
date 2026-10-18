@@ -8,6 +8,7 @@ on:
       - "supabase/tests/digital_page_payment_intent_server_only_finalization.sql"
       - "supabase/tests/digital_page_payment_intent_server_only_finalization_setup.sql"
       - "scripts/validate-digital-pages-boundaries.mjs"
+      - "scripts/production/verify-production.mjs"
       - ".github/workflows/digital-page-payment-finalization-isolation.yml"
   pull_request:
     branches: [main]
@@ -17,6 +18,7 @@ on:
       - "supabase/tests/digital_page_payment_intent_server_only_finalization.sql"
       - "supabase/tests/digital_page_payment_intent_server_only_finalization_setup.sql"
       - "scripts/validate-digital-pages-boundaries.mjs"
+      - "scripts/production/verify-production.mjs"
       - ".github/workflows/digital-page-payment-finalization-isolation.yml"
 permissions:
   contents: read
@@ -54,3 +56,7 @@ jobs:
         run: psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/tests/digital_page_payment_intent_server_only_finalization.sql
       - name: Validate source contract
         run: node scripts/validate-digital-pages-boundaries.mjs
+      - name: Verify release gate records safe finalization while preserving global block
+        run: |
+          node scripts/production/verify-production.mjs
+          node --input-type=module -e 'import fs from "node:fs"; const report=JSON.parse(fs.readFileSync("artifacts/production-verification/production-verification.json","utf8")); const gate=report.results.find((r)=>r.id==="DIG-FINALIZE-TRUST-BOUNDARY"); if(gate?.status!=="PASS") throw new Error("Digital finalization source gate did not pass: "+JSON.stringify(gate)); if(report.production_gate!=="BLOCKED") throw new Error("Production must remain blocked until independent runtime evidence is complete"); console.log("PASS: source finalization boundary verified; global production gate remains BLOCKED");'
