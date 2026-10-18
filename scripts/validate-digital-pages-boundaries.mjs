@@ -97,6 +97,8 @@ if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.i
 for (const [src, marker, label] of [
   [productionVerifier, 'DIG-FINALIZE-SOURCE-CONTRACT', 'production verifier checks the server-only source contract'],
   [productionVerifier, 'DIG-FINALIZE-LIVE-PARITY', 'production verifier blocks without live finalizer parity'],
+  [productionVerifier, '20261016100000_digital_page_payment_intent_server_only_finalization.sql', 'ordered release chain includes the server-only finalizer migration'],
+  [productionVerifier, 'digital_page_finalization_trust_boundary==="PASS"', 'live finalizer grant boundary is an explicit release prerequisite'],
   [productionVerifier, 'digital_page_finalization_deployed_source_parity===true', 'live deployed-source parity is a release prerequisite'],
   [pagesWorkflow, 'npm run verify:production', 'Pages CI runs the production verifier'],
   [pagesWorkflow, 'validate-digital-pages-boundaries.mjs', 'Pages CI runs digital-page boundary validation'],
