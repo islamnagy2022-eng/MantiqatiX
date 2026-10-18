@@ -117,43 +117,50 @@ A module cannot be marked DONE until all applicable items are evidenced:
    - وصول الإشعار وclick-through.
    - عزل مزودين من أعمال مختلفة.
 
-3. Paymob production E2E — WAIT
+3. Digital-page payment finalization trust boundary — BLOCKED
+   - The Edge Function must call the finalizer through the service-role client; authenticated callers must not execute either legacy or current finalizer overload.
+   - Bind order, user, active claim token, provider intent ID and provider order ID under row lock; same-intent retry may be idempotent, conflicting replay must fail closed.
+   - Only a verified provider webhook may transition an order to PAID.
+   - Require isolated grant/body regression tests, full ordered migration replay, deployed-source/grant parity and Paymob sandbox E2E.
+   - Do not change production grants or deploy without explicit approval.
+
+4. Paymob production E2E — WAIT
    - معاملة حقيقية مصرح بها.
    - HMAC/replay/idempotency.
    - ربط الدفع بالطلب الصحيح.
    - حماية السعر/العملة/tenant.
 
-4. Finance/Settlement E2E — NOT VERIFIED
+5. Finance/Settlement E2E — NOT VERIFIED
    - payment success → commission → payout/settlement.
    - duplicate webhook.
    - concurrent/replay.
    - tenant isolation.
    - GL posting/account mapping/reconciliation.
 
-5. Supabase Security Advisor — OPEN / REVIEWED
+6. Supabase Security Advisor — OPEN / REVIEWED
    - آخر فحص Production (2026-10-07): public.digital_page_payment_events هو الجدول الوحيد الظاهر كـ RLS enabled بدون policy؛ وهو backend-only/payment-event boundary ومقصود أن يبقى fail-closed.
    - تحذير SECURITY DEFINER للـ anon: get_mnty_targeted_advertisements — endpoint إعلانات عام مقصود، ويظل يحتاج مراجعة موثقة لا تعطيلًا أعمى.
    - 40 SECURITY DEFINER functions قابلة للتنفيذ من authenticated؛ تمت مراجعة حدود الممثل/العضوية في المسارات الحرجة، ولا يوجد حتى الآن P0 actor-spoofing defect مثبت، لكن التحذير لا يُعتبر مغلقًا حتى تكتمل المراجعة الفردية.
    - تحذيرات anonymous-policy ما زالت تحتاج مراجعة سياقية؛ لا تُعتبر وحدها إثباتًا لوصول مجهول فعلي.
    - leaked-password protection معطل — WAITING FOR OWNER / Dashboard action.
 
-6. RLS بلا Policies — PARTIAL / FAIL-CLOSED REVIEW
+7. RLS بلا Policies — PARTIAL / FAIL-CLOSED REVIEW
    - Production inspection: `user_memberships`, `restaurant_inventory`, `restaurant_menu_items`, `restaurant_orders`, and `restaurant_tables` have RLS enabled and policies present (1 policy on memberships, 8 on each restaurant table).
    - `digital_page_payment_events` has RLS enabled and 0 policies, remaining fail-closed. Production grant inspection showed no direct SELECT/INSERT/UPDATE/DELETE grants to `service_role` in information_schema (only REFERENCES/TRIGGER/TRUNCATE), so the backend access path still needs explicit verification before closing this gate.
    - Prior full catalog check recorded 128/128 public base tables with RLS; repeat the full check before final release.
    - Do not add broad policies just to silence Advisor; verify the intended Edge Function/service-role path and least-privilege grants first.
 
-7. Leaked Password Protection — WAIT
+8. Leaked Password Protection — WAIT
    - تفعيلها من Supabase Auth.
    - إعادة فحص Advisor.
 
-8. Production release build + signing — WAIT
+9. Production release build + signing — WAIT
    - protected release keystore.
    - release AAB/APK.
    - signature/checksum verification.
    - لا أسرار أو keystore في repo.
 
-9. Real-device release test — WAIT
+10. Real-device release test — WAIT
    - install/update.
    - auth/session.
    - customer/provider/owner/admin.
@@ -161,7 +168,7 @@ A module cannot be marked DONE until all applicable items are evidenced:
    - network loss/retry.
    - location permission عند الحاجة فقط.
 
-10. Public web deployment smoke — PARTIAL / browser E2E NOT VERIFIED
+11. Public web deployment smoke — PARTIAL / browser E2E NOT VERIFIED
     - GitHub Pages deployment + automated `Verify deployed site`: PASS for commit `569f1245fcd57ab50f30abcb08599409e483392a` (run 37861633528).
     - Production Health Monitor: PASS for the same commit (run 37861633606); checks GitHub Pages, Supabase health function, and public web assets.
     - Still NOT VERIFIED: interactive authenticated browser session, responsive/accessibility manual audit, PWA/service-worker offline behavior, and end-user auth flow.
@@ -301,6 +308,8 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - [ ] Support/CRM
 - [ ] Catalog/pricing
 - [ ] Payment
+- [ ] Digital-page payment finalization trust boundary
+- [ ] Ordered migration replay from the production schema checkpoint
 - [ ] Webhook replay/idempotency
 - [ ] Commission
 - [ ] Settlement
