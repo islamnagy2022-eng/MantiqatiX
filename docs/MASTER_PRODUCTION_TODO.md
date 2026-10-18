@@ -1756,3 +1756,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Purpose: validate chronological compatibility of the server-only finalizer after the RC426 provider-order binding and RC526 claim migrations, without merging either candidate or touching main.
 - This branch is an integration candidate only. The available workflow-run lookup has not exposed its push-triggered replay result, so the combined migration-chain result remains **NOT VERIFIED** at this checkpoint.
 - No PR was opened for this integration branch, and no production change or merge was performed.
+
+
+## RC528 — Candidate replay evidence update — 2026-10-18
+- Exact candidate head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf` in PR #286 passed its isolated forward-chain replay workflow (run 39097050740): the schema-only checkpoint was restored, 31 forward migrations were applied in timestamp order, and the guarded synthetic two-tenant fixture passed bidirectional own-row visibility / cross-tenant denial checks before rollback of the verifier transaction.
+- The separate disposable tenant-isolation workflow (run 39097050717) also passed against the captured schema baseline. This proves the candidate test harness and replay path for that snapshot; it does NOT prove deployed Production parity, approve the baseline, or authorize a merge/deployment.
+- The same candidate's payment-focused RC425/RC431/RC526, webhook failure/success, payment-order correlation, financial-journal service-role boundary, migration collision/immutability, baseline static audit, and module-professionalization workflows reported success. Pages workflow validation passed but deploy job was skipped for the PR event.
+- The baseline review remains `PENDING_REVIEW`; production migration checkpoint remains RC424 until read-only live evidence establishes otherwise. PR #286 remains unmerged, and its changes to `docs/SESSION_LOG.md` are outside this documentation update and must not be copied/merged without resolving the project rule.
+- Next action: review the exact diff and dependencies of PR #286/#295 and the baseline manifest/manual review findings; resolve overlapping migration ownership before considering any integration. Continue payment trust-boundary regression and module E2E planning; do not claim production release readiness.
