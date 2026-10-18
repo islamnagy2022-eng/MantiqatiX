@@ -108,3 +108,15 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Decision:** do not create or inject a new table fixture without explicit owner approval or recovery of authoritative original DDL. The snapshot is live-state evidence, not proof of historical table-creation provenance.
 - **Next action:** recover the original table-creation source/artifact, or obtain explicit approval for a schema-only fixture limited to disposable CI; never apply it to production. Continue preserving historical migrations.
 - **Release gate:** BLOCKED / NOT CERTIFIED. No production mutation, merge, deployment, or payment occurred.
+
+
+## 2026-10-18 — REPLAY-RESUME-007
+
+### REPLAY-BASELINE-002 — MantiGO financial config source-order compatibility
+- **Prior failure:** run [39081172390](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081172390), at `20261006122111_mantigo_financial_config_rls_hardening_v1.sql`, failed because `public.mantigo_financial_config` was absent at that chronological point.
+- **Source recovery:** the exact `CREATE TABLE IF NOT EXISTS public.mantigo_financial_config` statement is present in tracked migration `20261006152000_mantigo_financial_ledger_v1.sql`. It appears after the RLS consumer in timestamp order.
+- **Action:** added `supabase/tests/baselines/mantigo_financial_config.sql` as a definition-only copy of that tracked DDL. The replay workflow injects it at temporary version `20261006122110`, before the earlier RLS migration, in disposable CI only. It contains no rows and does not modify any historical migration or production ledger.
+- **Guardrails:** the static validator compares normalized table DDL against the tracked source migration, checks no-data behavior, validates workflow copy/cmp/untracked wiring, and rejects version collisions/order violations.
+- **Current workflow:** [39081810409](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081810409) was pending at the time of this record. No replay PASS is claimed.
+- **Interpretation:** this isolates a repository timestamp-order dependency; it does not rewrite canonical migration history or certify production readiness.
+- **Production gate:** BLOCKED / NOT CERTIFIED.
