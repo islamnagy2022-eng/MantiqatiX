@@ -704,3 +704,11 @@ The initial ordering fix exposed a validator-ordering concern during review: tem
 - Verified the exact captain-rides function in schema-only snapshot blob `8d096904c777b4c7eae096014b45c59859c96cee`; extended the existing disposable-only MantiGO function baseline and validator to cover it. Original creation provenance remains unresolved; wait for the next exact-head replay result before proceeding.
 - Do not alter historical migrations, merge PRs, deploy, apply production migrations, or change production data. The separate proposed `marketing_provider_services` and `MNTY-MAIN` fixtures remain unapproved.
 - **PRODUCTION_GATE = BLOCKED / NOT CERTIFIED.**
+
+
+## Current continuation checkpoint — 2026-10-18 (REPLAY-RESUME-006)
+- Latest inspected chronological replay [39081172390](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39081172390) failed at `20261006122111_mantigo_financial_config_rls_hardening_v1.sql`, because `public.mantigo_financial_config` is missing in the disposable replay database.
+- Both MantiGO function grants were passed after adding the snapshot-verified definitions to the disposable-only test baseline. The new table failure is a distinct prerequisite issue.
+- Current schema snapshot contains the table shape, but original create-table migration provenance remains unrecovered; the supplied RC40 archive scan and current tracked search did not locate canonical creation DDL.
+- Do not add a table fixture without explicit approval or recovered authoritative DDL. Do not modify historical migrations, merge PRs, deploy, or mutate production. The separate `marketing_provider_services` and `MNTY-MAIN` fixture gates remain unresolved.
+- **PRODUCTION_GATE = BLOCKED / NOT CERTIFIED.**
