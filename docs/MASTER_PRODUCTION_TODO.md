@@ -1672,3 +1672,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Updated isolated PostgreSQL assertions to require zero EXECUTE for all roles on the legacy overload and to exercise claim/user/provider-order binding and idempotency only through the five-argument overload. Extended the static validator to fail if a later migration re-grants service_role on the legacy overload or removes service_role from the trusted overload.
 - New candidate commit: `f232691ce6a0caea7b21c8cf15752178f2b4bd82`. Exact-head CI was queued at checkpoint time; do not mark this correction PASS until the isolated finalization workflow and full ordered replay complete successfully.
 - No production ACL, migration, Edge Function, payment, or data was changed.
+
+
+## 2026-10-19 — Business registration organization-scope hardening (candidate)
+
+- Read-only review of the deployed/repository business-registration flow found that the Edge Function accepted a browser-supplied `organizationId` for ordinary authorized tenant members without proving that the organization matched the caller's active membership. Because the function uses the service-role client, this was a potential cross-organization assignment boundary.
+- Candidate fix on `fix/rc425-mantigo-paymob-mainline`: membership selection now matches the requested organization; non-platform users are rejected with `ORGANIZATION_SCOPE_FORBIDDEN` when the requested organization is outside their membership; platform-scope super-admins must also prove that the organization exists inside the requested tenant.
+- Added `scripts/tests/business-register-organization-scope.test.mjs` and wired it into `.github/workflows/backend-only-module-boundary.yml`.
+- Commit sequence: `8112c511366eff12e4db50e7a7cc0ff2acefacc7` (source), `b57f664892e4ac1bcac0d933fcad19b29fa74312` (contract test), `aa0ac7955c07936046da69a0dd59e9c4405fbebc` (CI wiring).
+- Status: **IMPLEMENTED — CI PENDING — NOT DEPLOYED**. Exact-head workflows were queued when recorded. The fix is source-only; no production Edge Function, grants, RLS, migration, or customer/business records were changed.
+- Release gate remains **BLOCKED / NOT CERTIFIED** pending exact-head CI, review of customer-registration parity and behavior, approved deployment, and post-deploy negative/positive tests.
