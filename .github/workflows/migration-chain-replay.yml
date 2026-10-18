@@ -513,7 +513,7 @@ jobs:
           # historical migration is restored from HEAD immediately after reset.
           python3 - <<'PY'
           from pathlib import Path
-          p = Path("supabase/migrations/20261008000001_rc422_security_definer_caller_contract_v1.sql")
+          p = Path("supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql")
           s = p.read_text()
           old_decl = """DECLARE
             v_bad text;
@@ -546,7 +546,7 @@ jobs:
           print("Applied exact delegated-auth exception to disposable RC422 replay copy; helper contract is asserted.")
           PY
           supabase db reset --local
-          git show "HEAD:supabase/migrations/20261008000001_rc422_security_definer_caller_contract_v1.sql" > supabase/migrations/20261008000001_rc422_security_definer_caller_contract_v1.sql
+          git show "HEAD:supabase/migrations/20261008000001_rc422_security_definer_caller_contract_v1.sql" > supabase/migrations/20261007223944_rc422_security_definer_caller_contract_v1.sql
           restore_future_migrations
           trap - EXIT
 
