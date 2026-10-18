@@ -150,3 +150,9 @@ No manual test was intentionally rerun in this session. The existing GitHub Acti
 - **Current run:** [39083670643](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083670643), SHA `39baa44417f1e9aaf7ae17118f5914adf664d50d`, pending when recorded. Do not claim replay pass until the run finishes and logs are inspected.
 - **Release gate:** BLOCKED / NOT CERTIFIED. Historical provenance remains unresolved; this compatibility baseline is disposable-test-only and must never be applied to production.
 
+### CI-REPLAY-008 — confirm ledger ordering blocker on pre-fix SHA and tighten validator
+- **Run:** [39083630633](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083630633), tested SHA `4b2fe6e989b532d24d64c99a44de19b3da2b7ee7`.
+- **Result:** FAIL at the same `20261006140601_mantigo_notification_lifecycle_v1.sql` statement 0 because `public.mantigo_financial_ledger` was absent. This SHA predates the workflow/validator wiring for the new ledger fixture, so it is expected pre-fix evidence, not a failure of the new candidate.
+- Static source review caught a mismatch between the fixture's safety wording (“Never apply to production”) and the validator's narrower phrase check. The validator now accepts the existing explicit prohibition wording. Rechecked 10 source-level assertions: exact tracked DDL equality, no DML, provenance, safety marker, workflow injection/cmp/untracked guard, validator guard presence, and version order all pass.
+- **Candidate run:** [39083743681](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39083743681), SHA `9ae3b38f5e6cfc99bc6d375d1aa0885a1e94c9ac`, was in progress at disposable Supabase service startup. No replay pass is claimed.
+
