@@ -119,3 +119,11 @@ Combined with the earlier reviewed snapshot body (schema-qualified table referen
 - Exact-head workflow [39089734987](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089734987) passed on commit `0d92966a36da09333bc5d39294515dfc08101b81`.
 - SQL output confirms both directions: Tenant A saw its own rows and could not see private Tenant B rows; Tenant B saw its own rows and could not see private Tenant A rows. Assertions covered businesses, orders, payment intents, and provider-onboarding rows.
 - This verifies the captured schema/policies in an isolated local Supabase environment only. It does not establish that production currently has identical policies, nor does it prove full migration replay, live application tenant isolation, payment/finance E2E, or backup/restore. Manifest stays `PENDING_REVIEW`; production remains untouched.
+
+
+## Full forward replay result — 2026-10-18
+
+- Exact-head workflow [39089936027](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089936027) passed on source commit `19bc1be6c0ce6d9d37e5fc85205ffcd406d1cb40`.
+- The workflow restored the schema-only checkpoint at `20261008222845`, replayed 30 migration files newer than the checkpoint in timestamp order, and ran the bidirectional tenant-isolation verifier after the replay. Both tenant directions passed.
+- The replay includes the recovered RC425–RC441 migrations and the candidate migrations through RC525 present on that branch. RC526 is tested separately by PR #289 and is not part of this replay yet.
+- The snapshot manifest remains `PENDING_REVIEW`; no production DDL, migration application, data mutation, or deployment was performed. A successful disposable replay is necessary evidence, not production release approval.
