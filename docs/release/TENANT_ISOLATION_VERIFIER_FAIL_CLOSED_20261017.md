@@ -17,3 +17,10 @@ A read-only production aggregate check found `MNTY-TEST-B` exists with one activ
 ## Verification scope
 
 The behavioral SQL test is run only on a separate disposable-baseline branch after schema restore and synthetic fixture seeding. This PR does not create test identities, tenant rows, or financial rows in production. Production tenant isolation remains **NOT VERIFIED** until the controlled two-user/two-tenant test passes in an approved isolated environment and deployed-policy parity is reviewed.
+
+
+## Exact-head continuation — 2026-10-18
+
+- Strengthened `scripts/validate-tenant-isolation-verifier.mjs` so it inspects each tenant assertion block separately, requires own-tenant visibility and zero cross-tenant visibility for all four surfaces in both directions, rejects database mutation statements in the verifier, and verifies that both tenants are seeded in the synthetic fixture.
+- The exact-head static contract workflow passed at [run 39089428859](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089428859) for commit `8c7321216823113d1fef437c0c27f9dbad97487d`.
+- The PR remains Draft. This is static contract evidence only; the disposable PostgreSQL behavioral test and review of deployed RLS-policy parity are still pending. No production rows, migrations, functions, settings, or payments were changed.
