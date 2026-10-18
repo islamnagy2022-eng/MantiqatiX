@@ -1951,3 +1951,12 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Candidate head after this change: `dbc1f555c450efe247c5d42f0c924fd3bf9e1460`.
 - Verification state at checkpoint: source and test assertions re-fetched from the candidate branch; the exact-head payment, replay, migration, tenant-isolation, and boundary workflows are queued/pending. **No test pass is claimed yet.**
 - This is an unmerged candidate migration only. No production migration, grant change, Edge deployment, or payment transaction was performed. Keep the release gate BLOCKED until exact-head CI, disposable replay, deployed parity and approved runtime evidence pass.
+
+
+## RC543 — Current GitHub checkpoint and exact-head CI state — 2026-10-19
+- Current main base observed through PR metadata: `149a85c7e5c44b61421edc8391cbb82885902fae`. The production deployment/verification run `39092185609` failed and the deploy job was skipped; release remains BLOCKED / NOT CERTIFIED.
+- Consolidated candidate PR #286 is open/draft, base `main`, latest observed head `6a109ca7500bfd19bef47958710843285a33d8f8`. Its current exact-head workflows were queued at the latest poll, including ordered forward migration replay, disposable tenant isolation, RC425/RC431/RC526 payment checks, migration immutability/uniqueness/collision guard, digital-page finalization isolation, financial-journal boundary, and Pages validation. Do not reuse earlier passing runs as proof for this newer head.
+- PR #296 documentation branch is open and unmerged. Earlier exact-head checks passed at `39b92561d53af040e2b4960a99b7848cca9bf0f0`; the latest observed head `8d3f52929885f67d20e7277335d1733bd6d203d8` has fresh module/backend checks queued and its PR deployment run was cancelled. No deployment is claimed.
+- PR #297 remains draft/non-mergeable and is based on the RC candidate branch. It must be reconciled with #286 rather than independently merged.
+- No production mutation, migration, grant/RLS/Auth change, payment, deployment, merge, or edit to `docs/SESSION_LOG.md` was performed in this checkpoint.
+- Next: poll exact-head workflows for #286 and #296; inspect failures rather than assuming success; review migration provenance/baseline and security boundaries; reconcile the #286 diff to avoid changes to `docs/SESSION_LOG.md`; obtain explicit owner approval before any merge or production rollout.
