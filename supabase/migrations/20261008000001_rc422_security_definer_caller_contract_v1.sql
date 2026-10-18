@@ -2,10 +2,6 @@
 -- Every authenticated-callable SECURITY DEFINER function must bind the caller
 -- directly, except reviewed helper/public-read functions whose own boundary is
 -- established by a trusted SECURITY DEFINER helper or intentionally public ad read.
--- `assert_financial_membership` is a trusted actor-binding helper: it rejects a
--- NULL auth.uid(), resolves membership using auth.uid(), and enforces active
--- tenant membership plus an approved finance role. Recognize callers that
--- delegate this contract instead of requiring duplicated auth.uid() text.
 DO $$
 DECLARE
   v_bad text;
@@ -18,7 +14,6 @@ BEGIN
     AND p.prosecdef
     AND has_function_privilege('authenticated', p.oid, 'EXECUTE')
     AND pg_get_functiondef(p.oid) NOT ILIKE '%auth.uid()%'
-    AND pg_get_functiondef(p.oid) NOT ILIKE '%assert_financial_membership(%'
     AND p.proname NOT IN (
       'get_mnty_targeted_advertisements',
       'mnty_active_membership',
