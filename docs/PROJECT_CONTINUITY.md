@@ -577,3 +577,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-19 — Marketing campaign operations build (implementation only)
+- Working branch: `feat/marketing-campaign-operations-summary-20261019`.
+- Commits: `a50890a016cee7f5514640c9027a4bf5cc3a4e66` (campaign operations summary) and `66d6e94fbe7d93632463c839fd9ba84196b1a440` (business-scoped CSV export); TODO documentation follow-up: `5383724beccaf43227df4c3a469f1944fa58aece`.
+- `web/app.js` now shows campaign workflow summary metrics derived only from the current business's loaded campaign/participant records. Budget totals are grouped by currency to avoid misleading cross-currency addition.
+- Authorized campaign managers can export visible campaigns as CSV for the active business. CSV fields are quoted/escaped and spreadsheet formula-prefixed values are neutralized.
+- Tests/review/browser execution/CI/deployment were intentionally not run in this build-first batch. Treat the work as implemented but NOT VERIFIED.
+- No merge, production migration, RLS/grant/Auth change, Edge Function deployment, or external advertising publication occurred. Existing production release blockers remain open.
+- Next build task: continue completing operational campaign tooling on this isolated branch, then update the TODO/continuity checkpoint. Run review and tests only when the user requests the verification phase.
