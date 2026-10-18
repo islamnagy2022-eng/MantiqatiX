@@ -1319,7 +1319,7 @@ function marketingCampaignWorkspace(){
   const next=validNext(c);
   const statusForm=mine&&next.length?'<div class="action-bar"><label class="sr-only" for="mc-status-'+esc(c.id)+'">الحالة التالية</label><select id="mc-status-'+esc(c.id)+'" data-mc-status-select="'+esc(c.id)+'">'+next.map(s=>'<option value="'+esc(s)+'">'+esc(statusAr(s))+'</option>').join('')+'</select><button type="button" class="btn btn-outline" data-mc-status="'+esc(c.id)+'" style="width:auto">تحديث الحالة</button></div>':'';
   const inviteButton=mine&&providerOptions.length?'<div class="muted">يمكن إسناد شريك من نموذج التعاون أدناه.</div>':'';
-  return '<article class="card" style="padding:16px;margin:10px 0"><div class="row"><div><span class="eyebrow">'+esc(objectiveAr(c.objective))+'</span><h3>'+esc(c.title)+'</h3></div><span class="mnty-badge">'+esc(statusAr(c.status))+'</span></div>'+
+  return '<article data-mc-campaign-card data-mc-title="'+esc(c.title)+'" data-mc-status="'+esc(String(c.status||'').toUpperCase())+'" data-mc-objective="'+esc(String(c.objective||'').toUpperCase())+'" class="card" style="padding:16px;margin:10px 0"><div class="row"><div><span class="eyebrow">'+esc(objectiveAr(c.objective))+'</span><h3>'+esc(c.title)+'</h3></div><span class="mnty-badge">'+esc(statusAr(c.status))+'</span></div>'+
    '<p class="muted">القنوات: '+esc((c.channels||[]).map(channelAr).join('، '))+' · الميزانية: '+fmtMoney(c.budget,c.currency)+'</p>'+
    '<p class="muted">الفترة: '+fmtDate(c.start_at)+' — '+fmtDate(c.end_at)+' · أُنشئت: '+fmtDate(c.created_at)+'</p>'+
    (c.brief?'<p>'+esc(c.brief)+'</p>':'')+statusForm+inviteButton+'</article>';
@@ -1351,7 +1351,7 @@ function marketingCampaignWorkspace(){
  return marketingAgencyWorkspace()+
   '<section class="records" data-marketing-campaign-workspace><div class="section-head"><div><span class="eyebrow">INTERNAL CAMPAIGN WORKFLOW</span><h2>الحملات والتعاون مع الشركاء</h2><p class="muted">إدارة داخلية للخطط والدعوات. لا يوجد نشر خارجي تلقائي أو اتصال مباشر بمنصات الإعلانات.</p></div><span class="mnty-badge">RC453</span></div>'+
   errorPanel+campaignOperationsSummary+(canManage?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-export style="width:auto">تصدير تقرير الحملات CSV</button></div>':'')+createForm+
-  '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div>'+campaignCards+'</section>'+
+  '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div><div class="grid2" style="margin:12px 0"><div class="field"><label for="mc-campaign-search">البحث في الحملات</label><input id="mc-campaign-search" type="search" placeholder="ابحث بالاسم أو الهدف" autocomplete="off"/></div><div class="field"><label for="mc-campaign-status-filter">تصفية حسب الحالة</label><select id="mc-campaign-status-filter"><option value="ALL">كل الحالات</option><option value="DRAFT">مسودة</option><option value="PLANNED">مخططة</option><option value="IN_REVIEW">قيد المراجعة</option><option value="APPROVED">معتمدة داخليًا</option><option value="PAUSED">متوقفة مؤقتًا</option><option value="COMPLETED">مكتملة</option><option value="CANCELLED">ملغاة</option></select></div></div><p id="mc-campaign-filter-count" class="muted" aria-live="polite"></p>'+campaignCards+'</section>'+
   inviteForm+
   '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div>'+participantCards+'</section></section>';
 }
@@ -1363,7 +1363,27 @@ async function refreshMarketingCampaignWorkspace(){
  bindMarketingCampaignWorkspace();
 }
 function bindMarketingCampaignWorkspace(){
- document.querySelectorAll('[data-mc-export]').forEach(button=>button.addEventListener('click',()=>{
+ const filterCampaignCards=()=>{
+  const query=String(document.getElementById('mc-campaign-search')?.value||'').trim().toLocaleLowerCase('ar');
+  const status=String(document.getElementById('mc-campaign-status-filter')?.value||'ALL').toUpperCase();
+  const cards=Array.from(document.querySelectorAll('[data-mc-campaign-card]'));
+  let visible=0;
+  cards.forEach(card=>{
+   const title=String(card.dataset.mcTitle||'').toLocaleLowerCase('ar');
+   const objective=String(card.dataset.mcObjective||'').toLocaleLowerCase('ar');
+   const statusMatch=status==='ALL'||String(card.dataset.mcStatus||'').toUpperCase()===status;
+   const queryMatch=!query||title.includes(query)||objective.includes(query);
+   const show=statusMatch&&queryMatch;
+   card.hidden=!show;
+   if(show)visible++;
+  });
+  const count=document.getElementById('mc-campaign-filter-count');
+  if(count)count.textContent='المعروض '+visible+' من '+cards.length+' حملة';
+ };
+ document.getElementById('mc-campaign-search')?.addEventListener('input',filterCampaignCards);
+ document.getElementById('mc-campaign-status-filter')?.addEventListener('change',filterCampaignCards);
+ filterCampaignCards();
+ document.querySelectorAll('[data-mc-export]).forEach(button=>button.addEventListener('click',()=>{
   const role=String(live.role||'').toUpperCase();
   const activeBusinessId=String(live.businessId||'');
   if(!activeBusinessId||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
