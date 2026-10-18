@@ -111,3 +111,11 @@ Combined with the earlier reviewed snapshot body (schema-qualified table referen
 - Added a branch-push trigger for the static audit so subsequent edits to the snapshot, manifest, ledger, validator, or workflow are audited on the branch as well as in pull requests.
 - Exact-head run [39089593717](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089593717) passed on `d70000e185c2e6d2c5f86d82a4c5b7a089564b02`: 283 ledger versions through `20261008222845`, 128/128 public tables with RLS enabled in the snapshot, 485 policy declarations, and 145/145 parsed SECURITY DEFINER headers with explicit `search_path` and PUBLIC execute revokes.
 - The baseline remains `PENDING_REVIEW`. These are static snapshot checks, not a full manual function/policy review, a disposable forward-migration replay, or production tenant/payment E2E. No production changes or deployment were performed.
+
+
+## Disposable tenant-isolation E2E — 2026-10-18
+
+- Added `.github/workflows/disposable-schema-tenant-isolation-e2e.yml`. It creates a temporary Supabase project in CI, restores only the schema-only snapshot, injects synthetic rows guarded by `mantiqati_disposable=on`, then runs the fail-closed verifier.
+- Exact-head workflow [39089734987](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089734987) passed on commit `0d92966a36da09333bc5d39294515dfc08101b81`.
+- SQL output confirms both directions: Tenant A saw its own rows and could not see private Tenant B rows; Tenant B saw its own rows and could not see private Tenant A rows. Assertions covered businesses, orders, payment intents, and provider-onboarding rows.
+- This verifies the captured schema/policies in an isolated local Supabase environment only. It does not establish that production currently has identical policies, nor does it prove full migration replay, live application tenant isolation, payment/finance E2E, or backup/restore. Manifest stays `PENDING_REVIEW`; production remains untouched.
