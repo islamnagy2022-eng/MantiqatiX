@@ -1396,7 +1396,7 @@ const mantigoFinancialConfigWorkflow = fs.existsSync(mantigoFinancialConfigWorkf
 const mantigoFinancialConfigBaselineValid =
   /TEST-ONLY schema compatibility baseline for disposable migration-chain replay/i.test(mantigoFinancialConfigBaseline) &&
   /tracked migration 20261006152000_mantigo_financial_ledger_v1\.sql/i.test(mantigoFinancialConfigBaseline) &&
-  /must never be applied to production/i.test(mantigoFinancialConfigBaseline) &&
+  /must never\s+be applied to production/i.test(mantigoFinancialConfigBaseline) &&
   /id boolean primary key default true check \(id=true\)/i.test(mantigoFinancialConfigBaseline) &&
   /commission_rate numeric\(6,3\) not null check \(commission_rate>=0 and commission_rate<=100\)/i.test(mantigoFinancialConfigBaseline) &&
   mantigoFinancialConfigSourceDdl.length > 0 &&
