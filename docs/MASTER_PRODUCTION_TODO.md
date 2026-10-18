@@ -1870,3 +1870,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **HISTORICAL PROVENANCE STILL OPEN:** this baseline is copied from the live schema snapshot and is not the original creation migration. It can only support disposable replay of later migration behavior; it does not certify historical source provenance or production release.
 - [ ] **UNCHANGED APPROVAL GATE:** proposed `marketing_provider_services` and `MNTY-MAIN` replay fixtures remain unapproved; do not add them without explicit approval or trusted original source recovery.
 - Overall production state remains **BLOCKED / NOT CERTIFIED**. No production migrations, schema/data writes, deployments, payments, merges, or releases occurred.
+
+
+## REPLAY-RESUME-005 — 2026-10-18
+- [x] Inspected full replay run `39079676044` at code SHA `8c3814ec12206769a6be546a9afc7ed80450554d`.
+- [x] Confirmed the prior `list_open_mantigo_rides_backend(uuid)` missing-function blocker was passed after the disposable-only baseline injection.
+- [ ] Current replay blocker: `20261006101048_rc_mantigo_production_completion_v1.sql`, statement 12, missing `public.list_mantigo_captain_rides_backend(uuid)` (`SQLSTATE 42883`).
+- [ ] Inspect trusted schema-only snapshot and repository history for the exact function definition/signature before proposing any test-only compatibility baseline.
+- [ ] Do not synthesize historical DDL, alter historical migrations, or add unapproved fixtures. Existing `marketing_provider_services` / `MNTY-MAIN` fixture approval gate remains separate and unresolved.
+- Final production gate remains **BLOCKED / NOT CERTIFIED**; no merge, deployment, production migration, or production data mutation.
