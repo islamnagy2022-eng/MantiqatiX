@@ -1748,3 +1748,5 @@ This checkpoint does not close the production release gate because runtime E2E e
 - أُضيف شرط fail-closed إضافي قبل إنشاء التريغر: يوقف تطبيق migration إذا كانت هناك دعوات/تعاونات بحالات INVITED أو ACCEPTED أو ACTIVE مرتبطة بحملات COMPLETED أو CANCELLED.
 - الهدف عدم تثبيت الحماية الجديدة فوق بيانات تاريخية تخالف دورة حياة الحملة. يجب تسوية هذه السجلات صراحة قبل التطبيق.
 - لم تُطبق migration ولم تُشغّل اختبارات أو مراجعة أو نشر. تظل الحماية غير فعالة حتى التطبيق والتحقق الفعلي.
+
+- أُضيف فهرس تغطية `marketing_campaign_participants_allocation_guard_idx` على `(campaign_id,status)` مع تضمين `allocation_percent` لدعم استعلام مجموع التخصيصات داخل التريغر. أثر الأداء الفعلي لم يُقَس لأن الاختبارات/القياس لم تُشغّل.
