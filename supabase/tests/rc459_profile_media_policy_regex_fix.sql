@@ -34,7 +34,7 @@ grant select on storage.objects to anon;
 
 \i supabase/migrations/20261019110000_rc459_profile_media_policy_regex_fix.sql
 
--- Keep one seeded public presentation object to verify anonymous reads end-to-end.
+-- Keep one seeded public presentation object and another owner's object.
 insert into storage.objects(id,bucket_id,name) values
   ('50000000-0000-4000-8000-000000000010','mantiqatix-profile-media','platform/branding/logo-1.svg'),
   ('50000000-0000-4000-8000-000000000011','mantiqatix-profile-media',
@@ -53,6 +53,7 @@ insert into storage.objects(id,bucket_id,name) values
 update storage.objects
 set name='users/30000000-0000-4000-8000-000000000001/providers/40000000-0000-4000-8000-000000000001/logo.webp'
 where id='50000000-0000-4000-8000-000000000001';
+
 do $assert$
 begin
   if not exists (
@@ -83,11 +84,35 @@ begin
     raise exception 'RC459 accepted changing an owned object to an unsupported extension';
   exception when insufficient_privilege then null;
   end;
+
   -- RLS may silently filter another owner's row from UPDATE/DELETE; verify it survives.
   delete from storage.objects where id='50000000-0000-4000-8000-000000000011';
   if not exists (select 1 from storage.objects where id='50000000-0000-4000-8000-000000000011') then
     raise exception 'RC459 allowed deletion of another user media object';
   end if;
+
+  -- Anonymous Auth users still have the authenticated SQL role. They must not mutate
+  -- media even if a matching owner/profile row exists for their UID.
+  perform set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000001","is_anonymous":true}',true);
+  update storage.objects
+    set name='users/30000000-0000-4000-8000-000000000001/providers/40000000-0000-4000-8000-000000000001/cover.png'
+    where id='50000000-0000-4000-8000-000000000001';
+  if not exists (
+    select 1 from storage.objects
+    where id='50000000-0000-4000-8000-000000000001'
+      and name='users/30000000-0000-4000-8000-000000000001/providers/40000000-0000-4000-8000-000000000001/logo.webp'
+  ) then
+    raise exception 'RC459 allowed an anonymous Auth user to update profile media';
+  end if;
+  delete from storage.objects where id='50000000-0000-4000-8000-000000000001';
+  if not exists (
+    select 1 from storage.objects
+    where id='50000000-0000-4000-8000-000000000001'
+      and name='users/30000000-0000-4000-8000-000000000001/providers/40000000-0000-4000-8000-000000000001/logo.webp'
+  ) then
+    raise exception 'RC459 allowed an anonymous Auth user to delete profile media';
+  end if;
+  perform set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000001","is_anonymous":false}',true);
 end;
 $assert$;
 
