@@ -821,7 +821,7 @@ This status is intentional and must remain until the open gates above are indepe
 ## 2026-10-19 — Role dashboard module-button checkpoint
 
 - Working branch remains `feat/marketing-campaign-operations-summary-20261019`; PR #299 remains open and Draft.
-- Converted provider-dashboard and role-scoped workspace module tiles from click-only articles to semantic buttons. They use the existing `data-dashboard-module` event binder and preserve current role/module visibility checks.
+- Converted customer-dashboard, provider-dashboard, and role-scoped workspace module tiles from click-only articles to semantic buttons. They use the existing `data-dashboard-module` event binder and preserve current role/module visibility checks.
 - Refreshed matching JS/CSS version query strings in `web/index.html` and `web/sw.js`; advanced service-worker cache to `mnty-web-v137`.
 - This was build-first source editing only. No tests, browser, build, CI, review, migration replay, merge, or deployment was performed. Do not claim runtime or accessibility verification.
 - Next: continue frontend-first through customer dashboard and first module child-screen states; inspect actual loading/error/empty/action behavior before choosing the next focused UI improvement. Do not touch `docs/SESSION_LOG.md`. Keep SMM launch deferred and production **BLOCKED / NOT CERTIFIED**.
