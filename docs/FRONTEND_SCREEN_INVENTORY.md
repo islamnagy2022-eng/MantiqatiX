@@ -145,3 +145,11 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Hardened both campaign and partnership CSV exporters against formula-like cells preceded by whitespace/control characters, in addition to the direct formula prefixes already guarded.
 - Refreshed `web/index.html` asset key to `notification-batch-csv-guard-20261019`; service-worker shell cache is `mnty-web-v140`.
 - Status: SOURCE UPDATED / NOT VERIFIED. No JavaScript parser, browser, tests, build, CI, review, merge, or deployment was run. Backend behavior and CSV behavior require tests before release.
+
+
+## Marketing filter empty states — 2026-10-19
+
+- Added explicit, initially hidden no-match states for campaign and partner search/status filters. They appear only when records exist but the current filters hide every card; the original empty-dataset state remains authoritative when no cards are loaded.
+- Both filter counts remain `aria-live="polite"`; the empty state is toggled with the same filtering pass so search and status controls stay synchronized.
+- Asset key is now `marketing-filter-empty-state-20261019`; PWA shell cache is `mnty-web-v141`.
+- Source-only change. Browser behavior, keyboard/screen-reader announcements, and responsive layout remain NOT VERIFIED.
