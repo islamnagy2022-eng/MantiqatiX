@@ -883,3 +883,9 @@ This status is intentional and must remain until the open gates above are indepe
 
 - The SMM boundary workflow's PostgreSQL integration job passed, but the source validator failed because it expected a 32 KiB constant inside `request-validation.ts`. The helper accepts a configurable maximum and defaults to 65,536 bytes; the gateway correctly invokes it with `readBoundedJson(req,32*1024)`. Updated the validator to check these two contracts at their actual source locations. This is a test-only correction, not a runtime behavior change.
 - Await fresh CI against the latest PR head before any merge. The PR deploy workflow previously reported success on a pull-request event, which does not establish a production deployment; certification remains **BLOCKED / NOT CERTIFIED**. Do not edit `docs/SESSION_LOG.md`.
+
+## 2026-10-19 — RC454 status-only allocation bypass closed in source
+
+- Reviewing RC454 against its intended invariant exposed that the trigger fired on inserts and updates to scope/allocation columns, but omitted `status`. Status-only updates into an active allocation state could bypass the guard.
+- Added `status` to the trigger's `UPDATE OF` list and a validator assertion that protects this requirement. This is a genuine migration-source correction, not merely a stale test assertion.
+- Await fresh CI on the updated PR head and add/verify a disposable PostgreSQL behavioral case for status-only transitions. Do not apply the migration to production or certify release based on source CI alone; keep **BLOCKED / NOT CERTIFIED**.
