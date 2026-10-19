@@ -1692,3 +1692,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## 2026-10-19 — Duplicate active partner invitation guard (implementation only)
 - [x] Added a pre-submit guard against sending a second invitation to the same provider for the same campaign when an invitation is already pending or an assignment is accepted.
 - [ ] NOT VERIFIED: backend uniqueness/idempotency remains authoritative, especially for concurrent requests and stale client data. No tests, review, browser run, CI, or deployment performed by request.
+
+
+## 2026-10-19 — Campaign search improvement
+- [x] Search now matches campaign title, objective, and channel identifiers.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
