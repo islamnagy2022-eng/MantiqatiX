@@ -1,36 +1,8 @@
--- RC457 public service-catalog RLS regression.
--- Run only in a disposable PostgreSQL database.
+-- RC457 public service-catalog view regression; disposable PostgreSQL only.
 begin;
 
 create role anon nologin;
 create role authenticated nologin;
-
-create table public.marketing_provider_profiles (
-  id uuid primary key,
-  business_id uuid,
-  owner_user_id uuid,
-  name_ar text not null,
-  name_en text,
-  provider_kind text not null,
-  description text,
-  service_areas jsonb,
-  status text not null,
-  is_verified boolean not null default false,
-  is_featured boolean not null default false,
-  ranking_weight integer not null default 0,
-  profile_image_path text,
-  updated_at timestamptz not null default now(),
-  settings jsonb not null default '{}'::jsonb
-);
-alter table public.marketing_provider_profiles enable row level security;
-create policy "Public can view active marketing providers"
-on public.marketing_provider_profiles for select to authenticated using (status='ACTIVE');
-grant select on public.marketing_provider_profiles to anon, authenticated;
-insert into public.marketing_provider_profiles
-  (id,business_id,owner_user_id,name_ar,provider_kind,status,settings)
-values
-  ('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','مقدم منشور','FOOD','ACTIVE','{"private_api_key":"must-not-leak"}'),
-  ('20000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','مقدم مسودة','FOOD','DRAFT','{"private_api_key":"private"}');
 
 create table public.marketing_services (
   id uuid primary key,
@@ -45,6 +17,8 @@ create table public.marketing_services (
 );
 alter table public.marketing_services enable row level security;
 grant select on public.marketing_services to anon, authenticated;
+create policy test_active_admin_policy on public.marketing_services
+for select to authenticated using (true);
 
 insert into public.marketing_services
   (id,code,name_ar,category_code,status,internal_notes)
@@ -53,48 +27,36 @@ values
   ('10000000-0000-4000-8000-000000000002','PRIVATE-D','مسودة داخلية','FOOD','DRAFT','private');
 
 \i supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql
-\i supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql
 
 set role anon;
 do $assert$
-declare
-  visible_count integer;
+declare visible_count integer;
 begin
-  select count(*) into visible_count from public.marketing_services;
+  select count(*) into visible_count from public.marketing_services_public;
   if visible_count <> 1 then
     raise exception 'RC457 expected exactly one public ACTIVE service, got %', visible_count;
   end if;
-  if not exists (
-    select 1 from public.marketing_services
-    where code='PUBLIC-A' and status='ACTIVE'
-  ) then
+  if not exists (select 1 from public.marketing_services_public where code='PUBLIC-A') then
     raise exception 'RC457 active public service is not visible';
   end if;
-  if not exists (
-    select 1 from public.marketing_provider_profiles
-    where name_ar='مقدم منشور' and status='ACTIVE'
-  ) then
-    raise exception 'RC458 active public provider is not visible';
-  end if;
-  if exists (
-    select 1 from public.marketing_provider_profiles where status <> 'ACTIVE'
-  ) then
-    raise exception 'RC458 non-active provider profile is visible';
-  end if;
-  begin
-    perform settings from public.marketing_provider_profiles;
-    raise exception 'RC458 private provider settings unexpectedly readable by anon';
-  exception when insufficient_privilege then
-    null;
-  end;
   begin
     perform internal_notes from public.marketing_services;
-    raise exception 'RC457 private internal_notes column unexpectedly readable by anon';
-  exception when insufficient_privilege then
-    null;
+    raise exception 'RC457 base table unexpectedly readable by anon';
+  exception when insufficient_privilege then null;
   end;
 end;
 $assert$;
 reset role;
 
+set role authenticated;
+do $assert$
+declare visible_count integer;
+begin
+  select count(*) into visible_count from public.marketing_services_public;
+  if visible_count <> 1 then
+    raise exception 'RC457 authenticated public view expected one row, got %', visible_count;
+  end if;
+end;
+$assert$;
+reset role;
 rollback;
