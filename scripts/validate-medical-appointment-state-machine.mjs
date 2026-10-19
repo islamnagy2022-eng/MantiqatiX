@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const migrationPath='supabase/migrations/20261019190000_rc457_medical_appointment_state_machine.sql';
-const fixturePath='supabase/tests/rc452_medical_appointment_state_machine_fixture.sql';
-const integrationPath='supabase/tests/rc452_medical_appointment_state_machine_integration.sql';
+const fixturePath='supabase/tests/rc457_medical_appointment_state_machine_fixture.sql';
+const integrationPath='supabase/tests/rc457_medical_appointment_state_machine_integration.sql';
 const workflowPath='.github/workflows/module-professionalization.yml';
 const docsPath='docs/release/RC457_MEDICAL_APPOINTMENT_STATE_MACHINE.md';
 const migration=fs.readFileSync(migrationPath,'utf8');
