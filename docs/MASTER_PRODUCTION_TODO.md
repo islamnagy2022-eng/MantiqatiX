@@ -1992,3 +1992,11 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Added `scripts/tests/payment-intent-correlation.test.mjs`, wired it into Module Professionalization CI, and strengthened the payment migration wiring validator.
 - Current candidate head observed during this checkpoint: `b5802625543df635246e0f7f5e902840825f64e3`; exact-head CI remains queued/pending, so no test pass is claimed.
 - No production changes. Keep payment release blocked until CI, chronological disposable replay, tenant isolation, and approved Paymob sandbox E2E are verified.
+
+
+## Execution checkpoint — ambiguous Paymob provider outcomes — 2026-10-19
+- Found that the ordinary order payment and digital-page payment handlers treated every HTTP 4xx response as definitive and could mark an intent FAILED or release its claim even for ambiguous statuses such as 408, 409, 425, or 429.
+- Candidate fix now permits failure/release only for explicit identifier-free rejections (400, 401, 403, 404, 422). Any response with provider identifiers, or any other non-2xx response, remains quarantined for reconciliation and does not return checkout credentials.
+- Added `scripts/tests/payment-provider-ambiguous-outcomes.test.mjs`, wired it into Module Professionalization CI, and extended the payment wiring validator.
+- Candidate head at checkpoint: `bd0164786b37e1ebf8a1dd3e80e1db9bf929d3fa`. Exact-head workflows are queued; no test pass is claimed.
+- No production changes. Release remains BLOCKED / NOT CERTIFIED.
