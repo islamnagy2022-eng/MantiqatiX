@@ -1843,3 +1843,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - Reconciled the generic workspace UI update with the actual current asset strings: `web/index.html` now references `app.js?v=generic-workspace-sections-v2-20261019` and the matching service-worker URL; `web/sw.js` precaches the same app URL and uses `mnty-web-v135`.
 - This follow-up corrects cache-key alignment in source. No build, browser, test, CI or deployment was run; runtime cache behavior remains NOT VERIFIED.
+
+
+## 2026-10-19 — Dashboard quick-access accessibility
+
+- `web/app.js`: quick-access module cards now use semantic buttons with accessible names and a dedicated event binder instead of click-only article elements; added an explicit no-match state for filtered quick access.
+- `web/styles.css`: added visible `:focus-visible` outline and button layout adjustments for module cards.
+- `web/index.html` and `web/sw.js`: refreshed matching JS/CSS asset versions; cache advanced to `mnty-web-v136`.
+- Source-only change. No browser, test, build, CI, review or deployment was run; runtime/accessibility remain NOT VERIFIED.
