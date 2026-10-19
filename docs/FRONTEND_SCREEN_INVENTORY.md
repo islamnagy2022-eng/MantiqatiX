@@ -260,3 +260,8 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 
 - Backend access hardening follow-up (RC458, 2026-10-19): added `marketing_provider_profiles_public`, a read-only view exposing ACTIVE profiles and allowlisted fields to anon/authenticated visitors. Public homepage queries use the view; direct anonymous base-table access is revoked and owner/admin base-table access remains behind existing RLS. The regression now covers active/draft visibility and direct base-table denial for anon/authenticated roles. RC457 CI passed before the test was expanded for RC458; a fresh combined run is not yet confirmed.
+
+
+### Public marketing discovery data-boundary CI (2026-10-19)
+
+The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public catalog RLS/source contract workflow (run [39243530776](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530776)). The public homepage reads service/provider listings from the RC457/RC458 allowlisted views, with ACTIVE-row filters and tests proving private service/provider columns are absent. Marketing backend lifecycle PostgreSQL/source checks also passed (run [39243530754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530754)). This does not establish browser E2E or production schema parity; keep those checks open and production blocked.
