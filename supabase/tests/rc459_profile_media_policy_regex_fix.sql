@@ -33,6 +33,10 @@ grant select on storage.objects to anon;
 
 \i supabase/migrations/20261019110000_rc459_profile_media_policy_regex_fix.sql
 
+-- Keep one seeded public presentation object to verify anonymous reads end-to-end.
+insert into storage.objects(id,bucket_id,name) values
+  ('50000000-0000-4000-8000-000000000010','mantiqatix-profile-media','platform/branding/logo-1.svg');
+
 set role authenticated;
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000001',true);
 select set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000001","is_anonymous":false}',true);
@@ -85,6 +89,7 @@ reset role;
 -- The bucket remains intentionally public-read for presentation media.
 set role anon;
 do $assert$
+declare visible_count integer;
 begin
   if not exists (
     select 1 from pg_policies
@@ -93,6 +98,11 @@ begin
       and 'public' = any(roles::text[])
   ) then
     raise exception 'RC459 removed the public-read policy required for presentation media';
+  end if;
+  select count(*) into visible_count from storage.objects
+  where bucket_id='mantiqatix-profile-media';
+  if visible_count <> 1 then
+    raise exception 'RC459 anonymous presentation-media read expected one public object, got %', visible_count;
   end if;
 end;
 $assert$;
