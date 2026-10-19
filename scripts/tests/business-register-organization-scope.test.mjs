@@ -16,7 +16,7 @@ assert.match(source, /if\(tenantError\)throw tenantError;\s*if\(!tenant\)return 
 assert.match(source, /console\.error\("business-register failed",error instanceof Error\?error\.message:"unknown_error"\)/);
 assert.match(source, /return response\(\{error:"BUSINESS_REGISTER_FAILED"\},500\)/);
 assert.doesNotMatch(source, /return response\(\{error:error instanceof Error\?error\.message/);
-assert.match(source, /const rawBody=await req\.text\(\)/);
+assert.match(source, /const reader=req\.body\?\.getReader\(\)/);
 assert.match(source, /if\(!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)\)return response\(\{error:"INVALID_JSON_BODY"\},400\)/);
 assert.match(source, /let body:Record<string,unknown>\|null=null/);
 assert.match(source, /try\{body=JSON\.parse\(rawBody\);\}catch\{body=null;\}/);
@@ -30,7 +30,10 @@ assert.match(source, /"X-Content-Type-Options":"nosniff"/);
 assert.match(source, /split\(";"\)\[0\]\.trim\(\)\.toLowerCase\(\)!=="application\/json"/);
 assert.match(source, /REQUEST_BODY_TOO_LARGE/);
 assert.match(source, /declaredLength>16384/);
-assert.match(source, /new TextEncoder\(\)\.encode\(rawBody\)\.byteLength>16384/);
+assert.match(source, /totalBytes>16384/);
+assert.match(source, /await reader\.cancel\(\)\.catch\(\(\)=>\{\}\)/);
+assert.match(source, /new TextDecoder\("utf-8",\{fatal:true\}\)\.decode\(payloadBytes\)/);
+assert.doesNotMatch(source, /req\.text\(\)/);
 assert.match(source, /try\{body=JSON\.parse\(rawBody\);\}catch\{body=null;\}/);
 assert.match(source, /stringFields=\["tenantId","name","sector","address","phone","city","district","organizationId"\]/);
 assert.match(source, /INVALID_FIELD_TYPE/);
@@ -49,4 +52,4 @@ assert.match(migration, /insert into public\.businesses[\s\S]*insert into public
 assert.match(migration, /grant execute on function public\.register_business_with_approval_atomic[\s\S]*to service_role/);
 assert.match(migration, /revoke all on function public\.register_business_with_approval_atomic[\s\S]*from public, anon, authenticated/);
 
-console.log("business-register tenant and organization security contract: PASS (41 assertions)");
+console.log("business-register tenant and organization security contract: PASS (44 assertions)");
