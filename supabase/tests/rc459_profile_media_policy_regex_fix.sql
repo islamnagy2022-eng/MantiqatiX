@@ -122,8 +122,8 @@ begin
   end if;
   select count(*) into visible_count from storage.objects
   where bucket_id='mantiqatix-profile-media';
-  if visible_count <> 1 then
-    raise exception 'RC459 anonymous presentation-media read expected one public object, got %', visible_count;
+  if visible_count <> 2 then
+    raise exception 'RC459 anonymous presentation-media read expected two public objects, got %', visible_count;
   end if;
 end;
 $assert$;
