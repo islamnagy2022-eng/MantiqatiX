@@ -172,3 +172,9 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 ## Related CI correction — 2026-10-19
 
 - SMM service-role validation exposed a source-test mismatch rather than a gateway size-limit defect: the reusable parser defaults to 64 KiB and the gateway passes a 32 KiB override. The validator now checks both facts independently. Fresh workflow evidence remains required; no release certification is implied.
+
+## Backend integrity follow-up — RC454 allocation guard (2026-10-19)
+
+- During cross-layer review of the marketing workspace backend, identified and corrected a migration trigger event gap: participant `status` updates were not included in the allocation guard trigger's update column list.
+- The trigger now runs for status-only transitions, and the marketing backend source contract asserts the trigger event includes `status`.
+- This is a backend correctness fix noted here for cross-layer traceability; no frontend behavior or production database was changed. Fresh CI and disposable PostgreSQL behavioral verification remain required.
