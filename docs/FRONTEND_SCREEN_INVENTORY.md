@@ -161,3 +161,9 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Updated `web/index.html` asset key to `provider-dashboard-syntax-fix-20261019` and service-worker cache to `mnty-web-v142`.
 - The campaign backend source-contract workflow also exposed an overly narrow regex window for the valid `REMOVED` idempotent JSON response; widened the assertion window to cover the actual response object without changing the SQL migration.
 - The source fixes have been pushed to the PR branch. Their CI re-run must pass before merge; no production deployment is authorized by this correction.
+
+
+## CI cache-contract follow-up — 2026-10-19
+
+- The PWA cache rotation exposed stale validator assumptions in the sector-rendering and marketing UI contracts. Validators now check the current versioned asset references instead of fixed historical versions.
+- The source checks have been updated; fresh CI on the latest PR head remains the evidence gate. This is not a production certification.
