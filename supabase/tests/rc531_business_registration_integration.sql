@@ -98,6 +98,23 @@ begin
     raise exception 'RC531 must roll back business insert when approval insert fails; before %, after %',v_before,v_after;
   end if;
 end;
+  -- The SECURITY DEFINER function must still reject calls whose JWT role is not service_role.
+  select count(*) into v_before from public.businesses;
+  perform set_config('request.jwt.claim.role','authenticated',true);
+  v_failed := false;
+  begin
+    perform public.register_business_with_approval_atomic(
+      '10000000-0000-4000-8000-000000000003','TENANT-A','ORG-A',
+      'Untrusted Role','UNTRUSTED-ROLE-001','GENERAL','','','',''
+    );
+  exception when others then
+    if sqlerrm='TRUSTED_BUSINESS_REGISTRATION_REQUIRED' then v_failed:=true; else raise; end if;
+  end;
+  perform set_config('request.jwt.claim.role','service_role',true);
+  if not v_failed then raise exception 'RC531 must reject a non-service-role JWT even when function privileges are available'; end if;
+  select count(*) into v_after from public.businesses;
+  if v_after <> v_before then raise exception 'RC531 rejected-role call must not create a business'; end if;
+
 $test$;
 
 do $privileges$
