@@ -634,3 +634,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added frontend allowlist validation for partner roles, finite limits for allocation percentage and agreed value, and checks that the chosen campaign belongs to the active business and the partner profile is loaded, active, verified, and outside the current business before invoking the existing invite RPC.
 - Implementation commit: `a3e67569621d337d2c75775b8c2bc3c1b56b19b6`; TODO checkpoint: `b31cfff16cf22d8447142b554244672e04ac9171`.
 - Not a replacement for backend authorization/validation. No tests, review, browser execution, CI, or deployment performed; changes remain NOT VERIFIED.
+
+
+## 2026-10-19 — Partner allocation guard continuation
+- Added a pre-submit guard that sums loaded allocation percentages for the selected campaign, excluding declined/removed assignments, and prevents a new invitation when the visible total would exceed 100%.
+- Implementation commit: `37a128e2dfff76590cd6ba8413f72b82307974da`; TODO checkpoint: `eb4288d7870a58e367f11f895b702177a3c2b0a0`.
+- NOT VERIFIED: this is a client-side convenience guard, not a concurrency-safe invariant. The backend RPC/database must enforce the allocation cap atomically; no tests, review, browser execution, CI, or deployment performed.
