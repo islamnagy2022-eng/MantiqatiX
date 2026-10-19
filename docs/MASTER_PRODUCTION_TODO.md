@@ -1815,3 +1815,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Not run:** tests, browser, build, CI, review, migrations, and deployment. Source changes remain NOT VERIFIED.
 - **Next:** audit shared navigation/dashboard and finish the first incomplete module's actual child screens and interactions before its backend integration. Preserve SMM launch deferral and all release blockers.
 - **Release gate:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — Shared global search UX state handling
+
+- Updated `web/app.js` global search so empty results are no longer conflated with source failures. All-source failures show an unavailable state with retry; partial failures are disclosed; successful zero-result searches retain a distinct empty state.
+- Refreshed `web/index.html` and `web/sw.js` app asset keys; PWA shell cache advanced to `mnty-web-v132`.
+- This is a frontend-only correction; search source permissions and backend contracts were not changed.
+- Validation not run: no tests, browser, build, CI, review, or deployment. Status: IMPLEMENTED IN SOURCE / NOT VERIFIED.
