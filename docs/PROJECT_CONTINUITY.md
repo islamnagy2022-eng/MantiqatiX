@@ -677,3 +677,9 @@ This status is intentional and must remain until the open gates above are indepe
 ### Partner invitation availability refinement — 2026-10-19
 - Provider active-status comparisons now normalize case consistently. Allocation/duplicate hint refreshes when the selected provider changes. Client-side invitation submission rejects campaigns loaded as `COMPLETED` or `CANCELLED`.
 - These checks use client-loaded state and are not security boundaries; enforce campaign lifecycle, provider verification/status, tenant scope, uniqueness and allocation caps inside the backend/database. Build-only step: no tests, review, or deployment performed.
+
+
+### RC454 — database allocation integrity migration (2026-10-19)
+- Added `supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql` with a `SECURITY DEFINER` trigger function using an empty `search_path`.
+- The trigger checks campaign/business/tenant consistency, serializes allocation checks by locking the campaign row, enforces the 100% active allocation ceiling, and rejects active assignments on completed/cancelled campaigns.
+- This is source code only: migration has not been applied or tested. Before production, inspect lock ordering against every participant mutation path and validate migration behavior against representative data.
