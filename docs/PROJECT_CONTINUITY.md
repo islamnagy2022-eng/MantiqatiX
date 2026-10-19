@@ -720,3 +720,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Closure records old/new status and a bounded optional reason in `audit_logs`; it notifies the provider owner when one is present. Direct table mutation is not granted by this RPC; execute is revoked from PUBLIC/anon and granted to authenticated, with manager scope enforced inside the function.
 - This closes the source-level missing operation identified after RC455. It does **not** prove SQL correctness, lock safety, notification schema compatibility, migration-chain compatibility, or production behavior. RC454–RC456 remain unapplied/unverified; no tests, review, CI, or deployment were run. Production remains **BLOCKED / NOT CERTIFIED**.
 - Next: inspect actual provider/notification/audit schema and RPC conventions, add manager UI only after the RPC contract is reviewed, then run migration replay, SQL authorization/idempotency/concurrency tests, and the marketing UI contract suite when the build-first restriction is lifted.
+
+
+### RC456 UI wiring — manager partner closure (implementation only)
+- `web/app.js` now shows an “إنهاء مشاركة الشريك” action only for manager-role users on the active business, for INVITED/ACCEPTED/ACTIVE participant rows whose campaign is not COMPLETED/CANCELLED.
+- The handler rechecks the active-business campaign/participant relationship and role in current client state, bounds the optional reason to 500 characters, confirms the action, and calls only `close_marketing_campaign_partner_backend`; it does not mutate the table directly. Backend authorization remains authoritative.
+- The UI depends on RC456 being applied. No UI contract test, SQL test, migration replay, review, CI, or deployment was run; do not treat this as verified. Production remains BLOCKED / NOT CERTIFIED.
