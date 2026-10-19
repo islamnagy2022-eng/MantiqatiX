@@ -1003,3 +1003,11 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Added a source-validator assertion requiring the normalization regression to remain present.
 - Additional source commits: `e390e1ce173a8d6407925a8eef0b5ebf1f91fecc` (integration SQL) and `08e032b7bf1768ee8023658c3b5345ed00119af3` (validator).
 - These test/source assertions remain unexecuted under the build-first restriction. Continue with the next safe module task; do not mark tests verified, do not merge/deploy, and leave `docs/SESSION_LOG.md` untouched.
+
+
+## 2026-10-19 — Production-gate frontend write boundary coverage
+
+- Extended `scripts/production/verify-production.mjs` sensitive frontend mutation scan to include literal direct writes to `marketing_campaigns` and `marketing_campaign_participants`, whose mutations are intended to go through the backend RPC contract.
+- Added a source-contract assertion in `scripts/validate-production-gate-contract.mjs` so these table names remain in the production gate's mutation scan.
+- Source commits: `e211eca231a638b84aa1f3f7a29f6c9297e0cc6e` and `2bfa1366419b90013385162540c24c9b7e0db1ba`.
+- This is a source-level guard for literal table references, not a complete static-analysis proof and not an executed test. Dynamic table access and runtime behavior still require broader validation. No tests/CI were run in this build-first batch. Keep PR #299 Draft, production **BLOCKED / NOT CERTIFIED**, and `docs/SESSION_LOG.md` untouched.
