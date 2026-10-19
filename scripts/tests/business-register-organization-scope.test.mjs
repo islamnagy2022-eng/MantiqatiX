@@ -38,4 +38,4 @@ assert.match(source, /tenantId\.length>128\|\|\(organizationId!==null&&organizat
 assert.match(source, /INVALID_TENANT_OR_ORGANIZATION_ID/);
 assert.doesNotMatch(source, /uuidPattern=/);
 
-console.log("business-register tenant and organization security contract: PASS (30 assertions)");
+console.log("business-register tenant and organization security contract: PASS (31 assertions)");
