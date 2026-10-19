@@ -1969,3 +1969,11 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Identical-source comparison confirmed RC425 migration content matches across PR #286, #273 and #252; RC526 content matches across #286, #295 and #289. These overlapping candidates must not be merged independently. PR #286 also includes `docs/SESSION_LOG.md` changes that require reconciliation before integration.
 - Prior candidate replay evidence through RC525 does not certify the new combined RC526/RC531/finalization chain. The exact current head needs chronological disposable replay, migration collision/history checks, server-only finalization regression, tenant-isolation E2E, and payment integrations.
 - Production ledger remains recorded at RC424. No production migration, grants/RLS/Auth change, Edge Function deployment, payment, or financial record was changed. Final release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC533 — Subscription payment provider-response binding — 2026-10-19
+- P0 finding in candidate PR #286: `subscription-payment-intent` previously persisted Paymob intent/order identifiers after a successful HTTP response without validating the echoed amount, currency, and merchant `special_reference`.
+- Candidate fix now reuses `isValidPaymobAmountCents` and `matchesPaymobIntention` before persistence; mismatches preserve the claim/correlation for reconciliation and do not return checkout credentials.
+- Added a focused source + pure-guard regression test and wired it into Module Professionalization CI; strengthened the payment wiring validator.
+- Candidate head `aa1d40b55412fac07f5636370034e944e39b9dc6`; exact-head CI and provider sandbox E2E are still NOT VERIFIED. This is not yet production deployed.
+- Do not close the payment gate or merge overlapping migration candidates until exact-head CI, ordered disposable replay, and reviewed payment/tenant isolation tests pass.
