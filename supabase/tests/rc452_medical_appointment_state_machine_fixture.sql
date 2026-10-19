@@ -34,6 +34,6 @@ create function public.update_medical_appointment_status_backend(p_user_id uuid,
 grant usage on schema auth to authenticated, anon;
 grant execute on function auth.uid() to authenticated, anon;
 grant usage on schema public to authenticated, anon;
-grant select, insert, update, delete on public.user_memberships, public.medical_appointments to authenticated, anon;
+grant select on public.user_memberships, public.medical_appointments to authenticated;
 revoke all on function public.update_medical_appointment_status_backend(uuid,text,text) from public, anon, authenticated;
 grant execute on function public.update_medical_appointment_status_backend(uuid,text,text) to authenticated;
