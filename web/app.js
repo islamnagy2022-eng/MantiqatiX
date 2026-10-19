@@ -794,9 +794,9 @@ async function selectModule(name){
  const industryRoute=window.MNTYIndustryWorkspace?.supports(name)===true;
  const privileged=window.MNTY_RBAC?.isPrivileged(role)===true||['SUPER_ADMIN','OWNER','ADMIN','MANAGER'].includes(role);
  const rbacKnown=!!window.MNTY_RBAC?.ROLE_DEFAULTS?.[role];
- if(rbacKnown && name!=='ملف نشاطي'){
+ if(name!=='ملف نشاطي'&&(industryRoute||rbacKnown)){
    const allowed=industryRoute
-     ? window.MNTY_RBAC.can(role,'الموديولات','view',live.permissions)===true
+     ? window.MNTY_RBAC?.can(role,'الموديولات','view',live.permissions)===true
      : window.MNTY_RBAC.can(role,name,'view',live.permissions)===true;
    if(!allowed){showToast('هذه الوحدة غير متاحة لهذا الدور أو النطاق.','error');return;}
  }
