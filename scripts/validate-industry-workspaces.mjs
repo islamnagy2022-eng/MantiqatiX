@@ -25,6 +25,7 @@ assert.deepEqual([...codes].sort(), [...registryCodes].sort(), 'UI workspaces mu
 assert.ok(backendCodes.every(Boolean), 'every public sector must map to a backend sector identifier');
 assert.equal(new Set(registryCodes).size, 27, 'canonical registry sector codes must be unique');
 assert.match(ui, /const common=\{/);
+assert.match(ui, /const esc=v=>String\(v\?\?''\)\.replace\(\/\[&<>"'\]\/g/, 'dynamic UI text must pass through an HTML-escaping function');
 const tabKeys = [...new Set([...ui.matchAll(/tabs:\[([^\]]+)\]/g)].flatMap(m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1])))];
 const commonBlock = ui.match(/const common=\{([\s\S]*?)\n\};/)?.[1] || '';
 const screenLayoutsBlock = ui.match(/const screenLayouts=\{([\s\S]*?)\n\};/)?.[1] || '';
