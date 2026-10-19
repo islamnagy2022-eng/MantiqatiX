@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 
 const URL=Deno.env.get("SUPABASE_URL")??"";
 const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
@@ -50,7 +51,9 @@ Deno.serve(async req=>{
  const amount=Number(row.amount);
  if(!Number.isFinite(amount)||amount<=0){await release();return json({error:"INVALID_AMOUNT"},409);}
  const amountCents=Math.round(amount*100);
- const payload={amount:amountCents,currency:String(row.currency||"EGP").toUpperCase(),payment_methods:[Number(PAYMOB_INTEGRATION_ID)],items:[{name:row.title,amount:amountCents,description:"MantiqaTix "+row.page_type+" page",quantity:1}],billing_data:{apartment:"NA",first_name:String(user.user_metadata?.full_name||email).split(" ")[0]||"Customer",last_name:"MantiqaTix",street:"NA",building:"NA",phone_number:phone,city:"NA",country:"EG",email,floor:"NA",state:"NA"},special_reference:row.id,expiration:3600,notification_url:CALLBACK};
+ if(!isValidPaymobAmountCents(amount,amountCents)){await release();return json({error:"INVALID_AMOUNT_PRECISION"},409);}
+ const currency=String(row.currency||"EGP").toUpperCase();
+ const payload={amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],items:[{name:row.title,amount:amountCents,description:"MantiqaTix "+row.page_type+" page",quantity:1}],billing_data:{apartment:"NA",first_name:String(user.user_metadata?.full_name||email).split(" ")[0]||"Customer",last_name:"MantiqaTix",street:"NA",building:"NA",phone_number:phone,city:"NA",country:"EG",email,floor:"NA",state:"NA"},special_reference:row.id,expiration:3600,notification_url:CALLBACK};
  let p:Record<string,unknown>={};
  let providerResponseStatus=0;
  try{
@@ -75,9 +78,15 @@ Deno.serve(async req=>{
    // Ambiguous responses retain the claim so retries cannot create duplicate intentions.
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
- const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
+ if(!matchesPaymobIntention({ledgerId:String(row.id),amountCents,currency,provider:p})){
+   // Keep the claim for manual reconciliation and never return checkout credentials
+   // when Paymob did not echo the expected amount, currency, and order reference.
+   console.error(JSON.stringify({requestId:crypto.randomUUID(),stage:"digital_page_intention_correlation_mismatch",providerIntentId,providerOrderId}));
+   return json({error:"PAYMENT_PROVIDER_INTENT_MISMATCH",reconciliationRequired:true},503);
+ }
+ const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:providerIntentId,p_provider_order_id:providerOrderId});
  if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
- const clientSecret=String(p.client_secret);
+ const clientSecret=providerClientSecret;
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
- return json({orderId:row.id,status:"PENDING",provider:"PAYMOB",clientSecret,checkoutUrl,amount,currency:row.currency});
+ return json({orderId:row.id,status:"PENDING",provider:"PAYMOB",clientSecret,checkoutUrl,amount,currency});
 });
