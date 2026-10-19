@@ -40,11 +40,13 @@ assert.match(source, /tenantId\.length>128\|\|\(organizationId!==null&&organizat
 assert.match(source, /INVALID_TENANT_OR_ORGANIZATION_ID/);
 assert.doesNotMatch(source, /uuidPattern=/);
 assert.match(source, /supabase\.rpc\("register_business_with_approval_atomic"/);
+assert.match(source, /String\(m\.tenant_id\|\|""\)==="MNTY-PLATFORM"/);
 assert.doesNotMatch(source, /supabase\.from\("businesses"\)\.insert/);
 assert.doesNotMatch(source, /supabase\.from\("approval_requests"\)\.insert/);
 assert.match(migration, /pg_advisory_xact_lock/);
+assert.match(migration, /m\.tenant_id in \(p_tenant_id, 'MNTY-PLATFORM'\)/);
 assert.match(migration, /insert into public\.businesses[\s\S]*insert into public\.approval_requests/);
 assert.match(migration, /grant execute on function public\.register_business_with_approval_atomic[\s\S]*to service_role/);
 assert.match(migration, /revoke all on function public\.register_business_with_approval_atomic[\s\S]*from public, anon, authenticated/);
 
-console.log("business-register tenant and organization security contract: PASS (39 assertions)");
+console.log("business-register tenant and organization security contract: PASS (41 assertions)");
