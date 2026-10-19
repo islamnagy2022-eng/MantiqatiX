@@ -1851,3 +1851,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - `web/styles.css`: added visible `:focus-visible` outline and button layout adjustments for module cards.
 - `web/index.html` and `web/sw.js`: refreshed matching JS/CSS asset versions; cache advanced to `mnty-web-v136`.
 - Source-only change. No browser, test, build, CI, review or deployment was run; runtime/accessibility remain NOT VERIFIED.
+
+
+## 2026-10-19 — Module catalog interaction
+
+- `web/app.js`: module catalog tiles now use semantic buttons with accessible labels and the shared dashboard/module click binder.
+- Existing role and module-enabled checks in `selectModule` were preserved. No backend or permission behavior was relaxed.
+- No tests, browser, build, CI, review or deployment was run; source change remains NOT VERIFIED.
