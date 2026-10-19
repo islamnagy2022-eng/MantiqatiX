@@ -119,7 +119,7 @@ const sectors=[
 const tabKeyFor=t=>t;
 const state={code:null,tab:'overview',search:'',group:'الكل'};
 function byCode(code){return sectors.find(s=>s.code===String(code||'').toUpperCase())||null}
-function supports(name){return name==='الموديولات القطاعية'||String(name||'').startsWith('قطاع: ')}
+function supports(name){const route=String(name||'');if(route==='الموديولات القطاعية')return true;if(!route.startsWith('قطاع: '))return false;return Boolean(byCode(route.slice(6).trim()))}
 function open(code){const s=byCode(code);if(!s)return;if(typeof window.selectModule==='function')window.selectModule('قطاع: '+s.code)}
 function hubHtml(){
  const list=sectors.filter(s=>(state.group==='الكل'||s.group===state.group)&&(!state.search||[s.name,s.code,s.desc,s.group,...s.focus].join(' ').toLowerCase().includes(state.search.toLowerCase())));
@@ -155,6 +155,7 @@ function render(name){
  const code=route.startsWith('قطاع: ')?route.slice(6).trim().toUpperCase():'';
  const s=byCode(code);
  if(!s)return hubHtml();
+ if(state.code!==s.code)state.tab='overview';
  state.code=s.code;
  return detailHtml(s);
 }
