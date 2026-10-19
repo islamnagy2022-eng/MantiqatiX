@@ -45,6 +45,9 @@ This change is the **frontend-first design stage** for sector workspaces. It doe
 
 ## Shared UI patterns
 
+- FOOD and DIGITAL offer explicit links to the existing restaurant and marketing workspaces respectively; the new sector preview itself remains read/write-free.
+
+
 - Search and sector-group filters on the directory.
 - Responsive sector cards and nested section navigation.
 - A detail screen for each sector with sector-specific focus areas.
