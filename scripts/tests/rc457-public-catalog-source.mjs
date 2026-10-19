@@ -10,6 +10,8 @@ assert.match(home, /from\('marketing_services_public'\)\.select\('id,code,name_a
   'public directory must query the allowlisted service catalog view');
 assert.match(home, /from\('marketing_provider_profiles_public'\)\.select\('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,updated_at'\)/,
   'public provider listing must query the allowlisted public profile view');
+assert.doesNotMatch(home, /ranking_weight/,
+  'public browser code must not select or sort by the internal provider ranking weight');
 assert.doesNotMatch(home, /from\('marketing_provider_profiles'\)\.select\([^)]*settings/,
   'public directory must not fetch provider settings');
 assert.doesNotMatch(home, /provider\?\.settings\?\.branding/,
