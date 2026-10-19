@@ -19,6 +19,8 @@ assert.deepEqual([...codes].sort(), [...expected].sort(), 'all canonical sectors
 assert.match(ui, /const common=\{/);
 assert.match(ui, /function hubHtml\(\)/);
 assert.match(ui, /function detailHtml\(s\)/);
+assert.match(ui, /function supports\(name\)\{const route=String\(name\|\|''\);if\(route==='الموديولات القطاعية'\)return true;if\(!route\.startsWith\('قطاع: '\)\)return false;return Boolean\(byCode\(route\.slice\(6\)\.trim\(\)\)\)\}/, 'only canonical sector routes may be treated as sector workspaces');
+assert.match(ui, /if\(state\.code!==s\.code\)state\.tab='overview'/, 'switching sectors must not carry a stale tab from another sector');
 assert.match(ui, /function screenPreviewHtml\(s,key\)/);
 assert.match(ui, /class="mxiw-preview-table"/);
 assert.match(ui, /disabled title="سيُفعّل بعد اعتماد الربط الخلفي"/);
