@@ -856,3 +856,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Campaign and partner search/status filters now show a dedicated no-match message when there are loaded cards but no card satisfies the current filter. The empty message stays hidden for an actually empty dataset, where the existing empty-data panel remains in effect.
 - The result counts retain `aria-live="polite"`. Updated app asset refs to `marketing-filter-empty-state-20261019` and PWA cache to `mnty-web-v141`.
 - No browser, accessibility audit, tests, build, CI, review, merge, or deployment was run. Next verify search/filter combinations and keyboard/screen-reader behavior, then continue the frontend-first screen audit. Do not edit `docs/SESSION_LOG.md`; preserve SMM launch deferral and production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — CI failure diagnosis and correction checkpoint
+
+- Live GitHub Actions evidence on PR #299 head `8b14f5f8316137de0c0db389d5160cc09a3d91c8` showed `node --check web/app.js` failing in `providerDashboard()` because two inline handler strings contained doubled backslashes before embedded single quotes. Corrected those two escapes in `web/app.js`.
+- `Marketing Campaign Backend` source validator failed because a regex expected `idempotent` within 120 characters after the `REMOVED` status condition, while the valid JSON return payload was longer. Widened the assertion window to 300 characters; the SQL migration was not changed by this fix.
+- Updated `web/index.html` asset refs to `provider-dashboard-syntax-fix-20261019`; `web/sw.js` cache is `mnty-web-v142`.
+- CI must rerun against the new head. Do not merge if checks fail or remain pending. Deployment was skipped after the previous validation failure; production remains **BLOCKED / NOT CERTIFIED**. Do not edit `docs/SESSION_LOG.md`; preserve the SMM launch deferral.
