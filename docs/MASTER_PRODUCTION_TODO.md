@@ -2009,3 +2009,10 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Added focused regression scripts for normal, subscription, digital-page correlation and ambiguous provider outcomes; wired them into Module Professionalization CI and strengthened the payment migration wiring validator.
 - Current candidate head: `4af10ddea8e37f991c9905ab4c65220bab46f398`. Exact-head workflows remain queued/pending, so no test pass is claimed.
 - No production migration, deployment, or payment was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — production verifier enforces payment binding — 2026-10-19
+- Added P0 release-verifier checks for normal order, subscription, and digital-page Paymob response correlation, plus fail-closed handling of ambiguous provider 4xx outcomes.
+- Extended the production-gate contract test to require those checks and to reject reintroduction of generic all-4xx failure/release branches.
+- Candidate PR #286 head: `440118dc5383ed8865b9b86acc81985d1325d300`. Exact-head CI is not yet verified; no PASS is claimed.
+- No production change. Release remains BLOCKED / NOT CERTIFIED.
