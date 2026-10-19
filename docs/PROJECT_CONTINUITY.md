@@ -804,3 +804,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Hardened the candidate order and digital-page payment handlers so only explicit identifier-free 400/401/403/404/422 responses can mark an intent failed or release its claim. Ambiguous 408/409/425/429/5xx and any response carrying provider identifiers remain quarantined for reconciliation.
 - Added focused regression checks and wired them into Module Professionalization CI plus the payment migration wiring validator.
 - Candidate head: `bd0164786b37e1ebf8a1dd3e80e1db9bf929d3fa`; exact-head workflows are queued/pending. No pass is claimed and no production change was performed.
+
+
+## Execution checkpoint — complete Paymob intent response binding — 2026-10-19
+- Shared provider-response correlation now covers normal order, subscription, MantiGO and digital-page Paymob intention flows. Normal/digital-page amount precision is checked before network I/O; amount, currency and merchant reference are checked before checkout credentials are returned.
+- Only identifier-free 400/401/403/404/422 are treated as definitive rejection. Ambiguous 4xx/5xx and responses containing provider identifiers are retained for reconciliation.
+- Added and wired focused regression scripts for these paths plus the payment migration wiring validator.
+- Candidate head observed: `4af10ddea8e37f991c9905ab4c65220bab46f398`; exact-head CI is queued/pending. No production change; release remains BLOCKED / NOT CERTIFIED.
