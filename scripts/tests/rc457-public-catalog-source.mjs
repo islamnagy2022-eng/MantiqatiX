@@ -34,6 +34,10 @@ assert.match(providerMigration, /revoke all on table public\.marketing_provider_
   'anonymous visitors must not directly read the base provider table');
 assert.doesNotMatch(providerMigration, /settings|owner_user_id|portfolio/,
   'private provider fields must not be exposed by the public view');
+assert.ok(!providerMigration.includes('drop policy if exists "Owners manage their marketing provider profile"'),
+  'RC458 must preserve the existing owner policy on the base table');
+assert.ok(!providerMigration.includes('drop policy if exists "CRM managers view marketing providers"'),
+  'RC458 must preserve the existing CRM-manager policy on the base table');
 assert.match(serviceMigration, /revoke all on table public\.marketing_services_public from public, anon, authenticated;[\s\S]*?grant select on table public\.marketing_services_public to anon, authenticated;/,
   'service view must grant SELECT only after revoking other privileges');
 assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles_public from public, anon, authenticated;[\s\S]*?grant select on table public\.marketing_provider_profiles_public to anon, authenticated;/,
