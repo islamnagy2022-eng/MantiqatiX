@@ -34,6 +34,8 @@ create table public.marketing_provider_profiles (
 );
 alter table public.marketing_provider_profiles enable row level security;
 grant select on public.marketing_provider_profiles to anon, authenticated;
+-- Simulate legacy column-level grants that table-level REVOKE alone would leave behind.
+grant select (owner_user_id, settings, portfolio, ranking_weight) on public.marketing_provider_profiles to anon;
 create policy provider_owner_private_profile_read
   on public.marketing_provider_profiles
   for select to authenticated
@@ -51,6 +53,7 @@ create table public.marketing_services (
 );
 alter table public.marketing_services enable row level security;
 grant select on public.marketing_services to anon, authenticated;
+grant select (internal_notes) on public.marketing_services to anon;
 
 insert into public.marketing_provider_profiles
   (id,business_id,name_ar,provider_kind,status,owner_user_id,settings,portfolio)
@@ -108,6 +111,15 @@ begin
      or has_table_privilege('authenticated','public.marketing_services_public','UPDATE')
      or has_table_privilege('authenticated','public.marketing_services_public','DELETE') then
     raise exception 'RC457 public service view unexpectedly grants write privileges';
+  end if;
+  if has_column_privilege('anon','public.marketing_services','internal_notes','SELECT') then
+    raise exception 'RC457 anonymous column-level SELECT grant survived migration';
+  end if;
+  if has_column_privilege('anon','public.marketing_provider_profiles','settings','SELECT')
+     or has_column_privilege('anon','public.marketing_provider_profiles','owner_user_id','SELECT')
+     or has_column_privilege('anon','public.marketing_provider_profiles','portfolio','SELECT')
+     or has_column_privilege('anon','public.marketing_provider_profiles','ranking_weight','SELECT') then
+    raise exception 'RC458 anonymous private-column SELECT grant survived migration';
   end if;
   begin
     perform internal_notes from public.marketing_services;
