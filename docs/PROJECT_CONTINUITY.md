@@ -889,3 +889,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Reviewing RC454 against its intended invariant exposed that the trigger fired on inserts and updates to scope/allocation columns, but omitted `status`. Status-only updates into an active allocation state could bypass the guard.
 - Added `status` to the trigger's `UPDATE OF` list and a validator assertion that protects this requirement. This is a genuine migration-source correction, not merely a stale test assertion.
 - Await fresh CI on the updated PR head and add/verify a disposable PostgreSQL behavioral case for status-only transitions. Do not apply the migration to production or certify release based on source CI alone; keep **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation status-transition guard correction
+
+- Source review found that RC454's allocation trigger originally ran on allocation/scope columns but not `status`, so changing a participant from `DECLINED`/`REMOVED` into `INVITED` could bypass the aggregate allocation check.
+- Updated the trigger column list to include `status`, and strengthened the marketing backend source validator to assert that status transitions are covered.
+- This is a source-level correctness fix only. Fresh PostgreSQL/CI evidence is still required; no migration was applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
