@@ -811,3 +811,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Only identifier-free 400/401/403/404/422 are treated as definitive rejection. Ambiguous 4xx/5xx and responses containing provider identifiers are retained for reconciliation.
 - Added and wired focused regression scripts for these paths plus the payment migration wiring validator.
 - Candidate head observed: `4af10ddea8e37f991c9905ab4c65220bab46f398`; exact-head CI is queued/pending. No production change; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — production verifier enforces payment binding — 2026-10-19
+- Production verifier now has P0 gates for normal order, subscription, and digital-page Paymob response correlation, and rejects generic all-4xx failure/release handling.
+- The contract validator now requires those gates.
+- Candidate head `440118dc5383ed8865b9b86acc81985d1325d300`; exact-head CI is not yet verified. No production changes; release remains BLOCKED / NOT CERTIFIED.
