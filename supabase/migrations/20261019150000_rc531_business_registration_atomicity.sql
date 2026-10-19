@@ -98,14 +98,14 @@ begin
     and v_membership.permissions ->> 'full_control' = 'true';
 
   if p_organization_id is not null then
-    if v_super_admin then
-      if not exists (
-        select 1 from public.organizations o
-        where o.id = p_organization_id and o.tenant_id = p_tenant_id
-      ) then
-        return pg_catalog.jsonb_build_object('success', false, 'error', 'ORGANIZATION_SCOPE_FORBIDDEN');
-      end if;
-    elsif v_membership.organization_id is distinct from p_organization_id then
+    -- Validate tenant ownership for every actor, including inherited membership scope.
+    if not exists (
+      select 1 from public.organizations o
+      where o.id = p_organization_id and o.tenant_id = p_tenant_id
+    ) then
+      return pg_catalog.jsonb_build_object('success', false, 'error', 'ORGANIZATION_SCOPE_FORBIDDEN');
+    end if;
+    if not v_super_admin and v_membership.organization_id is distinct from p_organization_id then
       return pg_catalog.jsonb_build_object('success', false, 'error', 'ORGANIZATION_SCOPE_FORBIDDEN');
     end if;
   end if;
