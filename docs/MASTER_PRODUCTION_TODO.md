@@ -1977,3 +1977,9 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Added a focused source + pure-guard regression test and wired it into Module Professionalization CI; strengthened the payment wiring validator.
 - Candidate head `aa1d40b55412fac07f5636370034e944e39b9dc6`; exact-head CI and provider sandbox E2E are still NOT VERIFIED. This is not yet production deployed.
 - Do not close the payment gate or merge overlapping migration candidates until exact-head CI, ordered disposable replay, and reviewed payment/tenant isolation tests pass.
+
+
+## RC534 — Payment correlation regression CI — 2026-10-19
+- Module Professionalization CI was expanded to execute the subscription Paymob amount/currency/reference guard, the shared Paymob correlation unit tests, and the payment migration wiring contract.
+- Candidate PR #286 head at checkpoint: `55cd0fcef2023c36657b264905379ab440bef24e`. Exact-head workflows are queued/pending, so these checks are not marked PASS.
+- No production deployment/migration/payment was performed. Continue with the first open gate: exact-head CI, chronological disposable replay, and review of overlapping migration candidates.
