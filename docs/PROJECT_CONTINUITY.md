@@ -747,3 +747,10 @@ This status is intentional and must remain until the open gates above are indepe
 - The branch file reads confirmed the UI invokes close_marketing_campaign_partner_backend with the authenticated user's ID and refuses direct browser writes to campaign/participant tables. UI-side role/status checks are usability guards only; backend authorization remains authoritative.
 - No tests, CI, browser, migration replay, production schema/data, merge, or deployment were run/performed in this build batch. Production remains BLOCKED / NOT CERTIFIED.
 - **Resume next:** build disposable PostgreSQL integration coverage for RC456 and review the full campaign/participant lifecycle; then proceed to the next source-supported module (SMM gateway/credential boundary), without touching docs/SESSION_LOG.md.
+## 2026-10-19 — SMM gateway build continuation checkpoint
+
+- Branch: feat/marketing-campaign-operations-summary-20261019. Latest confirmed commit from this batch: 77d8237e889999dbea4dca5f8b09029b0ad1f55d.
+- Modified scripts/validate-smm-service-role-boundary.mjs to add source assertions covering provider hostname allowlisting, HTTPS, redirect rejection, streamed response-size limits, strict UTF-8 decoding, bounded idempotency keys, HTTPS target URLs, bounded request parsing, dual-flag launch approval, authenticated-user replay scoping, and reconciliation-required responses for uncertain wallet/provider outcomes.
+- The validator was not run per the build-only constraint. These assertions do not establish runtime correctness.
+- Preserved SMM_INITIAL_LAUNCH_DEFERRED=true. No SMM provider requests, wallet/order mutations, migrations, tests, CI, browser, merge, or deployment were performed.
+- Next: continue source review of SMM order/debit/provider/reconciliation/refund lifecycle; add disposable PostgreSQL coverage without executing it; then proceed to content/notifications and reporting where dependencies permit. Production remains BLOCKED / NOT CERTIFIED.
