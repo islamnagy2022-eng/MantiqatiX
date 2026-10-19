@@ -45,7 +45,7 @@ select public.assert_medical_rejected(
 select public.assert_medical_rejected(
  '11111111-1111-4111-8111-111111111111','appt-confirmed-complete','COMPLETED','PROVIDER_STATUS_CHANGE_REQUIRED');
 select public.assert_medical_rejected(
- '22222222-2222-4222-8222-222222222222','appt-booked-provider','COMPLETED','INVALID_MEDICAL_STATUS_TRANSITION');
+ '22222222-2222-4222-8222-222222222222','appt-booked-invalid-complete','COMPLETED','INVALID_MEDICAL_STATUS_TRANSITION');
 select public.assert_medical_rejected(
  '33333333-3333-4333-8333-333333333333','appt-cross-tenant','CANCELLED','ACTIVE_MEMBERSHIP_REQUIRED');
 select public.assert_medical_rejected(
