@@ -44,6 +44,9 @@ assert.ok(digitalIntent.includes("p_provider_order_id:providerOrderId"), "digita
 assert.ok(digitalIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "digital-page provider ambiguity must not be blindly retried");
 assert.ok(subscriptionIntent.includes('rpc("create_subscription_payment_intent_claimable_backend"'), "subscription flow must use the claimable intent RPC");
 assert.ok(subscriptionIntent.includes('rpc("claim_subscription_provider_intent_creation_backend"'), "subscription provider creation must be claimed atomically");
+assert.ok(subscriptionIntent.includes('from "../_shared/paymob-intent-correlation.mjs"'), "subscription provider response must use the shared Paymob correlation guard");
+assert.ok(subscriptionIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH"), "subscription provider mismatch must fail closed for reconciliation");
+assert.ok(subscriptionIntent.indexOf("if (!matchesPaymobIntention({") >= 0 && subscriptionIntent.indexOf("if (!matchesPaymobIntention({") < subscriptionIntent.indexOf("const { data: updated, error: updateError }"), "subscription amount/currency/reference must be verified before provider IDs and checkout secret are persisted");
 assert.ok(subscriptionIntent.includes("provider_creation_state: \"CORRELATED\""), "subscription provider correlation state must be persisted");
 
 for (const [label, source, rpc] of [
