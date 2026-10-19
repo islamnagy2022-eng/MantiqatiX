@@ -8,6 +8,16 @@
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
 > Do not repeat completed work. Continue from the first still-open gate, and append every material development to both this file and the Master TODO.
 
+## Mandatory cross-session continuation protocol — 2026-10-19
+
+Every session must read `docs/MASTER_PRODUCTION_TODO.md` and resume the first open, actionable task in the existing priority order. Do not restart the project or require the user to restate the workflow.
+
+At the end of every work batch, show the principal workstreams and their subitems, each marked DONE (with evidence), PARTIAL, TODO, WAIT, or NOT VERIFIED. Include what changed, exact PR/branch/commit and exact-head CI evidence, remaining blockers, the next ordered action, and the global release gate. Keep completed work visible alongside open work. DONE is not VERIFIED.
+
+Continue cumulative implementation and testing for as much safe work as possible. Do not merge, deploy, mutate production, apply pending migrations out of order, fabricate test identities/data/payments, or claim production readiness without explicit authorization and evidence. Keep the release gate BLOCKED / NOT CERTIFIED until all required independent gates pass.
+
+The currently agreed product priority is restaurant module first among sector work, while P0 security and financial blockers proceed in parallel where safe. Follow the latest verified TODO and repository state if this ordering is subsequently changed by an evidence-backed decision.
+
 ## Current baseline
 
 - Repository: `islamnagy2022-eng/MantiqatiX`
