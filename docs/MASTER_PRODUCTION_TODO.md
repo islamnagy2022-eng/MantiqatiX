@@ -1977,3 +1977,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] The test requires the first insert to commit, the competing insert to fail specifically with `MARKETING_ALLOCATION_OVER_100`, and the persisted active allocation total to remain exactly 60%.
 - [x] Added source-contract assertions so the marketing backend workflow cannot silently lose this concurrency regression.
 - [ ] Verify the latest exact-head Marketing Campaign Backend validator and PostgreSQL jobs. This test is CI-only and has not been run locally; no production migration was applied. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Campaign allocation UI parity fix
+
+- [x] Updated the client-side partner invitation precheck to count only `INVITED`, `ACCEPTED`, and `ACTIVE` assignments, matching the RC454 database guard. Previously, `COMPLETED` assignments could be counted by the UI even though the database excludes them from active allocation totals, causing false rejection of valid invitations.
+- [x] Rotated the web app asset key and PWA shell cache to `marketing-active-allocation-status-filter-20261019` / `mnty-web-v143`.
+- [x] Added a UI source-contract assertion for client/database active-status parity.
+- [ ] Verify fresh exact-head CI; no browser runtime test or production deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**.
