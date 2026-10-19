@@ -1344,7 +1344,7 @@ function marketingCampaignWorkspace(){
   const c=campaignById.get(String(p.campaign_id));
   const provider=providers.find(x=>String(x.id)===String(p.provider_id));
   const mayRespond=Boolean(myProviderId&&String(p.provider_id)===myProviderId&&String(p.status).toUpperCase()==='INVITED');
-  return '<article data-mc-participant-card data-mc-participant-search="'+esc([c?.title||'',provider?.name_ar||'',p.role||''].join(' '))+'" data-mc-participant-status="'+esc(String(p.status||'').toUpperCase())+'" class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
+  return '<article data-mc-participant-card data-mc-participant-id="'+esc(p.id)+'" data-mc-participant-search="'+esc([c?.title||'',provider?.name_ar||'',p.role||''].join(' '))+'" data-mc-participant-status="'+esc(String(p.status||'').toUpperCase())+'" class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
    '<p class="muted">التخصيص: '+esc(p.allocation_percent)+'% · القيمة: '+fmtMoney(p.agreed_value,c?.currency||'EGP')+'</p>'+
    (mayRespond?'<div class="action-bar"><button type="button" class="btn btn-primary" data-mc-respond="'+esc(p.id)+'" data-mc-decision="ACCEPTED" style="width:auto">قبول الدعوة</button><button type="button" class="btn btn-outline" data-mc-respond="'+esc(p.id)+'" data-mc-decision="DECLINED" style="width:auto">رفض الدعوة</button></div>':'')+'</article>';
  }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
@@ -1412,8 +1412,9 @@ function bindMarketingCampaignWorkspace(){
   }
   const campaigns=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>String(c.business_id||'')===activeBusinessId);
   const campaignById=new Map(campaigns.map(c=>[String(c.id),c]));
-  const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&campaignById.has(String(p.campaign_id)));
-  if(!participants.length){showToast('لا توجد سجلات شراكة مرئية للتصدير.','info');return;}
+  const visibleParticipantIds=new Set(Array.from(document.querySelectorAll('[data-mc-participant-card]')).filter(card=>!card.hidden).map(card=>String(card.dataset.mcParticipantId||'')).filter(Boolean));
+  const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&campaignById.has(String(p.campaign_id))&&visibleParticipantIds.has(String(p.id)));
+  if(!participants.length){showToast('لا توجد سجلات شراكة مطابقة للبحث والتصفية الحالية للتصدير.','info');return;}
   const providers=Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[];
   const columns=[['campaign','الحملة'],['provider','الشريك'],['role','الدور'],['status','الحالة'],['allocation_percent','نسبة التخصيص'],['agreed_value','القيمة المتفق عليها'],['currency','العملة'],['created_at','تاريخ الإنشاء']];
   const csvCell=value=>{
