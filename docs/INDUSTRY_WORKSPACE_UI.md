@@ -53,6 +53,17 @@ This change is the **frontend-first design stage** for sector workspaces. It doe
 - Consistent RTL layout, accessible labels, responsive table containers, and reduced-motion support.
 - Explicit notice that sensitive operations are not active until the backend and authorization contract is reviewed.
 
+## Existing restaurant workspace — explicit backend boundary
+
+The legacy operational restaurant workspace is a separate implementation and must not be treated as proof that the new sector workspaces are backend-ready.
+
+- The current browser module reads `restaurant_menu_items`, `orders`, `restaurant_tables`, and `restaurant_inventory`; its menu/table/inventory forms contain direct table insert/update calls.
+- The repository's `docs/RC52_RESTAURANT_MUTATION_SECURITY.md` records that `restaurant_erp_mutate(text,jsonb,text)` and `restaurant_table_mutate(text,jsonb,text)` were not executable by `anon`, `authenticated`, or `service_role` through the inspected ACL surface at that checkpoint.
+- That checkpoint explicitly does not certify restaurant production completeness and leaves authoritative order-state transitions open.
+- Before connecting any new FOOD screen, re-check the live production ACL/grants, current migration parity, RLS policies, and tenant/business/branch scope. Do not enable the legacy RPCs or widen grants as a shortcut. If the verified contract remains unavailable, keep mutations disabled and use a newly reviewed server-authoritative path.
+
+This is a source-repository audit note, not a claim that the historical checkpoint still matches today's production database. Current live verification is required.
+
 ## Backend phase — do not infer readiness from the UI
 
 When the frontend is reviewed, implement each sector in a separate backend slice:
