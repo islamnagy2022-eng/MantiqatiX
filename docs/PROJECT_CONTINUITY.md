@@ -817,3 +817,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Production verifier now has P0 gates for normal order, subscription, and digital-page Paymob response correlation, and rejects generic all-4xx failure/release handling.
 - The contract validator now requires those gates.
 - Candidate head `440118dc5383ed8865b9b86acc81985d1325d300`; exact-head CI is not yet verified. No production changes; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — digital-page claim release verification — 2026-10-19
+- Digital-page claim release now verifies that the RPC returned true; failure is surfaced as reconciliation-required.
+- Added regression assertions and a P0 production-verifier check.
+- Candidate head `eee6bf72929dfabfb803d9687153570a9e10af97`; exact-head CI remains unverified. Production remains unchanged and release remains BLOCKED / NOT CERTIFIED.
