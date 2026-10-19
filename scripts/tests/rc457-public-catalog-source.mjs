@@ -20,6 +20,8 @@ assert.match(migration, /grant select \([\s\S]*?\) on table public\.marketing_se
 assert.match(migration, /revoke select on table public\.marketing_services from public, anon/,
   'table-wide anonymous/public select must be revoked before allowlist grant');
 
+assert.ok(providerMigration.includes('for select to anon, authenticated') && providerMigration.includes("using (status = 'ACTIVE')"),
+  'anonymous provider discovery must be explicitly ACTIVE-only');
 assert.ok(providerMigration.includes('revoke select on table public.marketing_provider_profiles from public, anon'),
   'anonymous/public table-wide provider profile access must be revoked');
 assert.ok(providerMigration.includes(') on table public.marketing_provider_profiles to anon'),
