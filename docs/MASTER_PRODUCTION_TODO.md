@@ -2043,3 +2043,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 
 - Follow-up privacy hardening: removed `settings` from all public `marketing_provider_profiles` list/detail selects in `web/home.js`. Public profile rendering no longer reads `settings.branding.logo_path`; it uses the explicitly selected public `profile_image_path` only. Added source-contract assertions to the RC457 workflow to prevent reintroducing provider settings into public queries.
 - Commit: `419381422f9f456d3bbd4c3b7a9d007bfea7bfbc` (frontend data minimization); `7f33a3512668894945f96be8fe7cdf65b4a1392a` (source contract); `826fc1576b689aaef8ff8be29f37cbacd928bf59` (CI wiring). Exact-head CI is queued and must pass before treating this as verified.
+
+
+## RC458 — Public provider profile field allowlist (2026-10-19)
+
+- Added `supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql` to revoke table-wide SELECT from PUBLIC/anon on `marketing_provider_profiles` and grant anonymous SELECT only on fields used by public discovery.
+- Preserved the existing ACTIVE-only provider-profile RLS policy; RC458 is a column-privilege hardening migration, not a replacement for row-level publication policy.
+- Extended the isolated PostgreSQL regression to cover active provider visibility, draft provider denial, and denial of `settings` reads; added source-contract assertions.
+- Latest PR head after this batch: `a3c1b5b8e6c10fbe7e3f17788626a8c38e3b3907`. RC457-only PostgreSQL run [39202937589](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39202937589) passed before RC458 was added; it does **not** verify RC458. Exact-head CI for RC458 is not yet confirmed.
+- No production migration/deployment performed. Keep production **BLOCKED / NOT CERTIFIED**.
