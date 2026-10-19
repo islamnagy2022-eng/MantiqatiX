@@ -45,8 +45,8 @@ assert.equal((hub.match(/class="mxiw-sector-card"/g) || []).length, 27, 'directo
 for (const code of api.sectorCodes) {
   assert.ok(hub.includes('data-mxiw-open="' + code + '"'), code + ' must be discoverable from the sector directory');
 }
-assert.match(source, /value="\'+esc\(state\.search\)\+'"/, 'search text must be HTML-escaped before insertion into the input value');
-assert.match(source, /data-mxiw-group="\'+esc\(g\)\+'"/, 'filter labels must be escaped before HTML insertion');
+assert.ok(source.includes("value=\"'+esc(state.search)+'\""), 'search text must be HTML-escaped before insertion into the input value');
+assert.ok(source.includes("data-mxiw-group=\"'+esc(g)+'\""), 'filter labels must be escaped before HTML insertion');
 assert.match(api.render('قطاع: DIGITAL'), /data-mxiw-live="التسويق والإعلان"/, 'marketing sector must expose the existing marketing workspace');
 assert.match(api.render('قطاع: FOOD'), /data-mxiw-live="المطاعم والمطابخ"/, 'food sector must preserve the existing restaurant workspace link');
 assert.doesNotMatch(source, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'sector workspace source must remain backend-free');
