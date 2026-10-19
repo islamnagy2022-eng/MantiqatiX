@@ -628,3 +628,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Campaign cards now expose their campaign ID as a data attribute, and campaign CSV export uses only cards currently visible after search/status filtering. This aligns the exported rows with the active view and provides accurate empty-state feedback when no rows match.
 - Implementation commit: `6a81a24dcda46b8400c24577942309a0ba010bb6`; TODO checkpoint: `0636366797da628bebb361e27fc02f5455277aa5`.
 - No tests, review, browser execution, CI, or deployment performed. Treat as NOT VERIFIED and keep the PR draft/unmerged.
+
+
+## 2026-10-19 — Partner invitation guardrails continuation
+- Added frontend allowlist validation for partner roles, finite limits for allocation percentage and agreed value, and checks that the chosen campaign belongs to the active business and the partner profile is loaded, active, verified, and outside the current business before invoking the existing invite RPC.
+- Implementation commit: `a3e67569621d337d2c75775b8c2bc3c1b56b19b6`; TODO checkpoint: `b31cfff16cf22d8447142b554244672e04ac9171`.
+- Not a replacement for backend authorization/validation. No tests, review, browser execution, CI, or deployment performed; changes remain NOT VERIFIED.
