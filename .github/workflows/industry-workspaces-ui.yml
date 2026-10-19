@@ -10,6 +10,8 @@ on:
       - "web/sw.js"
       - "scripts/validate-industry-workspaces.mjs"
       - "scripts/validate-sector-rendering.mjs"
+      - "scripts/test-industry-workspaces-runtime.mjs"
+      - "web/sector-registry.js"
       - ".github/workflows/industry-workspaces-ui.yml"
   pull_request:
     branches: [main]
@@ -21,6 +23,8 @@ on:
       - "web/sw.js"
       - "scripts/validate-industry-workspaces.mjs"
       - "scripts/validate-sector-rendering.mjs"
+      - "scripts/test-industry-workspaces-runtime.mjs"
+      - "web/sector-registry.js"
       - ".github/workflows/industry-workspaces-ui.yml"
 permissions:
   contents: read
