@@ -1894,3 +1894,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Re-run migration chain, authorization, payments/accounting, and tenant-isolation gates before any production certification.
 
 These are source changes only. No tests, browser, build, CI, migration replay, merge, or deployment were performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Marketing filter empty states (NOT VERIFIED)
+
+- [x] Add no-match feedback for campaign search/status filters and partnership search/status filters.
+- [x] Preserve the separate no-records state when the underlying loaded card list is empty.
+- [x] Keep visible-count status text and refresh asset/cache keys (`marketing-filter-empty-state-20261019`, `mnty-web-v141`).
+- [ ] Verify keyboard, screen-reader, responsive, and search/filter combinations in a real browser.
+
+No tests, browser, build, CI, review, merge, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
