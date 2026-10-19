@@ -953,3 +953,8 @@ A focused review found that the RC454 trigger originally ran on allocation/scope
 ## 2026-10-19 — Public service discovery access correction (RC457)
 
 A source review found a mismatch between the public homepage's ACTIVE `marketing_services` queries and the RC99 policy set, which contained an authenticated-admin management policy but no public catalog SELECT policy. Added RC457 to allow anonymous/authenticated read of ACTIVE catalog rows and restrict anonymous column privileges to the public catalog allowlist. Added an isolated PostgreSQL regression and dedicated CI workflow covering active-vs-draft row visibility and private-column denial. Exact-head CI and production/live-schema parity remain NOT VERIFIED; no production migration or deployment was performed. Production remains BLOCKED / NOT CERTIFIED. `docs/SESSION_LOG.md` intentionally unchanged.
+
+
+### Public provider profile data minimization — 2026-10-19
+
+Public list/detail selects in `web/home.js` no longer request the full `settings` JSON from `marketing_provider_profiles`. Rendering no longer reads `settings.branding.logo_path`; only the explicit public profile image field is used. Added `scripts/tests/rc457-public-catalog-source.mjs` and wired it into the RC457 PostgreSQL workflow to enforce explicit public field allowlists and guard against future settings leakage. Verification status is pending exact-head CI; no live database or production deployment changes were made.
