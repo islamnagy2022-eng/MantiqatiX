@@ -27,6 +27,8 @@ assert.match(serviceMigration, /grant select on table public\.marketing_services
   'public service catalog view must be readable by visitors and signed-in users');
 assert.match(serviceMigration, /revoke all on table public\.marketing_services from public, anon/,
   'anonymous visitors must not directly read the base service table');
+assert.match(serviceMigration, /revoke select \(%I\) on table public\.marketing_services from public, anon/i,
+  'service migration must clear legacy column-level grants to PUBLIC and anon');
 
 assert.match(providerMigration, /create or replace view public\.marketing_provider_profiles_public[\s\S]*?where p\.status = 'ACTIVE'/,
   'public provider view must expose ACTIVE profiles only');
@@ -40,6 +42,8 @@ assert.match(providerMigration, /grant select on table public\.marketing_provide
   'public provider view must be readable by visitors and signed-in users');
 assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles from public, anon/,
   'anonymous visitors must not directly read the base provider table');
+assert.match(providerMigration, /revoke select \(%I\) on table public\.marketing_provider_profiles from public, anon/i,
+  'provider migration must clear legacy column-level grants to PUBLIC and anon');
 assert.doesNotMatch(providerMigration, /settings|owner_user_id|portfolio|ranking_weight/,
   'private provider fields must not be exposed by the public view');
 assert.ok(!providerMigration.includes('drop policy if exists "Owners manage their marketing provider profile"'),
@@ -58,5 +62,7 @@ assert.match(sqlTest, /RC458 unrelated authenticated user read another provider 
   'isolated RLS regression must deny unrelated authenticated base-table reads');
 assert.match(sqlTest, /RC458 exposed a provider without business showcase consent or with an inactive business/,
   'isolated RLS regression must enforce business visibility and showcase consent');
+assert.match(sqlTest, /anonymous private-column SELECT grant survived migration/,
+  'isolated RLS regression must verify legacy column-level grants are revoked');
 
 console.log('RC457_RC458_PUBLIC_CATALOG_SOURCE=PASS');
