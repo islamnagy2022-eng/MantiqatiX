@@ -136,3 +136,12 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - The notifications workspace now selects up to 12 unread notifications from the complete locally loaded notification list, independently of the separate 12 most-recent notification list. Previously, an older unread notification could be omitted from the unread panel whenever it fell outside the most-recent 12, even though the unread KPI counted it.
 - Refreshed app asset version to `notifications-unread-list-20261019` and PWA cache to `mnty-web-v139`.
 - Source-only correction; no tests, browser, build, or CI were run. Data completeness still depends on the rows loaded from the backend; this does not guarantee that all historical notifications are fetched.
+
+
+## Notification batch action and CSV export hardening — 2026-10-19
+
+- Added a manager-independent, per-notification backend-RPC batch action to mark the newest 12 loaded unread notifications as read. It processes records sequentially, prevents concurrent clicks in the same page, reports partial failures accurately, and refreshes the view after the attempt.
+- The UI labels the operation as limited to the newest 12 loaded unread records; it does not imply that all historical unread notifications were fetched or processed.
+- Hardened both campaign and partnership CSV exporters against formula-like cells preceded by whitespace/control characters, in addition to the direct formula prefixes already guarded.
+- Refreshed `web/index.html` asset key to `notification-batch-csv-guard-20261019`; service-worker shell cache is `mnty-web-v140`.
+- Status: SOURCE UPDATED / NOT VERIFIED. No JavaScript parser, browser, tests, build, CI, review, merge, or deployment was run. Backend behavior and CSV behavior require tests before release.
