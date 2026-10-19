@@ -610,3 +610,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Implementation commit: `300ff7e6648b1187896d5dc9a5f7180453d17425`; TODO update commit: `093980bd66e35f4c538f0a69c44da07dc7878600`.
 - No tests, review, browser execution, CI, or deployment performed, per instruction. These checks are client-side only and do not establish backend enforcement. Keep this work NOT VERIFIED; production release remains BLOCKED / NOT CERTIFIED.
 - Next build-first task: improve campaign collaboration/reporting workflows only where existing backend contracts support them; avoid fake performance metrics or external ad-publishing claims.
+
+
+## 2026-10-19 — Partner collaboration reporting continuation
+- Added a manager-only CSV export of partner assignments scoped to campaigns owned by the active business. The report includes campaign, partner display name when available, role, status, allocation percentage, agreed value, campaign currency, and creation timestamp.
+- Export implementation commit: `9540f73bce2a585629974c5009b823cd0c33d731`; TODO checkpoint: `bd40798e3a2c7cefce1efa506de5aaa94135faef`.
+- This is implementation-only and NOT VERIFIED. No tests, review, browser execution, CI, or deployment performed. Confirm provider data availability and backend RLS/authorization during the verification phase; do not treat client-side filtering as a security control.
