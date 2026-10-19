@@ -7,6 +7,7 @@ const rc455 = fs.readFileSync("supabase/migrations/20261019070000_rc455_marketin
 const rc456 = fs.readFileSync("supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc453_marketing_campaign_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc453_marketing_campaign_integration.sql", "utf8");
+const workflow = fs.readFileSync(".github/workflows/marketing-campaign-backend.yml", "utf8");
 
 assert.match(migration, /create table public\.marketing_campaigns/);
 assert.match(migration, /create table public\.marketing_campaign_participants/);
@@ -79,4 +80,8 @@ assert.match(rc456, /old_values,new_values,result[\s\S]{0,500}MARKETING_PARTNER_
 assert.match(rc456, /if v_provider\.owner_user_id is not null then[\s\S]{0,700}insert into public\.notifications/, "partner notification must target the provider owner only when present");
 assert.match(rc456, /p_actor is distinct from auth\.uid\(\)/, "closure must bind actor identity to the authenticated user");
 assert.match(rc456, /revoke all on function public\.close_marketing_campaign_partner_backend\(uuid,uuid,text\)[\s\S]{0,180}from public, anon/i);
+assert.match(workflow, /RC454 concurrency regression/, "PostgreSQL workflow must exercise concurrent partner allocation writes");
+assert.match(workflow, /wait_event='PgSleep'/, "concurrency test must wait until the first insert holds its transaction open");
+assert.match(workflow, /MARKETING_ALLOCATION_OVER_100/, "concurrent allocation test must assert the database rejects the competing over-allocation");
+assert.match(workflow, /active_summary.*1\\|60\\.00/s, "concurrency test must verify only one 60 percent active allocation persists");
 console.log("Marketing campaign backend contract: RC453 baseline + RC454–RC456 source assertions");
