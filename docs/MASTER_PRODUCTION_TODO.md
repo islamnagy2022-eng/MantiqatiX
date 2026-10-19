@@ -2022,3 +2022,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Removed the duplicate provider-profile ID declaration introduced while wiring the provider-owned invitation view.
 - [x] Added a source-contract assertion requiring exactly one provider ID binding and refreshed the app/PWA versions to `marketing-provider-invitation-scope-stable-20261019` / `mnty-web-v147`.
 - [ ] Verify fresh exact-head JavaScript syntax and UI contract CI. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation guard follow-up
+
+- [x] Expanded the participant allocation trigger to fire when `status` changes, not only when campaign/business/tenant/allocation fields change. This closes the bypass where a previously `DECLINED` participant could re-enter an active state above the campaign's 100% allocation cap.
+- [x] Added a source-contract assertion that the trigger covers status transitions.
+- [x] Exact-head PostgreSQL campaign workflow and its source validator passed on head `d9e5f459aacadc788f0dc38307cca2b9b636d356`, including the RC454 status regression and RC454 concurrent-allocation regression.
+- [ ] Continue reviewing the marketing lifecycle for untested state transitions, and verify runtime/browser behavior before certification. Production remains **BLOCKED / NOT CERTIFIED**; no merge or deployment was performed.
