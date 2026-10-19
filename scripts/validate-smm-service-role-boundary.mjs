@@ -63,7 +63,7 @@ const requestValidation = fs.readFileSync("supabase/functions/smm-gateway/reques
 const launchGate = fs.readFileSync("supabase/functions/smm-gateway/launch-gate.ts", "utf8");
 assert.match(transport, /allowlistCsv[\s\S]{0,500}allowed\.has\(host\)/, "provider calls must require an explicit hostname allowlist");
 assert.match(transport, /endpoint\.protocol !== "https:"/, "provider endpoints must require HTTPS");
-assert.match(transport, /redirect:"error"|redirect: "error"/, "provider calls must not follow redirects to unreviewed hosts");
+assert.match(edge, /redirect:"error"|redirect: "error"/, "provider calls must not follow redirects to unreviewed hosts");
 assert.match(transport, /total > maxBytes[\s\S]{0,100}reader\.cancel\(\)/, "provider response bodies must be bounded while streaming");
 assert.match(transport, /new TextDecoder\("utf-8", \{ fatal: true \}\)/, "provider JSON must reject invalid UTF-8 rather than silently replacing bytes");
 assert.match(validation, /rawIdempotencyKey[\s\S]{0,160}\{16,128\}/, "SMM order requests must carry bounded idempotency keys");
