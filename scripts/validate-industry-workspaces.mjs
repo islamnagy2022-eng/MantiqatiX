@@ -6,6 +6,8 @@ const app = fs.readFileSync('web/app.js', 'utf8');
 const index = fs.readFileSync('web/index.html', 'utf8');
 const sw = fs.readFileSync('web/sw.js', 'utf8');
 const registry = fs.readFileSync('web/sector-registry.js', 'utf8');
+const workflow = fs.readFileSync('.github/workflows/industry-workspaces-ui.yml', 'utf8');
+const pagesWorkflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 
 const codes = [...ui.matchAll(/\{code:'([A-Z_]+)'/g)].map(x => x[1]);
 const expected = [
@@ -75,5 +77,8 @@ assert.match(ui, /root\.querySelector\('\[data-mxiw-search\]'\)\?\.addEventListe
 assert.match(index, /industry-workspaces\.js\?v=ui20261019/);
 assert.match(sw, /const CACHE='mnty-web-v130'/);
 assert.match(sw, /\.\/industry-workspaces\.js\?v=ui20261019/);
+assert.match(workflow, /scripts\/test-industry-workspaces-runtime\.mjs/, 'dedicated CI must execute runtime tests');
+assert.match(workflow, /web\/sector-registry\.js/, 'registry changes must trigger the dedicated contract workflow');
+assert.match(pagesWorkflow, /node scripts\/test-industry-workspaces-runtime\.mjs/, 'release validation must run sector runtime tests');
 console.log('Industry workspace frontend contract: PASS');
 console.log('27 unique sectors aligned with the canonical registry; frontend-only boundary; RBAC-preserving routing; PWA loading/cache: PASS');
