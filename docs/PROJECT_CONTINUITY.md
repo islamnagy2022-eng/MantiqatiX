@@ -760,3 +760,15 @@ This status is intentional and must remain until the open gates above are indepe
 - Extended scripts/validate-smm-service-role-boundary.mjs with source assertions for the corrected patterns and a regression assertion against the double-escaped form. Validator intentionally not executed.
 - Latest confirmed code commit in this batch before documentation updates: 73c4cc5d588a004af9cd23178281c9fea6ef5d54. The SMM deferred launch gate remains unchanged. No tests, CI, provider requests, wallet/order mutations, migration replay, merge, or deployment occurred.
 - Resume by inspecting SMM order/debit/provider/reconciliation/refund paths and adding isolated integration coverage without running it. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — Frontend-first continuation override
+
+- Current working branch: `feat/marketing-campaign-operations-summary-20261019`; associated PR #299 remains open and Draft. Latest branch checkpoint before this frontend batch was `2b5bda28f9420e622b9aa810c24adf01f4f4f410`.
+- **Execution priority changed per owner instruction:** start with frontend inventory, shared shell/navigation, dashboard and module child screens; complete each module's frontend scope before routine backend work. Do not continue the prior SMM-backend next step until the frontend-first pass reaches it. A security-critical issue or a hard UI blocker may receive only the minimum safe intervention needed to protect/unblock the project.
+- Added `docs/FRONTEND_SCREEN_INVENTORY.md` as a source-derived register of primary navigation and domain workspace sections. It explicitly does not equate a route or generic blueprint with a complete screen.
+- Updated `web/module-blueprints.js` so tabs and “فتح القسم” activate the selected section and its context panel; removed the misleading success-only toast behavior for this interaction.
+- Updated `web/index.html` and `web/sw.js` asset versions and advanced the PWA shell cache to `mnty-web-v131`.
+- **Verification:** no tests, browser run, build, CI, migration replay, review, or deployment was performed. The frontend changes are source-only and NOT VERIFIED.
+- **Next action:** inspect shared routing and dashboard rendering in `web/app.js`, identify the first genuinely incomplete frontend screen, implement its actual UI/interaction and update the inventory; only then move to that module's backend.
+- Preserve `docs/SESSION_LOG.md` unchanged. Preserve SMM launch deferral. Global release remains **BLOCKED / NOT CERTIFIED**.
