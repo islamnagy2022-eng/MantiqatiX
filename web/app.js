@@ -1627,6 +1627,12 @@ function bindMarketingCampaignWorkspace(){
   if(!allowedNext.includes(target)){
    showToast('تغيرت حالة الحملة أو أن الانتقال المطلوب غير مسموح؛ حدّث مساحة العمل.','error');return;
   }
+  if(['COMPLETED','CANCELLED'].includes(target)){
+   const activeAssignments=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase()));
+   if(activeAssignments.length){
+    showToast('لا يمكن إنهاء الحملة قبل إغلاق '+activeAssignments.length+' مشاركة نشطة. استخدم «إنهاء مشاركة الشريك» ثم حدّث مساحة العمل.','error');return;
+   }
+  }
   const statusLabels={DRAFT:'مسودة',PLANNED:'مخططة',IN_REVIEW:'قيد المراجعة',APPROVED:'معتمدة داخليًا',PAUSED:'متوقفة مؤقتًا',COMPLETED:'مكتملة',CANCELLED:'ملغاة'};
   if(!window.confirm('تأكيد تغيير حالة الحملة «'+String(campaign.title||'')+'» إلى «'+(statusLabels[target]||target)+'»؟'))return;
   button.disabled=true;
