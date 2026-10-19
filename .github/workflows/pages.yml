@@ -36,6 +36,7 @@ jobs:
         run: |
           node --check web/rbac.js
           node --check web/app.js
+          node --check web/industry-workspaces.js
           ! grep -Eq "from\\(['\"]marketing_leads['\"]\\)\\.insert|from\\(['\"]marketing_leads['\"]\\).*\\.insert" web/app.js
           grep -q "sb.functions.invoke('marketing-lead-create'" web/app.js
           ! grep -REq "from\\(['\"](orders|payment_intents|user_memberships|notifications|marketing_projects|advertisements)['\"]\\)\\.(insert|update|delete)" web --include='*.js'
@@ -78,6 +79,7 @@ jobs:
           node scripts/test-digital-page-runtime.mjs
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
+          node scripts/validate-industry-workspaces.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-module-runtime-contracts.mjs
           node scripts/validate-sensitive-module-writes.mjs
@@ -99,6 +101,7 @@ jobs:
           test -f web/styles.css
           test -f web/home.css
           test -f web/app.js
+          test -f web/industry-workspaces.js
           test -f web/home.js
           test -f web/smm.html
           test -f web/digital-page.html
@@ -183,10 +186,11 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Fq "MantiqatiX" "$TMP_PAGE"
-          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
+          for asset in config.js rbac.js vendor/supabase.js styles.css app.js industry-workspaces.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
+          INDUSTRY_WORKSPACE_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/industry-workspaces.js")"
           HOME_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/home.js")"
           CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js")"
           DIGITAL_PAGE_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page.html")"
@@ -194,6 +198,7 @@ jobs:
           DIGITAL_EDITOR_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.html")"
           DIGITAL_EDITOR_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.js")"
           grep -Fq 'id="go-public-home"' <<<"$APP_JS"
+          grep -Fq 'MNTYIndustryWorkspace' <<<"$INDUSTRY_WORKSPACE_JS"
           grep -Fq "mnty-customer-registration" <<<"$APP_JS"
           grep -Fq "tenant_id:'MNTY-PLATFORM'" <<<"$APP_JS"
           grep -Fq "openPlatform" <<<"$HOME_JS"
