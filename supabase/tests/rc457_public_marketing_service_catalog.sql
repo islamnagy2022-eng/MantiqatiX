@@ -17,8 +17,6 @@ create table public.marketing_services (
 );
 alter table public.marketing_services enable row level security;
 grant select on public.marketing_services to anon, authenticated;
-create policy test_active_admin_policy on public.marketing_services
-for select to authenticated using (true);
 
 insert into public.marketing_services
   (id,code,name_ar,category_code,status,internal_notes)
@@ -55,6 +53,10 @@ begin
   select count(*) into visible_count from public.marketing_services_public;
   if visible_count <> 1 then
     raise exception 'RC457 authenticated public view expected one row, got %', visible_count;
+  end if;
+  select count(*) into visible_count from public.marketing_services;
+  if visible_count <> 0 then
+    raise exception 'RC457 authenticated direct base-table read unexpectedly exposed % rows', visible_count;
   end if;
 end;
 $assert$;
