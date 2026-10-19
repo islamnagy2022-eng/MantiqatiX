@@ -37,6 +37,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate public catalog source contract
+        run: node scripts/tests/rc457-public-catalog-source.mjs
       - name: Apply isolated public catalog RLS regression
         env:
           PGPASSWORD: postgres
