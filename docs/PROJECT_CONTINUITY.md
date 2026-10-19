@@ -781,3 +781,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Updated `docs/FRONTEND_SCREEN_INVENTORY.md` and `docs/MASTER_PRODUCTION_TODO.md`.
 - No tests, browser, build, CI, review, or deployment were run. This remains source-only and NOT VERIFIED.
 - Next: continue auditing the shared shell/dashboard and route-to-screen map; then close the first module's missing frontend states before routine backend work. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — Search filter escape follow-up
+
+- Source reinspection caught and corrected an over-escaped wildcard filter while implementing global search failure states. The search needle now preserves the prior single-backslash escaping behavior for literal percent/underscore characters.
+- App and service-worker cache keys were refreshed; cache is `mnty-web-v133`.
+- No tests, browser, build, or CI were run; keep the behavior NOT VERIFIED.
