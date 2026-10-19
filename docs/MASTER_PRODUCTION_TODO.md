@@ -1804,3 +1804,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Regression guard added, not executed:** scripts/validate-smm-service-role-boundary.mjs now asserts the intended regex forms and rejects the prior double-escaped provider-key pattern.
 - **Not verified:** no validator/test/CI execution was performed. This is a source inspection and edit only; it does not certify the entire SMM gateway.
 - **Next:** inspect order lifecycle, wallet debit/refund/reconciliation contracts, and disposable PostgreSQL coverage; preserve the hard deferred-launch flag. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — Frontend-first execution checkpoint
+
+- **Strategy updated:** continue from the existing branch and prioritize source-derived frontend screen inventory and screen completion before routine backend work. Security-critical blockers may receive only the minimum safe intervention needed to prevent harm or unblock UI work.
+- **Inventory:** added `docs/FRONTEND_SCREEN_INVENTORY.md`. It distinguishes navigation entries and generic blueprint sections from verified complete screens; runtime/browser behavior remains NOT VERIFIED.
+- **Frontend implementation:** `web/module-blueprints.js` now makes the active section and section context panel respond to tab/button selection rather than returning only a success toast. The panel explicitly avoids claiming that unconnected backend actions have executed.
+- **PWA cache:** refreshed `web/index.html` and `web/sw.js` asset keys; shell cache advanced to `mnty-web-v131`.
+- **Not run:** tests, browser, build, CI, review, migrations, and deployment. Source changes remain NOT VERIFIED.
+- **Next:** audit shared navigation/dashboard and finish the first incomplete module's actual child screens and interactions before its backend integration. Preserve SMM launch deferral and all release blockers.
+- **Release gate:** BLOCKED / NOT CERTIFIED.
