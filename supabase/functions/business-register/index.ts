@@ -18,7 +18,7 @@ Deno.serve(async(req)=>{
   if(authError||!user||user.is_anonymous)return response({error:"AUTH_REQUIRED"},401);
   const rawBody=await req.text();
   if(new TextEncoder().encode(rawBody).byteLength>16384)return response({error:"REQUEST_BODY_TOO_LARGE"},413);
-  let body:unknown=null;
+  let body:Record<string,unknown>|null=null;
   try{body=JSON.parse(rawBody);}catch{body=null;}
   if(!body||typeof body!=="object"||Array.isArray(body))return response({error:"INVALID_JSON_BODY"},400);
   const stringFields=["tenantId","name","sector","address","phone","city","district","organizationId"];
