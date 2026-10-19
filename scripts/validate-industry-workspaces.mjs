@@ -38,6 +38,9 @@ assert.match(app, /if\(!window\.MNTYIndustryWorkspace\?\.supports\(current\)\)aw
 assert.match(app, /if\(name!=='ملف نشاطي'&&\(industryRoute\|\|rbacKnown\)\)/, 'industry routes must always enter RBAC checks, including unknown roles');
 assert.match(app, /window\.MNTY_RBAC\?\.can\(role,'الموديولات','view',live\.permissions\)===true/, 'sector routes require explicit module-view permission');
 assert.match(app, /window\.MNTYIndustryWorkspace\?\.renderHub\?\.\(\)/);
+assert.match(app, /window\.MNTYIndustryWorkspace\?\.bind\)setTimeout\(window\.MNTYIndustryWorkspace\.bind,0\)/, 'sector UI event handlers must bind after the app root is rendered');
+assert.match(ui, /root\.innerHTML=render\(name\);bind\(\)/, 'switching sector tabs must rebind handlers after repaint');
+assert.match(ui, /root\.querySelector\('\[data-mxiw-search\]'\)\?\.addEventListener\('input'/, 'sector search must remain interactive after filtering');
 assert.match(index, /industry-workspaces\.js\?v=ui20261019/);
 assert.match(sw, /const CACHE='mnty-web-v130'/);
 assert.match(sw, /\.\/industry-workspaces\.js\?v=ui20261019/);
