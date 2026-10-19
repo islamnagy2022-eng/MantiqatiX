@@ -692,3 +692,5 @@ This status is intentional and must remain until the open gates above are indepe
 ### RC454 preflight extension — 2026-10-19
 - Extended the migration's fail-closed preflight to reject existing INVITED/ACCEPTED/ACTIVE participants attached to COMPLETED/CANCELLED campaigns, rather than installing the trigger over lifecycle-inconsistent data.
 - Migration remains source-only, unapplied and untested; production release stays BLOCKED / NOT CERTIFIED.
+
+- Added covering index `marketing_campaign_participants_allocation_guard_idx` on `(campaign_id,status) INCLUDE (allocation_percent)` to support the allocation aggregate query. Its real query-plan/performance effect remains unmeasured; no tests or review were run.
