@@ -1659,19 +1659,27 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Candidate branch head observed: `775ccaa48cfd9e3a468c0e8a78a451473d8edb8e`. PR [#286](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/286) remains Draft/open; this is not a production release.
 - Exact-head CI passed: migration history immutability, migration version uniqueness, cross-PR migration collision guard, production schema static audit, forward migration replay, disposable tenant-isolation E2E, RC425 MantiGO Paymob atomicity, payment-intent/order correlation, webhook success/failure, approval audit atomicity, backend-only module boundary, MantiGO open-ride privacy, module professionalization, and Pages validation. The Pages deploy job was skipped.
 - Exact-head disposable replay applied 30 chronological migrations after the RC424 schema-only checkpoint through RC525, then passed both directions of tenant isolation. This proves replayability of that candidate snapshot, not production parity.
-- Separate combined replay [run 39090118306](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39090118306) passed on test commit `361c2fefca9c8907a1079b33ce81d15e69c901a1`, applying 31 migrations including RC526 and passing tenant isolation. RC526 is still maintained in separate Draft PR #289 and is **not part of PR #286's current file set**; repeat combined replay on the final integrated release candidate.
+- Separate combined replay [run 39090118306](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39090118306) passed on test commit `361c2fefca9c8907a1079b33ce81d15e69c901a1`, applying 31 migrations including RC526 and passing tenant isolation. **Checkpoint correction — 2026-10-19:** the current PR #286 file list now includes `20261014233000_rc526_mantigo_payment_intent_claim.sql`, its fixture/integration tests, and workflow. Draft PRs #289 and #295 also carry overlapping RC526 material, so the cross-PR migration collision guard and exact-head combined replay must pass before this candidate can be considered integrated. The earlier statement that RC526 was absent from PR #286 is stale.
 - The earlier cross-PR collision failure on prior head `c0cdf19...` was re-evaluated against the updated candidate. On current head, the guard passed ([run 39093404904](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39093404904)); the canonical RC432 blob is identical across the cited open PRs. Do not rename or rewrite this historical migration.
 - **Still BLOCKED / NOT CERTIFIED:** live production migration ledger remains at RC424; Paymob digital-page RPC and financial-journal live/source parity, customer-registration contract selection, deployed tenant-policy parity, live payment/finance/settlement E2E, Auth leaked-password protection, backup/restore rehearsal, release signing/device regression, monitoring/rollback, and production smoke remain outstanding. No production migration, function deployment, real payment, grant/RLS change, or release was performed.
 - **Next executable sequence:** integrate RC526 without losing its privacy/audit contracts; run exact-head combined chronological replay and all CI; resolve live/source drift through staged acceptance tests; perform approved staging Paymob/finance/restore exercises; only then consider a separately reviewed production release. Do not begin module expansion until this core gate is genuinely closed.
 
 
-## RC531 — Legacy digital-page finalizer ACL correction — 2026-10-19
+## Digital-page finalizer ACL correction — 2026-10-19 (migration `20261016100000_digital_page_payment_intent_server_only_finalization.sql`)
 
 - Independent source review found the new finalization migration still granted `service_role` EXECUTE on the legacy four-argument `finalize_digital_page_payment_intent_backend`, contradicting the intended rule that only the provider-order-bound five-argument overload is callable by the trusted server.
 - Corrected the candidate migration to revoke the legacy four-argument overload from `service_role` as well as PUBLIC/anon/authenticated; the five-argument overload remains service-role-only.
 - Updated isolated PostgreSQL assertions to require zero EXECUTE for all roles on the legacy overload and to exercise claim/user/provider-order binding and idempotency only through the five-argument overload. Extended the static validator to fail if a later migration re-grants service_role on the legacy overload or removes service_role from the trusted overload.
 - New candidate commit: `f232691ce6a0caea7b21c8cf15752178f2b4bd82`. Exact-head CI was queued at checkpoint time; do not mark this correction PASS until the isolated finalization workflow and full ordered replay complete successfully.
 - No production ACL, migration, Edge Function, payment, or data was changed.
+
+
+## Migration identity clarification — 2026-10-19
+
+- The digital-page finalizer ACL correction is in `20261016100000_digital_page_payment_intent_server_only_finalization.sql`; it is not the business-registration migration.
+- `20261019150000_rc531_business_registration_atomicity.sql` is the RC531 business-registration atomicity migration. Keep their file/version identities distinct in reports and release checks.
+- The production verifier's required migration list includes RC525, RC526, the digital-page finalizer migration, and the RC531 business-registration migration. The contract validator now guards the presence of both later migrations.
+- Current exact-head Actions for branch `fix/rc425-mantigo-paymob-mainline` must be read from the latest commit; earlier passing runs do not transfer to later commits. Production remains BLOCKED while live reconciliation flags are false or runtime evidence is absent.
 
 
 ## 2026-10-19 — Business registration organization-scope hardening (candidate)
