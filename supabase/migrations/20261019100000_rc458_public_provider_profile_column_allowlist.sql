@@ -13,11 +13,14 @@ revoke all on table public.marketing_provider_profiles from public, anon;
 create or replace view public.marketing_provider_profiles_public
 with (security_barrier = true)
 as
-select id, business_id, name_ar, name_en, provider_kind, description,
-       service_areas, status, is_verified, is_featured,
-       profile_image_path, updated_at
-from public.marketing_provider_profiles
-where status = 'ACTIVE';
+select p.id, p.business_id, p.name_ar, p.name_en, p.provider_kind, p.description,
+       p.service_areas, p.status, p.is_verified, p.is_featured,
+       p.profile_image_path, p.updated_at
+from public.marketing_provider_profiles p
+join public.businesses b on b.id = p.business_id
+where p.status = 'ACTIVE'
+  and b.status = 'ACTIVE'
+  and b.settings @> '{"showcase":true}'::jsonb;
 
 revoke all on table public.marketing_provider_profiles_public from public, anon, authenticated;
 grant select on table public.marketing_provider_profiles_public to anon, authenticated;
