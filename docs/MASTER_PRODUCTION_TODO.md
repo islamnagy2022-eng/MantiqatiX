@@ -1664,3 +1664,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Export columns cover campaign, partner display name where available, role, invitation/assignment status, allocation percentage, agreed value, campaign currency, and creation timestamp; values are CSV-quoted and spreadsheet formula prefixes are mitigated.
 - [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed by request. Verify provider visibility, CSV encoding, and spreadsheet behavior in the verification phase.
 - [ ] Export is a convenience feature, not an authorization boundary; backend row-level access policies and server-side RPC authorization remain mandatory.
+
+
+## 2026-10-19 — CSV encoding/record-separator correction (implementation only)
+- [x] Corrected both campaign and partner CSV builders to emit an actual UTF-8 BOM and CRLF record separators instead of literal backslash escape text.
+- [x] Normalized the spreadsheet formula-prefix guard regex in both export paths.
+- [ ] NOT VERIFIED: this correction was made by source inspection only; no tests, review, browser execution, CI, or deployment performed by request.
