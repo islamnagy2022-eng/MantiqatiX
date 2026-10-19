@@ -23,8 +23,8 @@ create table public.marketing_provider_profiles (
   settings jsonb not null default '{}'::jsonb
 );
 alter table public.marketing_provider_profiles enable row level security;
-create policy marketing_provider_profiles_public_active_read
-on public.marketing_provider_profiles for select to anon using (status='ACTIVE');
+create policy "Public can view active marketing providers"
+on public.marketing_provider_profiles for select to authenticated using (status='ACTIVE');
 grant select on public.marketing_provider_profiles to anon, authenticated;
 insert into public.marketing_provider_profiles
   (id,business_id,owner_user_id,name_ar,provider_kind,status,settings)
