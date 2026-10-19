@@ -1823,3 +1823,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Refreshed `web/index.html` and `web/sw.js` app asset keys; PWA shell cache advanced to `mnty-web-v132`.
 - This is a frontend-only correction; search source permissions and backend contracts were not changed.
 - Validation not run: no tests, browser, build, CI, review, or deployment. Status: IMPLEMENTED IN SOURCE / NOT VERIFIED.
+
+
+## 2026-10-19 — Global search filter escape correction
+
+- During source review of the frontend search-state change, corrected the wildcard escaping expression to preserve the existing single-backslash behavior for literal `%` and `_` query characters.
+- Refreshed the app URL and service-worker registration/precache keys; cache advanced to `mnty-web-v133`.
+- This source correction has not been executed or tested. Do not claim search correctness from static edits alone.
