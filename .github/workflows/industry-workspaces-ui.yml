@@ -13,6 +13,7 @@ on:
       - "scripts/test-industry-workspaces-runtime.mjs"
       - "web/sector-registry.js"
       - ".github/workflows/industry-workspaces-ui.yml"
+      - ".github/workflows/pages.yml"
   pull_request:
     branches: [main]
     paths:
@@ -26,6 +27,7 @@ on:
       - "scripts/test-industry-workspaces-runtime.mjs"
       - "web/sector-registry.js"
       - ".github/workflows/industry-workspaces-ui.yml"
+      - ".github/workflows/pages.yml"
 permissions:
   contents: read
 jobs:
