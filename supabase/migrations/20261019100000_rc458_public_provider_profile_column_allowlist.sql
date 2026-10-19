@@ -1,5 +1,5 @@
 -- RC458: restore anonymous ACTIVE-only provider discovery and limit public fields.
--- The existing ACTIVE-only RLS policy remains the row-level publication boundary.
+-- This migration replaces the legacy authenticated-only policy with an explicit anon/authenticated ACTIVE-only publication boundary.
 -- This migration removes broad table-level SELECT for PUBLIC/anon and grants only
 -- fields used by public discovery; authenticated owner/admin policies are unchanged.
 alter table public.marketing_provider_profiles enable row level security;
