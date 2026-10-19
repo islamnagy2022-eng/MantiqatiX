@@ -499,7 +499,7 @@ function globalSearchText(row,fields){return fields.map(k=>row?.[k]).filter(v=>v
 async function globalSearch(queryText){
  const q=String(queryText||'').trim();
  if(q.length<2)return {results:[],failures:[],attempted:0};
- const needle='%'+q.replace(/[%_]/g,m=>'\\\\'+m)+'%';
+ const needle='%'+q.replace(/[%_]/g,m=>'\\'+m)+'%';
  const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan);
  const failures=[];
  const tasks=sources.map(async source=>{
