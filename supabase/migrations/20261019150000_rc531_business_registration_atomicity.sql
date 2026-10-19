@@ -56,9 +56,9 @@ begin
     and m.tenant_id = p_tenant_id
     and m.status = 'ACTIVE'
     and (
-      pg_catalog.upper(pg_catalog.coalesce(m.role, '')) in ('SERVICE_PROVIDER','BUSINESS_OWNER','OWNER','ADMIN')
+      pg_catalog.upper(coalesce(m.role, '')) in ('SERVICE_PROVIDER','BUSINESS_OWNER','OWNER','ADMIN')
       or (
-        pg_catalog.upper(pg_catalog.coalesce(m.role, '')) = 'SUPER_ADMIN'
+        pg_catalog.upper(coalesce(m.role, '')) = 'SUPER_ADMIN'
         and m.business_id is null
         and m.permissions ->> 'scope' = 'PLATFORM'
         and m.permissions ->> 'full_control' = 'true'
@@ -68,7 +68,7 @@ begin
       p_organization_id is null
       or m.organization_id = p_organization_id
       or (
-        pg_catalog.upper(pg_catalog.coalesce(m.role, '')) = 'SUPER_ADMIN'
+        pg_catalog.upper(coalesce(m.role, '')) = 'SUPER_ADMIN'
         and m.business_id is null
         and m.permissions ->> 'scope' = 'PLATFORM'
         and m.permissions ->> 'full_control' = 'true'
@@ -82,7 +82,7 @@ begin
   end if;
 
   v_super_admin :=
-    pg_catalog.upper(pg_catalog.coalesce(v_membership.role, '')) = 'SUPER_ADMIN'
+    pg_catalog.upper(coalesce(v_membership.role, '')) = 'SUPER_ADMIN'
     and v_membership.business_id is null
     and v_membership.permissions ->> 'scope' = 'PLATFORM'
     and v_membership.permissions ->> 'full_control' = 'true';
@@ -126,11 +126,11 @@ begin
   end if;
 
   v_settings := pg_catalog.jsonb_build_object(
-    'sector', pg_catalog.coalesce(p_sector, 'GENERAL'),
-    'address', pg_catalog.coalesce(p_address, ''),
-    'phone', pg_catalog.coalesce(p_phone, ''),
-    'city', pg_catalog.coalesce(p_city, ''),
-    'district', pg_catalog.coalesce(p_district, ''),
+    'sector', coalesce(p_sector, 'GENERAL'),
+    'address', coalesce(p_address, ''),
+    'phone', coalesce(p_phone, ''),
+    'city', coalesce(p_city, ''),
+    'district', coalesce(p_district, ''),
     'registration_source', 'web',
     'approval_status', 'PENDING'
   );
@@ -153,11 +153,11 @@ begin
     'CREATE', 'BUSINESS', v_business.id::text, p_actor_user_id, 'PENDING',
     'NORMAL', 'طلب تسجيل نشاط جديد من الويب',
     pg_catalog.jsonb_build_object(
-      'sector', pg_catalog.coalesce(p_sector, 'GENERAL'),
-      'address', pg_catalog.coalesce(p_address, ''),
-      'phone', pg_catalog.coalesce(p_phone, ''),
-      'city', pg_catalog.coalesce(p_city, ''),
-      'district', pg_catalog.coalesce(p_district, ''),
+      'sector', coalesce(p_sector, 'GENERAL'),
+      'address', coalesce(p_address, ''),
+      'phone', coalesce(p_phone, ''),
+      'city', coalesce(p_city, ''),
+      'district', coalesce(p_district, ''),
       'created_by_super_admin', v_super_admin
     )
   );
