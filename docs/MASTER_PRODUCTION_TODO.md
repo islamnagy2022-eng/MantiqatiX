@@ -1750,3 +1750,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - لم تُطبق migration ولم تُشغّل اختبارات أو مراجعة أو نشر. تظل الحماية غير فعالة حتى التطبيق والتحقق الفعلي.
 
 - أُضيف فهرس تغطية `marketing_campaign_participants_allocation_guard_idx` على `(campaign_id,status)` مع تضمين `allocation_percent` لدعم استعلام مجموع التخصيصات داخل التريغر. أثر الأداء الفعلي لم يُقَس لأن الاختبارات/القياس لم تُشغّل.
+
+
+## 2026-10-19 — Marketing allocation display parity
+- The UI allocation hint now counts only INVITED, ACCEPTED, and ACTIVE assignments, matching the backend allocation invariant; COMPLETED assignments are excluded from the active total.
+- Duplicate-assignment feedback now includes ACTIVE assignments, matching the backend's existing-assignment behavior.
+- Implementation only. No tests or review were run; RC454 is not applied and production remains BLOCKED / NOT CERTIFIED.
