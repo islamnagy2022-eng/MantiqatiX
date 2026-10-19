@@ -414,10 +414,12 @@ jobs:
           docker cp supabase/tests/rc531_business_registration_fixture.sql "$pg_container:/tmp/rc531_fixture.sql"
           docker cp supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql "$pg_container:/tmp/rc531_migration.sql"
           docker cp supabase/migrations/20261019160000_rc532_inherited_business_organization_scope.sql "$pg_container:/tmp/rc532_migration.sql"
+          docker cp supabase/migrations/20261019170000_rc533_business_registration_audit_atomicity.sql "$pg_container:/tmp/rc533_migration.sql"
           docker cp supabase/tests/rc531_business_registration_integration.sql "$pg_container:/tmp/rc531_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_business_registration_test -v ON_ERROR_STOP=1 -f /tmp/rc531_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_business_registration_test -v ON_ERROR_STOP=1 -f /tmp/rc531_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_business_registration_test -v ON_ERROR_STOP=1 -f /tmp/rc532_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_business_registration_test -v ON_ERROR_STOP=1 -f /tmp/rc533_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_business_registration_test -v ON_ERROR_STOP=1 -f /tmp/rc531_test.sql
   digital-page-payment-binding-integration:
     runs-on: ubuntu-latest
