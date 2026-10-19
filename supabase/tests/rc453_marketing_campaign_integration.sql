@@ -194,6 +194,39 @@ begin
   end;
   if not rejected then raise exception 'terminally approved campaign was rolled back to draft'; end if;
 
+  -- RC455/RC456: terminal campaigns cannot retain active partner assignments.
+  perform set_config('request.jwt.claim.sub',manager_a::text,false);
+  rejected:=false;
+  begin
+    perform public.update_marketing_campaign_status_backend(manager_a,campaign_a,'CANCELLED');
+  exception when others then
+    if sqlerrm='MARKETING_PARTICIPANTS_MUST_BE_CLOSED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'terminal campaign transition accepted while partner assignment remained active'; end if;
+
+  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'Integration test closure');
+  if result->>'status' <> 'REMOVED' or coalesce((result->>'idempotent')::boolean,false) then
+    raise exception 'manager partner closure did not remove the assignment';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 1 then
+    raise exception 'partner closure audit event missing or duplicated';
+  end if;
+  if (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 1 then
+    raise exception 'partner closure notification missing';
+  end if;
+  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'Integration test closure replay');
+  if coalesce((result->>'idempotent')::boolean,false) is not true then
+    raise exception 'partner closure replay was not idempotent';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 1
+     or (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 1 then
+    raise exception 'partner closure replay duplicated audit or notification';
+  end if;
+  result := public.update_marketing_campaign_status_backend(manager_a,campaign_a,'CANCELLED');
+  if result->>'status' <> 'CANCELLED' then
+    raise exception 'campaign could not be cancelled after all active partner assignments were closed';
+  end if;
+
   perform set_config('request.jwt.claim.sub',customer_b::text,false);
   rejected:=false;
   begin
