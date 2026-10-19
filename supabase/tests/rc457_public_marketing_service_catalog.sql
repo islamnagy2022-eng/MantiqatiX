@@ -5,7 +5,6 @@ begin;
 create role anon nologin;
 create role authenticated nologin;
 
-create schema public;
 create table public.marketing_services (
   id uuid primary key,
   code text not null,
