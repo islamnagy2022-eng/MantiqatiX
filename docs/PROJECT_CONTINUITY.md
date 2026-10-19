@@ -902,3 +902,7 @@ This status is intentional and must remain until the open gates above are indepe
 
 - RC454's trigger now runs when participant status changes as well as when allocation/scope columns change, so reactivating an inactive participant is checked against the aggregate allocation limit.
 - Validator coverage was added for this trigger contract. Await fresh CI/PostgreSQL evidence; do not apply this migration to production or certify release from source checks alone. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-19 — Marketing RC454–RC456 PostgreSQL gate repair
+
+A review found that the Marketing Campaign Backend workflow applied only RC453 even though the source validator inspected RC454–RC456. That made the prior PostgreSQL PASS insufficient evidence for the new migrations. Updated the workflow triggers and migration execution sequence to apply RC453, RC454, RC455, then RC456 against disposable PostgreSQL. Added lifecycle assertions for the terminal-status guard and audited/idempotent partner closure, plus a source assertion guarding the workflow sequence. RC454's trigger also now fires on `status` changes. Await fresh exact-head CI; do not infer migration correctness from source-only assertions. Production remains **BLOCKED / NOT CERTIFIED** and `docs/SESSION_LOG.md` remains untouched.
