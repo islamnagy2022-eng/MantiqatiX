@@ -252,7 +252,7 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 - Homepage and sector discovery query `marketing_services` for ACTIVE catalog entries and `marketing_provider_profiles` for ACTIVE public profiles without requiring login.
 - Source review found RC99's `marketing_services` policy set only declared authenticated administrative management. This left the anonymous public-service query without an explicit public read policy/grant.
-- Added RC457 active-row read policy and anonymous column allowlist, plus an isolated PostgreSQL regression workflow.
+- Added RC457 public view `marketing_services_public` exposing only ACTIVE rows and allowlisted catalog columns to anon/authenticated; direct anonymous base-table reads are revoked. Public homepage service queries now use the view, with an isolated PostgreSQL regression workflow.
 - Status: SOURCE UPDATED / CI PENDING / LIVE PARITY NOT VERIFIED. Public provider profile RLS is documented separately in prior baseline notes; it must still be verified against the live database before release.
 
 
