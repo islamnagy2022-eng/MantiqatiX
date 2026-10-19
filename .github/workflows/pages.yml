@@ -103,7 +103,6 @@ jobs:
           test -f web/home.css
           test -f web/app.js
           test -f web/industry-workspaces.js
-          test -f scripts/test-industry-workspaces-runtime.mjs
           test -f web/home.js
           test -f web/smm.html
           test -f web/digital-page.html
