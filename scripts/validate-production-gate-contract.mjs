@@ -44,6 +44,8 @@ const requiredProductionGateMarkers = [
   'add("SUBSCRIPTION-PAY-CORRELATION"',
   'add("DIG-PAY-CORRELATION"',
   'add("PAY-AMBIGUOUS-OUTCOMES"',
+  '!payment.includes("response.status >= 400 && response.status < 500")',
+  '!digital.includes("providerResponseStatus>=400&&providerResponseStatus<500")',
   'reconciliation.financial_journal_deployed_source_parity===true',
   'reconciliation.customer_registration_deployed_source_parity===true',
   'reconciliation.business_register_organization_scope_deployed_source_parity===true',
