@@ -1,0 +1,148 @@
+name: Disposable Forward Migration Replay
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/**"
+      - ".github/workflows/disposable-forward-migration-replay.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  forward-replay:
+    if: github.event.pull_request.number == 301
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+
+      - name: Fetch pinned schema baseline and missing pending sources
+        shell: bash
+        env:
+          BASELINE_COMMIT: "354b7afd228af08b14144c8f3f04fb9ed671cfdd"
+          MIGRATION_SOURCE_COMMIT: "4ea94c855ab7aa2792681b8884ec6aedf0a61428"
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "$BASELINE_COMMIT" --depth=1
+          git fetch --no-tags origin "$MIGRATION_SOURCE_COMMIT" --depth=1
+          git show "$BASELINE_COMMIT:supabase/tests/baselines/production_schema_snapshot.sql" > "$RUNNER_TEMP/production_schema_snapshot.sql"
+          git show "$BASELINE_COMMIT:supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql" > "$RUNNER_TEMP/tenant_isolation_two_tenant_fixture.sql"
+          git show "$BASELINE_COMMIT:scripts/verify-tenant-isolation.sql" > "$RUNNER_TEMP/verify-tenant-isolation.sql"
+          test -s "$RUNNER_TEMP/production_schema_snapshot.sql"
+          test -s "$RUNNER_TEMP/tenant_isolation_two_tenant_fixture.sql"
+          test -s "$RUNNER_TEMP/verify-tenant-isolation.sql"
+          mkdir -p "$RUNNER_TEMP/pending-migrations"
+          cat > "$RUNNER_TEMP/pending-migrations.txt" <<'MIGRATIONS'
+          20261009120000_rc425_atomic_mantigo_paymob_payment.sql
+          20261009130000_rc426_digital_page_provider_order_binding.sql
+          20261009140000_rc427_one_active_payment_intent_per_order.sql
+          20261009150000_rc428_atomic_provider_failure_webhook.sql
+          20261009160000_rc429_atomic_subscription_failure_webhook.sql
+          20261009170000_rc430_atomic_subscription_success_webhook.sql
+          20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql
+          20261009190000_rc432_smm_wallet_transaction_idempotency.sql
+          20261009200000_rc434_atomic_erp_purchase_receiving.sql
+          20261009210000_rc435_subscription_provider_intent_claim.sql
+          20261009220000_rc436_atomic_financial_journal.sql
+          20261009230000_rc437_purchase_order_lines_receiving_limits.sql
+          20261009240000_rc438_purchase_order_creation_with_lines.sql
+          20261010010000_rc439_encrypted_checkout_recovery.sql
+          20261010020000_rc440_exposed_security_definer_search_path.sql
+          20261010030000_rc441_platform_admin_scope_hardening.sql
+          20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql
+          20261010120000_rc442_approval_action_audit_atomicity.sql
+          20261010140000_rc444_crm_business_scope_rls.sql
+          20261010150000_rc447_matrimony_profile_privacy_boundary.sql
+          20261010161000_rc448_matrimony_request_lifecycle_authority.sql
+          20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql
+          20261010175000_rc449a_financial_journal_schema_prerequisites.sql
+          20261010180000_rc450_financial_journal_service_role_boundary.sql
+          20261010200000_rc451_targeted_ads_empty_search_path.sql
+          20261010210000_rc452_marketing_crm_tenant_scope.sql
+          20261010220000_rc453_marketing_campaign_backend.sql
+          20261011010000_rc456_smm_service_role_access_boundary.sql
+          20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql
+          20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql
+          20261019190000_rc457_medical_appointment_state_machine.sql
+          MIGRATIONS
+          previous=""
+          while IFS= read -r file; do
+            [[ -n "$file" ]] || continue
+            timestamp="${file:0:14}"
+            if [[ -n "$previous" && "$timestamp" < "$previous" ]]; then
+              echo "MIGRATION_TIMESTAMP_ORDER_FAILURE=$file"
+              exit 1
+            fi
+            previous="$timestamp"
+            dest="$RUNNER_TEMP/pending-migrations/$file"
+            if [[ -s "supabase/migrations/$file" ]]; then
+              cp "supabase/migrations/$file" "$dest"
+            else
+              git show "$MIGRATION_SOURCE_COMMIT:supabase/migrations/$file" > "$dest"
+            fi
+            test -s "$dest" || { echo "MISSING_MIGRATION_SOURCE=$file"; exit 1; }
+          done < "$RUNNER_TEMP/pending-migrations.txt"
+          echo "Prepared $(wc -l < "$RUNNER_TEMP/pending-migrations.txt") ordered migration candidates."
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start isolated Supabase PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_dir="$(mktemp -d)"
+          echo "MNTY_REPLAY_DIR=$test_dir" >> "$GITHUB_ENV"
+          cd "$test_dir"
+          supabase init
+          supabase start -x studio,edge-runtime,logflare,vector
+
+      - name: Restore RC424 schema-only baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_url="$(cd "$MNTY_REPLAY_DIR" && supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          test -n "$db_url"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/production_schema_snapshot.sql"
+          echo "MNTY_REPLAY_DB_URL=$db_url" >> "$GITHUB_ENV"
+          echo "BASELINE_CHECKPOINT=20261008222845"
+
+      - name: Replay pending migrations in immutable timestamp order
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r file; do
+            [[ -n "$file" ]] || continue
+            echo "REPLAYING=$file"
+            psql "$MNTY_REPLAY_DB_URL" -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/pending-migrations/$file"
+            count=$((count+1))
+          done < "$RUNNER_TEMP/pending-migrations.txt"
+          echo "FORWARD_MIGRATION_REPLAY=PASS"
+          echo "MIGRATION_COUNT=$count"
+
+      - name: Verify tenant isolation after replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$MNTY_REPLAY_DB_URL" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f "$RUNNER_TEMP/tenant_isolation_two_tenant_fixture.sql"
+          psql "$MNTY_REPLAY_DB_URL" -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/verify-tenant-isolation.sql"
+
+      - name: Stop isolated Supabase project
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "${MNTY_REPLAY_DIR:-}" ] && [ -d "$MNTY_REPLAY_DIR" ]; then
+            cd "$MNTY_REPLAY_DIR"
+            supabase stop --no-backup || true
+          fi
