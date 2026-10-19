@@ -1,0 +1,54 @@
+name: Business Registration Atomicity
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/functions/business-register/index.ts"
+      - "supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql"
+      - "supabase/tests/rc531_business_registration_fixture.sql"
+      - "supabase/tests/rc531_business_registration_integration.sql"
+      - "scripts/tests/business-register-organization-scope.test.mjs"
+      - ".github/workflows/business-registration-atomicity.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/business-register/index.ts"
+      - "supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql"
+      - "supabase/tests/rc531_business_registration_fixture.sql"
+      - "supabase/tests/rc531_business_registration_integration.sql"
+      - "scripts/tests/business-register-organization-scope.test.mjs"
+      - ".github/workflows/business-registration-atomicity.yml"
+permissions:
+  contents: read
+jobs:
+  registration-atomicity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc531_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc531_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate source and migration contract
+        run: node scripts/tests/business-register-organization-scope.test.mjs
+      - name: Apply isolated fixture and candidate migration
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -d mantiqatix_rc531_test -v ON_ERROR_STOP=1 -f supabase/tests/rc531_business_registration_fixture.sql
+          psql -h localhost -U postgres -d mantiqatix_rc531_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql
+          psql -h localhost -U postgres -d mantiqatix_rc531_test -v ON_ERROR_STOP=1 -f supabase/tests/rc531_business_registration_integration.sql
