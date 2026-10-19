@@ -1319,7 +1319,7 @@ function marketingCampaignWorkspace(){
   const next=validNext(c);
   const statusForm=mine&&next.length?'<div class="action-bar"><label class="sr-only" for="mc-status-'+esc(c.id)+'">الحالة التالية</label><select id="mc-status-'+esc(c.id)+'" data-mc-status-select="'+esc(c.id)+'">'+next.map(s=>'<option value="'+esc(s)+'">'+esc(statusAr(s))+'</option>').join('')+'</select><button type="button" class="btn btn-outline" data-mc-status="'+esc(c.id)+'" style="width:auto">تحديث الحالة</button></div>':'';
   const inviteButton=mine&&providerOptions.length?'<div class="muted">يمكن إسناد شريك من نموذج التعاون أدناه.</div>':'';
-  return '<article data-mc-campaign-card data-mc-title="'+esc(c.title)+'" data-mc-status="'+esc(String(c.status||'').toUpperCase())+'" data-mc-objective="'+esc(String(c.objective||'').toUpperCase())+'" class="card" style="padding:16px;margin:10px 0"><div class="row"><div><span class="eyebrow">'+esc(objectiveAr(c.objective))+'</span><h3>'+esc(c.title)+'</h3></div><span class="mnty-badge">'+esc(statusAr(c.status))+'</span></div>'+
+  return '<article data-mc-campaign-card data-mc-campaign-id="'+esc(c.id)+'" data-mc-title="'+esc(c.title)+'" data-mc-status="'+esc(String(c.status||'').toUpperCase())+'" data-mc-objective="'+esc(String(c.objective||'').toUpperCase())+'" class="card" style="padding:16px;margin:10px 0"><div class="row"><div><span class="eyebrow">'+esc(objectiveAr(c.objective))+'</span><h3>'+esc(c.title)+'</h3></div><span class="mnty-badge">'+esc(statusAr(c.status))+'</span></div>'+
    '<p class="muted">القنوات: '+esc((c.channels||[]).map(channelAr).join('، '))+' · الميزانية: '+fmtMoney(c.budget,c.currency)+'</p>'+
    '<p class="muted">الفترة: '+fmtDate(c.start_at)+' — '+fmtDate(c.end_at)+' · أُنشئت: '+fmtDate(c.created_at)+'</p>'+
    (c.brief?'<p>'+esc(c.brief)+'</p>':'')+statusForm+inviteButton+'</article>';
@@ -1426,8 +1426,9 @@ function bindMarketingCampaignWorkspace(){
    showToast('تصدير الحملات متاح لمديري النشاط المخول فقط.','error');
    return;
   }
-  const rows=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>String(c.business_id||'')===activeBusinessId);
-  if(!rows.length){showToast('لا توجد حملات مرئية للتصدير.','info');return;}
+  const visibleCampaignIds=new Set(Array.from(document.querySelectorAll('[data-mc-campaign-card]')).filter(card=>!card.hidden).map(card=>String(card.dataset.mcCampaignId||'')).filter(Boolean));
+  const rows=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>String(c.business_id||'')===activeBusinessId&&visibleCampaignIds.has(String(c.id)));
+  if(!rows.length){showToast('لا توجد حملات مطابقة للبحث والتصفية الحالية للتصدير.','info');return;}
   const columns=[
    ['title','اسم الحملة'],['objective','الهدف'],['channels','القنوات'],['budget','الميزانية'],['currency','العملة'],
    ['status','الحالة'],['start_at','تاريخ البداية'],['end_at','تاريخ النهاية'],['created_at','تاريخ الإنشاء'],['brief','ملخص الحملة']
