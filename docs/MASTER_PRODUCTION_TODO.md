@@ -1657,3 +1657,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Validate campaign title length, finite/non-negative budget and maximum UI budget, region/brief lengths, and paired/ordered valid date inputs before submission.
 - [ ] NOT VERIFIED: client-side checks are usability controls only and are not a substitute for server-side validation/authorization. No tests, review, browser run, CI, or deployment performed by request.
 - [ ] Production remains **BLOCKED / NOT CERTIFIED** until the independent migration, payment, security, tenant-isolation, recovery, and release gates are verified.
+
+
+## 2026-10-19 — Partner collaboration report export (implementation only)
+- [x] Added a manager-only CSV export for collaboration/partner assignments associated with campaigns owned by the currently selected business.
+- [x] Export columns cover campaign, partner display name where available, role, invitation/assignment status, allocation percentage, agreed value, campaign currency, and creation timestamp; values are CSV-quoted and spreadsheet formula prefixes are mitigated.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed by request. Verify provider visibility, CSV encoding, and spreadsheet behavior in the verification phase.
+- [ ] Export is a convenience feature, not an authorization boundary; backend row-level access policies and server-side RPC authorization remain mandatory.
