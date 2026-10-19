@@ -772,7 +772,7 @@ This status is intentional and must remain until the open gates above are indepe
 - Next action: re-poll #286 exact-head workflows; inspect any failures; reconcile historical migration provenance and candidate overlap; ensure #286 no longer introduces a forbidden `docs/SESSION_LOG.md` change before requesting owner approval. Production stays **BLOCKED / NOT CERTIFIED**.
 
 
-## RC532 — Candidate integration checkpoint — 2026-10-19
+## Execution checkpoint — candidate integration — 2026-10-19
 - Reviewed the latest RC425–RC441 / RC526 / digital payment finalization / RC531 business-registration candidate in PR #286.
 - Corrected a contradictory source-contract assertion in the business-registration test; latest head is `e53ec7e68c94051c19e5234bc558d583c45c42f8`. Exact-head CI remains unverified; no pass is claimed for this head.
 - Confirmed overlapping source candidates: RC425 content is identical across PRs #286/#273/#252, and RC526 content is identical across #286/#295/#289. Do not merge those candidates separately. PR #286's `docs/SESSION_LOG.md` diff also requires reconciliation before integration.
@@ -780,14 +780,21 @@ This status is intentional and must remain until the open gates above are indepe
 - Production ledger remains RC424; no production migration/deployment/financial mutation was performed. Release remains BLOCKED / NOT CERTIFIED.
 
 
-## RC533 — Subscription Paymob response binding — 2026-10-19
+## Execution checkpoint — subscription Paymob response binding — 2026-10-19
 - Found and fixed a candidate-side gap in `subscription-payment-intent`: a successful provider HTTP response was not checked against the server-calculated minor-unit amount, currency, and subscription merchant reference before persisting provider identifiers/returning checkout credentials.
 - Reused the shared Paymob correlation helper, added a focused source/pure-guard regression test, and wired it into Module Professionalization CI. Payment wiring validation now requires this guard to run before persistence.
 - Candidate head `aa1d40b55412fac07f5636370034e944e39b9dc6`; exact-head CI and Paymob sandbox E2E remain unverified. No production changes were made.
 - Release remains BLOCKED / NOT CERTIFIED.
 
 
-## RC534 — Payment correlation regression CI — 2026-10-19
+## Execution checkpoint — payment correlation regression CI — 2026-10-19
 - Module Professionalization CI now runs subscription Paymob correlation, shared helper unit tests, and the payment migration wiring validator.
 - Latest candidate checkpoint observed: `55cd0fcef2023c36657b264905379ab440bef24e`; workflows are queued/pending. No success is claimed for this head.
 - Production remains at RC424 in the documented evidence; no production change was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — normal payment Paymob response binding — 2026-10-19
+- Found the same provider-response binding gap in the ordinary `payment-intent` handler: it did not verify the echoed amount, currency, and merchant reference before returning checkout credentials.
+- Added shared exact-cent and provider-correlation guards; mismatched provider identifiers are persisted only as a pending reconciliation case, and checkout credentials are withheld.
+- Added a source/pure-guard regression test and wired it plus shared correlation tests and payment migration wiring into Module Professionalization CI.
+- Candidate head at checkpoint: `b5802625543df635246e0f7f5e902840825f64e3`; exact-head CI remains pending. No production changes; release remains BLOCKED / NOT CERTIFIED.
