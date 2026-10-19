@@ -45,10 +45,10 @@ assert.match(providerMigration, /revoke all on table public\.marketing_provider_
 assert.match(providerMigration, /revoke select \(%I\) on table public\.marketing_provider_profiles from public, anon/i,
   'provider migration must clear legacy column-level grants to PUBLIC and anon');
 const providerViewProjection = providerMigration.match(
-  /create or replace view public\\.marketing_provider_profiles_public[\\s\\S]*?\\bas\\s+select([\\s\\S]*?)\\s+from public\\.marketing_provider_profiles p/i
+  /create or replace view public\.marketing_provider_profiles_public[\s\S]*?\bas\s+select([\s\S]*?)\s+from public\.marketing_provider_profiles p/i
 )?.[1] ?? '';
 assert.ok(providerViewProjection.length > 0, 'public provider view projection must be identifiable');
-assert.doesNotMatch(providerViewProjection, /\\b(settings|owner_user_id|portfolio|ranking_weight)\\b/i,
+assert.doesNotMatch(providerViewProjection, /\b(settings|owner_user_id|portfolio|ranking_weight)\b/i,
   'private provider fields must not be exposed by the public view projection');
 assert.ok(!providerMigration.includes('drop policy if exists "Owners manage their marketing provider profile"'),
   'RC458 must preserve the existing owner policy on the base table');
