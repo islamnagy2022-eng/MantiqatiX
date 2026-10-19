@@ -18,3 +18,22 @@ const required=[
 for(const [src,marker,label] of required){if(!src.includes(marker))throw new Error('Finance boundary marker missing: '+label);}
 if(payment.includes('body.amount') && !payment.includes('order.total')) throw new Error('Payment flow appears to trust client amount');
 console.log('RC260 finance/payment boundary validation: PASS');
+
+const journal=fs.readFileSync('supabase/functions/financial-journal/index.ts','utf8');
+const journalRequired=[
+  ['admin.auth.getUser','financial-journal bearer token verification'],
+  ['user.is_anonymous','anonymous identity rejection'],
+  ['post_financial_journal_backend','service-role-only journal RPC'],
+  ['p_user_id: user.id','verified actor identity binding'],
+  ['ONLY_POSTED_JOURNALS_SUPPORTED','posted-journal input restriction'],
+  ['https://islamnagy2022-eng.github.io','explicit allowed web origin']
+];
+for(const [marker,label] of journalRequired){
+  if(!journal.includes(marker)) throw new Error('Financial-journal boundary marker missing: '+label);
+}
+if(/rpc\(\s*['"]post_financial_journal['"]/.test(journal)){
+  throw new Error('Financial-journal must not call the legacy post_financial_journal RPC.');
+}
+if(/Access-Control-Allow-Origin['"]?\s*:\s*['"]\*['"]/.test(journal)){
+  throw new Error('Financial-journal must not allow wildcard CORS origins.');
+}
