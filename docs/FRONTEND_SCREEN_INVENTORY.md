@@ -153,3 +153,11 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Both filter counts remain `aria-live="polite"`; the empty state is toggled with the same filtering pass so search and status controls stay synchronized.
 - Asset key is now `marketing-filter-empty-state-20261019`; PWA shell cache is `mnty-web-v141`.
 - Source-only change. Browser behavior, keyboard/screen-reader announcements, and responsive layout remain NOT VERIFIED.
+
+
+## CI-driven correction — provider dashboard handler escaping — 2026-10-19
+
+- GitHub Actions exposed a JavaScript parse failure in `providerDashboard()` at the two hero buttons: nested single-quote escaping produced an invalid source string. Corrected the two handlers while retaining their existing navigation behavior and semantic dashboard module buttons.
+- Updated `web/index.html` asset key to `provider-dashboard-syntax-fix-20261019` and service-worker cache to `mnty-web-v142`.
+- The campaign backend source-contract workflow also exposed an overly narrow regex window for the valid `REMOVED` idempotent JSON response; widened the assertion window to cover the actual response object without changing the SQL migration.
+- The source fixes have been pushed to the PR branch. Their CI re-run must pass before merge; no production deployment is authorized by this correction.
