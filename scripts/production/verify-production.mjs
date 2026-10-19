@@ -75,7 +75,9 @@ const requiredReleaseMigrations=[
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
   "20261014233000_rc526_mantigo_payment_intent_claim.sql",
-  "20261016100000_digital_page_payment_intent_server_only_finalization.sql"
+  "20261014230000_rc525_digital_page_product_platform_admin_scope.sql",
+  "20261016100000_digital_page_payment_intent_server_only_finalization.sql",
+  "20261019150000_rc531_business_registration_atomicity.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
