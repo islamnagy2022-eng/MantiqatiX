@@ -5,6 +5,8 @@
 القاعدة: DONE ≠ VERIFIED.
 المسار الإلزامي: Analysis → Impact Analysis → Implementation → Integration → Testing → Security Review → Verification → Release → Monitoring → New Baseline.
 
+
+
 ## حالات التنفيذ
 - DONE: التنفيذ/المراجعة البرمجية مكتملة بالأدلة المتاحة.
 - PARTIAL: جزء مكتمل وباقي أجزاء مفتوحة.
@@ -27,43 +29,50 @@
    - وصول الإشعار وclick-through.
    - عزل مزودين من أعمال مختلفة.
 
-3. Paymob production E2E — WAIT
+3. Digital-page payment finalization trust boundary — BLOCKED
+   - The Edge Function must call the finalizer through the service-role client; authenticated callers must not execute either legacy or current finalizer overload.
+   - Bind order, user, active claim token, provider intent ID and provider order ID under row lock; same-intent retry may be idempotent, conflicting replay must fail closed.
+   - Only a verified provider webhook may transition an order to PAID.
+   - Require isolated grant/body regression tests, full ordered migration replay, deployed-source/grant parity and Paymob sandbox E2E.
+   - Do not change production grants or deploy without explicit approval.
+
+4. Paymob production E2E — WAIT
    - معاملة حقيقية مصرح بها.
    - HMAC/replay/idempotency.
    - ربط الدفع بالطلب الصحيح.
    - حماية السعر/العملة/tenant.
 
-4. Finance/Settlement E2E — NOT VERIFIED
+5. Finance/Settlement E2E — NOT VERIFIED
    - payment success → commission → payout/settlement.
    - duplicate webhook.
    - concurrent/replay.
    - tenant isolation.
    - GL posting/account mapping/reconciliation.
 
-5. Supabase Security Advisor — OPEN / REVIEWED
+6. Supabase Security Advisor — OPEN / REVIEWED
    - آخر فحص Production (2026-10-07): public.digital_page_payment_events هو الجدول الوحيد الظاهر كـ RLS enabled بدون policy؛ وهو backend-only/payment-event boundary ومقصود أن يبقى fail-closed.
    - تحذير SECURITY DEFINER للـ anon: get_mnty_targeted_advertisements — endpoint إعلانات عام مقصود، ويظل يحتاج مراجعة موثقة لا تعطيلًا أعمى.
    - 40 SECURITY DEFINER functions قابلة للتنفيذ من authenticated؛ تمت مراجعة حدود الممثل/العضوية في المسارات الحرجة، ولا يوجد حتى الآن P0 actor-spoofing defect مثبت، لكن التحذير لا يُعتبر مغلقًا حتى تكتمل المراجعة الفردية.
    - تحذيرات anonymous-policy ما زالت تحتاج مراجعة سياقية؛ لا تُعتبر وحدها إثباتًا لوصول مجهول فعلي.
    - leaked-password protection معطل — WAITING FOR OWNER / Dashboard action.
 
-6. RLS بلا Policies — PARTIAL / FAIL-CLOSED REVIEW
+7. RLS بلا Policies — PARTIAL / FAIL-CLOSED REVIEW
    - Production inspection: `user_memberships`, `restaurant_inventory`, `restaurant_menu_items`, `restaurant_orders`, and `restaurant_tables` have RLS enabled and policies present (1 policy on memberships, 8 on each restaurant table).
    - `digital_page_payment_events` has RLS enabled and 0 policies, remaining fail-closed. Production grant inspection showed no direct SELECT/INSERT/UPDATE/DELETE grants to `service_role` in information_schema (only REFERENCES/TRIGGER/TRUNCATE), so the backend access path still needs explicit verification before closing this gate.
    - Prior full catalog check recorded 128/128 public base tables with RLS; repeat the full check before final release.
    - Do not add broad policies just to silence Advisor; verify the intended Edge Function/service-role path and least-privilege grants first.
 
-7. Leaked Password Protection — WAIT
+8. Leaked Password Protection — WAIT
    - تفعيلها من Supabase Auth.
    - إعادة فحص Advisor.
 
-8. Production release build + signing — WAIT
+9. Production release build + signing — WAIT
    - protected release keystore.
    - release AAB/APK.
    - signature/checksum verification.
    - لا أسرار أو keystore في repo.
 
-9. Real-device release test — WAIT
+10. Real-device release test — WAIT
    - install/update.
    - auth/session.
    - customer/provider/owner/admin.
@@ -71,7 +80,7 @@
    - network loss/retry.
    - location permission عند الحاجة فقط.
 
-10. Public web deployment smoke — PARTIAL / browser E2E NOT VERIFIED
+11. Public web deployment smoke — PARTIAL / browser E2E NOT VERIFIED
     - GitHub Pages deployment + automated `Verify deployed site`: PASS for commit `569f1245fcd57ab50f30abcb08599409e483392a` (run 37861633528).
     - Production Health Monitor: PASS for the same commit (run 37861633606); checks GitHub Pages, Supabase health function, and public web assets.
     - Still NOT VERIFIED: interactive authenticated browser session, responsive/accessibility manual audit, PWA/service-worker offline behavior, and end-user auth flow.
@@ -211,6 +220,8 @@
 - [ ] Support/CRM
 - [ ] Catalog/pricing
 - [ ] Payment
+- [ ] Digital-page payment finalization trust boundary
+- [ ] Ordered migration replay from the production schema checkpoint
 - [ ] Webhook replay/idempotency
 - [ ] Commission
 - [ ] Settlement
@@ -1633,3 +1644,381 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC528 — Candidate-chain inspection evidence — 2026-10-18
+- PR #286 exact head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf`: CI workflows completed successfully, including forward migration-chain replay, disposable two-tenant isolation, payment intent/order correlation, RC431 digital-page payment integration, RC526 MantiGO intent-claim integration, migration immutability/uniqueness, and the cross-PR migration collision guard.
+- Forward replay log shows 31 migrations applied after the captured RC424 schema snapshot; both synthetic tenant checks passed bidirectionally in a disposable database. This is strong candidate-level evidence only; baseline review is still `PENDING_REVIEW`, and it does not prove that these migrations are applied to Production or authorize deployment.
+- Static baseline audit reports 283 migration versions at checkpoint `20261008222845`, 128/128 public tables with RLS, and explicitly notes manual function/grant/RLS review remains required.
+- Cross-PR migration collision guard passed for PR #286 after auditing 19 open migration PRs.
+- Compared all eight RC526 files changed by PR #295 against PR #286's base branch: every file is byte-identical. Therefore PR #295 currently adds no distinct RC526 file content relative to PR #286's branch; do not merge it as if it were an independent fix. Its base is PR #286's branch, and its own PR-triggered workflows were not returned by the workflow-run lookup.
+- PR #273's RC425 migration source for the checked file is byte-identical to PR #286's copy; continue comparing the full migration set and preserve the collision guard before integration.
+- **Integration blocker:** PR #286 changes `docs/SESSION_LOG.md`; do not merge that PR as-is under the current no-edit/no-touch constraint for that file. Resolve this without modifying the session log, then re-run exact-head CI and review.
+- No production migration, grant/RLS/Auth change, Edge Function deployment, merge, or financial transaction was performed.
+
+
+## RC529 — Digital-page payment finalization regression expansion — 2026-10-18
+- Continued the P0 remediation in existing PR #268 (branch `fix/digital-page-payment-finalize-main-20261016`), not on main.
+- Hardened both 4-argument and 5-argument trusted finalizers with row locking, order/user binding, active claim-token validation, and idempotent acceptance only when the same still-pending provider intent (and, for the 5-argument overload, provider-order ID) is already bound.
+- Added isolated SQL regression cases for stale claim tokens, wrong user binding, same-intent retry, conflicting intent replay, and conflicting provider-order replay; authenticated direct invocation remains denied by the ACL/role contract.
+- Exact new head: `6c4d5e931c2a3d420e1d43fe8369a81747a018d1`. The Digital Page Payment Finalization Isolation workflow and related repository CI were queued/in progress at this checkpoint; do not mark this fix PASS until the exact-head isolated PostgreSQL test completes successfully.
+- This is source/test work only. No migration was applied to production and no payment or deployment was performed.
+
+
+## RC530 — Digital-page payment finalization exact-head CI — 2026-10-18
+- Updated PR #268 exact head: `78c32697f26d53167d39e01201ad165e2cc5371c`.
+- The isolated PostgreSQL finalization workflow now passes after correcting the test fixture's role boundary. It exercises the 4- and 5-argument server-only finalizers, denies authenticated direct execution, rejects stale claim tokens and wrong-user binding, permits same-identifier retries while pending, and rejects conflicting provider-intent/provider-order replay.
+- Exact-head related CI: Digital Page Payment Finalization Isolation PASS; Migration Version Uniqueness PASS; Migration History Immutability PASS; Open PR Migration Collision Guard PASS; Module Professionalization Validation PASS; Backend-only Module Boundary PASS; MantiGO Open Ride Privacy Boundary PASS; Approval Action Audit Atomicity PASS; Pages validation PASS with deploy skipped for the PR event.
+- This verifies candidate source and disposable PostgreSQL behavior only. It does not verify production migration ledger/function grants/deployed Edge Function parity and does not authorize merge or deployment.
+
+
+## RC531 — Candidate integration branch prepared — 2026-10-18
+- Created isolated branch `integration/rc425-526-digital-page-finalization-20261018` from the RC425–RC526 candidate branch and layered the exact-head PR #268 finalization source, migration, workflow, and regression tests onto it.
+- Purpose: validate chronological compatibility of the server-only finalizer after the RC426 provider-order binding and RC526 claim migrations, without merging either candidate or touching main.
+- This branch is an integration candidate only. The available workflow-run lookup has not exposed its push-triggered replay result, so the combined migration-chain result remains **NOT VERIFIED** at this checkpoint.
+- No PR was opened for this integration branch, and no production change or merge was performed.
+
+
+## RC528 — Candidate replay evidence update — 2026-10-18
+- Exact candidate head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf` in PR #286 passed its isolated forward-chain replay workflow (run 39097050740): the schema-only checkpoint was restored, 31 forward migrations were applied in timestamp order, and the guarded synthetic two-tenant fixture passed bidirectional own-row visibility / cross-tenant denial checks before rollback of the verifier transaction.
+- The separate disposable tenant-isolation workflow (run 39097050717) also passed against the captured schema baseline. This proves the candidate test harness and replay path for that snapshot; it does NOT prove deployed Production parity, approve the baseline, or authorize a merge/deployment.
+- The same candidate's payment-focused RC425/RC431/RC526, webhook failure/success, payment-order correlation, financial-journal service-role boundary, migration collision/immutability, baseline static audit, and module-professionalization workflows reported success. Pages workflow validation passed but deploy job was skipped for the PR event.
+- The baseline review remains `PENDING_REVIEW`; production migration checkpoint remains RC424 until read-only live evidence establishes otherwise. PR #286 remains unmerged, and its changes to `docs/SESSION_LOG.md` are outside this documentation update and must not be copied/merged without resolving the project rule.
+- Next action: review the exact diff and dependencies of PR #286/#295 and the baseline manifest/manual review findings; resolve overlapping migration ownership before considering any integration. Continue payment trust-boundary regression and module E2E planning; do not claim production release readiness.
+
+
+## RC529 — Payment-candidate consolidation note — 2026-10-18
+- PR #286 candidate head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf` passed the listed isolated replay and payment/finance/module checks, but remains an unmerged candidate; Pages deploy was skipped in PR context.
+- PR #295 is based on an older ancestor of PR #286 and diverges by one commit while being 14 commits behind the current #286 head. Its RC526 files overlap with the already-present RC526 work in #286; do not merge #295 as a separate change without rebasing/reconciling the exact diff.
+- Created draft PR #297 against the #286 candidate branch to integrate server-only digital-page payment finalization without losing the candidate's safer Paymob ambiguous-outcome handling. It changes the finalizer to use the trusted admin client, persists provider order correlation, adds a forward-only migration and disposable PostgreSQL regression tests. Exact-head CI is still running; no pass is claimed yet.
+- The integration branch includes a normalized provider-order ID extractor supporting the candidate's top-level provider fields and nested `order.id` shape, and the validator now checks the trusted finalizer boundary. Await isolated workflow and full-chain replay before considering integration.
+- No production grant, migration, payment, or deployment was changed.
+
+
+## RC530 — Digital-page finalization isolated regression — 2026-10-18
+- Draft PR #297 exact head `1f867408e97e56ad0e068efe009840a106da00c1` passed the isolated PostgreSQL digital-page finalization workflow [run 39142080749](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39142080749): migration applied to disposable PostgreSQL; grants, authenticated direct-call denial, trusted finalization, claim/user binding, idempotent same-intent retry, conflicting replay, and source contract all passed.
+- At the same exact head, Backend-only Module Boundary [run 39142080933](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39142080933), MantiGO Open Ride Privacy Boundary [run 39142080795](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39142080795), and Module Professionalization Validation [run 39142080916](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39142080916) passed.
+- The first finalization workflow attempt failed because the inherited static validator expected a different missing-provider-order error shape. The assertion was corrected to require the candidate's actual fail-closed ambiguous-outcome branch; the subsequent exact-head run passed. No production state changed.
+- **Still open:** full ordered replay of the combined RC425–RC526 + finalization migration chain at the new exact head has not been evidenced yet; live production grant/source parity and Paymob sandbox E2E remain unverified. PR #297 remains draft and unmerged; do not promote this isolated test result to production approval.
+
+
+## RC531 — Main-branch release gate and integration status — 2026-10-18
+- Latest observed main commit is `149a85c7e5c44b61421edc8391cbb82885902fae`. Its Deploy MantiqatiX Web run [39092185609](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39092185609) failed in the Production verification engine; deploy was skipped. The verifier explicitly reported missing RC425–RC441 source migrations, `required_release_migrations_applied=false`, chronological replay NOT RUN on main, tenant isolation NOT VERIFIED, payment/finance E2E NOT VERIFIED, backup/restore NOT VERIFIED, and `PRODUCTION_GATE=BLOCKED`. Scheduled Production Health Monitor success does not override this release-gate failure.
+- PR #297 exact head `1f867408e97e56ad0e068efe009840a106da00c1` passed the isolated digital-page finalization workflow and its other module/security CI. After adding a trigger so the forward-chain replay also runs when the payment-boundary validator changes, latest head `ec8e1008b3353f7e7082ed9711e7db487b200ba3` has all four module/security workflows successful; the full replay job is still running.
+- Do not claim production deployment or certification from candidate-only CI. Continue waiting for the exact-head full replay, then review any failure before proceeding.
+
+
+## RC532 — Combined candidate migration replay PASS — 2026-10-18
+- PR #297 head `ec8e1008b3353f7e7082ed9711e7db487b200ba3` passed Forward Migration Chain Replay [run 39142243077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39142243077).
+- The schema-only checkpoint was restored in an isolated Supabase instance; **32 forward migrations** were applied in timestamp order, including the RC526 chain and the new server-only digital-page finalization migration. The guarded synthetic two-tenant fixture then passed both directions: each tenant sees its own private businesses/orders/payment intents/onboarding rows and cannot see the other tenant's private rows.
+- Same exact head passed Backend-only Module Boundary [39142243068], MantiGO Open Ride Privacy Boundary [39142243080], and Module Professionalization Validation [39142243104]. The isolated finalization SQL/source test passed at the code-equivalent prior head `1f867408e97e56ad0e068efe009840a106da00c1` in run 39142080749; subsequent commit only adjusted the replay workflow trigger.
+- This is **candidate replay evidence**, not production migration application, deployed source/grant parity, Paymob sandbox E2E, baseline approval, or release certification. PR #297 remains draft and unmerged; production stays BLOCKED / NOT CERTIFIED.
+- Next: independent review of all finalizer overload grants and migration compatibility, then review candidate PR #286 as a whole without merging duplicate/diverged PR #295. Keep the production ledger at RC424 until independently verified.
+
+
+## RC533 — P0 payment boundary and least-privilege correction — 2026-10-18
+- Elevated digital-page payment finalization into the explicit P0 release blockers and added separate release-gate checks for the finalization trust boundary and ordered replay.
+- Code review found the first integration draft re-granted service_role EXECUTE on the legacy four-argument finalizer even though RC426 revoked it. The candidate migration and tests now keep that legacy overload disabled for PUBLIC, anon, authenticated, and service_role; only the provider-order-bound five-argument overload is service_role-executable.
+- A read-only post-replay assertion now checks effective overload grants, SECURITY DEFINER status, trusted-role guard, user/claim/provider-order binding, and empty search_path after the complete migration chain.
+- Exact-head rerun for the stronger post-replay assertion is pending; do not mark this gate verified until it passes. No production state changed.
+
+
+## RC534 — Post-replay finalizer ACL and body checks PASS — 2026-10-18
+- Full forward replay at candidate head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed in [run 39142726549](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39142726549): **32 ordered migrations** applied from the captured schema-only checkpoint, the read-only post-replay assertion passed, and both directions of synthetic tenant-isolation verification passed.
+- The post-replay assertion confirms the legacy four-argument finalizer has no EXECUTE for anon/authenticated/service_role; the provider-order-bound five-argument overload is executable by service_role only, is SECURITY DEFINER with empty search_path, and checks trusted role, user binding, claim token and provider-order binding.
+- The next exact-head workflow change adds the production source verifier to the isolated finalization workflow and asserts that the finalization source gate passes while the global production gate remains BLOCKED. That new workflow run is pending; do not mark its check complete until it passes.
+- This is still disposable candidate evidence, not live production ACL/source parity, Paymob sandbox E2E, or release approval.
+
+
+## RC535 — Source release gate wired into finalization CI — 2026-10-18
+- PR #297 head `7bdd0ec5cd25d6ee156e69bac2107283a034a674` passed Digital Page Payment Finalization Isolation [run 39142880851]. The workflow now runs `scripts/production/verify-production.mjs` and asserts the source `DIG-FINALIZE-TRUST-BOUNDARY` is PASS while the global `PRODUCTION_GATE` remains BLOCKED.
+- At that same head, Backend-only Module Boundary [39142880886], MantiGO Open Ride Privacy Boundary [39142880809], and Module Professionalization Validation [39142880832] passed.
+- The full migration replay at code-equivalent head `e7c6d08854fe2c25d2f061846fa69e292efb1663` passed [run 39142726549]: 32 ordered migrations, post-replay finalizer grant/SECURITY DEFINER/empty search_path/user/claim/provider-order checks, and bidirectional tenant isolation.
+- Remaining: live production source/grant parity, baseline/manual approval, Paymob sandbox E2E and external release tests. No production migration/deployment was performed; PR #297 remains draft/unmerged.
+
+
+## RC536 — Read-only live production parity check — 2026-10-18
+- Read-only Supabase catalog query against project `moyhiluyhjsujhwlyeuu` found only `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)`: SECURITY DEFINER, `search_path=public, pg_temp`, anon EXECUTE=false, authenticated EXECUTE=true, service_role EXECUTE=false, no provider-order reference and no trusted-role guard.
+- Read-only Edge Function retrieval found live `digital-page-payment-intent` version 5 still calls `userClient.rpc("finalize_digital_page_payment_intent_backend", ...)` with the four-argument signature and does not bind provider order ID. This directly confirms that the candidate fix has **not** been deployed to production.
+- Live migration ledger remains at `20261008222845 / rc424_atomic_digital_page_payment_webhook`; the relevant RC425+ release migrations are not present in the live ledger. No production data/schema/grants/secrets/functions were changed.
+- Release stays BLOCKED. Do not hotfix the grant or deploy Edge Function independently/out of order; first complete the reviewed candidate chain, then require explicit approval and a coordinated migration/function rollout with live verification.
+
+
+## RC537 — Explicit live finalizer parity gate added — 2026-10-18
+- Added P0 `DIG-FINALIZE-LIVE-PARITY` to the candidate production verifier. It requires explicit timestamped evidence for live overload grants, live function body, deployed Edge Function source parity, exact Edge Function version, and SHA-256 source hash before it can PASS.
+- Added corresponding `NOT VERIFIED` fields to `docs/release/production-migration-reconciliation.json`, grounded in the read-only live check showing the legacy four-argument finalizer remains authenticated-executable and the deployed Edge Function still calls it through the user-scoped client.
+- Updated the isolated finalization workflow to assert the source boundary is PASS while live parity and global production release remain BLOCKED until evidence is recorded.
+- Latest exact-head CI is pending; do not claim this new assertion passed until the workflow finishes. No production state was modified.
+
+
+## RC538 — Live parity evidence package
+- Added a focused read-only evidence report in PR #297: `docs/release/DIGITAL_PAGE_FINALIZATION_LIVE_PARITY_20261018.md`.
+- It records the live four-argument grant/body state, deployed Edge Function v5 fingerprint and call signature, RC424 ledger checkpoint, candidate regression/replay evidence, and a controlled rollout checklist. The report deliberately marks the live boundary BLOCKED and does not claim a production fix.
+
+
+## RC539 — MantiGO payment candidate overlap review
+- PR #286's RC425–RC526 candidate includes the RC526 MantiGO payment-intent claim migration and associated correlation tests; the full candidate replay passed at the documented exact head.
+- PR #289 independently contains RC526 but its head is heavily diverged from the #286 candidate (compare result: 160 commits ahead / 61 behind relative to the #286 head) and its diff includes separate TODO/continuity/session-log changes. Do not merge PR #289 separately or assume it is a clean one-commit fix; reconcile only the relevant payment diff against the tested #286 candidate.
+- PR #295 likewise diverges from #286 by a single RC526 integration commit while 14 commits behind, and overlaps RC526 files already in #286. Avoid duplicate migration ownership.
+- Candidate #286 itself still requires baseline manual review, exact mainline reconciliation, and handling of its `docs/SESSION_LOG.md` diff under the project rule not to edit that file. No merge was performed.
+
+
+## RC540 — TODO and payment remediation PR status — 2026-10-18
+- Master module TODO PR #296 is now **ready for review** (head `88d376e3aed1eb41ef737b87297776de2d5adfb9`). Backend-only, MantiGO privacy, Module Professionalization, and Pages validation workflows passed; Pages deploy was skipped because the change is a PR.
+- Payment remediation PR #297 remains **draft**, based on the RC425–RC526 candidate branch. The code head `a661e3a1111e759919de855769c99fb3067b167f` passed its four source/security workflows; full migration replay and post-replay grants/body/tenant isolation passed at `e7c6d08854fe2c25d2f061846fa69e292efb1663`.
+- Live production parity is still BLOCKED by the actual live four-argument finalizer and Edge Function v5 user-scoped call. Do not merge or deploy based on candidate-only CI.
+
+
+
+# RC527 — Master module completion register and execution order — 2026-10-18
+
+## Purpose and status semantics
+This register complements the P0–P3 production gates below. It tracks product/module completion as well as release readiness; neither one substitutes for the other.
+- **IMPLEMENTED** means source/UI or a workflow is present; it does not imply end-to-end or production verification.
+- **PARTIAL** means a documented slice exists and remaining functionality or verification is open.
+- **AUDIT REQUIRED** means inspect the current main source, database contract, route/menu entry, and related PRs before assigning a stronger status.
+- **BLOCKED** means do not advance to production until the named dependency/evidence is resolved.
+- Never mark a module complete solely because a dashboard, placeholder, CI job, or open PR exists.
+
+## Correct execution order
+
+### Track A — unblock the release-critical foundation first
+1. Reconcile RC425–RC526 candidate work and the migration/source history using the authoritative reviewed source; preserve the production ledger checkpoint at RC424 until live evidence says otherwise. No reconstructed historical DDL, no out-of-order migration, and no production mutation without explicit approval.
+2. Close the payment trust-boundary and atomicity source contracts: digital-page finalization, MantiGO Paymob intent claim/callbacks, payment webhook HMAC/order/amount/currency binding, idempotency, and server-only privileged RPC grants. Add isolated regression tests; do not merge overlapping candidates until one compatible chain is proven.
+3. Make tenant-isolation tests fail closed and run independent user/tenant/role negative tests. Do not infer isolation from static policy presence.
+4. Verify finance/settlement/report contracts, concurrency and replay handling; no fabricated or real-money test transactions without explicit approval.
+5. Converge critical Edge Function source with deployed source, then validate exact-head CI and deployed parity. Auth leaked-password protection remains an owner-controlled dashboard action.
+6. Only after safe prerequisites, run the approved external/runtime gates: payment sandbox E2E, notification/order E2E, backup/restore rehearsal, monitoring/incident drill, browser/PWA and Android release/device tests.
+
+### Track B — build and finish the product modules in dependency order
+Work in small, independently testable slices, reusing existing schema/RLS and existing module contracts wherever possible:
+1. **Shared platform foundation:** authentication, membership/tenant/business/branch scope, role/action contract, navigation, reusable record details, RTL/responsive/accessibility, safe error/telemetry and audit trail.
+2. **Core transaction chain:** customer/provider profiles and service catalog → order creation → provider acceptance/status transitions → notification delivery → payment intent/webhook → commission/settlement/ledger. Treat each boundary as its own testable module.
+3. **Operations and CRM:** orders/operations workspace, support tickets/messages, leads lifecycle, customer/provider separation, notifications and attention queue. Validate end-to-end routing and access by role.
+4. **Marketing & advertising workspace:** company/agency-scoped leads, partners/providers, projects, campaigns/ads, service assignments, budgets/results where authoritative sources exist, and reports. Campaign features depending on RC453 schema must show an explicit unavailable state until the compatible schema/RPC is verified.
+5. **Finance & ERP:** chart of accounts/journal, payment reconciliation, commissions, settlement, wallets, purchases/receipts/transfers, stock movements, and financial reports. No client-side financial authority; reconcile each metric to authoritative records.
+6. **MantiGO:** ride lifecycle, passenger/driver/operations scopes, Paymob intent claim and callback atomicity, platform-level dashboard/settlement guards, privacy boundary, and finance reports. Resolve overlapping PRs against one base before integration.
+7. **Digital pages & subscriptions:** public renderer, owner editor/fulfillment, payment intent/finalization, webhook confirmation, receipts/refunds contract, media/storage, QR/SEO/versioning and browser E2E.
+8. **Sector workspaces:** restaurant (menu, tables, inventory, orders), then audit education, medical, pharmacy, jobs/recruitment, reverse-auction and general service-provider workflows one by one. Do not claim these are complete until screens, data paths, permissions, and E2E contracts are inventoried.
+9. **Cross-cutting modules:** content/CMS, automation/notifications, analytics/reports, governance/audit, monitoring/maintenance, backup/recovery, offline/sync, performance, and accessibility. Keep each scoped to authoritative data and least privilege.
+10. **Release packaging:** web/PWA deploy and smoke, signed Android artifact and device regression, rollback, restore, monitoring, release notes and post-release smoke.
+
+## Module-by-module TODO register
+
+| Module / workstream | Current evidence/status | Remaining TODO / closure evidence |
+|---|---|---|
+| Admin / platform control center | PARTIAL; system health/security workspace recorded in earlier RCs | Audit all navigation entries and actions; role/action matrix; organization/branch scoping; health data provenance; actionable error states; keyboard/RTL/responsive checks; authenticated E2E. |
+| Identity, users, roles, memberships | Baseline implemented; runtime tenant/role E2E NOT VERIFIED | OTP/session/refresh/logout; active membership changes; IDOR denial; role-by-role and cross-tenant tests with independent sessions; owner-controlled leaked-password protection and fresh Advisor run. |
+| Customer & provider profiles/services | Source/RLS work documented; E2E NOT VERIFIED | Profile ownership, service catalog, coverage/availability, provider-only order visibility, consent/location minimization and cross-provider denial tests. |
+| Orders / operations | Core backend boundaries and order lifecycle invariants documented; runtime E2E open | Customer→provider→order→status→notification journey; allowed transitions, cancellation/refund rules, concurrent updates, branch/tenant isolation, browser E2E. |
+| Notifications / tasks / attention | Attention center implemented; task source not authoritative in prior audit | Delivery and click-through, Web Push lifecycle, duplicate/stale subscription cleanup, per-user isolation; do not invent tasks without an authoritative task source. |
+| CRM / support | CRM workspace implemented; deep E2E open | Lead lifecycle and assignment; ticket/message scope; customer/provider/staff separation; support cross-tenant tests; audit events and notifications. |
+| Marketing / agency / ads | PR #292 merged to main; tabbed leads/partners/projects/ads workspace and RC453-dependent campaign actions documented | Verify latest main Pages run; test business-scoped campaign reads and actions; audit provider directory data sanitization; define authoritative campaign/budget/performance metrics; explicit fallback until RC453 schema/RPC deployment is proven; agency-to-client isolation E2E. |
+| SMM Gateway | Several open candidate PRs; production parity/deployment not certified | Resolve provider timeout, ambiguous results, spend limits, global admin scope, credential least privilege, safe persistence and terminal states; secret redaction; provider contract tests and isolated integration tests; no deployment claim from source CI alone. |
+| Restaurant | Workspace implementation and CI documented; runtime/tenant E2E open | Menu/table/inventory/order workflows, owner/manager/staff scope, cross-branch denial, stock/order consistency, responsive/accessibility and authenticated E2E. |
+| MantiGO rides | Privacy boundary CI documented; payment candidate PRs overlap | Ride state machine and passenger/driver isolation; intent claim concurrency; callbacks/webhook atomicity; platform dashboard/settlement scope; finance-report column contract; sandbox E2E and exact-head CI. |
+| Finance / accounting / wallet / settlement | Finance workspace exists; real-money E2E NOT VERIFIED; RC450 contract/deployment mismatch noted | Verify journal schema/column contract and posting order; payment-to-commission-to-settlement-to-GL reconciliation; wallet ownership; replay/concurrency; tenant scope; do not mutate production or claim financial correctness without evidence. |
+| ERP / inventory / purchasing | AUDIT REQUIRED for each live screen/API/source contract | Products, locations, purchase orders/receipts, transfers, stock ledger, valuation and adjustments; enforce server-side authority and tenant/branch isolation; verify schema/migrations before implementing missing operations; transactional/concurrency tests. |
+| Digital pages / subscriptions | Content publishing/editor foundation documented; payment trust boundary BLOCKED; full fulfillment E2E open | Public render, owner editor, media/storage, safe publication lifecycle, server-only payment finalization, provider webhook binding, receipt/refund contract, QR/SEO/versioning, browser E2E and deployed-source parity. |
+| Catalog / pricing / coupons | IN PROGRESS | Canonical catalog per sector; server-authoritative price/discount/coupon validation; currency/tax/tenant binding where applicable; no client-side price authority; pricing regression tests. |
+| Education | AUDIT REQUIRED | Inventory current routes/screens/schema; map roles and lifecycle; implement only after confirming source/data contracts; E2E for institution isolation. |
+| Medical | AUDIT REQUIRED | Inventory current screens/data contracts; least-privilege access and sensitive-data minimization; role and tenant tests; no unsupported medical workflow assumptions. |
+| Pharmacy | AUDIT REQUIRED | Inventory catalog/stock/order flows and actual schema; authorization, inventory consistency and transaction tests; avoid inventing dispensing or prescription workflows not supported by product scope. |
+| Jobs / recruitment | AUDIT REQUIRED | Inventory employer/job/candidate/application flows; lifecycle, employer/candidate privacy and tenant/role isolation; E2E. |
+| Reverse auction / bidding | AUDIT REQUIRED | Inventory request/offer/award lifecycle; server-side price and state authority, deadline/concurrency handling, bidder isolation and replay tests. |
+| General services marketplace | PARTIAL; provider/order foundations exist | Sector catalog, provider discovery, service areas/availability, assignment and status lifecycle; cross-provider and cross-tenant E2E. |
+| Content / CMS / platform pages | AUDIT REQUIRED | Inventory current content editor/publication path; role controls, sanitization, preview/publish lifecycle and cache invalidation; verify public rendering. |
+| Analytics / reports / BI | PARTIAL; prior RC510 uses explicit loaded-record/sample semantics | Tenant/role scoping, date filters, pagination/drill-down, source provenance, reconciliation with authoritative tables; distinguish sample metrics from full-period totals; no duplicate business truth. |
+| Governance / audit | PARTIAL | Server-authoritative audit events; append-only privileges; actor/tenant scope; PII/IP/user-agent retention and redaction; integrity requirements; role-based read tests. |
+| Automation / webhooks | PARTIAL | Retry/backoff, idempotency, dead-letter/alerting, correlation IDs, signature validation and operational runbooks; verify under duplicate/concurrent delivery. |
+| Offline / sync / realtime | PARTIAL / WAIT | Per-operation endpoint, idempotency and conflict policy; device offline/online regression; do not replace polling without a verified subscription path. |
+| Security / database / migrations | BLOCKED by release chain and payment trust boundary | Source ledger and ordered replay in disposable DB; RLS and grants audit; per-function SECURITY DEFINER review; exact deployed-source parity; never edit historical migration definitions or apply unapproved production changes. |
+| Monitoring / maintenance | PARTIAL | Error/severity aggregation, alerts, incident drill, health check coverage and actionable dashboards; prove no sensitive data/secrets in logs. |
+| Backup / disaster recovery | NOT VERIFIED | Approved restore rehearsal in controlled environment; RPO/RTO; two-tenant integrity; rollback evidence. |
+| Web / PWA / Android release | Web checks exist for prior commits; current main deployment and authenticated browser flow need verification; signed Android artifact absent from evidence | Exact-main CI/deploy/smoke, authenticated browser E2E, offline cache/version behavior, accessibility/responsive checks, signed AAB/APK checksum and real-device regression. |
+
+## Definition of Done for every module
+A module cannot be marked DONE until all applicable items are evidenced:
+- [ ] Screens/routes and user journeys inventoried; no placeholder is mistaken for a real workflow.
+- [ ] Database schema/migration dependency and authoritative data source verified.
+- [ ] Server-side authorization and tenant/business/branch/role scope reviewed.
+- [ ] Loading, empty, unavailable, error, retry, duplicate-submit and concurrency states handled.
+- [ ] Responsive RTL, accessibility, keyboard and safe user-facing errors checked.
+- [ ] Unit/contract/integration tests pass at the exact candidate commit.
+- [ ] Negative tests prove unauthorized and cross-tenant operations are denied.
+- [ ] Edge/RPC/deployed source parity verified where relevant.
+- [ ] Operational logging, alerts, recovery and rollback documented for critical flows.
+- [ ] PR integrated only after base/dependency/CI review; production release remains separately gated.
+
+## Immediate next work batch
+1. Inspect and reconcile PRs #286 and #295 and related payment/migration candidates against main; do not merge the overlapping chain until its exact ordered history and clean disposable replay are proven.
+2. Continue PR #272/#268/#281 digital payment finalization review as one trust-boundary change; run isolated regression evidence and avoid competing migrations.
+3. Re-run exact-main workflows and the fail-closed tenant-isolation verifier after candidate consolidation.
+4. In parallel, audit module entrypoints/screens against the register above, beginning with the shared role/tenant boundary and the core customer/provider/order/notification chain; then verify the merged marketing workspace and its RC453 dependency.
+5. Append a concise RC checkpoint after each material verified batch. Never edit docs/SESSION_LOG.md unless explicitly authorized; keep this TODO and PROJECT_CONTINUITY current.
+
+## RC528 — Candidate chain CI and overlap audit — 2026-10-19
+
+### Verified candidate evidence (source/CI only)
+- PR #286 head `fba0a820f5f212d5f4686f42d1c9bbfc6fe057cf` is 55 commits ahead of `main`, 0 behind at the time of comparison; it remains open/unmerged.
+- The exact PR #286 head has successful runs for migration version uniqueness, migration history immutability, open-PR migration collision guard, production-schema static audit, forward migration-chain replay, disposable-schema tenant-isolation E2E, RC425/RC431/RC526 payment integration, payment webhook failure/success, order correlation, financial-journal service-role boundary, and module validation. This is candidate CI evidence, not production deployment or release certification.
+- The forward replay job reports `FORWARD_MIGRATIONS_APPLIED=31` and synthetic Tenant A/Tenant B checks passed in the disposable database. This does not mean the production migration ledger advanced or that production tenant E2E was executed.
+- The schema baseline review artifact explicitly remains `PENDING_REVIEW`; manual review of security-definer bodies, grants, RLS, views/triggers, and migration provenance is still required before baseline approval.
+- PR #286 changes `docs/SESSION_LOG.md`. Per this continuation's rule, do not edit that file in future work; reconcile/remove that unrelated change through an authorized review before integration.
+- PR #295 is based on the PR #286 branch and has diverged (1 commit ahead / 14 behind in comparison). It contains the same RC526 migration path already present in PR #286. Do not merge PR #295 independently or combine its head blindly; review the unique changes and close/rebase the duplication only after an approved candidate is chosen.
+- PR #273 restores the RC425–RC441 migration files separately; it overlaps PR #286's migration set. Use the collision guard and choose one canonical ordered candidate, never merge both blindly.
+- PR #284 provides the schema-only baseline artifact and is not mergeable at its current head; its artifact is suitable only for disposable replay and remains subject to the pending manual review.
+
+### Next execution decision
+1. Treat PR #286 as the leading integration candidate for a deeper review, not as approved for merge.
+2. Resolve the PR #286 `SESSION_LOG.md` change and verify the exact snapshot/ledger provenance plus all migration collision results.
+3. Review the new RC526 claim/finalization and payment callback contracts together, including negative/replay/concurrency cases and deployed-source drift.
+4. Keep PR #268 (server-only digital-page finalization) separate until its migration and function contract is reviewed against the RC431 chain; avoid competing migrations/grant changes.
+5. Only after these reviews and exact-head tests pass, request explicit integration approval. Production remains BLOCKED / NOT CERTIFIED; no production mutation or deployment was performed in this audit.
+
+
+## RC529 — Digital-page server-only finalization composed into RC candidate — 2026-10-19
+
+- Updated the RC425–RC441/RC526 candidate branch PR #286 to call `finalize_digital_page_payment_intent_backend` through the service-role `admin` client rather than the user-scoped client.
+- Added forward migration `20261016100000_digital_page_payment_intent_server_only_finalization.sql`, revoking direct PUBLIC/anon/authenticated execution for the 4- and 5-argument finalizer overloads and granting the trusted server role. The 5-argument overload retains provider-order binding.
+- Added isolated PostgreSQL setup/regression tests and workflow for grants, direct authenticated-call denial, stale token/wrong-user rejection, trusted persistence, idempotent same-intent retry, and conflicting replay rejection.
+- Updated `scripts/validate-digital-pages-boundaries.mjs` to require the admin RPC and fail closed on malformed/ambiguous Paymob responses. The RC286 implementation retains the claim for reconciliation when provider outcome or provider-order correlation is ambiguous, avoiding an unsafe claim release that could permit duplicate intentions.
+- Candidate PR #286 now has 82 changed paths and is 61 commits ahead of main at the recorded comparison. Exact-head workflows were queued at checkpoint time, including the new Digital Page Payment Finalization Isolation workflow; no result is claimed until the runs complete.
+- The integration-only PR #298 was closed without merge after its changes were applied to the existing PR #286 candidate, avoiding a duplicate candidate PR.
+- PR #286 remains unmerged; its `docs/SESSION_LOG.md` change and baseline manual review remain unresolved. No production migration/grant/deployment or financial transaction was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+### Next
+1. Poll exact-head CI, especially Digital Page Payment Finalization Isolation, RC431 integration, forward replay, migration collision/history checks, and tenant isolation.
+2. Fix any failed test at the same candidate branch and rerun all affected workflows.
+3. Review PR #286's full diff, baseline provenance, SECURITY DEFINER/RLS/grants and session-log change before requesting merge approval.
+
+
+## RC530 — Release verifier tied to finalizer security evidence — 2026-10-19
+
+- Extended the production verification engine with `DIG-FINALIZE-SOURCE-CONTRACT` and `DIG-FINALIZE-LIVE-PARITY`.
+- Added the new server-only finalization migration to the required ordered source-migration set.
+- The live reconciliation manifest must now explicitly record `digital_page_finalization_trust_boundary = PASS` and `digital_page_finalization_deployed_source_parity = true`; absent evidence keeps the P0 gate BLOCKED.
+- Extended the digital-page boundary validator to assert the production verifier's source and live-parity gates and that Pages CI invokes both the production verifier and digital-page boundary validator.
+- Latest candidate commit at this checkpoint: `23276078e53b712aaabaa15c30c8b7570a6d9647`. Exact-head workflows were queued, including Digital Page Payment Finalization Isolation, forward replay, collision/history checks, and tenant isolation; no result is claimed yet.
+- No production database/grant/Auth/RLS change or deployment was made.
+
+### Next
+1. Poll all exact-head CI jobs and fix failures on the same candidate branch.
+2. Confirm the ordered replay includes RC425–RC526 followed by the new finalization migration and that the dedicated isolated test passes.
+3. Review and reconcile the PR #286 session-log diff and manual baseline/security review before requesting integration approval.
+
+
+## RC531 — Independent live-main gate and exact-head candidate check — 2026-10-19
+
+- Verified current `main` remains `149a85c7e5c44b61421edc8391cbb82885902fae`; the production deploy validation run [39092185609](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39092185609) failed and deploy was skipped.
+- Read the failed verifier log directly. It reports 16 required RC425–RC432 and RC434–RC441 migration sources absent from `main`, `required_release_migrations_applied=false`, chronological replay `NOT RUN`, tenant isolation/payment-finance E2E/backup-restore/Edge Function contracts/SMM parity/Auth settings `NOT VERIFIED`, and `PRODUCTION_GATE=BLOCKED`. The RC424 ledger identity matched its source exactly; preserve the existing ledger alias and do not rewrite history.
+- PR #286 current candidate head `23276078e53b712aaabaa15c30c8b7570a6d9647`: payment correlation, migration uniqueness/history, payment webhook integration, financial-journal boundary, digital-page finalization isolation and other listed checks passed. At inspection time, forward migration replay and disposable baseline tenant isolation were still in progress, and module validation/backend boundary were not complete. Pages deploy cancellation on a PR event is not a deployment failure and is not production evidence.
+- PR #296 remains open/unmerged at `6f72dfb3ad19a469fbd9028cfc20d4f01ca77a1c`; its latest observed four validation workflows succeeded, with Pages deploy skipped because the event was a PR. This does not certify product modules or production.
+- **Action boundary:** no merge, production migration, grants/RLS/Auth change, Edge Function deployment, financial operation, or production data mutation was performed.
+
+### Next executable steps
+1. Obtain terminal results for PR #286 exact-head ordered replay and disposable tenant-isolation jobs; inspect full logs if either fails.
+2. Keep PR #286/#297 and overlapping migration PRs unmerged until chronological replay, migration ownership/collision review, baseline security review, and session-log constraint reconciliation are complete.
+3. The release gate remains BLOCKED until the migration chain is safely integrated and live payment/function/grant parity, external E2E, backup/restore, and Auth settings have evidence.
+
+
+## RC528 — Candidate reconciliation snapshot — 2026-10-19
+
+### Exact GitHub state checked
+- **PR #286** — `fix/release: restore RC425–RC441 and harden Paymob payment flows`, base `main`, head `649b4a80d89a5fcc0eb85c0687fa63a36a28b688`, open/draft. It carries the consolidated migration candidates, RC526, payment finalization, baseline artifacts, and related integration workflows. At the latest check its 18 workflow runs were queued; no success is claimed yet.
+- **PR #273** — exact-source recovery of RC425–RC441, base `main`, head `ebfa17eb36e8092a697b91c7f840c56030251fd6`, open/draft. Migration version uniqueness, migration-history immutability, cross-PR collision guard, backend boundary, MantiGO privacy, module validation, and approval-audit workflows passed. Pages deploy was cancelled in PR context; this is not a production deployment.
+- **PR #295** — RC526 integration, base is the PR #286 branch (not `main`), open/draft. It adds RC526 on top of #286 and must not be treated as an independent mainline candidate.
+- **PR #289** — alternate RC526 implementation targeting `main`, open/draft and currently not mergeable. Do not merge it independently while #286/#295 are being reconciled.
+- **PR #278** — Paymob callback work is based on another payment candidate branch, not `main`; review its dependency graph before integration.
+- **PR #284** — disposable schema baseline candidate is open and currently not mergeable; its changed-file list includes `docs/SESSION_LOG.md`. Do not edit that file as part of this work; baseline artifacts require independent review before use.
+- **PR #296** — this module TODO/continuity documentation PR, open/draft. Exact-head validation, backend-only boundary, MantiGO privacy and module professionalization passed. Pages validation passed but deploy was skipped in PR context.
+
+### Decision and next actions
+1. Keep `main` and production unchanged while the consolidated migration/payment candidate is tested.
+2. Treat #286 as the principal integration candidate for review, not as release-approved: wait for its exact-head workflow results; inspect every failed job/log and correct only evidence-backed defects.
+3. Compare #286 with #273 for exact migration file identity and collision safety; do not independently merge the same historical migration files from both PRs.
+4. Review RC526 through the #286 → #295 dependency chain; do not merge #289 as a competing implementation.
+5. Review the digital-page server-only finalizer, its grants, call sites, and isolated regression tests as part of the consolidated chain; retain the release blocker until exact-source and deployed parity are proven.
+6. After a clean disposable schema replay, run fail-closed tenant isolation and payment/order correlation tests; then update the module register with exact-head evidence.
+7. Continue module implementation from shared identity/tenant authorization and the customer → provider → order → status → notification chain; in parallel, verify the already-merged marketing workspace and RC453-dependent behavior without claiming RC453 is deployed.
+8. No merge, production migration, grant/Auth/RLS change, deployment, or financial transaction is authorized by this checkpoint.
+
+
+
+## RC529 — Payment finalization regression hardening — 2026-10-19
+- In PR #286 branch `fix/rc425-mantigo-paymob-mainline`, added a fail-closed guard to the five-argument digital-page finalizer: if `provider_order_id` is already populated while `provider_intent_id` is absent, finalization rejects instead of overwriting the partial/conflicting binding.
+- Added an isolated SQL regression fixture/assertion proving the existing provider order ID remains unchanged and no provider intent is attached.
+- Candidate head after this change: `dbc1f555c450efe247c5d42f0c924fd3bf9e1460`.
+- Verification state at checkpoint: source and test assertions re-fetched from the candidate branch; the exact-head payment, replay, migration, tenant-isolation, and boundary workflows are queued/pending. **No test pass is claimed yet.**
+- This is an unmerged candidate migration only. No production migration, grant change, Edge deployment, or payment transaction was performed. Keep the release gate BLOCKED until exact-head CI, disposable replay, deployed parity and approved runtime evidence pass.
+
+
+## RC543 — Current GitHub checkpoint and exact-head CI state — 2026-10-19
+- Current main base observed through PR metadata: `149a85c7e5c44b61421edc8391cbb82885902fae`. The production deployment/verification run `39092185609` failed and the deploy job was skipped; release remains BLOCKED / NOT CERTIFIED.
+- Consolidated candidate PR #286 is open/draft, base `main`, latest observed head `6a109ca7500bfd19bef47958710843285a33d8f8`. Its current exact-head workflows were queued at the latest poll, including ordered forward migration replay, disposable tenant isolation, RC425/RC431/RC526 payment checks, migration immutability/uniqueness/collision guard, digital-page finalization isolation, financial-journal boundary, and Pages validation. Do not reuse earlier passing runs as proof for this newer head.
+- PR #296 documentation branch is open and unmerged. Earlier exact-head checks passed at `39b92561d53af040e2b4960a99b7848cca9bf0f0`; the latest observed head `8d3f52929885f67d20e7277335d1733bd6d203d8` has fresh module/backend checks queued and its PR deployment run was cancelled. No deployment is claimed.
+- PR #297 remains draft/non-mergeable and is based on the RC candidate branch. It must be reconciled with #286 rather than independently merged.
+- No production mutation, migration, grant/RLS/Auth change, payment, deployment, merge, or edit to `docs/SESSION_LOG.md` was performed in this checkpoint.
+- Next: poll exact-head workflows for #286 and #296; inspect failures rather than assuming success; review migration provenance/baseline and security boundaries; reconcile the #286 diff to avoid changes to `docs/SESSION_LOG.md`; obtain explicit owner approval before any merge or production rollout.
+
+
+## Execution checkpoint — candidate integration — 2026-10-19
+- PR #286 now contains the recovered RC425–RC441 source set, RC526 MantiGO intent claim, server-only digital-page finalization, disposable replay/isolation/payment tests, and RC531 atomic business registration. This is candidate code, not a production change.
+- Fixed a contradictory source-contract test in `scripts/tests/business-register-organization-scope.test.mjs`: it simultaneously asserted that `allowedRoles` was absent and that `allowedRoles.has(...)` was present. The current Edge Function centralizes tenant/membership/organization/duplicate authority in the atomic service-role RPC and passes `requestedOrganizationId` directly. Updated the test output to avoid a hard-coded count.
+- Exact-head CI for the new candidate commit `e53ec7e68c94051c19e5234bc558d583c45c42f8` is not yet independently confirmed; do not infer PASS from prior-head runs or PR narrative.
+- Identical-source comparison confirmed RC425 migration content matches across PR #286, #273 and #252; RC526 content matches across #286, #295 and #289. These overlapping candidates must not be merged independently. PR #286 also includes `docs/SESSION_LOG.md` changes that require reconciliation before integration.
+- Prior candidate replay evidence through RC525 does not certify the new combined RC526/RC531/finalization chain. The exact current head needs chronological disposable replay, migration collision/history checks, server-only finalization regression, tenant-isolation E2E, and payment integrations.
+- Production ledger remains recorded at RC424. No production migration, grants/RLS/Auth change, Edge Function deployment, payment, or financial record was changed. Final release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — subscription payment provider-response binding — 2026-10-19
+- P0 finding in candidate PR #286: `subscription-payment-intent` previously persisted Paymob intent/order identifiers after a successful HTTP response without validating the echoed amount, currency, and merchant `special_reference`.
+- Candidate fix now reuses `isValidPaymobAmountCents` and `matchesPaymobIntention` before persistence; mismatches preserve the claim/correlation for reconciliation and do not return checkout credentials.
+- Added a focused source + pure-guard regression test and wired it into Module Professionalization CI; strengthened the payment wiring validator.
+- Candidate head `aa1d40b55412fac07f5636370034e944e39b9dc6`; exact-head CI and provider sandbox E2E are still NOT VERIFIED. This is not yet production deployed.
+- Do not close the payment gate or merge overlapping migration candidates until exact-head CI, ordered disposable replay, and reviewed payment/tenant isolation tests pass.
+
+
+## Execution checkpoint — payment correlation regression CI — 2026-10-19
+- Module Professionalization CI was expanded to execute the subscription Paymob amount/currency/reference guard, the shared Paymob correlation unit tests, and the payment migration wiring contract.
+- Candidate PR #286 head at checkpoint: `55cd0fcef2023c36657b264905379ab440bef24e`. Exact-head workflows are queued/pending, so these checks are not marked PASS.
+- No production deployment/migration/payment was performed. Continue with the first open gate: exact-head CI, chronological disposable replay, and review of overlapping migration candidates.
+
+
+## Execution checkpoint — normal payment Paymob response binding — 2026-10-19
+- Static review found that the ordinary `payment-intent` path checked only HTTP success and non-empty provider identifiers before persisting them and returning checkout credentials; it did not verify the echoed amount, currency, and merchant reference.
+- Candidate fix now uses the shared exact-cent validator before network I/O and the shared provider-correlation guard against the authoritative payment intent, amount, and currency.
+- Provider identifiers are persisted into a pending/quarantined intent for reconciliation when the provider response mismatches, but checkout credentials are not returned. The webhook continues to enforce its own order/reference/amount/currency binding.
+- Added `scripts/tests/payment-intent-correlation.test.mjs`, wired it into Module Professionalization CI, and strengthened the payment migration wiring validator.
+- Current candidate head observed during this checkpoint: `b5802625543df635246e0f7f5e902840825f64e3`; exact-head CI remains queued/pending, so no test pass is claimed.
+- No production changes. Keep payment release blocked until CI, chronological disposable replay, tenant isolation, and approved Paymob sandbox E2E are verified.
+
+
+## Execution checkpoint — ambiguous Paymob provider outcomes — 2026-10-19
+- Found that the ordinary order payment and digital-page payment handlers treated every HTTP 4xx response as definitive and could mark an intent FAILED or release its claim even for ambiguous statuses such as 408, 409, 425, or 429.
+- Candidate fix now permits failure/release only for explicit identifier-free rejections (400, 401, 403, 404, 422). Any response with provider identifiers, or any other non-2xx response, remains quarantined for reconciliation and does not return checkout credentials.
+- Added `scripts/tests/payment-provider-ambiguous-outcomes.test.mjs`, wired it into Module Professionalization CI, and extended the payment wiring validator.
+- Candidate head at checkpoint: `bd0164786b37e1ebf8a1dd3e80e1db9bf929d3fa`. Exact-head workflows are queued; no test pass is claimed.
+- No production changes. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — complete Paymob intent response binding — 2026-10-19
+- The candidate now applies the shared Paymob correlation guard to ordinary order payments, subscription payments, MantiGO, and digital-page payments.
+- Ordinary and digital-page flows validate exact-cent conversion before provider network I/O; they verify the echoed amount, currency, and merchant reference before returning checkout credentials. Digital-page mismatch keeps the claim active for reconciliation.
+- Only explicit identifier-free 400/401/403/404/422 responses are treated as definitive rejections; ambiguous 408/409/425/429/5xx or responses containing provider identifiers stay quarantined.
+- Added focused regression scripts for normal, subscription, digital-page correlation and ambiguous provider outcomes; wired them into Module Professionalization CI and strengthened the payment migration wiring validator.
+- Current candidate head: `4af10ddea8e37f991c9905ab4c65220bab46f398`. Exact-head workflows remain queued/pending, so no test pass is claimed.
+- No production migration, deployment, or payment was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — production verifier enforces payment binding — 2026-10-19
+- Added P0 release-verifier checks for normal order, subscription, and digital-page Paymob response correlation, plus fail-closed handling of ambiguous provider 4xx outcomes.
+- Extended the production-gate contract test to require those checks and to reject reintroduction of generic all-4xx failure/release branches.
+- Candidate PR #286 head: `440118dc5383ed8865b9b86acc81985d1325d300`. Exact-head CI is not yet verified; no PASS is claimed.
+- No production change. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — digital-page claim release verification — 2026-10-19
+- The digital-page claim release helper now verifies the RPC boolean result; failed release returns a reconciliation-required response rather than a clean rejection.
+- Added source regression assertions and a P0 release-verifier gate for this contract.
+- Candidate PR #286 head: `eee6bf72929dfabfb803d9687153570a9e10af97`. Exact-head CI remains unverified; no PASS is claimed.
