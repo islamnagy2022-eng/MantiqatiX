@@ -1837,3 +1837,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - `web/app.js`: generic fallback workspaces no longer label decorative cards “الواجهة مكتملة” or show “UI READY”; they now clearly report a partial/unverified state. Added selectable section-scope actions with explicit remaining requirements, without fabricating backend execution.
 - Refreshed app/service-worker cache keys; shell cache advanced to `mnty-web-v135`.
 - This is a frontend status/interaction improvement, not completion of those module screens. Screen-by-screen implementation remains open. No tests, browser, build, CI, review, or deployment were run.
+
+
+## 2026-10-19 — PWA cache-key alignment follow-up
+
+- Reconciled the generic workspace UI update with the actual current asset strings: `web/index.html` now references `app.js?v=generic-workspace-sections-v2-20261019` and the matching service-worker URL; `web/sw.js` precaches the same app URL and uses `mnty-web-v135`.
+- This follow-up corrects cache-key alignment in source. No build, browser, test, CI or deployment was run; runtime cache behavior remains NOT VERIFIED.
