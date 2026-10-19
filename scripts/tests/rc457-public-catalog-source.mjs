@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const home = readFileSync('web/home.js', 'utf8');
-const migration = readFileSync('supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql', 'utf8');
+const migration = readFileSync('supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql', 'utf8');\nconst providerMigration = readFileSync('supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql', 'utf8');
 
 assert.match(home, /from\('marketing_services'\)\.select\('id,code,name_ar,name_en,category_code,description'\)/,
   'public directory must request only the service catalog fields it renders');
@@ -19,4 +19,11 @@ assert.match(migration, /grant select \([\s\S]*?\) on table public\.marketing_se
 assert.match(migration, /revoke select on table public\.marketing_services from public, anon/,
   'table-wide anonymous/public select must be revoked before allowlist grant');
 
-console.log('RC457_PUBLIC_CATALOG_SOURCE=PASS');
+assert.match(providerMigration, /revoke select on table public\\.marketing_provider_profiles from public, anon/,
+  'anonymous/public table-wide provider profile access must be revoked');
+assert.match(providerMigration, /grant select \\([\\s\\S]*?\\) on table public\\.marketing_provider_profiles to anon/,
+  'anonymous provider profile reads must use an explicit column allowlist');
+assert.doesNotMatch(providerMigration, /settings|owner_user_id|portfolio/,
+  'private provider fields must not be granted to anonymous visitors');
+
+console.log('RC457_RC458_PUBLIC_CATALOG_SOURCE=PASS');
