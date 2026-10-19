@@ -770,3 +770,11 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #297 remains draft/non-mergeable and stacked on the RC candidate. Keep it coordinated with #286; do not merge duplicate/overlapping migration candidates independently.
 - No production migration, grant/RLS/Auth change, Edge Function deployment, payment, merge, or `docs/SESSION_LOG.md` edit occurred in this checkpoint.
 - Next action: re-poll #286 exact-head workflows; inspect any failures; reconcile historical migration provenance and candidate overlap; ensure #286 no longer introduces a forbidden `docs/SESSION_LOG.md` change before requesting owner approval. Production stays **BLOCKED / NOT CERTIFIED**.
+
+
+## RC532 — Candidate integration checkpoint — 2026-10-19
+- Reviewed the latest RC425–RC441 / RC526 / digital payment finalization / RC531 business-registration candidate in PR #286.
+- Corrected a contradictory source-contract assertion in the business-registration test; latest head is `e53ec7e68c94051c19e5234bc558d583c45c42f8`. Exact-head CI remains unverified; no pass is claimed for this head.
+- Confirmed overlapping source candidates: RC425 content is identical across PRs #286/#273/#252, and RC526 content is identical across #286/#295/#289. Do not merge those candidates separately. PR #286's `docs/SESSION_LOG.md` diff also requires reconciliation before integration.
+- The previous disposable replay reached RC525, not the current combined RC526/RC531/payment-finalization chain. Re-run chronological replay and the exact-head payment, tenant-isolation and migration-integrity workflows before any integration decision.
+- Production ledger remains RC424; no production migration/deployment/financial mutation was performed. Release remains BLOCKED / NOT CERTIFIED.
