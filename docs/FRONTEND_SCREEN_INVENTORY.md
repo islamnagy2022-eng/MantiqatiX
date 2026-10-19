@@ -214,3 +214,9 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Partner invite choices and submit-time checks now match the backend's eligible campaign states: `DRAFT`, `PLANNED`, and `IN_REVIEW`.
 - CSV formula-prefix guards now include a leading BOM as well as existing leading control/space characters.
 - Source-contract assertions and PWA asset/cache versions were updated. Browser/runtime behavior remains NOT VERIFIED; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Validator follow-up — 2026-10-19
+
+- Aligned the CSV source assertion with the BOM-aware guard and strengthened the RC454 concurrency contract's distinct-provider checks.
+- These are test-contract changes only; browser runtime remains NOT VERIFIED and production remains **BLOCKED / NOT CERTIFIED**.

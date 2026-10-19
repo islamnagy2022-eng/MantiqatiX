@@ -923,3 +923,8 @@ The invitation form's client-side aggregate used to exclude only `DECLINED` and 
 ## 2026-10-19 — Marketing invite status and CSV guard follow-up
 
 The partner invitation form now offers only campaigns in `DRAFT`, `PLANNED`, or `IN_REVIEW`, matching the backend RPC's allowed transition states; submit-time validation uses the same set. This prevents avoidable attempts against `APPROVED`/`PAUSED` campaigns. Campaign and partnership CSV formula guards now also detect a leading BOM before formula characters. UI source-contract assertions and asset/cache versioning were updated. Await exact-head CI; no browser runtime test or production deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
+
+
+## 2026-10-19 — Validator follow-up
+
+Corrected the CSV source assertion to match the BOM-aware formula guard's literal source and strengthened the RC454 concurrency workflow contract to require two distinct providers and 60% active assignments. Await exact-head UI/backend CI; no production change or deployment was made. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.

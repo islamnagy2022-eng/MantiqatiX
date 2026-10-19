@@ -84,4 +84,7 @@ assert.match(workflow, /RC454 concurrency regression/, "PostgreSQL workflow must
 assert.match(workflow, /wait_event='PgSleep'/, "concurrency test must wait until the first insert holds its transaction open");
 assert.match(workflow, /MARKETING_ALLOCATION_OVER_100/, "concurrent allocation test must assert the database rejects the competing over-allocation");
 assert.match(workflow, /active_summary[\s\S]{0,250}1\|60\.00/, "concurrency test must verify only one 60 percent active allocation persists");
+assert.ok(workflow.includes('insert_race "40000000-0000-4000-8000-000000000001" "rc454-race-a"'), "race test must use the first distinct provider assignment");
+assert.ok(workflow.includes('insert_race "40000000-0000-4000-8000-000000000003" "rc454-race-b"'), "race test must attempt the competing distinct provider assignment");
+assert.ok(workflow.includes("'MEDIA_BUYING',60,100,'ACTIVE'"), "race test must use 60 percent active allocations for the competing inserts");
 console.log("Marketing campaign backend contract: RC453 baseline + RC454–RC456 source assertions");
