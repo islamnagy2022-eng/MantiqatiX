@@ -45,8 +45,6 @@ const sw = fs.readFileSync("web/sw.js", "utf8");
 assert.match(sw, /const CACHE='mnty-web-v\d+'/, "PWA shell cache must use a versioned cache name");
 assert.ok(sw.includes("app.js?v=" + appAssetVersion), "service worker must precache the exact app asset version used by the browser");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-const swAssetVersion = index.match(/sw\.js\?v=([^"' ]+)/)?.[1];
-assert.ok(swAssetVersion, "service worker registration must have an explicit cache version");
-assert.ok(sw.includes("sw.js?v=" + swAssetVersion) || index.includes("sw.js?v=" + swAssetVersion), "service worker registration cache key must be versioned");
+assert.match(index, /serviceWorker\.register\(["']\.\/sw\.js\?v=[^"']+["']\)/, "service worker registration must use an explicit versioned URL");
 
 console.log("Marketing workspace contract: source assertions defined (not executed in build-first batch)");
