@@ -37,6 +37,8 @@ jobs:
         run: |
           node --check web/industry-workspaces.js
           node --check web/app.js
+          node --check scripts/validate-industry-workspaces.mjs
+          node --check scripts/test-industry-workspaces-runtime.mjs
       - name: Validate sector rendering and PWA cache
         run: node scripts/validate-sector-rendering.mjs
       - name: Validate frontend-only sector workspaces
