@@ -15,6 +15,9 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql"
+      - "supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql"
+      - "supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql"
+      - "supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql"
       - "supabase/tests/rc453_marketing_campaign_*.sql"
       - "scripts/validate-marketing-campaign-backend.mjs"
       - ".github/workflows/marketing-campaign-backend.yml"
