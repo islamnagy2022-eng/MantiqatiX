@@ -80,6 +80,7 @@ jobs:
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
           node scripts/validate-industry-workspaces.mjs
+          node scripts/test-industry-workspaces-runtime.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-module-runtime-contracts.mjs
           node scripts/validate-sensitive-module-writes.mjs
@@ -102,6 +103,7 @@ jobs:
           test -f web/home.css
           test -f web/app.js
           test -f web/industry-workspaces.js
+          test -f scripts/test-industry-workspaces-runtime.mjs
           test -f web/home.js
           test -f web/smm.html
           test -f web/digital-page.html
