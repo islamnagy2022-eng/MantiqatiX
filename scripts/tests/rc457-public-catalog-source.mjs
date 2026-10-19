@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 const home = readFileSync('web/home.js', 'utf8');
 const serviceMigration = readFileSync('supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql', 'utf8');
 const providerMigration = readFileSync('supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql', 'utf8');
+const sqlTest = readFileSync('supabase/tests/rc457_public_marketing_service_catalog.sql', 'utf8');
 
 assert.match(home, /from\('marketing_services_public'\)\.select\('id,code,name_ar,name_en,category_code,description'\)/,
   'public directory must query the allowlisted service catalog view');
@@ -37,5 +38,11 @@ assert.match(serviceMigration, /revoke all on table public\.marketing_services_p
   'service view must grant SELECT only after revoking other privileges');
 assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles_public from public, anon, authenticated;[\s\S]*?grant select on table public\.marketing_provider_profiles_public to anon, authenticated;/,
   'provider view must grant SELECT only after revoking other privileges');
+assert.match(sqlTest, /create policy provider_owner_private_profile_read[\s\S]*?owner_user_id::text = current_setting\('request\.jwt\.claim\.sub', true\)/,
+  'isolated RLS regression must retain an owner-scoped private-profile policy');
+assert.match(sqlTest, /RC458 owner could not read own private provider profile under existing RLS/,
+  'isolated RLS regression must verify owner private-profile access remains available');
+assert.match(sqlTest, /RC458 unrelated authenticated user read another provider base row/,
+  'isolated RLS regression must deny unrelated authenticated base-table reads');
 
 console.log('RC457_RC458_PUBLIC_CATALOG_SOURCE=PASS');
