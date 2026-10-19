@@ -1676,3 +1676,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added stable campaign IDs to rendered campaign cards and scoped campaign CSV export to the currently visible cards after the active search/status filters are applied.
 - [x] Changed the empty-state feedback to clarify that no campaigns match the current filters rather than implying there are no campaigns in the business.
 - [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed by request. Export behavior must be exercised in the verification phase.
+
+
+## 2026-10-19 — Partner invitation form guardrails (implementation only)
+- [x] Validate invite role against the supported role list and enforce finite bounds for allocation percentage and agreed value before calling the existing backend RPC.
+- [x] Confirm the selected campaign belongs to the active business and the selected partner profile is among loaded active, verified partner/freelancer profiles outside that business before submission.
+- [ ] NOT VERIFIED: browser/client checks improve UX but are not a security boundary; the backend must independently enforce campaign ownership, provider eligibility, role constraints, and financial limits. No tests/review/browser/CI/deployment performed.
