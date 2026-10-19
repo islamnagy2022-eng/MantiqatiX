@@ -1904,3 +1904,14 @@ These are source changes only. No tests, browser, build, CI, migration replay, m
 - [ ] Verify keyboard, screen-reader, responsive, and search/filter combinations in a real browser.
 
 No tests, browser, build, CI, review, merge, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — CI failure fixes (awaiting fresh checks)
+
+- [x] Correct the two malformed nested-quote escapes in `providerDashboard()` that caused `node --check web/app.js` to fail.
+- [x] Refresh app asset references to `provider-dashboard-syntax-fix-20261019`; service-worker cache `mnty-web-v142`.
+- [x] Correct the marketing campaign validator's too-narrow source-regex window for the existing idempotent `REMOVED` JSON response; no SQL migration behavior was changed.
+- [ ] Confirm fresh PR checks pass for JavaScript syntax, marketing campaign source contract, migration uniqueness/collisions, security boundaries, and all other workflows.
+- [ ] Do not merge while required checks are failing/in progress or while production deploy validation is not green. Keep production **BLOCKED / NOT CERTIFIED**.
+
+A prior PR check run failed JavaScript syntax in `web/app.js` and a marketing backend source assertion; a deployment workflow's validation job consequently failed and deployment was skipped. Fixes above are source-level changes and still require fresh CI evidence.
