@@ -43,7 +43,14 @@ const required = [
 assert.equal(required.length, 34, "release gate must track the complete 34-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
-for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
+const verifierManifestMatch = source.match(/const requiredReleaseMigrations\\s*=\\s*\\[([\\s\\S]*?)\\];/);
+assert.ok(verifierManifestMatch, "production verifier must expose its required migration manifest");
+const verifierManifestNames = [...verifierManifestMatch[1].matchAll(/["'](\\d{14}_[^"']+\\.sql)["']/g)].map(match => match[1]);
+assert.deepEqual(verifierManifestNames, required, "CI migration contract and production verifier must contain the exact same ordered migration set");
+for (const name of required) {
+  assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
+  assert.ok(fs.existsSync(`supabase/migrations/${name}`), `required migration source file must exist: ${name}`);
+}
 assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrations or timestamp conflicts must block release certification");
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");
