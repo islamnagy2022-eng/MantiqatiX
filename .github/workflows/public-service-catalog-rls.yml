@@ -2,7 +2,9 @@ name: Public Service Catalog RLS
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql'\n      - 'supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql'
+      - 'supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql'
+      - 'supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql'
+      - 'supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql'
       - 'supabase/tests/rc457_public_marketing_service_catalog.sql'
       - '.github/workflows/public-service-catalog-rls.yml'
   push:
@@ -11,6 +13,7 @@ on:
       - 'feat/marketing-campaign-operations-summary-20261019'
     paths:
       - 'supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql'
+      - 'supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql'
       - 'supabase/tests/rc457_public_marketing_service_catalog.sql'
       - '.github/workflows/public-service-catalog-rls.yml'
 permissions:
