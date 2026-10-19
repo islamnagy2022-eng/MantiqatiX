@@ -4,6 +4,7 @@ on:
     branches: ["**"]
     paths:
       - "web/industry-workspaces.js"
+      - "docs/INDUSTRY_WORKSPACE_UI.md"
       - "web/app.js"
       - "web/index.html"
       - "web/sw.js"
@@ -14,6 +15,7 @@ on:
     branches: [main]
     paths:
       - "web/industry-workspaces.js"
+      - "docs/INDUSTRY_WORKSPACE_UI.md"
       - "web/app.js"
       - "web/index.html"
       - "web/sw.js"
