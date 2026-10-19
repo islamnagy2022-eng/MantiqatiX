@@ -83,5 +83,5 @@ assert.match(rc456, /revoke all on function public\.close_marketing_campaign_par
 assert.match(workflow, /RC454 concurrency regression/, "PostgreSQL workflow must exercise concurrent partner allocation writes");
 assert.match(workflow, /wait_event='PgSleep'/, "concurrency test must wait until the first insert holds its transaction open");
 assert.match(workflow, /MARKETING_ALLOCATION_OVER_100/, "concurrent allocation test must assert the database rejects the competing over-allocation");
-assert.match(workflow, /active_summary.*1\\|60\\.00/s, "concurrency test must verify only one 60 percent active allocation persists");
+assert.match(workflow, /active_summary[\s\S]{0,250}1\|60\.00/, "concurrency test must verify only one 60 percent active allocation persists");
 console.log("Marketing campaign backend contract: RC453 baseline + RC454–RC456 source assertions");
