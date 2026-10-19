@@ -754,3 +754,9 @@ This status is intentional and must remain until the open gates above are indepe
 - The validator was not run per the build-only constraint. These assertions do not establish runtime correctness.
 - Preserved SMM_INITIAL_LAUNCH_DEFERRED=true. No SMM provider requests, wallet/order mutations, migrations, tests, CI, browser, merge, or deployment were performed.
 - Next: continue source review of SMM order/debit/provider/reconciliation/refund lifecycle; add disposable PostgreSQL coverage without executing it; then proceed to content/notifications and reporting where dependencies permit. Production remains BLOCKED / NOT CERTIFIED.
+## 2026-10-19 — SMM credential validation correction checkpoint
+
+- Corrected the provider API key and admin credit description control-character regexes in supabase/functions/smm-gateway/index.ts. The previous source contained doubled backslashes in those two regex literals, so they did not express the intended direct ASCII-control-character range. The neighboring provider status sanitization regex was already in the intended form and was not changed.
+- Extended scripts/validate-smm-service-role-boundary.mjs with source assertions for the corrected patterns and a regression assertion against the double-escaped form. Validator intentionally not executed.
+- Latest confirmed code commit in this batch before documentation updates: 73c4cc5d588a004af9cd23178281c9fea6ef5d54. The SMM deferred launch gate remains unchanged. No tests, CI, provider requests, wallet/order mutations, migration replay, merge, or deployment occurred.
+- Resume by inspecting SMM order/debit/provider/reconciliation/refund paths and adding isolated integration coverage without running it. Production remains BLOCKED / NOT CERTIFIED.
