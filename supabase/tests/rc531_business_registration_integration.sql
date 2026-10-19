@@ -74,6 +74,14 @@ begin
   end if;
 
   v_result := public.register_business_with_approval_atomic(
+    '10000000-0000-4000-8000-000000000005','TENANT-A',null,
+    'Inherited Corrupt Organization','INHERITED-CORRUPT-ORG-001','GENERAL','','','',''
+  );
+  if v_result->>'success' <> 'false' or v_result->>'error' <> 'ORGANIZATION_SCOPE_FORBIDDEN' then
+    raise exception 'RC531 must reject cross-tenant inherited membership organization, got %',v_result;
+  end if;
+
+  v_result := public.register_business_with_approval_atomic(
     '10000000-0000-4000-8000-000000000001','TENANT-INACTIVE',null,
     'Inactive Tenant','INACTIVE-TENANT-001','GENERAL','','','',''
   );
