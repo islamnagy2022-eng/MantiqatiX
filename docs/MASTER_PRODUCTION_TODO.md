@@ -2048,7 +2048,7 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 ## RC458 — Public provider profile field allowlist (2026-10-19)
 
 - Added `supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql` to revoke table-wide SELECT from PUBLIC/anon on `marketing_provider_profiles` and grant anonymous SELECT only on fields used by public discovery.
-- Preserved the existing ACTIVE-only provider-profile RLS policy; RC458 is a column-privilege hardening migration, not a replacement for row-level publication policy.
+- Source search found the older named policy granted ACTIVE-profile SELECT to `authenticated` only, not `anon`. RC458 now replaces that policy with explicit `anon, authenticated` SELECT constrained to `status = 'ACTIVE'`, and grants `anon` only the public field allowlist.
 - Extended the isolated PostgreSQL regression to cover active provider visibility, draft provider denial, and denial of `settings` reads; added source-contract assertions.
 - Latest PR head after this batch: `a3c1b5b8e6c10fbe7e3f17788626a8c38e3b3907`. RC457-only PostgreSQL run [39202937589](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39202937589) passed before RC458 was added; it does **not** verify RC458. Exact-head CI for RC458 is not yet confirmed.
 - No production migration/deployment performed. Keep production **BLOCKED / NOT CERTIFIED**.
