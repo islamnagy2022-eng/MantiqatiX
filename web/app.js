@@ -1919,6 +1919,36 @@ async function markNotificationRead(notificationId){
  const n=live.records.notifications.find(x=>x.id===notificationId); if(n)n.read_at=new Date().toISOString();
  showToast('تم تعليم الإشعار كمقروء.','success'); renderApp();
 }
+async function markVisibleNotificationsRead(){
+ if(!user?.id)return authView();
+ if(markVisibleNotificationsRead.inProgress)return;
+ const button=document.querySelector('[onclick="markVisibleNotificationsRead()"]');
+ const rows=(Array.isArray(live.records.notifications)?live.records.notifications:[])
+  .filter(n=>!n.read_at)
+  .sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))
+  .slice(0,12);
+ if(!rows.length)return showToast('لا توجد إشعارات غير مقروءة ضمن السجلات المحملة.','info');
+ markVisibleNotificationsRead.inProgress=true;
+ if(button){button.disabled=true;button.textContent='جارٍ تحديث الإشعارات...';}
+ let succeeded=0,failed=0;
+ try{
+  for(const row of rows){
+   try{
+    const {error}=await sb.rpc('mark_notifications_read_backend',{p_notification_id:row.id});
+    if(error){failed++;continue;}
+    const current=(Array.isArray(live.records.notifications)?live.records.notifications:[]).find(n=>String(n.id)===String(row.id));
+    if(current)current.read_at=new Date().toISOString();
+    succeeded++;
+   }catch(_){failed++;}
+  }
+  if(failed===0)showToast('تم تعليم '+succeeded+' إشعار كمقروء.','success');
+  else showToast('تم تحديث '+succeeded+' إشعار، وتعذر تحديث '+failed+'؛ راجع السجلات ثم أعد المحاولة.','error');
+ }finally{
+  markVisibleNotificationsRead.inProgress=false;
+  await renderApp();
+ }
+}
+markVisibleNotificationsRead.inProgress=false;
 function pushSupported(){return window.isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window&&!!window.MNTY_WEB_PUSH_PUBLIC_KEY}
 function pushButtonHtml(){return pushSupported()?'<button class="btn btn-outline" id="device-push-toggle" style="width:auto">🔔 تفعيل إشعارات الجهاز</button>':''}
 function pushButtonState(){const b=document.getElementById('device-push-toggle');if(!b)return;if(!pushSupported()){b.hidden=true;return}b.hidden=false;const p=Notification.permission;if(p==='granted')b.textContent='🔔 إشعارات الجهاز مفعلة';else if(p==='denied')b.textContent='🔕 إشعارات الجهاز محظورة';else b.textContent='🔔 تفعيل إشعارات الجهاز'}
@@ -2237,7 +2267,7 @@ function notificationsWorkspace(){
  return workspaceHead('NOTIFICATIONS','مركز الإشعارات','الإشعارات مرتبطة بالحساب الحالي فقط، ولا تظهر أي بيانات غير مصرح بها.','LIVE')
  +workspaceCards([['إجمالي الإشعارات',rows.length,'السجلات المتاحة للحساب'],['غير مقروء',unread,'تحتاج انتباهًا'],['آخر تحديث',recent.length?new Date(recent[0].created_at||Date.now()).toLocaleDateString('ar-EG'):'—','آخر سجل متاح'],['حالة الجهاز',pushSupported()?'متاح':'غير متاح','إشعارات المتصفح حسب الدعم والصلاحية']])
  +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="enableDevicePush()">🔔 إعداد إشعارات الجهاز</button></div>'
- +(unread?'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">UNREAD</span><h3>تحتاج انتباهك</h3><p class="muted">الإشعارات غير المقروءة فقط.</p></div></div><div class="grid2">'+(unreadHtml||'<div class="empty-state">لا توجد إشعارات غير مقروءة.</div>')+'</div></section>':'')
+ +(unread?'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">UNREAD</span><h3>تحتاج انتباهك</h3><p class="muted">الإشعارات غير المقروءة فقط؛ الإجراء الجماعي يقتصر على أحدث 12 سجلًا غير مقروء محمّلًا.</p></div></div>'+(unreadRecent.length?'<div class="action-bar"><button type="button" class="btn btn-outline" style="width:auto" onclick="markVisibleNotificationsRead()">تعليم أحدث '+unreadRecent.length+' إشعار غير مقروء كمقروء</button></div>':'')+'<div class="grid2">'+(unreadHtml||'<div class="empty-state">لا توجد إشعارات غير مقروءة.</div>')+'</div></section>':'')
  +'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">RECENT</span><h3>آخر الإشعارات</h3><p class="muted">أحدث السجلات الفعلية المتاحة للحساب.</p></div></div><div class="grid2">'+(recentHtml||'<div class="empty-state">لا توجد إشعارات فعلية حاليًا.</div>')+'</div></section>'
  +recordsTable('سجل الإشعارات',rows,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']]);
 }
