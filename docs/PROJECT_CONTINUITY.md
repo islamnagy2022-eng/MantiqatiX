@@ -788,3 +788,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Source reinspection caught and corrected an over-escaped wildcard filter while implementing global search failure states. The search needle now preserves the prior single-backslash escaping behavior for literal percent/underscore characters.
 - App and service-worker cache keys were refreshed; cache is `mnty-web-v133`.
 - No tests, browser, build, or CI were run; keep the behavior NOT VERIFIED.
+
+
+## 2026-10-19 — Generic fallback workspace frontend checkpoint
+
+- Corrected misleading generic UI completion labels in `web/app.js`: fallback screens now show PARTIAL / NOT VERIFIED rather than “الواجهة مكتملة / UI READY”.
+- Added interactive “عرض نطاق القسم” controls that show the selected source-provided scope and explicitly state that backend execution is not connected. These controls improve clarity but do not mark the module complete.
+- Updated `docs/FRONTEND_SCREEN_INVENTORY.md` and `docs/MASTER_PRODUCTION_TODO.md`; refreshed app cache URLs and advanced PWA cache to `mnty-web-v135`.
+- No tests, browser, build, CI, review, or deployment were run. Continue with actual dashboard and module child screens; do not use generic placeholders as acceptance evidence. Production remains BLOCKED / NOT CERTIFIED.
