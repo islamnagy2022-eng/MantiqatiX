@@ -8,7 +8,7 @@ const sqlTest = readFileSync('supabase/tests/rc457_public_marketing_service_cata
 
 assert.match(home, /from\('marketing_services_public'\)\.select\('id,code,name_ar,name_en,category_code,description'\)/,
   'public directory must query the allowlisted service catalog view');
-assert.match(home, /from\('marketing_provider_profiles_public'\)\.select\('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at'\)/,
+assert.match(home, /from\('marketing_provider_profiles_public'\)\.select\('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,updated_at'\)/,
   'public provider listing must query the allowlisted public profile view');
 assert.doesNotMatch(home, /from\('marketing_provider_profiles'\)\.select\([^)]*settings/,
   'public directory must not fetch provider settings');
@@ -32,7 +32,7 @@ assert.match(providerMigration, /grant select on table public\.marketing_provide
   'public provider view must be readable by visitors and signed-in users');
 assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles from public, anon/,
   'anonymous visitors must not directly read the base provider table');
-assert.doesNotMatch(providerMigration, /settings|owner_user_id|portfolio/,
+assert.doesNotMatch(providerMigration, /settings|owner_user_id|portfolio|ranking_weight/,
   'private provider fields must not be exposed by the public view');
 assert.ok(!providerMigration.includes('drop policy if exists "Owners manage their marketing provider profile"'),
   'RC458 must preserve the existing owner policy on the base table');
