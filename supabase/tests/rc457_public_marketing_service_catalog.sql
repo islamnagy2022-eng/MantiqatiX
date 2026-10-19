@@ -57,6 +57,14 @@ set role anon;
 do $assert$
 declare visible_count integer;
 begin
+  if not exists (
+    select 1 from pg_class c
+    join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname='marketing_services_public'
+      and coalesce(c.reloptions, array[]::text[]) @> array['security_barrier=true']
+  ) then
+    raise exception 'RC457 public service view must retain security_barrier=true';
+  end if;
   select count(*) into visible_count from public.marketing_services_public;
   if visible_count <> 1 then
     raise exception 'RC457 expected exactly one public ACTIVE service, got %', visible_count;
@@ -90,6 +98,14 @@ begin
     raise exception 'RC457 base table unexpectedly readable by anon';
   exception when insufficient_privilege then null;
   end;
+  if not exists (
+    select 1 from pg_class c
+    join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname='marketing_provider_profiles_public'
+      and coalesce(c.reloptions, array[]::text[]) @> array['security_barrier=true']
+  ) then
+    raise exception 'RC458 public provider view must retain security_barrier=true';
+  end if;
   select count(*) into visible_count from public.marketing_provider_profiles_public;
   if visible_count <> 1 then
     raise exception 'RC458 expected exactly one public ACTIVE provider, got %', visible_count;
