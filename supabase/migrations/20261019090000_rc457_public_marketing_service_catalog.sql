@@ -16,7 +16,7 @@ using (status = 'ACTIVE');
 
 -- Remove any table-wide anonymous SELECT grant before granting the public catalog
 -- allowlist. This prevents newly added/internal columns becoming public by accident.
-revoke select on table public.marketing_services from anon;
+revoke select on table public.marketing_services from public, anon;
 grant select (
   id, code, name_ar, name_en, category_code, description, status, created_at
 ) on table public.marketing_services to anon;
