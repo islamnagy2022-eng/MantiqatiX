@@ -1429,7 +1429,7 @@ function bindMarketingCampaignWorkspace(){
   const columns=[['campaign','الحملة'],['provider','الشريك'],['role','الدور'],['status','الحالة'],['allocation_percent','نسبة التخصيص'],['agreed_value','القيمة المتفق عليها'],['currency','العملة'],['created_at','تاريخ الإنشاء']];
   const csvCell=value=>{
    let text=String(value??'');
-   if(/^[=+@\-\t\r]/.test(text))text="'"+text;
+   if(/^[\u0000-\u0020]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
    return '"'+text.replace(/"/g,'""')+'"';
   };
   const rows=participants.map(p=>{
@@ -1466,7 +1466,7 @@ function bindMarketingCampaignWorkspace(){
   ];
   const csvCell=value=>{
    let text=Array.isArray(value)?value.join(' | '):String(value??'');
-   if(/^[=+@\-\t\r]/.test(text))text="'"+text;
+   if(/^[\u0000-\u0020]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
    return '"'+text.replace(/"/g,'""')+'"';
   };
   const csv='\uFEFF'+columns.map(([,label])=>csvCell(label)).join(',')+'\r\n'+rows.map(row=>columns.map(([key])=>csvCell(row[key])).join(',')).join('\r\n');
