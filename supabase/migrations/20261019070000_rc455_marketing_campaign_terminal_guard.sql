@@ -53,3 +53,81 @@ begin
 end;
 $function$;
 
+
+
+-- Serialize invitation responses against campaign status transitions using the same lock order.
+create or replace function public.respond_marketing_campaign_invitation_backend(
+  p_actor uuid,
+  p_participant_id uuid,
+  p_decision character varying
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_participant public.marketing_campaign_participants%rowtype;
+  v_provider public.marketing_provider_profiles%rowtype;
+  v_campaign public.marketing_campaigns%rowtype;
+  v_decision character varying;
+  v_campaign_id uuid;
+begin
+  if auth.uid() is null or coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then raise exception 'AUTH_REQUIRED'; end if;
+  if p_actor is distinct from auth.uid() then raise exception 'ACTOR_MISMATCH'; end if;
+  v_decision := pg_catalog.upper(pg_catalog.btrim(coalesce(p_decision,'')));
+  if v_decision not in ('ACCEPTED','DECLINED') then raise exception 'MARKETING_INVITATION_DECISION_INVALID'; end if;
+
+  -- Lock campaign first to preserve a consistent campaign -> participant lock order
+  -- with invitation creation and terminal-status transitions.
+  select cp.campaign_id into v_campaign_id
+  from public.marketing_campaign_participants cp
+  where cp.id=p_participant_id;
+  if not found then raise exception 'MARKETING_INVITATION_NOT_FOUND'; end if;
+
+  select * into v_campaign
+  from public.marketing_campaigns c
+  where c.id=v_campaign_id
+  for update;
+  if not found then raise exception 'MARKETING_CAMPAIGN_NOT_FOUND'; end if;
+  if v_campaign.status in ('COMPLETED','CANCELLED') then raise exception 'MARKETING_CAMPAIGN_LOCKED'; end if;
+
+  select * into v_participant
+  from public.marketing_campaign_participants cp
+  where cp.id=p_participant_id and cp.campaign_id=v_campaign_id
+  for update;
+  if not found then raise exception 'MARKETING_INVITATION_NOT_FOUND'; end if;
+
+  select * into v_provider from public.marketing_provider_profiles
+  where id=v_participant.provider_id and owner_user_id=auth.uid() and status='ACTIVE' and is_verified is true;
+  if not found then raise exception 'MARKETING_INVITATION_OWNER_REQUIRED'; end if;
+
+  if v_participant.status <> 'INVITED' then
+    if v_participant.status=v_decision then
+      return pg_catalog.jsonb_build_object('participant_id',v_participant.id,'status',v_participant.status,'idempotent',true);
+    end if;
+    raise exception 'MARKETING_INVITATION_NOT_PENDING';
+  end if;
+
+  update public.marketing_campaign_participants
+  set status=v_decision,responded_at=pg_catalog.now(),updated_at=pg_catalog.now()
+  where id=v_participant.id
+  returning * into v_participant;
+
+  select * into v_campaign from public.marketing_campaigns where id=v_participant.campaign_id;
+  insert into public.audit_logs(id,tenant_id,organization_id,business_id,actor_user_id,action,entity_type,entity_id,old_values,new_values,result)
+  select 'MCA-'||pg_catalog.gen_random_uuid()::text,v_campaign.tenant_id,b.organization_id,v_campaign.business_id,auth.uid(),
+         'MARKETING_PARTNER_INVITATION_RESPONDED','MARKETING_CAMPAIGN_PARTICIPANT',v_participant.id::text,
+         pg_catalog.jsonb_build_object('status','INVITED'),
+         pg_catalog.jsonb_build_object('status',v_decision,'campaign_id',v_campaign.id,'provider_id',v_participant.provider_id),
+         'SUCCESS'
+  from public.businesses b where b.id=v_campaign.business_id;
+
+  insert into public.notifications(id,tenant_id,user_id,type,title,body,entity_type,entity_id)
+  values ('MCN-'||pg_catalog.gen_random_uuid()::text,v_campaign.tenant_id,v_campaign.created_by,'MARKETING_CAMPAIGN_PARTNER_RESPONSE',
+          'تحديث دعوة شراكة','تم الرد على دعوة المشروع «'||v_campaign.title||'»: '||v_decision,'MARKETING_CAMPAIGN',v_campaign.id::text);
+
+  return pg_catalog.jsonb_build_object('participant_id',v_participant.id,'status',v_decision,'idempotent',false);
+end;
+$function$;
+
