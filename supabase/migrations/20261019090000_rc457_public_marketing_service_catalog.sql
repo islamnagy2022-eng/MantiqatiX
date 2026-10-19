@@ -1,7 +1,6 @@
 -- RC457: expose only active public service-catalog rows to anonymous visitors.
 -- Keep the public directory read-only and column-limited; private/provider operations
 -- remain behind their existing policies and backend authorization.
-begin;
 
 alter table public.marketing_services enable row level security;
 
