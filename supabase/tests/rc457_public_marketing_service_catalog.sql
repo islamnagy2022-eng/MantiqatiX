@@ -34,8 +34,10 @@ create table public.marketing_provider_profiles (
 );
 alter table public.marketing_provider_profiles enable row level security;
 grant select on public.marketing_provider_profiles to anon, authenticated;
--- Simulate legacy column-level grants that table-level REVOKE alone would leave behind.
-grant select (owner_user_id, settings, portfolio, ranking_weight) on public.marketing_provider_profiles to anon;
+-- Simulate legacy grants to both PUBLIC and anon. The migration must remove
+-- inherited PUBLIC privileges as well as explicit anon grants.
+grant select on public.marketing_provider_profiles to public;
+grant select (owner_user_id, settings, portfolio, ranking_weight) on public.marketing_provider_profiles to public, anon;
 create policy provider_owner_private_profile_read
   on public.marketing_provider_profiles
   for select to authenticated
@@ -53,7 +55,8 @@ create table public.marketing_services (
 );
 alter table public.marketing_services enable row level security;
 grant select on public.marketing_services to anon, authenticated;
-grant select (internal_notes) on public.marketing_services to anon;
+grant select on public.marketing_services to public;
+grant select (internal_notes) on public.marketing_services to public, anon;
 
 insert into public.marketing_provider_profiles
   (id,business_id,name_ar,provider_kind,status,owner_user_id,settings,portfolio)
