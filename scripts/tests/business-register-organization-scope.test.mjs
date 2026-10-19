@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const source = fs.readFileSync("supabase/functions/business-register/index.ts", "utf8");
+// Authorization is centralized in the atomic service-role RPC; the Edge Function must not duplicate membership checks.
 const migration = fs.readFileSync("supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc531_business_registration_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc531_business_registration_integration.sql", "utf8");
@@ -11,7 +12,6 @@ assert.match(source, /The atomic database RPC is the authority for tenant, membe
 assert.match(source, /p_actor_user_id:user\.id,p_tenant_id:tenantId,p_organization_id:requestedOrganizationId/);
 assert.doesNotMatch(source, /supabase\.from\("(tenants|user_memberships|organizations|approval_requests)"\)/);
 assert.doesNotMatch(source, /allowedRoles|resolvedOrganizationId/);
-assert.match(source, /allowedRoles\.has\(String\(m\.role\|\|""\)\.toUpperCase\(\)\)\s*&&\s*\(!requestedOrganizationId \|\| String\(m\.organization_id\|\|""\)===requestedOrganizationId\)/);
 assert.match(source, /console\.error\("business-register failed",error instanceof Error\?error\.message:"unknown_error"\)/);
 assert.match(source, /return response\(\{error:"BUSINESS_REGISTER_FAILED"\},500\)/);
 assert.doesNotMatch(source, /return response\(\{error:error instanceof Error\?error\.message/);
