@@ -18,7 +18,8 @@ create table public.marketing_provider_profiles (
   owner_user_id uuid not null
 );
 insert into public.marketing_provider_profiles(id, owner_user_id) values
-  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001');
+  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001'),
+  ('40000000-0000-4000-8000-000000000099','30000000-0000-4000-8000-000000000099');
 
 create table storage.objects (
   id uuid primary key,
@@ -35,7 +36,9 @@ grant select on storage.objects to anon;
 
 -- Keep one seeded public presentation object to verify anonymous reads end-to-end.
 insert into storage.objects(id,bucket_id,name) values
-  ('50000000-0000-4000-8000-000000000010','mantiqatix-profile-media','platform/branding/logo-1.svg');
+  ('50000000-0000-4000-8000-000000000010','mantiqatix-profile-media','platform/branding/logo-1.svg'),
+  ('50000000-0000-4000-8000-000000000011','mantiqatix-profile-media',
+   'users/30000000-0000-4000-8000-000000000099/providers/40000000-0000-4000-8000-000000000099/cover.jpg');
 
 set role authenticated;
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000001',true);
@@ -80,14 +83,32 @@ begin
     raise exception 'RC459 accepted changing an owned object to an unsupported extension';
   exception when insufficient_privilege then null;
   end;
+  -- RLS may silently filter another owner's row from UPDATE/DELETE; verify it survives.
+  delete from storage.objects where id='50000000-0000-4000-8000-000000000011';
+  if not exists (select 1 from storage.objects where id='50000000-0000-4000-8000-000000000011') then
+    raise exception 'RC459 allowed deletion of another user media object';
+  end if;
 end;
 $assert$;
 
 delete from storage.objects where id='50000000-0000-4000-8000-000000000001';
 reset role;
 
--- The bucket remains intentionally public-read for presentation media.
+-- Anonymous clients must not be able to upload into the owner-managed bucket.
 set role anon;
+do $assert$
+begin
+  begin
+    insert into storage.objects(id,bucket_id,name) values
+      ('50000000-0000-4000-8000-000000000020','mantiqatix-profile-media',
+       'users/30000000-0000-4000-8000-000000000001/providers/40000000-0000-4000-8000-000000000001/cover.jpg');
+    raise exception 'RC459 allowed anonymous upload to profile media';
+  exception when insufficient_privilege then null;
+  end;
+end;
+$assert$;
+
+-- The bucket remains intentionally public-read for presentation media.
 do $assert$
 declare visible_count integer;
 begin
