@@ -1515,6 +1515,23 @@ function bindMarketingCampaignWorkspace(){
   }catch(error){showToast('تعذر حفظ الحملة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
   finally{if(button.isConnected){button.disabled=false;button.textContent='حفظ خطة الحملة';}}
  };
+ const refreshAllocationHint=()=>{
+  const summary=document.getElementById('mc-allocation-summary');
+  if(!summary)return;
+  const campaignId=String(document.getElementById('mc-invite-campaign')?.value||'');
+  if(!campaignId){summary.textContent='اختر الحملة لمعرفة التخصيص المتاح.';return;}
+  const activeBusinessId=String(live.businessId||'');
+  const rows=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&!['DECLINED','REMOVED'].includes(String(p.status||'').toUpperCase()));
+  const used=rows.reduce((sum,p)=>sum+Math.max(0,Number(p.allocation_percent)||0),0);
+  const input=document.getElementById('mc-invite-allocation');
+  const raw=String(input?.value??'').trim();
+  const requested=raw===''?NaN:Number(raw);
+  const remaining=Math.max(0,100-used);
+  summary.textContent='المخصص حاليًا: '+used.toLocaleString('en-US',{maximumFractionDigits:2})+'% · المتبقي: '+remaining.toLocaleString('en-US',{maximumFractionDigits:2})+'%'+(Number.isFinite(requested)?' · الإجمالي المتوقع: '+(used+requested).toLocaleString('en-US',{maximumFractionDigits:2})+'%':'');
+ };
+ document.getElementById('mc-invite-campaign')?.addEventListener('change',refreshAllocationHint);
+ document.getElementById('mc-invite-allocation')?.addEventListener('input',refreshAllocationHint);
+ refreshAllocationHint();
  const inviteForm=document.getElementById('marketing-partner-invite-form');
  if(inviteForm)inviteForm.onsubmit=async event=>{
   event.preventDefault();
