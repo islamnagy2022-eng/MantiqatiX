@@ -82,5 +82,11 @@ assert.match(sw, /\.\/industry-workspaces\.js\?v=ui20261019/);
 assert.match(workflow, /scripts\/test-industry-workspaces-runtime\.mjs/, 'dedicated CI must execute runtime tests');
 assert.match(workflow, /web\/sector-registry\.js/, 'registry changes must trigger the dedicated contract workflow');
 assert.match(pagesWorkflow, /node scripts\/test-industry-workspaces-runtime\.mjs/, 'release validation must run sector runtime tests');
+assert.match(pagesWorkflow, /^permissions:\n  contents: read\n/m, 'Pages workflow default permissions must remain read-only');
+assert.doesNotMatch(pagesWorkflow.slice(0, pagesWorkflow.indexOf('jobs:')), /pages:\s*write|id-token:\s*write/, 'Pages deployment permissions must not be granted workflow-wide');
+const deployBlock = pagesWorkflow.match(/\n  deploy:\n([\s\S]*?)(?=\n  [a-zA-Z0-9_-]+:\n|$)/)?.[1] || '';
+assert.match(deployBlock, /if: github\.ref == 'refs\/heads\/main' && \(github\.event_name == 'push' \|\| github\.event_name == 'workflow_dispatch'\)/, 'Pages deployment must be restricted to explicit main-branch events');
+assert.match(deployBlock, /permissions:\n      contents: read\n      pages: write\n      id-token: write/, 'Pages deployment permissions must be scoped to the deploy job');
+
 console.log('Industry workspace frontend contract: PASS');
 console.log('27 unique sectors aligned with the canonical registry; frontend-only boundary; RBAC-preserving routing; PWA loading/cache: PASS');
