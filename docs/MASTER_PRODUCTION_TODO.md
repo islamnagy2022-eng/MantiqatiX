@@ -2073,3 +2073,10 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - The extra public-view column assertions were added after the earlier missing-RC458 test wiring failure; the latest passing run supersedes that earlier failure for this code head.
 - Remaining release gates: replay all new migrations against the complete target-schema fixture/live schema parity, review actual production grants/view ownership and tenant/owner policies, browser E2E for anonymous discovery and authenticated owner/admin behavior, complete end-to-end payment/webhook/finance checks, and disaster-recovery restore evidence. No production DB or deployment has been changed.
 - PR #299 remains open and Draft. Production remains **BLOCKED / NOT CERTIFIED**. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and leave `docs/SESSION_LOG.md` untouched.
+
+
+## RC456 partner-closure authorization regression added (2026-10-19)
+
+- Expanded the disposable PostgreSQL campaign integration to explicitly reject (1) a manager from another tenant/business attempting to close a participant and (2) a caller supplying an actor ID different from `auth.uid()`.
+- Added source-validator assertions requiring both regression cases. Changes are in commits `62a4aea2bb8c6ec360748f82da25f9106c0e9ed5` and `3fe667c159d363e383ed357d4511f8f84f07bb60`.
+- Exact-head CI for this additional coverage has not yet been observed; the earlier RC454–RC456 integration pass does not cover these newly added assertions. Keep production **BLOCKED / NOT CERTIFIED** until the fresh workflow passes.
