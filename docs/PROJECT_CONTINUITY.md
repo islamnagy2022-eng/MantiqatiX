@@ -798,3 +798,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added shared exact-cent and provider-correlation guards; mismatched provider identifiers are persisted only as a pending reconciliation case, and checkout credentials are withheld.
 - Added a source/pure-guard regression test and wired it plus shared correlation tests and payment migration wiring into Module Professionalization CI.
 - Candidate head at checkpoint: `b5802625543df635246e0f7f5e902840825f64e3`; exact-head CI remains pending. No production changes; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — ambiguous Paymob provider outcomes — 2026-10-19
+- Hardened the candidate order and digital-page payment handlers so only explicit identifier-free 400/401/403/404/422 responses can mark an intent failed or release its claim. Ambiguous 408/409/425/429/5xx and any response carrying provider identifiers remain quarantined for reconciliation.
+- Added focused regression checks and wired them into Module Professionalization CI plus the payment migration wiring validator.
+- Candidate head: `bd0164786b37e1ebf8a1dd3e80e1db9bf929d3fa`; exact-head workflows are queued/pending. No pass is claimed and no production change was performed.
