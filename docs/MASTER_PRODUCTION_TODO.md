@@ -2187,3 +2187,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Web workflow validation passed; deploy job was skipped because this is PR validation. No production deployment occurred.
 - [ ] The gate fix improves source-level completeness only; it does not prove the RC454–RC459 migrations are applied to Production or close live schema parity, full chronological target-schema replay, browser/multi-tenant E2E, Paymob/finance E2E, or disaster-recovery evidence.
 - PR #299 remains open and Draft. Production remains **BLOCKED / NOT CERTIFIED**. No merge, production migration, deployment, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-10-19 — RC456 closure reason boundary regression (authored, not run)
+
+- [x] Added a disposable-PostgreSQL integration assertion that a 501-character partner-closure reason is rejected with `MARKETING_PARTNER_CLOSURE_REASON_TOO_LONG`.
+- [x] The regression also asserts the failed request leaves the participant status unchanged and creates neither a closure audit event nor a provider notification.
+- [x] Added source-validator assertions requiring both the overlong-reason rejection and no-side-effects contract.
+- [ ] **NOT VERIFIED:** neither the SQL integration test nor the source validator was run during this build-first batch. Do not count this as test success.
+- Source commits: `cad2620de9537a0b5a0cf765c4051d1bb2ed09bf` and `a15abce3a25e26029b336fd64560361b94168220`. PR #299 remains Draft. Production remains **BLOCKED / NOT CERTIFIED**; no merge, production migration, or deployment was performed. Do not modify `docs/SESSION_LOG.md`.
