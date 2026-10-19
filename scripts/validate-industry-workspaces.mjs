@@ -52,6 +52,7 @@ assert.match(ui, /tabindex=".*active===k/, 'sector tabs must use roving tabindex
 assert.match(ui, /role="tabpanel" tabindex="0" aria-labelledby="mxiw-tab-/, 'sector content must expose a labelled tab panel');
 assert.match(ui, /e\.key==='ArrowLeft'/, 'sector tabs must support keyboard arrow navigation');
 assert.match(ui, /e\.key==='Home'/, 'sector tabs must support Home/End keyboard navigation');
+assert.match(ui, /find\(x=>x\.dataset\.mxiwGroup===state\.group\)\?\.focus\(\)/, 'filter selection must preserve keyboard focus after repaint');
 assert.match(ui, /prefers-reduced-motion:reduce/);
 assert.match(ui, /window\.MNTYIndustryWorkspace=Object\.freeze/);
 assert.match(ui, /واجهة فقط · Backend غير موصول/);
