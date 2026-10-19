@@ -21,4 +21,3 @@ grant select (
   id, code, name_ar, name_en, category_code, description, status, created_at
 ) on table public.marketing_services to anon;
 
-commit;
