@@ -16,7 +16,7 @@ Deno.serve(async(req)=>{
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const {data:{user},error:authError}=await supabase.auth.getUser(token);
   if(authError||!user||user.is_anonymous)return response({error:"AUTH_REQUIRED"},401);
-  // Read incrementally so a chunked request cannot force an unbounded req.text() allocation.
+  // Read incrementally so a chunked request cannot force an unbounded request-body allocation.
   const reader=req.body?.getReader();
   const chunks:Uint8Array[]=[];
   let totalBytes=0;
