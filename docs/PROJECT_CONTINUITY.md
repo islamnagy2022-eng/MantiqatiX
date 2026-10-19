@@ -825,3 +825,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Refreshed matching JS/CSS version query strings in `web/index.html` and `web/sw.js`; advanced service-worker cache to `mnty-web-v137`.
 - This was build-first source editing only. No tests, browser, build, CI, review, migration replay, merge, or deployment was performed. Do not claim runtime or accessibility verification.
 - Next: continue frontend-first through customer dashboard and first module child-screen states; inspect actual loading/error/empty/action behavior before choosing the next focused UI improvement. Do not touch `docs/SESSION_LOG.md`. Keep SMM launch deferred and production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Shared binder correction checkpoint
+
+- During frontend source inspection, found and removed a standalone `async` token on the line immediately before `function bindRoleAfterRender()`. The binder is synchronous and now has a normal function declaration.
+- Refreshed `web/index.html` and `web/sw.js` to `role-dashboard-binder-fix-20261019`; cache key is `mnty-web-v138`.
+- Source re-read confirms the suspicious pattern no longer exists. This is not a JavaScript parser or runtime test. No browser, tests, build, CI, review, merge, or deployment was performed.
+- Next: continue frontend-first through the first module's child-screen states and resolve/record runtime verification when authorized. Do not edit `docs/SESSION_LOG.md`; preserve SMM launch deferral. Production remains **BLOCKED / NOT CERTIFIED**.
