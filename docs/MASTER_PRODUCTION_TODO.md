@@ -1660,3 +1660,23 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Continue per-function SECURITY DEFINER/RLS/grant review; do not bulk-revoke functions or add broad policies. The live production MantiGO platform-admin RPC definitions remain at RC424 behavior; RC449/RC462/RC565 source and isolated tests have not been applied to production.
 - [ ] PR #301 and PR #300 remain OPEN / DRAFT / UNMERGED. No production migration, database mutation, merge, or deployment occurred.
 - Global release remains **BLOCKED / NOT CERTIFIED** pending Auth settings, remaining security review, real authenticated two-tenant E2E, Paymob/finance/refund E2E, backup/restore and rollback rehearsal, browser/device smoke, and signed Android evidence.
+
+
+## 2026-10-20 — automatic continuation protocol and RC457 exact-head verification
+
+### Latest verified execution
+- [x] RC457 fixture SQL dollar quoting is corrected; validator references the RC457 fixture and integration files.
+- [x] Exact current PR #301 head: `d809070c3777b49d3909af8cc1b6760c00efb422`.
+- [x] Module Professionalization Validation [39323898440](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39323898440) PASS; its `rc457-medical-appointment-state-machine-integration` PostgreSQL job and validator passed.
+- [x] Disposable Forward Migration Replay [39323898338](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39323898338) PASS; pending source candidates replayed in immutable timestamp order from the pinned RC424 schema-only baseline, followed by two-tenant isolation tests.
+- [x] Exact-head workflows PASS: Migration Version Uniqueness [39323898323], Migration History Immutability [39323898384], Open PR Migration Collision Guard [39323898327], Backend-only Module Boundary [39323898303], Approval Action Audit Atomicity [39323898333], MantiGO Open Ride Privacy Boundary [39323898366], and web validation [39323898405]. The web deploy job was skipped as expected for a PR.
+- [ ] PR #301 remains open/draft/unmerged. RC457 remains a candidate; do not apply it alone or out of order.
+- [ ] Full blank-database chronological replay of all 283 historical migrations remains blocked by missing authoritative creation migration provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Forward replay from the RC424 schema-only baseline does not close this historical provenance gate.
+- [ ] Review medical `NO_SHOW` product semantics and continue with the first open release gate after recording this verified CI batch.
+- [ ] Global production release remains **BLOCKED / NOT CERTIFIED**. No production migration, merge, or deployment was performed.
+
+### Mandatory cross-session continuation and user-facing status
+- At the start of every continuation, read this file and `docs/PROJECT_CONTINUITY.md`, then inspect the latest PR/CI head and continue from the first open item in priority order; do not restart from scratch or ask the user to repeat prior decisions.
+- Every user-facing continuation response must include a compact main/subtask status ledger with **DONE + evidence**, **PARTIAL**, **OPEN/NOT VERIFIED**, and **WAIT/owner action** clearly distinguished. Never mark a task complete merely because code or documentation exists.
+- After each material action, refresh this ledger from actual GitHub/CI/runtime evidence and append the session result to this TODO, continuity file, and session log. If an external credential, approval, product decision, or owner-only dashboard action is required, continue all safe independent work and clearly mark only that blocked subtask.
+- Never merge, deploy, apply production migrations, change production grants/RLS/Auth, or create financial/test data in production without explicit authorization and required evidence.
