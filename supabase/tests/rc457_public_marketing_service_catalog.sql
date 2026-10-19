@@ -51,6 +51,7 @@ values
   ('10000000-0000-4000-8000-000000000002','PRIVATE-D','مسودة داخلية','FOOD','DRAFT','private');
 
 \i supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql
+\i supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql
 
 set role anon;
 do $assert$
