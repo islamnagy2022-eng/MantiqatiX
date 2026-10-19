@@ -5,6 +5,7 @@ const ui = fs.readFileSync('web/industry-workspaces.js', 'utf8');
 const app = fs.readFileSync('web/app.js', 'utf8');
 const index = fs.readFileSync('web/index.html', 'utf8');
 const sw = fs.readFileSync('web/sw.js', 'utf8');
+const registry = fs.readFileSync('web/sector-registry.js', 'utf8');
 
 const codes = [...ui.matchAll(/\{code:'([A-Z_]+)'/g)].map(x => x[1]);
 const expected = [
@@ -16,6 +17,13 @@ const expected = [
 assert.equal(codes.length, 27, 'exactly 27 sector workspaces must be defined');
 assert.equal(new Set(codes).size, 27, 'sector codes must be unique');
 assert.deepEqual([...codes].sort(), [...expected].sort(), 'all canonical sectors must have a workspace');
+const registryEntries = [...registry.matchAll(/\['([A-Z_]+)','[^']*','([A-Z_]+)'\]/g)];
+const registryCodes = registryEntries.map(x => x[1]);
+const backendCodes = registryEntries.map(x => x[2]);
+assert.equal(registryEntries.length, 27, 'canonical sector registry must define exactly 27 mappings');
+assert.deepEqual([...codes].sort(), [...registryCodes].sort(), 'UI workspaces must match the canonical sector registry exactly');
+assert.ok(backendCodes.every(Boolean), 'every public sector must map to a backend sector identifier');
+assert.equal(new Set(registryCodes).size, 27, 'canonical registry sector codes must be unique');
 assert.match(ui, /const common=\{/);
 assert.match(ui, /function hubHtml\(\)/);
 assert.match(ui, /function detailHtml\(s\)/);
@@ -47,4 +55,4 @@ assert.match(index, /industry-workspaces\.js\?v=ui20261019/);
 assert.match(sw, /const CACHE='mnty-web-v130'/);
 assert.match(sw, /\.\/industry-workspaces\.js\?v=ui20261019/);
 console.log('Industry workspace frontend contract: PASS');
-console.log('27 unique sectors; frontend-only boundary; RBAC-preserving routing; PWA loading/cache: PASS');
+console.log('27 unique sectors aligned with the canonical registry; frontend-only boundary; RBAC-preserving routing; PWA loading/cache: PASS');
