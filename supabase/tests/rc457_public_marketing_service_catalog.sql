@@ -71,6 +71,20 @@ begin
   ) then
     raise exception 'RC457 public view exposes an internal service column';
   end if;
+  if (select string_agg(column_name, ',' order by ordinal_position)
+      from information_schema.columns
+      where table_schema='public' and table_name='marketing_services_public')
+      <> 'id,code,name_ar,name_en,category_code,description,status,created_at' then
+    raise exception 'RC457 public service view column allowlist changed unexpectedly';
+  end if;
+  if has_table_privilege('anon','public.marketing_services_public','INSERT')
+     or has_table_privilege('anon','public.marketing_services_public','UPDATE')
+     or has_table_privilege('anon','public.marketing_services_public','DELETE')
+     or has_table_privilege('authenticated','public.marketing_services_public','INSERT')
+     or has_table_privilege('authenticated','public.marketing_services_public','UPDATE')
+     or has_table_privilege('authenticated','public.marketing_services_public','DELETE') then
+    raise exception 'RC457 public service view unexpectedly grants write privileges';
+  end if;
   begin
     perform internal_notes from public.marketing_services;
     raise exception 'RC457 base table unexpectedly readable by anon';
@@ -89,6 +103,20 @@ begin
       and column_name in ('owner_user_id','settings','portfolio')
   ) then
     raise exception 'RC458 public view exposes private provider profile columns';
+  end if;
+  if (select string_agg(column_name, ',' order by ordinal_position)
+      from information_schema.columns
+      where table_schema='public' and table_name='marketing_provider_profiles_public')
+      <> 'id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at' then
+    raise exception 'RC458 public provider view column allowlist changed unexpectedly';
+  end if;
+  if has_table_privilege('anon','public.marketing_provider_profiles_public','INSERT')
+     or has_table_privilege('anon','public.marketing_provider_profiles_public','UPDATE')
+     or has_table_privilege('anon','public.marketing_provider_profiles_public','DELETE')
+     or has_table_privilege('authenticated','public.marketing_provider_profiles_public','INSERT')
+     or has_table_privilege('authenticated','public.marketing_provider_profiles_public','UPDATE')
+     or has_table_privilege('authenticated','public.marketing_provider_profiles_public','DELETE') then
+    raise exception 'RC458 public provider view unexpectedly grants write privileges';
   end if;
   begin
     perform owner_user_id from public.marketing_provider_profiles;
