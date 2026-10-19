@@ -995,3 +995,11 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Commits for this source-only batch: `cad2620de9537a0b5a0cf765c4051d1bb2ed09bf` (integration regression) and `a15abce3a25e26029b336fd64560361b94168220` (validator contract).
 - The test and validator were **not run** in this build-first continuation. This is code/test authoring only, not a verified regression fix. Continue building without running formal tests/CI/browser checks until explicitly authorized. Do not modify `docs/SESSION_LOG.md`.
 - Next: continue studying the active marketing/public-catalog/profile-media and production-gate source for additional safe build work; then advance to the next module by dependency order. Keep PR #299 Draft and production **BLOCKED / NOT CERTIFIED**.
+
+
+### RC456 closure reason audit normalization follow-up — 2026-10-19
+
+- Extended the disposable PostgreSQL integration case to submit a reason with surrounding whitespace and assert the audit row stores the trimmed value `Integration test closure`.
+- Added a source-validator assertion requiring the normalization regression to remain present.
+- Additional source commits: `e390e1ce173a8d6407925a8eef0b5ebf1f91fecc` (integration SQL) and `08e032b7bf1768ee8023658c3b5345ed00119af3` (validator).
+- These test/source assertions remain unexecuted under the build-first restriction. Continue with the next safe module task; do not mark tests verified, do not merge/deploy, and leave `docs/SESSION_LOG.md` untouched.
