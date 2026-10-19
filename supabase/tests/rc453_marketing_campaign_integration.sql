@@ -267,6 +267,18 @@ begin
     raise exception 'campaign could not be cancelled after all active partner assignments were closed';
   end if;
 
+  -- RC456 terminal-state replay regression: a previously removed assignment
+  -- remains idempotent after campaign cancellation, with no duplicate side effects.
+  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'terminal replay');
+  if coalesce((result->>'idempotent')::boolean,false) is not true
+     or result->>'status' <> 'REMOVED' then
+    raise exception 'removed partner closure was not idempotent after campaign became terminal';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 1
+     or (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 1 then
+    raise exception 'terminal partner closure replay duplicated audit or notification';
+  end if;
+
   perform set_config('request.jwt.claim.sub',customer_b::text,false);
   rejected:=false;
   begin
