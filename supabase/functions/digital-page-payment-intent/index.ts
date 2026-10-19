@@ -47,11 +47,11 @@ Deno.serve(async req=>{
  if(!row)return json({error:"PAYMENT_CLAIM_FAILED"},500);
  if(row.claim_status==="EXISTING")return json({orderId:row.id,status:row.payment_status,provider:"PAYMOB",clientSecret:null,checkoutUrl:null},200);
  if(row.claim_status==="IN_PROGRESS")return json({error:"PAYMENT_INTENT_IN_PROGRESS"},409);
- const release=async()=>{await userClient.rpc("release_digital_page_payment_intent_claim_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken});};
+ const release=async()=>{const {data,error}=await userClient.rpc("release_digital_page_payment_intent_claim_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken});return !error&&data===true;};
  const amount=Number(row.amount);
- if(!Number.isFinite(amount)||amount<=0){await release();return json({error:"INVALID_AMOUNT"},409);}
+ if(!Number.isFinite(amount)||amount<=0){if(!(await release()))return json({error:"PAYMENT_CLAIM_RELEASE_FAILED",reconciliationRequired:true},503);return json({error:"INVALID_AMOUNT"},409);}
  const amountCents=Math.round(amount*100);
- if(!isValidPaymobAmountCents(amount,amountCents)){await release();return json({error:"INVALID_AMOUNT_PRECISION"},409);}
+ if(!isValidPaymobAmountCents(amount,amountCents)){if(!(await release()))return json({error:"PAYMENT_CLAIM_RELEASE_FAILED",reconciliationRequired:true},503);return json({error:"INVALID_AMOUNT_PRECISION"},409);}
  const currency=String(row.currency||"EGP").toUpperCase();
  const payload={amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],items:[{name:row.title,amount:amountCents,description:"MantiqaTix "+row.page_type+" page",quantity:1}],billing_data:{apartment:"NA",first_name:String(user.user_metadata?.full_name||email).split(" ")[0]||"Customer",last_name:"MantiqaTix",street:"NA",building:"NA",phone_number:phone,city:"NA",country:"EG",email,floor:"NA",state:"NA"},special_reference:row.id,expiration:3600,notification_url:CALLBACK};
  let p:Record<string,unknown>={};
@@ -71,7 +71,7 @@ Deno.serve(async req=>{
  // Only explicit, identifier-free provider rejections prove no intention was created.
  // Timeouts/rate limits/conflicts and any response containing provider identifiers are ambiguous.
  if([400,401,403,404,422].includes(providerResponseStatus)&&!providerIntentId&&!providerClientSecret&&!providerOrderId){
-   await release();
+   if(!(await release()))return json({error:"PAYMENT_REJECTION_REQUIRES_RECONCILIATION",reconciliationRequired:true},503);
    return json({error:"PAYMENT_PROVIDER_REJECTED"},502);
  }
  if(providerResponseStatus<200||providerResponseStatus>=300||!providerIntentId||!providerClientSecret||!providerOrderId){
