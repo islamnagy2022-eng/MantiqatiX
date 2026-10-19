@@ -5,6 +5,9 @@ on:
       - "**"
     paths:
       - "supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql"
+      - "supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql"
+      - "supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql"
+      - "supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql"
       - "supabase/tests/rc453_marketing_campaign_*.sql"
       - "scripts/validate-marketing-campaign-backend.mjs"
       - ".github/workflows/marketing-campaign-backend.yml"
@@ -54,7 +57,13 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc453_marketing_campaign_fixture.sql "$pg_container:/tmp/rc453_fixture.sql"
           docker cp supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql "$pg_container:/tmp/rc453_migration.sql"
+          docker cp supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql "$pg_container:/tmp/rc454_migration.sql"
+          docker cp supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql "$pg_container:/tmp/rc455_migration.sql"
+          docker cp supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql "$pg_container:/tmp/rc456_migration.sql"
           docker cp supabase/tests/rc453_marketing_campaign_integration.sql "$pg_container:/tmp/rc453_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc453_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc453_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc454_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc455_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc456_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc453_test.sql
