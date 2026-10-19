@@ -1345,9 +1345,11 @@ function marketingCampaignWorkspace(){
   const c=campaignById.get(String(p.campaign_id));
   const provider=providers.find(x=>String(x.id)===String(p.provider_id));
   const mayRespond=Boolean(myProviderId&&String(p.provider_id)===myProviderId&&String(p.status).toUpperCase()==='INVITED');
+  const mayClose=Boolean(canManage&&String(p.business_id)===String(live.businessId)&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase())&&c&&!['COMPLETED','CANCELLED'].includes(String(c.status||'').toUpperCase()));
   return '<article data-mc-participant-card data-mc-participant-id="'+esc(p.id)+'" data-mc-participant-search="'+esc([c?.title||'',provider?.name_ar||'',p.role||''].join(' '))+'" data-mc-participant-status="'+esc(String(p.status||'').toUpperCase())+'" class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
    '<p class="muted">التخصيص: '+esc(p.allocation_percent)+'% · القيمة: '+fmtMoney(p.agreed_value,c?.currency||'EGP')+'</p>'+
-   (mayRespond?'<div class="action-bar"><button type="button" class="btn btn-primary" data-mc-respond="'+esc(p.id)+'" data-mc-decision="ACCEPTED" style="width:auto">قبول الدعوة</button><button type="button" class="btn btn-outline" data-mc-respond="'+esc(p.id)+'" data-mc-decision="DECLINED" style="width:auto">رفض الدعوة</button></div>':'')+'</article>';
+   (mayRespond?'<div class="action-bar"><button type="button" class="btn btn-primary" data-mc-respond="'+esc(p.id)+'" data-mc-decision="ACCEPTED" style="width:auto">قبول الدعوة</button><button type="button" class="btn btn-outline" data-mc-respond="'+esc(p.id)+'" data-mc-decision="DECLINED" style="width:auto">رفض الدعوة</button></div>':'')+
+   (mayClose?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-close="'+esc(p.id)+'" style="width:auto">إنهاء مشاركة الشريك</button></div>':'')+'</article>';
  }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
  return marketingAgencyWorkspace()+
   '<section class="records" data-marketing-campaign-workspace><div class="section-head"><div><span class="eyebrow">INTERNAL CAMPAIGN WORKFLOW</span><h2>الحملات والتعاون مع الشركاء</h2><p class="muted">إدارة داخلية للخطط والدعوات. لا يوجد نشر خارجي تلقائي أو اتصال مباشر بمنصات الإعلانات.</p></div><span class="mnty-badge">RC453</span></div>'+
@@ -1585,6 +1587,29 @@ function bindMarketingCampaignWorkspace(){
    showToast(data?.idempotent?'تم تسجيل الرد مسبقًا.':(decision==='ACCEPTED'?'تم قبول الدعوة.':'تم رفض الدعوة.'),'success');
    await refreshMarketingCampaignWorkspace();
   }catch(error){showToast('تعذر الرد على الدعوة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
+  finally{if(button.isConnected)button.disabled=false;}
+ }));
+ document.querySelectorAll('[data-mc-close]').forEach(button=>button.addEventListener('click',async()=>{
+  if(button.disabled)return;
+  const participantId=String(button.dataset.mcClose||'');
+  const activeBusinessId=String(live.businessId||'');
+  const role=String(live.role||'').toUpperCase();
+  const participant=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).find(p=>String(p.id)===participantId&&String(p.business_id||'')===activeBusinessId);
+  const campaign=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).find(c=>String(c.id)===String(participant?.campaign_id||'')&&String(c.business_id||'')===activeBusinessId);
+  if(!participant||!campaign||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)||!['INVITED','ACCEPTED','ACTIVE'].includes(String(participant.status||'').toUpperCase())||['COMPLETED','CANCELLED'].includes(String(campaign.status||'').toUpperCase())){
+   showToast('لا يمكن إنهاء هذه المشاركة وفق الحالة أو صلاحيات النشاط الحالية؛ حدّث مساحة العمل.','error');return;
+  }
+  const reason=window.prompt('سبب إنهاء المشاركة (اختياري، حتى 500 حرف):','');
+  if(reason===null)return;
+  if(reason.length>500){showToast('سبب الإنهاء يجب ألا يتجاوز 500 حرف.','error');return;}
+  if(!window.confirm('تأكيد إنهاء مشاركة الشريك في الحملة «'+String(campaign.title||'')+'»؟ سيتم تسجيل العملية وإخطار الشريك.'))return;
+  button.disabled=true;
+  try{
+   const {data,error}=await sb.rpc('close_marketing_campaign_partner_backend',{p_actor:user.id,p_participant_id:participantId,p_reason:reason.trim()||null});
+   if(error)throw error;
+   showToast(data?.idempotent?'المشاركة منتهية بالفعل.':'تم إنهاء المشاركة وتسجيل العملية.','success');
+   await refreshMarketingCampaignWorkspace();
+  }catch(error){showToast('تعذر إنهاء المشاركة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
   finally{if(button.isConnected)button.disabled=false;}
  }));
  document.querySelectorAll('[data-mc-status]').forEach(button=>button.addEventListener('click',async()=>{
