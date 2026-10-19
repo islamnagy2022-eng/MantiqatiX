@@ -2080,3 +2080,13 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - Expanded the disposable PostgreSQL campaign integration to explicitly reject (1) a manager from another tenant/business attempting to close a participant and (2) a caller supplying an actor ID different from `auth.uid()`.
 - Added source-validator assertions requiring both regression cases. Changes are in commits `62a4aea2bb8c6ec360748f82da25f9106c0e9ed5` and `3fe667c159d363e383ed357d4511f8f84f07bb60`.
 - Fresh CI for code head `3fe667c159d363e383ed357d4511f8f84f07bb60` passed both the marketing source validator and the disposable PostgreSQL lifecycle suite in run [39243988580](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243988580). This includes the new cross-tenant closure denial and actor-spoof rejection assertions. This remains isolated test evidence, not production certification. Keep production **BLOCKED / NOT CERTIFIED** until the fresh workflow passes.
+
+
+
+## RC457/RC458 exact-head RLS hardening — 2026-10-19
+
+- Added exact-column allowlist and read-only privilege assertions for both public catalog views, plus explicit `security_barrier=true` regression checks.
+- Added an authenticated owner-scope regression to the isolated PostgreSQL fixture: the provider owner can read their own private base profile, while an unrelated authenticated identity cannot read that row. The public view remains restricted to active rows and the public allowlisted columns.
+- Added source-validator assertions so the owner-scope regression and security-barrier contract cannot silently disappear.
+- Exact-head CI for `890cb3b26b6178b4152baba7257c7ab30899f535`: all 12 PR-triggered workflows completed successfully, including Public Service Catalog RLS [run 39244750651](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750651), Marketing Campaign Backend [run 39244750604](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750604), and web production-verification [run 39244750653](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750653). The web deploy job was skipped; no deployment occurred.
+- Evidence is isolated CI only, not live production schema/grant proof. Remaining release gates: complete migration replay and schema parity; inspect actual production view ownership, grants and tenant/owner/admin policies; authenticated browser E2E; payment/webhook/finance E2E; disaster-recovery restore rehearsal. Production remains **BLOCKED / NOT CERTIFIED**. PR #299 stays Draft. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and do not modify `docs/SESSION_LOG.md`.
