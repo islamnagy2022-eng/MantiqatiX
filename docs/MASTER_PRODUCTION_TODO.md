@@ -2109,3 +2109,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - **Deployment distinction:** the deploy workflow run succeeded as a workflow, but its deployment job was skipped; this is not evidence of a new live deployment.
 - **Still open:** browser/customer-provider-owner/admin E2E, two-tenant isolation, full migration replay/live-schema parity, production Security Advisor and leaked-password-protection sign-off, Paymob/webhook/finance E2E, backup/restore and rollback rehearsal, release signing and real-device regression. These workflow successes do not close those gates.
 - **Status:** source + listed CI verified at the recorded commit; production remains **BLOCKED / NOT CERTIFIED**. PR #299 remains open/draft; no merge, deployment, production migration, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and leave `docs/SESSION_LOG.md` untouched.
+
+## 2026-10-19 — Marketing CSV Unicode-whitespace formula-injection hardening
+
+- **Source fix:** both campaign and partnership CSV exporters now detect formula prefixes after JavaScript Unicode whitespace (`\s`) and BOM characters, rather than only ASCII control/space characters. This covers inputs prefixed with NBSP, em space, ideographic space, tabs, carriage returns, and BOM before `=`, `+`, `-`, or `@`.
+- **Regression contract:** updated `scripts/validate-marketing-campaign-ui.mjs` to require the Unicode-whitespace-aware guard.
+- **Cache parity:** updated `web/index.html` app/service-worker URLs and `web/sw.js` precache to `marketing-csv-unicode-formula-guard-20261019`; advanced shell cache to `mnty-web-v149`.
+- **Manual source/vector check:** verified both CSV guard occurrences, validator/source pattern alignment, app/service-worker URL parity, and regex vectors for ASCII and Unicode whitespace/BOM prefixes; ordinary text and positive numeric strings are not flagged. Negative numeric-looking strings are deliberately treated as formula-like text for safe CSV export.
+- **CI:** exact-head workflows were queued for commit `c97fec9fdb82f0d33b2490c7b32958256b00a566` at checkpoint time. Do not treat them as passed until their results are fetched and reviewed.
+- **Status:** source correction implemented; automated CI and browser/download behavior remain pending. Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, migration, or production data change was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
