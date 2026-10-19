@@ -43,9 +43,9 @@ const required = [
 assert.equal(required.length, 34, "release gate must track the complete 34-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
-const verifierManifestMatch = source.match(/const requiredReleaseMigrations\\s*=\\s*\\[([\\s\\S]*?)\\];/);
+const verifierManifestMatch = source.match(/const requiredReleaseMigrations\s*=\s*\[([\s\S]*?)\];/);
 assert.ok(verifierManifestMatch, "production verifier must expose its required migration manifest");
-const verifierManifestNames = [...verifierManifestMatch[1].matchAll(/["'](\\d{14}_[^"']+\\.sql)["']/g)].map(match => match[1]);
+const verifierManifestNames = [...verifierManifestMatch[1].matchAll(/["'](\d{14}_[^"']+\.sql)["']/g)].map(match => match[1]);
 assert.deepEqual(verifierManifestNames, required, "CI migration contract and production verifier must contain the exact same ordered migration set");
 for (const name of required) {
   assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
