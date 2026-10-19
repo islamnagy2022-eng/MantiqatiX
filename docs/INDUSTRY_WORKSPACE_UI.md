@@ -51,6 +51,7 @@ This change is the **frontend-first design stage** for sector workspaces. It doe
 - Screen preview with empty states instead of fake rows or sample customer data.
 - Disabled forms/actions to make the eventual interaction model visible without implying writes succeeded.
 - Consistent RTL layout, accessible labels, responsive table containers, and reduced-motion support.
+- Keyboard-accessible sector tabs (Arrow Left/Right, Home/End, roving focus), explicit tab-panel relationships, selected-state announcements for filters, and a live result count for screen readers.
 - Explicit notice that sensitive operations are not active until the backend and authorization contract is reviewed.
 
 ## Existing restaurant workspace — explicit backend boundary
