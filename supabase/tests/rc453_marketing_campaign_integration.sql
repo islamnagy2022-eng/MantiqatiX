@@ -194,6 +194,91 @@ begin
   end;
   if not rejected then raise exception 'terminally approved campaign was rolled back to draft'; end if;
 
+  -- RC455/RC456: terminal campaigns cannot retain active partner assignments.
+  perform set_config('request.jwt.claim.sub',manager_a::text,false);
+  rejected:=false;
+  begin
+    perform public.update_marketing_campaign_status_backend(manager_a,campaign_a,'CANCELLED');
+  exception when others then
+    if sqlerrm='MARKETING_PARTICIPANTS_MUST_BE_CLOSED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'terminal campaign transition accepted while partner assignment remained active'; end if;
+
+  -- RC456 authorization regressions: another tenant manager cannot close this
+  -- participant, and the supplied actor cannot differ from auth.uid().
+  perform set_config('request.jwt.claim.sub',manager_b::text,false);
+  rejected:=false;
+  begin
+    perform public.close_marketing_campaign_partner_backend(manager_b,participant_id,'Cross-tenant attempt');
+  exception when others then
+    if sqlerrm='MARKETING_BUSINESS_SCOPE_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'cross-tenant manager closed another business partner assignment'; end if;
+
+  perform set_config('request.jwt.claim.sub',manager_a::text,false);
+  rejected:=false;
+  begin
+    perform public.close_marketing_campaign_partner_backend(manager_b,participant_id,'Spoof actor attempt');
+  exception when others then
+    if sqlerrm='ACTOR_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'partner closure accepted a spoofed actor'; end if;
+
+  -- RC456 input-boundary regression: overlong reasons must fail before any
+  -- participant state, audit record, or provider notification is changed.
+  rejected:=false;
+  begin
+    perform public.close_marketing_campaign_partner_backend(manager_a,participant_id,pg_catalog.repeat('x',501));
+  exception when others then
+    if sqlerrm='MARKETING_PARTNER_CLOSURE_REASON_TOO_LONG' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'partner closure accepted a reason longer than 500 characters'; end if;
+  if (select status from public.marketing_campaign_participants where id=participant_id) <> 'ACCEPTED' then
+    raise exception 'overlong closure reason changed participant status';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 0
+     or (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 0 then
+    raise exception 'overlong closure reason produced audit or notification side effects';
+  end if;
+
+  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'  Integration test closure  ');
+  if result->>'status' <> 'REMOVED' or coalesce((result->>'idempotent')::boolean,false) then
+    raise exception 'manager partner closure did not remove the assignment';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 1 then
+    raise exception 'partner closure audit event missing or duplicated';
+  end if;
+  if (select new_values->>'reason' from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) is distinct from 'Integration test closure' then
+    raise exception 'partner closure audit did not store the trimmed reason';
+  end if;
+  if (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 1 then
+    raise exception 'partner closure notification missing';
+  end if;
+  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'Integration test closure replay');
+  if coalesce((result->>'idempotent')::boolean,false) is not true then
+    raise exception 'partner closure replay was not idempotent';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 1
+     or (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 1 then
+    raise exception 'partner closure replay duplicated audit or notification';
+  end if;
+  result := public.update_marketing_campaign_status_backend(manager_a,campaign_a,'CANCELLED');
+  if result->>'status' <> 'CANCELLED' then
+    raise exception 'campaign could not be cancelled after all active partner assignments were closed';
+  end if;
+
+  -- RC456 terminal-state replay regression: a previously removed assignment
+  -- remains idempotent after campaign cancellation, with no duplicate side effects.
+  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'terminal replay');
+  if coalesce((result->>'idempotent')::boolean,false) is not true
+     or result->>'status' <> 'REMOVED' then
+    raise exception 'removed partner closure was not idempotent after campaign became terminal';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 1
+     or (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 1 then
+    raise exception 'terminal partner closure replay duplicated audit or notification';
+  end if;
+
   perform set_config('request.jwt.claim.sub',customer_b::text,false);
   rejected:=false;
   begin
@@ -210,4 +295,56 @@ begin
 end;
 $test$;
 reset role;
-select 'RC453 marketing campaign and partner workflow integration: PASS' as result;
+
+-- RC454 regression: a previously inactive participant must not bypass the
+-- aggregate allocation cap by changing status back to an active state.
+do $rc454_status_guard$
+declare
+  v_campaign uuid;
+  v_active uuid;
+  v_inactive uuid;
+  v_rejected boolean := false;
+begin
+  select id into v_campaign
+  from public.marketing_campaigns
+  where idempotency_key='campaign-b-key-0001';
+  if not found then raise exception 'RC454 test campaign not found'; end if;
+
+  insert into public.marketing_campaign_participants(
+    tenant_id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by
+  ) values (
+    'TENANT-B','30000000-0000-4000-8000-000000000002',v_campaign,
+    '40000000-0000-4000-8000-000000000001','MEDIA_BUYING',40,100,'ACTIVE',
+    '30000000-0000-4000-8000-000000000012'
+  ) returning id into v_active;
+
+  insert into public.marketing_campaign_participants(
+    tenant_id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by
+  ) values (
+    'TENANT-B','30000000-0000-4000-8000-000000000002',v_campaign,
+    '40000000-0000-4000-8000-000000000002','ANALYTICS',70,100,'DECLINED',
+    '30000000-0000-4000-8000-000000000012'
+  ) returning id into v_inactive;
+
+  begin
+    update public.marketing_campaign_participants
+    set status='INVITED'
+    where id=v_inactive;
+  exception when others then
+    if sqlerrm='MARKETING_ALLOCATION_OVER_100' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+
+  if not v_rejected then
+    raise exception 'RC454 allowed an inactive participant to reactivate beyond 100 percent allocation';
+  end if;
+  if (select status from public.marketing_campaign_participants where id=v_inactive) <> 'DECLINED' then
+    raise exception 'RC454 failed update did not preserve the original participant status';
+  end if;
+end;
+$rc454_status_guard$;
+
+select 'RC453 campaign workflow + RC454 allocation status regression: PASS' as result;

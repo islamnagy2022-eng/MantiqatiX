@@ -1,0 +1,80 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+const home = readFileSync('web/home.js', 'utf8');
+const serviceMigration = readFileSync('supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql', 'utf8');
+const providerMigration = readFileSync('supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql', 'utf8');
+const sqlTest = readFileSync('supabase/tests/rc457_public_marketing_service_catalog.sql', 'utf8');
+
+assert.match(home, /from\('marketing_services_public'\)\.select\('id,code,name_ar,name_en,category_code,description'\)/,
+  'public directory must query the allowlisted service catalog view');
+assert.match(home, /from\('marketing_provider_profiles_public'\)\.select\('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,updated_at'\)/,
+  'public provider listing must query the allowlisted public profile view');
+assert.doesNotMatch(home, /ranking_weight/,
+  'public browser code must not select or sort by the internal provider ranking weight');
+assert.doesNotMatch(home, /from\('marketing_provider_profiles'\)\.select\([^)]*settings/,
+  'public directory must not fetch provider settings');
+assert.doesNotMatch(home, /provider\?\.settings\?\.branding/,
+  'public provider rendering must not depend on private provider settings');
+assert.match(home, /const path=String\(provider\?\.profile_image_path\|\|''\)/,
+  'public profile image path must be normalized as a string before URL resolution');
+assert.match(home, /if\(!\/\^users/,
+  'public profile images must reject paths outside the owner-uploaded Storage key allowlist');
+assert.match(home, /\(cover\|logo\)\\\./,
+  'public profile image allowlist must match only supported uploaded image names');
+assert.match(home, /Seeded showcase profiles may use local assets, not Storage object keys/,
+  'public image URL resolution must preserve local asset fallback for seeded showcase profiles');
+
+assert.match(serviceMigration, /with \(security_barrier = true\)/,
+  'public service catalog must use a security-barrier view');
+assert.match(providerMigration, /with \(security_barrier = true\)/,
+  'public provider directory must use a security-barrier view');
+assert.match(serviceMigration, /create or replace view public\.marketing_services_public[\s\S]*?where status = 'ACTIVE'/,
+  'public service catalog view must expose ACTIVE rows only');
+assert.match(serviceMigration, /grant select on table public\.marketing_services_public to anon, authenticated/,
+  'public service catalog view must be readable by visitors and signed-in users');
+assert.match(serviceMigration, /revoke all on table public\.marketing_services from public, anon/,
+  'anonymous visitors must not directly read the base service table');
+assert.match(serviceMigration, /revoke select \(%I\) on table public\.marketing_services from public, anon/i,
+  'service migration must clear legacy column-level grants to PUBLIC and anon');
+
+assert.match(providerMigration, /create or replace view public\.marketing_provider_profiles_public[\s\S]*?where p\.status = 'ACTIVE'/,
+  'public provider view must expose ACTIVE profiles only');
+assert.match(providerMigration, /join public\.businesses b on b\.id = p\.business_id/,
+  'public provider view must be bound to its owning business');
+assert.match(providerMigration, /and b\.status = 'ACTIVE'/,
+  'public provider view must hide profiles attached to inactive businesses');
+assert.match(providerMigration, /b\.settings @> '\{\"showcase\":true\}'::jsonb/,
+  'public provider view must honor explicit business showcase consent');
+assert.match(providerMigration, /grant select on table public\.marketing_provider_profiles_public to anon, authenticated/,
+  'public provider view must be readable by visitors and signed-in users');
+assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles from public, anon/,
+  'anonymous visitors must not directly read the base provider table');
+assert.match(providerMigration, /revoke select \(%I\) on table public\.marketing_provider_profiles from public, anon/i,
+  'provider migration must clear legacy column-level grants to PUBLIC and anon');
+const providerViewProjection = providerMigration.match(
+  /create or replace view public\.marketing_provider_profiles_public[\s\S]*?\bas\s+select([\s\S]*?)\s+from public\.marketing_provider_profiles p/i
+)?.[1] ?? '';
+assert.ok(providerViewProjection.length > 0, 'public provider view projection must be identifiable');
+assert.doesNotMatch(providerViewProjection, /\b(settings|owner_user_id|portfolio|ranking_weight)\b/i,
+  'private provider fields must not be exposed by the public view projection');
+assert.ok(!providerMigration.includes('drop policy if exists "Owners manage their marketing provider profile"'),
+  'RC458 must preserve the existing owner policy on the base table');
+assert.ok(!providerMigration.includes('drop policy if exists "CRM managers view marketing providers"'),
+  'RC458 must preserve the existing CRM-manager policy on the base table');
+assert.match(serviceMigration, /revoke all on table public\.marketing_services_public from public, anon, authenticated;[\s\S]*?grant select on table public\.marketing_services_public to anon, authenticated;/,
+  'service view must grant SELECT only after revoking other privileges');
+assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles_public from public, anon, authenticated;[\s\S]*?grant select on table public\.marketing_provider_profiles_public to anon, authenticated;/,
+  'provider view must grant SELECT only after revoking other privileges');
+assert.match(sqlTest, /create policy provider_owner_private_profile_read[\s\S]*?owner_user_id::text = current_setting\('request\.jwt\.claim\.sub', true\)/,
+  'isolated RLS regression must retain an owner-scoped private-profile policy');
+assert.match(sqlTest, /RC458 owner could not read own private provider profile under existing RLS/,
+  'isolated RLS regression must verify owner private-profile access remains available');
+assert.match(sqlTest, /RC458 unrelated authenticated user read another provider base row/,
+  'isolated RLS regression must deny unrelated authenticated base-table reads');
+assert.match(sqlTest, /RC458 exposed a provider without business showcase consent or with an inactive business/,
+  'isolated RLS regression must enforce business visibility and showcase consent');
+assert.match(sqlTest, /anonymous private-column SELECT grant survived migration/,
+  'isolated RLS regression must verify legacy column-level grants are revoked');
+
+console.log('RC457_RC458_PUBLIC_CATALOG_SOURCE=PASS');

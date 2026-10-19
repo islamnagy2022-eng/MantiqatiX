@@ -56,4 +56,33 @@ assert.match(integration, /RC456 SMM service-role access boundary: PASS/, "isola
 assert.match(integration, /direct client privilege unexpectedly present/, "integration must reject direct client table access");
 assert.match(integration, /provider credentials must remain RPC-only/, "integration must keep provider credentials inaccessible to the service role");
 
+
+const transport = fs.readFileSync("supabase/functions/smm-gateway/provider-transport.ts", "utf8");
+const validation = fs.readFileSync("supabase/functions/smm-gateway/order-validation.ts", "utf8");
+const requestValidation = fs.readFileSync("supabase/functions/smm-gateway/request-validation.ts", "utf8");
+const launchGate = fs.readFileSync("supabase/functions/smm-gateway/launch-gate.ts", "utf8");
+assert.match(transport, /allowlistCsv[\s\S]{0,500}allowed\.has\(host\)/, "provider calls must require an explicit hostname allowlist");
+assert.match(transport, /endpoint\.protocol !== "https:"/, "provider endpoints must require HTTPS");
+assert.match(edge, /redirect:"error"|redirect: "error"/, "provider calls must not follow redirects to unreviewed hosts");
+assert.match(transport, /total > maxBytes[\s\S]{0,100}reader\.cancel\(\)/, "provider response bodies must be bounded while streaming");
+assert.match(transport, /new TextDecoder\("utf-8", \{ fatal: true \}\)/, "provider JSON must reject invalid UTF-8 rather than silently replacing bytes");
+assert.match(validation, /rawIdempotencyKey[\s\S]{0,160}\{16,128\}/, "SMM order requests must carry bounded idempotency keys");
+assert.match(validation, /url\.protocol !== "https:"/, "SMM target URLs must use HTTPS");
+assert.match(requestValidation, /maxBytes\s*=\s*65_536/, "shared request parser must support an explicit bounded payload limit");
+assert.match(edge, /readBoundedJson\(req,32\s*\*\s*1024\)/, "SMM gateway must enforce the 32 KiB request limit at its call site");
+assert.match(launchGate, /enabledFlag === "true" && postLaunchApprovalFlag === "true"/, "SMM activation requires both explicit enablement and post-launch approval flags");
+const orderStart = edge.indexOf('if(a==="place_order")');
+const orderEnd = edge.indexOf('if(a==="', orderStart + 10);
+assert.ok(orderStart >= 0 && orderEnd > orderStart, "place_order action must be identifiable for safety contract review");
+const orderAction = edge.slice(orderStart, orderEnd);
+assert.match(orderAction, /IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST/, "idempotency-key reuse with a different order payload must be rejected");
+assert.match(orderAction, /WALLET_DEBIT_RESULT_UNKNOWN[\s\S]{0,300}reconciliation_required:true/, "ambiguous wallet debit outcomes must require reconciliation");
+assert.match(orderAction, /PROVIDER_RESULT_UNKNOWN[\s\S]{0,300}reconciliation_required:true/, "ambiguous provider outcomes must not trigger blind retry/refund");
+assert.match(orderAction, /\.eq\("user_id",user\.id\)\.eq\("idempotency_key",validatedOrder\.idempotencyKey\)/, "idempotency replay lookup must be scoped to the authenticated user");
+
+
+assert.match(edge, /apiKey\.length>4096\|\|\/\[\\u0000-\\u001f\\u007f\]\/\.test\(apiKey\)/, "provider credential validation must reject actual ASCII control characters");
+assert.match(edge, /description\.replace\(\/\[\\u0000-\\u001f\\u007f\]\/g/, "admin descriptions must strip actual ASCII control characters");
+assert.doesNotMatch(edge, /apiKey\.length>4096\|\|\/\[\\\\u0000-\\\\u001f\\\\u007f\]/, "credential control-character regex must not be double-escaped");
+
 console.log("SMM service-role access boundary contract: PASS");

@@ -1633,3 +1633,591 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Marketing campaign operations build batch (implementation only)
+- [x] Added business-scoped campaign operations summary cards in `web/app.js`: total visible campaigns, campaigns in internal review, internally approved campaigns, pending partner invitations, accepted partner assignments, and planned budgets grouped by currency (currencies are not combined).
+- [x] Added CSV export for campaign managers, scoped to the currently selected business and visible campaign records. CSV cell escaping includes formula-injection mitigation for values beginning with spreadsheet formula/control prefixes.
+- [ ] NOT VERIFIED: no tests, review, browser run, CI, or deployment performed by request; feature is committed only to branch `feat/marketing-campaign-operations-summary-20261019`.
+- [ ] Existing P0 payment/migration/tenant-isolation and production deployment blockers remain open; this UI work does not resolve or certify them.
+
+
+## 2026-10-19 — Marketing campaign discovery controls (implementation only)
+- [x] Added client-side search by campaign title/objective and status filtering to the currently loaded, active-business-scoped campaign list.
+- [x] Added a visible count of filtered versus total campaigns; filtering only changes the current view and does not mutate backend data.
+- [ ] NOT VERIFIED: implementation-only per user instruction; no tests, browser execution, review, CI, or deployment performed.
+
+
+- [x] Preserved this implementation batch in Draft PR [#299](https://github.com/islamnagy2022-eng/MantiqatiX/pull/299) against `main`; PR remains unmerged and NOT VERIFIED.
+
+
+## 2026-10-19 — Campaign creation input hardening (implementation only)
+- [x] Normalize campaign channel names to uppercase and remove duplicate channel entries before submission.
+- [x] Add client-side allowlists for campaign objectives, advertising channels, and currencies; reject unknown values instead of forwarding them to the RPC.
+- [x] Validate campaign title length, finite/non-negative budget and maximum UI budget, region/brief lengths, and paired/ordered valid date inputs before submission.
+- [ ] NOT VERIFIED: client-side checks are usability controls only and are not a substitute for server-side validation/authorization. No tests, review, browser run, CI, or deployment performed by request.
+- [ ] Production remains **BLOCKED / NOT CERTIFIED** until the independent migration, payment, security, tenant-isolation, recovery, and release gates are verified.
+
+
+## 2026-10-19 — Partner collaboration report export (implementation only)
+- [x] Added a manager-only CSV export for collaboration/partner assignments associated with campaigns owned by the currently selected business.
+- [x] Export columns cover campaign, partner display name where available, role, invitation/assignment status, allocation percentage, agreed value, campaign currency, and creation timestamp; values are CSV-quoted and spreadsheet formula prefixes are mitigated.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed by request. Verify provider visibility, CSV encoding, and spreadsheet behavior in the verification phase.
+- [ ] Export is a convenience feature, not an authorization boundary; backend row-level access policies and server-side RPC authorization remain mandatory.
+
+
+## 2026-10-19 — CSV encoding/record-separator correction (implementation only)
+- [x] Corrected both campaign and partner CSV builders to emit an actual UTF-8 BOM and CRLF record separators instead of literal backslash escape text.
+- [x] Normalized the spreadsheet formula-prefix guard regex in both export paths.
+- [ ] NOT VERIFIED: this correction was made by source inspection only; no tests, review, browser execution, CI, or deployment performed by request.
+
+
+## 2026-10-19 — Campaign export respects active filters (implementation only)
+- [x] Added stable campaign IDs to rendered campaign cards and scoped campaign CSV export to the currently visible cards after the active search/status filters are applied.
+- [x] Changed the empty-state feedback to clarify that no campaigns match the current filters rather than implying there are no campaigns in the business.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed by request. Export behavior must be exercised in the verification phase.
+
+
+## 2026-10-19 — Partner invitation form guardrails (implementation only)
+- [x] Validate invite role against the supported role list and enforce finite bounds for allocation percentage and agreed value before calling the existing backend RPC.
+- [x] Confirm the selected campaign belongs to the active business and the selected partner profile is among loaded active, verified partner/freelancer profiles outside that business before submission.
+- [ ] NOT VERIFIED: browser/client checks improve UX but are not a security boundary; the backend must independently enforce campaign ownership, provider eligibility, role constraints, and financial limits. No tests/review/browser/CI/deployment performed.
+
+
+## 2026-10-19 — Partner allocation guard (implementation only)
+- [x] Added a pre-submit UI guard that totals existing non-declined/non-removed allocations for the selected campaign and rejects a new invitation when the visible total would exceed 100%.
+- [ ] NOT VERIFIED: this is a usability guard over currently loaded rows only; concurrency and authoritative allocation limits must be enforced by the backend transaction/RPC. No tests, review, browser run, CI, or deployment performed by request.
+
+
+## 2026-10-19 — Duplicate active partner invitation guard (implementation only)
+- [x] Added a pre-submit guard against sending a second invitation to the same provider for the same campaign when an invitation is already pending or an assignment is accepted.
+- [ ] NOT VERIFIED: backend uniqueness/idempotency remains authoritative, especially for concurrent requests and stale client data. No tests, review, browser run, CI, or deployment performed by request.
+
+
+## 2026-10-19 — Campaign search improvement
+- [x] Search now matches campaign title, objective, and channel identifiers.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Partner invitation discovery controls
+- [x] Added client-side search across visible partner records by campaign title, partner display name, and role.
+- [x] Added a status filter and live count for visible partnership records.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Filter-aware partner CSV export
+- [x] Partner report export now follows the active search/status filters and exports only visible partnership rows.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Next build batch
+- [ ] Next planned UI enhancement: show a live partner allocation capacity estimate before invitation submission, based on currently loaded assignments. This must remain informational only; server-side transactional limits are authoritative.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Live partner allocation capacity hint (implementation only)
+- [x] Added an allocation hint beside the partner invitation input. It recalculates the currently allocated percentage, remaining percentage, and projected total when the campaign or requested allocation changes.
+- [ ] NOT VERIFIED: this hint uses loaded client-side rows only and does not reserve capacity. The backend must enforce the 100% allocation invariant transactionally. No tests, review, browser run, CI, or deployment performed by request.
+
+
+## متابعة بناء مساحة التسويق — تنبيهات التخصيص (2026-10-19)
+- أضيفت معاينة توضيحية لنسبة التخصيص قبل دعوة الشريك، تشمل إجمالي النسب الحالي والمتوقع والمتبقي.
+- تعرض الواجهة تنبيهًا عند رصد دعوة معلقة/تعاون مقبول للشريك نفسه في الحملة، أو عند تجاوز الإجمالي المتوقع 100%.
+- هذه حماية إرشادية في الواجهة وليست ضمانًا أمنيًا؛ يلزم فرض منع التكرار وحدود التخصيص ذريًا في قاعدة البيانات/الدالة الخلفية قبل اعتماد الإنتاج.
+- الحالة: **غير مختبر وغير متحقق إنتاجيًا**. لم تُشغّل الاختبارات أو المراجعات أو النشر في هذه الخطوة.
+
+- أضيف ملخص عددي لحالات دعوات الشراكة (مرسلة/مقبولة/مرفوضة/مستبعدة) ضمن نطاق السجلات الظاهرة للمستخدم، لتسهيل متابعة التشغيل دون اختلاق مؤشرات أداء.
+
+- تحسين إجراء تغيير حالة الحملة: إعادة التأكد من أن الحملة تتبع النشاط النشط، وأن دور المستخدم من الأدوار الإدارية المسموح بها، وأن الانتقال ما زال ضمن الانتقالات المعلنة للحالة الحالية؛ إضافة تأكيد صريح قبل الإرسال والتنبيه عند تقادم بيانات الواجهة.
+- هذا فحص واجهة إضافي فقط؛ تبقى صلاحيات RPC والتحقق من الانتقالات داخل الخلفية هي المرجع الأمني. لم تُشغّل الاختبارات أو المراجعات في هذه الدفعة.
+
+- معالجة تفصيل إضافي في نموذج دعوة الشريك: توحيد مقارنة حالة مقدم الخدمة إلى أحرف كبيرة لتجنب اختلافات الكتابة، تحديث تحذير التكرار عند تغيير الشريك المختار، ومنع إنشاء دعوات جديدة لحملات مكتملة أو ملغاة وفق البيانات المحملة بالواجهة. هذه ضوابط واجهة فقط وتحتاج تأكيدًا مكافئًا في الخلفية.
+
+
+## RC454 — تكامل تخصيص الشركاء على مستوى قاعدة البيانات (2026-10-19)
+- أضيفت migration جديدة `supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql` مع trigger يتحقق من تطابق `business_id` و`tenant_id` مع الحملة، ويفرض سقف مجموع التخصيصات النشطة (INVITED/ACCEPTED/ACTIVE) عند الإدراج أو تحديث الحقول المعنية.
+- يقفل trigger صف الحملة قبل حساب الإجمالي لتسلسل عمليات التخصيص على الحملة نفسها، ويرفض إضافة/تفعيل تخصيص على حملة مكتملة أو ملغاة.
+- **الحالة: لم تُطبق migration ولم تُختبر**؛ لا يُفترض أن حماية قاعدة البيانات فعالة في أي بيئة حتى تُطبق migration وتُختبر على نسخة مناسبة. يلزم مراجعة تداخل ترتيب الأقفال مع كل مسارات تعديل المشاركين قبل اعتماد الإنتاج.
+
+- ملاحظة ترتيب الأقفال في RC454: التريغر لا يعمل على تحديث الحالة وحدها، لتجنب أخذ قفل الحملة من مسار رد الدعوة بعد قفل صف المشارك؛ يعمل عند الإدراج أو تغيير الحملة/النشاط/المستأجر/نسبة التخصيص. يلزم اختبار تزامن PostgreSQL ومراجعة جميع مسارات التعديل قبل الإنتاج.
+
+- تقوية RC454 قبل التسليم: أُضيف فحص تمهيدي داخل migration يوقف تطبيقها برسالة واضحة إذا وجدت سجلات قديمة ذات اختلاف في نطاق النشاط/المستأجر أو مجموع تخصيصات نشطة يتجاوز 100%. هذا يمنع إخفاء مخالفات تاريخية تحت الحماية الجديدة؛ يلزم معالجة البيانات ثم إعادة التطبيق. لم تُطبق migration ولم تُشغّل اختبارات.
+
+
+## RC454 preflight extension — 2026-10-19
+- أُضيف شرط fail-closed إضافي قبل إنشاء التريغر: يوقف تطبيق migration إذا كانت هناك دعوات/تعاونات بحالات INVITED أو ACCEPTED أو ACTIVE مرتبطة بحملات COMPLETED أو CANCELLED.
+- الهدف عدم تثبيت الحماية الجديدة فوق بيانات تاريخية تخالف دورة حياة الحملة. يجب تسوية هذه السجلات صراحة قبل التطبيق.
+- لم تُطبق migration ولم تُشغّل اختبارات أو مراجعة أو نشر. تظل الحماية غير فعالة حتى التطبيق والتحقق الفعلي.
+
+- أُضيف فهرس تغطية `marketing_campaign_participants_allocation_guard_idx` على `(campaign_id,status)` مع تضمين `allocation_percent` لدعم استعلام مجموع التخصيصات داخل التريغر. أثر الأداء الفعلي لم يُقَس لأن الاختبارات/القياس لم تُشغّل.
+
+
+## 2026-10-19 — Marketing allocation display parity
+- The UI allocation hint now counts only INVITED, ACCEPTED, and ACTIVE assignments, matching the backend allocation invariant; COMPLETED assignments are excluded from the active total.
+- Duplicate-assignment feedback now includes ACTIVE assignments, matching the backend's existing-assignment behavior.
+- Implementation only. No tests or review were run; RC454 is not applied and production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — RC455 marketing terminal lifecycle guard (implementation only)
+- Added migration `20261019070000_rc455_marketing_campaign_terminal_guard.sql`: terminal campaign transitions now require all partner assignments to leave `INVITED`/`ACCEPTED`/`ACTIVE` first.
+- Updated invitation-response RPC lock order to campaign then participant so a response cannot race past the terminal-state guard using the former participant-first order.
+- NOT VERIFIED: migration not applied; no tests, review, or deployment performed. Concurrency safety remains unproven until PostgreSQL validation. Production stays BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — RC456 marketing partner closure RPC (implementation only)
+- Added `supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql` to supply the missing manager-authorized transition from INVITED/ACCEPTED/ACTIVE to REMOVED, enabling the RC455 terminal guard workflow to be completed deliberately.
+- Security boundaries in source: authenticated non-anonymous actor, `p_actor = auth.uid()`, active-business manager authorization, campaign → participant lock order, participant business/tenant match, bounded optional reason (500 chars), idempotent repeat closure, audit event, partner-owner notification when available, and least-privilege EXECUTE grant.
+- Status: IMPLEMENTED IN SOURCE / NOT VERIFIED. Migration not applied; no SQL tests, migration replay, CI, review, or deployment run. Verify actual table constraints/notification behavior and concurrent closure/invitation/status operations before applying. Production remains BLOCKED / NOT CERTIFIED.
+
+- UI follow-through: `web/app.js` now exposes manager-side closure for eligible active-business partner assignments through the RC456 RPC, with role/scope/state checks, confirmation, and bounded optional reason. No direct table mutation is used. This UI is source-only until RC456 is applied; tests and review remain pending.
+
+
+## 2026-10-19 — Marketing closure UX, cache, and contract assertions
+- Refreshed the app script cache key and service-worker registration key; bumped the PWA shell cache to `mnty-web-v130` so the new partner-closure UI is eligible for clients to fetch.
+- Added non-executed source contract assertions for the manager closure UI/RPC, terminal-state messaging, RC454/RC455/RC456 backend invariants, and current cache keys.
+- Added a frontend explanation when a terminal campaign transition is blocked by active partner assignments. Backend remains the source of truth.
+- Implementation only: assertions have not been run, migrations are unapplied, and no review/CI/browser/deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — RC456 closure idempotency correction (implementation only)
+- Moved the terminal-campaign rejection after the participant lock, scope consistency check, and already-REMOVED idempotency return. A repeated closure request now returns an idempotent result even if the campaign was subsequently completed/cancelled; new closure transitions remain blocked on terminal campaigns.
+- Preserved authorization-before-participant access and campaign → participant lock ordering.
+- Added a static source assertion for this ordering in `scripts/validate-marketing-campaign-backend.mjs`. The assertion was added but not executed; no SQL test, migration replay, review, CI, browser run, or deployment occurred. RC456 remains unapplied/unverified and production remains BLOCKED / NOT CERTIFIED.
+## 2026-10-19 — RC454–RC456 build continuation (source-only)
+
+- **IMPLEMENTED / NOT VERIFIED:** PR #299 contains campaign allocation integrity (RC454), terminal campaign guards (RC455), and manager-authorized partner closure (RC456). These migrations are source files only; do not infer application to the live schema.
+- **Added in this batch:** strengthened scripts/validate-marketing-campaign-backend.mjs source assertions for server-side closure-reason normalization/length, participant-to-campaign business and tenant consistency, terminal-campaign rejection, transactional audit presence, provider-owner notification targeting, and authenticated actor binding. The validator was edited but intentionally not executed under the build-first constraint.
+- **Remaining marketing build/review items:** inspect campaign/participant state transitions as one lifecycle; verify the live schema types and constraints used by RC453–RC456; add executable disposable-database coverage for RC456 closure, repeat closure, unauthorized actor/business, terminal campaign, audit atomicity, notification targeting, and concurrent close/status operations. Do not label static assertions as runtime tests.
+- **Dependency warning:** release/payment candidates and marketing migrations are independent source branches today. Preserve migration collision/history guards and do not combine or apply partial migration chains without an explicit reviewed integration plan.
+- **Next module after marketing build:** inspect SMM gateway/backend boundary and provider credential isolation, then content/notifications and reporting as source dependencies permit.
+- **Release gate:** BLOCKED / NOT CERTIFIED; no tests/CI, production migration, deployment, or merge performed in this build batch.
+## 2026-10-19 — SMM gateway build continuation (source-only)
+
+- **Added, not executed:** extended scripts/validate-smm-service-role-boundary.mjs with source contracts for provider-host allowlisting, HTTPS-only outbound requests, redirect rejection, bounded streaming response bodies, strict UTF-8 JSON parsing, bounded idempotency keys, HTTPS target URLs, request-size limits, dual-flag SMM launch approval, authenticated-user idempotency replay scope, and reconciliation-required handling for ambiguous wallet/provider outcomes.
+- **Existing safety boundary preserved:** SMM remains deferred by SMM_INITIAL_LAUNCH_DEFERRED=true. No provider call, wallet mutation, order creation, test execution, CI, deployment, or migration replay was performed.
+- **Not verified:** these are source-level assertions only; do not infer runtime safety from adding them. Existing service-role ACL integration assets remain unexecuted in this build batch.
+- **Next build tasks:** inspect SMM order lifecycle from insert through debit, provider submission, status reconciliation, and refund/credit paths; add isolated database scenarios for concurrent idempotency replay and ambiguous debit/provider outcomes; preserve deferred launch gate.
+- **Release gate:** BLOCKED / NOT CERTIFIED.
+## 2026-10-19 — SMM credential input validation correction (source-only)
+
+- **Fixed in source:** corrected two double-escaped control-character regular expressions in supabase/functions/smm-gateway/index.ts (provider API key validation and admin credit description sanitization) so they target actual ASCII control characters rather than literal backslash/u text.
+- **Regression guard added, not executed:** scripts/validate-smm-service-role-boundary.mjs now asserts the intended regex forms and rejects the prior double-escaped provider-key pattern.
+- **Not verified:** no validator/test/CI execution was performed. This is a source inspection and edit only; it does not certify the entire SMM gateway.
+- **Next:** inspect order lifecycle, wallet debit/refund/reconciliation contracts, and disposable PostgreSQL coverage; preserve the hard deferred-launch flag. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — Frontend-first execution checkpoint
+
+- **Strategy updated:** continue from the existing branch and prioritize source-derived frontend screen inventory and screen completion before routine backend work. Security-critical blockers may receive only the minimum safe intervention needed to prevent harm or unblock UI work.
+- **Inventory:** added `docs/FRONTEND_SCREEN_INVENTORY.md`. It distinguishes navigation entries and generic blueprint sections from verified complete screens; runtime/browser behavior remains NOT VERIFIED.
+- **Frontend implementation:** `web/module-blueprints.js` now makes the active section and section context panel respond to tab/button selection rather than returning only a success toast. The panel explicitly avoids claiming that unconnected backend actions have executed.
+- **PWA cache:** refreshed `web/index.html` and `web/sw.js` asset keys; shell cache advanced to `mnty-web-v131`.
+- **Not run:** tests, browser, build, CI, review, migrations, and deployment. Source changes remain NOT VERIFIED.
+- **Next:** audit shared navigation/dashboard and finish the first incomplete module's actual child screens and interactions before its backend integration. Preserve SMM launch deferral and all release blockers.
+- **Release gate:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — Shared global search UX state handling
+
+- Updated `web/app.js` global search so empty results are no longer conflated with source failures. All-source failures show an unavailable state with retry; partial failures are disclosed; successful zero-result searches retain a distinct empty state.
+- Refreshed `web/index.html` and `web/sw.js` app asset keys; PWA shell cache advanced to `mnty-web-v132`.
+- This is a frontend-only correction; search source permissions and backend contracts were not changed.
+- Validation not run: no tests, browser, build, CI, review, or deployment. Status: IMPLEMENTED IN SOURCE / NOT VERIFIED.
+
+
+## 2026-10-19 — Global search filter escape correction
+
+- During source review of the frontend search-state change, corrected the wildcard escaping expression to preserve the existing single-backslash behavior for literal `%` and `_` query characters.
+- Refreshed the app URL and service-worker registration/precache keys; cache advanced to `mnty-web-v133`.
+- This source correction has not been executed or tested. Do not claim search correctness from static edits alone.
+
+
+## 2026-10-19 — Generic workspace UI honesty correction
+
+- `web/app.js`: generic fallback workspaces no longer label decorative cards “الواجهة مكتملة” or show “UI READY”; they now clearly report a partial/unverified state. Added selectable section-scope actions with explicit remaining requirements, without fabricating backend execution.
+- Refreshed app/service-worker cache keys; shell cache advanced to `mnty-web-v135`.
+- This is a frontend status/interaction improvement, not completion of those module screens. Screen-by-screen implementation remains open. No tests, browser, build, CI, review, or deployment were run.
+
+
+## 2026-10-19 — PWA cache-key alignment follow-up
+
+- Reconciled the generic workspace UI update with the actual current asset strings: `web/index.html` now references `app.js?v=generic-workspace-sections-v2-20261019` and the matching service-worker URL; `web/sw.js` precaches the same app URL and uses `mnty-web-v135`.
+- This follow-up corrects cache-key alignment in source. No build, browser, test, CI or deployment was run; runtime cache behavior remains NOT VERIFIED.
+
+
+## 2026-10-19 — Dashboard quick-access accessibility
+
+- `web/app.js`: quick-access module cards now use semantic buttons with accessible names and a dedicated event binder instead of click-only article elements; added an explicit no-match state for filtered quick access.
+- `web/styles.css`: added visible `:focus-visible` outline and button layout adjustments for module cards.
+- `web/index.html` and `web/sw.js`: refreshed matching JS/CSS asset versions; cache advanced to `mnty-web-v136`.
+- Source-only change. No browser, test, build, CI, review or deployment was run; runtime/accessibility remain NOT VERIFIED.
+
+
+## 2026-10-19 — Module catalog interaction
+
+- `web/app.js`: module catalog tiles now use semantic buttons with accessible labels and the shared dashboard/module click binder.
+- Existing role and module-enabled checks in `selectModule` were preserved. No backend or permission behavior was relaxed.
+- No tests, browser, build, CI, review or deployment was run; source change remains NOT VERIFIED.
+
+
+## 2026-10-19 — Role dashboard keyboard navigation (build-only)
+
+- `web/app.js`: customer-dashboard, provider-dashboard, and role-workspace module cards render as semantic buttons with accessible names and use the existing shared module-navigation binder.
+- No RBAC/module-enabled filtering was relaxed. This is a navigation/accessibility improvement only; it does not imply that any module screen or backend workflow is complete.
+- `web/index.html` and `web/sw.js` now use `role-dashboard-module-buttons-20261019`; shell cache advanced to `mnty-web-v137`.
+- No tests, browser, build, CI, review, migration replay, merge, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Shared role binder source correction (not runtime verified)
+
+- Removed the stray standalone `async` token before `bindRoleAfterRender` in `web/app.js`; the function body only calls the role-command-center binder and remains synchronous.
+- Refreshed matching asset references to `role-dashboard-binder-fix-20261019`; PWA shell cache advanced to `mnty-web-v138`.
+- No parser, browser, tests, build, CI, review, or deployment was run. Do not infer runtime correctness from this static source correction. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Notifications unread-list consistency (not verified)
+
+- `web/app.js`: derive the unread panel from the sorted complete in-memory notification list, capped at 12 unread rows, rather than filtering only the separate 12-most-recent list. The unread KPI and unread panel now operate on the same loaded dataset.
+- Updated `web/index.html` and `web/sw.js` asset key to `notifications-unread-list-20261019`; cache is `mnty-web-v139`.
+- This does not change backend pagination or guarantee historical completeness. No tests, browser, build, CI, review, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Notification batch action and CSV formula guard (NOT VERIFIED)
+
+- [x] Add a bounded UI action for marking the newest 12 loaded unread notifications as read using the existing `mark_notifications_read_backend` RPC sequentially.
+- [x] Add an in-progress guard, per-record failure handling, truthful partial-success feedback, and a final workspace refresh.
+- [x] Harden campaign and partnership CSV formula guards against formula-like values with leading whitespace/control characters.
+- [x] Align `web/index.html` asset refs with `notification-batch-csv-guard-20261019`; advance PWA cache to `mnty-web-v140`.
+- [ ] Run parser/unit checks and browser interaction tests for success, partial failure, empty dataset, repeated clicks, and view refresh.
+- [ ] Test CSV exports with values beginning with whitespace + `=`, `+`, `-`, `@`, tabs, carriage returns, quotes, commas, Arabic text, and normal numeric fields.
+- [ ] Verify RPC authorization, current-user scoping, idempotency, and notification state persistence against an isolated test environment.
+- [ ] Re-run migration chain, authorization, payments/accounting, and tenant-isolation gates before any production certification.
+
+These are source changes only. No tests, browser, build, CI, migration replay, merge, or deployment were performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Marketing filter empty states (NOT VERIFIED)
+
+- [x] Add no-match feedback for campaign search/status filters and partnership search/status filters.
+- [x] Preserve the separate no-records state when the underlying loaded card list is empty.
+- [x] Keep visible-count status text and refresh asset/cache keys (`marketing-filter-empty-state-20261019`, `mnty-web-v141`).
+- [ ] Verify keyboard, screen-reader, responsive, and search/filter combinations in a real browser.
+
+No tests, browser, build, CI, review, merge, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — CI failure fixes (awaiting fresh checks)
+
+- [x] Correct the two malformed nested-quote escapes in `providerDashboard()` that caused `node --check web/app.js` to fail.
+- [x] Refresh app asset references to `provider-dashboard-syntax-fix-20261019`; service-worker cache `mnty-web-v142`.
+- [x] Correct the marketing campaign validator's too-narrow source-regex window for the existing idempotent `REMOVED` JSON response; no SQL migration behavior was changed.
+- [ ] Confirm fresh PR checks pass for JavaScript syntax, marketing campaign source contract, migration uniqueness/collisions, security boundaries, and all other workflows.
+- [ ] Do not merge while required checks are failing/in progress or while production deploy validation is not green. Keep production **BLOCKED / NOT CERTIFIED**.
+
+A prior PR check run failed JavaScript syntax in `web/app.js` and a marketing backend source assertion; a deployment workflow's validation job consequently failed and deployment was skipped. Fixes above are source-level changes and still require fresh CI evidence.
+
+
+## 2026-10-19 — Follow-up CI contract correction
+
+- [x] Fixed the sector-rendering validator's stale hard-coded cache assumptions (`mnty-web-v129` and an old app URL) to validate the versioned cache name and exact current `web/index.html` app URL instead.
+- [x] Replaced stale marketing UI cache literals with checks against the current asset version; the service-worker registration must explicitly use a versioned URL.
+- [ ] Fresh CI must pass against the latest PR head. A deploy workflow validation failed before deployment because these stale source-contract assertions rejected the newer cache version; the deploy job was skipped. Keep production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — SMM redirect validator correction (SOURCE ONLY)
+
+- [x] Align the redirect-blocking source assertion with the actual gateway `fetch()` call in `supabase/functions/smm-gateway/index.ts` (`redirect: "error"`).
+- [ ] Confirm the SMM service-role boundary workflow passes on the latest PR head.
+- [ ] Keep SMM initial launch deferred until reviewed launch approval and full security/integration evidence are present.
+
+No production deploy or merge was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — SMM payload-bound contract correction
+
+- [x] Corrected a false-negative in `scripts/validate-smm-service-role-boundary.mjs`: the shared bounded JSON parser defaults to 65,536 bytes, while `smm-gateway` deliberately calls it with `32*1024`. The contract now asserts the helper's bounded default and the gateway's explicit 32 KiB limit separately.
+- [ ] Re-run the SMM service-role boundary workflow on the latest PR head; prior isolated PostgreSQL ACL job passed, while its source validator failed on this mismatched assertion. No production code or migration was changed by this test-only correction.
+- [ ] Merge only after fresh required checks pass and the PR diff is reviewed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-19 — RC454 allocation trigger status-transition correction
+
+- [x] Source review found the allocation guard trigger did not include `status` in its `UPDATE OF` column list. A row moving into `INVITED`, `ACCEPTED`, or `ACTIVE` through a status-only update could therefore skip the aggregate allocation check.
+- [x] Updated RC454 to fire on participant status updates and strengthened the marketing backend source validator to lock this contract in.
+- [ ] Confirm the fresh `Marketing Campaign Backend` PostgreSQL and source-validation jobs pass on the exact new head.
+- [ ] Validate status-only transitions in a disposable PostgreSQL integration case before release. This is a migration source fix only; it has not been applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation status-transition guard correction
+
+- Source review found that RC454's allocation trigger originally ran on allocation/scope columns but not `status`, so changing a participant from `DECLINED`/`REMOVED` into `INVITED` could bypass the aggregate allocation check.
+- Updated the trigger column list to include `status`, and strengthened the marketing backend source validator to assert that status transitions are covered.
+- This is a source-level correctness fix only. Fresh PostgreSQL/CI evidence is still required; no migration was applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation guard follow-up
+
+- The allocation guard trigger now includes participant `status` updates, preventing reactivation from bypassing the active-allocation aggregate check.
+- The source validator now checks that status transitions are included. Fresh CI/PostgreSQL evidence is required; production migration was not applied. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-19 — Marketing RC454–RC456 integration coverage correction
+
+- [x] Fixed RC454 trigger coverage so participant `status` transitions invoke the allocation integrity guard, not only allocation/scope column changes.
+- [x] Extended the marketing PostgreSQL workflow to apply RC454, RC455, and RC456 after RC453 in chronological order; the workflow now triggers on each migration.
+- [x] Added PostgreSQL lifecycle assertions that reject terminal campaign transitions with active partners, close a partner assignment, verify the audit/notification, prove closure replay idempotency, and then permit cancellation.
+- [x] Added a source-contract assertion requiring the workflow to apply RC454–RC456 in order.
+- [ ] Await fresh CI on the latest PR head. The prior passing PostgreSQL run applied only RC453, so it is not evidence for RC454–RC456. No production migration was applied. Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] Included RC454–RC456 migration paths in both `push` and `pull_request` workflow filters and added a validator assertion for the PR path filter, preventing a silent skip when only a later migration changes.
+- [ ] Confirm the new workflow actually runs and passes on the final PR head.
+
+
+## 2026-10-19 — RC454 concurrent allocation regression coverage
+
+- [x] Added a disposable-PostgreSQL race test that starts one 60% active partner assignment, observes its transaction holding the campaign allocation lock, then attempts a competing 60% assignment.
+- [x] The test requires the first insert to commit, the competing insert to fail specifically with `MARKETING_ALLOCATION_OVER_100`, and the persisted active allocation total to remain exactly 60%.
+- [x] Added source-contract assertions so the marketing backend workflow cannot silently lose this concurrency regression.
+- [ ] Verify the latest exact-head Marketing Campaign Backend validator and PostgreSQL jobs. This test is CI-only and has not been run locally; no production migration was applied. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Campaign allocation UI parity fix
+
+- [x] Updated the client-side partner invitation precheck to count only `INVITED`, `ACCEPTED`, and `ACTIVE` assignments, matching the RC454 database guard. Previously, `COMPLETED` assignments could be counted by the UI even though the database excludes them from active allocation totals, causing false rejection of valid invitations.
+- [x] Rotated the web app asset key and PWA shell cache to `marketing-active-allocation-status-filter-20261019` / `mnty-web-v143`.
+- [x] Added a UI source-contract assertion for client/database active-status parity.
+- [ ] Verify fresh exact-head CI; no browser runtime test or production deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Marketing invite eligibility and CSV formula hardening
+
+- [x] Limited partner invitation campaign choices and submit-time validation to the backend-accepted states: `DRAFT`, `PLANNED`, and `IN_REVIEW`. The UI no longer offers `APPROVED` or `PAUSED` campaigns only to receive a server rejection.
+- [x] Extended both campaign and partnership CSV formula guards to treat a leading BOM as a formula-prefix bypass vector.
+- [x] Added source-contract assertions for inviteable statuses and BOM-prefixed formula handling; refreshed the app asset key and PWA cache to `marketing-invite-eligible-campaign-statuses-20261019` / `mnty-web-v144`.
+- [ ] Verify fresh exact-head UI/backend CI and review any regression. Browser runtime and production behavior remain unverified; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Regression validator hardening follow-up
+
+- [x] Corrected the UI source-contract pattern to match the literal BOM-aware CSV formula guard in `web/app.js`.
+- [x] Strengthened the backend source contract to require two distinct providers in the RC454 race test, with both competing allocations active at 60%.
+- [ ] Verify the fresh UI and PostgreSQL workflow results on the exact current head. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Provider-owned campaign invitation visibility
+
+- [x] Extended the marketing loader to read participant rows scoped either to the active business or to the signed-in user's own provider profile, then deduplicated the combined records.
+- [x] Added a narrowly scoped campaign detail query using only campaign IDs referenced by the provider's own participant rows; no unscoped campaign list is loaded when there is no active business.
+- [x] Adjusted the workspace to show linked provider campaigns and invitations, while keeping manager summaries and mutations restricted to the active business. Refreshed the app asset key and PWA cache to `marketing-provider-invitation-scope-20261019` / `mnty-web-v145`.
+- [ ] Verify exact-head source contracts and browser/provider-account behavior. No browser runtime test or production deployment was performed; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Provider invitation scope binding follow-up
+
+- [x] Bound the workspace's provider-profile ID before constructing the provider-owned participant/campaign view, avoiding a missing identifier in the new scoped path.
+- [x] Added a source-contract assertion that the provider ID is initialized before provider invitation filtering; refreshed app/PWA versions to `marketing-provider-invitation-scope-fix-20261019` / `mnty-web-v146`.
+- [ ] Verify exact-head UI and backend CI. Runtime/browser validation remains outstanding; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Provider workspace declaration cleanup
+
+- [x] Removed the duplicate provider-profile ID declaration introduced while wiring the provider-owned invitation view.
+- [x] Added a source-contract assertion requiring exactly one provider ID binding and refreshed the app/PWA versions to `marketing-provider-invitation-scope-stable-20261019` / `mnty-web-v147`.
+- [ ] Verify fresh exact-head JavaScript syntax and UI contract CI. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation guard follow-up
+
+- [x] Expanded the participant allocation trigger to fire when `status` changes, not only when campaign/business/tenant/allocation fields change. This closes the bypass where a previously `DECLINED` participant could re-enter an active state above the campaign's 100% allocation cap.
+- [x] Added a source-contract assertion that the trigger covers status transitions.
+- [x] Exact-head PostgreSQL campaign workflow and its source validator passed on head `d9e5f459aacadc788f0dc38307cca2b9b636d356`, including the RC454 status regression and RC454 concurrent-allocation regression.
+- [ ] Continue reviewing the marketing lifecycle for untested state transitions, and verify runtime/browser behavior before certification. Production remains **BLOCKED / NOT CERTIFIED**; no merge or deployment was performed.
+
+
+## 2026-10-19 — Public service discovery RLS correction (RC457)
+
+- Found that the public homepage queries `marketing_services` for ACTIVE catalog entries, but the current source policy found in RC99 grants only authenticated administrative management; no public ACTIVE read policy was present in that migration.
+- Added RC457 public view `marketing_services_public`, exposing only ACTIVE rows and allowlisted catalog columns to anon/authenticated; direct anonymous base-table reads are revoked.
+- Added RC458 public view `marketing_provider_profiles_public`, exposing only ACTIVE profiles and allowlisted public fields; direct anonymous base-table reads are revoked while owner/admin base-table access remains governed by existing RLS.
+- Updated `web/home.js` public discovery queries to use these views and removed private provider `settings` from public queries/rendering.
+- Added disposable PostgreSQL regression `supabase/tests/rc457_public_marketing_service_catalog.sql` and workflow `.github/workflows/public-service-catalog-rls.yml`, plus source contract `scripts/tests/rc457-public-catalog-source.mjs`.
+- RC457's isolated PostgreSQL workflow passed on earlier commit `826fc1576b689aaef8ff8be29f37cbacd928bf59`; the latest combined head `7dce257226110c164c22c849d53420e24990528c` has new/queued workflows and must be checked separately. Live schema parity and browser E2E remain NOT VERIFIED. Do not apply migrations to production from this change alone.
+- Production remains **BLOCKED / NOT CERTIFIED**; `docs/SESSION_LOG.md` remains untouched.
+
+
+- Follow-up privacy hardening: removed `settings` from all public `marketing_provider_profiles` list/detail selects in `web/home.js`. Public profile rendering no longer reads `settings.branding.logo_path`; it uses the explicitly selected public `profile_image_path` only. Added source-contract assertions to the RC457 workflow to prevent reintroducing provider settings into public queries.
+- Commit: `419381422f9f456d3bbd4c3b7a9d007bfea7bfbc` (frontend data minimization); `7f33a3512668894945f96be8fe7cdf65b4a1392a` (source contract); `826fc1576b689aaef8ff8be29f37cbacd928bf59` (CI wiring). Exact-head CI is queued and must pass before treating this as verified.
+
+
+## RC458 — Public provider profile field allowlist (2026-10-19)
+
+- Added `supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql` to revoke table-wide SELECT from PUBLIC/anon on `marketing_provider_profiles` and grant anonymous SELECT only on fields used by public discovery.
+- Source search found the older named policy granted ACTIVE-profile SELECT to `authenticated` only, not `anon`. RC458 now replaces that policy with explicit `anon, authenticated` SELECT constrained to `status = 'ACTIVE'`, and grants `anon` only the public field allowlist.
+- Extended the isolated PostgreSQL regression to cover active provider visibility, draft provider denial, and denial of `settings` reads; added source-contract assertions.
+- Latest PR head after this batch: `a3c1b5b8e6c10fbe7e3f17788626a8c38e3b3907`. RC457-only PostgreSQL run [39202937589](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39202937589) passed before RC458 was added; it does **not** verify RC458. Exact-head CI for RC458 is not yet confirmed.
+- No production migration/deployment performed. Keep production **BLOCKED / NOT CERTIFIED**.
+
+
+## RC458 regression wiring correction (2026-10-19)
+
+- Latest observed Public Service Catalog RLS run `39243250770` failed in the isolated PostgreSQL step because `supabase/tests/rc457_public_marketing_service_catalog.sql` queried `marketing_provider_profiles_public` without applying migration RC458 first. The job log confirmed `relation does not exist`; the source-contract step had passed.
+- Fixed the test setup to apply both RC457 and RC458 migrations before running assertions. Commit: `f8085a39516e1259a4b006906a69c08dcc358d43`.
+- Re-run for the corrected head is pending/not yet observed. Do not report the combined test as passing until a fresh workflow run completes successfully.
+- Production remains **BLOCKED / NOT CERTIFIED**; no production migration or deployment performed. `docs/SESSION_LOG.md` remains untouched.
+
+
+## Exact-head CI verification — public catalog and marketing lifecycle (2026-10-19)
+
+- Current verified code head for this CI batch: `2b8d6e93bc757d1c8b2645845db23ebd338da19f`.
+- Public service/provider allowlist regression passed, including the RC457+RC458 migration replay and private-column absence assertions: [run 39243530776](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530776).
+- Marketing campaign backend source validator and disposable PostgreSQL lifecycle/concurrency tests passed: [run 39243530754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530754).
+- Migration history immutability, migration version uniqueness, cross-PR migration collision guard, module professionalization validators, SMM service-role boundary, MantiGO privacy boundary, approval-action audit fixture, backend-only module boundary, marketing workspace contract, and web production-verification validation all passed in this CI batch. The web deploy job was skipped; this is not a production deployment.
+- The extra public-view column assertions were added after the earlier missing-RC458 test wiring failure; the latest passing run supersedes that earlier failure for this code head.
+- Remaining release gates: replay all new migrations against the complete target-schema fixture/live schema parity, review actual production grants/view ownership and tenant/owner policies, browser E2E for anonymous discovery and authenticated owner/admin behavior, complete end-to-end payment/webhook/finance checks, and disaster-recovery restore evidence. No production DB or deployment has been changed.
+- PR #299 remains open and Draft. Production remains **BLOCKED / NOT CERTIFIED**. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and leave `docs/SESSION_LOG.md` untouched.
+
+
+## RC456 partner-closure authorization regression added (2026-10-19)
+
+- Expanded the disposable PostgreSQL campaign integration to explicitly reject (1) a manager from another tenant/business attempting to close a participant and (2) a caller supplying an actor ID different from `auth.uid()`.
+- Added source-validator assertions requiring both regression cases. Changes are in commits `62a4aea2bb8c6ec360748f82da25f9106c0e9ed5` and `3fe667c159d363e383ed357d4511f8f84f07bb60`.
+- Fresh CI for code head `3fe667c159d363e383ed357d4511f8f84f07bb60` passed both the marketing source validator and the disposable PostgreSQL lifecycle suite in run [39243988580](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243988580). This includes the new cross-tenant closure denial and actor-spoof rejection assertions. This remains isolated test evidence, not production certification. Keep production **BLOCKED / NOT CERTIFIED** until the fresh workflow passes.
+
+
+
+## RC457/RC458 exact-head RLS hardening — 2026-10-19
+
+- Added exact-column allowlist and read-only privilege assertions for both public catalog views, plus explicit `security_barrier=true` regression checks.
+- Added an authenticated owner-scope regression to the isolated PostgreSQL fixture: the provider owner can read their own private base profile, while an unrelated authenticated identity cannot read that row. The public view remains restricted to active rows and the public allowlisted columns.
+- Added source-validator assertions so the owner-scope regression and security-barrier contract cannot silently disappear.
+- Exact-head CI for `890cb3b26b6178b4152baba7257c7ab30899f535`: all 12 PR-triggered workflows completed successfully, including Public Service Catalog RLS [run 39244750651](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750651), Marketing Campaign Backend [run 39244750604](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750604), and web production-verification [run 39244750653](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750653). The web deploy job was skipped; no deployment occurred.
+- Evidence is isolated CI only, not live production schema/grant proof. Remaining release gates: complete migration replay and schema parity; inspect actual production view ownership, grants and tenant/owner/admin policies; authenticated browser E2E; payment/webhook/finance E2E; disaster-recovery restore rehearsal. Production remains **BLOCKED / NOT CERTIFIED**. PR #299 stays Draft. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and do not modify `docs/SESSION_LOG.md`.
+
+
+## RC457/RC458 PUBLIC-role legacy-grant regression — 2026-10-19
+
+- [x] Expanded the disposable PostgreSQL fixture to simulate legacy table-level SELECT grants and sensitive column-level SELECT grants to both PUBLIC and anon for `marketing_services` and `marketing_provider_profiles`.
+- [x] Confirmed the exact-head source validator and PostgreSQL RLS regression passed on code head `cfdfb5642947070bd4c8555a4dc562aed8899dcf`: Public Service Catalog RLS [run 39246194127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39246194127).
+- [x] Confirmed Marketing Campaign Backend source validation and disposable PostgreSQL lifecycle tests passed on the same head: [run 39246193966](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39246193966).
+- [x] All 12 PR-triggered workflows in this batch completed successfully on that head. Web production-verification passed, but the deploy job was skipped; no deployment occurred.
+- [ ] Remaining P0 release gates are unchanged: full target-schema migration replay/live schema parity, independent review of production view ownership/grants/tenant-owner-admin policies, browser E2E, Paymob/webhook/finance E2E, and disaster-recovery restore evidence.
+- Production remains **BLOCKED / NOT CERTIFIED**. PR #299 remains Draft. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+## 2026-10-19 — RC457/RC458 public catalog image-path hardening and exact-head CI checkpoint
+
+- **Source fix:** `web/home.js` now resolves a provider profile image as a public Storage URL only when the path matches the owner-uploaded `users/<user UUID>/providers/<provider UUID>/(cover|logo).(jpg|jpeg|png|webp)` allowlist. Seeded local asset paths such as `assets/activities/...` are not treated as Storage object keys and continue to fall back to the provider-kind activity image.
+- **Regression check:** `scripts/tests/rc457-public-catalog-source.mjs` asserts the allowlist and preserves the local-asset fallback contract.
+- **Verified at exact head:** `a05ae89911d974c1b37c2382031a89f7b81340c3`; 12 PR-triggered workflow runs completed successfully: Migration History Immutability (39246694946), Marketing Workspace Contract (39246695143), Approval Action Audit Atomicity (39246694945), Deploy MantiqatiX Web validation (39246695015), MantiGO Open Ride Privacy Boundary (39246695103), Migration Version Uniqueness (39246694948), Public Service Catalog RLS (39246695066), Backend-only Module Boundary (39246694959), Marketing Campaign Backend (39246695218), SMM Service Role Access Boundary (39246695053), Module Professionalization Validation (39246695050), and Open PR Migration Collision Guard (39246695032). All reported conclusion=success.
+- **Deployment distinction:** the deploy workflow run succeeded as a workflow, but its deployment job was skipped; this is not evidence of a new live deployment.
+- **Still open:** browser/customer-provider-owner/admin E2E, two-tenant isolation, full migration replay/live-schema parity, production Security Advisor and leaked-password-protection sign-off, Paymob/webhook/finance E2E, backup/restore and rollback rehearsal, release signing and real-device regression. These workflow successes do not close those gates.
+- **Status:** source + listed CI verified at the recorded commit; production remains **BLOCKED / NOT CERTIFIED**. PR #299 remains open/draft; no merge, deployment, production migration, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and leave `docs/SESSION_LOG.md` untouched.
+
+## 2026-10-19 — Marketing CSV Unicode-whitespace formula-injection hardening
+
+- **Source fix:** both campaign and partnership CSV exporters now detect formula prefixes after JavaScript Unicode whitespace (`\s`) and BOM characters, rather than only ASCII control/space characters. This covers inputs prefixed with NBSP, em space, ideographic space, tabs, carriage returns, and BOM before `=`, `+`, `-`, or `@`.
+- **Regression contract:** updated `scripts/validate-marketing-campaign-ui.mjs` to require the Unicode-whitespace-aware guard.
+- **Cache parity:** updated `web/index.html` app/service-worker URLs and `web/sw.js` precache to `marketing-csv-unicode-formula-guard-20261019`; advanced shell cache to `mnty-web-v149`.
+- **Manual source/vector check:** verified both CSV guard occurrences, validator/source pattern alignment, app/service-worker URL parity, and regex vectors for ASCII and Unicode whitespace/BOM prefixes; ordinary text and positive numeric strings are not flagged. Negative numeric-looking strings are deliberately treated as formula-like text for safe CSV export.
+- **CI:** exact-head workflows were queued for commit `c97fec9fdb82f0d33b2490c7b32958256b00a566` at checkpoint time. Do not treat them as passed until their results are fetched and reviewed.
+- **Status:** source correction implemented; automated CI and browser/download behavior remain pending. Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, migration, or production data change was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+## 2026-10-19 — CSV formula-prefix executable vectors and exact-head CI
+
+- [x] Extended `scripts/validate-marketing-campaign-ui.mjs` beyond source matching with executable regex vectors for `=`, `+`, `-`, and `@` after ASCII whitespace, NBSP, em space, ideographic space, BOM, tab, and carriage return; ordinary text and positive numeric strings must not match.
+- [x] The Marketing Workspace Contract workflow passed on exact code head `187f8aaec2ff78fcba6f9f67c2764f0e26972bf5`, validating the source contract and executable vectors.
+- [x] All 12 PR-triggered workflows completed successfully on that exact code head: Marketing Workspace Contract (39247824657), Marketing Campaign Backend (39247824333), Public Service Catalog RLS (39247824401), SMM Service Role Access Boundary (39247824315), Backend-only Module Boundary (39247824268), Module Professionalization Validation (39247824247), MantiGO Open Ride Privacy Boundary (39247824895), Approval Action Audit Atomicity (39247824318), Migration History Immutability (39247824456), Migration Version Uniqueness (39247824240), Open PR Migration Collision Guard (39247824307), and Deploy MantiqaTiX Web validation (39247824298).
+- **Deployment distinction:** the web workflow's validation job passed, but its `deploy` job was skipped. No production deployment occurred.
+- **Remaining:** browser-level CSV download/open test, live database/view-grant parity, complete chronological migration replay, Paymob/webhook/finance E2E, and disaster-recovery restore/rollback rehearsal. CI success is not production certification.
+- Production remains **BLOCKED / NOT CERTIFIED**; PR #299 remains open and Draft. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+## 2026-10-19 — RC459 profile-media Storage policy regex repair
+
+- **Finding:** the existing owner-upload policy regex used a double-escaped dot in SQL, which does not express a literal file-extension separator in PostgreSQL's regex engine. The resulting owner path check could reject valid `.jpg`/`.png`/`.webp` keys. Historical migrations were left unchanged.
+- [x] Added forward-only migration `20261019110000_rc459_profile_media_policy_regex_fix.sql` to recreate the owner-bound INSERT/UPDATE/DELETE policies with a correctly escaped literal dot, retain supported `cover|logo` image extensions, preserve the non-anonymous guard, and keep the intentional public-read policy for presentation media.
+- [x] Added disposable PostgreSQL regression `supabase/tests/rc459_profile_media_policy_regex_fix.sql`: valid owner upload and supported extension update pass; SVG upload, another user's path, and changing an owned object to an unsupported extension are denied.
+- [x] Added workflow `.github/workflows/profile-media-policy-boundary.yml`; isolated PostgreSQL test passed on exact code head `d2f03f701421138820bbf8430ef42bec401e6dd1` ([run 39248348772](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39248348772)). All 13 PR-triggered workflows observed for that exact head completed successfully, including migration collision/version/history guards and the existing finance, SMM, public catalog, and marketing suites.
+- **Deployment distinction:** web validation passed, but the deploy job was skipped ([run 39248348898](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39248348898)). This was CI-only against disposable PostgreSQL; no live Storage policies or production data were changed.
+- **Remaining:** full chronological migration replay and live policy parity, real two-user/two-tenant Storage E2E, signed/public media consumer verification, browser CSV download/open checks, payment/finance E2E, and disaster-recovery restore/rollback evidence. Production remains **BLOCKED / NOT CERTIFIED**. PR #299 remains open/Draft; preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+### RC459 follow-up — anonymous presentation-media read assertion
+
+- [x] Strengthened the disposable PostgreSQL test to seed one public presentation asset and verify an `anon` session can actually read it, in addition to inspecting the retained `TO public` read policy. Owner upload/update acceptance and unsupported/cross-user denials remain covered.
+- [x] All 13 PR-triggered workflows passed again on exact code head `73f96570206641208967eed76ac73d954d157ce5`, including the expanded Profile Media Storage Policy Boundary run [39248560567](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39248560567). Web deploy validation succeeded but the deploy job was skipped; this was not a production deployment.
+- Production remains **BLOCKED / NOT CERTIFIED** pending live-schema/policy parity, end-to-end browser and two-tenant Storage tests, full migration replay, payment/finance verification, and disaster-recovery evidence.
+
+### RC459 follow-up — cross-owner delete and anonymous-upload negatives
+
+- [x] Expanded the isolated PostgreSQL regression to seed a second provider owned by a different user, prove the active user cannot delete that user's object, verify anonymous uploads are denied, and verify public presentation assets remain anonymously readable.
+- [x] The first expanded run correctly caught a **test-fixture assertion issue**: the anonymous-read count expected one object after adding a second seeded public object. Updated the expected fixture count to two; no application policy change was needed for this failure.
+- [x] The corrected regression passed on exact code head `632d2432d10e695074bd36a364630657d084b568` ([Profile Media Storage Policy Boundary run 39249381481](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39249381481)). All 13 PR-triggered workflows for that head completed successfully, including migration-history immutability, version uniqueness, cross-PR collision checks, finance journal integration, marketing, public catalog RLS, and the new storage-policy test. The web deploy workflow's deploy job remains skipped; no production deployment occurred.
+- Production remains **BLOCKED / NOT CERTIFIED**. Outstanding evidence remains full chronological migration replay and live schema/policy parity, real two-tenant Storage E2E, browser CSV download/open, Paymob/webhook/ledger E2E, and backup restore/rollback rehearsal. Keep PR #299 open/Draft, preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`, and do not modify `docs/SESSION_LOG.md`.
+
+
+### RC459 follow-up — anonymous Auth mutation boundary (2026-10-19)
+
+- [x] Code review found a role-boundary gap: Supabase anonymous Auth sessions use the `authenticated` database role, while the prior RC459 INSERT policy explicitly rejected `is_anonymous=true` but UPDATE and DELETE did not. This could allow an anonymous Auth identity with a matching owner/profile row to attempt owner-media mutations.
+- [x] Updated the forward migration `20261019110000_rc459_profile_media_policy_regex_fix.sql` so UPDATE `USING`, UPDATE `WITH CHECK`, and DELETE `USING` all reject anonymous Auth claims while preserving public reads and supported owner-managed image keys.
+- [x] Extended the disposable PostgreSQL regression to impersonate an anonymous Auth claim with the matching owner UID and assert both UPDATE and DELETE leave the owner's media unchanged. Assertions check the persisted row because RLS can silently filter UPDATE/DELETE rather than raising an exception.
+- [ ] **NOT VERIFIED:** CI has not yet returned for this new test/migration commit. Do not mark the security regression passed until the exact-head Profile Media Storage Policy Boundary workflow and relevant PR checks complete successfully.
+- Production remains **BLOCKED / NOT CERTIFIED**. No production migration, deployment, merge, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+### RC459 anonymous Auth mutation boundary — CI verification update (2026-10-19)
+
+- [x] The Profile Media Storage Policy Boundary PostgreSQL job completed successfully on exact branch commit `55197bb9c9ce0b889258cdaa2955f6a5046978db`, including the added anonymous-Auth UPDATE/DELETE regression. Workflow: [39250144863](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250144863). The job's `Apply isolated profile media policy regression` step is recorded as completed/success.
+- [x] Migration version uniqueness and history immutability checks passed on this code line; open-PR migration collision guard passed on documentation head `55197bb9c9ce0b889258cdaa2955f6a5046978db` ([39250144911](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250144911)). Marketing workspace validation passed on the same documentation head ([39250144873](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250144873)).
+- [ ] Remaining PR workflows were still queued/in progress at the last poll; do not report the full suite as green until all relevant runs finish.
+- These are isolated CI checks, not live Supabase Storage policy parity, full chronological migration replay, browser E2E, or production deployment. Production remains **BLOCKED / NOT CERTIFIED**. No merge, production migration, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-10-19 — RC459 anonymous Auth boundary and complete PR CI checkpoint
+
+- [x] Re-checked PR #299 at exact head `55f318aa3b639631ab5285c5c36f7da27d63aecc`; PR remains open and Draft.
+- [x] All 13 PR-triggered workflows returned `completed / success` for this exact head: Migration Version Uniqueness (39250279562), Migration History Immutability (39250279937), Profile Media Storage Policy Boundary (39250279616), Marketing Workspace Contract (39250279994), SMM Service Role Access Boundary (39250279583), Deploy MantiqatiX Web validation (39250279870), MantiGO Open Ride Privacy Boundary (39250279810), Marketing Campaign Backend (39250279644), Approval Action Audit Atomicity (39250279956), Backend-only Module Boundary (39250279908), Module Professionalization Validation (39250279741), Public Service Catalog RLS (39250279845), and Open PR Migration Collision Guard (39250279784).
+- [x] Confirmed the web workflow job details: `validate` completed successfully and `deploy` was `skipped`. This is validation evidence only; no production deployment occurred.
+- [x] RC459 disposable PostgreSQL policy regression passed in run [39250279616](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39250279616); public catalog RLS, marketing backend lifecycle/concurrency, migration history/version/collision, SMM access boundary, and the remaining listed workflow gates also completed successfully on this head.
+- [ ] This exact-head CI does not close the release gates requiring full chronological migration replay against the target schema, live production schema/grant/policy parity, browser and multi-tenant E2E, Paymob/webhook/ledger/settlement E2E, backup/restore and rollback rehearsal, leaked-password protection sign-off, or real-device/release-signing evidence.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, production migration, deployment, external campaign publication, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-10-19 — Production release gate migration-chain coverage correction
+
+- [x] Review found the production verification engine's required-migration manifest ended at RC453 plus the older SMM boundary, so it did not require the new RC454–RC459 marketing/storage migrations to be present before release certification.
+- [x] Added the six RC454–RC459 migration filenames to `scripts/production/verify-production.mjs` in timestamp order, after the earlier RC456 SMM migration by migration version (not by the human RC label).
+- [x] Strengthened `scripts/validate-production-gate-contract.mjs` to fail if any required SMM/RC454–RC459 migration marker is missing or not in chronological order.
+- [x] Exact source head `64393c9581a66d7f68bf424ad150313d1e4eba47`: all 13 PR-triggered workflows completed successfully. Relevant evidence: Marketing Campaign Backend [39250648787](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250648787) passed source validation and isolated PostgreSQL lifecycle/concurrency tests; Marketing Workspace Contract [39250648505](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250648505) passed; Module Professionalization Validation [39250648467](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250648467) passed; migration version/history/collision guards and all other listed PR workflows passed.
+- [x] Web workflow validation passed; deploy job was skipped because this is PR validation. No production deployment occurred.
+- [ ] The gate fix improves source-level completeness only; it does not prove the RC454–RC459 migrations are applied to Production or close live schema parity, full chronological target-schema replay, browser/multi-tenant E2E, Paymob/finance E2E, or disaster-recovery evidence.
+- PR #299 remains open and Draft. Production remains **BLOCKED / NOT CERTIFIED**. No merge, production migration, deployment, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-10-19 — RC456 closure reason boundary regression (authored, not run)
+
+- [x] Added a disposable-PostgreSQL integration assertion that a 501-character partner-closure reason is rejected with `MARKETING_PARTNER_CLOSURE_REASON_TOO_LONG`.
+- [x] The regression also asserts the failed request leaves the participant status unchanged and creates neither a closure audit event nor a provider notification.
+- [x] Added source-validator assertions requiring both the overlong-reason rejection and no-side-effects contract.
+- [ ] **NOT VERIFIED:** neither the SQL integration test nor the source validator was run during this build-first batch. Do not count this as test success.
+- Source commits: `cad2620de9537a0b5a0cf765c4051d1bb2ed09bf` and `a15abce3a25e26029b336fd64560361b94168220`. PR #299 remains Draft. Production remains **BLOCKED / NOT CERTIFIED**; no merge, production migration, or deployment was performed. Do not modify `docs/SESSION_LOG.md`.
+
+
+### RC456 closure reason audit normalization follow-up — authored, not run
+
+- [x] The successful closure integration case now passes a reason with leading/trailing whitespace and asserts the audit JSON stores the normalized trimmed reason.
+- [x] Added a source-validator assertion for this audit normalization contract.
+- [ ] **NOT VERIFIED:** SQL integration and source validator have not been executed in this build-first session.
+- Source commits: `e390e1ce173a8d6407925a8eef0b5ebf1f91fecc`, `08e032b7bf1768ee8023658c3b5345ed00119af3`, documentation continuation `a780e3fdcb47e3873c5355b30664fa813390297f`. Production remains **BLOCKED / NOT CERTIFIED**; PR #299 stays Draft; no deployment or merge.
+
+
+## 2026-10-19 — Frontend sensitive-write gate includes marketing campaign tables
+
+- [x] Expanded `SEC-FRONTEND-SENSITIVE-WRITES` source scan to detect literal direct mutations of `marketing_campaigns` and `marketing_campaign_participants`, in addition to previously monitored sensitive tables.
+- [x] Added a production-gate contract assertion requiring the marketing table names in that scan.
+- [ ] **NOT VERIFIED:** source validator and production verification script were not run during this build-first batch. This literal-reference scan is a defense-in-depth guard, not complete static analysis for dynamic table names.
+- Source commits: `e211eca231a638b84aa1f3f7a29f6c9297e0cc6e`, `2bfa1366419b90013385162540c24c9b7e0db1ba`, documentation `d563a15e3ca22e2640f23825cf0ceb26074fc08b`. PR #299 remains Draft; production remains **BLOCKED / NOT CERTIFIED**; no merge/deployment occurred.
+
+
+### RC456 terminal-state closure replay regression — authored, not run
+
+- [x] Added a PostgreSQL integration assertion that replaying closure for an already-removed partner after campaign cancellation remains idempotent.
+- [x] Asserted the terminal-state replay does not duplicate the audit event or provider notification.
+- [x] Added source-validator checks requiring both regression assertions.
+- [ ] **NOT VERIFIED:** latest SQL integration and source-validator execution are pending CI; do not count these assertions as test success.
+- Source commits: `dd49d6a497d45105a29b0be1e0569e360401c220`, `0a67ecae1b397951295451f45f6029f8f0dd5e64`. PR #299 remains Draft; production remains **BLOCKED / NOT CERTIFIED**. No merge or production deployment was performed. Do not modify `docs/SESSION_LOG.md`.

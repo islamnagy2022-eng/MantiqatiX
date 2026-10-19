@@ -8,13 +8,41 @@ assert.match(app, /function marketingCampaignWorkspace\(\)/, "campaign workspace
 assert.match(app, /function marketingAgencyWorkspace\(\)/, "agency workspace must remain available");
 assert.match(app, /function bindMarketingAgencyWorkspace\(\)/, "agency tabs must be interactive");
 assert.match(app, /function bindMarketingCampaignWorkspace\(\)/, "campaign actions must be interactive");
+assert.match(app, /id="mc-campaign-filter-empty"/, "campaign filters must expose a no-match state");
+assert.match(app, /id="mc-partner-filter-empty"/, "partner filters must expose a no-match state");
+assert.match(app, /empty\.hidden=cards\.length===0\|\|visible>0/, "filter no-match state must not replace the true empty-data state");
+assert.match(app, /async function markVisibleNotificationsRead\(\)/, "notification batch action must await backend outcomes");
+assert.match(app, /markVisibleNotificationsRead\.inProgress/, "notification batch action must prevent duplicate concurrent runs");
+assert.match(app, /mark_notifications_read_backend/, "notification batch action must persist read state through the backend RPC");
+assert.match(app, /تعذر تحديث '\+failed\+/, "notification batch action must report partial failures");
+assert.match(app, /slice\(0,12\)/, "notification batch action must be bounded to the latest 12 loaded unread rows");
+assert.match(app, /visibleCampaignIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "campaign export must honor active UI filters");
+assert.match(app, /visibleParticipantIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "partner export must honor active UI filters");
+assert.match(app, /\^\[\\s\\uFEFF\]\*\[=\+\\-@\]/, "CSV exports must neutralize formula prefixes after Unicode whitespace/BOM characters");
+const csvFormulaPrefix = /^[\s\uFEFF]*[=+\-@]/;
+for (const value of ["=1+1", "   +SUM(1,2)", "\u00a0=1+1", "\u2003-1", "\u3000@cmd", "\uFEFF=1+1", "\t=1+1", "\r+1"]) {
+  assert.match(value, csvFormulaPrefix, `CSV formula prefix must be neutralized: ${JSON.stringify(value)}`);
+}
+for (const value of ["ordinary text", "123", "  ordinary text"]) {
+  assert.doesNotMatch(value, csvFormulaPrefix, `ordinary CSV value must remain unchanged: ${JSON.stringify(value)}`);
+}
+
+assert.match(app, /data-mc-close/, "manager partner closure action must be rendered");
+assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure must use the backend RPC");
+assert.match(app, /لا يمكن إنهاء الحملة قبل إغلاق/, "terminal campaign transitions should explain the active-partner blocker");
 assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign reads must use a dedicated loader");
+assert.match(app, /function marketingCampaignWorkspace\(\)\{\s*const activeBusinessId=String\(live\.businessId\|\|\x27\x27\);\s*const myProviderId=live\.myProviderProfile\?\.id\?String\(live\.myProviderProfile\.id\):\x27\x27;/, "provider profile ID must be bound before scoped provider invitation filtering");
+assert.equal((app.match(/const myProviderId=live\.myProviderProfile\?\.id\?String\(live\.myProviderProfile\.id\):\x27\x27;/g)||[]).length, 1, "provider profile ID must not be redeclared within the workspace");
 assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
-assert.match(app, /from\('marketing_campaigns'\)\.select\([\s\S]{0,300}?\.eq\('business_id',live\.businessId\)/, "campaign reads must be scoped to the active business");
-assert.match(app, /if\(!live\.businessId\)[\s\S]{0,300}NO_ACTIVE_BUSINESS/, "no active business must fail closed without a broad campaign read");
+assert.match(app, /activeBusinessId\?sb\.from\('marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'\)\.eq\('business_id',activeBusinessId\)/, "manager campaign reads must be scoped to the active business");
+assert.match(app, /if\(!activeBusinessId&&!providerId\)[\s\S]{0,300}NO_ACTIVE_BUSINESS/, "campaign reads without a business must require an owned provider profile scope");
 assert.match(app, /marketingCampaignUnavailableReason==='NO_ACTIVE_BUSINESS'/, "missing business scope must show a truthful fallback notice");
-assert.match(app, /from\('marketing_campaign_participants'\)\.select\([\s\S]{0,300}?\.eq\('business_id',live\.businessId\)/, "participant reads must be scoped to the active business");
-assert.match(app, /filter\(c=>activeBusinessId&&String\(c\.business_id\|\|''\)===activeBusinessId\)/, "campaign display must enforce active-business scope");
+assert.match(app, /activeBusinessId\?sb\.from\('marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'\)\.eq\('business_id',activeBusinessId\)/, "manager participant reads must be scoped to the active business");
+assert.match(app, /providerId\?sb\.from\('marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'\)\.eq\('provider_id',providerId\)/, "provider participant reads must be scoped to the signed-in user's owned provider profile");
+assert.match(app, /providerCampaignIds\.length[\s\S]{0,180}from\('marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'\)\.in\('id',providerCampaignIds\)/, "provider campaign details must be restricted to campaign IDs from own participant rows");
+assert.match(app, /const businessCampaigns=allCampaignRows\.filter\(c=>activeBusinessId&&String\(c\.business_id\|\|''\)===activeBusinessId\)/, "manager campaign summaries must remain active-business scoped");
+assert.match(app, /allCampaignRows\.filter\(c=>providerCampaignIds\.has\(String\(c\.id\)\)\)/, "provider campaign display must be limited to campaigns referenced by own participant rows");
+assert.match(app, /const participants=\[\.\.\.new Map\(\[\.\.\.businessParticipants,\.\.\.providerParticipants\]/, "participant view must combine business-scoped and owned-provider rows without duplicates");
 
 assert.match(app, /marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'/, "participant reads must use an explicit field allowlist");
 assert.match(app, /live\.marketingCampaignErrors\.push\('marketing_campaigns'\)/, "failed campaign reads must not be presented as empty");
@@ -26,6 +54,9 @@ assert.match(app, /if\(current==='التسويق والإعلان'\)await loadMa
 assert.match(app, /const canManage=Boolean\(live\.businessId[\s\S]{0,250}marketing_campaign_participants/, "campaign mutations must be disabled when campaign read sources fail");
 assert.match(app, /create_marketing_campaign_backend/, "campaign creation must use the backend RPC");
 assert.match(app, /invite_marketing_campaign_partner_backend/, "partner invitation must use the backend RPC");
+assert.match(app, /const campaignOptions=campaigns\.filter\(c=>canManage&&String\(c\.business_id\)===String\(live\.businessId\)&&\[\x27DRAFT\x27,\x27PLANNED\x27,\x27IN_REVIEW\x27\]\.includes\(String\(c\.status\|\|\x27\x27\)\.toUpperCase\(\)\)\)/, "partner invite options must be limited to backend-eligible campaign statuses");
+assert.match(app, /const campaignIsAvailable=Boolean\(selectedCampaign&&\[\x27DRAFT\x27,\x27PLANNED\x27,\x27IN_REVIEW\x27\]\.includes\(campaignStatus\)\)/, "partner invitation submit must reject statuses the backend will reject");
+assert.match(app, /const activeAllocations=[\s\S]{0,450}\[\x27INVITED\x27,\x27ACCEPTED\x27,\x27ACTIVE\x27\]\.includes\(String\(p\.status\|\|\x27\x27\)\.toUpperCase\(\)\)/, "client allocation precheck must count exactly the same active statuses as the database guard");
 assert.match(app, /respond_marketing_campaign_invitation_backend/, "partner response must use the backend RPC");
 assert.match(app, /update_marketing_campaign_status_backend/, "campaign status changes must use the backend RPC");
 assert.match(app, /p_actor:user\.id/, "actor identity must come from the authenticated session");
@@ -36,11 +67,12 @@ assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaign_participants['"]\)\.(
 assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خدمات التسويق الرقمي SMM/, "marketing role home must expose the SMM shortcut");
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SMM quick access");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
-assert.match(index, /app\.js\?v=rc458-marketing-workspace-20261018/, "browser cache key must be refreshed");
+const appAssetVersion = index.match(/app\.js\?v=([^"' ]+)/)?.[1];
+assert.ok(appAssetVersion, "browser app asset must have an explicit cache version");
 const sw = fs.readFileSync("web/sw.js", "utf8");
-assert.match(sw, /const CACHE='mnty-web-v129'/, "PWA cache must be versioned for the new shell");
-assert.match(sw, /app\.js\?v=rc458-marketing-workspace-20261018/, "service worker must precache the exact versioned app entrypoint");
+assert.match(sw, /const CACHE='mnty-web-v\d+'/, "PWA shell cache must use a versioned cache name");
+assert.ok(sw.includes("app.js?v=" + appAssetVersion), "service worker must precache the exact app asset version used by the browser");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-assert.match(index, /sw\.js\?v=rc369-marketing-cache/, "service worker registration cache key must be refreshed");
+assert.match(index, /serviceWorker\.register\(["']\.\/sw\.js\?v=[^"']+["']\)/, "service worker registration must use an explicit versioned URL");
 
-console.log("Marketing workspace contract: PASS (32 assertions)");
+console.log("Marketing workspace contract: source assertions defined (not executed in build-first batch)");

@@ -498,9 +498,10 @@ function globalSearchCan(source){
 function globalSearchText(row,fields){return fields.map(k=>row?.[k]).filter(v=>v!==null&&v!==undefined).map(v=>typeof v==='object'?JSON.stringify(v):String(v)).join(' ')}
 async function globalSearch(queryText){
  const q=String(queryText||'').trim();
- if(q.length<2)return [];
+ if(q.length<2)return {results:[],failures:[],attempted:0};
  const needle='%'+q.replace(/[%_]/g,m=>'\\'+m)+'%';
  const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan);
+ const failures=[];
  const tasks=sources.map(async source=>{
   try{
    let queryBuilder=sb.from(source.table).select(source.select).limit(6);
@@ -518,19 +519,24 @@ async function globalSearch(queryText){
    if(result.error)throw result.error;
    return (result.data||[]).map(row=>({source,row,title:row.name||row.name_ar||row.name_en||row.title||row.subject||row.code||row.id,detail:globalSearchText(row,source.fields)}));
   }catch(error){
+   failures.push(source.key);
    console.warn('[MantiqatiX global search]',source.key,error?.message||error);
    return [];
   }
  });
  const groups=await Promise.all(tasks);
- return groups.flat().slice(0,40);
+ return {results:groups.flat().slice(0,40),failures,attempted:sources.length};
 }
-function globalSearchResultHtml(results){
- if(!results.length)return '<div class="mx-global-search-empty">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
- return results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
+function globalSearchResultHtml(results,failures=[],attempted=0){
+ const retry='<button type="button" class="btn btn-outline" style="width:auto;margin-top:8px" data-global-search-retry>إعادة المحاولة</button>';
+ if(!attempted)return '<div class="mx-global-search-empty">لا توجد مصادر بحث متاحة ضمن صلاحيات هذا الحساب.</div>';
+ if(!results.length&&failures.length===attempted)return '<div class="mx-global-search-empty" role="status">تعذر تحميل مصادر البحث. لم يتم اعتبار ذلك نتيجة فارغة.<div>'+retry+'</div></div>';
+ if(!results.length&&failures.length)return '<div class="mx-global-search-empty" role="status">لا توجد نتائج من المصادر المتاحة، وتعذر تحميل '+failures.length+' من '+attempted+' مصدرًا.<div>'+retry+'</div></div>';
+ if(!results.length)return '<div class="mx-global-search-empty" role="status">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
+ return results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('')+(failures.length?'<div class="mx-global-search-empty" role="status">بعض مصادر البحث لم تستجب ('+failures.length+' من '+attempted+').<div>'+retry+'</div></div>':'');
 }
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
-function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>تحكم في الوحدات التي تظهر للمنصة والمشتركين.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>`<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span></article>`).join('')}</div>`}
+function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>تحكم في الوحدات التي تظهر للمنصة والمشتركين.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>`<button type="button" class="card module" data-dashboard-module="${esc(m[1])}" aria-label="فتح الوحدة: ${esc(m[1])}"><span class="icon" aria-hidden="true">${m[0]}</span><h3>${esc(m[1])}</h3><span class="muted">${esc(m[2])}</span><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span></button>`).join('')}</div>`}
 function sectorsPage(){
  const list=filtered(sectors);
  const sectorMap={
@@ -549,15 +555,15 @@ function sectorsPage(){
 function genericPage(title,desc,items){
  const safe=Array.isArray(items)?items:[];
  const tabs=[['overview','نظرة عامة'],['data','البيانات'],['operations','العمليات'],['reports','التقارير'],['settings','الإعدادات']];
- const sections=safe.map((x,i)=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+['▣','◈','◌','◆','◇','◎'][i%6]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(x[0])+'</h3><span class="mnty-badge mnty-badge--ui">الواجهة مكتملة</span></div><p>'+esc(x[1])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div></div></article>').join('');
+ const sections=safe.map((x,i)=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">'+['▣','◈','◌','◆','◇','◎'][i%6]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(x[0])+'</h3><span class="mnty-badge mnty-badge--pending">واجهة أولية</span></div><p>'+esc(x[1])+'</p><div class="mnty-wire-row"><span></span><span></span><span></span></div><button type="button" class="linkbtn" data-generic-section="'+i+'">عرض نطاق القسم</button></div></article>').join('');
  const tabBody={
-  overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>مساحة العمل جاهزة</h3><p>الهيكل البصري والعمليات الأساسية لهذه الوحدة محددة. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',
+  overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>الواجهة الأولية قيد الاستكمال</h3><p>هذا عرض أولي لنطاق الوحدة، وليس إعلانًا عن اكتمال الشاشة أو العمليات. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',
   data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>سيتم ربط الجداول وواجهات القراءة الفعلية هنا حسب نطاق الحساب والصلاحيات، دون إنشاء سجلات تجريبية.</p></div>',
   operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>أزرار التنفيذ تُضاف فقط للعمليات التي لها مسار خادم معتمد وصلاحية واضحة. لا يتم تشغيل إجراء غير متصل.</p></div>',
   reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات ستعتمد على بيانات تشغيلية حقيقية؛ لذلك تظل القيم غير المتاحة فارغة بدل عرض أرقام تقديرية.</p></div>',
   settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>إعدادات الوحدة تظهر عند اكتمال مساراتها الخلفية والصلاحيات المرتبطة بها.</p></div>'
  };
- return '<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT WORKSPACE</span><h2>'+esc(title)+'</h2><p>'+esc(desc)+'</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--ui">UI READY</span><small>بيانات فعلية فقط عند توفر المصدر</small></div></div><div class="mnty-module-tabs" role="tablist" aria-label="أقسام مساحة العمل" data-workspace-tabs>'+tabs.map((t,i)=>'<button type="button" role="tab" aria-selected="'+(i===0?'true':'false')+'" class="'+(i===0?'active':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div><div class="mnty-tab-panel" id="mnty-generic-tab-panel" role="tabpanel" tabindex="0">'+tabBody.overview+'</div><div class="mnty-blueprint-grid">'+sections+'</div><div class="mnty-future-panel"><div><span class="eyebrow">CONNECTION LATER</span><h3>الشاشة جاهزة قبل اكتمال الخدمة الخلفية</h3><p>لن نعرض أرقامًا أو سجلات مصطنعة. عند اكتمال المصدر، يتم توصيله بهذه الواجهة مباشرة.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>READY</span></div><div><b>DATA</b><span>PENDING</span></div><div><b>SECURITY</b><span>SERVER</span></div></div></div></section>';
+ return '<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT WORKSPACE</span><h2>'+esc(title)+'</h2><p>'+esc(desc)+'</p></div><div class="mnty-product-meta"><span class="mnty-badge mnty-badge--pending">PARTIAL · NOT VERIFIED</span><small>بيانات فعلية فقط عند توفر المصدر</small></div></div><div class="mnty-module-tabs" role="tablist" aria-label="أقسام مساحة العمل" data-workspace-tabs>'+tabs.map((t,i)=>'<button type="button" role="tab" aria-selected="'+(i===0?'true':'false')+'" class="'+(i===0?'active':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div><div class="mnty-tab-panel" id="mnty-generic-tab-panel" role="tabpanel" tabindex="0">'+tabBody.overview+'</div><div class="mnty-blueprint-grid">'+sections+'</div><div class="mnty-future-panel"><div><span class="eyebrow">CONNECTION LATER</span><h3>الواجهة الأولية قيد الاستكمال</h3><p>لن نعرض أرقامًا أو سجلات مصطنعة. عند اكتمال المصدر، يتم توصيله بهذه الواجهة مباشرة.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>PARTIAL</span></div><div><b>DATA</b><span>PENDING</span></div><div><b>SECURITY</b><span>SERVER</span></div></div></div></section>';
 }
 async function loadBusinessCatalog(businessId,branchId=null,tenantId=null){
  if(!businessId)throw new Error('CATALOG_CONTEXT_REQUIRED');
@@ -655,10 +661,11 @@ function customerDashboard(){
  const services=live.records.services||[];
  const providerCards=providers.slice(0,6).map(p=>'<article class="card"><div class="row"><strong>'+esc(p.name_ar||'مقدم خدمة')+'</strong><span class="dot"></span></div><p class="muted">'+esc(p.provider_kind||'خدمة')+' · '+(p.is_verified?'موثق':'مسجل')+'</p><small>الحالة: '+esc(p.status||'—')+'</small>'+(p.business_id?'<button class="text-btn mx-provider-catalog" data-business-id="'+esc(p.business_id)+'" data-provider-name="'+esc(p.name_ar||'مقدم خدمة')+'">عرض الكتالوج</button>':'')+'</article>').join('');
  const serviceCards=services.slice(0,6).map(s=>'<article class="card"><div class="row"><strong>'+esc(s.name_ar||s.name_en||'خدمة')+'</strong><span class="dot"></span></div><p class="muted">'+esc(s.category_code||'خدمة متاحة')+'</p><small>خدمة نشطة على المنصة</small></article>').join('');
- return '<section class="hero"><div><span class="eyebrow">MantiqatiX · عميل</span><h2>اكتشف الخدمة المناسبة وتواصل مع مقدمها</h2><p>استعرض الخدمات ومقدميها من البيانات المتاحة، ثم أرسل طلبك وتابع حالته من حسابك.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الطلبات والعمليات\')">طلباتي</button></div></div></section><section class="cards"><div class="card"><div class="muted">وضع الحساب</div><div class="kpi">عميل</div><small>العضوية النشطة الحالية</small></div><div class="card"><div class="muted">الطلبات</div><div class="kpi">'+countOrDash('orders')+'</div><small>طلبات مرتبطة بحسابك</small></div><div class="card"><div class="muted">الخدمات النشطة</div><div class="kpi">'+services.length+'</div><small>خدمات مرئية حاليًا</small></div><div class="card"><div class="muted">الدعم</div><div class="kpi">'+countOrDash('support')+'</div><small>تذاكر الدعم</small></div></section><div class="section-head"><div><h2>خدمات متاحة الآن</h2><p>عرض معلومات فعلية فقط؛ لا يتم إنشاء طلب من هذه البطاقة دون مسار الطلب المعتمد.</p></div></div><div class="grid3">'+(serviceCards||'<div class="empty-state">لا توجد خدمات نشطة معروضة حاليًا.</div>')+'</div><div class="section-head"><div><h2>مقدمو الخدمات</h2><p>الملفات الظاهرة وفق صلاحيات القراءة الحالية.</p></div></div><div class="grid3">'+(providerCards||'<div class="empty-state">لا توجد ملفات مقدمي خدمة معروضة حاليًا.</div>')+'</div><div class="section-head"><div><h2>الوصول السريع</h2><p>الخدمات المتاحة لك كعميل.</p></div></div><div class="modules">'+visible.slice(0,8).map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div></article>').join('')+'</div>';
+ return '<section class="hero"><div><span class="eyebrow">MantiqatiX · عميل</span><h2>اكتشف الخدمة المناسبة وتواصل مع مقدمها</h2><p>استعرض الخدمات ومقدميها من البيانات المتاحة، ثم أرسل طلبك وتابع حالته من حسابك.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الطلبات والعمليات\')">طلباتي</button></div></div></section><section class="cards"><div class="card"><div class="muted">وضع الحساب</div><div class="kpi">عميل</div><small>العضوية النشطة الحالية</small></div><div class="card"><div class="muted">الطلبات</div><div class="kpi">'+countOrDash('orders')+'</div><small>طلبات مرتبطة بحسابك</small></div><div class="card"><div class="muted">الخدمات النشطة</div><div class="kpi">'+services.length+'</div><small>خدمات مرئية حاليًا</small></div><div class="card"><div class="muted">الدعم</div><div class="kpi">'+countOrDash('support')+'</div><small>تذاكر الدعم</small></div></section><div class="section-head"><div><h2>خدمات متاحة الآن</h2><p>عرض معلومات فعلية فقط؛ لا يتم إنشاء طلب من هذه البطاقة دون مسار الطلب المعتمد.</p></div></div><div class="grid3">'+(serviceCards||'<div class="empty-state">لا توجد خدمات نشطة معروضة حاليًا.</div>')+'</div><div class="section-head"><div><h2>مقدمو الخدمات</h2><p>الملفات الظاهرة وفق صلاحيات القراءة الحالية.</p></div></div><div class="grid3">'+(providerCards||'<div class="empty-state">لا توجد ملفات مقدمي خدمة معروضة حاليًا.</div>')+'</div><div class="section-head"><div><h2>الوصول السريع</h2><p>الخدمات المتاحة لك كعميل.</p></div></div><div class="modules">'+visible.slice(0,8).map(m=>'<button type="button" class="card module" data-dashboard-module="'+esc(m[1])+'" aria-label="فتح الوحدة: '+esc(m[1])+'"><div class="icon">'+m[0]+'</div><h3>'+esc(m[1])+'</h3><div class="muted">'+esc(m[2])+'</div></button>').join('')+'</div>'}
+function providerDashboard(){
+ const visible=modules.filter(m=>moduleEnabled(m[1])&&!['الموديولات','المستخدمون وCRM','العمولات والباقات','التقارير والتحليلات','طلبات التسجيل'].includes(m[1]));
+ return '<section class="hero"><div><span class="eyebrow">MantiqatiX · مقدم خدمة</span><h2>أدر نشاطك وخدماتك من مكان واحد</h2><p>اعرض خدماتك المنشورة، استقبل الطلبات المسموح بها، وتابع التشغيل من مساحة العمل. MANTIQATIX توفر البنية الرقمية ولا تتولى تنفيذ الخدمة ماديًا نيابةً عنك.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'ملف نشاطي\')">ملف نشاطي</button><button class="btn btn-ghost" onclick="selectModule(\'الطلبات والعمليات\')">الطلبات</button></div></div></section><section class="cards"><div class="card"><div class="muted">حالة النشاط</div><div class="kpi">'+(live.myProviderProfile?.status==='ACTIVE'?'نشط':live.myProviderProfile?.status==='PENDING'?'قيد المراجعة':live.myProviderProfile?.status==='INACTIVE'?'غير نشط':'غير مكتمل')+'</div><small>'+(live.myProviderProfile?.is_verified?'ملف موثق':'حالة الملف وفق البيانات الفعلية')+'</small></div><div class="card"><div class="muted">الطلبات</div><div class="kpi">'+countOrDash('orders')+'</div><small>الطلبات المتاحة وفق الصلاحيات</small></div><div class="card"><div class="muted">الخدمات</div><div class="kpi">'+live.records.services.length+'</div><small>الخدمات المتاحة</small></div><div class="card"><div class="muted">الإشعارات</div><div class="kpi">'+countOrDash('notifications')+'</div><small>آخر تحديثات النشاط</small></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>الأدوات المتاحة لنطاق مقدم الخدمة.</p></div></div><div class="modules">'+visible.slice(0,8).map(m=>'<button type="button" class="card module" data-dashboard-module="'+esc(m[1])+'" aria-label="فتح الوحدة: '+esc(m[1])+'"><div class="icon">'+m[0]+'</div><h3>'+esc(m[1])+'</h3><div class="muted">'+esc(m[2])+'</div></button>').join('')+'</div>';
 }
-function isProviderMode(){return ['SERVICE_PROVIDER','OWNER','MANAGER','STAFF','BUSINESS_PARTNER','DELIVERY_PARTNER'].includes(String(live.role||'').toUpperCase())&&!!live.myProviderProfile}
-function providerDashboard(){const visible=modules.filter(m=>moduleEnabled(m[1])&&!['الموديولات','المستخدمون وCRM','العمولات والباقات','التقارير والتحليلات','طلبات التسجيل'].includes(m[1]));return '<section class="hero"><div><span class="eyebrow">MantiqatiX · مقدم خدمة</span><h2>أدر نشاطك وخدماتك من مكان واحد</h2><p>اعرض خدماتك المنشورة، استقبل الطلبات المسموح بها، وتابع التشغيل من مساحة العمل. MANTIQATIX توفر البنية الرقمية ولا تتولى تنفيذ الخدمة ماديًا نيابةً عنك.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'ملف نشاطي\')">ملف نشاطي</button><button class="btn btn-ghost" onclick="selectModule(\'الطلبات والعمليات\')">الطلبات</button></div></div></section><section class="cards"><div class="card"><div class="muted">حالة النشاط</div><div class="kpi">'+(live.myProviderProfile?.status==='ACTIVE'?'نشط':live.myProviderProfile?.status==='PENDING'?'قيد المراجعة':live.myProviderProfile?.status==='INACTIVE'?'غير نشط':'غير مكتمل')+'</div><small>'+(live.myProviderProfile?.is_verified?'ملف موثق':'حالة الملف وفق البيانات الفعلية')+'</small></div><div class="card"><div class="muted">الطلبات</div><div class="kpi">'+countOrDash('orders')+'</div><small>الطلبات المتاحة وفق الصلاحيات</small></div><div class="card"><div class="muted">الخدمات</div><div class="kpi">'+live.records.services.length+'</div><small>الخدمات المتاحة</small></div><div class="card"><div class="muted">الإشعارات</div><div class="kpi">'+countOrDash('notifications')+'</div><small>آخر تحديثات النشاط</small></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>الأدوات المتاحة لنطاق مقدم الخدمة.</p></div></div><div class="modules">'+visible.slice(0,8).map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div></article>').join('')+'</div>'}
 function roleCommandCenter(){
  const role=String(live.role||'').toUpperCase();
  const scope=window.MNTY_RBAC?.scope(role)||'USER';
@@ -720,12 +727,12 @@ function roleWorkspaceDashboard(){
   ['المشروعات',countOrDash('projects'),'المشروعات التسويقية المرتبطة بالنطاق']
  ].filter((_,i)=>owner||provider||role==='SUPER_ADMIN'?true:i<4);
  const quick=modules.filter(m=>moduleEnabled(m[1])&&allowed(m[1])).slice(0,10);
- return '<section class="hero"><div><span class="eyebrow">MantiqatiX · '+esc(label)+'</span><h2>'+esc(owner?'لوحة إدارة النشاط والشركة':provider?'لوحة تشغيل مقدم الخدمة':'مركز تحكم المنصة')+'</h2><p>النطاق الحالي: '+esc(scope)+' · البيانات والعمليات تظهر وفق العضوية والصلاحيات الفعلية، ولا تمنح الواجهة صلاحية تتجاوز الخادم.</p><div class="hero-actions">'+(allowed('ORDERS')?'<button class="btn btn-light" onclick="selectModule(\'الطلبات والعمليات\')">الطلبات والعمليات</button>':'')+(allowed('ANALYTICS')?'<button class="btn btn-ghost" onclick="selectModule(\'التقارير والتحليلات\')">التقارير والتحليلات</button>':'')+'</div></div></section><section class="cards">'+cards.map(x=>'<div class="card"><div class="muted">'+x[0]+'</div><div class="kpi">'+x[1]+'</div><small>'+x[2]+'</small></div>').join('')+'</section><div class="section-head"><div><h2>لوحة العمل</h2><p>الموديولات المتاحة لهذا الدور والنطاق فقط.</p></div><span class="count">'+quick.length+' وحدات</span></div><div class="modules">'+quick.map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div><span class="status">صلاحية عرض متاحة</span></article>').join('')+'</div>';
+ return '<section class="hero"><div><span class="eyebrow">MantiqatiX · '+esc(label)+'</span><h2>'+esc(owner?'لوحة إدارة النشاط والشركة':provider?'لوحة تشغيل مقدم الخدمة':'مركز تحكم المنصة')+'</h2><p>النطاق الحالي: '+esc(scope)+' · البيانات والعمليات تظهر وفق العضوية والصلاحيات الفعلية، ولا تمنح الواجهة صلاحية تتجاوز الخادم.</p><div class="hero-actions">'+(allowed('ORDERS')?'<button class="btn btn-light" onclick="selectModule(\'الطلبات والعمليات\')">الطلبات والعمليات</button>':'')+(allowed('ANALYTICS')?'<button class="btn btn-ghost" onclick="selectModule(\'التقارير والتحليلات\')">التقارير والتحليلات</button>':'')+'</div></div></section><section class="cards">'+cards.map(x=>'<div class="card"><div class="muted">'+x[0]+'</div><div class="kpi">'+x[1]+'</div><small>'+x[2]+'</small></div>').join('')+'</section><div class="section-head"><div><h2>لوحة العمل</h2><p>الموديولات المتاحة لهذا الدور والنطاق فقط.</p></div><span class="count">'+quick.length+' وحدات</span></div><div class="modules">'+quick.map(m=>'<button type="button" class="card module" data-dashboard-module="'+esc(m[1])+'" aria-label="فتح الوحدة: '+esc(m[1])+'"><div class="icon">'+m[0]+'</div><h3>'+esc(m[1])+'</h3><div class="muted">'+esc(m[2])+'</div><span class="status">صلاحية عرض متاحة</span></button>').join('')+'</div>';
 }
 function dashboard(){
  const visibleModules=modules.filter(m=>moduleEnabled(m[1]));
  const quick=filtered(visibleModules).slice(0,8);
- return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM</span><h2>منصة تسويق وربط الخدمات المحلية</h2><p>واجهة موحدة لاكتشاف الخدمات، إدارة الأنشطة، استقبال الطلبات، التسويق، المتابعة والتقارير. كل رقم تشغيلي يظهر من مصدر فعلي فقط.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الموديولات\')">إدارة الموديولات</button></div></div></section><section class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div><div><b>'+countOrDash('orders')+'</b><span>طلبات</span></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>ابدأ من المجال أو الوحدة المناسبة.</p></div><span class="count">'+quick.length+' مساحات</span></div><div class="modules">'+quick.map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div><span class="status">فتح مساحة العمل</span></article>').join('')+'</div><section class="mnty-product-shell" style="margin-top:18px"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT ROADMAP</span><h2>المنصة تُبنى كمنتج واحد</h2><p>الوحدات غير المكتملة خلفيًا لا تتوقف عن الظهور؛ نستكمل تجربة الاستخدام أولًا ثم نربط الخدمات الحقيقية تدريجيًا.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>EVOLVING</span></div><div><b>DATA</b><span>REAL ONLY</span></div><div><b>API</b><span>SERVER</span></div></div></div></section>';
+ return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM</span><h2>منصة تسويق وربط الخدمات المحلية</h2><p>واجهة موحدة لاكتشاف الخدمات، إدارة الأنشطة، استقبال الطلبات، التسويق، المتابعة والتقارير. كل رقم تشغيلي يظهر من مصدر فعلي فقط.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الموديولات\')">إدارة الموديولات</button></div></div></section><section class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div><div><b>'+countOrDash('orders')+'</b><span>طلبات</span></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>ابدأ من المجال أو الوحدة المناسبة.</p></div><span class="count">'+quick.length+' مساحات</span></div><div class="modules">'+quick.map(m=>'<button type="button" class="card module" data-dashboard-module="'+esc(m[1])+'" aria-label="فتح مساحة العمل: '+esc(m[1])+'"><span class="icon" aria-hidden="true">'+m[0]+'</span><h3>'+esc(m[1])+'</h3><span class="muted">'+esc(m[2])+'</span><span class="status">صلاحية عرض متاحة</span></button>').join('')+'</div>'+(quick.length?'':'<div class="empty-state" role="status">لا توجد مساحات متاحة تطابق التصفية الحالية. امسح البحث أو افتح إدارة الموديولات لعرض المساحات المتاحة.</div>')+'<section class="mnty-product-shell" style="margin-top:18px"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT ROADMAP</span><h2>المنصة تُبنى كمنتج واحد</h2><p>الوحدات غير المكتملة خلفيًا لا تتوقف عن الظهور؛ نستكمل تجربة الاستخدام أولًا ثم نربط الخدمات الحقيقية تدريجيًا.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>EVOLVING</span></div><div><b>DATA</b><span>REAL ONLY</span></div><div><b>API</b><span>SERVER</span></div></div></div></section>';
 }
 function smmModulePage(){return `<div class="section-head"><div><h2>خدمات التسويق الرقمي SMM</h2><p>موديول MANTIQATIX لإدارة الخدمات الرقمية والطلبات والموردين من نفس الحساب.</p></div><span class="count">Module / SMM</span></div><div class="embedded-module"><iframe src="smm.html" title="MANTIQATIX SMM Module" loading="lazy"></iframe></div>`}
 function enterpriseCommandCenter(){
@@ -1229,9 +1236,11 @@ async function loadMarketingCampaignData(){
  live.marketingCampaignErrors=[];
  live.marketingCampaignUnavailable=false;
  live.marketingCampaignUnavailableReason=null;
+ const activeBusinessId=String(live.businessId||'');
+ const providerId=String(live.myProviderProfile?.id||'');
  const providersQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).limit(100);
- if(!live.businessId){
-  // Never read campaign/participant rows across all memberships without an active business scope.
+ if(!activeBusinessId&&!providerId){
+  // Never read campaign/participant rows broadly without either an active business or a narrowly scoped owned provider profile.
   live.marketingCampaignUnavailable=true;
   live.marketingCampaignUnavailableReason='NO_ACTIVE_BUSINESS';
   live.marketingCampaigns=[];
@@ -1241,24 +1250,46 @@ async function loadMarketingCampaignData(){
   if(providers.error)live.marketingCampaignErrors.push('marketing_provider_profiles');
   return;
  }
- const [campaigns,participants,providers]=await Promise.all([
-  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').eq('business_id',live.businessId).order('created_at',{ascending:false}).limit(50),
-  sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').eq('business_id',live.businessId).order('created_at',{ascending:false}).limit(100),
+ const emptyResult={data:[],error:null};
+ const [businessCampaigns,businessParticipants,providerParticipants,providers]=await Promise.all([
+  activeBusinessId?sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').eq('business_id',activeBusinessId).order('created_at',{ascending:false}).limit(50):Promise.resolve(emptyResult),
+  activeBusinessId?sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').eq('business_id',activeBusinessId).order('created_at',{ascending:false}).limit(100):Promise.resolve(emptyResult),
+  providerId?sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').eq('provider_id',providerId).order('created_at',{ascending:false}).limit(100):Promise.resolve(emptyResult),
   providersQuery
  ]);
- live.marketingCampaignUnavailable=[campaigns.error,participants.error].some(e=>Boolean(e)&&(['42P01','PGRST205'].includes(String(e.code||''))||/relation .* does not exist|could not find the table .*schema cache/i.test(String(e.message||''))));
+ const providerCampaignIds=[...new Set((providerParticipants.data||[]).map(p=>String(p.campaign_id||'')).filter(Boolean))];
+ const providerCampaigns=providerCampaignIds.length
+  ?await sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').in('id',providerCampaignIds).limit(100)
+  :emptyResult;
+ const campaignErrors=[businessCampaigns.error,providerCampaigns.error].filter(Boolean);
+ const participantErrors=[businessParticipants.error,providerParticipants.error].filter(Boolean);
+ const sourceErrors=[...campaignErrors,...participantErrors];
+ live.marketingCampaignUnavailable=sourceErrors.some(e=>['42P01','PGRST205'].includes(String(e.code||''))||/relation .* does not exist|could not find the table .*schema cache/i.test(String(e.message||'')));
  live.marketingCampaignUnavailableReason=live.marketingCampaignUnavailable?'SCHEMA_MISSING':null;
- live.marketingCampaigns=campaigns.error?[]:(campaigns.data||[]);
- live.marketingCampaignParticipants=participants.error?[]:(participants.data||[]);
+ const campaignMap=new Map();
+ for(const campaign of businessCampaigns.data||[])campaignMap.set(String(campaign.id),campaign);
+ for(const campaign of providerCampaigns.data||[])campaignMap.set(String(campaign.id),campaign);
+ live.marketingCampaigns=[...campaignMap.values()];
+ const participantMap=new Map();
+ for(const participant of businessParticipants.data||[])participantMap.set(String(participant.id),participant);
+ for(const participant of providerParticipants.data||[])participantMap.set(String(participant.id),participant);
+ live.marketingCampaignParticipants=[...participantMap.values()];
  live.marketingCampaignProviders=providers.error?[]:(providers.data||[]);
- if(campaigns.error)live.marketingCampaignErrors.push('marketing_campaigns');
- if(participants.error)live.marketingCampaignErrors.push('marketing_campaign_participants');
+ if(campaignErrors.length)live.marketingCampaignErrors.push('marketing_campaigns');
+ if(participantErrors.length)live.marketingCampaignErrors.push('marketing_campaign_participants');
  if(providers.error)live.marketingCampaignErrors.push('marketing_provider_profiles');
 }
 function marketingCampaignWorkspace(){
  const activeBusinessId=String(live.businessId||'');
- const campaigns=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>activeBusinessId&&String(c.business_id||'')===activeBusinessId);
- const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>activeBusinessId&&String(p.business_id||'')===activeBusinessId);
+ const myProviderId=live.myProviderProfile?.id?String(live.myProviderProfile.id):'';
+ const allCampaignRows=Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[];
+ const allParticipantRows=Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[];
+ const businessCampaigns=allCampaignRows.filter(c=>activeBusinessId&&String(c.business_id||'')===activeBusinessId);
+ const businessParticipants=allParticipantRows.filter(p=>activeBusinessId&&String(p.business_id||'')===activeBusinessId);
+ const providerParticipants=allParticipantRows.filter(p=>myProviderId&&String(p.provider_id||'')===myProviderId);
+ const participants=[...new Map([...businessParticipants,...providerParticipants].map(p=>[String(p.id),p])).values()];
+ const providerCampaignIds=new Set(providerParticipants.map(p=>String(p.campaign_id||'')));
+ const campaigns=[...new Map([...businessCampaigns,...allCampaignRows.filter(c=>providerCampaignIds.has(String(c.id)))].map(c=>[String(c.id),c])).values()];
  const providers=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).filter(p=>!live.businessId||String(p.business_id||'')!==String(live.businessId));
  const role=String(live.role||'').toUpperCase();
  const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)&&!(live.marketingCampaignErrors||[]).some(e=>['marketing_campaigns','marketing_campaign_participants'].includes(e)));
@@ -1272,15 +1303,15 @@ function marketingCampaignWorkspace(){
    return key;
   }catch(_){return window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);}
  })();
- const myProviderId=live.myProviderProfile?.id?String(live.myProviderProfile.id):'';
+ 
  const fmtMoney=(value,currency)=>esc(value==null?'—':Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' '+String(currency||'EGP'));
  const fmtDate=value=>value?esc(String(value).slice(0,10)):'—';
  const statusAr=v=>({DRAFT:'مسودة',PLANNED:'مخططة',IN_REVIEW:'قيد المراجعة',APPROVED:'معتمدة داخليًا',PAUSED:'متوقفة مؤقتًا',COMPLETED:'مكتملة',CANCELLED:'ملغاة',INVITED:'دعوة مرسلة',ACCEPTED:'مقبولة',DECLINED:'مرفوضة',ACTIVE:'نشطة',REMOVED:'مستبعدة'}[String(v||'').toUpperCase()]||String(v||'—'));
  const objectiveAr=v=>({AWARENESS:'الوعي بالعلامة',TRAFFIC:'زيارات',LEADS:'عملاء محتملون',SALES:'مبيعات',ENGAGEMENT:'تفاعل',APP_INSTALLS:'تثبيت التطبيق'}[String(v||'').toUpperCase()]||String(v||'—'));
  const channelAr=v=>({META:'Meta',TIKTOK:'TikTok',GOOGLE:'Google',YOUTUBE:'YouTube',LINKEDIN:'LinkedIn',SNAPCHAT:'Snapchat',OTHER:'أخرى'}[String(v||'').toUpperCase()]||String(v||''));
  const campaignById=new Map(campaigns.map(c=>[String(c.id),c]));
- const campaignOptions=campaigns.filter(c=>canManage&&String(c.business_id)===String(live.businessId));
- const providerOptions=providers.filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
+ const campaignOptions=campaigns.filter(c=>canManage&&String(c.business_id)===String(live.businessId)&&['DRAFT','PLANNED','IN_REVIEW'].includes(String(c.status||'').toUpperCase()));
+ const providerOptions=providers.filter(p=>String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
  const validNext=c=>({DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[String(c.status||'').toUpperCase()]||[]);
  const errorPanel=(live.marketingCampaignErrors||[]).length
   ?'<div class="notice" role="status">تعذر قراءة بعض مصادر الحملات: '+esc(live.marketingCampaignErrors.join('، '))+'؛ لا تُعرض هذه المصادر على أنها خالية من البيانات.</div>':'';
@@ -1299,14 +1330,29 @@ function marketingCampaignWorkspace(){
   '<div class="action-bar" style="grid-column:1/-1"><button class="btn btn-primary" id="mc-create-submit" type="submit" style="width:auto">حفظ خطة الحملة</button><span class="muted">يتم التحقق من صلاحية النشاط في قاعدة البيانات.</span></div>'+
   '</form></section>'
  ):(
-  '<section class="card" style="padding:16px;margin:16px 0"><h3>إنشاء الحملات متاح لمديري النشاط</h3><p class="muted">اختر عضوية نشطة مرتبطة بنشاط تجاري مخول لإدارة التسويق. الوصول الفعلي يُتحقق منه في الخادم.</p></section>'
+  live.businessId?'<section class="card" style="padding:16px;margin:16px 0"><h3>إنشاء الحملات متاح لمديري النشاط</h3><p class="muted">اختر عضوية نشطة مرتبطة بنشاط تجاري مخول لإدارة التسويق. الوصول الفعلي يُتحقق منه في الخادم.</p></section>':''
  );
+ const summaryCampaigns=canManage?businessCampaigns:campaigns;
+ const summaryParticipants=canManage?businessParticipants:providerParticipants;
+ const campaignCountByStatus=summaryCampaigns.reduce((counts,c)=>{const status=String(c.status||'DRAFT').toUpperCase();counts[status]=(counts[status]||0)+1;return counts;},{});
+ const campaignBudgetByCurrency=summaryCampaigns.reduce((totals,c)=>{const currency=String(c.currency||'EGP').toUpperCase();const amount=Number(c.budget);if(Number.isFinite(amount)&&amount>=0)totals[currency]=(totals[currency]||0)+amount;return totals;},{});
+ const budgetSummary=Object.entries(campaignBudgetByCurrency).sort(([a],[b])=>a.localeCompare(b)).map(([currency,amount])=>amount.toLocaleString('en-US',{maximumFractionDigits:2})+' '+currency).join(' · ');
+ const pendingPartnerInvites=summaryParticipants.filter(p=>String(p.status||'').toUpperCase()==='INVITED').length;
+ const acceptedPartnerAssignments=summaryParticipants.filter(p=>String(p.status||'').toUpperCase()==='ACCEPTED').length;
+ const campaignOperationsSummary=workspaceCards([
+  ['إجمالي الحملات',String(summaryCampaigns.length),canManage?'الحملات التابعة للنشاط المحدد فقط':'الحملات المرتبطة بدعوات ملف مقدم الخدمة'],
+  ['تحتاج مراجعة',String(campaignCountByStatus.IN_REVIEW||0),'خطط تنتظر القرار الداخلي'],
+  ['معتمدة داخليًا',String(campaignCountByStatus.APPROVED||0),'لا يعني نشرًا على منصة خارجية'],
+  ['دعوات شراكة معلقة',String(pendingPartnerInvites),'دعوات لم يصل ردها بعد'],
+  ['تعاونات مقبولة',String(acceptedPartnerAssignments),'إسنادات شراكة مقبولة'],
+  ['الميزانيات المخططة',budgetSummary||'—','مجمعة حسب العملة دون خلط العملات']
+ ]);
  const campaignCards=campaigns.length?campaigns.map(c=>{
   const mine=canManage&&String(c.business_id)===String(live.businessId);
   const next=validNext(c);
   const statusForm=mine&&next.length?'<div class="action-bar"><label class="sr-only" for="mc-status-'+esc(c.id)+'">الحالة التالية</label><select id="mc-status-'+esc(c.id)+'" data-mc-status-select="'+esc(c.id)+'">'+next.map(s=>'<option value="'+esc(s)+'">'+esc(statusAr(s))+'</option>').join('')+'</select><button type="button" class="btn btn-outline" data-mc-status="'+esc(c.id)+'" style="width:auto">تحديث الحالة</button></div>':'';
   const inviteButton=mine&&providerOptions.length?'<div class="muted">يمكن إسناد شريك من نموذج التعاون أدناه.</div>':'';
-  return '<article class="card" style="padding:16px;margin:10px 0"><div class="row"><div><span class="eyebrow">'+esc(objectiveAr(c.objective))+'</span><h3>'+esc(c.title)+'</h3></div><span class="mnty-badge">'+esc(statusAr(c.status))+'</span></div>'+
+  return '<article data-mc-campaign-card data-mc-campaign-id="'+esc(c.id)+'" data-mc-title="'+esc(c.title)+'" data-mc-status="'+esc(String(c.status||'').toUpperCase())+'" data-mc-objective="'+esc(String(c.objective||'').toUpperCase())+'" data-mc-channels="'+esc((c.channels||[]).join(' '))+'" class="card" style="padding:16px;margin:10px 0"><div class="row"><div><span class="eyebrow">'+esc(objectiveAr(c.objective))+'</span><h3>'+esc(c.title)+'</h3></div><span class="mnty-badge">'+esc(statusAr(c.status))+'</span></div>'+
    '<p class="muted">القنوات: '+esc((c.channels||[]).map(channelAr).join('، '))+' · الميزانية: '+fmtMoney(c.budget,c.currency)+'</p>'+
    '<p class="muted">الفترة: '+fmtDate(c.start_at)+' — '+fmtDate(c.end_at)+' · أُنشئت: '+fmtDate(c.created_at)+'</p>'+
    (c.brief?'<p>'+esc(c.brief)+'</p>':'')+statusForm+inviteButton+'</article>';
@@ -1317,30 +1363,33 @@ function marketingCampaignWorkspace(){
   '<div class="field"><label for="mc-invite-campaign">الحملة</label><select id="mc-invite-campaign" required>'+campaignOptions.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.title)+'</option>').join('')+'</select></div>'+
   '<div class="field"><label for="mc-invite-provider">الشركة الشريكة / المستقل</label><select id="mc-invite-provider" required>'+providerOptions.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name_ar||p.provider_kind)+' — '+esc(p.provider_kind)+'</option>').join('')+'</select></div>'+
   '<div class="field"><label for="mc-invite-role">دور الشريك</label><select id="mc-invite-role"><option value="CREATIVE">التصميم والإبداع</option><option value="CONTENT">المحتوى</option><option value="MEDIA_BUYING">إدارة الإعلانات</option><option value="ANALYTICS">التحليلات</option><option value="ACCOUNT_MANAGER">إدارة الحساب</option><option value="REFERRAL">الإحالات</option></select></div>'+
-  '<div class="field"><label for="mc-invite-allocation">نسبة التخصيص (%)</label><input id="mc-invite-allocation" type="number" min="0" max="100" step="0.01" value="0" required/></div>'+
+  '<div class="field"><label for="mc-invite-allocation">نسبة التخصيص (%)</label><input id="mc-invite-allocation" type="number" min="0" max="100" step="0.01" value="0" required/><small id="mc-allocation-summary" class="muted">سيظهر تقدير التخصيص عند اختيار الحملة.</small></div>'+
   '<div class="field"><label for="mc-invite-value">القيمة المتفق عليها (إن وجدت)</label><input id="mc-invite-value" type="number" min="0" max="1000000000" step="0.01" value="0" required/></div>'+
   '<div class="action-bar" style="grid-column:1/-1"><button class="btn btn-primary" id="mc-invite-submit" type="submit" style="width:auto">إرسال الدعوة</button></div></form></section>'
  ):(
-  canManage?'<section class="card" style="padding:16px;margin:16px 0"><h3>التعاون مع الشركاء</h3><p class="muted">'+(campaignOptions.length?'لا توجد ملفات شركات/مستقلين موثقة ومتاحة خارج النشاط الحالي.':'أنشئ حملة داخلية أولًا، ثم يمكنك دعوة شريك موثق.')+'</p></section>':''
+  canManage?'<section class="card" style="padding:16px;margin:16px 0"><h3>التعاون مع الشركاء</h3><p class="muted">'+(campaignOptions.length?'لا توجد ملفات شركات/مستقلين موثقة ومتاحة خارج النشاط الحالي.':(businessCampaigns.length?'لا توجد حملات في حالة تسمح بدعوة شريك. اختر حملة مسودة أو مخططة أو قيد المراجعة.':'أنشئ حملة داخلية أولًا، ثم يمكنك دعوة شريك موثق.'))+'</p></section>':''
  );
  const visibleParticipants=participants.filter(p=>{
   if(canManage&&String(p.business_id)===String(live.businessId))return true;
   return myProviderId&&String(p.provider_id)===myProviderId;
  });
+ const participantStatusCounts=visibleParticipants.reduce((counts,p)=>{const status=String(p.status||'').toUpperCase();counts[status]=(counts[status]||0)+1;return counts;},{});
  const participantCards=visibleParticipants.length?visibleParticipants.map(p=>{
   const c=campaignById.get(String(p.campaign_id));
-  const provider=providers.find(x=>String(x.id)===String(p.provider_id));
+  const provider=String(p.provider_id)===myProviderId&&live.myProviderProfile?live.myProviderProfile:providers.find(x=>String(x.id)===String(p.provider_id));
   const mayRespond=Boolean(myProviderId&&String(p.provider_id)===myProviderId&&String(p.status).toUpperCase()==='INVITED');
-  return '<article class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
+  const mayClose=Boolean(canManage&&String(p.business_id)===String(live.businessId)&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase())&&c&&!['COMPLETED','CANCELLED'].includes(String(c.status||'').toUpperCase()));
+  return '<article data-mc-participant-card data-mc-participant-id="'+esc(p.id)+'" data-mc-participant-search="'+esc([c?.title||'',provider?.name_ar||'',p.role||''].join(' '))+'" data-mc-participant-status="'+esc(String(p.status||'').toUpperCase())+'" class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
    '<p class="muted">التخصيص: '+esc(p.allocation_percent)+'% · القيمة: '+fmtMoney(p.agreed_value,c?.currency||'EGP')+'</p>'+
-   (mayRespond?'<div class="action-bar"><button type="button" class="btn btn-primary" data-mc-respond="'+esc(p.id)+'" data-mc-decision="ACCEPTED" style="width:auto">قبول الدعوة</button><button type="button" class="btn btn-outline" data-mc-respond="'+esc(p.id)+'" data-mc-decision="DECLINED" style="width:auto">رفض الدعوة</button></div>':'')+'</article>';
+   (mayRespond?'<div class="action-bar"><button type="button" class="btn btn-primary" data-mc-respond="'+esc(p.id)+'" data-mc-decision="ACCEPTED" style="width:auto">قبول الدعوة</button><button type="button" class="btn btn-outline" data-mc-respond="'+esc(p.id)+'" data-mc-decision="DECLINED" style="width:auto">رفض الدعوة</button></div>':'')+
+   (mayClose?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-close="'+esc(p.id)+'" style="width:auto">إنهاء مشاركة الشريك</button></div>':'')+'</article>';
  }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
  return marketingAgencyWorkspace()+
   '<section class="records" data-marketing-campaign-workspace><div class="section-head"><div><span class="eyebrow">INTERNAL CAMPAIGN WORKFLOW</span><h2>الحملات والتعاون مع الشركاء</h2><p class="muted">إدارة داخلية للخطط والدعوات. لا يوجد نشر خارجي تلقائي أو اتصال مباشر بمنصات الإعلانات.</p></div><span class="mnty-badge">RC453</span></div>'+
-  errorPanel+createForm+
-  '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div>'+campaignCards+'</section>'+
+  errorPanel+campaignOperationsSummary+(canManage?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-export style="width:auto">تصدير تقرير الحملات CSV</button><button type="button" class="btn btn-outline" data-mc-export-partners style="width:auto">تصدير تقرير الشراكات CSV</button></div>':'')+createForm+
+  '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div><div class="grid2" style="margin:12px 0"><div class="field"><label for="mc-campaign-search">البحث في الحملات</label><input id="mc-campaign-search" type="search" placeholder="ابحث بالاسم أو الهدف أو القناة" autocomplete="off"/></div><div class="field"><label for="mc-campaign-status-filter">تصفية حسب الحالة</label><select id="mc-campaign-status-filter"><option value="ALL">كل الحالات</option><option value="DRAFT">مسودة</option><option value="PLANNED">مخططة</option><option value="IN_REVIEW">قيد المراجعة</option><option value="APPROVED">معتمدة داخليًا</option><option value="PAUSED">متوقفة مؤقتًا</option><option value="COMPLETED">مكتملة</option><option value="CANCELLED">ملغاة</option></select></div></div><p id="mc-campaign-filter-count" class="muted" aria-live="polite"></p><div id="mc-campaign-filter-empty" class="empty-state" hidden>لا توجد حملات تطابق البحث والتصفية الحالية.</div>'+campaignCards+'</section>'+
   inviteForm+
-  '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div>'+participantCards+'</section></section>';
+  '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p><p class="muted">ملخص الحالات: دعوات مرسلة '+(participantStatusCounts.INVITED||0)+' · مقبولة '+(participantStatusCounts.ACCEPTED||0)+' · مرفوضة '+(participantStatusCounts.DECLINED||0)+' · مستبعدة '+(participantStatusCounts.REMOVED||0)+'</p></div></div><div class="grid2" style="margin:12px 0"><div class="field"><label for="mc-partner-search">البحث في الشراكات</label><input id="mc-partner-search" type="search" placeholder="اسم الحملة أو الشريك أو الدور" autocomplete="off"/></div><div class="field"><label for="mc-partner-status-filter">حالة الدعوة</label><select id="mc-partner-status-filter"><option value="ALL">كل الحالات</option><option value="INVITED">دعوة مرسلة</option><option value="ACCEPTED">مقبولة</option><option value="DECLINED">مرفوضة</option><option value="REMOVED">مستبعدة</option></select></div></div><p id="mc-partner-filter-count" class="muted" aria-live="polite"></p><div id="mc-partner-filter-empty" class="empty-state" hidden>لا توجد سجلات شراكة تطابق البحث والتصفية الحالية.</div>'+participantCards+'</section></section>';
 }
 async function refreshMarketingCampaignWorkspace(){
  await loadMarketingCampaignData();
@@ -1350,23 +1399,146 @@ async function refreshMarketingCampaignWorkspace(){
  bindMarketingCampaignWorkspace();
 }
 function bindMarketingCampaignWorkspace(){
+ const filterCampaignCards=()=>{
+  const query=String(document.getElementById('mc-campaign-search')?.value||'').trim().toLocaleLowerCase('ar');
+  const status=String(document.getElementById('mc-campaign-status-filter')?.value||'ALL').toUpperCase();
+  const cards=Array.from(document.querySelectorAll('[data-mc-campaign-card]'));
+  let visible=0;
+  cards.forEach(card=>{
+   const title=String(card.dataset.mcTitle||'').toLocaleLowerCase('ar');
+   const objective=String(card.dataset.mcObjective||'').toLocaleLowerCase('ar');
+   const channels=String(card.dataset.mcChannels||'').toLocaleLowerCase('ar');
+   const statusMatch=status==='ALL'||String(card.dataset.mcStatus||'').toUpperCase()===status;
+   const queryMatch=!query||title.includes(query)||objective.includes(query)||channels.includes(query);
+   const show=statusMatch&&queryMatch;
+   card.hidden=!show;
+   if(show)visible++;
+  });
+  const count=document.getElementById('mc-campaign-filter-count');
+  if(count)count.textContent='المعروض '+visible+' من '+cards.length+' حملة';
+  const empty=document.getElementById('mc-campaign-filter-empty');
+  if(empty)empty.hidden=cards.length===0||visible>0;
+ };
+ document.getElementById('mc-campaign-search')?.addEventListener('input',filterCampaignCards);
+ document.getElementById('mc-campaign-status-filter')?.addEventListener('change',filterCampaignCards);
+ filterCampaignCards();
+ const filterPartnerCards=()=>{
+  const query=String(document.getElementById('mc-partner-search')?.value||'').trim().toLocaleLowerCase('ar');
+  const status=String(document.getElementById('mc-partner-status-filter')?.value||'ALL').toUpperCase();
+  const cards=Array.from(document.querySelectorAll('[data-mc-participant-card]'));
+  let visible=0;
+  cards.forEach(card=>{
+   const searchable=String(card.dataset.mcParticipantSearch||'').toLocaleLowerCase('ar');
+   const statusMatch=status==='ALL'||String(card.dataset.mcParticipantStatus||'').toUpperCase()===status;
+   const queryMatch=!query||searchable.includes(query);
+   const show=statusMatch&&queryMatch;
+   card.hidden=!show;
+   if(show)visible++;
+  });
+  const count=document.getElementById('mc-partner-filter-count');
+  if(count)count.textContent='المعروض '+visible+' من '+cards.length+' سجل شراكة';
+  const empty=document.getElementById('mc-partner-filter-empty');
+  if(empty)empty.hidden=cards.length===0||visible>0;
+ };
+ document.getElementById('mc-partner-search')?.addEventListener('input',filterPartnerCards);
+ document.getElementById('mc-partner-status-filter')?.addEventListener('change',filterPartnerCards);
+ filterPartnerCards();
+ document.querySelectorAll('[data-mc-export-partners]').forEach(button=>button.addEventListener('click',()=>{
+  const role=String(live.role||'').toUpperCase();
+  const activeBusinessId=String(live.businessId||'');
+  if(!activeBusinessId||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
+   showToast('تصدير الشراكات متاح لمديري النشاط المخول فقط.','error');
+   return;
+  }
+  const campaigns=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>String(c.business_id||'')===activeBusinessId);
+  const campaignById=new Map(campaigns.map(c=>[String(c.id),c]));
+  const visibleParticipantIds=new Set(Array.from(document.querySelectorAll('[data-mc-participant-card]')).filter(card=>!card.hidden).map(card=>String(card.dataset.mcParticipantId||'')).filter(Boolean));
+  const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&campaignById.has(String(p.campaign_id))&&visibleParticipantIds.has(String(p.id)));
+  if(!participants.length){showToast('لا توجد سجلات شراكة مطابقة للبحث والتصفية الحالية للتصدير.','info');return;}
+  const providers=Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[];
+  const columns=[['campaign','الحملة'],['provider','الشريك'],['role','الدور'],['status','الحالة'],['allocation_percent','نسبة التخصيص'],['agreed_value','القيمة المتفق عليها'],['currency','العملة'],['created_at','تاريخ الإنشاء']];
+  const csvCell=value=>{
+   let text=String(value??'');
+   if(/^[\s\uFEFF]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
+   return '"'+text.replace(/"/g,'""')+'"';
+  };
+  const rows=participants.map(p=>{
+   const campaign=campaignById.get(String(p.campaign_id))||{};
+   const provider=providers.find(x=>String(x.id)===String(p.provider_id));
+   return {campaign:campaign.title||'',provider:provider?.name_ar||provider?.name||'غير متاح',role:p.role||'',status:p.status||'',allocation_percent:p.allocation_percent??'',agreed_value:p.agreed_value??'',currency:campaign.currency||'EGP',created_at:p.created_at||''};
+  });
+  const csv='\uFEFF'+columns.map(([,label])=>csvCell(label)).join(',')+'\r\n'+rows.map(row=>columns.map(([key])=>csvCell(row[key])).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='mantiqatix-partnerships-'+new Date().toISOString().slice(0,10)+'.csv';
+  link.hidden=true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('تم تجهيز تقرير الشراكات المرتبطة بالنشاط الحالي.','success');
+ }));
+ document.querySelectorAll('[data-mc-export]').forEach(button=>button.addEventListener('click',()=>{
+  const role=String(live.role||'').toUpperCase();
+  const activeBusinessId=String(live.businessId||'');
+  if(!activeBusinessId||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
+   showToast('تصدير الحملات متاح لمديري النشاط المخول فقط.','error');
+   return;
+  }
+  const visibleCampaignIds=new Set(Array.from(document.querySelectorAll('[data-mc-campaign-card]')).filter(card=>!card.hidden).map(card=>String(card.dataset.mcCampaignId||'')).filter(Boolean));
+  const rows=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>String(c.business_id||'')===activeBusinessId&&visibleCampaignIds.has(String(c.id)));
+  if(!rows.length){showToast('لا توجد حملات مطابقة للبحث والتصفية الحالية للتصدير.','info');return;}
+  const columns=[
+   ['title','اسم الحملة'],['objective','الهدف'],['channels','القنوات'],['budget','الميزانية'],['currency','العملة'],
+   ['status','الحالة'],['start_at','تاريخ البداية'],['end_at','تاريخ النهاية'],['created_at','تاريخ الإنشاء'],['brief','ملخص الحملة']
+  ];
+  const csvCell=value=>{
+   let text=Array.isArray(value)?value.join(' | '):String(value??'');
+   if(/^[\s\uFEFF]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
+   return '"'+text.replace(/"/g,'""')+'"';
+  };
+  const csv='\uFEFF'+columns.map(([,label])=>csvCell(label)).join(',')+'\r\n'+rows.map(row=>columns.map(([key])=>csvCell(row[key])).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='mantiqatix-campaigns-'+new Date().toISOString().slice(0,10)+'.csv';
+  link.hidden=true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('تم تجهيز تقرير الحملات المرئية للنشاط الحالي.','success');
+ }));
  const createForm=document.getElementById('marketing-campaign-create-form');
  if(createForm)createForm.onsubmit=async event=>{
   event.preventDefault();
   const button=document.getElementById('mc-create-submit');
   if(button?.disabled)return;
   const title=String(document.getElementById('mc-title')?.value||'').trim();
-  const objective=String(document.getElementById('mc-objective')?.value||'LEADS');
-  const channels=String(document.getElementById('mc-channels')?.value||'').split(/[،,]/).map(x=>x.trim()).filter(Boolean);
-  const budget=Number(document.getElementById('mc-budget')?.value);
+  const objective=String(document.getElementById('mc-objective')?.value||'LEADS').trim().toUpperCase();
+  const allowedObjectives=new Set(['AWARENESS','TRAFFIC','LEADS','SALES','ENGAGEMENT','APP_INSTALLS']);
+  const allowedChannels=new Set(['META','TIKTOK','GOOGLE','YOUTUBE','LINKEDIN','SNAPCHAT','OTHER']);
+  const channels=[...new Set(String(document.getElementById('mc-channels')?.value||'').split(/[،,]/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
+  const rawBudget=String(document.getElementById('mc-budget')?.value??'').trim();
+  const budget=rawBudget===''?NaN:Number(rawBudget);
   const currency=String(document.getElementById('mc-currency')?.value||'EGP').trim().toUpperCase();
+  const allowedCurrencies=new Set(['EGP','USD','SAR','AED']);
   const region=String(document.getElementById('mc-region')?.value||'').trim();
   const brief=String(document.getElementById('mc-brief')?.value||'').trim();
   const startValue=String(document.getElementById('mc-start')?.value||'');
   const endValue=String(document.getElementById('mc-end')?.value||'');
   if(!live.businessId)return showToast('اختر عضوية نشاط تجاري نشطة قبل إنشاء الحملة.','error');
-  if(!title||title.length<3||!channels.length||!Number.isFinite(budget)||budget<0)return showToast('راجع اسم الحملة والقنوات والميزانية.','error');
-  if(Boolean(startValue)!==Boolean(endValue)||(startValue&&new Date(startValue)>=new Date(endValue)))return showToast('أدخل تاريخ البداية والنهاية معًا، على أن تكون النهاية بعد البداية.','error');
+  if(title.length<3||title.length>160)return showToast('اسم الحملة يجب أن يكون بين 3 و160 حرفًا.','error');
+  if(!allowedObjectives.has(objective))return showToast('اختر هدفًا معتمدًا للحملة.','error');
+  if(!channels.length||channels.some(channel=>!allowedChannels.has(channel)))return showToast('راجع القنوات؛ استخدم فقط META, TIKTOK, GOOGLE, YOUTUBE, LINKEDIN, SNAPCHAT أو OTHER.','error');
+  if(!Number.isFinite(budget)||budget<0||budget>1000000000)return showToast('الميزانية يجب أن تكون رقمًا من صفر إلى مليار.','error');
+  if(!allowedCurrencies.has(currency))return showToast('اختر عملة مدعومة من القائمة.','error');
+  if(region.length>120||brief.length>5000)return showToast('تجاوز الجمهور أو ملخص الحملة الحد المسموح به.','error');
+  if(Boolean(startValue)!==Boolean(endValue))return showToast('أدخل تاريخ البداية والنهاية معًا.','error');
+  if(startValue&&(!Number.isFinite(Date.parse(startValue+'T00:00:00'))||!Number.isFinite(Date.parse(endValue+'T00:00:00'))||startValue>=endValue))return showToast('تاريخ النهاية يجب أن يكون بعد تاريخ البداية بصيغة صحيحة.','error');
   const key=String(document.getElementById('mc-idempotency-key')?.value||'').trim();
   if(key.length<8)return showToast('تعذر تجهيز مفتاح آمن لإرسال الحملة؛ أعد تحميل مساحة العمل.','error');
   const targetAudience=region?{region:region}:{};
@@ -1383,6 +1555,28 @@ function bindMarketingCampaignWorkspace(){
   }catch(error){showToast('تعذر حفظ الحملة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
   finally{if(button.isConnected){button.disabled=false;button.textContent='حفظ خطة الحملة';}}
  };
+ const refreshAllocationHint=()=>{
+  const summary=document.getElementById('mc-allocation-summary');
+  if(!summary)return;
+  const campaignId=String(document.getElementById('mc-invite-campaign')?.value||'');
+  if(!campaignId){summary.textContent='اختر الحملة لمعرفة التخصيص المتاح.';return;}
+  const activeBusinessId=String(live.businessId||'');
+  const rows=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase()));
+  const used=rows.reduce((sum,p)=>sum+Math.max(0,Number(p.allocation_percent)||0),0);
+  const input=document.getElementById('mc-invite-allocation');
+  const providerId=String(document.getElementById('mc-invite-provider')?.value||'');
+  const raw=String(input?.value??'').trim();
+  const requested=raw===''?NaN:Number(raw);
+  const remaining=Math.max(0,100-used);
+  const duplicate=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).some(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&String(p.provider_id||'')===providerId&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase()));
+  const projected=used+(Number.isFinite(requested)?requested:0);
+  const warning=duplicate?' تنبيه: يوجد تعاون قائم أو دعوة معلقة لهذا الشريك في الحملة.':(Number.isFinite(requested)&&projected>100.000001?' تنبيه: الإجمالي المتوقع يتجاوز 100%؛ لن يُسمح بإرسال الدعوة.':'');
+  summary.textContent='المخصص حاليًا: '+used.toLocaleString('en-US',{maximumFractionDigits:2})+'% · المتبقي: '+remaining.toLocaleString('en-US',{maximumFractionDigits:2})+'%'+(Number.isFinite(requested)?' · الإجمالي المتوقع: '+projected.toLocaleString('en-US',{maximumFractionDigits:2})+'%':'')+warning;
+ };
+ document.getElementById('mc-invite-campaign')?.addEventListener('change',refreshAllocationHint);
+ document.getElementById('mc-invite-provider')?.addEventListener('change',refreshAllocationHint);
+ document.getElementById('mc-invite-allocation')?.addEventListener('input',refreshAllocationHint);
+ refreshAllocationHint();
  const inviteForm=document.getElementById('marketing-partner-invite-form');
  if(inviteForm)inviteForm.onsubmit=async event=>{
   event.preventDefault();
@@ -1390,10 +1584,27 @@ function bindMarketingCampaignWorkspace(){
   if(button?.disabled)return;
   const campaignId=String(document.getElementById('mc-invite-campaign')?.value||'');
   const providerId=String(document.getElementById('mc-invite-provider')?.value||'');
-  const role=String(document.getElementById('mc-invite-role')?.value||'CONTENT');
-  const allocation=Number(document.getElementById('mc-invite-allocation')?.value);
-  const agreed=Number(document.getElementById('mc-invite-value')?.value);
-  if(!campaignId||!providerId||!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0)return showToast('راجع بيانات دعوة الشريك ونسبة التخصيص والقيمة.','error');
+  const role=String(document.getElementById('mc-invite-role')?.value||'CONTENT').trim().toUpperCase();
+  const allowedPartnerRoles=new Set(['CREATIVE','CONTENT','MEDIA_BUYING','ANALYTICS','ACCOUNT_MANAGER','REFERRAL']);
+  const allocationRaw=String(document.getElementById('mc-invite-allocation')?.value??'').trim();
+  const agreedRaw=String(document.getElementById('mc-invite-value')?.value??'').trim();
+  const allocation=allocationRaw===''?NaN:Number(allocationRaw);
+  const agreed=agreedRaw===''?NaN:Number(agreedRaw);
+  const activeBusinessId=String(live.businessId||'');
+  const selectedCampaign=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).find(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
+  const campaignStatus=String(selectedCampaign?.status||'').toUpperCase();
+  const campaignIsAvailable=Boolean(selectedCampaign&&['DRAFT','PLANNED','IN_REVIEW'].includes(campaignStatus));
+  const providerIsAvailable=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).some(p=>String(p.id)===providerId&&String(p.business_id||'')!==activeBusinessId&&String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
+  if(!activeBusinessId||!campaignIsAvailable||!providerIsAvailable)return showToast('الحملة مغلقة أو الشريك لم يعد متاحًا ضمن النشاط الحالي؛ حدّث مساحة العمل.','error');
+  const existingAssignment=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[])
+   .find(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&String(p.provider_id||'')===providerId&&['INVITED','ACCEPTED'].includes(String(p.status||'').toUpperCase()));
+  if(existingAssignment)return showToast('يوجد بالفعل تعاون مع هذا الشريك في الحملة نفسها بدعوة معلقة أو إسناد مقبول.','error');
+  if(!allowedPartnerRoles.has(role))return showToast('اختر دورًا معتمدًا للشريك.','error');
+  if(!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0||agreed>1000000000)return showToast('راجع نسبة التخصيص (0–100%) والقيمة المتفق عليها (0–1,000,000,000).','error');
+  const activeAllocations=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[])
+   .filter(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase()))
+   .reduce((sum,p)=>sum+(Number.isFinite(Number(p.allocation_percent))?Math.max(0,Number(p.allocation_percent)):0),0);
+  if(activeAllocations+allocation>100.000001)return showToast('مجموع نسب التخصيص الحالية والجديدة سيتجاوز 100%. خفّض النسبة أو راجع إسنادات الحملة.','error');
   button.disabled=true;button.textContent='جارٍ إرسال الدعوة...';
   try{
    const {data,error}=await sb.rpc('invite_marketing_campaign_partner_backend',{p_actor:user.id,p_campaign_id:campaignId,p_provider_id:providerId,p_role:role,p_allocation_percent:allocation,p_agreed_value:agreed});
@@ -1415,11 +1626,52 @@ function bindMarketingCampaignWorkspace(){
   }catch(error){showToast('تعذر الرد على الدعوة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
   finally{if(button.isConnected)button.disabled=false;}
  }));
+ document.querySelectorAll('[data-mc-close]').forEach(button=>button.addEventListener('click',async()=>{
+  if(button.disabled)return;
+  const participantId=String(button.dataset.mcClose||'');
+  const activeBusinessId=String(live.businessId||'');
+  const role=String(live.role||'').toUpperCase();
+  const participant=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).find(p=>String(p.id)===participantId&&String(p.business_id||'')===activeBusinessId);
+  const campaign=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).find(c=>String(c.id)===String(participant?.campaign_id||'')&&String(c.business_id||'')===activeBusinessId);
+  if(!participant||!campaign||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)||!['INVITED','ACCEPTED','ACTIVE'].includes(String(participant.status||'').toUpperCase())||['COMPLETED','CANCELLED'].includes(String(campaign.status||'').toUpperCase())){
+   showToast('لا يمكن إنهاء هذه المشاركة وفق الحالة أو صلاحيات النشاط الحالية؛ حدّث مساحة العمل.','error');return;
+  }
+  const reason=window.prompt('سبب إنهاء المشاركة (اختياري، حتى 500 حرف):','');
+  if(reason===null)return;
+  if(reason.length>500){showToast('سبب الإنهاء يجب ألا يتجاوز 500 حرف.','error');return;}
+  if(!window.confirm('تأكيد إنهاء مشاركة الشريك في الحملة «'+String(campaign.title||'')+'»؟ سيتم تسجيل العملية وإخطار الشريك.'))return;
+  button.disabled=true;
+  try{
+   const {data,error}=await sb.rpc('close_marketing_campaign_partner_backend',{p_actor:user.id,p_participant_id:participantId,p_reason:reason.trim()||null});
+   if(error)throw error;
+   showToast(data?.idempotent?'المشاركة منتهية بالفعل.':'تم إنهاء المشاركة وتسجيل العملية.','success');
+   await refreshMarketingCampaignWorkspace();
+  }catch(error){showToast('تعذر إنهاء المشاركة: '+String(error?.message||error?.code||'خطأ غير معروف'),'error');}
+  finally{if(button.isConnected)button.disabled=false;}
+ }));
  document.querySelectorAll('[data-mc-status]').forEach(button=>button.addEventListener('click',async()=>{
   if(button.disabled)return;
-  const campaignId=button.dataset.mcStatus;
-  const target=document.getElementById('mc-status-'+campaignId)?.value;
-  if(!target)return;
+  const campaignId=String(button.dataset.mcStatus||'');
+  const target=String(document.getElementById('mc-status-'+campaignId)?.value||'').toUpperCase();
+  if(!campaignId||!target)return;
+  const activeBusinessId=String(live.businessId||'');
+  const campaign=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).find(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
+  const role=String(live.role||'').toUpperCase();
+  if(!campaign||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
+   showToast('تعذر تأكيد صلاحية تغيير هذه الحملة؛ حدّث مساحة العمل.','error');return;
+  }
+  const allowedNext=({DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[String(campaign.status||'').toUpperCase()]||[]);
+  if(!allowedNext.includes(target)){
+   showToast('تغيرت حالة الحملة أو أن الانتقال المطلوب غير مسموح؛ حدّث مساحة العمل.','error');return;
+  }
+  if(['COMPLETED','CANCELLED'].includes(target)){
+   const activeAssignments=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase()));
+   if(activeAssignments.length){
+    showToast('لا يمكن إنهاء الحملة قبل إغلاق '+activeAssignments.length+' مشاركة نشطة. استخدم «إنهاء مشاركة الشريك» ثم حدّث مساحة العمل.','error');return;
+   }
+  }
+  const statusLabels={DRAFT:'مسودة',PLANNED:'مخططة',IN_REVIEW:'قيد المراجعة',APPROVED:'معتمدة داخليًا',PAUSED:'متوقفة مؤقتًا',COMPLETED:'مكتملة',CANCELLED:'ملغاة'};
+  if(!window.confirm('تأكيد تغيير حالة الحملة «'+String(campaign.title||'')+'» إلى «'+(statusLabels[target]||target)+'»؟'))return;
   button.disabled=true;
   try{
    const {data,error}=await sb.rpc('update_marketing_campaign_status_backend',{p_actor:user.id,p_campaign_id:campaignId,p_status:target});
@@ -1697,6 +1949,36 @@ async function markNotificationRead(notificationId){
  const n=live.records.notifications.find(x=>x.id===notificationId); if(n)n.read_at=new Date().toISOString();
  showToast('تم تعليم الإشعار كمقروء.','success'); renderApp();
 }
+async function markVisibleNotificationsRead(){
+ if(!user?.id)return authView();
+ if(markVisibleNotificationsRead.inProgress)return;
+ const button=document.querySelector('[onclick="markVisibleNotificationsRead()"]');
+ const rows=(Array.isArray(live.records.notifications)?live.records.notifications:[])
+  .filter(n=>!n.read_at)
+  .sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))
+  .slice(0,12);
+ if(!rows.length)return showToast('لا توجد إشعارات غير مقروءة ضمن السجلات المحملة.','info');
+ markVisibleNotificationsRead.inProgress=true;
+ if(button){button.disabled=true;button.textContent='جارٍ تحديث الإشعارات...';}
+ let succeeded=0,failed=0;
+ try{
+  for(const row of rows){
+   try{
+    const {error}=await sb.rpc('mark_notifications_read_backend',{p_notification_id:row.id});
+    if(error){failed++;continue;}
+    const current=(Array.isArray(live.records.notifications)?live.records.notifications:[]).find(n=>String(n.id)===String(row.id));
+    if(current)current.read_at=new Date().toISOString();
+    succeeded++;
+   }catch(_){failed++;}
+  }
+  if(failed===0)showToast('تم تعليم '+succeeded+' إشعار كمقروء.','success');
+  else showToast('تم تحديث '+succeeded+' إشعار، وتعذر تحديث '+failed+'؛ راجع السجلات ثم أعد المحاولة.','error');
+ }finally{
+  markVisibleNotificationsRead.inProgress=false;
+  await renderApp();
+ }
+}
+markVisibleNotificationsRead.inProgress=false;
 function pushSupported(){return window.isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window&&!!window.MNTY_WEB_PUSH_PUBLIC_KEY}
 function pushButtonHtml(){return pushSupported()?'<button class="btn btn-outline" id="device-push-toggle" style="width:auto">🔔 تفعيل إشعارات الجهاز</button>':''}
 function pushButtonState(){const b=document.getElementById('device-push-toggle');if(!b)return;if(!pushSupported()){b.hidden=true;return}b.hidden=false;const p=Notification.permission;if(p==='granted')b.textContent='🔔 إشعارات الجهاز مفعلة';else if(p==='denied')b.textContent='🔕 إشعارات الجهاز محظورة';else b.textContent='🔔 تفعيل إشعارات الجهاز'}
@@ -2009,12 +2291,13 @@ function notificationsWorkspace(){
  const unread=rows.filter(x=>!x.read_at).length;
  const sorted=[...rows].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
  const recent=sorted.slice(0,12);
- const unreadHtml=recent.filter(n=>!n.read_at).map(n=>'<article class="card mnty-notification-card"><div class="row"><div><span class="eyebrow">NEW</span><h3>'+esc(n.title||'إشعار')+'</h3></div><span class="mnty-badge mnty-badge--live">جديد</span></div><p>'+esc(n.body||n.message||'لا توجد تفاصيل إضافية.')+'</p><div class="row"><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small><button class="linkbtn" onclick="markNotificationRead(\''+esc(n.id)+'\')">تعليم كمقروء</button></div></article>').join('');
+ const unreadRecent=sorted.filter(n=>!n.read_at).slice(0,12);
+ const unreadHtml=unreadRecent.map(n=>'<article class="card mnty-notification-card"><div class="row"><div><span class="eyebrow">NEW</span><h3>'+esc(n.title||'إشعار')+'</h3></div><span class="mnty-badge mnty-badge--live">جديد</span></div><p>'+esc(n.body||n.message||'لا توجد تفاصيل إضافية.')+'</p><div class="row"><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small><button class="linkbtn" onclick="markNotificationRead(\''+esc(n.id)+'\')">تعليم كمقروء</button></div></article>').join('');
  const recentHtml=recent.map(n=>'<article class="card mnty-notification-card '+(n.read_at?'mnty-notification-card--read':'')+'"><div class="row"><div><span class="eyebrow">'+(n.read_at?'READ':'NOTIFICATION')+'</span><h3>'+esc(n.title||'إشعار')+'</h3></div><span class="mnty-badge">'+esc(n.read_at?'مقروء':'جديد')+'</span></div><p>'+esc(n.body||n.message||'لا توجد تفاصيل إضافية.')+'</p><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small></article>').join('');
  return workspaceHead('NOTIFICATIONS','مركز الإشعارات','الإشعارات مرتبطة بالحساب الحالي فقط، ولا تظهر أي بيانات غير مصرح بها.','LIVE')
  +workspaceCards([['إجمالي الإشعارات',rows.length,'السجلات المتاحة للحساب'],['غير مقروء',unread,'تحتاج انتباهًا'],['آخر تحديث',recent.length?new Date(recent[0].created_at||Date.now()).toLocaleDateString('ar-EG'):'—','آخر سجل متاح'],['حالة الجهاز',pushSupported()?'متاح':'غير متاح','إشعارات المتصفح حسب الدعم والصلاحية']])
  +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="enableDevicePush()">🔔 إعداد إشعارات الجهاز</button></div>'
- +(unread?'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">UNREAD</span><h3>تحتاج انتباهك</h3><p class="muted">الإشعارات غير المقروءة فقط.</p></div></div><div class="grid2">'+(unreadHtml||'<div class="empty-state">لا توجد إشعارات غير مقروءة.</div>')+'</div></section>':'')
+ +(unread?'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">UNREAD</span><h3>تحتاج انتباهك</h3><p class="muted">الإشعارات غير المقروءة فقط؛ الإجراء الجماعي يقتصر على أحدث 12 سجلًا غير مقروء محمّلًا.</p></div></div>'+(unreadRecent.length?'<div class="action-bar"><button type="button" class="btn btn-outline" style="width:auto" onclick="markVisibleNotificationsRead()">تعليم أحدث '+unreadRecent.length+' إشعار غير مقروء كمقروء</button></div>':'')+'<div class="grid2">'+(unreadHtml||'<div class="empty-state">لا توجد إشعارات غير مقروءة.</div>')+'</div></section>':'')
  +'<section class="mnty-notification-section"><div class="section-head"><div><span class="eyebrow">RECENT</span><h3>آخر الإشعارات</h3><p class="muted">أحدث السجلات الفعلية المتاحة للحساب.</p></div></div><div class="grid2">'+(recentHtml||'<div class="empty-state">لا توجد إشعارات فعلية حاليًا.</div>')+'</div></section>'
  +recordsTable('سجل الإشعارات',rows,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']]);
 }
@@ -2194,11 +2477,23 @@ window.MXHomeLanding?MXHomeLanding():landingView();
 showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصفحة.','error');
 }
 }
+function bindDashboardModuleCards(){
+ document.querySelectorAll('[data-dashboard-module]').forEach(button=>{
+  button.addEventListener('click',()=>selectModule(button.dataset.dashboardModule));
+ });
+}
 function bindGenericWorkspaceTabs(){
- const panels={overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>مساحة العمل جاهزة</h3><p>الهيكل البصري والعمليات الأساسية لهذه الوحدة محددة. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>سيتم ربط الجداول وواجهات القراءة الفعلية هنا حسب نطاق الحساب والصلاحيات، دون إنشاء سجلات تجريبية.</p></div>',operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>أزرار التنفيذ تُضاف فقط للعمليات التي لها مسار خادم معتمد وصلاحية واضحة. لا يتم تشغيل إجراء غير متصل.</p></div>',reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات ستعتمد على بيانات تشغيلية حقيقية؛ لذلك تظل القيم غير المتاحة فارغة بدل عرض أرقام تقديرية.</p></div>',settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>إعدادات الوحدة تظهر عند اكتمال مساراتها الخلفية والصلاحيات المرتبطة بها.</p></div>'};
+ const panels={overview:'<div class="mnty-tab-copy"><span class="eyebrow">OVERVIEW</span><h3>الواجهة الأولية قيد الاستكمال</h3><p>هذا عرض أولي لنطاق الوحدة، وليس إعلانًا عن اكتمال الشاشة أو العمليات. البيانات الحية تُعرض فقط عند توفر مصدرها المصرح به.</p></div>',data:'<div class="mnty-tab-copy"><span class="eyebrow">DATA</span><h3>طبقة البيانات</h3><p>لم يتم اعتبار مصادر البيانات مكتملة بمجرد وجود الواجهة. الربط الفعلي يخضع لمراجعة نطاق الحساب والصلاحيات وحالات الخطأ.</p></div>',operations:'<div class="mnty-tab-copy"><span class="eyebrow">OPERATIONS</span><h3>العمليات</h3><p>لا يتم تشغيل أي إجراء من هذا القسم إلا بعد ربطه بمسار خادم معتمد وصلاحية واضحة. لا توجد عمليات وهمية.</p></div>',reports:'<div class="mnty-tab-copy"><span class="eyebrow">REPORTS</span><h3>التقارير</h3><p>المؤشرات تعتمد على بيانات تشغيلية موثوقة؛ القيم غير المتاحة لا تُستبدل بأرقام تقديرية.</p></div>',settings:'<div class="mnty-tab-copy"><span class="eyebrow">SETTINGS</span><h3>الإعدادات</h3><p>تظل إعدادات الوحدة غير متحققة إلى أن تُحدد حقولها الفعلية وصلاحياتها ومسارات الحفظ والأخطاء.</p></div>'};
+ const setPanel=html=>{const panel=document.getElementById('mnty-generic-tab-panel');if(panel)panel.innerHTML=html};
  document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
   document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>{x.classList.toggle('active',x===btn);x.setAttribute('aria-selected',x===btn?'true':'false')});
-  const panel=document.getElementById('mnty-generic-tab-panel');if(panel)panel.innerHTML=panels[btn.dataset.tab]||panels.overview;
+  setPanel(panels[btn.dataset.tab]||panels.overview);
+ }));
+ document.querySelectorAll('[data-generic-section]').forEach(btn=>btn.addEventListener('click',()=>{
+  const card=btn.closest('.mnty-blueprint-card'),title=card?.querySelector('h3')?.textContent?.trim()||'القسم',description=card?.querySelector('p')?.textContent?.trim()||'';
+  document.querySelectorAll('[data-workspace-tabs] button[data-tab]').forEach(x=>{x.classList.toggle('active',x.dataset.tab==='overview');x.setAttribute('aria-selected',x.dataset.tab==='overview'?'true':'false')});
+  setPanel('<div class="mnty-tab-copy"><span class="eyebrow">SECTION SCOPE · NOT VERIFIED</span><h3>'+esc(title)+'</h3><p>'+esc(description)+'</p><p><strong>الحالة:</strong> واجهة أولية قيد الاستكمال. يلزم تحديد الشاشة الفعلية، وحالات التحميل/الخطأ/الفراغ، والإجراءات المصرح بها قبل إغلاق هذا القسم.</p><p>لا توجد عملية خلفية موصولة بمجرد فتح نطاق القسم.</p></div>');
+  document.getElementById('mnty-generic-tab-panel')?.focus();
  }));
 }
 function platformStateView(kind,title,description,actions=''){
@@ -2207,7 +2502,6 @@ function platformStateView(kind,title,description,actions=''){
 }
 function showAppLoading(){const el=document.getElementById('app');if(el)el.innerHTML=platformStateView('loading','جاري تحميل المنصة','يتم التحقق من الجلسة وتحميل بيانات حسابك وصلاحياتك...');}
 function showAppError(message){const el=document.getElementById('app');if(!el)return;el.innerHTML=platformStateView('error','تعذر تحميل البيانات',message,'<button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button>');document.getElementById('retry-load')?.addEventListener('click',()=>renderApp());document.getElementById('logout-load')?.addEventListener('click',logout);}
-async 
 function bindRoleAfterRender(){bindRoleCommandCenter();}
 async function renderApp(options={}){if(!user?.id)return;live.loading=true;showAppLoading();await loadLiveData();if(live.error){showAppError(live.error);return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};
 let restoreAdminWorkspace=options.forceWorkspace===true;
@@ -2224,9 +2518,10 @@ try{
  }
 }catch(_){}
 if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}if(current==='التسويق والإعلان')await loadMarketingCampaignData();await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" value="${esc(query)}" autocomplete="off" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
- if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();bindMarketingAgencyWorkspace();bindMarketingCampaignWorkspace();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindGenericWorkspaceTabs();document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
+ if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();bindMarketingAgencyWorkspace();bindMarketingCampaignWorkspace();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindDashboardModuleCards();
+ bindGenericWorkspaceTabs();document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
  const gsi=document.getElementById('mx-global-search-input'),gso=document.getElementById('mx-global-search-results');let globalSearchTimer=null,globalSearchSeq=0;
- const runGlobalSearch=async()=>{const value=String(gsi?.value||'').trim();if(!gso)return;if(value.length<2){gso.innerHTML='';gso.classList.remove('is-open');return}const seq=++globalSearchSeq;gso.innerHTML='<div class="mx-global-search-loading">جاري البحث في البيانات المتاحة…</div>';gso.classList.add('is-open');const results=await globalSearch(value);if(seq!==globalSearchSeq)return;gso.innerHTML=globalSearchResultHtml(results);gso.querySelectorAll('[data-search-index]').forEach(el=>el.addEventListener('click',()=>{const hit=results[Number(el.dataset.searchIndex)];if(hit?.source?.route)selectModule(hit.source.route);gso.classList.remove('is-open')}))};
+ const runGlobalSearch=async()=>{const value=String(gsi?.value||'').trim();if(!gso)return;if(value.length<2){gso.innerHTML='';gso.classList.remove('is-open');return}const seq=++globalSearchSeq;gso.innerHTML='<div class="mx-global-search-loading">جاري البحث في البيانات المتاحة…</div>';gso.classList.add('is-open');let outcome;try{outcome=await globalSearch(value)}catch(error){outcome={results:[],failures:['search'],attempted:1};console.warn('[MantiqatiX global search] unavailable',error?.message||error)}if(seq!==globalSearchSeq)return;const results=outcome.results||[];gso.innerHTML=globalSearchResultHtml(results,outcome.failures||[],outcome.attempted||0);gso.querySelectorAll('[data-global-search-retry]').forEach(el=>el.addEventListener('click',runGlobalSearch));gso.querySelectorAll('[data-search-index]').forEach(el=>el.addEventListener('click',()=>{const hit=results[Number(el.dataset.searchIndex)];if(hit?.source?.route)selectModule(hit.source.route);gso.classList.remove('is-open')}))};
  gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280)});
  gsi?.addEventListener('keydown',e=>{if(e.key==='Escape'){gsi.value='';gso.innerHTML='';gso.classList.remove('is-open')}if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
  document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}

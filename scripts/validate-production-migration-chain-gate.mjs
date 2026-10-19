@@ -32,12 +32,25 @@ const required = [
   "20261010200000_rc451_targeted_ads_empty_search_path.sql",
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
-  "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261019060000_rc454_marketing_partner_allocation_integrity.sql",
+  "20261019070000_rc455_marketing_campaign_terminal_guard.sql",
+  "20261019080000_rc456_marketing_partner_closure_backend.sql",
+  "20261019090000_rc457_public_marketing_service_catalog.sql",
+  "20261019100000_rc458_public_provider_profile_column_allowlist.sql",
+  "20261019110000_rc459_profile_media_policy_regex_fix.sql"
 ];
-assert.equal(required.length, 28, "release gate must track the complete 28-file migration source set");
+assert.equal(required.length, 34, "release gate must track the complete 34-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
-for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
+const verifierManifestMatch = source.match(/const requiredReleaseMigrations\s*=\s*\[([\s\S]*?)\];/);
+assert.ok(verifierManifestMatch, "production verifier must expose its required migration manifest");
+const verifierManifestNames = [...verifierManifestMatch[1].matchAll(/["'](\d{14}_[^"']+\.sql)["']/g)].map(match => match[1]);
+assert.deepEqual(verifierManifestNames, required, "CI migration contract and production verifier must contain the exact same ordered migration set");
+for (const name of required) {
+  assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
+  assert.ok(fs.existsSync(`supabase/migrations/${name}`), `required migration source file must exist: ${name}`);
+}
 assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrations or timestamp conflicts must block release certification");
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");

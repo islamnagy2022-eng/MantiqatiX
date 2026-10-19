@@ -2,8 +2,12 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql", "utf8");
+const rc454 = fs.readFileSync("supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql", "utf8");
+const rc455 = fs.readFileSync("supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql", "utf8");
+const rc456 = fs.readFileSync("supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc453_marketing_campaign_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc453_marketing_campaign_integration.sql", "utf8");
+const workflow = fs.readFileSync(".github/workflows/marketing-campaign-backend.yml", "utf8");
 
 assert.match(migration, /create table public\.marketing_campaigns/);
 assert.match(migration, /create table public\.marketing_campaign_participants/);
@@ -40,4 +44,54 @@ assert.match(integration, /authenticated role has direct campaign INSERT/);
 assert.match(integration, /campaign creation replay was not idempotent/);
 assert.match(integration, /campaign creation replay duplicated audit/);
 
-console.log("RC453 marketing campaign backend contract: PASS (27 assertions)");
+assert.match(rc454, /for update/i, "allocation guard must serialize writes through the campaign row");
+assert.match(rc454, /before insert or update of campaign_id,business_id,tenant_id,allocation_percent,status/i, "allocation guard must run when a participant enters or leaves an active allocation status");
+assert.match(integration, /RC454 allowed an inactive participant to reactivate beyond 100 percent allocation/, "PostgreSQL integration must cover the allocation status-transition bypass");
+
+
+for (const version of ["rc454_marketing_partner_allocation_integrity.sql", "rc455_marketing_campaign_terminal_guard.sql", "rc456_marketing_partner_closure_backend.sql"]) {
+  assert.ok(workflow.includes(version), `PostgreSQL integration workflow must apply ${version}`);
+}
+assert.match(workflow, /\/tmp\/rc454_migration\.sql[\s\S]*?\/tmp\/rc455_migration\.sql[\s\S]*?\/tmp\/rc456_migration\.sql/, "PostgreSQL integration must apply RC454-RC456 in chronological order");
+const prPaths = workflow.split("  pull_request:")[1]?.split("permissions:")[0] || "";
+for (const version of ["rc454_marketing_partner_allocation_integrity.sql", "rc455_marketing_campaign_terminal_guard.sql", "rc456_marketing_partner_closure_backend.sql"]) {
+  assert.ok(prPaths.includes(version), `pull_request path filter must include ${version}`);
+}
+
+assert.match(rc455, /MARKETING_PARTICIPANTS_MUST_BE_CLOSED/, "terminal transitions must require partner closure");
+assert.match(rc455, /from public\.marketing_campaigns c[\s\S]{0,160}for update/i, "invitation responses must lock the campaign before the participant");
+assert.match(rc456, /create or replace function public\.close_marketing_campaign_partner_backend/);
+assert.match(rc456, /p_actor is distinct from auth\.uid\(\)/, "partner closure must reject actor spoofing");
+assert.match(rc456, /mnty_can_manage_marketing_business\(v_campaign\.business_id\)/, "partner closure must enforce manager scope");
+assert.match(rc456, /from public\.marketing_campaigns c[\s\S]{0,120}for update[\s\S]{0,500}from public\.marketing_campaign_participants cp[\s\S]{0,120}for update/i, "partner closure must lock campaign before participant");
+assert.match(rc456, /v_participant\.status not in \('INVITED','ACCEPTED','ACTIVE'\)/, "only active assignments may be closed");
+assert.match(rc456, /v_participant\.status = 'REMOVED'[\s\S]{0,300}idempotent/);
+assert.ok(
+  rc456.indexOf("if v_participant.status = 'REMOVED'") < rc456.indexOf("if v_campaign.status in ('COMPLETED','CANCELLED')"),
+  "repeat closure of an already removed participant must remain idempotent after the campaign becomes terminal"
+);
+assert.match(rc456, /MARKETING_PARTNER_ASSIGNMENT_CLOSED/);
+
+assert.match(rc456, /v_reason := nullif\(pg_catalog\.btrim\(coalesce\(p_reason,''\)\), ''\)/, "closure reason must be trimmed and empty values normalized");
+assert.match(rc456, /pg_catalog\.length\(v_reason\) > 500/, "closure reason must have a server-side length limit");
+assert.match(rc456, /v_participant\.business_id is distinct from v_campaign\.business_id[\s\S]{0,100}v_participant\.tenant_id is distinct from v_campaign\.tenant_id/, "participant business and tenant must match the locked campaign");
+assert.match(rc456, /if v_campaign\.status in \('COMPLETED','CANCELLED'\) then[\s\S]{0,100}MARKETING_CAMPAIGN_LOCKED/, "closed campaigns must reject new partner closures");
+assert.match(rc456, /old_values,new_values,result[\s\S]{0,500}MARKETING_PARTNER_ASSIGNMENT_CLOSED/, "closure must write the audit event in the same database transaction");
+assert.match(rc456, /if v_provider\.owner_user_id is not null then[\s\S]{0,700}insert into public\.notifications/, "partner notification must target the provider owner only when present");
+assert.match(rc456, /p_actor is distinct from auth\.uid\(\)/, "closure must bind actor identity to the authenticated user");
+assert.match(integration, /cross-tenant manager closed another business partner assignment/, "PostgreSQL integration must reject cross-tenant partner closure");
+assert.match(integration, /partner closure accepted a spoofed actor/, "PostgreSQL integration must reject partner-closure actor spoofing");
+assert.match(integration, /partner closure accepted a reason longer than 500 characters/, "PostgreSQL integration must reject overlong partner-closure reasons");
+assert.match(integration, /overlong closure reason produced audit or notification side effects/, "overlong closure reasons must not mutate audit or notification state");
+assert.match(integration, /partner closure audit did not store the trimmed reason/, "PostgreSQL integration must verify normalized closure reason auditing");
+assert.match(integration, /removed partner closure was not idempotent after campaign became terminal/, "PostgreSQL integration must verify removed partner closure remains idempotent after terminal campaign transition");
+assert.match(integration, /terminal partner closure replay duplicated audit or notification/, "terminal closure replay must not duplicate audit or notification side effects");
+assert.match(rc456, /revoke all on function public\.close_marketing_campaign_partner_backend\(uuid,uuid,text\)[\s\S]{0,180}from public, anon/i);
+assert.match(workflow, /RC454 concurrency regression/, "PostgreSQL workflow must exercise concurrent partner allocation writes");
+assert.match(workflow, /wait_event='PgSleep'/, "concurrency test must wait until the first insert holds its transaction open");
+assert.match(workflow, /MARKETING_ALLOCATION_OVER_100/, "concurrent allocation test must assert the database rejects the competing over-allocation");
+assert.match(workflow, /active_summary[\s\S]{0,250}1\|60\.00/, "concurrency test must verify only one 60 percent active allocation persists");
+assert.ok(workflow.includes('insert_race "40000000-0000-4000-8000-000000000001" "rc454-race-a"'), "race test must use the first distinct provider assignment");
+assert.ok(workflow.includes('insert_race "40000000-0000-4000-8000-000000000003" "rc454-race-b"'), "race test must attempt the competing distinct provider assignment");
+assert.ok(workflow.includes("'MEDIA_BUYING',60,100,'ACTIVE'"), "race test must use 60 percent active allocations for the competing inserts");
+console.log("Marketing campaign backend contract: RC453 baseline + RC454–RC456 source assertions");

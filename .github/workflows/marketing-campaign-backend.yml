@@ -5,6 +5,9 @@ on:
       - "**"
     paths:
       - "supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql"
+      - "supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql"
+      - "supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql"
+      - "supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql"
       - "supabase/tests/rc453_marketing_campaign_*.sql"
       - "scripts/validate-marketing-campaign-backend.mjs"
       - ".github/workflows/marketing-campaign-backend.yml"
@@ -12,6 +15,9 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql"
+      - "supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql"
+      - "supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql"
+      - "supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql"
       - "supabase/tests/rc453_marketing_campaign_*.sql"
       - "scripts/validate-marketing-campaign-backend.mjs"
       - ".github/workflows/marketing-campaign-backend.yml"
@@ -54,7 +60,59 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc453_marketing_campaign_fixture.sql "$pg_container:/tmp/rc453_fixture.sql"
           docker cp supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql "$pg_container:/tmp/rc453_migration.sql"
+          docker cp supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql "$pg_container:/tmp/rc454_migration.sql"
+          docker cp supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql "$pg_container:/tmp/rc455_migration.sql"
+          docker cp supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql "$pg_container:/tmp/rc456_migration.sql"
           docker cp supabase/tests/rc453_marketing_campaign_integration.sql "$pg_container:/tmp/rc453_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc453_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc453_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc454_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc455_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc456_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -f /tmp/rc453_test.sql
+
+          # RC454 concurrency regression: the trigger must serialize competing active allocations.
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -c "INSERT INTO public.marketing_campaigns(id,tenant_id,business_id,created_by,title,objective,channels,budget,idempotency_key,currency,status) VALUES ('50000000-0000-4000-8000-000000000001','TENANT-B','30000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000012','RC454 concurrent allocation','LEADS',ARRAY['META'],1000,'rc454-race-key-0001','EGP','DRAFT');"
+          insert_race() {
+            provider_id="$1"
+            app_name="$2"
+            docker exec -e PGAPPNAME="$app_name" "$pg_container" psql -X -U postgres -d mantiqatix_rc453_campaign_test -v ON_ERROR_STOP=1 -c "BEGIN; INSERT INTO public.marketing_campaign_participants(tenant_id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by) VALUES ('TENANT-B','30000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000001','$provider_id','MEDIA_BUYING',60,100,'ACTIVE','30000000-0000-4000-8000-000000000012'); SELECT pg_sleep(3); COMMIT;"
+          }
+          insert_race "40000000-0000-4000-8000-000000000001" "rc454-race-a" > /tmp/rc454-race-a.log 2>&1 &
+          race_a_pid=$!
+          race_a_sleeping=false
+          for attempt in $(seq 1 100); do
+            if [[ "$(docker exec "$pg_container" psql -X -At -U postgres -d mantiqatix_rc453_campaign_test -c "SELECT count(*) FROM pg_stat_activity WHERE application_name='rc454-race-a' AND wait_event='PgSleep'")" == "1" ]]; then
+              race_a_sleeping=true
+              break
+            fi
+            if ! kill -0 "$race_a_pid" 2>/dev/null; then break; fi
+            sleep 0.05
+          done
+          if [[ "$race_a_sleeping" != true ]]; then
+            cat /tmp/rc454-race-a.log
+            echo "RC454 concurrency test could not observe the first transaction holding its trigger lock"
+            exit 1
+          fi
+          insert_race "40000000-0000-4000-8000-000000000003" "rc454-race-b" > /tmp/rc454-race-b.log 2>&1 &
+          race_b_pid=$!
+          set +e
+          wait "$race_a_pid"; race_a_status=$?
+          wait "$race_b_pid"; race_b_status=$?
+          set -e
+          if [[ "$race_a_status" -ne 0 || "$race_b_status" -eq 0 ]]; then
+            cat /tmp/rc454-race-a.log /tmp/rc454-race-b.log
+            echo "RC454 concurrency test expected first allocation to commit and competing over-allocation to fail"
+            exit 1
+          fi
+          if ! grep -q "MARKETING_ALLOCATION_OVER_100" /tmp/rc454-race-b.log; then
+            cat /tmp/rc454-race-b.log
+            echo "RC454 concurrent loser did not fail with the allocation guard"
+            exit 1
+          fi
+          active_summary="$(docker exec "$pg_container" psql -X -At -U postgres -d mantiqatix_rc453_campaign_test -c "SELECT count(*)::text || '|' || coalesce(sum(allocation_percent),0)::text FROM public.marketing_campaign_participants WHERE campaign_id='50000000-0000-4000-8000-000000000001' AND status IN ('INVITED','ACCEPTED','ACTIVE')")"
+          if [[ "$active_summary" != "1|60.00" ]]; then
+            echo "RC454 concurrent allocation invariant failed; expected one active 60% assignment, got: $active_summary"
+            exit 1
+          fi
+          echo "RC454 concurrent allocation race: PASS"

@@ -10,7 +10,7 @@ for(const p of [".github/workflows/pages.yml","web/app.js","web/rbac.js","supaba
 const files=walk(path.join(root,"supabase","functions")).filter(p=>p.endsWith(".ts")), joined=files.map(read).join("\n");
 add("SEC-FAKE-BILLING","SECURITY",!/customer@example\.com|\+201000000000/.test(joined)?"PASS":"FAIL","Scanned supabase/functions for known fake billing fallbacks.","P0");
 const app=exists("web/app.js")?read("web/app.js"):"";
-add("SEC-FRONTEND-SENSITIVE-WRITES","SECURITY",!(/from\(['"](?:orders|payment_intents|user_memberships|notifications|marketing_projects|advertisements)['"]\)[\s\S]{0,180}\.(?:insert|update|delete)\s*\(/.test(app))?"PASS":"FAIL","Scanned web/app.js for direct mutations on critical tables.","P0");
+add("SEC-FRONTEND-SENSITIVE-WRITES","SECURITY",!(/from\(['"](?:orders|payment_intents|user_memberships|notifications|marketing_projects|marketing_campaigns|marketing_campaign_participants|advertisements)['"]\)[\s\S]{0,180}\.(?:insert|update|delete)\s*\(/.test(app))?"PASS":"FAIL","Scanned web/app.js for direct mutations on critical tables.","P0");
 const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabase/functions/payment-intent/index.ts"):"";
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
@@ -46,7 +46,13 @@ const requiredReleaseMigrations=[
   "20261010200000_rc451_targeted_ads_empty_search_path.sql",
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
-  "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261019060000_rc454_marketing_partner_allocation_integrity.sql",
+  "20261019070000_rc455_marketing_campaign_terminal_guard.sql",
+  "20261019080000_rc456_marketing_partner_closure_backend.sql",
+  "20261019090000_rc457_public_marketing_service_catalog.sql",
+  "20261019100000_rc458_public_provider_profile_column_allowlist.sql",
+  "20261019110000_rc459_profile_media_policy_regex_fix.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));

@@ -1,0 +1,41 @@
+name: Profile Media Storage Policy Boundary
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/20261019110000_rc459_profile_media_policy_regex_fix.sql"
+      - "supabase/tests/rc459_profile_media_policy_regex_fix.sql"
+      - ".github/workflows/profile-media-policy-boundary.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261019110000_rc459_profile_media_policy_regex_fix.sql"
+      - "supabase/tests/rc459_profile_media_policy_regex_fix.sql"
+      - ".github/workflows/profile-media-policy-boundary.yml"
+permissions:
+  contents: read
+jobs:
+  profile-media-policy-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mnty_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mnty_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply isolated profile media policy regression
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d mnty_test -v ON_ERROR_STOP=1 -f supabase/tests/rc459_profile_media_policy_regex_fix.sql
