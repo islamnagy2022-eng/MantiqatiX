@@ -66,6 +66,14 @@ begin
   end if;
 
   v_result := public.register_business_with_approval_atomic(
+    '10000000-0000-4000-8000-000000000003','TENANT-A','ORG-B',
+    'Corrupt Org Scope','CORRUPT-ORG-SCOPE-001','GENERAL','','','',''
+  );
+  if v_result->>'success' <> 'false' or v_result->>'error' <> 'ORGANIZATION_SCOPE_FORBIDDEN' then
+    raise exception 'RC531 must reject an organization belonging to another tenant, got %',v_result;
+  end if;
+
+  v_result := public.register_business_with_approval_atomic(
     '10000000-0000-4000-8000-000000000001','TENANT-INACTIVE',null,
     'Inactive Tenant','INACTIVE-TENANT-001','GENERAL','','','',''
   );
