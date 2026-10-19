@@ -778,3 +778,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Confirmed overlapping source candidates: RC425 content is identical across PRs #286/#273/#252, and RC526 content is identical across #286/#295/#289. Do not merge those candidates separately. PR #286's `docs/SESSION_LOG.md` diff also requires reconciliation before integration.
 - The previous disposable replay reached RC525, not the current combined RC526/RC531/payment-finalization chain. Re-run chronological replay and the exact-head payment, tenant-isolation and migration-integrity workflows before any integration decision.
 - Production ledger remains RC424; no production migration/deployment/financial mutation was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC533 — Subscription Paymob response binding — 2026-10-19
+- Found and fixed a candidate-side gap in `subscription-payment-intent`: a successful provider HTTP response was not checked against the server-calculated minor-unit amount, currency, and subscription merchant reference before persisting provider identifiers/returning checkout credentials.
+- Reused the shared Paymob correlation helper, added a focused source/pure-guard regression test, and wired it into Module Professionalization CI. Payment wiring validation now requires this guard to run before persistence.
+- Candidate head `aa1d40b55412fac07f5636370034e944e39b9dc6`; exact-head CI and Paymob sandbox E2E remain unverified. No production changes were made.
+- Release remains BLOCKED / NOT CERTIFIED.
