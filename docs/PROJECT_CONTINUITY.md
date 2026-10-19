@@ -870,3 +870,10 @@ This status is intentional and must remain until the open gates above are indepe
 
 - The next deploy validation did not fail app syntax: it failed RC366 sector-rendering source assertions hard-coded to cache `mnty-web-v129` and app URL `rc458-marketing-workspace-20261018`. Updated `scripts/validate-sector-rendering.mjs` to check a versioned cache and derive the app asset URL from the current index. Updated the marketing UI contract similarly and strengthened its service-worker registration check.
 - No production deploy occurred; deploy job was skipped after validation failure. Await a fresh run against the latest head; production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
+
+
+## 2026-10-19 — SMM redirect contract alignment
+
+- The SMM gateway implements `redirect: "error"` at the actual `fetch()` call in `supabase/functions/smm-gateway/index.ts`; the source validator incorrectly searched the transport helper, which only validates endpoints and bounds/parses response bodies.
+- Updated `scripts/validate-smm-service-role-boundary.mjs` to assert redirect blocking at the real fetch implementation rather than a helper that does not perform network requests. No runtime security behavior was weakened or changed.
+- The latest CI run must confirm this validator correction. Preserve the default-deny SMM launch deferral; do not merge while required checks fail/pending. Production remains **BLOCKED / NOT CERTIFIED**. Do not edit `docs/SESSION_LOG.md`.
