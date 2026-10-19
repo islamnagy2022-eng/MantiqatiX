@@ -1,6 +1,6 @@
 -- RC531: create a business and its pending approval request in one transaction.
 -- Service-role only; the Edge Function must authenticate the user before calling this RPC.
-create or replace function private.register_business_with_approval_atomic(
+create or replace function public.register_business_with_approval_atomic(
   p_actor_user_id uuid,
   p_tenant_id varchar,
   p_organization_id varchar,
@@ -178,9 +178,8 @@ begin
 end;
 $function$;
 
-revoke all on function private.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar) from public, anon, authenticated;
-grant usage on schema private to service_role;
-grant execute on function private.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar) to service_role;
+revoke all on function public.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar) from public, anon, authenticated;
+grant execute on function public.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar) to service_role;
 
-comment on function private.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar)
+comment on function public.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar)
 is 'RC531: atomically creates an inactive business and its pending approval request; callable only by the trusted service-role backend.';
