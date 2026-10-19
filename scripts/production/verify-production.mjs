@@ -58,8 +58,10 @@ add("DIG-PAY-CORRELATION","FINANCE",digitalCorrelationSafe?"PASS":"BLOCKED",
 const ambiguousPaymentOutcomesSafe=Boolean(
   payment.includes("[400, 401, 403, 404, 422].includes(response.status)") &&
   payment.includes("!providerIntentId && !providerClientSecret && !providerOrderId") &&
+  !payment.includes("response.status >= 400 && response.status < 500") &&
   digital.includes("[400,401,403,404,422].includes(providerResponseStatus)") &&
-  digital.includes("!providerIntentId&&!providerClientSecret&&!providerOrderId")
+  digital.includes("!providerIntentId&&!providerClientSecret&&!providerOrderId") &&
+  !digital.includes("providerResponseStatus>=400&&providerResponseStatus<500")
 );
 add("PAY-AMBIGUOUS-OUTCOMES","FINANCE",ambiguousPaymentOutcomesSafe?"PASS":"BLOCKED",
   ambiguousPaymentOutcomesSafe
