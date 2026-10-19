@@ -896,3 +896,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Source review found that RC454's allocation trigger originally ran on allocation/scope columns but not `status`, so changing a participant from `DECLINED`/`REMOVED` into `INVITED` could bypass the aggregate allocation check.
 - Updated the trigger column list to include `status`, and strengthened the marketing backend source validator to assert that status transitions are covered.
 - This is a source-level correctness fix only. Fresh PostgreSQL/CI evidence is still required; no migration was applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation guard follow-up
+
+- RC454's trigger now runs when participant status changes as well as when allocation/scope columns change, so reactivating an inactive participant is checked against the aggregate allocation limit.
+- Validator coverage was added for this trigger contract. Await fresh CI/PostgreSQL evidence; do not apply this migration to production or certify release from source checks alone. Production remains **BLOCKED / NOT CERTIFIED**.
