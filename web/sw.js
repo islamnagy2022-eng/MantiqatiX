@@ -1,11 +1,11 @@
-const CACHE='mnty-web-v129';
+const CACHE='mnty-web-v130';
 const APP_SHELL=[
 './styles.css?v=rc340','./brand.css?v=rc450','./home.css?v=rc397','./home-mobile-fixes.css?v=rc397',
 './config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=rc402',
-'./rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=rc458-marketing-workspace-20261018',
-'./module-blueprints.js?v=rc308','./restaurant-module.js?v=rc314','./sector-modules.js?v=mnty116',
+'./rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=industry-ui-20261019',
+'./module-blueprints.js?v=rc308','./industry-workspaces.js?v=ui20261019','./restaurant-module.js?v=rc314','./sector-modules.js?v=mnty116',
 './reverse-bidding-module.js?v=mnty116','./operations-modules.js?v=mnty117','./provider-onboarding-module.js?v=mnty116','./brand.js?v=rc355',
-'./','./index.html','./styles.css','./android-parity-catalog.js','./app.js','./module-blueprints.js','./config.js','./location-adapter.js','./sector-registry.js','./brand.css','./brand.js','./home.css','./home.js','./sector-modules.js','./reverse-bidding-module.js','./operations-modules.js','./provider-onboarding-module.js','./restaurant-module.js','./manifest.webmanifest','./vendor/supabase.js','./assets/mantiqatix-logo.svg','./assets/mantiqatix-mark.svg','./assets/activities/ai-sector-directory.svg','./icons/icon-192.svg','./icons/icon-512.svg'];
+'./','./index.html','./styles.css','./android-parity-catalog.js','./app.js','./module-blueprints.js','./industry-workspaces.js','./config.js','./location-adapter.js','./sector-registry.js','./brand.css','./brand.js','./home.css','./home.js','./sector-modules.js','./reverse-bidding-module.js','./operations-modules.js','./provider-onboarding-module.js','./restaurant-module.js','./manifest.webmanifest','./vendor/supabase.js','./assets/mantiqatix-logo.svg','./assets/mantiqatix-mark.svg','./assets/activities/ai-sector-directory.svg','./icons/icon-192.svg','./icons/icon-512.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('push',event=>{event.waitUntil((async()=>{let data={};try{data=event.data?event.data.json():{}}catch(_){try{data={body:event.data?.text()||''}}catch(__){}}const title=data.title||'Mantiqati X';const options={body:data.body||'',icon:'./icons/icon-192.svg',badge:'./icons/icon-192.svg',tag:data.notificationId||data.type||'mnty',renotify:true,data:{url:data.url||'./',notificationId:data.notificationId||null}};await self.registration.showNotification(title,options)})())});
