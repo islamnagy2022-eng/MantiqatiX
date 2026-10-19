@@ -4,6 +4,26 @@ begin;
 create role anon nologin;
 create role authenticated nologin;
 
+create table public.marketing_provider_profiles (
+  id uuid primary key,
+  business_id uuid,
+  owner_user_id uuid,
+  name_ar text not null,
+  name_en text,
+  provider_kind text not null,
+  description text,
+  service_areas jsonb not null default '[]'::jsonb,
+  status text not null,
+  is_verified boolean not null default false,
+  is_featured boolean not null default false,
+  ranking_weight integer not null default 0,
+  profile_image_path text,
+  updated_at timestamptz not null default now(),
+  settings jsonb not null default '{}'::jsonb,
+  portfolio jsonb not null default '[]'::jsonb
+);
+alter table public.marketing_provider_profiles enable row level security;
+grant select on public.marketing_provider_profiles to anon, authenticated;
 create table public.marketing_services (
   id uuid primary key,
   code text not null,
@@ -17,6 +37,12 @@ create table public.marketing_services (
 );
 alter table public.marketing_services enable row level security;
 grant select on public.marketing_services to anon, authenticated;
+
+insert into public.marketing_provider_profiles
+  (id,name_ar,provider_kind,status,owner_user_id,settings,portfolio)
+values
+  ('20000000-0000-4000-8000-000000000001','مقدم منشور','AGENCY','ACTIVE','30000000-0000-4000-8000-000000000001','{"secret":"must-not-leak"}','["private-portfolio"]'),
+  ('20000000-0000-4000-8000-000000000002','مسودة مقدم','AGENCY','DRAFT','30000000-0000-4000-8000-000000000002','{"secret":"private"}','["draft"]');
 
 insert into public.marketing_services
   (id,code,name_ar,category_code,status,internal_notes)
@@ -42,6 +68,18 @@ begin
     raise exception 'RC457 base table unexpectedly readable by anon';
   exception when insufficient_privilege then null;
   end;
+  select count(*) into visible_count from public.marketing_provider_profiles_public;
+  if visible_count <> 1 then
+    raise exception 'RC458 expected exactly one public ACTIVE provider, got %', visible_count;
+  end if;
+  if not exists (select 1 from public.marketing_provider_profiles_public where name_ar='مقدم منشور') then
+    raise exception 'RC458 active public provider is not visible';
+  end if;
+  begin
+    perform owner_user_id from public.marketing_provider_profiles;
+    raise exception 'RC458 provider base table unexpectedly readable by anon';
+  exception when insufficient_privilege then null;
+  end;
 end;
 $assert$;
 reset role;
@@ -57,6 +95,14 @@ begin
   select count(*) into visible_count from public.marketing_services;
   if visible_count <> 0 then
     raise exception 'RC457 authenticated direct base-table read unexpectedly exposed % rows', visible_count;
+  end if;
+  select count(*) into visible_count from public.marketing_provider_profiles_public;
+  if visible_count <> 1 then
+    raise exception 'RC458 authenticated public provider view expected one row, got %', visible_count;
+  end if;
+  select count(*) into visible_count from public.marketing_provider_profiles;
+  if visible_count <> 0 then
+    raise exception 'RC458 authenticated direct provider base-table read unexpectedly exposed % rows', visible_count;
   end if;
 end;
 $assert$;
