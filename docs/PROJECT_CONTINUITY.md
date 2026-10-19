@@ -706,3 +706,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql` to block moving a campaign to `COMPLETED` or `CANCELLED` while any partner assignment remains `INVITED`, `ACCEPTED`, or `ACTIVE`.
 - Replaced the invitation-response RPC in the new migration to acquire locks in campaign → participant order, aligning it with invitation creation and status transitions. It rejects responses after a campaign is terminal and rechecks the participant under lock.
 - This is source-only. RC455 is unapplied and untested; do not infer race safety until PostgreSQL concurrency testing and migration-chain rehearsal are performed. Production remains BLOCKED / NOT CERTIFIED.
+
+
+### RC455 follow-up dependency — partner closure workflow
+- The terminal-state guard intentionally blocks completion/cancellation while INVITED, ACCEPTED, or ACTIVE participant rows remain.
+- The current RC453 contract exposes invitation response (ACCEPTED/DECLINED) but no manager-authorized backend operation to mark an accepted/active assignment REMOVED. This can leave a campaign unable to reach a terminal state when a partner has already accepted or become active.
+- Next implementation item: add a least-privilege, audited manager RPC for closing/removing an assignment, with campaign → participant lock order, active-business authorization, bounded reason text, idempotent handling, and partner notification. Wire UI only after the RPC contract exists. Do not permit direct browser table mutations. This dependency is source-inspection only and has not been tested.
