@@ -1880,3 +1880,17 @@ This checkpoint does not close the production release gate because runtime E2E e
 - `web/app.js`: derive the unread panel from the sorted complete in-memory notification list, capped at 12 unread rows, rather than filtering only the separate 12-most-recent list. The unread KPI and unread panel now operate on the same loaded dataset.
 - Updated `web/index.html` and `web/sw.js` asset key to `notifications-unread-list-20261019`; cache is `mnty-web-v139`.
 - This does not change backend pagination or guarantee historical completeness. No tests, browser, build, CI, review, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Notification batch action and CSV formula guard (NOT VERIFIED)
+
+- [x] Add a bounded UI action for marking the newest 12 loaded unread notifications as read using the existing `mark_notifications_read_backend` RPC sequentially.
+- [x] Add an in-progress guard, per-record failure handling, truthful partial-success feedback, and a final workspace refresh.
+- [x] Harden campaign and partnership CSV formula guards against formula-like values with leading whitespace/control characters.
+- [x] Align `web/index.html` asset refs with `notification-batch-csv-guard-20261019`; advance PWA cache to `mnty-web-v140`.
+- [ ] Run parser/unit checks and browser interaction tests for success, partial failure, empty dataset, repeated clicks, and view refresh.
+- [ ] Test CSV exports with values beginning with whitespace + `=`, `+`, `-`, `@`, tabs, carriage returns, quotes, commas, Arabic text, and normal numeric fields.
+- [ ] Verify RPC authorization, current-user scoping, idempotency, and notification state persistence against an isolated test environment.
+- [ ] Re-run migration chain, authorization, payments/accounting, and tenant-isolation gates before any production certification.
+
+These are source changes only. No tests, browser, build, CI, migration replay, merge, or deployment were performed. Production remains **BLOCKED / NOT CERTIFIED**.
