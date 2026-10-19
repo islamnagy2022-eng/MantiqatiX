@@ -25,7 +25,7 @@ assert.match(ui, /data-mxiw-tab/);
 assert.match(ui, /window\.MNTYIndustryWorkspace=Object\.freeze/);
 assert.match(ui, /واجهة فقط · Backend غير موصول/);
 assert.match(ui, /لا يوجد اتصال بجداول القطاع أو حفظ أو دفع أو حجز حقيقي/);
-assert.match(ui, /الخصوصية والامتثال الدوائي/);
+assert.match(ui, /قيود صرف الأدوية حسب القوانين والسياسات/);
 assert.match(ui, /سلسلة الحيازة/);
 assert.match(ui, /إخفاء بيانات الموقع بعد انتهاء الحاجة/);
 assert.doesNotMatch(ui, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'industry UI must remain frontend-only');
