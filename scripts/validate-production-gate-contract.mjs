@@ -93,6 +93,7 @@ if (releaseMigrationPositions.some((position, index) => index > 0 && position <=
   console.error('Required release migrations are not in chronological manifest order.');
   process.exit(1);
 }
+assert.ok(productionGate.includes('marketing_campaigns|marketing_campaign_participants'), 'production gate must detect direct frontend mutations to marketing campaign tables');
 const manifestMigrationNames = [...releaseMigrationManifest.matchAll(/["'](\d{14}_[^"']+\.sql)["']/g)].map(match => match[1]);
 const duplicateManifestMigrations = manifestMigrationNames.filter((name, index) => manifestMigrationNames.indexOf(name) !== index);
 if (duplicateManifestMigrations.length) {
