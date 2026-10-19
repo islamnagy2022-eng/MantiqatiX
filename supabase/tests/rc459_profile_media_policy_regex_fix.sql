@@ -90,7 +90,7 @@ begin
     select 1 from pg_policies
     where schemaname='storage' and tablename='objects'
       and policyname='mnty_profile_media_public_read'
-      and 'anon' = any(roles::text[])
+      and 'public' = any(roles::text[])
   ) then
     raise exception 'RC459 removed the public-read policy required for presentation media';
   end if;
