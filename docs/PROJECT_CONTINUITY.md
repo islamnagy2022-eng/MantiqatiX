@@ -615,3 +615,12 @@ Added a candidate source guard in `supabase/functions/business-register/index.ts
 
 ### Follow-up: malformed business-registration payloads (2026-10-19)
 `business-register` now returns `INVALID_JSON_BODY` with HTTP 400 for malformed JSON and non-object/array bodies. Added two static contract assertions. This does not affect production until the release is approved and deployed.
+
+
+## 2026-10-19 — RC432 and business-registration CI follow-up
+
+- **RC432 source identity checked:** `supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql` had the same Git blob SHA `7d2f8a27d173f04cbc22cec0a801818bde3aac07` on the current release branch and the inspected open recovery branches for PRs #273 and #282. This supports a single canonical source identity; it does not substitute for the exact-head collision-guard result. The guard on the earlier head `b5802625543df635246e0f7f5e902840825f64e3` was still queued at the last check. The latest branch head below needs fresh exact-head CI.
+- **Business Registration Atomicity workflow correction:** review found its job applied RC531 but not the follow-on RC532 inherited-organization-scope and RC533 audit-atomicity migrations, while its contract/integration tests read and assert RC532/RC533 behavior. Updated `.github/workflows/business-registration-atomicity.yml` to trigger on both later migration files and apply RC531 → RC532 → RC533 in chronological order before the integration suite. Workflow commit: `08f9c98321e71b7da56d7ef1da7ee8936babb0f7`.
+- **Integration SQL correction:** fixed the audit-failure trigger's malformed single-dollar PL/pgSQL delimiter to valid `$$` quoting. Verified the fetched file contains the corrected opening and closing delimiters and no longer contains the malformed pattern. Commit: `b7fa1f2267885ecdea94a2d54a952ae648044cef`.
+- **Verification boundary:** these are source/workflow corrections and text-level consistency checks, not a claimed PostgreSQL integration pass. The current PR #286 head is `b7fa1f2267885ecdea94a2d54a952ae648044cef`; exact-head CI results have not yet been confirmed. No production migration, function deployment, grants/RLS/Auth change, payment, or financial record was changed. Keep PR #286 Draft and production **BLOCKED / NOT CERTIFIED**.
+- **Next:** verify the exact-head registration atomicity, collision guard, migration history/uniqueness, full ordered replay, tenant-isolation, payment and financial integration runs. Continue only from the latest observed head; do not transfer older run results to it.
