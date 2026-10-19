@@ -184,3 +184,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 - The allocation integrity trigger now covers participant `status` updates as well as allocation/scope fields. This prevents reactivation from bypassing the aggregate allocation check.
 - Source-level fix only; fresh CI/PostgreSQL evidence remains required. This does not establish frontend runtime completion.
+
+## Backend release-gate traceability — RC454–RC456 (2026-10-19)
+
+- Review found the marketing PostgreSQL workflow was applying RC453 only while source assertions inspected RC454–RC456.
+- The workflow now applies all four migrations in chronological order and runs terminal-campaign/partner-closure lifecycle assertions, including audit, notification, and idempotent replay behavior.
+- RC454's allocation guard trigger includes `status`, so entering/leaving active assignment states is guarded.
+- This is backend test coverage, not a frontend runtime certification. Fresh exact-head CI is required; production remains **BLOCKED / NOT CERTIFIED**.
