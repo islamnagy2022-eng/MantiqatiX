@@ -51,10 +51,10 @@ create table public.approval_requests(
   updated_at timestamptz not null default now()
 );
 insert into public.tenants(id,status) values
- ('TENANT-A','ACTIVE'),('TENANT-B','ACTIVE'),('TENANT-INACTIVE','INACTIVE');
+ ('TENANT-A','ACTIVE'),('TENANT-B','ACTIVE'),('TENANT-INACTIVE','INACTIVE'),('MNTY-PLATFORM','ACTIVE');
 insert into public.organizations(id,tenant_id) values ('ORG-A','TENANT-A'),('ORG-B','TENANT-B');
 insert into public.user_memberships(id,user_id,tenant_id,organization_id,role,permissions,status) values
  ('MEM-A','10000000-0000-4000-8000-000000000001','TENANT-A','ORG-A','OWNER','{}','ACTIVE'),
  ('MEM-B','10000000-0000-4000-8000-000000000002','TENANT-B','ORG-B','OWNER','{}','ACTIVE'),
  ('MEM-C','10000000-0000-4000-8000-000000000003','TENANT-A','ORG-A','OWNER','{}','ACTIVE'),
- ('MEM-PLATFORM','10000000-0000-4000-8000-000000000004','TENANT-A',null,'SUPER_ADMIN','{"scope":"PLATFORM","full_control":true}','ACTIVE');
+ ('MEM-PLATFORM','10000000-0000-4000-8000-000000000004','MNTY-PLATFORM',null,'SUPER_ADMIN','{"scope":"PLATFORM","full_control":true}','ACTIVE');
