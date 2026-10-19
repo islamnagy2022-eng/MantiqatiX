@@ -179,6 +179,7 @@ end;
 $function$;
 
 revoke all on function private.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar) from public, anon, authenticated;
+grant usage on schema private to service_role;
 grant execute on function private.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar) to service_role;
 
 comment on function private.register_business_with_approval_atomic(uuid, varchar, varchar, varchar, varchar, varchar, text, varchar, varchar, varchar)
