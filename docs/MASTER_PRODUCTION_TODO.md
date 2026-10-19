@@ -5,6 +5,24 @@
 القاعدة: DONE ≠ VERIFIED.
 المسار الإلزامي: Analysis → Impact Analysis → Implementation → Integration → Testing → Security Review → Verification → Release → Monitoring → New Baseline.
 
+## Mandatory continuation and result protocol — 2026-10-19
+
+This section applies to every development session and every continuation turn. It is not optional.
+
+1. Start from the current repository, active PR heads, CI results, production migration checkpoint, and the latest verified TODO entry. Never restart the project or infer that a previous claim is still current without checking when the task depends on it.
+2. Follow the existing priority order and dependencies. Start with the first open, actionable item that blocks the critical path; do not jump to lower-priority features while a P0 security, migration, payment, or release blocker is actionable. Respect the recorded product priority: restaurant module first among sector work, while security and financial blockers proceed in parallel where safe.
+3. Work cumulatively: inspect → implement the smallest safe change → run focused tests → run relevant CI → inspect exact-head results → update TODO/continuity evidence. Continue through dependent safe tasks in the same session for as much useful work as possible.
+4. At the end of every work batch, report the same structured status:
+   - Main workstream and subtask
+   - Status for each: DONE + evidence, PARTIAL, TODO, WAIT/external dependency, or NOT VERIFIED
+   - What changed in this batch, with exact branch/commit/PR and tests where available
+   - What remains, the blocker/dependency, and the next ordered action
+   - Production release gate and any explicit owner action needed
+5. Never mark code as VERIFIED because it merely exists, a static check passes, or a PR is open. DONE ≠ VERIFIED. Report failed, queued, skipped, stale, or unavailable CI accurately. Evidence must match the exact tested commit.
+6. Preserve the production safety constraints: do not merge, deploy, apply production migrations, change production grants/settings, create test identities/data, or perform real-money actions unless explicitly authorized and the required safe conditions are met. Never apply a pending migration out of order. Keep release BLOCKED / NOT CERTIFIED until all required independent gates have evidence.
+7. For a new session, resume from the last confirmed checkpoint and this file; the user should not need to repeat “continue” or restate the TODO format. If the available context does not include the latest state, inspect the repository and CI first rather than guessing.
+8. The response must show the principal TODO items and their subitems, including completed items, open items, external waits, and verification status. Do not show only the newly completed work; always include the remaining critical path.
+
 ## حالات التنفيذ
 - DONE: التنفيذ/المراجعة البرمجية مكتملة بالأدلة المتاحة.
 - PARTIAL: جزء مكتمل وباقي أجزاء مفتوحة.
