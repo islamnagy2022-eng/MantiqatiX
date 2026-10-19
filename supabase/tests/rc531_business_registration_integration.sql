@@ -48,6 +48,15 @@ begin
   select count(*) into v_after from public.businesses where tenant_id='TENANT-A';
   if v_after <> 1 then raise exception 'RC531 duplicate attempt must not create another business, count=%',v_after; end if;
 
+  -- A platform super-admin in MNTY-PLATFORM may create in another active tenant.
+  v_result := public.register_business_with_approval_atomic(
+    '10000000-0000-4000-8000-000000000004','TENANT-B','ORG-B',
+    'Platform Agency','PLATFORM-AGENCY-001','GENERAL','','','',''
+  );
+  if v_result->>'success' <> 'true' then
+    raise exception 'RC531 explicit platform super-admin scope should permit target-tenant creation, got %',v_result;
+  end if;
+
   v_result := public.register_business_with_approval_atomic(
     '10000000-0000-4000-8000-000000000002','TENANT-A','ORG-B',
     'Cross Tenant','CROSS-TENANT-001','GENERAL','','','',''
