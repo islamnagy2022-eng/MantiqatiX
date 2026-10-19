@@ -1966,3 +1966,6 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added PostgreSQL lifecycle assertions that reject terminal campaign transitions with active partners, close a partner assignment, verify the audit/notification, prove closure replay idempotency, and then permit cancellation.
 - [x] Added a source-contract assertion requiring the workflow to apply RC454–RC456 in order.
 - [ ] Await fresh CI on the latest PR head. The prior passing PostgreSQL run applied only RC453, so it is not evidence for RC454–RC456. No production migration was applied. Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] Included RC454–RC456 migration paths in both `push` and `pull_request` workflow filters and added a validator assertion for the PR path filter, preventing a silent skip when only a later migration changes.
+- [ ] Confirm the new workflow actually runs and passes on the final PR head.
