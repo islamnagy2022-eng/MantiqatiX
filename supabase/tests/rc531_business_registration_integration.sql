@@ -13,12 +13,27 @@ create trigger test_fail_business_approval_insert
 before insert on public.approval_requests
 for each row execute function public.test_fail_business_approval_insert();
 
+create or replace function public.test_fail_business_audit_insert()
+returns trigger language plpgsql as $
+begin
+  if current_setting('test.fail_business_audit', true) = 'on' then
+    raise exception 'forced_business_audit_failure';
+  end if;
+  return new;
+end;
+$;
+create trigger test_fail_business_audit_insert
+before insert on public.audit_logs
+for each row execute function public.test_fail_business_audit_insert();
+
 do $test$
 declare
   v_result jsonb;
   v_duplicate jsonb;
   v_before integer;
   v_after integer;
+  v_approval_before integer;
+  v_approval_after integer;
   v_business_id uuid;
   v_failed boolean := false;
 begin
@@ -36,6 +51,9 @@ begin
   end if;
   if not exists(select 1 from public.approval_requests where business_id=v_business_id and status='PENDING' and requested_by='10000000-0000-4000-8000-000000000001') then
     raise exception 'RC531 approval request must be created with the business';
+  end if;
+  if not exists(select 1 from public.audit_logs where actor_user_id='10000000-0000-4000-8000-000000000001' and action='BUSINESS_REGISTRATION_SUBMITTED' and entity_id=v_business_id::text and result='SUCCESS') then
+    raise exception 'RC533 successful registration must persist its audit event';
   end if;
 
   v_duplicate := public.register_business_with_approval_atomic(
@@ -104,6 +122,27 @@ begin
   select count(*) into v_after from public.businesses;
   if v_after <> v_before then
     raise exception 'RC531 must roll back business insert when approval insert fails; before %, after %',v_before,v_after;
+  end if;
+
+  -- Audit failure must roll back both writes, not leave an unaudited registration.
+  select count(*) into v_before from public.businesses;
+  select count(*) into v_approval_before from public.approval_requests;
+  perform set_config('test.fail_business_audit','on',true);
+  v_failed := false;
+  begin
+    perform public.register_business_with_approval_atomic(
+      '10000000-0000-4000-8000-000000000003','TENANT-A','ORG-A',
+      'Audit Rollback Test','AUDIT-ROLLBACK-001','GENERAL','','','',''
+    );
+  exception when others then
+    if sqlerrm='forced_business_audit_failure' then v_failed:=true; else raise; end if;
+  end;
+  perform set_config('test.fail_business_audit','off',true);
+  if not v_failed then raise exception 'RC533 audit failure must propagate'; end if;
+  select count(*) into v_after from public.businesses;
+  select count(*) into v_approval_after from public.approval_requests;
+  if v_after <> v_before or v_approval_after <> v_approval_before then
+    raise exception 'RC533 audit failure must roll back business and approval writes; business %, approval %',v_after-v_before,v_approval_after-v_approval_before;
   end if;
 
   -- The SECURITY DEFINER function must still reject calls whose JWT role is not service_role.
