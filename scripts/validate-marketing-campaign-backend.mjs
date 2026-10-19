@@ -45,6 +45,7 @@ assert.match(integration, /campaign creation replay duplicated audit/);
 
 assert.match(rc454, /for update/i, "allocation guard must serialize writes through the campaign row");
 assert.match(rc454, /before insert or update of campaign_id,business_id,tenant_id,allocation_percent,status/i, "allocation guard must run when a participant enters or leaves an active allocation status");
+assert.match(integration, /RC454 allowed an inactive participant to reactivate beyond 100 percent allocation/, "PostgreSQL integration must cover the allocation status-transition bypass");
 
 const workflow = fs.readFileSync(".github/workflows/marketing-campaign-backend.yml", "utf8");
 for (const version of ["rc454_marketing_partner_allocation_integrity.sql", "rc455_marketing_campaign_terminal_guard.sql", "rc456_marketing_partner_closure_backend.sql"]) {
