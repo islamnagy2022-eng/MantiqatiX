@@ -46,4 +46,4 @@ assert.match(sw, /app\.js\?v=rc458-marketing-workspace-20261018/, "service worke
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
 assert.match(index, /sw\.js\?v=rc456-marketing-cache-20261019/, "service worker registration cache key must be refreshed");
 
-console.log("Marketing workspace contract: PASS (35 assertions)");
+console.log("Marketing workspace contract: source assertions defined (not executed in build-first batch)");
