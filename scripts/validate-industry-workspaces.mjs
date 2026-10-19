@@ -54,6 +54,7 @@ assert.match(ui, /e\.key==='ArrowLeft'/, 'sector tabs must support keyboard arro
 assert.match(ui, /e\.key==='Home'/, 'sector tabs must support Home/End keyboard navigation');
 assert.match(ui, /find\(x=>x\.dataset\.mxiwGroup===state\.group\)\?\.focus\(\)/, 'filter selection must preserve keyboard focus after repaint');
 assert.match(ui, /prefers-reduced-motion:reduce/);
+assert.match(ui, /button:focus-visible,\\.mxiw-shell input:focus-visible/, 'keyboard focus indicators must be visible on interactive controls');
 assert.match(ui, /window\.MNTYIndustryWorkspace=Object\.freeze/);
 assert.match(ui, /واجهة فقط · Backend غير موصول/);
 assert.match(ui, /لا يوجد اتصال بجداول القطاع أو حفظ أو دفع أو حجز حقيقي/);
