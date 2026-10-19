@@ -2000,3 +2000,12 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Added `scripts/tests/payment-provider-ambiguous-outcomes.test.mjs`, wired it into Module Professionalization CI, and extended the payment wiring validator.
 - Candidate head at checkpoint: `bd0164786b37e1ebf8a1dd3e80e1db9bf929d3fa`. Exact-head workflows are queued; no test pass is claimed.
 - No production changes. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — complete Paymob intent response binding — 2026-10-19
+- The candidate now applies the shared Paymob correlation guard to ordinary order payments, subscription payments, MantiGO, and digital-page payments.
+- Ordinary and digital-page flows validate exact-cent conversion before provider network I/O; they verify the echoed amount, currency, and merchant reference before returning checkout credentials. Digital-page mismatch keeps the claim active for reconciliation.
+- Only explicit identifier-free 400/401/403/404/422 responses are treated as definitive rejections; ambiguous 408/409/425/429/5xx or responses containing provider identifiers stay quarantined.
+- Added focused regression scripts for normal, subscription, digital-page correlation and ambiguous provider outcomes; wired them into Module Professionalization CI and strengthened the payment migration wiring validator.
+- Current candidate head: `4af10ddea8e37f991c9905ab4c65220bab46f398`. Exact-head workflows remain queued/pending, so no test pass is claimed.
+- No production migration, deployment, or payment was performed. Release remains BLOCKED / NOT CERTIFIED.
