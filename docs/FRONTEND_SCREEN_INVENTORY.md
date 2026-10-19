@@ -200,3 +200,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Added a CI-only PostgreSQL race test for two concurrent 60% active partner allocations on one campaign.
 - The test asserts campaign-lock serialization, the expected allocation-limit rejection, and persisted aggregate integrity after both transactions finish.
 - This strengthens backend regression evidence only; it does not establish browser/runtime completion. Exact-head CI remains required, and production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Campaign partner allocation precheck — 2026-10-19
+
+- Corrected the client-side invitation precheck to count only `INVITED`, `ACCEPTED`, and `ACTIVE` assignments, matching the RC454 server-side aggregate guard and avoiding false over-allocation warnings from completed assignments.
+- Added a source validator assertion and refreshed the app/PWA asset versions.
+- Source updated; browser/runtime verification remains NOT VERIFIED. Production remains **BLOCKED / NOT CERTIFIED**.
