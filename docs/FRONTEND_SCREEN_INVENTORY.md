@@ -167,3 +167,8 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 - The PWA cache rotation exposed stale validator assumptions in the sector-rendering and marketing UI contracts. Validators now check the current versioned asset references instead of fixed historical versions.
 - The source checks have been updated; fresh CI on the latest PR head remains the evidence gate. This is not a production certification.
+
+
+## Related CI correction — 2026-10-19
+
+- SMM service-role validation exposed a source-test mismatch rather than a gateway size-limit defect: the reusable parser defaults to 64 KiB and the gateway passes a 32 KiB override. The validator now checks both facts independently. Fresh workflow evidence remains required; no release certification is implied.
