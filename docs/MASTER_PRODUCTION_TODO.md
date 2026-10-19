@@ -1713,3 +1713,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## 2026-10-19 — Next build batch
 - [ ] Next planned UI enhancement: show a live partner allocation capacity estimate before invitation submission, based on currently loaded assignments. This must remain informational only; server-side transactional limits are authoritative.
 - [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Live partner allocation capacity hint (implementation only)
+- [x] Added an allocation hint beside the partner invitation input. It recalculates the currently allocated percentage, remaining percentage, and projected total when the campaign or requested allocation changes.
+- [ ] NOT VERIFIED: this hint uses loaded client-side rows only and does not reserve capacity. The backend must enforce the 100% allocation invariant transactionally. No tests, review, browser run, CI, or deployment performed by request.
