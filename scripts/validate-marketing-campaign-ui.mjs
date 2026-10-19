@@ -18,7 +18,7 @@ assert.match(app, /تعذر تحديث '\+failed\+/, "notification batch action 
 assert.match(app, /slice\(0,12\)/, "notification batch action must be bounded to the latest 12 loaded unread rows");
 assert.match(app, /visibleCampaignIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "campaign export must honor active UI filters");
 assert.match(app, /visibleParticipantIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "partner export must honor active UI filters");
-assert.match(app, /\^\[\\\\u0000-\\\\u0020\]\*\[=\+\\\\-@\]/, "CSV exports must neutralize formula prefixes after leading control/space characters");
+assert.match(app, /\^\[\\u0000-\\u0020\]\*\[=\+\\-@\]/, "CSV exports must neutralize formula prefixes after leading control/space characters");
 
 assert.match(app, /data-mc-close/, "manager partner closure action must be rendered");
 assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure must use the backend RPC");
