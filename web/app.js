@@ -790,6 +790,7 @@ function featureEnabled(moduleCode,featureCode){const a=live.flags[normCode(modu
 function canManage(){const r=String(live.role||'').toUpperCase();return window.MNTY_RBAC?.can(r,'ORDERS','update',live.permissions)===true||['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(r)}
 function canSuperAdmin(){return window.MNTY_RBAC?.can('SUPER_ADMIN','PLATFORM_CONTROL','view',live.permissions)===true}
 async function selectModule(name){
+ if(name==='الموديولات القطاعية')name='الموديولات';
  const role=String(live.role||'').toUpperCase();
  const industryRoute=window.MNTYIndustryWorkspace?.supports(name)===true;
  const privileged=window.MNTY_RBAC?.isPrivileged(role)===true||['SUPER_ADMIN','OWNER','ADMIN','MANAGER'].includes(role);
