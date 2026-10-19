@@ -2196,3 +2196,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added source-validator assertions requiring both the overlong-reason rejection and no-side-effects contract.
 - [ ] **NOT VERIFIED:** neither the SQL integration test nor the source validator was run during this build-first batch. Do not count this as test success.
 - Source commits: `cad2620de9537a0b5a0cf765c4051d1bb2ed09bf` and `a15abce3a25e26029b336fd64560361b94168220`. PR #299 remains Draft. Production remains **BLOCKED / NOT CERTIFIED**; no merge, production migration, or deployment was performed. Do not modify `docs/SESSION_LOG.md`.
+
+
+### RC456 closure reason audit normalization follow-up — authored, not run
+
+- [x] The successful closure integration case now passes a reason with leading/trailing whitespace and asserts the audit JSON stores the normalized trimmed reason.
+- [x] Added a source-validator assertion for this audit normalization contract.
+- [ ] **NOT VERIFIED:** SQL integration and source validator have not been executed in this build-first session.
+- Source commits: `e390e1ce173a8d6407925a8eef0b5ebf1f91fecc`, `08e032b7bf1768ee8023658c3b5345ed00119af3`, documentation continuation `a780e3fdcb47e3873c5355b30664fa813390297f`. Production remains **BLOCKED / NOT CERTIFIED**; PR #299 stays Draft; no deployment or merge.
