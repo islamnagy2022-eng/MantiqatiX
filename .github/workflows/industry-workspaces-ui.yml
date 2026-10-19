@@ -5,6 +5,7 @@ on:
     paths:
       - "web/industry-workspaces.js"
       - "docs/INDUSTRY_WORKSPACE_UI.md"
+      - "docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md"
       - "web/app.js"
       - "web/index.html"
       - "web/sw.js"
@@ -19,6 +20,7 @@ on:
     paths:
       - "web/industry-workspaces.js"
       - "docs/INDUSTRY_WORKSPACE_UI.md"
+      - "docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md"
       - "web/app.js"
       - "web/index.html"
       - "web/sw.js"
