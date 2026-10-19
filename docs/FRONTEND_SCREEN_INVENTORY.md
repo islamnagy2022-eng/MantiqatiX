@@ -178,3 +178,9 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - During cross-layer review of the marketing workspace backend, identified and corrected a migration trigger event gap: participant `status` updates were not included in the allocation guard trigger's update column list.
 - The trigger now runs for status-only transitions, and the marketing backend source contract asserts the trigger event includes `status`.
 - This is a backend correctness fix noted here for cross-layer traceability; no frontend behavior or production database was changed. Fresh CI and disposable PostgreSQL behavioral verification remain required.
+
+
+## Related backend correction — RC454 allocation status changes
+
+- The allocation integrity trigger now covers participant `status` updates as well as allocation/scope fields. This prevents reactivation from bypassing the aggregate allocation check.
+- Source-level fix only; fresh CI/PostgreSQL evidence remains required. This does not establish frontend runtime completion.
