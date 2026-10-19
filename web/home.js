@@ -49,9 +49,9 @@
   const loadPublicDirectoryCounts = async sb => {
     try {
       const [servicesRes,providersRes,servicesTotalRes,providersTotalRes]=await Promise.all([
-        sb.from('marketing_services').select('category_code').eq('status','ACTIVE').limit(1000),
+        sb.from('marketing_services_public').select('category_code').eq('status','ACTIVE').limit(1000),
         sb.from('marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').limit(1000),
-        sb.from('marketing_services').select('id',{count:'exact',head:true}).eq('status','ACTIVE'),
+        sb.from('marketing_services_public').select('id',{count:'exact',head:true}).eq('status','ACTIVE'),
         sb.from('marketing_provider_profiles').select('id',{count:'exact',head:true}).eq('status','ACTIVE')
       ]);
       if(servicesRes.error || providersRes.error || servicesTotalRes.error || providersTotalRes.error) throw (servicesRes.error||providersRes.error||servicesTotalRes.error||providersTotalRes.error);
@@ -537,7 +537,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
       try{
         const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
         const [sr,pr]=await Promise.all([
-          sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE') .eq('category_code',dataKey).order('created_at',{ascending:false}).limit(50),
+          sb.from('marketing_services_public').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE') .eq('category_code',dataKey).order('created_at',{ascending:false}).limit(50),
           sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('status','ACTIVE') .eq('provider_kind',dataKey).order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(50)
         ]);
         if(sr.error)throw sr.error; if(pr.error)throw pr.error;
@@ -888,7 +888,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
           const el=document.getElementById(id);
           if(el) el.hidden = id==='mx-services' ? !homeSectionEnabled('SERVICE_CATALOG') : id==='mx-offers' ? !homeSectionEnabled('ADVERTISEMENTS') : !homeSectionEnabled('MARKETING');
         });
-        let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
+        let serviceQuery=sb.from('marketing_services_public').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
         let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
         if(categoryCode){ const code=normCode(categoryCode); serviceQuery=serviceQuery.eq('category_code',code); providerQuery=providerQuery.eq('provider_kind',code); } else if(safeTerm){ serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%'); providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
         const adCoords=window.MNTYLocationAdapter?.state?.coords||null;
