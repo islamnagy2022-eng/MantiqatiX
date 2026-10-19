@@ -87,6 +87,7 @@ assert.doesNotMatch(pagesWorkflow.slice(0, pagesWorkflow.indexOf('jobs:')), /pag
 const deployBlock = pagesWorkflow.match(/\n  deploy:\n([\s\S]*?)(?=\n  [a-zA-Z0-9_-]+:\n|$)/)?.[1] || '';
 assert.match(deployBlock, /if: github\.ref == 'refs\/heads\/main' && \(github\.event_name == 'push' \|\| github\.event_name == 'workflow_dispatch'\)/, 'Pages deployment must be restricted to explicit main-branch events');
 assert.match(deployBlock, /permissions:\n      contents: read\n      pages: write\n      id-token: write/, 'Pages deployment permissions must be scoped to the deploy job');
+assert.equal((workflow.match(/\.github\/workflows\/pages\.yml/g) || []).length, 2, 'Pages workflow changes must trigger the industry security contract on push and pull request');
 
 console.log('Industry workspace frontend contract: PASS');
 console.log('27 unique sectors aligned with the canonical registry; frontend-only boundary; RBAC-preserving routing; PWA loading/cache: PASS');
