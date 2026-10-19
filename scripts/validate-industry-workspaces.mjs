@@ -93,7 +93,9 @@ assert.equal((workflow.match(/docs\/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261
 assert.match(backendAudit, /No production rows, DDL, grants, RLS, Auth settings, Edge Functions, or migrations were changed/);
 assert.match(backendAudit, /medical_appointments/);
 assert.match(backendAudit, /fashion_products_select/);
-assert.match(backendAudit, /PostgreSQL permissive policies combine with OR, while restrictive policies combine with AND/);\nassert.match(backendAudit, /`legacy_scope_boundary` is explicitly RESTRICTIVE/);\nassert.match(backendAudit, /the earlier statement that this boundary did not narrow reads was incorrect/);
+assert.match(backendAudit, /PostgreSQL permissive policies combine with OR, while restrictive policies combine with AND/);
+assert.match(backendAudit, /`legacy_scope_boundary` is explicitly RESTRICTIVE/);
+assert.match(backendAudit, /the earlier statement that this boundary did not narrow reads was incorrect/);
 assert.match(backendAudit, /BLOCKED/);
 
 
