@@ -1513,6 +1513,10 @@ function bindMarketingCampaignWorkspace(){
   if(!activeBusinessId||!campaignIsAvailable||!providerIsAvailable)return showToast('الحملة أو الشريك لم يعد متاحًا ضمن النشاط الحالي؛ حدّث مساحة العمل.','error');
   if(!allowedPartnerRoles.has(role))return showToast('اختر دورًا معتمدًا للشريك.','error');
   if(!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0||agreed>1000000000)return showToast('راجع نسبة التخصيص (0–100%) والقيمة المتفق عليها (0–1,000,000,000).','error');
+  const activeAllocations=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[])
+   .filter(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&!['DECLINED','REMOVED'].includes(String(p.status||'').toUpperCase()))
+   .reduce((sum,p)=>sum+(Number.isFinite(Number(p.allocation_percent))?Math.max(0,Number(p.allocation_percent)):0),0);
+  if(activeAllocations+allocation>100.000001)return showToast('مجموع نسب التخصيص الحالية والجديدة سيتجاوز 100%. خفّض النسبة أو راجع إسنادات الحملة.','error');
   button.disabled=true;button.textContent='جارٍ إرسال الدعوة...';
   try{
    const {data,error}=await sb.rpc('invite_marketing_campaign_partner_backend',{p_actor:user.id,p_campaign_id:campaignId,p_provider_id:providerId,p_role:role,p_allocation_percent:allocation,p_agreed_value:agreed});
