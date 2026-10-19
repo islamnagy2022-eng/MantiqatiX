@@ -120,14 +120,14 @@ begin
   if exists (
     select 1 from information_schema.columns
     where table_schema='public' and table_name='marketing_provider_profiles_public'
-      and column_name in ('owner_user_id','settings','portfolio')
+      and column_name in ('owner_user_id','settings','portfolio','ranking_weight')
   ) then
     raise exception 'RC458 public view exposes private provider profile columns';
   end if;
   if (select string_agg(column_name, ',' order by ordinal_position)
       from information_schema.columns
       where table_schema='public' and table_name='marketing_provider_profiles_public')
-      <> 'id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,updated_at' then
+      <> 'id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,profile_image_path,updated_at' then
     raise exception 'RC458 public provider view column allowlist changed unexpectedly';
   end if;
   if has_table_privilege('anon','public.marketing_provider_profiles_public','INSERT')
