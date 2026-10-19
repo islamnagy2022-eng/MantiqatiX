@@ -84,6 +84,8 @@ assert.match(integration, /partner closure accepted a spoofed actor/, "PostgreSQ
 assert.match(integration, /partner closure accepted a reason longer than 500 characters/, "PostgreSQL integration must reject overlong partner-closure reasons");
 assert.match(integration, /overlong closure reason produced audit or notification side effects/, "overlong closure reasons must not mutate audit or notification state");
 assert.match(integration, /partner closure audit did not store the trimmed reason/, "PostgreSQL integration must verify normalized closure reason auditing");
+assert.match(integration, /removed partner closure was not idempotent after campaign became terminal/, "PostgreSQL integration must verify removed partner closure remains idempotent after terminal campaign transition");
+assert.match(integration, /terminal partner closure replay duplicated audit or notification/, "terminal closure replay must not duplicate audit or notification side effects");
 assert.match(rc456, /revoke all on function public\.close_marketing_campaign_partner_backend\(uuid,uuid,text\)[\s\S]{0,180}from public, anon/i);
 assert.match(workflow, /RC454 concurrency regression/, "PostgreSQL workflow must exercise concurrent partner allocation writes");
 assert.match(workflow, /wait_event='PgSleep'/, "concurrency test must wait until the first insert holds its transaction open");
