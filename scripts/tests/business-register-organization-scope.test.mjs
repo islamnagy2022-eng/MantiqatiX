@@ -57,4 +57,4 @@ assert.match(integration, /forced_approval_insert_failure[\s\S]*must roll back b
 assert.match(integration, /TRUSTED_BUSINESS_REGISTRATION_REQUIRED[\s\S]*rejected-role call must not create a business/);
 assert.match(integration, /set_config\(\x27request\.jwt\.claim\.role\x27,\x27authenticated\x27,true\)/);
 
-console.log("business-register tenant and organization security contract: PASS (47 assertions)");
+console.log("business-register tenant and organization security contract: PASS");
