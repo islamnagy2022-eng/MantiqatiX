@@ -1969,3 +1969,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 
 - [x] Included RC454–RC456 migration paths in both `push` and `pull_request` workflow filters and added a validator assertion for the PR path filter, preventing a silent skip when only a later migration changes.
 - [ ] Confirm the new workflow actually runs and passes on the final PR head.
+
+
+## 2026-10-19 — RC454 concurrent allocation regression coverage
+
+- [x] Added a disposable-PostgreSQL race test that starts one 60% active partner assignment, observes its transaction holding the campaign allocation lock, then attempts a competing 60% assignment.
+- [x] The test requires the first insert to commit, the competing insert to fail specifically with `MARKETING_ALLOCATION_OVER_100`, and the persisted active allocation total to remain exactly 60%.
+- [x] Added source-contract assertions so the marketing backend workflow cannot silently lose this concurrency regression.
+- [ ] Verify the latest exact-head Marketing Campaign Backend validator and PostgreSQL jobs. This test is CI-only and has not been run locally; no production migration was applied. Production remains **BLOCKED / NOT CERTIFIED**.
