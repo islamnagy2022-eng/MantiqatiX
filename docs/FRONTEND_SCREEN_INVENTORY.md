@@ -239,3 +239,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 - Removed the duplicate provider-profile ID declaration and added a source-contract assertion to prevent it recurring.
 - Asset/cache versions were refreshed; runtime remains NOT VERIFIED and production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Marketing campaign allocation integrity follow-up — 2026-10-19
+
+- The RC454 database trigger now runs on participant `status` updates as well as allocation/scope changes, so reactivating an inactive assignment is subject to the same 100% cap.
+- Source contract and disposable PostgreSQL campaign workflow passed on the exact head `d9e5f459aacadc788f0dc38307cca2b9b636d356`, including status-reentry and concurrent-allocation regressions.
+- This verifies the isolated test workflow only. Live database parity, browser flows, migration rehearsal/rollback and production release remain NOT VERIFIED; production remains **BLOCKED / NOT CERTIFIED**.
