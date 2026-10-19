@@ -673,3 +673,7 @@ This status is intentional and must remain until the open gates above are indepe
 ### Campaign status transition guard — 2026-10-19
 - Status updates now re-check the selected campaign against the active business and the current client-side role, validate the requested transition against the campaign's latest loaded status, and ask for confirmation before calling the existing backend RPC.
 - This improves operator safety and stale-state handling, but is not a replacement for backend authorization/transition enforcement. No tests, review, or deployment were run for this build-only continuation.
+
+### Partner invitation availability refinement — 2026-10-19
+- Provider active-status comparisons now normalize case consistently. Allocation/duplicate hint refreshes when the selected provider changes. Client-side invitation submission rejects campaigns loaded as `COMPLETED` or `CANCELLED`.
+- These checks use client-loaded state and are not security boundaries; enforce campaign lifecycle, provider verification/status, tenant scope, uniqueness and allocation caps inside the backend/database. Build-only step: no tests, review, or deployment performed.
