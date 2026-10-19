@@ -1670,3 +1670,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Corrected both campaign and partner CSV builders to emit an actual UTF-8 BOM and CRLF record separators instead of literal backslash escape text.
 - [x] Normalized the spreadsheet formula-prefix guard regex in both export paths.
 - [ ] NOT VERIFIED: this correction was made by source inspection only; no tests, review, browser execution, CI, or deployment performed by request.
+
+
+## 2026-10-19 — Campaign export respects active filters (implementation only)
+- [x] Added stable campaign IDs to rendered campaign cards and scoped campaign CSV export to the currently visible cards after the active search/status filters are applied.
+- [x] Changed the empty-state feedback to clarify that no campaigns match the current filters rather than implying there are no campaigns in the business.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed by request. Export behavior must be exercised in the verification phase.
