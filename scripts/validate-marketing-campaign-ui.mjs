@@ -42,5 +42,7 @@ assert.match(sw, /const CACHE='mnty-web-v130'/, "PWA cache must be versioned for
 assert.match(sw, /app\.js\?v=industry-ui-20261019/, "service worker must precache the exact versioned app entrypoint");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
 assert.match(index, /sw\.js\?v=industry-ui-20261019/, "service worker registration cache key must be refreshed");
+assert.match(index, /await load\(['"]industry-workspaces\.js\?v=ui20261019['"]\);\s*await load\(['"]app\.js\?v=industry-ui-20261019['"]\)/, "industry workspace module must load before app boot");
+assert.match(sw, /industry-workspaces\.js\?v=ui20261019/, "service worker must precache the industry workspace module version");
 
 console.log("Marketing workspace contract: PASS (32 assertions)");
