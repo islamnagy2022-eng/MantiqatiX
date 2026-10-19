@@ -8,6 +8,18 @@ assert.match(app, /function marketingCampaignWorkspace\(\)/, "campaign workspace
 assert.match(app, /function marketingAgencyWorkspace\(\)/, "agency workspace must remain available");
 assert.match(app, /function bindMarketingAgencyWorkspace\(\)/, "agency tabs must be interactive");
 assert.match(app, /function bindMarketingCampaignWorkspace\(\)/, "campaign actions must be interactive");
+assert.match(app, /id="mc-campaign-filter-empty"/, "campaign filters must expose a no-match state");
+assert.match(app, /id="mc-partner-filter-empty"/, "partner filters must expose a no-match state");
+assert.match(app, /empty\.hidden=cards\.length===0\|\|visible>0/, "filter no-match state must not replace the true empty-data state");
+assert.match(app, /async function markVisibleNotificationsRead\(\)/, "notification batch action must await backend outcomes");
+assert.match(app, /markVisibleNotificationsRead\.inProgress/, "notification batch action must prevent duplicate concurrent runs");
+assert.match(app, /mark_notifications_read_backend/, "notification batch action must persist read state through the backend RPC");
+assert.match(app, /تعذر تحديث '\+failed\+/, "notification batch action must report partial failures");
+assert.match(app, /slice\(0,12\)/, "notification batch action must be bounded to the latest 12 loaded unread rows");
+assert.match(app, /visibleCampaignIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "campaign export must honor active UI filters");
+assert.match(app, /visibleParticipantIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "partner export must honor active UI filters");
+assert.match(app, /\^\[\\\\u0000-\\\\u0020\]\*\[=\+\\\\-@\]/, "CSV exports must neutralize formula prefixes after leading control/space characters");
+
 assert.match(app, /data-mc-close/, "manager partner closure action must be rendered");
 assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure must use the backend RPC");
 assert.match(app, /لا يمكن إنهاء الحملة قبل إغلاق/, "terminal campaign transitions should explain the active-partner blocker");
