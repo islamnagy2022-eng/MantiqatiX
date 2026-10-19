@@ -8,6 +8,8 @@ assert.match(app, /function marketingCampaignWorkspace\(\)/, "campaign workspace
 assert.match(app, /function marketingAgencyWorkspace\(\)/, "agency workspace must remain available");
 assert.match(app, /function bindMarketingAgencyWorkspace\(\)/, "agency tabs must be interactive");
 assert.match(app, /function bindMarketingCampaignWorkspace\(\)/, "campaign actions must be interactive");
+assert.match(app, /data-mc-close/, "manager partner closure action must be rendered");
+assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure must use the backend RPC");
 assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign reads must use a dedicated loader");
 assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
 assert.match(app, /from\('marketing_campaigns'\)\.select\([\s\S]{0,300}?\.eq\('business_id',live\.businessId\)/, "campaign reads must be scoped to the active business");
@@ -36,11 +38,11 @@ assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaign_participants['"]\)\.(
 assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خدمات التسويق الرقمي SMM/, "marketing role home must expose the SMM shortcut");
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SMM quick access");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
-assert.match(index, /app\.js\?v=rc458-marketing-workspace-20261018/, "browser cache key must be refreshed");
+assert.match(index, /app\.js\?v=rc456-partner-closure-20261019/, "browser cache key must be refreshed");
 const sw = fs.readFileSync("web/sw.js", "utf8");
-assert.match(sw, /const CACHE='mnty-web-v129'/, "PWA cache must be versioned for the new shell");
+assert.match(sw, /const CACHE='mnty-web-v130'/, "PWA cache must be versioned for the new shell");
 assert.match(sw, /app\.js\?v=rc458-marketing-workspace-20261018/, "service worker must precache the exact versioned app entrypoint");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-assert.match(index, /sw\.js\?v=rc369-marketing-cache/, "service worker registration cache key must be refreshed");
+assert.match(index, /sw\.js\?v=rc456-marketing-cache-20261019/, "service worker registration cache key must be refreshed");
 
-console.log("Marketing workspace contract: PASS (32 assertions)");
+console.log("Marketing workspace contract: PASS (34 assertions)");
