@@ -44,6 +44,8 @@ jobs:
         run: node scripts/tests/payment-intent-correlation.test.mjs
       - name: Ambiguous Paymob provider outcome contract
         run: node scripts/tests/payment-provider-ambiguous-outcomes.test.mjs
+      - name: Digital-page Paymob intention correlation contract
+        run: node scripts/tests/digital-page-payment-intent-correlation.test.mjs
       - name: Shared Paymob intention correlation unit tests
         run: node --test scripts/tests/mantigo-payment-intent-correlation.test.mjs
       - name: Payment migration wiring contract
