@@ -1770,3 +1770,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Status: IMPLEMENTED IN SOURCE / NOT VERIFIED. Migration not applied; no SQL tests, migration replay, CI, review, or deployment run. Verify actual table constraints/notification behavior and concurrent closure/invitation/status operations before applying. Production remains BLOCKED / NOT CERTIFIED.
 
 - UI follow-through: `web/app.js` now exposes manager-side closure for eligible active-business partner assignments through the RC456 RPC, with role/scope/state checks, confirmation, and bounded optional reason. No direct table mutation is used. This UI is source-only until RC456 is applied; tests and review remain pending.
+
+
+## 2026-10-19 — Marketing closure UX, cache, and contract assertions
+- Refreshed the app script cache key and service-worker registration key; bumped the PWA shell cache to `mnty-web-v130` so the new partner-closure UI is eligible for clients to fetch.
+- Added non-executed source contract assertions for the manager closure UI/RPC, terminal-state messaging, RC454/RC455/RC456 backend invariants, and current cache keys.
+- Added a frontend explanation when a terminal campaign transition is blocked by active partner assignments. Backend remains the source of truth.
+- Implementation only: assertions have not been run, migrations are unapplied, and no review/CI/browser/deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
