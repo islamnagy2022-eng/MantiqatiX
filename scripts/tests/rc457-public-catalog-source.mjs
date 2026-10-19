@@ -28,8 +28,14 @@ assert.match(serviceMigration, /grant select on table public\.marketing_services
 assert.match(serviceMigration, /revoke all on table public\.marketing_services from public, anon/,
   'anonymous visitors must not directly read the base service table');
 
-assert.match(providerMigration, /create or replace view public\.marketing_provider_profiles_public[\s\S]*?where status = 'ACTIVE'/,
-  'public provider view must expose ACTIVE rows only');
+assert.match(providerMigration, /create or replace view public\.marketing_provider_profiles_public[\s\S]*?where p\.status = 'ACTIVE'/,
+  'public provider view must expose ACTIVE profiles only');
+assert.match(providerMigration, /join public\.businesses b on b\.id = p\.business_id/,
+  'public provider view must be bound to its owning business');
+assert.match(providerMigration, /and b\.status = 'ACTIVE'/,
+  'public provider view must hide profiles attached to inactive businesses');
+assert.match(providerMigration, /b\.settings @> '\{\"showcase\":true\}'::jsonb/,
+  'public provider view must honor explicit business showcase consent');
 assert.match(providerMigration, /grant select on table public\.marketing_provider_profiles_public to anon, authenticated/,
   'public provider view must be readable by visitors and signed-in users');
 assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles from public, anon/,
@@ -50,5 +56,7 @@ assert.match(sqlTest, /RC458 owner could not read own private provider profile u
   'isolated RLS regression must verify owner private-profile access remains available');
 assert.match(sqlTest, /RC458 unrelated authenticated user read another provider base row/,
   'isolated RLS regression must deny unrelated authenticated base-table reads');
+assert.match(sqlTest, /RC458 exposed a provider without business showcase consent or with an inactive business/,
+  'isolated RLS regression must enforce business visibility and showcase consent');
 
 console.log('RC457_RC458_PUBLIC_CATALOG_SOURCE=PASS');
