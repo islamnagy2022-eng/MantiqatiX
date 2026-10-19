@@ -963,3 +963,8 @@ Public list/detail selects in `web/home.js` no longer request the full `settings
 ### RC458 — Public provider profile column boundary (2026-10-19)
 
 Added forward-only migration `20261019100000_rc458_public_provider_profile_column_allowlist.sql` with a read-only `marketing_provider_profiles_public` view exposing ACTIVE profiles and allowlisted fields to `anon, authenticated`. Direct anonymous base-table access is revoked; existing owner/admin access remains governed by base-table RLS. Public homepage queries now use the view and omit `settings`. The disposable PostgreSQL test covers active/draft rows, view access, and base-table denial for anon and ordinary authenticated roles. The RC457-only workflow passed on code-equivalent head `7dce257226110c164c22c849d53420e24990528c`; after expanding the test to include RC458, a fresh run is not yet confirmed. Production remains untouched and BLOCKED / NOT CERTIFIED.
+
+
+### RC458 regression test wiring correction — 2026-10-19
+
+The combined Public Service Catalog RLS workflow failed because the disposable PostgreSQL test queried `marketing_provider_profiles_public` before including RC458. The job log confirmed the missing relation; source-contract validation passed. Fixed the regression script to apply `20261019100000_rc458_public_provider_profile_column_allowlist.sql` after RC457. Corrected-head CI is pending/unconfirmed; do not mark the combined test green until it passes. Production remains BLOCKED / NOT CERTIFIED, and `docs/SESSION_LOG.md` remains untouched.
