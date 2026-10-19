@@ -1922,3 +1922,12 @@ A prior PR check run failed JavaScript syntax in `web/app.js` and a marketing ba
 - [x] Fixed the sector-rendering validator's stale hard-coded cache assumptions (`mnty-web-v129` and an old app URL) to validate the versioned cache name and exact current `web/index.html` app URL instead.
 - [x] Replaced stale marketing UI cache literals with checks against the current asset version; the service-worker registration must explicitly use a versioned URL.
 - [ ] Fresh CI must pass against the latest PR head. A deploy workflow validation failed before deployment because these stale source-contract assertions rejected the newer cache version; the deploy job was skipped. Keep production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — SMM redirect validator correction (SOURCE ONLY)
+
+- [x] Align the redirect-blocking source assertion with the actual gateway `fetch()` call in `supabase/functions/smm-gateway/index.ts` (`redirect: "error"`).
+- [ ] Confirm the SMM service-role boundary workflow passes on the latest PR head.
+- [ ] Keep SMM initial launch deferred until reviewed launch approval and full security/integration evidence are present.
+
+No production deploy or merge was performed. Production remains **BLOCKED / NOT CERTIFIED**.
