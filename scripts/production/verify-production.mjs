@@ -55,6 +55,16 @@ add("DIG-PAY-CORRELATION","FINANCE",digitalCorrelationSafe?"PASS":"BLOCKED",
     :"Digital-page payment lacks the required exact-cent/provider-response correlation boundary.",
   "P0");
 
+const digitalClaimReleaseSafe=Boolean(
+  digital.includes("return !error&&data===true") &&
+  digital.includes("PAYMENT_REJECTION_REQUIRES_RECONCILIATION")
+);
+add("DIG-PAY-CLAIM-RELEASE","FINANCE",digitalClaimReleaseSafe?"PASS":"BLOCKED",
+  digitalClaimReleaseSafe
+    ?"Digital-page payment checks claim release success and keeps reconciliation required if release fails."
+    :"Digital-page claim release result is not verified; a failed release must not be reported as a clean provider rejection.",
+  "P0");
+
 const ambiguousPaymentOutcomesSafe=Boolean(
   payment.includes("[400, 401, 403, 404, 422].includes(response.status)") &&
   payment.includes("!providerIntentId && !providerClientSecret && !providerOrderId") &&
