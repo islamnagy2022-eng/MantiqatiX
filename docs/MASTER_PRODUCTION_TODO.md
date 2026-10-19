@@ -2204,3 +2204,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added a source-validator assertion for this audit normalization contract.
 - [ ] **NOT VERIFIED:** SQL integration and source validator have not been executed in this build-first session.
 - Source commits: `e390e1ce173a8d6407925a8eef0b5ebf1f91fecc`, `08e032b7bf1768ee8023658c3b5345ed00119af3`, documentation continuation `a780e3fdcb47e3873c5355b30664fa813390297f`. Production remains **BLOCKED / NOT CERTIFIED**; PR #299 stays Draft; no deployment or merge.
+
+
+## 2026-10-19 — Frontend sensitive-write gate includes marketing campaign tables
+
+- [x] Expanded `SEC-FRONTEND-SENSITIVE-WRITES` source scan to detect literal direct mutations of `marketing_campaigns` and `marketing_campaign_participants`, in addition to previously monitored sensitive tables.
+- [x] Added a production-gate contract assertion requiring the marketing table names in that scan.
+- [ ] **NOT VERIFIED:** source validator and production verification script were not run during this build-first batch. This literal-reference scan is a defense-in-depth guard, not complete static analysis for dynamic table names.
+- Source commits: `e211eca231a638b84aa1f3f7a29f6c9297e0cc6e`, `2bfa1366419b90013385162540c24c9b7e0db1ba`, documentation `d563a15e3ca22e2640f23825cf0ceb26074fc08b`. PR #299 remains Draft; production remains **BLOCKED / NOT CERTIFIED**; no merge/deployment occurred.
