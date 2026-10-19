@@ -5,6 +5,33 @@ begin;
 create role anon nologin;
 create role authenticated nologin;
 
+create table public.marketing_provider_profiles (
+  id uuid primary key,
+  business_id uuid,
+  owner_user_id uuid,
+  name_ar text not null,
+  name_en text,
+  provider_kind text not null,
+  description text,
+  service_areas jsonb,
+  status text not null,
+  is_verified boolean not null default false,
+  is_featured boolean not null default false,
+  ranking_weight integer not null default 0,
+  profile_image_path text,
+  updated_at timestamptz not null default now(),
+  settings jsonb not null default '{}'::jsonb
+);
+alter table public.marketing_provider_profiles enable row level security;
+create policy marketing_provider_profiles_public_active_read
+on public.marketing_provider_profiles for select to anon using (status='ACTIVE');
+grant select on public.marketing_provider_profiles to anon, authenticated;
+insert into public.marketing_provider_profiles
+  (id,business_id,owner_user_id,name_ar,provider_kind,status,settings)
+values
+  ('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','مقدم منشور','FOOD','ACTIVE','{"private_api_key":"must-not-leak"}'),
+  ('20000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','مقدم مسودة','FOOD','DRAFT','{"private_api_key":"private"}');
+
 create table public.marketing_services (
   id uuid primary key,
   code text not null,
