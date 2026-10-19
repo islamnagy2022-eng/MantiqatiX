@@ -1777,3 +1777,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Added non-executed source contract assertions for the manager closure UI/RPC, terminal-state messaging, RC454/RC455/RC456 backend invariants, and current cache keys.
 - Added a frontend explanation when a terminal campaign transition is blocked by active partner assignments. Backend remains the source of truth.
 - Implementation only: assertions have not been run, migrations are unapplied, and no review/CI/browser/deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — RC456 closure idempotency correction (implementation only)
+- Moved the terminal-campaign rejection after the participant lock, scope consistency check, and already-REMOVED idempotency return. A repeated closure request now returns an idempotent result even if the campaign was subsequently completed/cancelled; new closure transitions remain blocked on terminal campaigns.
+- Preserved authorization-before-participant access and campaign → participant lock ordering.
+- Added a static source assertion for this ordering in `scripts/validate-marketing-campaign-backend.mjs`. The assertion was added but not executed; no SQL test, migration replay, review, CI, browser run, or deployment occurred. RC456 remains unapplied/unverified and production remains BLOCKED / NOT CERTIFIED.
