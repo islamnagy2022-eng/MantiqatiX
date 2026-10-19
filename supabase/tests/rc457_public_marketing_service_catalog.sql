@@ -24,6 +24,10 @@ create table public.marketing_provider_profiles (
 );
 alter table public.marketing_provider_profiles enable row level security;
 grant select on public.marketing_provider_profiles to anon, authenticated;
+create policy provider_owner_private_profile_read
+  on public.marketing_provider_profiles
+  for select to authenticated
+  using (owner_user_id::text = current_setting('request.jwt.claim.sub', true));
 create table public.marketing_services (
   id uuid primary key,
   code text not null,
@@ -147,6 +151,17 @@ set role authenticated;
 do $assert$
 declare visible_count integer;
 begin
+  perform set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000001',true);
+  select count(*) into visible_count from public.marketing_provider_profiles
+  where owner_user_id='30000000-0000-4000-8000-000000000001' and settings->>'secret'='must-not-leak';
+  if visible_count <> 1 then
+    raise exception 'RC458 owner could not read own private provider profile under existing RLS';
+  end if;
+  perform set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000099',true);
+  select count(*) into visible_count from public.marketing_provider_profiles;
+  if visible_count <> 0 then
+    raise exception 'RC458 unrelated authenticated user read another provider base row';
+  end if;
   select count(*) into visible_count from public.marketing_services_public;
   if visible_count <> 1 then
     raise exception 'RC457 authenticated public view expected one row, got %', visible_count;
