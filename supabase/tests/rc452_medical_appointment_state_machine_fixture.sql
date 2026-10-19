@@ -18,7 +18,8 @@ create table public.medical_appointments(
 insert into public.user_memberships(user_id,tenant_id,business_id,role,status) values
  ('11111111-1111-4111-8111-111111111111','tenant-a',null,'CUSTOMER','ACTIVE'),
  ('22222222-2222-4222-8222-222222222222','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','SERVICE_PROVIDER','ACTIVE'),
- ('33333333-3333-4333-8333-333333333333','tenant-b',null,'CUSTOMER','ACTIVE');
+ ('33333333-3333-4333-8333-333333333333','tenant-b',null,'CUSTOMER','ACTIVE'),
+ ('44444444-4444-4444-8444-444444444444','tenant-a',null,'CUSTOMER','ACTIVE');
 insert into public.medical_appointments(id,tenant_id,business_id,patient_id,doctor_id,date_time,status) values
  ('appt-booked-provider','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','provider-1',100,'BOOKED'),
  ('appt-confirmed-complete','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','provider-1',200,'CONFIRMED'),
