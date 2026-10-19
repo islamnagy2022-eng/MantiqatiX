@@ -785,3 +785,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Reused the shared Paymob correlation helper, added a focused source/pure-guard regression test, and wired it into Module Professionalization CI. Payment wiring validation now requires this guard to run before persistence.
 - Candidate head `aa1d40b55412fac07f5636370034e944e39b9dc6`; exact-head CI and Paymob sandbox E2E remain unverified. No production changes were made.
 - Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC534 — Payment correlation regression CI — 2026-10-19
+- Module Professionalization CI now runs subscription Paymob correlation, shared helper unit tests, and the payment migration wiring validator.
+- Latest candidate checkpoint observed: `55cd0fcef2023c36657b264905379ab440bef24e`; workflows are queued/pending. No success is claimed for this head.
+- Production remains at RC424 in the documented evidence; no production change was performed. Release remains BLOCKED / NOT CERTIFIED.
