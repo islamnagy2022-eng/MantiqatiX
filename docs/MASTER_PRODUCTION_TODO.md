@@ -1718,3 +1718,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## 2026-10-19 — Live partner allocation capacity hint (implementation only)
 - [x] Added an allocation hint beside the partner invitation input. It recalculates the currently allocated percentage, remaining percentage, and projected total when the campaign or requested allocation changes.
 - [ ] NOT VERIFIED: this hint uses loaded client-side rows only and does not reserve capacity. The backend must enforce the 100% allocation invariant transactionally. No tests, review, browser run, CI, or deployment performed by request.
+
+
+## متابعة بناء مساحة التسويق — تنبيهات التخصيص (2026-10-19)
+- أضيفت معاينة توضيحية لنسبة التخصيص قبل دعوة الشريك، تشمل إجمالي النسب الحالي والمتوقع والمتبقي.
+- تعرض الواجهة تنبيهًا عند رصد دعوة معلقة/تعاون مقبول للشريك نفسه في الحملة، أو عند تجاوز الإجمالي المتوقع 100%.
+- هذه حماية إرشادية في الواجهة وليست ضمانًا أمنيًا؛ يلزم فرض منع التكرار وحدود التخصيص ذريًا في قاعدة البيانات/الدالة الخلفية قبل اعتماد الإنتاج.
+- الحالة: **غير مختبر وغير متحقق إنتاجيًا**. لم تُشغّل الاختبارات أو المراجعات أو النشر في هذه الخطوة.
