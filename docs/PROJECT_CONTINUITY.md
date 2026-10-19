@@ -840,3 +840,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Fixed a frontend inconsistency in `notificationsWorkspace()`: unread cards are now selected from all locally loaded notifications, independently of the latest-12 list. This prevents older unread rows within the loaded dataset from disappearing merely because they are not among the latest 12 overall.
 - App assets now use `notifications-unread-list-20261019`; service-worker shell cache is `mnty-web-v139`.
 - No tests/browser/build/CI were run. The loaded dataset may still be a subset of backend history; this change does not claim exhaustive historical coverage. Keep production **BLOCKED / NOT CERTIFIED** and continue frontend-first screen work.
+
+
+## 2026-10-19 — Notification batch and CSV guard checkpoint (source only)
+
+- `web/app.js`: added `markVisibleNotificationsRead()`, which sequentially calls the existing `mark_notifications_read_backend` RPC for at most the newest 12 locally loaded unread notifications. It prevents duplicate in-page runs, updates local state only for successful calls, reports partial failures, and refreshes the view after completion.
+- `web/app.js`: hardened both campaign and partnership CSV export guards to prefix formula-like values even when whitespace/control characters precede the formula marker.
+- `web/index.html` and `web/sw.js` use the matching asset key `notification-batch-csv-guard-20261019`; cache key is `mnty-web-v140`.
+- No parser, automated tests, browser, build, CI, review, migration replay, merge, or deployment was run. This is not runtime or security certification.
+- Next: test batch notification behavior under partial RPC failure and test CSV formula edge cases in an isolated test environment; continue frontend-first review of loading/error/empty/action states. Do not edit `docs/SESSION_LOG.md`. Preserve SMM launch deferral and production **BLOCKED / NOT CERTIFIED**.
