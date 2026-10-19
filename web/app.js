@@ -1586,9 +1586,21 @@ function bindMarketingCampaignWorkspace(){
  }));
  document.querySelectorAll('[data-mc-status]').forEach(button=>button.addEventListener('click',async()=>{
   if(button.disabled)return;
-  const campaignId=button.dataset.mcStatus;
-  const target=document.getElementById('mc-status-'+campaignId)?.value;
-  if(!target)return;
+  const campaignId=String(button.dataset.mcStatus||'');
+  const target=String(document.getElementById('mc-status-'+campaignId)?.value||'').toUpperCase();
+  if(!campaignId||!target)return;
+  const activeBusinessId=String(live.businessId||'');
+  const campaign=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).find(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
+  const role=String(live.role||'').toUpperCase();
+  if(!campaign||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
+   showToast('تعذر تأكيد صلاحية تغيير هذه الحملة؛ حدّث مساحة العمل.','error');return;
+  }
+  const allowedNext=({DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[String(campaign.status||'').toUpperCase()]||[]);
+  if(!allowedNext.includes(target)){
+   showToast('تغيرت حالة الحملة أو أن الانتقال المطلوب غير مسموح؛ حدّث مساحة العمل.','error');return;
+  }
+  const statusLabels={DRAFT:'مسودة',PLANNED:'مخططة',IN_REVIEW:'قيد المراجعة',APPROVED:'معتمدة داخليًا',PAUSED:'متوقفة مؤقتًا',COMPLETED:'مكتملة',CANCELLED:'ملغاة'};
+  if(!window.confirm('تأكيد تغيير حالة الحملة «'+String(campaign.title||'')+'» إلى «'+(statusLabels[target]||target)+'»؟'))return;
   button.disabled=true;
   try{
    const {data,error}=await sb.rpc('update_marketing_campaign_status_backend',{p_actor:user.id,p_campaign_id:campaignId,p_status:target});
