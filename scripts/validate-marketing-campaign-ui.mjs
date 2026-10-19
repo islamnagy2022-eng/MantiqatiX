@@ -10,6 +10,7 @@ assert.match(app, /function bindMarketingAgencyWorkspace\(\)/, "agency tabs must
 assert.match(app, /function bindMarketingCampaignWorkspace\(\)/, "campaign actions must be interactive");
 assert.match(app, /data-mc-close/, "manager partner closure action must be rendered");
 assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure must use the backend RPC");
+assert.match(app, /لا يمكن إنهاء الحملة قبل إغلاق/, "terminal campaign transitions should explain the active-partner blocker");
 assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign reads must use a dedicated loader");
 assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
 assert.match(app, /from\('marketing_campaigns'\)\.select\([\s\S]{0,300}?\.eq\('business_id',live\.businessId\)/, "campaign reads must be scoped to the active business");
@@ -45,4 +46,4 @@ assert.match(sw, /app\.js\?v=rc458-marketing-workspace-20261018/, "service worke
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
 assert.match(index, /sw\.js\?v=rc456-marketing-cache-20261019/, "service worker registration cache key must be refreshed");
 
-console.log("Marketing workspace contract: PASS (34 assertions)");
+console.log("Marketing workspace contract: PASS (35 assertions)");
