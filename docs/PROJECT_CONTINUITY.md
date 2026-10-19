@@ -577,3 +577,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-19 continuation — RC457 CI repair and release gate
+
+- Fixed the RC457 PostgreSQL fixture's dollar quoting after CI exposed a syntax error.
+- Fixed the RC457 source validator's stale RC452 file paths and a brittle `NO_SHOW` wording assertion.
+- Corrected the RC457 migration header comment.
+- Exact-head CI passed on `7e9dd574bec5fb53b21996f2cbe0834df0d450cb`, including the isolated PostgreSQL state-machine integration and all seven other PR-triggered workflow checks. Pages deployment job was skipped for PR as expected.
+- PR #301 is still open/draft/unmerged. No production migration was applied.
+- Remaining release blockers include ordered replay of RC425 onward, two-tenant authenticated E2E, Paymob/finance/refund E2E, Auth leaked-password protection, per-function SECURITY DEFINER review, backup/restore and rollback rehearsal, browser/device smoke, and signed Android evidence.
+- Continue from the first open gate. Keep the production gate **BLOCKED / NOT CERTIFIED** until all required evidence is verified.
