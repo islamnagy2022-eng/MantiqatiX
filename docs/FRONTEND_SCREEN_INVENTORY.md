@@ -114,3 +114,11 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Converted module catalog tiles in `modulePage()` to semantic buttons, reusing the dashboard quick-access event binder and adding accessible names.
 - Existing module visibility and RBAC checks in `selectModule` remain the enforcement path; the UI is not treated as a security boundary.
 - Source-only; no browser/test/build/CI was run. Runtime and accessibility remain NOT VERIFIED.
+
+
+## Role-specific dashboard navigation — 2026-10-19
+
+- Converted the quick-access module tiles in the provider dashboard and role-scoped workspace dashboard from click-only `article` elements to semantic `button` elements.
+- Both surfaces now use the shared `data-dashboard-module` binder and escaped accessible names. Existing module visibility/RBAC filtering and `selectModule` enforcement remain unchanged.
+- Updated the app asset version and service-worker shell cache to `mnty-web-v137` so clients do not intentionally reuse the previous cached script.
+- Status: SOURCE UPDATED / NOT VERIFIED. No browser, tests, build, CI, review, or deployment was run. Role-specific dashboards remain PARTIAL until interaction, responsive, and accessibility behavior is verified.
