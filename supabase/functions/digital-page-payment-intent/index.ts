@@ -63,13 +63,16 @@ Deno.serve(async req=>{
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
  const providerOrderId=String(p?.intention_order_id??p?.order_id??"");
- if(providerResponseStatus>=400&&providerResponseStatus<500){
-   // A definitive provider-side client rejection is safe to release for a fresh attempt.
+ const providerIntentId=String(p?.id??"");
+ const providerClientSecret=String(p?.client_secret??"");
+ // Only explicit, identifier-free provider rejections prove no intention was created.
+ // Timeouts/rate limits/conflicts and any response containing provider identifiers are ambiguous.
+ if([400,401,403,404,422].includes(providerResponseStatus)&&!providerIntentId&&!providerClientSecret&&!providerOrderId){
    await release();
    return json({error:"PAYMENT_PROVIDER_REJECTED"},502);
  }
- if(providerResponseStatus<200||providerResponseStatus>=300||!p?.id||!p?.client_secret||!providerOrderId){
-   // 5xx, malformed, or incomplete responses are ambiguous: retain the claim for reconciliation.
+ if(providerResponseStatus<200||providerResponseStatus>=300||!providerIntentId||!providerClientSecret||!providerOrderId){
+   // Ambiguous responses retain the claim so retries cannot create duplicate intentions.
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
  const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id),p_provider_order_id:providerOrderId});
