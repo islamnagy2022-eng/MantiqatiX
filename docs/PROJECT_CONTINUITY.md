@@ -802,3 +802,10 @@ This status is intentional and must remain until the open gates above are indepe
 
 - Corrected the actual current `web/index.html` and `web/sw.js` strings so both reference `app.js?v=generic-workspace-sections-v2-20261019`; the service-worker shell cache is `mnty-web-v135`.
 - This source-level alignment was checked by re-reading the committed files; browser cache/update behavior remains unverified because no browser or test run was authorized.
+
+
+## 2026-10-19 — Dashboard quick-access checkpoint
+
+- Converted dashboard quick-access tiles in `web/app.js` from click-only article elements to real semantic buttons with accessible names and dedicated click handlers. Added a visible keyboard focus style in `web/styles.css` and a no-match state when the current filter returns no quick-access modules.
+- Updated the screen inventory and master TODO. Refreshed `web/index.html` and `web/sw.js` JS/CSS references consistently; PWA cache advanced to `mnty-web-v136`.
+- Not verified in a browser; no tests/build/CI were run. Next: inspect and complete dashboard role-specific action states, then move to the first incomplete primary module UI. Production remains BLOCKED / NOT CERTIFIED.
