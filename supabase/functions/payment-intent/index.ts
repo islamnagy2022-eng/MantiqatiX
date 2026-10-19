@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
   if (!response.ok || !provider?.id || !provider?.client_secret || !providerOrderId) {
     // HTTP 5xx, malformed JSON, or missing provider identifiers are ambiguous.
     // Do not mark FAILED: a provider intention may exist despite the incomplete response.
-    console.error(JSON.stringify({ requestId, stage: "paymob_intention", httpStatus: response.status, outcome: "UNKNOWN" }));
+    console.error(JSON.stringify({ requestId, stage: "paymob_intention", httpStatus: response.status, outcome: "UNKNOWN", providerIntentId: providerIntentId || null, providerOrderId: providerOrderId || null }));
     return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliationRequired: true, requestId }, 502, requestId);
   }
 
