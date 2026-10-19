@@ -107,3 +107,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Converted quick-access module cards from clickable `article` elements to semantic `button` elements, wired through a dedicated binder, with accessible labels and visible keyboard focus styling.
 - Added an explicit empty state when the current module filter produces no quick-access cards. This is a UI state only and does not fabricate available modules or data.
 - Responsive/browser behavior remains NOT VERIFIED; no tests, browser, build, or CI were run.
+
+
+## Module catalog — keyboard-accessible navigation (2026-10-19)
+
+- Converted module catalog tiles in `modulePage()` to semantic buttons, reusing the dashboard quick-access event binder and adding accessible names.
+- Existing module visibility and RBAC checks in `selectModule` remain the enforcement path; the UI is not treated as a security boundary.
+- Source-only; no browser/test/build/CI was run. Runtime and accessibility remain NOT VERIFIED.
