@@ -48,6 +48,9 @@ assert.ok(paymentIntent.indexOf("isValidPaymobAmountCents(amount, amountCents)")
 assert.ok(paymentIntent.indexOf("const providerCorrelationMatches = matchesPaymobIntention({") >= 0 && paymentIntent.indexOf("const providerCorrelationMatches = matchesPaymobIntention({") < paymentIntent.indexOf('admin.from("payment_intents").update({'), "normal payment response correlation must precede provider ID persistence");
 assert.ok(digitalIntent.includes("p_provider_order_id:providerOrderId"), "digital-page intent finalization must persist provider order correlation");
 assert.ok(digitalIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "digital-page provider ambiguity must not be blindly retried");
+assert.ok(digitalIntent.includes('from "../_shared/paymob-intent-correlation.mjs"') && digitalIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH"), "digital-page Paymob response must be correlated and mismatches must fail closed");
+assert.ok(digitalIntent.indexOf("isValidPaymobAmountCents(amount,amountCents)") < digitalIntent.indexOf('"/v1/intention/"'), "digital-page exact-cent validation must run before provider network I/O");
+assert.ok(digitalIntent.indexOf("if(!matchesPaymobIntention(") >= 0 && digitalIntent.indexOf("if(!matchesPaymobIntention(") < digitalIntent.indexOf('admin.rpc("finalize_digital_page_payment_intent_backend"'), "digital-page response correlation must precede trusted finalization");
 assert.ok(subscriptionIntent.includes('rpc("create_subscription_payment_intent_claimable_backend"'), "subscription flow must use the claimable intent RPC");
 assert.ok(subscriptionIntent.includes('rpc("claim_subscription_provider_intent_creation_backend"'), "subscription provider creation must be claimed atomically");
 assert.ok(subscriptionIntent.includes('from "../_shared/paymob-intent-correlation.mjs"'), "subscription provider response must use the shared Paymob correlation guard");
