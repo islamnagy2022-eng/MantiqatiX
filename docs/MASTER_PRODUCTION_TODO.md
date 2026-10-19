@@ -2158,3 +2158,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Extended the disposable PostgreSQL regression to impersonate an anonymous Auth claim with the matching owner UID and assert both UPDATE and DELETE leave the owner's media unchanged. Assertions check the persisted row because RLS can silently filter UPDATE/DELETE rather than raising an exception.
 - [ ] **NOT VERIFIED:** CI has not yet returned for this new test/migration commit. Do not mark the security regression passed until the exact-head Profile Media Storage Policy Boundary workflow and relevant PR checks complete successfully.
 - Production remains **BLOCKED / NOT CERTIFIED**. No production migration, deployment, merge, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+### RC459 anonymous Auth mutation boundary — CI verification update (2026-10-19)
+
+- [x] The Profile Media Storage Policy Boundary PostgreSQL job completed successfully on exact branch commit `55197bb9c9ce0b889258cdaa2955f6a5046978db`, including the added anonymous-Auth UPDATE/DELETE regression. Workflow: [39250144863](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250144863). The job's `Apply isolated profile media policy regression` step is recorded as completed/success.
+- [x] Migration version uniqueness and history immutability checks passed on this code line; open-PR migration collision guard passed on documentation head `55197bb9c9ce0b889258cdaa2955f6a5046978db` ([39250144911](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250144911)). Marketing workspace validation passed on the same documentation head ([39250144873](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39250144873)).
+- [ ] Remaining PR workflows were still queued/in progress at the last poll; do not report the full suite as green until all relevant runs finish.
+- These are isolated CI checks, not live Supabase Storage policy parity, full chronological migration replay, browser E2E, or production deployment. Production remains **BLOCKED / NOT CERTIFIED**. No merge, production migration, or real payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
