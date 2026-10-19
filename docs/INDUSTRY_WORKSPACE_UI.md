@@ -79,4 +79,4 @@ When the frontend is reviewed, implement each sector in a separate backend slice
 
 ## Validation
 
-The dedicated Industry Workspaces UI Contract workflow checks JavaScript syntax, the 27-code registry contract, the absence of direct backend operations in the new UI file, RBAC routing, and PWA precache integration. A queued or missing workflow result is not a pass.
+The dedicated Industry Workspaces UI Contract workflow checks JavaScript syntax, the 27-code registry contract, all sector routes at runtime, accessible tab/panel relationships, invalid-route rejection, the absence of direct backend operations in the new UI file, RBAC routing, and PWA precache integration. A queued or missing workflow result is not a pass.
