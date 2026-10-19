@@ -83,3 +83,12 @@ When the frontend is reviewed, implement each sector in a separate backend slice
 ## Validation
 
 The dedicated Industry Workspaces UI Contract workflow checks JavaScript syntax, the 27-code registry contract, all sector routes at runtime, accessible tab/panel relationships, invalid-route rejection, the absence of direct backend operations in the new UI file, RBAC routing, and PWA precache integration. A queued or missing workflow result is not a pass.
+
+## Security and validation hardening — 2026-10-19
+
+- The Pages workflow defaults to `contents: read`; `pages: write` and `id-token: write` are scoped to the guarded deploy job only.
+- The deploy job is restricted to `main` push or explicit `workflow_dispatch`; a pull-request run cannot publish the feature branch.
+- The industry contract workflow is triggered when `.github/workflows/pages.yml` changes, for both push and pull-request events. Its validator asserts the read-only default permissions and the deploy-only permission scope.
+- The marketing contract validator now checks the actual guarded load order: campaign data loads before rendering the marketing workspace, while industry routes skip unrelated domain-module loading.
+- Targeted source-level executions against the branch files passed: industry workspace contract, sector-rendering contract, marketing workspace contract, and the 27-route runtime contract. These checks were executed through a source harness and are not substitutes for native Node/GitHub Actions results.
+- Release gate remains **BLOCKED** until native GitHub Actions complete successfully for the exact latest PR head and deployment parity is independently verified. No merge or production deployment is implied by this UI work.
