@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
+> **LATEST CONTINUATION STATE — 2026-10-19:** The active build branch is `feat/marketing-campaign-operations-summary-20261019`; PR #299 is open and Draft. Its work includes marketing campaign/partner lifecycle controls, public service/provider catalog boundaries (RC457–RC458), profile-media policy hardening (RC459), and production-gate migration-manifest coverage through RC459. The latest documented exact-head CI checkpoint is `64393c9581a66d7f68bf424ad150313d1e4eba47`; subsequent work must be checked against the live branch before relying on that checkpoint. Production remains **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -11,10 +11,12 @@
 ## Current baseline
 
 - Repository: `islamnagy2022-eng/MantiqatiX`
-- Branch: `main`
+- Active continuation branch: `feat/marketing-campaign-operations-summary-20261019` (verify live branch head before every change)
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit: `cf522740e9dd058c28728ba582e347661ef24122`
+- Latest documented production/main merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`
+- Active build PR: #299 (Draft, do not merge without explicit authorization)
+- Latest documented candidate migration checkpoint: RC459; live Production is documented at RC424 until independently re-verified
 - Latest live production migration checkpoint: **RC424** (`20261008222845`, 283 versions)
 - Final Production Gate: **BLOCKED / NOT CERTIFIED**
 
@@ -984,3 +986,12 @@ Added disposable-PostgreSQL regressions requiring a cross-tenant manager to be d
 ### RC457/RC458 owner-scope and security-barrier regressions — 2026-10-19
 
 The isolated public-catalog PostgreSQL test now checks exact public view column allowlists, no write grants, `security_barrier=true`, public active-only visibility, denial of direct base-table reads to anonymous visitors, preservation of owner access to the owner's private provider profile, and denial of another authenticated identity's base-table read. Source-validator checks require the owner-scope regression to remain present. Exact-head CI on `890cb3b26b6178b4152baba7257c7ab30899f535` passed all 12 PR workflows, including Public Service Catalog RLS run [39244750651](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750651). The web verification job passed, while deployment was skipped. These are isolated regression/CI results, not proof of production schema parity or live grants. PR #299 remains Draft; production remains BLOCKED / NOT CERTIFIED. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true` and leave `docs/SESSION_LOG.md` untouched.
+
+
+## 2026-10-19 — RC456 closure reason input-boundary regression added
+
+- Added an unexecuted disposable-PostgreSQL regression to `supabase/tests/rc453_marketing_campaign_integration.sql`: a 501-character partner-closure reason must fail with `MARKETING_PARTNER_CLOSURE_REASON_TOO_LONG`, leave the participant in `ACCEPTED`, and produce neither a closure audit event nor a provider notification.
+- Added source-validator assertions in `scripts/validate-marketing-campaign-backend.mjs` to require the overlong-reason rejection and no-side-effects assertions.
+- Commits for this source-only batch: `cad2620de9537a0b5a0cf765c4051d1bb2ed09bf` (integration regression) and `a15abce3a25e26029b336fd64560361b94168220` (validator contract).
+- The test and validator were **not run** in this build-first continuation. This is code/test authoring only, not a verified regression fix. Continue building without running formal tests/CI/browser checks until explicitly authorized. Do not modify `docs/SESSION_LOG.md`.
+- Next: continue studying the active marketing/public-catalog/profile-media and production-gate source for additional safe build work; then advance to the next module by dependency order. Keep PR #299 Draft and production **BLOCKED / NOT CERTIFIED**.
