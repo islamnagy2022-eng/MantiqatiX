@@ -35,17 +35,18 @@ Deno.serve(async(req)=>{
     .select("id").eq("id",tenantId).eq("status","ACTIVE").maybeSingle();
   if(tenantError)throw tenantError;
   if(!tenant)return response({error:"ACTIVE_TENANT_REQUIRED"},403);
-  const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,role,business_id,organization_id,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").limit(20);
+  const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,tenant_id,role,business_id,organization_id,permissions").eq("user_id",user.id).eq("status","ACTIVE").limit(50);
   if(membershipError)throw membershipError;
   const allowedRoles=new Set(["SERVICE_PROVIDER","BUSINESS_OWNER","OWNER","ADMIN"]);
   const requestedOrganizationId=organizationId?.trim()||null;
-  // A regular tenant member may create only inside an organization covered by
-  // their own active membership. Never trust organizationId supplied by the browser.
+  // Tenant roles must belong to the target tenant; a platform super-admin may
+  // act across tenants only through the explicit MNTY-PLATFORM full-control grant.
   const membership=(memberships||[]).find((m)=>
+    String(m.tenant_id||"")===tenantId &&
     allowedRoles.has(String(m.role||"").toUpperCase()) &&
     (!requestedOrganizationId || String(m.organization_id||"")===requestedOrganizationId)
   );
-  const superAdmin=(memberships||[]).find((m)=>String(m.role||"").toUpperCase()==="SUPER_ADMIN"&&m.business_id==null&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
+  const superAdmin=(memberships||[]).find((m)=>(String(m.tenant_id||"")===tenantId||String(m.tenant_id||"")==="MNTY-PLATFORM")&&String(m.role||"").toUpperCase()==="SUPER_ADMIN"&&m.business_id==null&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
   if(!membership&&!superAdmin)return response({error:"BUSINESS_CREATE_ROLE_REQUIRED"},403);
   if(requestedOrganizationId&&!superAdmin&&String(membership?.organization_id||"")!==requestedOrganizationId){
     return response({error:"ORGANIZATION_SCOPE_FORBIDDEN"},403);
