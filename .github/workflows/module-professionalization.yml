@@ -46,6 +46,7 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
+          node scripts/validate-medical-appointment-state-machine.mjs
 
   matrimony-privacy-postgres:
     runs-on: ubuntu-latest
@@ -108,3 +109,34 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_test.sql
+
+  rc452-medical-appointment-state-machine-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc452_medical_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc452_medical_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply fixture, forward migration, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc452_medical_appointment_state_machine_fixture.sql "$pg_container:/tmp/rc452_fixture.sql"
+          docker cp supabase/migrations/20261010210000_rc452_medical_appointment_state_machine.sql "$pg_container:/tmp/rc452_migration.sql"
+          docker cp supabase/tests/rc452_medical_appointment_state_machine_integration.sql "$pg_container:/tmp/rc452_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc452_medical_test -v ON_ERROR_STOP=1 -f /tmp/rc452_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc452_medical_test -v ON_ERROR_STOP=1 -f /tmp/rc452_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc452_medical_test -v ON_ERROR_STOP=1 -f /tmp/rc452_test.sql
