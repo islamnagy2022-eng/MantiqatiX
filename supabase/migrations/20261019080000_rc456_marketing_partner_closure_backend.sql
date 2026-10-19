@@ -50,10 +50,6 @@ begin
   if not public.mnty_can_manage_marketing_business(v_campaign.business_id) then
     raise exception 'MARKETING_BUSINESS_SCOPE_REQUIRED';
   end if;
-  if v_campaign.status in ('COMPLETED','CANCELLED') then
-    raise exception 'MARKETING_CAMPAIGN_LOCKED';
-  end if;
-
   select * into v_participant
   from public.marketing_campaign_participants cp
   where cp.id = p_participant_id
@@ -68,12 +64,17 @@ begin
     raise exception 'MARKETING_PARTICIPANT_SCOPE_MISMATCH';
   end if;
 
+  -- Preserve idempotency even after the campaign reaches a terminal state.
+  -- Manager authorization and campaign -> participant lock order still apply.
   if v_participant.status = 'REMOVED' then
     return pg_catalog.jsonb_build_object(
       'participant_id', v_participant.id,
       'status', 'REMOVED',
       'idempotent', true
     );
+  end if;
+  if v_campaign.status in ('COMPLETED','CANCELLED') then
+    raise exception 'MARKETING_CAMPAIGN_LOCKED';
   end if;
   if v_participant.status not in ('INVITED','ACCEPTED','ACTIVE') then
     raise exception 'MARKETING_PARTICIPANT_NOT_CLOSABLE';
