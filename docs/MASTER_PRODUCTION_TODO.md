@@ -1960,3 +1960,12 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - PR #297 remains draft/non-mergeable and is based on the RC candidate branch. It must be reconciled with #286 rather than independently merged.
 - No production mutation, migration, grant/RLS/Auth change, payment, deployment, merge, or edit to `docs/SESSION_LOG.md` was performed in this checkpoint.
 - Next: poll exact-head workflows for #286 and #296; inspect failures rather than assuming success; review migration provenance/baseline and security boundaries; reconcile the #286 diff to avoid changes to `docs/SESSION_LOG.md`; obtain explicit owner approval before any merge or production rollout.
+
+
+## RC532 — Candidate integration checkpoint — 2026-10-19
+- PR #286 now contains the recovered RC425–RC441 source set, RC526 MantiGO intent claim, server-only digital-page finalization, disposable replay/isolation/payment tests, and RC531 atomic business registration. This is candidate code, not a production change.
+- Fixed a contradictory source-contract test in `scripts/tests/business-register-organization-scope.test.mjs`: it simultaneously asserted that `allowedRoles` was absent and that `allowedRoles.has(...)` was present. The current Edge Function centralizes tenant/membership/organization/duplicate authority in the atomic service-role RPC and passes `requestedOrganizationId` directly. Updated the test output to avoid a hard-coded count.
+- Exact-head CI for the new candidate commit `e53ec7e68c94051c19e5234bc558d583c45c42f8` is not yet independently confirmed; do not infer PASS from prior-head runs or PR narrative.
+- Identical-source comparison confirmed RC425 migration content matches across PR #286, #273 and #252; RC526 content matches across #286, #295 and #289. These overlapping candidates must not be merged independently. PR #286 also includes `docs/SESSION_LOG.md` changes that require reconciliation before integration.
+- Prior candidate replay evidence through RC525 does not certify the new combined RC526/RC531/finalization chain. The exact current head needs chronological disposable replay, migration collision/history checks, server-only finalization regression, tenant-isolation E2E, and payment integrations.
+- Production ledger remains recorded at RC424. No production migration, grants/RLS/Auth change, Edge Function deployment, payment, or financial record was changed. Final release remains BLOCKED / NOT CERTIFIED.
