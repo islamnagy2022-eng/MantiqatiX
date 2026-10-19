@@ -25,6 +25,14 @@ for (const code of api.sectorCodes) {
   assert.match(html, /aria-labelledby="mxiw-tab-overview"/, code + ' panel must be labelled by its active tab');
   assert.equal((html.match(/aria-selected="true"/g) || []).length, 1, code + ' must have exactly one selected tab');
   assert.match(html, /tabindex="0"/, code + ' must have a keyboard-focusable active tab/panel');
+
+  const tabIds = [...html.matchAll(/<button[^>]*role="tab"[^>]*id="(mxiw-tab-[^"]+)"/g)].map(match => match[1]);
+  const labelledBy = html.match(/role="tabpanel"[^>]*aria-labelledby="([^"]+)"/)?.[1];
+  assert.ok(tabIds.length > 0, code + ' must expose actual tab controls');
+  assert.equal(new Set(tabIds).size, tabIds.length, code + ' tab IDs must be unique');
+  assert.ok(tabIds.includes(labelledBy), code + ' tab panel must reference an existing tab ID');
+  assert.equal((html.match(/aria-controls="mxiw-panel"/g) || []).length, tabIds.length, code + ' every tab must point to the panel');
+  assert.equal((html.match(/role="tabpanel"/g) || []).length, 1, code + ' must expose exactly one active tab panel');
 }
 
 assert.equal(api.supports('الموديولات القطاعية'), true, 'sector directory route must be supported');
@@ -36,4 +44,4 @@ assert.match(api.render('قطاع: DIGITAL'), /data-mxiw-live="التسويق و
 assert.match(api.render('قطاع: FOOD'), /data-mxiw-live="المطاعم والمطابخ"/, 'food sector must preserve the existing restaurant workspace link');
 assert.doesNotMatch(source, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'sector workspace source must remain backend-free');
 console.log('Industry workspace runtime contract: PASS');
-console.log('27 routes rendered; accessible tabs/panels; invalid routes rejected; frontend-only boundary preserved.');
+console.log('27 routes rendered; tab/panel ID relationships, keyboard accessibility, invalid-route rejection, and frontend-only boundary verified.');
