@@ -1,4 +1,4 @@
--- RC452: enforce the medical appointment state machine server-side.
+-- RC457: enforce the medical appointment state machine server-side.
 -- Forward-only. No table, data, or grant changes.
 -- UI-supported transitions: BOOKED -> CONFIRMED/CANCELLED;
 -- CONFIRMED -> COMPLETED/NO_SHOW/CANCELLED. Cancellation is allowed for
