@@ -14,14 +14,14 @@ before insert on public.approval_requests
 for each row execute function public.test_fail_business_approval_insert();
 
 create or replace function public.test_fail_business_audit_insert()
-returns trigger language plpgsql as $
+returns trigger language plpgsql as $$
 begin
   if current_setting('test.fail_business_audit', true) = 'on' then
     raise exception 'forced_business_audit_failure';
   end if;
   return new;
 end;
-$;
+$$;
 create trigger test_fail_business_audit_insert
 before insert on public.audit_logs
 for each row execute function public.test_fail_business_audit_insert();
