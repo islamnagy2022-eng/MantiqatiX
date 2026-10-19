@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
+> **LATEST SESSION STATE — 2026-10-19:** Read `docs/SESSION_LOG.md` and the latest tail of `docs/MASTER_PRODUCTION_TODO.md`. PR #301 contains RC457 medical appointment state-machine hardening and a disposable forward-replay workflow. Exact-head run `39323468016` passed 31 pending migration candidates plus two-tenant RLS verification from the RC424 schema-only baseline on code head `63afa142222725f6ca0730288dd44e249731ae34`. PR #301 and PR #300 remain open/draft/unmerged. Production remains at RC424 and release remains **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -588,3 +588,13 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #301 is still open/draft/unmerged. No production migration was applied.
 - Remaining release blockers include ordered replay of RC425 onward, two-tenant authenticated E2E, Paymob/finance/refund E2E, Auth leaked-password protection, per-function SECURITY DEFINER review, backup/restore and rollback rehearsal, browser/device smoke, and signed Android evidence.
 - Continue from the first open gate. Keep the production gate **BLOCKED / NOT CERTIFIED** until all required evidence is verified.
+
+
+## 2026-10-19 continuation — RC424 forward replay and security status
+
+- Exact-head forward replay workflow in PR #301: run [39323468016](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39323468016), code head `63afa142222725f6ca0730288dd44e249731ae34`, PASS. It restored the pinned schema-only baseline from PR #284, then applied 31 pending candidate migrations sourced from PR #282/main and RC457 in filename-timestamp order.
+- The post-replay disposable tenant-isolation check passed for both tenants in both directions. This is forward replay from RC424, not a blank database replay of all 283 historical migrations.
+- The historical creation migration for `counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing from source/ledger history. The function exists in the RC424 schema snapshot, so this gap does not block testing the forward pending chain, but it still blocks certification of a clean historical replay.
+- Read-only Supabase Security Advisor refreshed at 2026-10-19T20:51Z: 1 RLS-enabled/no-policy table (`digital_page_payment_events`), 1 anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), 40 authenticated-executable SECURITY DEFINER findings, and leaked-password protection disabled; anonymous sign-in notices remain. Keep backend-only tables fail-closed and review functions individually.
+- Source RC449/RC462/RC565 contains platform-admin/financial-report hardening with disposable PostgreSQL tests, but production remains at RC424; do not apply the pending chain out of order or claim these fixes are live.
+- No production migration, data mutation, merge, or deployment occurred. Release remains **BLOCKED / NOT CERTIFIED**.
