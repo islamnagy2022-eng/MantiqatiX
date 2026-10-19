@@ -1286,7 +1286,7 @@ function marketingCampaignWorkspace(){
  const objectiveAr=v=>({AWARENESS:'الوعي بالعلامة',TRAFFIC:'زيارات',LEADS:'عملاء محتملون',SALES:'مبيعات',ENGAGEMENT:'تفاعل',APP_INSTALLS:'تثبيت التطبيق'}[String(v||'').toUpperCase()]||String(v||'—'));
  const channelAr=v=>({META:'Meta',TIKTOK:'TikTok',GOOGLE:'Google',YOUTUBE:'YouTube',LINKEDIN:'LinkedIn',SNAPCHAT:'Snapchat',OTHER:'أخرى'}[String(v||'').toUpperCase()]||String(v||''));
  const campaignById=new Map(campaigns.map(c=>[String(c.id),c]));
- const campaignOptions=campaigns.filter(c=>canManage&&String(c.business_id)===String(live.businessId));
+ const campaignOptions=campaigns.filter(c=>canManage&&String(c.business_id)===String(live.businessId)&&['DRAFT','PLANNED','IN_REVIEW'].includes(String(c.status||'').toUpperCase()));
  const providerOptions=providers.filter(p=>String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
  const validNext=c=>({DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[String(c.status||'').toUpperCase()]||[]);
  const errorPanel=(live.marketingCampaignErrors||[]).length
@@ -1433,7 +1433,7 @@ function bindMarketingCampaignWorkspace(){
   const columns=[['campaign','الحملة'],['provider','الشريك'],['role','الدور'],['status','الحالة'],['allocation_percent','نسبة التخصيص'],['agreed_value','القيمة المتفق عليها'],['currency','العملة'],['created_at','تاريخ الإنشاء']];
   const csvCell=value=>{
    let text=String(value??'');
-   if(/^[\u0000-\u0020]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
+   if(/^[\u0000-\u0020\uFEFF]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
    return '"'+text.replace(/"/g,'""')+'"';
   };
   const rows=participants.map(p=>{
@@ -1470,7 +1470,7 @@ function bindMarketingCampaignWorkspace(){
   ];
   const csvCell=value=>{
    let text=Array.isArray(value)?value.join(' | '):String(value??'');
-   if(/^[\u0000-\u0020]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
+   if(/^[\u0000-\u0020\uFEFF]*[=+\-@]/.test(text)||/^[\t\r]/.test(text))text="'"+text;
    return '"'+text.replace(/"/g,'""')+'"';
   };
   const csv='\uFEFF'+columns.map(([,label])=>csvCell(label)).join(',')+'\r\n'+rows.map(row=>columns.map(([key])=>csvCell(row[key])).join(',')).join('\r\n');
@@ -1567,7 +1567,7 @@ function bindMarketingCampaignWorkspace(){
   const activeBusinessId=String(live.businessId||'');
   const selectedCampaign=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).find(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
   const campaignStatus=String(selectedCampaign?.status||'').toUpperCase();
-  const campaignIsAvailable=Boolean(selectedCampaign&&!['CANCELLED','COMPLETED'].includes(campaignStatus));
+  const campaignIsAvailable=Boolean(selectedCampaign&&['DRAFT','PLANNED','IN_REVIEW'].includes(campaignStatus));
   const providerIsAvailable=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).some(p=>String(p.id)===providerId&&String(p.business_id||'')!==activeBusinessId&&String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
   if(!activeBusinessId||!campaignIsAvailable||!providerIsAvailable)return showToast('الحملة مغلقة أو الشريك لم يعد متاحًا ضمن النشاط الحالي؛ حدّث مساحة العمل.','error');
   const existingAssignment=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[])

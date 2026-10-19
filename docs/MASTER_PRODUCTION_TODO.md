@@ -1985,3 +1985,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Rotated the web app asset key and PWA shell cache to `marketing-active-allocation-status-filter-20261019` / `mnty-web-v143`.
 - [x] Added a UI source-contract assertion for client/database active-status parity.
 - [ ] Verify fresh exact-head CI; no browser runtime test or production deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Marketing invite eligibility and CSV formula hardening
+
+- [x] Limited partner invitation campaign choices and submit-time validation to the backend-accepted states: `DRAFT`, `PLANNED`, and `IN_REVIEW`. The UI no longer offers `APPROVED` or `PAUSED` campaigns only to receive a server rejection.
+- [x] Extended both campaign and partnership CSV formula guards to treat a leading BOM as a formula-prefix bypass vector.
+- [x] Added source-contract assertions for inviteable statuses and BOM-prefixed formula handling; refreshed the app asset key and PWA cache to `marketing-invite-eligible-campaign-statuses-20261019` / `mnty-web-v144`.
+- [ ] Verify fresh exact-head UI/backend CI and review any regression. Browser runtime and production behavior remain unverified; production remains **BLOCKED / NOT CERTIFIED**.

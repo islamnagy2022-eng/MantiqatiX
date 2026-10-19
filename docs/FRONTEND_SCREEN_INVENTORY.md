@@ -207,3 +207,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Corrected the client-side invitation precheck to count only `INVITED`, `ACCEPTED`, and `ACTIVE` assignments, matching the RC454 server-side aggregate guard and avoiding false over-allocation warnings from completed assignments.
 - Added a source validator assertion and refreshed the app/PWA asset versions.
 - Source updated; browser/runtime verification remains NOT VERIFIED. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Marketing invitation eligibility and CSV safety — 2026-10-19
+
+- Partner invite choices and submit-time checks now match the backend's eligible campaign states: `DRAFT`, `PLANNED`, and `IN_REVIEW`.
+- CSV formula-prefix guards now include a leading BOM as well as existing leading control/space characters.
+- Source-contract assertions and PWA asset/cache versions were updated. Browser/runtime behavior remains NOT VERIFIED; production remains **BLOCKED / NOT CERTIFIED**.

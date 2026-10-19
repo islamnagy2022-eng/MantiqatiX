@@ -918,3 +918,8 @@ Added a disposable-PostgreSQL concurrency regression to the Marketing Campaign B
 ## 2026-10-19 — Campaign allocation precheck parity
 
 The invitation form's client-side aggregate used to exclude only `DECLINED` and `REMOVED`, inadvertently counting `COMPLETED` assignments as active. RC454's database guard counts only `INVITED`, `ACCEPTED`, and `ACTIVE`; the UI precheck now uses the same exact status set. App asset version and PWA cache were advanced to `marketing-active-allocation-status-filter-20261019` and `mnty-web-v143`, with a source-contract assertion added. Await exact-head CI; browser behavior and production deployment remain unverified. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
+
+
+## 2026-10-19 — Marketing invite status and CSV guard follow-up
+
+The partner invitation form now offers only campaigns in `DRAFT`, `PLANNED`, or `IN_REVIEW`, matching the backend RPC's allowed transition states; submit-time validation uses the same set. This prevents avoidable attempts against `APPROVED`/`PAUSED` campaigns. Campaign and partnership CSV formula guards now also detect a leading BOM before formula characters. UI source-contract assertions and asset/cache versioning were updated. Await exact-head CI; no browser runtime test or production deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.

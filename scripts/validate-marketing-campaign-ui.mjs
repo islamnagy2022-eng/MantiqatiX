@@ -18,7 +18,7 @@ assert.match(app, /تعذر تحديث '\+failed\+/, "notification batch action 
 assert.match(app, /slice\(0,12\)/, "notification batch action must be bounded to the latest 12 loaded unread rows");
 assert.match(app, /visibleCampaignIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "campaign export must honor active UI filters");
 assert.match(app, /visibleParticipantIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "partner export must honor active UI filters");
-assert.match(app, /\^\[\\u0000-\\u0020\]\*\[=\+\\-@\]/, "CSV exports must neutralize formula prefixes after leading control/space characters");
+assert.match(app, /^\[\\u0000-\\u0020\\uFEFF\]\*\[=\+\\-@\]/, "CSV exports must neutralize formula prefixes after leading control/space/BOM characters");
 
 assert.match(app, /data-mc-close/, "manager partner closure action must be rendered");
 assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure must use the backend RPC");
@@ -41,6 +41,8 @@ assert.match(app, /if\(current==='التسويق والإعلان'\)await loadMa
 assert.match(app, /const canManage=Boolean\(live\.businessId[\s\S]{0,250}marketing_campaign_participants/, "campaign mutations must be disabled when campaign read sources fail");
 assert.match(app, /create_marketing_campaign_backend/, "campaign creation must use the backend RPC");
 assert.match(app, /invite_marketing_campaign_partner_backend/, "partner invitation must use the backend RPC");
+assert.match(app, /const campaignOptions=campaigns\.filter\(c=>canManage&&String\(c\.business_id\)===String\(live\.businessId\)&&\[\x27DRAFT\x27,\x27PLANNED\x27,\x27IN_REVIEW\x27\]\.includes\(String\(c\.status\|\|\x27\x27\)\.toUpperCase\(\)\)\)/, "partner invite options must be limited to backend-eligible campaign statuses");
+assert.match(app, /const campaignIsAvailable=Boolean\(selectedCampaign&&\[\x27DRAFT\x27,\x27PLANNED\x27,\x27IN_REVIEW\x27\]\.includes\(campaignStatus\)\)/, "partner invitation submit must reject statuses the backend will reject");
 assert.match(app, /const activeAllocations=[\s\S]{0,450}\[\x27INVITED\x27,\x27ACCEPTED\x27,\x27ACTIVE\x27\]\.includes\(String\(p\.status\|\|\x27\x27\)\.toUpperCase\(\)\)/, "client allocation precheck must count exactly the same active statuses as the database guard");
 assert.match(app, /respond_marketing_campaign_invitation_backend/, "partner response must use the backend RPC");
 assert.match(app, /update_marketing_campaign_status_backend/, "campaign status changes must use the backend RPC");
