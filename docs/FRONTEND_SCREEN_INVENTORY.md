@@ -129,3 +129,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Source inspection found a stray standalone `async` token separated by a newline from `function bindRoleAfterRender`. Removed the token while preserving the synchronous binder body; this avoids evaluating an unintended identifier before the declaration.
 - Refreshed app asset key to `role-dashboard-binder-fix-20261019` and shell cache to `mnty-web-v138`.
 - This is a source-level correction only. No JavaScript parser, browser, automated test, build, or CI was run; syntax/runtime must still be verified when permitted.
+
+
+## Notification unread-list consistency — 2026-10-19
+
+- The notifications workspace now selects up to 12 unread notifications from the complete locally loaded notification list, independently of the separate 12 most-recent notification list. Previously, an older unread notification could be omitted from the unread panel whenever it fell outside the most-recent 12, even though the unread KPI counted it.
+- Refreshed app asset version to `notifications-unread-list-20261019` and PWA cache to `mnty-web-v139`.
+- Source-only correction; no tests, browser, build, or CI were run. Data completeness still depends on the rows loaded from the backend; this does not guarantee that all historical notifications are fetched.
