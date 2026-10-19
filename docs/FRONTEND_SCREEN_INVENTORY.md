@@ -84,3 +84,11 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Refreshed the blueprint script URL and service-worker shell cache key to `mnty-web-v131`.
 - Implementation status: **SOURCE UPDATED / NOT VERIFIED**. No browser execution, automated test, build, or CI was run in this batch.
 - Next: continue the source-level screen-by-screen audit, starting with shared workspace routing and dashboard, then complete the first module's child screens and interactions before moving to its backend.
+
+
+## Shared global search — frontend state correction (2026-10-19)
+
+- The global search renderer now distinguishes a genuinely empty result set from failed data sources.
+- When all permitted search sources fail, the UI shows an unavailable state and a retry action rather than claiming there are no results. Partial source failures are disclosed even when some results are available.
+- This is a frontend state-handling improvement; it does not change search permissions, data sources, or backend contracts.
+- Status: SOURCE UPDATED / NOT VERIFIED; no test, browser, build or CI was run.
