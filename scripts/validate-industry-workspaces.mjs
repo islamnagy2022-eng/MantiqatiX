@@ -61,6 +61,7 @@ assert.match(ui, /لا يوجد اتصال بجداول القطاع أو حفظ
 assert.match(ui, /قيود صرف الأدوية حسب القوانين والسياسات/);
 assert.match(ui, /سلسلة الحيازة/);
 assert.match(ui, /إخفاء بيانات الموقع بعد انتهاء الحاجة/);
+assert.match(ui, /s\.code==='DIGITAL'\?'<button type="button" class="mxiw-live-link" data-mxiw-live="التسويق والإعلان">/, 'marketing sector must link to the existing RBAC-guarded marketing workspace');
 assert.doesNotMatch(ui, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'industry UI must remain frontend-only');
 assert.match(app, /window\.MNTYIndustryWorkspace\?\.supports\(current\)\)return window\.MNTYIndustryWorkspace\.render\(current\)/);
 assert.match(app, /if\(!window\.MNTYIndustryWorkspace\?\.supports\(current\)\)await loadDomainModule\(current\)/);
