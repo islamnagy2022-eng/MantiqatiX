@@ -100,6 +100,13 @@ if (duplicateManifestMigrations.length) {
   console.error('Migration manifest contains duplicate filenames:', [...new Set(duplicateManifestMigrations)].join(', '));
   process.exit(1);
 }
+const migrationSourceDir = path.join(root, 'supabase', 'migrations');
+const missingManifestSources = manifestMigrationNames.filter(name => !fs.existsSync(path.join(migrationSourceDir, name)));
+if (missingManifestSources.length) {
+  console.error('RC360 production gate contract: FAIL');
+  console.error('Migration manifest references missing source files:', missingManifestSources.join(', '));
+  process.exit(1);
+}
 const timestampOrderViolations = manifestMigrationNames.slice(1).filter((name, index) =>
   name.slice(0, 14) < manifestMigrationNames[index].slice(0, 14)
 );
