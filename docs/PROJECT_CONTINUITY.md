@@ -933,3 +933,8 @@ Corrected the CSV source assertion to match the BOM-aware formula guard's litera
 ## 2026-10-19 — Provider invitation visibility and scoped campaign details
 
 Fixed the marketing workspace data path so a provider can load participant rows for their own provider profile, independently of the active business, and then request only the campaign IDs referenced by those rows. Manager campaign/participant queries remain business-scoped; merged rows are deduplicated, and summary counts remain role-appropriate. The no-business path still fails closed unless an owned provider profile gives a narrow scope. Source validators and PWA asset/cache keys were updated. Await CI and browser verification; production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
+
+
+## 2026-10-19 — Provider invitation binding follow-up
+
+The provider-owned invitation view now binds the current provider profile ID at the start of `marketingCampaignWorkspace()`, before filtering provider-specific rows. A source-contract assertion protects this ordering. Asset/cache keys were refreshed; await exact-head CI and browser verification. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.

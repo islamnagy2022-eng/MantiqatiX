@@ -227,3 +227,9 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - The marketing workspace now combines active-business participant rows with rows scoped to the signed-in user's own provider profile and fetches linked campaign details only by those participant campaign IDs.
 - Manager summary and mutation paths remain business-scoped; provider rows are deduplicated and displayed as owned invitations/assignments.
 - Source and CI checks are pending; provider-account browser/runtime verification remains NOT VERIFIED. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Provider invitation scope binding — 2026-10-19
+
+- Ensured the provider profile ID is initialized before filtering owned invitations and added a source-contract assertion for that binding.
+- PWA app/cache versions were refreshed. Runtime/browser verification remains NOT VERIFIED; production remains **BLOCKED / NOT CERTIFIED**.

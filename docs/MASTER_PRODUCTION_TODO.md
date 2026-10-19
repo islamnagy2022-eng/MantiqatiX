@@ -2008,3 +2008,10 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added a narrowly scoped campaign detail query using only campaign IDs referenced by the provider's own participant rows; no unscoped campaign list is loaded when there is no active business.
 - [x] Adjusted the workspace to show linked provider campaigns and invitations, while keeping manager summaries and mutations restricted to the active business. Refreshed the app asset key and PWA cache to `marketing-provider-invitation-scope-20261019` / `mnty-web-v145`.
 - [ ] Verify exact-head source contracts and browser/provider-account behavior. No browser runtime test or production deployment was performed; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Provider invitation scope binding follow-up
+
+- [x] Bound the workspace's provider-profile ID before constructing the provider-owned participant/campaign view, avoiding a missing identifier in the new scoped path.
+- [x] Added a source-contract assertion that the provider ID is initialized before provider invitation filtering; refreshed app/PWA versions to `marketing-provider-invitation-scope-fix-20261019` / `mnty-web-v146`.
+- [ ] Verify exact-head UI and backend CI. Runtime/browser validation remains outstanding; production remains **BLOCKED / NOT CERTIFIED**.

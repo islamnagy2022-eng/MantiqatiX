@@ -1281,6 +1281,7 @@ async function loadMarketingCampaignData(){
 }
 function marketingCampaignWorkspace(){
  const activeBusinessId=String(live.businessId||'');
+ const myProviderId=live.myProviderProfile?.id?String(live.myProviderProfile.id):'';
  const allCampaignRows=Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[];
  const allParticipantRows=Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[];
  const businessCampaigns=allCampaignRows.filter(c=>activeBusinessId&&String(c.business_id||'')===activeBusinessId);
