@@ -63,12 +63,19 @@ Deno.serve(async(req)=>{
   if(existingError)throw existingError;
   if(existing?.length)return response({error:"PENDING_BUSINESS_REQUEST_EXISTS",businessId:existing[0].business_id??null},409);
   const code=safeCode(name),resolvedOrganizationId=(requestedOrganizationId&&superAdmin)?requestedOrganizationId:(membership?.organization_id||null);
-  const {data:business,error}=await supabase.from("businesses").insert({tenant_id:tenantId,organization_id:resolvedOrganizationId,name,code,status:"INACTIVE",settings:{sector,address,phone,city,district,registration_source:"web",approval_status:"PENDING"}}).select("id,name,code,status,tenant_id,organization_id").single();
-  if(error)throw error;
-  const requestId="APR-"+crypto.randomUUID();
-  const {error:approvalError}=await supabase.from("approval_requests").insert({id:requestId,tenant_id:tenantId,organization_id:resolvedOrganizationId,business_id:business.id,request_type:"CREATE",entity_type:"BUSINESS",entity_id:business.id,requested_by:user.id,status:"PENDING",priority:"NORMAL",reason:"طلب تسجيل نشاط جديد من الويب",metadata:{sector,address,phone,city,district,created_by_super_admin:!!superAdmin}});
-  if(approvalError){await supabase.from("businesses").delete().eq("id",business.id);throw approvalError;}
-  return response({success:true,business,approvalRequestId:requestId,pendingApproval:true});
+  // The database RPC owns the transaction, final scope check, and duplicate lock.
+  const {data:registration,error:registrationError}=await supabase.rpc("register_business_with_approval_atomic",{
+    p_actor_user_id:user.id,p_tenant_id:tenantId,p_organization_id:resolvedOrganizationId,
+    p_name:name,p_code:code,p_sector:sector,p_address:address,p_phone:phone,p_city:city,p_district:district
+  });
+  if(registrationError)throw registrationError;
+  if(!registration||registration.success!==true){
+    const errorCode=String(registration?.error??"BUSINESS_REGISTER_FAILED");
+    const status=errorCode==="PENDING_BUSINESS_REQUEST_EXISTS"?409:
+      (errorCode==="ACTIVE_TENANT_REQUIRED"||errorCode==="BUSINESS_CREATE_ROLE_REQUIRED"||errorCode==="ORGANIZATION_SCOPE_FORBIDDEN")?403:500;
+    return response({error:errorCode,businessId:registration?.businessId??null},status);
+  }
+  return response(registration);
  }catch(error){
   // Do not expose Postgres, schema, or provider internals to an untrusted caller.
   console.error("business-register failed",error instanceof Error?error.message:"unknown_error");
