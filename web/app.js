@@ -1344,7 +1344,7 @@ function marketingCampaignWorkspace(){
   const c=campaignById.get(String(p.campaign_id));
   const provider=providers.find(x=>String(x.id)===String(p.provider_id));
   const mayRespond=Boolean(myProviderId&&String(p.provider_id)===myProviderId&&String(p.status).toUpperCase()==='INVITED');
-  return '<article class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
+  return '<article data-mc-participant-card data-mc-participant-search="'+esc([c?.title||'',provider?.name_ar||'',p.role||''].join(' '))+'" data-mc-participant-status="'+esc(String(p.status||'').toUpperCase())+'" class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+
    '<p class="muted">التخصيص: '+esc(p.allocation_percent)+'% · القيمة: '+fmtMoney(p.agreed_value,c?.currency||'EGP')+'</p>'+
    (mayRespond?'<div class="action-bar"><button type="button" class="btn btn-primary" data-mc-respond="'+esc(p.id)+'" data-mc-decision="ACCEPTED" style="width:auto">قبول الدعوة</button><button type="button" class="btn btn-outline" data-mc-respond="'+esc(p.id)+'" data-mc-decision="DECLINED" style="width:auto">رفض الدعوة</button></div>':'')+'</article>';
  }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
@@ -1353,7 +1353,7 @@ function marketingCampaignWorkspace(){
   errorPanel+campaignOperationsSummary+(canManage?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-export style="width:auto">تصدير تقرير الحملات CSV</button><button type="button" class="btn btn-outline" data-mc-export-partners style="width:auto">تصدير تقرير الشراكات CSV</button></div>':'')+createForm+
   '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div><div class="grid2" style="margin:12px 0"><div class="field"><label for="mc-campaign-search">البحث في الحملات</label><input id="mc-campaign-search" type="search" placeholder="ابحث بالاسم أو الهدف أو القناة" autocomplete="off"/></div><div class="field"><label for="mc-campaign-status-filter">تصفية حسب الحالة</label><select id="mc-campaign-status-filter"><option value="ALL">كل الحالات</option><option value="DRAFT">مسودة</option><option value="PLANNED">مخططة</option><option value="IN_REVIEW">قيد المراجعة</option><option value="APPROVED">معتمدة داخليًا</option><option value="PAUSED">متوقفة مؤقتًا</option><option value="COMPLETED">مكتملة</option><option value="CANCELLED">ملغاة</option></select></div></div><p id="mc-campaign-filter-count" class="muted" aria-live="polite"></p>'+campaignCards+'</section>'+
   inviteForm+
-  '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div>'+participantCards+'</section></section>';
+  '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div><div class="grid2" style="margin:12px 0"><div class="field"><label for="mc-partner-search">البحث في الشراكات</label><input id="mc-partner-search" type="search" placeholder="اسم الحملة أو الشريك أو الدور" autocomplete="off"/></div><div class="field"><label for="mc-partner-status-filter">حالة الدعوة</label><select id="mc-partner-status-filter"><option value="ALL">كل الحالات</option><option value="INVITED">دعوة مرسلة</option><option value="ACCEPTED">مقبولة</option><option value="DECLINED">مرفوضة</option><option value="REMOVED">مستبعدة</option></select></div></div><p id="mc-partner-filter-count" class="muted" aria-live="polite"></p>'+participantCards+'</section></section>';
 }
 async function refreshMarketingCampaignWorkspace(){
  await loadMarketingCampaignData();
@@ -1384,6 +1384,25 @@ function bindMarketingCampaignWorkspace(){
  document.getElementById('mc-campaign-search')?.addEventListener('input',filterCampaignCards);
  document.getElementById('mc-campaign-status-filter')?.addEventListener('change',filterCampaignCards);
  filterCampaignCards();
+ const filterPartnerCards=()=>{
+  const query=String(document.getElementById('mc-partner-search')?.value||'').trim().toLocaleLowerCase('ar');
+  const status=String(document.getElementById('mc-partner-status-filter')?.value||'ALL').toUpperCase();
+  const cards=Array.from(document.querySelectorAll('[data-mc-participant-card]'));
+  let visible=0;
+  cards.forEach(card=>{
+   const searchable=String(card.dataset.mcParticipantSearch||'').toLocaleLowerCase('ar');
+   const statusMatch=status==='ALL'||String(card.dataset.mcParticipantStatus||'').toUpperCase()===status;
+   const queryMatch=!query||searchable.includes(query);
+   const show=statusMatch&&queryMatch;
+   card.hidden=!show;
+   if(show)visible++;
+  });
+  const count=document.getElementById('mc-partner-filter-count');
+  if(count)count.textContent='المعروض '+visible+' من '+cards.length+' سجل شراكة';
+ };
+ document.getElementById('mc-partner-search')?.addEventListener('input',filterPartnerCards);
+ document.getElementById('mc-partner-status-filter')?.addEventListener('change',filterPartnerCards);
+ filterPartnerCards();
  document.querySelectorAll('[data-mc-export-partners]').forEach(button=>button.addEventListener('click',()=>{
   const role=String(live.role||'').toUpperCase();
   const activeBusinessId=String(live.businessId||'');
