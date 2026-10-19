@@ -1945,3 +1945,10 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Updated RC454 to fire on participant status updates and strengthened the marketing backend source validator to lock this contract in.
 - [ ] Confirm the fresh `Marketing Campaign Backend` PostgreSQL and source-validation jobs pass on the exact new head.
 - [ ] Validate status-only transitions in a disposable PostgreSQL integration case before release. This is a migration source fix only; it has not been applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation status-transition guard correction
+
+- Source review found that RC454's allocation trigger originally ran on allocation/scope columns but not `status`, so changing a participant from `DECLINED`/`REMOVED` into `INVITED` could bypass the aggregate allocation check.
+- Updated the trigger column list to include `status`, and strengthened the marketing backend source validator to assert that status transitions are covered.
+- This is a source-level correctness fix only. Fresh PostgreSQL/CI evidence is still required; no migration was applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
