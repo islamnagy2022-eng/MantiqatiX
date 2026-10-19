@@ -193,3 +193,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - This is backend test coverage, not a frontend runtime certification. Fresh exact-head CI is required; production remains **BLOCKED / NOT CERTIFIED**.
 
 - Follow-up: corrected the separate `pull_request` path filter as well as the `push` filter, and added source validation to prevent these backend migration tests from being silently skipped on PRs.
+
+
+## Backend concurrency gate traceability — RC454 (2026-10-19)
+
+- Added a CI-only PostgreSQL race test for two concurrent 60% active partner allocations on one campaign.
+- The test asserts campaign-lock serialization, the expected allocation-limit rejection, and persisted aggregate integrity after both transactions finish.
+- This strengthens backend regression evidence only; it does not establish browser/runtime completion. Exact-head CI remains required, and production remains **BLOCKED / NOT CERTIFIED**.
