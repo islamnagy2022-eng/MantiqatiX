@@ -76,6 +76,7 @@ Deno.serve(async req=>{
  }
  if(providerResponseStatus<200||providerResponseStatus>=300||!providerIntentId||!providerClientSecret||!providerOrderId){
    // Ambiguous responses retain the claim so retries cannot create duplicate intentions.
+   console.error(JSON.stringify({stage:"paymob_intention_outcome_unknown",providerResponseStatus,providerIntentId:providerIntentId||null,providerOrderId:providerOrderId||null}));
    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
  }
  if(!matchesPaymobIntention({ledgerId:String(row.id),amountCents,currency,provider:p})){
