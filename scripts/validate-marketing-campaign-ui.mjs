@@ -19,6 +19,13 @@ assert.match(app, /slice\(0,12\)/, "notification batch action must be bounded to
 assert.match(app, /visibleCampaignIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "campaign export must honor active UI filters");
 assert.match(app, /visibleParticipantIds=new Set\([\s\S]{0,220}\.filter\(card=>!card\.hidden\)/, "partner export must honor active UI filters");
 assert.match(app, /\^\[\\s\\uFEFF\]\*\[=\+\\-@\]/, "CSV exports must neutralize formula prefixes after Unicode whitespace/BOM characters");
+const csvFormulaPrefix = /^[\\s\\uFEFF]*[=+\\-@]/;
+for (const value of ["=1+1", "   +SUM(1,2)", "\u00a0=1+1", "\u2003-1", "\u3000@cmd", "\uFEFF=1+1", "\t=1+1", "\r+1"]) {
+  assert.match(value, csvFormulaPrefix, `CSV formula prefix must be neutralized: ${JSON.stringify(value)}`);
+}
+for (const value of ["ordinary text", "123", "  ordinary text"]) {
+  assert.doesNotMatch(value, csvFormulaPrefix, `ordinary CSV value must remain unchanged: ${JSON.stringify(value)}`);
+}
 
 assert.match(app, /data-mc-close/, "manager partner closure action must be rendered");
 assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure must use the backend RPC");
