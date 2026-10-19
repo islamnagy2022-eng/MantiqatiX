@@ -2016,3 +2016,9 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Extended the production-gate contract test to require those checks and to reject reintroduction of generic all-4xx failure/release branches.
 - Candidate PR #286 head: `440118dc5383ed8865b9b86acc81985d1325d300`. Exact-head CI is not yet verified; no PASS is claimed.
 - No production change. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution checkpoint — digital-page claim release verification — 2026-10-19
+- The digital-page claim release helper now verifies the RPC boolean result; failed release returns a reconciliation-required response rather than a clean rejection.
+- Added source regression assertions and a P0 release-verifier gate for this contract.
+- Candidate PR #286 head: `eee6bf72929dfabfb803d9687153570a9e10af97`. Exact-head CI remains unverified; no PASS is claimed.
