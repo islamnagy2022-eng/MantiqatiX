@@ -93,7 +93,7 @@ drop trigger if exists mnty_guard_marketing_partner_allocation
   on public.marketing_campaign_participants;
 
 create trigger mnty_guard_marketing_partner_allocation
-before insert or update of campaign_id,business_id,tenant_id,allocation_percent
+before insert or update of campaign_id,business_id,tenant_id,allocation_percent,status
 on public.marketing_campaign_participants
 for each row
 execute function public.mnty_guard_marketing_partner_allocation();
