@@ -100,3 +100,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Added a “عرض نطاق القسم” action that changes the workspace panel to show the selected section's source-provided scope and its remaining acceptance requirements. It does not pretend to execute a backend action.
 - This makes incomplete fallback work visible and interactive, but does not close those module screens. The specific screen-by-screen implementation remains TODO.
 - Source updated only; tests/browser/build/CI were not run.
+
+
+## Dashboard quick access — keyboard and empty-state handling (2026-10-19)
+
+- Converted quick-access module cards from clickable `article` elements to semantic `button` elements, wired through a dedicated binder, with accessible labels and visible keyboard focus styling.
+- Added an explicit empty state when the current module filter produces no quick-access cards. This is a UI state only and does not fabricate available modules or data.
+- Responsive/browser behavior remains NOT VERIFIED; no tests, browser, build, or CI were run.
