@@ -50,43 +50,12 @@ Deno.serve(async(req)=>{
   // tenant_id and organization_id are varchar in the database contract; do not impose UUID-only formats.
   if(tenantId.length>128||(organizationId!==null&&organizationId.length>128)||/[\u0000-\u001F\u007F]/.test(tenantId)||(organizationId!==null&&/[\u0000-\u001F\u007F]/.test(organizationId)))return response({error:"INVALID_TENANT_OR_ORGANIZATION_ID"},400);
   if(name.length>200||phone.length>64||address.length>500||city.length>120||district.length>120||sector.length>80)return response({error:"FIELD_TOO_LONG"},400);
-  // Service-role access bypasses RLS: explicitly reject inactive or nonexistent tenants.
-  const {data:tenant,error:tenantError}=await supabase.from("tenants")
-    .select("id").eq("id",tenantId).eq("status","ACTIVE").maybeSingle();
-  if(tenantError)throw tenantError;
-  if(!tenant)return response({error:"ACTIVE_TENANT_REQUIRED"},403);
-  const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,tenant_id,role,business_id,organization_id,permissions").eq("user_id",user.id).eq("status","ACTIVE").limit(50);
-  if(membershipError)throw membershipError;
-  const allowedRoles=new Set(["SERVICE_PROVIDER","BUSINESS_OWNER","OWNER","ADMIN"]);
+  // The atomic database RPC is the authority for tenant, membership, organization,
+  // and pending-request checks; avoid divergent preflight decisions in this handler.
   const requestedOrganizationId=organizationId?.trim()||null;
-  // Tenant roles must belong to the target tenant; a platform super-admin may
-  // act across tenants only through the explicit MNTY-PLATFORM full-control grant.
-  const membership=(memberships||[]).find((m)=>
-    String(m.tenant_id||"")===tenantId &&
-    allowedRoles.has(String(m.role||"").toUpperCase()) &&
-    (!requestedOrganizationId || String(m.organization_id||"")===requestedOrganizationId)
-  );
-  const superAdmin=(memberships||[]).find((m)=>(String(m.tenant_id||"")===tenantId||String(m.tenant_id||"")==="MNTY-PLATFORM")&&String(m.role||"").toUpperCase()==="SUPER_ADMIN"&&m.business_id==null&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
-  if(!membership&&!superAdmin)return response({error:"BUSINESS_CREATE_ROLE_REQUIRED"},403);
-  if(requestedOrganizationId&&!superAdmin&&String(membership?.organization_id||"")!==requestedOrganizationId){
-    return response({error:"ORGANIZATION_SCOPE_FORBIDDEN"},403);
-  }
-  // Even platform administrators must not attach a business to an organization
-  // from another tenant or to a nonexistent organization.
-  if(requestedOrganizationId&&superAdmin){
-    const {data:organization,error:organizationError}=await supabase.from("organizations")
-      .select("id").eq("id",requestedOrganizationId).eq("tenant_id",tenantId).maybeSingle();
-    if(organizationError)throw organizationError;
-    if(!organization)return response({error:"ORGANIZATION_SCOPE_FORBIDDEN"},403);
-  }
-  const {data:existing,error:existingError}=await supabase.from("approval_requests").select("id,business_id,status").eq("tenant_id",tenantId).eq("requested_by",user.id).eq("entity_type","BUSINESS").eq("request_type","CREATE").eq("status","PENDING").limit(1);
-  // Duplicate prevention must fail closed when its lookup cannot be trusted.
-  if(existingError)throw existingError;
-  if(existing?.length)return response({error:"PENDING_BUSINESS_REQUEST_EXISTS",businessId:existing[0].business_id??null},409);
-  const code=safeCode(name),resolvedOrganizationId=(requestedOrganizationId&&superAdmin)?requestedOrganizationId:(membership?.organization_id||null);
-  // The database RPC owns the transaction, final scope check, and duplicate lock.
+  const code=safeCode(name);
   const {data:registration,error:registrationError}=await supabase.rpc("register_business_with_approval_atomic",{
-    p_actor_user_id:user.id,p_tenant_id:tenantId,p_organization_id:resolvedOrganizationId,
+    p_actor_user_id:user.id,p_tenant_id:tenantId,p_organization_id:requestedOrganizationId,
     p_name:name,p_code:code,p_sector:sector,p_address:address,p_phone:phone,p_city:city,p_district:district
   });
   if(registrationError)throw registrationError;
