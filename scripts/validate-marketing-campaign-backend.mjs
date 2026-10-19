@@ -81,6 +81,8 @@ assert.match(rc456, /if v_provider\.owner_user_id is not null then[\s\S]{0,700}i
 assert.match(rc456, /p_actor is distinct from auth\.uid\(\)/, "closure must bind actor identity to the authenticated user");
 assert.match(integration, /cross-tenant manager closed another business partner assignment/, "PostgreSQL integration must reject cross-tenant partner closure");
 assert.match(integration, /partner closure accepted a spoofed actor/, "PostgreSQL integration must reject partner-closure actor spoofing");
+assert.match(integration, /partner closure accepted a reason longer than 500 characters/, "PostgreSQL integration must reject overlong partner-closure reasons");
+assert.match(integration, /overlong closure reason produced audit or notification side effects/, "overlong closure reasons must not mutate audit or notification state");
 assert.match(rc456, /revoke all on function public\.close_marketing_campaign_partner_backend\(uuid,uuid,text\)[\s\S]{0,180}from public, anon/i);
 assert.match(workflow, /RC454 concurrency regression/, "PostgreSQL workflow must exercise concurrent partner allocation writes");
 assert.match(workflow, /wait_event='PgSleep'/, "concurrency test must wait until the first insert holds its transaction open");
