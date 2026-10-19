@@ -1762,3 +1762,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Added migration `20261019070000_rc455_marketing_campaign_terminal_guard.sql`: terminal campaign transitions now require all partner assignments to leave `INVITED`/`ACCEPTED`/`ACTIVE` first.
 - Updated invitation-response RPC lock order to campaign then participant so a response cannot race past the terminal-state guard using the former participant-first order.
 - NOT VERIFIED: migration not applied; no tests, review, or deployment performed. Concurrency safety remains unproven until PostgreSQL validation. Production stays BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — RC456 marketing partner closure RPC (implementation only)
+- Added `supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql` to supply the missing manager-authorized transition from INVITED/ACCEPTED/ACTIVE to REMOVED, enabling the RC455 terminal guard workflow to be completed deliberately.
+- Security boundaries in source: authenticated non-anonymous actor, `p_actor = auth.uid()`, active-business manager authorization, campaign → participant lock order, participant business/tenant match, bounded optional reason (500 chars), idempotent repeat closure, audit event, partner-owner notification when available, and least-privilege EXECUTE grant.
+- Status: IMPLEMENTED IN SOURCE / NOT VERIFIED. Migration not applied; no SQL tests, migration replay, CI, review, or deployment run. Verify actual table constraints/notification behavior and concurrent closure/invitation/status operations before applying. Production remains BLOCKED / NOT CERTIFIED.
