@@ -1350,7 +1350,7 @@ function marketingCampaignWorkspace(){
  }).join(''):'<div class="empty-state">لا توجد دعوات أو إسنادات شراكة مرئية لهذا الحساب حاليًا.</div>';
  return marketingAgencyWorkspace()+
   '<section class="records" data-marketing-campaign-workspace><div class="section-head"><div><span class="eyebrow">INTERNAL CAMPAIGN WORKFLOW</span><h2>الحملات والتعاون مع الشركاء</h2><p class="muted">إدارة داخلية للخطط والدعوات. لا يوجد نشر خارجي تلقائي أو اتصال مباشر بمنصات الإعلانات.</p></div><span class="mnty-badge">RC453</span></div>'+
-  errorPanel+campaignOperationsSummary+(canManage?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-export style="width:auto">تصدير تقرير الحملات CSV</button></div>':'')+createForm+
+  errorPanel+campaignOperationsSummary+(canManage?'<div class="action-bar"><button type="button" class="btn btn-outline" data-mc-export style="width:auto">تصدير تقرير الحملات CSV</button><button type="button" class="btn btn-outline" data-mc-export-partners style="width:auto">تصدير تقرير الشراكات CSV</button></div>':'')+createForm+
   '<section class="records"><div class="section-head"><div><h3>الحملات</h3><p class="muted">'+campaigns.length+' حملة مرئية وفق الصلاحيات</p></div></div><div class="grid2" style="margin:12px 0"><div class="field"><label for="mc-campaign-search">البحث في الحملات</label><input id="mc-campaign-search" type="search" placeholder="ابحث بالاسم أو الهدف" autocomplete="off"/></div><div class="field"><label for="mc-campaign-status-filter">تصفية حسب الحالة</label><select id="mc-campaign-status-filter"><option value="ALL">كل الحالات</option><option value="DRAFT">مسودة</option><option value="PLANNED">مخططة</option><option value="IN_REVIEW">قيد المراجعة</option><option value="APPROVED">معتمدة داخليًا</option><option value="PAUSED">متوقفة مؤقتًا</option><option value="COMPLETED">مكتملة</option><option value="CANCELLED">ملغاة</option></select></div></div><p id="mc-campaign-filter-count" class="muted" aria-live="polite"></p>'+campaignCards+'</section>'+
   inviteForm+
   '<section class="records"><div class="section-head"><div><h3>دعوات الشراكة والردود</h3><p class="muted">تُعرض الدعوات المرتبطة بالنشاط الحالي أو بملف مقدم الخدمة المملوك للحساب.</p></div></div>'+participantCards+'</section></section>';
@@ -1383,6 +1383,42 @@ function bindMarketingCampaignWorkspace(){
  document.getElementById('mc-campaign-search')?.addEventListener('input',filterCampaignCards);
  document.getElementById('mc-campaign-status-filter')?.addEventListener('change',filterCampaignCards);
  filterCampaignCards();
+ document.querySelectorAll('[data-mc-export-partners]').forEach(button=>button.addEventListener('click',()=>{
+  const role=String(live.role||'').toUpperCase();
+  const activeBusinessId=String(live.businessId||'');
+  if(!activeBusinessId||!['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)){
+   showToast('تصدير الشراكات متاح لمديري النشاط المخول فقط.','error');
+   return;
+  }
+  const campaigns=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>String(c.business_id||'')===activeBusinessId);
+  const campaignById=new Map(campaigns.map(c=>[String(c.id),c]));
+  const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&campaignById.has(String(p.campaign_id)));
+  if(!participants.length){showToast('لا توجد سجلات شراكة مرئية للتصدير.','info');return;}
+  const providers=Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[];
+  const columns=[['campaign','الحملة'],['provider','الشريك'],['role','الدور'],['status','الحالة'],['allocation_percent','نسبة التخصيص'],['agreed_value','القيمة المتفق عليها'],['currency','العملة'],['created_at','تاريخ الإنشاء']];
+  const csvCell=value=>{
+   let text=String(value??'');
+   if(/^[=+@\\-\\t\\r]/.test(text))text="'"+text;
+   return '"'+text.replace(/"/g,'""')+'"';
+  };
+  const rows=participants.map(p=>{
+   const campaign=campaignById.get(String(p.campaign_id))||{};
+   const provider=providers.find(x=>String(x.id)===String(p.provider_id));
+   return {campaign:campaign.title||'',provider:provider?.name_ar||provider?.name||'غير متاح',role:p.role||'',status:p.status||'',allocation_percent:p.allocation_percent??'',agreed_value:p.agreed_value??'',currency:campaign.currency||'EGP',created_at:p.created_at||''};
+  });
+  const csv='\\uFEFF'+columns.map(([,label])=>csvCell(label)).join(',')+'\\r\\n'+rows.map(row=>columns.map(([key])=>csvCell(row[key])).join(',')).join('\\r\\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='mantiqatix-partnerships-'+new Date().toISOString().slice(0,10)+'.csv';
+  link.hidden=true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('تم تجهيز تقرير الشراكات المرتبطة بالنشاط الحالي.','success');
+ }));
  document.querySelectorAll('[data-mc-export]').forEach(button=>button.addEventListener('click',()=>{
   const role=String(live.role||'').toUpperCase();
   const activeBusinessId=String(live.businessId||'');
