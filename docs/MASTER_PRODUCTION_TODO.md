@@ -1958,3 +1958,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 
 - The allocation guard trigger now includes participant `status` updates, preventing reactivation from bypassing the active-allocation aggregate check.
 - The source validator now checks that status transitions are included. Fresh CI/PostgreSQL evidence is required; production migration was not applied. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-19 — Marketing RC454–RC456 integration coverage correction
+
+- [x] Fixed RC454 trigger coverage so participant `status` transitions invoke the allocation integrity guard, not only allocation/scope column changes.
+- [x] Extended the marketing PostgreSQL workflow to apply RC454, RC455, and RC456 after RC453 in chronological order; the workflow now triggers on each migration.
+- [x] Added PostgreSQL lifecycle assertions that reject terminal campaign transitions with active partners, close a partner assignment, verify the audit/notification, prove closure replay idempotency, and then permit cancellation.
+- [x] Added a source-contract assertion requiring the workflow to apply RC454–RC456 in order.
+- [ ] Await fresh CI on the latest PR head. The prior passing PostgreSQL run applied only RC453, so it is not evidence for RC454–RC456. No production migration was applied. Production remains **BLOCKED / NOT CERTIFIED**.
