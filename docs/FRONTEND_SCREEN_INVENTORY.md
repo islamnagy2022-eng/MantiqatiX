@@ -92,3 +92,11 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - When all permitted search sources fail, the UI shows an unavailable state and a retry action rather than claiming there are no results. Partial source failures are disclosed even when some results are available.
 - This is a frontend state-handling improvement; it does not change search permissions, data sources, or backend contracts.
 - Status: SOURCE UPDATED / NOT VERIFIED; no test, browser, build or CI was run.
+
+
+## Generic fallback workspaces — status honesty and section selection (2026-10-19)
+
+- Replaced the generic fallback's misleading “الواجهة مكتملة / UI READY” claims with an explicit partial/unverified status.
+- Added a “عرض نطاق القسم” action that changes the workspace panel to show the selected section's source-provided scope and its remaining acceptance requirements. It does not pretend to execute a backend action.
+- This makes incomplete fallback work visible and interactive, but does not close those module screens. The specific screen-by-screen implementation remains TODO.
+- Source updated only; tests/browser/build/CI were not run.
