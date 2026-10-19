@@ -663,3 +663,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a hint beside the partner invitation allocation field showing currently allocated percentage, remaining capacity, and the projected total as the user changes campaign/allocation.
 - UI commit: `88767ae5eb74b79eb0113e62b01f57dd5127726a`; calculation/binding commit: `67ac59cd8f0a15149f3dd48f7dfaf4a779b73113`; TODO checkpoint: `4f9bfc62e344baa86c0a6ca9593e01fcaab29749`.
 - NOT VERIFIED: the hint reflects only loaded rows and does not reserve capacity. Server-side transactional enforcement remains mandatory. No tests, review, browser execution, CI, or deployment performed.
+
+
+### 2026-10-19 — Marketing partner allocation UX
+- Updated `web/app.js` to show a client-side warning when the selected partner already has an `INVITED`/`ACCEPTED` assignment for the selected campaign, and when the projected allocation exceeds 100%.
+- Existing submit-time checks remain in place; UI data can be stale or manipulated, so backend/database enforcement is still required.
+- Not tested, not reviewed, not deployed, and not production-certified by this checkpoint.
