@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const source = fs.readFileSync("supabase/functions/business-register/index.ts", "utf8");
+const migration = fs.readFileSync("supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql", "utf8");
 
 assert.match(source, /const requestedOrganizationId=organizationId\?\.trim\(\)\|\|null/);
 assert.match(source, /allowedRoles\.has\(String\(m\.role\|\|""\)\.toUpperCase\(\)\)\s*&&\s*\(!requestedOrganizationId \|\| String\(m\.organization_id\|\|""\)===requestedOrganizationId\)/);
@@ -38,5 +39,12 @@ assert.match(source, /tenant_id and organization_id are varchar in the database 
 assert.match(source, /tenantId\.length>128\|\|\(organizationId!==null&&organizationId\.length>128\)/);
 assert.match(source, /INVALID_TENANT_OR_ORGANIZATION_ID/);
 assert.doesNotMatch(source, /uuidPattern=/);
+assert.match(source, /supabase\.rpc\("register_business_with_approval_atomic"/);
+assert.doesNotMatch(source, /supabase\.from\("businesses"\)\.insert/);
+assert.doesNotMatch(source, /supabase\.from\("approval_requests"\)\.insert/);
+assert.match(migration, /pg_advisory_xact_lock/);
+assert.match(migration, /insert into public\.businesses[\s\S]*insert into public\.approval_requests/);
+assert.match(migration, /grant execute on function private\.register_business_with_approval_atomic[\s\S]*to service_role/);
+assert.match(migration, /revoke all on function private\.register_business_with_approval_atomic[\s\S]*from public, anon, authenticated/);
 
-console.log("business-register tenant and organization security contract: PASS (32 assertions)");
+console.log("business-register tenant and organization security contract: PASS (39 assertions)");
