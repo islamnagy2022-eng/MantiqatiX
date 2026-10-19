@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -95,6 +96,7 @@ Deno.serve(async (req) => {
   }
 
   const amountCents = Math.round(amount * 100);
+  if (!isValidPaymobAmountCents(amount, amountCents)) return json({ error: "INVALID_PAYMENT_AMOUNT_PRECISION", requestId }, 409, requestId);
   const phone = String(order.customer_phone ?? user.phone ?? "").trim();
   const email = String(user.email ?? "").trim();
   if (!phone || !email) return json({ error: "CUSTOMER_BILLING_CONTACT_REQUIRED", requestId }, 422, requestId);
@@ -146,6 +148,16 @@ Deno.serve(async (req) => {
     return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliationRequired: true, requestId }, 502, requestId);
   }
 
+  const currency = String(order.currency || "EGP").toUpperCase();
+  const providerCorrelationMatches = matchesPaymobIntention({
+    ledgerId: paymentIntentId,
+    amountCents,
+    currency,
+    provider,
+  });
+
+  // Persist provider IDs even for a mismatched response so the intent is quarantined
+  // as PENDING and can be reconciled; never expose checkout credentials on mismatch.
   const { data: persistedIntent, error: updateError } = await admin.from("payment_intents").update({
     provider_intent_id: String(provider.id), provider_order_id: providerOrderId,
     status: "PENDING", updated_at: new Date().toISOString()
@@ -158,6 +170,11 @@ Deno.serve(async (req) => {
     return json({ error: "PAYMENT_INTENT_PERSISTENCE_UNKNOWN", reconciliationRequired: true, requestId }, 500, requestId);
   }
 
-  return json({ id: paymentIntentId, provider: "PAYMOB", status: "PENDING", amount, currency: String(order.currency).toUpperCase(),
+  if (!providerCorrelationMatches) {
+    console.error(JSON.stringify({ requestId, stage: "paymob_intention_correlation_mismatch" }));
+    return json({ error: "PAYMENT_PROVIDER_INTENT_MISMATCH", reconciliationRequired: true, requestId }, 503, requestId);
+  }
+
+  return json({ id: paymentIntentId, provider: "PAYMOB", status: "PENDING", amount, currency,
     pricingVersion, pricingHash, pricingAuthority: String(order.pricing_authority), clientSecret: String(provider.client_secret), requestId }, 200, requestId);
 });
