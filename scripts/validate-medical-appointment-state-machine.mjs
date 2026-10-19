@@ -35,4 +35,8 @@ for(const marker of [
 ]) assert.ok(integration.includes(marker),'integration test missing '+marker);
 assert.match(workflow,/rc452-medical-appointment-state-machine-integration/);
 assert.match(workflow,/node scripts\/validate-medical-appointment-state-machine\.mjs/);
+assert.match(docs,/latest applied version `20261008222845`/);
+assert.match(docs,/must not be applied alone or out of order/);
+assert.match(docs,/NO_SHOW semantics/);
+assert.match(docs,/No production mutation was performed/);
 console.log('RC452 medical appointment state-machine source contract: PASS');
