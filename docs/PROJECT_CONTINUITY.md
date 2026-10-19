@@ -864,3 +864,9 @@ This status is intentional and must remain until the open gates above are indepe
 - `Marketing Campaign Backend` source validator failed because a regex expected `idempotent` within 120 characters after the `REMOVED` status condition, while the valid JSON return payload was longer. Widened the assertion window to 300 characters; the SQL migration was not changed by this fix.
 - Updated `web/index.html` asset refs to `provider-dashboard-syntax-fix-20261019`; `web/sw.js` cache is `mnty-web-v142`.
 - CI must rerun against the new head. Do not merge if checks fail or remain pending. Deployment was skipped after the previous validation failure; production remains **BLOCKED / NOT CERTIFIED**. Do not edit `docs/SESSION_LOG.md`; preserve the SMM launch deferral.
+
+
+## 2026-10-19 — Follow-up CI cache-contract correction
+
+- The next deploy validation did not fail app syntax: it failed RC366 sector-rendering source assertions hard-coded to cache `mnty-web-v129` and app URL `rc458-marketing-workspace-20261018`. Updated `scripts/validate-sector-rendering.mjs` to check a versioned cache and derive the app asset URL from the current index. Updated the marketing UI contract similarly and strengthened its service-worker registration check.
+- No production deploy occurred; deploy job was skipped after validation failure. Await a fresh run against the latest head; production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
