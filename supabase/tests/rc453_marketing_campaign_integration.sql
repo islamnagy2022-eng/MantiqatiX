@@ -204,6 +204,26 @@ begin
   end;
   if not rejected then raise exception 'terminal campaign transition accepted while partner assignment remained active'; end if;
 
+  -- RC456 authorization regressions: another tenant manager cannot close this
+  -- participant, and the supplied actor cannot differ from auth.uid().
+  perform set_config('request.jwt.claim.sub',manager_b::text,false);
+  rejected:=false;
+  begin
+    perform public.close_marketing_campaign_partner_backend(manager_b,participant_id,'Cross-tenant attempt');
+  exception when others then
+    if sqlerrm='MARKETING_BUSINESS_SCOPE_REQUIRED' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'cross-tenant manager closed another business partner assignment'; end if;
+
+  perform set_config('request.jwt.claim.sub',manager_a::text,false);
+  rejected:=false;
+  begin
+    perform public.close_marketing_campaign_partner_backend(manager_b,participant_id,'Spoof actor attempt');
+  exception when others then
+    if sqlerrm='ACTOR_MISMATCH' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'partner closure accepted a spoofed actor'; end if;
+
   result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'Integration test closure');
   if result->>'status' <> 'REMOVED' or coalesce((result->>'idempotent')::boolean,false) then
     raise exception 'manager partner closure did not remove the assignment';
