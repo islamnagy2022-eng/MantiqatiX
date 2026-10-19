@@ -687,3 +687,8 @@ This status is intentional and must remain until the open gates above are indepe
 - Lock-order refinement before handoff: the trigger fires on INSERT and changes to campaign/business/tenant/allocation fields, not status-only updates. This avoids taking the campaign lock from the invitation-response path while it already holds a participant row lock; the allocation ceiling remains protected whenever an allocation or its scope is inserted/changed. This interaction still requires a real PostgreSQL concurrency check before production.
 
 - RC454 migration now includes a fail-closed preflight: it aborts if existing participant rows disagree with campaign business/tenant scope or any campaign already has active allocations above 100%. Reconcile such data before applying; migration remains unapplied and untested.
+
+
+### RC454 preflight extension — 2026-10-19
+- Extended the migration's fail-closed preflight to reject existing INVITED/ACCEPTED/ACTIVE participants attached to COMPLETED/CANCELLED campaigns, rather than installing the trigger over lifecycle-inconsistent data.
+- Migration remains source-only, unapplied and untested; production release stays BLOCKED / NOT CERTIFIED.
