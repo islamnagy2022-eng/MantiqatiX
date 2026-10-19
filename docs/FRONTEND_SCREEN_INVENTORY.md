@@ -257,3 +257,6 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 
 - Public provider list/detail data minimization (2026-10-19): `web/home.js` no longer selects provider `settings` for anonymous discovery, and the card renderer no longer reads branding from that field. Public provider queries now use an explicit field list. Source-contract coverage is wired into RC457's PostgreSQL CI workflow; exact-head CI pending.
+
+
+- Backend access hardening follow-up (RC458, 2026-10-19): anonymous provider-profile access now has a dedicated column allowlist migration, in addition to the existing ACTIVE-only RLS policy. Isolated regression covers public active profiles, hidden drafts, and private `settings` denial. Exact-head CI for the combined RC457/RC458 test remains unconfirmed.
