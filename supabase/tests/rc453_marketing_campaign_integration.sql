@@ -224,6 +224,23 @@ begin
   end;
   if not rejected then raise exception 'partner closure accepted a spoofed actor'; end if;
 
+  -- RC456 input-boundary regression: overlong reasons must fail before any
+  -- participant state, audit record, or provider notification is changed.
+  rejected:=false;
+  begin
+    perform public.close_marketing_campaign_partner_backend(manager_a,participant_id,pg_catalog.repeat('x',501));
+  exception when others then
+    if sqlerrm='MARKETING_PARTNER_CLOSURE_REASON_TOO_LONG' then rejected:=true; else raise; end if;
+  end;
+  if not rejected then raise exception 'partner closure accepted a reason longer than 500 characters'; end if;
+  if (select status from public.marketing_campaign_participants where id=participant_id) <> 'ACCEPTED' then
+    raise exception 'overlong closure reason changed participant status';
+  end if;
+  if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 0
+     or (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 0 then
+    raise exception 'overlong closure reason produced audit or notification side effects';
+  end if;
+
   result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'Integration test closure');
   if result->>'status' <> 'REMOVED' or coalesce((result->>'idempotent')::boolean,false) then
     raise exception 'manager partner closure did not remove the assignment';
