@@ -243,4 +243,56 @@ begin
 end;
 $test$;
 reset role;
-select 'RC453 marketing campaign and partner workflow integration: PASS' as result;
+
+-- RC454 regression: a previously inactive participant must not bypass the
+-- aggregate allocation cap by changing status back to an active state.
+do $rc454_status_guard$
+declare
+  v_campaign uuid;
+  v_active uuid;
+  v_inactive uuid;
+  v_rejected boolean := false;
+begin
+  select id into v_campaign
+  from public.marketing_campaigns
+  where idempotency_key='campaign-b-key-0001';
+  if not found then raise exception 'RC454 test campaign not found'; end if;
+
+  insert into public.marketing_campaign_participants(
+    tenant_id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by
+  ) values (
+    'TENANT-B','30000000-0000-4000-8000-000000000002',v_campaign,
+    '40000000-0000-4000-8000-000000000001','MEDIA_BUYING',40,100,'ACTIVE',
+    '30000000-0000-4000-8000-000000000012'
+  ) returning id into v_active;
+
+  insert into public.marketing_campaign_participants(
+    tenant_id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,invited_by
+  ) values (
+    'TENANT-B','30000000-0000-4000-8000-000000000002',v_campaign,
+    '40000000-0000-4000-8000-000000000002','ANALYTICS',70,100,'DECLINED',
+    '30000000-0000-4000-8000-000000000012'
+  ) returning id into v_inactive;
+
+  begin
+    update public.marketing_campaign_participants
+    set status='INVITED'
+    where id=v_inactive;
+  exception when others then
+    if sqlerrm='MARKETING_ALLOCATION_OVER_100' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+
+  if not v_rejected then
+    raise exception 'RC454 allowed an inactive participant to reactivate beyond 100 percent allocation';
+  end if;
+  if (select status from public.marketing_campaign_participants where id=v_inactive) <> 'DECLINED' then
+    raise exception 'RC454 failed update did not preserve the original participant status';
+  end if;
+end;
+$rc454_status_guard$;
+
+select 'RC453 campaign workflow + RC454 allocation status regression: PASS' as result;
