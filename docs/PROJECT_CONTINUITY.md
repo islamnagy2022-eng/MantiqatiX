@@ -651,3 +651,9 @@ This status is intentional and must remain until the open gates above are indepe
 ## 2026-10-19 — Campaign search improvement
 - Campaign search now includes channel identifiers as well as title and objective. Implementation commit: `ed2239c3f3462cb8fe682a0625a3b917c1ce34e1`.
 - Implementation only; no tests, review, browser execution, CI, or deployment performed. Keep changes NOT VERIFIED until the verification phase.
+
+
+## 2026-10-19 — Partner invitation discovery controls
+- Added search for visible collaboration records by campaign, partner name, and role, plus status filtering and a live visible-record count.
+- Implementation commit: `11d6585e7280bc706d05b44a4d1a6e4a61f72ced`; TODO checkpoint: `fdf5bbc55b6534efb819819a47421d9b70ab0452`.
+- NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
