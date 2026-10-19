@@ -700,3 +700,9 @@ This status is intentional and must remain until the open gates above are indepe
 - The UI allocation hint now counts only INVITED, ACCEPTED, and ACTIVE assignments, matching the current backend allocation invariant; COMPLETED assignments are excluded.
 - The duplicate warning now includes ACTIVE assignments to match the backend existing-assignment rule.
 - Source-only implementation. No tests or review were run; RC454 is not applied and production remains BLOCKED / NOT CERTIFIED.
+
+
+### RC455 — Marketing campaign terminal lifecycle guard (implementation only)
+- Added `supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql` to block moving a campaign to `COMPLETED` or `CANCELLED` while any partner assignment remains `INVITED`, `ACCEPTED`, or `ACTIVE`.
+- Replaced the invitation-response RPC in the new migration to acquire locks in campaign → participant order, aligning it with invitation creation and status transitions. It rejects responses after a campaign is terminal and rechecks the participant under lock.
+- This is source-only. RC455 is unapplied and untested; do not infer race safety until PostgreSQL concurrency testing and migration-chain rehearsal are performed. Production remains BLOCKED / NOT CERTIFIED.
