@@ -23,7 +23,7 @@ declare
   v_failed boolean := false;
 begin
   -- Non-UUID tenant and organization identifiers are valid varchar contract values.
-  v_result := private.register_business_with_approval_atomic(
+  v_result := public.register_business_with_approval_atomic(
     '10000000-0000-4000-8000-000000000001','TENANT-A','ORG-A',
     'Agency One','AGENCY-ONE-001','MARKETING','Address','01000000000','Giza','Dokki'
   );
@@ -38,7 +38,7 @@ begin
     raise exception 'RC531 approval request must be created with the business';
   end if;
 
-  v_duplicate := private.register_business_with_approval_atomic(
+  v_duplicate := public.register_business_with_approval_atomic(
     '10000000-0000-4000-8000-000000000001','TENANT-A','ORG-A',
     'Agency Duplicate','AGENCY-DUPLICATE-001','MARKETING','','','',''
   );
@@ -48,7 +48,7 @@ begin
   select count(*) into v_after from public.businesses where tenant_id='TENANT-A';
   if v_after <> 1 then raise exception 'RC531 duplicate attempt must not create another business, count=%',v_after; end if;
 
-  v_result := private.register_business_with_approval_atomic(
+  v_result := public.register_business_with_approval_atomic(
     '10000000-0000-4000-8000-000000000002','TENANT-A','ORG-B',
     'Cross Tenant','CROSS-TENANT-001','GENERAL','','','',''
   );
@@ -56,7 +56,7 @@ begin
     raise exception 'RC531 must reject membership/organization scope mismatch, got %',v_result;
   end if;
 
-  v_result := private.register_business_with_approval_atomic(
+  v_result := public.register_business_with_approval_atomic(
     '10000000-0000-4000-8000-000000000001','TENANT-INACTIVE',null,
     'Inactive Tenant','INACTIVE-TENANT-001','GENERAL','','','',''
   );
@@ -67,7 +67,7 @@ begin
   select count(*) into v_before from public.businesses;
   perform set_config('test.fail_approval_insert','on',true);
   begin
-    perform private.register_business_with_approval_atomic(
+    perform public.register_business_with_approval_atomic(
       '10000000-0000-4000-8000-000000000003','TENANT-A','ORG-A',
       'Rollback Test','ROLLBACK-TEST-001','GENERAL','','','',''
     );
@@ -85,11 +85,11 @@ $test$;
 
 do $privileges$
 begin
-  if not has_function_privilege('service_role','private.register_business_with_approval_atomic(uuid,character varying,character varying,character varying,character varying,character varying,text,character varying,character varying,character varying)','EXECUTE') then
+  if not has_function_privilege('service_role','public.register_business_with_approval_atomic(uuid,character varying,character varying,character varying,character varying,character varying,text,character varying,character varying,character varying)','EXECUTE') then
     raise exception 'RC531 service_role must execute registration RPC';
   end if;
-  if has_function_privilege('anon','private.register_business_with_approval_atomic(uuid,character varying,character varying,character varying,character varying,character varying,text,character varying,character varying,character varying)','EXECUTE')
-    or has_function_privilege('authenticated','private.register_business_with_approval_atomic(uuid,character varying,character varying,character varying,character varying,character varying,text,character varying,character varying,character varying)','EXECUTE') then
+  if has_function_privilege('anon','public.register_business_with_approval_atomic(uuid,character varying,character varying,character varying,character varying,character varying,text,character varying,character varying,character varying)','EXECUTE')
+    or has_function_privilege('authenticated','public.register_business_with_approval_atomic(uuid,character varying,character varying,character varying,character varying,character varying,text,character varying,character varying,character varying)','EXECUTE') then
     raise exception 'RC531 registration RPC must not be callable by anon/authenticated';
   end if;
 end;
