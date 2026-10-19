@@ -1830,3 +1830,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - During source review of the frontend search-state change, corrected the wildcard escaping expression to preserve the existing single-backslash behavior for literal `%` and `_` query characters.
 - Refreshed the app URL and service-worker registration/precache keys; cache advanced to `mnty-web-v133`.
 - This source correction has not been executed or tested. Do not claim search correctness from static edits alone.
+
+
+## 2026-10-19 — Generic workspace UI honesty correction
+
+- `web/app.js`: generic fallback workspaces no longer label decorative cards “الواجهة مكتملة” or show “UI READY”; they now clearly report a partial/unverified state. Added selectable section-scope actions with explicit remaining requirements, without fabricating backend execution.
+- Refreshed app/service-worker cache keys; shell cache advanced to `mnty-web-v135`.
+- This is a frontend status/interaction improvement, not completion of those module screens. Screen-by-screen implementation remains open. No tests, browser, build, CI, review, or deployment were run.
