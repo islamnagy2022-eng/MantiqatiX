@@ -1858,3 +1858,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - `web/app.js`: module catalog tiles now use semantic buttons with accessible labels and the shared dashboard/module click binder.
 - Existing role and module-enabled checks in `selectModule` were preserved. No backend or permission behavior was relaxed.
 - No tests, browser, build, CI, review or deployment was run; source change remains NOT VERIFIED.
+
+
+## 2026-10-19 — Role dashboard keyboard navigation (build-only)
+
+- `web/app.js`: provider-dashboard and role-workspace module cards now render as semantic buttons with accessible names and use the existing shared module-navigation binder.
+- No RBAC/module-enabled filtering was relaxed. This is a navigation/accessibility improvement only; it does not imply that any module screen or backend workflow is complete.
+- `web/index.html` and `web/sw.js` now use `role-dashboard-module-buttons-20261019`; shell cache advanced to `mnty-web-v137`.
+- No tests, browser, build, CI, review, migration replay, merge, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
