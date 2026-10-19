@@ -2030,3 +2030,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added a source-contract assertion that the trigger covers status transitions.
 - [x] Exact-head PostgreSQL campaign workflow and its source validator passed on head `d9e5f459aacadc788f0dc38307cca2b9b636d356`, including the RC454 status regression and RC454 concurrent-allocation regression.
 - [ ] Continue reviewing the marketing lifecycle for untested state transitions, and verify runtime/browser behavior before certification. Production remains **BLOCKED / NOT CERTIFIED**; no merge or deployment was performed.
+
+
+## 2026-10-19 — Public service discovery RLS correction (RC457)
+
+- Found that the public homepage queries `marketing_services` for ACTIVE catalog entries, but the current source policy found in RC99 grants only authenticated administrative management; no public ACTIVE read policy was present in that migration.
+- Added forward-only migration `20261019090000_rc457_public_marketing_service_catalog.sql`: public SELECT is limited to ACTIVE rows, and anonymous SELECT is limited to the explicit public catalog columns (including `created_at` for ordering). No service-role bypass is introduced.
+- Added disposable PostgreSQL regression `supabase/tests/rc457_public_marketing_service_catalog.sql` and workflow `.github/workflows/public-service-catalog-rls.yml` to verify active-row visibility, draft-row denial, and private-column denial.
+- Status: SOURCE COMMITTED; exact-head PostgreSQL CI, live schema parity, and deployed behavior are NOT VERIFIED until the new workflow completes. Do not apply the migration to production from this change alone.
+- Production remains **BLOCKED / NOT CERTIFIED**; `docs/SESSION_LOG.md` remains untouched.
