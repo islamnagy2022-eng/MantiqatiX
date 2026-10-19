@@ -616,3 +616,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a manager-only CSV export of partner assignments scoped to campaigns owned by the active business. The report includes campaign, partner display name when available, role, status, allocation percentage, agreed value, campaign currency, and creation timestamp.
 - Export implementation commit: `9540f73bce2a585629974c5009b823cd0c33d731`; TODO checkpoint: `bd40798e3a2c7cefce1efa506de5aaa94135faef`.
 - This is implementation-only and NOT VERIFIED. No tests, review, browser execution, CI, or deployment performed. Confirm provider data availability and backend RLS/authorization during the verification phase; do not treat client-side filtering as a security control.
+
+
+## 2026-10-19 — CSV output correction
+- Source inspection found the CSV builders were escaping the BOM and CRLF sequences one level too far, which would have written literal escape text into exports. Corrected both campaign and partner report builders to emit the intended BOM and CRLF separators, and normalized the formula-prefix guard regex.
+- Fix commit: `b14a5cbf9de24e40edc04d191c95c09c7b36c66c`; TODO checkpoint: `08d2ccd6fbcdba30550c6ce80eef54aa3cad8e8a`.
+- This was not a test run or full review. All current branch changes remain NOT VERIFIED until the requested verification phase.
