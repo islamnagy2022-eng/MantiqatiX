@@ -94,6 +94,12 @@ if (releaseMigrationPositions.some((position, index) => index > 0 && position <=
   process.exit(1);
 }
 const manifestMigrationNames = [...releaseMigrationManifest.matchAll(/["'](\d{14}_[^"']+\.sql)["']/g)].map(match => match[1]);
+const duplicateManifestMigrations = manifestMigrationNames.filter((name, index) => manifestMigrationNames.indexOf(name) !== index);
+if (duplicateManifestMigrations.length) {
+  console.error('RC360 production gate contract: FAIL');
+  console.error('Migration manifest contains duplicate filenames:', [...new Set(duplicateManifestMigrations)].join(', '));
+  process.exit(1);
+}
 const timestampOrderViolations = manifestMigrationNames.slice(1).filter((name, index) =>
   name.slice(0, 14) < manifestMigrationNames[index].slice(0, 14)
 );
