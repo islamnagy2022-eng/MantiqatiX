@@ -122,7 +122,7 @@ begin
   if not v_failed then raise exception 'RC531 must reject a non-service-role JWT even when function privileges are available'; end if;
   select count(*) into v_after from public.businesses;
   if v_after <> v_before then raise exception 'RC531 rejected-role call must not create a business'; end if;
-
+end;
 $test$;
 
 do $privileges$
