@@ -669,3 +669,7 @@ This status is intentional and must remain until the open gates above are indepe
 - Updated `web/app.js` to show a client-side warning when the selected partner already has an `INVITED`/`ACCEPTED` assignment for the selected campaign, and when the projected allocation exceeds 100%.
 - Existing submit-time checks remain in place; UI data can be stale or manipulated, so backend/database enforcement is still required.
 - Not tested, not reviewed, not deployed, and not production-certified by this checkpoint.
+
+### Campaign status transition guard — 2026-10-19
+- Status updates now re-check the selected campaign against the active business and the current client-side role, validate the requested transition against the campaign's latest loaded status, and ask for confirmation before calling the existing backend RPC.
+- This improves operator safety and stale-state handling, but is not a replacement for backend authorization/transition enforcement. No tests, review, or deployment were run for this build-only continuation.
