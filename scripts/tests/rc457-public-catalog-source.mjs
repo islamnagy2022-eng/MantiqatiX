@@ -29,9 +29,9 @@ assert.match(providerMigration, /revoke all on table public\.marketing_provider_
   'anonymous visitors must not directly read the base provider table');
 assert.doesNotMatch(providerMigration, /settings|owner_user_id|portfolio/,
   'private provider fields must not be exposed by the public view');
-assert.match(serviceMigration, /revoke all on table public\\.marketing_services_public from public, anon, authenticated;[\\s\\S]*?grant select on table public\\.marketing_services_public to anon, authenticated;/,
+assert.match(serviceMigration, /revoke all on table public\.marketing_services_public from public, anon, authenticated;[\\s\\S]*?grant select on table public\.marketing_services_public to anon, authenticated;/,
   'service view must grant SELECT only after revoking other privileges');
-assert.match(providerMigration, /revoke all on table public\\.marketing_provider_profiles_public from public, anon, authenticated;[\\s\\S]*?grant select on table public\\.marketing_provider_profiles_public to anon, authenticated;/,
+assert.match(providerMigration, /revoke all on table public\.marketing_provider_profiles_public from public, anon, authenticated;[\\s\\S]*?grant select on table public\.marketing_provider_profiles_public to anon, authenticated;/,
   'provider view must grant SELECT only after revoking other privileges');
 
 console.log('RC457_RC458_PUBLIC_CATALOG_SOURCE=PASS');
