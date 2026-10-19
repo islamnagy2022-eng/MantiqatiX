@@ -733,3 +733,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added source-contract assertions in `scripts/validate-marketing-campaign-ui.mjs` and `scripts/validate-marketing-campaign-backend.mjs` for the RC456 RPC, manager closure action, terminal-state guidance, cache versioning, and key source-level invariants. These assertions were added but **not run**.
 - Added a client-side explanatory guard when a manager attempts to complete/cancel a campaign while visible active assignments remain. Backend enforcement is still authoritative and must be tested under concurrent updates.
 - No tests, CI, browser run, migration replay, review, or deployment was performed. RC454–RC456 remain source-only; production stays BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — RC456 closure idempotency correction (implementation only)
+- Moved the terminal-campaign rejection after the participant lock, scope consistency check, and already-REMOVED idempotency return. A repeated closure request now returns an idempotent result even if the campaign was subsequently completed/cancelled; new closure transitions remain blocked on terminal campaigns.
+- Preserved authorization-before-participant access and campaign → participant lock ordering.
+- Added a static source assertion for this ordering in `scripts/validate-marketing-campaign-backend.mjs`. The assertion was added but not executed; no SQL test, migration replay, review, CI, browser run, or deployment occurred. RC456 remains unapplied/unverified and production remains BLOCKED / NOT CERTIFIED.
