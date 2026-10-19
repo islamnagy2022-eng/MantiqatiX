@@ -171,7 +171,7 @@ function bind(){
  }));
  root.querySelectorAll('[data-mxiw-hub]').forEach(b=>b.addEventListener('click',()=>{if(typeof window.selectModule==='function')window.selectModule('الموديولات')}));
  root.querySelectorAll('[data-mxiw-live]').forEach(b=>b.addEventListener('click',()=>{if(typeof window.selectModule==='function')window.selectModule(b.dataset.mxiwLive)}));
- root.querySelectorAll('[data-mxiw-group]').forEach(b=>b.addEventListener('click',()=>{state.group=b.dataset.mxiwGroup;root.innerHTML=hubHtml();bind()}));
+ root.querySelectorAll('[data-mxiw-group]').forEach(b=>b.addEventListener('click',()=>{state.group=b.dataset.mxiwGroup;root.innerHTML=hubHtml();bind();[...root.querySelectorAll('[data-mxiw-group]')].find(x=>x.dataset.mxiwGroup===state.group)?.focus()}));
  root.querySelector('[data-mxiw-search]')?.addEventListener('input',e=>{state.search=e.target.value;const pos=e.target.selectionStart;root.innerHTML=hubHtml();const input=root.querySelector('[data-mxiw-search]');if(input){input.focus();input.setSelectionRange(pos,pos)}bind()});
 }
 window.MNTYIndustryWorkspace=Object.freeze({supports,render,renderHub,bind,open,sectorCount:sectors.length,sectorCodes:Object.freeze(sectors.map(s=>s.code))});
