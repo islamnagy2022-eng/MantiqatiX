@@ -26,6 +26,7 @@ create policy "mnty_profile_media_owner_update" on storage.objects
   for update to authenticated
   using (
     bucket_id = 'mantiqatix-profile-media'
+    and coalesce((auth.jwt()->>'is_anonymous')::boolean, false) = false
     and name ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)\.(jpg|jpeg|png|webp)$'
     and split_part(name, '/', 2) = auth.uid()::text
     and exists (
@@ -37,6 +38,7 @@ create policy "mnty_profile_media_owner_update" on storage.objects
   )
   with check (
     bucket_id = 'mantiqatix-profile-media'
+    and coalesce((auth.jwt()->>'is_anonymous')::boolean, false) = false
     and name ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)\.(jpg|jpeg|png|webp)$'
     and split_part(name, '/', 2) = auth.uid()::text
     and exists (
@@ -52,6 +54,7 @@ create policy "mnty_profile_media_owner_delete" on storage.objects
   for delete to authenticated
   using (
     bucket_id = 'mantiqatix-profile-media'
+    and coalesce((auth.jwt()->>'is_anonymous')::boolean, false) = false
     and name ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)\.(jpg|jpeg|png|webp)$'
     and split_part(name, '/', 2) = auth.uid()::text
     and exists (
