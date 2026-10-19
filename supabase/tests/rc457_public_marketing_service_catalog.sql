@@ -4,6 +4,16 @@ begin;
 create role anon nologin;
 create role authenticated nologin;
 
+create table public.businesses (
+  id uuid primary key,
+  status text not null default 'ACTIVE',
+  settings jsonb not null default '{}'::jsonb
+);
+insert into public.businesses (id,status,settings) values
+  ('30000000-0000-4000-8000-000000000001','ACTIVE','{"showcase":true}'),
+  ('30000000-0000-4000-8000-000000000002','ACTIVE','{"showcase":false}'),
+  ('30000000-0000-4000-8000-000000000003','INACTIVE','{"showcase":true}');
+
 create table public.marketing_provider_profiles (
   id uuid primary key,
   business_id uuid,
@@ -43,10 +53,12 @@ alter table public.marketing_services enable row level security;
 grant select on public.marketing_services to anon, authenticated;
 
 insert into public.marketing_provider_profiles
-  (id,name_ar,provider_kind,status,owner_user_id,settings,portfolio)
+  (id,business_id,name_ar,provider_kind,status,owner_user_id,settings,portfolio)
 values
-  ('20000000-0000-4000-8000-000000000001','مقدم منشور','AGENCY','ACTIVE','30000000-0000-4000-8000-000000000001','{"secret":"must-not-leak"}','["private-portfolio"]'),
-  ('20000000-0000-4000-8000-000000000002','مسودة مقدم','AGENCY','DRAFT','30000000-0000-4000-8000-000000000002','{"secret":"private"}','["draft"]');
+  ('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','مقدم منشور','AGENCY','ACTIVE','30000000-0000-4000-8000-000000000001','{"secret":"must-not-leak"}','["private-portfolio"]'),
+  ('20000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001','مسودة مقدم','AGENCY','DRAFT','30000000-0000-4000-8000-000000000002','{"secret":"private"}','["draft"]'),
+  ('20000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000002','مقدم دون عرض عام','AGENCY','ACTIVE','30000000-0000-4000-8000-000000000003','{"secret":"private"}','["private"]'),
+  ('20000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000003','مقدم لنشاط غير نشط','AGENCY','ACTIVE','30000000-0000-4000-8000-000000000004','{"secret":"private"}','["private"]');
 
 insert into public.marketing_services
   (id,code,name_ar,category_code,status,internal_notes)
@@ -115,7 +127,10 @@ begin
     raise exception 'RC458 expected exactly one public ACTIVE provider, got %', visible_count;
   end if;
   if not exists (select 1 from public.marketing_provider_profiles_public where name_ar='مقدم منشور') then
-    raise exception 'RC458 active public provider is not visible';
+    raise exception 'RC458 active showcased provider is not visible';
+  end if;
+  if exists (select 1 from public.marketing_provider_profiles_public where name_ar in ('مقدم دون عرض عام','مقدم لنشاط غير نشط')) then
+    raise exception 'RC458 exposed a provider without business showcase consent or with an inactive business';
   end if;
   if exists (
     select 1 from information_schema.columns
