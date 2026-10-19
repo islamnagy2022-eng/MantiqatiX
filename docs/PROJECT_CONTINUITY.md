@@ -849,3 +849,10 @@ This status is intentional and must remain until the open gates above are indepe
 - `web/index.html` and `web/sw.js` use the matching asset key `notification-batch-csv-guard-20261019`; cache key is `mnty-web-v140`.
 - No parser, automated tests, browser, build, CI, review, migration replay, merge, or deployment was run. This is not runtime or security certification.
 - Next: test batch notification behavior under partial RPC failure and test CSV formula edge cases in an isolated test environment; continue frontend-first review of loading/error/empty/action states. Do not edit `docs/SESSION_LOG.md`. Preserve SMM launch deferral and production **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Marketing filter empty-state checkpoint (source only)
+
+- Campaign and partner search/status filters now show a dedicated no-match message when there are loaded cards but no card satisfies the current filter. The empty message stays hidden for an actually empty dataset, where the existing empty-data panel remains in effect.
+- The result counts retain `aria-live="polite"`. Updated app asset refs to `marketing-filter-empty-state-20261019` and PWA cache to `mnty-web-v141`.
+- No browser, accessibility audit, tests, build, CI, review, merge, or deployment was run. Next verify search/filter combinations and keyboard/screen-reader behavior, then continue the frontend-first screen audit. Do not edit `docs/SESSION_LOG.md`; preserve SMM launch deferral and production **BLOCKED / NOT CERTIFIED**.
