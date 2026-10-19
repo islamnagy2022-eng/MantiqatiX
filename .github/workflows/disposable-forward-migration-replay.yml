@@ -1,6 +1,14 @@
 name: Disposable Forward Migration Replay
 
 on:
+  push:
+    branches: ["fix/mantigo-financial-report-columns-20261017"]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/baselines/**"
+      - "scripts/verify-tenant-isolation.sql"
+      - "scripts/validate-tenant-isolation-verifier.mjs"
+      - ".github/workflows/disposable-forward-migration-replay.yml"
   pull_request:
     branches: ["main"]
     paths:
@@ -15,7 +23,7 @@ permissions:
 
 jobs:
   forward-replay:
-    if: github.event.pull_request.number == 282
+    if: github.event_name == 'push' || github.event.pull_request.number == 282
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
