@@ -833,3 +833,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Refreshed `web/index.html` and `web/sw.js` to `role-dashboard-binder-fix-20261019`; cache key is `mnty-web-v138`.
 - Source re-read confirms the suspicious pattern no longer exists. This is not a JavaScript parser or runtime test. No browser, tests, build, CI, review, merge, or deployment was performed.
 - Next: continue frontend-first through the first module's child-screen states and resolve/record runtime verification when authorized. Do not edit `docs/SESSION_LOG.md`; preserve SMM launch deferral. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Unread notification list correction
+
+- Fixed a frontend inconsistency in `notificationsWorkspace()`: unread cards are now selected from all locally loaded notifications, independently of the latest-12 list. This prevents older unread rows within the loaded dataset from disappearing merely because they are not among the latest 12 overall.
+- App assets now use `notifications-unread-list-20261019`; service-worker shell cache is `mnty-web-v139`.
+- No tests/browser/build/CI were run. The loaded dataset may still be a subset of backend history; this change does not claim exhaustive historical coverage. Keep production **BLOCKED / NOT CERTIFIED** and continue frontend-first screen work.
