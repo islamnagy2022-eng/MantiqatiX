@@ -116,6 +116,15 @@ begin
       else v_membership.organization_id
     end;
 
+  -- Validate the final organization even when it was inherited from membership.
+  -- Corrupt/stale membership data must never attach a business cross-tenant.
+  if v_resolved_organization_id is not null and not exists (
+    select 1 from public.organizations o
+    where o.id = v_resolved_organization_id and o.tenant_id = p_tenant_id
+  ) then
+    return pg_catalog.jsonb_build_object('success', false, 'error', 'ORGANIZATION_SCOPE_FORBIDDEN');
+  end if;
+
   select ar.* into v_existing
   from public.approval_requests ar
   where ar.tenant_id = p_tenant_id
