@@ -40,6 +40,10 @@ assert.doesNotMatch(mantigoBlock, /from\("notifications"\)\.insert/, "MantiGo no
 
 assert.ok(paymentIntent.includes("provider_order_id: providerOrderId"), "normal payment intent must persist Paymob order correlation");
 assert.ok(paymentIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "ambiguous Paymob creation outcomes must fail closed for reconciliation");
+assert.ok(paymentIntent.includes('from "../_shared/paymob-intent-correlation.mjs"'), "normal payment provider response must use the shared Paymob correlation guard");
+assert.ok(paymentIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH"), "normal payment provider mismatch must fail closed");
+assert.ok(paymentIntent.indexOf("isValidPaymobAmountCents(amount, amountCents)") < paymentIntent.indexOf('fetch("https://accept.paymob.com/v1/intention/"'), "normal payment amount precision must be checked before provider network I/O");
+assert.ok(paymentIntent.indexOf("const providerCorrelationMatches = matchesPaymobIntention({") >= 0 && paymentIntent.indexOf("const providerCorrelationMatches = matchesPaymobIntention({") < paymentIntent.indexOf('admin.from("payment_intents").update({'), "normal payment response correlation must precede provider ID persistence");
 assert.ok(digitalIntent.includes("p_provider_order_id:providerOrderId"), "digital-page intent finalization must persist provider order correlation");
 assert.ok(digitalIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "digital-page provider ambiguity must not be blindly retried");
 assert.ok(subscriptionIntent.includes('rpc("create_subscription_payment_intent_claimable_backend"'), "subscription flow must use the claimable intent RPC");
