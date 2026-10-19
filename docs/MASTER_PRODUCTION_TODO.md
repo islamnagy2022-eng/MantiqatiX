@@ -2035,9 +2035,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 ## 2026-10-19 — Public service discovery RLS correction (RC457)
 
 - Found that the public homepage queries `marketing_services` for ACTIVE catalog entries, but the current source policy found in RC99 grants only authenticated administrative management; no public ACTIVE read policy was present in that migration.
-- Added forward-only migration `20261019090000_rc457_public_marketing_service_catalog.sql`: public SELECT is limited to ACTIVE rows, and anonymous SELECT is limited to the explicit public catalog columns (including `created_at` for ordering). No service-role bypass is introduced.
-- Added disposable PostgreSQL regression `supabase/tests/rc457_public_marketing_service_catalog.sql` and workflow `.github/workflows/public-service-catalog-rls.yml` to verify active-row visibility, draft-row denial, and private-column denial.
-- Status: SOURCE COMMITTED; exact-head PostgreSQL CI, live schema parity, and deployed behavior are NOT VERIFIED until the new workflow completes. Do not apply the migration to production from this change alone.
+- Added RC457 public view `marketing_services_public`, exposing only ACTIVE rows and allowlisted catalog columns to anon/authenticated; direct anonymous base-table reads are revoked.
+- Added RC458 public view `marketing_provider_profiles_public`, exposing only ACTIVE profiles and allowlisted public fields; direct anonymous base-table reads are revoked while owner/admin base-table access remains governed by existing RLS.
+- Updated `web/home.js` public discovery queries to use these views and removed private provider `settings` from public queries/rendering.
+- Added disposable PostgreSQL regression `supabase/tests/rc457_public_marketing_service_catalog.sql` and workflow `.github/workflows/public-service-catalog-rls.yml`, plus source contract `scripts/tests/rc457-public-catalog-source.mjs`.
+- RC457's isolated PostgreSQL workflow passed on earlier commit `826fc1576b689aaef8ff8be29f37cbacd928bf59`; the latest combined head `7dce257226110c164c22c849d53420e24990528c` has new/queued workflows and must be checked separately. Live schema parity and browser E2E remain NOT VERIFIED. Do not apply migrations to production from this change alone.
 - Production remains **BLOCKED / NOT CERTIFIED**; `docs/SESSION_LOG.md` remains untouched.
 
 
