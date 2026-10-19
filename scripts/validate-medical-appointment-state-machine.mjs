@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const migrationPath='supabase/migrations/20261010210000_rc452_medical_appointment_state_machine.sql';
+const migrationPath='supabase/migrations/20261019190000_rc457_medical_appointment_state_machine.sql';
 const fixturePath='supabase/tests/rc452_medical_appointment_state_machine_fixture.sql';
 const integrationPath='supabase/tests/rc452_medical_appointment_state_machine_integration.sql';
 const workflowPath='.github/workflows/module-professionalization.yml';
-const docsPath='docs/release/RC452_MEDICAL_APPOINTMENT_STATE_MACHINE.md';
+const docsPath='docs/release/RC457_MEDICAL_APPOINTMENT_STATE_MACHINE.md';
 const migration=fs.readFileSync(migrationPath,'utf8');
 const fixture=fs.readFileSync(fixturePath,'utf8');
 const integration=fs.readFileSync(integrationPath,'utf8');
@@ -23,15 +23,15 @@ assert.match(migration,/upper\(v_old\) = 'BOOKED' and v_target = 'CONFIRMED'/);
 assert.match(migration,/upper\(v_old\) = 'CONFIRMED' and v_target in \('COMPLETED','NO_SHOW'\)/);
 assert.doesNotMatch(migration,/grant execute|revoke execute/i,'this migration must not alter function grants');
 assert.match(fixture,/create function public\.update_medical_appointment_status_backend/);
-assert.match(integration,/RC452_EXPECTED_REJECTION_MISSING/);
+assert.match(integration,/RC457_EXPECTED_REJECTION_MISSING/);
 for(const marker of [
   'MEDICAL_APPOINTMENT_NOT_CANCELLABLE',
   'INVALID_MEDICAL_STATUS_TRANSITION',
   'PROVIDER_STATUS_CHANGE_REQUIRED',
   'ACTIVE_MEMBERSHIP_REQUIRED',
   'AUTH_USER_MISMATCH',
-  'RC452_ANON_EXECUTE_MUST_BE_DENIED',
-  'RC452_AUTHENTICATED_EXECUTE_REQUIRED'
+  'RC457_ANON_EXECUTE_MUST_BE_DENIED',
+  'RC457_AUTHENTICATED_EXECUTE_REQUIRED'
 ]) assert.ok(integration.includes(marker),'integration test missing '+marker);
 assert.match(workflow,/rc452-medical-appointment-state-machine-integration/);
 assert.match(workflow,/node scripts\/validate-medical-appointment-state-machine\.mjs/);
@@ -39,4 +39,4 @@ assert.match(docs,/latest applied version `20261008222845`/);
 assert.match(docs,/must not be applied alone or out of order/);
 assert.match(docs,/NO_SHOW semantics/);
 assert.match(docs,/No production mutation was performed/);
-console.log('RC452 medical appointment state-machine source contract: PASS');
+console.log('RC457 medical appointment state-machine source contract: PASS');
