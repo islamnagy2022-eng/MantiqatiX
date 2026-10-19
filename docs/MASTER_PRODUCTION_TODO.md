@@ -2212,3 +2212,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added a production-gate contract assertion requiring the marketing table names in that scan.
 - [ ] **NOT VERIFIED:** source validator and production verification script were not run during this build-first batch. This literal-reference scan is a defense-in-depth guard, not complete static analysis for dynamic table names.
 - Source commits: `e211eca231a638b84aa1f3f7a29f6c9297e0cc6e`, `2bfa1366419b90013385162540c24c9b7e0db1ba`, documentation `d563a15e3ca22e2640f23825cf0ceb26074fc08b`. PR #299 remains Draft; production remains **BLOCKED / NOT CERTIFIED**; no merge/deployment occurred.
+
+
+### RC456 terminal-state closure replay regression — authored, not run
+
+- [x] Added a PostgreSQL integration assertion that replaying closure for an already-removed partner after campaign cancellation remains idempotent.
+- [x] Asserted the terminal-state replay does not duplicate the audit event or provider notification.
+- [x] Added source-validator checks requiring both regression assertions.
+- [ ] **NOT VERIFIED:** latest SQL integration and source-validator execution are pending CI; do not count these assertions as test success.
+- Source commits: `dd49d6a497d45105a29b0be1e0569e360401c220`, `0a67ecae1b397951295451f45f6029f8f0dd5e64`. PR #299 remains Draft; production remains **BLOCKED / NOT CERTIFIED**. No merge or production deployment was performed. Do not modify `docs/SESSION_LOG.md`.
