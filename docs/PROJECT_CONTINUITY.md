@@ -646,3 +646,8 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a UI guard to prevent a second invitation to the same provider/campaign pair while an invitation is pending or the assignment is accepted.
 - Implementation commit: `ea4285a4144701e402488d80dba3f6a72b605041`; TODO checkpoint: `007888e5e3b423300a06dabb71a084d922d03a5e`.
 - NOT VERIFIED. Server-side idempotency/uniqueness must remain authoritative for concurrent requests and stale data. No tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Campaign search improvement
+- Campaign search now includes channel identifiers as well as title and objective. Implementation commit: `ed2239c3f3462cb8fe682a0625a3b917c1ce34e1`.
+- Implementation only; no tests, review, browser execution, CI, or deployment performed. Keep changes NOT VERIFIED until the verification phase.
