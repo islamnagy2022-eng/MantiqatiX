@@ -1938,3 +1938,10 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Corrected a false-negative in `scripts/validate-smm-service-role-boundary.mjs`: the shared bounded JSON parser defaults to 65,536 bytes, while `smm-gateway` deliberately calls it with `32*1024`. The contract now asserts the helper's bounded default and the gateway's explicit 32 KiB limit separately.
 - [ ] Re-run the SMM service-role boundary workflow on the latest PR head; prior isolated PostgreSQL ACL job passed, while its source validator failed on this mismatched assertion. No production code or migration was changed by this test-only correction.
 - [ ] Merge only after fresh required checks pass and the PR diff is reviewed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-19 — RC454 allocation trigger status-transition correction
+
+- [x] Source review found the allocation guard trigger did not include `status` in its `UPDATE OF` column list. A row moving into `INVITED`, `ACCEPTED`, or `ACTIVE` through a status-only update could therefore skip the aggregate allocation check.
+- [x] Updated RC454 to fire on participant status updates and strengthened the marketing backend source validator to lock this contract in.
+- [ ] Confirm the fresh `Marketing Campaign Backend` PostgreSQL and source-validation jobs pass on the exact new head.
+- [ ] Validate status-only transitions in a disposable PostgreSQL integration case before release. This is a migration source fix only; it has not been applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
