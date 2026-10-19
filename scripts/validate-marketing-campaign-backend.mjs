@@ -44,6 +44,7 @@ assert.match(integration, /campaign creation replay was not idempotent/);
 assert.match(integration, /campaign creation replay duplicated audit/);
 
 assert.match(rc454, /for update/i, "allocation guard must serialize writes through the campaign row");
+assert.match(rc454, /before insert or update of campaign_id,business_id,tenant_id,allocation_percent,status/i, "allocation guard must run when a participant enters or leaves an active allocation status");
 assert.match(rc455, /MARKETING_PARTICIPANTS_MUST_BE_CLOSED/, "terminal transitions must require partner closure");
 assert.match(rc455, /from public\.marketing_campaigns c[\s\S]{0,160}for update/i, "invitation responses must lock the campaign before the participant");
 assert.match(rc456, /create or replace function public\.close_marketing_campaign_partner_backend/);
