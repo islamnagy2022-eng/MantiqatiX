@@ -105,7 +105,7 @@ begin
   if v_after <> v_before then
     raise exception 'RC531 must roll back business insert when approval insert fails; before %, after %',v_before,v_after;
   end if;
-end;
+
   -- The SECURITY DEFINER function must still reject calls whose JWT role is not service_role.
   select count(*) into v_before from public.businesses;
   perform set_config('request.jwt.claim.role','authenticated',true);
