@@ -112,6 +112,18 @@ begin
      or has_table_privilege('authenticated','public.marketing_services_public','DELETE') then
     raise exception 'RC457 public service view unexpectedly grants write privileges';
   end if;
+  if not has_table_privilege('anon','public.marketing_services_public','SELECT')
+     or not has_table_privilege('authenticated','public.marketing_services_public','SELECT') then
+    raise exception 'RC457 public service view must grant SELECT to anon and authenticated';
+  end if;
+  if has_table_privilege('anon','public.marketing_services_public','TRUNCATE')
+     or has_table_privilege('anon','public.marketing_services_public','REFERENCES')
+     or has_table_privilege('anon','public.marketing_services_public','TRIGGER')
+     or has_table_privilege('authenticated','public.marketing_services_public','TRUNCATE')
+     or has_table_privilege('authenticated','public.marketing_services_public','REFERENCES')
+     or has_table_privilege('authenticated','public.marketing_services_public','TRIGGER') then
+    raise exception 'RC457 public service view grants a non-SELECT privilege';
+  end if;
   if has_column_privilege('anon','public.marketing_services','internal_notes','SELECT') then
     raise exception 'RC457 anonymous column-level SELECT grant survived migration';
   end if;
@@ -164,6 +176,18 @@ begin
      or has_table_privilege('authenticated','public.marketing_provider_profiles_public','UPDATE')
      or has_table_privilege('authenticated','public.marketing_provider_profiles_public','DELETE') then
     raise exception 'RC458 public provider view unexpectedly grants write privileges';
+  end if;
+  if not has_table_privilege('anon','public.marketing_provider_profiles_public','SELECT')
+     or not has_table_privilege('authenticated','public.marketing_provider_profiles_public','SELECT') then
+    raise exception 'RC458 public provider view must grant SELECT to anon and authenticated';
+  end if;
+  if has_table_privilege('anon','public.marketing_provider_profiles_public','TRUNCATE')
+     or has_table_privilege('anon','public.marketing_provider_profiles_public','REFERENCES')
+     or has_table_privilege('anon','public.marketing_provider_profiles_public','TRIGGER')
+     or has_table_privilege('authenticated','public.marketing_provider_profiles_public','TRUNCATE')
+     or has_table_privilege('authenticated','public.marketing_provider_profiles_public','REFERENCES')
+     or has_table_privilege('authenticated','public.marketing_provider_profiles_public','TRIGGER') then
+    raise exception 'RC458 public provider view grants a non-SELECT privilege';
   end if;
   begin
     perform owner_user_id from public.marketing_provider_profiles;
