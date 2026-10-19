@@ -1915,3 +1915,10 @@ No tests, browser, build, CI, review, merge, or deployment was run. Production r
 - [ ] Do not merge while required checks are failing/in progress or while production deploy validation is not green. Keep production **BLOCKED / NOT CERTIFIED**.
 
 A prior PR check run failed JavaScript syntax in `web/app.js` and a marketing backend source assertion; a deployment workflow's validation job consequently failed and deployment was skipped. Fixes above are source-level changes and still require fresh CI evidence.
+
+
+## 2026-10-19 — Follow-up CI contract correction
+
+- [x] Fixed the sector-rendering validator's stale hard-coded cache assumptions (`mnty-web-v129` and an old app URL) to validate the versioned cache name and exact current `web/index.html` app URL instead.
+- [x] Replaced stale marketing UI cache literals with checks against the current asset version; the service-worker registration must explicitly use a versioned URL.
+- [ ] Fresh CI must pass against the latest PR head. A deploy workflow validation failed before deployment because these stale source-contract assertions rejected the newer cache version; the deploy job was skipped. Keep production **BLOCKED / NOT CERTIFIED**.
