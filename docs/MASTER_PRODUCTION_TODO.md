@@ -1962,7 +1962,7 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Next: poll exact-head workflows for #286 and #296; inspect failures rather than assuming success; review migration provenance/baseline and security boundaries; reconcile the #286 diff to avoid changes to `docs/SESSION_LOG.md`; obtain explicit owner approval before any merge or production rollout.
 
 
-## RC532 — Candidate integration checkpoint — 2026-10-19
+## Execution checkpoint — candidate integration — 2026-10-19
 - PR #286 now contains the recovered RC425–RC441 source set, RC526 MantiGO intent claim, server-only digital-page finalization, disposable replay/isolation/payment tests, and RC531 atomic business registration. This is candidate code, not a production change.
 - Fixed a contradictory source-contract test in `scripts/tests/business-register-organization-scope.test.mjs`: it simultaneously asserted that `allowedRoles` was absent and that `allowedRoles.has(...)` was present. The current Edge Function centralizes tenant/membership/organization/duplicate authority in the atomic service-role RPC and passes `requestedOrganizationId` directly. Updated the test output to avoid a hard-coded count.
 - Exact-head CI for the new candidate commit `e53ec7e68c94051c19e5234bc558d583c45c42f8` is not yet independently confirmed; do not infer PASS from prior-head runs or PR narrative.
@@ -1971,7 +1971,7 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Production ledger remains recorded at RC424. No production migration, grants/RLS/Auth change, Edge Function deployment, payment, or financial record was changed. Final release remains BLOCKED / NOT CERTIFIED.
 
 
-## RC533 — Subscription payment provider-response binding — 2026-10-19
+## Execution checkpoint — subscription payment provider-response binding — 2026-10-19
 - P0 finding in candidate PR #286: `subscription-payment-intent` previously persisted Paymob intent/order identifiers after a successful HTTP response without validating the echoed amount, currency, and merchant `special_reference`.
 - Candidate fix now reuses `isValidPaymobAmountCents` and `matchesPaymobIntention` before persistence; mismatches preserve the claim/correlation for reconciliation and do not return checkout credentials.
 - Added a focused source + pure-guard regression test and wired it into Module Professionalization CI; strengthened the payment wiring validator.
@@ -1979,7 +1979,16 @@ A module cannot be marked DONE until all applicable items are evidenced:
 - Do not close the payment gate or merge overlapping migration candidates until exact-head CI, ordered disposable replay, and reviewed payment/tenant isolation tests pass.
 
 
-## RC534 — Payment correlation regression CI — 2026-10-19
+## Execution checkpoint — payment correlation regression CI — 2026-10-19
 - Module Professionalization CI was expanded to execute the subscription Paymob amount/currency/reference guard, the shared Paymob correlation unit tests, and the payment migration wiring contract.
 - Candidate PR #286 head at checkpoint: `55cd0fcef2023c36657b264905379ab440bef24e`. Exact-head workflows are queued/pending, so these checks are not marked PASS.
 - No production deployment/migration/payment was performed. Continue with the first open gate: exact-head CI, chronological disposable replay, and review of overlapping migration candidates.
+
+
+## Execution checkpoint — normal payment Paymob response binding — 2026-10-19
+- Static review found that the ordinary `payment-intent` path checked only HTTP success and non-empty provider identifiers before persisting them and returning checkout credentials; it did not verify the echoed amount, currency, and merchant reference.
+- Candidate fix now uses the shared exact-cent validator before network I/O and the shared provider-correlation guard against the authoritative payment intent, amount, and currency.
+- Provider identifiers are persisted into a pending/quarantined intent for reconciliation when the provider response mismatches, but checkout credentials are not returned. The webhook continues to enforce its own order/reference/amount/currency binding.
+- Added `scripts/tests/payment-intent-correlation.test.mjs`, wired it into Module Professionalization CI, and strengthened the payment migration wiring validator.
+- Current candidate head observed during this checkpoint: `b5802625543df635246e0f7f5e902840825f64e3`; exact-head CI remains queued/pending, so no test pass is claimed.
+- No production changes. Keep payment release blocked until CI, chronological disposable replay, tenant isolation, and approved Paymob sandbox E2E are verified.
