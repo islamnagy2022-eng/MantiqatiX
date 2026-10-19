@@ -588,3 +588,12 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #300 remains open and Draft, with no review submissions or inline review threads. No merge, production migration, Edge Function deployment, or production configuration change was performed.
 - [ ] Next: review existing sector schema and server-side contracts before activating any sector-specific read/write action. Existing module runtime mappings are useful discovery leads, not proof of current production grants/RLS or business/branch isolation.
 - Global release remains **BLOCKED / NOT CERTIFIED**: auth/role/tenant E2E, production payment/finance E2E, backup/restore, live-vs-repository migration/function parity, and main-branch deployment smoke remain open.
+
+
+## 2026-10-19 — read-only sector backend reconnaissance
+
+- [x] Read-only Supabase catalog inspection documented in `docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md`; no production writes or configuration changes.
+- [x] Confirmed shared business sector/category registry and its current table privileges/RLS flags; identified medical appointment RPCs and existing catalog/order contracts for deeper review.
+- [ ] The live policy catalog shows a broad authenticated non-anonymous SELECT policy on `fashion_products` alongside a separate tenant/business/branch boundary policy. Because permissive PostgreSQL policies combine with OR semantics, resolve whether the global visibility is intentional before connecting this table to private inventory/draft views. This is a policy-contract review item, not a declared incident.
+- [ ] Medical appointment data has no direct authenticated table SELECT grant in the inspected privilege surface; only use the existing backend contract after migration provenance, EXECUTE ACL, role scope, and patient/provider negative E2E are verified.
+- [ ] Continue schema/function inventory per sector; do not map pharmacies, labs, radiology, dental, hospitals, or veterinary flows to generic medical/order tables without evidence.
