@@ -233,3 +233,9 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 - Ensured the provider profile ID is initialized before filtering owned invitations and added a source-contract assertion for that binding.
 - PWA app/cache versions were refreshed. Runtime/browser verification remains NOT VERIFIED; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Provider workspace syntax follow-up — 2026-10-19
+
+- Removed the duplicate provider-profile ID declaration and added a source-contract assertion to prevent it recurring.
+- Asset/cache versions were refreshed; runtime remains NOT VERIFIED and production remains **BLOCKED / NOT CERTIFIED**.

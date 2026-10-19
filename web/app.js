@@ -1303,7 +1303,7 @@ function marketingCampaignWorkspace(){
    return key;
   }catch(_){return window.crypto?.randomUUID?window.crypto.randomUUID():'MNTY-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);}
  })();
- const myProviderId=live.myProviderProfile?.id?String(live.myProviderProfile.id):'';
+ 
  const fmtMoney=(value,currency)=>esc(value==null?'—':Number(value).toLocaleString('en-US',{maximumFractionDigits:2})+' '+String(currency||'EGP'));
  const fmtDate=value=>value?esc(String(value).slice(0,10)):'—';
  const statusAr=v=>({DRAFT:'مسودة',PLANNED:'مخططة',IN_REVIEW:'قيد المراجعة',APPROVED:'معتمدة داخليًا',PAUSED:'متوقفة مؤقتًا',COMPLETED:'مكتملة',CANCELLED:'ملغاة',INVITED:'دعوة مرسلة',ACCEPTED:'مقبولة',DECLINED:'مرفوضة',ACTIVE:'نشطة',REMOVED:'مستبعدة'}[String(v||'').toUpperCase()]||String(v||'—'));

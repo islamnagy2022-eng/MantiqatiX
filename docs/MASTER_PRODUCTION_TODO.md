@@ -2015,3 +2015,10 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Bound the workspace's provider-profile ID before constructing the provider-owned participant/campaign view, avoiding a missing identifier in the new scoped path.
 - [x] Added a source-contract assertion that the provider ID is initialized before provider invitation filtering; refreshed app/PWA versions to `marketing-provider-invitation-scope-fix-20261019` / `mnty-web-v146`.
 - [ ] Verify exact-head UI and backend CI. Runtime/browser validation remains outstanding; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Provider workspace declaration cleanup
+
+- [x] Removed the duplicate provider-profile ID declaration introduced while wiring the provider-owned invitation view.
+- [x] Added a source-contract assertion requiring exactly one provider ID binding and refreshed the app/PWA versions to `marketing-provider-invitation-scope-stable-20261019` / `mnty-web-v147`.
+- [ ] Verify fresh exact-head JavaScript syntax and UI contract CI. Production remains **BLOCKED / NOT CERTIFIED**.

@@ -938,3 +938,8 @@ Fixed the marketing workspace data path so a provider can load participant rows 
 ## 2026-10-19 — Provider invitation binding follow-up
 
 The provider-owned invitation view now binds the current provider profile ID at the start of `marketingCampaignWorkspace()`, before filtering provider-specific rows. A source-contract assertion protects this ordering. Asset/cache keys were refreshed; await exact-head CI and browser verification. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
+
+
+## 2026-10-19 — Provider workspace declaration cleanup
+
+Removed the duplicate provider ID declaration that CI's JavaScript parser identified in the provider invitation view, and added a source-contract assertion to prevent redeclaration. App/PWA asset versions were refreshed; exact-head CI remains the evidence gate. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.

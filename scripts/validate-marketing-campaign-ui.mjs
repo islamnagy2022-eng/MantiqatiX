@@ -25,6 +25,7 @@ assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure m
 assert.match(app, /لا يمكن إنهاء الحملة قبل إغلاق/, "terminal campaign transitions should explain the active-partner blocker");
 assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign reads must use a dedicated loader");
 assert.match(app, /function marketingCampaignWorkspace\(\)\{\s*const activeBusinessId=String\(live\.businessId\|\|\x27\x27\);\s*const myProviderId=live\.myProviderProfile\?\.id\?String\(live\.myProviderProfile\.id\):\x27\x27;/, "provider profile ID must be bound before scoped provider invitation filtering");
+assert.equal((app.match(/const myProviderId=live\.myProviderProfile\?\.id\?String\(live\.myProviderProfile\.id\):\x27\x27;/g)||[]).length, 1, "provider profile ID must not be redeclared within the workspace");
 assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
 assert.match(app, /activeBusinessId\?sb\.from\('marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'\)\.eq\('business_id',activeBusinessId\)/, "manager campaign reads must be scoped to the active business");
 assert.match(app, /if\(!activeBusinessId&&!providerId\)[\s\S]{0,300}NO_ACTIVE_BUSINESS/, "campaign reads without a business must require an owned provider profile scope");
