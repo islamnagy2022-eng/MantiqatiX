@@ -3,6 +3,8 @@ import fs from "node:fs";
 
 const source = fs.readFileSync("supabase/functions/business-register/index.ts", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc531_business_registration_fixture.sql", "utf8");
+const integration = fs.readFileSync("supabase/tests/rc531_business_registration_integration.sql", "utf8");
 
 assert.match(source, /const requestedOrganizationId=organizationId\?\.trim\(\)\|\|null/);
 assert.match(source, /allowedRoles\.has\(String\(m\.role\|\|""\)\.toUpperCase\(\)\)\s*&&\s*\(!requestedOrganizationId \|\| String\(m\.organization_id\|\|""\)===requestedOrganizationId\)/);
@@ -55,5 +57,10 @@ assert.match(migration, /m\.tenant_id in \(p_tenant_id, 'MNTY-PLATFORM'\)/);
 assert.match(migration, /insert into public\.businesses[\s\S]*insert into public\.approval_requests/);
 assert.match(migration, /grant execute on function public\.register_business_with_approval_atomic[\s\S]*to service_role/);
 assert.match(migration, /revoke all on function public\.register_business_with_approval_atomic[\s\S]*from public, anon, authenticated/);
+assert.match(fixture, /MEM-CORRUPT-ONLY[\s\S]*TENANT-A[\s\S]*ORG-B/);
+assert.match(integration, /Inherited Corrupt Organization[\s\S]*ORGANIZATION_SCOPE_FORBIDDEN/);
+assert.match(integration, /forced_approval_insert_failure[\s\S]*must roll back business insert/);
+assert.match(integration, /TRUSTED_BUSINESS_REGISTRATION_REQUIRED[\s\S]*rejected-role call must not create a business/);
+assert.match(integration, /set_config\(\x27request\.jwt\.claim\.role\x27,\x27authenticated\x27,true\)/);
 
-console.log("business-register tenant and organization security contract: PASS (48 assertions)");
+console.log("business-register tenant and organization security contract: PASS (53 assertions)");
