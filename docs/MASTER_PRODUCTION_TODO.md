@@ -1866,3 +1866,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - No RBAC/module-enabled filtering was relaxed. This is a navigation/accessibility improvement only; it does not imply that any module screen or backend workflow is complete.
 - `web/index.html` and `web/sw.js` now use `role-dashboard-module-buttons-20261019`; shell cache advanced to `mnty-web-v137`.
 - No tests, browser, build, CI, review, migration replay, merge, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Shared role binder source correction (not runtime verified)
+
+- Removed the stray standalone `async` token before `bindRoleAfterRender` in `web/app.js`; the function body only calls the role-command-center binder and remains synchronous.
+- Refreshed matching asset references to `role-dashboard-binder-fix-20261019`; PWA shell cache advanced to `mnty-web-v138`.
+- No parser, browser, tests, build, CI, review, or deployment was run. Do not infer runtime correctness from this static source correction. Production remains **BLOCKED / NOT CERTIFIED**.
