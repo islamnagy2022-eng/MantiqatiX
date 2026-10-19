@@ -33,7 +33,7 @@ for(const marker of [
   'RC457_ANON_EXECUTE_MUST_BE_DENIED',
   'RC457_AUTHENTICATED_EXECUTE_REQUIRED'
 ]) assert.ok(integration.includes(marker),'integration test missing '+marker);
-assert.match(workflow,/rc452-medical-appointment-state-machine-integration/);
+assert.match(workflow,/rc457-medical-appointment-state-machine-integration/);
 assert.match(workflow,/node scripts\/validate-medical-appointment-state-machine\.mjs/);
 assert.match(docs,/latest applied version `20261008222845`/);
 assert.match(docs,/must not be applied alone or out of order/);
