@@ -1280,7 +1280,7 @@ function marketingCampaignWorkspace(){
  const channelAr=v=>({META:'Meta',TIKTOK:'TikTok',GOOGLE:'Google',YOUTUBE:'YouTube',LINKEDIN:'LinkedIn',SNAPCHAT:'Snapchat',OTHER:'أخرى'}[String(v||'').toUpperCase()]||String(v||''));
  const campaignById=new Map(campaigns.map(c=>[String(c.id),c]));
  const campaignOptions=campaigns.filter(c=>canManage&&String(c.business_id)===String(live.businessId));
- const providerOptions=providers.filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
+ const providerOptions=providers.filter(p=>String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
  const validNext=c=>({DRAFT:['PLANNED','IN_REVIEW','CANCELLED'],PLANNED:['IN_REVIEW','PAUSED','CANCELLED'],IN_REVIEW:['APPROVED','DRAFT','CANCELLED'],APPROVED:['PAUSED','COMPLETED','CANCELLED'],PAUSED:['APPROVED','CANCELLED']}[String(c.status||'').toUpperCase()]||[]);
  const errorPanel=(live.marketingCampaignErrors||[]).length
   ?'<div class="notice" role="status">تعذر قراءة بعض مصادر الحملات: '+esc(live.marketingCampaignErrors.join('، '))+'؛ لا تُعرض هذه المصادر على أنها خالية من البيانات.</div>':'';
@@ -1535,6 +1535,7 @@ function bindMarketingCampaignWorkspace(){
   summary.textContent='المخصص حاليًا: '+used.toLocaleString('en-US',{maximumFractionDigits:2})+'% · المتبقي: '+remaining.toLocaleString('en-US',{maximumFractionDigits:2})+'%'+(Number.isFinite(requested)?' · الإجمالي المتوقع: '+projected.toLocaleString('en-US',{maximumFractionDigits:2})+'%':'')+warning;
  };
  document.getElementById('mc-invite-campaign')?.addEventListener('change',refreshAllocationHint);
+ document.getElementById('mc-invite-provider')?.addEventListener('change',refreshAllocationHint);
  document.getElementById('mc-invite-allocation')?.addEventListener('input',refreshAllocationHint);
  refreshAllocationHint();
  const inviteForm=document.getElementById('marketing-partner-invite-form');
@@ -1551,9 +1552,11 @@ function bindMarketingCampaignWorkspace(){
   const allocation=allocationRaw===''?NaN:Number(allocationRaw);
   const agreed=agreedRaw===''?NaN:Number(agreedRaw);
   const activeBusinessId=String(live.businessId||'');
-  const campaignIsAvailable=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).some(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
+  const selectedCampaign=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).find(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
+  const campaignStatus=String(selectedCampaign?.status||'').toUpperCase();
+  const campaignIsAvailable=Boolean(selectedCampaign&&!['CANCELLED','COMPLETED'].includes(campaignStatus));
   const providerIsAvailable=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).some(p=>String(p.id)===providerId&&String(p.business_id||'')!==activeBusinessId&&String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
-  if(!activeBusinessId||!campaignIsAvailable||!providerIsAvailable)return showToast('الحملة أو الشريك لم يعد متاحًا ضمن النشاط الحالي؛ حدّث مساحة العمل.','error');
+  if(!activeBusinessId||!campaignIsAvailable||!providerIsAvailable)return showToast('الحملة مغلقة أو الشريك لم يعد متاحًا ضمن النشاط الحالي؛ حدّث مساحة العمل.','error');
   const existingAssignment=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[])
    .find(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&String(p.provider_id||'')===providerId&&['INVITED','ACCEPTED'].includes(String(p.status||'').toUpperCase()));
   if(existingAssignment)return showToast('يوجد بالفعل تعاون مع هذا الشريك في الحملة نفسها بدعوة معلقة أو إسناد مقبول.','error');
