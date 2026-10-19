@@ -948,3 +948,8 @@ Removed the duplicate provider ID declaration that CI's JavaScript parser identi
 ## 2026-10-19 — RC454 active-allocation status transition
 
 A focused review found that the RC454 trigger originally ran on allocation/scope columns but not on `status`. That left a path for a previously inactive participant to become active without rechecking the aggregate. Updated the trigger event to include `status` and added a validator assertion for that contract. The exact-head marketing PostgreSQL workflow passed on `d9e5f459aacadc788f0dc38307cca2b9b636d356`; its integration includes the status-reentry regression, while the workflow also runs the concurrent-allocation regression. This is not production certification; preserve **BLOCKED / NOT CERTIFIED**, do not merge/deploy, and leave `docs/SESSION_LOG.md` untouched.
+
+
+## 2026-10-19 — Public service discovery access correction (RC457)
+
+A source review found a mismatch between the public homepage's ACTIVE `marketing_services` queries and the RC99 policy set, which contained an authenticated-admin management policy but no public catalog SELECT policy. Added RC457 to allow anonymous/authenticated read of ACTIVE catalog rows and restrict anonymous column privileges to the public catalog allowlist. Added an isolated PostgreSQL regression and dedicated CI workflow covering active-vs-draft row visibility and private-column denial. Exact-head CI and production/live-schema parity remain NOT VERIFIED; no production migration or deployment was performed. Production remains BLOCKED / NOT CERTIFIED. `docs/SESSION_LOG.md` intentionally unchanged.
