@@ -25,11 +25,15 @@ assert.match(app, /close_marketing_campaign_partner_backend/, "partner closure m
 assert.match(app, /لا يمكن إنهاء الحملة قبل إغلاق/, "terminal campaign transitions should explain the active-partner blocker");
 assert.match(app, /async function loadMarketingCampaignData\(\)/, "campaign reads must use a dedicated loader");
 assert.match(app, /marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'/, "campaign reads must use an explicit field allowlist");
-assert.match(app, /from\('marketing_campaigns'\)\.select\([\s\S]{0,300}?\.eq\('business_id',live\.businessId\)/, "campaign reads must be scoped to the active business");
-assert.match(app, /if\(!live\.businessId\)[\s\S]{0,300}NO_ACTIVE_BUSINESS/, "no active business must fail closed without a broad campaign read");
+assert.match(app, /activeBusinessId\?sb\.from\('marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'\)\.eq\('business_id',activeBusinessId\)/, "manager campaign reads must be scoped to the active business");
+assert.match(app, /if\(!activeBusinessId&&!providerId\)[\s\S]{0,300}NO_ACTIVE_BUSINESS/, "campaign reads without a business must require an owned provider profile scope");
 assert.match(app, /marketingCampaignUnavailableReason==='NO_ACTIVE_BUSINESS'/, "missing business scope must show a truthful fallback notice");
-assert.match(app, /from\('marketing_campaign_participants'\)\.select\([\s\S]{0,300}?\.eq\('business_id',live\.businessId\)/, "participant reads must be scoped to the active business");
-assert.match(app, /filter\(c=>activeBusinessId&&String\(c\.business_id\|\|''\)===activeBusinessId\)/, "campaign display must enforce active-business scope");
+assert.match(app, /activeBusinessId\?sb\.from\('marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'\)\.eq\('business_id',activeBusinessId\)/, "manager participant reads must be scoped to the active business");
+assert.match(app, /providerId\?sb\.from\('marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'\)\.eq\('provider_id',providerId\)/, "provider participant reads must be scoped to the signed-in user's owned provider profile");
+assert.match(app, /providerCampaignIds\.length[\s\S]{0,180}from\('marketing_campaigns'\)\.select\('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief'\)\.in\('id',providerCampaignIds\)/, "provider campaign details must be restricted to campaign IDs from own participant rows");
+assert.match(app, /const businessCampaigns=allCampaignRows\.filter\(c=>activeBusinessId&&String\(c\.business_id\|\|''\)===activeBusinessId\)/, "manager campaign summaries must remain active-business scoped");
+assert.match(app, /allCampaignRows\.filter\(c=>providerCampaignIds\.has\(String\(c\.id\)\)\)/, "provider campaign display must be limited to campaigns referenced by own participant rows");
+assert.match(app, /const participants=\[\.\.\.new Map\(\[\.\.\.businessParticipants,\.\.\.providerParticipants\]/, "participant view must combine business-scoped and owned-provider rows without duplicates");
 
 assert.match(app, /marketing_campaign_participants'\)\.select\('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at'/, "participant reads must use an explicit field allowlist");
 assert.match(app, /live\.marketingCampaignErrors\.push\('marketing_campaigns'\)/, "failed campaign reads must not be presented as empty");

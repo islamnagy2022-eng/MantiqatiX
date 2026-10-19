@@ -2000,3 +2000,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Corrected the UI source-contract pattern to match the literal BOM-aware CSV formula guard in `web/app.js`.
 - [x] Strengthened the backend source contract to require two distinct providers in the RC454 race test, with both competing allocations active at 60%.
 - [ ] Verify the fresh UI and PostgreSQL workflow results on the exact current head. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Provider-owned campaign invitation visibility
+
+- [x] Extended the marketing loader to read participant rows scoped either to the active business or to the signed-in user's own provider profile, then deduplicated the combined records.
+- [x] Added a narrowly scoped campaign detail query using only campaign IDs referenced by the provider's own participant rows; no unscoped campaign list is loaded when there is no active business.
+- [x] Adjusted the workspace to show linked provider campaigns and invitations, while keeping manager summaries and mutations restricted to the active business. Refreshed the app asset key and PWA cache to `marketing-provider-invitation-scope-20261019` / `mnty-web-v145`.
+- [ ] Verify exact-head source contracts and browser/provider-account behavior. No browser runtime test or production deployment was performed; production remains **BLOCKED / NOT CERTIFIED**.

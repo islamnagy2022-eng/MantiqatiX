@@ -1236,9 +1236,11 @@ async function loadMarketingCampaignData(){
  live.marketingCampaignErrors=[];
  live.marketingCampaignUnavailable=false;
  live.marketingCampaignUnavailableReason=null;
+ const activeBusinessId=String(live.businessId||'');
+ const providerId=String(live.myProviderProfile?.id||'');
  const providersQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['PARTNER_COMPANY','FREELANCER']).limit(100);
- if(!live.businessId){
-  // Never read campaign/participant rows across all memberships without an active business scope.
+ if(!activeBusinessId&&!providerId){
+  // Never read campaign/participant rows broadly without either an active business or a narrowly scoped owned provider profile.
   live.marketingCampaignUnavailable=true;
   live.marketingCampaignUnavailableReason='NO_ACTIVE_BUSINESS';
   live.marketingCampaigns=[];
@@ -1248,24 +1250,45 @@ async function loadMarketingCampaignData(){
   if(providers.error)live.marketingCampaignErrors.push('marketing_provider_profiles');
   return;
  }
- const [campaigns,participants,providers]=await Promise.all([
-  sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').eq('business_id',live.businessId).order('created_at',{ascending:false}).limit(50),
-  sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').eq('business_id',live.businessId).order('created_at',{ascending:false}).limit(100),
+ const emptyResult={data:[],error:null};
+ const [businessCampaigns,businessParticipants,providerParticipants,providers]=await Promise.all([
+  activeBusinessId?sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').eq('business_id',activeBusinessId).order('created_at',{ascending:false}).limit(50):Promise.resolve(emptyResult),
+  activeBusinessId?sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').eq('business_id',activeBusinessId).order('created_at',{ascending:false}).limit(100):Promise.resolve(emptyResult),
+  providerId?sb.from('marketing_campaign_participants').select('id,business_id,campaign_id,provider_id,role,allocation_percent,agreed_value,status,responded_at,created_at').eq('provider_id',providerId).order('created_at',{ascending:false}).limit(100):Promise.resolve(emptyResult),
   providersQuery
  ]);
- live.marketingCampaignUnavailable=[campaigns.error,participants.error].some(e=>Boolean(e)&&(['42P01','PGRST205'].includes(String(e.code||''))||/relation .* does not exist|could not find the table .*schema cache/i.test(String(e.message||''))));
+ const providerCampaignIds=[...new Set((providerParticipants.data||[]).map(p=>String(p.campaign_id||'')).filter(Boolean))];
+ const providerCampaigns=providerCampaignIds.length
+  ?await sb.from('marketing_campaigns').select('id,business_id,title,objective,channels,budget,currency,status,start_at,end_at,created_at,brief').in('id',providerCampaignIds).limit(100)
+  :emptyResult;
+ const campaignErrors=[businessCampaigns.error,providerCampaigns.error].filter(Boolean);
+ const participantErrors=[businessParticipants.error,providerParticipants.error].filter(Boolean);
+ const sourceErrors=[...campaignErrors,...participantErrors];
+ live.marketingCampaignUnavailable=sourceErrors.some(e=>['42P01','PGRST205'].includes(String(e.code||''))||/relation .* does not exist|could not find the table .*schema cache/i.test(String(e.message||'')));
  live.marketingCampaignUnavailableReason=live.marketingCampaignUnavailable?'SCHEMA_MISSING':null;
- live.marketingCampaigns=campaigns.error?[]:(campaigns.data||[]);
- live.marketingCampaignParticipants=participants.error?[]:(participants.data||[]);
+ const campaignMap=new Map();
+ for(const campaign of businessCampaigns.data||[])campaignMap.set(String(campaign.id),campaign);
+ for(const campaign of providerCampaigns.data||[])campaignMap.set(String(campaign.id),campaign);
+ live.marketingCampaigns=[...campaignMap.values()];
+ const participantMap=new Map();
+ for(const participant of businessParticipants.data||[])participantMap.set(String(participant.id),participant);
+ for(const participant of providerParticipants.data||[])participantMap.set(String(participant.id),participant);
+ live.marketingCampaignParticipants=[...participantMap.values()];
  live.marketingCampaignProviders=providers.error?[]:(providers.data||[]);
- if(campaigns.error)live.marketingCampaignErrors.push('marketing_campaigns');
- if(participants.error)live.marketingCampaignErrors.push('marketing_campaign_participants');
+ if(campaignErrors.length)live.marketingCampaignErrors.push('marketing_campaigns');
+ if(participantErrors.length)live.marketingCampaignErrors.push('marketing_campaign_participants');
  if(providers.error)live.marketingCampaignErrors.push('marketing_provider_profiles');
 }
 function marketingCampaignWorkspace(){
  const activeBusinessId=String(live.businessId||'');
- const campaigns=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).filter(c=>activeBusinessId&&String(c.business_id||'')===activeBusinessId);
- const participants=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>activeBusinessId&&String(p.business_id||'')===activeBusinessId);
+ const allCampaignRows=Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[];
+ const allParticipantRows=Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[];
+ const businessCampaigns=allCampaignRows.filter(c=>activeBusinessId&&String(c.business_id||'')===activeBusinessId);
+ const businessParticipants=allParticipantRows.filter(p=>activeBusinessId&&String(p.business_id||'')===activeBusinessId);
+ const providerParticipants=allParticipantRows.filter(p=>myProviderId&&String(p.provider_id||'')===myProviderId);
+ const participants=[...new Map([...businessParticipants,...providerParticipants].map(p=>[String(p.id),p])).values()];
+ const providerCampaignIds=new Set(providerParticipants.map(p=>String(p.campaign_id||'')));
+ const campaigns=[...new Map([...businessCampaigns,...allCampaignRows.filter(c=>providerCampaignIds.has(String(c.id)))].map(c=>[String(c.id),c])).values()];
  const providers=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).filter(p=>!live.businessId||String(p.business_id||'')!==String(live.businessId));
  const role=String(live.role||'').toUpperCase();
  const canManage=Boolean(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER','MANAGER'].includes(role)&&!(live.marketingCampaignErrors||[]).some(e=>['marketing_campaigns','marketing_campaign_participants'].includes(e)));
@@ -1306,15 +1329,17 @@ function marketingCampaignWorkspace(){
   '<div class="action-bar" style="grid-column:1/-1"><button class="btn btn-primary" id="mc-create-submit" type="submit" style="width:auto">حفظ خطة الحملة</button><span class="muted">يتم التحقق من صلاحية النشاط في قاعدة البيانات.</span></div>'+
   '</form></section>'
  ):(
-  '<section class="card" style="padding:16px;margin:16px 0"><h3>إنشاء الحملات متاح لمديري النشاط</h3><p class="muted">اختر عضوية نشطة مرتبطة بنشاط تجاري مخول لإدارة التسويق. الوصول الفعلي يُتحقق منه في الخادم.</p></section>'
+  live.businessId?'<section class="card" style="padding:16px;margin:16px 0"><h3>إنشاء الحملات متاح لمديري النشاط</h3><p class="muted">اختر عضوية نشطة مرتبطة بنشاط تجاري مخول لإدارة التسويق. الوصول الفعلي يُتحقق منه في الخادم.</p></section>':''
  );
- const campaignCountByStatus=campaigns.reduce((counts,c)=>{const status=String(c.status||'DRAFT').toUpperCase();counts[status]=(counts[status]||0)+1;return counts;},{});
- const campaignBudgetByCurrency=campaigns.reduce((totals,c)=>{const currency=String(c.currency||'EGP').toUpperCase();const amount=Number(c.budget);if(Number.isFinite(amount)&&amount>=0)totals[currency]=(totals[currency]||0)+amount;return totals;},{});
+ const summaryCampaigns=canManage?businessCampaigns:campaigns;
+ const summaryParticipants=canManage?businessParticipants:providerParticipants;
+ const campaignCountByStatus=summaryCampaigns.reduce((counts,c)=>{const status=String(c.status||'DRAFT').toUpperCase();counts[status]=(counts[status]||0)+1;return counts;},{});
+ const campaignBudgetByCurrency=summaryCampaigns.reduce((totals,c)=>{const currency=String(c.currency||'EGP').toUpperCase();const amount=Number(c.budget);if(Number.isFinite(amount)&&amount>=0)totals[currency]=(totals[currency]||0)+amount;return totals;},{});
  const budgetSummary=Object.entries(campaignBudgetByCurrency).sort(([a],[b])=>a.localeCompare(b)).map(([currency,amount])=>amount.toLocaleString('en-US',{maximumFractionDigits:2})+' '+currency).join(' · ');
- const pendingPartnerInvites=participants.filter(p=>String(p.status||'').toUpperCase()==='INVITED').length;
- const acceptedPartnerAssignments=participants.filter(p=>String(p.status||'').toUpperCase()==='ACCEPTED').length;
+ const pendingPartnerInvites=summaryParticipants.filter(p=>String(p.status||'').toUpperCase()==='INVITED').length;
+ const acceptedPartnerAssignments=summaryParticipants.filter(p=>String(p.status||'').toUpperCase()==='ACCEPTED').length;
  const campaignOperationsSummary=workspaceCards([
-  ['إجمالي الحملات',String(campaigns.length),'الحملات التابعة للنشاط المحدد فقط'],
+  ['إجمالي الحملات',String(summaryCampaigns.length),canManage?'الحملات التابعة للنشاط المحدد فقط':'الحملات المرتبطة بدعوات ملف مقدم الخدمة'],
   ['تحتاج مراجعة',String(campaignCountByStatus.IN_REVIEW||0),'خطط تنتظر القرار الداخلي'],
   ['معتمدة داخليًا',String(campaignCountByStatus.APPROVED||0),'لا يعني نشرًا على منصة خارجية'],
   ['دعوات شراكة معلقة',String(pendingPartnerInvites),'دعوات لم يصل ردها بعد'],
@@ -1341,7 +1366,7 @@ function marketingCampaignWorkspace(){
   '<div class="field"><label for="mc-invite-value">القيمة المتفق عليها (إن وجدت)</label><input id="mc-invite-value" type="number" min="0" max="1000000000" step="0.01" value="0" required/></div>'+
   '<div class="action-bar" style="grid-column:1/-1"><button class="btn btn-primary" id="mc-invite-submit" type="submit" style="width:auto">إرسال الدعوة</button></div></form></section>'
  ):(
-  canManage?'<section class="card" style="padding:16px;margin:16px 0"><h3>التعاون مع الشركاء</h3><p class="muted">'+(campaignOptions.length?'لا توجد ملفات شركات/مستقلين موثقة ومتاحة خارج النشاط الحالي.':'أنشئ حملة داخلية أولًا، ثم يمكنك دعوة شريك موثق.')+'</p></section>':''
+  canManage?'<section class="card" style="padding:16px;margin:16px 0"><h3>التعاون مع الشركاء</h3><p class="muted">'+(campaignOptions.length?'لا توجد ملفات شركات/مستقلين موثقة ومتاحة خارج النشاط الحالي.':(businessCampaigns.length?'لا توجد حملات في حالة تسمح بدعوة شريك. اختر حملة مسودة أو مخططة أو قيد المراجعة.':'أنشئ حملة داخلية أولًا، ثم يمكنك دعوة شريك موثق.'))+'</p></section>':''
  );
  const visibleParticipants=participants.filter(p=>{
   if(canManage&&String(p.business_id)===String(live.businessId))return true;
@@ -1350,7 +1375,7 @@ function marketingCampaignWorkspace(){
  const participantStatusCounts=visibleParticipants.reduce((counts,p)=>{const status=String(p.status||'').toUpperCase();counts[status]=(counts[status]||0)+1;return counts;},{});
  const participantCards=visibleParticipants.length?visibleParticipants.map(p=>{
   const c=campaignById.get(String(p.campaign_id));
-  const provider=providers.find(x=>String(x.id)===String(p.provider_id));
+  const provider=String(p.provider_id)===myProviderId&&live.myProviderProfile?live.myProviderProfile:providers.find(x=>String(x.id)===String(p.provider_id));
   const mayRespond=Boolean(myProviderId&&String(p.provider_id)===myProviderId&&String(p.status).toUpperCase()==='INVITED');
   const mayClose=Boolean(canManage&&String(p.business_id)===String(live.businessId)&&['INVITED','ACCEPTED','ACTIVE'].includes(String(p.status||'').toUpperCase())&&c&&!['COMPLETED','CANCELLED'].includes(String(c.status||'').toUpperCase()));
   return '<article data-mc-participant-card data-mc-participant-id="'+esc(p.id)+'" data-mc-participant-search="'+esc([c?.title||'',provider?.name_ar||'',p.role||''].join(' '))+'" data-mc-participant-status="'+esc(String(p.status||'').toUpperCase())+'" class="card" style="padding:14px;margin:8px 0"><div class="row"><div><b>'+esc(c?.title||'حملة شراكة')+'</b><p class="muted">'+esc(provider?.name_ar||'شركة شريكة')+' · '+esc(p.role)+'</p></div><span class="mnty-badge">'+esc(statusAr(p.status))+'</span></div>'+

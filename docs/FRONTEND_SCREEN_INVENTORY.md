@@ -220,3 +220,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 
 - Aligned the CSV source assertion with the BOM-aware guard and strengthened the RC454 concurrency contract's distinct-provider checks.
 - These are test-contract changes only; browser runtime remains NOT VERIFIED and production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Provider campaign invitations — 2026-10-19
+
+- The marketing workspace now combines active-business participant rows with rows scoped to the signed-in user's own provider profile and fetches linked campaign details only by those participant campaign IDs.
+- Manager summary and mutation paths remain business-scoped; provider rows are deduplicated and displayed as owned invitations/assignments.
+- Source and CI checks are pending; provider-account browser/runtime verification remains NOT VERIFIED. Production remains **BLOCKED / NOT CERTIFIED**.
