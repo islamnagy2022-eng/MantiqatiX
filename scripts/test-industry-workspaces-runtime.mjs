@@ -32,6 +32,8 @@ assert.equal(api.supports('قطاع: UNKNOWN'), false, 'unknown sector route mus
 assert.equal(api.supports('قطاع: FOOD<script>alert(1)</script>'), false, 'script-bearing route must be rejected');
 assert.match(api.renderHub(), /role="status" aria-live="polite"/, 'directory count must be announced');
 assert.match(api.renderHub(), /دليل الموديولات القطاعية/, 'directory must render its title');
+assert.match(api.render('قطاع: DIGITAL'), /data-mxiw-live="التسويق والإعلان"/, 'marketing sector must expose the existing marketing workspace');
+assert.match(api.render('قطاع: FOOD'), /data-mxiw-live="المطاعم والمطابخ"/, 'food sector must preserve the existing restaurant workspace link');
 assert.doesNotMatch(source, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'sector workspace source must remain backend-free');
 console.log('Industry workspace runtime contract: PASS');
 console.log('27 routes rendered; accessible tabs/panels; invalid routes rejected; frontend-only boundary preserved.');
