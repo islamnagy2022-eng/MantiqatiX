@@ -36,6 +36,11 @@ begin
 end;
 $preflight$;
 
+-- Cover the active-allocation aggregate used by the serialized trigger check.
+create index if not exists marketing_campaign_participants_allocation_guard_idx
+  on public.marketing_campaign_participants(campaign_id,status)
+  include (allocation_percent);
+
 create or replace function public.mnty_guard_marketing_partner_allocation()
 returns trigger
 language plpgsql
