@@ -53,6 +53,7 @@ values
   ('10000000-0000-4000-8000-000000000002','PRIVATE-D','مسودة داخلية','FOOD','DRAFT','private');
 
 \i supabase/migrations/20261019090000_rc457_public_marketing_service_catalog.sql
+\i supabase/migrations/20261019100000_rc458_public_provider_profile_column_allowlist.sql
 
 set role anon;
 do $assert$
@@ -69,6 +70,23 @@ begin
   ) then
     raise exception 'RC457 active public service is not visible';
   end if;
+  if not exists (
+    select 1 from public.marketing_provider_profiles
+    where name_ar='مقدم منشور' and status='ACTIVE'
+  ) then
+    raise exception 'RC458 active public provider is not visible';
+  end if;
+  if exists (
+    select 1 from public.marketing_provider_profiles where status <> 'ACTIVE'
+  ) then
+    raise exception 'RC458 non-active provider profile is visible';
+  end if;
+  begin
+    perform settings from public.marketing_provider_profiles;
+    raise exception 'RC458 private provider settings unexpectedly readable by anon';
+  exception when insufficient_privilege then
+    null;
+  end;
   begin
     perform internal_notes from public.marketing_services;
     raise exception 'RC457 private internal_notes column unexpectedly readable by anon';
