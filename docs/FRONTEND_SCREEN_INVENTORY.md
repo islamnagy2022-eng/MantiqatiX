@@ -254,3 +254,6 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Source review found RC99's `marketing_services` policy set only declared authenticated administrative management. This left the anonymous public-service query without an explicit public read policy/grant.
 - Added RC457 active-row read policy and anonymous column allowlist, plus an isolated PostgreSQL regression workflow.
 - Status: SOURCE UPDATED / CI PENDING / LIVE PARITY NOT VERIFIED. Public provider profile RLS is documented separately in prior baseline notes; it must still be verified against the live database before release.
+
+
+- Public provider list/detail data minimization (2026-10-19): `web/home.js` no longer selects provider `settings` for anonymous discovery, and the card renderer no longer reads branding from that field. Public provider queries now use an explicit field list. Source-contract coverage is wired into RC457's PostgreSQL CI workflow; exact-head CI pending.
