@@ -52,6 +52,10 @@ assert.match(rc456, /mnty_can_manage_marketing_business\(v_campaign\.business_id
 assert.match(rc456, /from public\.marketing_campaigns c[\s\S]{0,120}for update[\s\S]{0,500}from public\.marketing_campaign_participants cp[\s\S]{0,120}for update/i, "partner closure must lock campaign before participant");
 assert.match(rc456, /v_participant\.status not in \('INVITED','ACCEPTED','ACTIVE'\)/, "only active assignments may be closed");
 assert.match(rc456, /v_participant\.status = 'REMOVED'[\s\S]{0,120}idempotent/);
+assert.ok(
+  rc456.indexOf("if v_participant.status = 'REMOVED'") < rc456.indexOf("if v_campaign.status in ('COMPLETED','CANCELLED')"),
+  "repeat closure of an already removed participant must remain idempotent after the campaign becomes terminal"
+);
 assert.match(rc456, /MARKETING_PARTNER_ASSIGNMENT_CLOSED/);
 assert.match(rc456, /revoke all on function public\.close_marketing_campaign_partner_backend\(uuid,uuid,text\)[\s\S]{0,180}from public, anon/i);
 console.log("Marketing campaign backend contract: RC453 baseline + RC454–RC456 source assertions");
