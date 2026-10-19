@@ -67,6 +67,7 @@ assert.match(ui, /إخفاء بيانات الموقع بعد انتهاء ال�
 assert.match(ui, /s\.code==='DIGITAL'\?'<button type="button" class="mxiw-live-link" data-mxiw-live="التسويق والإعلان">/, 'marketing sector must link to the existing RBAC-guarded marketing workspace');
 assert.doesNotMatch(ui, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'industry UI must remain frontend-only');
 assert.match(app, /window\.MNTYIndustryWorkspace\?\.supports\(current\)\)return window\.MNTYIndustryWorkspace\.render\(current\)/);
+assert.match(app, /if\(name==='الموديولات القطاعية'\)name='الموديولات';/, 'sector directory alias must resolve to the existing modules route');
 assert.match(app, /if\(!window\.MNTYIndustryWorkspace\?\.supports\(current\)\)await loadDomainModule\(current\)/);
 assert.match(app, /if\(name!=='ملف نشاطي'&&\(industryRoute\|\|rbacKnown\)\)/, 'industry routes must always enter RBAC checks, including unknown roles');
 assert.match(app, /window\.MNTY_RBAC\?\.can\(role,'الموديولات','view',live\.permissions\)===true/, 'sector routes require explicit module-view permission');
