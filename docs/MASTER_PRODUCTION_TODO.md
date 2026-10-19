@@ -1649,3 +1649,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 
 - [x] Preserved this implementation batch in Draft PR [#299](https://github.com/islamnagy2022-eng/MantiqatiX/pull/299) against `main`; PR remains unmerged and NOT VERIFIED.
+
+
+## 2026-10-19 — Campaign creation input hardening (implementation only)
+- [x] Normalize campaign channel names to uppercase and remove duplicate channel entries before submission.
+- [x] Add client-side allowlists for campaign objectives, advertising channels, and currencies; reject unknown values instead of forwarding them to the RPC.
+- [x] Validate campaign title length, finite/non-negative budget and maximum UI budget, region/brief lengths, and paired/ordered valid date inputs before submission.
+- [ ] NOT VERIFIED: client-side checks are usability controls only and are not a substitute for server-side validation/authorization. No tests, review, browser run, CI, or deployment performed by request.
+- [ ] Production remains **BLOCKED / NOT CERTIFIED** until the independent migration, payment, security, tenant-isolation, recovery, and release gates are verified.
