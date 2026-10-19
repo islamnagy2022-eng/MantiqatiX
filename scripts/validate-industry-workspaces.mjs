@@ -25,6 +25,15 @@ assert.deepEqual([...codes].sort(), [...registryCodes].sort(), 'UI workspaces mu
 assert.ok(backendCodes.every(Boolean), 'every public sector must map to a backend sector identifier');
 assert.equal(new Set(registryCodes).size, 27, 'canonical registry sector codes must be unique');
 assert.match(ui, /const common=\{/);
+const tabKeys = [...new Set([...ui.matchAll(/tabs:\[([^\]]+)\]/g)].flatMap(m => [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1])))];
+const commonBlock = ui.match(/const common=\{([\s\S]*?)\n\};/)?.[1] || '';
+const screenLayoutsBlock = ui.match(/const screenLayouts=\{([\s\S]*?)\n\};/)?.[1] || '';
+const screenKeys = new Set([
+  ...[...commonBlock.matchAll(/^\s*([a-zA-Z]+):\{/gm)].map(x => x[1]),
+  ...[...screenLayoutsBlock.matchAll(/^\s*([a-zA-Z]+):\{/gm)].map(x => x[1])
+]);
+assert.ok(tabKeys.length > 0, 'sector tabs must be declared');
+assert.ok(tabKeys.every(key => screenKeys.has(key)), 'every sector tab must resolve to a shared content or screen-layout definition');
 assert.match(ui, /function hubHtml\(\)/);
 assert.match(ui, /function detailHtml\(s\)/);
 assert.match(ui, /function supports\(name\)\{const route=String\(name\|\|''\);if\(route==='الموديولات القطاعية'\)return true;if\(!route\.startsWith\('قطاع: '\)\)return false;return Boolean\(byCode\(route\.slice\(6\)\.trim\(\)\)\)\}/, 'only canonical sector routes may be treated as sector workspaces');
