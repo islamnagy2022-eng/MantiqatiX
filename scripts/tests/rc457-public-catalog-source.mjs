@@ -14,6 +14,10 @@ assert.doesNotMatch(home, /from\('marketing_provider_profiles'\)\.select\([^)]*s
 assert.doesNotMatch(home, /provider\?\.settings\?\.branding/,
   'public provider rendering must not depend on private provider settings');
 
+assert.match(serviceMigration, /with \(security_barrier = true\)/,
+  'public service catalog must use a security-barrier view');
+assert.match(providerMigration, /with \(security_barrier = true\)/,
+  'public provider directory must use a security-barrier view');
 assert.match(serviceMigration, /create or replace view public\.marketing_services_public[\s\S]*?where status = 'ACTIVE'/,
   'public service catalog view must expose ACTIVE rows only');
 assert.match(serviceMigration, /grant select on table public\.marketing_services_public to anon, authenticated/,
