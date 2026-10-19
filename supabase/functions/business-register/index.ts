@@ -48,7 +48,7 @@ Deno.serve(async(req)=>{
   const organizationId=typeof body.organizationId==="string"&&body.organizationId.trim()?body.organizationId.trim():null;
   if(!tenantId||!name)return response({error:"TENANT_AND_NAME_REQUIRED"},400);
   // tenant_id and organization_id are varchar in the database contract; do not impose UUID-only formats.
-  if(tenantId.length>128||(organizationId!==null&&organizationId.length>128)||/[\\u0000-\\u001F\\u007F]/.test(tenantId)||(organizationId!==null&&/[\\u0000-\\u001F\\u007F]/.test(organizationId)))return response({error:"INVALID_TENANT_OR_ORGANIZATION_ID"},400);
+  if(tenantId.length>128||(organizationId!==null&&organizationId.length>128)||/[\u0000-\u001F\u007F]/.test(tenantId)||(organizationId!==null&&/[\u0000-\u001F\u007F]/.test(organizationId)))return response({error:"INVALID_TENANT_OR_ORGANIZATION_ID"},400);
   if(name.length>200||phone.length>64||address.length>500||city.length>120||district.length>120||sector.length>80)return response({error:"FIELD_TOO_LONG"},400);
   // Service-role access bypasses RLS: explicitly reject inactive or nonexistent tenants.
   const {data:tenant,error:tenantError}=await supabase.from("tenants")
