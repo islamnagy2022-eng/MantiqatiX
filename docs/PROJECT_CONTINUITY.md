@@ -683,3 +683,5 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql` with a `SECURITY DEFINER` trigger function using an empty `search_path`.
 - The trigger checks campaign/business/tenant consistency, serializes allocation checks by locking the campaign row, enforces the 100% active allocation ceiling, and rejects active assignments on completed/cancelled campaigns.
 - This is source code only: migration has not been applied or tested. Before production, inspect lock ordering against every participant mutation path and validate migration behavior against representative data.
+
+- Lock-order refinement before handoff: the trigger fires on INSERT and changes to campaign/business/tenant/allocation fields, not status-only updates. This avoids taking the campaign lock from the invitation-response path while it already holds a participant row lock; the allocation ceiling remains protected whenever an allocation or its scope is inserted/changed. This interaction still requires a real PostgreSQL concurrency check before production.
