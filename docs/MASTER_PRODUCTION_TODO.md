@@ -1642,3 +1642,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #300 remains Draft/unmerged. No production data/schema/configuration was changed.
 - [ ] Review sector-specific schema, RPC/Edge Function contracts, current production grants/RLS, tenant/business/branch scope, and negative isolation tests before connecting sector workspaces to live data.
 - [ ] Keep release **BLOCKED / NOT CERTIFIED** until all global P0 gates (including auth, payment/finance E2E, backup/restore, migration/function parity, and main-branch deployed-site smoke) are independently verified.
+
+
+## 2026-10-19 — sector backend contract audit
+
+- [x] Read-only production catalog reconnaissance recorded in `docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md`; no production mutations were performed.
+- [ ] Review `fashion_products_select` against the intended public/private product visibility contract. The inspected policy allows any non-anonymous authenticated user to SELECT, and a separate permissive tenant/business/branch policy does not narrow that broader policy. Do not treat as a confirmed incident until product visibility intent is established; resolve before connecting private inventory/draft views.
+- [ ] Review medical appointment SECURITY DEFINER functions, migration provenance, exact role/business scope, and patient/provider cross-tenant E2E before connecting medical screens. Direct authenticated SELECT on the table was not granted in the inspected privilege surface.
+- [ ] Inventory the schema/RPC/function contracts for each remaining sector separately; no inferred table mappings or browser direct writes.
