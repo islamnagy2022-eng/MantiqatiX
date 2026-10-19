@@ -33,7 +33,9 @@ assert.match(source, /try\{body=JSON\.parse\(rawBody\);\}catch\{body=null;\}/);
 assert.match(source, /stringFields=\["tenantId","name","sector","address","phone","city","district","organizationId"\]/);
 assert.match(source, /INVALID_FIELD_TYPE/);
 
-assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{12\}\$\/i/);
+assert.match(source, /tenant_id and organization_id are varchar in the database contract/);
+assert.match(source, /tenantId\.length>128\|\|\(organizationId!==null&&organizationId\.length>128\)/);
 assert.match(source, /INVALID_TENANT_OR_ORGANIZATION_ID/);
+assert.doesNotMatch(source, /uuidPattern=/);
 
-console.log("business-register tenant and organization security contract: PASS (29 assertions)");
+console.log("business-register tenant and organization security contract: PASS (30 assertions)");
