@@ -53,12 +53,15 @@ begin
     into v_membership
   from public.user_memberships m
   where m.user_id = p_actor_user_id
-    and m.tenant_id = p_tenant_id
     and m.status = 'ACTIVE'
     and (
-      pg_catalog.upper(coalesce(m.role, '')) in ('SERVICE_PROVIDER','BUSINESS_OWNER','OWNER','ADMIN')
+      (
+        m.tenant_id = p_tenant_id
+        and pg_catalog.upper(coalesce(m.role, '')) in ('SERVICE_PROVIDER','BUSINESS_OWNER','OWNER','ADMIN')
+      )
       or (
-        pg_catalog.upper(coalesce(m.role, '')) = 'SUPER_ADMIN'
+        m.tenant_id in (p_tenant_id, 'MNTY-PLATFORM')
+        and pg_catalog.upper(coalesce(m.role, '')) = 'SUPER_ADMIN'
         and m.business_id is null
         and m.permissions ->> 'scope' = 'PLATFORM'
         and m.permissions ->> 'full_control' = 'true'
@@ -68,13 +71,20 @@ begin
       p_organization_id is null
       or m.organization_id = p_organization_id
       or (
-        pg_catalog.upper(coalesce(m.role, '')) = 'SUPER_ADMIN'
+        m.tenant_id in (p_tenant_id, 'MNTY-PLATFORM')
+        and pg_catalog.upper(coalesce(m.role, '')) = 'SUPER_ADMIN'
         and m.business_id is null
         and m.permissions ->> 'scope' = 'PLATFORM'
         and m.permissions ->> 'full_control' = 'true'
       )
     )
-  order by case when m.organization_id = p_organization_id then 0 else 1 end
+  order by
+    case when pg_catalog.upper(coalesce(m.role, '')) = 'SUPER_ADMIN'
+      and m.business_id is null
+      and m.permissions ->> 'scope' = 'PLATFORM'
+      and m.permissions ->> 'full_control' = 'true' then 0
+      when m.tenant_id = p_tenant_id and m.organization_id = p_organization_id then 1
+      when m.tenant_id = p_tenant_id then 2 else 3 end
   limit 1;
 
   if not found then
