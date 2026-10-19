@@ -1791,3 +1791,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Dependency warning:** release/payment candidates and marketing migrations are independent source branches today. Preserve migration collision/history guards and do not combine or apply partial migration chains without an explicit reviewed integration plan.
 - **Next module after marketing build:** inspect SMM gateway/backend boundary and provider credential isolation, then content/notifications and reporting as source dependencies permit.
 - **Release gate:** BLOCKED / NOT CERTIFIED; no tests/CI, production migration, deployment, or merge performed in this build batch.
+## 2026-10-19 — SMM gateway build continuation (source-only)
+
+- **Added, not executed:** extended scripts/validate-smm-service-role-boundary.mjs with source contracts for provider-host allowlisting, HTTPS-only outbound requests, redirect rejection, bounded streaming response bodies, strict UTF-8 JSON parsing, bounded idempotency keys, HTTPS target URLs, request-size limits, dual-flag SMM launch approval, authenticated-user idempotency replay scope, and reconciliation-required handling for ambiguous wallet/provider outcomes.
+- **Existing safety boundary preserved:** SMM remains deferred by SMM_INITIAL_LAUNCH_DEFERRED=true. No provider call, wallet mutation, order creation, test execution, CI, deployment, or migration replay was performed.
+- **Not verified:** these are source-level assertions only; do not infer runtime safety from adding them. Existing service-role ACL integration assets remain unexecuted in this build batch.
+- **Next build tasks:** inspect SMM order lifecycle from insert through debit, provider submission, status reconciliation, and refund/credit paths; add isolated database scenarios for concurrent idempotency replay and ambiguous debit/provider outcomes; preserve deferred launch gate.
+- **Release gate:** BLOCKED / NOT CERTIFIED.
