@@ -602,3 +602,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Scope: campaign summary metrics, currency-separated planned-budget totals, campaign search/status filters, and active-business-scoped CSV export; documentation checkpoints included.
 - The PR is deliberately draft and unmerged. No tests, review, browser execution, CI verification, or deployment were performed in this build-first phase.
 - TODO link update commit: `55d3c32cc75906e6be695009f89ec8ff711ed9f0`. Continue implementing within this branch/PR before entering the verification phase.
+
+
+## 2026-10-19 — Campaign creation validation continuation
+- Continued on `feat/marketing-campaign-operations-summary-20261019` / draft PR [#299](https://github.com/islamnagy2022-eng/MantiqatiX/pull/299).
+- Added frontend normalization/deduplication of channel names and allowlist checks for campaign objectives, channels, and supported currencies; added bounds checks for title, budget, region, and brief plus paired/ordered date validation.
+- Implementation commit: `300ff7e6648b1187896d5dc9a5f7180453d17425`; TODO update commit: `093980bd66e35f4c538f0a69c44da07dc7878600`.
+- No tests, review, browser execution, CI, or deployment performed, per instruction. These checks are client-side only and do not establish backend enforcement. Keep this work NOT VERIFIED; production release remains BLOCKED / NOT CERTIFIED.
+- Next build-first task: improve campaign collaboration/reporting workflows only where existing backend contracts support them; avoid fake performance metrics or external ad-publishing claims.
