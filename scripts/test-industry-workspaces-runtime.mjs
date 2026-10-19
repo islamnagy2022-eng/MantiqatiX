@@ -38,8 +38,15 @@ for (const code of api.sectorCodes) {
 assert.equal(api.supports('الموديولات القطاعية'), true, 'sector directory route must be supported');
 assert.equal(api.supports('قطاع: UNKNOWN'), false, 'unknown sector route must be rejected');
 assert.equal(api.supports('قطاع: FOOD<script>alert(1)</script>'), false, 'script-bearing route must be rejected');
-assert.match(api.renderHub(), /role="status" aria-live="polite"/, 'directory count must be announced');
-assert.match(api.renderHub(), /دليل الموديولات القطاعية/, 'directory must render its title');
+const hub = api.renderHub();
+assert.match(hub, /role="status" aria-live="polite"/, 'directory count must be announced');
+assert.match(hub, /دليل الموديولات القطاعية/, 'directory must render its title');
+assert.equal((hub.match(/class="mxiw-sector-card"/g) || []).length, 27, 'directory must render one card for each canonical sector');
+for (const code of api.sectorCodes) {
+  assert.ok(hub.includes('data-mxiw-open="' + code + '"'), code + ' must be discoverable from the sector directory');
+}
+assert.match(source, /value="\'+esc\(state\.search\)\+'"/, 'search text must be HTML-escaped before insertion into the input value');
+assert.match(source, /data-mxiw-group="\'+esc\(g\)\+'"/, 'filter labels must be escaped before HTML insertion');
 assert.match(api.render('قطاع: DIGITAL'), /data-mxiw-live="التسويق والإعلان"/, 'marketing sector must expose the existing marketing workspace');
 assert.match(api.render('قطاع: FOOD'), /data-mxiw-live="المطاعم والمطابخ"/, 'food sector must preserve the existing restaurant workspace link');
 assert.doesNotMatch(source, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'sector workspace source must remain backend-free');
