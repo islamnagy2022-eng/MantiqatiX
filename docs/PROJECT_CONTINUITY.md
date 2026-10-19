@@ -796,3 +796,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added interactive “عرض نطاق القسم” controls that show the selected source-provided scope and explicitly state that backend execution is not connected. These controls improve clarity but do not mark the module complete.
 - Updated `docs/FRONTEND_SCREEN_INVENTORY.md` and `docs/MASTER_PRODUCTION_TODO.md`; refreshed app cache URLs and advanced PWA cache to `mnty-web-v135`.
 - No tests, browser, build, CI, review, or deployment were run. Continue with actual dashboard and module child screens; do not use generic placeholders as acceptance evidence. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — PWA asset-key alignment follow-up
+
+- Corrected the actual current `web/index.html` and `web/sw.js` strings so both reference `app.js?v=generic-workspace-sections-v2-20261019`; the service-worker shell cache is `mnty-web-v135`.
+- This source-level alignment was checked by re-reading the committed files; browser cache/update behavior remains unverified because no browser or test run was authorized.
