@@ -1931,3 +1931,10 @@ A prior PR check run failed JavaScript syntax in `web/app.js` and a marketing ba
 - [ ] Keep SMM initial launch deferred until reviewed launch approval and full security/integration evidence are present.
 
 No production deploy or merge was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — SMM payload-bound contract correction
+
+- [x] Corrected a false-negative in `scripts/validate-smm-service-role-boundary.mjs`: the shared bounded JSON parser defaults to 65,536 bytes, while `smm-gateway` deliberately calls it with `32*1024`. The contract now asserts the helper's bounded default and the gateway's explicit 32 KiB limit separately.
+- [ ] Re-run the SMM service-role boundary workflow on the latest PR head; prior isolated PostgreSQL ACL job passed, while its source validator failed on this mismatched assertion. No production code or migration was changed by this test-only correction.
+- [ ] Merge only after fresh required checks pass and the PR diff is reviewed. Production remains **BLOCKED / NOT CERTIFIED**.
