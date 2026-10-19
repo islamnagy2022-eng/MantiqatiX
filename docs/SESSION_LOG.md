@@ -94,3 +94,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — sector RLS report correction and validator repair
+
+- **Read-only fact:** Production `pg_policies` reports `fashion_products_select` as PERMISSIVE and `legacy_scope_boundary` as RESTRICTIVE; the restrictive predicate requires active tenant/business/branch membership or platform-admin access. Therefore the restrictive policy narrows reads; the earlier reconnaissance wording was incorrect.
+- **Source provenance found:** Candidate migration `supabase/migrations/20260924161040_phase_3_43_legacy_scope_enforcement.sql` exists on PR #207 branch `reconcile/rc425-458-current-main-20261011` at blob `5a3fb87eca0f929bd7203ad4a754a6b1ed18ed9a`. PR #207 remains unmerged, so mainline replay/source convergence and cross-tenant E2E remain open.
+- **Documentation correction:** `docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md` now distinguishes permissive OR behavior from restrictive AND behavior and records the candidate migration provenance.
+- **Validator failures found and fixed:** Exact-head CI first failed because `scripts/validate-industry-workspaces.mjs` still asserted the obsolete wording; the first correction also inserted a literal escaped newline, causing a syntax error. Both were fixed; the validator now checks the corrected policy semantics and correction note.
+- **PASS on exact code head** `693b38f7cd107199977f5f1d45f1cbe018064f28`: Industry Workspaces UI Contract [39344809015], Pages validation [39344808844] (deploy skipped for PR), Marketing Workspace Contract [39344808898], Backend-only Module Boundary [39344808911], MantiGO Open Ride Privacy Boundary [39344808982], and Module Professionalization Validation [39344808995], including targeted-ad search-path and matrimony privacy PostgreSQL jobs.
+- **Production impact:** No production SQL, DDL, grants/RLS/Auth changes, merge, or deployment. PR #300 remains draft/open/unmerged. The 27 sector workspaces remain frontend-only and are not 27 operational backend modules.
+- **Next:** keep PR #300 draft until review; connect no sensitive sector workflow before its backend contract, RLS/grants, negative two-tenant tests, and exact-head CI are evidenced. Global release remains **BLOCKED / NOT CERTIFIED**.
