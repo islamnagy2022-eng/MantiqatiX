@@ -1687,3 +1687,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## 2026-10-19 — Partner allocation guard (implementation only)
 - [x] Added a pre-submit UI guard that totals existing non-declined/non-removed allocations for the selected campaign and rejects a new invitation when the visible total would exceed 100%.
 - [ ] NOT VERIFIED: this is a usability guard over currently loaded rows only; concurrency and authoritative allocation limits must be enforced by the backend transaction/RPC. No tests, review, browser run, CI, or deployment performed by request.
+
+
+## 2026-10-19 — Duplicate active partner invitation guard (implementation only)
+- [x] Added a pre-submit guard against sending a second invitation to the same provider for the same campaign when an invitation is already pending or an assignment is accepted.
+- [ ] NOT VERIFIED: backend uniqueness/idempotency remains authoritative, especially for concurrent requests and stale client data. No tests, review, browser run, CI, or deployment performed by request.
