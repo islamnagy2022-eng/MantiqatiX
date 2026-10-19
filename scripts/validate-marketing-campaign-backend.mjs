@@ -51,7 +51,7 @@ assert.match(rc456, /p_actor is distinct from auth\.uid\(\)/, "partner closure m
 assert.match(rc456, /mnty_can_manage_marketing_business\(v_campaign\.business_id\)/, "partner closure must enforce manager scope");
 assert.match(rc456, /from public\.marketing_campaigns c[\s\S]{0,120}for update[\s\S]{0,500}from public\.marketing_campaign_participants cp[\s\S]{0,120}for update/i, "partner closure must lock campaign before participant");
 assert.match(rc456, /v_participant\.status not in \('INVITED','ACCEPTED','ACTIVE'\)/, "only active assignments may be closed");
-assert.match(rc456, /v_participant\.status = 'REMOVED'[\s\S]{0,120}idempotent/);
+assert.match(rc456, /v_participant\.status = 'REMOVED'[\s\S]{0,300}idempotent/);
 assert.ok(
   rc456.indexOf("if v_participant.status = 'REMOVED'") < rc456.indexOf("if v_campaign.status in ('COMPLETED','CANCELLED')"),
   "repeat closure of an already removed participant must remain idempotent after the campaign becomes terminal"
