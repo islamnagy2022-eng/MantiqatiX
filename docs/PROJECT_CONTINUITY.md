@@ -809,3 +809,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Converted dashboard quick-access tiles in `web/app.js` from click-only article elements to real semantic buttons with accessible names and dedicated click handlers. Added a visible keyboard focus style in `web/styles.css` and a no-match state when the current filter returns no quick-access modules.
 - Updated the screen inventory and master TODO. Refreshed `web/index.html` and `web/sw.js` JS/CSS references consistently; PWA cache advanced to `mnty-web-v136`.
 - Not verified in a browser; no tests/build/CI were run. Next: inspect and complete dashboard role-specific action states, then move to the first incomplete primary module UI. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — Module catalog UI follow-up
+
+- `modulePage()` now renders module catalog entries as semantic buttons with accessible labels. It reuses the dashboard binder introduced in the prior batch.
+- Role/module-enabled enforcement in `selectModule` was left intact; this is not a backend authorization change.
+- Inventory and TODO updated. No tests/browser/build/CI were run. Next: continue through role-specific dashboard states and first module's child-screen acceptance checklist. Production remains BLOCKED / NOT CERTIFIED.
