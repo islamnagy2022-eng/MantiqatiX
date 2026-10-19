@@ -64,6 +64,13 @@ begin
   if not exists (select 1 from public.marketing_services_public where code='PUBLIC-A') then
     raise exception 'RC457 active public service is not visible';
   end if;
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='marketing_services_public'
+      and column_name in ('internal_notes')
+  ) then
+    raise exception 'RC457 public view exposes an internal service column';
+  end if;
   begin
     perform internal_notes from public.marketing_services;
     raise exception 'RC457 base table unexpectedly readable by anon';
@@ -75,6 +82,13 @@ begin
   end if;
   if not exists (select 1 from public.marketing_provider_profiles_public where name_ar='مقدم منشور') then
     raise exception 'RC458 active public provider is not visible';
+  end if;
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='marketing_provider_profiles_public'
+      and column_name in ('owner_user_id','settings','portfolio')
+  ) then
+    raise exception 'RC458 public view exposes private provider profile columns';
   end if;
   begin
     perform owner_user_id from public.marketing_provider_profiles;
