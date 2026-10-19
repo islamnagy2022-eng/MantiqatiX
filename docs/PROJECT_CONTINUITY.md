@@ -726,3 +726,10 @@ This status is intentional and must remain until the open gates above are indepe
 - `web/app.js` now shows an “إنهاء مشاركة الشريك” action only for manager-role users on the active business, for INVITED/ACCEPTED/ACTIVE participant rows whose campaign is not COMPLETED/CANCELLED.
 - The handler rechecks the active-business campaign/participant relationship and role in current client state, bounds the optional reason to 500 characters, confirms the action, and calls only `close_marketing_campaign_partner_backend`; it does not mutate the table directly. Backend authorization remains authoritative.
 - The UI depends on RC456 being applied. No UI contract test, SQL test, migration replay, review, CI, or deployment was run; do not treat this as verified. Production remains BLOCKED / NOT CERTIFIED.
+
+
+### Follow-up — cache invalidation and lifecycle UX (implementation only)
+- Updated `web/index.html` and `web/sw.js` to reference the new partner-closure app entrypoint; bumped the PWA shell cache to `mnty-web-v130` and changed the service-worker registration cache key.
+- Added source-contract assertions in `scripts/validate-marketing-campaign-ui.mjs` and `scripts/validate-marketing-campaign-backend.mjs` for the RC456 RPC, manager closure action, terminal-state guidance, cache versioning, and key source-level invariants. These assertions were added but **not run**.
+- Added a client-side explanatory guard when a manager attempts to complete/cancel a campaign while visible active assignments remain. Backend enforcement is still authoritative and must be tested under concurrent updates.
+- No tests, CI, browser run, migration replay, review, or deployment was performed. RC454–RC456 remain source-only; production stays BLOCKED / NOT CERTIFIED.
