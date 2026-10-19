@@ -32,6 +32,8 @@ const requiredWorkflowMarkers = [
 
 const requiredProductionGateMarkers = [
   '"20261014233000_rc526_mantigo_payment_intent_claim.sql"',
+  '"20261016100000_digital_page_payment_intent_server_only_finalization.sql"',
+  '"20261019150000_rc531_business_registration_atomicity.sql"',
   'const missingReleaseMigrations=requiredReleaseMigrations.filter',
   'reconciliation.status==="VERIFIED"',
   'add("MANTIGO-PAY-CLAIM"',
