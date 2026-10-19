@@ -22,6 +22,8 @@ const digitalRejectBlock = digital.slice(digitalReject, digitalUnknown);
 assert.ok(digitalRejectBlock.includes("!providerIntentId&&!providerClientSecret&&!providerOrderId"), "digital-page release must require absence of provider identifiers");
 assert.ok(!digitalRejectBlock.includes("providerResponseStatus>=400&&providerResponseStatus<500"), "digital-page must not release on every 4xx");
 assert.ok(digital.slice(digitalUnknown).includes("reconciliationRequired:true"), "ambiguous digital-page outcomes must require reconciliation");
+assert.ok(digital.includes("return !error&&data===true"), "digital-page claim release must verify the RPC result");
+assert.ok(digital.includes("PAYMENT_REJECTION_REQUIRES_RECONCILIATION"), "failed claim release must be surfaced as reconciliation-required");
 
 function canRelease(status, identifiers = {}) {
   return definitiveStatuses.includes(status)
