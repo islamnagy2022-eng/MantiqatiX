@@ -19,6 +19,10 @@ assert.deepEqual([...codes].sort(), [...expected].sort(), 'all canonical sectors
 assert.match(ui, /const common=\{/);
 assert.match(ui, /function hubHtml\(\)/);
 assert.match(ui, /function detailHtml\(s\)/);
+assert.match(ui, /function screenPreviewHtml\(s,key\)/);
+assert.match(ui, /class="mxiw-preview-table"/);
+assert.match(ui, /disabled title="سيُفعّل بعد اعتماد الربط الخلفي"/);
+assert.match(ui, /class="mxiw-preview-fields"/);
 assert.match(ui, /data-mxiw-search/);
 assert.match(ui, /data-mxiw-group/);
 assert.match(ui, /data-mxiw-tab/);
