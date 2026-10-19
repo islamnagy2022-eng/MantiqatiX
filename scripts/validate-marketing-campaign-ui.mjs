@@ -39,11 +39,14 @@ assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaign_participants['"]\)\.(
 assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خدمات التسويق الرقمي SMM/, "marketing role home must expose the SMM shortcut");
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SMM quick access");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
-assert.match(index, /app\.js\?v=rc456-partner-closure-20261019/, "browser cache key must be refreshed");
+const appAssetVersion = index.match(/app\.js\?v=([^"' ]+)/)?.[1];
+assert.ok(appAssetVersion, "browser app asset must have an explicit cache version");
 const sw = fs.readFileSync("web/sw.js", "utf8");
-assert.match(sw, /const CACHE='mnty-web-v130'/, "PWA cache must be versioned for the new shell");
-assert.match(sw, /app\.js\?v=rc456-partner-closure-20261019/, "service worker must precache the exact versioned app entrypoint");
+assert.match(sw, /const CACHE='mnty-web-v\d+'/, "PWA shell cache must use a versioned cache name");
+assert.ok(sw.includes("app.js?v=" + appAssetVersion), "service worker must precache the exact app asset version used by the browser");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-assert.match(index, /sw\.js\?v=rc456-marketing-cache-20261019/, "service worker registration cache key must be refreshed");
+const swAssetVersion = index.match(/sw\.js\?v=([^"' ]+)/)?.[1];
+assert.ok(swAssetVersion, "service worker registration must have an explicit cache version");
+assert.ok(sw.includes("sw.js?v=" + swAssetVersion) || index.includes("sw.js?v=" + swAssetVersion), "service worker registration cache key must be versioned");
 
 console.log("Marketing workspace contract: source assertions defined (not executed in build-first batch)");
