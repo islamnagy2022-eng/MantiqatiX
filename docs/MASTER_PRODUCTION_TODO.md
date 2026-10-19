@@ -1873,3 +1873,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Removed the stray standalone `async` token before `bindRoleAfterRender` in `web/app.js`; the function body only calls the role-command-center binder and remains synchronous.
 - Refreshed matching asset references to `role-dashboard-binder-fix-20261019`; PWA shell cache advanced to `mnty-web-v138`.
 - No parser, browser, tests, build, CI, review, or deployment was run. Do not infer runtime correctness from this static source correction. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Notifications unread-list consistency (not verified)
+
+- `web/app.js`: derive the unread panel from the sorted complete in-memory notification list, capped at 12 unread rows, rather than filtering only the separate 12-most-recent list. The unread KPI and unread panel now operate on the same loaded dataset.
+- Updated `web/index.html` and `web/sw.js` asset key to `notifications-unread-list-20261019`; cache is `mnty-web-v139`.
+- This does not change backend pagination or guarantee historical completeness. No tests, browser, build, CI, review, or deployment was run. Production remains **BLOCKED / NOT CERTIFIED**.
