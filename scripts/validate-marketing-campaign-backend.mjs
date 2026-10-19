@@ -57,5 +57,13 @@ assert.ok(
   "repeat closure of an already removed participant must remain idempotent after the campaign becomes terminal"
 );
 assert.match(rc456, /MARKETING_PARTNER_ASSIGNMENT_CLOSED/);
+
+assert.match(rc456, /v_reason := nullif\(pg_catalog\.btrim\(coalesce\(p_reason,''\)\), ''\)/, "closure reason must be trimmed and empty values normalized");
+assert.match(rc456, /pg_catalog\.length\(v_reason\) > 500/, "closure reason must have a server-side length limit");
+assert.match(rc456, /v_participant\.business_id is distinct from v_campaign\.business_id[\s\S]{0,100}v_participant\.tenant_id is distinct from v_campaign\.tenant_id/, "participant business and tenant must match the locked campaign");
+assert.match(rc456, /if v_campaign\.status in \('COMPLETED','CANCELLED'\) then[\s\S]{0,100}MARKETING_CAMPAIGN_LOCKED/, "closed campaigns must reject new partner closures");
+assert.match(rc456, /old_values,new_values,result[\s\S]{0,500}MARKETING_PARTNER_ASSIGNMENT_CLOSED/, "closure must write the audit event in the same database transaction");
+assert.match(rc456, /if v_provider\.owner_user_id is not null then[\s\S]{0,700}insert into public\.notifications/, "partner notification must target the provider owner only when present");
+assert.match(rc456, /p_actor is distinct from auth\.uid\(\)/, "closure must bind actor identity to the authenticated user");
 assert.match(rc456, /revoke all on function public\.close_marketing_campaign_partner_backend\(uuid,uuid,text\)[\s\S]{0,180}from public, anon/i);
 console.log("Marketing campaign backend contract: RC453 baseline + RC454–RC456 source assertions");
