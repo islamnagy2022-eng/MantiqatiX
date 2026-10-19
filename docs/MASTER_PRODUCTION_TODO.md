@@ -2062,3 +2062,14 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - Fixed the test setup to apply both RC457 and RC458 migrations before running assertions. Commit: `f8085a39516e1259a4b006906a69c08dcc358d43`.
 - Re-run for the corrected head is pending/not yet observed. Do not report the combined test as passing until a fresh workflow run completes successfully.
 - Production remains **BLOCKED / NOT CERTIFIED**; no production migration or deployment performed. `docs/SESSION_LOG.md` remains untouched.
+
+
+## Exact-head CI verification — public catalog and marketing lifecycle (2026-10-19)
+
+- Current verified code head for this CI batch: `2b8d6e93bc757d1c8b2645845db23ebd338da19f`.
+- Public service/provider allowlist regression passed, including the RC457+RC458 migration replay and private-column absence assertions: [run 39243530776](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530776).
+- Marketing campaign backend source validator and disposable PostgreSQL lifecycle/concurrency tests passed: [run 39243530754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530754).
+- Migration history immutability, migration version uniqueness, cross-PR migration collision guard, module professionalization validators, SMM service-role boundary, MantiGO privacy boundary, approval-action audit fixture, backend-only module boundary, marketing workspace contract, and web production-verification validation all passed in this CI batch. The web deploy job was skipped; this is not a production deployment.
+- The extra public-view column assertions were added after the earlier missing-RC458 test wiring failure; the latest passing run supersedes that earlier failure for this code head.
+- Remaining release gates: replay all new migrations against the complete target-schema fixture/live schema parity, review actual production grants/view ownership and tenant/owner policies, browser E2E for anonymous discovery and authenticated owner/admin behavior, complete end-to-end payment/webhook/finance checks, and disaster-recovery restore evidence. No production DB or deployment has been changed.
+- PR #299 remains open and Draft. Production remains **BLOCKED / NOT CERTIFIED**. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and leave `docs/SESSION_LOG.md` untouched.
