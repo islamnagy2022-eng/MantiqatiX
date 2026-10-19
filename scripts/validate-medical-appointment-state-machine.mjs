@@ -5,10 +5,12 @@ const migrationPath='supabase/migrations/20261010210000_rc452_medical_appointmen
 const fixturePath='supabase/tests/rc452_medical_appointment_state_machine_fixture.sql';
 const integrationPath='supabase/tests/rc452_medical_appointment_state_machine_integration.sql';
 const workflowPath='.github/workflows/module-professionalization.yml';
+const docsPath='docs/release/RC452_MEDICAL_APPOINTMENT_STATE_MACHINE.md';
 const migration=fs.readFileSync(migrationPath,'utf8');
 const fixture=fs.readFileSync(fixturePath,'utf8');
 const integration=fs.readFileSync(integrationPath,'utf8');
 const workflow=fs.readFileSync(workflowPath,'utf8');
+const docs=fs.readFileSync(docsPath,'utf8');
 
 assert.match(migration,/create or replace function public\.update_medical_appointment_status_backend/);
 assert.match(migration,/for update/,'appointment row must be locked during transition');
