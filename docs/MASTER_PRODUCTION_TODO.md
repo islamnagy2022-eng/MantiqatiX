@@ -1682,3 +1682,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Validate invite role against the supported role list and enforce finite bounds for allocation percentage and agreed value before calling the existing backend RPC.
 - [x] Confirm the selected campaign belongs to the active business and the selected partner profile is among loaded active, verified partner/freelancer profiles outside that business before submission.
 - [ ] NOT VERIFIED: browser/client checks improve UX but are not a security boundary; the backend must independently enforce campaign ownership, provider eligibility, role constraints, and financial limits. No tests/review/browser/CI/deployment performed.
+
+
+## 2026-10-19 — Partner allocation guard (implementation only)
+- [x] Added a pre-submit UI guard that totals existing non-declined/non-removed allocations for the selected campaign and rejects a new invitation when the visible total would exceed 100%.
+- [ ] NOT VERIFIED: this is a usability guard over currently loaded rows only; concurrency and authoritative allocation limits must be enforced by the backend transaction/RPC. No tests, review, browser run, CI, or deployment performed by request.
