@@ -81,7 +81,7 @@ Deno.serve(async req=>{
  if(!matchesPaymobIntention({ledgerId:String(row.id),amountCents,currency,provider:p})){
    // Keep the claim for manual reconciliation and never return checkout credentials
    // when Paymob did not echo the expected amount, currency, and order reference.
-   console.error(JSON.stringify({requestId:crypto.randomUUID(),stage:"digital_page_intention_correlation_mismatch",providerIntentId,providerOrderId}));
+   console.error(JSON.stringify({stage:"digital_page_intention_correlation_mismatch",providerIntentId,providerOrderId}));
    return json({error:"PAYMENT_PROVIDER_INTENT_MISMATCH",reconciliationRequired:true},503);
  }
  const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:providerIntentId,p_provider_order_id:providerOrderId});
