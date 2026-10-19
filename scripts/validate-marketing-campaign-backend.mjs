@@ -45,6 +45,13 @@ assert.match(integration, /campaign creation replay duplicated audit/);
 
 assert.match(rc454, /for update/i, "allocation guard must serialize writes through the campaign row");
 assert.match(rc454, /before insert or update of campaign_id,business_id,tenant_id,allocation_percent,status/i, "allocation guard must run when a participant enters or leaves an active allocation status");
+
+const workflow = fs.readFileSync(".github/workflows/marketing-campaign-backend.yml", "utf8");
+for (const version of ["rc454_marketing_partner_allocation_integrity.sql", "rc455_marketing_campaign_terminal_guard.sql", "rc456_marketing_partner_closure_backend.sql"]) {
+  assert.ok(workflow.includes(version), `PostgreSQL integration workflow must apply ${version}`);
+}
+assert.match(workflow, /\/tmp\/rc454_migration\.sql[\s\S]*?\/tmp\/rc455_migration\.sql[\s\S]*?\/tmp\/rc456_migration\.sql/, "PostgreSQL integration must apply RC454-RC456 in chronological order");
+
 assert.match(rc455, /MARKETING_PARTICIPANTS_MUST_BE_CLOSED/, "terminal transitions must require partner closure");
 assert.match(rc455, /from public\.marketing_campaigns c[\s\S]{0,160}for update/i, "invitation responses must lock the campaign before the participant");
 assert.match(rc456, /create or replace function public\.close_marketing_campaign_partner_backend/);
