@@ -56,7 +56,7 @@
       await load('config.js?v=mnty116');
       await load('location-adapter.js?v=mnty116');
       await load('sector-registry.js?v=rc371');
-      await load('home.js?v=rc402');
+      await load('home.js?v=public-profile-image-path-allowlist-20261019');
       try{
         if(typeof window.MXHomeLanding==='function') window.MXHomeLanding();
       }catch(homeError){
@@ -121,7 +121,7 @@
         if(typeof window.MNTYBootAuth==='function') window.MNTYBootAuth();
       }
       if("serviceWorker" in navigator){
-        navigator.serviceWorker.register("./sw.js?v=marketing-provider-invitation-scope-stable-20261019").catch(function(){});
+        navigator.serviceWorker.register("./sw.js?v=public-profile-image-path-allowlist-20261019").catch(function(){});
       }
     }catch(e){
       console.error('[MantiqatiX boot fatal]',e);
