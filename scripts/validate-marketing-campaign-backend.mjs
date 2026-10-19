@@ -2,6 +2,9 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql", "utf8");
+const rc454 = fs.readFileSync("supabase/migrations/20261019060000_rc454_marketing_partner_allocation_integrity.sql", "utf8");
+const rc455 = fs.readFileSync("supabase/migrations/20261019070000_rc455_marketing_campaign_terminal_guard.sql", "utf8");
+const rc456 = fs.readFileSync("supabase/migrations/20261019080000_rc456_marketing_partner_closure_backend.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc453_marketing_campaign_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc453_marketing_campaign_integration.sql", "utf8");
 
@@ -40,4 +43,15 @@ assert.match(integration, /authenticated role has direct campaign INSERT/);
 assert.match(integration, /campaign creation replay was not idempotent/);
 assert.match(integration, /campaign creation replay duplicated audit/);
 
-console.log("RC453 marketing campaign backend contract: PASS (27 assertions)");
+assert.match(rc454, /for update/i, "allocation guard must serialize writes through the campaign row");
+assert.match(rc455, /MARKETING_PARTICIPANTS_MUST_BE_CLOSED/, "terminal transitions must require partner closure");
+assert.match(rc455, /from public\.marketing_campaigns c[\s\S]{0,160}for update/i, "invitation responses must lock the campaign before the participant");
+assert.match(rc456, /create or replace function public\.close_marketing_campaign_partner_backend/);
+assert.match(rc456, /p_actor is distinct from auth\.uid\(\)/, "partner closure must reject actor spoofing");
+assert.match(rc456, /mnty_can_manage_marketing_business\(v_campaign\.business_id\)/, "partner closure must enforce manager scope");
+assert.match(rc456, /from public\.marketing_campaigns c[\s\S]{0,120}for update[\s\S]{0,500}from public\.marketing_campaign_participants cp[\s\S]{0,120}for update/i, "partner closure must lock campaign before participant");
+assert.match(rc456, /v_participant\.status not in \('INVITED','ACCEPTED','ACTIVE'\)/, "only active assignments may be closed");
+assert.match(rc456, /v_participant\.status = 'REMOVED'[\s\S]{0,120}idempotent/);
+assert.match(rc456, /MARKETING_PARTNER_ASSIGNMENT_CLOSED/);
+assert.match(rc456, /revoke all on function public\.close_marketing_campaign_partner_backend\(uuid,uuid,text\)[\s\S]{0,180}from public, anon/i);
+console.log("Marketing campaign backend contract: RC453 baseline + RC454–RC456 source assertions");
