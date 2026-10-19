@@ -978,3 +978,9 @@ At code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f`, the public service/prov
 ### RC456 closure authorization tests — 2026-10-19
 
 Added disposable-PostgreSQL regressions requiring a cross-tenant manager to be denied closure of another business's partner assignment and requiring the closure RPC to reject a spoofed `p_actor` that differs from `auth.uid()`. Added validator assertions for both tests. Commits: `62a4aea2bb8c6ec360748f82da25f9106c0e9ed5`, `3fe667c159d363e383ed357d4511f8f84f07bb60`. Fresh CI passed on code head `3fe667c159d363e383ed357d4511f8f84f07bb60`: the marketing source validator and disposable PostgreSQL lifecycle suite both succeeded in run [39243988580](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243988580), including these two new authorization regressions. This is isolated test evidence only; production remains uncertified.
+
+
+
+### RC457/RC458 owner-scope and security-barrier regressions — 2026-10-19
+
+The isolated public-catalog PostgreSQL test now checks exact public view column allowlists, no write grants, `security_barrier=true`, public active-only visibility, denial of direct base-table reads to anonymous visitors, preservation of owner access to the owner's private provider profile, and denial of another authenticated identity's base-table read. Source-validator checks require the owner-scope regression to remain present. Exact-head CI on `890cb3b26b6178b4152baba7257c7ab30899f535` passed all 12 PR workflows, including Public Service Catalog RLS run [39244750651](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750651). The web verification job passed, while deployment was skipped. These are isolated regression/CI results, not proof of production schema parity or live grants. PR #299 remains Draft; production remains BLOCKED / NOT CERTIFIED. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true` and leave `docs/SESSION_LOG.md` untouched.
