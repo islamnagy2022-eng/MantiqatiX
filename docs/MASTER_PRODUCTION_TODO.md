@@ -2054,3 +2054,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - Extended the isolated PostgreSQL regression to cover active provider visibility, draft provider denial, and denial of `settings` reads; added source-contract assertions.
 - Latest PR head after this batch: `a3c1b5b8e6c10fbe7e3f17788626a8c38e3b3907`. RC457-only PostgreSQL run [39202937589](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39202937589) passed before RC458 was added; it does **not** verify RC458. Exact-head CI for RC458 is not yet confirmed.
 - No production migration/deployment performed. Keep production **BLOCKED / NOT CERTIFIED**.
+
+
+## RC458 regression wiring correction (2026-10-19)
+
+- Latest observed Public Service Catalog RLS run `39243250770` failed in the isolated PostgreSQL step because `supabase/tests/rc457_public_marketing_service_catalog.sql` queried `marketing_provider_profiles_public` without applying migration RC458 first. The job log confirmed `relation does not exist`; the source-contract step had passed.
+- Fixed the test setup to apply both RC457 and RC458 migrations before running assertions. Commit: `f8085a39516e1259a4b006906a69c08dcc358d43`.
+- Re-run for the corrected head is pending/not yet observed. Do not report the combined test as passing until a fresh workflow run completes successfully.
+- Production remains **BLOCKED / NOT CERTIFIED**; no production migration or deployment performed. `docs/SESSION_LOG.md` remains untouched.
