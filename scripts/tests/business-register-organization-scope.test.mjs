@@ -48,9 +48,11 @@ assert.doesNotMatch(source, /supabase\.from\("businesses"\)\.insert/);
 assert.doesNotMatch(source, /supabase\.from\("approval_requests"\)\.insert/);
 assert.match(migration, /pg_advisory_xact_lock/);
 assert.match(migration, /Validate tenant ownership for every actor/);
+assert.match(migration, /Validate the final organization even when it was inherited from membership/);
+assert.match(migration, /o\.id = v_resolved_organization_id and o\.tenant_id = p_tenant_id/);
 assert.match(migration, /m\.tenant_id in \(p_tenant_id, 'MNTY-PLATFORM'\)/);
 assert.match(migration, /insert into public\.businesses[\s\S]*insert into public\.approval_requests/);
 assert.match(migration, /grant execute on function public\.register_business_with_approval_atomic[\s\S]*to service_role/);
 assert.match(migration, /revoke all on function public\.register_business_with_approval_atomic[\s\S]*from public, anon, authenticated/);
 
-console.log("business-register tenant and organization security contract: PASS (45 assertions)");
+console.log("business-register tenant and organization security contract: PASS (47 assertions)");
