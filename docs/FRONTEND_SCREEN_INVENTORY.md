@@ -122,3 +122,10 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - Both surfaces now use the shared `data-dashboard-module` binder and escaped accessible names. Existing module visibility/RBAC filtering and `selectModule` enforcement remain unchanged.
 - Updated the app asset version and service-worker shell cache to `mnty-web-v137` so clients do not intentionally reuse the previous cached script.
 - Status: SOURCE UPDATED / NOT VERIFIED. No browser, tests, build, CI, review, or deployment was run. Role-specific dashboards remain PARTIAL until interaction, responsive, and accessibility behavior is verified.
+
+
+## Shared role binder source correction — 2026-10-19
+
+- Source inspection found a stray standalone `async` token separated by a newline from `function bindRoleAfterRender`. Removed the token while preserving the synchronous binder body; this avoids evaluating an unintended identifier before the declaration.
+- Refreshed app asset key to `role-dashboard-binder-fix-20261019` and shell cache to `mnty-web-v138`.
+- This is a source-level correction only. No JavaScript parser, browser, automated test, build, or CI was run; syntax/runtime must still be verified when permitted.
