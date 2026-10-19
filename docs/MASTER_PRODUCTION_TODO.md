@@ -1633,3 +1633,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC457 medical appointment state machine and exact-head CI
+
+- [x] Added forward-only candidate migration `20261019190000_rc457_medical_appointment_state_machine.sql`; corrected its header to RC457.
+- [x] Added disposable PostgreSQL fixture and integration coverage for allowed transitions, invalid/skipped transitions, terminal-state rewrites, patient ownership, cross-tenant membership, caller mismatch, invalid target, and anon/authenticated EXECUTE boundary.
+- [x] Fixed fixture dollar-quoting syntax and updated the source validator to reference RC457 fixture/integration filenames.
+- [x] Relaxed the documentation assertion to accept the documented backticked `NO_SHOW` semantics wording.
+- [x] Exact-head CI passed on `7e9dd574bec5fb53b21996f2cbe0834df0d450cb`: Migration Version Uniqueness, Approval Action Audit Atomicity, Backend-only Module Boundary, Migration History Immutability, MantiGO Open Ride Privacy Boundary, Open PR Migration Collision Guard, Module Professionalization Validation (including RC457 PostgreSQL integration), and Deploy MantiqatiX Web validation. Web deploy was skipped because this is a PR.
+- [ ] PR #301 remains OPEN / DRAFT / UNMERGED. RC457 is a source candidate only; do not apply it independently. Production ledger was last read at RC424, so RC425 onward requires ordered-chain review/rehearsal.
+- [ ] Review `NO_SHOW` semantics with the medical product owner; complete the full pending migration-chain replay and production E2E before considering rollout.
+- [ ] PR #300 remains OPEN / DRAFT / UNMERGED; its UI-only sector previews are not operational backend modules.
+- Global production release remains **BLOCKED / NOT CERTIFIED**. No production migration, data mutation, or deployment was performed in this work.
