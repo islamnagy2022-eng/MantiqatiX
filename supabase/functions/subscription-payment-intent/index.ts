@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encryptCheckoutSecret as encryptCheckoutSecretPayload, decryptCheckoutSecret as decryptCheckoutSecretPayload } from "../_shared/checkout-secret-crypto.mjs";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 
 const url = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -152,7 +153,7 @@ Deno.serve(async req => {
     if (!email || !phone) return json({ error: "CUSTOMER_BILLING_CONTACT_REQUIRED", requestId }, 422, requestId);
 
     const amountMinor = Math.round(Number(intent.amount) * 100);
-    if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) return json({ error: "SUBSCRIPTION_AMOUNT_INVALID", requestId }, 409, requestId);
+    if (!isValidPaymobAmountCents(Number(intent.amount), amountMinor)) return json({ error: "SUBSCRIPTION_AMOUNT_INVALID", requestId }, 409, requestId);
     try {
       await importCheckoutKey(checkoutKeyVersion);
     } catch {
@@ -217,6 +218,20 @@ Deno.serve(async req => {
       await persistUnknownProviderCorrelation(String(intent.id), providerIntentId, providerOrderId);
       console.error(JSON.stringify({ requestId, stage: "paymob_intention_correlation_unknown" }));
       return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
+    }
+
+    // An HTTP 2xx and non-empty identifiers do not prove the provider echoed
+    // the exact amount, currency, and merchant reference requested for this intent.
+    // Quarantine any mismatch for reconciliation; never return checkout credentials.
+    if (!matchesPaymobIntention({
+      ledgerId: `MANTIQATIX-SUB-${intent.id}`,
+      amountCents: amountMinor,
+      currency: String(intent.currency),
+      provider: paymob,
+    })) {
+      await persistUnknownProviderCorrelation(String(intent.id), providerIntentId, providerOrderId);
+      console.error(JSON.stringify({ requestId, stage: "paymob_intention_correlation_mismatch" }));
+      return json({ error: "PAYMENT_PROVIDER_INTENT_MISMATCH", reconciliation_required: true, paymentIntentId: intent.id, requestId }, 503, requestId);
     }
 
     let encryptedSecret: { client_secret_ciphertext: string; client_secret_iv: string; client_secret_key_version: string };
