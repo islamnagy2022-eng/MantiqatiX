@@ -1798,3 +1798,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Not verified:** these are source-level assertions only; do not infer runtime safety from adding them. Existing service-role ACL integration assets remain unexecuted in this build batch.
 - **Next build tasks:** inspect SMM order lifecycle from insert through debit, provider submission, status reconciliation, and refund/credit paths; add isolated database scenarios for concurrent idempotency replay and ambiguous debit/provider outcomes; preserve deferred launch gate.
 - **Release gate:** BLOCKED / NOT CERTIFIED.
+## 2026-10-19 — SMM credential input validation correction (source-only)
+
+- **Fixed in source:** corrected two double-escaped control-character regular expressions in supabase/functions/smm-gateway/index.ts (provider API key validation and admin credit description sanitization) so they target actual ASCII control characters rather than literal backslash/u text.
+- **Regression guard added, not executed:** scripts/validate-smm-service-role-boundary.mjs now asserts the intended regex forms and rejects the prior double-escaped provider-key pattern.
+- **Not verified:** no validator/test/CI execution was performed. This is a source inspection and edit only; it does not certify the entire SMM gateway.
+- **Next:** inspect order lifecycle, wallet debit/refund/reconciliation contracts, and disposable PostgreSQL coverage; preserve the hard deferred-launch flag. Production remains BLOCKED / NOT CERTIFIED.
