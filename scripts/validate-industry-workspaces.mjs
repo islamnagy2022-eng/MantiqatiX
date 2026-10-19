@@ -76,6 +76,7 @@ assert.match(app, /window\.MNTYIndustryWorkspace\?\.bind\)setTimeout\(window\.MN
 assert.match(ui, /root\.innerHTML=render\(name\);bind\(\)/, 'switching sector tabs must rebind handlers after repaint');
 assert.match(ui, /root\.querySelector\('\[data-mxiw-search\]'\)\?\.addEventListener\('input'/, 'sector search must remain interactive after filtering');
 assert.match(index, /industry-workspaces\.js\?v=ui20261019/);
+assert.ok(index.indexOf('industry-workspaces.js?v=ui20261019') < index.indexOf('app.js?v=industry-ui-20261019'), 'industry workspace must load before app boot can render authenticated routes');
 assert.match(sw, /const CACHE='mnty-web-v130'/);
 assert.match(sw, /\.\/industry-workspaces\.js\?v=ui20261019/);
 assert.match(workflow, /scripts\/test-industry-workspaces-runtime\.mjs/, 'dedicated CI must execute runtime tests');
