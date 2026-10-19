@@ -79,4 +79,9 @@ assert.match(orderAction, /WALLET_DEBIT_RESULT_UNKNOWN[\s\S]{0,300}reconciliatio
 assert.match(orderAction, /PROVIDER_RESULT_UNKNOWN[\s\S]{0,300}reconciliation_required:true/, "ambiguous provider outcomes must not trigger blind retry/refund");
 assert.match(orderAction, /\.eq\("user_id",user\.id\)\.eq\("idempotency_key",validatedOrder\.idempotencyKey\)/, "idempotency replay lookup must be scoped to the authenticated user");
 
+
+assert.match(edge, /apiKey\.length>4096\|\|\/\[\\u0000-\\u001f\\u007f\]\/\.test\(apiKey\)/, "provider credential validation must reject actual ASCII control characters");
+assert.match(edge, /description\.replace\(\/\[\\u0000-\\u001f\\u007f\]\/g/, "admin descriptions must strip actual ASCII control characters");
+assert.doesNotMatch(edge, /apiKey\.length>4096\|\|\/\[\\\\u0000-\\\\u001f\\\\u007f\]/, "credential control-character regex must not be double-escaped");
+
 console.log("SMM service-role access boundary contract: PASS");
