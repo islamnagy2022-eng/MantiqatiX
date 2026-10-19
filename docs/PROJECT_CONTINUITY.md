@@ -772,3 +772,12 @@ This status is intentional and must remain until the open gates above are indepe
 - **Verification:** no tests, browser run, build, CI, migration replay, review, or deployment was performed. The frontend changes are source-only and NOT VERIFIED.
 - **Next action:** inspect shared routing and dashboard rendering in `web/app.js`, identify the first genuinely incomplete frontend screen, implement its actual UI/interaction and update the inventory; only then move to that module's backend.
 - Preserve `docs/SESSION_LOG.md` unchanged. Preserve SMM launch deferral. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Global search frontend state checkpoint
+
+- Further frontend-first work completed on the same branch: `web/app.js` now returns explicit search results plus failed-source metadata. The UI distinguishes true no-results, partial source failures, and complete source unavailability, with a retry action when useful.
+- `web/index.html` now references the versioned app script and service-worker entrypoint; `web/sw.js` precaches the matching app asset and uses cache `mnty-web-v132`.
+- Updated `docs/FRONTEND_SCREEN_INVENTORY.md` and `docs/MASTER_PRODUCTION_TODO.md`.
+- No tests, browser, build, CI, review, or deployment were run. This remains source-only and NOT VERIFIED.
+- Next: continue auditing the shared shell/dashboard and route-to-screen map; then close the first module's missing frontend states before routine backend work. Production remains BLOCKED / NOT CERTIFIED.
