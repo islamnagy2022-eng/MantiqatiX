@@ -41,6 +41,7 @@ assert.match(app, /if\(current==='التسويق والإعلان'\)await loadMa
 assert.match(app, /const canManage=Boolean\(live\.businessId[\s\S]{0,250}marketing_campaign_participants/, "campaign mutations must be disabled when campaign read sources fail");
 assert.match(app, /create_marketing_campaign_backend/, "campaign creation must use the backend RPC");
 assert.match(app, /invite_marketing_campaign_partner_backend/, "partner invitation must use the backend RPC");
+assert.match(app, /const activeAllocations=[\s\S]{0,450}\[\x27INVITED\x27,\x27ACCEPTED\x27,\x27ACTIVE\x27\]\.includes\(String\(p\.status\|\|\x27\x27\)\.toUpperCase\(\)\)/, "client allocation precheck must count exactly the same active statuses as the database guard");
 assert.match(app, /respond_marketing_campaign_invitation_backend/, "partner response must use the backend RPC");
 assert.match(app, /update_marketing_campaign_status_backend/, "campaign status changes must use the backend RPC");
 assert.match(app, /p_actor:user\.id/, "actor identity must come from the authenticated session");
