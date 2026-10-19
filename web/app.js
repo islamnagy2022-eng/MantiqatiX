@@ -1524,10 +1524,14 @@ function bindMarketingCampaignWorkspace(){
   const rows=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).filter(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&!['DECLINED','REMOVED'].includes(String(p.status||'').toUpperCase()));
   const used=rows.reduce((sum,p)=>sum+Math.max(0,Number(p.allocation_percent)||0),0);
   const input=document.getElementById('mc-invite-allocation');
+  const providerId=String(document.getElementById('mc-invite-provider')?.value||'');
   const raw=String(input?.value??'').trim();
   const requested=raw===''?NaN:Number(raw);
   const remaining=Math.max(0,100-used);
-  summary.textContent='المخصص حاليًا: '+used.toLocaleString('en-US',{maximumFractionDigits:2})+'% · المتبقي: '+remaining.toLocaleString('en-US',{maximumFractionDigits:2})+'%'+(Number.isFinite(requested)?' · الإجمالي المتوقع: '+(used+requested).toLocaleString('en-US',{maximumFractionDigits:2})+'%':'');
+  const duplicate=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[]).some(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&String(p.provider_id||'')===providerId&&['INVITED','ACCEPTED'].includes(String(p.status||'').toUpperCase()));
+  const projected=used+(Number.isFinite(requested)?requested:0);
+  const warning=duplicate?' تنبيه: يوجد تعاون قائم أو دعوة معلقة لهذا الشريك في الحملة.':(Number.isFinite(requested)&&projected>100.000001?' تنبيه: الإجمالي المتوقع يتجاوز 100%؛ لن يُسمح بإرسال الدعوة.':'');
+  summary.textContent='المخصص حاليًا: '+used.toLocaleString('en-US',{maximumFractionDigits:2})+'% · المتبقي: '+remaining.toLocaleString('en-US',{maximumFractionDigits:2})+'%'+(Number.isFinite(requested)?' · الإجمالي المتوقع: '+projected.toLocaleString('en-US',{maximumFractionDigits:2})+'%':'')+warning;
  };
  document.getElementById('mc-invite-campaign')?.addEventListener('change',refreshAllocationHint);
  document.getElementById('mc-invite-allocation')?.addEventListener('input',refreshAllocationHint);
