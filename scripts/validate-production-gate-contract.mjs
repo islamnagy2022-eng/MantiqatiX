@@ -43,6 +43,7 @@ const requiredProductionGateMarkers = [
   'add("PAY-INTENT-CORRELATION"',
   'add("SUBSCRIPTION-PAY-CORRELATION"',
   'add("DIG-PAY-CORRELATION"',
+  'add("DIG-PAY-CLAIM-RELEASE"',
   'add("PAY-AMBIGUOUS-OUTCOMES"',
   '!payment.includes("response.status >= 400 && response.status < 500")',
   '!digital.includes("providerResponseStatus>=400&&providerResponseStatus<500")',
