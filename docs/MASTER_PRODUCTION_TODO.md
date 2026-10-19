@@ -2090,3 +2090,13 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - Added source-validator assertions so the owner-scope regression and security-barrier contract cannot silently disappear.
 - Exact-head CI for `890cb3b26b6178b4152baba7257c7ab30899f535`: all 12 PR-triggered workflows completed successfully, including Public Service Catalog RLS [run 39244750651](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750651), Marketing Campaign Backend [run 39244750604](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750604), and web production-verification [run 39244750653](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39244750653). The web deploy job was skipped; no deployment occurred.
 - Evidence is isolated CI only, not live production schema/grant proof. Remaining release gates: complete migration replay and schema parity; inspect actual production view ownership, grants and tenant/owner/admin policies; authenticated browser E2E; payment/webhook/finance E2E; disaster-recovery restore rehearsal. Production remains **BLOCKED / NOT CERTIFIED**. PR #299 stays Draft. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true` and do not modify `docs/SESSION_LOG.md`.
+
+
+## RC457/RC458 PUBLIC-role legacy-grant regression — 2026-10-19
+
+- [x] Expanded the disposable PostgreSQL fixture to simulate legacy table-level SELECT grants and sensitive column-level SELECT grants to both PUBLIC and anon for `marketing_services` and `marketing_provider_profiles`.
+- [x] Confirmed the exact-head source validator and PostgreSQL RLS regression passed on code head `cfdfb5642947070bd4c8555a4dc562aed8899dcf`: Public Service Catalog RLS [run 39246194127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39246194127).
+- [x] Confirmed Marketing Campaign Backend source validation and disposable PostgreSQL lifecycle tests passed on the same head: [run 39246193966](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39246193966).
+- [x] All 12 PR-triggered workflows in this batch completed successfully on that head. Web production-verification passed, but the deploy job was skipped; no deployment occurred.
+- [ ] Remaining P0 release gates are unchanged: full target-schema migration replay/live schema parity, independent review of production view ownership/grants/tenant-owner-admin policies, browser E2E, Paymob/webhook/finance E2E, and disaster-recovery restore evidence.
+- Production remains **BLOCKED / NOT CERTIFIED**. PR #299 remains Draft. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
