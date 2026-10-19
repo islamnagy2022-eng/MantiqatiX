@@ -52,3 +52,25 @@ jobs:
           psql -h localhost -U postgres -d mantiqatix_rc531_test -v ON_ERROR_STOP=1 -f supabase/tests/rc531_business_registration_fixture.sql
           psql -h localhost -U postgres -d mantiqatix_rc531_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261019150000_rc531_business_registration_atomicity.sql
           psql -h localhost -U postgres -d mantiqatix_rc531_test -v ON_ERROR_STOP=1 -f supabase/tests/rc531_business_registration_integration.sql
+
+      - name: Race two registration requests for one actor and tenant
+        env:
+          PGPASSWORD: postgres
+        shell: bash
+        run: |
+          set -euo pipefail
+          db=(psql -h localhost -U postgres -d mantiqatix_rc531_test -X -qAt -v ON_ERROR_STOP=1)
+          "${db[@]}" -c "insert into public.user_memberships(id,user_id,tenant_id,organization_id,role,permissions,status) values ('MEM-RACE','10000000-0000-4000-8000-000000000005','TENANT-A','ORG-A','OWNER','{}','ACTIVE')"
+          ("${db[@]}" -c "set request.jwt.claim.role='service_role'; select public.register_business_with_approval_atomic('10000000-0000-4000-8000-000000000005','TENANT-A','ORG-A','Race Agency A','RACE-AGENCY-A-001','GENERAL','','','','')->>'success';" > /tmp/race-a.out) &
+          pid_a=$!
+          ("${db[@]}" -c "set request.jwt.claim.role='service_role'; select public.register_business_with_approval_atomic('10000000-0000-4000-8000-000000000005','TENANT-A','ORG-A','Race Agency B','RACE-AGENCY-B-001','GENERAL','','','','')->>'success';" > /tmp/race-b.out) &
+          pid_b=$!
+          wait "$pid_a"
+          wait "$pid_b"
+          a="$(tr -d '[:space:]' < /tmp/race-a.out)"
+          b="$(tr -d '[:space:]' < /tmp/race-b.out)"
+          test "$a" != "$b"
+          test "$a" = "true" -o "$b" = "true"
+          test "$a" = "false" -o "$b" = "false"
+          pending="$("${db[@]}" -c "select count(*) from public.approval_requests where tenant_id='TENANT-A' and requested_by='10000000-0000-4000-8000-000000000005' and entity_type='BUSINESS' and request_type='CREATE' and status='PENDING'")"
+          test "$pending" = "1"
