@@ -246,3 +246,11 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 - The RC454 database trigger now runs on participant `status` updates as well as allocation/scope changes, so reactivating an inactive assignment is subject to the same 100% cap.
 - Source contract and disposable PostgreSQL campaign workflow passed on the exact head `d9e5f459aacadc788f0dc38307cca2b9b636d356`, including status-reentry and concurrent-allocation regressions.
 - This verifies the isolated test workflow only. Live database parity, browser flows, migration rehearsal/rollback and production release remain NOT VERIFIED; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Public discovery backend dependency — RC457 (2026-10-19)
+
+- Homepage and sector discovery query `marketing_services` for ACTIVE catalog entries and `marketing_provider_profiles` for ACTIVE public profiles without requiring login.
+- Source review found RC99's `marketing_services` policy set only declared authenticated administrative management. This left the anonymous public-service query without an explicit public read policy/grant.
+- Added RC457 active-row read policy and anonymous column allowlist, plus an isolated PostgreSQL regression workflow.
+- Status: SOURCE UPDATED / CI PENDING / LIVE PARITY NOT VERIFIED. Public provider profile RLS is documented separately in prior baseline notes; it must still be verified against the live database before release.
