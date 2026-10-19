@@ -1,7 +1,7 @@
-const CACHE='mnty-web-v147';
+const CACHE='mnty-web-v148';
 const APP_SHELL=[
 './styles.css?v=provider-dashboard-syntax-fix-20261019','./brand.css?v=rc450','./home.css?v=rc397','./home-mobile-fixes.css?v=rc397',
-'./config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=rc402',
+'./config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=public-profile-image-path-allowlist-20261019',
 './rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=marketing-provider-invitation-scope-stable-20261019',
 './module-blueprints.js?v=frontend-first-sections-20261019','./restaurant-module.js?v=rc314','./sector-modules.js?v=mnty116',
 './reverse-bidding-module.js?v=mnty116','./operations-modules.js?v=mnty117','./provider-onboarding-module.js?v=mnty116','./brand.js?v=rc355',
