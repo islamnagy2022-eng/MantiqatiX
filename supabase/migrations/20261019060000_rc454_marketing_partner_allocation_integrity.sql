@@ -1,5 +1,31 @@
 -- RC454: enforce marketing partner allocation integrity at the database boundary.
 -- The campaign row lock serializes allocation checks for writes to the same campaign.
+-- Fail closed on inconsistent historical rows instead of silently installing
+-- a guard over data that already violates the intended invariant.
+do $preflight$
+begin
+  if exists (
+    select 1
+    from public.marketing_campaign_participants cp
+    join public.marketing_campaigns c on c.id = cp.campaign_id
+    where cp.business_id is distinct from c.business_id
+       or cp.tenant_id is distinct from c.tenant_id
+  ) then
+    raise exception 'RC454_PREFLIGHT_SCOPE_MISMATCH: reconcile participant business/tenant scope before applying this migration';
+  end if;
+
+  if exists (
+    select 1
+    from public.marketing_campaign_participants cp
+    where cp.status in ('INVITED','ACCEPTED','ACTIVE')
+    group by cp.campaign_id
+    having sum(cp.allocation_percent) > 100
+  ) then
+    raise exception 'RC454_PREFLIGHT_ALLOCATION_OVER_100: reconcile active campaign allocations before applying this migration';
+  end if;
+end;
+$preflight$;
+
 create or replace function public.mnty_guard_marketing_partner_allocation()
 returns trigger
 language plpgsql
