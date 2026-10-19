@@ -241,12 +241,15 @@ begin
     raise exception 'overlong closure reason produced audit or notification side effects';
   end if;
 
-  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'Integration test closure');
+  result := public.close_marketing_campaign_partner_backend(manager_a,participant_id,'  Integration test closure  ');
   if result->>'status' <> 'REMOVED' or coalesce((result->>'idempotent')::boolean,false) then
     raise exception 'manager partner closure did not remove the assignment';
   end if;
   if (select count(*) from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) <> 1 then
     raise exception 'partner closure audit event missing or duplicated';
+  end if;
+  if (select new_values->>'reason' from public.audit_logs where action='MARKETING_PARTNER_ASSIGNMENT_CLOSED' and entity_id=participant_id::text) is distinct from 'Integration test closure' then
+    raise exception 'partner closure audit did not store the trimmed reason';
   end if;
   if (select count(*) from public.notifications where user_id=provider_b and type='MARKETING_PARTNER_ASSIGNMENT_CLOSED') <> 1 then
     raise exception 'partner closure notification missing';
