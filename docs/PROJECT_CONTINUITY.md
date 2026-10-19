@@ -694,3 +694,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Migration remains source-only, unapplied and untested; production release stays BLOCKED / NOT CERTIFIED.
 
 - Added covering index `marketing_campaign_participants_allocation_guard_idx` on `(campaign_id,status) INCLUDE (allocation_percent)` to support the allocation aggregate query. Its real query-plan/performance effect remains unmeasured; no tests or review were run.
+
+
+### 2026-10-19 — Marketing allocation display parity
+- The UI allocation hint now counts only INVITED, ACCEPTED, and ACTIVE assignments, matching the current backend allocation invariant; COMPLETED assignments are excluded.
+- The duplicate warning now includes ACTIVE assignments to match the backend existing-assignment rule.
+- Source-only implementation. No tests or review were run; RC454 is not applied and production remains BLOCKED / NOT CERTIFIED.
