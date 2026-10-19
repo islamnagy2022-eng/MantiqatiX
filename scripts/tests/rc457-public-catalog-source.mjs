@@ -16,6 +16,10 @@ assert.doesNotMatch(home, /from\('marketing_provider_profiles'\)\.select\([^)]*s
   'public directory must not fetch provider settings');
 assert.doesNotMatch(home, /provider\?\.settings\?\.branding/,
   'public provider rendering must not depend on private provider settings');
+assert.match(home, /if\(!\/^users\\\/[0-9a-f-]\{36\}\\\/providers\\\/[0-9a-f-]\{36\}\\\/(cover\|logo)\\\./i\.test\(path\)\) return '';/,
+  'public profile images must only resolve allowlisted owner-uploaded Storage object paths');
+assert.match(home, /Seeded showcase profiles may use local assets, not Storage object keys/,
+  'public image URL resolution must preserve local asset fallback for seeded showcase profiles');
 
 assert.match(serviceMigration, /with \(security_barrier = true\)/,
   'public service catalog must use a security-barrier view');
