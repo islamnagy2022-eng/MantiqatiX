@@ -1,7 +1,6 @@
--- RC458: restore anonymous ACTIVE-only provider discovery and limit public fields.
--- This migration replaces the legacy authenticated-only policy with an explicit anon/authenticated ACTIVE-only publication boundary.
--- This migration removes broad table-level SELECT for PUBLIC/anon and grants only
--- fields used by public discovery; authenticated owner/admin policies are unchanged.
+-- RC458: publish a read-only ACTIVE provider directory through a column allowlist.
+-- Keep owner/admin access on the base table governed by existing policies; ordinary
+-- authenticated visitors use the public view, not the base table's private columns.
 alter table public.marketing_provider_profiles enable row level security;
 
 drop policy if exists "Public can view active marketing providers"
@@ -9,15 +8,16 @@ drop policy if exists "Public can view active marketing providers"
 drop policy if exists marketing_provider_profiles_public_active_read
   on public.marketing_provider_profiles;
 
-create policy marketing_provider_profiles_public_active_read
-on public.marketing_provider_profiles
-for select to anon, authenticated
-using (status = 'ACTIVE');
+revoke all on table public.marketing_provider_profiles from public, anon;
 
-revoke select on table public.marketing_provider_profiles from public, anon;
+create or replace view public.marketing_provider_profiles_public
+with (security_barrier = true)
+as
+select id, business_id, name_ar, name_en, provider_kind, description,
+       service_areas, status, is_verified, is_featured, ranking_weight,
+       profile_image_path, updated_at
+from public.marketing_provider_profiles
+where status = 'ACTIVE';
 
-grant select (
-  id, business_id, name_ar, name_en, provider_kind, description,
-  service_areas, status, is_verified, is_featured, ranking_weight,
-  profile_image_path, updated_at
-) on table public.marketing_provider_profiles to anon;
+revoke all on table public.marketing_provider_profiles_public from public, anon, authenticated;
+grant select on table public.marketing_provider_profiles_public to anon, authenticated;
