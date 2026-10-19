@@ -640,3 +640,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a pre-submit guard that sums loaded allocation percentages for the selected campaign, excluding declined/removed assignments, and prevents a new invitation when the visible total would exceed 100%.
 - Implementation commit: `37a128e2dfff76590cd6ba8413f72b82307974da`; TODO checkpoint: `eb4288d7870a58e367f11f895b702177a3c2b0a0`.
 - NOT VERIFIED: this is a client-side convenience guard, not a concurrency-safe invariant. The backend RPC/database must enforce the allocation cap atomically; no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Duplicate active partner invitation guard
+- Added a UI guard to prevent a second invitation to the same provider/campaign pair while an invitation is pending or the assignment is accepted.
+- Implementation commit: `ea4285a4144701e402488d80dba3f6a72b605041`; TODO checkpoint: `007888e5e3b423300a06dabb71a084d922d03a5e`.
+- NOT VERIFIED. Server-side idempotency/uniqueness must remain authoritative for concurrent requests and stale data. No tests, review, browser execution, CI, or deployment performed.
