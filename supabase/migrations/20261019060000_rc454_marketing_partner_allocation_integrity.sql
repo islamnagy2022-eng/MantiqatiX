@@ -23,6 +23,16 @@ begin
   ) then
     raise exception 'RC454_PREFLIGHT_ALLOCATION_OVER_100: reconcile active campaign allocations before applying this migration';
   end if;
+
+  if exists (
+    select 1
+    from public.marketing_campaign_participants cp
+    join public.marketing_campaigns c on c.id = cp.campaign_id
+    where cp.status in ('INVITED','ACCEPTED','ACTIVE')
+      and c.status in ('COMPLETED','CANCELLED')
+  ) then
+    raise exception 'RC454_PREFLIGHT_TERMINAL_CAMPAIGN_ACTIVE_PARTICIPANT: reconcile active participants on completed/cancelled campaigns before applying this migration';
+  end if;
 end;
 $preflight$;
 
