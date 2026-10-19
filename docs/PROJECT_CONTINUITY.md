@@ -958,3 +958,8 @@ A source review found a mismatch between the public homepage's ACTIVE `marketing
 ### Public provider profile data minimization — 2026-10-19
 
 Public list/detail selects in `web/home.js` no longer request the full `settings` JSON from `marketing_provider_profiles`. Rendering no longer reads `settings.branding.logo_path`; only the explicit public profile image field is used. Added `scripts/tests/rc457-public-catalog-source.mjs` and wired it into the RC457 PostgreSQL workflow to enforce explicit public field allowlists and guard against future settings leakage. Verification status is pending exact-head CI; no live database or production deployment changes were made.
+
+
+### RC458 — Public provider profile column boundary (2026-10-19)
+
+Added forward-only migration `20261019100000_rc458_public_provider_profile_column_allowlist.sql` to remove broad anonymous/public SELECT on provider profiles and grant only public discovery fields to `anon`. The pre-existing ACTIVE-only RLS policy remains the row-level visibility control. The disposable PostgreSQL test now checks active/draft profile visibility and that `settings` cannot be read anonymously. The earlier RC457-only workflow run passed, but it predates RC458 and cannot certify the combined regression. Exact-head CI is pending/unconfirmed; production remains untouched and BLOCKED / NOT CERTIFIED.
