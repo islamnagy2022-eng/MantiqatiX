@@ -1511,6 +1511,9 @@ function bindMarketingCampaignWorkspace(){
   const campaignIsAvailable=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).some(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
   const providerIsAvailable=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).some(p=>String(p.id)===providerId&&String(p.business_id||'')!==activeBusinessId&&String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
   if(!activeBusinessId||!campaignIsAvailable||!providerIsAvailable)return showToast('الحملة أو الشريك لم يعد متاحًا ضمن النشاط الحالي؛ حدّث مساحة العمل.','error');
+  const existingAssignment=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[])
+   .find(p=>String(p.business_id||'')===activeBusinessId&&String(p.campaign_id||'')===campaignId&&String(p.provider_id||'')===providerId&&['INVITED','ACCEPTED'].includes(String(p.status||'').toUpperCase()));
+  if(existingAssignment)return showToast('يوجد بالفعل تعاون مع هذا الشريك في الحملة نفسها بدعوة معلقة أو إسناد مقبول.','error');
   if(!allowedPartnerRoles.has(role))return showToast('اختر دورًا معتمدًا للشريك.','error');
   if(!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0||agreed>1000000000)return showToast('راجع نسبة التخصيص (0–100%) والقيمة المتفق عليها (0–1,000,000,000).','error');
   const activeAllocations=(Array.isArray(live.marketingCampaignParticipants)?live.marketingCampaignParticipants:[])
