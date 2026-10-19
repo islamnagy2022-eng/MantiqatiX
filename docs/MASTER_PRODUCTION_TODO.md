@@ -1703,3 +1703,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added client-side search across visible partner records by campaign title, partner display name, and role.
 - [x] Added a status filter and live count for visible partnership records.
 - [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Filter-aware partner CSV export
+- [x] Partner report export now follows the active search/status filters and exports only visible partnership rows.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
