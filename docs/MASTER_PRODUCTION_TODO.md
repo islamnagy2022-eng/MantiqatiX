@@ -1756,3 +1756,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The UI allocation hint now counts only INVITED, ACCEPTED, and ACTIVE assignments, matching the backend allocation invariant; COMPLETED assignments are excluded from the active total.
 - Duplicate-assignment feedback now includes ACTIVE assignments, matching the backend's existing-assignment behavior.
 - Implementation only. No tests or review were run; RC454 is not applied and production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-19 — RC455 marketing terminal lifecycle guard (implementation only)
+- Added migration `20261019070000_rc455_marketing_campaign_terminal_guard.sql`: terminal campaign transitions now require all partner assignments to leave `INVITED`/`ACCEPTED`/`ACTIVE` first.
+- Updated invitation-response RPC lock order to campaign then participant so a response cannot race past the terminal-state guard using the former participant-first order.
+- NOT VERIFIED: migration not applied; no tests, review, or deployment performed. Concurrency safety remains unproven until PostgreSQL validation. Production stays BLOCKED / NOT CERTIFIED.
