@@ -1708,3 +1708,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## 2026-10-19 — Filter-aware partner CSV export
 - [x] Partner report export now follows the active search/status filters and exports only visible partnership rows.
 - [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
+
+
+## 2026-10-19 — Next build batch
+- [ ] Next planned UI enhancement: show a live partner allocation capacity estimate before invitation submission, based on currently loaded assignments. This must remain informational only; server-side transactional limits are authoritative.
+- [ ] NOT VERIFIED: no tests, review, browser execution, CI, or deployment performed.
