@@ -16,8 +16,28 @@ Deno.serve(async(req)=>{
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const {data:{user},error:authError}=await supabase.auth.getUser(token);
   if(authError||!user||user.is_anonymous)return response({error:"AUTH_REQUIRED"},401);
-  const rawBody=await req.text();
-  if(new TextEncoder().encode(rawBody).byteLength>16384)return response({error:"REQUEST_BODY_TOO_LARGE"},413);
+  // Read incrementally so a chunked request cannot force an unbounded req.text() allocation.
+  const reader=req.body?.getReader();
+  const chunks:Uint8Array[]=[];
+  let totalBytes=0;
+  if(reader){
+    while(true){
+      const {done,value}=await reader.read();
+      if(done)break;
+      totalBytes+=value.byteLength;
+      if(totalBytes>16384){
+        await reader.cancel().catch(()=>{});
+        return response({error:"REQUEST_BODY_TOO_LARGE"},413);
+      }
+      chunks.push(value);
+    }
+  }
+  const payloadBytes=new Uint8Array(totalBytes);
+  let offset=0;
+  for(const chunk of chunks){payloadBytes.set(chunk,offset);offset+=chunk.byteLength;}
+  let rawBody:string;
+  try{rawBody=new TextDecoder("utf-8",{fatal:true}).decode(payloadBytes);}
+  catch{return response({error:"INVALID_JSON_BODY"},400);}
   let body:Record<string,unknown>|null=null;
   try{body=JSON.parse(rawBody);}catch{body=null;}
   if(!body||typeof body!=="object"||Array.isArray(body))return response({error:"INVALID_JSON_BODY"},400);
