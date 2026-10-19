@@ -1501,10 +1501,18 @@ function bindMarketingCampaignWorkspace(){
   if(button?.disabled)return;
   const campaignId=String(document.getElementById('mc-invite-campaign')?.value||'');
   const providerId=String(document.getElementById('mc-invite-provider')?.value||'');
-  const role=String(document.getElementById('mc-invite-role')?.value||'CONTENT');
-  const allocation=Number(document.getElementById('mc-invite-allocation')?.value);
-  const agreed=Number(document.getElementById('mc-invite-value')?.value);
-  if(!campaignId||!providerId||!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0)return showToast('راجع بيانات دعوة الشريك ونسبة التخصيص والقيمة.','error');
+  const role=String(document.getElementById('mc-invite-role')?.value||'CONTENT').trim().toUpperCase();
+  const allowedPartnerRoles=new Set(['CREATIVE','CONTENT','MEDIA_BUYING','ANALYTICS','ACCOUNT_MANAGER','REFERRAL']);
+  const allocationRaw=String(document.getElementById('mc-invite-allocation')?.value??'').trim();
+  const agreedRaw=String(document.getElementById('mc-invite-value')?.value??'').trim();
+  const allocation=allocationRaw===''?NaN:Number(allocationRaw);
+  const agreed=agreedRaw===''?NaN:Number(agreedRaw);
+  const activeBusinessId=String(live.businessId||'');
+  const campaignIsAvailable=(Array.isArray(live.marketingCampaigns)?live.marketingCampaigns:[]).some(c=>String(c.id)===campaignId&&String(c.business_id||'')===activeBusinessId);
+  const providerIsAvailable=(Array.isArray(live.marketingCampaignProviders)?live.marketingCampaignProviders:[]).some(p=>String(p.id)===providerId&&String(p.business_id||'')!==activeBusinessId&&String(p.status||'').toUpperCase()==='ACTIVE'&&p.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(p.provider_kind||'').toUpperCase()));
+  if(!activeBusinessId||!campaignIsAvailable||!providerIsAvailable)return showToast('الحملة أو الشريك لم يعد متاحًا ضمن النشاط الحالي؛ حدّث مساحة العمل.','error');
+  if(!allowedPartnerRoles.has(role))return showToast('اختر دورًا معتمدًا للشريك.','error');
+  if(!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(agreed)||agreed<0||agreed>1000000000)return showToast('راجع نسبة التخصيص (0–100%) والقيمة المتفق عليها (0–1,000,000,000).','error');
   button.disabled=true;button.textContent='جارٍ إرسال الدعوة...';
   try{
    const {data,error}=await sb.rpc('invite_marketing_campaign_partner_backend',{p_actor:user.id,p_campaign_id:campaignId,p_provider_id:providerId,p_role:role,p_allocation_percent:allocation,p_agreed_value:agreed});
