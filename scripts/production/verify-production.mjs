@@ -14,6 +14,58 @@ add("SEC-FRONTEND-SENSITIVE-WRITES","SECURITY",!(/from\(['"](?:orders|payment_in
 const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabase/functions/payment-intent/index.ts"):"";
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
+
+const paymentCorrelationSafe=Boolean(
+  payment.includes('from "../_shared/paymob-intent-correlation.mjs"') &&
+  payment.includes("isValidPaymobAmountCents(amount, amountCents)") &&
+  payment.includes("PAYMENT_PROVIDER_INTENT_MISMATCH") &&
+  payment.indexOf("const providerCorrelationMatches = matchesPaymobIntention({")>=0 &&
+  payment.indexOf("const providerCorrelationMatches = matchesPaymobIntention({")<payment.indexOf('admin.from("payment_intents").update({')
+);
+add("PAY-INTENT-CORRELATION","FINANCE",paymentCorrelationSafe?"PASS":"BLOCKED",
+  paymentCorrelationSafe
+    ?"Normal order payment validates exact cents and provider amount/currency/reference before checkout success."
+    :"Normal order payment lacks the required exact-cent/provider-response correlation boundary.",
+  "P0");
+
+const subscriptionPayment=exists("supabase/functions/subscription-payment-intent/index.ts")?read("supabase/functions/subscription-payment-intent/index.ts"):"";
+const subscriptionCorrelationSafe=Boolean(
+  subscriptionPayment.includes('from "../_shared/paymob-intent-correlation.mjs"') &&
+  subscriptionPayment.includes("isValidPaymobAmountCents(Number(intent.amount), amountMinor)") &&
+  subscriptionPayment.includes("PAYMENT_PROVIDER_INTENT_MISMATCH") &&
+  subscriptionPayment.indexOf("if (!matchesPaymobIntention({")>=0 &&
+  subscriptionPayment.indexOf("if (!matchesPaymobIntention({")<subscriptionPayment.indexOf("const { data: updated, error: updateError }")
+);
+add("SUBSCRIPTION-PAY-CORRELATION","FINANCE",subscriptionCorrelationSafe?"PASS":"BLOCKED",
+  subscriptionCorrelationSafe
+    ?"Subscription payment validates exact cents and provider amount/currency/reference before checkout success."
+    :"Subscription payment lacks the required exact-cent/provider-response correlation boundary.",
+  "P0");
+
+const digitalCorrelationSafe=Boolean(
+  digital.includes('from "../_shared/paymob-intent-correlation.mjs"') &&
+  digital.includes("isValidPaymobAmountCents(amount,amountCents)") &&
+  digital.includes("PAYMENT_PROVIDER_INTENT_MISMATCH") &&
+  digital.indexOf("if(!matchesPaymobIntention(")>=0 &&
+  digital.indexOf("if(!matchesPaymobIntention(")<digital.indexOf('admin.rpc("finalize_digital_page_payment_intent_backend"')
+);
+add("DIG-PAY-CORRELATION","FINANCE",digitalCorrelationSafe?"PASS":"BLOCKED",
+  digitalCorrelationSafe
+    ?"Digital-page payment validates exact cents and provider amount/currency/reference before trusted finalization."
+    :"Digital-page payment lacks the required exact-cent/provider-response correlation boundary.",
+  "P0");
+
+const ambiguousPaymentOutcomesSafe=Boolean(
+  payment.includes("[400, 401, 403, 404, 422].includes(response.status)") &&
+  payment.includes("!providerIntentId && !providerClientSecret && !providerOrderId") &&
+  digital.includes("[400,401,403,404,422].includes(providerResponseStatus)") &&
+  digital.includes("!providerIntentId&&!providerClientSecret&&!providerOrderId")
+);
+add("PAY-AMBIGUOUS-OUTCOMES","FINANCE",ambiguousPaymentOutcomesSafe?"PASS":"BLOCKED",
+  ambiguousPaymentOutcomesSafe
+    ?"Only explicit identifier-free provider rejections can fail/release a payment attempt; ambiguous responses remain quarantined."
+    :"Payment handlers may release or fail an attempt on an ambiguous provider response.",
+  "P0");
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
 const digitalFinalizerMigrationPath="supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql";
 const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
