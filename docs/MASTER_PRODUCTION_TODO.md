@@ -2039,3 +2039,7 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - Added disposable PostgreSQL regression `supabase/tests/rc457_public_marketing_service_catalog.sql` and workflow `.github/workflows/public-service-catalog-rls.yml` to verify active-row visibility, draft-row denial, and private-column denial.
 - Status: SOURCE COMMITTED; exact-head PostgreSQL CI, live schema parity, and deployed behavior are NOT VERIFIED until the new workflow completes. Do not apply the migration to production from this change alone.
 - Production remains **BLOCKED / NOT CERTIFIED**; `docs/SESSION_LOG.md` remains untouched.
+
+
+- Follow-up privacy hardening: removed `settings` from all public `marketing_provider_profiles` list/detail selects in `web/home.js`. Public profile rendering no longer reads `settings.branding.logo_path`; it uses the explicitly selected public `profile_image_path` only. Added source-contract assertions to the RC457 workflow to prevent reintroducing provider settings into public queries.
+- Commit: `419381422f9f456d3bbd4c3b7a9d007bfea7bfbc` (frontend data minimization); `7f33a3512668894945f96be8fe7cdf65b4a1392a` (source contract); `826fc1576b689aaef8ff8be29f37cbacd928bf59` (CI wiring). Exact-head CI is queued and must pass before treating this as verified.
