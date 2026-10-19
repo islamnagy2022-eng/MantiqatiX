@@ -68,7 +68,8 @@ assert.match(transport, /total > maxBytes[\s\S]{0,100}reader\.cancel\(\)/, "prov
 assert.match(transport, /new TextDecoder\("utf-8", \{ fatal: true \}\)/, "provider JSON must reject invalid UTF-8 rather than silently replacing bytes");
 assert.match(validation, /rawIdempotencyKey[\s\S]{0,160}\{16,128\}/, "SMM order requests must carry bounded idempotency keys");
 assert.match(validation, /url\.protocol !== "https:"/, "SMM target URLs must use HTTPS");
-assert.match(requestValidation, /32\s*\*\s*1024|32768/, "request parser must enforce a bounded payload size");
+assert.match(requestValidation, /maxBytes\s*=\s*65_536/, "shared request parser must support an explicit bounded payload limit");
+assert.match(edge, /readBoundedJson\(req,32\s*\*\s*1024\)/, "SMM gateway must enforce the 32 KiB request limit at its call site");
 assert.match(launchGate, /enabledFlag === "true" && postLaunchApprovalFlag === "true"/, "SMM activation requires both explicit enablement and post-launch approval flags");
 const orderStart = edge.indexOf('if(a==="place_order")');
 const orderEnd = edge.indexOf('if(a==="', orderStart + 10);
