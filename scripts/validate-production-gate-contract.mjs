@@ -46,17 +46,33 @@ const requiredReleaseMigrationMarkers = [
   '20261019100000_rc458_public_provider_profile_column_allowlist.sql',
   '20261019110000_rc459_profile_media_policy_regex_fix.sql',
 ];
-const releaseMigrationPositions = requiredReleaseMigrationMarkers.map(name => productionGate.indexOf(name));
+const migrationArrayMatch = productionGate.match(/const requiredReleaseMigrations\s*=\s*\[([\s\S]*?)\];/);
+if (!migrationArrayMatch) {
+  console.error('RC360 production gate contract: FAIL');
+  console.error('Required release migration manifest is missing.');
+  process.exit(1);
+}
+const releaseMigrationManifest = migrationArrayMatch[1];
+const releaseMigrationPositions = requiredReleaseMigrationMarkers.map(name => releaseMigrationManifest.indexOf(name));
 if (releaseMigrationPositions.some(position => position < 0)) {
   console.error('RC360 production gate contract: FAIL');
-  for (const name of requiredReleaseMigrationMarkers.filter(name => !productionGate.includes(name))) {
-    console.error('MISSING RELEASE MIGRATION:', name);
+  for (const name of requiredReleaseMigrationMarkers.filter(name => !releaseMigrationManifest.includes(name))) {
+    console.error('MISSING RELEASE MIGRATION IN MANIFEST:', name);
   }
   process.exit(1);
 }
 if (releaseMigrationPositions.some((position, index) => index > 0 && position <= releaseMigrationPositions[index - 1])) {
   console.error('RC360 production gate contract: FAIL');
-  console.error('Required release migrations are not in chronological order.');
+  console.error('Required release migrations are not in chronological manifest order.');
+  process.exit(1);
+}
+const manifestMigrationNames = [...releaseMigrationManifest.matchAll(/["'](\d{14}_[^"']+\.sql)["']/g)].map(match => match[1]);
+const timestampOrderViolations = manifestMigrationNames.slice(1).filter((name, index) =>
+  name.slice(0, 14) < manifestMigrationNames[index].slice(0, 14)
+);
+if (timestampOrderViolations.length) {
+  console.error('RC360 production gate contract: FAIL');
+  console.error('Migration manifest contains timestamp order violations:', timestampOrderViolations.join(', '));
   process.exit(1);
 }
 
