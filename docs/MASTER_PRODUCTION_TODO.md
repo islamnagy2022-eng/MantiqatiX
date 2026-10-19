@@ -1952,3 +1952,9 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - Source review found that RC454's allocation trigger originally ran on allocation/scope columns but not `status`, so changing a participant from `DECLINED`/`REMOVED` into `INVITED` could bypass the aggregate allocation check.
 - Updated the trigger column list to include `status`, and strengthened the marketing backend source validator to assert that status transitions are covered.
 - This is a source-level correctness fix only. Fresh PostgreSQL/CI evidence is still required; no migration was applied to production. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC454 allocation guard follow-up
+
+- The allocation guard trigger now includes participant `status` updates, preventing reactivation from bypassing the active-allocation aggregate check.
+- The source validator now checks that status transitions are included. Fresh CI/PostgreSQL evidence is required; production migration was not applied. Production remains **BLOCKED / NOT CERTIFIED**.
