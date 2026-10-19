@@ -8,6 +8,7 @@ const sw = fs.readFileSync('web/sw.js', 'utf8');
 const registry = fs.readFileSync('web/sector-registry.js', 'utf8');
 const workflow = fs.readFileSync('.github/workflows/industry-workspaces-ui.yml', 'utf8');
 const pagesWorkflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
+const backendAudit = fs.readFileSync('docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md', 'utf8');
 
 const codes = [...ui.matchAll(/\{code:'([A-Z_]+)'/g)].map(x => x[1]);
 const expected = [
@@ -88,6 +89,13 @@ const deployBlock = pagesWorkflow.match(/\n  deploy:\n([\s\S]*?)(?=\n  [a-zA-Z0-
 assert.match(deployBlock, /if: github\.ref == 'refs\/heads\/main' && \(github\.event_name == 'push' \|\| github\.event_name == 'workflow_dispatch'\)/, 'Pages deployment must be restricted to explicit main-branch events');
 assert.match(deployBlock, /permissions:\n      contents: read\n      pages: write\n      id-token: write/, 'Pages deployment permissions must be scoped to the deploy job');
 assert.equal((workflow.match(/\.github\/workflows\/pages\.yml/g) || []).length, 2, 'Pages workflow changes must trigger the industry security contract on push and pull request');
+assert.equal((workflow.match(/docs\/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019\.md/g) || []).length, 2, 'sector backend audit changes must trigger the contract workflow on push and pull request');
+assert.match(backendAudit, /No production rows, DDL, grants, RLS, Auth settings, Edge Functions, or migrations were changed/);
+assert.match(backendAudit, /medical_appointments/);
+assert.match(backendAudit, /fashion_products_select/);
+assert.match(backendAudit, /PostgreSQL permissive policies combine with OR semantics/);
+assert.match(backendAudit, /BLOCKED/);
+
 
 console.log('Industry workspace frontend contract: PASS');
 console.log('27 unique sectors aligned with the canonical registry; frontend-only boundary; RBAC-preserving routing; PWA loading/cache: PASS');
