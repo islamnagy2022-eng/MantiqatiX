@@ -31,7 +31,11 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin "$BASELINE_COMMIT" --depth=1
           git show "$BASELINE_COMMIT:supabase/tests/baselines/production_schema_snapshot.sql" > "$RUNNER_TEMP/production_schema_snapshot.sql"
+          git show "$BASELINE_COMMIT:supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql" > "$RUNNER_TEMP/tenant_isolation_two_tenant_fixture.sql"
+          git show "$BASELINE_COMMIT:scripts/verify-tenant-isolation.sql" > "$RUNNER_TEMP/verify-tenant-isolation.sql"
           test -s "$RUNNER_TEMP/production_schema_snapshot.sql"
+          test -s "$RUNNER_TEMP/tenant_isolation_two_tenant_fixture.sql"
+          test -s "$RUNNER_TEMP/verify-tenant-isolation.sql"
           git fetch --no-tags origin "$RC457_COMMIT" --depth=1
           git show "$RC457_COMMIT:supabase/migrations/20261019190000_rc457_medical_appointment_state_machine.sql" > supabase/migrations/20261019190000_rc457_medical_appointment_state_machine.sql
           test -s supabase/migrations/20261019190000_rc457_medical_appointment_state_machine.sql
@@ -122,8 +126,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          psql "$MNTY_REPLAY_DB_URL" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
-          psql "$MNTY_REPLAY_DB_URL" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
+          psql "$MNTY_REPLAY_DB_URL" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f "$RUNNER_TEMP/tenant_isolation_two_tenant_fixture.sql"
+          psql "$MNTY_REPLAY_DB_URL" -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/verify-tenant-isolation.sql"
 
       - name: Stop isolated Supabase project
         if: always()
