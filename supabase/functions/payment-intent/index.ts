@@ -128,7 +128,12 @@ Deno.serve(async (req) => {
   }
 
   const providerOrderId = String(provider?.intention_order_id ?? provider?.order_id ?? "");
-  if (response.status >= 400 && response.status < 500) {
+  const providerIntentId = String(provider?.id ?? "");
+  const providerClientSecret = String(provider?.client_secret ?? "");
+  // Only explicit, identifier-free provider rejections prove that no intention was created.
+  // Timeouts/rate limits/conflicts and any response containing provider identifiers are ambiguous.
+  if ([400, 401, 403, 404, 422].includes(response.status) &&
+      !providerIntentId && !providerClientSecret && !providerOrderId) {
     const { data: failedIntent, error: failError } = await admin.from("payment_intents")
       .update({ status: "FAILED", updated_at: new Date().toISOString() })
       .eq("id", paymentIntentId).eq("status", "CREATED").is("provider_intent_id", null)
