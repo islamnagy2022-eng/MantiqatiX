@@ -33,8 +33,10 @@
   const ACTIVITY_ASSET_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',TECH:'ERP',TRAVEL:'TRIPS',FITNESS:'SPORTS'};
   const activityImage = code => { const raw=String(code||'').toUpperCase(); const key=ACTIVITY_ASSET_ALIASES[raw]||raw; return OFFICIAL_ACTIVITY_ASSETS[key] ? 'assets/activities/'+OFFICIAL_ACTIVITY_ASSETS[key] : 'assets/activity/'+(ACTIVITY_IMAGES[raw]||'home.svg'); };
   const publicProfileImage = provider => {
-    const path=provider?.profile_image_path;
-    if(!path) return '';
+    const path=String(provider?.profile_image_path||'');
+    // Seeded showcase profiles may use local assets, not Storage object keys.
+    // Only turn owner-uploaded profile media paths into public Storage URLs.
+    if(!/^users\/[0-9a-f-]{36}\/providers\/[0-9a-f-]{36}\/(cover|logo)\.(jpg|jpeg|png|webp)$/i.test(path)) return '';
     try { const sb=getClient(); const url=sb?.storage?.from('mantiqatix-profile-media').getPublicUrl(path)?.data?.publicUrl || ''; return url ? url+'?v='+encodeURIComponent(String(provider?.updated_at||'1').replace(/[^A-Za-z0-9._:-]/g,'')) : ''; } catch(_) { return ''; }
   };
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
