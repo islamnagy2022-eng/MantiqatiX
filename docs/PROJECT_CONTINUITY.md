@@ -913,3 +913,8 @@ Follow-up: the first workflow edit added RC454–RC456 to `push` paths but initi
 ## 2026-10-19 — RC454 concurrent allocation race test
 
 Added a disposable-PostgreSQL concurrency regression to the Marketing Campaign Backend workflow. It waits until the first 60% participant insert has acquired the campaign lock and is sleeping inside an open transaction, then starts a second 60% active assignment. Expected evidence: first transaction succeeds, the second fails with `MARKETING_ALLOCATION_OVER_100`, and the final active allocation total is `1|60.00`. Static validator assertions require this workflow coverage. Await CI on the new exact head; this is not a production migration rehearsal and does not certify release. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
+
+
+## 2026-10-19 — Campaign allocation precheck parity
+
+The invitation form's client-side aggregate used to exclude only `DECLINED` and `REMOVED`, inadvertently counting `COMPLETED` assignments as active. RC454's database guard counts only `INVITED`, `ACCEPTED`, and `ACTIVE`; the UI precheck now uses the same exact status set. App asset version and PWA cache were advanced to `marketing-active-allocation-status-filter-20261019` and `mnty-web-v143`, with a source-contract assertion added. Await exact-head CI; browser behavior and production deployment remain unverified. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
