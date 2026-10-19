@@ -31,7 +31,7 @@ assert.match(ui, /إخفاء بيانات الموقع بعد انتهاء ال�
 assert.doesNotMatch(ui, /\bsb\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|\bfetch\s*\(|invokeMntyFunction|invokeMntyApi|createClient/, 'industry UI must remain frontend-only');
 assert.match(app, /window\.MNTYIndustryWorkspace\?\.supports\(current\)\)return window\.MNTYIndustryWorkspace\.render\(current\)/);
 assert.match(app, /if\(!window\.MNTYIndustryWorkspace\?\.supports\(current\)\)await loadDomainModule\(current\)/);
-assert.match(app, /window\.MNTY_RBAC\.can\(role,'الموديولات', 'view',live\.permissions\)/);
+assert.match(app, /window\.MNTY_RBAC\.can\(role,'الموديولات','view',live\.permissions\)/);
 assert.match(app, /window\.MNTYIndustryWorkspace\?\.renderHub\?\.\(\)/);
 assert.match(index, /industry-workspaces\.js\?v=ui20261019/);
 assert.match(sw, /const CACHE='mnty-web-v130'/);
