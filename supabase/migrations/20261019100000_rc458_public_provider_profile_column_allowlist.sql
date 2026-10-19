@@ -14,7 +14,7 @@ create or replace view public.marketing_provider_profiles_public
 with (security_barrier = true)
 as
 select id, business_id, name_ar, name_en, provider_kind, description,
-       service_areas, status, is_verified, is_featured, ranking_weight,
+       service_areas, status, is_verified, is_featured,
        profile_image_path, updated_at
 from public.marketing_provider_profiles
 where status = 'ACTIVE';
