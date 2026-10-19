@@ -943,3 +943,8 @@ The provider-owned invitation view now binds the current provider profile ID at 
 ## 2026-10-19 — Provider workspace declaration cleanup
 
 Removed the duplicate provider ID declaration that CI's JavaScript parser identified in the provider invitation view, and added a source-contract assertion to prevent redeclaration. App/PWA asset versions were refreshed; exact-head CI remains the evidence gate. Production remains **BLOCKED / NOT CERTIFIED**. `docs/SESSION_LOG.md` remains untouched.
+
+
+## 2026-10-19 — RC454 active-allocation status transition
+
+A focused review found that the RC454 trigger originally ran on allocation/scope columns but not on `status`. That left a path for a previously inactive participant to become active without rechecking the aggregate. Updated the trigger event to include `status` and added a validator assertion for that contract. The exact-head marketing PostgreSQL workflow passed on `d9e5f459aacadc788f0dc38307cca2b9b636d356`; its integration includes the status-reentry regression, while the workflow also runs the concurrent-allocation regression. This is not production certification; preserve **BLOCKED / NOT CERTIFIED**, do not merge/deploy, and leave `docs/SESSION_LOG.md` untouched.
