@@ -9,6 +9,23 @@ drop policy if exists marketing_services_public_active_read
 
 revoke all on table public.marketing_services from public, anon;
 
+-- Table-level REVOKE does not clear legacy column-level SELECT grants.
+do $rc457_column_grants$
+declare
+  v_column record;
+begin
+  for v_column in
+    select a.attname
+    from pg_catalog.pg_attribute a
+    where a.attrelid = 'public.marketing_services'::regclass
+      and a.attnum > 0
+      and not a.attisdropped
+  loop
+    execute pg_catalog.format('revoke select (%I) on table public.marketing_services from public, anon', v_column.attname);
+  end loop;
+end;
+$rc457_column_grants$;
+
 create or replace view public.marketing_services_public
 with (security_barrier = true)
 as
