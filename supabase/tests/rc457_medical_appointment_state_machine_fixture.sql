@@ -30,7 +30,7 @@ insert into public.medical_appointments(id,tenant_id,business_id,patient_id,doct
  ('appt-cancelled-terminal','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','provider-1',700,'CANCELLED'),
  ('appt-cross-tenant','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','provider-1',800,'BOOKED'),
  ('appt-booked-invalid-complete','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','provider-1',900,'BOOKED');
-create function public.update_medical_appointment_status_backend(p_user_id uuid,p_appointment_id text,p_target_status text) returns jsonb language sql as $ select '{}'::jsonb $;
+create function public.update_medical_appointment_status_backend(p_user_id uuid,p_appointment_id text,p_target_status text) returns jsonb language sql as 'select ''{}''::jsonb';
 grant usage on schema auth to authenticated, anon;
 grant execute on function auth.uid() to authenticated, anon;
 grant usage on schema public to authenticated, anon;
