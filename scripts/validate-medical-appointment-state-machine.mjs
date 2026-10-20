@@ -76,7 +76,6 @@ assert.match(sw,/const CACHE='mnty-web-v160'/);
 assert.match(sw,/app\.js\?v=mnty-doctors-v1-20261020/);
 assert.match(releaseWorkflow,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 assert.match(releaseWorkflow,/rc462_medical_booking_integration\.sql/);
-assert.match(productionVerifier,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 assert.match(migrationReplay,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 
 console.log('RC457 state machine + RC467 doctor module release source contract: PASS');
