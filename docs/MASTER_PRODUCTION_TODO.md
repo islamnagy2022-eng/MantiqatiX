@@ -1845,3 +1845,9 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Status updates request the updated row and report a clear failure if no row matched the owner-scoped update, rather than silently appearing successful.
 - [x] Added static assertions for owner-only controls and zero-row failure handling. Source commit `edeee30e5546956020f7ccbc999c934dea2a66a3`; validator commit `66a9bfa98276ebc78847847e5b29412b3627a2f1`.
 - [ ] CI and browser/RLS E2E pending. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — fashion product nullable branch scope — 2026-10-20
+- [x] Product creation now sends `branch_id: null` when the active membership has no branch, rather than an empty string that may fail UUID validation or misrepresent an absent scope.
+- [x] Added a static assertion for the null fallback. Source commit `680d433e682881d0f233a4ac4e46d95b23ebee4a`; validator commit `6423df32f69ed4ec24eaaaf0c556771e6ff95ab7`.
+- [ ] Exact-head CI/browser validation pending; no production changes or deployment. Release remains **BLOCKED / NOT CERTIFIED**.
