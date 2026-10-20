@@ -728,3 +728,9 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 - Read-only production SQL confirms the UI's three backend RPCs exist, allow execution to `authenticated`, and deny execution to `anon` and `PUBLIC`. The jobs and job-applications ID types align as UUID. No live database mutation was performed.
 - Keep the direct-table-write prohibition in place. Next blockers are exact-head CI completion, browser E2E, and the missing narrow authenticated read contract for used-item listings.
+
+
+## 2026-10-20 continuation — migration drift caution
+
+- Production's live migration inventory currently ends at `20261008222845` (150 records), while the branch has 140 migration files through `20261014230000_rc525_digital_page_product_platform_admin_scope.sql`. Do not apply a used-item grant or other new migration before reconciling this history.
+- Used-item query already avoids seller phone and unused fields, but production still lacks authenticated SELECT privileges. No production database mutation was performed.
