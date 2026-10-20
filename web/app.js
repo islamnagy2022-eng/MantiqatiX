@@ -1128,7 +1128,7 @@ async function createAccountingJournal(){
  const id='journal-'+crypto.randomUUID();
  const entry={
   id,tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,
-  entry_number:'MAN-'+new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14)+'-'+crypto.randomUUID().slice(0,6).toUpperCase(),
+  entry_number:'MAN-'+new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14)+'-'+crypto.randomUUID().slice(0,8).toUpperCase(),
   reference_type:'MANUAL',reference_id:referenceId.trim()||null,description:description.trim(),
   status:'POSTED',total_debit:amount,total_credit:amount,entry_date:new Date().toISOString().slice(0,10)
  };
@@ -1141,8 +1141,8 @@ async function createAccountingJournal(){
   const {data,error}=await sb.functions.invoke('financial-journal',{body:{tenantId:live.tenantId,entry,lines}});
   if(error||!data?.success)throw new Error(data?.error||error?.message||'JOURNAL_POST_FAILED');
   showToast('تم ترحيل القيد وتحديث دفتر الأستاذ','success');
-  live.moduleData={};
-  await loadDomainModule(current);
+  live.moduleData.ACCOUNTING={};
+  await loadEnterpriseDomainData(domainModules.find(m=>m.key==='ACCOUNTING'));
   renderApp();
  }catch(error){
   showToast('تعذر تأكيد ترحيل القيد. تحقق من سجل القيود قبل إعادة المحاولة لتجنب التكرار.','error');
