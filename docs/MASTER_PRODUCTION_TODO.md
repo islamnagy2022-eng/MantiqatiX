@@ -2036,3 +2036,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] The migration replay started from the pinned RC424 schema-only baseline and completed the configured ordered pending-migration replay plus disposable tenant-isolation checks; this is not a full replay of all historical migrations or production application evidence.
 - [ ] Still NOT VERIFIED: authenticated browser/API cash checkout and authorized cash confirmation, live two-tenant/business adversarial isolation, production Auth/security configuration, and backup/restore/disaster-recovery rehearsal.
 - [ ] PR #307 remains draft/open/unmerged. No production migration, merge, payment, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+### Build continuation — ERP runtime and cross-module scoping — 2026-10-20
+
+- [x] Add RC461 service-role-only ERP runtime gateway for purchase orders, purchase receiving, stock transfers, and scoped ERP reads.
+- [x] Connect both ERP workspace entry points to the gateway; keep backend-only ERP tables out of direct browser reads.
+- [x] Add PostgreSQL integration checks for authenticated actor propagation, membership denial, approval roles, branch isolation, operation allowlist, and RPC execution grants.
+- [x] Scope accounting journal lines through tenant/business/branch-filtered parent entries; scope matrimony contact unlocks through requests involving the current user; omit private contact columns from public-profile workspace reads.
+- [ ] Exact-head module validation and disposable migration replay must finish successfully; current runs are pending/in progress. Authenticated browser cash checkout/confirmation E2E, adversarial live tenant isolation, production Auth/security configuration, and backup/restore/DR rehearsal remain NOT VERIFIED.
+- [ ] Keep PR #307 draft/open/unmerged and global release **BLOCKED / NOT CERTIFIED**. No production migration or deployment has occurred.
