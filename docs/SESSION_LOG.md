@@ -128,3 +128,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Initial CI failed only because one validator assertion still expected the old label `واجهة فقط · Backend غير موصول`. Fixed in `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`.
 - **PASS on code head `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`:** Industry Workspaces UI Contract [39361656812], Marketing Workspace Contract [39361656822], Module Professionalization Validation [39361656750], Backend-only Module Boundary [39361656799] including approval-audit and RC450 financial-journal PostgreSQL jobs, MantiGO Open Ride Privacy Boundary [39361656727], and Pages validation [39361656795]. Pages deploy skipped as expected for a PR.
 - **Not done:** no merge, production deployment, schema change, payment, or data mutation. PR #300 remains open/draft; public home listing and inquiry/booking fallback contracts still need separate inventory and implementation. Global production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Public discovery status implementation and verification
+- Updated `web/home.js`: service listings state “منشورة للاستكشاف · التنفيذ حسب مسار مقدم الخدمة”; providers without a business binding remain visible and explicitly show that booking/order is incomplete. Their public profile remains accessible.
+- Extended `scripts/validate-booking-payment-flow.mjs` with source-contract checks for both listing and incomplete-booking states.
+- Exact tested code head `91927e5e859587be5f6f82634b1b0d937d76ca96`: all six PR workflows passed—Industry Workspaces UI Contract [39361834901], Marketing Workspace Contract [39361834885], Module Professionalization Validation [39361834886], Backend-only Module Boundary [39361834759], MantiGO Open Ride Privacy Boundary [39361834935], and Pages validation [39361834873]. Included PostgreSQL jobs passed; Pages deploy was skipped as expected on a PR.
+- No merge, deployment, database mutation, payment, or transaction occurred. Inquiry fallback remains pending until an existing server-authoritative and tenant-safe contact/lead contract is verified. Global release remains **BLOCKED / NOT CERTIFIED**.
