@@ -1633,3 +1633,89 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — RC425–RC441 recovery candidate checkpoint
+
+- Candidate PR [#286](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/286) restores RC425–RC432 and RC434–RC441 migration sources and coordinates four payment Edge Functions. It remains Draft; do not merge or deploy until the exact-head checks and review gates pass.
+- RC432 is aligned to canonical blob `7d2f8a27d173f04cbc22cec0a801818bde3aac07`, including the optional legacy four-argument SMM wallet RPC guard. This is source-level evidence only; fresh exact-head collision CI is still required.
+- Current branch was 37 commits ahead and 6 behind main. Only overlapping changed paths identified by compare were `docs/MASTER_PRODUCTION_TODO.md` and `docs/SESSION_LOG.md`; current main's other changes are preserved in the integration candidate.
+- Isolated forward replay through RC525 and the separate RC526 suite have recorded PASS runs, but RC526 still needs a combined chronological replay with all final candidates. These runs do not change production.
+- Live Supabase remains at RC424. RC431 payment hardening, RC450 financial-journal contract, deployed Edge Function parity, Paymob sandbox/finance E2E, tenant isolation, backup/restore, Auth review, and deployment verification remain release blockers.
+- Do not fabricate the missing historical creation migration for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`, alter historical migrations, or apply RC431/RC450/RC453/RC526 out of order. No production changes are authorized by this candidate.
+- Release gate: **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-18 — RC432 cross-PR collision remediation
+
+- [x] Exact-head PR #286 CI exposed a real RC432 source collision: eight open draft PRs carried the same migration path/version but a different blob (e6fafae64059671b32d8b1cf932d8f59171561d0) than the reviewed canonical source.
+- [x] Updated only the duplicated RC432 file on draft branches for PRs #282, #273, #271, #252, #248, #220, #218, and #84 to the canonical blob 7d2f8a27d173f04cbc22cec0a801818bde3aac07. Their unrelated files were left untouched; each branch update created its own commit.
+- [ ] Fresh collision-guard CI on PR #286 must confirm no remaining conflicting migration versions across open PRs. Do not infer success from the branch edits alone.
+- [ ] Keep PR #286 Draft and release BLOCKED / NOT CERTIFIED until all exact-head workflows pass and live production acceptance gates close.
+
+
+## 2026-10-18 — exact-head verification checkpoint (PR #286)
+
+- Candidate branch head observed: `775ccaa48cfd9e3a468c0e8a78a451473d8edb8e`. PR [#286](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/286) remains Draft/open; this is not a production release.
+- Exact-head CI passed: migration history immutability, migration version uniqueness, cross-PR migration collision guard, production schema static audit, forward migration replay, disposable tenant-isolation E2E, RC425 MantiGO Paymob atomicity, payment-intent/order correlation, webhook success/failure, approval audit atomicity, backend-only module boundary, MantiGO open-ride privacy, module professionalization, and Pages validation. The Pages deploy job was skipped.
+- Exact-head disposable replay applied 30 chronological migrations after the RC424 schema-only checkpoint through RC525, then passed both directions of tenant isolation. This proves replayability of that candidate snapshot, not production parity.
+- Separate combined replay [run 39090118306](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39090118306) passed on test commit `361c2fefca9c8907a1079b33ce81d15e69c901a1`, applying 31 migrations including RC526 and passing tenant isolation. **Checkpoint correction — 2026-10-19:** the current PR #286 file list now includes `20261014233000_rc526_mantigo_payment_intent_claim.sql`, its fixture/integration tests, and workflow. Draft PRs #289 and #295 also carry overlapping RC526 material, so the cross-PR migration collision guard and exact-head combined replay must pass before this candidate can be considered integrated. The earlier statement that RC526 was absent from PR #286 is stale.
+- The earlier cross-PR collision failure on prior head `c0cdf19...` was re-evaluated against the updated candidate. On current head, the guard passed ([run 39093404904](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39093404904)); the canonical RC432 blob is identical across the cited open PRs. Do not rename or rewrite this historical migration.
+- **Still BLOCKED / NOT CERTIFIED:** live production migration ledger remains at RC424; Paymob digital-page RPC and financial-journal live/source parity, customer-registration contract selection, deployed tenant-policy parity, live payment/finance/settlement E2E, Auth leaked-password protection, backup/restore rehearsal, release signing/device regression, monitoring/rollback, and production smoke remain outstanding. No production migration, function deployment, real payment, grant/RLS change, or release was performed.
+- **Next executable sequence:** integrate RC526 without losing its privacy/audit contracts; run exact-head combined chronological replay and all CI; resolve live/source drift through staged acceptance tests; perform approved staging Paymob/finance/restore exercises; only then consider a separately reviewed production release. Do not begin module expansion until this core gate is genuinely closed.
+
+
+## Digital-page finalizer ACL correction — 2026-10-19 (migration `20261016100000_digital_page_payment_intent_server_only_finalization.sql`)
+
+- Independent source review found the new finalization migration still granted `service_role` EXECUTE on the legacy four-argument `finalize_digital_page_payment_intent_backend`, contradicting the intended rule that only the provider-order-bound five-argument overload is callable by the trusted server.
+- Corrected the candidate migration to revoke the legacy four-argument overload from `service_role` as well as PUBLIC/anon/authenticated; the five-argument overload remains service-role-only.
+- Updated isolated PostgreSQL assertions to require zero EXECUTE for all roles on the legacy overload and to exercise claim/user/provider-order binding and idempotency only through the five-argument overload. Extended the static validator to fail if a later migration re-grants service_role on the legacy overload or removes service_role from the trusted overload.
+- New candidate commit: `f232691ce6a0caea7b21c8cf15752178f2b4bd82`. Exact-head CI was queued at checkpoint time; do not mark this correction PASS until the isolated finalization workflow and full ordered replay complete successfully.
+- No production ACL, migration, Edge Function, payment, or data was changed.
+
+
+## Migration identity clarification — 2026-10-19
+
+- The digital-page finalizer ACL correction is in `20261016100000_digital_page_payment_intent_server_only_finalization.sql`; it is not the business-registration migration.
+- `20261019150000_rc531_business_registration_atomicity.sql` is the RC531 business-registration atomicity migration. Keep their file/version identities distinct in reports and release checks.
+- The production verifier's required migration list includes RC525, RC526, the digital-page finalizer migration, and the RC531 business-registration migration. The contract validator now guards the presence of both later migrations.
+- Current exact-head Actions for branch `fix/rc425-mantigo-paymob-mainline` must be read from the latest commit; earlier passing runs do not transfer to later commits. Production remains BLOCKED while live reconciliation flags are false or runtime evidence is absent.
+
+
+## 2026-10-19 — Business registration organization-scope hardening (candidate)
+
+- Read-only review of the deployed/repository business-registration flow found that the Edge Function accepted a browser-supplied `organizationId` for ordinary authorized tenant members without proving that the organization matched the caller's active membership. Because the function uses the service-role client, this was a potential cross-organization assignment boundary.
+- Candidate fix on `fix/rc425-mantigo-paymob-mainline`: membership selection now matches the requested organization; non-platform users are rejected with `ORGANIZATION_SCOPE_FORBIDDEN` when the requested organization is outside their membership; platform-scope super-admins must also prove that the organization exists inside the requested tenant.
+- Added `scripts/tests/business-register-organization-scope.test.mjs` and wired it into `.github/workflows/backend-only-module-boundary.yml`.
+- Commit sequence: `8112c511366eff12e4db50e7a7cc0ff2acefacc7` (source), `b57f664892e4ac1bcac0d933fcad19b29fa74312` (contract test), `aa0ac7955c07936046da69a0dd59e9c4405fbebc` (CI wiring).
+- Status: **IMPLEMENTED — CI PENDING — NOT DEPLOYED**. Exact-head workflows were queued when recorded. The fix is source-only; no production Edge Function, grants, RLS, migration, or customer/business records were changed.
+- Release gate remains **BLOCKED / NOT CERTIFIED** pending exact-head CI, review of customer-registration parity and behavior, approved deployment, and post-deploy negative/positive tests.
+
+
+## 2026-10-19 — Live Edge Function parity gates (PR #286)
+
+- **Implemented in source, not deployed:** production verifier now blocks certification unless exact deployed-source parity evidence is explicitly recorded for `financial-journal`, `mnty-customer-registration`, and `business-register` organization scope.
+- Live read-only comparison found `financial-journal` v3 still uses wildcard CORS and legacy `post_financial_journal`; repository candidate uses the restricted GitHub Pages origin and `post_financial_journal_backend` after validating the bearer token. Do not quick-grant the legacy RPC or deploy outside the approved migration sequence.
+- Live `mnty-customer-registration` v4 still calls `private.ensure_customer_membership_for_user`; repository candidate calls `private.activate_customer_registration_atomic`. This remains a behavioral migration decision: test repeat registration, already-active membership, missing profile, cleanup on failure, concurrent calls, and audit failure before selecting the production contract.
+- Live `business-register` v8 does not yet include the repository candidate's requested-organization membership and tenant checks. The source fix and 7-assertion static regression test are on the release branch; production parity remains false.
+- The reconciliation manifest records these three parity booleans as `false`; no production database, Edge Function, payment, or customer data was changed.
+- **CI constraint:** exact-head PR checks were still `queued` at the last poll for `ca10e704cb9ed7e6dea464a8eb65b52ee453f708`. The new commits require a fresh exact-head run; queued runs are not test evidence.
+- Release status remains **BLOCKED / NOT CERTIFIED** until exact-head CI completes, ordered migration replay and integration tests pass, the approved Edge Functions are deployed, and post-deploy source/grant parity is independently captured.
+
+
+- **2026-10-19 follow-up:** strengthened drifted Edge Function parity gates further: a `true` flag alone is no longer sufficient. Each of `financial-journal`, `mnty-customer-registration`, and `business-register` now requires equal 64-character repository/deployed SHA-256 hashes, a dedicated evidence reference, and a check timestamp. The reconciliation manifest leaves the booleans false and all hashes/evidence references null until an actual approved post-deployment comparison. This prevents a generic evidence link or manually asserted boolean from certifying source parity.
+
+
+- **2026-10-19 — business-register tenant hardening:** the candidate Edge Function now explicitly requires the requested tenant to exist and have `status=ACTIVE` before membership/organization checks, because its service-role client bypasses RLS. Unexpected exceptions now return a generic `BUSINESS_REGISTER_FAILED` HTTP 500 instead of exposing database/schema error text to callers; server-side logs retain the diagnostic. The existing source-contract test now covers the active-tenant check and generic error response. This is not deployed; the release gate remains blocked pending exact-head CI and approved rollout.
+
+- **2026-10-19 — malformed business-registration request handling:** the candidate endpoint now converts invalid JSON, `null`, and non-object/array bodies into `INVALID_JSON_BODY` HTTP 400 instead of treating parser failures as internal server errors. The contract test asserts this behavior. This is source-only; await CI and approved deployment.
+
+
+## 2026-10-20 — Digital-page finalization validator correction and exact-head CI
+
+- [x] Corrected stale assertions in `scripts/validate-digital-pages-boundaries.mjs` to match the current server-side provider correlation variables `providerIntentId` and `providerClientSecret`; runtime payment code was not changed by this fix.
+- [x] Verified Digital Page Payment Finalization Isolation run `39359692387`: disposable PostgreSQL grant/behavior checks and the source-contract validator passed.
+- [x] Verified all 19 PR-triggered workflows passed on head `e4ca802c3c5c6408791b0c12b791f5b0fc985c94`, including RC426/RC427 payment binding/idempotency, webhook success/failure, business registration atomicity, RC425/RC526 MantiGO Paymob, finance boundary, tenant-isolation E2E, module professionalization, migration uniqueness/history/collision, and forward replay from the captured RC424 schema checkpoint.
+- [ ] The replay does not certify a blank-database replay of all historical migrations; authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unresolved.
+- [ ] PR #286 remains draft/open/unmerged. Real Paymob sandbox/production E2E, live deployed-source parity, leaked-password protection owner action, backup/restore and rollback, browser/push/device and Android verification, and final release evidence remain open.
+- [ ] Last read-only production migration checkpoint remains RC424 (`20261008222845`, 283 applied versions). No production migration, Edge Function deployment, payment, merge, or release occurred. Global release remains **BLOCKED / NOT CERTIFIED**.

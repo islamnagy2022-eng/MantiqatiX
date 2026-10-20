@@ -30,5 +30,27 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "financial_journal_deployed_source_parity": false,
+  "customer_registration_deployed_source_parity": false,
+  "business_register_organization_scope_deployed_source_parity": false,
+  "edge_function_parity_evidence": {
+    "status": "NOT VERIFIED",
+    "checked_against_live_versions_on": "2026-10-19",
+    "observations": [
+      "financial-journal live version 3 uses legacy post_financial_journal RPC and wildcard CORS; repository candidate uses authenticated post_financial_journal_backend and restricted origin.",
+      "mnty-customer-registration live version 4 calls private.ensure_customer_membership_for_user; repository candidate calls private.activate_customer_registration_atomic. Behavioral compatibility remains unresolved.",
+      "business-register live version 8 accepts caller-supplied organizationId without the new requested-organization membership and tenant validation present in the repository candidate."
+    ],
+    "release_rule": "For each drifted function, set the parity boolean true only after comparing the deployed function's exact source with the reviewed repository source. Record both 64-character SHA-256 hashes, require equality, provide a dedicated evidence reference for each function, and record checked_at. Never use a placeholder hash or a generic evidence reference."
+  },
+  "financial_journal_repository_source_sha256": null,
+  "financial_journal_deployed_source_sha256": null,
+  "financial_journal_parity_evidence_ref": null,
+  "customer_registration_repository_source_sha256": null,
+  "customer_registration_deployed_source_sha256": null,
+  "customer_registration_parity_evidence_ref": null,
+  "business_register_organization_scope_repository_source_sha256": null,
+  "business_register_organization_scope_deployed_source_sha256": null,
+  "business_register_organization_scope_parity_evidence_ref": null
 }

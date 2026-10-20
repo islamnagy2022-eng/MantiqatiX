@@ -577,3 +577,61 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+### RC531 — Legacy finalizer privilege bug fixed in candidate — 2026-10-19
+- Source review found a privilege-contract contradiction: the candidate's finalization migration explicitly granted `service_role` EXECUTE on the legacy four-argument digital-page finalizer, although the intended trust boundary permits only the five-argument provider-order-bound overload.
+- Fixed the forward-only candidate migration to revoke service_role from the legacy overload. Updated the isolated PostgreSQL test to assert anon/authenticated/service_role cannot execute the legacy overload; only service_role can execute the five-argument overload. The regression tests now exercise successful/idempotent binding and conflicting provider-order rejection through the five-argument overload.
+- Updated `scripts/validate-digital-pages-boundaries.mjs` so migration replay validation fails if the legacy overload is re-granted to service_role or the five-argument trusted overload loses service_role EXECUTE.
+- Candidate head at this checkpoint before this continuity-only commit: `810ced93426848567d1504a3d3ac7e1dcef08cb5` (migration/test/validator fix was `f232691ce6a0caea7b21c8cf15752178f2b4bd82`). The exact-head finalization isolation and ordered replay workflows were queued; result not yet verified.
+- Restored `docs/SESSION_LOG.md` to the exact main-branch blob so PR #286 no longer changes that protected file.
+- Production remains at RC424; no production DDL/ACL/Auth/RLS changes, Edge Function deployment, payment, or data mutation occurred. Keep release BLOCKED until exact-head tests, manual baseline/security review, external E2E, and backup/restore evidence pass.
+
+
+## Candidate security fix — business registration organization scope (2026-10-19)
+
+A service-role-backed `business-register` Edge Function accepted `organizationId` from the browser for a normal tenant member without checking that the requested organization matched an active membership. That is a potential cross-organization assignment vulnerability. The candidate branch now binds ordinary members to their membership organization and validates platform-admin organization selections against the same tenant. A focused static regression test is wired into Backend-only Module Boundary CI. Commits: `8112c511366eff12e4db50e7a7cc0ff2acefacc7`, `b57f664892e4ac1bcac0d933fcad19b29fa74312`, `aa0ac7955c07936046da69a0dd59e9c4405fbebc`. Exact-head CI is pending; this has not been deployed. The production release gate remains blocked.
+
+
+## Latest continuation — 2026-10-19
+
+PR #286 adds a production-verifier gate requiring live-to-repository source parity evidence for the drifted `financial-journal`, `mnty-customer-registration`, and `business-register` functions. The release reconciliation manifest explicitly records all three as `false` / not verified. Read-only live inspection confirmed:
+
+- `financial-journal` v3: wildcard CORS and legacy `post_financial_journal` RPC; repository candidate validates the bearer user and calls `post_financial_journal_backend`.
+- `mnty-customer-registration` v4: live `ensure_customer_membership_for_user` differs from candidate `activate_customer_registration_atomic`; acceptance semantics need to be resolved and tested before deployment.
+- `business-register` v8: live code lacks requested organization membership/tenant validation present in the branch candidate.
+
+No production changes were made. The prior exact-head Actions runs for `ca10e704cb9ed7e6dea464a8eb65b52ee453f708` remained queued at the last poll; all new commits require exact-head CI evidence. Keep PR #286 open/draft and production release **BLOCKED / NOT CERTIFIED**. Never update `docs/SESSION_LOG.md` in this workflow.
+
+
+## 2026-10-19 — Hash-backed source parity gate
+
+The production verifier now requires, for each drifted function (`financial-journal`, `mnty-customer-registration`, and `business-register`), a true parity flag, matching 64-character repository and deployed SHA-256 hashes, a dedicated evidence reference, and a timestamp. The reconciliation manifest deliberately records false/null values until approved post-deployment evidence exists. This is source-only hardening; no production change was performed. The PR Actions queue was still stalled at the last poll, with all 24 runs for the then-current head queued; new commits require a fresh exact-head run.
+
+
+## 2026-10-19 — business-register tenant and error boundary
+
+Added a candidate source guard in `supabase/functions/business-register/index.ts`: service-role code explicitly checks that the requested tenant exists and is ACTIVE before authorization, and unexpected errors are logged server-side but returned as generic `BUSINESS_REGISTER_FAILED` HTTP 500. Extended `scripts/tests/business-register-organization-scope.test.mjs` to assert the tenant-state guard and prevent returning raw exception messages. This remains repository-only and requires exact-head CI plus approved deployment and live parity evidence.
+
+### Follow-up: malformed business-registration payloads (2026-10-19)
+`business-register` now returns `INVALID_JSON_BODY` with HTTP 400 for malformed JSON and non-object/array bodies. Added two static contract assertions. This does not affect production until the release is approved and deployed.
+
+
+## 2026-10-19 — RC432 and business-registration CI follow-up
+
+- **RC432 source identity checked:** `supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql` had the same Git blob SHA `7d2f8a27d173f04cbc22cec0a801818bde3aac07` on the current release branch and the inspected open recovery branches for PRs #273 and #282. This supports a single canonical source identity; it does not substitute for the exact-head collision-guard result. The guard on the earlier head `b5802625543df635246e0f7f5e902840825f64e3` was still queued at the last check. The latest branch head below needs fresh exact-head CI.
+- **Business Registration Atomicity workflow correction:** review found its job applied RC531 but not the follow-on RC532 inherited-organization-scope and RC533 audit-atomicity migrations, while its contract/integration tests read and assert RC532/RC533 behavior. Updated `.github/workflows/business-registration-atomicity.yml` to trigger on both later migration files and apply RC531 → RC532 → RC533 in chronological order before the integration suite. Workflow commit: `08f9c98321e71b7da56d7ef1da7ee8936babb0f7`.
+- **Integration SQL correction:** fixed the audit-failure trigger's malformed single-dollar PL/pgSQL delimiter to valid `$$` quoting. Verified the fetched file contains the corrected opening and closing delimiters and no longer contains the malformed pattern. Commit: `b7fa1f2267885ecdea94a2d54a952ae648044cef`.
+- **Verification boundary:** these are source/workflow corrections and text-level consistency checks, not a claimed PostgreSQL integration pass. The current PR #286 head is `b7fa1f2267885ecdea94a2d54a952ae648044cef`; exact-head CI results have not yet been confirmed. No production migration, function deployment, grants/RLS/Auth change, payment, or financial record was changed. Keep PR #286 Draft and production **BLOCKED / NOT CERTIFIED**.
+- **Next:** verify the exact-head registration atomicity, collision guard, migration history/uniqueness, full ordered replay, tenant-isolation, payment and financial integration runs. Continue only from the latest observed head; do not transfer older run results to it.
+
+
+## Continuation checkpoint — 2026-10-20 — payment finalizer CI closed
+
+- Current tested code head: `e4ca802c3c5c6408791b0c12b791f5b0fc985c94`. All 19 PR-triggered workflows passed.
+- Fixed stale source-validator assertions for the digital-page Paymob provider intent correlation variables. The isolated PostgreSQL finalizer workflow passed both grant/behavior checks and the source validator.
+- Forward replay from the captured RC424 schema checkpoint and disposable tenant-isolation E2E passed; this is not a blank-database replay of all historical migrations.
+- RC426/RC427 payment binding/idempotency, webhook success/failure, business-registration atomicity, RC425/RC526 MantiGO payment, financial journal boundary, module professionalization, migration uniqueness/history/collision, and web validation all passed. Pages deployment was skipped in PR context.
+- PR #286 remains draft/open/unmerged; no production migration, Edge Function deployment, payment, merge, or deployment occurred.
+- Continue with real Paymob sandbox/authorized payment E2E, live deployed-source parity, Auth leaked-password owner action, backup/restore/rollback, browser/push/device and signed Android verification. Historical blank-database replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- Production remains last read-only verified at RC424 (`20261008222845`, 283 versions). Global release remains **BLOCKED / NOT CERTIFIED**.

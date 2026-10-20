@@ -1,11 +1,14 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Vary":"Origin"};
+const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":"https://islamnagy2022-eng.github.io","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Vary":"Origin"};
 function response(body:Record<string,unknown>,status=200){return new Response(JSON.stringify(body),{status,headers});}
 function safeCode(name:string){const slug=name.trim().toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24)||"BUSINESS";return slug+"-"+crypto.randomUUID().slice(0,8).toUpperCase();}
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers});
  if(req.method!=="POST")return response({error:"METHOD_NOT_ALLOWED"},405);
+ if((req.headers.get("content-type")||"").split(";")[0].trim().toLowerCase()!=="application/json")return response({error:"UNSUPPORTED_MEDIA_TYPE"},415);
+ const declaredLength=Number(req.headers.get("content-length")||0);
+ if(Number.isFinite(declaredLength)&&declaredLength>16384)return response({error:"REQUEST_BODY_TOO_LARGE"},413);
  try{
   const authorization=req.headers.get("Authorization");
   if(!authorization?.startsWith("Bearer "))return response({error:"AUTH_REQUIRED"},401);
@@ -13,26 +16,59 @@ Deno.serve(async(req)=>{
   const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const {data:{user},error:authError}=await supabase.auth.getUser(token);
   if(authError||!user||user.is_anonymous)return response({error:"AUTH_REQUIRED"},401);
-  const body=await req.json();
+  // Read incrementally so a chunked request cannot force an unbounded request-body allocation.
+  const reader=req.body?.getReader();
+  const chunks:Uint8Array[]=[];
+  let totalBytes=0;
+  if(reader){
+    while(true){
+      const {done,value}=await reader.read();
+      if(done)break;
+      totalBytes+=value.byteLength;
+      if(totalBytes>16384){
+        await reader.cancel().catch(()=>{});
+        return response({error:"REQUEST_BODY_TOO_LARGE"},413);
+      }
+      chunks.push(value);
+    }
+  }
+  const payloadBytes=new Uint8Array(totalBytes);
+  let offset=0;
+  for(const chunk of chunks){payloadBytes.set(chunk,offset);offset+=chunk.byteLength;}
+  let rawBody:string;
+  try{rawBody=new TextDecoder("utf-8",{fatal:true}).decode(payloadBytes);}
+  catch{return response({error:"INVALID_JSON_BODY"},400);}
+  let body:Record<string,unknown>|null=null;
+  try{body=JSON.parse(rawBody);}catch{body=null;}
+  if(!body||typeof body!=="object"||Array.isArray(body))return response({error:"INVALID_JSON_BODY"},400);
+  const stringFields=["tenantId","name","sector","address","phone","city","district","organizationId"];
+  if(stringFields.some((key)=>body[key]!==undefined&&body[key]!==null&&typeof body[key]!=="string"))return response({error:"INVALID_FIELD_TYPE"},400);
   const tenantId=String(body.tenantId??"").trim(),name=String(body.name??"").trim(),sector=String(body.sector??"GENERAL").trim().toUpperCase();
   const address=String(body.address??"").trim(),phone=String(body.phone??"").trim(),city=String(body.city??"").trim(),district=String(body.district??"").trim();
-  const organizationId=body.organizationId?String(body.organizationId):null;
+  const organizationId=typeof body.organizationId==="string"&&body.organizationId.trim()?body.organizationId.trim():null;
   if(!tenantId||!name)return response({error:"TENANT_AND_NAME_REQUIRED"},400);
+  // tenant_id and organization_id are varchar in the database contract; do not impose UUID-only formats.
+  if(tenantId.length>128||(organizationId!==null&&organizationId.length>128)||/[\u0000-\u001F\u007F]/.test(tenantId)||(organizationId!==null&&/[\u0000-\u001F\u007F]/.test(organizationId)))return response({error:"INVALID_TENANT_OR_ORGANIZATION_ID"},400);
   if(name.length>200||phone.length>64||address.length>500||city.length>120||district.length>120||sector.length>80)return response({error:"FIELD_TOO_LONG"},400);
-  const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,role,business_id,organization_id,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").limit(20);
-  if(membershipError)throw membershipError;
-  const allowedRoles=new Set(["SERVICE_PROVIDER","BUSINESS_OWNER","OWNER","ADMIN"]);
-  const membership=(memberships||[]).find((m)=>allowedRoles.has(String(m.role||"").toUpperCase()));
-  const superAdmin=(memberships||[]).find((m)=>String(m.role||"").toUpperCase()==="SUPER_ADMIN"&&m.business_id==null&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
-  if(!membership&&!superAdmin)return response({error:"BUSINESS_CREATE_ROLE_REQUIRED"},403);
-  const {data:existing}=await supabase.from("approval_requests").select("id,business_id,status").eq("tenant_id",tenantId).eq("requested_by",user.id).eq("entity_type","BUSINESS").eq("request_type","CREATE").eq("status","PENDING").limit(1);
-  if(existing?.length)return response({error:"PENDING_BUSINESS_REQUEST_EXISTS",businessId:existing[0].business_id??null},409);
-  const code=safeCode(name),resolvedOrganizationId=organizationId||membership?.organization_id||null;
-  const {data:business,error}=await supabase.from("businesses").insert({tenant_id:tenantId,organization_id:resolvedOrganizationId,name,code,status:"INACTIVE",settings:{sector,address,phone,city,district,registration_source:"web",approval_status:"PENDING"}}).select("id,name,code,status,tenant_id,organization_id").single();
-  if(error)throw error;
-  const requestId="APR-"+crypto.randomUUID();
-  const {error:approvalError}=await supabase.from("approval_requests").insert({id:requestId,tenant_id:tenantId,organization_id:resolvedOrganizationId,business_id:business.id,request_type:"CREATE",entity_type:"BUSINESS",entity_id:business.id,requested_by:user.id,status:"PENDING",priority:"NORMAL",reason:"طلب تسجيل نشاط جديد من الويب",metadata:{sector,address,phone,city,district,created_by_super_admin:!!superAdmin}});
-  if(approvalError){await supabase.from("businesses").delete().eq("id",business.id);throw approvalError;}
-  return response({success:true,business,approvalRequestId:requestId,pendingApproval:true});
- }catch(error){return response({error:error instanceof Error?error.message:"BUSINESS_REGISTER_FAILED"},400);}
+  // The atomic database RPC is the authority for tenant, membership, organization,
+  // and pending-request checks; avoid divergent preflight decisions in this handler.
+  const requestedOrganizationId=organizationId?.trim()||null;
+  const code=safeCode(name);
+  const {data:registration,error:registrationError}=await supabase.rpc("register_business_with_approval_atomic",{
+    p_actor_user_id:user.id,p_tenant_id:tenantId,p_organization_id:requestedOrganizationId,
+    p_name:name,p_code:code,p_sector:sector,p_address:address,p_phone:phone,p_city:city,p_district:district
+  });
+  if(registrationError)throw registrationError;
+  if(!registration||registration.success!==true){
+    const errorCode=String(registration?.error??"BUSINESS_REGISTER_FAILED");
+    const status=errorCode==="PENDING_BUSINESS_REQUEST_EXISTS"?409:
+      (errorCode==="ACTIVE_TENANT_REQUIRED"||errorCode==="BUSINESS_CREATE_ROLE_REQUIRED"||errorCode==="ORGANIZATION_SCOPE_FORBIDDEN")?403:500;
+    return response({error:errorCode,businessId:registration?.businessId??null},status);
+  }
+  return response(registration);
+ }catch(error){
+  // Do not expose Postgres, schema, or provider internals to an untrusted caller.
+  console.error("business-register failed",error instanceof Error?error.message:"unknown_error");
+  return response({error:"BUSINESS_REGISTER_FAILED"},500);
+}
 });

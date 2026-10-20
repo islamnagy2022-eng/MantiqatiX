@@ -14,7 +14,98 @@ add("SEC-FRONTEND-SENSITIVE-WRITES","SECURITY",!(/from\(['"](?:orders|payment_in
 const payment=exists("supabase/functions/payment-intent/index.ts")?read("supabase/functions/payment-intent/index.ts"):"";
 for(const [id,re,label] of [["PAY-AUTH","admin\\.auth\\.getUser","authenticated user lookup"],["PAY-RPC","create_payment_intent_backend","backend payment authority"],["PAY-IDEMP","idempotencyKey","idempotency input"],["PAY-CONTACT","CUSTOMER_BILLING_CONTACT_REQUIRED","real billing contact guard"]])add(id,"FINANCE",new RegExp(re).test(payment)?"PASS":"FAIL",label,"P0");
 const digital=exists("supabase/functions/digital-page-payment-intent/index.ts")?read("supabase/functions/digital-page-payment-intent/index.ts"):"";
+
+const paymentCorrelationSafe=Boolean(
+  payment.includes('from "../_shared/paymob-intent-correlation.mjs"') &&
+  payment.includes("isValidPaymobAmountCents(amount, amountCents)") &&
+  payment.includes("PAYMENT_PROVIDER_INTENT_MISMATCH") &&
+  payment.indexOf("const providerCorrelationMatches = matchesPaymobIntention({")>=0 &&
+  payment.indexOf("const providerCorrelationMatches = matchesPaymobIntention({")<payment.indexOf('admin.from("payment_intents").update({')
+);
+add("PAY-INTENT-CORRELATION","FINANCE",paymentCorrelationSafe?"PASS":"BLOCKED",
+  paymentCorrelationSafe
+    ?"Normal order payment validates exact cents and provider amount/currency/reference before checkout success."
+    :"Normal order payment lacks the required exact-cent/provider-response correlation boundary.",
+  "P0");
+
+const subscriptionPayment=exists("supabase/functions/subscription-payment-intent/index.ts")?read("supabase/functions/subscription-payment-intent/index.ts"):"";
+const subscriptionCorrelationSafe=Boolean(
+  subscriptionPayment.includes('from "../_shared/paymob-intent-correlation.mjs"') &&
+  subscriptionPayment.includes("isValidPaymobAmountCents(Number(intent.amount), amountMinor)") &&
+  subscriptionPayment.includes("PAYMENT_PROVIDER_INTENT_MISMATCH") &&
+  subscriptionPayment.indexOf("if (!matchesPaymobIntention({")>=0 &&
+  subscriptionPayment.indexOf("if (!matchesPaymobIntention({")<subscriptionPayment.indexOf("const { data: updated, error: updateError }")
+);
+add("SUBSCRIPTION-PAY-CORRELATION","FINANCE",subscriptionCorrelationSafe?"PASS":"BLOCKED",
+  subscriptionCorrelationSafe
+    ?"Subscription payment validates exact cents and provider amount/currency/reference before checkout success."
+    :"Subscription payment lacks the required exact-cent/provider-response correlation boundary.",
+  "P0");
+
+const digitalCorrelationSafe=Boolean(
+  digital.includes('from "../_shared/paymob-intent-correlation.mjs"') &&
+  digital.includes("isValidPaymobAmountCents(amount,amountCents)") &&
+  digital.includes("PAYMENT_PROVIDER_INTENT_MISMATCH") &&
+  digital.indexOf("if(!matchesPaymobIntention(")>=0 &&
+  digital.indexOf("if(!matchesPaymobIntention(")<digital.indexOf('admin.rpc("finalize_digital_page_payment_intent_backend"')
+);
+add("DIG-PAY-CORRELATION","FINANCE",digitalCorrelationSafe?"PASS":"BLOCKED",
+  digitalCorrelationSafe
+    ?"Digital-page payment validates exact cents and provider amount/currency/reference before trusted finalization."
+    :"Digital-page payment lacks the required exact-cent/provider-response correlation boundary.",
+  "P0");
+
+const digitalClaimReleaseSafe=Boolean(
+  digital.includes("return !error&&data===true") &&
+  digital.includes("PAYMENT_REJECTION_REQUIRES_RECONCILIATION")
+);
+add("DIG-PAY-CLAIM-RELEASE","FINANCE",digitalClaimReleaseSafe?"PASS":"BLOCKED",
+  digitalClaimReleaseSafe
+    ?"Digital-page payment checks claim release success and keeps reconciliation required if release fails."
+    :"Digital-page claim release result is not verified; a failed release must not be reported as a clean provider rejection.",
+  "P0");
+
+const ambiguousPaymentOutcomesSafe=Boolean(
+  payment.includes("[400, 401, 403, 404, 422].includes(response.status)") &&
+  payment.includes("!providerIntentId && !providerClientSecret && !providerOrderId") &&
+  !payment.includes("response.status >= 400 && response.status < 500") &&
+  digital.includes("[400,401,403,404,422].includes(providerResponseStatus)") &&
+  digital.includes("!providerIntentId&&!providerClientSecret&&!providerOrderId") &&
+  !digital.includes("providerResponseStatus>=400&&providerResponseStatus<500")
+);
+add("PAY-AMBIGUOUS-OUTCOMES","FINANCE",ambiguousPaymentOutcomesSafe?"PASS":"BLOCKED",
+  ambiguousPaymentOutcomesSafe
+    ?"Only explicit identifier-free provider rejections can fail/release a payment attempt; ambiguous responses remain quarantined."
+    :"Payment handlers may release or fail an attempt on an ambiguous provider response.",
+  "P0");
 if(digital)for(const [id,re,label] of [["DIG-CLAIM","claim_digital_page_payment_intent_backend","race-safe claim"],["DIG-FINALIZE","finalize_digital_page_payment_intent_backend","provider finalize"],["DIG-RELEASE","release_digital_page_payment_intent_claim_backend","failure release"],["DIG-RACE","PAYMENT_INTENT_IN_PROGRESS","concurrency response"]])add(id,"FINANCE",new RegExp(re).test(digital)?"PASS":"FAIL",label,"P0");else add("DIGITAL-PAYMENT-SOURCE","FINANCE","NOT VERIFIED","digital-page-payment-intent source was not present in the checked tree.","P0");
+const digitalFinalizerMigrationPath="supabase/migrations/20261016100000_digital_page_payment_intent_server_only_finalization.sql";
+const digitalFinalizerMigration=exists(digitalFinalizerMigrationPath)?read(digitalFinalizerMigrationPath):"";
+const digitalFinalizerTestPath="supabase/tests/digital_page_payment_intent_server_only_finalization.sql";
+const digitalFinalizerSourceSafe=Boolean(
+  digital.includes('admin.rpc("finalize_digital_page_payment_intent_backend"') &&
+  !digital.includes('userClient.rpc("finalize_digital_page_payment_intent_backend"') &&
+  digitalFinalizerMigration.includes("from authenticated") &&
+  digitalFinalizerMigration.includes("to service_role") &&
+  exists(digitalFinalizerTestPath)
+);
+add("DIG-FINALIZE-SOURCE-CONTRACT","SECURITY",digitalFinalizerSourceSafe?"PASS":"BLOCKED",
+  digitalFinalizerSourceSafe
+    ?"Candidate uses server-role finalization, revokes authenticated EXECUTE, and includes isolated regression tests."
+    :"Server-only finalization source/migration/test contract is incomplete; direct authenticated finalization must remain blocked.",
+  "P0");
+
+const mantigoIntentPath="supabase/functions/mantigo-payment-intent/index.ts";
+const mantigoIntent=exists(mantigoIntentPath)?read(mantigoIntentPath):"";
+const mantigoProviderRequest=mantigoIntent.indexOf('fetch("https://accept.paymob.com/v1/intention/"');
+const mantigoClaim=mantigoIntent.indexOf('admin.rpc("claim_mantigo_payment_intent_backend"');
+const mantigoFinalize=mantigoIntent.indexOf('admin.rpc("finalize_mantigo_payment_intent_backend"');
+const mantigoRelease=mantigoIntent.indexOf('admin.rpc("release_mantigo_payment_intent_claim_backend"');
+add("MANTIGO-PAY-SOURCE","FINANCE",mantigoIntent?"PASS":"FAIL",mantigoIntent? `exists: ${mantigoIntentPath}` : `missing: ${mantigoIntentPath}`,"P0");
+add("MANTIGO-PAY-CLAIM","FINANCE",mantigoClaim>=0&&mantigoProviderRequest>=0&&mantigoClaim<mantigoProviderRequest?"PASS":"FAIL","RC526 claim RPC must run before the external Paymob intention request.","P0");
+add("MANTIGO-PAY-FINALIZE","FINANCE",mantigoFinalize>=0&&mantigoFinalize>mantigoProviderRequest?"PASS":"FAIL","RC526 finalization RPC must persist the correlated provider response after the external request.","P0");
+add("MANTIGO-PAY-RELEASE","FINANCE",mantigoRelease>=0&&mantigoIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN")&&mantigoIntent.includes("recoveryRequired:true")?"PASS":"FAIL","Confirmed provider rejection may release its matching claim; ambiguous outcomes must preserve claim and require recovery.","P0");
+add("MANTIGO-PAY-CORRELATION","FINANCE",mantigoIntent.includes('from "../_shared/paymob-intent-correlation.mjs"')&&mantigoIntent.includes("matchesPaymobIntention")&&mantigoIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH")?"PASS":"FAIL","Paymob response must be correlated against ledger amount, currency, and reference before finalization.","P0");
 const md=path.join(root,"supabase","migrations"), mf=exists("supabase/migrations")?fs.readdirSync(md).filter(x=>x.endsWith(".sql")):[];
 const dup=[...new Set(mf.filter((f,i,a)=>a.indexOf(f)!==i))];
 add("DB-MIGRATION-UNIQUE","DATABASE",dup.length?"FAIL":"PASS",dup.length?JSON.stringify(dup):`checked ${mf.length} migration filenames`,dup.length?"P0":"P1");
@@ -46,7 +137,11 @@ const requiredReleaseMigrations=[
   "20261010200000_rc451_targeted_ads_empty_search_path.sql",
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
-  "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261014230000_rc525_digital_page_product_platform_admin_scope.sql",
+  "20261014233000_rc526_mantigo_payment_intent_claim.sql",
+  "20261016100000_digital_page_payment_intent_server_only_finalization.sql",
+  "20261019150000_rc531_business_registration_atomicity.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
@@ -75,9 +170,43 @@ const liveReconciliationVerified=Boolean(
   reconciliation.edge_function_contracts==="PASS" &&
   reconciliation.smm_gateway_parity==="PASS" &&
   reconciliation.auth_security_settings==="PASS" &&
+  reconciliation.digital_page_finalization_trust_boundary==="PASS" &&
+  reconciliation.digital_page_finalization_deployed_source_parity===true &&
+  reconciliation.financial_journal_deployed_source_parity===true &&
+  reconciliation.customer_registration_deployed_source_parity===true &&
+  reconciliation.business_register_organization_scope_deployed_source_parity===true &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
 );
+const digitalFinalizerLiveParityVerified=Boolean(
+  reconciliation &&
+  reconciliation.digital_page_finalization_trust_boundary==="PASS" &&
+  reconciliation.digital_page_finalization_deployed_source_parity===true
+);
+add("DIG-FINALIZE-LIVE-PARITY","SECURITY",digitalFinalizerLiveParityVerified?"PASS":"BLOCKED",
+  digitalFinalizerLiveParityVerified
+    ?"Approved live evidence confirms the server-only finalizer grant boundary and exact deployed Edge Function source parity."
+    :"Live grant/function and deployed Edge Function parity evidence is missing; source CI cannot close this production gate.",
+  "P0");
+const edgeParityChecks=[
+  ["EDGE-FINANCIAL-JOURNAL-PARITY","financial_journal_deployed_source_parity","financial_journal_repository_source_sha256","financial_journal_deployed_source_sha256","financial_journal_parity_evidence_ref","financial-journal"],
+  ["EDGE-CUSTOMER-REGISTRATION-PARITY","customer_registration_deployed_source_parity","customer_registration_repository_source_sha256","customer_registration_deployed_source_sha256","customer_registration_parity_evidence_ref","mnty-customer-registration"],
+  ["EDGE-BUSINESS-REGISTER-SCOPE-PARITY","business_register_organization_scope_deployed_source_parity","business_register_organization_scope_repository_source_sha256","business_register_organization_scope_deployed_source_sha256","business_register_organization_scope_parity_evidence_ref","business-register organization-scope fix"]
+];
+for(const [id,key,repositoryShaKey,deployedShaKey,evidenceKey,label] of edgeParityChecks){
+  const repositorySha=reconciliation?.[repositoryShaKey];
+  const deployedSha=reconciliation?.[deployedShaKey];
+  const evidenceRef=reconciliation?.[evidenceKey];
+  const verified=Boolean(reconciliation && reconciliation[key]===true &&
+    typeof repositorySha==="string" && /^[a-f0-9]{64}$/i.test(repositorySha) &&
+    typeof deployedSha==="string" && /^[a-f0-9]{64}$/i.test(deployedSha) && repositorySha.toLowerCase()===deployedSha.toLowerCase() &&
+    typeof evidenceRef==="string" && evidenceRef.trim().length>0 &&
+    typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0);
+  add(id,"SECURITY",verified?"PASS":"BLOCKED",
+    verified?`Live evidence confirms matching SHA-256 source hashes and a dedicated evidence reference for ${label}.`:
+      `Exact source parity for ${label} requires a true parity flag, matching 64-character repository/deployed SHA-256 hashes, a dedicated evidence reference, and a check timestamp.`,
+    "P0");
+}
 const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked

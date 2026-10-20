@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 
 const URL=Deno.env.get("SUPABASE_URL")??"";
 const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
@@ -46,20 +47,47 @@ Deno.serve(async req=>{
  if(!row)return json({error:"PAYMENT_CLAIM_FAILED"},500);
  if(row.claim_status==="EXISTING")return json({orderId:row.id,status:row.payment_status,provider:"PAYMOB",clientSecret:null,checkoutUrl:null},200);
  if(row.claim_status==="IN_PROGRESS")return json({error:"PAYMENT_INTENT_IN_PROGRESS"},409);
- const release=async()=>{await userClient.rpc("release_digital_page_payment_intent_claim_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken});};
+ const release=async()=>{const {data,error}=await userClient.rpc("release_digital_page_payment_intent_claim_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken});return !error&&data===true;};
  const amount=Number(row.amount);
- if(!Number.isFinite(amount)||amount<=0){await release();return json({error:"INVALID_AMOUNT"},409);}
+ if(!Number.isFinite(amount)||amount<=0){if(!(await release()))return json({error:"PAYMENT_CLAIM_RELEASE_FAILED",reconciliationRequired:true},503);return json({error:"INVALID_AMOUNT"},409);}
  const amountCents=Math.round(amount*100);
- const payload={amount:amountCents,currency:String(row.currency||"EGP").toUpperCase(),payment_methods:[Number(PAYMOB_INTEGRATION_ID)],items:[{name:row.title,amount:amountCents,description:"MantiqaTix "+row.page_type+" page",quantity:1}],billing_data:{apartment:"NA",first_name:String(user.user_metadata?.full_name||email).split(" ")[0]||"Customer",last_name:"MantiqaTix",street:"NA",building:"NA",phone_number:phone,city:"NA",country:"EG",email,floor:"NA",state:"NA"},special_reference:row.id,expiration:3600,notification_url:CALLBACK};
+ if(!isValidPaymobAmountCents(amount,amountCents)){if(!(await release()))return json({error:"PAYMENT_CLAIM_RELEASE_FAILED",reconciliationRequired:true},503);return json({error:"INVALID_AMOUNT_PRECISION"},409);}
+ const currency=String(row.currency||"EGP").toUpperCase();
+ const payload={amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],items:[{name:row.title,amount:amountCents,description:"MantiqaTix "+row.page_type+" page",quantity:1}],billing_data:{apartment:"NA",first_name:String(user.user_metadata?.full_name||email).split(" ")[0]||"Customer",last_name:"MantiqaTix",street:"NA",building:"NA",phone_number:phone,city:"NA",country:"EG",email,floor:"NA",state:"NA"},special_reference:row.id,expiration:3600,notification_url:CALLBACK};
  let p:Record<string,unknown>={};
+ let providerResponseStatus=0;
  try{
    const res=await fetch(PAYMOB_BASE_URL.replace(/\/$/,"")+"/v1/intention/",{method:"POST",headers:{"Authorization":"Token "+PAYMOB_SECRET_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload)});
+   providerResponseStatus=res.status;
    p=await res.json().catch(()=>({}));
-   if(!res.ok||!p?.id||!p?.client_secret){await release();return json({error:"PAYMENT_PROVIDER_REJECTED"},502);}
- }catch{await release();return json({error:"PAYMENT_PROVIDER_UNAVAILABLE"},502);}
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id)});
+ }catch{
+   // The provider may have created an intention even when the network response was lost.
+   // Keep the claim; do not release it and risk creating a duplicate on retry.
+   return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
+ }
+ const providerOrderId=String(p?.intention_order_id??p?.order_id??"");
+ const providerIntentId=String(p?.id??"");
+ const providerClientSecret=String(p?.client_secret??"");
+ // Only explicit, identifier-free provider rejections prove no intention was created.
+ // Timeouts/rate limits/conflicts and any response containing provider identifiers are ambiguous.
+ if([400,401,403,404,422].includes(providerResponseStatus)&&!providerIntentId&&!providerClientSecret&&!providerOrderId){
+   if(!(await release()))return json({error:"PAYMENT_REJECTION_REQUIRES_RECONCILIATION",reconciliationRequired:true},503);
+   return json({error:"PAYMENT_PROVIDER_REJECTED"},502);
+ }
+ if(providerResponseStatus<200||providerResponseStatus>=300||!providerIntentId||!providerClientSecret||!providerOrderId){
+   // Ambiguous responses retain the claim so retries cannot create duplicate intentions.
+   console.error(JSON.stringify({stage:"paymob_intention_outcome_unknown",providerResponseStatus,providerIntentId:providerIntentId||null,providerOrderId:providerOrderId||null}));
+   return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",reconciliationRequired:true},502);
+ }
+ if(!matchesPaymobIntention({ledgerId:String(row.id),amountCents,currency,provider:p})){
+   // Keep the claim for manual reconciliation and never return checkout credentials
+   // when Paymob did not echo the expected amount, currency, and order reference.
+   console.error(JSON.stringify({stage:"digital_page_intention_correlation_mismatch",providerIntentId,providerOrderId}));
+   return json({error:"PAYMENT_PROVIDER_INTENT_MISMATCH",reconciliationRequired:true},503);
+ }
+ const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:providerIntentId,p_provider_order_id:providerOrderId});
  if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
- const clientSecret=String(p.client_secret);
+ const clientSecret=providerClientSecret;
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
- return json({orderId:row.id,status:"PENDING",provider:"PAYMOB",clientSecret,checkoutUrl,amount,currency:row.currency});
+ return json({orderId:row.id,status:"PENDING",provider:"PAYMOB",clientSecret,checkoutUrl,amount,currency});
 });
