@@ -120,7 +120,7 @@ serve(async (req) => {
         transfers = [...new Map([...(fromRes.data ?? []), ...(toRes.data ?? [])].map((row) => [String(row.id), row])).values()]
       }
       if (ordersRes.error || receiptsRes.error || productsRes.error || balancesRes.error || transactionsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
-      const safeRows = (rows, fields) => (rows ?? []).map((row) => Object.fromEntries(fields.filter((field) => Object.prototype.hasOwnProperty.call(row, field)).map((field) => [field, row[field]])))
+      const safeRows = (rows: Record<string, unknown>[] | null | undefined, fields: string[]): Record<string, unknown>[] => (rows ?? []).map((row: Record<string, unknown>) => Object.fromEntries(fields.filter((field: string) => Object.prototype.hasOwnProperty.call(row, field)).map((field: string) => [field, row[field]])))
       return json({
         success: true,
         orders: safeRows(ordersRes.data, ["id","tenant_id","business_id","branch_id","order_number","supplier_id","total_amount","tax_amount","discount_amount","status","reason","created_at","updated_at"]),
