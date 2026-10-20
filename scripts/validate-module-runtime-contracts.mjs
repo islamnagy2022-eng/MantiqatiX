@@ -64,6 +64,10 @@ if(!files.app.includes("String(shared.business_id||'')===String(live.businessId)
 if(!files.app.includes("String(shared.user_id||'')===String(user.id)"))failures.push("ERP_SHARED_SNAPSHOT_USER_SCOPE_MISSING");
 if(!files.operations.includes("String(sharedERP.user_id||'')===String(user?.id||'')"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_USER_SCOPE_MISSING");
 if(!files.operations.includes("user_id:user.id"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_ACTOR_MISSING");
+if(!files.app.includes("String(shared.membership_id||'')===String(live.activeMembershipId||'')"))failures.push("ERP_SHARED_SNAPSHOT_MEMBERSHIP_SCOPE_MISSING");
+if(!files.app.includes("String(shared.role||'')===String(live.role||'')"))failures.push("ERP_SHARED_SNAPSHOT_ROLE_SCOPE_MISSING");
+if(!files.operations.includes("String(sharedERP.membership_id||'')===String(membership?.id||'')"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_MEMBERSHIP_SCOPE_MISSING");
+if(!files.operations.includes("String(sharedERP.role||'')===String(membership?.role||'')"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_ROLE_SCOPE_MISSING");
 if(!files.app.includes("shared.erp_purchase_order_lines"))failures.push("ERP_SHARED_SNAPSHOT_ORDER_LINES_MISSING");
 if(!files.app.includes("await window.MNTYReloadOperationsModule()"))failures.push("ERP_DEPENDENT_MODULE_REFRESH_MISSING");
 if(!erpRoute.includes("businesses: [{ id: business.id"))failures.push("ERP_BUSINESS_REFERENCE_NOT_RETURNED_BY_SCOPED_API");
