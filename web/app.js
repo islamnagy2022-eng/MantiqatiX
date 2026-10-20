@@ -979,7 +979,7 @@ if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
    +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق نطاق المؤسسة والصلاحيات']))
    +enterpriseRowsTable(m,d.rows||{})
    +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
-   +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
+   +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,{...m,rows:d.rows,errors:d.errors}))||'');
  }
  const cards=m.tables.map(t=>[t,d.tables?.[t]==null?'—':String(d.tables[t]),'عدد السجلات المتاحة وفق RLS']);
  if(!m.tables.length)cards.push(['حالة المخطط','NOT VERIFIED','لا يوجد جدول متخصص مثبت في المخطط الحالي']);
@@ -987,7 +987,7 @@ if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   +workspaceCards(cards)
   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
   +recordsTable('مصادر البيانات الموصولة',m.tables.map(t=>({table:t,count:d.tables?.[t]})),[['الجدول',r=>r.table],['السجلات',r=>r.count==null?'—':r.count],['الحالة',r=>r.count==null?'NOT VERIFIED':'READABLE']])
-  +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
+  +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,{...m,rows:d.rows,errors:d.errors}))||'');
 }
 
 async function superAdminFunction(name,body){
