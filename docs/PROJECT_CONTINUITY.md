@@ -595,3 +595,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Advanced PWA cache to `mnty-web-v130` and versioned the updated app/restaurant scripts.
 - Added `scripts/validate-cash-first-launch.mjs` to Pages CI to enforce cash-only UI/API policy and the SMM server-side gate.
 - Still NOT VERIFIED: cash intent creation/collection E2E, staff confirmation UI, tenant cash configuration, CI on the final PR head, all other production gates. No production deployment occurred.
+
+
+## Cash collection UI checkpoint — 2026-10-20
+
+- Order detail UI now requests the order's cash payment intent through a scoped API read, shows the payment status and amount, and renders the cash-confirmation action only for operational roles. The action calls the existing protected `/api/v1/payments/:id/cash/confirm` endpoint and refreshes the order/payment status afterward.
+- The API read requires an active membership in the order tenant and limits visibility to the owning customer, operational payment/order roles, or the provider business linked to the order.
+- This is source implementation only. Exact-head CI, cash confirmation state semantics, role-negative E2E, tenant isolation and actual cash/settlement runtime checks remain NOT VERIFIED.
