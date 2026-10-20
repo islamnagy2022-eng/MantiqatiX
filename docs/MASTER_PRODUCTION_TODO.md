@@ -2016,3 +2016,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - These results supersede the earlier statements above that exact-head CI was pending for the cash-payment read JSONB permission parity fix. They establish CI/replay success for this commit only.
 - Still NOT VERIFIED: authenticated browser/API E2E for customer cash checkout and authorized cash confirmation, tenant/business isolation under live authenticated flows, production configuration readiness, and backup/restore/disaster-recovery evidence.
 - Release remains **BLOCKED / NOT CERTIFIED**. PR #307 remains draft/unmerged. No production migration or deployment was performed.
+
+
+### Cash-payment read authorization regression assertions — 2026-10-20
+- Expanded `scripts/validate-cash-only-launch-flow.mjs` to explicitly assert that the cash-payment read route restricts customers to their own order, fails closed on membership lookup errors, scopes operational access to the order business (or tenant-wide membership), and queries the cash intent by both tenant and order.
+- This is test-contract hardening of existing code; it does not change API runtime behavior. New exact-head CI must pass before this validator change is considered verified.
+- Authenticated browser/API E2E and production recovery evidence remain outstanding. Release remains **BLOCKED / NOT CERTIFIED**; PR #307 remains draft/unmerged.
