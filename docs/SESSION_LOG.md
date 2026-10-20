@@ -295,3 +295,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 ### Correction — final used-item read contract
 - The column-level grant draft was superseded by the safer backend-RPC design in the current branch version of `20261020231500_used_item_ads_minimal_directory_read.sql`. The function returns only listing fields, rejects anonymous/no-auth callers, and direct table SELECT/INSERT/UPDATE/DELETE is revoked for client roles.
 - `web/sector-modules.js` now calls `list_used_item_ads_backend`; it no longer selects from `used_item_ads` directly. The live database migration remains unapplied.
+
+
+- **Migration immutability correction:** restored the original unmerged `20261020231500_used_item_ads_minimal_directory_read.sql` and moved the RPC implementation to the strictly later `20261020232000_used_item_ads_directory_backend_v1.sql`. This follow-up revokes table-level and column-level browser SELECT privileges, then grants authenticated EXECUTE only on the RPC. Validator updated accordingly. Commits: `861d2eb6410aa18026325f1efa8b7ccf13288e20`, `c6aaa104f2d36318f498a82b1421666e671b51e4`, `89753cf6e26be56f31ec69fb4a82797846c954dc`.
