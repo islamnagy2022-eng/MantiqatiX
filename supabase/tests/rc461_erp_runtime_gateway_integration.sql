@@ -6,7 +6,8 @@ insert into public.user_memberships(user_id,tenant_id,business_id,role,status,br
 insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id) values
  ('po-existing','tenant-a','22222222-2222-4222-8222-222222222222',null,'PENDING_APPROVAL'),
  ('po-other-branch','tenant-a','22222222-2222-4222-8222-222222222222','branch-b','SUBMITTED'),
- ('po-draft','tenant-a','22222222-2222-4222-8222-222222222222',null,'DRAFT');
+ ('po-draft','tenant-a','22222222-2222-4222-8222-222222222222',null,'DRAFT'),
+ ('po-null-status','tenant-a','22222222-2222-4222-8222-222222222222',null,null);
 insert into public.warehouses(id,tenant_id,business_id,branch_id,status) values
  ('warehouse-a','tenant-a','22222222-2222-4222-8222-222222222222','branch-a','ACTIVE'),
  ('warehouse-b','tenant-a','22222222-2222-4222-8222-222222222222','branch-b','ACTIVE');
@@ -41,6 +42,13 @@ begin
     raise exception 'RC461_CROSS_BRANCH_ORDER_WAS_ALLOWED';
   exception when others then
     if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
+  end;
+  begin
+    perform public.erp_runtime_execute(actor,'receive_purchase_stock',
+      jsonb_build_object('p_id','rcv-null-status','p_tenant_id','tenant-a','p_business_id',biz,'p_purchase_order_id','po-null-status','p_receipt_number','RCV-NULL','p_warehouse_id','warehouse-a','p_product_id','66666666-6666-4666-8666-666666666666','p_received_quantity',1,'p_unit_cost',1));
+    raise exception 'RC461_NULL_STATUS_PURCHASE_ORDER_RECEIPT_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT%' then raise; end if;
   end;
   begin
     perform public.erp_runtime_execute(actor,'receive_purchase_stock',
