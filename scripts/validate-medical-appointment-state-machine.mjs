@@ -98,6 +98,17 @@ assert.match(operations,/p_user_id:user\.id,p_appointment_id:String\(id\),p_targ
 assert.match(operations,/p\.is_verified===true/,"booking discovery must hide unverified medical providers");
 assert.match(app,/timestamp%900000!==0/,"booking UI must enforce the backend's 15-minute slot alignment");
 assert.match(operations,/medical-appointments-live/,"doctor appointments must refresh from realtime events");
+const rideCreateStart=operations.indexOf('async function mgCreateRide()');
+const rideCreateEnd=operations.indexOf('function mantigoOpenRides()',rideCreateStart);
+const rideCreateSource=operations.slice(rideCreateStart,rideCreateEnd);
+assert.ok(rideCreateStart>=0&&rideCreateEnd>rideCreateStart,"MantiGO ride creation handler must be present for source-contract checks");
+assert.ok(rideCreateSource.includes("MNTY_MANTIGO_RIDE:"),"MantiGO ride retries must use a stable request fingerprint key");
+assert.ok(rideCreateSource.includes("sessionStorage.setItem(requestKey,JSON.stringify(record))"),"MantiGO ride idempotency key must be persisted before RPC");
+assert.ok(rideCreateSource.includes("if(!r.data||!r.data.id)"),"MantiGO must retain retry state when backend success is not confirmed with a ride ID");
+assert.ok(rideCreateSource.includes("sessionStorage.removeItem(requestKey)"),"MantiGO retry key must be cleared only after confirmed ride creation");
+assert.ok(rideCreateSource.includes("finally{if(btn)"),"MantiGO create button must be released after both success and failure");
+assert.ok(rideCreateSource.includes("catch(_){alert('تعذر تأكيد نشر الرحلة"),"MantiGO network failures must be handled without discarding the idempotency key");
+assert.ok(rideCreateSource.indexOf("if(!r.data||!r.data.id)") < rideCreateSource.indexOf("sessionStorage.removeItem(requestKey)"),"MantiGO must verify a ride ID before clearing retry state");
 assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
 assert.match(index,/operations-modules\.js\?v=mnty134/,"medical workflow asset cache must be refreshed");
 assert.ok(operations.includes("MNTY_MEDICAL_BOOKING:"),"operations medical booking must retain a stable request key across ambiguous failures");
