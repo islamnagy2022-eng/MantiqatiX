@@ -751,3 +751,9 @@ This status is intentional and must remain until the open gates above are indepe
 - On the pinned-CLI head, all eight non-replay PR workflows passed, including the RC457 and RC462 PostgreSQL integration jobs within Module Professionalization Validation.
 - Forward replay run `39362446830` is still running at Supabase local PostgreSQL startup. Do not mark replay complete until schema restore, ordered migration replay, and two-tenant isolation all pass.
 - No production migration, merge, or deployment occurred. PR #301 remains draft/open/unmerged; global release remains BLOCKED / NOT CERTIFIED.
+
+
+## Replay CLI version refinement — 2026-10-20
+
+- Superseded the initial CLI pin `2.39.2` with stable Supabase CLI `2.113.0` in workflow commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`; the release page records `2.113.0` as a stable release dated 2026-08-08. The intent remains deterministic installation without a rate-limited `latest` lookup.
+- Do not count runs using `2.39.2` as replay evidence. Verify the exact-head `2.113.0` run through baseline restore, all ordered candidate migrations, and two-tenant isolation.
