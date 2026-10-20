@@ -164,7 +164,7 @@ function factoryOperationsWorkspace(d){
 }
 function erpOperationsWorkspace(d){
  const activeScope=scope();
- const scopeMatchesApp=typeof live!=='undefined'&&String(live.tenantId||'')===String(activeScope?.tenant_id||'')&&String(live.businessId||'')===String(activeScope?.business_id||'')&&(!activeScope?.branch_id||String(live.branchId||'')===String(activeScope.branch_id));
+ const scopeMatchesApp=typeof live!=='undefined'&&String(live.tenantId||'')===String(activeScope?.tenant_id||'')&&String(live.businessId||'')===String(activeScope?.business_id||'')&&String(live.branchId||'')===String(activeScope?.branch_id||'');
  const role=String(live?.role||'').toUpperCase();
  const canCreateSupplier=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE_MANAGER','FINANCE'].includes(role);
  const canCreatePurchase=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF'].includes(role);
