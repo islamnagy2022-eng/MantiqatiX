@@ -234,6 +234,21 @@ serve(async (req) => {
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
+    const normalizedIdempotencyKey = String(idempotencyKey)
+    const { data: existingIntent, error: existingIntentError } = await supabaseAdmin.from("payment_intents")
+      .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+    if (existingIntentError) return json({ error: "Failed to verify payment intent idempotency" }, 500)
+    const matchesCashOrder = (intent: any) =>
+      String(intent.order_id) === String(order.id) &&
+      String(intent.provider) === "CASH_ON_DELIVERY" &&
+      String(intent.payment_method) === "CASH_ON_DELIVERY" &&
+      Number(intent.amount) === Number(order.total_amount) &&
+      String(intent.currency).toUpperCase() === String(order.currency).toUpperCase()
+    if (existingIntent) {
+      if (!matchesCashOrder(existingIntent)) return json({ error: "Idempotency key is already bound to another payment" }, 409)
+      return json(existingIntent)
+    }
+
     const newIntent = {
       id: crypto.randomUUID(),
       tenant_id: order.tenant_id,
@@ -243,11 +258,17 @@ serve(async (req) => {
       status: "CREATED",
       provider: "CASH_ON_DELIVERY",
       payment_method: "CASH_ON_DELIVERY",
-      idempotency_key: String(idempotencyKey),
+      idempotency_key: normalizedIdempotencyKey,
     }
     const { data, error } = await supabaseAdmin.from("payment_intents")
-      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key" }).select().single()
-    if (error) return json({ error: "Failed to create payment intent" }, 500)
+      .insert(newIntent).select().single()
+    if (error) {
+      const { data: racedIntent } = await supabaseAdmin.from("payment_intents")
+        .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+      if (racedIntent && matchesCashOrder(racedIntent)) return json(racedIntent)
+      if (racedIntent) return json({ error: "Idempotency key is already bound to another payment" }, 409)
+      return json({ error: "Failed to create payment intent" }, 500)
+    }
     return json(data)
   }
 
