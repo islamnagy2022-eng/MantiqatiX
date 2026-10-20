@@ -202,3 +202,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Fix:** the source now selects unsold listings plus listings owned by the authenticated user, preserving the existing active membership tenant/business scope where present. Commit: `84b491799802830888665ce807034fd13818a8a7`.
 - **Regression guard:** added an assertion in `scripts/validate-sector-rendering.mjs`. Commit: `e8b64c1386d28708cf049b29136c396f9d7a2846`.
 - **Verification boundary:** source-level fix only; CI and browser E2E pending. RLS/update-policy behavior is not certified. No production changes or deployment occurred.
+
+
+## 2026-10-20 — education request server-authority correction
+
+- **Finding:** `web/sector-modules.js` contained a direct `education_requests` INSERT despite the established server-authority contract. Migration `20261007060000_education_request_server_authority_v1.sql` defines `create_education_request_backend` and revokes authenticated direct INSERT.
+- **Fix:** switched the sector workspace to `sb.rpc('create_education_request_backend', ...)`, added subject-length validation, and avoided a success message when no row is returned. Commit: `2052a02f219746b0f9acd53763e2412c54bf99ef`.
+- **Regression guard:** added validator checks for backend RPC use, absence of direct INSERT, and subject-length validation. Commit: `abcb297b6e09e8516c1baf457959e47207e6e237`.
+- **Verification boundary:** implementation committed; exact-head CI and browser E2E remain pending. No production data/schema mutation, deployment, or merge occurred.
