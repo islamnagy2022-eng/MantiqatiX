@@ -299,6 +299,8 @@ assert.match(apiERP,/erp_supplier_update_backend/);
 assert.match(apiERP,/update_supplier/);
 assert.match(app,/update_erp_supplier_backend:'update_supplier'/);
 assert.match(app,/async function editERPSupplier\(id\)/);
+assert.match(app,/fingerprintHash=2166136261/,"ERP retry identities must be isolated per request fingerprint");
+assert.match(app,/idempotencyBase=/,"ERP retry key must be namespaced by actor, tenant, business, and operation");
 assert.match(app,/ERP_SUPPLIER_UPDATE_ROLE_REQUIRED/);
 assert.match(operations,/editERPSupplier\(\\'/);
 
