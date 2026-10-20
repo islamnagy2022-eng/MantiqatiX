@@ -733,3 +733,13 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #301 remains draft/open/unmerged; RC457 is not production-applied. PR #300's latest documented tested head is `710819156f9f2b613f4905d5e1c7266937fc4a32`, with six successful PR workflows; no deployment is implied.
 - Next sequence: obtain product-owner decision on NO_SHOW grace period; close owner-only leaked-password setting; design authorized adversarial tenant/RBAC E2E; execute payment/finance/refund E2E, recovery/rollback, browser/push/device and Android release checks; resolve authoritative historical provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)`.
 - Production remains last read-only verified at RC424 (`20261008222845`, 283 migrations). No production mutation, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Current continuation checkpoint — 2026-10-20
+
+- Current PR #300 head `6bc43d47c45d564f7c65ac8a7b85f9f3d2a6df21`: six PR workflows passed; deployment is skipped in PR context. The 27 sector workspaces remain frontend-only until each sector has a reviewed backend contract and E2E tests.
+- Current PR #301 head `7b52ef4684d753c893b97c6dfdeaec2681add4a4`: nine PR workflows passed, including RC457 PostgreSQL integration and forward replay from the pinned RC424 schema-only baseline. It is not a blank historical replay and does not authorize production rollout.
+- Historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` was searched again in GitHub source/commit/PR history and the supplied RC40 archive without finding authoritative creation DDL. Do not stub the function or bypass the revoke migration; owner-approved test-only baseline remains a separate explicit decision.
+- Both PRs remain open/draft/unmerged. Last read-only production checkpoint remains RC424; recheck live state before rollout.
+- Continue in this order: resolve the historical replay provenance safely; obtain the product decision on NO_SHOW grace period; close live security/tenant/RBAC and authorized payment/finance E2E gates; execute recovery, browser/device, Android, and deployment verification.
+- Release remains **BLOCKED / NOT CERTIFIED**. No production migration, merge, or deployment was performed in this continuation.
