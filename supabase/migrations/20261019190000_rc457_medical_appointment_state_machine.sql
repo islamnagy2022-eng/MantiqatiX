@@ -19,6 +19,7 @@ declare
   v_patient_id uuid;
   v_tenant_id varchar;
   v_business_id uuid;
+  v_date_time bigint;
   v_target text := upper(nullif(trim(p_target_status), ''));
   v_provider_role boolean := false;
   v_allowed boolean := false;
@@ -31,8 +32,8 @@ begin
     raise exception 'INVALID_MEDICAL_STATUS';
   end if;
 
-  select a.status, a.patient_id, a.tenant_id, a.business_id
-    into v_old, v_patient_id, v_tenant_id, v_business_id
+  select a.status, a.patient_id, a.tenant_id, a.business_id, a.date_time
+    into v_old, v_patient_id, v_tenant_id, v_business_id, v_date_time
   from public.medical_appointments a
   where a.id = p_appointment_id
   for update;
@@ -76,6 +77,10 @@ begin
     if not v_allowed then
       raise exception 'INVALID_MEDICAL_STATUS_TRANSITION';
     end if;
+  end if;
+
+  if v_target = 'NO_SHOW' and v_date_time > (extract(epoch from now()) * 1000)::bigint then
+    raise exception 'MEDICAL_APPOINTMENT_NOT_DUE';
   end if;
 
   update public.medical_appointments
