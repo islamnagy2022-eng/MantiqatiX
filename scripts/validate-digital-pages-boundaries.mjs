@@ -103,7 +103,7 @@ const trustedServiceRoleEvents = finalizerAclEvents.filter(event => event.signat
 if (!trustedServiceRoleEvents.length || !trustedServiceRoleEvents[trustedServiceRoleEvents.length - 1].grants) {
   throw new Error('Five-argument digital-page finalizer must remain service_role-only executable');
 }
-const ambiguousStart = payment.indexOf("if(providerResponseStatus<200||providerResponseStatus>=300||!p?.id||!p?.client_secret||!providerOrderId){");
+const ambiguousStart = payment.indexOf("if(providerResponseStatus<200||providerResponseStatus>=300||!providerIntentId||!providerClientSecret||!providerOrderId){");
 const finalizeAfterAmbiguous = payment.indexOf('const {data:finalized,error:fe}=await admin.rpc("finalize_digital_page_payment_intent_backend"', ambiguousStart);
 if (ambiguousStart < 0 || finalizeAfterAmbiguous < 0 || payment.slice(ambiguousStart, finalizeAfterAmbiguous).includes("await release()")) throw new Error("Ambiguous Paymob response must retain claim for reconciliation, not release and risk duplicate intent");
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
