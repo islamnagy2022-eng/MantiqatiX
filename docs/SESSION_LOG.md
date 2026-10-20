@@ -246,3 +246,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added a validator guard forbidding direct client table mutations in the sector workspace and asserting the three intended RPCs. Commit `dddf3bba6dcf06174596f4ce6b11749ef0a3ef64`; corrected its regex in `2731342b75ab0b889b54d679ee520bd12f589940`.
 - Reconciled GitHub Actions on source head `5098c0617477fbf494c454233dd56c7bf27ca6d7`: web validation/syntax, module professionalization (including PostgreSQL privacy/integration jobs), backend-only module boundary (including PostgreSQL tests), MantiGO privacy integration, and marketing workspace contract succeeded. Web deploy job was skipped.
 - These results predate the new validator guard and latest docs commits; exact-head CI and authenticated browser E2E are still required. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — used-item safe field projection
+
+- Live read-only database inspection confirmed `used_item_ads` has no effective authenticated SELECT/INSERT/UPDATE/DELETE table privileges. The table includes `seller_phone`; granting broad SELECT would expose that field through the Data API because RLS policies do not hide individual columns.
+- Updated the sector loader to request only explicit directory fields and exclude `seller_phone`. Source commit `ec6d9dbbc1170d0c7414353f19b0f301c64c9208`; validator assertion commits `0ea0564050305059324ea3d0daa97dbcdd182fcf` and `7026d7f75c59899244f57b1dde84c77e6dcb9e78`.
+- No database grants or production schema were changed. Reads remain unavailable until a reviewed, versioned narrow-column privilege contract is created and verified. Do not grant full-table SELECT.
