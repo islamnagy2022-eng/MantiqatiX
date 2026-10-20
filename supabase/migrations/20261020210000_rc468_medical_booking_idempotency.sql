@@ -48,27 +48,10 @@ begin
     pg_catalog.hashtextextended('medical-booking-id:' || pg_catalog.btrim(p_appointment_id), 0)
   );
 
-  select b.tenant_id into v_tenant_id
-  from public.businesses b
-  join public.marketing_provider_profiles mp on mp.business_id = b.id
-  where b.id = p_business_id
-    and pg_catalog.upper(coalesce(b.status,'')) = 'ACTIVE'
-    and mp.id::text = p_doctor_id
-    and pg_catalog.upper(coalesce(mp.status,'')) = 'ACTIVE'
-    and mp.is_verified is true
-    and pg_catalog.upper(coalesce(mp.provider_kind,'')) in ('HEALTH','DENTAL','MEDICAL','VETERINARY')
-  limit 1;
-
-  if v_tenant_id is null then
-    raise exception 'ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND';
-  end if;
-  if not exists (
-    select 1 from public.user_memberships um
-    where um.user_id = p_user_id and um.tenant_id = v_tenant_id and um.status = 'ACTIVE'
-  ) then
-    raise exception 'ACTIVE_TENANT_MEMBERSHIP_REQUIRED';
-  end if;
-
+  -- Replay a completed request before checking current provider availability.
+  -- A provider may have been disabled after the original booking committed but before
+  -- the browser received its response. Only the same authenticated patient and the
+  -- exact immutable booking payload may retrieve that existing result.
   -- A replay of the same request returns the existing booking; a reused ID with a
   -- different actor or payload is rejected and never mutates the existing record.
   select a.patient_id, a.business_id, a.doctor_id, a.date_time, a.reason, a.status
@@ -89,6 +72,27 @@ begin
       'business_id', p_business_id, 'doctor_id', p_doctor_id,
       'date_time', p_date_time, 'idempotent_replay', true
     );
+  end if;
+
+  select b.tenant_id into v_tenant_id
+  from public.businesses b
+  join public.marketing_provider_profiles mp on mp.business_id = b.id
+  where b.id = p_business_id
+    and pg_catalog.upper(coalesce(b.status,'')) = 'ACTIVE'
+    and mp.id::text = p_doctor_id
+    and pg_catalog.upper(coalesce(mp.status,'')) = 'ACTIVE'
+    and mp.is_verified is true
+    and pg_catalog.upper(coalesce(mp.provider_kind,'')) in ('HEALTH','DENTAL','MEDICAL','VETERINARY')
+  limit 1;
+
+  if v_tenant_id is null then
+    raise exception 'ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND';
+  end if;
+  if not exists (
+    select 1 from public.user_memberships um
+    where um.user_id = p_user_id and um.tenant_id = v_tenant_id and um.status = 'ACTIVE'
+  ) then
+    raise exception 'ACTIVE_TENANT_MEMBERSHIP_REQUIRED';
   end if;
 
   -- Serialize bookings for this doctor, then reject overlapping 30-minute visits.
