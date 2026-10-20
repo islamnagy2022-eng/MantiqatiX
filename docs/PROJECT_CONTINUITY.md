@@ -846,3 +846,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Corrected RC460 to compare against `orders.total_amount`. The isolated PostgreSQL fixture now intentionally diverges the fields (`total_amount=100`, `total=99`) so the cash confirmation integration detects regression to the legacy field.
 - Added source-contract assertions. The code and fixture changes are committed to the existing cash-only candidate branch at `9263ed453f84f91a6cfa60ba75ef0384c345b3da`.
 - **NOT VERIFIED:** no workflow result for this latest head was returned by the GitHub Actions connector at check time; wait for/inspect exact-head CI and confirm the RC460 PostgreSQL integration actually executes before marking verified. No production changes.
+
+
+## Latest continuation — 2026-10-20 — exact-head CI follow-up
+- Active candidate: PR #307, branch `feat/cash-only-launch-flow-rc458-20261020`, prior head `96b413a8603811fb244a7456ccce4c50886eb814`.
+- Exact-head disposable forward migration replay passed (run `39373845049`); MantiGO open-ride privacy and backend-only module-boundary workflows passed (runs `39373840292`, `39373840059`). RC458, RC459, RC460, RC462, targeted-ads, and matrimony PostgreSQL jobs also passed in module workflow `39373840078`.
+- The only failed job was `validate`, specifically `scripts/validate-marketing-campaign-ui.mjs:44`: it asserted the obsolete `rc460-cash-only-launch-20261020` service-worker URL although the current index uses `rc461-cash-restaurant-20261020`. Updated the validator to match the actual current cache key and recorded the finding in the Master TODO. This is a source-validator correction; it does not substitute for runtime/browser validation.
+- Next: inspect the new commit SHA and exact-head workflow results. If green, continue with remaining independently required authenticated customer cash checkout and authorized confirmation E2E, then security/tenant isolation and launch gate review. Keep PR draft/unmerged and release **BLOCKED / NOT CERTIFIED** until all required gates have evidence. No production changes.
