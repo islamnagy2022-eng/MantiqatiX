@@ -52,10 +52,11 @@ assert.match(source, /reconciliation\.rc424_reconciliation\?\.history_rewritten=
 assert.match(source, /reconciliation\.required_release_migrations_applied===true/, "all required migrations must be proven applied");
 assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered disposable replay must pass");
 assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
-assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
+assert.match(source, /reconciliation\.cash_payment_finance_e2e==="PASS"/, "cash payment and finance E2E must pass before launch");
+assert.match(source, /reconciliation\.electronic_payments_disabled==="PASS"/, "electronic checkout must be proven disabled for cash-first launch");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
-assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
+assert.match(source, /reconciliation\.smm_launch_gate==="PASS"/, "SMM must be proven unavailable before launch");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
 const rc451 = fs.readFileSync("supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql", "utf8");
 assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\s\S]*?\) set search_path = '';/, "RC451 must harden the public targeted-ad SECURITY DEFINER search path");
