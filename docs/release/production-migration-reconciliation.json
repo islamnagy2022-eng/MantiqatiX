@@ -8,16 +8,16 @@
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "NOT RUN",
+  "chronological_replay": "PASS",
   "tenant_isolation_tests": "NOT VERIFIED",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
-  "evidence_ref": null,
-  "checked_at": "2026-10-11",
-  "reason": "Live ledger ends at RC424 and the source filename timestamp differs from the applied ledger version. Required post-RC424 migrations are not proven applied. Do not certify or deploy until exact live/source reconciliation, complete ordered replay on disposable PostgreSQL, and required integration/security evidence are recorded.",
+  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915562",
+  "checked_at": "2026-10-21",
+  "reason": "Read-only production inspection on 2026-10-21 confirms the live migration ledger still ends at RC424 (283 recorded migrations), so RC425-RC468 are not proven applied. Candidate RC425-RC468 replay and disposable tenant-isolation workflow passed on HEAD 69df9db11fdaa86ceb9a4d8c62073b121dcd426b, but this does not apply them to production. The live medical booking RPC remains the pre-RC457 implementation (duplicate request ID raises APPOINTMENT_ID_ALREADY_EXISTS; no RC468 replay semantics). Supabase security advisor reports leaked-password protection disabled, anonymous-sign-in warnings, and SECURITY DEFINER exposure findings requiring review. Authenticated cash-flow E2E, live multi-tenant isolation, backup/restore, deployed Edge Function parity, and SMM parity remain unverified. Keep status BLOCKED; do not deploy or apply migrations.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
-  "auth_security_settings": "NOT VERIFIED",
+  "auth_security_settings": "FAIL",
   "rc424_reconciliation": {
     "ledger_version": "20261008222845",
     "ledger_name": "rc424_atomic_digital_page_payment_webhook",
@@ -30,5 +30,21 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "candidate_ci_evidence": {
+    "checked_at": "2026-10-21",
+    "candidate_head": "69df9db11fdaa86ceb9a4d8c62073b121dcd426b",
+    "doctor_module_release_contract": "PASS",
+    "doctor_module_release_run": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915671",
+    "disposable_forward_migration_replay": "PASS",
+    "disposable_forward_migration_replay_run": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915562",
+    "disposable_tenant_isolation_after_replay": "PASS",
+    "erp_runtime_gateway": "PASS",
+    "erp_runtime_gateway_run": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915548",
+    "erp_opening_stock": "PASS",
+    "erp_opening_stock_run": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915544",
+    "module_professionalization_validation": "PASS",
+    "module_professionalization_run": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495914539",
+    "production_database_mutated": false
+  }
 }

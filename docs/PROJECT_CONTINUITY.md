@@ -960,3 +960,12 @@ This status is intentional and must remain until the open gates above are indepe
 - **What this proves:** source validators and the listed integration/replay workflows passed on this exact candidate commit. It does not prove production migrations have been applied, nor authenticated customer/provider E2E, real two-tenant isolation, cash settlement E2E, production auth settings, backup/restore, or browser/device smoke.
 - **Release dependency:** PR #307 remains draft/open and based on fix/medical-appointment-state-machine-20261019; prerequisite PR #301 remains draft/open against main. No merge or deployment was performed.
 - **Decision:** global release remains BLOCKED / NOT CERTIFIED until the independent production and user-facing E2E gates are evidenced. Production reconciliation manifest remains BLOCKED; do not deploy or apply migrations from this candidate.
+
+
+## 2026-10-21 — Live Supabase read-only audit
+
+- Read-only inspection confirms production has 283 recorded migrations and ends at RC424. RC425-RC468 are not proven applied; the live medical booking RPC is still the pre-RC468 implementation and rejects duplicate request IDs rather than replaying the committed booking.
+- Candidate HEAD 69df9db11fdaa86ceb9a4d8c62073b121dcd426b passed Doctor Module Release Contract, disposable forward migration replay and its tenant-isolation step, ERP gateway/stock integration, backend boundary, module validation, and MantiGO privacy workflows. These are candidate/disposable tests, not production application evidence.
+- Supabase security advisors reported leaked-password protection disabled, anonymous-sign-in warnings, SECURITY DEFINER execution findings, and an RLS-enabled table with no policies. The authentication security gate is FAIL pending remediation/review.
+- Updated production reconciliation evidence and added docs/release/LIVE_PRODUCTION_READ_ONLY_AUDIT_20261021.md. No production migration, auth setting, Edge Function, or live data was changed.
+- Release remains BLOCKED / NOT CERTIFIED. Cash E2E, live tenant isolation, deployed Edge Function parity, auth settings, and backup/restore remain open.

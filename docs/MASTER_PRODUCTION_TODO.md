@@ -256,7 +256,7 @@
 - [ ] Notifications
 - [ ] Support/CRM
 - [ ] Catalog/pricing
-- [ ] Cash-only order/payment E2E (required before launch)
+- [ ] Cash-only order/payment E2E (required before launch; candidate CI integration passes, but authenticated customer-to-provider production-like E2E remains NOT VERIFIED)
 - [ ] Cash confirmation authorization/idempotency/audit (required before launch)
 - [ ] Cash accounting/commission/settlement/GL as required by launch business model
 - [ ] Electronic payment / Paymob / online checkout / payment webhook E2E (POST-LAUNCH DEFERRED; not a launch gate)
