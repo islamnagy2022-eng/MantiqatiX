@@ -304,3 +304,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - Added `supabase/tests/used_item_directory_read_fixture.sql`, `supabase/tests/used_item_directory_read_integration.sql`, and `.github/workflows/used-item-directory-read.yml`. The integration test exercises privilege boundaries and real RPC behavior in disposable PostgreSQL. Latest “Used Item Directory Read Boundary” status is queued; no test pass is claimed yet.
+
+
+- **Test consolidation:** reused the existing `Used Item Directory Read Boundary` workflow and integration file instead of keeping a duplicate workflow job. Extended the existing SQL integration to verify direct seller-phone/owner-ID SELECT is revoked; the workflow now applies both the original and follow-up migrations. Updated path filters and static guards. CI pending.
