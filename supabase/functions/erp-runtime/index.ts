@@ -47,19 +47,30 @@ Deno.serve(async (req: Request) => {
       const businessId = String(body.businessId ?? "").trim();
       const branchId = body.branchId ? String(body.branchId).trim() : "";
       if (!tenantId || !businessId) return json({ error: "ERP_SCOPE_REQUIRED" }, 400);
-      const { data: membership, error: membershipError } = await admin.from("user_memberships")
+      const { data: memberships, error: membershipError } = await admin.from("user_memberships")
         .select("role,business_id,branch_id").eq("user_id", user.id).eq("tenant_id", tenantId)
-        .eq("business_id", businessId).eq("status", "ACTIVE").limit(1).maybeSingle();
+        .eq("business_id", businessId).eq("status", "ACTIVE");
       if (membershipError) throw new Error("ERP_MEMBERSHIP_LOOKUP_FAILED");
-      const role = String(membership?.role ?? "").toUpperCase();
-      if (!membership || !["OWNER","BUSINESS_OWNER","ADMIN","MANAGER","EMPLOYEE","STAFF","ACCOUNTANT","FINANCE_MANAGER","FINANCE"].includes(role))
-        return json({ error: "ERP_MEMBERSHIP_REQUIRED" }, 403);
-      if (branchId && membership.branch_id && String(membership.branch_id) !== branchId && !["OWNER","BUSINESS_OWNER","ADMIN","MANAGER"].includes(role))
-        return json({ error: "ERP_BRANCH_SCOPE_REQUIRED" }, 403);
+      const allowedRoles = ["OWNER","BUSINESS_OWNER","ADMIN","MANAGER","EMPLOYEE","STAFF","ACCOUNTANT","FINANCE_MANAGER","FINANCE"];
+      const matchingMembership = (memberships ?? []).find((row: any) => {
+        const role = String(row.role ?? "").toUpperCase();
+        if (!allowedRoles.includes(role)) return false;
+        const crossBranch = ["OWNER","BUSINESS_OWNER","ADMIN"].includes(role) && !row.branch_id;
+        if (!branchId) return !row.branch_id || crossBranch;
+        return !row.branch_id || String(row.branch_id) === branchId || crossBranch;
+      });
+      if (!matchingMembership) return json({ error: branchId ? "ERP_BRANCH_SCOPE_REQUIRED" : "ERP_MEMBERSHIP_REQUIRED" }, 403);
+      const role = String(matchingMembership.role ?? "").toUpperCase();
       const { data: business, error: businessError } = await admin.from("businesses")
         .select("id,tenant_id,status").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
       if (businessError) throw new Error("ERP_BUSINESS_LOOKUP_FAILED");
       if (!business || String(business.status ?? "").toUpperCase() !== "ACTIVE") return json({ error: "ERP_BUSINESS_SCOPE_INVALID" }, 403);
+      if (branchId) {
+        const { data: branch, error: branchError } = await admin.from("branches")
+          .select("id").eq("id", branchId).eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+        if (branchError) throw new Error("ERP_BRANCH_LOOKUP_FAILED");
+        if (!branch) return json({ error: "ERP_BRANCH_SCOPE_INVALID" }, 403);
+      }
 
       let warehouseQuery = admin.from("warehouses").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("name", { ascending: true });
       if (branchId) warehouseQuery = warehouseQuery.eq("branch_id", branchId);
