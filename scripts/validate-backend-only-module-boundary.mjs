@@ -60,6 +60,7 @@ if(!operations.includes('editERPSupplier(')) throw new Error('ERP supplier maste
 if(!api.includes('from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP live stock balances are not tenant/business scoped');
 if(!api.includes('from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP inventory movements are not tenant/business scoped');
 if(!app.includes('rows.erp_purchase_order_lines=result.order_lines||[]')) throw new Error('enterprise ERP module must consume purchase order lines from the authenticated API');
+if(!app.includes('onclick="initializeOpeningStock()"')) throw new Error('ERP workspace must expose the scoped opening-stock workflow');
 if(!app.includes("recordsTable('بنود أوامر الشراء',rows.erp_purchase_order_lines||[]")) throw new Error('enterprise ERP workspace must render purchase order lines');
 if(!app.includes('rows.erp_purchase_order_lines')) throw new Error('enterprise ERP loader must preserve purchase order line data');
 if(api.includes('.eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")\n        .limit(300).order("name_ar"')) throw new Error('ERP supplier master must include inactive suppliers so they can be reactivated');
