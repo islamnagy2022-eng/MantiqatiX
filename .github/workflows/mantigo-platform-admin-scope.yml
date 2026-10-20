@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
+      - "supabase/migrations/20261002123500_rc258_use_central_rbac_admin_ad.sql"
+      - "supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql"
+      - "supabase/migrations/20261006144500_mantigo_captain_onboarding_v1.sql"
+      - "supabase/migrations/20261006152000_mantigo_financial_ledger_v1.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
