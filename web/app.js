@@ -839,7 +839,7 @@ async function loadEnterpriseDomainData(m){
  if(cache.rowsReady||cache.loading)return;
  cache.loading=true;cache.errors={};live.moduleData[m.key]=cache;
  const rows={},errors={};
- if(m.key==='ERP'){
+ if(['ERP','BUSINESS_ERP'].includes(m.key)){
   try{
    if(!live.tenantId||!live.businessId)throw new Error('ERP_SCOPE_REQUIRED');
    const result=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
@@ -855,7 +855,7 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&['warehouses','catalog_items','branches'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
@@ -1041,7 +1041,7 @@ function domainModuleWorkspace(){
   if(!d.rowsReady){loadRestaurantWorkspace();return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل بيانات المطعم الفعلية وفق نطاق النشاط والفرع والصلاحيات…</div>'}
   return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
 }
-if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
+if(['ACCOUNTING','ERP','BUSINESS_ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
   const errorPanel=Object.keys(d.errors||{}).length?'<div class="notice" role="alert">تعذر تحميل بعض مصادر البيانات ('+Object.keys(d.errors).length+'). لم يتم اعتبارها بيانات فارغة. <button class="btn btn-outline" type="button" style="width:auto" onclick="retryEnterpriseDomainData(\''+esc(m.key)+'\')">إعادة المحاولة</button></div>':'';
   return workspaceHead(m.key,m.name,m.desc,'MODULE')
