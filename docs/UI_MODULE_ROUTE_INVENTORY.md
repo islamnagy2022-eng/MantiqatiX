@@ -14,7 +14,7 @@ Baseline inspected: `main` at `149a85c7e5c44b61421edc8391cbb82885902fae`.
 | Authenticated workspace | `web/app.js` | Main shell owns authentication boot, membership/role state, module navigation and global search. Large monolithic file; audit routes/actions before refactor. | PARTIAL / E2E NOT VERIFIED |
 | Authentication/session | `web/app.js`, Supabase Auth | Session restore/refresh/logout and OTP flows are present in the app implementation; exact resend/expiry/recovery behavior and multi-role browser journeys require testing. | PARTIAL / E2E NOT VERIFIED |
 | Role and permission presentation | `web/rbac.js`, `web/app.js` | Client RBAC defines UI visibility defaults and aliases. It is only a UI affordance; every sensitive operation must still be enforced by RLS/RPC/Edge Function. | PARTIAL / server verification required |
-| Sector/module registry | `web/sector-registry.js`, `web/sector-modules.js`, `web/module-blueprints.js` | Canonical sector mapping and sector workspace definitions exist. Some module-blueprint buttons currently only show a success toast rather than opening a real workflow; this is a concrete UI-integrity gap to fix. | PARTIAL / actionable gap found |
+| Sector/module registry | `web/sector-registry.js`, `web/sector-modules.js`, `web/module-blueprints.js` | Canonical sector mapping and sector workspace definitions exist. Generic blueprint buttons now show an accessible explanation that the section is only a preliminary map; they still do not open a real workflow. | PARTIAL / actionable gap found |
 | Operations workspaces | `web/operations-modules.js` | Several operational workspaces and cash/order controls are assembled here. Must map each workspace to its real backend contract and release/deferred state. | PARTIAL / contract audit required |
 | Provider onboarding/activity setup | `web/provider-onboarding-module.js` | Authenticated Edge Function-backed onboarding helper exists. Need verify form states, role authorization, activity create/edit lifecycle and failure handling. | PARTIAL / E2E NOT VERIFIED |
 | Restaurant operations | `web/restaurant-module.js` | Dedicated module code for restaurant session/membership, menu/orders/tables/inventory. Needs role-boundary and full workflow tests. | PARTIAL / E2E NOT VERIFIED |
@@ -53,7 +53,7 @@ Baseline inspected: `main` at `149a85c7e5c44b61421edc8391cbb82885902fae`.
 
 ## 3. Confirmed UI integrity issue to address first
 
-`web/module-blueprints.js` currently binds each `.mnty-blueprint-btn` to a toast that says the selected section was opened, without actually navigating to or opening a real workflow. This is misleading feedback and conflicts with the requirement that visible actions work or state their true limitation. Fix this in a small tested slice: either wire the button to an existing real module route/action after confirming its contract, or replace the false-success behavior with an honest, accessible unavailable/deferred state. Do not invent routes.
+`web/module-blueprints.js` now binds each `.mnty-blueprint-btn` to an accessible status panel explaining that the section is a preliminary blueprint, no standalone workflow is connected, and no data was changed. This fixes the false-success message but does not complete the workflow. Next: wire each button to an existing route only after confirming its backend contract, or keep the limitation explicit. Do not invent routes.
 
 ## 4. Gaps that remain unverified
 
@@ -72,3 +72,44 @@ Baseline inspected: `main` at `149a85c7e5c44b61421edc8391cbb82885902fae`.
 3. Map activity and role-management operations to existing Edge Functions/RPCs and add a role/tenant matrix.
 4. Implement the first complete module journey without changing production schema.
 5. Run exact-head validation and record outcomes in `docs/SESSION_LOG.md`, `docs/PROJECT_CONTINUITY.md`, and `docs/MASTER_PRODUCTION_TODO.md`.
+
+
+## 6. Page-by-page TODO — source status, not completion claims (2026-10-20)
+
+**Verified complete pages: 0 in this UI-first effort.** Source exists for several surfaces, but exact-head browser E2E and role/tenant checks have not been proven here.
+
+| Page/module | What exists in source | Done in current branch | TODO to complete the page | Current status |
+|---|---|---|---|---|
+| Public home/discovery | `home.js`, `index.html` | No-results/source-failure work is underway in main app search; no home E2E proven | Search → result → profile/service → contact/request; location/privacy; sponsored loading/empty/error; mobile | PARTIAL |
+| Auth/session/onboarding | `app.js`, provider onboarding | Inventory only | OTP/OAuth callback/session expiry/refresh/logout/membership switch/wrong-role tests | PARTIAL |
+| Module center/blueprints | registry + `module-blueprints.js` | False success removed; security claims corrected | Route every tab to real view or mark unavailable; replace generic blueprint per domain | BLUEPRINT ONLY |
+| Fashion | `sector-modules.js`, operations | Source views | Scope-safe product/order/tailor views; schema/ownership validation; browser E2E | PARTIAL |
+| Grocery/supermarket | operations definitions | Source mappings | Catalog/prices/stock/order detail; branch stock integrity and role tests | PARTIAL |
+| Restaurants/kitchens | `restaurant-module.js` | Dedicated source exists | Menu/modifiers/table/order/kitchen/inventory lifecycle and E2E | PARTIAL |
+| Medical/clinics/pharmacy | operations definitions | Source mappings | Provider/patient privacy, appointment booking/cancel/status, pharmacy route discovery | PARTIAL |
+| Maintenance/professional services | reverse bidding + operations | Source views | Request → offers → selection → assignment → completion/cancel; authorization and retry | PARTIAL |
+| MantiGO/trips | operations + app | Request/bid source | Customer/captain views, bids, selection, ride lifecycle, location/privacy | PARTIAL |
+| Jobs | sector + operations | Job/application source | Employer ownership, candidate applications, duplicates, private fields and status | PARTIAL |
+| Education | sector + operations | School/teacher/request source | School/teacher detail, request create/list, consent, requester-only access and E2E | PARTIAL |
+| Used items | sector + operations | Listing/status source | Seller-owned edits/sold state, inquiry/offer flow, visibility and concurrency | PARTIAL |
+| Marketing/CRM | app + operations | Source mappings | Leads/projects/participants/campaign planning, assignment and source error states | PARTIAL |
+| Legal | operations definitions | Source mapping | Private documents/requirements/agreements, status and permissions | PARTIAL |
+| Companies/factories | operations definitions | Source mapping | Actual route and workflow per domain, supplier/request lifecycle, role/tenant scope | PARTIAL |
+| ERP/purchasing/inventory | operations definitions | Backend-only table guard exists for select tables | Server-only PO/receipt/transfer writes, stock reconciliation, deployed migrations and E2E | PARTIAL / BLOCKED BY CONTRACT TESTS |
+| Digital public pages/editor | dedicated HTML/JS | Dedicated source exists | Public slug safety, owner-only edit, preview/save/publish/unpublish and E2E | PARTIAL |
+| Provider/activity onboarding | onboarding module | Helper source exists | Create/edit/approve/suspend/close activity with existing Edge Function/RPC only | PARTIAL |
+| Platform admin/users/roles | app + RBAC | Role-aware shell source | Scoped role assignment/revocation, audit trail, negative access tests | PARTIAL |
+| Matrimony | generic blueprint | Blueprint only | Privacy/consent-first profile and matching/contact flows | BLUEPRINT ONLY |
+| Accounting/commissions/subscriptions | legacy app/data references | Not expanded | Defer expansion; do not weaken existing cash/order controls | DEFERRED |
+| SMM | standalone SMM source | Existing source preserved | Keep paid execution gated until post-launch provider/payment tests | DEFERRED |
+| Sponsored ads | home RPC references | No monetization enabled | Sponsored label and verified click/impression only; no billing/spend | PARTIAL / BILLING DEFERRED |
+
+### Required completion gates for each row
+
+- [ ] Route/navigation/deep-link and back behavior works.
+- [ ] Data contract and deployed backend endpoint confirmed (not inferred from table names).
+- [ ] Correct loading/empty/partial-error/full-error/retry states.
+- [ ] Create/edit/state changes use verified server-authorized contract; no browser direct writes to backend-only tables.
+- [ ] Positive and negative role/tenant/business/branch isolation tests pass.
+- [ ] Responsive + keyboard/accessibility + authenticated browser E2E pass on exact head.
+- [ ] Exact-head CI evidence and results recorded; no row marked complete on source presence alone.
