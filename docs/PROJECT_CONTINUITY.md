@@ -674,3 +674,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Used-items loading now requests unsold listings plus sold listings owned by the current user, allowing the existing reactivation action to be reachable. The query continues to apply the current active membership's tenant/business filters when scope exists. Source commit: `84b491799802830888665ce807034fd13818a8a7`.
 - A static regression assertion was added in commit `e8b64c1386d28708cf049b29136c396f9d7a2846`.
 - Browser E2E and production RLS/update behavior remain unverified. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 continuation — education request write boundary
+
+- The sector workspace now uses the existing `create_education_request_backend` RPC for education applications rather than a direct client INSERT, consistent with migration `20261007060000_education_request_server_authority_v1.sql`. Source commit: `2052a02f219746b0f9acd53763e2412c54bf99ef`.
+- Added regression assertions in `scripts/validate-sector-rendering.mjs` in commit `abcb297b6e09e8516c1baf457959e47207e6e237`.
+- Exact-head CI and browser E2E pending. No production change/deployment/merge; release remains **BLOCKED / NOT CERTIFIED**.
