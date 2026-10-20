@@ -15,8 +15,6 @@ on:
       - "supabase/migrations/20261020180000_rc465_erp_purchase_order_lines.sql"
       - "supabase/tests/rc465_erp_purchase_order_lines_integration.sql"
       - "supabase/tests/rc464_erp_supplier_update_integration.sql"
-      - "supabase/migrations/20261020180000_rc465_erp_purchase_order_lines.sql"
-      - "supabase/tests/rc465_erp_purchase_order_lines_integration.sql"
       - "supabase/tests/rc463_erp_supplier_master_integration.sql"
       - ".github/workflows/erp-runtime-gateway.yml"
   pull_request:
@@ -28,6 +26,14 @@ on:
       - "supabase/tests/rc461_erp_runtime_gateway_*.sql"
       - "supabase/migrations/20261020160000_rc463_erp_supplier_master.sql"
       - "supabase/tests/rc463_erp_supplier_master_integration.sql"
+      - "supabase/migrations/20261020170000_rc464_erp_supplier_update_backend.sql"
+      - "supabase/tests/rc464_erp_supplier_update_integration.sql"
+      - "supabase/migrations/20261020180000_rc465_erp_purchase_order_lines.sql"
+      - "supabase/tests/rc465_erp_purchase_order_lines_integration.sql"
+      - "scripts/validate-backend-only-module-boundary.mjs"
+      - "scripts/validate-cash-only-launch-flow.mjs"
+      - "web/app.js"
+      - "web/operations-modules.js"
       - ".github/workflows/erp-runtime-gateway.yml"
 permissions:
   contents: read
