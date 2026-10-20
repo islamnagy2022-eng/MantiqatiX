@@ -610,3 +610,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Draft PR [#309](https://github.com/islamnagy2022-eng/MantiqatiX/pull/309) is open against `main`, head `0baeb4e36c7a430afe7863aa5251e71d4bef01a5`. It contains the UI-first execution prompt, initial module route inventory, TODO/continuity updates, and the first UI integrity slice.
 - An intermediate workflow edit failed because of duplicate `run:` keys; this was corrected into a separate named step. Earlier CI failures belong to intermediate heads and must not be confused with exact-head status. Latest exact-head CI was queued/in progress when last checked.
 - Next: inspect exact-head CI results/logs and fix failures; then continue the actual route/action inventory and module UI implementation. No merge/deployment/production mutation occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Source inventory checkpoint
+
+- Inventory: `docs/UI_MODULE_INVENTORY.md` records the current 24 top-level workspace entries, 16 domain module definitions, entrypoint files, and per-area status matrix based on main `149a85c7e5c44b61421edc8391cbb82885902fae`.
+- Confirmed gaps: generic blueprint button currently shows a success toast without actual navigation; auth UI in the inspected baseline offers Google OAuth; global search is configured for 10 data groups and masks individual source errors as no results; activity request modal and membership switcher do not by themselves complete activity/role administration.
+- Current next batch: replace false-success blueprint action with honest real behavior and tests, then improve search partial-failure UX; continue page-by-page implementation with server-side authorization unchanged.
+- No application code changed in this source-inventory batch. UI completion and runtime E2E remain NOT VERIFIED; overall release **BLOCKED / NOT CERTIFIED**.
