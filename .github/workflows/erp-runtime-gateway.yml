@@ -4,6 +4,10 @@ on:
     branches: ["**"]
     paths:
       - "supabase/functions/api/index.ts"
+      - "web/app.js"
+      - "web/operations-modules.js"
+      - "scripts/validate-backend-only-module-boundary.mjs"
+      - "scripts/validate-cash-only-launch-flow.mjs"
       - "supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql"
       - "supabase/tests/rc461_erp_runtime_gateway_*.sql"
       - "supabase/migrations/20261020160000_rc463_erp_supplier_master.sql"
@@ -40,6 +44,11 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check authenticated ERP API gateway
+        run: deno check --no-lock supabase/functions/api/index.ts
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Apply gateway fixture and migration
