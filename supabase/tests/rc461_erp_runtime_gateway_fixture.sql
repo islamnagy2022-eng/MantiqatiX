@@ -41,3 +41,5 @@ begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','u
 create or replace function public.receive_stock_transfer_backend(p_transfer_id varchar)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','receive_stock_transfer'); end $$;
+
+grant select,insert,update,delete on public.user_memberships, public.erp_purchase_orders, public.erp_stock_transfers to service_role;
