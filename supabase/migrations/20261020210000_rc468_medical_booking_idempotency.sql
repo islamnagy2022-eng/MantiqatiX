@@ -21,6 +21,7 @@ declare
   v_existing_time bigint;
   v_existing_reason text;
   v_existing_status text;
+  v_inserted_id text;
 begin
   if p_user_id is null or auth.uid() is null or p_user_id is distinct from auth.uid() then
     raise exception 'AUTH_USER_MISMATCH';
@@ -101,10 +102,38 @@ begin
   ) values (
     pg_catalog.btrim(p_appointment_id), v_tenant_id, p_business_id, p_user_id,
     p_doctor_id, p_date_time, 'BOOKED', v_reason
-  );
+  )
+  on conflict (id) do nothing
+  returning id into v_inserted_id;
+
+  if v_inserted_id is null then
+    -- Another identical request may have inserted the ID after the initial read.
+    -- Resolve that race by re-reading and applying the same strict payload check.
+    select a.patient_id, a.business_id, a.doctor_id, a.date_time, a.reason, a.status
+      into v_existing_patient, v_existing_business, v_existing_doctor, v_existing_time,
+           v_existing_reason, v_existing_status
+    from public.medical_appointments a
+    where a.id = pg_catalog.btrim(p_appointment_id)
+    for update;
+
+    if not found
+       or v_existing_patient is distinct from p_user_id
+       or v_existing_business is distinct from p_business_id
+       or v_existing_doctor is distinct from p_doctor_id
+       or v_existing_time is distinct from p_date_time
+       or nullif(pg_catalog.btrim(coalesce(v_existing_reason,'')), '') is distinct from v_reason then
+      raise exception 'APPOINTMENT_ID_ALREADY_EXISTS';
+    end if;
+
+    return pg_catalog.jsonb_build_object(
+      'id', pg_catalog.btrim(p_appointment_id), 'status', v_existing_status,
+      'business_id', p_business_id, 'doctor_id', p_doctor_id,
+      'date_time', p_date_time, 'idempotent_replay', true
+    );
+  end if;
 
   return pg_catalog.jsonb_build_object(
-    'id', pg_catalog.btrim(p_appointment_id), 'status', 'BOOKED', 'business_id', p_business_id,
+    'id', v_inserted_id, 'status', 'BOOKED', 'business_id', p_business_id,
     'doctor_id', p_doctor_id, 'date_time', p_date_time, 'idempotent_replay', false
   );
 end;
