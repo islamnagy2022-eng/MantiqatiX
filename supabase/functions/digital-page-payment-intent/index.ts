@@ -17,6 +17,8 @@ const json=(b:unknown,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return json({});
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
+ if(Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_ENABLED")!=="true"||Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_POST_LAUNCH_APPROVED")!=="true")return json({error:"ELECTRONIC_PAYMENTS_DEFERRED"},503);
+ if(Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_ENABLED")!=="true"||Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_POST_LAUNCH_APPROVED")!=="true")return json({error:"ELECTRONIC_PAYMENTS_DEFERRED"},503);
  if(req.headers.get("Origin")&&req.headers.get("Origin")!==origin)return json({error:"ORIGIN_NOT_ALLOWED"},403);
  const a=req.headers.get("Authorization");
  if(!a?.startsWith("Bearer "))return json({error:"UNAUTHORIZED"},401);
