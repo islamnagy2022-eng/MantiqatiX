@@ -308,6 +308,8 @@ assert.match(app,/fingerprintHash=2166136261/,"ERP retry identities must be isol
 assert.match(app,/idempotencyBase=/,"ERP retry key must be namespaced by actor, tenant, business, and operation");
 assert.match(app,/ERP_SUPPLIER_UPDATE_ROLE_REQUIRED/);
 assert.match(operations,/editERPSupplier\(\\'/);
+assert.match(operations,/\['الرقم الضريبي','tax_number'\]/);
+assert.match(operations,/\['شروط السداد','payment_terms'\]/);
 
 
 
