@@ -81,7 +81,7 @@ if(files.operations.includes("sb.from('businesses').select('id,tenant_id,name,co
 if(!files.app.includes("['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table)"))failures.push("ERP_BUSINESS_REFERENCE_DIRECT_READ_NOT_BLOCKED");
 if(!files.app.includes("data-erp-supplier-edit=")||!files.app.includes("editERPSupplier(this.dataset.erpSupplierEdit)"))failures.push("ERP_SUPPLIER_EDIT_ACTION_NOT_WIRED");
 if(!files.app.includes("function openERPSupplierForm(row=null)"))failures.push("ERP_SUPPLIER_FORM_MODAL_MISSING");
-if(!files.app.includes("id=\\"mx-erp-supplier-form\\"")||!files.app.includes("mx-erp-supplier-submit"))failures.push("ERP_SUPPLIER_FORM_SUBMIT_NOT_WIRED");
+if(!files.app.includes('id="mx-erp-supplier-form"')||!files.app.includes("mx-erp-supplier-submit"))failures.push("ERP_SUPPLIER_FORM_SUBMIT_NOT_WIRED");
 const supplierFormStart=files.app.indexOf("function openERPSupplierForm(row=null)");
 const supplierFormEnd=files.app.indexOf("async function createPurchaseOrder()",supplierFormStart);
 if(supplierFormStart<0||supplierFormEnd<=supplierFormStart||files.app.slice(supplierFormStart,supplierFormEnd).includes("window.prompt("))failures.push("ERP_SUPPLIER_PROMPT_FLOW_NOT_REPLACED");
