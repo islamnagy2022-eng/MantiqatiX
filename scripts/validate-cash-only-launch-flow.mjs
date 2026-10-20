@@ -58,6 +58,9 @@ assert.doesNotMatch(intentRoute,/\.upsert\(newIntent/,"retry must not replace an
 
 assert.match(migration,/coalesce\(auth\.role\(\),''\) <> 'service_role'/);
 assert.match(migration,/CUSTOMER_MEMBERSHIP_REQUIRED/);
+const cashConfirm=read("supabase/migrations/20261020140000_rc460_cash_confirmation_business_membership.sql");
+assert.match(cashConfirm,/v_intent\.amount<>v_order\.total_amount/,"cash confirmation must bind to authoritative total_amount");
+assert.doesNotMatch(cashConfirm,/v_intent\.amount<>v_order\.total\b/,"legacy total must not override total_amount");
 assert.match(migration,/BUSINESS_TENANT_MISMATCH/);
 assert.match(migration,/CATALOG_PRICE_NOT_FOUND/);
 assert.doesNotMatch(migration,/^\s*(grant|revoke)\b/im,"RC458 must preserve existing service_role-only ACLs");
