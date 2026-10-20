@@ -10,7 +10,7 @@ create or replace function public.update_medical_appointment_status_backend(
 ) returns jsonb
 language plpgsql
 security definer
-set search_path to 'public', 'pg_temp'
+set search_path = ''
 as $function$
 declare
   v_uid uuid := auth.uid();
