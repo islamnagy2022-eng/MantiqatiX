@@ -28,6 +28,7 @@ declare
   );
   result jsonb;
   row_count integer;
+  ledger_count integer;
   line public.erp_purchase_order_lines%rowtype;
 begin
   if has_function_privilege('authenticated','public.erp_purchase_order_create_with_lines_backend(uuid,jsonb)','EXECUTE')
@@ -84,6 +85,8 @@ begin
   if result->>'idempotent'<>'true' then raise exception 'RC465_RECEIPT_RETRY_NOT_IDEMPOTENT'; end if;
   select received_quantity into row_count from public.erp_purchase_order_lines where purchase_order_id='po-lines-test-0001';
   if row_count<>2 then raise exception 'RC465_RECEIPT_RETRY_DOUBLE_COUNTED'; end if;
+  select count(*) into ledger_count from public.erp_purchase_receipt_idempotency where tenant_id='tenant-a' and business_id=biz and receipt_id='rcv-lines-test-0001';
+  if ledger_count<>1 then raise exception 'RC465_RECEIPT_IDEMPOTENCY_LEDGER_MISSING'; end if;
 
   begin
     perform public.erp_purchase_stock_receive_with_lines_backend(actor,jsonb_build_object(
