@@ -1711,3 +1711,5 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Initial inventory is source-grounded but not a complete browser/route verification; do not mark module UI completion VERIFIED until route/action tests and authenticated E2E pass.
 
 - [ ] The blueprint-action source contract has been added to CI but is NOT VERIFIED until the exact branch run completes successfully. No browser E2E was performed.
+
+- [x] Opened Draft PR [#309](https://github.com/islamnagy2022-eng/MantiqatiX/pull/309) for the UI-first plan, inventory, and first UI integrity fix. The initial workflow edit caused failures on earlier intermediate heads; corrected the workflow to define the validator as its own step. Only the latest exact-head CI result can verify the corrected workflow.
