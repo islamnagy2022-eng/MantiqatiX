@@ -60,7 +60,7 @@ const checks = [
   ['education request validates subject length before RPC', sectorModules.includes("subject.length>500")],
   ['education request validates student name length before RPC', sectorModules.includes("student.length<2||student.length>200")],
   ['used-items directory reads use the narrow backend RPC', sectorModules.includes("sb.rpc('list_used_item_ads_backend'") && !/sb\.from\('used_item_ads'\)\.select/.test(sectorModules) && !sectorModules.includes('seller_phone')],
-  ['used-items has no direct table mutation while grants are absent', !/sb\.from\('used_item_ads'\)\.(insert|update|upsert|delete)/.test(sectorModules) && sectorModules.includes('صلاحيات القراءة والتعديل للحسابات المسجلة غير مثبتة')],
+  ['used-items has no direct table mutation while grants are absent', !/sb\.from\('used_item_ads'\)\.(insert|update|upsert|delete)/.test(sectorModules) && sectorModules.includes('إدارة حالة الإعلان غير متاحة من هذه الواجهة حتى يتم اعتماد مسار تعديل آمن في الخادم.')],
   ['fashion product creation fails closed without INSERT privilege', !/sb\.from\('fashion_products'\)\.(insert|update|upsert|delete)/.test(sectorModules) && sectorModules.includes('لا تملك صلاحية INSERT على جدول المنتجات')],
 
 ];
