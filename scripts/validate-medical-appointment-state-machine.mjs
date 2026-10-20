@@ -85,6 +85,7 @@ assert.match(medicalLoader,/cache\.loading=false/,"medical workspace loading mus
 assert.match(medicalLoader,/errors\.runtime=/,"medical workspace must surface unexpected load failures");
 assert.match(app,/async function retryMedicalWorkspace\(\)[\s\S]{0,250}rowsReady=false[\s\S]{0,250}loadMedicalWorkspace\(\)/,"medical workspace error panel must retry the real data loader");
 assert.match(app,/create_medical_appointment_backend/);
+assert.ok(app.includes("if(!data||String(data.id||'')!==appointmentId)"),"main medical booking must retain its idempotency token unless the backend confirms the exact appointment ID");
 assert.match(app,/update_medical_appointment_status_backend/);
 const operations=fs.readFileSync('web/operations-modules.js','utf8');
 assert.match(operations,/function medicalStatusActions\(a\)/,"doctor workspace must render role-appropriate appointment actions");
