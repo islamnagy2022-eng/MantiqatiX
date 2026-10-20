@@ -105,3 +105,8 @@ Use this table as the durable checklist; add one row per real route/page or subv
 - [ ] Next: map every module route/action to verified backend contracts, implement real module pages, and then build scoped activity and job-function/role management.
 
 **Release:** BLOCKED / NOT CERTIFIED. This inventory is not a release approval.
+
+
+## Verification guard
+
+The blueprint status and global-search failure-state behavior are implemented in source and have source-contract validators wired into the Pages workflow. They are not runtime-verified until the exact-head workflow passes and browser smoke tests confirm the behavior. Do not describe the full module set as complete; each module needs a route/action contract and role-scoped tests.
