@@ -201,18 +201,6 @@ begin
            and (ci.branch_id is null or ci.branch_id::text = v_member_branch_id)
        ) then
       raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
-    elsif p_operation in ('update_stock_transfer_status','receive_stock_transfer')
-       and not exists (
-         select 1 from public.warehouses source_w
-         join public.warehouses target_w on target_w.id = v_to_warehouse_id
-           and target_w.tenant_id::text = v_tenant_id and target_w.business_id = v_business_id
-         where source_w.id = v_from_warehouse_id
-           and source_w.tenant_id::text = v_tenant_id and source_w.business_id = v_business_id
-           and source_w.branch_id::text = v_member_branch_id
-           and target_w.branch_id::text = v_member_branch_id
-           and source_w.status = 'ACTIVE' and target_w.status = 'ACTIVE'
-       ) then
-      raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
     end if;
   end if;
 
