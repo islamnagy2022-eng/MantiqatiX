@@ -53,7 +53,7 @@ const domainModules=[
 {key:'TRIPS',name:'المزايدات — الرحلات',icon:'✈️',desc:'طلبات الرحلات والعروض والتنفيذ.',tables:['indrive_requests','indrive_bids','mantigo_rides','mantigo_bids']},
 {key:'MAINTENANCE',name:'المزايدات — الصيانة',icon:'🔧',desc:'طلبات الصيانة والعروض والمتابعة.',tables:['indrive_requests','indrive_bids','support_tickets']},
 {key:'LEGAL',name:'المزايدات — الخدمات القانونية',icon:'⚖️',desc:'الوثائق والمتطلبات والاتفاقيات القانونية.',tables:['legal_documents','legal_requirements','agreements']},
-{key:'ERP',name:'المزايدات — البرمجيات ERP',icon:'💻',desc:'المشتريات والاستلام والتحويلات والمخازن.',tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','catalog_items']},
+{key:'ERP',name:'المزايدات — البرمجيات ERP',icon:'💻',desc:'المشتريات والاستلام والتحويلات والمخازن والأرصدة وحركات المخزون.',tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','catalog_items','stock_balances','inventory_transactions']},
 {key:'MATRIMONY',name:'الزواج',icon:'💍',desc:'الملفات والطلبات وفتح وسائل التواصل وفق النظام.',tables:['matrimony_profiles','matrimony_requests','matrimony_contact_unlocks']},
 {key:'JOBS',name:'الوظائف',icon:'💼',desc:'الوظائف والتقديمات ومتابعة المرشحين.',tables:['jobs','job_applications']},
 {key:'MEDICAL',name:'المنظومة الطبية',icon:'🩺',desc:'اكتشاف مقدمي الخدمة والحجز الطبي ومتابعة المواعيد.',tables:['marketing_provider_profiles','medical_appointments']},
@@ -850,12 +850,14 @@ async function loadEnterpriseDomainData(m){
    rows.warehouses=result.warehouses||[];
    rows.branches=result.branches||[];
    rows.catalog_items=result.catalog_items||[];
+   rows.stock_balances=result.stock_balances||[];
+   rows.inventory_transactions=result.inventory_transactions||[];
   }catch(e){
-   for(const table of ['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','branches'])rows[table]=[];
+   for(const table of ['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','branches','catalog_items','stock_balances','inventory_transactions'])rows[table]=[];
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
