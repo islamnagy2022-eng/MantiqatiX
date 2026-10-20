@@ -39,7 +39,7 @@ if(!app.includes("invokeMntyApi('/api/v1/accounting/ledger'")) missing.push('acc
 if(app.includes("sb.from('general_ledger')")) missing.push('browser must not query protected general ledger directly');
 const cacheReset=app.slice(app.indexOf('function resetMembershipScopedCaches()'),app.indexOf('async function switchMembership('));
 const membershipSwitch=app.slice(app.indexOf('async function switchMembership('),app.indexOf('async function openPrivilegedWorkspace('));
-if(!membershipSwitch.includes('resetMembershipScopedCaches()')||!cacheReset.includes('live.moduleData={}')||!cacheReset.includes('window.MNTYOperationsERPData=null')) missing.push('membership switching must clear tenant-scoped module caches before rendering the new scope');
+if(!membershipSwitch.includes('resetMembershipScopedCaches()')||!cacheReset.includes('live.moduleData={}')||!cacheReset.includes('window.MNTYOperationsERPData=null')||!cacheReset.includes('live.catalogByBusiness={}')||!cacheReset.includes('live.marketingCampaigns=[]')||!cacheReset.includes('live.marketingCampaignParticipants=[]')||!cacheReset.includes('live.marketingCampaignProviders=[]')||!cacheReset.includes('live.myProviderProfile=null')) missing.push('membership switching must clear all tenant-scoped module, catalog, marketing and provider caches before rendering the new scope');
 if(!app.includes('providerServices:[]')) missing.push('membership cache reset must clear provider service records');
 if(missing.length){console.error(missing.join('\n'));process.exit(1);}
 console.log(`Module runtime coverage PASS: ${expected.length}/${expected.length} catalog modules have routed live workspaces.`);
