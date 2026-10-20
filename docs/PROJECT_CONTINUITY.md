@@ -595,3 +595,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Confirmed issue: `web/module-blueprints.js` reports a success toast for “open section” without opening an actual workflow. Next code change should remove that false-success behavior or connect it to a verified existing route, with a focused test.
 - Inventory is explicitly partial; full route/action mapping and authenticated browser E2E are still NOT VERIFIED. No application code or production state changed in this batch.
 - Next action: map exact app handlers and blueprint consumers, implement a small honest UI fix, test it, and continue activity/job-role controls before subscription packages/accounts and expanded accounting UI. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### 2026-10-20 — First UI code slice
+
+- Fixed a misleading action in `web/module-blueprints.js`: the former “فتح القسم” button only displayed a success toast. It now exposes a truthful, accessible status panel (“حالة القسم”) stating that the section is still a preliminary blueprint and no data/action was executed.
+- Added `scripts/validate-module-blueprint-actions.mjs` and inserted it into the module-professionalization CI workflow. Exact-head CI is pending; do not mark this source contract VERIFIED until it passes.
+- This is a small UI integrity fix, not completion of all modules. The full route/action matrix, login/search E2E, activity controls and job-role management remain open.
+- Next: verify CI, map real activity/role APIs and route handlers, then implement module journeys incrementally. No production state was changed; release remains **BLOCKED / NOT CERTIFIED**.
