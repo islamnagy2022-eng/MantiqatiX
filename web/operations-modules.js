@@ -146,6 +146,7 @@ function genericLiveView(d){
  const blocks=d.tables.map(t=>'<section class="card" style="margin:12px 0"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><div class="eyebrow">LIVE DATA</div><h3 style="margin:4px 0">'+esc(t)+'</h3></div><span class="badge">'+String((rows[t]||[]).length)+' سجل مرئي</span></div>'+table(Object.keys((rows[t]||[])[0]||{}).slice(0,8).map(k=>[k,k]),rows[t]||[])+'</section>').join('');
  return shell(d,tabs(d)+'<div class="notice">هذه الواجهة تقرأ البيانات التشغيلية الحالية من Supabase وفق صلاحيات الحساب. لا توجد بيانات تجريبية مصطنعة.</div>'+(blocks||'<div class="empty-state">لا توجد بيانات فعلية ضمن نطاق الصلاحية.</div>'));
 }
+function erpSupplierLabel(id){const item=(rows.erp_suppliers||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.supplier_code||id):String(id||'—')}
 function erpWarehouseLabel(id){const item=(rows.warehouses||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
 function erpProductLabel(id){const item=(rows.catalog_items||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.sku||id):String(id||'—')}
 function erpBranchLabel(id){const item=(rows.branches||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
