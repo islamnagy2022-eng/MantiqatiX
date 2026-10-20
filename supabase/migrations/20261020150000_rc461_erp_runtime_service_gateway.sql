@@ -20,6 +20,7 @@ declare
   v_purchase_order_status text;
   v_from_warehouse_id text;
   v_to_warehouse_id text;
+  v_supplier_branch_id text;
   v_result jsonb;
   v_target_status text;
   v_row_exists boolean := false;
@@ -109,6 +110,31 @@ begin
      and v_target_status = 'APPROVED'
      and v_role not in ('OWNER','BUSINESS_OWNER','ADMIN') then
     raise exception 'ERP_PURCHASE_APPROVAL_ROLE_REQUIRED';
+  end if;
+
+  -- Resolve and validate the supplier reference inside the same server-side scope.
+  if p_operation = 'create_purchase_order' then
+    if nullif(p_arguments->>'p_supplier_id','') is null then
+      raise exception 'ERP_SUPPLIER_REQUIRED';
+    end if;
+    select s.branch_id::text into v_supplier_branch_id
+    from public.erp_suppliers s
+    where s.id = p_arguments->>'p_supplier_id'
+      and s.tenant_id::text = v_tenant_id
+      and s.business_id = v_business_id
+      and s.status = 'ACTIVE';
+    if not found then raise exception 'ERP_SUPPLIER_SCOPE_INVALID'; end if;
+    if v_supplier_branch_id is not null
+       and v_supplier_branch_id is distinct from nullif(p_arguments->>'p_branch_id','') then
+      raise exception 'ERP_SUPPLIER_BRANCH_SCOPE_INVALID';
+    end if;
+    if nullif(p_arguments->>'p_branch_id','') is not null and not exists (
+      select 1 from public.branches b
+      where b.id = p_arguments->>'p_branch_id'
+        and b.tenant_id::text = v_tenant_id
+        and b.business_id = v_business_id
+        and upper(b.status) = 'ACTIVE'
+    ) then raise exception 'ERP_BRANCH_SCOPE_REQUIRED'; end if;
   end if;
 
   -- Branch-scoped memberships cannot operate on another branch's ERP records.
