@@ -185,3 +185,12 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Commit `faba79d2b71bde1d062a402e2b6122cce46ba619`: added accessible error/retry UI for failed sector queries.
 - Commit `eff9d6fa58df35655151e8a69119524ad6200869`: extended the existing sector-rendering validator with source-contract checks for failure/empty distinction, accessible retry, and duplicate job handler. The Pages workflow already invokes this validator.
 - No Node execution, CI result, or browser E2E was verified here. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — sector job application authorization correction
+
+- **Source finding:** `web/sector-modules.js` submitted applications with a direct `job_applications` INSERT, while the repository already defines `public.submit_job_application_backend(uuid,uuid,text,text,text,text)` in `supabase/migrations/20261006235500_job_application_backend_submit_v1.sql`. That backend binds the user to `auth.uid()`, validates required applicant fields and job existence, and handles duplicate applications idempotently.
+- **Change committed on** `feat/ui-first-module-completion-20261020`: `web/sector-modules.js` now calls the existing backend RPC, requires phone/qualifications/CV summary, and distinguishes `ALREADY_APPLIED` from a new submission. Commit: `9a6526456dcc78446a208440b0a24f55bacb598b`.
+- **Regression guard added:** `scripts/validate-sector-rendering.mjs` checks for RPC use, no direct application-table insert, required-field validation, and duplicate status handling. Commit: `32b848989f0b5a80749e0604814037c28c30b31f`.
+- **Not yet verified:** no exact-head CI result or browser E2E has been observed for these new commits. No database change, production deployment, or merge occurred.
+- **Next:** verify source and validator at current head, inspect the CI result, then continue to the next proven UI/backend contract gap. Production remains **BLOCKED / NOT CERTIFIED**.
