@@ -656,3 +656,12 @@ This status is intentional and must remain until the open gates above are indepe
 - The NO_SHOW rule has no grace period after appointment time; product policy remains open.
 - Historical function creation provenance, production Auth leaked-password protection, adversarial live tenant E2E, Paymob/finance/refund E2E, backup/restore, browser/device/Android evidence and deployment verification remain open.
 - PR #301 remains open/draft/unmerged; production remains at RC424 and global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 04:50 EET
+
+- PR #301 current tested code head `e1e57ca3d9cdd4bdfe02d184fe7adbb662ce8137`: all nine PR-triggered workflows passed, including RC457 PostgreSQL integration and disposable forward migration replay from the pinned RC424 schema-only baseline. The replay passed two-direction tenant isolation; it is not a blank replay of all historical migrations.
+- RC457 fixture syntax and validator RC457 file references are corrected. Server-side premature NO_SHOW rejection is covered by PostgreSQL integration. The paired UI action is in PR #300; keep both PRs unmerged/unreleased until review and release gates pass.
+- PR #300 head `d133503c5773590917d13d7d4d57de3bde54f330` and PR #301 remain open/draft/unmerged. Production is unchanged at RC424 (283 applied migration versions, latest `20261008222845`). No production mutation, merge, or deployment occurred.
+- Next executable sequence: review remaining production SECURITY DEFINER/RLS findings and RC449 ordered-chain implications; record owner action for Supabase leaked-password protection; plan safe authenticated two-tenant E2E; then payment/finance, recovery, browser/device, Android and release evidence. Full blank-database historical replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. NO_SHOW grace-period policy remains a product decision.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
