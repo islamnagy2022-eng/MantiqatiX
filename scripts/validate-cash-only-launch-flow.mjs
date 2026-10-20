@@ -240,7 +240,7 @@ assert.match(apiERP,/branchesQuery = supabaseAdmin\.from\("branches"\)/);
 assert.match(apiERP,/branches: safeRows\(branchesData/);
 assert.match(app,/function erpBranchLabel\(rows,id\)/);
 assert.match(app,/erpPurchaseOrderLabel\(rows,r\.purchase_order_id\)/);
-assert.match(apiERP,/from\("catalog_items"\)\.select\("\*"\)\.eq\("tenant_id", tenantId\)\.eq\("business_id", businessId\)/);
+assert.match(apiERP,/const productsBase = \(\) => supabaseAdmin\.from\("catalog_items"\)\.select\("\*"\)[\s\S]*?\.eq\("tenant_id", tenantId\)\.eq\("business_id", businessId\)\.eq\("status", "ACTIVE"\)/);
 assert.match(app,/\['ERP','BUSINESS_ERP'\]\.includes\(m\.key\)/,"ERP tables must be loaded through the tenant-scoped API runtime, not direct browser table reads");
 assert.match(app,/invokeMntyApi\('\/api\/v1\/erp\/runtime'/,"ERP data must be loaded through the authenticated API gateway");
 assert.match(app,/\['warehouses','catalog_items','branches','stock_balances','inventory_transactions'\]\.includes\(table\)/,"ERP-only table reads must be excluded from the direct browser query path");
