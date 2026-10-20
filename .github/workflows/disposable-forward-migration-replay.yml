@@ -95,7 +95,7 @@ jobs:
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: 2.39.2
+          version: 2.113.0
 
       - name: Start isolated Supabase PostgreSQL
         shell: bash
