@@ -129,7 +129,7 @@ Deno.serve(async (req: Request) => {
     });
     if (error) {
       const message = String(error.message ?? "");
-      const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED/.test(message);
+      const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|RECORD_NOT_FOUND/.test(message);
       console.error("erp-runtime mutation rejected", { action, code: error.code, denied });
       return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400);
     }
