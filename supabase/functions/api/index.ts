@@ -85,7 +85,7 @@ serve(async (req) => {
       const [{ data: warehousesData, error: warehousesError }, { data: branchesData, error: branchesError }] = await Promise.all([warehouseQuery, branchesQuery])
       if (warehousesError || branchesError) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
       const supplierBase = () => supabaseAdmin.from("erp_suppliers").select("*")
-        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
+        .eq("tenant_id", tenantId).eq("business_id", businessId)
         .limit(300).order("name_ar", { ascending: true })
       const [globalSuppliersRes, branchSuppliersRes] = branchId
         ? await Promise.all([supplierBase().is("branch_id", null), supplierBase().eq("branch_id", branchId)])
