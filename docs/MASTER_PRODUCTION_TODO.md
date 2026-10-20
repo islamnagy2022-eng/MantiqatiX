@@ -1929,3 +1929,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 
 - [x] Consolidated behavioral coverage into the repository's existing `Used Item Directory Read Boundary` workflow and `used_item_directory_read_integration.sql`; removed the duplicate fixture/workflow job. The existing integration now asserts seller-phone and owner-ID column grants are absent, and the workflow applies both migrations in order. CI trigger and static contract assertions were aligned to the follow-up migration. Commits: `1575707eda5a95fa51bc97d59000a5d234f82be5`, `98ed691d1016baa2c15140a0dc633a2128b08ad4`, `7505f36ccd8924f2a0f741cb54ec150d28cdc0e2`, `877fcb57fd46a1650504795508c5900a1862c69f`, `640b0f46166d9b45875f03ee89e94de458343cb1`. Awaiting CI.
+
+
+## RC — job directory read contracts — 2026-10-20
+- [x] Live read-only inspection showed `jobs` and `job_applications` have no authenticated SELECT privilege, so direct sector reads fail despite RLS policies; `jobs.employer_phone`, `job_applications.applicant_phone`, and `cv_summary_text` are sensitive fields.
+- [x] Added `list_jobs_backend` returning only listing fields (aliases `employer_name` to the UI's expected `company_name`), active jobs plus owner-owned inactive jobs, and optional tenant/business filtering.
+- [x] Added `list_job_applications_backend` returning only application fields needed by the UI, restricted to the applicant or owner of the associated job. It excludes phone and CV summary.
+- [x] Revoked direct table SELECT and granted only authenticated execution of these RPCs; sector loader now calls the RPCs.
+- [x] Added disposable PostgreSQL fixture, behavioral test, dedicated CI workflow, and static contract guards.
+- [ ] Migration `20261020233000_jobs_directory_backend_v1.sql` is source-only and not applied to production. Exact-head CI and browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
