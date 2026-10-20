@@ -47,7 +47,7 @@ assert.match(intentRoute,/existingIntent/);
 assert.match(intentRoute,/\.insert\(newIntent\)/);
 assert.doesNotMatch(intentRoute,/\.upsert\(newIntent/,"retry must not replace an existing payment intent id");
 
-assert.match(migration,/coalesce\\(auth\\.role\\(\\),''\\) <> 'service_role'/);
+assert.match(migration,/coalesce\(auth\.role\(\),''\) <> 'service_role'/);
 assert.match(migration,/CUSTOMER_MEMBERSHIP_REQUIRED/);
 assert.match(migration,/BUSINESS_TENANT_MISMATCH/);
 assert.match(migration,/CATALOG_PRICE_NOT_FOUND/);
