@@ -40,7 +40,7 @@ if(!app.includes("if(typeof window.MNTYReloadOperationsModule==='function')await
 const indexHtml=fs.readFileSync('web/index.html','utf8');
 const serviceWorker=fs.readFileSync('web/sw.js','utf8');
 const indexOpsVersion=indexHtml.match(/operations-modules\.js\?v=([^'\"]+)/)?.[1];
-const swOpsVersion=serviceWorker.match(/operations-modules\\.js\\?v=([^'\"]+)/)?.[1];
+const swOpsVersion=serviceWorker.match(/operations-modules\.js\?v=([^'\"]+)/)?.[1];
 if(!indexOpsVersion || indexOpsVersion!==swOpsVersion) throw new Error('operations module asset cache versions must match');
 
 
