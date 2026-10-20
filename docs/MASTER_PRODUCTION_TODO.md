@@ -1633,3 +1633,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — SMM deferral-aware release gate candidate
+
+- [x] Added a pure launch-scope evaluator that preserves the four SMM runtime gates when SMM is active.
+- [x] For deferred SMM, the evaluator requires server-side function disablement, customer-access denial, a passing negative test, and non-empty live function version/hash/evidence reference; missing or malformed evidence fails closed.
+- [x] Added a 10-assertion regression script and wired it into Pages CI.
+- [ ] Live SMM gateway remains a P0 blocker until the approved server-side deny gate is deployed and negative-tested against production. This source change does not deploy or disable the live function.
+- [ ] Global production gate remains BLOCKED / NOT CERTIFIED.
