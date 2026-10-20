@@ -819,3 +819,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Digital-page paid checkout is disabled before electronic payment-intent invocation because there is no verified cash contract for that product. SMM workspace shows a deferred notice; the gateway remains default-deny.
 - CI adds static cash-scope validation and disposable PostgreSQL RC458 tests for service-role actor handling, pricing, idempotency, membership denial and client-role ACL boundaries. Authenticated browser E2E and actual cash confirmation remain NOT VERIFIED.
 - No production mutation, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+
+## Continuation checkpoint — 2026-10-20 — electronic payment server-side deferral
+- Added RC459 candidate to hard-block direct authenticated calls to `create_payment_intent_backend` before an electronic intent row can be inserted. The migration preserves existing ACLs and returns `ELECTRONIC_PAYMENTS_POST_LAUNCH`.
+- Added hard-coded, fail-closed gates to Paymob order payment, digital-page paid order creation/payment, subscription payment intent, and MantiGO ride payment intent Edge Functions. An environment variable alone cannot override the pre-launch deferral; post-launch requires a reviewed code change and explicit enablement.
+- Marketplace cash checkout remains the only implemented cash path in this scope. Digital-page paid orders, subscription payments and MantiGO ride payments stay unavailable until a verified cash path exists or online payments are formally enabled after launch.
+- RC459 includes disposable PostgreSQL denial/ACL regression and is added to the ordered migration replay. No production migration, payment, merge or deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
