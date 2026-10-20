@@ -185,6 +185,8 @@ assert.match(rc461,/ERP_PURCHASE_ORDER_SCOPE_INVALID/);
 assert.match(rc461Integration,/RC461_RECEIPT_WITHOUT_SCOPED_ORDER_WAS_ALLOWED/);
 assert.match(rc461Integration,/RC461_CROSS_BRANCH_PURCHASE_ORDER_RECEIPT_WAS_ALLOWED/);
 assert.match(rc461,/ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT/);
+assert.match(rc461,/coalesce\(v_purchase_order_status,''\) not in \('SUBMITTED','APPROVED','PARTIALLY_RECEIVED'\)/);
+assert.match(rc461Integration,/RC461_NULL_STATUS_PURCHASE_ORDER_RECEIPT_WAS_ALLOWED/);
 assert.match(rc461Integration,/RC461_DRAFT_PURCHASE_ORDER_RECEIPT_WAS_ALLOWED/);
 assert.match(app,/async function receivePurchaseStock\(preselectedOrderId\)/);
 assert.match(app,/PARTIALLY_RECEIVED/);
