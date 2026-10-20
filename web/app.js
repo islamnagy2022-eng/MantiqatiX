@@ -228,6 +228,14 @@ function resetMembershipScopedCaches(){
  live.moduleData={};
  live.counts={};
  live.flags={};
+ live.catalogByBusiness={};
+ live.marketingCampaigns=[];
+ live.marketingCampaignParticipants=[];
+ live.marketingCampaignProviders=[];
+ live.marketingCampaignErrors=[];
+ live.marketingCampaignUnavailable=false;
+ live.marketingCampaignUnavailableReason=null;
+ live.myProviderProfile=null;
  live.records={leads:[],providers:[],providerServices:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};
 }
 async function switchMembership(membershipId){
