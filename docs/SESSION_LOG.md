@@ -111,3 +111,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Extended `scripts/validate-industry-workspaces.mjs` to assert the timing guard, status marker, and Arabic label.
 - Exact tested code head: `4ded759615e25d5bb9776751ccb32dbc1189e6be`. PASS: all six PR workflows (Industry Workspaces UI Contract, Marketing Workspace Contract, Pages validation, Module Professionalization Validation, Backend-only Module Boundary, MantiGO privacy). Pages deployment skipped as expected for PR.
 - This UI action depends on the paired RC457 server-side transition guard in PR #301. No production migration, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Product visibility and incomplete workflow controls
+- User direction: module/service visibility and business presence/marketing are core product functions; an incomplete purchase or service workflow must not cause the listing/module to be hidden.
+- Distinguish visibility/publication from inquiry, purchase/booking, payment, fulfillment, and completion states.
+- PR #300 UI now keeps non-mutating preview inputs and action-review controls interactive, displays an explicit incomplete state, and explains prerequisites without writing or pretending success.
+- Updated the UI contract validator and product documentation. Exact-head CI is pending for these changes; no production mutation, merge, or deployment occurred.
+- Next: validate the exact PR head, fix any test failures, then inventory public discovery/listing surfaces and verified inquiry fallback contracts. Global release remains **BLOCKED / NOT CERTIFIED**.
