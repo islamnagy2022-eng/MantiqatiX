@@ -387,3 +387,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Commits:** app fix `b3e6b40d9b2cec87bdfeb8505af91be81d84b236`; validator `1820aafa54e85419591028833ef3bb2665f49e25`; slot validation `b85501b6cd067bbfbb4f21cb40cc7c1189a8e2ab`; validator hardening `7e115c674eaeec0fa828f2748299895b4b822916`; cache/index updates `5887916676e9c4b78738ada0987fc7bf3e612ae9` and `29d789c62eb54863e3def38fbdda250f833fc852`.
 - **Verification status:** exact candidate head is `29d789c62eb54863e3def38fbdda250f833fc852`. Doctor Module Release Contract, Disposable Forward Migration Replay, ERP Runtime Gateway Integration, and ERP Opening Stock Integration runs were created but remain `queued`; no test pass is claimed until these runs complete. Source-file parity checks passed by direct inspection only.
 - **Safety:** no merge, deployment, production migration, or live-data mutation occurred. PR #307 remains draft/open/unmerged; global release remains **BLOCKED / NOT CERTIFIED** pending exact-head CI and authenticated cash-flow E2E, live isolation, production security/configuration, and recovery evidence.
+
+
+## 2026-10-20 — Validator source-target correction
+
+- **Defect found during continuation:** the medical source validator asserted the 15-minute timestamp check against `web/operations-modules.js`, but the actual customer booking handler is in `web/app.js`. This would produce a false failure in CI despite the UI guard being present.
+- **Fix committed:** changed the assertion to inspect the actual booking source (`app`) and match `timestamp%900000!==0`. Verified the branch file now contains the corrected assertion, the UI guard, and the veterinary provider filter.
+- **Commit:** `0438d46486e7ef4a31845e78af843d57b1386d20`.
+- **CI:** the available commit workflow query has not returned runs for this exact head. Older Doctor Module Release Contract and Disposable Forward Migration Replay jobs remain queued; they are not evidence of success. Do not claim test pass until exact-head results complete.
+- **Release dependency:** PR #307 is open/draft and targets `fix/medical-appointment-state-machine-20261019`; PR #301 is also open/draft and targets `main`. Do not merge the stack or deploy the medical section until the prerequisite PR, migration chain, exact-head tests, and user-facing E2E are verified.
+- No merge, production migration, or live deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
