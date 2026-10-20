@@ -97,6 +97,8 @@ assert.match(migration,/coalesce\(auth\.role\(\),''\) <> 'service_role'/);
 assert.match(migration,/CUSTOMER_MEMBERSHIP_REQUIRED/);
 const cashConfirm=read("supabase/migrations/20261020140000_rc460_cash_confirmation_business_membership.sql");
 assert.match(cashConfirm,/v_intent\.amount<>v_order\.total_amount/,"cash confirmation must bind to authoritative total_amount");
+assert.match(cashConfirm,/IF auth\.uid\(\) IS NOT NULL AND auth\.uid\(\)<>p_user_id THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;/,"cash confirmation must reject acting for a different authenticated identity");
+assert.match(rc460Integration,/RC460_AUTH_IDENTITY_MISMATCH_MUST_FAIL/,"cash confirmation integration must test mismatched auth identity");
 const apiCashConfirm=api.slice(api.indexOf("const cashConfirmMatch"));
 assert.match(apiCashConfirm,/Array\.isArray\(permissions\)[\s\S]*permissions\.includes\("PAYMENT_CONFIRM_CASH"\)/,"cash confirmation must accept canonical permission arrays");
 assert.match(apiCashConfirm,/permissions\.PAYMENT_CONFIRM_CASH\s*===\s*true/,"cash confirmation must require a true-valued JSONB permission flag");
