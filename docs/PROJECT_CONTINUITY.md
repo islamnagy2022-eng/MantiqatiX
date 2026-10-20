@@ -639,3 +639,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Fixed the global-search validator's accessibility pattern to match the actual `aria-live="polite"` attribute emitted by `web/app.js`.
 - Checked the seven expected source patterns against the latest fetched `web/app.js`; all matched. Do not describe this as a full test run: Node/Pages CI and browser E2E have not been executed/confirmed here.
 - Latest code commit at this checkpoint: `410bca6f6eaf5e635b54cf509a06a2a0ae62ce20`. Confirm exact-head CI and continue route-by-route module implementation. Keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Search permission-filter empty state
+
+- The global-search renderer now has a separate accessible state when no search sources are permitted for the current account/role. This avoids conflating authorization-based source unavailability with a valid query returning zero records.
+- Added a source-contract check. Seven source patterns were matched against the latest fetched app source; this is not a test execution or CI proof.
+- Verify exact-head Pages CI and authenticated browser tests before certification. Keep release **BLOCKED / NOT CERTIFIED**.
