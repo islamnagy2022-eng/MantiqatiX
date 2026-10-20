@@ -129,7 +129,7 @@ async function mgGetCurrentPosition(){if(window.MNTYLocationAdapter?.requestLoca
  if(!destinationEl?.value.trim())return alert('حدد الوجهة أولًا.');
  const proposedPrice=Number(priceEl?.value)||0;if(proposedPrice<=0)return alert('أدخل سعرًا مقترحًا صحيحًا أكبر من صفر.');
  const pos=pickupEl.dataset.lat?{lat:Number(pickupEl.dataset.lat),lon:Number(pickupEl.dataset.lon)}:null;
- const phone=(document.getElementById('mgPhone')?.value||'').trim();if(phone&&!/^[0-9+\\s()-]{7,20}$/.test(phone))return alert('أدخل رقم تواصل صحيحًا.');
+ const phone=(document.getElementById('mgPhone')?.value||'').trim();if(phone&&!/^[0-9+\s()-]{7,20}$/.test(phone))return alert('أدخل رقم تواصل صحيحًا.');
  const p={p_user_id:user.id,p_customer_name:user.user_metadata?.full_name||user.email?.split('@')[0]||'عميل MantiGO',p_customer_phone:phone,p_vehicle_category:document.getElementById('mgVehicle').value,p_ride_type:document.getElementById('mgType').value,p_pickup_location:pickupEl.value.trim(),p_destination_location:destinationEl.value.trim(),p_proposed_price:proposedPrice,p_note:document.getElementById('mgNote').value.trim(),p_pickup_lat:pickupEl.dataset.lat?Number(pickupEl.dataset.lat):(pos?.lat??null),p_pickup_lon:pickupEl.dataset.lon?Number(pickupEl.dataset.lon):(pos?.lon??null),p_destination_lat:null,p_destination_lon:null};
  if(!p.p_pickup_location||!p.p_destination_location||p.p_proposed_price<=0)return alert('أكمل نقطة الانطلاق والوجهة والسعر المقترح.');
  const fingerprint=JSON.stringify([p.p_user_id,p.p_customer_name,p.p_customer_phone,p.p_vehicle_category,p.p_ride_type,p.p_pickup_location,p.p_destination_location,p.p_proposed_price,p.p_note,p.p_pickup_lat,p.p_pickup_lon]);
