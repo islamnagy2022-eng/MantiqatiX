@@ -853,11 +853,11 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&table==='warehouses')&&!(m.key==='MATRIMONY'&&table==='matrimony_requests'));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&table==='warehouses')&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
-   if(['chart_of_accounts','journal_entries','journal_entry_lines','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(['chart_of_accounts','journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
    if(['journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.businessId)q=q.eq('business_id',live.businessId);
    if(['journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.branchId)q=q.eq('branch_id',live.branchId);
    if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
@@ -869,6 +869,16 @@ async function loadEnterpriseDomainData(m){
   }catch(error){return {table,data:[],error};}
  }));
  for(const result of results){rows[result.table]=result.data;if(result.error)errors[result.table]='READ_FAILED';}
+ if(m.key==='ACCOUNTING'&&m.tables.includes('journal_entry_lines')){
+  try{
+   const entryIds=(rows.journal_entries||[]).map(entry=>String(entry.id)).filter(Boolean);
+   if(entryIds.length){
+    const lineResult=await sb.from('journal_entry_lines').select('id,journal_entry_id,account_id,debit,credit,description').in('journal_entry_id',entryIds).limit(500);
+    if(lineResult.error)throw lineResult.error;
+    rows.journal_entry_lines=lineResult.data||[];
+   }else rows.journal_entry_lines=[];
+  }catch(error){rows.journal_entry_lines=[];errors.journal_entry_lines='READ_FAILED';}
+ }
  if(m.key==='MATRIMONY'){
   try{
    const ownedProfiles=(rows.matrimony_profiles||[]).filter(profile=>String(profile.owner_user_id)===String(user.id)).map(profile=>String(profile.id)).filter(Boolean);
@@ -878,6 +888,14 @@ async function loadEnterpriseDomainData(m){
    if(requestResult.error)throw requestResult.error;
    rows.matrimony_requests=requestResult.data||[];
   }catch(error){rows.matrimony_requests=[];errors.matrimony_requests='READ_FAILED';}
+  try{
+   const requestIds=(rows.matrimony_requests||[]).map(request=>String(request.id)).filter(Boolean);
+   if(requestIds.length){
+    const unlockResult=await sb.from('matrimony_contact_unlocks').select('id,request_id,unlocked_at').in('request_id',requestIds).limit(100);
+    if(unlockResult.error)throw unlockResult.error;
+    rows.matrimony_contact_unlocks=unlockResult.data||[];
+   }else rows.matrimony_contact_unlocks=[];
+  }catch(error){rows.matrimony_contact_unlocks=[];errors.matrimony_contact_unlocks='READ_FAILED';}
  }
  cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;syncModuleRuntime(m.name);renderApp();
 }
