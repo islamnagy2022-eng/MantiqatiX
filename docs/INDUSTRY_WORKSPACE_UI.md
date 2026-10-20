@@ -9,7 +9,10 @@ This change is the **frontend-first design stage** for sector workspaces. It doe
 - Route format: **قطاع: CODE**, where CODE is a canonical sector identifier.
 - Access boundary: routes require the existing **الموديولات** view permission through RBAC.
 - PWA: web/industry-workspaces.js is loaded by the boot sequence and precached by service worker cache mnty-web-v130.
-- UI controls that would mutate data are disabled and labelled as awaiting the approved backend contract.
+- All sector workspaces and their functions remain visible for discovery and review. Visibility/marketing status is independent from purchase, booking, payment, dispensing, or fulfillment readiness.
+- Non-mutating form fields and preview controls remain interactive for preparing/reviewing a draft in the current screen; they do not submit or persist data.
+- Each not-yet-wired operation displays **غير مكتمل** and a working action-review control that lists missing backend, authorization, idempotency/concurrency, and E2E requirements.
+- Do not claim a draft was saved or a transaction completed unless the approved server contract confirms it.
 
 ## Sector inventory
 
@@ -52,7 +55,7 @@ This change is the **frontend-first design stage** for sector workspaces. It doe
 - Responsive sector cards and nested section navigation.
 - A detail screen for each sector with sector-specific focus areas.
 - Screen preview with empty states instead of fake rows or sample customer data.
-- Disabled forms/actions to make the eventual interaction model visible without implying writes succeeded.
+- Interactive non-mutating preview fields and action-review controls with explicit incomplete status; no fake success, no hidden modules, and no browser-side writes.
 - Consistent RTL layout, accessible labels, responsive table containers, and reduced-motion support.
 - Keyboard-accessible sector tabs (Arrow Left/Right, Home/End, roving focus), explicit tab-panel relationships, selected-state announcements for filters, and a live result count for screen readers.
 - Explicit notice that sensitive operations are not active until the backend and authorization contract is reviewed.
@@ -79,6 +82,14 @@ When the frontend is reviewed, implement each sector in a separate backend slice
 5. Connect the UI to verified read contracts first, then add mutations through approved server endpoints.
 6. Add empty/loading/error states and end-to-end tests against disposable fixtures.
 7. Do not mark a sector production-ready until exact-head CI, deployment parity, and post-deployment smoke checks pass.
+
+## Product rule — visibility is not operational readiness
+
+- Never hide an activity, sector, service, or module solely because a transaction flow is incomplete.
+- Keep the public/business presence and approved marketing/catalog information visible according to publication and consent rules.
+- Track separate lifecycle states for listing visibility, inquiry/contact, purchase/booking, payment, fulfillment, and completion.
+- When a transaction path is incomplete, show the precise status and missing prerequisites; provide a verified inquiry/contact fallback if an authorized backend path exists. If no safe fallback exists, mark that path incomplete rather than hiding the listing or pretending the request succeeded.
+- Non-destructive preview fields and “review action” controls stay interactive; sensitive writes remain server-authoritative and cannot be simulated as successful.
 
 ## Validation
 
