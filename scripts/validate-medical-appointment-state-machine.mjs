@@ -206,9 +206,9 @@ assert.ok(presenceSource.includes("catch(_){alert('تعذر تحديث حالة 
 assert.ok(presenceSource.includes("if(buttons.some(b=>b.disabled))return"),"captain presence changes must block duplicate clicks");
 assert.ok(presenceSource.includes("status==='AVAILABLE'&&(!pos||!Number.isFinite(pos.lat)||!Number.isFinite(pos.lon))"),"captain must not become available without a fresh valid location");
 assert.ok(presenceSource.includes("finally{buttons.forEach"),"captain presence buttons must be restored on all exit paths");
-const transitionStart=operations.indexOf('async function mgTransition(');
-const transitionEnd=operations.indexOf('async function mgCashPay(',transitionStart);
-const transitionSource=operations.slice(transitionStart,transitionEnd);
+const transitionUIStart=operations.indexOf('async function mgTransition(');
+const transitionUIEnd=operations.indexOf('async function mgCashPay(',transitionUIStart);
+const transitionSource=operations.slice(transitionUIStart,transitionUIEnd);
 assert.ok(transitionSource.includes("catch(_){alert('تعذر تحديث حالة الرحلة بسبب مشكلة اتصال"),"trip status transitions must handle network ambiguity");
 assert.ok(transitionSource.includes("if(buttons.some(b=>b.disabled))return"),"trip status changes must block duplicate clicks");
 assert.ok(transitionSource.includes("finally{buttons.forEach"),"trip status buttons must be restored on all exit paths");
