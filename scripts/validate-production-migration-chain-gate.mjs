@@ -41,6 +41,7 @@ const required = [
   "20261020160000_rc463_erp_supplier_master.sql",
   "20261020170000_rc464_erp_supplier_update_backend.sql",
   "20261020180000_rc465_erp_purchase_order_lines.sql",
+  "20261021190000_rc462_mantigo_presence_verification_guard.sql",
   "20261020190000_rc466_erp_opening_stock_backend.sql",
   "20261020200000_rc467_medical_booking_release_contract.sql",
   "20261020210000_rc468_medical_booking_idempotency.sql",
