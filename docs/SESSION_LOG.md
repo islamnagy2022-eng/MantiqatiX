@@ -186,3 +186,26 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #301 exact head e1e57ca3d9cdd4bdfe02d184fe7adbb662ce8137 passed all nine PR-triggered workflows, including RC457 PostgreSQL integration and forward replay of 31 pending candidate migrations from the pinned RC424 schema-only baseline. Two-tenant isolation checks passed. This is not a blank-database replay of all historical migrations.
 - PR #300 exact head d133503c5773590917d13d7d4d57de3bde54f330 has five non-deploy workflows passing; the newest Pages workflow was cancelled as superseded. The prior head d8a9d399f100e4cc5dcdc829b3aad7a2368b8818 had six successful PR workflows, with deploy skipped in PR context.
 - Next: refresh PR #300 exact-head web validation; continue the per-function authorization review; record the Supabase Auth leaked-password owner action; preserve the missing historical provenance blocker. No production mutation, merge, or deployment occurred. PRs remain open/draft and global release remains BLOCKED / NOT CERTIFIED.
+
+
+### 2026-10-20 — RC457 security and cross-business regression
+
+**Verified facts**
+- PR #301 remains an open draft; the previous code head had nine PR workflows queued/in progress when last checked. That CI state does not validate the changes recorded below.
+- The RC457 migration already uses `FOR UPDATE`, caller binding to `auth.uid()`, and active tenant/business membership checks. Its prior SECURITY DEFINER search path was `public, pg_temp`.
+
+**Actions performed**
+- Changed RC457 function configuration to `search_path = ''`; table references and `auth.uid()` are schema-qualified.
+- Added a disposable PostgreSQL appointment in a second business within the same tenant, then asserted that a provider from the first business cannot confirm it.
+- Extended the source validator to require the empty search path and the same-tenant cross-business test.
+- Updated the RC457 release note, Master TODO, and project continuity checkpoint.
+
+**Not performed / limitations**
+- No production migration, grant/RLS/Auth setting, deployment, merge, or financial mutation was performed.
+- Latest exact-head CI after these changes is pending. Earlier PASS results are not evidence for this updated head.
+- Full blank-database historical migration replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; production remains last verified at RC424.
+
+**Next**
+1. Fetch the latest PR #301 head and verify all workflows against that exact SHA.
+2. Fix any real CI failures and rerun the affected workflow(s).
+3. Continue from the next open production gate; keep release **BLOCKED / NOT CERTIFIED** until all independent release gates are evidenced.
