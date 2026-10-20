@@ -61,27 +61,48 @@ Deno.serve(async (req: Request) => {
       if (businessError) throw new Error("ERP_BUSINESS_LOOKUP_FAILED");
       if (!business || String(business.status ?? "").toUpperCase() !== "ACTIVE") return json({ error: "ERP_BUSINESS_SCOPE_INVALID" }, 403);
 
-      const scoped = (table: string) => {
-        let query = admin.from(table).select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100);
-        if (branchId) query = query.or(`branch_id.is.null,branch_id.eq.${branchId}`);
-        return query;
-      };
-      const [ordersRes, receiptsRes, transfersRes, warehousesRes] = await Promise.all([
-        scoped("erp_purchase_orders").order("created_at", { ascending: false }),
-        scoped("erp_purchase_receipts").order("created_at", { ascending: false }),
-        scoped("erp_stock_transfers").order("created_at", { ascending: false }),
-        scoped("warehouses").order("name", { ascending: true }),
-      ]);
-      if (ordersRes.error || receiptsRes.error || transfersRes.error || warehousesRes.error) {
-        console.error("erp-runtime list query failed", { orders: !!ordersRes.error, receipts: !!receiptsRes.error, transfers: !!transfersRes.error, warehouses: !!warehousesRes.error });
+      let warehouseQuery = admin.from("warehouses").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("name", { ascending: true });
+      if (branchId) warehouseQuery = warehouseQuery.eq("branch_id", branchId);
+      const { data: warehousesData, error: warehousesError } = await warehouseQuery;
+      if (warehousesError) {
+        console.error("erp-runtime warehouse query failed", { code: warehousesError.code });
+        return json({ error: "ERP_DATA_LOAD_FAILED" }, 500);
+      }
+      const warehouseIds = (warehousesData ?? []).map((row: any) => String(row.id));
+      let ordersQuery = admin.from("erp_purchase_orders").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false });
+      if (branchId) ordersQuery = ordersQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+      let receiptsQuery = admin.from("erp_purchase_receipts").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false });
+      if (branchId) receiptsQuery = warehouseIds.length ? receiptsQuery.in("warehouse_id", warehouseIds) : receiptsQuery.in("warehouse_id", ["00000000-0000-0000-0000-000000000000"]);
+      const [ordersRes, receiptsRes] = await Promise.all([ordersQuery, receiptsQuery]);
+      let transfers: any[] = [];
+      if (!branchId) {
+        const { data, error } = await admin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false });
+        if (error) {
+          console.error("erp-runtime transfer query failed", { code: error.code });
+          return json({ error: "ERP_DATA_LOAD_FAILED" }, 500);
+        }
+        transfers = data ?? [];
+      } else if (warehouseIds.length) {
+        const [fromRes, toRes] = await Promise.all([
+          admin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).in("from_warehouse_id", warehouseIds).limit(100).order("created_at", { ascending: false }),
+          admin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).in("to_warehouse_id", warehouseIds).limit(100).order("created_at", { ascending: false }),
+        ]);
+        if (fromRes.error || toRes.error) {
+          console.error("erp-runtime branch transfer query failed", { from: !!fromRes.error, to: !!toRes.error });
+          return json({ error: "ERP_DATA_LOAD_FAILED" }, 500);
+        }
+        transfers = [...new Map([...(fromRes.data ?? []), ...(toRes.data ?? [])].map((row: any) => [String(row.id), row])).values()];
+      }
+      if (ordersRes.error || receiptsRes.error) {
+        console.error("erp-runtime list query failed", { orders: !!ordersRes.error, receipts: !!receiptsRes.error });
         return json({ error: "ERP_DATA_LOAD_FAILED" }, 500);
       }
       return json({
         success: true,
         orders: safeRows(ordersRes.data ?? [], ["id","tenant_id","business_id","branch_id","order_number","supplier_id","total_amount","tax_amount","discount_amount","status","reason","created_at","updated_at"]),
         receipts: safeRows(receiptsRes.data ?? [], ["id","tenant_id","business_id","purchase_order_id","receipt_number","warehouse_id","product_id","received_quantity","unit_cost","status","created_at"]),
-        transfers: safeRows(transfersRes.data ?? [], ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
-        warehouses: safeRows(warehousesRes.data ?? [], ["id","tenant_id","business_id","branch_id","name","code","status"]),
+        transfers: safeRows(transfers, ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
+        warehouses: safeRows(warehousesData ?? [], ["id","tenant_id","business_id","branch_id","name","code","status"]),
       });
     }
 
