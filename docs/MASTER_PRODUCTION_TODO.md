@@ -1812,3 +1812,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Removed a duplicate `applyToJob(jobId)` declaration that was shadowed by the later overload in the same source file.
 - [x] Extended the existing `scripts/validate-sector-rendering.mjs` contract to guard query-error/empty-state distinction, accessible retry, and exactly one job-application handler. The Pages workflow already invokes this validator.
 - [ ] Validator execution, Node syntax check, exact-head CI, and authenticated browser E2E have not been confirmed in this session. Keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — job application authorization boundary — 2026-10-20
+- [x] Replaced the sector workspace's direct `job_applications` table INSERT with the existing `submit_job_application_backend` RPC, which binds `p_user_id` to `auth.uid()`, requires phone/qualifications/CV summary, validates that the job exists, and returns `ALREADY_APPLIED` for a duplicate.
+- [x] UI now validates all required application fields before calling the RPC and handles the duplicate status without claiming a new submission.
+- [x] Added static guards in `scripts/validate-sector-rendering.mjs` for RPC use, required-field validation, and duplicate response handling.
+- [ ] Exact-head CI/syntax validation pending. This is a source-level correction, not browser E2E or production certification.
+- No database migration, production data mutation, deployment, or merge was performed. Final Production Gate remains **BLOCKED / NOT CERTIFIED**.
