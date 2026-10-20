@@ -20,11 +20,23 @@ const plans={
  USED_ITEMS:['الإعلانات','البحث والتصفية','العروض','التفاوض','المراسلات','التقارير']
 };
 const icons=['▣','◈','◌','◆','◇','◎'];
+const targetHeadings={
+ ERP:['أوامر الشراء','الاستلامات','التحويلات','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة'],
+ ACCOUNTING:['دليل الحسابات','القيود','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة'],
+ MATRIMONY:['الملفات المتاحة','طلبات التواصل الخاصة بي','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة'],
+ FACTORIES:['مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة'],
+ TRIPS:['مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة','مصادر البيانات الموصولة']
+};
 function runtime(m){
- const tables=Object.keys(m?.tables||{});
+ const tables=Array.isArray(m?.tables)?m.tables:Object.keys(m?.tables||{});
  const external=window.MNTYModuleRuntime?.[m?.key]?.tables||{};
- const readable=tables.filter(t=>external[t]!==null&&external[t]!==undefined).length;
- return {tables,readable,counts:external};
+ const counts={...external};
+ for(const table of tables){
+  if(Array.isArray(m?.rows?.[table]))counts[table]=m.rows[table].length;
+  else if(m?.tables&& !Array.isArray(m.tables) && m.tables[table]!==undefined)counts[table]=m.tables[table];
+ }
+ const readable=tables.filter(t=>counts[t]!==null&&counts[t]!==undefined).length;
+ return {tables,readable,counts};
 }
 function badge(kind){
  const map={LIVE:['بيانات فعلية','live'],PARTIAL:['قراءة جزئية','pending'],NOT_VERIFIED:['غير متحقق','planned'],SERVER:['تنفيذ خادمي','ui']};
@@ -33,7 +45,10 @@ function badge(kind){
 }
 function card(title,idx,m){
  const r=runtime(m),kind=!r.tables.length?'NOT_VERIFIED':r.readable===r.tables.length?'LIVE':'PARTIAL';
- return '<article class="mnty-blueprint-card" data-module-card="'+idx+'"><div class="mnty-blueprint-icon">'+icons[idx%icons.length]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(title)+'</h3>'+badge(kind)+'</div><p>'+esc(['مساحة تشغيل أساسية مع عرض الحالة الحالية.','استعراض البيانات المتاحة ضمن نطاق الحساب والصلاحيات.','العمليات الحساسة تمر عبر المسار الخادمي المعتمد.','متابعة الحالات والطلبات دون إنشاء بيانات تجريبية.','المؤشرات تعتمد على البيانات التشغيلية المتاحة فقط.','الإعدادات والصلاحيات تخضع لـRBAC وRLS.'][idx]||'مساحة تشغيلية للموديول.')+'</p><div class="mnty-blueprint-source"><span>'+r.tables.length+' مصادر</span><span>'+r.readable+' مقروءة</span></div><button type="button" class="linkbtn mnty-blueprint-btn" data-blueprint="'+esc(title)+'">فتح القسم ←</button></div></article>';
+ const target=(targetHeadings[m?.key]||[])[idx]||'مصادر البيانات الموصولة';
+ const targetTable=r.tables[idx]||'';
+ const count=targetTable&&r.counts[targetTable]!=null?String(r.counts[targetTable])+' سجلات':r.readable+' مصادر متاحة';
+ return '<article class="mnty-blueprint-card" data-module-card="'+idx+'"><div class="mnty-blueprint-icon">'+icons[idx%icons.length]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(title)+'</h3>'+badge(kind)+'</div><p>'+esc(['مساحة تشغيل مرتبطة ببيانات الموديول الفعلية.','استعراض البيانات المتاحة ضمن نطاق الحساب والصلاحيات.','العمليات الحساسة تمر عبر المسار الخادمي المعتمد.','متابعة الحالات والطلبات دون إنشاء بيانات تجريبية.','المؤشرات تعتمد على البيانات التشغيلية المتاحة فقط.','الإعدادات والصلاحيات تخضع لـRBAC وRLS.'][idx]||'مساحة تشغيلية للموديول.')+'</p><div class="mnty-blueprint-source"><span>'+r.tables.length+' مصادر</span><span>'+esc(count)+'</span></div><button type="button" class="linkbtn mnty-blueprint-btn" data-blueprint="'+esc(title)+'" data-blueprint-target="'+esc(target)+'">عرض القسم ←</button></div></article>';
 }
 function panel(name,m){
  const list=plans[m?.key]||['نظرة عامة','البيانات','العمليات','الطلبات','التقارير','الإعدادات'];
@@ -47,7 +62,16 @@ window.MNTYBindModuleBlueprint=()=>{
   const tabs=[...root.querySelectorAll('[data-blueprint-tab]')],cards=[...root.querySelectorAll('[data-module-card]')];
   tabs.forEach(btn=>btn.onclick=()=>{tabs.forEach(x=>{x.classList.remove('active');x.setAttribute('aria-selected','false')});btn.classList.add('active');btn.setAttribute('aria-selected','true');cards.forEach((c,i)=>c.hidden=i!==Number(btn.dataset.blueprintTab))});
   cards.forEach((c,i)=>c.hidden=i!==0);
-  root.querySelectorAll('.mnty-blueprint-btn').forEach(btn=>btn.onclick=()=>window.showToast?.('تم فتح قسم «'+btn.dataset.blueprint+'».','success'));
+  root.querySelectorAll('.mnty-blueprint-btn').forEach(btn=>btn.onclick=()=>{
+   const card=btn.closest('[data-module-card]'),index=Number(card?.dataset.moduleCard||0),tab=tabs.find(x=>Number(x.dataset.blueprintTab)===index);
+   if(tab)tab.click();
+   const targetName=String(btn.dataset.blueprintTarget||'').trim();
+   const headings=[...document.querySelectorAll('#page h3, #mnty-main-content h3')].filter(h=>!root.contains(h));
+   const heading=headings.find(h=>h.textContent.trim()===targetName);
+   const target=heading?.closest('.card,section')||heading;
+   if(target&&typeof target.scrollIntoView==='function'){target.scrollIntoView({behavior:'smooth',block:'start'});window.showToast?.('تم الانتقال إلى «'+targetName+'».','success');}
+   else window.showToast?.('لا توجد شاشة بيانات مرتبطة بهذا القسم في العرض الحالي.','error');
+  });
  });
 };
 })();
