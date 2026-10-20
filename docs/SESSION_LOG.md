@@ -194,3 +194,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Regression guard added:** `scripts/validate-sector-rendering.mjs` checks for RPC use, no direct application-table insert, required-field validation, and duplicate status handling. Commit: `32b848989f0b5a80749e0604814037c28c30b31f`.
 - **Not yet verified:** no exact-head CI result or browser E2E has been observed for these new commits. No database change, production deployment, or merge occurred.
 - **Next:** verify source and validator at current head, inspect the CI result, then continue to the next proven UI/backend contract gap. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — used-items sold-listing recovery
+
+- **Finding:** `load()` filtered `used_item_ads` to `is_sold=false`, while the UI included a seller action to re-enable sold ads. The sold-state branch was therefore unreachable for ads hidden by the query.
+- **Fix:** the source now selects unsold listings plus listings owned by the authenticated user, preserving the existing active membership tenant/business scope where present. Commit: `84b491799802830888665ce807034fd13818a8a7`.
+- **Regression guard:** added an assertion in `scripts/validate-sector-rendering.mjs`. Commit: `e8b64c1386d28708cf049b29136c396f9d7a2846`.
+- **Verification boundary:** source-level fix only; CI and browser E2E pending. RLS/update-policy behavior is not certified. No production changes or deployment occurred.
