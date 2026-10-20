@@ -184,6 +184,7 @@ const presenceGuardStart=operations.indexOf("async function mgSetPresence(");
 const presenceGuardEnd=operations.indexOf("async function mgTransition(",presenceGuardStart);
 const presenceGuard=operations.slice(presenceGuardStart,presenceGuardEnd);
 assert.ok(presenceGuard.includes("if(buttons.some(b=>b.disabled))return"),"captain presence must prevent duplicate submissions");
+assert.ok(presenceGuard.includes("status==='AVAILABLE'&&(!pos||!Number.isFinite(pos.lat)||!Number.isFinite(pos.lon))"),"captain availability must require a fresh valid location");
 assert.ok(presenceGuard.includes("finally{buttons.forEach"),"captain presence controls must recover after failed requests");
 const transitionGuardStart=operations.indexOf("async function mgTransition(");
 const transitionGuardEnd=operations.indexOf("async function mgCashPay(",transitionGuardStart);
