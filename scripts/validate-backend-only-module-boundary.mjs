@@ -13,6 +13,7 @@ if(!operations.includes("invokeErpApi({operation:'list',tenantId:activeScope.ten
 if(!operations.includes("eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id)")) throw new Error('business ERP summary is not tenant/business scoped');
 if(!operations.includes('ERP_DATA_LOAD_FAILED')) throw new Error('operations ERP runtime errors are silently treated as empty data');
 if(!operations.includes("tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','warehouses','catalog_items']")) throw new Error('ERP module does not include its product catalog link');
+if(!operations.includes("key:'BUSINESS_ERP',tabs:['overview','live'],tables:['businesses','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','warehouses','catalog_items']")) throw new Error('Business ERP must expose the same linked purchasing and catalog sources');
 if(!operations.includes("if(businessScoped.includes(t)&&activeScope?.business_id)q=q.eq('business_id',activeScope.business_id)")) throw new Error('operations product catalog reads are not business-scoped');
 if(!app.includes("function erpWarehouseLabel(rows,id)")) throw new Error('enterprise ERP warehouse references are not linked to warehouse names');
 if(!app.includes("function erpProductLabel(rows,id)")) throw new Error('enterprise ERP product references are not linked to catalog names');
