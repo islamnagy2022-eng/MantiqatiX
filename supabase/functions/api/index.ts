@@ -91,7 +91,13 @@ serve(async (req) => {
       if (branchId) receiptsQuery = warehouseIds.length ? receiptsQuery.in("warehouse_id", warehouseIds) : receiptsQuery.in("warehouse_id", ["00000000-0000-0000-0000-000000000000"])
       let productsQuery = supabaseAdmin.from("catalog_items").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").limit(200).order("name_ar", { ascending: true })
       if (branchId) productsQuery = productsQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`)
-      const [ordersRes, receiptsRes, productsRes] = await Promise.all([ordersQuery, receiptsQuery, productsQuery])
+      let balancesQuery = supabaseAdmin.from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(300).order("updated_at", { ascending: false })
+      let transactionsQuery = supabaseAdmin.from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(300).order("created_at", { ascending: false })
+      if (branchId) {
+        balancesQuery = balancesQuery.eq("branch_id", branchId)
+        transactionsQuery = transactionsQuery.eq("branch_id", branchId)
+      }
+      const [ordersRes, receiptsRes, productsRes, balancesRes, transactionsRes] = await Promise.all([ordersQuery, receiptsQuery, productsQuery, balancesQuery, transactionsQuery])
       let transfers = []
       if (!branchId) {
         const { data, error } = await supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
@@ -105,7 +111,7 @@ serve(async (req) => {
         if (fromRes.error || toRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
         transfers = [...new Map([...(fromRes.data ?? []), ...(toRes.data ?? [])].map((row) => [String(row.id), row])).values()]
       }
-      if (ordersRes.error || receiptsRes.error || productsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      if (ordersRes.error || receiptsRes.error || productsRes.error || balancesRes.error || transactionsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
       const safeRows = (rows, fields) => (rows ?? []).map((row) => Object.fromEntries(fields.filter((field) => Object.prototype.hasOwnProperty.call(row, field)).map((field) => [field, row[field]])))
       return json({
         success: true,
@@ -114,7 +120,9 @@ serve(async (req) => {
         transfers: safeRows(transfers, ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
         warehouses: safeRows(warehousesData, ["id","tenant_id","business_id","branch_id","name","code","status"]),
         branches: safeRows(branchesData, ["id","tenant_id","business_id","name","code","status"]),
-        catalog_items: safeRows(productsRes.data, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"])
+        catalog_items: safeRows(productsRes.data, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"]),
+        stock_balances: safeRows(balancesRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","quantity_on_hand","quantity_reserved","updated_at"]),
+        inventory_transactions: safeRows(transactionsRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","transaction_type","quantity","unit_cost","reference_id","created_by","created_at"])
       })
     }
 
