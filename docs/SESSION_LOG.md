@@ -117,3 +117,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Still unresolved:** explicit product/reporting semantics for `NO_SHOW`; full chronological blank-database replay because creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` is missing; Supabase Auth leaked-password protection owner action; full two-tenant E2E; real Paymob/finance/refund E2E; backup/restore and rollback; browser/device smoke; signed Android evidence.
 - PR #301 and #300 remain open/draft/unmerged. Production remains at documented RC424. No production DDL/DML, grants/RLS/Auth changes, payment/financial test data, merge, or deployment occurred.
 - **Release status: BLOCKED / NOT CERTIFIED.** Continue from the first open gate; never equate code/CI success with production certification.
+
+
+## 2026-10-20 — continuation status and exact-head verification
+
+- [x] Re-read the existing Master Production TODO and Continuity baseline; preserved the established priority order and did not restart completed work.
+- [x] Verified PR #300 current head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818`: six PR-triggered workflows succeeded (marketing workspace contract, industry workspace contract, backend-only boundary, web validation workflow, MantiGO privacy boundary, and module professionalization). Pages deployment is not proven by PR validation; the deploy job is skipped for PRs.
+- [x] Verified PR #301 current head `22fe004a2c7f8c162d2a1d84cf411df59b226752`: nine PR-triggered workflows succeeded, including RC457 medical state-machine PostgreSQL integration and disposable forward migration replay.
+- [x] Forward replay evidence: 31 candidate migrations replayed in timestamp order from the pinned RC424 schema-only baseline; two-tenant isolation checks passed in both directions.
+- [ ] Full blank-database replay remains blocked by missing authoritative historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- [ ] Explicit product/reporting semantics for medical `NO_SHOW` remain to be reviewed before production rollout.
+- [ ] Remaining release gates include Supabase Auth leaked-password protection owner action, complete SECURITY DEFINER/RLS adversarial review, real authenticated two-tenant E2E, authorized Paymob/finance/refund E2E, backup/restore and rollback rehearsal, interactive browser/device verification, signed Android evidence, and main-branch deployment verification.
+- [x] Recorded the mandatory continuation/reporting rule: every continuation reads the continuity/TODO/session log, continues from the first open gate, and reports main/sub-items with explicit states and evidence.
+- No production DDL/DML, grant/RLS/Auth change, financial transaction, merge, or deployment occurred. PR #300 and #301 remain open/draft/unmerged. Global release remains **BLOCKED / NOT CERTIFIED**.
