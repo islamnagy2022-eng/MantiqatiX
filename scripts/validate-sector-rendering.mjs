@@ -54,6 +54,7 @@ const checks = [
   ['education requests use the authorized backend RPC', sectorModules.includes("sb.rpc('create_education_request_backend'") && !/sb\.from\('education_requests'\)\.insert/.test(sectorModules)],
   ['education request validates subject length before RPC', sectorModules.includes("subject.length>500")],
   ['education request validates student name length before RPC', sectorModules.includes("student.length<2||student.length>200")],
+  ['used-items directory reads explicitly exclude seller phone', sectorModules.includes("t==='used_item_ads'?'id,owner_user_id,tenant_id,business_id,title,description,category,price,seller_name,image_url,fee_paid,location,is_sold,created_at':'*'") && !/used_item_ads[^\n]*seller_phone/.test(sectorModules)],
   ['used-items has no direct table mutation while grants are absent', !/sb\.from\('used_item_ads'\)\.(insert|update|upsert|delete)/.test(sectorModules) && sectorModules.includes('صلاحيات القراءة والتعديل للحسابات المسجلة غير مثبتة')],
   ['fashion product creation fails closed without INSERT privilege', !/sb\.from\('fashion_products'\)\.(insert|update|upsert|delete)/.test(sectorModules) && sectorModules.includes('لا تملك صلاحية INSERT على جدول المنتجات')],
 
