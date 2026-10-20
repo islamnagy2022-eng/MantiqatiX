@@ -39,7 +39,7 @@ assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not c
 assert.match(index, /app\.js\?v=mnty-modules-v18-20261020/, "browser cache key must be refreshed");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 assert.match(sw, /const CACHE='mnty-web-v153'/, "PWA cache must be versioned for the new shell");
-assert.match(sw, /app\.js\?v=mnty-modules-v16-20261020/, "service worker must precache the exact versioned app entrypoint");
+assert.match(sw, /app\.js\?v=mnty-modules-v18-20261020/, "service worker must precache the exact versioned app entrypoint");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
 assert.match(index, /sw\.js\?v=mnty-modules-v20-20261020/, "service worker registration cache key must match the current cash/restaurant release version");
 
