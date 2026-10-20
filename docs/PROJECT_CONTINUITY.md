@@ -684,3 +684,9 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Education request UX also validates student-name length (2–200 characters) to match the existing backend contract; source commit `82fafbe1ec770c60e6d5ad49e316b090fb34bbc5`, validator commit `c6eaa0ac4a2c04b9ae456971f381ce2f2ff98b71`. Exact-head checks remain pending.
+
+
+## 2026-10-20 continuation — used-items ownership boundary
+
+- Used-items status buttons are now shown only for ads owned by the authenticated user, and the owner-scoped UPDATE checks whether a row was actually returned before proceeding. Source commit `edeee30e5546956020f7ccbc999c934dea2a66a3`; regression validator commit `66a9bfa98276ebc78847847e5b29412b3627a2f1`.
+- CI/browser E2E/RLS remain unverified; no production deployment or merge occurred.
