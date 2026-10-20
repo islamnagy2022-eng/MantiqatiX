@@ -223,6 +223,12 @@ function membershipOptionLabel(m){
  const section=m?.business_section||'إدارة المنصة';
  return icon+' '+roleLabel(role)+' — '+activity+' — '+section;
 }
+function resetMembershipScopedCaches(){
+ live.moduleData={};
+ live.counts={};
+ live.flags={};
+ live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};
+}
 async function switchMembership(membershipId){
  const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
  if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
@@ -230,6 +236,7 @@ async function switchMembership(membershipId){
  const previous=live.memberships.find(m=>m.id===live.activeMembershipId&&m.status==='ACTIVE')||null;
  const selector=document.getElementById('mx-role-switcher');
  if(selector)selector.disabled=true;
+ resetMembershipScopedCaches();
  window.MNTYActiveMembershipId=membershipId;
  localStorage.setItem('MNTYActiveMembershipId',membershipId);
  live.activeMembershipId=membershipId;
