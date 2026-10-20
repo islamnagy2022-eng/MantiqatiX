@@ -1034,13 +1034,28 @@ async function createMedicalAppointment(providerId,businessId){
  if(reason.length>500)return showToast('سبب الزيارة يجب ألا يتجاوز 500 حرف','error');
  const button=document.getElementById('med-book-'+providerId);
  if(button){button.disabled=true;button.textContent='جار تأكيد الحجز…';}
+ const requestPayload=JSON.stringify([user.id,businessId,providerId,timestamp,reason||null]);
+ let requestHash=2166136261;
+ for(let i=0;i<requestPayload.length;i++){requestHash^=requestPayload.charCodeAt(i);requestHash=Math.imul(requestHash,16777619);}
+ const requestKey='MNTY_MEDICAL_BOOKING:'+user.id+':'+(requestHash>>>0).toString(36);
+ let storedRequest=null;
+ try{storedRequest=JSON.parse(sessionStorage.getItem(requestKey)||'null');}catch(_){}
+ storedRequest=storedRequest||live.medicalBookingIdempotency?.[requestKey]||null;
+ const appointmentId=storedRequest?.fingerprint===requestPayload&&storedRequest?.id
+  ?storedRequest.id:'MED-'+crypto.randomUUID();
+ const requestRecord={fingerprint:requestPayload,id:appointmentId};
+ live.medicalBookingIdempotency=live.medicalBookingIdempotency||{};
+ live.medicalBookingIdempotency[requestKey]=requestRecord;
+ try{sessionStorage.setItem(requestKey,JSON.stringify(requestRecord));}catch(_){}
  try{
   const {data,error}=await sb.rpc('create_medical_appointment_backend',{
-   p_user_id:user.id,p_appointment_id:'MED-'+crypto.randomUUID(),
+   p_user_id:user.id,p_appointment_id:appointmentId,
    p_business_id:businessId,p_doctor_id:providerId,p_date_time:timestamp,p_reason:reason||null
   });
   if(error)throw error;
-  showToast('تم إرسال طلب الموعد بنجاح','success');
+  try{sessionStorage.removeItem(requestKey);}catch(_){}
+  if(live.medicalBookingIdempotency)delete live.medicalBookingIdempotency[requestKey];
+  showToast(data?.idempotent_replay?'تم استرجاع نتيجة الحجز السابق دون إنشاء موعد مكرر':'تم إرسال طلب الموعد بنجاح','success');
   live.moduleData.MEDICAL={rowsReady:false,loading:false,rows:{},errors:{}};
   await loadMedicalWorkspace();
  }catch(error){showToast(medicalErrorMessage(error),'error');}
