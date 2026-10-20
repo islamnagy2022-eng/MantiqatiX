@@ -21,6 +21,9 @@ begin
  if not exists(select 1 from businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id and coalesce(b.status,'ACTIVE')='ACTIVE') then raise exception 'BUSINESS_TENANT_MISMATCH'; end if;
  if not exists(select 1 from marketing_provider_profiles pp where pp.business_id=p_business_id and pp.status='ACTIVE') then raise exception 'PROVIDER_NOT_AVAILABLE'; end if;
  if p_branch_id is not null and not exists(select 1 from branches br where br.id=p_branch_id and br.business_id=p_business_id and br.tenant_id=p_tenant_id and coalesce(br.status,'ACTIVE')='ACTIVE') then raise exception 'BRANCH_BUSINESS_MISMATCH'; end if;
+ -- Serialize concurrent retries for the same tenant/key before checking for an existing order.
+ -- Hash collisions only cause harmless extra serialization; the unique key remains the final integrity boundary.
+ perform pg_advisory_xact_lock(hashtextextended(p_tenant_id||':'||trim(p_client_idempotency_key),0));
  select * into v_existing from orders where tenant_id=p_tenant_id and client_idempotency_key=trim(p_client_idempotency_key) for update;
  if found then return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true); end if;
  select * into v_settings from catalog_business_settings where business_id=p_business_id;
