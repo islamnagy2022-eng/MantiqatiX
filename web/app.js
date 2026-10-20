@@ -1781,7 +1781,7 @@ async function openCashCheckout(items=getMntiCart()){
  if(!Array.isArray(items)||!items.length)return showToast('السلة فارغة.','error');
  const businessIds=[...new Set(items.map(x=>String(x.businessId||'')))],branchIds=[...new Set(items.map(x=>String(x.branchId||'')))];
  if(businessIds.length!==1||!businessIds[0]||branchIds.length!==1)return showToast('كل طلب يجب أن يكون من نشاط وفرع واحد. أتمم كل نشاط أو فرع في طلب مستقل.','error');
- if(items.some(x=>!x.itemId||!Number.isInteger(Number(x.quantity)||1)||(Number(x.quantity)||1)<1))return showToast('توجد خدمة غير صالحة في السلة. احذفها وأضفها من الكتالوج مرة أخرى.','error');
+ if(items.some(x=>!x.itemId||!Number.isInteger(Number(x.quantity))||Number(x.quantity)<1||Number(x.quantity)>10000))return showToast('توجد خدمة غير صالحة في السلة. احذفها وأضفها من الكتالوج مرة أخرى.','error');
  const businessId=businessIds[0],branchId=branchIds[0]||null;
  const fingerprint=JSON.stringify(items.map(x=>({businessId:String(x.businessId),branchId:String(x.branchId||''),itemId:String(x.itemId),quantity:Math.max(1,Number(x.quantity)||1)})).sort((a,b)=>a.itemId.localeCompare(b.itemId)));
  const attempt=cashCheckoutAttempt(fingerprint),overlay=document.createElement('div');overlay.className='mx-modal';
