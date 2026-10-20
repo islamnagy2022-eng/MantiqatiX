@@ -333,9 +333,12 @@ serve(async (req) => {
     if (membershipError) return json({ error: "Cash confirmation authorization failed" }, 500)
     const authorized = (memberships || []).some((m: any) => {
       const role = String(m.role ?? "").toUpperCase()
-      const permissions = Array.isArray(m.permissions) ? m.permissions : []
+      const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+      const hasCashPermission = Array.isArray(permissions)
+        ? permissions.includes("PAYMENT_CONFIRM_CASH")
+        : Object.prototype.hasOwnProperty.call(permissions, "PAYMENT_CONFIRM_CASH")
       const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
-      return businessScoped && (["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(role) || permissions.includes("PAYMENT_CONFIRM_CASH"))
+      return businessScoped && (["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(role) || hasCashPermission)
     })
     if (!authorized) return json({ error: "Forbidden: insufficient permissions" }, 403)
 
