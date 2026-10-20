@@ -1820,3 +1820,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added static guards in `scripts/validate-sector-rendering.mjs` for RPC use, required-field validation, and duplicate response handling.
 - [ ] Exact-head CI/syntax validation pending. This is a source-level correction, not browser E2E or production certification.
 - No database migration, production data mutation, deployment, or merge was performed. Final Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — seller-owned sold listing recovery — 2026-10-20
+- [x] Fixed the used-items query so active listings remain visible and seller-owned sold listings can still be found and reactivated: `is_sold=false OR owner_user_id=current authenticated user`. Existing active-membership tenant/business filters and row-level security remain in place.
+- [x] Added a source-contract assertion so the seller-owned sold-listing branch cannot silently disappear.
+- [ ] Exact-head CI and authenticated browser E2E remain pending. This is not proof that production RLS permits the intended update or that the deployed UI is current.
+- No database or production mutation, deployment, or merge occurred. Release remains **BLOCKED / NOT CERTIFIED**.
