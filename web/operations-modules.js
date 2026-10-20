@@ -87,8 +87,14 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
  }catch(e){error='تعذر تحميل بيانات ERP الفعلية من الخادم. لم يتم عرضها كبيانات فارغة؛ أعد المحاولة بعد التحقق من الاتصال والصلاحيات.';loading=false;return render()}
  loading=false;return render()}for(const t of d.tables){
  if(BACKEND_ONLY_TABLES.has(t)){rows[t]=[];continue}
- let q=sb.from(t).select('*').limit(150).order('created_at',{ascending:false});
  const activeScope=scope();
+ const sharedERP=window.MNTYOperationsERPData;
+ const sharedScopeMatches=!!sharedERP&&String(sharedERP.tenant_id||'')===String(activeScope?.tenant_id||'')&&String(sharedERP.business_id||'')===String(activeScope?.business_id||'')&&String(sharedERP.branch_id||'')===String(activeScope?.branch_id||'');
+ if(sharedScopeMatches&&Object.prototype.hasOwnProperty.call(sharedERP,t)){
+  rows[t]=Array.isArray(sharedERP[t])?sharedERP[t]:[];
+  continue;
+ }
+ let q=sb.from(t).select('*').limit(150).order('created_at',{ascending:false});
  const tenantScoped=['catalog_items','catalog_item_prices','inventory_transactions','stock_balances','warehouses','chart_of_accounts','journal_entries','businesses','agreements','legal_documents','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory','used_item_ads','jobs','orders'];
  const businessScoped=['catalog_items','agreements','inventory_transactions','stock_balances','warehouses','journal_entries','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory','used_item_ads','orders'];
  const branchScoped=['catalog_items','catalog_item_prices','inventory_transactions','stock_balances','warehouses','journal_entries','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory'];
