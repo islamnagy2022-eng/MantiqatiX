@@ -314,9 +314,9 @@ jobs:
           set -euo pipefail
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
-          docker cp supabase/tests/rc462_mantigo_presence_guard_fixture.sql "$pg_container:/tmp/rc469_fixture.sql"
+          docker cp supabase/tests/rc469_mantigo_presence_guard_fixture.sql "$pg_container:/tmp/rc469_fixture.sql"
           docker cp supabase/migrations/20261021190000_rc469_mantigo_presence_verification_guard.sql "$pg_container:/tmp/rc469_migration.sql"
-          docker cp supabase/tests/rc462_mantigo_presence_guard_integration.sql "$pg_container:/tmp/rc469_test.sql"
+          docker cp supabase/tests/rc469_mantigo_presence_guard_integration.sql "$pg_container:/tmp/rc469_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_presence_test -v ON_ERROR_STOP=1 -f /tmp/rc469_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_presence_test -v ON_ERROR_STOP=1 -f /tmp/rc469_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_presence_test -v ON_ERROR_STOP=1 -f /tmp/rc469_test.sql
