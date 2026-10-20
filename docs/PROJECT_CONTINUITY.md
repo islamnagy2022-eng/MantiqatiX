@@ -603,3 +603,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-module-blueprint-actions.mjs` and inserted it into the module-professionalization CI workflow. Exact-head CI is pending; do not mark this source contract VERIFIED until it passes.
 - This is a small UI integrity fix, not completion of all modules. The full route/action matrix, login/search E2E, activity controls and job-role management remain open.
 - Next: verify CI, map real activity/role APIs and route handlers, then implement module journeys incrementally. No production state was changed; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### 2026-10-20 — PR #309 checkpoint
+
+- Draft PR [#309](https://github.com/islamnagy2022-eng/MantiqatiX/pull/309) is open against `main`, head `0baeb4e36c7a430afe7863aa5251e71d4bef01a5`. It contains the UI-first execution prompt, initial module route inventory, TODO/continuity updates, and the first UI integrity slice.
+- An intermediate workflow edit failed because of duplicate `run:` keys; this was corrected into a separate named step. Earlier CI failures belong to intermediate heads and must not be confused with exact-head status. Latest exact-head CI was queued/in progress when last checked.
+- Next: inspect exact-head CI results/logs and fix failures; then continue the actual route/action inventory and module UI implementation. No merge/deployment/production mutation occurred. Release remains **BLOCKED / NOT CERTIFIED**.
