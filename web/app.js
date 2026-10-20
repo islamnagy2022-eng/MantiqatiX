@@ -853,7 +853,7 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&table==='warehouses')&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&['warehouses','catalog_items'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
