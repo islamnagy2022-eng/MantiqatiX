@@ -137,3 +137,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Disposable forward replay (39348848404) passed from the pinned RC424 schema-only baseline; migration order and post-replay tenant isolation checks passed. This is not a blank-database replay of all historical migrations.
 - [ ] Missing historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unresolved. `NO_SHOW` product/reporting semantics remain open. Auth, adversarial E2E, real finance/payment, recovery, browser/device, Android, and production deployment gates remain open.
 - PR #300 and PR #301 remain open/draft/unmerged. Production ledger was rechecked read-only at 283 versions through RC424. No production mutation, merge, or deployment occurred; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — RC457 fixture fix and CI evidence
+
+- Corrected `supabase/tests/rc457_medical_appointment_state_machine_fixture.sql`: the placeholder SQL function now uses a standard quoted SQL body, removing the PostgreSQL parse error near `$`.
+- Exact code commit: `e20b710e821ab146f03dd4e1c6ae83fc37b085d6`.
+- PASS — Module Professionalization Validation run `39349976422`, including RC457 medical appointment PostgreSQL integration and the source contract validator.
+- PASS — Disposable Forward Migration Replay run `39349976601`: `FORWARD_MIGRATION_REPLAY=PASS`, 31 candidate migrations replayed in timestamp order from the pinned RC424 schema-only baseline, and both directions of the two-tenant isolation assertions passed.
+- PASS — Migration Version Uniqueness `39349976719`; Migration History Immutability `39349976310`; Open PR Migration Collision Guard `39349976477`; Backend-only Module Boundary `39349976372`; Approval Action Audit Atomicity `39349976504`; MantiGO Open Ride Privacy Boundary `39349976439`; web validation `39349976615`. The Pages deploy job was skipped because this was a PR.
+- The forward replay is not a blank-database replay of all 283 historical production migrations. Missing authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains a historical provenance blocker.
+- Still open: explicit medical `NO_SHOW` product semantics; Auth leaked-password protection owner action; complete adversarial RLS/SECURITY DEFINER review; real authenticated two-tenant E2E; authorized Paymob/finance/refund E2E; backup/restore and rollback rehearsal; browser/device smoke; signed Android evidence; main-branch deployment verification.
+- PR #301 remains open/draft/unmerged. Production remains at RC424. No production mutation, merge, or deployment occurred; global release remains **BLOCKED / NOT CERTIFIED**.
