@@ -272,6 +272,12 @@ async function medicalBook(providerId){
    alert('تعذر تأكيد الحجز: '+r.error.message+'\nأعد المحاولة بنفس الموعد والسبب لاسترجاع النتيجة دون تكرار.');
    return;
   }
+  // Keep the idempotency token unless the backend confirms this exact request ID.
+  // An empty or malformed success payload is ambiguous and must remain safely retryable.
+  if(!r.data||String(r.data.id||'')!==appointmentId){
+   alert('لم يصل تأكيد موثوق للحجز من الخادم. احتفظنا ببيانات المحاولة؛ أعد المحاولة بنفس الموعد والسبب لتجنب التكرار.');
+   return;
+  }
   try{sessionStorage.removeItem(requestKey);}catch(_){}
   if(window.MNTYMedicalBookingPending)delete window.MNTYMedicalBookingPending[requestKey];
   alert(r.data?.idempotent_replay?'تم استرجاع الحجز السابق دون إنشاء موعد مكرر.':'تم إرسال الموعد بنجاح.');
