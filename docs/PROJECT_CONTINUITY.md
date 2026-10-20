@@ -611,3 +611,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Current implementation on PR #300: all 27 sector routes remain discoverable; preview controls are now interactive for non-destructive review, and action review reports “غير مكتمل” with prerequisites. No fake records, browser writes, bookings, payments, or save-success claims are permitted.
 - Next: run exact-head CI for the UI changes; fix any validator/runtime failures; then inventory public business/service/product discovery and add separate publication, inquiry, transaction, payment, and fulfillment statuses with verified contact fallback where available.
 - Do not merge/deploy solely because UI CI passes. Global production release remains **BLOCKED / NOT CERTIFIED** until security, tenant isolation, payments/finance, backup/restore, runtime E2E, and deployment evidence are complete.
+
+
+## 2026-10-20 — Visible modules / explicit incomplete operation status
+- Product direction is now recorded in the Master TODO and industry UI docs: keep modules/services visible unless an explicit publication, consent, legal, or owner visibility rule says otherwise; do not hide them just because booking/purchase/fulfillment is incomplete.
+- PR #300 implementation commit `cc105b72d9f01e5ebc8e5386f3bf0623f08fb416` removes disabled preview fields/actions, adds an explicit incomplete state, and lets the user inspect operation prerequisites without submitting data or faking success.
+- The first CI attempt caught one stale validator assertion requiring the old “واجهة فقط” label. Fixed in `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`.
+- Exact-head CI on `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`: all six PR workflows passed; Pages deploy was skipped because this is a PR.
+- Next: confirm documentation-only handoff CI, then inventory the public activity discovery/profile/catalog and inquiry fallback paths. Keep any incomplete transaction explicitly labelled; global production release remains **BLOCKED / NOT CERTIFIED**.
