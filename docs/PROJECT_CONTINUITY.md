@@ -685,3 +685,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Exact-head CI must be rerun on the latest branch head after these changes; previous passes do not cover them.
 - Production migration ledger remains last verified at RC424. The full blank-database historical replay still lacks authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
 - No production mutation, merge, or deployment occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 — RC462 reconciliation
+
+- RC462 source conflict was reconciled across candidate PR branches #219, #248 and #282. All three now use migration blob 5d789279c920219e2743d650d85a0a5ace9af14f: a VOLATILE PL/pgSQL guard using exact JSON Boolean containment and an empty search path. Their RC449 disposable fixture uses the same volatile, dynamically evaluated auth.uid() helper (blob 1e8ecbcb67b04a01d4c9cdfc94a164f81bb47fe9).
+- PR #301's replay workflow now pins candidate migration source commit 54b67bcf2f18e226f0d5206cce66b0bd39a6866c so the RC462 replay uses the reconciled migration, not the earlier stable-function version.
+- All nine PR-triggered workflows passed on PR #301 code/workflow head ee90a84df173c337fce376ac40c61abda91265ad; forward replay run 39356609479 replayed 31 candidate migrations from the RC424 schema-only baseline and verified two-way tenant isolation. PR #300's six workflows passed on 710819156f9f2b613f4905d5e1c7266937fc4a32; Pages deployment was skipped in PR context.
+- This replay is not a blank-database replay of all historical migrations. The RC462 updated branches #248/#282 still need their own exact-head behavioral workflow evidence.
+- Production remains at RC424. The MantiGO platform-admin authorization weakness is still live until RC449/RC462 and the ordered chain are reviewed and applied through an approved release. Historical creation provenance for counter_offer_indrive_bid(uuid,uuid,numeric), Auth leaked-password protection owner action, adversarial tenant E2E, real payment/finance/refund E2E, backup/restore, browser/device/Android and deployment checks remain open.
+- No production mutation, merge, or deployment occurred. PRs remain draft/unmerged and global release remains BLOCKED / NOT CERTIFIED.
