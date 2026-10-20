@@ -93,10 +93,10 @@ assert.match(operations,/900000!==0/,"booking UI must enforce the backend's 15-m
 assert.match(operations,/medical-appointments-live/,"doctor appointments must refresh from realtime events");
 assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
 assert.match(index,/operations-modules\.js\?v=mnty133/,"medical workflow asset cache must be refreshed");
-assert.match(index,/app\.js\?v=mnty-modules-v17-20261020/);
-assert.match(index,/sw\.js\?v=mnty-modules-v17-20261020/);
-assert.match(sw,/const CACHE='mnty-web-v167'/);
-assert.match(sw,/app\.js\?v=mnty-modules-v17-20261020/);
+assert.match(index,/app\.js\?v=mnty-accounting-ledger-v1-20261020/);
+assert.match(index,/sw\.js\?v=mnty-accounting-ledger-v1-20261020/);
+assert.match(sw,/const CACHE='mnty-web-v168'/);
+assert.match(sw,/app\.js\?v=mnty-accounting-ledger-v1-20261020/);
 assert.match(releaseWorkflow,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 assert.match(releaseWorkflow,/rc462_medical_booking_integration\.sql/);
 assert.match(migrationReplay,/20261020200000_rc467_medical_booking_release_contract\.sql/);
