@@ -848,8 +848,9 @@ async function loadEnterpriseDomainData(m){
    rows.erp_purchase_receipts=result.receipts||[];
    rows.erp_stock_transfers=result.transfers||[];
    rows.warehouses=result.warehouses||[];
+   rows.branches=result.branches||[];
   }catch(e){
-   for(const table of ['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'])rows[table]=[];
+   for(const table of ['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','branches'])rows[table]=[];
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
@@ -994,6 +995,8 @@ function restaurantWorkspace(rows){
 }
 
 function erpWarehouseLabel(rows,id){const item=(rows.warehouses||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
+function erpBranchLabel(rows,id){const item=(rows.branches||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
+function erpPurchaseOrderLabel(rows,id){const item=(rows.erp_purchase_orders||[]).find(x=>String(x.id)===String(id));return item?String(item.order_number||id):String(id||'—')}
 function erpProductLabel(rows,id){const item=(rows.catalog_items||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.sku||id):String(id||'—')}
 function erpAccountLabel(rows,id){const item=(rows.chart_of_accounts||[]).find(x=>String(x.id)===String(id));return item?String(item.account_code||'')+' — '+String(item.account_name||id):String(id||'—')}
 function erpJournalTotals(rows,entryId,field){return (rows.journal_entry_lines||[]).filter(line=>String(line.journal_entry_id)===String(entryId)).reduce((sum,line)=>sum+Number(line[field]||0),0)}
@@ -1011,8 +1014,8 @@ function enterpriseRowsTable(m,rows){
  if(m.key==='ERP'){
   return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'
    +recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(live.role)?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='PENDING_APPROVAL'?'بانتظار اعتماد المالك أو المشرف':'—']])
-   +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
-   +recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الفرع',r=>r.branch_id],['الحالة',r=>r.status]])
+   +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>erpPurchaseOrderLabel(rows,r.purchase_order_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
+   +recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الفرع',r=>erpBranchLabel(rows,r.branch_id)],['الحالة',r=>r.status]])
    +recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>erpWarehouseLabel(rows,r.from_warehouse_id)],['إلى',r=>erpWarehouseLabel(rows,r.to_warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']])
    +sources();
  }
