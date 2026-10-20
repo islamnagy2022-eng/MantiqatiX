@@ -84,3 +84,37 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_test.sql
 
+
+
+  used-item-directory-rpc-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_used_items_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_used_items_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply used-item fixture, migrations, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/used_item_ads_directory_fixture.sql "$pg_container:/tmp/used_items_fixture.sql"
+          docker cp supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql "$pg_container:/tmp/used_items_read_migration.sql"
+          docker cp supabase/migrations/20261020232000_used_item_ads_directory_backend_v1.sql "$pg_container:/tmp/used_items_rpc_migration.sql"
+          docker cp supabase/tests/used_item_ads_directory_integration.sql "$pg_container:/tmp/used_items_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_used_items_test -v ON_ERROR_STOP=1 -f /tmp/used_items_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_used_items_test -v ON_ERROR_STOP=1 -f /tmp/used_items_read_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_used_items_test -v ON_ERROR_STOP=1 -f /tmp/used_items_rpc_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_used_items_test -v ON_ERROR_STOP=1 -f /tmp/used_items_test.sql
