@@ -110,3 +110,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added `ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED=true` to `payment-intent`, `digital-page-payment-intent`, `subscription-payment-intent`, and `mantigo-payment-intent`; each returns `ELECTRONIC_PAYMENTS_DEFERRED` before creating a Paymob intention.
 - Added a cash-first static contract validator to Pages CI and bumped PWA cache/script versions.
 - The cash path is not yet release-certified: staff collection confirmation UI, tenant cash-method configuration, and cash E2E evidence remain open. No deploy/merge/production mutation.
+
+
+## 2026-10-20 — Cash intent status and collection confirmation UI
+
+- Added an authenticated API read for the cash intent linked to an order, scoped by active tenant membership and customer/operational/provider access.
+- Order details now display cash status/amount/reference and show the cash collection confirmation action only for operational roles; confirmation calls the protected API endpoint and refreshes state.
+- The UI is not evidence of successful collection. Exact-head CI and runtime authorization/cash settlement E2E remain pending.
