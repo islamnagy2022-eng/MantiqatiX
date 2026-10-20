@@ -712,3 +712,14 @@ This status is intentional and must remain until the open gates above are indepe
 - The updated PR #248/#282 standalone validators have no separately returned exact-head workflow association; their status is not marked green by inference.
 - Production is still RC424. The live MantiGO platform-admin authorization weakness is not fixed in production because RC449/RC462/RC565 have not been deployed. The historical counter_offer_indrive_bid creation provenance, Auth leaked-password protection owner action, adversarial live E2E, Paymob/finance/refund E2E, backup/restore, browser/device/Android, and deployment verification remain open.
 - No production changes, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+## Continuation checkpoint — 2026-10-20 — RC457 exact-head CI verified
+
+- Current RC457 code head tested: `55fb709a1fab303b051c9204976feda38eb0e798`.
+- All nine PR-triggered workflows passed on that exact head, including RC457 PostgreSQL integration and disposable forward replay from the pinned RC424 schema-only baseline. The Pages deploy job was skipped in PR context.
+- RC457 is source/CI-verified, not production-applied. PR #301 remains draft/open/unmerged.
+- Product review remains open for NO_SHOW timing policy: premature NO_SHOW is denied, but no grace period is enforced after the appointment time.
+- Production remains at last read-only verified checkpoint RC424 (`20261008222845`, 283 versions). No production mutation, merge, or deployment occurred.
+- Continue from external/runtime release gates: leaked-password protection owner action; adversarial live tenant/RBAC E2E; authorized Paymob/finance/refund E2E; backup/restore and rollback; browser/push/device; signed Android artifact; main deployment smoke; full release evidence.
+- Blank-database replay of all historical migrations remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not stub the missing function or skip its historical migration.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
