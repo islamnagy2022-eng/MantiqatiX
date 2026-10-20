@@ -12,6 +12,64 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
+# UI-FIRST PRODUCT COMPLETION — execution order (2026-10-20)
+
+**Owner decision / scope:** Before expanding subscription plans, subscription billing/accounts, or the full accounting UI, complete and verify the user-facing pages and module workspaces first. This is a product sequencing decision; it does **not** waive mandatory authentication, authorization, tenant-isolation, cash-order integrity, security, migration, backup/restore, or release gates.
+
+## Product implementation order (do not mark complete without evidence)
+
+### UI-0 — inventory and shared shell
+- [ ] Produce a repository-grounded inventory of every public route, module, page, modal/form, navigation entry, role-specific dashboard, empty/error/loading state, and current API/RPC dependency.
+- [ ] Establish a consistent responsive web/PWA shell, module registry/navigation, breadcrumbs/back behavior, accessible controls, shared search/filter/table/form patterns, and reliable loading/empty/error states. Reuse current architecture and design tokens; do not rebuild working modules from scratch.
+- [ ] Every visible action must either work end-to-end, be explicitly disabled with a reason, or show a truthful rollout/dependency notice. No dead buttons or fake success.
+
+### UI-1 — identity, sign-in, and onboarding
+- [ ] Finish sign-in/sign-up/OTP verification, resend/expiry, logout, session restore/refresh, password/recovery paths where supported, validation, retry/error messages, and mobile layouts.
+- [ ] Complete customer/provider/business-owner/staff/admin onboarding and active membership/business selection without leaking data between identities or tenants.
+- [ ] Add browser-level tests for unauthenticated, expired-session, wrong-role, membership-switch, and logout behavior. Do not alter production Auth settings from a docs/UI-only branch.
+
+### UI-2 — global search and discovery
+- [ ] Map existing search APIs/RPCs and supported entities before changing contracts.
+- [ ] Complete search input, submit/clear, debouncing where appropriate, loading/empty/error states, filters, result cards, pagination/incremental loading, keyboard/mobile accessibility, and route/deep-link behavior.
+- [ ] Preserve existing backend authority, visibility rules, location minimization, and tenant scoping. Never fake results or expose private records in search.
+
+### UI-3 — sponsored placement surfaces (not monetization)
+- [ ] Complete public sponsored/ad display slots, clearly marked as sponsored, with responsive layouts, safe fallback when no eligible ads are returned, and click/impression behavior only where an existing verified contract supports it.
+- [ ] Complete the UI for internal campaign/creative/placement management only where current backend contracts exist; show a clear unavailable/deferred state where the server contract is not deployed or verified.
+- [ ] **Do not build or enable pre-launch ad billing, budgets charged to accounts, subscription monetization, or paid campaign execution.** Those remain deferred. Do not contact external ad networks or claim campaigns were published.
+
+### UI-4 — all module pages and complete navigation
+- [ ] Create an explicit module-by-module matrix covering at least: platform administration; customer discovery and provider profiles/services; orders and order lifecycle; CRM/leads/support; marketing workspace and non-SMM campaign planning; sponsored placements; restaurants; ERP/inventory/purchasing; medical; pharmacies; education; jobs; MantiGO; reverse bidding; digital pages; provider onboarding; and any additional module registered in the current repository.
+- [ ] For each module, complete list/detail/create/edit/view flows, forms, validation, filters/search, pagination, status/empty/error/loading states, navigation, responsive behavior, and role-specific action visibility.
+- [ ] Keep accounting/ledger/settlement UI and subscription plan/billing/account-management expansion deferred unless a minimal read-only/status view is required for an existing launch flow. Preserve current backend records and APIs; do not delete or rewrite contracts.
+
+### UI-5 — activity controls, work roles, and authorization UX
+- [ ] Define a permission matrix from actual existing roles/permission contracts, not invented client-side rules.
+- [ ] Provide authorized controls to create/manage activities and configure who can view, create, edit, assign, approve, cancel, or close them, as supported by the business model.
+- [ ] Complete role/job-function management UX: assign/revoke role or responsibility, membership/business scope, active/inactive state, confirmation, validation, audit visibility, and denial states.
+- [ ] Enforce every sensitive action on the server/RPC/Edge Function; hiding a button is not authorization. Deny by default and preserve tenant/business boundaries.
+- [ ] Test positive and negative cases for CUSTOMER, SERVICE_PROVIDER, STAFF, MANAGER, BUSINESS_OWNER/OWNER, and platform ADMIN/SUPER_ADMIN where those roles exist. Never grant a tenant user global-admin powers.
+
+### UI-6 — cross-module integration and quality
+- [ ] Test links across module cards, detail pages, create/edit forms, global search, dashboards, notifications, and role-specific navigation.
+- [ ] Add/extend deterministic source-contract tests and browser/E2E coverage for critical journeys; run syntax, accessibility/responsive checks, module boundaries, and applicable isolated database tests.
+- [ ] Verify exact-head CI and deployed Pages behavior separately. A passing PR validation is not proof of production deployment.
+- [ ] Only after UI/module journeys are usable and verified, revisit subscription packages, subscription billing/accounts, and expanded accounting UI as a separate post-launch phase.
+
+## Deferred before launch
+- [ ] Subscription package catalog, paid subscription activation/renewal, plan-based quotas, subscription invoices/billing/account UI.
+- [ ] Expanded accounting UI and any new accounting/subscription data model not required by an already-approved launch path.
+- [ ] Paid sponsored campaign execution, ad-budget charging, SMM provider execution, electronic payments/Paymob/cards/wallets/transfers.
+- [ ] Preserve existing code/data/contracts and fail closed for deferred actions. Deferral does not mean deleting the module or weakening backend security.
+
+## Execution discipline
+1. Inspect current main, open PRs, TODO, continuity and session log before each batch. Do not overwrite or bypass in-progress work.
+2. Implement in small independently reviewable slices; prefer frontend pages/contracts first, then connect only to existing verified backend endpoints.
+3. Never create parallel business truth, duplicate tables/RPCs, client-authoritative prices/statuses, fake data presented as real, or direct browser writes to protected tables.
+4. For each slice: impact analysis → implementation → tests → security/role review → exact-head CI → update TODO + session log + continuity.
+5. Do not merge, deploy, run production mutations, apply migrations, change Auth settings, or trigger real payments/external ad spend without explicit authorization and verified release gates.
+6. Keep the global release state **BLOCKED / NOT CERTIFIED** until all existing mandatory gates have evidence. DONE ≠ VERIFIED.
+
 # P0 — حواجز الإطلاق
 
 1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
@@ -1633,3 +1691,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — UI-first module completion scope
+
+- [x] Owner sequencing decision recorded: finish module interfaces/pages, login/onboarding, global search/discovery, sponsored display surfaces, activity management controls, and job-function/role UX before subscription packages, subscription billing/accounts, and expanded accounting UI.
+- [x] Added the detailed execution contract at [docs/MASTER_UI_FIRST_CONTINUATION_PROMPT.md](MASTER_UI_FIRST_CONTINUATION_PROMPT.md).
+- [ ] **NEXT IMPLEMENTATION:** inventory every current module/route and map each visible action to its existing API/RPC/permission contract; then implement UI gaps in small tested slices.
+- [ ] Do not treat this documentation update as completion of module UIs or authentication/search E2E. Those remain open until code and tests prove them.
+- [ ] Sponsored display/placement UX is in scope; ad billing, paid campaign execution, SMM execution and external network publication remain deferred. Subscription package/billing/accounts and expanded accounting UI remain deferred.
+- [ ] This change is staged on branch `feat/ui-first-module-completion-20261020`; no application code, SQL migration, production setting, payment, merge, or deployment changed in this documentation batch.
+- Global release remains **BLOCKED / NOT CERTIFIED**; existing security, migration provenance, tenant isolation, finance/payment integrity, backup/restore and production E2E gates remain mandatory.
