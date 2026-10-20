@@ -84,6 +84,14 @@ serve(async (req) => {
       if (branchId) branchesQuery = branchesQuery.eq("id", branchId)
       const [{ data: warehousesData, error: warehousesError }, { data: branchesData, error: branchesError }] = await Promise.all([warehouseQuery, branchesQuery])
       if (warehousesError || branchesError) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const supplierBase = () => supabaseAdmin.from("erp_suppliers").select("*")
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
+        .limit(300).order("name_ar", { ascending: true })
+      const [globalSuppliersRes, branchSuppliersRes] = branchId
+        ? await Promise.all([supplierBase().is("branch_id", null), supplierBase().eq("branch_id", branchId)])
+        : [await supplierBase(), { data: [], error: null }]
+      if (globalSuppliersRes.error || branchSuppliersRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const suppliersData = [...new Map([...(globalSuppliersRes.data ?? []), ...(branchSuppliersRes.data ?? [])].map((row) => [String(row.id), row])).values()]
       const warehouseIds = (warehousesData ?? []).map((row) => String(row.id))
       let ordersQuery = supabaseAdmin.from("erp_purchase_orders").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
       if (branchId) ordersQuery = ordersQuery.eq("branch_id", branchId)
@@ -122,21 +130,22 @@ serve(async (req) => {
         branches: safeRows(branchesData, ["id","tenant_id","business_id","name","code","status"]),
         catalog_items: safeRows(productsRes.data, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"]),
         stock_balances: safeRows(balancesRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","quantity_on_hand","quantity_reserved","updated_at"]),
-        inventory_transactions: safeRows(transactionsRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","transaction_type","quantity","unit_cost","reference_id","created_by","created_at"])
+        inventory_transactions: safeRows(transactionsRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","transaction_type","quantity","unit_cost","reference_id","created_by","created_at"]),
+        suppliers: safeRows(suppliersData, ["id","tenant_id","business_id","branch_id","supplier_code","name_ar","name_en","contact_name","phone","email","payment_terms","status","created_at","updated_at"])
       })
     }
 
     if (operation !== "mutate") return json({ error: "INVALID_OPERATION" }, 400)
     const action = String(body.action ?? "")
-    const allowedOperations = new Set(["create_purchase_order","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
+    const allowedOperations = new Set(["create_supplier","create_purchase_order","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
     if (!allowedOperations.has(action)) return json({ error: "ERP_OPERATION_NOT_ALLOWED" }, 400)
     const args = body.arguments
     if (!args || typeof args !== "object" || Array.isArray(args)) return json({ error: "INVALID_ARGUMENTS" }, 400)
     const scopeMismatch = () => json({ error: "ERP_SCOPE_MISMATCH" }, 403)
-    if (["create_purchase_order","receive_purchase_stock","create_stock_transfer"].includes(action)) {
+    if (["create_supplier","create_purchase_order","receive_purchase_stock","create_stock_transfer"].includes(action)) {
       if (String(args.p_tenant_id ?? "") !== tenantId || String(args.p_business_id ?? "") !== businessId) return scopeMismatch()
     }
-    if (action === "create_purchase_order" && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
+    if (["create_supplier","create_purchase_order"].includes(action) && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
     if (["update_purchase_order_status","receive_purchase_stock"].includes(action)) {
       const orderId = action === "update_purchase_order_status" ? args.p_order_id : args.p_purchase_order_id
       const { data: order, error: orderError } = await supabaseAdmin.from("erp_purchase_orders")
@@ -185,6 +194,17 @@ serve(async (req) => {
         if (warehousesError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
         if ((warehouses ?? []).length !== 2 || warehouses.some((row) => String(row.branch_id ?? "") !== branchId)) return scopeMismatch()
       }
+    }
+    if (action === "create_supplier") {
+      const { data: supplierResult, error: supplierError } = await supabaseAdmin.rpc("erp_supplier_create_backend", {
+        p_actor_user_id: user.id, p_arguments: args
+      })
+      if (supplierError) {
+        const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(String(supplierError.message ?? ""))
+        console.error("[erp-runtime] supplier create rejected", { code: supplierError.code, denied })
+        return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : /CODE_ALREADY_EXISTS/.test(String(supplierError.message ?? "")) ? "ERP_SUPPLIER_CODE_ALREADY_EXISTS" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
+      }
+      return json({ success: true, result: supplierResult })
     }
     const { data, error } = await supabaseAdmin.rpc("erp_runtime_execute", {
       p_actor_user_id: user.id, p_operation: action, p_arguments: args
