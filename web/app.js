@@ -849,7 +849,17 @@ async function loadEnterpriseDomainData(m){
  if(['ERP','BUSINESS_ERP'].includes(m.key)){
   try{
    if(!live.tenantId||!live.businessId)throw new Error('ERP_SCOPE_REQUIRED');
-   const result=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
+   const shared=window.MNTYOperationsERPData;
+   const sharedMatches=!!shared&&Date.now()-Number(shared.loaded_at||0)<30000
+    &&String(shared.tenant_id||'')===String(live.tenantId)
+    &&String(shared.business_id||'')===String(live.businessId)
+    &&String(shared.branch_id||'')===String(live.branchId||'');
+   let result=null;
+   if(sharedMatches&&Array.isArray(shared.erp_purchase_orders)&&Array.isArray(shared.erp_purchase_order_lines)&&Array.isArray(shared.erp_suppliers)){
+    result={success:true,businesses:shared.businesses||[],orders:shared.erp_purchase_orders,order_lines:shared.erp_purchase_order_lines,suppliers:shared.erp_suppliers,receipts:shared.erp_purchase_receipts||[],transfers:shared.erp_stock_transfers||[],warehouses:shared.warehouses||[],branches:shared.branches||[],catalog_items:shared.catalog_items||[],stock_balances:shared.stock_balances||[],inventory_transactions:shared.inventory_transactions||[]};
+   }else{
+    result=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
+   }
    if(!result?.success)throw new Error(result?.error||'ERP_DATA_LOAD_FAILED');
    rows.businesses=result.businesses||[];
    rows.erp_purchase_orders=result.orders||[];
