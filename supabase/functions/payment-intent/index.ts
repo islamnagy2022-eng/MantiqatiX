@@ -17,6 +17,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
 };
+// Fail closed for launch one; activation requires a separate reviewed post-launch release.
+const ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED = true;
 const json = (body: unknown, status = 200, requestId?: string) => new Response(JSON.stringify(body), {
   status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", ...(requestId ? { "X-Request-Id": requestId } : {}) }
 });
@@ -30,6 +32,7 @@ Deno.serve(async (req) => {
   }
   if (origin && origin !== allowedOrigin) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403, requestId);
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, requestId);
+  if (ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED) return json({ error: "ELECTRONIC_PAYMENTS_DEFERRED", message: "Electronic payments are deferred until after launch." }, 503, requestId);
 
   const auth = req.headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401, requestId);
