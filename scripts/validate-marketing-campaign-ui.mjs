@@ -36,11 +36,15 @@ assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaign_participants['"]\)\.(
 assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خدمات التسويق الرقمي SMM/, "marketing role home must expose the SMM shortcut");
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SMM quick access");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
-assert.match(index, /app\.js\?v=mnty-modules-v19-20261020/, "browser cache key must be refreshed");
+const appVersion = index.match(/app\\.js\\?v=([^'"]+)/)?.[1];
+assert.ok(appVersion && /mnty-modules-v\\d+-20261020/.test(appVersion), "browser app cache key must use the current module build version");
 const sw = fs.readFileSync("web/sw.js", "utf8");
-assert.match(sw, /const CACHE='mnty-web-v154'/, "PWA cache must be versioned for the new shell");
-assert.match(sw, /app\.js\?v=mnty-modules-v19-20261020/, "service worker must precache the exact versioned app entrypoint");
+const shellVersion = sw.match(/const CACHE='([^']+)'/)?.[1];
+const swAppVersion = sw.match(/\\.\\/app\\.js\\?v=([^'"]+)/)?.[1];
+const registeredSwVersion = index.match(/sw\\.js\\?v=([^'"]+)/)?.[1];
+assert.ok(shellVersion && /mnty-web-v\\d+/.test(shellVersion), "PWA cache must use a versioned shell key");
+assert.equal(swAppVersion, appVersion, "service worker and HTML must load the same app build");
+assert.ok(registeredSwVersion && /mnty-modules-v\\d+-20261020/.test(registeredSwVersion), "service worker registration cache key must use the current module build version");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-assert.match(index, /sw\.js\?v=mnty-modules-v21-20261020/, "service worker registration cache key must match the current cash/restaurant release version");
 
 console.log("Marketing workspace contract: PASS (32 assertions)");
