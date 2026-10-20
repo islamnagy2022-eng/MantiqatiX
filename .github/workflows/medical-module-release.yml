@@ -18,8 +18,10 @@ on:
       - "web/app.js"
       - "web/index.html"
       - "supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql"
+      - "supabase/migrations/20261020210000_rc468_medical_booking_idempotency.sql"
       - "supabase/tests/rc457_medical_appointment_state_machine_*.sql"
       - "supabase/tests/rc462_medical_booking_*.sql"
+      - "supabase/tests/rc468_medical_booking_idempotency_integration.sql"
       - "scripts/validate-medical-appointment-state-machine.mjs"
       - ".github/workflows/medical-module-release.yml"
 permissions:
