@@ -1273,7 +1273,18 @@ async function erpRpc(fn,args){
   return response.result;
  }catch(error){
   const code=String(error?.message||'ERP_OPERATION_FAILED');
-  showToast(code==='ERP_OPERATION_FORBIDDEN'?'ليست لديك صلاحية تنفيذ هذه العملية':code==='ERP_DATA_LOAD_FAILED'?'تعذر تحميل بيانات ERP من الخادم':'تعذر تنفيذ عملية ERP. تحقق من الصلاحيات والاتصال ثم أعد المحاولة.','error');
+  const messages={
+   ERP_OPERATION_FORBIDDEN:'ليست لديك صلاحية تنفيذ هذه العملية',
+   ERP_MEMBERSHIP_REQUIRED:'لا توجد عضوية فعالة في المؤسسة المحددة',
+   ERP_BRANCH_SCOPE_REQUIRED:'العملية خارج نطاق فرعك الحالي',
+   ERP_SCOPE_MISMATCH:'البيانات لا تطابق المؤسسة أو الفرع المحدد',
+   ERP_RECORD_NOT_FOUND:'السجل المطلوب غير موجود ضمن نطاقك',
+   ERP_DATA_LOAD_FAILED:'تعذر تحميل بيانات ERP من الخادم',
+   ERP_WAREHOUSE_SELECTION_INVALID:'اختر مخزنين مختلفين ونشطين',
+   ERP_WAREHOUSE_LOOKUP_FAILED:'تعذر التحقق من المخزن المحدد',
+   ERP_PRODUCT_LOOKUP_FAILED:'تعذر التحقق من المنتج المحدد'
+  };
+  showToast(messages[code]||'تعذر تنفيذ عملية ERP. تحقق من الصلاحيات والاتصال ثم أعد المحاولة.','error');
   return null;
  }
 }
