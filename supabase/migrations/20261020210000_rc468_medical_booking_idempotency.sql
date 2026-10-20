@@ -42,6 +42,12 @@ begin
     raise exception 'APPOINTMENT_REASON_TOO_LONG';
   end if;
 
+  -- Serialize all retries for the same request ID, even if a malicious retry
+  -- changes the doctor/business fields and therefore the doctor lock key.
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended('medical-booking-id:' || pg_catalog.btrim(p_appointment_id), 0)
+  );
+
   select b.tenant_id into v_tenant_id
   from public.businesses b
   join public.marketing_provider_profiles mp on mp.business_id = b.id
