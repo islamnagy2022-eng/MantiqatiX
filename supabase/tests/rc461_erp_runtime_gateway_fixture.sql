@@ -91,4 +91,4 @@ create or replace function public.receive_stock_transfer_backend(p_transfer_id v
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','receive_stock_transfer'); end $$;
 
-grant select,insert,update,delete on public.user_memberships, public.erp_purchase_orders, public.erp_suppliers, public.erp_stock_transfers, public.warehouses, public.catalog_items, public.branches to service_role;
+grant select,insert,update,delete on public.user_memberships, public.erp_purchase_orders, public.erp_purchase_order_lines, public.erp_suppliers, public.erp_stock_transfers, public.warehouses, public.catalog_items, public.branches, public.stock_balances, public.inventory_transactions to service_role;
