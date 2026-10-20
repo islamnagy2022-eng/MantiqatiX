@@ -951,3 +951,12 @@ This status is intentional and must remain until the open gates above are indepe
 - **CI:** the available commit workflow query has not returned runs for this exact head. Older Doctor Module Release Contract and Disposable Forward Migration Replay jobs remain queued; they are not evidence of success. Do not claim test pass until exact-head results complete.
 - **Release dependency:** PR #307 is open/draft and targets `fix/medical-appointment-state-machine-20261019`; PR #301 is also open/draft and targets `main`. Do not merge the stack or deploy the medical section until the prerequisite PR, migration chain, exact-head tests, and user-facing E2E are verified.
 - No merge, production migration, or live deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Exact-head CI and migration replay verified
+
+- **Candidate HEAD:** 69df9db11fdaa86ceb9a4d8c62073b121dcd426b on feat/cash-only-launch-flow-rc458-20261020.
+- **PASS:** Doctor Module Release Contract (39495915671), Disposable Forward Migration Replay from the RC424 schema baseline (39495915562), ERP Runtime Gateway (39495915548), ERP Opening Stock (39495915544), Backend-only Module Boundary (39495915321), Module Professionalization Validation (39495914539), and MantiGO Open Ride Privacy Boundary (39495915784). Forward replay and tenant-isolation checks completed successfully in the isolated disposable database.
+- **What this proves:** source validators and the listed integration/replay workflows passed on this exact candidate commit. It does not prove production migrations have been applied, nor authenticated customer/provider E2E, real two-tenant isolation, cash settlement E2E, production auth settings, backup/restore, or browser/device smoke.
+- **Release dependency:** PR #307 remains draft/open and based on fix/medical-appointment-state-machine-20261019; prerequisite PR #301 remains draft/open against main. No merge or deployment was performed.
+- **Decision:** global release remains BLOCKED / NOT CERTIFIED until the independent production and user-facing E2E gates are evidenced. Production reconciliation manifest remains BLOCKED; do not deploy or apply migrations from this candidate.
