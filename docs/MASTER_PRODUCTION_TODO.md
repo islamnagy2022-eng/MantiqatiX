@@ -1851,3 +1851,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Product creation now sends `branch_id: null` when the active membership has no branch, rather than an empty string that may fail UUID validation or misrepresent an absent scope.
 - [x] Added a static assertion for the null fallback. Source commit `680d433e682881d0f233a4ac4e46d95b23ebee4a`; validator commit `6423df32f69ed4ec24eaaaf0c556771e6ff95ab7`.
 - [ ] Exact-head CI/browser validation pending; no production changes or deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — fail-closed product/used-item writes after live privilege check — 2026-10-20
+- [x] Read-only Supabase privilege check against project `moyhiluyhjsujhwlyeuu` confirmed `authenticated` has SELECT on `fashion_products`, but no INSERT/UPDATE/DELETE; `used_item_ads` returned no authenticated SELECT/INSERT/UPDATE/DELETE table privileges. RLS policies alone do not grant SQL table privileges.
+- [x] Removed direct client write functions for `fashion_products` and `used_item_ads`; their forms now disclose that the operation is unavailable until a verified backend/write-access contract exists. No grants or production schema were changed.
+- [x] Updated source validator to fail if direct mutations return or if the truthful unavailable states are removed.
+- [ ] Used-item read UI remains blocked by missing authenticated SELECT privilege. Resolve only with a reviewed migration/backend contract and tests; do not grant broad table privileges ad hoc.
+- [ ] Exact-head CI and browser verification pending. Release remains **BLOCKED / NOT CERTIFIED**.
