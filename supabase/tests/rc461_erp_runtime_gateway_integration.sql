@@ -97,6 +97,34 @@ begin
   exception when others then
     if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
   end;
+  result := public.erp_runtime_execute(branch_actor,'create_stock_transfer',
+    jsonb_build_object('p_id','tr-valid-cross-branch','p_tenant_id','tenant-a','p_business_id',biz,'p_transfer_number','TR-VALID','p_from_warehouse_id','warehouse-a','p_to_warehouse_id','warehouse-b','p_product_id','66666666-6666-4666-8666-666666666666','p_quantity',1));
+  if result->>'operation' <> 'create_stock_transfer' then raise exception 'RC461_CROSS_BRANCH_TRANSFER_CREATE_FAILED'; end if;
+  begin
+    perform public.erp_runtime_execute(actor,'update_stock_transfer_status',
+      jsonb_build_object('p_transfer_id','tr-existing','p_target_status','COMPLETED'));
+    raise exception 'RC461_TRANSFER_DIRECT_COMPLETION_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_TRANSFER_STATUS_TRANSITION_INVALID%' then raise; end if;
+  end;
+  begin
+    perform public.erp_runtime_execute(destination_actor,'update_stock_transfer_status',
+      jsonb_build_object('p_transfer_id','tr-existing','p_target_status','IN_TRANSIT'));
+    raise exception 'RC461_DESTINATION_BRANCH_CHANGED_SOURCE_STATUS';
+  exception when others then
+    if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
+  end;
+  result := public.erp_runtime_execute(branch_actor,'update_stock_transfer_status',
+    jsonb_build_object('p_transfer_id','tr-existing','p_target_status','IN_TRANSIT'));
+  if result->>'operation' <> 'update_stock_transfer_status' then raise exception 'RC461_SOURCE_BRANCH_TRANSIT_FAILED'; end if;
+  begin
+    perform public.erp_runtime_execute(branch_actor,'receive_stock_transfer',jsonb_build_object('p_transfer_id','tr-existing'));
+    raise exception 'RC461_SOURCE_BRANCH_RECEIVED_TRANSFER';
+  exception when others then
+    if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
+  end;
+  result := public.erp_runtime_execute(destination_actor,'receive_stock_transfer',jsonb_build_object('p_transfer_id','tr-existing'));
+  if result->>'operation' <> 'receive_stock_transfer' then raise exception 'RC461_DESTINATION_BRANCH_RECEIVE_FAILED'; end if;
   begin
     perform public.erp_runtime_execute(branch_actor,'create_stock_transfer',
       jsonb_build_object('p_id','tr-cross-product','p_tenant_id','tenant-a','p_business_id',biz,'p_transfer_number','TR-2','p_from_warehouse_id','warehouse-a','p_to_warehouse_id','warehouse-a','p_product_id','55555555-5555-4555-8555-555555555555','p_quantity',1));
