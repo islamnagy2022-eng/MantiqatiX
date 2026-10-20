@@ -1709,3 +1709,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **2026-10-19 — business-register tenant hardening:** the candidate Edge Function now explicitly requires the requested tenant to exist and have `status=ACTIVE` before membership/organization checks, because its service-role client bypasses RLS. Unexpected exceptions now return a generic `BUSINESS_REGISTER_FAILED` HTTP 500 instead of exposing database/schema error text to callers; server-side logs retain the diagnostic. The existing source-contract test now covers the active-tenant check and generic error response. This is not deployed; the release gate remains blocked pending exact-head CI and approved rollout.
 
 - **2026-10-19 — malformed business-registration request handling:** the candidate endpoint now converts invalid JSON, `null`, and non-object/array bodies into `INVALID_JSON_BODY` HTTP 400 instead of treating parser failures as internal server errors. The contract test asserts this behavior. This is source-only; await CI and approved deployment.
+
+
+## 2026-10-20 — Digital-page finalization validator correction and exact-head CI
+
+- [x] Corrected stale assertions in `scripts/validate-digital-pages-boundaries.mjs` to match the current server-side provider correlation variables `providerIntentId` and `providerClientSecret`; runtime payment code was not changed by this fix.
+- [x] Verified Digital Page Payment Finalization Isolation run `39359692387`: disposable PostgreSQL grant/behavior checks and the source-contract validator passed.
+- [x] Verified all 19 PR-triggered workflows passed on head `e4ca802c3c5c6408791b0c12b791f5b0fc985c94`, including RC426/RC427 payment binding/idempotency, webhook success/failure, business registration atomicity, RC425/RC526 MantiGO Paymob, finance boundary, tenant-isolation E2E, module professionalization, migration uniqueness/history/collision, and forward replay from the captured RC424 schema checkpoint.
+- [ ] The replay does not certify a blank-database replay of all historical migrations; authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unresolved.
+- [ ] PR #286 remains draft/open/unmerged. Real Paymob sandbox/production E2E, live deployed-source parity, leaked-password protection owner action, backup/restore and rollback, browser/push/device and Android verification, and final release evidence remain open.
+- [ ] Last read-only production migration checkpoint remains RC424 (`20261008222845`, 283 applied versions). No production migration, Edge Function deployment, payment, merge, or release occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
