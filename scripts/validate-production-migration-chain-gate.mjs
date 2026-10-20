@@ -44,7 +44,7 @@ const required = [
   "20261020190000_rc466_erp_opening_stock_backend.sql",
   "20261020200000_rc467_medical_booking_release_contract.sql",
   "20261020210000_rc468_medical_booking_idempotency.sql",
-  "20261021190000_rc462_mantigo_presence_verification_guard.sql",
+  "20261021190000_rc469_mantigo_presence_verification_guard.sql",
 ]
 assert.equal(required.length, 40, "release gate must track the complete 40-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
