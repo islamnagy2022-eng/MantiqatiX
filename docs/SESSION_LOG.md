@@ -275,3 +275,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 - Read-only Supabase inventory returned 150 production migration records ending at `20261008222845`. The current development branch's migration directory contains 140 tracked files and includes later migrations through `20261014230000_rc525_digital_page_product_platform_admin_scope.sql`.
 - This drift means the current production privilege state cannot safely be changed by assuming all branch migrations are applied. No migration or grant was applied. A future used-item read fix must be a reviewed narrow-column privilege contract with RLS and query tests, after migration-history reconciliation.
+
+
+## 2026-10-20 — narrow used-item read grant prepared (not applied)
+
+- Added `supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql` to restore only the authenticated directory SELECT columns after revoking table-wide SELECT from `anon` and `authenticated`. The grant deliberately omits `seller_phone`.
+- Updated UI copy so directory reading and ad status mutations are described separately. Added validator checks for the SQL contract and status copy.
+- Commits: migration `b79420ba8df5b997783c749d45fb9e6e7f39fc43`, UI `a8b7c110dcb9174384e53685ea0576b7b994e205`, validator `ffc9e192ba3f22323b45a77eef97ca337a7c7a71`.
+- The migration was **not** applied to the live Supabase project. Existing DB still has no authenticated SELECT privilege, so live behavior is unchanged until reviewed migration application.
