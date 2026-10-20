@@ -224,6 +224,7 @@ function membershipOptionLabel(m){
  return icon+' '+roleLabel(role)+' — '+activity+' — '+section;
 }
 function resetMembershipScopedCaches(){
+ window.MNTYOperationsERPData=null;
  live.moduleData={};
  live.counts={};
  live.flags={};
