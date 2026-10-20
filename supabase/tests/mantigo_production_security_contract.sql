@@ -28,13 +28,29 @@ begin
       'update_mantigo_trip_status_backend',
       'confirm_mantigo_cash_payment_backend',
       'settle_mantigo_captain_backend',
-      'mantigo_rate_ride'
+      'mantigo_rate_ride',
+      'update_mantigo_captain_presence_backend'
     )
     and p.prosecdef
     and has_function_privilege('anon',p.oid,'EXECUTE') = false
     and has_function_privilege('authenticated',p.oid,'EXECUTE') = true;
-  if v_count <> 7 then
-    raise exception 'MANTIGO_RPC_BOUNDARY_FAILED: expected 7 hardened RPCs, got %',v_count;
+  if v_count <> 8 then
+    raise exception 'MANTIGO_RPC_BOUNDARY_FAILED: expected 8 hardened RPCs, got %',v_count;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public'
+      and p.proname='update_mantigo_captain_presence_backend'
+      and p.prosecdef
+      and pg_get_functiondef(p.oid) ilike '%CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY%'
+      and pg_get_functiondef(p.oid) ilike '%CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY%'
+      and pg_get_functiondef(p.oid) ilike '%is distinct from%'
+      and pg_get_functiondef(p.oid) ilike '%auth.uid()%'
+  ) then
+    raise exception 'MANTIGO_CAPTAIN_PRESENCE_GUARD_FAILED: missing server-side actor, verification, or location check';
   end if;
 
   if not exists (
