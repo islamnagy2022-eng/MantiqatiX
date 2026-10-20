@@ -42,6 +42,20 @@ begin
     if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
   end;
   begin
+    perform public.erp_runtime_execute(actor,'receive_purchase_stock',
+      jsonb_build_object('p_id','rcv-missing-order','p_tenant_id','tenant-a','p_business_id',biz,'p_purchase_order_id','po-not-in-scope','p_receipt_number','RCV-X','p_warehouse_id','warehouse-a','p_product_id','66666666-6666-4666-8666-666666666666','p_received_quantity',1,'p_unit_cost',1));
+    raise exception 'RC461_RECEIPT_WITHOUT_SCOPED_ORDER_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_PURCHASE_ORDER_SCOPE_INVALID%' then raise; end if;
+  end;
+  begin
+    perform public.erp_runtime_execute(branch_actor,'receive_purchase_stock',
+      jsonb_build_object('p_id','rcv-cross-branch-order','p_tenant_id','tenant-a','p_business_id',biz,'p_purchase_order_id','po-other-branch','p_receipt_number','RCV-Y','p_warehouse_id','warehouse-a','p_product_id','66666666-6666-4666-8666-666666666666','p_received_quantity',1,'p_unit_cost',1));
+    raise exception 'RC461_CROSS_BRANCH_PURCHASE_ORDER_RECEIPT_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
+  end;
+  begin
     perform public.erp_runtime_execute(branch_actor,'create_stock_transfer',
       jsonb_build_object('p_id','tr-cross-branch','p_tenant_id','tenant-a','p_business_id',biz,'p_transfer_number','TR-1','p_from_warehouse_id','warehouse-b','p_to_warehouse_id','warehouse-b','p_product_id','55555555-5555-4555-8555-555555555555','p_quantity',1));
     raise exception 'RC461_CROSS_BRANCH_TRANSFER_WAS_ALLOWED';
