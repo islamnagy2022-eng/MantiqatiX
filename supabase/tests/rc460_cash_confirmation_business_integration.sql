@@ -24,7 +24,7 @@ insert into public.user_memberships(user_id,tenant_id,business_id,role,permissio
 ('22222222-2222-4222-8222-222222222222','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','CUSTOM_OPERATOR','{"PAYMENT_CONFIRM_CASH":false}','ACTIVE');
 
 set role service_role;
-do $
+do $$
 begin
  begin
   perform public.confirm_cash_payment('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','22222222-2222-4222-8222-222222222222');
@@ -33,13 +33,13 @@ begin
   if sqlerrm='RC460_FALSE_PERMISSION_MUST_NOT_GRANT' then raise; end if;
   if position('FORBIDDEN' in sqlerrm)=0 then raise exception 'RC460_FALSE_PERMISSION_WRONG_ERROR: %',sqlerrm; end if;
  end;
-end $;
+end $$;
 reset role;
-do $
+do $$
 begin
  if (select status from public.payment_intents where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee') <> 'CREATED' then raise exception 'RC460_FALSE_PERMISSION_MUTATED_PAYMENT'; end if;
  if (select count(*) from public.payment_events) <> 0 then raise exception 'RC460_FALSE_PERMISSION_WROTE_EVENT'; end if;
-end $;
+end $$;
 
 update public.user_memberships
 set permissions='{"PAYMENT_CONFIRM_CASH":true}'::jsonb
