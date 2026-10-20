@@ -47,7 +47,7 @@ if(!loader.includes('MNTY_BACKEND_ONLY_TABLES.has(table)')) throw new Error('ent
 if(!loader.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list'")) throw new Error('ERP reads are not connected to the authenticated server gateway');
 if(!app.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate'")) throw new Error('ERP mutations are not connected to the server gateway');
 if(!api.includes('path === "/api/v1/erp/runtime"') || !api.includes('supabaseAdmin.rpc("erp_runtime_execute"')) throw new Error('deployed API ERP gateway route is missing');
-if(!api.includes('from("catalog_items").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP product lookup is not tenant/business scoped');
+if(!api.includes('const productsBase = () => supabaseAdmin.from("catalog_items").select("*")') || !api.includes('.eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")')) throw new Error('ERP product lookup is not tenant/business scoped');
 if(!api.includes('String(args.p_tenant_id ?? "") !== tenantId') || !api.includes('String(args.p_business_id ?? "") !== businessId')) throw new Error('ERP mutations are not bound to the active tenant/business selection');
 if(!api.includes('ERP_WAREHOUSE_SELECTION_INVALID') || !api.includes('ERP_SCOPE_MISMATCH')) throw new Error('ERP mutation preflight scope guards are missing');
 if(!migration.includes('revoke all on function public.erp_runtime_execute(uuid,text,jsonb) from public, anon, authenticated')) throw new Error('ERP gateway RPC must remain service-role-only');
