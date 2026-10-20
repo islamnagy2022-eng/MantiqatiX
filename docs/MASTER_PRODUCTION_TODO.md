@@ -1697,8 +1697,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [x] Owner sequencing decision recorded: finish module interfaces/pages, login/onboarding, global search/discovery, sponsored display surfaces, activity management controls, and job-function/role UX before subscription packages, subscription billing/accounts, and expanded accounting UI.
 - [x] Added the detailed execution contract at [docs/MASTER_UI_FIRST_CONTINUATION_PROMPT.md](MASTER_UI_FIRST_CONTINUATION_PROMPT.md).
-- [ ] **NEXT IMPLEMENTATION:** inventory every current module/route and map each visible action to its existing API/RPC/permission contract; then implement UI gaps in small tested slices.
+- [x] Created the initial source-grounded route/module inventory at [docs/UI_MODULE_ROUTE_INVENTORY.md](UI_MODULE_ROUTE_INVENTORY.md); the inventory explicitly distinguishes confirmed source entrypoints from E2E-unverified status.
+- [x] Identified a concrete false-success UI behavior in `web/module-blueprints.js`: the “فتح القسم” button only emits a success toast and does not open a real workflow. Next code slice should fix it after confirming consumers/routes and adding a focused test.
+- [ ] **IN PROGRESS:** finish exhaustive route/action mapping inside `web/app.js` and verify every module-blueprint consumer; the initial inventory is not yet exhaustive.
+- [ ] **NEXT IMPLEMENTATION:** fix the confirmed false-success module-blueprint button behavior with a focused contract test, then map activity/role-management APIs and implement UI gaps in small tested slices.
 - [ ] Do not treat this documentation update as completion of module UIs or authentication/search E2E. Those remain open until code and tests prove them.
 - [ ] Sponsored display/placement UX is in scope; ad billing, paid campaign execution, SMM execution and external network publication remain deferred. Subscription package/billing/accounts and expanded accounting UI remain deferred.
 - [ ] This change is staged on branch `feat/ui-first-module-completion-20261020`; no application code, SQL migration, production setting, payment, merge, or deployment changed in this documentation batch.
 - Global release remains **BLOCKED / NOT CERTIFIED**; existing security, migration provenance, tenant isolation, finance/payment integrity, backup/restore and production E2E gates remain mandatory.
+
+- [ ] Initial inventory is source-grounded but not a complete browser/route verification; do not mark module UI completion VERIFIED until route/action tests and authenticated E2E pass.
