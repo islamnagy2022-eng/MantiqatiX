@@ -117,6 +117,10 @@ serve(async (req) => {
     const businessId = String(body.businessId ?? "").trim()
     const branchId = body.branchId ? String(body.branchId).trim() : ""
     if (!tenantId || !businessId) return json({ error: "ERP_SCOPE_REQUIRED" }, 400)
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidPattern.test(businessId) || (branchId && !uuidPattern.test(branchId))) {
+      return json({ error: "ERP_SCOPE_INVALID" }, 400)
+    }
 
     const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
       .select("role,business_id,branch_id").eq("user_id", user.id).eq("tenant_id", tenantId)
@@ -165,15 +169,21 @@ serve(async (req) => {
       if (branchId) ordersQuery = ordersQuery.eq("branch_id", branchId)
       let receiptsQuery = supabaseAdmin.from("erp_purchase_receipts").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
       if (branchId) receiptsQuery = warehouseIds.length ? receiptsQuery.in("warehouse_id", warehouseIds) : receiptsQuery.in("warehouse_id", ["00000000-0000-0000-0000-000000000000"])
-      let productsQuery = supabaseAdmin.from("catalog_items").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").limit(200).order("name_ar", { ascending: true })
-      if (branchId) productsQuery = productsQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`)
+      const productsBase = () => supabaseAdmin.from("catalog_items").select("*")
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
+        .limit(200).order("name_ar", { ascending: true })
+      const [globalProductsRes, branchProductsRes] = branchId
+        ? await Promise.all([productsBase().is("branch_id", null), productsBase().eq("branch_id", branchId)])
+        : [await productsBase(), { data: [], error: null }]
+      if (globalProductsRes.error || branchProductsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const productsData = [...new Map([...(globalProductsRes.data ?? []), ...(branchProductsRes.data ?? [])].map((row) => [String(row.id), row])).values()]
       let balancesQuery = supabaseAdmin.from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(300).order("updated_at", { ascending: false })
       let transactionsQuery = supabaseAdmin.from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(300).order("created_at", { ascending: false })
       if (branchId) {
         balancesQuery = balancesQuery.eq("branch_id", branchId)
         transactionsQuery = transactionsQuery.eq("branch_id", branchId)
       }
-      const [ordersRes, receiptsRes, productsRes, balancesRes, transactionsRes] = await Promise.all([ordersQuery, receiptsQuery, productsQuery, balancesQuery, transactionsQuery])
+      const [ordersRes, receiptsRes, balancesRes, transactionsRes] = await Promise.all([ordersQuery, receiptsQuery, balancesQuery, transactionsQuery])
       let orderLinesData: Record<string, unknown>[] = []
       if ((ordersRes.data ?? []).length) {
         const { data: orderLines, error: orderLinesError } = await supabaseAdmin.from("erp_purchase_order_lines")
@@ -196,7 +206,7 @@ serve(async (req) => {
         if (fromRes.error || toRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
         transfers = [...new Map([...(fromRes.data ?? []), ...(toRes.data ?? [])].map((row) => [String(row.id), row])).values()]
       }
-      if (ordersRes.error || receiptsRes.error || productsRes.error || balancesRes.error || transactionsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      if (ordersRes.error || receiptsRes.error || balancesRes.error || transactionsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
       const safeRows = (rows: Record<string, unknown>[] | null | undefined, fields: string[]): Record<string, unknown>[] => (rows ?? []).map((row: Record<string, unknown>) => Object.fromEntries(fields.filter((field: string) => Object.prototype.hasOwnProperty.call(row, field)).map((field: string) => [field, row[field]])))
       return json({
         success: true,
@@ -207,7 +217,7 @@ serve(async (req) => {
         transfers: safeRows(transfers, ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
         warehouses: safeRows(warehousesData, ["id","tenant_id","business_id","branch_id","name","code","status"]),
         branches: safeRows(branchesData, ["id","tenant_id","business_id","name","code","status"]),
-        catalog_items: safeRows(productsRes.data, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"]),
+        catalog_items: safeRows(productsData, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"]),
         stock_balances: safeRows(balancesRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","quantity_on_hand","quantity_reserved","updated_at"]),
         inventory_transactions: safeRows(transactionsRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","transaction_type","quantity","unit_cost","reference_id","created_by","created_at"]),
         suppliers: safeRows(suppliersData, ["id","tenant_id","business_id","branch_id","supplier_code","name_ar","name_en","contact_name","phone","email","tax_number","payment_terms","notes","status","created_at","updated_at"])
