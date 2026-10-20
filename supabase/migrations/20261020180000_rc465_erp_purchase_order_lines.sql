@@ -244,10 +244,16 @@ begin
     raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
   end if;
 
+  -- Resolve retries by either immutable receipt ID or human receipt number. The ID path
+  -- preserves idempotency even if an upstream legacy RPC normalizes the displayed number.
   select * into v_existing from public.erp_purchase_receipts r
-  where r.tenant_id::text=v_tenant_id and r.business_id=v_business_id and r.receipt_number=v_receipt_number;
+  where r.tenant_id::text=v_tenant_id and r.business_id=v_business_id
+    and (r.receipt_number=v_receipt_number or r.id::text=v_receipt_id)
+  order by case when r.id::text=v_receipt_id then 0 else 1 end
+  limit 1;
   if found then
-    if v_existing.purchase_order_id<>v_order_id or v_existing.warehouse_id<>v_warehouse_id
+    if v_existing.id::text<>v_receipt_id or v_existing.receipt_number<>v_receipt_number
+       or v_existing.purchase_order_id<>v_order_id or v_existing.warehouse_id<>v_warehouse_id
        or v_existing.product_id<>v_product_id or v_existing.received_quantity<>v_quantity
        or v_existing.unit_cost<>v_unit_cost then raise exception 'ERP_RECEIPT_IDEMPOTENCY_CONFLICT'; end if;
     return jsonb_build_object('success',true,'idempotent',true,'receipt',to_jsonb(v_existing));
