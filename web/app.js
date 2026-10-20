@@ -227,7 +227,7 @@ function resetMembershipScopedCaches(){
  live.moduleData={};
  live.counts={};
  live.flags={};
- live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};
+ live.records={leads:[],providers:[],providerServices:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};
 }
 async function switchMembership(membershipId){
  const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
