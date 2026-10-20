@@ -627,3 +627,8 @@ This status is intentional and must remain until the open gates above are indepe
 - **CI contract tests added:** `scripts/validate-module-blueprint-actions.mjs` and `scripts/validate-global-search-failure-state.mjs`; both are wired into `.github/workflows/pages.yml`.
 - **Verification:** exact-head CI and browser E2E are pending; do not call the slice verified until checks finish. No production changes or deployment.
 - **Next:** continue the route-by-route module matrix, implement real module views against verified backend contracts, then activity management and job-function/role assignment with server-side enforcement and audit. Plans/accounts and expanded accounting UI remain deferred; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Verification guard
+
+The UI/search changes are committed to the working branch, but no exact-head CI success or browser E2E evidence is available in this checkpoint. The next engineer must verify the actual workflow run and deployed smoke test before marking these changes complete. Release remains BLOCKED / NOT CERTIFIED.
