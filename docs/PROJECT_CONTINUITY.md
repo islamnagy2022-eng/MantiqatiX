@@ -872,3 +872,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Expanded the cash-only source validator to require customer-own-order enforcement, fail-closed membership lookup errors, operational business/tenant-wide scope, and a cash-intent lookup bound to both tenant and order.
 - This adds regression checks only; no API runtime behavior changed in this step. Revalidate the exact latest branch head before treating these assertions as passing.
 - Authenticated checkout/confirmation E2E and backup/restore/DR evidence remain open launch gates. Keep PR #307 draft/unmerged and release **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation — validator assertion escaping fix — 2026-10-20
+- CI caught an over-escaped regex in newly added cash-payment read source assertions (customer ownership/business scope). This was a validator defect, not an API runtime failure.
+- Replaced the four new checks with exact source-fragment assertions in commit `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45`. Wait for a fresh exact-head validation run before treating the added assertions as green.
+- Keep PR #307 draft/unmerged; launch remains **BLOCKED / NOT CERTIFIED** until CI, authenticated cash-flow E2E, and recovery evidence are complete.
