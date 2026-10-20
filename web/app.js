@@ -947,12 +947,24 @@ function mantigoWorkspace(rows){
  const bidCards=bids.length?bids.map(b=>'<article class="card"><div class="row"><strong>عرض '+esc(b.id)+'</strong><span>'+esc(b.offered_price??'—')+'</span></div><p><b>الرحلة:</b> '+esc(b.ride_id||'—')+'<br><b>الكابتن:</b> '+esc(b.captain_name||'—')+'<br><b>المركبة:</b> '+esc(b.vehicle_model||'—')+' · ETA '+esc(b.eta_minutes??'—')+' دقيقة</p><div class="action-bar">'+(role==='CUSTOMER'?'<button class="linkbtn" onclick="acceptMntBid(\''+esc(b.ride_id||'')+'\',\''+esc(b.id||'')+'\')">قبول العرض</button>':'')+'</div></article>').join(''):'<div class="empty-state">لا توجد عروض مرئية وفق صلاحيات الحساب.</div>';
  return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMntRide()">+ إنشاء رحلة</button></div><section class="records"><div class="section-head"><div><h3>الرحلات</h3><p class="muted">'+rides.length+' رحلة مرئية وفق RLS</p></div></div><div class="grid3">'+rideCards+'</div></section><section class="records"><div class="section-head"><div><h3>العروض</h3><p class="muted">'+bids.length+' عرض مرئي وفق RLS</p></div></div><div class="grid3">'+bidCards+'</div></section>';
 }
+function ensureMedicalRealtime(){
+ if(window.MNTYMedicalRealtimeChannel)return;
+ window.MNTYMedicalRealtimeChannel=sb.channel('mnty-medical-appointments-live')
+  .on('postgres_changes',{event:'*',schema:'public',table:'medical_appointments'},()=>{
+   const cache=live.moduleData.MEDICAL||{};
+   if(cache.loading){cache.refreshPending=true;live.moduleData.MEDICAL=cache;return;}
+   cache.rowsReady=false;live.moduleData.MEDICAL=cache;
+   if(current==='الأطباء والعيادات')loadMedicalWorkspace();
+  })
+  .subscribe();
+}
 function medicalLocalMin(){
  const d=new Date(Date.now()+60*60*1000);
  d.setMinutes(Math.ceil(d.getMinutes()/15)*15,0,0);
  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
 }
 async function loadMedicalWorkspace(){
+ ensureMedicalRealtime();
  const cache=live.moduleData.MEDICAL||{};
  if(cache.rowsReady||cache.loading)return;
  cache.loading=true;cache.errors={};live.moduleData.MEDICAL=cache;
@@ -979,8 +991,10 @@ async function loadMedicalWorkspace(){
   errors.runtime='تعذر الاتصال بمصادر المواعيد الطبية. أعد المحاولة قبل تنفيذ الحجز.';
   console.error('[medical-workspace] load failed',String(error?.message||error));
  }finally{
-  cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;
+  const refreshPending=Boolean(cache.refreshPending);
+  cache.refreshPending=false;cache.rows=rows;cache.errors=errors;cache.rowsReady=!refreshPending;cache.loading=false;
   syncModuleRuntime('الأطباء والعيادات');renderApp();
+  if(refreshPending&&current==='الأطباء والعيادات')queueMicrotask(()=>loadMedicalWorkspace());
  }
 }
 async function retryMedicalWorkspace(){
@@ -2779,6 +2793,7 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
  document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}
 sb.auth.onAuthStateChange((event,session)=>{
 if(event==='SIGNED_OUT'){
+if(window.MNTYMedicalRealtimeChannel){sb.removeChannel(window.MNTYMedicalRealtimeChannel);window.MNTYMedicalRealtimeChannel=null;}
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';
 window.MXHomeLanding?MXHomeLanding():landingView();return;
 }
