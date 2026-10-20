@@ -792,3 +792,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Next: review NO_SHOW grace-period semantics; recover authoritative historical creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)` before any full blank-database replay; complete leaked-password protection owner action, live tenant/RBAC E2E, authorized payment/finance/refund E2E, backup/restore and rollback, browser/push/device, signed Android, main deployment smoke, and release evidence.
 - PR #300 remains frontend-first: sector-specific backend contracts and authenticated E2E are not closed by the UI PR.
 - Production last read-only verified at RC424 (`20261008222845`, 283 versions). Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 — RC457 follow-up exact head
+- PR #301 exact head `b03b2540d58760ff213641c327377a8ed405b44d` was rechecked after the prior documented checkpoint.
+- All nine PR-triggered workflows completed successfully: RC457 medical appointment integration, disposable forward migration replay, migration uniqueness, migration history immutability, migration collision guard, backend-only boundary, approval-action audit atomicity, MantiGO privacy, and web validation.
+- The RC457 fixture quoting issue and validator references are corrected. PR #301 remains draft/open/unmerged; Pages deploy skipped as expected for a PR.
+- No production migration, deployment, Auth setting change, grant/RLS change, or financial transaction occurred.
+- Next priority: address the next release blocker that can be worked safely without production mutation; the Auth leaked-password setting still requires owner/dashboard action. Full historical replay still requires authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Global release remains **BLOCKED / NOT CERTIFIED**.
