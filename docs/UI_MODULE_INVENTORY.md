@@ -67,7 +67,7 @@ The source currently registers domain workspaces for `FASHION`, `GROCERY`, `ACCO
 
 1. **Authentication UI:** `authView` in the inspected main baseline offers Google OAuth for login/registration. Email OTP, resend/expiry, recovery, and alternative methods must not be assumed implemented in this UI. Validate current product/auth contract before adding a method.
 2. **Global search:** `GLOBAL_SEARCH_SOURCES` currently lists 10 source groups (businesses, providers, orders, services, catalog, leads, projects, support tickets, advertisements, jobs). It is role-filtered client-side and each source error is logged then converted to an empty result list. UI must distinguish “no results” from partial source failures, and source visibility must remain protected by server/RLS contracts.
-3. **Generic module blueprints:** `web/module-blueprints.js` renders generic tabs/cards and its “open section” button currently displays a success toast without navigating to a real section. Do not count this as a working module flow; replace with real route/action wiring or truthful disabled state.
+3. **Generic module blueprints:** `web/module-blueprints.js` renders generic tabs/cards and its section button currently toggles an accessible status message explaining that no standalone workflow is wired. Do not count this as a working module flow; replace with real route/action wiring or truthful disabled state.
 4. **Role management:** `web/rbac.js` provides client-side visibility defaults and `app.js` has an active-membership role/context switcher. This is not equivalent to a complete UI for assigning/revoking job functions/roles. A dedicated management flow must use existing server-side contracts and never rely on UI-only enforcement.
 5. **Activity management:** public home provides an “add activity” request modal that stores a pending draft and routes through auth; this is not the same as a complete owner/admin activity lifecycle for create/edit/approve/suspend/close. Inventory the existing server contracts before extending it.
 6. **Sponsored display:** public home calls `get_mnty_targeted_advertisements` for the home sponsored row. The display can be improved against this contract, but no billing, ad-budget charging, paid campaign execution, or external publication is authorized in this pre-launch scope.
@@ -110,3 +110,43 @@ Use this table as the durable checklist; add one row per real route/page or subv
 ## Verification guard
 
 The blueprint status and global-search failure-state behavior are implemented in source and have source-contract validators wired into the Pages workflow. They are not runtime-verified until the exact-head workflow passes and browser smoke tests confirm the behavior. Do not describe the full module set as complete; each module needs a route/action contract and role-scoped tests.
+
+
+## Module-page completion status — source inventory snapshot (2026-10-20)
+
+**Counting rule:** no domain module is marked complete/verified solely because source files, tabs, table names, or buttons exist. At this snapshot, there are **0 modules certified complete by browser E2E in this effort**. The labels below describe source coverage only.
+
+| Module/page family | Source state observed | Work completed in this branch | Remaining TODO | Status |
+|---|---|---|---|---|
+| Shared app shell, module navigation | `web/app.js`, registries | Inventory started; global search empty/error messaging improved | Full route/modal/action inventory; keyboard/mobile/a11y and browser journeys | PARTIAL / NOT VERIFIED |
+| Generic domain blueprints (16 keys) | `web/module-blueprints.js` | Honest blueprint-only action status; removed unsupported RLS/RBAC ENFORCED badges | Replace each blueprint with actual route/subview only after backend contract and role tests are known | BLUEPRINT ONLY |
+| Fashion | `web/sector-modules.js`, `web/operations-modules.js` | Source entry and views exist | Verify list/detail, scope filters, data schema assumptions, actions and complete E2E | PARTIAL / NOT VERIFIED |
+| Education | `web/sector-modules.js`, `web/operations-modules.js` | Schools/teachers/request views and request action source exist | Check escaping, validation, requester/target permissions, privacy, failure/retry, RLS and browser E2E | PARTIAL / NOT VERIFIED |
+| Jobs | `web/sector-modules.js`, `web/operations-modules.js` | Job/application views and apply action source exist | Verify employer/candidate ownership, duplicate applications, private fields, transitions and E2E | PARTIAL / NOT VERIFIED |
+| Used items | `web/sector-modules.js`, `web/operations-modules.js` | Listing view and sold-status action source exist | Verify seller ownership, update contract, concurrency, visibility and E2E | PARTIAL / NOT VERIFIED |
+| Restaurants | `web/restaurant-module.js`, operations definitions | Dedicated module source exists | Menu → order → kitchen/status → table/inventory; role boundaries and migrations | PARTIAL / NOT VERIFIED |
+| MantiGO / rides | `web/operations-modules.js`, `web/app.js` | Request/bids/rides definitions and UI source exist | Request → bids → select → ride state; customer/driver privacy and lifecycle E2E | PARTIAL / NOT VERIFIED |
+| Reverse bidding / maintenance / professional services | `web/reverse-bidding-module.js`, operations definitions | Request/offer surfaces exist | Full request/bid/selection/cancel flow, idempotency and role/tenant E2E | PARTIAL / NOT VERIFIED |
+| Marketing / CRM / leads | `web/app.js`, operations definitions | Source entries and some source mappings exist | Lead/project/participant lifecycle, assignments, filters, no-result/source-error states | PARTIAL / NOT VERIFIED |
+| Grocery / catalog / stock | operations definitions | Catalog/price/inventory/order source mapping exists | Verify real queries, business/branch scope, stock mutation contracts and end-to-end order | PARTIAL / NOT VERIFIED |
+| Medical / appointments | operations definitions | Provider/appointment source mapping exists | Patient/provider views, booking state machine, duplicate booking, authorization and E2E | PARTIAL / NOT VERIFIED |
+| ERP / purchasing / inventory | operations definitions | UI/source definitions exist; some tables are explicitly backend-only | Supplier → purchase order → receipt → stock; confirm deployed migrations and server-only writes | PARTIAL / NOT VERIFIED |
+| Legal | operations definitions | Document/requirements/agreement source mapping exists | Document privacy, contract-backed actions, lifecycle and E2E | PARTIAL / NOT VERIFIED |
+| Companies / factories / trips | operations definitions and generic blueprint | Source mappings/blueprints exist | Verify actual page route, tenant scope, list/detail/workflow and backend contracts | PARTIAL / NOT VERIFIED |
+| Matrimony | generic blueprint/registry | Generic blueprint exists | Private profile visibility, match/contact consent and all privacy tests | BLUEPRINT ONLY / NOT VERIFIED |
+| Accounting / commissions / packages | app and operations references | Existing source references preserved | Keep expanded finance/subscription UI deferred; preserve mandatory cash/order integrity | DEFERRED EXPANSION |
+| SMM paid execution | `web/smm.html`, `web/smm.js` | Existing storefront source preserved | Keep paid execution fail-closed; later validate provider credentials, spending limits, callbacks and idempotency | DEFERRED |
+| Digital public page / editor | `web/digital-page*` | Dedicated public/editor source exists | Owner scope, unpublished/missing slug, safe rendering, save/preview/publish and E2E | PARTIAL / NOT VERIFIED |
+| Provider onboarding / activity management | `web/provider-onboarding-module.js`, `web/app.js` | Onboarding source exists | Activity create/edit/approve/suspend/close mapped to verified Edge Function/RPC and role tests | PARTIAL / NOT VERIFIED |
+| Platform admin / user-role management | `web/app.js`, `web/rbac.js` | Role-aware shell and membership context source exists | Dedicated scoped assign/revoke, confirmation, audit, denial and non-admin negative tests | PARTIAL / NOT VERIFIED |
+| Public discovery / search / sponsored display | `web/home.js`, `web/app.js` | Search failure and zero-source states improved | Result-to-detail journeys, filters/pagination, sponsored label/empty/error, responsive/browser E2E | PARTIAL / NOT VERIFIED |
+
+### Per-module definition of done
+
+- [ ] Route is reachable from intended navigation and supports back/deep-link behavior.
+- [ ] Loading, true-empty, partial-error, full-error and retry states are distinguishable.
+- [ ] List/detail/forms/validation/filter/pagination exist where relevant; no inert or fake-success actions.
+- [ ] Each read/write is mapped to a deployed table/RPC/Edge Function; sensitive writes are server-authorized and idempotent where needed.
+- [ ] Tenant/business/branch and role boundaries are tested with both allow and deny cases.
+- [ ] Mobile, keyboard/accessibility and authenticated browser E2E pass on exact head.
+- [ ] Results are recorded in TODO/session/continuity; only then can status move to VERIFIED.
