@@ -1713,3 +1713,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] The blueprint-action source contract has been added to CI but is NOT VERIFIED until the exact branch run completes successfully. No browser E2E was performed.
 
 - [x] Opened Draft PR [#309](https://github.com/islamnagy2022-eng/MantiqatiX/pull/309) for the UI-first plan, inventory, and first UI integrity fix. The initial workflow edit caused failures on earlier intermediate heads; corrected the workflow to define the validator as its own step. Only the latest exact-head CI result can verify the corrected workflow.
+
+
+## 2026-10-20 — first-pass UI inventory from source inspection
+
+- [x] Added [docs/UI_MODULE_INVENTORY.md](UI_MODULE_INVENTORY.md), covering the 24 top-level workspace entries, registered domain modules, web entrypoints, and route/page audit matrix.
+- [x] Confirmed source-level gaps to address before claiming completeness: auth UI currently presents Google OAuth; global search lists 10 source groups and collapses individual query errors into an empty result; generic module blueprint buttons display a success toast without opening a real section; membership switching is not a full job-function assignment UI; public add-activity request is not the full activity lifecycle.
+- [ ] NEXT: fix the generic blueprint false-success action and add tests; then improve global-search partial-failure states and continue module-by-module routes/actions mapping.
+- [ ] Browser E2E, server permission contracts, production deployment parity and all release gates remain NOT VERIFIED. No app code changed in this inventory-only batch.
