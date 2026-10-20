@@ -23,7 +23,7 @@ jobs:
         shell: bash
         env:
           BASELINE_COMMIT: "354b7afd228af08b14144c8f3f04fb9ed671cfdd"
-          MIGRATION_SOURCE_COMMIT: "4ea94c855ab7aa2792681b8884ec6aedf0a61428"
+          MIGRATION_SOURCE_COMMIT: "54b67bcf2f18e226f0d5206cce66b0bd39a6866c"
         run: |
           set -euo pipefail
           git fetch --no-tags origin "$BASELINE_COMMIT" --depth=1
