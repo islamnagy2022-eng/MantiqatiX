@@ -12,6 +12,7 @@ The internal **Marketing & Advertising** workspace is distinct from the SMM stor
 - `payment-intent`, `digital-page-payment-intent`, `subscription-payment-intent`, and `mantigo-payment-intent` Edge Functions now have an explicit server-side default-deny launch flag returning `ELECTRONIC_PAYMENTS_DEFERRED`; provider webhooks remain present for safe event processing and are not a customer checkout entrypoint.
 - `web/app.js`: after successful customer catalog order creation, request a cash payment intent using a stable key derived from the order ID. If tenant cash configuration is missing, state explicitly that the order exists but cash setup failed and collection is not confirmed.
 - `web/restaurant-module.js`: request the same cash intent after restaurant order creation and do not describe the order as paid.
+- `supabase/functions/api/index.ts`: expose a tenant/owner/authorized-role-scoped read of the cash intent for an order; the order details UI displays its status and offers collection confirmation only to operational roles, using the protected cash-confirm endpoint.
 - `web/app.js`: disable the paid Digital Pages Portfolio/Menu checkout path for launch one because it currently depends on Paymob and no cash contract is verified for these products.
 - SMM remains protected by the existing `SMM_INITIAL_LAUNCH_DEFERRED=true` server-side default-deny gate. No provider calls, wallet writes, or SMM launch action are introduced.
 
@@ -34,7 +35,7 @@ The internal **Marketing & Advertising** workspace is distinct from the SMM stor
 ## Verification status
 
 - Source implementation: **IN PROGRESS — PR validation pending**.
-- Cash API/UI E2E: **NOT VERIFIED**.
+- Cash API/UI E2E: **NOT VERIFIED**; staff confirmation UI exists in source but needs exact-head CI and isolated runtime verification.
 - Tenant cash-method configuration in production: **NOT VERIFIED**.
 - Production rollout: **NOT PERFORMED**.
 - Global release: **BLOCKED / NOT CERTIFIED**.
