@@ -20,13 +20,15 @@ if(!blueprints.includes('Array.isArray(m?.tables)')) missing.push('module bluepr
 if(!blueprints.includes('data-blueprint-target')) missing.push('module section navigation must target a real workspace section');
 if(blueprints.includes("تم فتح قسم «'+btn.dataset.blueprint+'»")) missing.push('module section buttons must not claim success without navigation');
 if(!app.includes('rows:d.rows,errors:d.errors')) missing.push('module blueprint must receive live records and load errors');
-if(!app.includes("tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances']")) missing.push('factory workspace must load warehouse balances and inventory movements');
+if(!app.includes("tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances','catalog_items']")) missing.push('factory workspace must load warehouse balances, inventory movements, and linked products');
 if(!app.includes("recordsTable('حركة المخزون'")) missing.push('factory workspace must render real inventory movement records');
 if(!app.includes("recordsTable('طلبات الخدمات المحاسبية'")) missing.push('accounting workspace must render service requests');
 if(!app.includes("recordsTable('العروض والتفاوض'")) missing.push('accounting workspace must render live bids');
 if(!app.includes("clauses.push('to_profile_id.in.('+ownedProfiles.join(',')+')')")) missing.push('matrimony requests must include inbound requests to owned profiles');
 if(!app.includes("select('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at')")) missing.push('public matrimony list must not fetch direct/wali contact columns');
-if(!app.includes("invokeMntyFunction('erp-runtime',{operation:'list'")) missing.push('ERP reads must use the authenticated server gateway');
-if(!app.includes("invokeMntyFunction('erp-runtime',{operation:'mutate'")) missing.push('ERP mutations must use the authenticated server gateway');
+if(!app.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list'")) missing.push('ERP reads must use the authenticated server gateway');
+if(!app.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate'")) missing.push('ERP mutations must use the authenticated server gateway');
+if(!ops.includes("invokeErpApi({operation:'list',tenantId:activeScope.tenant_id,businessId:activeScope.business_id")) missing.push('operations ERP workspace must use the authenticated server API');
+if(!ops.includes('function factoryOperationsWorkspace(d)')||!ops.includes('rows.inventory_transactions')) missing.push('factory operations workspace must render live inventory movements');
 if(missing.length){console.error(missing.join('\n'));process.exit(1);}
 console.log(`Module runtime coverage PASS: ${expected.length}/${expected.length} catalog modules have routed live workspaces.`);
