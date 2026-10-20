@@ -73,9 +73,9 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
  if(BACKEND_ONLY_TABLES.has(t)){rows[t]=[];continue}
  let q=sb.from(t).select('*').limit(150).order('created_at',{ascending:false});
  const activeScope=scope();
- const tenantScoped=['catalog_items','catalog_item_prices','inventory_transactions','stock_balances','warehouses','chart_of_accounts','journal_entries','businesses','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory','used_item_ads','jobs','orders'];
- const businessScoped=['catalog_items','inventory_transactions','stock_balances','warehouses','journal_entries','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory','used_item_ads','orders'];
- const branchScoped=['catalog_items','inventory_transactions','stock_balances','warehouses','journal_entries','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory'];
+ const tenantScoped=['catalog_items','catalog_item_prices','inventory_transactions','stock_balances','warehouses','chart_of_accounts','journal_entries','businesses','agreements','legal_documents','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory','used_item_ads','jobs','orders'];
+ const businessScoped=['catalog_items','agreements','inventory_transactions','stock_balances','warehouses','journal_entries','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory','used_item_ads','orders'];
+ const branchScoped=['catalog_items','catalog_item_prices','inventory_transactions','stock_balances','warehouses','journal_entries','fashion_products','fashion_orders','restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory'];
  if(tenantScoped.includes(t)&&activeScope?.tenant_id)q=q.eq('tenant_id',activeScope.tenant_id);
  if(businessScoped.includes(t)&&activeScope?.business_id)q=q.eq('business_id',activeScope.business_id);
  if(branchScoped.includes(t)&&activeScope?.branch_id)q=q.eq('branch_id',activeScope.branch_id);
