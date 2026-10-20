@@ -13,14 +13,14 @@ as $function$
 declare v_category text; v_status text; v_verification text;
 begin
   if p_user_id is null or p_user_id <> auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
-  if p_availability_status not in ('OFFLINE','AVAILABLE','BUSY') then raise exception 'INVALID_AVAILABILITY_STATUS'; end if;
+  if p_availability_status is null or p_availability_status not in ('OFFLINE','AVAILABLE','BUSY') then raise exception 'INVALID_AVAILABILITY_STATUS'; end if;
   if p_current_lat is not null and (p_current_lat < -90 or p_current_lat > 90) then raise exception 'INVALID_LATITUDE'; end if;
   if p_current_lon is not null and (p_current_lon < -180 or p_current_lon > 180) then raise exception 'INVALID_LONGITUDE'; end if;
 
   select status,verification_status into v_status,v_verification
     from public.mantigo_captain_profiles where captain_id=p_user_id for update;
   if not found then raise exception 'CAPTAIN_PROFILE_NOT_FOUND'; end if;
-  if p_availability_status='AVAILABLE' and (v_status<>'ACTIVE' or v_verification<>'VERIFIED') then
+  if p_availability_status='AVAILABLE' and (v_status is distinct from 'ACTIVE' or v_verification is distinct from 'VERIFIED') then
     raise exception 'CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY';
   end if;
   if p_availability_status='AVAILABLE' and (p_current_lat is null or p_current_lon is null) then
