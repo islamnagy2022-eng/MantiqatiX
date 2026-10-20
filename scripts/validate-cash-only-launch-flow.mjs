@@ -167,6 +167,8 @@ assert.match(scope,/Digital-page paid checkout is disabled pre-launch/);
 assert.ok(rc462.includes("p_user_id <> auth.uid()"),"captain presence RPC must bind actor to auth.uid()");
 assert.ok(rc462.includes("from public.mantigo_captain_profiles where captain_id=p_user_id for update"),"captain presence RPC must lock and resolve its own profile");
 assert.ok(rc462.includes("CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY"),"only active verified captains may become available");
+assert.ok(rc462.includes("v_status is distinct from 'ACTIVE'")&&rc462.includes("v_verification is distinct from 'VERIFIED'"),"null or non-matching captain status must fail closed");
+assert.ok(rc462.includes("p_availability_status is null"),"null availability status must be rejected explicitly");
 assert.ok(rc462.includes("CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY"),"captain availability must require coordinates server-side");
 assert.ok(rc462.includes("revoke all on function public.update_mantigo_captain_presence_backend")&&rc462.includes("grant execute on function public.update_mantigo_captain_presence_backend")&&rc462.includes("to authenticated"),"captain presence RPC ACL must remain authenticated-only");
 const operationsVersion=index.match(/operations-modules\.js\?v=([^'"]+)/)?.[1];
