@@ -21,6 +21,7 @@ const todo=read("docs/MASTER_PRODUCTION_TODO.md"),scope=read("docs/release/LAUNC
 const index=read("web/index.html"),sw=read("web/sw.js");
 const chain=read("scripts/validate-production-migration-chain-gate.mjs");
 const verifier=read("scripts/production/verify-production.mjs");
+const replay=read(".github/workflows/disposable-forward-migration-replay.yml");
 const pages=read(".github/workflows/pages.yml"),moduleWorkflow=read(".github/workflows/module-professionalization.yml");
 
 assert.match(app,/const MNTY_LAUNCH_SCOPE=Object\.freeze\(\{cashOnly:true,electronicPaymentsDeferred:true,smmDeferred:true\}\)/);
