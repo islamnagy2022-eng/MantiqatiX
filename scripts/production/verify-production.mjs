@@ -47,6 +47,8 @@ const requiredReleaseMigrations=[
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql",
+  "20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql",
   "20261019190000_rc457_medical_appointment_state_machine.sql",
   "20261020120000_rc458_cash_order_service_actor_contract.sql",
   "20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql",
