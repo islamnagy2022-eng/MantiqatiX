@@ -94,3 +94,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — SMM deferral-aware production verifier candidate
+
+- Added `scripts/production/smm-launch-scope.mjs` as a pure evaluator for the launch decision. Active SMM requires all four runtime gates to be PASS. Deferred SMM can satisfy only its scope gate when server-side disablement, customer denial, negative test, live version, live hash, and evidence reference are all present.
+- Added `scripts/production/test-smm-launch-scope.mjs` with positive and negative cases and wired it into `.github/workflows/pages.yml`.
+- Local Node execution passed all 10 assertions. Exact-head GitHub CI is still required after the commits.
+- This is source-side CI work only. It does not change production environment variables or deploy an Edge Function. Issue #212 remains open until the live gateway denial is explicitly deployed and verified; release remains BLOCKED / NOT CERTIFIED.
