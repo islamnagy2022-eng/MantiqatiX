@@ -78,6 +78,7 @@ if(files.operations.includes("sb.from('businesses').select('id,tenant_id,name,co
 if(!files.app.includes("['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table)"))failures.push("ERP_BUSINESS_REFERENCE_DIRECT_READ_NOT_BLOCKED");
 if(!files.app.includes("data-erp-supplier-edit=")||!files.app.includes("editERPSupplier(this.dataset.erpSupplierEdit)"))failures.push("ERP_SUPPLIER_EDIT_ACTION_NOT_WIRED");
 if(!files.app.includes("String(r.status||'').toUpperCase()==='DRAFT'")||!files.app.includes("String(r.status||'').toUpperCase()==='PENDING_APPROVAL'"))failures.push("ERP_ORDER_STATUS_ACTIONS_NOT_NORMALIZED");
+for(const code of ["ERP_SUPPLIER_CREATE_ROLE_REQUIRED","ERP_PURCHASE_APPROVAL_ROLE_REQUIRED","ERP_PURCHASE_ORDER_IDEMPOTENCY_CONFLICT","ERP_RECEIPT_IDEMPOTENCY_CONFLICT","ERP_WAREHOUSE_INVALID"])if(!files.app.includes(code))failures.push("ERP_USER_ERROR_MESSAGE_MISSING_"+code);
 const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\{key:/gm)].map(m=>m[1]);
 const duplicateOperationDefinitions=[...new Set(operationDefinitions.filter((name,i)=>operationDefinitions.indexOf(name)!==i))];
 if(duplicateOperationDefinitions.length) failures.push("DUPLICATE_MODULE_DEFINITIONS:"+duplicateOperationDefinitions.join(","));
