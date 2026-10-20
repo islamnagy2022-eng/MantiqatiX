@@ -74,5 +74,18 @@ begin
   end;
   if not v_failed then raise exception 'RC469_TEST_FAILED: out-of-range longitude was accepted'; end if;
 
+  if has_function_privilege('anon','public.update_mantigo_captain_presence_backend(uuid,text,double precision,double precision)','EXECUTE') then
+    raise exception 'RC469_TEST_FAILED: anon can execute presence RPC';
+  end if;
+  if not has_function_privilege('authenticated','public.update_mantigo_captain_presence_backend(uuid,text,double precision,double precision)','EXECUTE') then
+    raise exception 'RC469_TEST_FAILED: authenticated cannot execute presence RPC';
+  end if;
+
+  -- A verified captain may explicitly go offline without supplying fresh coordinates.
+  select public.update_mantigo_captain_presence_backend(auth.uid(),'OFFLINE',null,null) into v;
+  if v->>'availability_status'<>'OFFLINE' then
+    raise exception 'RC469_TEST_FAILED: offline transition unexpectedly failed';
+  end if;
+
   raise notice 'RC469_PRESENCE_GUARD_INTEGRATION: PASS';
 end $$;
