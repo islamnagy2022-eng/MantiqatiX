@@ -76,6 +76,7 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
   rows.warehouses=data.warehouses||[];
   rows.catalog_items=data.catalog_items||[];
   rows.branches=data.branches||[];
+  window.MNTYOperationsERPData={erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,warehouses:rows.warehouses,catalog_items:rows.catalog_items,branches:rows.branches};
   if(d.key==='BUSINESS_ERP'){
    const business=await sb.from('businesses').select('id,tenant_id,name,code,status').eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id).maybeSingle();
    if(business.error)throw business.error;
@@ -152,11 +153,13 @@ function factoryOperationsWorkspace(d){
  return shell(d,tabs(d)+content);
 }
 function erpOperationsWorkspace(d){
- const actions='<div class="action-bar" style="gap:8px;flex-wrap:wrap;margin:12px 0">'
+ const activeScope=scope();
+ const scopeMatchesApp=typeof live!=='undefined'&&String(live.tenantId||'')===String(activeScope?.tenant_id||'')&&String(live.businessId||'')===String(activeScope?.business_id||'')&&(!activeScope?.branch_id||String(live.branchId||'')===String(activeScope.branch_id));
+ const actions=scopeMatchesApp?'<div class="action-bar" style="gap:8px;flex-wrap:wrap;margin:12px 0">'
   +'<button class="btn btn-primary" type="button" onclick="createPurchaseOrder()">＋ أمر شراء</button>'
   +'<button class="btn btn-outline" type="button" onclick="receivePurchaseStock()">استلام مشتريات</button>'
   +'<button class="btn btn-outline" type="button" onclick="createStockTransfer()">تحويل مخزني</button>'
-  +'</div>';
+  +'</div>':'<div class="notice" role="status">القراءة متاحة، لكن إجراءات الكتابة معطلة حتى يتطابق نطاق المؤسسة والفرع مع الاختيار النشط في المنصة.</div>';
  const content='<div class="notice">أوامر الشراء والاستلام والتحويلات تقرأ من بوابة ERP الموثقة. كل عملية كتابة تعود إلى الخادم للتحقق من المؤسسة والفرع والصلاحيات، وأسماء المنتجات والمخازن مرتبطة بالكتالوج الفعلي.</div>'
  +actions
  +'<section class="card" style="margin:12px 0"><h3>أوامر الشراء</h3>'+table([['رقم الأمر','order_number'],['المورد','supplier_id'],['الإجمالي',r=>money(r.total_amount)],['الحالة','status'],['الإجراء',r=>r.status==='PENDING_APPROVAL'&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(String(membership?.role||'').toUpperCase())?'<button class="btn btn-outline" type="button" onclick="updatePurchaseOrderStatus(\''+esc(r.id)+'\',\'APPROVED\')">اعتماد</button>':'—',true]],rows.erp_purchase_orders||[])+'</section>'
