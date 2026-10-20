@@ -17,16 +17,17 @@ declare
  patient constant uuid := '11111111-1111-4111-8111-111111111111';
  doctor constant text := 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
  business constant uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
- slot bigint := (extract(epoch from now() + interval '2 days')*1000)::bigint;
+ slot bigint := ceil(extract(epoch from now() + interval '2 days')*1000/900000)*900000;
  result jsonb;
 begin
  perform set_config('request.jwt.claim.sub',patient::text,false);
  result := public.create_medical_appointment_backend(patient,'MED-RC462-VALID-0001',business,doctor,slot,'استشارة عامة');
  if result->>'status' <> 'BOOKED' or result->>'doctor_id' <> doctor then raise exception 'RC462_VALID_BOOKING_FAILED'; end if;
- perform public.assert_medical_booking_rejected(patient,'MED-RC462-PHARMACY-01',business,'ffffffff-ffff-4fff-8fff-ffffffffffff',slot+60000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
- perform public.assert_medical_booking_rejected(patient,'MED-RC462-UNVERIFIED-01',business,'cccccccc-cccc-4ccc-8ccc-cccccccccccc',slot+120000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
+ perform public.assert_medical_booking_rejected(patient,'MED-RC462-PHARMACY-01',business,'ffffffff-ffff-4fff-8fff-ffffffffffff',slot+900000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
+ perform public.assert_medical_booking_rejected(patient,'MED-RC462-UNVERIFIED-01',business,'cccccccc-cccc-4ccc-8ccc-cccccccccccc',slot+1800000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
  perform public.assert_medical_booking_rejected(patient,'MED-RC462-PAST-00001',business,doctor,1,'test','APPOINTMENT_TIME_MUST_BE_FUTURE');
- perform public.assert_medical_booking_rejected('33333333-3333-4333-8333-333333333333','MED-RC462-CROSS-TENANT',business,doctor,slot+180000,'test','ACTIVE_TENANT_MEMBERSHIP_REQUIRED');
+ perform public.assert_medical_booking_rejected(patient,'MED-RC462-ALIGNMENT',business,doctor,slot+60000,'test','APPOINTMENT_SLOT_ALIGNMENT_REQUIRED');
+ perform public.assert_medical_booking_rejected('33333333-3333-4333-8333-333333333333','MED-RC462-CROSS-TENANT',business,doctor,slot+2700000,'test','ACTIVE_TENANT_MEMBERSHIP_REQUIRED');
  perform public.assert_medical_booking_rejected(patient,'MED-RC462-SLOT-RETRY',business,doctor,slot,'test','DOCTOR_SLOT_UNAVAILABLE');
 
  perform set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
