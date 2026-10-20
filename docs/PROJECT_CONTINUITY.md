@@ -603,3 +603,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Added a provider-only `لم يحضر` action for confirmed medical appointments after their scheduled time, with validator assertions.
 - Ship this UI together with PR #301's RC457 backend guard; neither PR is merged and no production deployment occurred.
 - Global production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Continuation rule: visible modules, explicit incomplete states
+
+- Product-owner direction: do not hide modules, sectors, services, or published activities merely because purchase/service fulfillment is incomplete. Visibility/marketing and transaction readiness are distinct states.
+- Current implementation on PR #300: all 27 sector routes remain discoverable; preview controls are now interactive for non-destructive review, and action review reports “غير مكتمل” with prerequisites. No fake records, browser writes, bookings, payments, or save-success claims are permitted.
+- Next: run exact-head CI for the UI changes; fix any validator/runtime failures; then inventory public business/service/product discovery and add separate publication, inquiry, transaction, payment, and fulfillment statuses with verified contact fallback where available.
+- Do not merge/deploy solely because UI CI passes. Global production release remains **BLOCKED / NOT CERTIFIED** until security, tenant isolation, payments/finance, backup/restore, runtime E2E, and deployment evidence are complete.
