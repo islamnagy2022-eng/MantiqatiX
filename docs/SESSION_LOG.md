@@ -355,3 +355,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Initial source inventory found an API cash-confirmation route that checks active tenant membership and operational role/permission before calling `confirm_cash_payment`. This is not yet an E2E pass.
 - Next: inspect the normal customer checkout/order path and tenant payment-method configuration; ensure only cash is offered for launch, then test authorized cash confirmation, server-derived amount, idempotency, audit, order state, accounting and tenant isolation. Confirm SMM/electronic methods cannot be activated in the launch path.
 - No production mutation, payment transaction, merge or deployment was performed. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — RC468 medical booking idempotency hardening
+
+- **Finding:** the web booking UI retains a stable request ID after an ambiguous failure, and RC468 already implemented exact-payload replay. Review found a remaining concurrent-request race: two requests could both observe no row, then the second request could hit the doctor-slot overlap guard instead of receiving the first request's replay result.
+- **Implemented:** RC468 now acquires a transaction advisory lock derived from the normalized booking request ID before checking for an existing booking, and uses `INSERT ... ON CONFLICT (id) DO NOTHING RETURNING` plus strict payload comparison as a final race-safe fallback.
+- **Integrity:** only the same authenticated patient with matching business, doctor, timestamp, and normalized reason can replay the existing booking. Conflicting payload reuse fails closed. No schema shape or RPC grants changed.
+- **Tests added:** `supabase/tests/rc468_medical_booking_idempotency_integration.sql` covers exact replay, unchanged row count, payload-conflict rejection, and actor binding. `scripts/validate-medical-appointment-state-machine.mjs` now checks the RC468 lock/conflict semantics and workflow wiring.
+- **CI wiring:** Doctor Module Release Contract applies RC468 after RC457/RC467; the ordered disposable migration replay and production source verifier now include RC468; the release-chain contract expects 39 candidate migration sources.
+- **Commits:** migration race fix `c40ef0e9c8f44b49de300abc9f5d6e86c226f0f9`; test/validator/doc wiring includes `1bcc59729d2aea74aca7649b989187f99aa29333`, `a2edd02e91ea9b985d0503a3d9026d482d959a92`, `19d180bea538e0a1410f7372080476b5afae4865`, `164ebf15fc99074ddda29b616644e589ac86b6dc`, `6a90b363c4657cc9d93302eec017a505e466c00e`, `44e2c94f4e7e3e977e5a988efebe0c79f30a7dea`, and `5988c27770370593f55d2336f99366d5fe2e7830`.
+- **Not yet verified:** exact-head CI results, the RC468 isolated PostgreSQL run, ordered forward replay on this exact head, authenticated live browser/API E2E, and production migration application. No production migration, deployment, merge, or financial/medical data mutation occurred.
+- **Release:** remains **BLOCKED / NOT CERTIFIED**.
