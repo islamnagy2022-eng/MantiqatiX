@@ -904,3 +904,10 @@ This status is intentional and must remain until the open gates above are indepe
 - Connected accounting journal lines to their visible parent entries for debit/credit totals and balance display; corrected factory stock-balance product labels.
 - Added PostgreSQL integration coverage for the restricted RPC, actor propagation, role boundaries and cross-branch rejection; added source-contract assertions for the API route, active scope and PWA cache alignment.
 - Exact-head CI for the current branch is queued/in progress; do not treat older green runs as validation of the latest code. No production migration, merge or deployment was performed. Release remains **BLOCKED / NOT CERTIFIED** until exact-head CI, authenticated live-flow checks and backup/restore evidence are complete.
+
+
+## Owner directive — one module at a time, doctors first — 2026-10-20
+- The execution order is now pinned at the top of `docs/MASTER_PRODUCTION_TODO.md`, with the reusable full prompt in `docs/MODULE_BY_MODULE_EXECUTION_PROMPT_AR.md`.
+- Required sequence: **Doctors/medical booking → Pharmacies → Restaurants → MantiGO**. Close real workflows, server/data integration, authorization/isolation, integration tests and exact-head CI for each active module before switching focus. Build shared dependencies only when they unblock the active module.
+- Doctors is the active module. RC457, RC462 and RC467 are existing baselines/contracts, not proof of full release readiness. Verify the latest medical-module CI, repair missing flows and prove patient/doctor/admin workflows before closing it.
+- No PR merge or production migration/deployment without explicit approval. Global release remains **BLOCKED / NOT CERTIFIED** until required live, security and recovery gates are evidenced.
