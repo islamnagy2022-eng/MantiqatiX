@@ -54,6 +54,8 @@ assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrati
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");
 assert.ok(workflow.includes("node scripts/validate-production-migration-chain-gate.mjs"), "Pages validation must run the release-chain gate contract");
+assert.ok(replay.includes("20261021190000_rc469_mantigo_presence_verification_guard.sql"), "disposable chronological replay must include RC469");
+assert.ok(replay.indexOf("20261020210000_rc468_medical_booking_idempotency.sql") < replay.indexOf("20261021190000_rc469_mantigo_presence_verification_guard.sql"), "RC469 must replay after RC468 by immutable timestamp");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(source, /reconciliation\.source_ledger_identity_reconciled===true/, "source/ledger identity must be reconciled");
