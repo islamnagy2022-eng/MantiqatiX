@@ -405,6 +405,8 @@ assert.match(operations,/\['شروط السداد','payment_terms'\]/);
 const rc469Fixture=read("supabase/tests/rc469_mantigo_presence_guard_fixture.sql");
 const rc469Integration=read("supabase/tests/rc469_mantigo_presence_guard_integration.sql");
 assert.match(rc469Fixture,/verification_status/,"RC469 fixture must model captain verification state");
+assert.match(read("supabase/migrations/20261021190000_rc469_mantigo_presence_verification_guard.sql"),/INVALID_COORDINATE_PAIR/,"RC469 must reject partial latitude/longitude updates");
+assert.match(rc469Integration,/partial coordinate update was accepted/,"RC469 integration must prove partial coordinate updates are rejected");
 assert.match(rc469Integration,/RC469_PRESENCE_GUARD_INTEGRATION: PASS/,"RC469 integration test must expose a clear success marker");
 assert.match(rc469Integration,/has_function_privilege\('anon',[\s\S]*?EXECUTE'\)/,"RC469 integration must prove anonymous callers cannot execute the RPC");
 assert.match(rc469Integration,/has_function_privilege\('authenticated',[\s\S]*?EXECUTE'\)/,"RC469 integration must prove authenticated callers retain intended execution access");
