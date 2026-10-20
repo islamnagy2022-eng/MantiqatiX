@@ -702,3 +702,11 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Read-only production privilege inspection found `authenticated` has SELECT but no write privileges on `fashion_products`, and no SELECT/INSERT/UPDATE/DELETE privileges on `used_item_ads`. RLS policies exist but do not replace table grants.
 - The UI no longer attempts direct writes to either table and shows truthful unavailable states; no production grant/schema changes were made. Source commit `3b695a8b5eb8197b531a40bad60df9b5544c668f`; regression guard `e3b3ac2a6e1f7918922cf41f56f72cf15a91ad6b`.
 - Open: establish intended used-item read policy/privilege and reviewed backend mutation contracts before restoring the controls. Exact-head CI/browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 continuation — sector write boundary and CI status
+
+- Current sector workspace source scan shows no direct table INSERT/UPDATE/UPSERT/DELETE calls; education requests, job applications, and job creation use their existing backend RPCs.
+- A broad regression guard was added to `scripts/validate-sector-rendering.mjs`; commits `dddf3bba6dcf06174596f4ce6b11749ef0a3ef64` and regex correction `2731342b75ab0b889b54d679ee520bd12f589940`.
+- On prior source head `5098c0617477fbf494c454233dd56c7bf27ca6d7`, relevant GitHub Actions validation and integration jobs passed; the web deploy job was skipped. Do not describe this as a deployment or exact-head verification of subsequent commits.
+- Next: verify the new guard against the latest branch head, then address the verified privilege gap for `used_item_ads` only through a reviewed, narrow migration/backend contract. No ad hoc broad grants. Browser E2E remains open; release **BLOCKED / NOT CERTIFIED**.
