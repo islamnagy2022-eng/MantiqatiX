@@ -577,3 +577,28 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-20 — Cash-first launch scope (latest continuation decision)
+
+- Product decision: launch-one checkout is CASH_ON_DELIVERY only for eligible order workflows. Paymob/cards/electronic checkout are deferred until after launch.
+- Independent SMM storefront/orders/wallet/provider calls remain deferred by the existing server-side `SMM_INITIAL_LAUNCH_DEFERRED=true` gate. Internal Marketing & Advertising workspace remains distinct and may continue within its current authorized scope.
+- Source changes on branch `feat/cash-first-launch-scope-20261020` wire cash intent creation after customer catalog and restaurant order creation, and harden the API idempotency path so retries return existing intent state rather than replacing IDs/statuses.
+- Paid Digital Pages Portfolio/Menu purchase is temporarily blocked because its current checkout path requires Paymob and no cash fulfillment contract is verified. This is not a claim that those products have a cash workflow.
+- Verification pending: exact-head CI; cash E2E with customer and authorized cashier/staff; tenant-level `tenant_payment_methods` configuration; duplicate/replay/cross-order idempotency tests; full checkout surface review; all unrelated P0 security/backup/browser/device gates.
+- No production database, Supabase Auth, Edge Function deployment, payment, wallet or settlement was mutated. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Cash-first implementation delta — 2026-10-20
+
+- Added default-deny `ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED=true` gates to the four Paymob intent creation Edge Functions: `payment-intent`, `digital-page-payment-intent`, `subscription-payment-intent`, and `mantigo-payment-intent`. Each rejects with `ELECTRONIC_PAYMENTS_DEFERRED` until a separate post-launch release is reviewed.
+- Advanced PWA cache to `mnty-web-v130` and versioned the updated app/restaurant scripts.
+- Added `scripts/validate-cash-first-launch.mjs` to Pages CI to enforce cash-only UI/API policy and the SMM server-side gate.
+- Still NOT VERIFIED: cash intent creation/collection E2E, staff confirmation UI, tenant cash configuration, CI on the final PR head, all other production gates. No production deployment occurred.
+
+
+## Cash collection UI checkpoint — 2026-10-20
+
+- Order detail UI now requests the order's cash payment intent through a scoped API read, shows the payment status and amount, and renders the cash-confirmation action only for operational roles. The action calls the existing protected `/api/v1/payments/:id/cash/confirm` endpoint and refreshes the order/payment status afterward.
+- The API read requires an active membership in the order tenant and limits visibility to the owning customer, operational payment/order roles, or the provider business linked to the order.
+- This is source implementation only. Exact-head CI, cash confirmation state semantics, role-negative E2E, tenant isolation and actual cash/settlement runtime checks remain NOT VERIFIED.

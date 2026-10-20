@@ -10,6 +10,7 @@ const PAYMOB_CALLBACK_URL=Deno.env.get("PAYMOB_CALLBACK_URL")??`${SUPABASE_URL}/
 const admin=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
 const allowedOrigin="https://islamnagy2022-eng.github.io";
 const headers={"Access-Control-Allow-Origin":allowedOrigin,"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Vary":"Origin"};
+const ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED=true; // post-launch activation requires a separate reviewed release.
 const json=(body:unknown,status=200,id?:string)=>new Response(JSON.stringify(body),{status,headers:{...headers,"Content-Type":"application/json","Cache-Control":"no-store",...(id?{"X-Request-Id":id}:{})}});
 Deno.serve(async req=>{
  const requestId=crypto.randomUUID();
@@ -18,6 +19,7 @@ Deno.serve(async req=>{
   if(req.method==="OPTIONS") return origin&&origin!==allowedOrigin?json({error:"ORIGIN_NOT_ALLOWED"},403,requestId):new Response("ok",{headers});
   if(origin&&origin!==allowedOrigin)return json({error:"ORIGIN_NOT_ALLOWED"},403,requestId);
   if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405,requestId);
+  if(ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED)return json({error:"ELECTRONIC_PAYMENTS_DEFERRED",message:"Electronic payments are deferred until after launch."},503,requestId);
   const auth=req.headers.get("Authorization");
   if(!auth?.startsWith("Bearer "))return json({error:"UNAUTHORIZED"},401,requestId);
   const token=auth.slice(7);

@@ -178,6 +178,33 @@ serve(async (req) => {
     return json(data, 201)
   }
 
+  const orderPaymentIntentMatch = path.match(/^\/api\/v1\/orders\/([^/]+)\/payment-intent$/)
+  if (req.method === "GET" && orderPaymentIntentMatch) {
+    const orderId = orderPaymentIntentMatch[1]
+    const { data: order, error: orderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,business_id,customer_id").eq("id", orderId).single()
+    if (orderError || !order) return json({ error: "Order not found" }, 404)
+    const { data: membership, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id").eq("user_id", user.id)
+      .eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
+    if (membershipError) return json({ error: "Unable to verify order access" }, 500)
+    if (!membership) return json({ error: "Forbidden" }, 403)
+    const role = String(membership.role ?? "").toUpperCase()
+    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+    const operationalOrderRead =
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role) ||
+      permissions.includes("ORDER_READ_ALL") || permissions.includes("PAYMENT_READ_ALL")
+    const providerOrderRead = role === "SERVICE_PROVIDER" &&
+      !!membership.business_id && String(membership.business_id) === String(order.business_id)
+    if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) return json({ error: "Forbidden" }, 403)
+    const { data: paymentIntent, error: paymentError } = await supabaseAdmin.from("payment_intents")
+      .select("id,tenant_id,order_id,amount,currency,status,provider,payment_method,idempotency_key,created_at,updated_at")
+      .eq("tenant_id", order.tenant_id).eq("order_id", order.id)
+      .eq("provider", "CASH_ON_DELIVERY").order("created_at", { ascending: false }).limit(1).maybeSingle()
+    if (paymentError) return json({ error: "Unable to read cash payment status" }, 500)
+    return json({ paymentIntent: paymentIntent ?? null })
+  }
+
   const orderMatch = path.match(/^\/api\/v1\/orders\/([^/]+)$/)
   if (req.method === "GET" && orderMatch) {
     const { data: order, error } = await supabaseAdmin.from("orders").select("*").eq("id", orderMatch[1]).single()
@@ -226,6 +253,27 @@ serve(async (req) => {
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
+    const stableKey = String(idempotencyKey)
+    const matchesRequestedCashIntent = (intent: Record<string, unknown>) =>
+      String(intent.order_id) === String(order.id) &&
+      String(intent.provider) === "CASH_ON_DELIVERY" &&
+      String(intent.payment_method) === "CASH_ON_DELIVERY" &&
+      Number(intent.amount) === Number(order.total) &&
+      String(intent.currency).toUpperCase() === String(order.currency).toUpperCase()
+
+    // Idempotency must return the existing state; never replace its ID/status on retry.
+    const { data: existingIntent, error: existingIntentError } = await supabaseAdmin
+      .from("payment_intents")
+      .select("id,tenant_id,order_id,amount,currency,status,provider,payment_method,idempotency_key")
+      .eq("tenant_id", order.tenant_id)
+      .eq("idempotency_key", stableKey)
+      .maybeSingle()
+    if (existingIntentError) return json({ error: "Failed to read payment intent" }, 500)
+    if (existingIntent) {
+      if (!matchesRequestedCashIntent(existingIntent)) return json({ error: "IDEMPOTENCY_KEY_REUSED" }, 409)
+      return json(existingIntent)
+    }
+
     const newIntent = {
       id: crypto.randomUUID(),
       tenant_id: order.tenant_id,
@@ -235,12 +283,23 @@ serve(async (req) => {
       status: "CREATED",
       provider: "CASH_ON_DELIVERY",
       payment_method: "CASH_ON_DELIVERY",
-      idempotency_key: String(idempotencyKey),
+      idempotency_key: stableKey,
     }
-    const { data, error } = await supabaseAdmin.from("payment_intents")
-      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key" }).select().single()
-    if (error) return json({ error: "Failed to create payment intent" }, 500)
-    return json(data)
+    const { data: insertedIntent, error: insertError } = await supabaseAdmin.from("payment_intents")
+      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key", ignoreDuplicates: true }).select().maybeSingle()
+    if (insertError) return json({ error: "Failed to create payment intent" }, 500)
+    if (insertedIntent) return json(insertedIntent)
+
+    // A concurrent request may have won the unique-key race. Re-read and bind it to this exact order.
+    const { data: racedIntent, error: racedIntentError } = await supabaseAdmin
+      .from("payment_intents")
+      .select("id,tenant_id,order_id,amount,currency,status,provider,payment_method,idempotency_key")
+      .eq("tenant_id", order.tenant_id)
+      .eq("idempotency_key", stableKey)
+      .maybeSingle()
+    if (racedIntentError || !racedIntent) return json({ error: "Failed to resolve payment intent" }, 500)
+    if (!matchesRequestedCashIntent(racedIntent)) return json({ error: "IDEMPOTENCY_KEY_REUSED" }, 409)
+    return json(racedIntent)
   }
 
   const paymentIntentMatch = path.match(/^\/api\/v1\/payments\/intents\/([^/]+)$/)

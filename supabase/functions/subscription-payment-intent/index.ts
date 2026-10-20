@@ -2,10 +2,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const url=Deno.env.get("SUPABASE_URL")??""; const serviceRole=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??""; const secretKey=Deno.env.get("PAYMOB_SECRET_KEY")??""; const publicKey=Deno.env.get("PAYMOB_PUBLIC_KEY")??""; const integrationId=Deno.env.get("PAYMOB_INTEGRATION_ID")??"";
 const admin=createClient(url,serviceRole,{auth:{persistSession:false,autoRefreshToken:false}});
+const ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED=true; // post-launch activation requires a separate reviewed release.
 const json=(body:unknown,status=200,requestId?:string)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json","Cache-Control":"no-store",...(requestId?{"X-Request-Id":requestId}:{})}});
 Deno.serve(async req=>{
  const requestId=req.headers.get("x-request-id")||crypto.randomUUID();
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405,requestId);
+ if(ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED)return json({error:"ELECTRONIC_PAYMENTS_DEFERRED",message:"Electronic payments are deferred until after launch.",requestId},503,requestId);
  const auth=req.headers.get("Authorization")??""; if(!auth.startsWith("Bearer "))return json({error:"AUTH_REQUIRED"},401,requestId);
  try{
   const {data:{user},error:userError}=await admin.auth.getUser(auth.slice(7)); if(userError||!user||user.is_anonymous)return json({error:"AUTH_REQUIRED"},401,requestId);

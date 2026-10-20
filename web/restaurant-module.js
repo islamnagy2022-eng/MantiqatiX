@@ -128,8 +128,14 @@ async function createRestaurantOrder(){
    const qty=await askQuantity('الكمية');
    if(!Number.isInteger(qty)||qty<1)return;
    const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
-   const r=await invokeMntyFunction('order-create',payload);
-   notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
+   const r=await invokeMntyFunction('order-create',{...payload,metadata:{...payload.metadata,payment_method:'CASH_ON_DELIVERY'}});
+   const createdOrderId=String(r?.id||payload.orderId);
+   try{
+    await invokeMntyApi('/api/v1/payments/intents',{method:'POST',body:{orderId:createdOrderId,provider:'CASH_ON_DELIVERY',idempotencyKey:'MNTY-CASH:'+createdOrderId}});
+    notify('تم إنشاء الطلب '+createdOrderId+' وتجهيز الدفع النقدي. لا يُسجل مدفوعًا إلا بعد تأكيد التحصيل بواسطة موظف مخول.');
+   }catch(paymentError){
+    notify('تم إنشاء الطلب '+createdOrderId+' لكن تعذر تجهيز الدفع النقدي: '+(paymentError?.message||'CASH_PAYMENT_SETUP_FAILED')+'. لم يتم تأكيد التحصيل.','error');
+   }
    await load();
  }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
 }
