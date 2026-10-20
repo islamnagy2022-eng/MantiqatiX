@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
+const smmScope = fs.readFileSync("scripts/production/smm-launch-scope.mjs", "utf8");
 const required = [
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261009130000_rc426_digital_page_provider_order_binding.sql",
@@ -53,7 +54,13 @@ assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant 
 assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
-assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
+assert.match(source, /evaluateSmmLaunchScope\(reconciliation\)/, "production verifier must use the SMM launch-scope evaluator");
+assert.match(source, /smmLaunchScope\.verified &&/, "SMM scope evidence must remain a mandatory production release gate");
+assert.match(source, /SMM-INITIAL-LAUNCH-SCOPE/, "SMM scope must produce a dedicated P0 result");
+assert.match(smmScope, /decision === "DEFERRED_NOT_IN_INITIAL_LAUNCH"/, "only explicit deferred scope may use deferral evidence");
+for (const marker of ["live_edge_function", "gateway_customer_access", "negative_test", "live_function_version", "live_function_hash", "disable_evidence_ref"]) assert.ok(smmScope.includes(marker), `deferred SMM must require ${marker}`);
+for (const marker of ["smm_gateway_parity", "smm_acl_boundary", "smm_order_refund_safety", "smm_provider_timeout_safety"]) assert.ok(smmScope.includes(marker), `active SMM must require ${marker}`);
+assert.ok(workflow.includes("node scripts/production/test-smm-launch-scope.mjs"), "Pages CI must execute SMM deferral regression cases");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
 const rc451 = fs.readFileSync("supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql", "utf8");
 assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\s\S]*?\) set search_path = '';/, "RC451 must harden the public targeted-ad SECURITY DEFINER search path");

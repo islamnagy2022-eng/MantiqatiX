@@ -577,3 +577,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## Latest continuation checkpoint — 2026-10-20 — SMM deferral-aware production gate
+
+- Draft PR #303: `https://github.com/islamnagy2022-eng/MantiqaTiX/pull/303` adds a fail-closed SMM launch-scope evaluator. Active SMM requires all four runtime readiness gates; deferred SMM requires server-side disablement, denied customer access, a passing negative test, live function version/hash, and evidence reference.
+- Tested code head `7eca9efe3954af598f2e5a0e084a53eea45efa2f` passed Pages validation `39361043273`, Module Professionalization `39361043089`, Backend-only Module Boundary `39361043079`, and MantiGO privacy `39361043224`. Pages deploy was skipped for PR context.
+- PR #303 is source/CI-only and remains draft/unmerged. It does not prove or cause live SMM disablement. Issue #212 requires an explicitly authorized deployment and live negative tests; no production change was performed.
+- Continue from the first still-open P0 release gate. Global release remains BLOCKED / NOT CERTIFIED.
