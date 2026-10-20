@@ -87,7 +87,9 @@ serve(async (req) => {
       if (branchId) ordersQuery = ordersQuery.eq("branch_id", branchId)
       let receiptsQuery = supabaseAdmin.from("erp_purchase_receipts").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
       if (branchId) receiptsQuery = warehouseIds.length ? receiptsQuery.in("warehouse_id", warehouseIds) : receiptsQuery.in("warehouse_id", ["00000000-0000-0000-0000-000000000000"])
-      const [ordersRes, receiptsRes] = await Promise.all([ordersQuery, receiptsQuery])
+      let productsQuery = supabaseAdmin.from("catalog_items").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(200).order("name_ar", { ascending: true })
+      if (branchId) productsQuery = productsQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`)
+      const [ordersRes, receiptsRes, productsRes] = await Promise.all([ordersQuery, receiptsQuery, productsQuery])
       let transfers = []
       if (!branchId) {
         const { data, error } = await supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
@@ -101,14 +103,15 @@ serve(async (req) => {
         if (fromRes.error || toRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
         transfers = [...new Map([...(fromRes.data ?? []), ...(toRes.data ?? [])].map((row) => [String(row.id), row])).values()]
       }
-      if (ordersRes.error || receiptsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      if (ordersRes.error || receiptsRes.error || productsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
       const safeRows = (rows, fields) => (rows ?? []).map((row) => Object.fromEntries(fields.filter((field) => Object.prototype.hasOwnProperty.call(row, field)).map((field) => [field, row[field]])))
       return json({
         success: true,
         orders: safeRows(ordersRes.data, ["id","tenant_id","business_id","branch_id","order_number","supplier_id","total_amount","tax_amount","discount_amount","status","reason","created_at","updated_at"]),
         receipts: safeRows(receiptsRes.data, ["id","tenant_id","business_id","purchase_order_id","receipt_number","warehouse_id","product_id","received_quantity","unit_cost","status","created_at"]),
         transfers: safeRows(transfers, ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
-        warehouses: safeRows(warehousesData, ["id","tenant_id","business_id","branch_id","name","code","status"])
+        warehouses: safeRows(warehousesData, ["id","tenant_id","business_id","branch_id","name","code","status"]),
+        catalog_items: safeRows(productsRes.data, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"])
       })
     }
 
