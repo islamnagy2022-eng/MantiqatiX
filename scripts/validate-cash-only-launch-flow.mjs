@@ -50,6 +50,8 @@ const intentStart=api.indexOf('if (req.method === "POST" && path === "/api/v1/pa
 const intentEnd=api.indexOf("const paymentIntentMatch",intentStart);
 const intentRoute=api.slice(intentStart,intentEnd);
 assert.match(intentRoute,/provider !== "CASH_ON_DELIVERY"/);
+assert.match(intentRoute,/select\("id,tenant_id,business_id,total_amount,currency,customer_id,status"\)/);
+assert.match(intentRoute,/\["PENDING","CREATED"\]\.includes\(String\(order\.status/,"cash intents must be rejected for cancelled or terminal orders");
 assert.match(intentRoute,/select\("id,tenant_id,business_id,total_amount,currency,customer_id"\)/);
 assert.match(intentRoute,/\.select\("id,role,permissions,business_id"\)/,"payment-intent authorization must inspect business-scoped memberships");
 assert.match(intentRoute,/String\(m\.business_id\) === String\(order\.business_id\)/,"payment-intent operational access must match the order business");
