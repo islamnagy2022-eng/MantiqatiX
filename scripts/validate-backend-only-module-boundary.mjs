@@ -12,6 +12,12 @@ if(!operations.includes('BACKEND_ONLY_TABLES.has(t)')) throw new Error('operatio
 if(!operations.includes("sb.functions.invoke('erp-runtime',{body:{operation:'list'")) throw new Error('operations ERP modules are not connected to the authenticated runtime gateway');
 if(!operations.includes("eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id)")) throw new Error('business ERP summary is not tenant/business scoped');
 if(!operations.includes('ERP_DATA_LOAD_FAILED')) throw new Error('operations ERP runtime errors are silently treated as empty data');
+if(!operations.includes("tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','catalog_items']")) throw new Error('ERP module does not include its product catalog link');
+if(!operations.includes("q=q.eq('business_id',scope().business_id).limit(150)")) throw new Error('operations product catalog reads are not business-scoped');
+if(!app.includes("function erpWarehouseLabel(rows,id)")) throw new Error('enterprise ERP warehouse references are not linked to warehouse names');
+if(!app.includes("function erpProductLabel(rows,id)")) throw new Error('enterprise ERP product references are not linked to catalog names');
+if(!operations.includes('function erpOperationsWorkspace(d)')) throw new Error('operations ERP workspace does not render linked operational records');
+
 
 const gateway=fs.readFileSync('supabase/functions/erp-runtime/index.ts','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql','utf8');
