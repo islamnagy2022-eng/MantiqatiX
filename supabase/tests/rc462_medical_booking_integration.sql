@@ -41,19 +41,19 @@ end $$;
 
 set role authenticated;
 select set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
-do $
+do $$
 declare visible_count integer;
 begin
  select count(*) into visible_count from public.medical_appointments where id='MED-RC467-VALID-0001';
  if visible_count <> 0 then raise exception 'RC467_OTHER_DOCTOR_APPOINTMENT_LEAKED'; end if;
-end $;
+end $$;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
-do $
+do $$
 declare visible_count integer;
 begin
  select count(*) into visible_count from public.medical_appointments where id='MED-RC467-VALID-0001';
  if visible_count <> 1 then raise exception 'RC467_PATIENT_OWN_APPOINTMENT_HIDDEN'; end if;
-end $;
+end $$;
 reset role;
 
 select 'RC467_MEDICAL_BOOKING_RELEASE_CONTRACT_PASS' as result;
