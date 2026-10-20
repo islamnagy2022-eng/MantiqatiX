@@ -50,7 +50,10 @@ const intentStart=api.indexOf('if (req.method === "POST" && path === "/api/v1/pa
 const intentEnd=api.indexOf("const paymentIntentMatch",intentStart);
 const intentRoute=api.slice(intentStart,intentEnd);
 assert.match(intentRoute,/provider !== "CASH_ON_DELIVERY"/);
-assert.match(intentRoute,/select\("id,tenant_id,total_amount,currency,customer_id"\)/);
+assert.match(intentRoute,/select\("id,tenant_id,business_id,total_amount,currency,customer_id"\)/);
+assert.match(intentRoute,/\.select\("id,role,permissions,business_id"\)/,"payment-intent authorization must inspect business-scoped memberships");
+assert.match(intentRoute,/String\(m\.business_id\) === String\(order\.business_id\)/,"payment-intent operational access must match the order business");
+assert.match(intentRoute,/Object\.prototype\.hasOwnProperty\.call\(permissions,\s*"PAYMENT_CREATE"\)/,"payment-intent authorization must accept JSONB permission objects");
 assert.match(intentRoute,/amount: order\.total_amount/);
 assert.match(intentRoute,/existingIntent/);
 assert.match(intentRoute,/\.insert\(newIntent\)/);
