@@ -127,6 +127,7 @@ assert.match(idempotencyMigration,/APPOINTMENT_ID_ALREADY_EXISTS/,"RC468 must re
 assert.match(idempotencyMigration,/idempotent_replay', true/,"RC468 must return a stable replay result");
 assert.match(idempotencyIntegration,/RC468_EXACT_REPLAY_RESULT_MISMATCH/);
 assert.match(idempotencyIntegration,/RC468_REPLAY_CREATED_DUPLICATE/);
+assert.match(idempotencyIntegration,/RC468_NEW_PAST_BOOKING_WAS_ALLOWED/);
 assert.match(idempotencyIntegration,/RC468_PAYLOAD_MISMATCH_WAS_ALLOWED/);
 assert.match(releaseWorkflow,/20261020210000_rc468_medical_booking_idempotency\.sql/);
 assert.match(releaseWorkflow,/rc468_medical_booking_idempotency_integration\.sql/);
