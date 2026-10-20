@@ -632,3 +632,10 @@ This status is intentional and must remain until the open gates above are indepe
 ## 2026-10-20 — Verification guard
 
 The UI/search changes are committed to the working branch, but no exact-head CI success or browser E2E evidence is available in this checkpoint. The next engineer must verify the actual workflow run and deployed smoke test before marking these changes complete. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-20 — Search validator correction
+
+- Fixed the global-search validator's accessibility pattern to match the actual `aria-live="polite"` attribute emitted by `web/app.js`.
+- Checked the seven expected source patterns against the latest fetched `web/app.js`; all matched. Do not describe this as a full test run: Node/Pages CI and browser E2E have not been executed/confirmed here.
+- Latest code commit at this checkpoint: `410bca6f6eaf5e635b54cf509a06a2a0ae62ce20`. Confirm exact-head CI and continue route-by-route module implementation. Keep release **BLOCKED / NOT CERTIFIED**.
