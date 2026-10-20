@@ -30,7 +30,7 @@ The function locks the appointment row with `FOR UPDATE`, binds the caller argum
 
 ## Verification
 
-A disposable PostgreSQL 16 integration fixture and test cover successful transitions, invalid/skipped transitions, terminal-state rewrites, patient ownership, cross-tenant membership, caller identity mismatch, invalid target status, and the existing anon/authenticated EXECUTE boundary. The test is wired into the Module Professionalization workflow.
+A disposable PostgreSQL 16 integration fixture and test cover successful transitions, invalid/skipped transitions, terminal-state rewrites, patient ownership, cross-tenant membership, same-tenant cross-business denial, caller identity mismatch, invalid target status, and the existing anon/authenticated EXECUTE boundary. The test is wired into the Module Professionalization workflow.
 
 Passing the isolated PostgreSQL test proves the migration candidate's behavior in the fixture only. It does not prove production migration convergence or replace multi-account browser E2E.
 
