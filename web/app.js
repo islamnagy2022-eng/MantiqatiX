@@ -1278,6 +1278,7 @@ async function erpRpc(fn,args){
   }
   showToast('تم تنفيذ العملية بنجاح','success');
   live.moduleData={};
+  if(typeof window.MNTYReloadOperationsModule==='function')await window.MNTYReloadOperationsModule();
   await renderApp();
   return response.result;
  }catch(error){
