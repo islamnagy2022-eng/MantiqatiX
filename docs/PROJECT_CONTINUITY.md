@@ -629,3 +629,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Forward replay passed from the pinned RC424 schema-only baseline and tenant isolation checks passed; this is not a blank-database replay of all historical migrations. Missing creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unresolved.
 - PR #300 head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818` still has six successful PR workflows. Both PRs remain open/draft/unmerged, and production remains at RC424.
 - Release status remains **BLOCKED / NOT CERTIFIED**; no production mutation, merge, or deployment occurred.
+
+
+## 2026-10-20 continuation — RC457 fixture repair verified
+
+- The RC457 disposable PostgreSQL fixture was corrected to use a standard SQL string-literal function body after CI identified a syntax error at the placeholder function declaration.
+- Code head `e20b710e821ab146f03dd4e1c6ae83fc37b085d6` passed all nine PR-triggered workflows, including RC457 medical state-machine PostgreSQL integration, source validation, migration collision/uniqueness/history checks, backend-only boundary checks, and disposable forward replay.
+- The disposable replay applied 31 pending candidate migrations in timestamp order from the pinned RC424 schema-only baseline and passed the two-tenant isolation assertions in both directions.
+- Important scope limitation: this is not a blank-database replay of all historical migrations. Historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` is still missing; do not invent its original migration or bypass the dependency.
+- Explicit review of medical `NO_SHOW` semantics and remaining production security/runtime/recovery gates remains required.
+- PR #301 remains open/draft/unmerged; production remains at RC424. The Pages deploy job was skipped on the PR event. No production mutation, merge, or deployment occurred; release remains **BLOCKED / NOT CERTIFIED**.
