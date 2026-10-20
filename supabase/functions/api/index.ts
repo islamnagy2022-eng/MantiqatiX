@@ -210,8 +210,34 @@ serve(async (req) => {
       p_actor_user_id: user.id, p_operation: action, p_arguments: args
     })
     if (error) {
-      const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(String(error.message ?? ""))
-      console.error("[erp-runtime] mutation rejected", { action, code: error.code, denied })
+      const message = String(error.message ?? "")
+      const publicErrors: Record<string, number> = {
+        UNAUTHENTICATED: 401,
+        ERP_MEMBERSHIP_REQUIRED: 403,
+        ERP_OPERATION_FORBIDDEN: 403,
+        ERP_OPERATION_ROLE_REQUIRED: 403,
+        ERP_PURCHASE_APPROVAL_ROLE_REQUIRED: 403,
+        ERP_PURCHASE_RECEIVING_ROLE_REQUIRED: 403,
+        ERP_SUPPLIER_CREATE_ROLE_REQUIRED: 403,
+        ERP_BRANCH_SCOPE_REQUIRED: 403,
+        ERP_SUPPLIER_SCOPE_INVALID: 403,
+        ERP_SUPPLIER_BRANCH_SCOPE_INVALID: 403,
+        ERP_PURCHASE_ORDER_SCOPE_INVALID: 403,
+        ERP_RECORD_NOT_FOUND: 404,
+        ERP_SUPPLIER_CODE_ALREADY_EXISTS: 409,
+        ERP_SUPPLIER_IDEMPOTENCY_CONFLICT: 409,
+        ERP_SUPPLIER_IDEMPOTENCY_SCOPE_CONFLICT: 409,
+        ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT: 409,
+        ERP_SUPPLIER_REQUIRED: 400,
+        ERP_SUPPLIER_REQUIRED_FIELDS: 400,
+        ERP_OPERATION_NOT_ALLOWED: 400,
+        ERP_SCOPE_REQUIRED: 400,
+        INVALID_ARGUMENTS: 400
+      }
+      const publicCode = Object.keys(publicErrors).find(code => message.includes(code))
+      const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(message)
+      console.error("[erp-runtime] mutation rejected", { action, code: error.code, publicCode: publicCode ?? null, denied })
+      if (publicCode) return json({ error: publicCode }, publicErrors[publicCode])
       return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
     }
     return json({ success: true, result: data })
