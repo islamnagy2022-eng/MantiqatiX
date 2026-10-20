@@ -587,3 +587,11 @@ This status is intentional and must remain until the open gates above are indepe
 - **Scope:** sponsored display/placement UI is allowed only against existing verified contracts; monetization, ad-budget charging, paid campaign/SMM execution and external publication are deferred. Keep current data/contracts; do not invent parallel business truth.
 - **Current state:** documentation/plan update only. No app code, migration, production setting, payment, merge or deployment was changed. UI completeness, authentication/search E2E, activity/role controls and module integration remain **NOT VERIFIED**.
 - **Next action:** audit all current routes/modules and map pages/actions to existing APIs/RPCs/permissions, then implement small testable UI slices. Preserve server-side authorization, tenant isolation and all existing release gates. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### 2026-10-20 — Initial UI inventory checkpoint
+
+- Created `docs/UI_MODULE_ROUTE_INVENTORY.md` on branch `feat/ui-first-module-completion-20261020`. It maps confirmed entrypoints for public discovery, auth/workspace shell, global search, RBAC, sector workspaces, operations, provider onboarding, restaurants, reverse bidding, digital pages/editor, SMM, and lists module-by-module UI work and deferred scopes.
+- Confirmed issue: `web/module-blueprints.js` reports a success toast for “open section” without opening an actual workflow. Next code change should remove that false-success behavior or connect it to a verified existing route, with a focused test.
+- Inventory is explicitly partial; full route/action mapping and authenticated browser E2E are still NOT VERIFIED. No application code or production state changed in this batch.
+- Next action: map exact app handlers and blueprint consumers, implement a small honest UI fix, test it, and continue activity/job-role controls before subscription packages/accounts and expanded accounting UI. Global release remains **BLOCKED / NOT CERTIFIED**.
