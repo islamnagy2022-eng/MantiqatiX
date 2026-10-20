@@ -51,7 +51,8 @@ const requiredReleaseMigrations=[
   "20261020120000_rc458_cash_order_service_actor_contract.sql",
   "20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql",
   "20261020140000_rc460_cash_confirmation_business_membership.sql",
-  "20261020150000_rc461_erp_runtime_service_gateway.sql"
+  "20261020150000_rc461_erp_runtime_service_gateway.sql",
+  "20261020160000_rc463_erp_supplier_master.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
