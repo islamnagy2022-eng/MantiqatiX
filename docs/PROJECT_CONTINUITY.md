@@ -577,3 +577,16 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-20 — Launch scope decision and next implementation gate
+
+- First-release payment policy: **cash only**. This is a scope constraint, not proof that all current payment entrypoints already enforce it.
+- Electronic payment methods (including Paymob, cards, wallets and transfers) are **DEFERRED POST-LAUNCH**. Preserve their code, migrations and historic records; do not activate them or apply their pending migrations as part of launch preparation. The UI restriction alone is insufficient; backend direct-call rejection must also be proven.
+- SMM execution/providers/paid service fulfillment is **DEFERRED POST-LAUNCH**. Retain source and data, fail closed on UI and server, and do not label incomplete functions as available. Agency marketing, CRM, leads, projects and advertising workflows outside SMM remain in launch scope.
+- Before implementing cash-only enforcement, inspect existing order creation, payment state, settlement state, collector authorization, audit logging and idempotency contracts. Reuse existing sources of truth; do not create parallel financial tables or RPCs without a proven gap.
+- PR #300 observed checks on head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818`: six relevant PR workflows succeeded. This verifies UI/contract checks only, not sector backend completeness or production deployment.
+- PR #301 observed checks on head `b03b2540d58760ff213641c327377a8ed405b44d`: all nine PR-triggered workflows succeeded, including RC457 PostgreSQL integration and disposable forward replay from the pinned RC424 schema-only baseline. Full blank-database historical replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- PRs #300 and #301 remain draft/open/unmerged per the latest retrieved evidence. No production changes were made.
+- Next engineering gate: trace the current order/payment contract and identify every customer-facing electronic-payment entrypoint plus every backend callable path; then implement the smallest forward-only, testable launch gate without touching production. Do not merge or deploy without explicit approval.
+- Overall release remains **BLOCKED / NOT CERTIFIED**.
