@@ -80,6 +80,12 @@ if(!files.operations.includes("businesses:rows.businesses"))failures.push("ERP_S
 if(files.operations.includes("sb.from('businesses').select('id,tenant_id,name,code,status')"))failures.push("ERP_OPERATIONS_DIRECT_BUSINESS_QUERY_NOT_REMOVED");
 if(!files.app.includes("['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table)"))failures.push("ERP_BUSINESS_REFERENCE_DIRECT_READ_NOT_BLOCKED");
 if(!files.app.includes("data-erp-supplier-edit=")||!files.app.includes("editERPSupplier(this.dataset.erpSupplierEdit)"))failures.push("ERP_SUPPLIER_EDIT_ACTION_NOT_WIRED");
+if(!files.app.includes("function openERPSupplierForm(row=null)"))failures.push("ERP_SUPPLIER_FORM_MODAL_MISSING");
+if(!files.app.includes("id=\\"mx-erp-supplier-form\\"")||!files.app.includes("mx-erp-supplier-submit"))failures.push("ERP_SUPPLIER_FORM_SUBMIT_NOT_WIRED");
+const supplierFormStart=files.app.indexOf("function openERPSupplierForm(row=null)");
+const supplierFormEnd=files.app.indexOf("async function createPurchaseOrder()",supplierFormStart);
+if(supplierFormStart<0||supplierFormEnd<=supplierFormStart||files.app.slice(supplierFormStart,supplierFormEnd).includes("window.prompt("))failures.push("ERP_SUPPLIER_PROMPT_FLOW_NOT_REPLACED");
+
 if(!files.app.includes("String(r.status||'').toUpperCase()==='DRAFT'")||!files.app.includes("String(r.status||'').toUpperCase()==='PENDING_APPROVAL'"))failures.push("ERP_ORDER_STATUS_ACTIONS_NOT_NORMALIZED");
 for(const code of ["ERP_SUPPLIER_CREATE_ROLE_REQUIRED","ERP_PURCHASE_APPROVAL_ROLE_REQUIRED","ERP_PURCHASE_ORDER_IDEMPOTENCY_CONFLICT","ERP_RECEIPT_IDEMPOTENCY_CONFLICT","ERP_WAREHOUSE_INVALID"])if(!files.app.includes(code))failures.push("ERP_USER_ERROR_MESSAGE_MISSING_"+code);
 const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\{key:/gm)].map(m=>m[1]);
