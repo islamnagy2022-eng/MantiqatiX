@@ -32,6 +32,8 @@ jobs:
           test -s web/vendor/supabase.js
       - name: Production verification engine
         run: npm run verify:production
+      - name: SMM launch-scope gate regression
+        run: node scripts/production/test-smm-launch-scope.mjs
       - name: Syntax check
         run: |
           node --check web/rbac.js
