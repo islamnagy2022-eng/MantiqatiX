@@ -32,6 +32,9 @@ begin
   if p_date_time <= (extract(epoch from pg_catalog.clock_timestamp()) * 1000)::bigint then
     raise exception 'APPOINTMENT_TIME_MUST_BE_FUTURE';
   end if;
+  if p_date_time % 900000 <> 0 then
+    raise exception 'APPOINTMENT_SLOT_ALIGNMENT_REQUIRED';
+  end if;
   if pg_catalog.length(coalesce(v_reason,'')) > 500 then
     raise exception 'APPOINTMENT_REASON_TOO_LONG';
   end if;
@@ -59,10 +62,13 @@ begin
   if exists (select 1 from public.medical_appointments a where a.id = p_appointment_id) then
     raise exception 'APPOINTMENT_ID_ALREADY_EXISTS';
   end if;
+  -- Serialize bookings for this doctor, then reject overlapping 30-minute visits.
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_doctor_id, 0));
   if exists (
     select 1 from public.medical_appointments a
     where a.doctor_id = p_doctor_id
-      and a.date_time = p_date_time
+      and a.date_time > p_date_time - 1800000
+      and a.date_time < p_date_time + 1800000
       and pg_catalog.upper(a.status) not in ('CANCELLED','COMPLETED')
   ) then
     raise exception 'DOCTOR_SLOT_UNAVAILABLE';
