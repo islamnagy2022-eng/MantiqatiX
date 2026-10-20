@@ -7,6 +7,7 @@ const mantigo=fs.readFileSync("supabase/functions/mantigo-payment-intent/index.t
 const subscription=fs.readFileSync("supabase/functions/subscription-payment-intent/index.ts","utf8");
 const api=fs.readFileSync("supabase/functions/api/index.ts","utf8");
 const cashGuard=fs.readFileSync("supabase/migrations/20261020100000_rc458_mantigo_cash_confirmation_fail_closed.sql","utf8");
+const cashSeed=fs.readFileSync("supabase/migrations/20261020110000_rc459_seed_cash_payment_method_for_active_tenants.sql","utf8");
 const app=fs.readFileSync("web/app.js","utf8");
 const home=fs.readFileSync("web/home.js","utf8");
 const smm=fs.readFileSync("web/smm.html","utf8");
@@ -25,6 +26,9 @@ assert.match(api,/\.insert\(newIntent\)/,"cash intent creation must not upsert a
 assert.match(app,/الدفع النقدي عند الاستلام فقط/,"marketplace order form must clearly show cash-only payment");
 assert.match(app,/invokeMntyApi\('\/api\/v1\/payments\/intents'/,"marketplace checkout must create a cash payment intent");
 assert.match(cashGuard,/revoke all on function public\.confirm_mantigo_cash_payment_backend\(uuid,text\) from public, anon, authenticated/i,"MantiGO customer self-confirmation RPC must be fail-closed until role-scoped confirmation is implemented");
+assert.match(cashSeed,/from public\.businesses b[\s\S]*upper\(coalesce\(b\.status, ''\)\) = 'ACTIVE'/,"cash method seed must be limited to tenants with active businesses");
+assert.match(cashSeed,/on conflict \(tenant_id, payment_method, provider\) do nothing/i,"cash method seed must be idempotent and preserve tenant-specific settings");
+assert.match(cashSeed,/'CASH_ON_DELIVERY'/,"cash method seed must not enable electronic providers");
 assert.match(app,/MNTY_ELECTRONIC_PAYMENTS_ENABLED!==true/,"digital-page order modal must stop before creating a paid order");
 assert.doesNotMatch(home,/id="mx-mg-card"/,"MantiGO UI must not expose online checkout before launch");
 assert.doesNotMatch(home,/id="mx-mg-cash"/,"MantiGO customer UI must not self-confirm cash receipt");
