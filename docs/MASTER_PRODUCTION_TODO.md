@@ -1633,3 +1633,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+
+## RC458 — Cash-first runtime boundary — 2026-10-20
+
+- [x] Added explicit two-flag default-deny gates to the source for generic Paymob checkout, digital-page checkout, MantiGO checkout, and subscription checkout. Both `MNTY_ELECTRONIC_PAYMENTS_ENABLED=true` and `MNTY_ELECTRONIC_PAYMENTS_POST_LAUNCH_APPROVED=true` are required.
+- [x] Digital-page purchase modal now refuses to create an order while electronic payments are deferred.
+- [x] MantiGO customer UI no longer offers electronic checkout or allows the customer to self-confirm cash receipt. A role-verified captain/finance cash confirmation path remains TODO before MantiGO cash payments can be certified.
+- [x] SMM remains default-disabled and its public page explicitly states that the service is unavailable before launch.
+- [ ] This is source/CI work only; Edge Functions are not deployed by GitHub Pages. Verify exact deployed function versions and environment flags before launch; no production changes were made by this PR.
+- [ ] Cash E2E remains NOT VERIFIED. Global release remains BLOCKED / NOT CERTIFIED.
