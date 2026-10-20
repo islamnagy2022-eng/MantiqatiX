@@ -2009,3 +2009,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Follow-up review after the cash-only CI pass found the `GET /api/v1/orders/:id/cash-payment` authorization accepted permission arrays but did not support the established JSONB object format. For a non-operational custom role with object permissions, this could fail to recognize a valid `PAYMENT_READ_ALL: true` grant.
 - Updated the route to support both array permissions and object flags explicitly equal to boolean `true`, while retaining the existing tenant/business scope and customer-own-order check. Added source-contract assertions for array compatibility and strict true-valued object flags.
 - This is a defensive consistency fix, not launch certification. Fresh exact-head CI is required; authenticated customer/provider cash flow E2E remains NOT VERIFIED. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+### Exact-head verification update — 2026-10-20 — head 65d8a4fe903264396a815141f80cfb76f3e77ec8
+- Confirmed exact-head CI success on this head: Disposable Forward Migration Replay run 39376153889; Backend-only Module Boundary run 39376148719; Module Professionalization Validation run 39376148873 (including RC458, RC459, RC460, RC462, targeted ads, matrimony privacy); MantiGO Open Ride Privacy Boundary run 39376148674.
+- These results supersede the earlier statements above that exact-head CI was pending for the cash-payment read JSONB permission parity fix. They establish CI/replay success for this commit only.
+- Still NOT VERIFIED: authenticated browser/API E2E for customer cash checkout and authorized cash confirmation, tenant/business isolation under live authenticated flows, production configuration readiness, and backup/restore/disaster-recovery evidence.
+- Release remains **BLOCKED / NOT CERTIFIED**. PR #307 remains draft/unmerged. No production migration or deployment was performed.
