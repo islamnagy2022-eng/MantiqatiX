@@ -56,7 +56,8 @@ const requiredReleaseMigrations=[
   "20261020170000_rc464_erp_supplier_update_backend.sql",
   "20261020180000_rc465_erp_purchase_order_lines.sql",
   "20261020190000_rc466_erp_opening_stock_backend.sql",
-  "20261020200000_rc467_medical_booking_release_contract.sql"
+  "20261020200000_rc467_medical_booking_release_contract.sql",
+  "20261020210000_rc468_medical_booking_idempotency.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
