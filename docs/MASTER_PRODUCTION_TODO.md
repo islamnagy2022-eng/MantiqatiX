@@ -1838,3 +1838,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 
 - [x] Follow-up hardening: client validates student name length (2–200 characters) before calling the education backend; the validator guards this requirement. Source commit `82fafbe1ec770c60e6d5ad49e316b090fb34bbc5`; validator commit `c6eaa0ac4a2c04b9ae456971f381ce2f2ff98b71`.
+
+
+## RC — used-items ownership-safe controls — 2026-10-20
+- [x] Status controls now render only for listings owned by the signed-in user; public listings no longer display a misleading seller-only action.
+- [x] Status updates request the updated row and report a clear failure if no row matched the owner-scoped update, rather than silently appearing successful.
+- [x] Added static assertions for owner-only controls and zero-row failure handling. Source commit `edeee30e5546956020f7ccbc999c934dea2a66a3`; validator commit `66a9bfa98276ebc78847847e5b29412b3627a2f1`.
+- [ ] CI and browser/RLS E2E pending. Release remains **BLOCKED / NOT CERTIFIED**.
