@@ -206,7 +206,7 @@ serve(async (req) => {
     if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,total,currency,customer_id,pricing_hash,pricing_version").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
 
     const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
@@ -232,6 +232,8 @@ serve(async (req) => {
       String(intent.order_id) === String(order.id) &&
       Number(intent.amount) === expectedAmount &&
       String(intent.currency ?? "").toUpperCase() === expectedCurrency &&
+      String(intent.pricing_hash ?? "") === String(order.pricing_hash ?? "") &&
+      Number(intent.pricing_version) === Number(order.pricing_version) &&
       intent.provider === "CASH_ON_DELIVERY" &&
       intent.payment_method === "CASH_ON_DELIVERY"
     const { data: existing, error: existingError } = await supabaseAdmin.from("payment_intents").select("*")
@@ -248,6 +250,8 @@ serve(async (req) => {
       order_id: order.id,
       amount: order.total,
       currency: order.currency,
+      pricing_hash: order.pricing_hash,
+      pricing_version: order.pricing_version,
       status: "CREATED",
       provider: "CASH_ON_DELIVERY",
       payment_method: "CASH_ON_DELIVERY",
@@ -303,6 +307,39 @@ serve(async (req) => {
 
     const { data, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
       p_payment_intent_id: intentId,
+      p_user_id: user.id,
+    })
+    if (error) return json({ error: error.message }, 400)
+    return json(data)
+  }
+
+  const orderCashConfirmMatch = path.match(/^\/api\/v1\/orders\/([^/]+)\/cash\/confirm$/)
+  if (req.method === "POST" && orderCashConfirmMatch) {
+    const orderId = orderCashConfirmMatch[1]
+    const { data: order, error: orderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,status").eq("id", orderId).single()
+    if (orderError || !order) return json({ error: "Order not found" }, 404)
+    if (String(order.status ?? "").toUpperCase() !== "DELIVERED") return json({ error: "ORDER_NOT_DELIVERED" }, 409)
+
+    const { data: membership } = await supabaseAdmin.from("user_memberships").select("role,permissions")
+      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
+    if (!membership) return json({ error: "Forbidden" }, 403)
+    const role = String(membership.role ?? "").toUpperCase()
+    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+    const permissionObject = membership.permissions && typeof membership.permissions === "object" && !Array.isArray(membership.permissions)
+      ? membership.permissions as Record<string, unknown> : {}
+    const authorized = ["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(role) ||
+      permissions.includes("PAYMENT_CONFIRM_CASH") || permissionObject.PAYMENT_CONFIRM_CASH === true
+    if (!authorized || role === "CUSTOMER") return json({ error: "Forbidden: insufficient permissions" }, 403)
+
+    const { data: intent, error: intentError } = await supabaseAdmin.from("payment_intents")
+      .select("id,tenant_id,order_id,provider,payment_method").eq("tenant_id", order.tenant_id)
+      .eq("order_id", order.id).eq("provider", "CASH_ON_DELIVERY").eq("payment_method", "CASH_ON_DELIVERY")
+      .limit(1).maybeSingle()
+    if (intentError || !intent) return json({ error: "CASH_PAYMENT_INTENT_NOT_FOUND" }, 409)
+
+    const { data, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
+      p_payment_intent_id: intent.id,
       p_user_id: user.id,
     })
     if (error) return json({ error: error.message }, 400)
