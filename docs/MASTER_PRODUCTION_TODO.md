@@ -2003,3 +2003,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Exact head `96b413a8603811fb244a7456ccce4c50886eb814`: disposable forward migration replay passed; RC458, RC459, RC460, RC462, targeted ads, matrimony privacy, backend-only boundary and MantiGO privacy jobs passed.
 - The remaining `validate` job failed in `scripts/validate-marketing-campaign-ui.mjs` because it expected the stale service-worker URL `rc460-cash-only-launch-20261020`, while `web/index.html` correctly registers `rc461-cash-restaurant-20261020`. This is validator drift, not evidence of a runtime defect. Updated the assertion to the current exact cache key; fresh exact-head CI is required.
 - Release remains **BLOCKED / NOT CERTIFIED** until the new exact-head workflow passes and mandatory authenticated cash checkout/confirmation E2E is independently evidenced. No merge, deployment, or production mutation.
+
+
+### Cash payment read JSONB permission parity — 2026-10-20
+- Follow-up review after the cash-only CI pass found the `GET /api/v1/orders/:id/cash-payment` authorization accepted permission arrays but did not support the established JSONB object format. For a non-operational custom role with object permissions, this could fail to recognize a valid `PAYMENT_READ_ALL: true` grant.
+- Updated the route to support both array permissions and object flags explicitly equal to boolean `true`, while retaining the existing tenant/business scope and customer-own-order check. Added source-contract assertions for array compatibility and strict true-valued object flags.
+- This is a defensive consistency fix, not launch certification. Fresh exact-head CI is required; authenticated customer/provider cash flow E2E remains NOT VERIFIED. Release stays **BLOCKED / NOT CERTIFIED**.
