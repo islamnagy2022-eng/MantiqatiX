@@ -37,7 +37,7 @@ assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خ
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SMM quick access");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
 const appVersion = index.match(/app\.js\?v=([^'"]+)/)?.[1];
-assert.ok(appVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+)-20261020/.test(appVersion), "browser app cache key must use the current module build version");
+assert.ok(appVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+|medical-booking-v2)-20261020/.test(appVersion), "browser app cache key must use the current module build version");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 const shellVersion = sw.match(/const CACHE='([^']+)'/)?.[1];
 const swAppVersion = sw.match(/\.\/app\.js\?v=([^'"]+)/)?.[1];
