@@ -93,7 +93,7 @@ begin
   begin
     perform public.erp_runtime_execute(branch_actor,'create_stock_transfer',
       jsonb_build_object('p_id','tr-cross-branch','p_tenant_id','tenant-a','p_business_id',biz,'p_transfer_number','TR-1','p_from_warehouse_id','warehouse-b','p_to_warehouse_id','warehouse-b','p_product_id','55555555-5555-4555-8555-555555555555','p_quantity',1));
-    raise exception 'RC461_CROSS_BRANCH_TRANSFER_WAS_ALLOWED';
+    raise exception 'RC461_NON_SOURCE_BRANCH_TRANSFER_WAS_ALLOWED';
   exception when others then
     if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
   end;
