@@ -12,7 +12,7 @@ create table public.user_memberships(
   role varchar not null, status varchar not null, branch_id varchar
 );
 create table public.erp_purchase_orders(
-  id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar, status varchar not null default 'SUBMITTED'
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar, status varchar default 'SUBMITTED'
 );
 create table public.erp_stock_transfers(
   id varchar primary key, tenant_id varchar not null, business_id uuid not null,
