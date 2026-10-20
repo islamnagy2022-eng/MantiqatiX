@@ -2,6 +2,19 @@
 const mgRequestStyle=document.createElement('style');mgRequestStyle.id='mantigo-request-ui';mgRequestStyle.textContent=".mg-request-shell{margin:14px 0;padding:clamp(14px,3vw,28px);border:1px solid #e7e9ee;border-radius:22px;background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);box-shadow:0 10px 30px rgba(16,24,40,.06)}.mg-request-hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:4px 2px 20px}.mg-request-hero h2{font-size:clamp(24px,4vw,34px)}.mg-request-badge{white-space:nowrap;background:#ecfdf3;color:#067647;border:1px solid #abefc6;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700}.mg-step{display:flex;gap:11px;align-items:center;margin:18px 0 10px}.mg-step>span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#111827;color:#fff;font-weight:800}.mg-step small{display:block;color:#667085;margin-top:2px}.mg-route-card{position:relative;background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:16px}.mg-field label,.mg-price-card label,.mg-choice-grid label{display:block;font-weight:700;font-size:13px;margin-bottom:7px}.mg-input-row{display:flex;gap:8px;align-items:center}.mg-input-row .input{flex:1}.mg-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto}.mg-dot-start{background:#12b76a;box-shadow:0 0 0 4px #dcfae6}.mg-dot-end{background:#f04438;box-shadow:0 0 0 4px #fee4e2}.mg-route-line{height:18px;border-right:2px dashed #d0d5dd;width:6px;margin:2px 0 2px 5px}.mg-location-btn{border:1px solid #d0d5dd;background:#fff;border-radius:10px;padding:10px 11px;white-space:nowrap;cursor:pointer}.mg-choice-grid{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:14px}.mg-choice-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.mg-choice{border:1px solid #d0d5dd;background:#fff;border-radius:13px;padding:11px 7px;cursor:pointer;text-align:center}.mg-choice.active{border-color:#111827;box-shadow:0 0 0 2px #111827 inset;background:#f9fafb}.mg-choice b,.mg-choice small{display:block}.mg-choice small{font-size:11px;color:#667085;margin-top:3px}.mg-price-card{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:18px;align-items:end;background:#f8fafc;border:1px solid #e4e7ec;border-radius:16px;padding:14px}.mg-price-input{position:relative}.mg-price-input .input{padding-left:55px}.mg-price-input strong{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#667085}.mg-price-hint{color:#475467;font-size:13px;padding-bottom:11px}.mg-more{margin:14px 0;background:#fff;border:1px solid #e4e7ec;border-radius:13px;padding:12px 14px}.mg-more summary{cursor:pointer;font-weight:700}.mg-request-summary{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:18px;padding:15px;background:#111827;color:#fff;border-radius:16px}.mg-request-summary span{display:block;color:#d0d5dd;font-size:12px;margin-top:3px}.mg-submit-btn{background:#fff;color:#111827;border:0;min-width:150px}.mg-request-tabs{display:flex;gap:8px;margin:14px 0 2px}.mg-request-tabs .btn{flex:0 0 auto}@media(max-width:700px){.mg-request-hero{display:block}.mg-request-badge{display:inline-block;margin-top:12px}.mg-choice-grid,.mg-price-card{grid-template-columns:1fr}.mg-choice-row{grid-template-columns:repeat(2,minmax(0,1fr))}.mg-input-row{align-items:stretch}.mg-location-btn{padding:9px}.mg-request-summary{display:block}.mg-submit-btn{width:100%;margin-top:12px}.mg-request-tabs{overflow:auto}}\n";document.head.appendChild(mgRequestStyle);
 'use strict';
 const BACKEND_ONLY_TABLES=new Set(['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','smm_admins','smm_provider_credentials','smm_providers']);
+async function invokeErpApi(body){
+ const {data:{session},error:sessionError}=await sb.auth.getSession();
+ if(sessionError)throw sessionError;
+ if(!session?.access_token)throw new Error('AUTH_REQUIRED');
+ const response=await fetch(cfg.supabaseUrl+'/functions/v1/api/api/v1/erp/runtime',{
+  method:'POST',
+  headers:{'Content-Type':'application/json','Accept':'application/json','apikey':cfg.supabaseKey,'Authorization':'Bearer '+session.access_token},
+  body:JSON.stringify(body)
+ });
+ let payload=null;try{payload=await response.json()}catch(_){}
+ if(!response.ok)throw new Error(payload?.error||'ERP_API_REQUEST_FAILED');
+ return payload;
+}
 const cfg=window.MANTIQATIX_CONFIG;if(!cfg||!window.supabase)return;const sb=window.MNTY_SB || window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);window.MNTY_SB=sb;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>Number(v||0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' ج.م';
@@ -15,7 +28,7 @@ const defs={
 'المزايدات — المحاسبة':{key:'ACCOUNTING',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries'],desc:'طلبات الخدمات المحاسبية والعروض والسجلات المحاسبية المصرح بها.'},
 'المزايدات — الشركات':{key:'COMPANIES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','businesses'],desc:'طلبات الشركات ومقدمو الخدمة والعروض والأنشطة.'},
 
-'المزايدات — المصانع':{key:'FACTORIES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses'],desc:'طلبات التصنيع والعروض والمخزون والمخازن.'},
+'المزايدات — المصانع':{key:'FACTORIES',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','inventory_transactions','stock_balances','warehouses'],desc:'طلبات التصنيع والعروض والمخزون والمخازن.'},
 'المزايدات — الرحلات':{key:'TRIPS',tabs:['overview','live'],tables:['indrive_requests','indrive_bids','mantigo_rides','mantigo_bids'],desc:'طلبات الرحلات والعروض والتنفيذ.'},
 'المزايدات — البرمجيات ERP':{key:'ERP',tabs:['overview','live'],tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','catalog_items'],desc:'المشتريات والاستلام والتحويلات والمخازن.'},
 'برامج إدارة الأعمال ERP':{key:'BUSINESS_ERP',tabs:['overview','live'],tables:['businesses','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','catalog_items'],desc:'إدارة الأعمال والمشتريات والاستلام والتحويلات والمخازن الفعلية.'},
@@ -62,7 +75,7 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
   rows.erp_purchase_orders=data.orders||[];
   rows.erp_purchase_receipts=data.receipts||[];
   rows.erp_stock_transfers=data.transfers||[];
-  rows.warehouses=data.warehouses||[];
+  rows.warehouses=data.warehouses||[];\n  rows.catalog_items=data.catalog_items||[];\n  rows.branches=data.branches||[];
   if(d.key==='BUSINESS_ERP'){
    const business=await sb.from('businesses').select('id,tenant_id,name,code,status').eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id).maybeSingle();
    if(business.error)throw business.error;
