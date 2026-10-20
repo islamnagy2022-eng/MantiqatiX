@@ -810,3 +810,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Source inventory found an existing API route for authorized cash confirmation calling `confirm_cash_payment`; this is source evidence only, not proof that the end-user cash checkout flow is fully E2E verified. Next work: audit launch UI/order path, tenant cash-method configuration, role restrictions, amount authority, idempotency, audit/accounting, and prove electronic methods/SMM cannot be activated from the launch path.
 - See `docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md` and the latest section in `docs/MASTER_PRODUCTION_TODO.md`.
 - No production database mutation, migration, grant/RLS change, financial transaction, merge, or deployment was performed for this scope update. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC459 handoff — 2026-10-20
+
+- Read-only production inspection found no configured `CASH_ON_DELIVERY` rows in `tenant_payment_methods`. Until RC459 is applied through the ordered migration release, the existing cash-intent endpoint will reject checkout.
+- Added an idempotent seed migration for active business tenants; no live database changes were made.
+- Marketplace order submission now creates a cash intent after order creation. The cash-intent endpoint validates idempotency conflicts instead of overwriting existing intent IDs.
+- Pre-launch cash checkout remains **NOT VERIFIED** until RC459 is applied in order and authenticated customer/provider E2E, cash confirmation, reconciliation and security tests pass.
