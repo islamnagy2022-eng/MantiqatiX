@@ -1578,35 +1578,63 @@ function chooseERPRecord(table,label,format,excludeId,filterFn){
  if(match)return String(match.id);
  showToast('الاختيار غير موجود في القائمة الحالية','error');return null;
 }
-async function createERPSupplier(){
- const name=window.prompt('اسم المورد بالعربية');if(!name?.trim())return;
- const code=window.prompt('كود المورد (اختياري)','')||'';
- const nameEn=window.prompt('اسم المورد بالإنجليزية (اختياري)','')||'';
- const contact=window.prompt('اسم مسؤول التواصل (اختياري)','')||'';
- const phone=window.prompt('رقم الهاتف (اختياري)','')||'';
- const email=window.prompt('البريد الإلكتروني (اختياري)','')||'';
- const taxNumber=window.prompt('الرقم الضريبي (اختياري)','')||'';
- const terms=window.prompt('شروط السداد (اختياري)','')||'';
- const notes=window.prompt('ملاحظات المورد (اختياري)','')||'';
- return erpRpc('create_erp_supplier_backend',{p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_supplier_code:code.trim()||null,p_name_ar:name.trim(),p_name_en:nameEn.trim()||null,p_phone:phone.trim()||null,p_email:email.trim()||null,p_contact_name:contact.trim()||null,p_tax_number:taxNumber.trim()||null,p_payment_terms:terms.trim()||null,p_notes:notes.trim()||null});
+function openERPSupplierForm(row=null){
+ if(!user?.id)return authView();
+ if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل إدارة الموردين','error');
+ const editing=!!row;
+ const field=(id,label,value='',type='text',required=false)=>'<label class="field"><span>'+label+'</span><input id="'+id+'" name="'+id+'" type="'+type+'" value="'+esc(value??'')+'" '+(required?'required':'')+'></label>';
+ const overlay=document.createElement('div');
+ overlay.className='mx-modal';
+ overlay.innerHTML='<div class="mx-modal-card" role="dialog" aria-modal="true" aria-labelledby="mx-erp-supplier-title"><div class="section-head"><div><span class="eyebrow">ERP · SUPPLIERS</span><h2 id="mx-erp-supplier-title">'+(editing?'تعديل بيانات المورد':'إضافة مورد جديد')+'</h2><p>تُحفظ البيانات على الخادم داخل المؤسسة والفرع المحددين.</p></div><button type="button" class="text-btn mx-close-modal">إغلاق</button></div><form id="mx-erp-supplier-form"><div class="form-grid">'+
+ field('mx-erp-supplier-name','اسم المورد بالعربية',row?.name_ar||'','text',true)+
+ field('mx-erp-supplier-code','كود المورد',row?.supplier_code||'')+
+ field('mx-erp-supplier-name-en','اسم المورد بالإنجليزية',row?.name_en||'')+
+ field('mx-erp-supplier-contact','مسؤول التواصل',row?.contact_name||'')+
+ field('mx-erp-supplier-phone','الهاتف',row?.phone||'','tel')+
+ field('mx-erp-supplier-email','البريد الإلكتروني',row?.email||'','email')+
+ field('mx-erp-supplier-tax','الرقم الضريبي',row?.tax_number||'')+
+ field('mx-erp-supplier-terms','شروط السداد',row?.payment_terms||'')+
+ (editing?'<label class="field"><span>الحالة</span><select id="mx-erp-supplier-status" name="mx-erp-supplier-status"><option value="ACTIVE" '+(String(row.status||'').toUpperCase()==='ACTIVE'?'selected':'')+'>نشط</option><option value="INACTIVE" '+(String(row.status||'').toUpperCase()==='INACTIVE'?'selected':'')+'>غير نشط</option><option value="ARCHIVED" '+(String(row.status||'').toUpperCase()==='ARCHIVED'?'selected':'')+'>مؤرشف</option></select></label>':'')+
+ '<label class="field" style="grid-column:1/-1"><span>ملاحظات</span><textarea id="mx-erp-supplier-notes" name="mx-erp-supplier-notes" rows="3">'+esc(row?.notes||'')+'</textarea></label></div><div class="action-bar"><button type="submit" class="btn btn-primary" id="mx-erp-supplier-submit" style="width:auto">'+(editing?'حفظ التعديلات':'حفظ المورد')+'</button><button type="button" class="btn btn-outline mx-close-modal" style="width:auto">إلغاء</button></div><p class="muted" id="mx-erp-supplier-error" role="alert" aria-live="polite"></p></form></div>';
+ document.body.appendChild(overlay);
+ overlay.querySelectorAll('.mx-close-modal').forEach(button=>button.addEventListener('click',closeMxModal));
+ const form=overlay.querySelector('#mx-erp-supplier-form');
+ form?.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const submit=overlay.querySelector('#mx-erp-supplier-submit');
+  const errorBox=overlay.querySelector('#mx-erp-supplier-error');
+  const value=id=>String(overlay.querySelector('#'+id)?.value??'').trim();
+  const name=value('mx-erp-supplier-name');
+  const email=value('mx-erp-supplier-email');
+  if(!name){errorBox.textContent='اسم المورد مطلوب';return}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){errorBox.textContent='صيغة البريد الإلكتروني غير صحيحة';return}
+  const args={
+   p_tenant_id:live.tenantId,p_business_id:live.businessId,
+   p_branch_id:editing?(row.branch_id||null):(live.branchId||null),
+   p_supplier_code:value('mx-erp-supplier-code')||null,p_name_ar:name,
+   p_name_en:value('mx-erp-supplier-name-en')||null,
+   p_contact_name:value('mx-erp-supplier-contact')||null,
+   p_phone:value('mx-erp-supplier-phone')||null,p_email:email||null,
+   p_tax_number:value('mx-erp-supplier-tax')||null,
+   p_payment_terms:value('mx-erp-supplier-terms')||null,
+   p_notes:value('mx-erp-supplier-notes')||null
+  };
+  if(editing){args.p_id=String(row.id);args.p_status=value('mx-erp-supplier-status')||'ACTIVE'}
+  submit.disabled=true;submit.textContent='جارٍ الحفظ…';errorBox.textContent='';
+  try{
+   const result=await erpRpc(editing?'update_erp_supplier_backend':'create_erp_supplier_backend',args);
+   if(result){closeMxModal();showToast(editing?'تم تحديث المورد':'تم إنشاء المورد','success')}
+   else {submit.disabled=false;submit.textContent=editing?'حفظ التعديلات':'حفظ المورد';errorBox.textContent='لم يتم الحفظ. راجع الصلاحيات والاتصال ثم أعد المحاولة.'}
+  }catch(_){submit.disabled=false;submit.textContent=editing?'حفظ التعديلات':'حفظ المورد';errorBox.textContent='حدث خطأ غير متوقع أثناء الحفظ.'}
+ });
+ overlay.querySelector('#mx-erp-supplier-name')?.focus();
 }
+async function createERPSupplier(){return openERPSupplierForm()}
 async function editERPSupplier(id){
  const rows=live.moduleData?.ERP?.rows?.erp_suppliers||live.moduleData?.BUSINESS_ERP?.rows?.erp_suppliers||window.MNTYOperationsERPData?.erp_suppliers||[];
  const row=rows.find(item=>String(item.id)===String(id));
  if(!row)return showToast('المورد غير موجود في البيانات المحملة ضمن نطاقك','error');
- const name=window.prompt('اسم المورد بالعربية',row.name_ar||'');if(name==null)return;
- if(!name.trim())return showToast('اسم المورد مطلوب','error');
- const code=window.prompt('كود المورد (اتركه فارغًا لإزالته)',row.supplier_code||'');if(code==null)return;
- const contact=window.prompt('اسم مسؤول التواصل',row.contact_name||'');if(contact==null)return;
- const phone=window.prompt('رقم الهاتف',row.phone||'');if(phone==null)return;
- const email=window.prompt('البريد الإلكتروني',row.email||'');if(email==null)return;
- const taxNumber=window.prompt('الرقم الضريبي',row.tax_number||'');if(taxNumber==null)return;
- const terms=window.prompt('شروط السداد',row.payment_terms||'');if(terms==null)return;
- const notes=window.prompt('ملاحظات المورد',row.notes||'');if(notes==null)return;
- const status=window.prompt('الحالة: ACTIVE أو INACTIVE أو ARCHIVED',row.status||'ACTIVE');if(status==null)return;
- const normalizedStatus=status.trim().toUpperCase();
- if(!['ACTIVE','INACTIVE','ARCHIVED'].includes(normalizedStatus))return showToast('حالة المورد غير صحيحة','error');
- return erpRpc('update_erp_supplier_backend',{p_id:String(row.id),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:row.branch_id||null,p_name_ar:name.trim(),p_supplier_code:code.trim()||null,p_contact_name:contact.trim()||null,p_phone:phone.trim()||null,p_email:email.trim()||null,p_tax_number:taxNumber.trim()||null,p_payment_terms:terms.trim()||null,p_notes:notes.trim()||null,p_status:normalizedStatus});
+ return openERPSupplierForm(row);
 }
 async function createPurchaseOrder(){
  const orderNumber=window.prompt('رقم أمر الشراء');
