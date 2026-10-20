@@ -106,6 +106,7 @@ const swRegistrationVersion=index.match(/sw\.js\?v=([^'"]+)/)?.[1];
 assert.ok(appVersion&&appVersion===swAppVersion,"index and service worker must use the same app asset version");
 assert.ok(cacheVersion&&/^mnty-web-v\d+$/.test(cacheVersion),"service worker cache must have an explicit version");
 assert.ok(swRegistrationVersion,"service worker registration must be versioned");
+assert.equal(swRegistrationVersion,appVersion,"index service-worker registration and app assets must share the release cache version");
 const bookingFunction=app.slice(app.indexOf('function createMedicalAppointment('),app.indexOf('async function updateMedicalAppointmentStatus('));
 assert.match(bookingFunction,/MNTY_MEDICAL_BOOKING:/,"booking retries must reuse a stable idempotency slot");
 assert.match(bookingFunction,/storedRequest\?\.fingerprint===requestPayload&&storedRequest\?\.id/,"same appointment payload must reuse the same request ID");
