@@ -754,3 +754,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 ### Correction — used-item read implementation
 - Current branch migration is a server-authorized, narrow read RPC rather than a column-level table grant. It excludes `seller_phone`, rejects anonymous sessions, and revokes direct table access for client roles. The UI calls `list_used_item_ads_backend`.
 - The migration remains unapplied to live Supabase; do not claim the production table/API behavior has changed.
+
+
+- **Migration history preserved:** original `20261020231500_used_item_ads_minimal_directory_read.sql` was restored without the RPC rewrite. New follow-up migration `20261020232000_used_item_ads_directory_backend_v1.sql` installs the narrow RPC and revokes table-level plus column-level read grants. Validator uses the new migration. CI must confirm migration uniqueness/immutability before merge.
