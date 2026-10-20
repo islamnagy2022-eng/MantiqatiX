@@ -319,7 +319,7 @@ function roleSwitcher(){
  const tenant=active?.tenant_id?'<small class="role-context-tenant">النطاق: '+esc(active.tenant_id)+'</small>':'';
  return '<label class="role-switcher"><span>تبديل الدور</span><select id="mx-role-switcher" aria-label="تبديل الدور بين العضويات الفعلية">'+options+'</select>'+tenant+'</label>';
 }
-const MNTY_BACKEND_ONLY_TABLES=new Set(['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','smm_admins','smm_provider_credentials','smm_providers']); function syncModuleRuntime(name){const m=domainModules.find(x=>x.name===name);if(!m)return;const d=live.moduleData?.[m.key];window.MNTYModuleRuntime=window.MNTYModuleRuntime||{};window.MNTYModuleRuntime[m.key]={ready:Boolean(d?.ready),tables:{...(d?.tables||{})},sourceCount:m.tables.length,readableCount:Object.values(d?.tables||{}).filter(v=>typeof v==='number').length};} async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};syncModuleRuntime(name);if(!m.tables.length){live.moduleData[m.key].ready=true;syncModuleRuntime(name);return}const out=await Promise.all(m.tables.map(async t=>{if(MNTY_BACKEND_ONLY_TABLES.has(t))return [t,null];const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true;syncModuleRuntime(name);}
+const MNTY_BACKEND_ONLY_TABLES=new Set(['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','smm_admins','smm_provider_credentials','smm_providers']); function syncModuleRuntime(name){const m=domainModules.find(x=>x.name===name);if(!m)return;const d=live.moduleData?.[m.key];window.MNTYModuleRuntime=window.MNTYModuleRuntime||{};window.MNTYModuleRuntime[m.key]={ready:Boolean(d?.ready),tables:{...(d?.tables||{})},sourceCount:m.tables.length,readableCount:Object.values(d?.tables||{}).filter(v=>typeof v==='number').length};} async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};syncModuleRuntime(name);if(!m.tables.length){live.moduleData[m.key].ready=true;syncModuleRuntime(name);return}const out=await Promise.all(m.tables.map(async t=>{if(MNTY_BACKEND_ONLY_TABLES.has(t))return [t,null];const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true;syncModuleRuntime(name);}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
 function cleanAuthUrl(){
@@ -845,6 +845,7 @@ async function loadEnterpriseDomainData(m){
    const result=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
    if(!result?.success)throw new Error(result?.error||'ERP_DATA_LOAD_FAILED');
    rows.erp_purchase_orders=result.orders||[];
+   rows.erp_suppliers=result.suppliers||[];
    rows.erp_purchase_receipts=result.receipts||[];
    rows.erp_stock_transfers=result.transfers||[];
    rows.warehouses=result.warehouses||[];
@@ -999,6 +1000,7 @@ function restaurantWorkspace(rows){
  +workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
 }
 
+function erpSupplierLabel(rows,id){const item=(rows.erp_suppliers||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.supplier_code||id):String(id||'—')}
 function erpWarehouseLabel(rows,id){const item=(rows.warehouses||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
 function erpBranchLabel(rows,id){const item=(rows.branches||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
 function erpPurchaseOrderLabel(rows,id){const item=(rows.erp_purchase_orders||[]).find(x=>String(x.id)===String(id));return item?String(item.order_number||id):String(id||'—')}
@@ -1017,8 +1019,9 @@ function enterpriseRowsTable(m,rows){
    +sources();
  }
  if(['ERP','BUSINESS_ERP'].includes(m.key)){
-  return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'
-   +recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(live.role)?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='PENDING_APPROVAL'?'بانتظار اعتماد المالك أو المشرف':'—']])
+  return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createERPSupplier()">+ مورد جديد</button><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'
+   +recordsTable('الموردون',rows.erp_suppliers||[],[['اسم المورد',r=>r.name_ar||r.name_en],['الكود',r=>r.supplier_code],['مسؤول التواصل',r=>r.contact_name],['الهاتف',r=>r.phone],['البريد',r=>r.email],['شروط السداد',r=>r.payment_terms],['الحالة',r=>r.status]])
+   +recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>erpSupplierLabel(rows,r.supplier_id)],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(live.role)?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='PENDING_APPROVAL'?'بانتظار اعتماد المالك أو المشرف':'—']])
    +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>erpPurchaseOrderLabel(rows,r.purchase_order_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
    +recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الفرع',r=>erpBranchLabel(rows,r.branch_id)],['الحالة',r=>r.status]])
    +recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>erpWarehouseLabel(rows,r.from_warehouse_id)],['إلى',r=>erpWarehouseLabel(rows,r.to_warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']])
@@ -1243,6 +1246,7 @@ async function erpRpc(fn,args){
  if(!user?.id)return authView();
  if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');
  const operations={
+  create_erp_supplier_backend:'create_supplier',
   create_purchase_order_backend:'create_purchase_order',
   update_purchase_order_status_backend:'update_purchase_order_status',
   receive_purchase_stock_backend:'receive_purchase_stock',
@@ -1252,7 +1256,7 @@ async function erpRpc(fn,args){
  };
  const action=operations[fn];
  if(!action)return showToast('عملية ERP غير معروفة أو غير مسموح بها','error');
- const createPrefixes={create_purchase_order:'po-',receive_purchase_stock:'rcv-',create_stock_transfer:'tr-'};
+ const createPrefixes={create_erp_supplier_backend:'sup-',create_supplier:'sup-',create_purchase_order:'po-',receive_purchase_stock:'rcv-',create_stock_transfer:'tr-'};
  const requestArgs={...args};
  let idempotencyKey=null;
  let fingerprint=null;
@@ -1313,7 +1317,16 @@ function chooseERPRecord(table,label,format,excludeId,filterFn){
  if(match)return String(match.id);
  showToast('الاختيار غير موجود في القائمة الحالية','error');return null;
 }
-async function createPurchaseOrder(){const orderNumber=window.prompt('رقم أمر الشراء');if(!orderNumber?.trim())return;const supplierId=window.prompt('معرف المورد');if(!supplierId?.trim())return;const total=Number(window.prompt('الإجمالي','0'));if(!Number.isFinite(total)||total<0)return showToast('قيمة إجمالي غير صحيحة','error');const tax=Number(window.prompt('الضريبة','0'));const discount=Number(window.prompt('الخصم','0'));if([tax,discount].some(v=>!Number.isFinite(v)||v<0))return showToast('قيمة ضريبة/خصم غير صحيحة','error');return erpRpc('create_purchase_order_backend',{p_id:'po-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId.trim(),p_total_amount:total,p_tax_amount:tax,p_discount_amount:discount,p_reason:window.prompt('سبب أمر الشراء','')||null})}
+async function createERPSupplier(){
+ const name=window.prompt('اسم المورد بالعربية');if(!name?.trim())return;
+ const code=window.prompt('كود المورد (اختياري)','')||'';
+ const phone=window.prompt('رقم الهاتف (اختياري)','')||'';
+ const email=window.prompt('البريد الإلكتروني (اختياري)','')||'';
+ const contact=window.prompt('اسم مسؤول التواصل (اختياري)','')||'';
+ const terms=window.prompt('شروط السداد (اختياري)','')||'';
+ return erpRpc('create_erp_supplier_backend',{p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_supplier_code:code.trim()||null,p_name_ar:name.trim(),p_phone:phone.trim()||null,p_email:email.trim()||null,p_contact_name:contact.trim()||null,p_payment_terms:terms.trim()||null});
+}
+async function createPurchaseOrder(){const orderNumber=window.prompt('رقم أمر الشراء');if(!orderNumber?.trim())return;const supplierId=chooseERPRecord('erp_suppliers','المورد',r=>(r.name_ar||r.name_en||r.supplier_code||'مورد')+' — '+(r.supplier_code||r.phone||''));if(!supplierId)return;const total=Number(window.prompt('الإجمالي','0'));if(!Number.isFinite(total)||total<0)return showToast('قيمة إجمالي غير صحيحة','error');const tax=Number(window.prompt('الضريبة','0'));const discount=Number(window.prompt('الخصم','0'));if([tax,discount].some(v=>!Number.isFinite(v)||v<0))return showToast('قيمة ضريبة/خصم غير صحيحة','error');return erpRpc('create_purchase_order_backend',{p_id:'po-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId,p_total_amount:total,p_tax_amount:tax,p_discount_amount:discount,p_reason:window.prompt('سبب أمر الشراء','')||null})}
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
 async function receivePurchaseStock(preselectedOrderId){const purchaseOrderId=preselectedOrderId||chooseERPRecord('erp_purchase_orders','أمر الشراء الجاهز للاستلام',r=>r.order_number+' — '+r.status,null,r=>['SUBMITTED','APPROVED','PARTIALLY_RECEIVED'].includes(String(r.status||'').toUpperCase()));if(!purchaseOrderId)return;const receiptNumber=window.prompt('رقم الاستلام');if(!receiptNumber?.trim())return;const warehouseId=chooseERPRecord('warehouses','المخزن',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''));if(!warehouseId)return;const productId=chooseERPRecord('catalog_items','المنتج',r=>(r.name_ar||r.name_en||r.sku||'منتج')+' — '+(r.sku||''));if(!productId)return;const qty=Number(window.prompt('الكمية المستلمة','1'));const unitCost=Number(window.prompt('تكلفة الوحدة','0'));if(!Number.isFinite(qty)||qty<=0||!Number.isFinite(unitCost)||unitCost<0)return showToast('بيانات الاستلام غير صحيحة','error');return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId,p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId,p_product_id:productId,p_received_quantity:qty,p_unit_cost:unitCost})}
 async function createStockTransfer(){const transferNumber=window.prompt('رقم التحويل');if(!transferNumber?.trim())return;const from=chooseERPRecord('warehouses','المخزن المصدر',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''));if(!from)return;const to=chooseERPRecord('warehouses','المخزن الهدف',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),from);if(!to)return;const product=chooseERPRecord('catalog_items','المنتج',r=>(r.name_ar||r.name_en||r.sku||'منتج')+' — '+(r.sku||''));if(!product)return;const qty=Number(window.prompt('الكمية','1'));if(!Number.isFinite(qty)||qty<=0)return showToast('بيانات التحويل غير صحيحة','error');return erpRpc('create_stock_transfer_backend',{p_id:'tr-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_transfer_number:transferNumber.trim(),p_from_warehouse_id:from,p_to_warehouse_id:to,p_product_id:product,p_quantity:qty})}
