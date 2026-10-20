@@ -157,7 +157,7 @@ assert.match(todo,/POST-LAUNCH: electronic payments/);
 assert.match(todo,/POST-LAUNCH: SMM/);
 assert.match(scope,/cash-only collection/);
 assert.match(scope,/Digital-page paid checkout is disabled pre-launch/);
-assert.match(index,/app\.js\?v=mnty-modules-v16-20261020/);
+assert.match(index,/app\.js\?v=mnty-modules-v18-20261020/);
 assert.match(index,/sw\.js\?v=mnty-modules-v16-20261020/);
 assert.match(sw,/const CACHE='mnty-web-v153'/);
 assert.match(sw,/app\.js\?v=mnty-modules-v16-20261020/);
