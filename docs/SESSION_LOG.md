@@ -177,3 +177,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Extended `scripts/validate-module-blueprint-actions.mjs` to assert the caveat is present and unsupported ENFORCED badges are absent.
 - Source-pattern inspection: 8/8 targeted checks matched. No local Node run or GitHub Actions pass was obtained, so the validator and runtime remain unverified.
 - Commits: UI `4f49fd4497e6a79808563c108cd57f7621fb6fa4`; validator `98a002ace642a07e350925e116f61659f81f0b7f`. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Sector module query failure state
+
+- Commit `8e5e84f1dcbc2b92c81544c4c600879a5eff7418`: sector module loader now collects query failures instead of disguising them as empty lists, and the duplicate `applyToJob(jobId)` definition was removed.
+- Commit `faba79d2b71bde1d062a402e2b6122cce46ba619`: added accessible error/retry UI for failed sector queries.
+- Commit `eff9d6fa58df35655151e8a69119524ad6200869`: extended the existing sector-rendering validator with source-contract checks for failure/empty distinction, accessible retry, and duplicate job handler. The Pages workflow already invokes this validator.
+- No Node execution, CI result, or browser E2E was verified here. Release remains **BLOCKED / NOT CERTIFIED**.
