@@ -667,3 +667,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Branch `feat/ui-first-module-completion-20261020` now routes job application submission through the existing `submit_job_application_backend` RPC rather than direct client INSERT. It validates the fields required by the SQL function and handles the backend's `ALREADY_APPLIED` response. Source commit: `9a6526456dcc78446a208440b0a24f55bacb598b`.
 - Added source-contract assertions to `scripts/validate-sector-rendering.mjs` in commit `32b848989f0b5a80749e0604814037c28c30b31f`.
 - Verification status: implementation committed; exact-head CI and browser E2E remain pending. No production deployment, schema change, or merge occurred. Do not treat this as release certification.
+
+
+## 2026-10-20 continuation — used-items seller recovery
+
+- Used-items loading now requests unsold listings plus sold listings owned by the current user, allowing the existing reactivation action to be reachable. The query continues to apply the current active membership's tenant/business filters when scope exists. Source commit: `84b491799802830888665ce807034fd13818a8a7`.
+- A static regression assertion was added in commit `e8b64c1386d28708cf049b29136c396f9d7a2846`.
+- Browser E2E and production RLS/update behavior remain unverified. Production remains **BLOCKED / NOT CERTIFIED**.
