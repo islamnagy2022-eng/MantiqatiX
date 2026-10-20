@@ -2,7 +2,8 @@ begin;
 insert into public.user_memberships(user_id,tenant_id,business_id,role,status) values
  ('11111111-1111-4111-8111-111111111111','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE');
 insert into public.user_memberships(user_id,tenant_id,business_id,role,status,branch_id) values
- ('44444444-4444-4444-8444-444444444444','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE','branch-a');
+ ('44444444-4444-4444-8444-444444444444','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE','branch-a'),
+ ('77777777-7777-4777-8777-777777777777','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE','branch-b');
 insert into public.erp_suppliers(id,tenant_id,business_id,branch_id,supplier_code,name_ar,status,created_by) values
  ('supplier-1','tenant-a','22222222-2222-4222-8222-222222222222',null,'SUP-001','مورد اختبار','ACTIVE','11111111-1111-4111-8111-111111111111'),
  ('supplier-branch-a','tenant-a','22222222-2222-4222-8222-222222222222','branch-a','SUP-A','مورد فرع أ','ACTIVE','11111111-1111-4111-8111-111111111111'),
@@ -22,7 +23,7 @@ insert into public.erp_stock_transfers(id,tenant_id,business_id,from_warehouse_i
  ('tr-existing','tenant-a','22222222-2222-4222-8222-222222222222','warehouse-a','warehouse-b');
 set local role service_role;
 do $$
-declare result jsonb; actor uuid := '11111111-1111-4111-8111-111111111111'; branch_actor uuid := '44444444-4444-4444-8444-444444444444'; biz uuid := '22222222-2222-4222-8222-222222222222';
+declare result jsonb; actor uuid := '11111111-1111-4111-8111-111111111111'; branch_actor uuid := '44444444-4444-4444-8444-444444444444'; destination_actor uuid := '77777777-7777-4777-8777-777777777777'; biz uuid := '22222222-2222-4222-8222-222222222222';
 begin
   if has_function_privilege('authenticated','public.erp_runtime_execute(uuid,text,jsonb)','EXECUTE')
      or has_function_privilege('anon','public.erp_runtime_execute(uuid,text,jsonb)','EXECUTE') then
