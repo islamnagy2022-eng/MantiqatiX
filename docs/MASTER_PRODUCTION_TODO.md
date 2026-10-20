@@ -1739,3 +1739,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Source-level changes are committed on `feat/ui-first-module-completion-20261020`: honest blueprint status and global search partial-source-failure messaging, plus CI contract validators.
 - **Verification still open:** no browser/E2E run has been executed from this environment. A branch push alone does not prove the Pages workflow ran or passed. Keep release blocked until exact-head CI and deployed smoke tests are checked.
 - Next implementation batch: inspect and test current branch changes in a real CI environment; continue route-to-backend contract mapping before adding activity CRUD or role/job-function write controls.
+
+
+## 2026-10-20 — Search validator correction
+
+- [x] Corrected the global-search source-contract assertion to match the actual rendered `aria-live="polite"` status markup (the earlier assertion incorrectly expected a JavaScript `setAttribute` call).
+- [x] Re-evaluated all seven validator regex contracts against the current branch's `web/app.js` source; all seven matched. This is a targeted source-level check only, not execution of the Node validator or CI.
+- [ ] Exact-head Pages CI and browser E2E remain unverified. Keep release **BLOCKED / NOT CERTIFIED**.
