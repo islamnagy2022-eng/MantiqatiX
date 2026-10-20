@@ -87,6 +87,20 @@ begin
 
   begin
     perform public.erp_purchase_stock_receive_with_lines_backend(actor,jsonb_build_object(
+      'p_id','rcv-lines-test-0001','p_tenant_id','tenant-a','p_business_id',biz,
+      'p_purchase_order_id','po-lines-test-0001','p_receipt_number','RCV-LINES-CONFLICT',
+      'p_warehouse_id','warehouse-global','p_product_id','66666666-6666-4666-8666-666666666666',
+      'p_received_quantity',2,'p_unit_cost',5));
+    raise exception 'RC465_RECEIPT_IDEMPOTENCY_CONFLICT_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_RECEIPT_IDEMPOTENCY_CONFLICT%' then raise; end if;
+  end;
+  if (select quantity_on_hand from public.stock_balances where tenant_id='tenant-a' and business_id=biz and warehouse_id='warehouse-global' and product_id='66666666-6666-4666-8666-666666666666')<>2 then
+    raise exception 'RC465_RECEIPT_IDEMPOTENCY_CONFLICT_MUTATED_STOCK';
+  end if;
+
+  begin
+    perform public.erp_purchase_stock_receive_with_lines_backend(actor,jsonb_build_object(
       'p_id','rcv-lines-test-0002','p_tenant_id','tenant-a','p_business_id',biz,
       'p_purchase_order_id','po-lines-test-0001','p_receipt_number','RCV-LINES-002',
       'p_warehouse_id','warehouse-global','p_product_id','66666666-6666-4666-8666-666666666666',
