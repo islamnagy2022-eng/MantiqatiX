@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const app=fs.readFileSync('web/app.js','utf8');
 const operations=fs.readFileSync('web/operations-modules.js','utf8');
-const blocked=['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','smm_admins','smm_provider_credentials','smm_providers'];
+const blocked=['erp_purchase_orders','erp_purchase_order_lines','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','smm_admins','smm_provider_credentials','smm_providers'];
 if(!app.includes('MNTY_BACKEND_ONLY_TABLES=new Set')) throw new Error('backend-only table guard missing');
 for(const t of blocked){ if(!app.includes(t)) throw new Error('missing backend-only table '+t); }
 const marker=app.indexOf('async function loadDomainModule');
@@ -59,6 +59,9 @@ if(!operations.includes('editERPSupplier(')) throw new Error('ERP supplier maste
 
 if(!api.includes('from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP live stock balances are not tenant/business scoped');
 if(!api.includes('from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP inventory movements are not tenant/business scoped');
+if(!app.includes('rows.erp_purchase_order_lines=result.order_lines||[]')) throw new Error('enterprise ERP module must consume purchase order lines from the authenticated API');
+if(!app.includes("recordsTable('بنود أوامر الشراء',rows.erp_purchase_order_lines||[]")) throw new Error('enterprise ERP workspace must render purchase order lines');
+if(!app.includes('rows.erp_purchase_order_lines')) throw new Error('enterprise ERP loader must preserve purchase order line data');
 if(api.includes('.eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")\n        .limit(300).order("name_ar"')) throw new Error('ERP supplier master must include inactive suppliers so they can be reactivated');
 if(!app.includes("r=>String(r.status||'').toUpperCase()==='ACTIVE'")) throw new Error('new purchase orders must only select active suppliers');
 if(!operations.includes('rows.stock_balances=data.stock_balances||[]') || !operations.includes('rows.inventory_transactions=data.inventory_transactions||[]')) throw new Error('ERP workspace is not connected to stock balance and movement sources');
