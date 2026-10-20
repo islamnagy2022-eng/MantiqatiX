@@ -24,7 +24,7 @@ insert into public.user_memberships(user_id,tenant_id,business_id,role,permissio
 ('22222222-2222-4222-8222-222222222222','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','CUSTOM_OPERATOR','{"PAYMENT_CONFIRM_CASH":true}','ACTIVE');
 
 set role service_role;
-do $
+do $$
 declare result jsonb;
 begin
  result:=public.confirm_cash_payment('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','22222222-2222-4222-8222-222222222222');
