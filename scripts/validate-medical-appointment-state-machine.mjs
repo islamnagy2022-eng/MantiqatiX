@@ -124,9 +124,9 @@ assert.match(releaseWorkflow,/20261020210000_rc468_medical_booking_idempotency\.
 assert.match(releaseWorkflow,/rc468_medical_booking_idempotency_integration\.sql/);
 assert.match(migrationReplay,/20261020210000_rc468_medical_booking_idempotency\.sql/);
 assert.match(productionVerifier,/20261020210000_rc468_medical_booking_idempotency\.sql/);
-assert.match(migrationReplay,/20261020200000_rc467_medical_booking_release_contract\\.sql/);
+assert.match(migrationReplay,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 const doctorPullRequestPaths=releaseWorkflow.split('  pull_request:')[1]?.split('jobs:')[0]||'';
-assert.match(doctorPullRequestPaths,/20261020210000_rc468_medical_booking_idempotency\\.sql/,"PR path filters must run doctor idempotency tests when RC468 changes");
-assert.match(doctorPullRequestPaths,/rc468_medical_booking_idempotency_integration\\.sql/,"PR path filters must include the RC468 behavioral test");
+assert.match(doctorPullRequestPaths,/20261020210000_rc468_medical_booking_idempotency\.sql/,"PR path filters must run doctor idempotency tests when RC468 changes");
+assert.match(doctorPullRequestPaths,/rc468_medical_booking_idempotency_integration\.sql/,"PR path filters must include the RC468 behavioral test");
 
 console.log('RC457 state machine + RC467/RC468 doctor module release source contract: PASS');
