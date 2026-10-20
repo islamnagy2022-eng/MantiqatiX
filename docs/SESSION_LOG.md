@@ -113,3 +113,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Concrete issue found:** `web/module-blueprints.js` button handler reports “opened section” via a success toast but does not actually open a workflow. This is a source-confirmed misleading UI action; fix is next after confirming consumers and routes.
 - **Limits:** route inventory remains partial; no browser E2E, Auth mutation, production query/write, migration, payment, deployment or merge was performed. Source existence is not workflow verification.
 - **Next:** inspect exact blueprint consumers and module route handlers, replace false-success behavior with a real route/action or honest disabled/unavailable state, add tests, then continue activity/role-management mapping. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — SESSION-UI-SLICE-001 — Remove false success from module blueprint actions
+
+- **Verified source finding:** `web/module-blueprints.js` rendered “فتح القسم” buttons whose handler only called a success toast; no route or workflow was opened.
+- **Action performed:** changed the button label to “حالة القسم”; clicking now opens an accessible `role=status` / `aria-live=polite` message explaining the section is only a preliminary UI blueprint and no action/data mutation occurred. Added `scripts/validate-module-blueprint-actions.mjs` and wired it into `.github/workflows/module-professionalization.yml`.
+- **Safety:** this does not claim to complete the module workflow; it removes a misleading success state while real routes/contracts are mapped. No schema, production, Auth, payment, ad network, merge, or deployment action occurred.
+- **Verification status:** source changes are committed to the working branch; CI and browser behavior remain pending/not verified until exact-head checks complete.
+- **Next:** verify branch CI, inspect role/activity API contracts and exact app routes, then implement the next real module journey. Release remains **BLOCKED / NOT CERTIFIED**.
