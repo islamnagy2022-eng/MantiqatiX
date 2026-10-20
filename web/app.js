@@ -1292,6 +1292,8 @@ async function erpRpc(fn,args){
   const messages={
    ERP_OPERATION_FORBIDDEN:'ليست لديك صلاحية تنفيذ هذه العملية',
    ERP_SUPPLIER_CODE_ALREADY_EXISTS:'كود المورد مستخدم بالفعل',
+   ERP_SUPPLIER_IDEMPOTENCY_CONFLICT:'طلب إنشاء المورد تكرر ببيانات مختلفة، راجع البيانات وأعد المحاولة',
+   ERP_SUPPLIER_IDEMPOTENCY_SCOPE_CONFLICT:'معرف المورد مستخدم داخل نطاق مختلف، حدّث الصفحة وأعد المحاولة',
    ERP_SUPPLIER_SCOPE_INVALID:'المورد غير نشط أو لا يتبع المؤسسة الحالية',
    ERP_SUPPLIER_BRANCH_SCOPE_INVALID:'المورد تابع لفرع مختلف عن الفرع المحدد',
    ERP_SUPPLIER_REQUIRED:'اختر موردًا صالحًا لأمر الشراء',
