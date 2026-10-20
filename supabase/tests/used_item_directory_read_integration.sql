@@ -36,6 +36,11 @@ begin
      or has_table_privilege('authenticated','public.used_item_ads','DELETE') then
     raise exception 'DIRECT_CLIENT_TABLE_PRIVILEGE_REMAINS';
   end if;
+
+  if has_column_privilege('authenticated','public.used_item_ads','seller_phone','SELECT')
+     or has_column_privilege('authenticated','public.used_item_ads','owner_user_id','SELECT') then
+    raise exception 'DIRECT_CLIENT_SENSITIVE_COLUMN_PRIVILEGE_REMAINS';
+  end if;
 end;
 $contract$;
 
