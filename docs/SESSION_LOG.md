@@ -221,3 +221,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Fix:** status buttons now render only for rows whose `owner_user_id` matches the signed-in user. The UPDATE selects the affected row and displays an explicit no-match message when ownership/RLS prevents a change. Commit: `edeee30e5546956020f7ccbc999c934dea2a66a3`.
 - **Regression guards:** added assertions for owner-only controls and zero-row handling. Commit: `66a9bfa98276ebc78847847e5b29412b3627a2f1`.
 - CI, browser E2E, and production RLS behavior remain unverified.
+
+
+## 2026-10-20 — fashion product branch-scope fallback
+
+- **Finding:** fashion product creation supplied an empty string when the active business membership had no branch. If the target column is UUID typed, this can fail validation instead of representing an absent optional branch.
+- **Fix:** changed the fallback to `null`, preserving the distinction between an absent branch and an invalid identifier. Commit: `680d433e682881d0f233a4ac4e46d95b23ebee4a`.
+- **Regression guard:** added a validator assertion. Commit: `6423df32f69ed4ec24eaaaf0c556771e6ff95ab7`.
+- Exact-head CI and runtime verification pending.
