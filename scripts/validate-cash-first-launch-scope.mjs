@@ -37,9 +37,9 @@ assert.match(home,/تأكيد استلام النقد من حساب العميل
 assert.match(smm,/الخدمة غير متاحة للطلبات حاليًا/,"SMM page must remain unavailable before launch");
 assert.doesNotMatch(smm,/smm\.js/,"SMM page must not load the operational runtime before launch");
 assert.match(smmRuntime,/SMM_LAUNCH_ENABLED=false/,"SMM runtime must be default-disabled");
-assert.match(sw,/mnty-web-v130/,"service worker cache must be bumped for cash-first UI");
+assert.match(sw,/mnty-web-v131/,"service worker cache must be bumped for cash-first UI");
 assert.match(sw,/home\.js\?v=rc402-cash-first/,"service worker must precache the updated home script");
-assert.match(sw,/app\.js\?v=rc458-cash-first-20261020/,"service worker must precache the updated app script");
+assert.match(sw,/app\.js\?v=rc459-cash-checkout-20261020/,"service worker must precache the updated app script");
 assert.match(index,/home\.js\?v=rc402-cash-first/,"index must reference updated home script");
-assert.match(index,/app\.js\?v=rc458-cash-first-20261020/,"index must reference updated app script");
+assert.match(index,/app\.js\?v=rc459-cash-checkout-20261020/,"index must reference updated app script");
 console.log("Cash-first launch boundary: PASS");
