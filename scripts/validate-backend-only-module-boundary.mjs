@@ -24,7 +24,7 @@ if(!operations.includes('data-op-retry>إعادة المحاولة')) throw new 
 if(!operations.includes('scopeMatchesApp') || !operations.includes('window.MNTYOperationsERPData=')) throw new Error('ERP actions must share reference data only when active app scope matches');
 if(!operations.includes('const sharedERP=window.MNTYOperationsERPData')) throw new Error('ERP reference cache is not consumed by dependent modules');
 if(!operations.includes('if(sharedScopeMatches&&Object.prototype.hasOwnProperty.call(sharedERP,t))')) throw new Error('cross-module cache must be restricted to exact tenant/business/branch scope');
-if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty125') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty123')) throw new Error('operations module asset cache versions must match');
+if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty125') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty125')) throw new Error('operations module asset cache versions must match');
 
 
 const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
