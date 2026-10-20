@@ -20,6 +20,8 @@ if(!app.includes("function erpProductLabel(rows,id)")) throw new Error('enterpri
 if(!operations.includes("const canCreateSupplier=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE_MANAGER','FINANCE'].includes(role)")) throw new Error('supplier creation UI must follow the backend supplier-role contract');
 if(!operations.includes("const canReceivePurchase=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','ACCOUNTANT','FINANCE_MANAGER','FINANCE'].includes(role)")) throw new Error('receiving UI must follow the backend role contract');
 if(!operations.includes("r.status==='PENDING_APPROVAL'&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(role)")) throw new Error('ERP approval UI must use the active scoped role');
+if(!operations.includes("String(live.branchId||'')===String(activeScope?.branch_id||'')")) throw new Error('ERP actions must require exact active branch scope parity');
+if(operations.includes("(!activeScope?.branch_id||String(live.branchId||'')===String(activeScope.branch_id))")) throw new Error('ERP actions must not accept a stale branch selection');
 if(!operations.includes('function erpOperationsWorkspace(d)')) throw new Error('operations ERP workspace does not render linked operational records');
 if(!operations.includes('onclick="createPurchaseOrder()"') || !operations.includes('onclick="receivePurchaseStock()"') || !operations.includes('onclick="createStockTransfer()"')) throw new Error('ERP operations workspace must expose purchase, receiving, and transfer actions');
 if(!operations.includes("updatePurchaseOrderStatus(\\'") || !operations.includes("\\'SUBMITTED\\')")) throw new Error('ERP purchase orders must expose the submit transition');
