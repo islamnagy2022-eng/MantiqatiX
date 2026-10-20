@@ -94,3 +94,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Cash-only launch scope recorded
+
+- Recorded the first-release scope: cash is the sole allowed payment method; electronic payments and SMM execution are deferred post-launch while existing code/contracts/data are preserved.
+- Explicitly retained marketing agency workspace, CRM, leads, projects and non-SMM advertising workflows in launch scope.
+- PR #300's six observed PR workflows passed on head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818`; this is not proof of backend sector completeness or production deployment.
+- PR #301's nine observed PR workflows passed on head `b03b2540d58760ff213641c327377a8ed405b44d`, including RC457 PostgreSQL integration and forward replay from the RC424 schema-only checkpoint. Full historical blank-database replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- This is a documentation-only change. No application code, SQL migration, production setting, payment, financial record, merge or deployment was changed.
+- Next: map current order/payment/settlement contracts and all UI/backend electronic-payment entrypoints before implementing the smallest safe cash-only server-enforced gate.
+- Production remains **BLOCKED / NOT CERTIFIED**.

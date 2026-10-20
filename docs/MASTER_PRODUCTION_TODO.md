@@ -1633,3 +1633,23 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — First-release scope gate: cash-only + SMM deferred
+
+### Launch policy (approved scope; must be enforced in UI and backend)
+- [ ] **IN PROGRESS / NOT VERIFIED:** Cash is the only permitted payment method for the first release. Do not expose or accept Paymob, card, wallet, transfer, or other electronic payment paths in the launch experience.
+- [ ] **NOT VERIFIED:** Trace the existing order/payment contracts before changing schema or RPCs. Reuse the authoritative order/payment model; do not create a parallel financial model, tables, RPCs, or Edge Functions unless a proven gap requires them.
+- [ ] **NOT VERIFIED:** Keep order status, payment status, and settlement status independent. Order creation is not evidence of cash collection.
+- [ ] **NOT VERIFIED:** Client cannot set authoritative price, currency, total, payment success, or cash-collected state. Server recalculates/validates prices and binds the request to the authenticated actor and tenant.
+- [ ] **NOT VERIFIED:** Identify the existing authorized collector role and server-owned confirmation path; require audit evidence and idempotent/concurrency-safe handling for cash collection.
+- [ ] **NOT VERIFIED:** Disable electronic-payment UI paths and reject direct backend invocation for the first-release configuration. Preserve existing electronic-payment source/contracts and historic data for post-launch; do not deploy or apply payment migrations merely because they exist.
+- [ ] **NOT VERIFIED:** Test customer, provider, business owner, and admin flows against actual authorization boundaries; include duplicate and concurrent collection attempts, cancellation/rejection, and non-collection without inventing business policies.
+- [ ] **DEFERRED POST-LAUNCH:** Electronic payments, Paymob/cards/wallets/transfers and their provider/webhook, refund, settlement and real-transaction E2E suites. Re-enable only after explicit scope approval, ordered migration replay, security review, sandbox and authorized end-to-end tests.
+- [ ] **DEFERRED POST-LAUNCH:** SMM provider integrations, service execution, paid campaign execution and SMM-specific reporting. Retain current code/data/contracts; fail closed in both UI and server; do not represent incomplete SMM as available.
+- [ ] **IN SCOPE for launch:** Agency marketing workspace, campaign planning, leads, CRM, customer/project management and advertising workflows that are outside the deferred SMM execution unit, subject to their own contracts and release tests.
+
+### Current PR/CI checkpoint — 2026-10-20
+- PR #300 — frontend-first workspaces for 27 sectors: PR-triggered checks observed on documentation head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818` completed successfully for Industry Workspaces UI Contract, Pages validation, Marketing Workspace Contract, Backend-only Module Boundary, MantiGO Open Ride Privacy Boundary, and Module Professionalization Validation. These results do not certify backend sector contracts or production deployment.
+- PR #301 — medical appointment state transitions / RC457: nine PR-triggered checks observed on documentation head `b03b2540d58760ff213641c327377a8ed405b44d` completed successfully, including disposable forward migration replay and RC457 PostgreSQL integration. Replay begins at the pinned RC424 schema-only baseline; it is not a blank replay of all 283 historical migrations. PR remains draft/open/unmerged.
+- **Production status remains BLOCKED / NOT CERTIFIED.** No production migration, merge, deployment, Auth setting change, payment, or financial mutation was performed by this documentation update.
