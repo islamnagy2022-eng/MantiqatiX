@@ -1656,3 +1656,29 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added source-contract assertions for the timing guard, NO_SHOW status, and Arabic action label.
 - [x] Exact tested code head `4ded759615e25d5bb9776751ccb32dbc1189e6be`: Industry Workspaces UI Contract, Marketing Workspace Contract, Pages validation, Module Professionalization Validation, Backend-only Module Boundary (including approval-audit and RC450 financial-journal PostgreSQL jobs), and MantiGO privacy all PASS. Pages deployment job was skipped as expected for a PR.
 - [ ] Keep this UI change paired with PR #301's server-side RC457 guard; both PRs remain open/draft/unmerged. No production deployment occurred.
+
+
+## 2026-10-20 — Product rule: visibility stays open while operations mature
+
+**Principle:** Do not hide a sector, business, service, or product merely because purchase/booking/fulfillment is incomplete. Presence/discovery/marketing and transaction readiness are separate lifecycle dimensions.
+
+### Product behavior checklist
+- [ ] Inventory every public business/service/product discovery surface and record its current source, publication rules, consent requirements, and tenant scope.
+- [ ] Define separate states for listing visibility, inquiry/contact, purchase/booking, payment, fulfillment, and completion; never overload one generic “active” flag.
+- [ ] Show approved published activity according to its publication/consent rules even if a later transaction step is incomplete.
+- [ ] Display a clear incomplete state and the exact missing prerequisite at each unavailable step; do not fake a save, booking, payment, or successful request.
+- [ ] Where an approved and verified inquiry/contact backend path exists, offer it as a fallback while checkout/fulfillment is incomplete. Where no safe path exists, keep the listing visible and label inquiry as incomplete until implemented.
+- [ ] Keep non-destructive interface controls interactive for navigation, filtering, draft preparation, and requirement review; keep sensitive writes server-authoritative and gated by verified authorization contracts.
+- [ ] Add E2E coverage for “visible listing + incomplete transaction”, “visible listing + inquiry fallback”, “hidden only by explicit publication/consent policy”, and cross-tenant isolation.
+- [ ] Ensure dashboards and reports separately count visible listings, inquiries, pending requests, completed transactions, and incomplete workflows.
+- [ ] Do not mark any public listing or transaction flow production-ready without current data-source, consent, RLS/RBAC, backend, CI, and post-deployment evidence.
+
+### Current implementation evidence
+- [x] PR #300 contains all 27 sector workspace routes and sector-specific section inventories; they remain visible in the directory.
+- [x] Updated the sector workspace UI to remove disabled preview/action controls and show explicit “الموديول ظاهر · التشغيل غير مكتمل” status; action-review buttons explain missing backend/security/E2E prerequisites without claiming a transaction occurred.
+- [x] Updated the industry UI contract validator to reject globally disabled sector controls and require the incomplete-state wording.
+- [x] Updated `docs/INDUSTRY_WORKSPACE_UI.md` with this product rule.
+- [ ] The updated UI change is not yet validated by exact-head GitHub Actions.
+- [ ] This PR’s internal sector directory is not proof that public business listings are already exposed; inventory and implement the public discovery/marketing surfaces separately.
+- [ ] Existing restaurant operational screens have their own legacy mutation/security concerns; do not infer readiness or enable unsafe writes from this visibility principle.
+- [ ] Global release remains **BLOCKED / NOT CERTIFIED**.
