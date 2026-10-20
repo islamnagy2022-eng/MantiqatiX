@@ -24,7 +24,7 @@ assert.match(api,/matchesRequestedCashIntent/,'existing cash intent must be boun
 const customerOrder=app.indexOf("invokeMntyFunction('order-create'");
 const customerCash=app.indexOf("invokeMntyApi('/api/v1/payments/intents'");
 assert.ok(customerOrder>=0 && customerCash>customerOrder,'customer checkout must request a cash intent after authoritative order creation');
-assert.match(app,/MNTY-CASH:s*'+createdOrderId/,'cash idempotency key must be stable per order');
+assert.ok(app.includes("MNTY-CASH:'+createdOrderId"),'cash idempotency key must be stable per order');
 assert.match(app,/لا يُسجل مدفوعًا إلا بعد تأكيد التحصيل بواسطة موظف مخول/,'UI must not equate cash intent with collection');
 assert.match(app,/MNTY_LAUNCH_PAYMENT_MODE='CASH_ONLY'/,'frontend launch payment mode must be explicit');
 const digitalGate=app.indexOf("if(MNTY_LAUNCH_PAYMENT_MODE==='CASH_ONLY')");
@@ -34,7 +34,7 @@ assert.ok(digitalGate>=0 && digitalOrder>digitalGate,'paid digital-page checkout
 const restaurantOrder=restaurant.indexOf("invokeMntyFunction('order-create'");
 const restaurantCash=restaurant.indexOf("invokeMntyApi('/api/v1/payments/intents'");
 assert.ok(restaurantOrder>=0 && restaurantCash>restaurantOrder,'restaurant orders must request cash intent after creation');
-assert.match(restaurant,/MNTY-CASH:+createdOrderId/,'restaurant cash idempotency key must be stable per order');
+assert.ok(restaurant.includes("MNTY-CASH:'+createdOrderId"),'restaurant cash idempotency key must be stable per order');
 for(const [name,source] of [['payment-intent',payment],['digital-page-payment-intent',digitalPayment],['subscription-payment-intent',subscriptionPayment],['mantigo-payment-intent',mantigoPayment]]){
  assert.match(source,/ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED\s*=\s*true/,name+' must remain deferred by default');
  assert.match(source,/ELECTRONIC_PAYMENTS_DEFERRED/,name+' must reject electronic checkout during launch one');
