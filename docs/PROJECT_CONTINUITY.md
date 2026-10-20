@@ -766,3 +766,9 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Used-item RPC behavior is covered by the existing dedicated read-boundary workflow and SQL integration, now applying both migrations and checking seller-phone/owner-ID column grants. Duplicate test files/job were removed; CI still needs to finish on the latest head.
+
+
+## 2026-10-20 continuation — jobs and applications read RPCs
+
+- Job listing and application tabs now use narrow server-authorized RPCs instead of direct table SELECT. Listings omit employer phone and map `employer_name` to `company_name`; applications are visible only to the applicant or owner of the job and omit applicant phone/CV summary.
+- Added migration `20261020233000_jobs_directory_backend_v1.sql`, disposable PostgreSQL fixture/tests, dedicated CI workflow, and validator guards. Source-only until migration and tests are verified. CI/browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
