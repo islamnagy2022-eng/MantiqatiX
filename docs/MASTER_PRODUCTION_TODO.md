@@ -1926,3 +1926,6 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 - [x] Added a disposable PostgreSQL integration fixture and behavior test for the used-item read RPC, covering direct table privileges, function ACL/search_path, seller-phone omission, anonymous/no-identity rejection, sold-listing ownership, and tenant/business filtering. Workflow: `.github/workflows/used-item-directory-read.yml`.
 - [ ] The workflow is queued; do not mark the integration test passed until GitHub Actions reports success.
+
+
+- [x] Consolidated behavioral coverage into the repository's existing `Used Item Directory Read Boundary` workflow and `used_item_directory_read_integration.sql`; removed the duplicate fixture/workflow job. The existing integration now asserts seller-phone and owner-ID column grants are absent, and the workflow applies both migrations in order. CI trigger and static contract assertions were aligned to the follow-up migration. Commits: `1575707eda5a95fa51bc97d59000a5d234f82be5`, `98ed691d1016baa2c15140a0dc633a2128b08ad4`, `7505f36ccd8924f2a0f741cb54ec150d28cdc0e2`, `877fcb57fd46a1650504795508c5900a1862c69f`, `640b0f46166d9b45875f03ee89e94de458343cb1`. Awaiting CI.
