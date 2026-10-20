@@ -33,6 +33,8 @@ const required = [
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql",
+  "20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql",
   "20261019190000_rc457_medical_appointment_state_machine.sql",
   "20261020120000_rc458_cash_order_service_actor_contract.sql",
   "20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql",
@@ -46,7 +48,7 @@ const required = [
   "20261020210000_rc468_medical_booking_idempotency.sql",
   "20261021190000_rc469_mantigo_presence_verification_guard.sql",
 ]
-assert.equal(required.length, 40, "release gate must track the complete 40-file migration source set");
+assert.equal(required.length, 42, "release gate must track the complete 42-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
