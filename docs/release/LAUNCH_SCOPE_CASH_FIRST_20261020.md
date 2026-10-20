@@ -26,6 +26,13 @@ Status: Product scope decision recorded; implementation and E2E evidence remain 
 - The existing marketing/agency workspace, CRM, lead management, projects, and ordinary marketing planning are not automatically deferred by this decision; they remain in launch scope only to the extent already implemented and independently verified.
 - Sponsored-ad billing/backend work remains deferred until after core launch.
 
+## Implementation checkpoint — 2026-10-20
+- Marketplace cart checkout source offers cash on delivery only, validates a single business/branch, verifies catalog items, and submits item identifiers/quantities rather than client prices.
+- RC458 updates the existing service-role-only `create_order_backend` actor check for trusted Edge Function calls while preserving the existing EXECUTE ACL and customer membership/tenant/business/catalog/server-pricing checks. RC458 must pass disposable PostgreSQL integration and ordered forward replay before rollout.
+- Cash intent amount authority and non-destructive idempotency are source-enforced and statically tested; authenticated browser E2E and authorized cash confirmation remain NOT VERIFIED.
+- Digital-page paid checkout is disabled pre-launch because its current flow requires electronic payment and no verified cash contract exists for that product.
+- SMM UI shows a deferred state and the gateway remains default-deny; SMM fulfilment, provider credential use and live billing are post-launch.
+
 ## Pre-launch acceptance checklist
 
 - [ ] Inspect current UI and API routes to prove electronic methods are not offered or callable through the normal launch workflow.
