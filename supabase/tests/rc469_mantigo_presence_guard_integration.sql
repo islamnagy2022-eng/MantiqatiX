@@ -86,6 +86,21 @@ begin
   if v->>'availability_status'<>'OFFLINE' then
     raise exception 'RC469_TEST_FAILED: offline transition unexpectedly failed';
   end if;
+  if not exists (
+    select 1 from public.mantigo_captain_profiles
+    where captain_id=auth.uid() and current_lat=30.1 and current_lon=31.2
+  ) then
+    raise exception 'RC469_TEST_FAILED: offline transition unexpectedly erased last known coordinates';
+  end if;
+  if not exists (
+    select 1 from public.audit_logs
+    where actor_user_id=auth.uid()
+      and action='MANTIGO_CAPTAIN_PRESENCE_UPDATED'
+      and new_values->>'availability_status'='OFFLINE'
+      and new_values->>'has_coordinates'='true'
+  ) then
+    raise exception 'RC469_TEST_FAILED: audit did not record retained coordinates accurately';
+  end if;
 
   raise notice 'RC469_PRESENCE_GUARD_INTEGRATION: PASS';
 end $$;
