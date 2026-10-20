@@ -48,6 +48,9 @@ jobs:
           node scripts/validate-membership-refresh-contract.mjs
           node scripts/validate-medical-appointment-state-machine.mjs
           node scripts/validate-cash-only-launch-flow.mjs
+          node scripts/validate-production-migration-chain-gate.mjs
+          node scripts/validate-marketing-campaign-ui.mjs
+          node scripts/validate-sector-rendering.mjs
 
   matrimony-privacy-postgres:
     runs-on: ubuntu-latest
