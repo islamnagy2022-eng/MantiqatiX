@@ -1721,3 +1721,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Confirmed source-level gaps to address before claiming completeness: auth UI currently presents Google OAuth; global search lists 10 source groups and collapses individual query errors into an empty result; generic module blueprint buttons display a success toast without opening a real section; membership switching is not a full job-function assignment UI; public add-activity request is not the full activity lifecycle.
 - [ ] NEXT: fix the generic blueprint false-success action and add tests; then improve global-search partial-failure states and continue module-by-module routes/actions mapping.
 - [ ] Browser E2E, server permission contracts, production deployment parity and all release gates remain NOT VERIFIED. No app code changed in this inventory-only batch.
+
+
+## 2026-10-20 — first UI implementation slice: honest module state + search failure visibility
+
+- [x] Generic module blueprint action in the working branch now exposes an accessible status panel stating that the selected section is only a blueprint and is not wired to a standalone workflow; it explicitly states that no action/data mutation occurred. The action no longer reports a fake successful navigation.
+- [x] Added `scripts/validate-module-blueprint-actions.mjs` and wired it into `.github/workflows/pages.yml`.
+- [x] Updated global search to retain per-source failures as metadata, distinguish zero results from an all-source failure, and show an accessible partial-results warning when some sources fail. The existing role-based source filter is preserved.
+- [x] Added `scripts/validate-global-search-failure-state.mjs` and wired it into the Pages validation workflow.
+- [ ] CI for the exact working branch must pass before marking these changes verified. No browser E2E was run in this batch; the tests are source-contract checks, not proof of live search/RLS behavior.
+- [ ] Next: continue module-by-module route/action inventory, then replace blueprint-only panels with real views backed by verified contracts. Build activity and job-function management only after mapping existing server RPC/Edge Function authorization and audit contracts.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
