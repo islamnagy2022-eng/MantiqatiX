@@ -20,6 +20,23 @@ alter table public.erp_purchase_order_lines enable row level security;
 revoke all on public.erp_purchase_order_lines from public, anon, authenticated;
 grant select,insert,update,delete on public.erp_purchase_order_lines to service_role;
 
+create table if not exists public.erp_purchase_receipt_idempotency (
+  tenant_id text not null,
+  business_id uuid not null,
+  receipt_id text not null,
+  receipt_number text not null,
+  purchase_order_id text not null,
+  warehouse_id text not null,
+  product_id uuid not null,
+  received_quantity numeric not null check (received_quantity > 0),
+  unit_cost numeric not null check (unit_cost >= 0),
+  created_at timestamptz not null default now(),
+  primary key (tenant_id,business_id,receipt_id),
+  unique (tenant_id,business_id,receipt_number)
+);
+revoke all on table public.erp_purchase_receipt_idempotency from public,anon,authenticated;
+grant select,insert,update,delete on table public.erp_purchase_receipt_idempotency to service_role;
+
 create or replace function public.erp_purchase_order_create_with_lines_backend(
   p_actor_user_id uuid,
   p_arguments jsonb
@@ -198,6 +215,7 @@ declare
   v_warehouse_branch_id text;
   v_line public.erp_purchase_order_lines%rowtype;
   v_existing public.erp_purchase_receipts%rowtype;
+  v_idempotency public.erp_purchase_receipt_idempotency%rowtype;
   v_result jsonb;
   v_order_status_after text;
 begin
@@ -244,8 +262,22 @@ begin
     raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
   end if;
 
-  -- Resolve retries by either immutable receipt ID or human receipt number. The ID path
-  -- preserves idempotency even if an upstream legacy RPC normalizes the displayed number.
+  -- First consult a transactionally maintained idempotency ledger. The legacy stock RPC
+  -- remains responsible for inventory/financial mutations; this ledger makes retries stable
+  -- even when legacy receipt rows normalize identifiers differently.
+  select * into v_idempotency from public.erp_purchase_receipt_idempotency r
+  where r.tenant_id=v_tenant_id and r.business_id=v_business_id
+    and (r.receipt_number=v_receipt_number or r.receipt_id=v_receipt_id)
+  order by case when r.receipt_id=v_receipt_id then 0 else 1 end
+  limit 1;
+  if found then
+    if v_idempotency.receipt_id<>v_receipt_id or v_idempotency.receipt_number<>v_receipt_number
+       or v_idempotency.purchase_order_id<>v_order_id or v_idempotency.warehouse_id<>v_warehouse_id
+       or v_idempotency.product_id<>v_product_id or v_idempotency.received_quantity<>v_quantity
+       or v_idempotency.unit_cost<>v_unit_cost then raise exception 'ERP_RECEIPT_IDEMPOTENCY_CONFLICT'; end if;
+    return jsonb_build_object('success',true,'idempotent',true,'receipt',to_jsonb(v_idempotency));
+  end if;
+
   select * into v_existing from public.erp_purchase_receipts r
   where r.tenant_id::text=v_tenant_id and r.business_id=v_business_id
     and (r.receipt_number=v_receipt_number or r.id::text=v_receipt_id)
@@ -256,6 +288,9 @@ begin
        or v_existing.purchase_order_id<>v_order_id or v_existing.warehouse_id<>v_warehouse_id
        or v_existing.product_id<>v_product_id or v_existing.received_quantity<>v_quantity
        or v_existing.unit_cost<>v_unit_cost then raise exception 'ERP_RECEIPT_IDEMPOTENCY_CONFLICT'; end if;
+    insert into public.erp_purchase_receipt_idempotency
+      (tenant_id,business_id,receipt_id,receipt_number,purchase_order_id,warehouse_id,product_id,received_quantity,unit_cost)
+    values (v_tenant_id,v_business_id,v_receipt_id,v_receipt_number,v_order_id,v_warehouse_id,v_product_id,v_quantity,v_unit_cost);
     return jsonb_build_object('success',true,'idempotent',true,'receipt',to_jsonb(v_existing));
   end if;
 
@@ -282,6 +317,10 @@ begin
   perform set_config('request.jwt.claims',jsonb_build_object('sub',p_actor_user_id::text,'role','authenticated')::text,true);
   select public.receive_purchase_stock_backend(v_receipt_id,v_tenant_id,v_business_id,v_order_id,
     v_receipt_number,v_warehouse_id,v_product_id,v_quantity,v_unit_cost) into v_result;
+
+  insert into public.erp_purchase_receipt_idempotency
+    (tenant_id,business_id,receipt_id,receipt_number,purchase_order_id,warehouse_id,product_id,received_quantity,unit_cost)
+  values (v_tenant_id,v_business_id,v_receipt_id,v_receipt_number,v_order_id,v_warehouse_id,v_product_id,v_quantity,v_unit_cost);
 
   update public.erp_purchase_order_lines l set received_quantity=l.received_quantity+v_quantity,updated_at=now()
   where l.id=v_line.id returning * into v_line;
