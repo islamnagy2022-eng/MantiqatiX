@@ -20,6 +20,19 @@ create table if not exists public.erp_suppliers (
   constraint erp_suppliers_name_ar_nonempty check (length(btrim(name_ar)) > 0),
   constraint erp_suppliers_status_valid check (status in ('ACTIVE','INACTIVE','ARCHIVED'))
 );
+-- Upgrade older partial supplier tables created by prior module versions or disposable fixtures.
+alter table public.erp_suppliers add column if not exists branch_id varchar;
+alter table public.erp_suppliers add column if not exists supplier_code varchar;
+alter table public.erp_suppliers add column if not exists name_en text;
+alter table public.erp_suppliers add column if not exists contact_name text;
+alter table public.erp_suppliers add column if not exists phone text;
+alter table public.erp_suppliers add column if not exists email text;
+alter table public.erp_suppliers add column if not exists tax_number text;
+alter table public.erp_suppliers add column if not exists payment_terms text;
+alter table public.erp_suppliers add column if not exists notes text;
+alter table public.erp_suppliers add column if not exists created_at timestamptz not null default now();
+alter table public.erp_suppliers add column if not exists updated_at timestamptz not null default now();
+
 create unique index if not exists erp_suppliers_business_code_uq
   on public.erp_suppliers(tenant_id,business_id,lower(supplier_code))
   where supplier_code is not null and btrim(supplier_code) <> '';
