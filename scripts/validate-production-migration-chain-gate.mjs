@@ -55,6 +55,7 @@ assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered d
 assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
 assert.match(source, /reconciliation\.cash_payment_finance_e2e==="PASS"/, "cash payment and finance E2E must pass before launch");
 assert.match(source, /reconciliation\.cash_method_configuration==="PASS"/, "cash payment method must be enabled for active business tenants");
+assert.match(source, /reconciliation\.cash_commission_rules==="PASS"/, "cash confirmation requires an explicitly configured active commission rule");
 assert.match(source, /reconciliation\.electronic_payments_disabled==="PASS"/, "electronic checkout must be proven disabled for cash-first launch");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
