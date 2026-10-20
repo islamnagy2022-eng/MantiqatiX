@@ -800,3 +800,13 @@ This status is intentional and must remain until the open gates above are indepe
 - The RC457 fixture quoting issue and validator references are corrected. PR #301 remains draft/open/unmerged; Pages deploy skipped as expected for a PR.
 - No production migration, deployment, Auth setting change, grant/RLS change, or financial transaction occurred.
 - Next priority: address the next release blocker that can be worked safely without production mutation; the Auth leaked-password setting still requires owner/dashboard action. Full historical replay still requires authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Owner-directed launch scope update — 2026-10-20
+- Launch payment model is **CASH ONLY**. Cash confirmation must remain server-authoritative, tenant-scoped, permission-gated, idempotent, and auditable; cash collection E2E is a P0 release gate.
+- Paymob/card/online checkout and electronic-payment production webhook/reconciliation E2E are **POST-LAUNCH DEFERRED**, not pre-launch gates. Do not expose these methods in the launch workflow, delete existing infrastructure, or relax its security boundaries.
+- SMM provider integration, credential use, automated fulfilment, campaign spend, and live billing are **POST-LAUNCH DEFERRED**. Sensitive SMM secrets/tables remain fail-closed.
+- Existing marketing/agency workspace, CRM and lead management are distinct from SMM automation and are not automatically deferred; only implemented and verified parts remain in launch scope.
+- Source inventory found an existing API route for authorized cash confirmation calling `confirm_cash_payment`; this is source evidence only, not proof that the end-user cash checkout flow is fully E2E verified. Next work: audit launch UI/order path, tenant cash-method configuration, role restrictions, amount authority, idempotency, audit/accounting, and prove electronic methods/SMM cannot be activated from the launch path.
+- See `docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md` and the latest section in `docs/MASTER_PRODUCTION_TODO.md`.
+- No production database mutation, migration, grant/RLS change, financial transaction, merge, or deployment was performed for this scope update. Global release remains **BLOCKED / NOT CERTIFIED**.
