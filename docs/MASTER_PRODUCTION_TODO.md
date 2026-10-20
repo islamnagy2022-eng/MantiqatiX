@@ -1933,3 +1933,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] PR #300's sector workspaces remain frontend-first; sector-specific backend contracts and authenticated E2E are still required before declaring all 27 sectors operational.
 - [ ] Production last read-only verified at RC424 (`20261008222845`, 283 versions); recheck before any rollout decision.
 - Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC457 follow-up — exact-head verification 2026-10-20
+- [x] Rechecked PR #301 exact head `b03b2540d58760ff213641c327377a8ed405b44d`: all nine PR-triggered workflows completed successfully.
+- [x] RC457 medical appointment PostgreSQL integration and disposable forward migration replay both passed; migration uniqueness/history immutability/collision guard, backend-only boundary, approval audit atomicity, MantiGO privacy, and web validation also passed.
+- [x] The earlier fixture SQL and validator-path defects are resolved on this head.
+- [ ] PR #301 remains draft/open/unmerged. Pages deploy was skipped in PR context; no production migration/deployment was performed.
+- [ ] Global release remains blocked by historical blank-replay provenance, Auth leaked-password protection owner action, adversarial live tenant/RBAC E2E, real payment/finance/refund E2E, backup/restore/rollback, browser/push/device and Android evidence, and main deployment smoke.
