@@ -113,6 +113,9 @@ assert.match(rc460Integration,/CUSTOM_OPERATOR\',\'{"PAYMENT_CONFIRM_CASH":false
 assert.match(rc460Integration,/set permissions=\'{"PAYMENT_CONFIRM_CASH":true}\'::jsonb/,"RC460 integration must then test the granted true-valued JSONB permission");
 assert.match(rc460Integration,/RC460_FALSE_PERMISSION_MUST_NOT_GRANT/);
 assert.match(rc460Integration,/RC460_FALSE_PERMISSION_MUTATED_PAYMENT/);
+assert.match(rc460Integration,/RC460_MISSING_PERMISSION_MUST_NOT_GRANT/);
+assert.match(rc460Integration,/RC460_MISSING_PERMISSION_MUTATED_PAYMENT/);
+assert.match(cashConfirm,/v_is_authorized:=coalesce\(/,"SQL permission evaluation must fail closed on missing JSONB keys");
 assert.match(rc460Integration,/RC460_AUTHORIZED_IDEMPOTENT_RETRY_FAILED/);
 assert.ok(cashConfirm.indexOf("IF NOT v_is_authorized") < cashConfirm.indexOf("IF v_intent.status='SUCCEEDED'"), "cash confirmation must authorize before returning an idempotent success payload");
 assert.match(chain,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
