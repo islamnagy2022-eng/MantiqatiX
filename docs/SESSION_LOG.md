@@ -229,3 +229,12 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Fix:** changed the fallback to `null`, preserving the distinction between an absent branch and an invalid identifier. Commit: `680d433e682881d0f233a4ac4e46d95b23ebee4a`.
 - **Regression guard:** added a validator assertion. Commit: `6423df32f69ed4ec24eaaaf0c556771e6ff95ab7`.
 - Exact-head CI and runtime verification pending.
+
+
+## 2026-10-20 — live privilege evidence and fail-closed write UI
+
+- **Read-only live DB check:** `has_table_privilege('authenticated', ...)` showed `fashion_products`: SELECT=true, INSERT/UPDATE/DELETE=false; `used_item_ads`: SELECT/INSERT/UPDATE/DELETE=false. `pg_policies` showed RLS policies, but policy presence does not confer SQL privileges.
+- **Action:** removed the direct table mutation functions for fashion products and used-item ads and replaced the corresponding creation forms with explicit unavailable notices. The used-items view also states its read/status controls are unavailable under current database privileges. No grants, policies, tables, or data were changed.
+- **Source commit:** `3b695a8b5eb8197b531a40bad60df9b5544c668f`. **Regression guard commit:** `e3b3ac2a6e1f7918922cf41f56f72cf15a91ad6b`.
+- **Remaining blocker:** used-item reads cannot succeed for authenticated users under the observed privilege state; do not patch with an ad hoc broad GRANT. Establish the intended public/seller read contract first, then add a versioned migration and isolation tests.
+- CI and browser E2E are still pending; production was not modified or deployed.
