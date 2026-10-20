@@ -18,6 +18,9 @@ if(!app.includes("function erpWarehouseLabel(rows,id)")) throw new Error('enterp
 if(!app.includes("function erpProductLabel(rows,id)")) throw new Error('enterprise ERP product references are not linked to catalog names');
 if(!operations.includes('function erpOperationsWorkspace(d)')) throw new Error('operations ERP workspace does not render linked operational records');
 if(!operations.includes('onclick="createPurchaseOrder()"') || !operations.includes('onclick="receivePurchaseStock()"') || !operations.includes('onclick="createStockTransfer()"')) throw new Error('ERP operations workspace must expose purchase, receiving, and transfer actions');
+if(!operations.includes("updatePurchaseOrderStatus(\\'") || !operations.includes("\\'SUBMITTED\\')")) throw new Error('ERP purchase orders must expose the submit transition');
+if(!operations.includes("updateStockTransferStatus(\\'") || !operations.includes("\\'IN_TRANSIT\\')")) throw new Error('ERP stock transfers must expose the transit transition');
+if(!app.includes("r=>['SUBMITTED','APPROVED','PARTIALLY_RECEIVED'].includes(String(r.status||'').toUpperCase())")) throw new Error('ERP receipt UI must only offer eligible purchase orders');
 if(!operations.includes("x[2]===true")) throw new Error('ERP action cells must use the explicit safe-action renderer');
 if(!operations.includes('function factoryOperationsWorkspace(d)') || !operations.includes('rows.inventory_transactions')) throw new Error('factory workspace must link inventory balances and movement history');
 if(!operations.includes('data-op-retry>إعادة المحاولة')) throw new Error('module load failure state must provide a retry action');
@@ -28,7 +31,7 @@ if(!operations.includes('Date.now()-Number(sharedERP.loaded_at||0)<30000')) thro
 if(!operations.includes('visible===current')) throw new Error('post-mutation refresh must only reload the currently visible operations module');
 if(!operations.includes('window.MNTYReloadOperationsModule=async function()')) throw new Error('operations module does not expose post-mutation refresh');
 if(!app.includes("if(typeof window.MNTYReloadOperationsModule==='function')await window.MNTYReloadOperationsModule()")) throw new Error('ERP mutations do not refresh the dependent module view');
-if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty127') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty125')) throw new Error('operations module asset cache versions must match');
+if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty128') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty125')) throw new Error('operations module asset cache versions must match');
 
 
 const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
