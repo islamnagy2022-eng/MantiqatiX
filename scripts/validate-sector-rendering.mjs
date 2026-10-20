@@ -53,6 +53,7 @@ const checks = [
   ['education requests use the authorized backend RPC', sectorModules.includes("sb.rpc('create_education_request_backend'") && !/sb\.from\('education_requests'\)\.insert/.test(sectorModules)],
   ['education request validates subject length before RPC', sectorModules.includes("subject.length>500")],
   ['education request validates student name length before RPC', sectorModules.includes("student.length<2||student.length>200")],
+  ['fashion product branch scope uses null when no branch is selected', sectorModules.includes("branch_id:s.branch_id||null") && !sectorModules.includes("branch_id:s.branch_id||''")],
 
 ];
 
