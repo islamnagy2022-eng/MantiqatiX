@@ -302,4 +302,5 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 ## 2026-10-20 — Supabase CLI pin refinement
 
 - Replaced the temporary `2.39.2` pin with stable Supabase CLI `2.113.0` in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`, avoiding `latest` resolution while not relying on an obsolete CLI.
-- Only an exact-head run using `2.113.0` that completes ordered migration replay and tenant isolation may close the replay CI item.
+- Replay run `39362446830` later completed successfully on head `ae20b393c320b44ebe8bd97d9f4d8c27b063b6f9` with CLI `2.39.2`: all 31 candidate migrations replayed from the pinned RC424 schema-only baseline and tenant isolation passed in both directions. This is not a blank replay of all historical migrations.
+- Workflow was refined to stable CLI `2.113.0` in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`; await exact-head CI for this current pin.
