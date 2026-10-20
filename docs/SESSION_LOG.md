@@ -209,3 +209,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 1. Fetch the latest PR #301 head and verify all workflows against that exact SHA.
 2. Fix any real CI failures and rerun the affected workflow(s).
 3. Continue from the next open production gate; keep release **BLOCKED / NOT CERTIFIED** until all independent release gates are evidenced.
+
+
+## 2026-10-20 — Continuation result: RC462 convergence and CI
+
+- Reconciled conflicting RC462 migration implementations across candidate PR #219, #248 and #282. The canonical migration is now identical in all three branches (blob 5d789279c920219e2743d650d85a0a5ace9af14f) and uses a VOLATILE PL/pgSQL guard with exact JSON containment; no unsafe Boolean cast remains in RC462.
+- Reconciled the RC449 test fixture auth.uid() helper across the same branches (blob 1e8ecbcb67b04a01d4c9cdfc94a164f81bb47fe9) so each invocation reads the current simulated request subject dynamically. PR #248 and #282 validators now assert this fixture contract and RC462 volatility.
+- Updated PR #301's replay workflow to pin the reconciled source candidate commit 54b67bcf2f18e226f0d5206cce66b0bd39a6866c.
+- PASS: all nine PR workflows on PR #301 code/workflow head ee90a84df173c337fce376ac40c61abda91265ad. Forward replay run 39356609479 restored the pinned RC424 schema-only baseline, replayed 31 candidate migrations, and passed tenant-isolation checks in both directions. Module, backend-boundary, migration uniqueness/history/collision, approval-audit, MantiGO privacy and web-validation workflows also passed; Pages deploy was skipped for PR.
+- PASS: all six PR workflows on PR #300 head 710819156f9f2b613f4905d5e1c7266937fc4a32, including sector UI and marketing workspace contracts; deploy skipped in PR context.
+- The updated RC462 behavioral suite on PR #248/#282 still needs its own exact-head workflow evidence; no pass is inferred from the PR #301 migration replay.
+- Read-only Production check still shows RC424 (283 migration versions, latest 20261008222845) and the platform-wide MantiGO authorization weakness. RC449/RC462/RC565 are not deployed. The RC40 archive does not contain authoritative creation DDL for counter_offer_indrive_bid(uuid,uuid,numeric); it uses a different mantiqatix_bids model.
+- No production migration, DDL/DML, grant/RLS/Auth change, merge, or deployment occurred. Remaining blockers include owner action for leaked-password protection, adversarial tenant/RBAC E2E, real Paymob/finance/refund E2E, recovery/rollback, browser/device/push, Android signing, production deployment verification, and full historical replay. Release remains BLOCKED / NOT CERTIFIED.
