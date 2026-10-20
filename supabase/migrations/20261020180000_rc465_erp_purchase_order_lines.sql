@@ -322,6 +322,13 @@ begin
     (tenant_id,business_id,receipt_id,receipt_number,purchase_order_id,warehouse_id,product_id,received_quantity,unit_cost)
   values (v_tenant_id,v_business_id,v_receipt_id,v_receipt_number,v_order_id,v_warehouse_id,v_product_id,v_quantity,v_unit_cost);
 
+  -- A legacy RPC may report an idempotent replay even if its receipt row uses a normalized
+  -- identifier. Preserve the existing order-line quantity in that case.
+  if coalesce((v_result->>'idempotent')::boolean,false) then
+    return coalesce(v_result,'{}'::jsonb)||jsonb_build_object(
+      'idempotent',true,'order_status',v_order_status,'purchase_order_line',to_jsonb(v_line));
+  end if;
+
   update public.erp_purchase_order_lines l set received_quantity=l.received_quantity+v_quantity,updated_at=now()
   where l.id=v_line.id returning * into v_line;
   if not exists(select 1 from public.erp_purchase_order_lines l where l.tenant_id=v_tenant_id
