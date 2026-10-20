@@ -1,0 +1,45 @@
+begin;
+insert into public.user_memberships(user_id,tenant_id,business_id,role,status) values
+ ('11111111-1111-4111-8111-111111111111','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE');
+insert into public.erp_purchase_orders(id,tenant_id,business_id) values ('po-existing','tenant-a','22222222-2222-4222-8222-222222222222');
+insert into public.erp_stock_transfers(id,tenant_id,business_id) values ('tr-existing','tenant-a','22222222-2222-4222-8222-222222222222');
+set local role service_role;
+do $$
+declare result jsonb; actor uuid := '11111111-1111-4111-8111-111111111111'; biz uuid := '22222222-2222-4222-8222-222222222222';
+begin
+  if has_function_privilege('authenticated','public.erp_runtime_execute(uuid,text,jsonb)','EXECUTE')
+     or has_function_privilege('anon','public.erp_runtime_execute(uuid,text,jsonb)','EXECUTE') then
+    raise exception 'RC461_GATEWAY_MUST_REMAIN_SERVICE_ROLE_ONLY';
+  end if;
+  begin
+    perform public.erp_runtime_execute('33333333-3333-4333-8333-333333333333','create_purchase_order',
+      jsonb_build_object('p_id','po-denied','p_tenant_id','tenant-a','p_business_id',biz,'p_order_number','DENIED','p_supplier_id','s1','p_total_amount',1));
+    raise exception 'RC461_NON_MEMBER_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_MEMBERSHIP_REQUIRED%' then raise; end if;
+  end;
+  result := public.erp_runtime_execute(actor,'create_purchase_order',
+    jsonb_build_object('p_id','po-new','p_tenant_id','tenant-a','p_business_id',biz,'p_branch_id',null,'p_order_number','PO-1','p_supplier_id','supplier-1','p_total_amount',100,'p_tax_amount',0,'p_discount_amount',0,'p_reason','test'));
+  if result->>'actor' <> actor::text or result->>'operation' <> 'create_purchase_order' then
+    raise exception 'RC461_ACTOR_CONTEXT_NOT_PROPAGATED';
+  end if;
+  begin
+    perform public.erp_runtime_execute(actor,'update_purchase_order_status',
+      jsonb_build_object('p_order_id','po-existing','p_target_status','APPROVED'));
+    raise exception 'RC461_MANAGER_APPROVAL_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_PURCHASE_APPROVAL_ROLE_REQUIRED%' then raise; end if;
+  end;
+  update public.user_memberships set role='OWNER' where user_id=actor and tenant_id='tenant-a' and business_id=biz;
+  result := public.erp_runtime_execute(actor,'update_purchase_order_status',
+    jsonb_build_object('p_order_id','po-existing','p_target_status','APPROVED'));
+  if result->>'actor' <> actor::text then raise exception 'RC461_OWNER_ACTOR_NOT_PROPAGATED'; end if;
+  begin
+    perform public.erp_runtime_execute(actor,'arbitrary_sql',jsonb_build_object());
+    raise exception 'RC461_UNKNOWN_OPERATION_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_OPERATION_NOT_ALLOWED%' then raise; end if;
+  end;
+end $$;
+reset role;
+rollback;
