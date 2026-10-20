@@ -1887,3 +1887,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Disposable Forward Migration Replay run `39362446830` is still IN PROGRESS at the `Start isolated Supabase PostgreSQL` step. Baseline restore, ordered replay, and tenant-isolation verification have not yet run on this head; do not claim replay success until the job completes.
 - [ ] PR #301 remains open/draft/unmerged. No production mutation, migration, merge, deployment, or financial transaction occurred.
 - [ ] Production release remains BLOCKED / NOT CERTIFIED. Continue by polling run `39362446830`; if it fails, inspect the completed job logs and fix the actual failure before proceeding.
+
+
+## Replay CLI version refinement — 2026-10-20
+
+- The first deterministic pin (`2.39.2`) was superseded before acceptance because it is unnecessarily old. The workflow now pins stable Supabase CLI `2.113.0` (published 2026-08-08 per the upstream release record) in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`. This still removes the rate-limited `latest` lookup while using a current stable CLI.
+- The earlier replay runs using `2.39.2` are not treated as verification. Await the exact-head run with `2.113.0` and require the full forward replay plus tenant-isolation step to pass.
