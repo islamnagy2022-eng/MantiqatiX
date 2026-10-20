@@ -80,8 +80,10 @@ serve(async (req) => {
     if (operation === "list") {
       let warehouseQuery = supabaseAdmin.from("warehouses").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("name", { ascending: true })
       if (branchId) warehouseQuery = warehouseQuery.eq("branch_id", branchId)
-      const { data: warehousesData, error: warehousesError } = await warehouseQuery
-      if (warehousesError) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      let branchesQuery = supabaseAdmin.from("branches").select("id,tenant_id,business_id,name,code,status").eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").limit(100).order("name", { ascending: true })
+      if (branchId) branchesQuery = branchesQuery.eq("id", branchId)
+      const [{ data: warehousesData, error: warehousesError }, { data: branchesData, error: branchesError }] = await Promise.all([warehouseQuery, branchesQuery])
+      if (warehousesError || branchesError) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
       const warehouseIds = (warehousesData ?? []).map((row) => String(row.id))
       let ordersQuery = supabaseAdmin.from("erp_purchase_orders").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
       if (branchId) ordersQuery = ordersQuery.eq("branch_id", branchId)
@@ -111,6 +113,7 @@ serve(async (req) => {
         receipts: safeRows(receiptsRes.data, ["id","tenant_id","business_id","purchase_order_id","receipt_number","warehouse_id","product_id","received_quantity","unit_cost","status","created_at"]),
         transfers: safeRows(transfers, ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
         warehouses: safeRows(warehousesData, ["id","tenant_id","business_id","branch_id","name","code","status"]),
+        branches: safeRows(branchesData, ["id","tenant_id","business_id","name","code","status"]),
         catalog_items: safeRows(productsRes.data, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"])
       })
     }
