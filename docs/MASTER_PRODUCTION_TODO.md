@@ -1894,3 +1894,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Read-only Supabase migration inventory: production has 150 recorded migrations and its latest record is `20261008222845`; the current branch tracks 140 migration files and includes later files through `20261014230000_rc525_digital_page_product_platform_admin_scope.sql`.
 - [x] Therefore the used-item privilege gap must not be repaired by an ad hoc live GRANT or by assuming the branch's later migration set is already deployed. Reconcile migration history first and test a narrow column-level read grant with the existing RLS contract.
 - [ ] No migration was applied to production. Migration reconciliation, safe used-item read privilege restoration, exact-head CI, and authenticated browser E2E remain open.
+
+
+## RC — used-item narrow read contract — 2026-10-20
+- [x] Added migration `20261020231500_used_item_ads_minimal_directory_read.sql`: revoke table-wide SELECT from `anon` and `authenticated`, then grant only directory columns to authenticated users. `seller_phone` is not granted.
+- [x] Updated the sector UI notice to distinguish directory reading from the still-disabled status mutation workflow.
+- [x] Extended `scripts/validate-sector-rendering.mjs` to assert the narrow grant, explicit absence of seller-phone access, and honest read/mutation messaging.
+- [ ] Migration is committed to the PR branch but has **not** been applied to the live database. Confirm exact-head CI and migration integration tests before applying. Release remains **BLOCKED / NOT CERTIFIED**.
