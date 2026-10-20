@@ -1835,3 +1835,6 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Extended sector source-contract validation to reject a direct education-request INSERT and require the backend RPC.
 - [ ] Exact-head CI and browser E2E pending. No production database change or deployment was performed; the fix restores the client to an existing backend contract.
 - Final Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+- [x] Follow-up hardening: client validates student name length (2–200 characters) before calling the education backend; the validator guards this requirement. Source commit `82fafbe1ec770c60e6d5ad49e316b090fb34bbc5`; validator commit `c6eaa0ac4a2c04b9ae456971f381ce2f2ff98b71`.
