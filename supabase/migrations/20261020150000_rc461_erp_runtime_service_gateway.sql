@@ -149,7 +149,7 @@ begin
   end if;
 
   -- auth.uid() in the existing RPCs reads this transaction-local claim.
-  -- Only service_role may execute this wrapper; the Edge Function supplies a verified user ID.
+  -- Only service_role may execute this wrapper; the authenticated API supplies a verified user ID.
   perform set_config('request.jwt.claim.sub', p_actor_user_id::text, true);
   perform set_config('request.jwt.claims', jsonb_build_object('sub',p_actor_user_id::text,'role','authenticated')::text, true);
 
