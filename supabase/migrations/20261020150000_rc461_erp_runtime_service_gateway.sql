@@ -124,6 +124,15 @@ begin
            and source_w.status = 'ACTIVE' and target_w.status = 'ACTIVE'
        ) then
       raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
+    elsif p_operation in ('receive_purchase_stock','create_stock_transfer')
+       and not exists (
+         select 1 from public.catalog_items ci
+         where ci.id = (p_arguments->>'p_product_id')::uuid
+           and ci.tenant_id::text = v_tenant_id and ci.business_id = v_business_id
+           and ci.status = 'ACTIVE'
+           and (ci.branch_id is null or ci.branch_id::text = v_member_branch_id)
+       ) then
+      raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
     elsif p_operation in ('update_stock_transfer_status','receive_stock_transfer')
        and not exists (
          select 1 from public.warehouses source_w
