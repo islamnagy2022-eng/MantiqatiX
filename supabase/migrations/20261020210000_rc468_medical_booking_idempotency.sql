@@ -32,12 +32,6 @@ begin
   if p_business_id is null or p_doctor_id is null or pg_catalog.btrim(p_doctor_id) = '' or p_date_time is null then
     raise exception 'INVALID_APPOINTMENT';
   end if;
-  if p_date_time <= (extract(epoch from pg_catalog.clock_timestamp()) * 1000)::bigint then
-    raise exception 'APPOINTMENT_TIME_MUST_BE_FUTURE';
-  end if;
-  if p_date_time % 900000 <> 0 then
-    raise exception 'APPOINTMENT_SLOT_ALIGNMENT_REQUIRED';
-  end if;
   if pg_catalog.length(coalesce(v_reason,'')) > 500 then
     raise exception 'APPOINTMENT_REASON_TOO_LONG';
   end if;
@@ -72,6 +66,15 @@ begin
       'business_id', p_business_id, 'doctor_id', p_doctor_id,
       'date_time', p_date_time, 'idempotent_replay', true
     );
+  end if;
+
+  -- A committed booking must remain replayable even after its appointment time has passed.
+  -- These checks apply only to new bookings, never to an exact replay of an existing row.
+  if p_date_time <= (extract(epoch from pg_catalog.clock_timestamp()) * 1000)::bigint then
+    raise exception 'APPOINTMENT_TIME_MUST_BE_FUTURE';
+  end if;
+  if p_date_time % 900000 <> 0 then
+    raise exception 'APPOINTMENT_SLOT_ALIGNMENT_REQUIRED';
   end if;
 
   select b.tenant_id into v_tenant_id
