@@ -311,16 +311,26 @@ serve(async (req) => {
   if (req.method === "GET" && paymentIntentMatch) {
     const { data: intent, error } = await supabaseAdmin.from("payment_intents").select("*").eq("id", paymentIntentMatch[1]).single()
     if (error || !intent) return json({ error: "Intent not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalPaymentRead =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_READ_ALL")
-    const { data: linkedOrder } = await supabaseAdmin.from("orders").select("customer_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
-    if (linkedOrder?.customer_id !== user.id && !operationalPaymentRead) return json({ error: "Forbidden" }, 403)
+    const { data: linkedOrder, error: linkedOrderError } = await supabaseAdmin.from("orders")
+      .select("customer_id,business_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrderError) return json({ error: "Payment order lookup failed" }, 500)
+    if (!linkedOrder) return json({ error: "Linked order not found" }, 404)
+    const isOrderCustomer = String(linkedOrder.customer_id) === String(user.id)
+    if (!isOrderCustomer) {
+      const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+        .select("role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+      if (membershipError) return json({ error: "Payment access check failed" }, 500)
+      const operationalPaymentRead = (memberships || []).some((m: any) => {
+        const role = String(m.role ?? "").toUpperCase()
+        const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+        const hasReadPermission = Array.isArray(permissions)
+          ? permissions.includes("PAYMENT_READ_ALL")
+          : permissions.PAYMENT_READ_ALL === true
+        const businessScoped = !m.business_id || String(m.business_id) === String(linkedOrder.business_id)
+        return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || hasReadPermission)
+      })
+      if (!operationalPaymentRead) return json({ error: "Forbidden" }, 403)
+    }
     return json(intent)
   }
 
