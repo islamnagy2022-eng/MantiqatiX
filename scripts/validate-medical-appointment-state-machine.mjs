@@ -110,9 +110,9 @@ assert.ok(rideCreateSource.includes("finally{if(btn)"),"MantiGO create button mu
 assert.ok(rideCreateSource.includes("catch(_){alert('تعذر تأكيد نشر الرحلة"),"MantiGO network failures must be handled without discarding the idempotency key");
 assert.ok(rideCreateSource.indexOf("if(!r.data||!r.data.id)") < rideCreateSource.indexOf("sessionStorage.removeItem(requestKey)"),"MantiGO must verify a ride ID before clearing retry state");
 assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
-assert.match(index,/operations-modules\\.js\\?v=mnty140/,"index must request the current operations module version");
-assert.match(sw,/operations-modules\\.js\\?v=mnty140/,"service worker must precache the same operations module version as index");
-assert.match(sw,/const CACHE='mnty-web-v181'/,"service worker cache version must be incremented when shell assets change");
+assert.match(index,/operations-modules\\.js\\?v=mnty141/,"index must request the current operations module version");
+assert.match(sw,/operations-modules\\.js\\?v=mnty141/,"service worker must precache the same operations module version as index");
+assert.match(sw,/const CACHE='mnty-web-v182'/,"service worker cache version must be incremented when shell assets change");
 assert.ok(operations.includes("MNTY_MEDICAL_BOOKING:"),"operations medical booking must retain a stable request key across ambiguous failures");
 assert.ok(operations.includes("storedRequest?.fingerprint===requestPayload&&storedRequest?.id"),"operations medical booking retries must reuse the exact request ID for the same payload");
 assert.ok(operations.includes("sessionStorage.setItem(requestKey,JSON.stringify(requestRecord))"),"operations medical booking must persist its retry token before invoking the backend");
@@ -204,6 +204,7 @@ const presenceEnd=operations.indexOf('async function mgTransition(',presenceStar
 const presenceSource=operations.slice(presenceStart,presenceEnd);
 assert.ok(presenceSource.includes("catch(_){alert('تعذر تحديث حالة الكابتن بسبب مشكلة اتصال"),"captain presence updates must handle location/network failures");
 assert.ok(presenceSource.includes("if(buttons.some(b=>b.disabled))return"),"captain presence changes must block duplicate clicks");
+assert.ok(presenceSource.includes("status==='AVAILABLE'&&(!pos||!Number.isFinite(pos.lat)||!Number.isFinite(pos.lon))"),"captain must not become available without a fresh valid location");
 assert.ok(presenceSource.includes("finally{buttons.forEach"),"captain presence buttons must be restored on all exit paths");
 const transitionStart=operations.indexOf('async function mgTransition(');
 const transitionEnd=operations.indexOf('async function mgCashPay(',transitionStart);
