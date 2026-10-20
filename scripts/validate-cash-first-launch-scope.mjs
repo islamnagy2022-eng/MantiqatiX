@@ -22,6 +22,11 @@ for (const [name,source] of [["payment-intent",payment],["digital-page-payment-i
 }
 assert.match(api,/provider !== "CASH_ON_DELIVERY"/,"general payment API must remain cash-only");
 assert.match(api,/IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYMENT/,"cash intent idempotency must reject conflicting retries");
+assert.match(api,/ORDER_NOT_DELIVERED/,"cash receipt must not be confirmed before delivery");
+assert.match(api,/rpc\("confirm_cash_payment"/,"cash receipt must use the protected financial RPC");
+assert.match(app,/confirmCashPaymentForOrder/,"authorized operator must have a cash confirmation action");
+assert.match(app,/String\(order\.status\|\|\x27\x27\)\.toUpperCase\(\)===\x27DELIVERED\x27/,"cash confirmation UI must require delivered order status");
+assert.match(api,/pricing_hash: order\.pricing_hash/,"cash intent must bind the server pricing snapshot");
 assert.match(api,/\.insert\(newIntent\)/,"cash intent creation must not upsert and overwrite an existing intent ID");
 assert.match(app,/الدفع النقدي عند الاستلام فقط/,"marketplace order form must clearly show cash-only payment");
 assert.match(app,/invokeMntyApi\('\/api\/v1\/payments\/intents'/,"marketplace checkout must create a cash payment intent");
