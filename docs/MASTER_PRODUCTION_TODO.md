@@ -1894,3 +1894,26 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - The first deterministic pin (`2.39.2`) was superseded before acceptance because it is unnecessarily old. The workflow now pins stable Supabase CLI `2.113.0` (published 2026-08-08 per the upstream release record) in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`. This still removes the rate-limited `latest` lookup while using a current stable CLI.
 - The earlier replay runs using `2.39.2` are not treated as verification. Await the exact-head run with `2.113.0` and require the full forward replay plus tenant-isolation step to pass.
+
+
+## Continuation checkpoint — 2026-10-20 — current exact-head CI and next open gates
+
+### Verified on current PR #301 head
+- [x] Current PR #301 head: `2471332a2e468498a2d2d1f46ea5cefb3024fef7`.
+- [x] All nine PR-triggered workflows completed successfully on this exact head: Module Professionalization Validation, Disposable Forward Migration Replay, Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, Backend-only Module Boundary, Approval Action Audit Atomicity, MantiGO Open Ride Privacy Boundary, and web validation. Pages deployment is skipped in PR context by design.
+- [x] Module Professionalization Validation passed, including RC457 medical appointment PostgreSQL integration and source-contract validation.
+- [x] Disposable Forward Migration Replay run `39362801132` passed using pinned Supabase CLI `2.113.0`; log confirms `FORWARD_MIGRATION_REPLAY=PASS`, `MIGRATION_COUNT=31`, and two-way tenant-isolation checks passed.
+- [x] PR #300 current head `6bc43d47c45d564f7c65ac8a7b85f9f3d2a6df21` remains open/draft/unmerged; its six PR workflows are recorded as passing in the latest project checkpoint. This validates the frontend contract, not live backend functionality for all 27 sectors.
+- [x] Rechecked source search for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: live definition is documented, but no authoritative historical creation migration was found. Do not fabricate a stub, skip the historical revoke, or claim blank-database replay.
+
+### Still open — do not mark DONE
+- [ ] Product-owner decision: whether `NO_SHOW` needs a grace period after the scheduled appointment time. Current RC457 rejects early NO_SHOW but imposes no post-time grace period.
+- [ ] Full blank-database replay of historical migrations remains blocked by missing authoritative creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)`. The successful 31-migration replay starts from the pinned RC424 schema-only baseline and is not a replay of all 283 historical migrations.
+- [ ] Owner action: enable Supabase Auth leaked-password protection, then rerun Security Advisor.
+- [ ] Adversarial live tenant/RBAC E2E, authorized Paymob/payment/refund/finance E2E, backup/restore and rollback rehearsal, browser/push/device verification, signed Android artifact, main-branch deployment smoke, and final release evidence remain open.
+- [ ] Sector-specific backend contracts and authenticated E2E remain open beyond PR #300's UI-only scope.
+- [ ] Production last read-only verified at RC424 (`20261008222845`, 283 migration versions); recheck before any rollout decision.
+
+### Safety and release status
+- PR #300 and PR #301 remain open/draft/unmerged. No production migration, merge, deployment, grant/RLS/Auth change, or financial transaction occurred in this checkpoint.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
