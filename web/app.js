@@ -849,6 +849,7 @@ async function loadEnterpriseDomainData(m){
    rows.erp_stock_transfers=result.transfers||[];
    rows.warehouses=result.warehouses||[];
    rows.branches=result.branches||[];
+   rows.catalog_items=result.catalog_items||[];
   }catch(e){
    for(const table of ['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','branches'])rows[table]=[];
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
