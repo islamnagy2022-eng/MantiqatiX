@@ -1,0 +1,70 @@
+name: Doctor Module Release Contract
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "web/app.js"
+      - "web/index.html"
+      - "supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql"
+      - "supabase/tests/rc457_medical_appointment_state_machine_*.sql"
+      - "supabase/tests/rc462_medical_booking_*.sql"
+      - "scripts/validate-medical-module-release.mjs"
+      - ".github/workflows/medical-module-release.yml"
+  pull_request:
+    branches: [main, "fix/medical-appointment-state-machine-20261019"]
+    paths:
+      - "web/app.js"
+      - "web/index.html"
+      - "supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql"
+      - "supabase/tests/rc457_medical_appointment_state_machine_*.sql"
+      - "supabase/tests/rc462_medical_booking_*.sql"
+      - "scripts/validate-medical-module-release.mjs"
+      - ".github/workflows/medical-module-release.yml"
+permissions:
+  contents: read
+jobs:
+  doctor-module-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_doctor_module_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_doctor_module_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply previous appointment contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc457_medical_appointment_state_machine_fixture.sql "$pg_container:/tmp/rc457_fixture.sql"
+          docker cp supabase/migrations/20261019190000_rc457_medical_appointment_state_machine.sql "$pg_container:/tmp/rc457_migration.sql"
+          docker cp supabase/tests/rc457_medical_appointment_state_machine_integration.sql "$pg_container:/tmp/rc457_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc457_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc457_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc457_test.sql
+      - name: Apply doctor booking release contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          docker cp supabase/tests/rc462_medical_booking_fixture.sql "$pg_container:/tmp/rc467_fixture.sql"
+          docker cp supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql "$pg_container:/tmp/rc467_migration.sql"
+          docker cp supabase/tests/rc462_medical_booking_integration.sql "$pg_container:/tmp/rc467_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_test.sql
+      - name: Validate doctor module wiring
+        run: node scripts/validate-medical-module-release.mjs
