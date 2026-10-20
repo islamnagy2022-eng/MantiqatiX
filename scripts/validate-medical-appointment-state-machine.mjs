@@ -7,6 +7,8 @@ const integrationPath='supabase/tests/rc457_medical_appointment_state_machine_in
 const workflowPath='.github/workflows/module-professionalization.yml';
 const docsPath='docs/release/RC457_MEDICAL_APPOINTMENT_STATE_MACHINE.md';
 const releaseMigration=fs.readFileSync('supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql','utf8');
+const idempotencyMigration=fs.readFileSync('supabase/migrations/20261020210000_rc468_medical_booking_idempotency.sql','utf8');
+const idempotencyIntegration=fs.readFileSync('supabase/tests/rc468_medical_booking_idempotency_integration.sql','utf8');
 const bookingFixture=fs.readFileSync('supabase/tests/rc462_medical_booking_fixture.sql','utf8');
 const bookingIntegration=fs.readFileSync('supabase/tests/rc462_medical_booking_integration.sql','utf8');
 const app=fs.readFileSync('web/app.js','utf8');
@@ -107,6 +109,17 @@ assert.match(bookingFunction,/sessionStorage\.removeItem\(requestKey\)/,"success
 assert.match(bookingFunction,/idempotent_replay/,"UI must distinguish a replayed successful booking");
 assert.match(releaseWorkflow,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 assert.match(releaseWorkflow,/rc462_medical_booking_integration\.sql/);
+assert.match(idempotencyMigration,/on conflict \(id\) do nothing/i,"RC468 must resolve concurrent same-ID inserts atomically");
+assert.match(idempotencyMigration,/returning id into v_inserted_id/i,"RC468 must distinguish insert success from conflict replay");
+assert.match(idempotencyMigration,/APPOINTMENT_ID_ALREADY_EXISTS/,"RC468 must reject ID reuse with a different booking payload");
+assert.match(idempotencyMigration,/idempotent_replay', true/,"RC468 must return a stable replay result");
+assert.match(idempotencyIntegration,/RC468_EXACT_REPLAY_RESULT_MISMATCH/);
+assert.match(idempotencyIntegration,/RC468_REPLAY_CREATED_DUPLICATE/);
+assert.match(idempotencyIntegration,/RC468_PAYLOAD_MISMATCH_WAS_ALLOWED/);
+assert.match(releaseWorkflow,/20261020210000_rc468_medical_booking_idempotency\.sql/);
+assert.match(releaseWorkflow,/rc468_medical_booking_idempotency_integration\.sql/);
+assert.match(migrationReplay,/20261020210000_rc468_medical_booking_idempotency\.sql/);
+assert.match(productionVerifier,/20261020210000_rc468_medical_booking_idempotency\.sql/);
 assert.match(migrationReplay,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 
 console.log('RC457 state machine + RC467 doctor module release source contract: PASS');
