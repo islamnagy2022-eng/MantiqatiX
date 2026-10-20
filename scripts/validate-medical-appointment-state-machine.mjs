@@ -13,6 +13,7 @@ const workflow=fs.readFileSync(workflowPath,'utf8');
 const docs=fs.readFileSync(docsPath,'utf8');
 
 assert.match(migration,/create or replace function public\.update_medical_appointment_status_backend/);
+assert.match(migration,/set search_path\s*=\s*''/i,'SECURITY DEFINER function must use an empty search_path');
 assert.match(migration,/for update/,'appointment row must be locked during transition');
 assert.match(migration,/AUTH_USER_MISMATCH/);
 assert.match(migration,/ACTIVE_MEMBERSHIP_REQUIRED/);
