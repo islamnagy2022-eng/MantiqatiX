@@ -75,7 +75,7 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
   rows.erp_stock_transfers=data.transfers||[];
   rows.warehouses=data.warehouses||[];
   rows.catalog_items=data.catalog_items||[];
-  rows.branches=data.branches||[];\n  rows.catalog_items=data.catalog_items||[];\n  rows.branches=data.branches||[];
+  rows.branches=data.branches||[];
   if(d.key==='BUSINESS_ERP'){
    const business=await sb.from('businesses').select('id,tenant_id,name,code,status').eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id).maybeSingle();
    if(business.error)throw business.error;
