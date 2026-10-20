@@ -9,6 +9,10 @@ const body=app.slice(marker,marker+1800);
 if(!body.includes('MNTY_BACKEND_ONLY_TABLES.has(t)')) throw new Error('loadDomainModule does not enforce backend-only boundary');
 if(!operations.includes('BACKEND_ONLY_TABLES=new Set')) throw new Error('operations backend-only table guard missing');
 if(!operations.includes('BACKEND_ONLY_TABLES.has(t)')) throw new Error('operations load does not enforce backend-only boundary');
+if(!operations.includes("sb.functions.invoke('erp-runtime',{body:{operation:'list'")) throw new Error('operations ERP modules are not connected to the authenticated runtime gateway');
+if(!operations.includes("eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id)")) throw new Error('business ERP summary is not tenant/business scoped');
+if(!operations.includes('ERP_DATA_LOAD_FAILED')) throw new Error('operations ERP runtime errors are silently treated as empty data');
+
 const gateway=fs.readFileSync('supabase/functions/erp-runtime/index.ts','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql','utf8');
 const loader=app.slice(app.indexOf('async function loadEnterpriseDomainData'),app.indexOf('async function loadRestaurantWorkspace'));
