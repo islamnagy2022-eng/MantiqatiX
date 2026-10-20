@@ -1977,3 +1977,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Added fail-closed code gates to Paymob order payments, digital-page paid order creation/payment, subscription payment intents, and MantiGO ride payment intents. The hard-coded launch deferral cannot be overridden by environment configuration alone; post-launch requires a reviewed code change plus explicit enablement.
 - Cash marketplace orders remain on the separate cash-only API path. Digital pages, subscription payments, and MantiGO ride payments remain unavailable before launch until a verified cash path exists or online payments are approved post-launch.
 - RC459 disposable PostgreSQL regression asserts direct authenticated RPC calls are denied before insert and ACLs remain unchanged. Exact-head CI and full ordered forward replay remain required; no production migration, payment, merge, or deployment occurred.
+
+### RC460 cash confirmation amount-source correction — 2026-10-20
+- **DONE (source correction):** cash confirmation now binds payment amount to `orders.total_amount`, the authoritative total used by cash-intent creation, rather than the legacy `orders.total` field.
+- **Regression fixture updated:** RC460 fixture intentionally sets `total_amount=100` and legacy `total=99`; the valid cash-confirmation integration must succeed only when the function uses `total_amount`.
+- **NOT VERIFIED:** exact-head CI/PostgreSQL execution for this correction is pending. Static source assertions were added to `scripts/validate-cash-only-launch-flow.mjs`; this is not a substitute for the PostgreSQL test.
+- No production migration was applied. Release remains BLOCKED / NOT CERTIFIED.
