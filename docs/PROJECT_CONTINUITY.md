@@ -618,3 +618,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Confirmed gaps: generic blueprint button currently shows a success toast without actual navigation; auth UI in the inspected baseline offers Google OAuth; global search is configured for 10 data groups and masks individual source errors as no results; activity request modal and membership switcher do not by themselves complete activity/role administration.
 - Current next batch: replace false-success blueprint action with honest real behavior and tests, then improve search partial-failure UX; continue page-by-page implementation with server-side authorization unchanged.
 - No application code changed in this source-inventory batch. UI completion and runtime E2E remain NOT VERIFIED; overall release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — First UI behavior implementation checkpoint
+
+- **Working branch:** `feat/ui-first-module-completion-20261020`.
+- **Implemented in source:** generic module blueprint action provides an honest accessible “not wired to a standalone workflow” status rather than fake success; global search preserves per-source errors and shows partial/unavailable warnings separately from true zero results. Existing role-based search-source filtering remains in place.
+- **CI contract tests added:** `scripts/validate-module-blueprint-actions.mjs` and `scripts/validate-global-search-failure-state.mjs`; both are wired into `.github/workflows/pages.yml`.
+- **Verification:** exact-head CI and browser E2E are pending; do not call the slice verified until checks finish. No production changes or deployment.
+- **Next:** continue the route-by-route module matrix, implement real module views against verified backend contracts, then activity management and job-function/role assignment with server-side enforcement and audit. Plans/accounts and expanded accounting UI remain deferred; release remains **BLOCKED / NOT CERTIFIED**.
