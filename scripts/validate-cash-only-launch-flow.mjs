@@ -164,7 +164,7 @@ assert.match(todo,/POST-LAUNCH: electronic payments/);
 assert.match(todo,/POST-LAUNCH: SMM/);
 assert.match(scope,/cash-only collection/);
 assert.match(scope,/Digital-page paid checkout is disabled pre-launch/);
-assert.ok(rc469.includes("p_user_id <> auth.uid()"),"captain presence RPC must bind actor to auth.uid()");
+assert.ok(rc469.includes("auth.uid() is null or p_user_id is null or p_user_id is distinct from auth.uid()"),"captain presence RPC must reject missing auth identity and bind actor to auth.uid()");
 assert.ok(rc469.includes("from public.mantigo_captain_profiles where captain_id=p_user_id for update"),"captain presence RPC must lock and resolve its own profile");
 assert.ok(rc469.includes("CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY"),"only active verified captains may become available");
 assert.ok(rc469.includes("v_status is distinct from 'ACTIVE'")&&rc469.includes("v_verification is distinct from 'VERIFIED'"),"null or non-matching captain status must fail closed");
@@ -407,6 +407,7 @@ const rc469Integration=read("supabase/tests/rc469_mantigo_presence_guard_integra
 assert.match(rc469Fixture,/verification_status/,"RC469 fixture must model captain verification state");
 assert.match(read("supabase/migrations/20261021190000_rc469_mantigo_presence_verification_guard.sql"),/INVALID_COORDINATE_PAIR/,"RC469 must reject partial latitude/longitude updates");
 assert.match(rc469Integration,/partial coordinate update was accepted/,"RC469 integration must prove partial coordinate updates are rejected");
+assert.match(rc469Integration,/RC469_TEST_FAILED: null auth identity was accepted/,"RC469 integration must reject calls without auth.uid");
 assert.match(rc469Integration,/longitude-only coordinate update was accepted/,"RC469 integration must reject longitude-only coordinate updates too");
 assert.match(rc469Integration,/RC469_PRESENCE_GUARD_INTEGRATION: PASS/,"RC469 integration test must expose a clear success marker");
 assert.match(rc469Integration,/has_function_privilege\('anon',[\s\S]*?EXECUTE'\)/,"RC469 integration must prove anonymous callers cannot execute the RPC");
