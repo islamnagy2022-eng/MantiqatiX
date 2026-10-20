@@ -532,6 +532,8 @@ async function globalSearch(queryText){
 }
 function globalSearchResultHtml(results){
  const errors=Array.isArray(results.searchErrors)?results.searchErrors:[];
+ const searchableSources=Number(results.searchableSources)||0;
+ if(!searchableSources)return '<div class="mx-global-search-empty" role="status">لا توجد مصادر بحث متاحة لهذا الحساب أو الدور الحالي.</div>';
  if(!results.length){
   if(errors.length)return '<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث في '+errors.length+' من مصادر البيانات. حاول مرة أخرى بعد قليل.</div>';
   return '<div class="mx-global-search-empty" role="status">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
