@@ -29,13 +29,15 @@ BEGIN
    AND status='ACTIVE'
    AND (business_id=v_order.business_id OR business_id IS NULL)
    AND (upper(coalesce(role,'')) in ('ADMIN','MANAGER','CASHIER','STAFF','OWNER')
-        OR (coalesce(permissions,'{}'::jsonb)?'PAYMENT_CONFIRM_CASH'))
+        OR (jsonb_typeof(coalesce(permissions,'{}'::jsonb))='array' AND coalesce(permissions,'[]'::jsonb)?'PAYMENT_CONFIRM_CASH')
+        OR coalesce(permissions,'{}'::jsonb)->'PAYMENT_CONFIRM_CASH'='true'::jsonb)
  ORDER BY CASE WHEN business_id=v_order.business_id THEN 0 ELSE 1 END
  LIMIT 1;
  IF NOT FOUND THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
  v_user_role:=coalesce(v_membership.role,'CUSTOMER');
  v_is_authorized:=(upper(v_user_role) in ('ADMIN','MANAGER','CASHIER','STAFF','OWNER')
-   OR (coalesce(v_membership.permissions,'{}'::jsonb)?'PAYMENT_CONFIRM_CASH'))
+   OR (jsonb_typeof(coalesce(v_membership.permissions,'{}'::jsonb))='array' AND coalesce(v_membership.permissions,'[]'::jsonb)?'PAYMENT_CONFIRM_CASH')
+   OR coalesce(v_membership.permissions,'{}'::jsonb)->'PAYMENT_CONFIRM_CASH'='true'::jsonb)
    AND upper(v_user_role)<>'CUSTOMER';
  IF NOT v_is_authorized THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
  -- Authorize before returning a prior success so service-role callers cannot use
