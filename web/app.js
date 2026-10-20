@@ -995,6 +995,8 @@ function restaurantWorkspace(rows){
 
 function erpWarehouseLabel(rows,id){const item=(rows.warehouses||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
 function erpProductLabel(rows,id){const item=(rows.catalog_items||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.sku||id):String(id||'—')}
+function erpAccountLabel(rows,id){const item=(rows.chart_of_accounts||[]).find(x=>String(x.id)===String(id));return item?String(item.account_code||'')+' — '+String(item.account_name||id):String(id||'—')}
+function erpJournalTotals(rows,entryId,field){return (rows.journal_entry_lines||[]).filter(line=>String(line.journal_entry_id)===String(entryId)).reduce((sum,line)=>sum+Number(line[field]||0),0)}
 function enterpriseRowsTable(m,rows){
  const sourceRows=(m.tables||[]).map(table=>({table,count:Array.isArray(rows[table])?rows[table].length:0}));
  const sources=()=>recordsTable('مصادر البيانات الموصولة',sourceRows,[['المصدر',r=>r.table],['السجلات',r=>r.count],['الحالة',r=>r.count?'READABLE':'لا توجد سجلات']]);
@@ -1002,7 +1004,8 @@ function enterpriseRowsTable(m,rows){
   return recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])
    +recordsTable('طلبات الخدمات المحاسبية',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]])
    +recordsTable('العروض والتفاوض',rows.indrive_bids||[],[['مقدم العرض',r=>r.provider_name],['القيمة',r=>r.offered_price],['ملاحظة',r=>r.note],['الحالة',r=>r.status]])
-   +recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['الحالة',r=>r.status]])
+   +recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['المدين',r=>erpJournalTotals(rows,r.id,'debit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['الدائن',r=>erpJournalTotals(rows,r.id,'credit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['التوازن',r=>Math.abs(erpJournalTotals(rows,r.id,'debit')-erpJournalTotals(rows,r.id,'credit'))<0.005?'متوازن':(rows.journal_entry_lines||[]).some(line=>String(line.journal_entry_id)===String(r.id))?'غير متوازن':'بدون تفاصيل'],['الحالة',r=>r.status]])
+   +recordsTable('تفاصيل القيود',rows.journal_entry_lines||[],[['القيد',r=>r.journal_entry_id],['الحساب',r=>erpAccountLabel(rows,r.account_id)],['مدين',r=>r.debit],['دائن',r=>r.credit],['الوصف',r=>r.description]])
    +sources();
  }
  if(m.key==='ERP'){
@@ -1015,7 +1018,7 @@ function enterpriseRowsTable(m,rows){
  }
  if(m.key==='FACTORIES'){
   return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])
-   +recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])
+   +recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>erpProductLabel(rows,r.product_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])
    +recordsTable('حركة المخزون',rows.inventory_transactions||[],[['النوع',r=>r.transaction_type],['المنتج',r=>erpProductLabel(rows,r.product_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['الكمية',r=>r.quantity],['تكلفة الوحدة',r=>r.unit_cost],['التاريخ',r=>r.created_at]])
    +recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]])
    +sources();
