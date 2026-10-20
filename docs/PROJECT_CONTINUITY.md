@@ -743,3 +743,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Both PRs remain open/draft/unmerged. Last read-only production checkpoint remains RC424; recheck live state before rollout.
 - Continue in this order: resolve the historical replay provenance safely; obtain the product decision on NO_SHOW grace period; close live security/tenant/RBAC and authorized payment/finance E2E gates; execute recovery, browser/device, Android, and deployment verification.
 - Release remains **BLOCKED / NOT CERTIFIED**. No production migration, merge, or deployment was performed in this continuation.
+
+
+## Continuation update — 2026-10-20 — migration replay CI stabilization
+
+- A disposable forward-replay job failed on head `27fbfec24cc5e6d665f788322c786a0fa130d17b` before SQL replay because Supabase CLI `latest` resolution hit a GitHub API rate limit. The replay workflow now pins CLI `2.39.2` in commit `ae20b393c320b44ebe8bd97d9f4d8c27b063b6f9`.
+- On the pinned-CLI head, all eight non-replay PR workflows passed, including the RC457 and RC462 PostgreSQL integration jobs within Module Professionalization Validation.
+- Forward replay run `39362446830` is still running at Supabase local PostgreSQL startup. Do not mark replay complete until schema restore, ordered migration replay, and two-tenant isolation all pass.
+- No production migration, merge, or deployment occurred. PR #301 remains draft/open/unmerged; global release remains BLOCKED / NOT CERTIFIED.
