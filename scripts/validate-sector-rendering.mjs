@@ -8,6 +8,7 @@ const css = read('web/home.css');
 const index = read('web/index.html');
 const app = read('web/app.js');
 const sw = read('web/sw.js');
+const sectorModules = read('web/sector-modules.js');
 
 const taxonomy = home.match(/^\s*\['[^']*','[^']*','[^']*','[A-Z0-9_]+\'],?\s*$/gm) || [];
 const checks = [
@@ -39,6 +40,11 @@ const checks = [
   ['service worker cache version v129', sw.includes("const CACHE='mnty-web-v129'")],
   ['service worker precaches versioned app entrypoint', sw.includes("./app.js?v=rc458-marketing-workspace-20261018")],
   ['service worker precaches versioned Supabase SDK', sw.includes("./vendor/supabase.js?v=supabase21172")],
+  ['sector source failures are not silently converted to empty results', sectorModules.includes('const r={},failures=[];') && sectorModules.includes('if(x.error){failures.push(t);continue}') && sectorModules.includes('لم يتم اعتبار الخطأ نتيجة فارغة')],
+  ['sector query failures are announced accessibly', sectorModules.includes('role="alert" aria-live="polite"')],
+  ['sector query failure offers retry', sectorModules.includes('data-sector-retry') && sectorModules.includes("addEventListener('click',()=>load(defs[current]))")],
+  ['job application handler is not shadowed by duplicate declaration', (sectorModules.match(/async function applyToJob\(/g)||[]).length === 1],
+
 ];
 
 const missing = checks.filter(([,ok]) => !ok).map(([name]) => name);
