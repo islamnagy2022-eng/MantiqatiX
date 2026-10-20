@@ -104,3 +104,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Action performed:** created branch `feat/ui-first-module-completion-20261020` from main; added `docs/MASTER_UI_FIRST_CONTINUATION_PROMPT.md`; inserted the UI-first execution roadmap in the Master TODO; recorded continuity and next implementation gate.
 - **Not performed:** no module application code changes in this batch, no production DDL/DML, migrations, Auth settings, payments, ad-network calls, merge, or deployment. Documentation is not evidence that UI journeys are implemented or verified.
 - **Next:** inventory routes/modules/pages and visible actions; map each to current APIs/RPCs/permissions; implement the highest-impact UI gaps incrementally with role/tenant-aware tests. Keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — SESSION-UI-INVENTORY — Initial route/module audit
+
+- **Verified from source:** `web/index.html` + `web/home.js` provide public discovery/search UI; `web/app.js` contains authenticated shell, membership/role state and global search; separate files exist for sector registry/workspaces, provider onboarding, restaurant operations, reverse bidding, digital pages/editor and SMM storefront; `web/rbac.js` documents UI visibility as non-authoritative.
+- **Action performed:** added `docs/UI_MODULE_ROUTE_INVENTORY.md` with entrypoints, initial module matrix, known deferrals and verification gaps. Linked it from the Master TODO.
+- **Concrete issue found:** `web/module-blueprints.js` button handler reports “opened section” via a success toast but does not actually open a workflow. This is a source-confirmed misleading UI action; fix is next after confirming consumers and routes.
+- **Limits:** route inventory remains partial; no browser E2E, Auth mutation, production query/write, migration, payment, deployment or merge was performed. Source existence is not workflow verification.
+- **Next:** inspect exact blueprint consumers and module route handlers, replace false-success behavior with a real route/action or honest disabled/unavailable state, add tests, then continue activity/role-management mapping. Release remains **BLOCKED / NOT CERTIFIED**.
