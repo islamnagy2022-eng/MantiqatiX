@@ -690,3 +690,8 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 - Used-items status buttons are now shown only for ads owned by the authenticated user, and the owner-scoped UPDATE checks whether a row was actually returned before proceeding. Source commit `edeee30e5546956020f7ccbc999c934dea2a66a3`; regression validator commit `66a9bfa98276ebc78847847e5b29412b3627a2f1`.
 - CI/browser E2E/RLS remain unverified; no production deployment or merge occurred.
+
+
+## 2026-10-20 continuation — fashion branch scope
+
+- Fashion product creation now passes `null` rather than an empty string when no branch is selected; a regression assertion protects the fallback. Source commit `680d433e682881d0f233a4ac4e46d95b23ebee4a`; validator commit `6423df32f69ed4ec24eaaaf0c556771e6ff95ab7`. Exact-head CI remains pending.
