@@ -18,6 +18,7 @@ assert.match(migration,/AUTH_USER_MISMATCH/);
 assert.match(migration,/ACTIVE_MEMBERSHIP_REQUIRED/);
 assert.match(migration,/MEDICAL_APPOINTMENT_NOT_CANCELLABLE/);
 assert.match(migration,/INVALID_MEDICAL_STATUS_TRANSITION/);
+assert.match(migration,/MEDICAL_APPOINTMENT_NOT_DUE/);
 assert.match(migration,/PROVIDER_STATUS_CHANGE_REQUIRED/);
 assert.match(migration,/upper\(v_old\) = 'BOOKED' and v_target = 'CONFIRMED'/);
 assert.match(migration,/upper\(v_old\) = 'CONFIRMED' and v_target in \('COMPLETED','NO_SHOW'\)/);
@@ -27,6 +28,7 @@ assert.match(integration,/RC457_EXPECTED_REJECTION_MISSING/);
 for(const marker of [
   'MEDICAL_APPOINTMENT_NOT_CANCELLABLE',
   'INVALID_MEDICAL_STATUS_TRANSITION',
+  'MEDICAL_APPOINTMENT_NOT_DUE',
   'PROVIDER_STATUS_CHANGE_REQUIRED',
   'ACTIVE_MEMBERSHIP_REQUIRED',
   'AUTH_USER_MISMATCH',
