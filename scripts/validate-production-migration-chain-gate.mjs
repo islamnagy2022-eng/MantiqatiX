@@ -46,7 +46,7 @@ const required = [
   "20261020210000_rc468_medical_booking_idempotency.sql",
   "20261021190000_rc462_mantigo_presence_verification_guard.sql",
 ]
-assert.equal(required.length, 39, "release gate must track the complete 39-file migration source set");
+assert.equal(required.length, 40, "release gate must track the complete 40-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
