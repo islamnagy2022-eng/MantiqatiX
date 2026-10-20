@@ -826,3 +826,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Added hard-coded, fail-closed gates to Paymob order payment, digital-page paid order creation/payment, subscription payment intent, and MantiGO ride payment intent Edge Functions. An environment variable alone cannot override the pre-launch deferral; post-launch requires a reviewed code change and explicit enablement.
 - Marketplace cash checkout remains the only implemented cash path in this scope. Digital-page paid orders, subscription payments and MantiGO ride payments stay unavailable until a verified cash path exists or online payments are formally enabled after launch.
 - RC459 includes disposable PostgreSQL denial/ACL regression and is added to the ordered migration replay. No production migration, payment, merge or deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
+
+### Follow-up finding — RC460 authoritative amount binding
+- Review of the cash-only candidate found RC460 compared the intent amount to legacy `orders.total`, while cash intent creation uses `orders.total_amount`. This could reject a valid payment or compare against a stale duplicate field.
+- Corrected RC460 to compare against `orders.total_amount`. The isolated PostgreSQL fixture now intentionally diverges the fields (`total_amount=100`, `total=99`) so the cash confirmation integration detects regression to the legacy field.
+- Added source-contract assertions. The code and fixture changes are committed to the existing cash-only candidate branch at `9263ed453f84f91a6cfa60ba75ef0384c345b3da`.
+- **NOT VERIFIED:** no workflow result for this latest head was returned by the GitHub Actions connector at check time; wait for/inspect exact-head CI and confirm the RC460 PostgreSQL integration actually executes before marking verified. No production changes.
