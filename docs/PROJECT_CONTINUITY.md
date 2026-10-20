@@ -894,3 +894,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Fixed accounting journal-line reads to derive visible parent journal IDs first; the line table has no tenant column and must never be queried as an unscoped source. Matrimony contact-unlock rows are now constrained to requests involving the current user, and the general matrimony workspace excludes direct contact fields.
 - Updated app/PWA cache keys for the changed module runtime.
 - Exact-head module professionalization, backend-only boundary, and forward replay are still running on the newest head. Do not claim these checks pass until the current runs complete. Authenticated browser E2E and production/DR gates remain open. PR #307 remains draft/unmerged; release remains **BLOCKED / NOT CERTIFIED**. No production deployment or migration was applied.
+
+
+### RC461 — ERP runtime wiring and cross-module linkage — 2026-10-20
+- Implemented the RC461 service-role-only `erp_runtime_execute(uuid,text,jsonb)` RPC and registered the migration in the release verifier and disposable forward-replay chain.
+- Connected the existing authenticated `/api/v1/erp/runtime` route to the restricted RPC; the browser now reads ERP purchase orders, receipts, transfers, warehouses and active catalog items through that API rather than querying backend-only ERP tables directly.
+- Added active tenant/business/branch checks before mutations, scoped record lookups for status changes, warehouse/product validation, and SQL-level branch isolation for purchase orders, transfers and catalog products.
+- Linked receiving and stock-transfer prompts to the currently loaded scoped records; added retry-stable idempotency IDs for create/receive/transfer actions and role-aware purchase approval UI.
+- Connected accounting journal lines to their visible parent entries for debit/credit totals and balance display; corrected factory stock-balance product labels.
+- Added PostgreSQL integration coverage for the restricted RPC, actor propagation, role boundaries and cross-branch rejection; added source-contract assertions for the API route, active scope and PWA cache alignment.
+- Exact-head CI for the current branch is queued/in progress; do not treat older green runs as validation of the latest code. No production migration, merge or deployment was performed. Release remains **BLOCKED / NOT CERTIFIED** until exact-head CI, authenticated live-flow checks and backup/restore evidence are complete.
