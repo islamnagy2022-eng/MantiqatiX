@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { evaluateSmmLaunchScope } from "./smm-launch-scope.mjs";
 const root=process.cwd(), results=[];
 const add=(id,category,status,evidence,severity="P1")=>results.push({id,category,status,severity,evidence});
 const exists=p=>fs.existsSync(path.join(root,p));
@@ -58,6 +59,12 @@ for(let i=1;i<presentReleaseMigrations.length;i++){
 const reconciliationPath="docs/release/production-migration-reconciliation.json";
 let reconciliation=null, reconciliationParseError=null;
 try { reconciliation=JSON.parse(read(reconciliationPath)); } catch (error) { reconciliationParseError=String(error); }
+const smmLaunchScope=evaluateSmmLaunchScope(reconciliation);
+add("SMM-INITIAL-LAUNCH-SCOPE","SECURITY",smmLaunchScope.verified?"PASS":"BLOCKED",smmLaunchScope.verified
+  ? smmLaunchScope.deferred
+    ? "SMM is deferred and server-side denial evidence is complete: live function disabled, customer access denied, negative test passed, version/hash/evidence reference present."
+    : "SMM is in active launch scope and all required gateway, ACL, order/refund, and provider-timeout runtime gates are PASS."
+  : `SMM launch-scope gate failed closed. Decision=${smmLaunchScope.decision}; missing/failed requirements: ${smmLaunchScope.missing.join(", ")}`, "P0");
 const liveReconciliationVerified=Boolean(
   reconciliation &&
   reconciliation.status==="VERIFIED" &&
@@ -73,7 +80,7 @@ const liveReconciliationVerified=Boolean(
   reconciliation.payment_finance_e2e==="PASS" &&
   reconciliation.backup_restore_rehearsal==="PASS" &&
   reconciliation.edge_function_contracts==="PASS" &&
-  reconciliation.smm_gateway_parity==="PASS" &&
+  smmLaunchScope.verified &&
   reconciliation.auth_security_settings==="PASS" &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
