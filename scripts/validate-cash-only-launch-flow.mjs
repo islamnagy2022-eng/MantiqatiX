@@ -19,7 +19,7 @@ const rc459Integration=read("supabase/tests/rc459_electronic_payment_rpc_integra
 const rc460Fixture=read("supabase/tests/rc460_cash_confirmation_business_fixture.sql");
 const rc460Integration=read("supabase/tests/rc460_cash_confirmation_business_integration.sql");
 const rc461=read("supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql");
-const rc462=read("supabase/migrations/20261021190000_rc469_mantigo_presence_verification_guard.sql");
+const rc469=read("supabase/migrations/20261021190000_rc469_mantigo_presence_verification_guard.sql");
 const rc461Fixture=read("supabase/tests/rc461_erp_runtime_gateway_fixture.sql");
 const rc461Integration=read("supabase/tests/rc461_erp_runtime_gateway_integration.sql");
 const rc463=read("supabase/migrations/20261020160000_rc463_erp_supplier_master.sql");
@@ -164,13 +164,13 @@ assert.match(todo,/POST-LAUNCH: electronic payments/);
 assert.match(todo,/POST-LAUNCH: SMM/);
 assert.match(scope,/cash-only collection/);
 assert.match(scope,/Digital-page paid checkout is disabled pre-launch/);
-assert.ok(rc462.includes("p_user_id <> auth.uid()"),"captain presence RPC must bind actor to auth.uid()");
-assert.ok(rc462.includes("from public.mantigo_captain_profiles where captain_id=p_user_id for update"),"captain presence RPC must lock and resolve its own profile");
-assert.ok(rc462.includes("CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY"),"only active verified captains may become available");
-assert.ok(rc462.includes("v_status is distinct from 'ACTIVE'")&&rc462.includes("v_verification is distinct from 'VERIFIED'"),"null or non-matching captain status must fail closed");
-assert.ok(rc462.includes("p_availability_status is null"),"null availability status must be rejected explicitly");
-assert.ok(rc462.includes("CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY"),"captain availability must require coordinates server-side");
-assert.ok(rc462.includes("revoke all on function public.update_mantigo_captain_presence_backend")&&rc462.includes("grant execute on function public.update_mantigo_captain_presence_backend")&&rc462.includes("to authenticated"),"captain presence RPC ACL must remain authenticated-only");
+assert.ok(rc469.includes("p_user_id <> auth.uid()"),"captain presence RPC must bind actor to auth.uid()");
+assert.ok(rc469.includes("from public.mantigo_captain_profiles where captain_id=p_user_id for update"),"captain presence RPC must lock and resolve its own profile");
+assert.ok(rc469.includes("CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY"),"only active verified captains may become available");
+assert.ok(rc469.includes("v_status is distinct from 'ACTIVE'")&&rc469.includes("v_verification is distinct from 'VERIFIED'"),"null or non-matching captain status must fail closed");
+assert.ok(rc469.includes("p_availability_status is null"),"null availability status must be rejected explicitly");
+assert.ok(rc469.includes("CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY"),"captain availability must require coordinates server-side");
+assert.ok(rc469.includes("revoke all on function public.update_mantigo_captain_presence_backend")&&rc469.includes("grant execute on function public.update_mantigo_captain_presence_backend")&&rc469.includes("to authenticated"),"captain presence RPC ACL must remain authenticated-only");
 const operationsVersion=index.match(/operations-modules\.js\?v=([^'"]+)/)?.[1];
 const swOperationsVersion=sw.match(/operations-modules\.js\?v=([^'"]+)/)?.[1];
 assert.ok(operationsVersion && operationsVersion===swOperationsVersion,"index and service worker must use the same operations module version");
@@ -400,5 +400,16 @@ assert.match(operations,/\['الرقم الضريبي','tax_number'\]/);
 assert.match(operations,/\['شروط السداد','payment_terms'\]/);
 
 
+
+
+const rc469Fixture=read("supabase/tests/rc469_mantigo_presence_guard_fixture.sql");
+const rc469Integration=read("supabase/tests/rc469_mantigo_presence_guard_integration.sql");
+assert.match(rc469Fixture,/verification_status/,"RC469 fixture must model captain verification state");
+assert.match(rc469Integration,/RC469_PRESENCE_GUARD_INTEGRATION: PASS/,"RC469 integration test must expose a clear success marker");
+for (const failureCode of ["CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY","CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY","INVALID_AVAILABILITY_STATUS","CAPTAIN_PROFILE_NOT_FOUND","USER_CONTEXT_MISMATCH","INVALID_LATITUDE","INVALID_LONGITUDE"]) {
+  assert.ok(rc469Integration.includes(failureCode), "RC469 integration test must cover " + failureCode);
+}
+assert.match(moduleWorkflow,/mantigo-captain-presence-guard-postgres:[\\s\\S]*?rc469_mantigo_presence_guard_fixture\\.sql[\\s\\S]*?20261021190000_rc469_mantigo_presence_verification_guard\\.sql[\\s\\S]*?rc469_mantigo_presence_guard_integration\\.sql/,"RC469 fixture, migration and assertions must execute in PostgreSQL CI");
+assert.doesNotMatch(moduleWorkflow,/supabase\/tests\/rc462_mantigo_presence_guard_(?:fixture|integration)\.sql/,"RC469 workflow must not reference superseded RC462-named test files");
 
 console.log("Cash-only launch, RC458/RC460 security, RC461 ERP runtime, RC463/RC464 supplier lifecycle, RC465 line-linked purchasing, and post-launch deferral contract: PASS");
