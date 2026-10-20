@@ -51,6 +51,12 @@ if(!api.includes('from("catalog_items").select("*").eq("tenant_id", tenantId).eq
 if(!api.includes('String(args.p_tenant_id ?? "") !== tenantId') || !api.includes('String(args.p_business_id ?? "") !== businessId')) throw new Error('ERP mutations are not bound to the active tenant/business selection');
 if(!api.includes('ERP_WAREHOUSE_SELECTION_INVALID') || !api.includes('ERP_SCOPE_MISMATCH')) throw new Error('ERP mutation preflight scope guards are missing');
 if(!migration.includes('revoke all on function public.erp_runtime_execute(uuid,text,jsonb) from public, anon, authenticated')) throw new Error('ERP gateway RPC must remain service-role-only');
+const supplierUpdate=fs.readFileSync('supabase/migrations/20261020170000_rc464_erp_supplier_update_backend.sql','utf8');
+if(!supplierUpdate.includes('revoke all on function public.erp_supplier_update_backend(uuid,jsonb) from public,anon,authenticated')) throw new Error('supplier update RPC must remain service-role-only');
+if(!supplierUpdate.includes('ERP_SUPPLIER_STATUS_INVALID')) throw new Error('supplier update must validate lifecycle status');
+if(!gateway.includes('update_supplier') && !app.includes("update_erp_supplier_backend:'update_supplier'")) throw new Error('ERP supplier update action is not wired to the runtime API');
+if(!operations.includes('editERPSupplier(')) throw new Error('ERP supplier master has no edit action');
+
 if(!api.includes('from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP live stock balances are not tenant/business scoped');
 if(!api.includes('from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP inventory movements are not tenant/business scoped');
 if(!operations.includes('rows.stock_balances=data.stock_balances||[]') || !operations.includes('rows.inventory_transactions=data.inventory_transactions||[]')) throw new Error('ERP workspace is not connected to stock balance and movement sources');
