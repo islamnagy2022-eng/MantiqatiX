@@ -13,6 +13,14 @@ begin
 
   v_failed:=false;
   begin
+    perform public.update_mantigo_captain_presence_backend(auth.uid(),'OFFLINE',null,31.2);
+  exception when others then
+    v_failed:=sqlerrm='INVALID_COORDINATE_PAIR';
+  end;
+  if not v_failed then raise exception 'RC469_TEST_FAILED: longitude-only coordinate update was accepted'; end if;
+
+  v_failed:=false;
+  begin
     perform public.update_mantigo_captain_presence_backend(auth.uid(),'AVAILABLE',null,null);
   exception when others then
     v_failed:=sqlerrm='CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY';
