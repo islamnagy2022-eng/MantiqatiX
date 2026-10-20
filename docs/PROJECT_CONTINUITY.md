@@ -923,3 +923,12 @@ This status is intentional and must remain until the open gates above are indepe
 - **Commits:** migration race fix `c40ef0e9c8f44b49de300abc9f5d6e86c226f0f9`; test/validator/doc wiring includes `1bcc59729d2aea74aca7649b989187f99aa29333`, `a2edd02e91ea9b985d0503a3d9026d482d959a92`, `19d180bea538e0a1410f7372080476b5afae4865`, `164ebf15fc99074ddda29b616644e589ac86b6dc`, `6a90b363c4657cc9d93302eec017a505e466c00e`, `44e2c94f4e7e3e977e5a988efebe0c79f30a7dea`, and `5988c27770370593f55d2336f99366d5fe2e7830`.
 - **Not yet verified:** exact-head CI results, the RC468 isolated PostgreSQL run, ordered forward replay on this exact head, authenticated live browser/API E2E, and production migration application. No production migration, deployment, merge, or financial/medical data mutation occurred.
 - **Release:** remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — RC468 replay behavior hardening follow-up
+
+- **Additional review finding:** the first RC468 draft checked current provider activation before looking for a previously committed booking. If a booking committed but its response was lost and the provider was deactivated before retry, the client would receive a provider-not-found error rather than the original booking result.
+- **Fix:** moved the exact-payload existing-booking replay check to immediately after the request-identity advisory lock and before current provider availability/membership checks. Authentication identity still must match; the stored patient, business, doctor, timestamp, and normalized reason must match exactly. A different payload continues to fail closed.
+- **Regression test:** the RC468 integration test now temporarily deactivates the provider, verifies exact replay still returns the committed appointment, and restores the provider fixture. The source validator asserts this ordering and test coverage.
+- **Commits:** migration ordering fix `d00db23d2081a5a9f36f954609fb572009bda8fe`; regression test `c657d6914efa9661c2550db4dd9e6c08e8b5ca26`; validator `ba975ec733e6dc1b457cd5a63249aab5570caa5b`.
+- **Verification:** exact-head workflows must rerun on the latest branch head; prior queued runs do not validate these follow-up commits. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
