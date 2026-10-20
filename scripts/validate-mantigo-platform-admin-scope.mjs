@@ -27,9 +27,12 @@ check("integration verifies authorized settlement persistence and replay safety"
 
 const guardFix = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
 const malformedPermissionsTest = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8");
 check("RC462 uses exact JSON Boolean containment for platform scope and full control", guardFix.includes(`m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb`));
 check("RC462 avoids casting permission text to Boolean", !guardFix.includes("->> 'full_control'") && !guardFix.includes("->> 'scope'"));
 check("RC462 preserves empty search_path and removes public/anon execution", guardFix.includes("set search_path = ''") && guardFix.includes("revoke all on function public.mnty_can_platform_admin() from public, anon"));
+check("RC462 guard re-evaluates request-scoped JWT identity on every call", guardFix.includes("language plpgsql\nvolatile\nsecurity definer") && guardFix.includes("return exists ("));
+check("disposable auth.uid fixture reads current JWT subject on every invocation", /create or replace function auth\.uid\(\)[\s\S]*?language plpgsql\s+volatile/i.test(fixture) && fixture.includes("Each invocation must read the current request GUC"));
 check("RC462 regression denies malformed string, false Boolean, and string true", malformedPermissionsTest.includes("malformed string full_control") && malformedPermissionsTest.includes("boolean false full_control") && malformedPermissionsTest.includes("JSON string true must not grant platform access"));
 check("RC462 regression verifies guarded dashboard, financial report, settlement, and expiration", malformedPermissionsTest.includes("platform-wide financial report") && malformedPermissionsTest.includes("platform-wide settlement RPC") && malformedPermissionsTest.includes("platform dashboard") && malformedPermissionsTest.includes("stale-ride expiration RPC"));
 check("RC462 regression preserves valid explicit JSON Boolean true", malformedPermissionsTest.includes('"full_control":true') && malformedPermissionsTest.includes("valid explicit platform permission must continue to allow access"));
