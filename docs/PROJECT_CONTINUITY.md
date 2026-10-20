@@ -624,3 +624,14 @@ Added a candidate source guard in `supabase/functions/business-register/index.ts
 - **Integration SQL correction:** fixed the audit-failure trigger's malformed single-dollar PL/pgSQL delimiter to valid `$$` quoting. Verified the fetched file contains the corrected opening and closing delimiters and no longer contains the malformed pattern. Commit: `b7fa1f2267885ecdea94a2d54a952ae648044cef`.
 - **Verification boundary:** these are source/workflow corrections and text-level consistency checks, not a claimed PostgreSQL integration pass. The current PR #286 head is `b7fa1f2267885ecdea94a2d54a952ae648044cef`; exact-head CI results have not yet been confirmed. No production migration, function deployment, grants/RLS/Auth change, payment, or financial record was changed. Keep PR #286 Draft and production **BLOCKED / NOT CERTIFIED**.
 - **Next:** verify the exact-head registration atomicity, collision guard, migration history/uniqueness, full ordered replay, tenant-isolation, payment and financial integration runs. Continue only from the latest observed head; do not transfer older run results to it.
+
+
+## Continuation checkpoint — 2026-10-20 — payment finalizer CI closed
+
+- Current tested code head: `e4ca802c3c5c6408791b0c12b791f5b0fc985c94`. All 19 PR-triggered workflows passed.
+- Fixed stale source-validator assertions for the digital-page Paymob provider intent correlation variables. The isolated PostgreSQL finalizer workflow passed both grant/behavior checks and the source validator.
+- Forward replay from the captured RC424 schema checkpoint and disposable tenant-isolation E2E passed; this is not a blank-database replay of all historical migrations.
+- RC426/RC427 payment binding/idempotency, webhook success/failure, business-registration atomicity, RC425/RC526 MantiGO payment, financial journal boundary, module professionalization, migration uniqueness/history/collision, and web validation all passed. Pages deployment was skipped in PR context.
+- PR #286 remains draft/open/unmerged; no production migration, Edge Function deployment, payment, merge, or deployment occurred.
+- Continue with real Paymob sandbox/authorized payment E2E, live deployed-source parity, Auth leaked-password owner action, backup/restore/rollback, browser/push/device and signed Android verification. Historical blank-database replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- Production remains last read-only verified at RC424 (`20261008222845`, 283 versions). Global release remains **BLOCKED / NOT CERTIFIED**.
