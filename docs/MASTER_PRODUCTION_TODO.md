@@ -2055,3 +2055,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Connected accounting journal lines to their visible parent entries for debit/credit totals and balance display; corrected factory stock-balance product labels.
 - Added PostgreSQL integration coverage for the restricted RPC, actor propagation, role boundaries and cross-branch rejection; added source-contract assertions for the API route, active scope and PWA cache alignment.
 - Exact-head CI for the current branch is queued/in progress; do not treat older green runs as validation of the latest code. No production migration, merge or deployment was performed. Release remains **BLOCKED / NOT CERTIFIED** until exact-head CI, authenticated live-flow checks and backup/restore evidence are complete.
+
+
+### RC463 — supplier master linked to ERP purchasing — 2026-10-20
+- [x] Added `erp_suppliers` as a backend-only tenant/business/branch-scoped master table, with active/inactive status, normalized unique supplier codes per business, and service-role-only create RPC.
+- [x] Connected supplier creation and supplier lookup to the same authenticated ERP runtime API used by purchase orders, receipts, transfers, catalog items, warehouses, inventory balances and movement history.
+- [x] Hardened RC461 purchase-order creation to reject missing/inactive/cross-tenant/cross-business suppliers, and reject branch-specific suppliers when the purchase order's branch does not match.
+- [x] Added PostgreSQL coverage for supplier RPC ACLs, branch scope, idempotent retry, duplicate supplier codes, non-member denial, plus cross-tenant/cross-branch supplier references in purchase-order creation.
+- [x] Added RC463 to the release migration verifier, ordered disposable replay, and source-contract checks. Removed the unused duplicate ERP Edge Function so the supported runtime is the existing authenticated `/api/v1/erp/runtime` route.
+- [ ] Exact-head integration and forward replay are still running; the latest RC461/RC463 gateway integration run on the previous test head passed, but the current head must finish its own workflows. Live authenticated browser flows and backup/restore/DR evidence remain NOT VERIFIED.
+- [ ] Keep PR #307 draft/open/unmerged and release **BLOCKED / NOT CERTIFIED** until all P0 gates are evidenced. No production migration or deployment has occurred.
