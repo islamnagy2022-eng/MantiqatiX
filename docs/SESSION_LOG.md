@@ -103,3 +103,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Blocked the paid Digital Pages Portfolio/Menu checkout UI for launch one because its current path invokes Paymob and no cash flow has been proven for those products.
 - SMM remains default-deny at the server gateway; the public SMM page is already a static deferred page. Internal Marketing & Advertising remains a separate workspace.
 - Pending exact-head CI and cash E2E; the code changes are not production deployed. Do not claim payment collected merely because a cash intent exists.
+
+
+## 2026-10-20 — Electronic checkout server-side deferral
+
+- Added `ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED=true` to `payment-intent`, `digital-page-payment-intent`, `subscription-payment-intent`, and `mantigo-payment-intent`; each returns `ELECTRONIC_PAYMENTS_DEFERRED` before creating a Paymob intention.
+- Added a cash-first static contract validator to Pages CI and bumped PWA cache/script versions.
+- The cash path is not yet release-certified: staff collection confirmation UI, tenant cash-method configuration, and cash E2E evidence remain open. No deploy/merge/production mutation.
