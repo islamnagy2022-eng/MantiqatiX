@@ -757,3 +757,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - **Migration history preserved:** original `20261020231500_used_item_ads_minimal_directory_read.sql` was restored without the RPC rewrite. New follow-up migration `20261020232000_used_item_ads_directory_backend_v1.sql` installs the narrow RPC and revokes table-level plus column-level read grants. Validator uses the new migration. CI must confirm migration uniqueness/immutability before merge.
+
+
+- Used-item directory now has a disposable PostgreSQL behavioral test wired into the backend-boundary workflow, covering anonymous denial, owner/sold visibility, scope filters, and direct-column privilege removal. CI pending; see commits `36cabb5278ee83daa3287d012106e40f5b3472a2`, `88038efaf22afeeefb5e47acd2c3e603824d4b94`, `9c35ef15fc61e29982bd493009931d1454bf5783`, `cadae558830bf29505bde6c8d72e286d99262399`.
