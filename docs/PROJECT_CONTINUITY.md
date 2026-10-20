@@ -866,3 +866,9 @@ This status is intentional and must remain until the open gates above are indepe
 - Exact-head workflows all completed successfully: disposable forward migration replay `39376153889`; backend-only module boundary `39376148719`; module professionalization validation `39376148873` (RC458/RC459/RC460/RC462 and related validation jobs); MantiGO privacy boundary `39376148674`.
 - This resolves the previous note that exact-head CI for the cash-payment read permission parity fix was pending. Do not overstate this as launch certification: authenticated customer cash checkout/authorized cash confirmation E2E, tenant/business isolation in real authenticated flows, production configuration, and backup/restore/DR still require evidence.
 - Keep PR #307 draft and unmerged; global release **BLOCKED / NOT CERTIFIED**. No production changes, migrations, or deployment.
+
+
+## Continuation — cash-payment read authorization regression coverage — 2026-10-20
+- Expanded the cash-only source validator to require customer-own-order enforcement, fail-closed membership lookup errors, operational business/tenant-wide scope, and a cash-intent lookup bound to both tenant and order.
+- This adds regression checks only; no API runtime behavior changed in this step. Revalidate the exact latest branch head before treating these assertions as passing.
+- Authenticated checkout/confirmation E2E and backup/restore/DR evidence remain open launch gates. Keep PR #307 draft/unmerged and release **BLOCKED / NOT CERTIFIED**.
