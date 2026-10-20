@@ -221,3 +221,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The updated RC462 behavioral suite on PR #248/#282 still needs its own exact-head workflow evidence; no pass is inferred from the PR #301 migration replay.
 - Read-only Production check still shows RC424 (283 migration versions, latest 20261008222845) and the platform-wide MantiGO authorization weakness. RC449/RC462/RC565 are not deployed. The RC40 archive does not contain authoritative creation DDL for counter_offer_indrive_bid(uuid,uuid,numeric); it uses a different mantiqatix_bids model.
 - No production migration, DDL/DML, grant/RLS/Auth change, merge, or deployment occurred. Remaining blockers include owner action for leaked-password protection, adversarial tenant/RBAC E2E, real Paymob/finance/refund E2E, recovery/rollback, browser/device/push, Android signing, production deployment verification, and full historical replay. Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-20 — workflow concurrency hardening and security contract coverage
+
+- Fixed Pages workflow concurrency in PR #300/#301 by scoping the concurrency group to github.ref. Kept pages: write and id-token: write only on the main-only deploy job; workflow-wide permissions remain read-only.
+- Verified PR #300 exact head 710819156f9f2b613f4905d5e1c7266937fc4a32 passed all six PR workflows, including industry UI contract and Pages validation; deploy was skipped as expected.
+- Expanded the draft PR #207 static validator to assert that global ad creation, digital-page publishing, captain onboarding review, and MantiGO financial configuration retain the platform-admin helper guard. Its exact-head workflow evidence has not been returned; this addition remains NOT VERIFIED.
+- No production migration, grant/RLS/Auth change, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
