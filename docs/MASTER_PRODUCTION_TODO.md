@@ -1746,3 +1746,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Corrected the global-search source-contract assertion to match the actual rendered `aria-live="polite"` status markup (the earlier assertion incorrectly expected a JavaScript `setAttribute` call).
 - [x] Re-evaluated all seven validator regex contracts against the current branch's `web/app.js` source; all seven matched. This is a targeted source-level check only, not execution of the Node validator or CI.
 - [ ] Exact-head Pages CI and browser E2E remain unverified. Keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Search empty-state distinction
+
+- [x] Fixed an additional UX ambiguity: if role filtering leaves zero permitted global-search sources, the UI now says no search sources are available for the current account/role instead of claiming there were zero matching records.
+- [x] Added a source-contract assertion for this state and checked seven source patterns against the fetched `web/app.js` content; all seven matched. This was not a Node execution or CI run.
+- [ ] Exact-head Pages CI, authenticated browser E2E, and runtime permission behavior remain unverified. Release remains **BLOCKED / NOT CERTIFIED**.
