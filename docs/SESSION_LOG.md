@@ -283,3 +283,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Updated UI copy so directory reading and ad status mutations are described separately. Added validator checks for the SQL contract and status copy.
 - Commits: migration `b79420ba8df5b997783c749d45fb9e6e7f39fc43`, UI `a8b7c110dcb9174384e53685ea0576b7b994e205`, validator `ffc9e192ba3f22323b45a77eef97ca337a7c7a71`.
 - The migration was **not** applied to the live Supabase project. Existing DB still has no authenticated SELECT privilege, so live behavior is unchanged until reviewed migration application.
+
+
+## 2026-10-20 — used-item read-path design correction
+
+- **Security review:** a column-level SELECT grant would still expose `owner_user_id` through the Data API and make table reads depend on RLS. Replaced that approach with a SECURITY DEFINER listing RPC that returns only public listing fields, checks authenticated non-anonymous identity, includes sold rows only for their owner, and applies tenant/business filters server-side.
+- **Migration:** consolidated into `supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql`; deleted the duplicate migration filename/version to avoid migration-history collision. Migration/source/validator commits: `8c3a85006f1e87a9b740d209bf9656e8868a4d10`, `c5e67d49cc764c153fb9519901502e4c95de0561`, `3c7fa872158d4f7b368a9f2051be5a5d69dcee7a`, with source RPC call in `02ddd43b8c4cf80310b6b16135ef43ec965d09d5`.
+- **Production boundary:** no migration was applied to the live database. This is committed source/migration code only; exact-head CI and database behavioral tests are required.
