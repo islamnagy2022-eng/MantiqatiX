@@ -760,3 +760,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Used-item directory now has a disposable PostgreSQL behavioral test wired into the backend-boundary workflow, covering anonymous denial, owner/sold visibility, scope filters, and direct-column privilege removal. CI pending; see commits `36cabb5278ee83daa3287d012106e40f5b3472a2`, `88038efaf22afeeefb5e47acd2c3e603824d4b94`, `9c35ef15fc61e29982bd493009931d1454bf5783`, `cadae558830bf29505bde6c8d72e286d99262399`.
+
+
+- Used-item RPC now has an isolated PostgreSQL integration fixture/test plus dedicated GitHub Actions workflow. It covers the narrow result shape, grants, anonymous rejection, owner-only sold listings, and tenant/business filtering. CI remains queued; migration remains unapplied to live Supabase.
