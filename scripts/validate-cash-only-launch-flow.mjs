@@ -180,6 +180,16 @@ assert.ok(mgCash.includes("r.data.ride_id!==ride"),"MantiGO cash confirmation mu
 assert.ok(mgCash.includes("!['CASH_CONFIRMED','PAID'].includes(r.data.payment_status)"),"MantiGO cash confirmation must require an authoritative successful payment state");
 assert.ok(operations.includes("تعذر تحديث حالة الرحلة بسبب مشكلة اتصال"),"MantiGO trip status transitions must handle network failures");
 assert.ok(operations.includes("تعذر تحديث حالة الكابتن بسبب مشكلة اتصال"),"MantiGO captain presence must handle network/location failures");
+const presenceGuardStart=operations.indexOf("async function mgSetPresence(");
+const presenceGuardEnd=operations.indexOf("async function mgTransition(",presenceGuardStart);
+const presenceGuard=operations.slice(presenceGuardStart,presenceGuardEnd);
+assert.ok(presenceGuard.includes("if(buttons.some(b=>b.disabled))return"),"captain presence must prevent duplicate submissions");
+assert.ok(presenceGuard.includes("finally{buttons.forEach"),"captain presence controls must recover after failed requests");
+const transitionGuardStart=operations.indexOf("async function mgTransition(");
+const transitionGuardEnd=operations.indexOf("async function mgCashPay(",transitionGuardStart);
+const transitionGuard=operations.slice(transitionGuardStart,transitionGuardEnd);
+assert.ok(transitionGuard.includes("if(buttons.some(b=>b.disabled))return"),"trip state changes must prevent duplicate submissions");
+assert.ok(transitionGuard.includes("finally{buttons.forEach"),"trip state controls must recover after failed requests");
 const appVersion=index.match(/app\.js\?v=([^'"]+)/)?.[1];
 const swAppVersion=sw.match(/\.\/app\.js\?v=([^'"]+)/)?.[1];
 const cacheVersion=sw.match(/const CACHE='([^']+)'/)?.[1];
