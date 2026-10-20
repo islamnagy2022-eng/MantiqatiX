@@ -10,6 +10,8 @@ const app = read('web/app.js');
 const sw = read('web/sw.js');
 const sectorModules = read('web/sector-modules.js');
 const usedItemsMigration = read('supabase/migrations/20261020232000_used_item_ads_directory_backend_v1.sql');
+const usedItemsIntegration = read('supabase/tests/used_item_ads_directory_integration.sql');
+const usedItemsWorkflow = read('.github/workflows/backend-only-module-boundary.yml');
 
 const taxonomy = home.match(/^\s*\['[^']*','[^']*','[^']*','[A-Z0-9_]+\'],?\s*$/gm) || [];
 const checks = [
@@ -47,6 +49,9 @@ const checks = [
   ['sector query failure offers retry', sectorModules.includes('data-sector-retry') && sectorModules.includes("addEventListener('click',()=>load(defs[current]))")],
   ['used-item migration revokes direct table access and installs the narrow server RPC', usedItemsMigration.includes('revoke select, insert, update, delete on table public.used_item_ads from anon, authenticated;') && usedItemsMigration.includes('create or replace function public.list_used_item_ads_backend') && usedItemsMigration.includes('grant execute on function public.list_used_item_ads_backend(varchar, uuid) to authenticated;')],
   ['used-item RPC omits seller contact and filters sold listings by owner', usedItemsMigration.includes('a.is_sold = false or a.owner_user_id = auth.uid()') && !/returns table[\s\S]*?seller_phone/i.test(usedItemsMigration)],
+  ['used-item integration verifies seller phone and owner ID are not directly readable', usedItemsIntegration.includes("has_column_privilege('authenticated','public.used_item_ads','seller_phone','SELECT')") && usedItemsIntegration.includes("has_column_privilege('authenticated','public.used_item_ads','owner_user_id','SELECT')")],
+  ['used-item integration verifies sold-owner isolation and anonymous denial', usedItemsIntegration.includes("sold listing owned by another user leaked") && usedItemsIntegration.includes("anonymous auth session was not rejected") && usedItemsIntegration.includes("unauthenticated session was not rejected")],
+  ['used-item PostgreSQL integration is wired into backend CI', usedItemsWorkflow.includes('used-item-directory-rpc-integration') && usedItemsWorkflow.includes('supabase/tests/used_item_ads_directory_integration.sql')],
   ['used-item status notice separates read from mutation availability', sectorModules.includes('إدارة حالة الإعلان غير متاحة من هذه الواجهة حتى يتم اعتماد مسار تعديل آمن في الخادم.')],
   ['sector workspace writes only through server-authorized RPCs', !/sb\.from\(['"][^'"]+['"]\)\.(insert|update|upsert|delete)\b/.test(sectorModules)],
   ['education request RPC is present', sectorModules.includes("sb.rpc('create_education_request_backend'")],
