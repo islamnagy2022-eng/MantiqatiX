@@ -105,6 +105,9 @@ assert.match(rc460Integration,/RC460_CROSS_BUSINESS_CASH_CONFIRMATION_MUST_FAIL/
 assert.match(rc460Integration,/RC460_PAYMENT_EVENT_NOT_ATOMIC/);
 assert.match(rc460Integration,/RC460_COMMISSION_OBLIGATION_MISSING/);
 assert.match(rc460Integration,/RC460_AUTHENTICATED_EXECUTE_MUST_BE_DENIED/);
+assert.match(rc460Integration,/CUSTOM_OPERATOR','{"PAYMENT_CONFIRM_CASH":true}'/,"RC460 integration must exercise permission-only JSONB membership");
+assert.match(rc460Integration,/RC460_AUTHORIZED_IDEMPOTENT_RETRY_FAILED/);
+assert.ok(cashConfirm.indexOf("IF NOT v_is_authorized") < cashConfirm.indexOf("IF v_intent.status='SUCCEEDED'"), "cash confirmation must authorize before returning an idempotent success payload");
 assert.match(chain,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
 assert.match(chain,/20261020140000_rc460_cash_confirmation_business_membership\.sql/);
 assert.match(chain,/required\.length, 32/);
