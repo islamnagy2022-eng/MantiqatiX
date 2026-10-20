@@ -4,7 +4,9 @@ insert into public.user_memberships(user_id,tenant_id,business_id,role,status) v
 insert into public.user_memberships(user_id,tenant_id,business_id,role,status,branch_id) values
  ('44444444-4444-4444-8444-444444444444','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE','branch-a');
 insert into public.erp_suppliers(id,tenant_id,business_id,branch_id,supplier_code,name_ar,status,created_by) values
- ('supplier-1','tenant-a','22222222-2222-4222-8222-222222222222',null,'SUP-001','مورد اختبار','ACTIVE','11111111-1111-4111-8111-111111111111');
+ ('supplier-1','tenant-a','22222222-2222-4222-8222-222222222222',null,'SUP-001','مورد اختبار','ACTIVE','11111111-1111-4111-8111-111111111111'),
+ ('supplier-branch-a','tenant-a','22222222-2222-4222-8222-222222222222','branch-a','SUP-A','مورد فرع أ','ACTIVE','11111111-1111-4111-8111-111111111111'),
+ ('supplier-other-tenant','tenant-b','99999999-9999-4999-8999-999999999999',null,'SUP-B','مورد مؤسسة أخرى','ACTIVE','11111111-1111-4111-8111-111111111111');
 insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id,status) values
  ('po-existing','tenant-a','22222222-2222-4222-8222-222222222222',null,'PENDING_APPROVAL'),
  ('po-other-branch','tenant-a','22222222-2222-4222-8222-222222222222','branch-b','SUBMITTED'),
@@ -32,6 +34,20 @@ begin
     raise exception 'RC461_NON_MEMBER_WAS_ALLOWED';
   exception when others then
     if sqlerrm not like '%ERP_MEMBERSHIP_REQUIRED%' then raise; end if;
+  end;
+  begin
+    perform public.erp_runtime_execute(actor,'create_purchase_order',
+      jsonb_build_object('p_id','po-cross-tenant-supplier','p_tenant_id','tenant-a','p_business_id',biz,'p_branch_id',null,'p_order_number','PO-X','p_supplier_id','supplier-other-tenant','p_total_amount',100));
+    raise exception 'RC461_CROSS_TENANT_SUPPLIER_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_SUPPLIER_SCOPE_INVALID%' then raise; end if;
+  end;
+  begin
+    perform public.erp_runtime_execute(actor,'create_purchase_order',
+      jsonb_build_object('p_id','po-cross-branch-supplier','p_tenant_id','tenant-a','p_business_id',biz,'p_branch_id',null,'p_order_number','PO-Y','p_supplier_id','supplier-branch-a','p_total_amount',100));
+    raise exception 'RC461_CROSS_BRANCH_SUPPLIER_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_SUPPLIER_BRANCH_SCOPE_INVALID%' then raise; end if;
   end;
   result := public.erp_runtime_execute(actor,'create_purchase_order',
     jsonb_build_object('p_id','po-new','p_tenant_id','tenant-a','p_business_id',biz,'p_branch_id',null,'p_order_number','PO-1','p_supplier_id','supplier-1','p_total_amount',100,'p_tax_amount',0,'p_discount_amount',0,'p_reason','test'));
