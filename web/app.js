@@ -854,11 +854,11 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&['warehouses','catalog_items'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&['warehouses','catalog_items','branches'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
-   if(['chart_of_accounts','journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(['chart_of_accounts','journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items','branches'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
    if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.businessId)q=q.eq('business_id',live.businessId);
    if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.branchId)q=q.eq('branch_id',live.branchId);
    if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
