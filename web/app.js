@@ -49,7 +49,7 @@ const domainModules=[
 {key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries']},
 {key:'COMPANIES',name:'المزايدات — الشركات',icon:'🏢',desc:'طلبات الشركات ومقدمو الخدمة والعروض.',tables:['indrive_requests','indrive_bids','businesses']},
 {key:'MARKETING',name:'المزايدات — التسويق',icon:'📣',desc:'طلبات التسويق ومقدمو الخدمة والمشروعات.',tables:['marketing_leads','marketing_provider_profiles','marketing_services','marketing_projects']},
-{key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والتشغيل المرتبط بالمخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses']},
+{key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والمخازن والأرصدة وحركة المخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances']},
 {key:'TRIPS',name:'المزايدات — الرحلات',icon:'✈️',desc:'طلبات الرحلات والعروض والتنفيذ.',tables:['indrive_requests','indrive_bids','mantigo_rides','mantigo_bids']},
 {key:'MAINTENANCE',name:'المزايدات — الصيانة',icon:'🔧',desc:'طلبات الصيانة والعروض والمتابعة.',tables:['indrive_requests','indrive_bids','support_tickets']},
 {key:'LEGAL',name:'المزايدات — الخدمات القانونية',icon:'⚖️',desc:'الوثائق والمتطلبات والاتفاقيات القانونية.',tables:['legal_documents','legal_requirements','agreements']},
@@ -853,20 +853,32 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&table==='warehouses'));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&table==='warehouses')&&!(m.key==='MATRIMONY'&&table==='matrimony_requests'));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
-   if(['chart_of_accounts','journal_entries','journal_entry_lines','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(['chart_of_accounts','journal_entries','journal_entry_lines','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(['journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.businessId)q=q.eq('business_id',live.businessId);
+   if(['journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.branchId)q=q.eq('branch_id',live.branchId);
    if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
    if(table==='mantigo_bids')q=q.limit(100);
-   if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);
+   if(table==='matrimony_profiles')q=sb.from(table).select('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at').or('is_verified.eq.true,owner_user_id.eq.'+user.id);
    if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);
    const result=await q;
    return {table,data:result.error?[]:(result.data||[]),error:result.error};
   }catch(error){return {table,data:[],error};}
  }));
  for(const result of results){rows[result.table]=result.data;if(result.error)errors[result.table]='READ_FAILED';}
+ if(m.key==='MATRIMONY'){
+  try{
+   const ownedProfiles=(rows.matrimony_profiles||[]).filter(profile=>String(profile.owner_user_id)===String(user.id)).map(profile=>String(profile.id)).filter(Boolean);
+   const clauses=['from_user_id.eq.'+user.id];
+   if(ownedProfiles.length)clauses.push('to_profile_id.in.('+ownedProfiles.join(',')+')');
+   const requestResult=await sb.from('matrimony_requests').select('id,from_user_id,to_profile_id,status,message_text,created_at').or(clauses.join(',')).order('created_at',{ascending:false}).limit(100);
+   if(requestResult.error)throw requestResult.error;
+   rows.matrimony_requests=requestResult.data||[];
+  }catch(error){rows.matrimony_requests=[];errors.matrimony_requests='READ_FAILED';}
+ }
  cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;syncModuleRuntime(m.name);renderApp();
 }
 window.retryEnterpriseDomainData=async function(key){
@@ -963,7 +975,38 @@ function restaurantWorkspace(rows){
  +workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
 }
 
-function enterpriseRowsTable(m,rows){if(m.key==='ACCOUNTING'&&current==='المزايدات — المحاسبة')return recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])+recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['الحالة',r=>r.status]]);if(m.key==='ERP')return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'+recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':'—']])+recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>r.warehouse_id],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])+recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>r.from_warehouse_id],['إلى',r=>r.to_warehouse_id],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']]);if(m.key==='FACTORIES')return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])+recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>r.warehouse_id],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])+recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]]);if(m.key==='TRIPS')return mantigoWorkspace(rows);if(m.key==='MEDICAL')return medicalWorkspace(rows);if(m.key==='MATRIMONY')return '<div class="notice">بيانات الاتصال المباشر وبيانات الولي محجوبة من قائمة الملفات العامة.</div>'+recordsTable('الملفات المتاحة',rows.matrimony_profiles||[],[['الاسم المستعار',r=>r.pseudonym],['العمر',r=>r.age],['المدينة',r=>r.city],['التعليم',r=>r.education],['المهنة',r=>r.occupation],['الحالة',r=>r.marital_status],['موثق',r=>r.is_verified?'نعم':'لا']])+recordsTable('طلبات التواصل الخاصة بي',rows.matrimony_requests||[],[['الملف',r=>r.to_profile_id],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]]);return ''}
+function enterpriseRowsTable(m,rows){
+ const sourceRows=(m.tables||[]).map(table=>({table,count:Array.isArray(rows[table])?rows[table].length:0}));
+ const sources=()=>recordsTable('مصادر البيانات الموصولة',sourceRows,[['المصدر',r=>r.table],['السجلات',r=>r.count],['الحالة',r=>r.count?'READABLE':'لا توجد سجلات']]);
+ if(m.key==='ACCOUNTING'&&current==='المزايدات — المحاسبة'){
+  return recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])
+   +recordsTable('طلبات الخدمات المحاسبية',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]])
+   +recordsTable('العروض والتفاوض',rows.indrive_bids||[],[['مقدم العرض',r=>r.provider_name],['القيمة',r=>r.offered_price],['ملاحظة',r=>r.note],['الحالة',r=>r.status]])
+   +recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['الحالة',r=>r.status]])
+   +sources();
+ }
+ if(m.key==='ERP'){
+  return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'
+   +recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':'—']])
+   +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>r.warehouse_id],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
+   +recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الفرع',r=>r.branch_id],['الحالة',r=>r.status]])
+   +recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>r.from_warehouse_id],['إلى',r=>r.to_warehouse_id],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']])
+   +sources();
+ }
+ if(m.key==='FACTORIES'){
+  return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])
+   +recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>r.warehouse_id],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])
+   +recordsTable('حركة المخزون',rows.inventory_transactions||[],[['النوع',r=>r.transaction_type],['المنتج',r=>r.product_id],['الكمية',r=>r.quantity],['تكلفة الوحدة',r=>r.unit_cost],['التاريخ',r=>r.created_at]])
+   +recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]])
+   +sources();
+ }
+ if(m.key==='TRIPS')return mantigoWorkspace(rows)+sources();
+ if(m.key==='MATRIMONY')return '<div class="notice">بيانات الاتصال المباشر وبيانات الولي لا تُحمّل إلى قائمة الملفات العامة.</div>'
+   +recordsTable('الملفات المتاحة',rows.matrimony_profiles||[],[['الاسم المستعار',r=>r.pseudonym],['العمر',r=>r.age],['المدينة',r=>r.city],['التعليم',r=>r.education],['المهنة',r=>r.occupation],['الحالة',r=>r.marital_status],['موثق',r=>r.is_verified?'نعم':'لا']])
+   +recordsTable('طلبات التواصل الخاصة بي',rows.matrimony_requests||[],[['الملف',r=>r.to_profile_id],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]])
+   +sources();
+ return '';
+}
 function domainModuleWorkspace(){
  const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();
  const d=live.moduleData[m.key]||{tables:{},ready:false};
