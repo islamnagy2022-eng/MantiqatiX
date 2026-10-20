@@ -4,6 +4,7 @@ const migration = fs.readFileSync("supabase/migrations/20261010170000_rc449_mant
 const guardFix = fs.readFileSync("supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_integration.sql", "utf8");
 const malformedPermissionsTest = fs.readFileSync("supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8");
 const liveContract = fs.readFileSync("scripts/verify-mantigo-high-risk-definers.sql", "utf8");
 const checks = [];
 function check(name, ok) {
@@ -15,6 +16,8 @@ check("historical RC449 permission predicate remains identified for forward-only
 check("RC462 uses exact JSON Boolean containment for platform scope and full control", guardFix.includes("m.permissions @> '{\"scope\":\"PLATFORM\",\"full_control\":true}'::jsonb"));
 check("RC462 does not cast JSON text into a Boolean", !guardFix.includes("->> 'full_control'") && !guardFix.includes("->> 'scope'"));
 check("RC462 guard uses empty search_path and is not public/anon executable", guardFix.includes("set search_path = ''") && guardFix.includes("revoke all on function public.mnty_can_platform_admin() from public, anon"));
+check("RC462 guard re-evaluates request-scoped JWT identity on every call", guardFix.includes("language plpgsql\nvolatile\nsecurity definer") && guardFix.includes("return exists ("));
+check("disposable auth.uid fixture reads current JWT subject on every invocation", /create or replace function auth\.uid\(\)[\s\S]*?language plpgsql\s+volatile/i.test(fixture) && fixture.includes("Each invocation must read the current request GUC"));
 check("global dashboard checks the platform-admin guard", migration.includes("get_mantigo_admin_dashboard_backend") && migration.includes("if not public.mnty_can_platform_admin()"));
 check("global financial report checks the platform-admin guard", migration.includes("get_mantigo_admin_financial_report_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
 check("global settlement checks the platform-admin guard", migration.includes("settle_mantigo_captain_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
