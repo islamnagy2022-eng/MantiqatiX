@@ -1919,3 +1919,6 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 
 - **Migration history safety follow-up:** preserved `20261020231500_used_item_ads_minimal_directory_read.sql` unchanged and moved the RPC/privilege revocation into the new follow-up migration `20261020232000_used_item_ads_directory_backend_v1.sql`. The follow-up explicitly revokes both table-level and prior column-level SELECT grants before granting only RPC EXECUTE. Validator points at the follow-up migration. Commits: `861d2eb6410aa18026325f1efa8b7ccf13288e20`, `c6aaa104f2d36318f498a82b1421666e671b51e4`, `89753cf6e26be56f31ec69fb4a82797846c954dc`.
+
+
+- [x] Added disposable PostgreSQL fixture and behavioral integration tests for active listings, owner-only sold listings, tenant/business filtering, anonymous rejection, no direct `owner_user_id`/seller-phone column access, and RPC grants. Wired the test into `.github/workflows/backend-only-module-boundary.yml` and guarded the test coverage in `validate-sector-rendering.mjs`. Commits: `36cabb5278ee83daa3287d012106e40f5b3472a2`, `88038efaf22afeeefb5e47acd2c3e603824d4b94`, `9c35ef15fc61e29982bd493009931d1454bf5783`, `cadae558830bf29505bde6c8d72e286d99262399`. Awaiting CI execution.
