@@ -94,3 +94,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Cash-first launch scope and implementation checkpoint
+
+- Decision received: defer electronic payments until after launch; use cash for eligible launch-one orders; defer independent SMM until after launch.
+- Added cash-intent creation after customer catalog and restaurant order creation. API cash intent creation now checks the existing tenant/idempotency key first and uses conflict-safe insertion; retries return the existing intent and reject cross-order/amount/currency key reuse.
+- Blocked the paid Digital Pages Portfolio/Menu checkout UI for launch one because its current path invokes Paymob and no cash flow has been proven for those products.
+- SMM remains default-deny at the server gateway; the public SMM page is already a static deferred page. Internal Marketing & Advertising remains a separate workspace.
+- Pending exact-head CI and cash E2E; the code changes are not production deployed. Do not claim payment collected merely because a cash intent exists.
