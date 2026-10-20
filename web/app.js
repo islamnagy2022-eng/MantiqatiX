@@ -872,6 +872,13 @@ async function loadEnterpriseDomainData(m){
    rows.catalog_items=result.catalog_items||[];
    rows.stock_balances=result.stock_balances||[];
    rows.inventory_transactions=result.inventory_transactions||[];
+   window.MNTYOperationsERPData={
+    loaded_at:Date.now(),tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,
+    businesses:rows.businesses,erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_order_lines:rows.erp_purchase_order_lines,
+    erp_suppliers:rows.erp_suppliers,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,
+    warehouses:rows.warehouses,branches:rows.branches,catalog_items:rows.catalog_items,
+    stock_balances:rows.stock_balances,inventory_transactions:rows.inventory_transactions
+   };
   }catch(e){
    for(const table of ['erp_purchase_orders','erp_purchase_order_lines','erp_purchase_receipts','erp_stock_transfers','warehouses','branches','catalog_items','stock_balances','inventory_transactions'])rows[table]=[];
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
