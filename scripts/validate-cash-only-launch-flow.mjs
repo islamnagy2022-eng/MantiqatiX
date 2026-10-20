@@ -406,6 +406,9 @@ const rc469Fixture=read("supabase/tests/rc469_mantigo_presence_guard_fixture.sql
 const rc469Integration=read("supabase/tests/rc469_mantigo_presence_guard_integration.sql");
 assert.match(rc469Fixture,/verification_status/,"RC469 fixture must model captain verification state");
 assert.match(rc469Integration,/RC469_PRESENCE_GUARD_INTEGRATION: PASS/,"RC469 integration test must expose a clear success marker");
+assert.match(rc469Integration,/has_function_privilege\('anon',[\s\S]*?EXECUTE'\)/,"RC469 integration must prove anonymous callers cannot execute the RPC");
+assert.match(rc469Integration,/has_function_privilege\('authenticated',[\s\S]*?EXECUTE'\)/,"RC469 integration must prove authenticated callers retain intended execution access");
+assert.match(rc469Integration,/offline transition unexpectedly failed/,"RC469 integration must retain a safe offline transition");
 for (const failureCode of ["CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY","CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY","INVALID_AVAILABILITY_STATUS","CAPTAIN_PROFILE_NOT_FOUND","USER_CONTEXT_MISMATCH","INVALID_LATITUDE","INVALID_LONGITUDE"]) {
   assert.ok(rc469Integration.includes(failureCode), "RC469 integration test must cover " + failureCode);
 }
