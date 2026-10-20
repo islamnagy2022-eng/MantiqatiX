@@ -323,6 +323,7 @@ assert.match(rc465Integration,/RC465_RECEIPT_IDEMPOTENCY_CONFLICT_MUTATED_STOCK/
 assert.match(rc465,/r\\.receipt_number=v_receipt_number or r\\.id::text=v_receipt_id/);
 assert.match(rc465,/create table if not exists public\\.erp_purchase_receipt_idempotency/);
 assert.match(rc465,/ERP_RECEIPT_IDEMPOTENCY_CONFLICT/);
+assert.match(rc465,/coalesce\(\(v_result->>'idempotent'\)::boolean,false\)/);
 assert.match(rc465Integration,/RC465_RECEIPT_IDEMPOTENCY_LEDGER_MISSING/);
 assert.match(rc465,/r\.id::text=v_receipt_id/);
 assert.match(apiERP,/create_purchase_order_with_lines/);
