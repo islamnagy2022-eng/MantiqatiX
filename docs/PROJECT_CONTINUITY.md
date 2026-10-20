@@ -722,3 +722,9 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Sector workspace authentication errors now display Arabic guidance and omit the retry action when no session exists; source commit `b26ded4f7aa325deff7a3d4b23539167c265829d`, validator commit `8f97bbf72c6e1ab74aa6e39e17384799a83276eb`. Exact-head CI/E2E remain pending.
+
+
+## 2026-10-20 continuation — sector RPC live ACL evidence
+
+- Read-only production SQL confirms the UI's three backend RPCs exist, allow execution to `authenticated`, and deny execution to `anon` and `PUBLIC`. The jobs and job-applications ID types align as UUID. No live database mutation was performed.
+- Keep the direct-table-write prohibition in place. Next blockers are exact-head CI completion, browser E2E, and the missing narrow authenticated read contract for used-item listings.
