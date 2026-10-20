@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !anonKey || !serviceKey) return json({ error: "SERVER_CONFIGURATION_ERROR" }, 500);
     const userClient = createClient(url, anonKey, { global: { headers: { Authorization: auth } }, auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    const { data: { user }, error: userError } = await userClient.auth.getUser(auth.slice(7));
     if (userError || !user || user.is_anonymous) return json({ error: "AUTH_REQUIRED" }, 401);
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const body = await req.json();
@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
       }
       const warehouseIds = (warehousesData ?? []).map((row: any) => String(row.id));
       let ordersQuery = admin.from("erp_purchase_orders").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false });
-      if (branchId) ordersQuery = ordersQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+      if (branchId) ordersQuery = ordersQuery.eq("branch_id", branchId);
       let receiptsQuery = admin.from("erp_purchase_receipts").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false });
       if (branchId) receiptsQuery = warehouseIds.length ? receiptsQuery.in("warehouse_id", warehouseIds) : receiptsQuery.in("warehouse_id", ["00000000-0000-0000-0000-000000000000"]);
       const [ordersRes, receiptsRes] = await Promise.all([ordersQuery, receiptsQuery]);
