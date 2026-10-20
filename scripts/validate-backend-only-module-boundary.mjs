@@ -37,7 +37,11 @@ if(!operations.includes('Date.now()-Number(sharedERP.loaded_at||0)<30000')) thro
 if(!operations.includes('visible===current')) throw new Error('post-mutation refresh must only reload the currently visible operations module');
 if(!operations.includes('window.MNTYReloadOperationsModule=async function()')) throw new Error('operations module does not expose post-mutation refresh');
 if(!app.includes("if(typeof window.MNTYReloadOperationsModule==='function')await window.MNTYReloadOperationsModule()")) throw new Error('ERP mutations do not refresh the dependent module view');
-if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty133') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty133')) throw new Error('operations module asset cache versions must match');
+const indexHtml=fs.readFileSync('web/index.html','utf8');
+const serviceWorker=fs.readFileSync('web/sw.js','utf8');
+const indexOpsVersion=indexHtml.match(/operations-modules\\.js\\?v=([^'\"]+)/)?.[1];
+const swOpsVersion=serviceWorker.match(/operations-modules\\.js\\?v=([^'\"]+)/)?.[1];
+if(!indexOpsVersion || indexOpsVersion!==swOpsVersion) throw new Error('operations module asset cache versions must match');
 
 
 const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
