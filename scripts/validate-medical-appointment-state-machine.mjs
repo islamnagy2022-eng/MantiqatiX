@@ -103,6 +103,7 @@ assert.ok(operations.includes("MNTY_MEDICAL_BOOKING:"),"operations medical booki
 assert.ok(operations.includes("storedRequest?.fingerprint===requestPayload&&storedRequest?.id"),"operations medical booking retries must reuse the exact request ID for the same payload");
 assert.ok(operations.includes("sessionStorage.setItem(requestKey,JSON.stringify(requestRecord))"),"operations medical booking must persist its retry token before invoking the backend");
 assert.ok(operations.includes("sessionStorage.removeItem(requestKey)"),"operations medical booking must clear its retry token only after confirmed success");
+assert.ok(operations.includes("if(!r.data||String(r.data.id||'')!==appointmentId)"),"operations medical booking must retain its idempotency token when the backend response does not confirm the exact request ID");
 assert.ok(operations.includes("idempotent_replay"),"operations medical booking must communicate replayed success without creating a duplicate");
 assert.ok(operations.includes('type="datetime-local" min=')&&operations.includes('step="900" required'),"operations medical booking must use an inline quarter-hour datetime control");
 assert.ok(operations.includes("document.getElementById('med-op-slot-'+providerId)"),"operations booking must read its own selected date/time field");
