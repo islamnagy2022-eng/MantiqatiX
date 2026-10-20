@@ -1761,3 +1761,46 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Extended the blueprint source-contract validator to reject unverified “ENFORCED” badges and require explicit verification caveats.
 - [x] Checked eight targeted source patterns against the current module blueprint; all eight matched the intended contract. This was source inspection, not execution of the validator or CI.
 - [ ] Exact-head CI, authenticated browser tests, and live RLS behavior remain unverified. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Explicit module page completion TODO matrix
+
+Status rule: **0 modules are E2E-certified complete by this UI-first branch**. This is not a claim that no working code exists; it means complete page journeys, role/tenant authorization, and exact-head CI have not been proven together here.
+
+### Page families — current status and remaining work
+
+- [x] **Module blueprint integrity:** generic section action now explains that no standalone workflow is wired and that no data changed.
+- [x] **Security-status honesty:** generic blueprints no longer claim RLS/RBAC enforcement without module-specific evidence.
+- [x] **Global-search state distinction:** source now distinguishes unavailable permitted sources and source failures from genuine zero results (source-level checks only; runtime still unverified).
+- [ ] **Shared shell/navigation:** enumerate every actual route, modal, button handler, role dashboard, back/deep-link behavior and dependency; test keyboard/mobile.
+- [ ] **Authentication/session:** verify OAuth/OTP contract, callback, expired session, restore/refresh, logout and membership switching.
+- [ ] **Public discovery/provider profiles:** verify search → result → profile/service → contact/request, privacy, loading/error/empty and responsive behavior.
+- [ ] **Fashion:** product list/detail, orders, tailoring; verify tenant/business scope and owner boundaries.
+- [ ] **Grocery/supermarket:** catalog/pricing/stock/orders; verify branch stock and order state integrity.
+- [ ] **Restaurants/kitchens:** menu/modifiers/tables/orders/kitchen/inventory full lifecycle and role-specific controls.
+- [ ] **Medical/clinics/pharmacy:** provider/patient views, appointment state machine, duplicate booking and private-data boundaries; discover pharmacy-specific route/contract.
+- [ ] **Maintenance/professional services/reverse bidding:** request, bid, selection, assignment, completion/cancel, duplicate/retry and privacy.
+- [ ] **MantiGO/trips:** ride request, captain offers, selection, trip states, rating and location privacy.
+- [ ] **Jobs:** employer job management, candidate applications, duplicate prevention and applicant privacy.
+- [ ] **Education:** schools/teachers, requests, requester ownership, consent, validation and privacy.
+- [ ] **Used items:** listing, seller-owned update/sold action, inquiry/offer lifecycle and concurrent updates.
+- [ ] **Marketing/CRM:** leads, projects, participants, planning views, assignment/status changes and error-aware source loading.
+- [ ] **Legal:** private documents, requirements, agreements and authorized lifecycle transitions.
+- [ ] **Companies/factories:** actual routes and supplier/request/inventory workflows with scoped authorization.
+- [ ] **ERP/purchasing/inventory:** confirm deployed schema/migrations; server-only purchase order/receipt/transfer writes; stock reconciliation and negative tests.
+- [ ] **Digital pages/editor:** safe public slug, unpublished state, owner-only preview/save/publish/unpublish.
+- [ ] **Provider onboarding/activity management:** create/edit/approve/suspend/close via verified existing Edge Function/RPC.
+- [ ] **Platform admin/users/roles:** scoped role assignment/revocation, confirmations, audit trail, denial states and negative tenant-user tests.
+- [ ] **Sponsored placements:** clearly labeled display and verified click/impression only; paid billing and external spend remain deferred.
+- [ ] **Matrimony:** blueprint only; privacy and consent-first matching/contact pages not yet verified.
+- [ ] **Accounting/commissions/subscriptions:** expanded UI remains deferred; preserve mandatory cash/order/ledger security gates.
+- [ ] **SMM paid execution/electronic payments:** deferred; keep fail-closed and do not imply real provider execution.
+- [ ] **Cross-module E2E:** connect dashboard/search/cards/notifications/deep links and test key customer/provider/admin journeys.
+- [ ] **Exact-head verification:** run validators, CI, responsive/accessibility checks and authenticated browser E2E; record links/results. No green release until all required gates pass.
+
+### Current branch facts
+
+- [ ] Current PR #309 remains draft/open and unmerged; do not treat source commits as release approval.
+- [ ] Exact-head workflow runs were not returned by the PR-run lookup; this is not proof that no workflow ran, only that this lookup did not provide evidence.
+- [ ] No browser E2E or live RLS test has been confirmed in this session.
+- [ ] Release remains **BLOCKED / NOT CERTIFIED**.
