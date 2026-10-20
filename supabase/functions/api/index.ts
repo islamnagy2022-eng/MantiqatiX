@@ -129,8 +129,10 @@ serve(async (req) => {
   if (req.method === "POST" && path === "/api/v1/orders") {
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== "object") return json({ error: "Invalid JSON body" }, 400)
-    const required = ["orderId","tenantId","businessId","branchId","clientIdempotencyKey","items"]
+    const required = ["orderId","tenantId","businessId","clientIdempotencyKey","items","paymentMethod"]
     if (required.some((k) => body[k] == null || body[k] === "")) return json({ error: "Missing required order fields" }, 400)
+    if (String(body.paymentMethod).toUpperCase() !== "CASH_ON_DELIVERY") return json({ error: "CASH_ONLY_LAUNCH" }, 400)
+    if (!/^[0-9a-f-]{36}$/i.test(String(body.orderId))) return json({ error: "Invalid orderId" }, 400)
     if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
     if (String(body.clientIdempotencyKey).length > 200) return json({ error: "Invalid idempotency key" }, 400)
 
@@ -153,6 +155,12 @@ serve(async (req) => {
     const { data: provider } = await supabaseAdmin.from("marketing_provider_profiles")
       .select("id").eq("business_id", String(body.businessId)).eq("status", "ACTIVE").limit(1).maybeSingle()
     if (!provider) return json({ error: "Provider not available" }, 404)
+
+    const { data: cashMethod, error: cashMethodError } = await supabaseAdmin.from("tenant_payment_methods").select("id")
+      .eq("tenant_id", tenantId).eq("payment_method", "CASH_ON_DELIVERY")
+      .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
+    if (cashMethodError) return json({ error: "Cash payment configuration unavailable" }, 500)
+    if (!cashMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
     const { data, error } = await supabaseAdmin.rpc("create_order_backend", {
       p_order_id: String(body.orderId),
@@ -206,7 +214,7 @@ serve(async (req) => {
     if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,total_amount,currency,customer_id").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
 
     const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
@@ -230,7 +238,7 @@ serve(async (req) => {
       id: crypto.randomUUID(),
       tenant_id: order.tenant_id,
       order_id: order.id,
-      amount: order.total,
+      amount: order.total_amount,
       currency: order.currency,
       status: "CREATED",
       provider: "CASH_ON_DELIVERY",
