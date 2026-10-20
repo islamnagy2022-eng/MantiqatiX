@@ -7,6 +7,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUP
 const PAYMOB_SECRET_KEY = Deno.env.get("PAYMOB_SECRET_KEY") ?? "";
 const PAYMOB_INTEGRATION_ID = Deno.env.get("PAYMOB_INTEGRATION_ID") ?? "";
 const PAYMOB_CALLBACK_URL = Deno.env.get("PAYMOB_CALLBACK_URL") ?? `${SUPABASE_URL}/functions/v1/paymob-webhook`;
+const ELECTRONIC_PAYMENTS_INITIAL_LAUNCH_DEFERRED = true;
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false, autoRefreshToken: false } });
 
@@ -38,6 +39,7 @@ Deno.serve(async (req) => {
   const token = auth.slice(7);
   const { data: { user }, error: authError } = await admin.auth.getUser(token);
   if (authError || !user || user.is_anonymous) return json({ error: "Unauthorized" }, 401, requestId);
+  if (ELECTRONIC_PAYMENTS_INITIAL_LAUNCH_DEFERRED || Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_ENABLED") !== "true") return json({ error: "ELECTRONIC_PAYMENTS_POST_LAUNCH", requestId }, 503, requestId);
 
   if (!PAYMOB_SECRET_KEY || !PAYMOB_INTEGRATION_ID) return json({ error: "Electronic payment gateway is not configured" }, 503, requestId);
 
