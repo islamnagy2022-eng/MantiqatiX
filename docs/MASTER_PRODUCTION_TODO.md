@@ -1901,3 +1901,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Updated the sector UI notice to distinguish directory reading from the still-disabled status mutation workflow.
 - [x] Extended `scripts/validate-sector-rendering.mjs` to assert the narrow grant, explicit absence of seller-phone access, and honest read/mutation messaging.
 - [ ] Migration is committed to the PR branch but has **not** been applied to the live database. Confirm exact-head CI and migration integration tests before applying. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — used-item directory moved behind server RPC — 2026-10-20
+- [x] Replaced the proposed column-level table read grant with `public.list_used_item_ads_backend(varchar, uuid)`, returning only listing fields and never `seller_phone` or `owner_user_id`.
+- [x] The function rejects unauthenticated and anonymous Auth sessions, returns unsold ads plus the caller's own sold ads, and applies optional tenant/business filters server-side.
+- [x] Direct table SELECT/INSERT/UPDATE/DELETE privileges for `anon` and `authenticated` are revoked; authenticated clients receive EXECUTE only on the narrow RPC.
+- [x] Sector loader now calls the RPC instead of selecting the table directly. Validator now checks the RPC boundary and privacy behavior.
+- [x] Removed the duplicate migration version and consolidated the function into `20261020231500_used_item_ads_minimal_directory_read.sql`.
+- [ ] Migration has **not** been applied to the connected production database. Apply through the approved migration process and run authenticated/non-anonymous, anonymous-denial, sold-owner, and seller-phone non-disclosure tests before relying on the read path. Release remains **BLOCKED / NOT CERTIFIED**.
