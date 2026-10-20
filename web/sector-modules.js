@@ -51,9 +51,11 @@ async function applyToJob(jobId,jobTitle){
  const phone=window.prompt('رقم الهاتف')?.trim()||'';
  const qualifications=window.prompt('المؤهلات')?.trim()||'';
  const cv=window.prompt('ملخص السيرة الذاتية')?.trim()||'';
- const r=await sb.from('job_applications').insert({id:crypto.randomUUID(),job_id:jobId,applicant_user_id:state.user.id,applicant_name:applicantName,applicant_phone:phone,qualifications,cv_summary_text:cv});
- if(r.error)return alert('تعذر إرسال طلب الوظيفة: '+r.error.message);
- alert('تم إرسال طلب التوظيف.');
+ if(!phone||!qualifications||!cv)return alert('رقم الهاتف والمؤهلات وملخص السيرة الذاتية بيانات مطلوبة لإرسال الطلب.');
+ const {data,error}=await sb.rpc('submit_job_application_backend',{p_user_id:state.user.id,p_job_id:jobId,p_applicant_name:applicantName,p_applicant_phone:phone,p_qualifications:qualifications,p_cv_summary_text:cv});
+ if(error)return alert('تعذر إرسال طلب الوظيفة: '+error.message);
+ const status=data?.status;
+ alert(status==='ALREADY_APPLIED'?'سبق لك التقديم على هذه الوظيفة.':'تم إرسال طلب التوظيف بنجاح.');
  await load(defs[current]);
 }
 async function saveJob(){const s=scope();if(!s)return alert('اختر عضوية نشاط نشطة.');const id=crypto.randomUUID();const {data:{session}}=await sb.auth.getSession();if(!session?.access_token)return alert('انتهت الجلسة، سجل الدخول مجددًا.');const payload={p_user_id:state.user.id,p_job_id:id,p_tenant_id:s.tenant_id,p_business_id:s.business_id,p_title:document.getElementById('jTitle').value.trim(),p_company_name:document.getElementById('jCompany').value.trim(),p_category:document.getElementById('jCategory').value.trim(),p_location:document.getElementById('jLocation').value.trim(),p_job_type:document.getElementById('jType').value.trim(),p_salary_range:document.getElementById('jSalary').value.trim(),p_description:document.getElementById('jDesc').value.trim(),p_requirements:''};const r=await sb.rpc('create_job_backend',payload);if(r.error)return alert(r.error.message);await load(defs[current])}
