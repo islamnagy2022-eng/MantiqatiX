@@ -681,3 +681,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - The sector workspace now uses the existing `create_education_request_backend` RPC for education applications rather than a direct client INSERT, consistent with migration `20261007060000_education_request_server_authority_v1.sql`. Source commit: `2052a02f219746b0f9acd53763e2412c54bf99ef`.
 - Added regression assertions in `scripts/validate-sector-rendering.mjs` in commit `abcb297b6e09e8516c1baf457959e47207e6e237`.
 - Exact-head CI and browser E2E pending. No production change/deployment/merge; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+- Education request UX also validates student-name length (2–200 characters) to match the existing backend contract; source commit `82fafbe1ec770c60e6d5ad49e316b090fb34bbc5`, validator commit `c6eaa0ac4a2c04b9ae456971f381ce2f2ff98b71`. Exact-head checks remain pending.
