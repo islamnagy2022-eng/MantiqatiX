@@ -1525,9 +1525,21 @@ async function updateOrderStatus(orderId,newStatus){
 const ORDER_ACTION_AR={CONFIRMED:'تأكيد الطلب',PREPARING:'بدء التجهيز',OUT_FOR_DELIVERY:'إرسال للتوصيل',DELIVERED:'تأكيد التسليم',CANCELLED:'إلغاء الطلب'};
 function orderActions(order){
  const actions=orderAllowedNextStatuses(order);
- if(!actions.length)return '<span class="muted">لا توجد إجراءات متاحة</span>';
- return actions.map(s=>'<button class="text-btn" onclick="updateOrderStatus(\''+esc(order.id)+'\',\''+s+'\')">'+esc(ORDER_ACTION_AR[s]||s)+'</button>').join(' ');
+ const role=String(live.role||'').toUpperCase();
+ const canConfirmCash=['ADMIN','MANAGER','CASHIER','STAFF','OWNER','BUSINESS_OWNER','SUPER_ADMIN'].includes(role)&&String(order.status||'').toUpperCase()==='DELIVERED';
+ const cashAction=canConfirmCash?'<button class="text-btn" onclick="confirmCashPaymentForOrder(\''+esc(order.id)+'\')">تأكيد استلام النقد</button>':'';
+ const statusActions=actions.map(s=>'<button class="text-btn" onclick="updateOrderStatus(\''+esc(order.id)+'\',\''+s+'\')">'+esc(ORDER_ACTION_AR[s]||s)+'</button>').join(' ');
+ return [statusActions,cashAction].filter(Boolean).join(' ')||'<span class="muted">لا توجد إجراءات متاحة</span>';
 }
+async function confirmCashPaymentForOrder(orderId){
+ if(!orderId)return;
+ try{
+  await invokeMntyApi('/api/v1/orders/'+encodeURIComponent(orderId)+'/cash/confirm',{method:'POST',body:{}});
+  showToast('تم تسجيل استلام النقد بنجاح.','success');
+  current='الطلبات';await loadLiveData();await renderApp();
+ }catch(error){showToast('تعذر تأكيد استلام النقد: '+(error?.message||'CASH_CONFIRMATION_FAILED'),'error')}
+}
+window.confirmCashPaymentForOrder=confirmCashPaymentForOrder;
 const ORDER_STATUS_AR={PENDING:'قيد الانتظار',CREATED:'تم الإنشاء',CONFIRMED:'تم التأكيد',PREPARING:'جاري التجهيز',OUT_FOR_DELIVERY:'في الطريق',DELIVERED:'تم التسليم',CANCELLED:'ملغي',FAILED:'فشل',EXPIRED:'منتهي'};
 function orderStatusLabel(s){const k=String(s||'').toUpperCase();return ORDER_STATUS_AR[k]||k||'غير محدد'}
 function orderStatusClass(s){return 'mx-order-status mx-order-status-'+String(s||'').toLowerCase().replace(/[^a-z_]+/g,'-')}
