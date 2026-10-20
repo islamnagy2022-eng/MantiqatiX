@@ -53,6 +53,10 @@ for(const required of [
  'erp_supplier_create_backend','erp_supplier_update_backend','erp_opening_stock_backend'
 ])if(!erpRoute.includes(required))failures.push("ERP_ROUTE_MISSING_"+required.toUpperCase());
 if(!files.app.includes("window.MNTYOperationsERPData=null"))failures.push("ERP_SHARED_CACHE_INVALIDATION_MISSING");
+if(!files.app.includes("Date.now()-Number(shared.loaded_at||0)<30000"))failures.push("ERP_SHARED_SNAPSHOT_TTL_MISSING");
+if(!files.app.includes("String(shared.tenant_id||'')===String(live.tenantId)"))failures.push("ERP_SHARED_SNAPSHOT_TENANT_SCOPE_MISSING");
+if(!files.app.includes("String(shared.business_id||'')===String(live.businessId)"))failures.push("ERP_SHARED_SNAPSHOT_BUSINESS_SCOPE_MISSING");
+if(!files.app.includes("shared.erp_purchase_order_lines"))failures.push("ERP_SHARED_SNAPSHOT_ORDER_LINES_MISSING");
 if(!files.app.includes("await window.MNTYReloadOperationsModule()"))failures.push("ERP_DEPENDENT_MODULE_REFRESH_MISSING");
 if(!erpRoute.includes("businesses: [{ id: business.id"))failures.push("ERP_BUSINESS_REFERENCE_NOT_RETURNED_BY_SCOPED_API");
 if(!files.app.includes("rows.businesses=result.businesses||[]"))failures.push("ERP_BUSINESS_REFERENCE_NOT_CONSUMED");
