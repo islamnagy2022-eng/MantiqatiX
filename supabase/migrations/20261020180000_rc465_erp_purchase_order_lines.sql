@@ -229,6 +229,16 @@ begin
     raise exception 'PURCHASE_RECEIVING_ROLE_REQUIRED';
   end if;
 
+  -- Lock and authorize the order before looking up an idempotent receipt, preventing cross-branch receipt probing.
+  select o.branch_id::text,upper(o.status) into v_order_branch_id,v_order_status
+  from public.erp_purchase_orders o where o.id=v_order_id and o.tenant_id::text=v_tenant_id
+    and o.business_id=v_business_id for update;
+  if not found then raise exception 'ERP_PURCHASE_ORDER_SCOPE_INVALID'; end if;
+  if v_member_branch_id is not null and v_member_branch_id is distinct from v_order_branch_id then raise exception 'ERP_BRANCH_SCOPE_REQUIRED'; end if;
+  if v_member_branch_id is null and v_role not in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER') and v_order_branch_id is not null then
+    raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
+  end if;
+
   select * into v_existing from public.erp_purchase_receipts r
   where r.tenant_id::text=v_tenant_id and r.business_id=v_business_id and r.receipt_number=v_receipt_number;
   if found then
@@ -238,15 +248,7 @@ begin
     return jsonb_build_object('success',true,'idempotent',true,'receipt',to_jsonb(v_existing));
   end if;
 
-  select o.branch_id::text,upper(o.status) into v_order_branch_id,v_order_status
-  from public.erp_purchase_orders o where o.id=v_order_id and o.tenant_id::text=v_tenant_id
-    and o.business_id=v_business_id for update;
-  if not found then raise exception 'ERP_PURCHASE_ORDER_SCOPE_INVALID'; end if;
-  if v_order_status not in ('SUBMITTED','APPROVED','PARTIALLY_RECEIVED') then raise exception 'ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT'; end if;
-  if v_member_branch_id is not null and v_member_branch_id is distinct from v_order_branch_id then raise exception 'ERP_BRANCH_SCOPE_REQUIRED'; end if;
-  if v_member_branch_id is null and v_role not in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER') and v_order_branch_id is not null then
-    raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
-  end if;
+  if coalesce(v_order_status,'') not in ('SUBMITTED','APPROVED','PARTIALLY_RECEIVED') then raise exception 'ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT'; end if;
 
   select w.branch_id::text into v_warehouse_branch_id from public.warehouses w
   where w.id=v_warehouse_id and w.tenant_id::text=v_tenant_id and w.business_id=v_business_id and w.status='ACTIVE';
