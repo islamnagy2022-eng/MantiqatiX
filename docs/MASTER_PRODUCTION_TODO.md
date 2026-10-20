@@ -1997,3 +1997,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Regression fixture updated:** RC460 fixture intentionally sets `total_amount=100` and legacy `total=99`; the valid cash-confirmation integration must succeed only when the function uses `total_amount`.
 - **NOT VERIFIED:** exact-head CI/PostgreSQL execution for this correction is pending. Static source assertions were added to `scripts/validate-cash-only-launch-flow.mjs`; this is not a substitute for the PostgreSQL test.
 - No production migration was applied. Release remains BLOCKED / NOT CERTIFIED.
+
+
+### Exact-head CI finding — stale marketing validator cache key — 2026-10-20
+- Exact head `96b413a8603811fb244a7456ccce4c50886eb814`: disposable forward migration replay passed; RC458, RC459, RC460, RC462, targeted ads, matrimony privacy, backend-only boundary and MantiGO privacy jobs passed.
+- The remaining `validate` job failed in `scripts/validate-marketing-campaign-ui.mjs` because it expected the stale service-worker URL `rc460-cash-only-launch-20261020`, while `web/index.html` correctly registers `rc461-cash-restaurant-20261020`. This is validator drift, not evidence of a runtime defect. Updated the assertion to the current exact cache key; fresh exact-head CI is required.
+- Release remains **BLOCKED / NOT CERTIFIED** until the new exact-head workflow passes and mandatory authenticated cash checkout/confirmation E2E is independently evidenced. No merge, deployment, or production mutation.
