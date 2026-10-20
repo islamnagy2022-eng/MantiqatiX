@@ -98,7 +98,12 @@ assert.match(operations,/p\.is_verified===true/,"booking discovery must hide unv
 assert.match(app,/timestamp%900000!==0/,"booking UI must enforce the backend's 15-minute slot alignment");
 assert.match(operations,/medical-appointments-live/,"doctor appointments must refresh from realtime events");
 assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
-assert.match(index,/operations-modules\.js\?v=mnty133/,"medical workflow asset cache must be refreshed");
+assert.match(index,/operations-modules\.js\?v=mnty134/,"medical workflow asset cache must be refreshed");
+assert.ok(operations.includes("MNTY_MEDICAL_BOOKING:"),"operations medical booking must retain a stable request key across ambiguous failures");
+assert.ok(operations.includes("storedRequest?.fingerprint===requestPayload&&storedRequest?.id"),"operations medical booking retries must reuse the exact request ID for the same payload");
+assert.ok(operations.includes("sessionStorage.setItem(requestKey,JSON.stringify(requestRecord))"),"operations medical booking must persist its retry token before invoking the backend");
+assert.ok(operations.includes("sessionStorage.removeItem(requestKey)"),"operations medical booking must clear its retry token only after confirmed success");
+assert.ok(operations.includes("idempotent_replay"),"operations medical booking must communicate replayed success without creating a duplicate");
 const appVersion=index.match(/app\.js\?v=([^'"]+)/)?.[1];
 const swAppVersion=sw.match(/\.\/app\.js\?v=([^'"]+)/)?.[1];
 const cacheVersion=sw.match(/const CACHE='([^']+)'/)?.[1];
