@@ -288,3 +288,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #300 and PR #301 remain open/draft/unmerged. No production migration, merge, deployment, grant/RLS/Auth change, or financial transaction occurred.
 - Remaining blockers include product-owner decision on NO_SHOW grace period; sector-specific backend/E2E beyond PR #300's UI-only scope; historical creation provenance for full blank-database replay; owner action for leaked-password protection; live tenant/RBAC and Paymob/finance/refund E2E; backup/restore/rollback; browser/push/device; signed Android; and main-branch deployment smoke.
 - Production is last read-only verified at RC424 (`20261008222845`, 283 versions); recheck before any rollout decision. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — deterministic replay CLI fix
+
+- Investigated replay run `39362307744`: failure occurred before migration SQL because Supabase CLI `latest` lookup hit GitHub API rate limit.
+- Pinned `supabase/setup-cli@v1` to CLI `2.39.2` in `.github/workflows/disposable-forward-migration-replay.yml`, commit `ae20b393c320b44ebe8bd97d9f4d8c27b063b6f9`.
+- Eight other workflows passed on that commit, including RC457 medical and RC462 platform-admin PostgreSQL integration through Module Professionalization Validation.
+- Replay run `39362446830` remains in progress at local Supabase PostgreSQL startup. Ordered replay and tenant isolation are not yet verified for this commit.
+- No production mutation, merge, deployment, or financial transaction. PR #301 remains open/draft; release remains BLOCKED / NOT CERTIFIED.
