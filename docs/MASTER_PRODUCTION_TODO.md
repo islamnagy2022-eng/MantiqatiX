@@ -2022,3 +2022,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Expanded `scripts/validate-cash-only-launch-flow.mjs` to explicitly assert that the cash-payment read route restricts customers to their own order, fails closed on membership lookup errors, scopes operational access to the order business (or tenant-wide membership), and queries the cash intent by both tenant and order.
 - This is test-contract hardening of existing code; it does not change API runtime behavior. New exact-head CI must pass before this validator change is considered verified.
 - Authenticated browser/API E2E and production recovery evidence remain outstanding. Release remains **BLOCKED / NOT CERTIFIED**; PR #307 remains draft/unmerged.
+
+
+### Validator regex correction — 2026-10-20
+- The new cash-payment read source assertions correctly targeted customer ownership and tenant/business scoping, but the first CI attempt failed because the validator's regex escaping was over-escaped. This was a test assertion defect; the API source itself was unchanged.
+- Replaced those four brittle regex checks with exact source-fragment assertions. The corrected validator is committed in `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45`; fresh exact-head CI is required to confirm it passes.
+- Release remains **BLOCKED / NOT CERTIFIED** pending CI and real authenticated checkout/confirmation E2E plus recovery evidence.
