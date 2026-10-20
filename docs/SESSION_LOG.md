@@ -256,3 +256,9 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - **Projection minimization follow-up:** removed unused `description`, `image_url`, and `fee_paid` from the used-item select list while retaining only displayed fields and columns needed for filters/order. Validator now guards that minimal projection. Commits: `66fefa4ce874c1eb62962c8f476a3015378fa42e`, `a3d9744dc84b82df633e1035cc8a42d1dfccdeb1`.
+
+
+## 2026-10-20 — authentication error clarity
+
+- Fixed the sector workspace error renderer so missing authentication shows a human-readable Arabic instruction rather than `AUTH_REQUIRED`, and suppresses a retry button when retrying cannot restore a session. Source commit `b26ded4f7aa325deff7a3d4b23539167c265829d`; validator commit `8f97bbf72c6e1ab74aa6e39e17384799a83276eb`.
+- Exact-head CI is pending; no browser E2E was performed.
