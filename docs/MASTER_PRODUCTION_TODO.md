@@ -1910,3 +1910,9 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Sector loader now calls the RPC instead of selecting the table directly. Validator now checks the RPC boundary and privacy behavior.
 - [x] Removed the duplicate migration version and consolidated the function into `20261020231500_used_item_ads_minimal_directory_read.sql`.
 - [ ] Migration has **not** been applied to the connected production database. Apply through the approved migration process and run authenticated/non-anonymous, anonymous-denial, sold-owner, and seller-phone non-disclosure tests before relying on the read path. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Correction — final used-item read design
+- The final migration supersedes the earlier column-grant draft: `20261020231500_used_item_ads_minimal_directory_read.sql` now exposes a narrow `SECURITY DEFINER` read RPC, `list_used_item_ads_backend(varchar, uuid)`, checks for an authenticated non-anonymous session, returns only public listing fields, and revokes direct table DML from `anon`/ `authenticated`.
+- The sector loader calls that RPC instead of querying `used_item_ads` directly. `seller_phone` is not returned.
+- This is still branch-only; the live database has not been changed. Apply only after exact-head validation and review of the security-definer function.
