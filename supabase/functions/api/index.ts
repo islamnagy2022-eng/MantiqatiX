@@ -214,19 +214,23 @@ serve(async (req) => {
     if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total_amount,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,business_id,total_amount,currency,customer_id").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Payment authorization check failed" }, 500)
 
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalPaymentAccess =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_CREATE")
-    const isOrderOwner = order.customer_id === user.id
+    const isOrderOwner = String(order.customer_id) === String(user.id)
+    const operationalPaymentAccess = (memberships || []).some((m: any) => {
+      const role = String(m.role ?? "").toUpperCase()
+      const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+      const hasCreatePermission = Array.isArray(permissions)
+        ? permissions.includes("PAYMENT_CREATE")
+        : Object.prototype.hasOwnProperty.call(permissions, "PAYMENT_CREATE")
+      const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
+      return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || hasCreatePermission)
+    })
     if (!isOrderOwner && !operationalPaymentAccess) return json({ error: "Forbidden" }, 403)
 
     const { data: configuredMethod } = await supabaseAdmin.from("tenant_payment_methods").select("id")
