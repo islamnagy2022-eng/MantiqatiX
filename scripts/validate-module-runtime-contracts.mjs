@@ -53,6 +53,9 @@ for(const required of [
  'erp_supplier_create_backend','erp_supplier_update_backend','erp_opening_stock_backend'
 ])if(!erpRoute.includes(required))failures.push("ERP_ROUTE_MISSING_"+required.toUpperCase());
 if(!files.app.includes("window.MNTYOperationsERPData=null"))failures.push("ERP_SHARED_CACHE_INVALIDATION_MISSING");
+if(!files.app.includes("window.MNTYOperationsERPData={"))failures.push("ERP_APP_SNAPSHOT_NOT_PUBLISHED");
+if(!files.app.includes("businesses:rows.businesses"))failures.push("ERP_APP_SNAPSHOT_BUSINESS_REFERENCE_MISSING");
+if(!files.app.includes("erp_purchase_order_lines:rows.erp_purchase_order_lines"))failures.push("ERP_APP_SNAPSHOT_ORDER_LINES_MISSING");
 if(!files.app.includes("Date.now()-Number(shared.loaded_at||0)<30000"))failures.push("ERP_SHARED_SNAPSHOT_TTL_MISSING");
 if(!files.app.includes("String(shared.tenant_id||'')===String(live.tenantId)"))failures.push("ERP_SHARED_SNAPSHOT_TENANT_SCOPE_MISSING");
 if(!files.app.includes("String(shared.business_id||'')===String(live.businessId)"))failures.push("ERP_SHARED_SNAPSHOT_BUSINESS_SCOPE_MISSING");
