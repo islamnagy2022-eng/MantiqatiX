@@ -48,6 +48,8 @@ const checks = [
   ['job application validates required backend fields', sectorModules.includes("if(!phone||!qualifications||!cv)")],
   ['job application handles idempotent duplicate response', sectorModules.includes("status==='ALREADY_APPLIED'")],
   ['used-items query keeps seller-owned sold ads available for reactivation', sectorModules.includes("q.or('is_sold.eq.false,owner_user_id.eq.'+state.user.id)")],
+  ['education requests use the authorized backend RPC', sectorModules.includes("sb.rpc('create_education_request_backend'") && !/sb\.from\('education_requests'\)\.insert/.test(sectorModules)],
+  ['education request validates subject length before RPC', sectorModules.includes("subject.length>500")],
 
 ];
 
