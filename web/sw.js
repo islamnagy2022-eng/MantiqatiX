@@ -4,7 +4,7 @@ const APP_SHELL=[
 './config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=rc402',
 './rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=mnty-modules-v14-20261020',
 './module-blueprints.js?v=mnty-modules-v14-20261020','./restaurant-module.js?v=rc314','./sector-modules.js?v=mnty116',
-'./reverse-bidding-module.js?v=mnty116','./operations-modules.js?v=mnty119','./provider-onboarding-module.js?v=mnty116','./brand.js?v=rc355',
+'./reverse-bidding-module.js?v=mnty116','./operations-modules.js?v=mnty121','./provider-onboarding-module.js?v=mnty116','./brand.js?v=rc355',
 './','./index.html','./styles.css','./android-parity-catalog.js','./app.js','./module-blueprints.js','./config.js','./location-adapter.js','./sector-registry.js','./brand.css','./brand.js','./home.css','./home.js','./sector-modules.js','./reverse-bidding-module.js','./operations-modules.js','./provider-onboarding-module.js','./restaurant-module.js','./manifest.webmanifest','./vendor/supabase.js','./assets/mantiqatix-logo.svg','./assets/mantiqatix-mark.svg','./assets/activities/ai-sector-directory.svg','./icons/icon-192.svg','./icons/icon-512.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
