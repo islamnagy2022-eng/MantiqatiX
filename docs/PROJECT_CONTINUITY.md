@@ -828,6 +828,7 @@ This status is intentional and must remain until the open gates above are indepe
 - RC459 includes disposable PostgreSQL denial/ACL regression and is added to the ordered migration replay. No production migration, payment, merge or deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
 
 ### Follow-up finding — RC460 authoritative amount binding
+- **Third finding:** the cash payment-intent API accepted any active membership in the tenant and did not bind operational access to `orders.business_id`. Updated it to authorize against active memberships scoped to the order business (or tenant-wide), and to accept both array and JSONB-object `PAYMENT_CREATE` permissions. Added source-contract assertions. This is a source-level correction only until exact-head CI and business-isolation E2E pass.
 
 - **Second finding:** the API's cash-confirmation authorization treated `permissions` as an array only, while RC460 SQL accepts JSONB permission objects using the `?` operator. Updated the API guard to accept either an array containing `PAYMENT_CONFIRM_CASH` or an object containing that key, matching the SQL contract; added a source validator assertion.
 - Latest source commit for these changes: `66f108c2bf718bece3d223dd2207e2578f8eb4fd`. Exact-head CI and PostgreSQL execution are still pending; no merge or production deployment.
