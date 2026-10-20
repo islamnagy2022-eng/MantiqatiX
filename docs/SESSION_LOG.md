@@ -122,3 +122,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Safety:** this does not claim to complete the module workflow; it removes a misleading success state while real routes/contracts are mapped. No schema, production, Auth, payment, ad network, merge, or deployment action occurred.
 - **Verification status:** source changes are committed to the working branch; CI and browser behavior remain pending/not verified until exact-head checks complete.
 - **Next:** verify branch CI, inspect role/activity API contracts and exact app routes, then implement the next real module journey. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — SESSION-UI-PR-309 — Draft review and CI correction
+
+- **Action performed:** opened Draft PR [#309](https://github.com/islamnagy2022-eng/MantiqatiX/pull/309) from `feat/ui-first-module-completion-20261020` to `main`. The PR includes the master prompt, initial route/module inventory, TODO/continuity/session-log updates, the honest blueprint status behavior, and a focused source-contract test.
+- **CI correction:** an intermediate workflow edit briefly inserted two `run:` keys into one GitHub Actions step; the earlier intermediate-head module-professionalization runs failed. Corrected the workflow by adding a separate named step, committed as `0baeb4e36c7a430afe7863aa5251e71d4bef01a5`. The corrected exact-head runs were queued at last check; do not treat earlier failure or pending runs as final verification.
+- **Current verification:** branch head is `0baeb4e36c7a430afe7863aa5251e71d4bef01a5`; exact-head checks were queued/in progress when checked. Browser E2E and production deployment are not verified.
+- **Not performed:** no merge, production deployment, production DB/Auth mutation, migration, payment, or external ad call.
+- **Next:** check exact-head CI; if green, continue route/action mapping and real UI workflows. If failed, inspect job logs and fix root cause before advancing. Release remains **BLOCKED / NOT CERTIFIED**.
