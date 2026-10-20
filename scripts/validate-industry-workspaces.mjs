@@ -91,6 +91,9 @@ assert.match(deployBlock, /permissions:\n      contents: read\n      pages: writ
 assert.equal((workflow.match(/\.github\/workflows\/pages\.yml/g) || []).length, 2, 'Pages workflow changes must trigger the industry security contract on push and pull request');
 assert.equal((workflow.match(/docs\/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019\.md/g) || []).length, 2, 'sector backend audit changes must trigger the contract workflow on push and pull request');
 assert.match(backendAudit, /No production rows, DDL, grants, RLS, Auth settings, Edge Functions, or migrations were changed/);
+assert.ok(app.includes("Number(a.date_time)<=Date.now()"), 'NO_SHOW action must not appear before the scheduled appointment time');
+assert.ok(app.includes("NO_SHOW"), 'medical provider workspace must expose the authoritative NO_SHOW status');
+assert.ok(app.includes('لم يحضر'), 'medical provider workspace must label the no-show action in Arabic');
 assert.match(backendAudit, /medical_appointments/);
 assert.match(backendAudit, /fashion_products_select/);
 assert.match(backendAudit, /PostgreSQL permissive policies combine with OR, while restrictive policies combine with AND/);
