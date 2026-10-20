@@ -1642,3 +1642,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added a 10-assertion regression script and wired it into Pages CI.
 - [ ] Live SMM gateway remains a P0 blocker until the approved server-side deny gate is deployed and negative-tested against production. This source change does not deploy or disable the live function.
 - [ ] Global production gate remains BLOCKED / NOT CERTIFIED.
+
+
+## SMM deferral-aware gate — exact code-head verification 2026-10-20
+
+- [x] Exact code head `7eca9efe3954af598f2e5a0e084a53eea45efa2f`: Pages validation run `39361043273` passed; production verification engine, the SMM launch-scope regression, syntax checks, and required web files passed. Pages deploy was skipped as expected for a PR.
+- [x] Module Professionalization `39361043089` passed, including PostgreSQL integrations; Backend-only Module Boundary `39361043079` passed; MantiGO Open Ride Privacy Boundary `39361043224` passed.
+- [x] The initial CI failure was a stale static assertion expecting unconditional SMM parity. The assertion was replaced with contract checks for both active-SMM requirements and deferred-SMM evidence; exact-head rerun passed.
+- [ ] Live SMM API denial remains unverified in production; issue #212 remains open. No production deployment, environment change, or function update was performed.
+- [ ] Full production release remains BLOCKED / NOT CERTIFIED.
