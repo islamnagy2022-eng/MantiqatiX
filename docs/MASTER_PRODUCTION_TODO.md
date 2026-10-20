@@ -1882,3 +1882,9 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] The sector workspace now displays a human-readable Arabic sign-in requirement instead of the raw `AUTH_REQUIRED` token and does not show a retry button that cannot fix a missing session.
 - [x] Added a source-contract assertion for the authentication error message and retry suppression. Source commit `b26ded4f7aa325deff7a3d4b23539167c265829d`; validator commit `8f97bbf72c6e1ab74aa6e39e17384799a83276eb`.
 - [ ] Exact-head CI pending; browser E2E remains open.
+
+
+## RC — live RPC execution ACL verification — 2026-10-20
+- [x] Read-only production SQL inspection confirmed `create_education_request_backend`, `submit_job_application_backend`, and `create_job_backend` exist with `SECURITY DEFINER`, execute granted to `authenticated`, and execute denied to both `anon` and `PUBLIC`. Source definitions include identity/target or active-membership checks.
+- [x] Live `jobs.id` and `job_applications.job_id` are both UUID, matching the application RPC's `p_job_id uuid` contract.
+- No production SQL was changed. Browser E2E and end-to-end user journey verification remain open.
