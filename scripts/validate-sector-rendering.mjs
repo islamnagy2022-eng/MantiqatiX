@@ -44,6 +44,9 @@ const checks = [
   ['sector query failures are announced accessibly', sectorModules.includes('role="alert" aria-live="polite"')],
   ['sector query failure offers retry', sectorModules.includes('data-sector-retry') && sectorModules.includes("addEventListener('click',()=>load(defs[current]))")],
   ['job application handler is not shadowed by duplicate declaration', (sectorModules.match(/async function applyToJob\(/g)||[]).length === 1],
+  ['job application writes use the authorized backend RPC', sectorModules.includes("sb.rpc('submit_job_application_backend'") && !/sb\.from\('job_applications'\)\.insert/.test(sectorModules)],
+  ['job application validates required backend fields', sectorModules.includes("if(!phone||!qualifications||!cv)")],
+  ['job application handles idempotent duplicate response', sectorModules.includes("status==='ALREADY_APPLIED'")],
 
 ];
 
