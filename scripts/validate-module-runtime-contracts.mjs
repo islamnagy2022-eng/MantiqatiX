@@ -70,6 +70,9 @@ if(!files.operations.includes("String(sharedERP.membership_id||'')===String(memb
 if(!files.operations.includes("String(sharedERP.role||'')===String(membership?.role||'')"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_ROLE_SCOPE_MISSING");
 if(!files.app.includes("shared.erp_purchase_order_lines"))failures.push("ERP_SHARED_SNAPSHOT_ORDER_LINES_MISSING");
 if(!files.app.includes("await window.MNTYReloadOperationsModule()"))failures.push("ERP_DEPENDENT_MODULE_REFRESH_MISSING");
+if(!erpRoute.includes("const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i"))failures.push("ERP_SCOPE_UUID_VALIDATION_MISSING");
+if(erpRoute.includes("productsQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`)"))failures.push("ERP_BRANCH_FILTER_INTERPOLATION_UNSAFE");
+if(!erpRoute.includes("productsBase().is(\"branch_id\", null)")||!erpRoute.includes("productsBase().eq(\"branch_id\", branchId)"))failures.push("ERP_BRANCH_PRODUCT_SCOPE_SPLIT_MISSING");
 if(!erpRoute.includes("businesses: [{ id: business.id"))failures.push("ERP_BUSINESS_REFERENCE_NOT_RETURNED_BY_SCOPED_API");
 if(!files.app.includes("rows.businesses=result.businesses||[]"))failures.push("ERP_BUSINESS_REFERENCE_NOT_CONSUMED");
 if(!files.operations.includes("rows.businesses=data.businesses||[]"))failures.push("ERP_OPERATIONS_BUSINESS_REFERENCE_NOT_CONSUMED");
