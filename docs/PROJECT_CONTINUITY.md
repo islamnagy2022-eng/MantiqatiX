@@ -941,3 +941,13 @@ This status is intentional and must remain until the open gates above are indepe
 - **Publication remains blocked:** PR #307 is a draft stacked on PR #301's branch, not directly on `main`; the candidate stack contains cash-only checkout, ERP and medical migrations, so publishing only the UI or deploying the stack prematurely would break dependency/order guarantees. Doctor Module Release Contract and Disposable Forward Migration Replay jobs are queued, not passed, on recent code heads. Do not merge, dispatch a Pages production deployment, or apply migrations until exact-head CI completes and the migration stack/base is reconciled.
 - Next actions: refresh PR #307 head and CI; diagnose/resolve queued GitHub Actions if still stuck; verify exact-head source validation and ordered forward replay; review migration dependencies against PR #301 and the production RC424 ledger; only then make the release candidate eligible for a controlled merge/deployment. Authenticated cash checkout/confirmation E2E, production security settings, tenant isolation and backup/restore evidence remain independent launch gates.
 - No merge, production migration, Pages deployment, or live data mutation occurred in this continuation. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Validator source-target correction
+
+- **Defect found during continuation:** the medical source validator asserted the 15-minute timestamp check against `web/operations-modules.js`, but the actual customer booking handler is in `web/app.js`. This would produce a false failure in CI despite the UI guard being present.
+- **Fix committed:** changed the assertion to inspect the actual booking source (`app`) and match `timestamp%900000!==0`. Verified the branch file now contains the corrected assertion, the UI guard, and the veterinary provider filter.
+- **Commit:** `0438d46486e7ef4a31845e78af843d57b1386d20`.
+- **CI:** the available commit workflow query has not returned runs for this exact head. Older Doctor Module Release Contract and Disposable Forward Migration Replay jobs remain queued; they are not evidence of success. Do not claim test pass until exact-head results complete.
+- **Release dependency:** PR #307 is open/draft and targets `fix/medical-appointment-state-machine-20261019`; PR #301 is also open/draft and targets `main`. Do not merge the stack or deploy the medical section until the prerequisite PR, migration chain, exact-head tests, and user-facing E2E are verified.
+- No merge, production migration, or live deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
