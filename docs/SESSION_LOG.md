@@ -297,3 +297,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Eight other workflows passed on that commit, including RC457 medical and RC462 platform-admin PostgreSQL integration through Module Professionalization Validation.
 - Replay run `39362446830` remains in progress at local Supabase PostgreSQL startup. Ordered replay and tenant isolation are not yet verified for this commit.
 - No production mutation, merge, deployment, or financial transaction. PR #301 remains open/draft; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-20 — Supabase CLI pin refinement
+
+- Replaced the temporary `2.39.2` pin with stable Supabase CLI `2.113.0` in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`, avoiding `latest` resolution while not relying on an obsolete CLI.
+- Only an exact-head run using `2.113.0` that completes ordered migration replay and tenant isolation may close the replay CI item.
