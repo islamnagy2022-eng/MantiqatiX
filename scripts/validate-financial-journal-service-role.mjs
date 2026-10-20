@@ -53,11 +53,13 @@ assert.match(integration, /organization mismatch unexpectedly succeeded/);
 assert.match(integration, /running balances are not cumulative/);
 
 const app = fs.readFileSync("web/app.js", "utf8");
-assert.match(app, /tables:\['indrive_requests','indrive_bids','chart_of_accounts','journal_entries','journal_entry_lines'\]/, "accounting module must include journal line details");
+assert.match(app, /tables:\['indrive_requests','indrive_bids','chart_of_accounts','journal_entries','journal_entry_lines','general_ledger'\]/, "accounting module must include journal line details");
 assert.match(app, /async function createAccountingJournal\(\)/, "accounting module must expose a real journal posting action");
 assert.match(app, /sb\.functions\.invoke\('financial-journal'/, "journal posting must use the authenticated service-role Edge Function");
 assert.match(app, /total_debit:amount,total_credit:amount/, "manual journal headers must be balanced");
 assert.match(app, /account_id:String\(debitAccount\.id\),line_number:1,debit:amount,credit:0/, "manual journal must create a debit line");
 assert.match(app, /account_id:String\(creditAccount\.id\),line_number:2,debit:0,credit:amount/, "manual journal must create a matching credit line");
 assert.match(app, /if\(m.key==='ACCOUNTING'&&m.tables.includes\('journal_entry_lines'\)\)/, "journal line reads must remain scoped to visible journal entry IDs");
+assert.match(app, /recordsTable\('دفتر الأستاذ العام',rows\.general_ledger\|\|\[\]/, "accounting workspace must display posted general-ledger rows");
+assert.match(app, /from\('general_ledger'\)\.select\([^)]*\)\.in\('journal_entry_id',entryIds\)/, "general-ledger reads must be restricted to visible parent journal entries");
 console.log("RC450 financial journal service-role boundary and accounting UI wiring PASS");
