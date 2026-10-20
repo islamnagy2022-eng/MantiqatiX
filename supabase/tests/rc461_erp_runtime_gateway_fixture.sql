@@ -9,13 +9,18 @@ create or replace function auth.uid() returns uuid language sql stable as $$
 $$;
 create table public.user_memberships(
   user_id uuid not null, tenant_id varchar not null, business_id uuid not null,
-  role varchar not null, status varchar not null
+  role varchar not null, status varchar not null, branch_id varchar
 );
 create table public.erp_purchase_orders(
-  id varchar primary key, tenant_id varchar not null, business_id uuid not null
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar
 );
 create table public.erp_stock_transfers(
-  id varchar primary key, tenant_id varchar not null, business_id uuid not null
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null,
+  from_warehouse_id varchar, to_warehouse_id varchar
+);
+create table public.warehouses(
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null,
+  branch_id varchar, status varchar not null
 );
 create or replace function public.create_purchase_order_backend(
   p_id varchar,p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_order_number varchar,
@@ -42,4 +47,4 @@ create or replace function public.receive_stock_transfer_backend(p_transfer_id v
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','receive_stock_transfer'); end $$;
 
-grant select,insert,update,delete on public.user_memberships, public.erp_purchase_orders, public.erp_stock_transfers to service_role;
+grant select,insert,update,delete on public.user_memberships, public.erp_purchase_orders, public.erp_stock_transfers, public.warehouses to service_role;
