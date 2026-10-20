@@ -48,7 +48,8 @@ const requiredReleaseMigrations=[
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
   "20261019190000_rc457_medical_appointment_state_machine.sql",
-  "20261020120000_rc458_cash_order_service_actor_contract.sql"
+  "20261020120000_rc458_cash_order_service_actor_contract.sql",
+  "20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
