@@ -12,7 +12,11 @@ on:
       - "supabase/tests/rc461_erp_runtime_gateway_*.sql"
       - "supabase/migrations/20261020160000_rc463_erp_supplier_master.sql"
       - "supabase/migrations/20261020170000_rc464_erp_supplier_update_backend.sql"
+      - "supabase/migrations/20261020180000_rc465_erp_purchase_order_lines.sql"
+      - "supabase/tests/rc465_erp_purchase_order_lines_integration.sql"
       - "supabase/tests/rc464_erp_supplier_update_integration.sql"
+      - "supabase/migrations/20261020180000_rc465_erp_purchase_order_lines.sql"
+      - "supabase/tests/rc465_erp_purchase_order_lines_integration.sql"
       - "supabase/tests/rc463_erp_supplier_master_integration.sql"
       - ".github/workflows/erp-runtime-gateway.yml"
   pull_request:
@@ -66,10 +70,14 @@ jobs:
           docker cp supabase/tests/rc463_erp_supplier_master_integration.sql "$pg_container:/tmp/rc463-test.sql"
           docker cp supabase/migrations/20261020170000_rc464_erp_supplier_update_backend.sql "$pg_container:/tmp/rc464.sql"
           docker cp supabase/tests/rc464_erp_supplier_update_integration.sql "$pg_container:/tmp/rc464-test.sql"
+          docker cp supabase/migrations/20261020180000_rc465_erp_purchase_order_lines.sql "$pg_container:/tmp/rc465.sql"
+          docker cp supabase/tests/rc465_erp_purchase_order_lines_integration.sql "$pg_container:/tmp/rc465-test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/rc463.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/rc464.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/rc465.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/rc463-test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/rc464-test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/rc465-test.sql
