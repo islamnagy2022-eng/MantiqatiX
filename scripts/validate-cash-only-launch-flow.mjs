@@ -71,6 +71,11 @@ assert.match(paymentIntentReadRoute,/select\("customer_id,business_id"\)/,"payme
 assert.match(paymentIntentReadRoute,/String\(m\.business_id\) === String\(linkedOrder\.business_id\)/,"payment-intent read must enforce operational membership business scope");
 assert.match(paymentIntentReadRoute,/permissions\.PAYMENT_READ_ALL\s*===\s*true/,"payment-intent read must require a true-valued JSONB permission");
 assert.match(paymentIntentReadRoute,/if \(!isOrderCustomer\)/,"payment-intent read must allow customers only for their own order");
+const cashOrderPaymentStart=api.indexOf('const cashOrderPaymentMatch = path.match');
+const cashOrderPaymentEnd=api.indexOf('const paymentIntentMatch',cashOrderPaymentStart);
+const cashOrderPaymentRoute=api.slice(cashOrderPaymentStart,cashOrderPaymentEnd);
+assert.match(cashOrderPaymentRoute,/Array\.isArray\(permissions\)[\s\S]*permissions\.includes\("PAYMENT_READ_ALL"\)/,"cash-payment reads must preserve array permissions");
+assert.match(cashOrderPaymentRoute,/permissions\.PAYMENT_READ_ALL\s*===\s*true/,"cash-payment reads must accept only explicit true-valued JSONB permission flags");
 assert.match(migration,/coalesce\(auth\.role\(\),''\) <> 'service_role'/);
 assert.match(migration,/CUSTOMER_MEMBERSHIP_REQUIRED/);
 const cashConfirm=read("supabase/migrations/20261020140000_rc460_cash_confirmation_business_membership.sql");
