@@ -9,6 +9,7 @@ const index = read('web/index.html');
 const app = read('web/app.js');
 const sw = read('web/sw.js');
 const sectorModules = read('web/sector-modules.js');
+const usedItemsMigration = read('supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql');
 
 const taxonomy = home.match(/^\s*\['[^']*','[^']*','[^']*','[A-Z0-9_]+\'],?\s*$/gm) || [];
 const checks = [
@@ -44,6 +45,9 @@ const checks = [
   ['sector query failures are announced accessibly', sectorModules.includes('role="alert" aria-live="polite"')],
   ['authentication failure is human-readable and does not offer a useless retry', sectorModules.includes("state.error==='AUTH_REQUIRED'?'يلزم تسجيل الدخول بحساب موثق للوصول إلى بيانات هذا القسم.'") && sectorModules.includes("state.error==='AUTH_REQUIRED'?'':'<div style=\"margin-top:12px\"><button type=\"button\" class=\"btn btn-outline\" data-sector-retry>إعادة المحاولة</button></div>'")],
   ['sector query failure offers retry', sectorModules.includes('data-sector-retry') && sectorModules.includes("addEventListener('click',()=>load(defs[current]))")],
+  ['used-item migration revokes table-wide read before narrow grant', usedItemsMigration.includes('revoke select on table public.used_item_ads from anon, authenticated;')],
+  ['used-item migration grants only the approved directory columns', usedItemsMigration.includes('grant select (') && usedItemsMigration.includes('seller_name') && !/grant select\s*\([\s\S]*?seller_phone/i.test(usedItemsMigration)],
+  ['used-item status notice separates read from mutation availability', sectorModules.includes('إدارة حالة الإعلان غير متاحة من هذه الواجهة حتى يتم اعتماد مسار تعديل آمن في الخادم.')],
   ['sector workspace writes only through server-authorized RPCs', !/sb\.from\(['"][^'"]+['"]\)\.(insert|update|upsert|delete)\b/.test(sectorModules)],
   ['education request RPC is present', sectorModules.includes("sb.rpc('create_education_request_backend'")],
   ['job application RPC is present', sectorModules.includes("sb.rpc('submit_job_application_backend'")],
