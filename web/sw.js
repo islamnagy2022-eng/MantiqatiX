@@ -1,8 +1,8 @@
-const CACHE='mnty-web-v169';
+const CACHE='mnty-web-v170';
 const APP_SHELL=[
 './styles.css?v=rc340','./brand.css?v=rc450','./home.css?v=rc397','./home-mobile-fixes.css?v=rc397',
 './config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=rc402',
-'./rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=mnty-accounting-ledger-api-v2-20261020',
+'./rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=mnty-medical-booking-idempotency-v2-20261020',
 './module-blueprints.js?v=mnty-modules-v16-20261020','./restaurant-module.js?v=rc314','./sector-modules.js?v=mnty116',
 './reverse-bidding-module.js?v=mnty116','./operations-modules.js?v=mnty133','./provider-onboarding-module.js?v=mnty116','./brand.js?v=rc355',
 './','./index.html','./styles.css','./android-parity-catalog.js','./app.js','./module-blueprints.js','./config.js','./location-adapter.js','./sector-registry.js','./brand.css','./brand.js','./home.css','./home.js','./sector-modules.js','./reverse-bidding-module.js','./operations-modules.js','./provider-onboarding-module.js','./restaurant-module.js','./manifest.webmanifest','./vendor/supabase.js','./assets/mantiqatix-logo.svg','./assets/mantiqatix-mark.svg','./assets/activities/ai-sector-directory.svg','./icons/icon-192.svg','./icons/icon-512.svg'];
