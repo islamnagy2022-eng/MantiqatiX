@@ -8,5 +8,5 @@ assert.match(source,/results\.searchErrors=sourceErrors/,"search results must pr
 assert.match(source,/تعذر إكمال البحث في/,"all-failed searches must disclose an unavailable source");
 assert.match(source,/نتائج جزئية: تعذر البحث في/,"partial results must disclose incomplete source coverage");
 assert.match(source,/globalSearchCan\)/,"search sources must remain permission-filtered");
-assert.match(source,/aria-live='polite'/,"partial-failure status should be accessible");
+assert.match(source,/aria-live=(?:'|")polite(?:'|")/,"partial-failure status should be accessible");
 console.log("Global search failure-state contract PASS: empty results are distinct from partial/unavailable sources.");
