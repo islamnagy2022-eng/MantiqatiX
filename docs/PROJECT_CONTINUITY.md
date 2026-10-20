@@ -781,3 +781,14 @@ This status is intentional and must remain until the open gates above are indepe
 ### Safety and release status
 - PR #300 and PR #301 remain open/draft/unmerged. No production migration, merge, deployment, grant/RLS/Auth change, or financial transaction occurred in this checkpoint.
 - Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 — RC457 verified; release still blocked
+
+- PR #301 head `a5507af59de50472e2a4e024f46ba981b135b5f6`: all nine PR-triggered workflows passed, including RC457 PostgreSQL integration (`39363371412`) and disposable forward migration replay (`39363371480`).
+- Replay applied 31 pending candidate migrations in timestamp order from the pinned RC424 schema-only baseline and verified tenant isolation in both directions. This is not a blank-database replay of all historical migrations.
+- Migration uniqueness/history immutability/collision guard, backend-only boundary, approval audit atomicity, MantiGO privacy, and web validation also passed. Pages deployment was skipped as expected for a PR.
+- PR #301 remains draft/open/unmerged. RC457 is verified in disposable CI only; no production migration or deployment occurred.
+- Next: review NO_SHOW grace-period semantics; recover authoritative historical creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)` before any full blank-database replay; complete leaked-password protection owner action, live tenant/RBAC E2E, authorized payment/finance/refund E2E, backup/restore and rollback, browser/push/device, signed Android, main deployment smoke, and release evidence.
+- PR #300 remains frontend-first: sector-specific backend contracts and authenticated E2E are not closed by the UI PR.
+- Production last read-only verified at RC424 (`20261008222845`, 283 versions). Global release remains **BLOCKED / NOT CERTIFIED**.
