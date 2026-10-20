@@ -54,6 +54,7 @@ jobs:
           node --check web/operations-modules.js
           node --check web/module-blueprints.js
           node scripts/validate-module-blueprint-actions.mjs
+          node scripts/validate-global-search-failure-state.mjs
           test -f supabase/functions/business-branch-admin/index.ts
           node scripts/validate-web-assets.mjs
           node scripts/validate-public-brand.mjs
