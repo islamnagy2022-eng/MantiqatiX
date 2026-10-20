@@ -109,7 +109,7 @@ assert.match(rc460Integration,/RC460_AUTHENTICATED_EXECUTE_MUST_BE_DENIED/);
 assert.doesNotMatch(rc460Integration,/^do \$(?:\s|$)|^\s*end \$(?:;|$)/m,"RC460 SQL integration must use complete dollar-quote delimiters");
 assert.match(cashConfirm,/jsonb_typeof\(coalesce\(permissions,\'{}\'::jsonb\)\)=\'array\'/,"SQL must distinguish permission arrays from objects");
 assert.match(cashConfirm,/->\'PAYMENT_CONFIRM_CASH\'=\'true\'::jsonb/,"SQL must not grant access for false-valued permission flags");
-assert.match(rc460Integration,/CUSTOM_OPERATOR\',\'{"PAYMENT_CONFIRM_CASH":false}\'/,"RC460 integration must test that a false JSONB permission is denied");
+assert.match(rc460Integration,/set permissions=\'{"PAYMENT_CONFIRM_CASH":false}\'::jsonb/,"RC460 integration must test that a false JSONB permission is denied");
 assert.match(rc460Integration,/set permissions=\'{"PAYMENT_CONFIRM_CASH":true}\'::jsonb/,"RC460 integration must then test the granted true-valued JSONB permission");
 assert.match(rc460Integration,/RC460_FALSE_PERMISSION_MUST_NOT_GRANT/);
 assert.match(rc460Integration,/RC460_FALSE_PERMISSION_MUTATED_PAYMENT/);
