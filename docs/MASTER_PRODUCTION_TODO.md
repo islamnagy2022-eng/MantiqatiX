@@ -1827,3 +1827,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added a source-contract assertion so the seller-owned sold-listing branch cannot silently disappear.
 - [ ] Exact-head CI and authenticated browser E2E remain pending. This is not proof that production RLS permits the intended update or that the deployed UI is current.
 - No database or production mutation, deployment, or merge occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — education request backend authority restored in sector workspace — 2026-10-20
+- [x] Replaced the sector workspace's direct `education_requests` INSERT with the existing `create_education_request_backend` RPC. The migration contract binds requester identity to `auth.uid()`, rejects anonymous sessions, validates target type/availability, and is executable by authenticated users while direct authenticated INSERT is revoked.
+- [x] Added subject-length validation and a fail-closed response when the RPC does not return a row.
+- [x] Extended sector source-contract validation to reject a direct education-request INSERT and require the backend RPC.
+- [ ] Exact-head CI and browser E2E pending. No production database change or deployment was performed; the fix restores the client to an existing backend contract.
+- Final Production Gate remains **BLOCKED / NOT CERTIFIED**.
