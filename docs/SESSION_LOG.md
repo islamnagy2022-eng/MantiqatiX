@@ -301,3 +301,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - **Behavioral test coverage added:** disposable PostgreSQL fixture + integration assertions verify owner-only sold listing visibility, active listings, optional tenant/business filters, anonymous/unauthenticated denial, and removal of direct table/column SELECT grants. Wired into the backend boundary workflow; CI result pending. Commits `36cabb5278ee83daa3287d012106e40f5b3472a2`, `88038efaf22afeeefb5e47acd2c3e603824d4b94`, `9c35ef15fc61e29982bd493009931d1454bf5783`, `cadae558830bf29505bde6c8d72e286d99262399`.
+
+
+- Added `supabase/tests/used_item_directory_read_fixture.sql`, `supabase/tests/used_item_directory_read_integration.sql`, and `.github/workflows/used-item-directory-read.yml`. The integration test exercises privilege boundaries and real RPC behavior in disposable PostgreSQL. Latest “Used Item Directory Read Boundary” status is queued; no test pass is claimed yet.
