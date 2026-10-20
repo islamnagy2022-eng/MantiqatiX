@@ -30,5 +30,12 @@ if(!app.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{opera
 if(!app.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate'")) missing.push('ERP mutations must use the authenticated server gateway');
 if(!ops.includes("invokeErpApi({operation:'list',tenantId:activeScope.tenant_id,businessId:activeScope.business_id")) missing.push('operations ERP workspace must use the authenticated server API');
 if(!ops.includes('function factoryOperationsWorkspace(d)')||!ops.includes('rows.inventory_transactions')) missing.push('factory operations workspace must render live inventory movements');
+const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
+const accountingRoute=api.slice(api.indexOf('path === "/api/v1/accounting/ledger"'),api.indexOf('path === "/api/v1/erp/runtime"'));
+if(!accountingRoute.includes('user_memberships')||!accountingRoute.includes('ACCOUNTING_MEMBERSHIP_REQUIRED')) missing.push('accounting ledger API must validate active business membership');
+if(!accountingRoute.includes('.eq("tenant_id", tenantId).eq("business_id", businessId)')) missing.push('accounting ledger API must scope financial records by tenant and business');
+if(!accountingRoute.includes('.in("journal_entry_id", entryIds)')) missing.push('accounting ledger details must be restricted to the scoped entry IDs');
+if(!app.includes("invokeMntyApi('/api/v1/accounting/ledger'")) missing.push('accounting workspace must load protected ledger through its authenticated API');
+if(app.includes("sb.from('general_ledger')")) missing.push('browser must not query protected general ledger directly');
 if(missing.length){console.error(missing.join('\n'));process.exit(1);}
 console.log(`Module runtime coverage PASS: ${expected.length}/${expected.length} catalog modules have routed live workspaces.`);
