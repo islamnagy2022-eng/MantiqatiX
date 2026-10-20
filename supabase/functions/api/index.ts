@@ -214,8 +214,10 @@ serve(async (req) => {
     if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,business_id,total_amount,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,business_id,total_amount,currency,customer_id,status").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
+    if (!["PENDING","CREATED"].includes(String(order.status ?? "").toUpperCase()))
+      return json({ error: "ORDER_NOT_PAYABLE" }, 409)
 
     const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
       .select("id,role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
