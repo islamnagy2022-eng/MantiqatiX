@@ -1409,7 +1409,24 @@ async function createPurchaseOrder(){
  });
 }
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
-async function receivePurchaseStock(preselectedOrderId){const purchaseOrderId=preselectedOrderId||chooseERPRecord('erp_purchase_orders','أمر الشراء الجاهز للاستلام',r=>r.order_number+' — '+r.status,null,r=>['SUBMITTED','APPROVED','PARTIALLY_RECEIVED'].includes(String(r.status||'').toUpperCase()));if(!purchaseOrderId)return;const receiptNumber=window.prompt('رقم الاستلام');if(!receiptNumber?.trim())return;const warehouseId=chooseERPRecord('warehouses','المخزن',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''));if(!warehouseId)return;const productId=chooseERPRecord('catalog_items','المنتج',r=>(r.name_ar||r.name_en||r.sku||'منتج')+' — '+(r.sku||''));if(!productId)return;const qty=Number(window.prompt('الكمية المستلمة','1'));const unitCost=Number(window.prompt('تكلفة الوحدة','0'));if(!Number.isFinite(qty)||qty<=0||!Number.isFinite(unitCost)||unitCost<0)return showToast('بيانات الاستلام غير صحيحة','error');return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId,p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId,p_product_id:productId,p_received_quantity:qty,p_unit_cost:unitCost})}
+async function receivePurchaseStock(preselectedOrderId){
+ const purchaseOrderId=preselectedOrderId||chooseERPRecord('erp_purchase_orders','أمر الشراء الجاهز للاستلام',r=>r.order_number+' — '+r.status,null,r=>['SUBMITTED','APPROVED','PARTIALLY_RECEIVED'].includes(String(r.status||'').toUpperCase()));
+ if(!purchaseOrderId)return;
+ const orderLines=live.moduleData?.ERP?.rows?.erp_purchase_order_lines||live.moduleData?.BUSINESS_ERP?.rows?.erp_purchase_order_lines||window.MNTYOperationsERPData?.erp_purchase_order_lines||[];
+ const eligibleLines=orderLines.filter(line=>String(line.purchase_order_id)===String(purchaseOrderId)&&Number(line.ordered_quantity||0)>Number(line.received_quantity||0));
+ if(!eligibleLines.length)return showToast('لا توجد بنود متبقية للاستلام في أمر الشراء المحدد','error');
+ const receiptNumber=window.prompt('رقم الاستلام');if(!receiptNumber?.trim())return;
+ const warehouseId=chooseERPRecord('warehouses','المخزن النشط',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE'&&(!live.branchId||String(r.branch_id||'')===String(live.branchId)));
+ if(!warehouseId)return;
+ const eligibleProductIds=eligibleLines.map(line=>String(line.product_id));
+ const productId=chooseERPRecord('catalog_items','صنف أمر الشراء',r=>(r.name_ar||r.name_en||r.sku||'صنف')+' — '+(r.sku||''),null,r=>eligibleProductIds.includes(String(r.id)));
+ if(!productId)return;
+ const line=eligibleLines.find(item=>String(item.product_id)===String(productId));
+ const remaining=Number(line.ordered_quantity||0)-Number(line.received_quantity||0);
+ const qty=Number(window.prompt('الكمية المستلمة (المتبقي '+remaining+')',String(remaining)));
+ if(!Number.isFinite(qty)||qty<=0||qty>remaining)return showToast('الكمية يجب أن تكون أكبر من صفر ولا تتجاوز المتبقي في أمر الشراء','error');
+ return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId,p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId,p_product_id:productId,p_received_quantity:qty,p_unit_cost:Number(line.unit_cost||0)});
+}
 async function createStockTransfer(){const transferNumber=window.prompt('رقم التحويل');if(!transferNumber?.trim())return;const from=chooseERPRecord('warehouses','المخزن المصدر',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''));if(!from)return;const to=chooseERPRecord('warehouses','المخزن الهدف',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),from);if(!to)return;const product=chooseERPRecord('catalog_items','المنتج',r=>(r.name_ar||r.name_en||r.sku||'منتج')+' — '+(r.sku||''));if(!product)return;const qty=Number(window.prompt('الكمية','1'));if(!Number.isFinite(qty)||qty<=0)return showToast('بيانات التحويل غير صحيحة','error');return erpRpc('create_stock_transfer_backend',{p_id:'tr-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_transfer_number:transferNumber.trim(),p_from_warehouse_id:from,p_to_warehouse_id:to,p_product_id:product,p_quantity:qty})}
 async function updateStockTransferStatus(id,status){if(!id)return;return erpRpc('update_stock_transfer_status_backend',{p_transfer_id:id,p_target_status:status})}
 async function receiveStockTransfer(id){if(!id)return;return erpRpc('receive_stock_transfer_backend',{p_transfer_id:id})}
