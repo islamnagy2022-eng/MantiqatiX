@@ -53,6 +53,8 @@ for(const required of [
  'erp_supplier_create_backend','erp_supplier_update_backend','erp_opening_stock_backend'
 ])if(!erpRoute.includes(required))failures.push("ERP_ROUTE_MISSING_"+required.toUpperCase());
 if(!files.app.includes("window.MNTYOperationsERPData=null"))failures.push("ERP_SHARED_CACHE_INVALIDATION_MISSING");
+if(!files.app.includes("if(event==='SIGNED_OUT'){\\nwindow.MNTYOperationsERPData=null;\\nlive.moduleData={};"))failures.push("ERP_SHARED_CACHE_SIGNOUT_CLEAR_MISSING");
+if(!files.app.includes("if(session?.user&&String(user?.id||'')!==String(session.user.id)){\\n window.MNTYOperationsERPData=null;\\n live.moduleData={};"))failures.push("ERP_SHARED_CACHE_IDENTITY_CHANGE_CLEAR_MISSING");
 if(!files.app.includes("window.MNTYOperationsERPData={"))failures.push("ERP_APP_SNAPSHOT_NOT_PUBLISHED");
 if(!files.app.includes("businesses:rows.businesses"))failures.push("ERP_APP_SNAPSHOT_BUSINESS_REFERENCE_MISSING");
 if(!files.app.includes("erp_purchase_order_lines:rows.erp_purchase_order_lines"))failures.push("ERP_APP_SNAPSHOT_ORDER_LINES_MISSING");
