@@ -22,7 +22,7 @@ if(!operations.includes("x[2]===true")) throw new Error('ERP action cells must u
 if(!operations.includes('function factoryOperationsWorkspace(d)') || !operations.includes('rows.inventory_transactions')) throw new Error('factory workspace must link inventory balances and movement history');
 if(!operations.includes('data-op-retry>إعادة المحاولة')) throw new Error('module load failure state must provide a retry action');
 if(!operations.includes('scopeMatchesApp') || !operations.includes('window.MNTYOperationsERPData=')) throw new Error('ERP actions must share reference data only when active app scope matches');
-if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty123') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty123')) throw new Error('operations module asset cache versions must match');
+if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty124') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty123')) throw new Error('operations module asset cache versions must match');
 
 
 const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
@@ -36,4 +36,8 @@ if(!api.includes('from("catalog_items").select("*").eq("tenant_id", tenantId).eq
 if(!api.includes('String(args.p_tenant_id ?? "") !== tenantId') || !api.includes('String(args.p_business_id ?? "") !== businessId')) throw new Error('ERP mutations are not bound to the active tenant/business selection');
 if(!api.includes('ERP_WAREHOUSE_SELECTION_INVALID') || !api.includes('ERP_SCOPE_MISMATCH')) throw new Error('ERP mutation preflight scope guards are missing');
 if(!migration.includes('revoke all on function public.erp_runtime_execute(uuid,text,jsonb) from public, anon, authenticated')) throw new Error('ERP gateway RPC must remain service-role-only');
+if(!api.includes('from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP live stock balances are not tenant/business scoped');
+if(!api.includes('from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP inventory movements are not tenant/business scoped');
+if(!operations.includes('rows.stock_balances=data.stock_balances||[]') || !operations.includes('rows.inventory_transactions=data.inventory_transactions||[]')) throw new Error('ERP workspace is not connected to stock balance and movement sources');
+if(!operations.includes('الأرصدة الفعلية المرتبطة بالمشتريات') || !operations.includes('سجل حركات المخزون')) throw new Error('ERP workspace does not render linked inventory sources');
 console.log('Backend-only module boundary and ERP runtime gateway PASS');
