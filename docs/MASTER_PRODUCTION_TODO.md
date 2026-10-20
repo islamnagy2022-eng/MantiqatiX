@@ -2188,3 +2188,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Confirm CI checks, authenticated customer/captain journeys, role isolation, payment idempotency, and recovery behavior.
 - **Latest candidate commit:** `efb7aec8e772d0ad07e9625acff4b161e16ce888`.
 - **Release status:** BLOCKED / NOT CERTIFIED; no production deployment or database mutation performed.
+
+
+## RC461 — MantiGO fresh-location guard for captain availability — 2026-10-21
+
+- [x] Prevent a captain from switching to `AVAILABLE` unless the browser returns a fresh valid latitude and longitude; avoids retaining stale stored coordinates when location permission is denied or lookup times out.
+- [x] Keep duplicate-submit guards and button restoration intact on early return and network failure.
+- [x] Add source-contract assertions in both launch validators for fresh-location enforcement.
+- [x] Align operations asset to `mnty141` in index and service worker; cache is now `mnty-web-v182`.
+- [ ] Execute the Node validators and authenticated integration tests in CI; current source inspection is not a runtime pass.
+- **Candidate change:** `08510f2322e10de83c39cff7c5d6ffdaa684fa28`.
+- **Release status:** BLOCKED / NOT CERTIFIED pending CI, authenticated role-boundary tests, and live deployment/recovery evidence.
