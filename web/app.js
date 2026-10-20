@@ -1041,6 +1041,7 @@ function medicalErrorMessage(error){
   ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND:'الطبيب غير منشور أو غير موثق أو غير متاح للحجز',
   ACTIVE_TENANT_MEMBERSHIP_REQUIRED:'حسابك لا يملك عضوية نشطة تسمح بالحجز',
   APPOINTMENT_TIME_MUST_BE_FUTURE:'اختر موعدا في المستقبل',
+  APPOINTMENT_SLOT_ALIGNMENT_REQUIRED:'اختر موعدا على ربع ساعة مثل 10:00 أو 10:15 أو 10:30 أو 10:45',
   APPOINTMENT_REASON_TOO_LONG:'سبب الزيارة أطول من الحد المسموح',
   DOCTOR_SLOT_UNAVAILABLE:'الموعد محجوز بالفعل اختر وقتا آخر',
   APPOINTMENT_ID_ALREADY_EXISTS:'تعذر تكرار رقم الحجز يرجى المحاولة مرة أخرى',
@@ -1058,6 +1059,7 @@ async function createMedicalAppointment(providerId,businessId){
  if(!dateText)return showToast('اختر موعد الزيارة أولا','error');
  const timestamp=new Date(dateText).getTime();
  if(!Number.isFinite(timestamp)||timestamp<=Date.now())return showToast('اختر موعدا صحيحا في المستقبل','error');
+ if(timestamp%900000!==0)return showToast('اختر موعدا على ربع ساعة مثل 10:00 أو 10:15 أو 10:30 أو 10:45','error');
  const reason=String(reasonInput?.value||'').trim();
  if(reason.length>500)return showToast('سبب الزيارة يجب ألا يتجاوز 500 حرف','error');
  const button=document.getElementById('med-book-'+providerId);
