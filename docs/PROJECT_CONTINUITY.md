@@ -749,3 +749,8 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - The used-item directory now reads through `list_used_item_ads_backend`, which returns only public listing fields, rejects anonymous sessions, includes sold ads only for the owner, and enforces optional tenant/business filters. Direct client table access is revoked in the migration.
 - Migration is consolidated at `supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql`; duplicate timestamped migration file removed. Source commit `02ddd43b8c4cf80310b6b16135ef43ec965d09d5`, migration commit `8c3a85006f1e87a9b740d209bf9656e8868a4d10`, validator commit `3c7fa872158d4f7b368a9f2051be5a5d69dcee7a`.
 - The migration is not applied to production. Verify migration execution and database behavior before treating the feature as operational.
+
+
+### Correction — used-item read implementation
+- Current branch migration is a server-authorized, narrow read RPC rather than a column-level table grant. It excludes `seller_phone`, rejects anonymous sessions, and revokes direct table access for client roles. The UI calls `list_used_item_ads_backend`.
+- The migration remains unapplied to live Supabase; do not claim the production table/API behavior has changed.
