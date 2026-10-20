@@ -78,10 +78,14 @@ assert.match(operations,/data-medical-target="COMPLETED"/,"doctor workspace must
 assert.match(operations,/data-medical-target="NO_SHOW"/,"doctor workspace must support no-show status for due visits");
 assert.match(operations,/updateMedicalAppointmentStatus\(b\.dataset\.medicalStatus,b\.dataset\.medicalTarget\)/,"appointment status actions must call the authenticated backend RPC");
 assert.match(operations,/p_user_id:user\.id,p_appointment_id:String\(id\),p_target_status:String\(target\)/,"status mutations must bind the authenticated actor");
+assert.match(operations,/p\.is_verified===true/,"booking discovery must hide unverified medical providers");
+assert.match(operations,/900000!==0/,"booking UI must enforce the backend's 15-minute slot alignment");
+assert.match(operations,/medical-appointments-live/,"doctor appointments must refresh from realtime events");
+assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
 assert.match(index,/operations-modules\.js\?v=mnty131/,"medical workflow asset cache must be refreshed");
 assert.match(index,/app\.js\?v=mnty-doctors-v1-20261020/);
 assert.match(index,/sw\.js\?v=mnty-doctors-v1-20261020/);
-assert.match(sw,/const CACHE='mnty-web-v161'/);
+assert.match(sw,/const CACHE='mnty-web-v162'/);
 assert.match(sw,/app\.js\?v=mnty-doctors-v1-20261020/);
 assert.match(releaseWorkflow,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 assert.match(releaseWorkflow,/rc462_medical_booking_integration\.sql/);
