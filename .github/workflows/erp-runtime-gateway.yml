@@ -3,7 +3,6 @@ on:
   push:
     branches: ["**"]
     paths:
-      - "supabase/functions/erp-runtime/**"
       - "supabase/functions/api/index.ts"
       - "supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql"
       - "supabase/tests/rc461_erp_runtime_gateway_*.sql"
