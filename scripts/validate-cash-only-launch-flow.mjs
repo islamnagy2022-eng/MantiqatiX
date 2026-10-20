@@ -25,6 +25,8 @@ const rc463=read("supabase/migrations/20261020160000_rc463_erp_supplier_master.s
 const rc463Integration=read("supabase/tests/rc463_erp_supplier_master_integration.sql");
 const rc464=read("supabase/migrations/20261020170000_rc464_erp_supplier_update_backend.sql");
 const rc464Integration=read("supabase/tests/rc464_erp_supplier_update_integration.sql");
+const rc465=read("supabase/migrations/20261020180000_rc465_erp_purchase_order_lines.sql");
+const rc465Integration=read("supabase/tests/rc465_erp_purchase_order_lines_integration.sql");
 const apiERP=read("supabase/functions/api/index.ts");
 const erpWorkflow=read(".github/workflows/erp-runtime-gateway.yml");
 const todo=read("docs/MASTER_PRODUCTION_TODO.md"),scope=read("docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md");
@@ -270,7 +272,7 @@ assert.match(app,/sessionStorage\.setItem\(idempotencyKey,JSON\.stringify\(entry
 assert.match(app,/sessionStorage\.removeItem\(idempotencyKey\)/);
 assert.match(app,/ERP_SCOPE_MISMATCH:'البيانات لا تطابق المؤسسة أو الفرع المحدد'/);
 assert.match(app,/r\.status==='PENDING_APPROVAL'&&\['OWNER','BUSINESS_OWNER','ADMIN'\]\.includes\(live\.role\)/);
-assert.match(app,/chooseERPRecord\(\x27catalog_items\x27,\x27المنتج\x27/);
+assert.match(app,/chooseERPRecord\(\x27catalog_items\x27,\x27الصنف النشط\x27/);
 assert.match(app,/chooseERPRecord\(\x27warehouses\x27,\x27المخزن المصدر\x27/);
 assert.match(app,/window\.MNTYOperationsERPData\?\.\[table\]/,"ERP record chooser must use the operations module's scoped reference data");
 assert.match(app,/m\.key==='ACCOUNTING'&&m\.tables\.includes\('journal_entry_lines'\)/,"accounting lines must be loaded only through visible journal entries");
@@ -306,6 +308,25 @@ assert.match(rc464Integration,/RC464_DUPLICATE_CODE_WAS_ALLOWED/);
 assert.match(verifier,/20261020170000_rc464_erp_supplier_update_backend\.sql/);
 assert.match(replay,/20261020170000_rc464_erp_supplier_update_backend\.sql/);
 assert.match(erpWorkflow,/rc464_erp_supplier_update_backend\.sql/);
+assert.match(rc465,/create table if not exists public\.erp_purchase_order_lines/);
+assert.match(rc465,/erp_purchase_order_create_with_lines_backend/);
+assert.match(rc465,/erp_purchase_stock_receive_with_lines_backend/);
+assert.match(rc465,/ERP_PURCHASE_ORDER_RECEIVE_LIMIT_EXCEEDED/);
+assert.match(rc465,/revoke all on function public\.erp_purchase_order_create_with_lines_backend\(uuid,jsonb\) from public,anon,authenticated/);
+assert.match(rc465,/revoke all on function public\.erp_purchase_stock_receive_with_lines_backend\(uuid,jsonb\) from public,anon,authenticated/);
+assert.match(rc465Integration,/RC465_ORDER_LINE_NOT_CREATED/);
+assert.match(rc465Integration,/RC465_ORDER_RETRY_NOT_IDEMPOTENT/);
+assert.match(rc465Integration,/RC465_RECEIVED_QUANTITY_NOT_LINKED_TO_ORDER_LINE/);
+assert.match(rc465Integration,/RC465_OVER_RECEIPT_WAS_ALLOWED/);
+assert.match(apiERP,/create_purchase_order_with_lines/);
+assert.match(apiERP,/erp_purchase_order_create_with_lines_backend/);
+assert.match(apiERP,/erp_purchase_stock_receive_with_lines_backend/);
+assert.match(app,/create_purchase_order_with_lines_backend:'create_purchase_order_with_lines'/);
+assert.match(app,/p_lines:lines/);
+assert.match(app,/ERP_PURCHASE_ORDER_RECEIVE_LIMIT_EXCEEDED/);
+assert.match(verifier,/20261020180000_rc465_erp_purchase_order_lines\.sql/);
+assert.match(replay,/20261020180000_rc465_erp_purchase_order_lines\.sql/);
+assert.match(erpWorkflow,/rc465_erp_purchase_order_lines_integration\.sql/);
 assert.match(apiERP,/erp_supplier_update_backend/);
 assert.match(apiERP,/update_supplier/);
 assert.match(app,/update_erp_supplier_backend:'update_supplier'/);
@@ -326,4 +347,4 @@ assert.match(operations,/\['شروط السداد','payment_terms'\]/);
 
 
 
-console.log("Cash-only launch, RC458/RC460 security, RC461 ERP runtime, RC463 supplier master, RC464 supplier lifecycle, and post-launch deferral contract: PASS");
+console.log("Cash-only launch, RC458/RC460 security, RC461 ERP runtime, RC463/RC464 supplier lifecycle, RC465 line-linked purchasing, and post-launch deferral contract: PASS");
