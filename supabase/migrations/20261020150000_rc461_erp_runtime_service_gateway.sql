@@ -17,6 +17,7 @@ declare
   v_member_branch_id text;
   v_record_branch_id text;
   v_purchase_order_branch_id text;
+  v_purchase_order_status text;
   v_from_warehouse_id text;
   v_to_warehouse_id text;
   v_result jsonb;
@@ -66,13 +67,16 @@ begin
   end if;
 
   if p_operation = 'receive_purchase_stock' then
-    select o.branch_id::text into v_purchase_order_branch_id
+    select o.branch_id::text, upper(o.status) into v_purchase_order_branch_id, v_purchase_order_status
       from public.erp_purchase_orders o
       where o.id = p_arguments->>'p_purchase_order_id'
         and o.tenant_id::text = v_tenant_id
         and o.business_id = v_business_id;
     if not found then
       raise exception 'ERP_PURCHASE_ORDER_SCOPE_INVALID';
+    end if;
+    if v_purchase_order_status not in ('SUBMITTED','APPROVED','PARTIALLY_RECEIVED') then
+      raise exception 'ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT';
     end if;
   end if;
 
