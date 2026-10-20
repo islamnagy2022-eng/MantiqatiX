@@ -275,7 +275,7 @@ assert.match(app,/MNTY_ERP_IDEMPOTENCY/);
 assert.match(app,/sessionStorage\.setItem\(idempotencyKey,JSON\.stringify\(entry\)\)/);
 assert.match(app,/sessionStorage\.removeItem\(idempotencyKey\)/);
 assert.match(app,/ERP_SCOPE_MISMATCH:'البيانات لا تطابق المؤسسة أو الفرع المحدد'/);
-assert.match(app,/r\.status==='PENDING_APPROVAL'&&\['OWNER','BUSINESS_OWNER','ADMIN'\]\.includes\(String\(live\.role\|\|''\)\.toUpperCase\(\)\)/);
+assert.match(app,/String\(r\.status\|\|''\)\.toUpperCase\(\)==='PENDING_APPROVAL'&&\['OWNER','BUSINESS_OWNER','ADMIN'\]\.includes\(String\(live\.role\|\|''\)\.toUpperCase\(\)\)/);
 assert.match(app,/chooseERPRecord\(\x27catalog_items\x27,\x27الصنف النشط\x27/);
 assert.match(app,/chooseERPRecord\(\x27warehouses\x27,\x27المخزن المصدر\x27/);
 assert.match(app,/window\.MNTYOperationsERPData\?\.\[table\]/,"ERP record chooser must use the operations module's scoped reference data");
