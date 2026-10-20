@@ -1732,3 +1732,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] CI for the exact working branch must pass before marking these changes verified. No browser E2E was run in this batch; the tests are source-contract checks, not proof of live search/RLS behavior.
 - [ ] Next: continue module-by-module route/action inventory, then replace blueprint-only panels with real views backed by verified contracts. Build activity and job-function management only after mapping existing server RPC/Edge Function authorization and audit contracts.
 - Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — UI batch verification status
+
+- Source-level changes are committed on `feat/ui-first-module-completion-20261020`: honest blueprint status and global search partial-source-failure messaging, plus CI contract validators.
+- **Verification still open:** no browser/E2E run has been executed from this environment. A branch push alone does not prove the Pages workflow ran or passed. Keep release blocked until exact-head CI and deployed smoke tests are checked.
+- Next implementation batch: inspect and test current branch changes in a real CI environment; continue route-to-backend contract mapping before adding activity CRUD or role/job-function write controls.
