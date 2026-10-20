@@ -719,3 +719,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Used-item read projection was minimized further: excludes seller phone plus unused description/image/fee fields; retains only rendered and query-filter/order fields. Commits `66fefa4ce874c1eb62962c8f476a3015378fa42e` and `a3d9744dc84b82df633e1035cc8a42d1dfccdeb1`.
+
+
+- Sector workspace authentication errors now display Arabic guidance and omit the retry action when no session exists; source commit `b26ded4f7aa325deff7a3d4b23539167c265829d`, validator commit `8f97bbf72c6e1ab74aa6e39e17384799a83276eb`. Exact-head CI/E2E remain pending.
