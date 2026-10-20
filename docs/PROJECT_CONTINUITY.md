@@ -577,3 +577,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-20 — UI-first execution handoff
+
+- **Owner decision:** prioritize complete web/PWA module interfaces and pages, login/onboarding, global search, sponsored display/placement UX, activity management, and job-function/role controls before subscription packages, subscription billing/accounts, and expanded accounting UI.
+- **Working branch:** `feat/ui-first-module-completion-20261020`, created from main `149a85c7e5c44b61421edc8391cbb82885902fae`.
+- **Execution prompt:** `docs/MASTER_UI_FIRST_CONTINUATION_PROMPT.md`; the Master TODO now has the ordered UI-first roadmap.
+- **Scope:** sponsored display/placement UI is allowed only against existing verified contracts; monetization, ad-budget charging, paid campaign/SMM execution and external publication are deferred. Keep current data/contracts; do not invent parallel business truth.
+- **Current state:** documentation/plan update only. No app code, migration, production setting, payment, merge or deployment was changed. UI completeness, authentication/search E2E, activity/role controls and module integration remain **NOT VERIFIED**.
+- **Next action:** audit all current routes/modules and map pages/actions to existing APIs/RPCs/permissions, then implement small testable UI slices. Preserve server-side authorization, tenant isolation and all existing release gates. Overall release remains **BLOCKED / NOT CERTIFIED**.
