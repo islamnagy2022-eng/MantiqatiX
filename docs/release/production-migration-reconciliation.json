@@ -8,16 +8,16 @@
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "PASS",
-  "tenant_isolation_tests": "NOT VERIFIED",
+  "chronological_replay": "PASS in disposable PostgreSQL from RC424 schema baseline on candidate HEAD 69df9db11fdaa86ceb9a4d8c62073b121dcd426b; production was not modified",
+  "tenant_isolation_tests": "PASS in disposable forward-replay workflow only; live production cross-tenant E2E NOT VERIFIED",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
-  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915562",
+  "evidence_ref": "candidate 69df9db11fdaa86ceb9a4d8c62073b121dcd426b; GitHub runs 39495915562 (forward replay), 39495915671 (doctor release), 39495915548 (ERP gateway), 39495915544 (opening stock), 39495915321 (backend boundary), 39495914539 (module validation), 39495915784 (MantiGO privacy)",
   "checked_at": "2026-10-21",
-  "reason": "Read-only production inspection on 2026-10-21 confirms the live migration ledger still ends at RC424 (283 recorded migrations), so RC425-RC468 are not proven applied. Candidate RC425-RC468 replay and disposable tenant-isolation workflow passed on HEAD 69df9db11fdaa86ceb9a4d8c62073b121dcd426b, but this does not apply them to production. The live medical booking RPC remains the pre-RC457 implementation (duplicate request ID raises APPOINTMENT_ID_ALREADY_EXISTS; no RC468 replay semantics). Supabase security advisor reports leaked-password protection disabled, anonymous-sign-in warnings, and SECURITY DEFINER exposure findings requiring review. Authenticated cash-flow E2E, live multi-tenant isolation, backup/restore, deployed Edge Function parity, and SMM parity remain unverified. Keep status BLOCKED; do not deploy or apply migrations.",
-  "edge_function_contracts": "NOT VERIFIED",
-  "smm_gateway_parity": "NOT VERIFIED",
-  "auth_security_settings": "FAIL",
+  "reason": "Read-only live Supabase inspection on 2026-10-21 confirms 283 recorded migrations and live ledger ending at RC424 (20261008222845). Candidate forward replay and tenant-isolation tests passed only in an isolated disposable database; no RC425+ migration has been proven applied to production. Production auth/cash settlement E2E, real two-tenant isolation, edge-function/source parity, auth security configuration, backup/restore, and security advisor findings remain unresolved. Do not certify, apply candidate migrations, or deploy until these gates have evidence.",
+  "edge_function_contracts": "NOT VERIFIED against live deployed function versions",
+  "smm_gateway_parity": "NOT VERIFIED; live function exists but production parity not established",
+  "auth_security_settings": "NOT VERIFIED; live security advisor reports leaked-password protection disabled and anonymous-sign-in warnings requiring review",
   "rc424_reconciliation": {
     "ledger_version": "20261008222845",
     "ledger_name": "rc424_atomic_digital_page_payment_webhook",
@@ -46,5 +46,27 @@
     "module_professionalization_validation": "PASS",
     "module_professionalization_run": "https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495914539",
     "production_database_mutated": false
+  },
+  "live_read_only_verification": {
+    "checked_at": "2026-10-21",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "migration_count": 283,
+    "live_ledger_last_version": "20261008222845",
+    "live_ledger_last_name": "rc424_atomic_digital_page_payment_webhook",
+    "active_edge_function_count": 37,
+    "security_advisor_findings": {
+      "rls_enabled_no_policy": 1,
+      "anonymous_security_definer_executable": 1,
+      "authenticated_security_definer_executable": 40,
+      "leaked_password_protection_disabled": 1,
+      "anonymous_sign_in_warnings": "present; individual advisor rows need review"
+    },
+    "performance_advisor_findings": {
+      "unindexed_foreign_keys": 105,
+      "auth_rls_initplan": 375,
+      "unused_indexes": 123,
+      "multiple_permissive_policies": 28
+    },
+    "note": "Advisor findings are review signals, not all confirmed vulnerabilities. Do not mass-revoke SECURITY DEFINER execute privileges without mapping intended caller contracts. RLS enabled without policies on digital_page_payment_events may be deliberate deny-by-default; verify intended access."
   }
 }
