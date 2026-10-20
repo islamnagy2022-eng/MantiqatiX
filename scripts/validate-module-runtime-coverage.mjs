@@ -37,6 +37,7 @@ if(!accountingRoute.includes('.eq("tenant_id", tenantId).eq("business_id", busin
 if(!accountingRoute.includes('.in("journal_entry_id", entryIds)')) missing.push('accounting ledger details must be restricted to the scoped entry IDs');
 if(!app.includes("invokeMntyApi('/api/v1/accounting/ledger'")) missing.push('accounting workspace must load protected ledger through its authenticated API');
 if(app.includes("sb.from('general_ledger')")) missing.push('browser must not query protected general ledger directly');
+const cacheReset=app.slice(app.indexOf('function resetMembershipScopedCaches()'),app.indexOf('async function switchMembership('));
 const membershipSwitch=app.slice(app.indexOf('async function switchMembership('),app.indexOf('async function openPrivilegedWorkspace('));
 if(!membershipSwitch.includes('resetMembershipScopedCaches()')||!membershipSwitch.includes('live.moduleData={}')||!cacheReset.includes('window.MNTYOperationsERPData=null')) missing.push('membership switching must clear tenant-scoped module caches before rendering the new scope');
 if(!app.includes('providerServices:[]')) missing.push('membership cache reset must clear provider service records');
