@@ -108,6 +108,7 @@ assert.match(migration,/CATALOG_PRICE_NOT_FOUND/);
 assert.doesNotMatch(migration,/^\s*(grant|revoke)\b/im,"RC458 must preserve existing service_role-only ACLs");
 assert.match(fixture,/create role service_role/);
 assert.match(integration,/RC458_IDEMPOTENCY_REPLAY_FAILED/);
+assert.match(migration,/perform pg_advisory_xact_lock\(hashtextextended\(p_tenant_id\|\|\x27:\x27\|\|trim\(p_client_idempotency_key\),0\)\);[\s\S]*?select \* into v_existing from orders where tenant_id=p_tenant_id and client_idempotency_key=trim\(p_client_idempotency_key\) for update;/,"cash order retries must serialize by tenant/idempotency key before lookup");
 assert.match(integration,/RC458_EXPECTED_MEMBERSHIP_REJECTION_MISSING/);
 assert.match(integration,/RC458_ANON_EXECUTE_MUST_BE_DENIED/);
 assert.match(integration,/RC458_AUTHENTICATED_EXECUTE_MUST_BE_DENIED/);
