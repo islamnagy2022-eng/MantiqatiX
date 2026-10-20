@@ -1979,6 +1979,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - RC459 disposable PostgreSQL regression asserts direct authenticated RPC calls are denied before insert and ACLs remain unchanged. Exact-head CI and full ordered forward replay remain required; no production migration, payment, merge, or deployment occurred.
 
 ### RC460 cash confirmation amount-source correction — 2026-10-20
+- **Additional P0 payment-state guard:** the cash payment-intent endpoint now rejects orders outside `PENDING`/`CREATED` before creating or replaying an intent. Added a source-contract assertion; runtime behavior remains NOT VERIFIED until CI and API integration tests pass.
 - **Additional P0 authorization fix:** cash payment-intent creation previously accepted any active membership in the tenant without checking that its business scope matched the order. It now checks all active memberships and permits operational access only for a tenant-wide membership or the order's business; JSONB permission objects are supported for `PAYMENT_CREATE`. Source assertions were added; runtime verification remains pending.
 
 - **Additional source correction:** the API cash-confirmation guard now accepts both permission arrays and JSONB permission objects. Previously the API accepted arrays only, while the SQL RPC checked JSONB key presence, causing custom permission-based staff to be rejected before reaching the RPC.
