@@ -345,3 +345,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - RC457 PostgreSQL integration and forward replay passed. The replay is a candidate-chain replay from the pinned RC424 schema-only baseline, not a blank replay of all historical migrations.
 - Fixture SQL quoting and RC457 validator paths are corrected. PR remains draft/open/unmerged. No production mutation or deployment occurred.
 - Remaining release blockers unchanged: leaked-password protection owner action, historical migration provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)`, adversarial live tenant/RBAC E2E, authorized Paymob/finance/refund E2E, backup/restore/rollback, browser/push/device and Android evidence, main deployment smoke, and final certification. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Owner-directed launch scope: cash first
+- Decision: pre-launch uses cash only; electronic payment processing (Paymob/card/online checkout and production webhook/reconciliation E2E) is deferred until after launch.
+- Decision: SMM provider integration, credential use, automated fulfilment, campaign spend and live billing are deferred until after launch. Sensitive credentials and backend tables remain fail-closed.
+- Existing marketing/agency workspace, CRM and lead management are distinct from SMM automation and are not automatically deferred.
+- Updated Master Production TODO and Project Continuity; added `docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md`.
+- Initial source inventory found an API cash-confirmation route that checks active tenant membership and operational role/permission before calling `confirm_cash_payment`. This is not yet an E2E pass.
+- Next: inspect the normal customer checkout/order path and tenant payment-method configuration; ensure only cash is offered for launch, then test authorized cash confirmation, server-derived amount, idempotency, audit, order state, accounting and tenant isolation. Confirm SMM/electronic methods cannot be activated in the launch path.
+- No production mutation, payment transaction, merge or deployment was performed. Global release remains **BLOCKED / NOT CERTIFIED**.
