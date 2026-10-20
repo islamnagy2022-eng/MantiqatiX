@@ -27,18 +27,24 @@
    - وصول الإشعار وclick-through.
    - عزل مزودين من أعمال مختلفة.
 
-3. Paymob production E2E — WAIT
-   - معاملة حقيقية مصرح بها.
-   - HMAC/replay/idempotency.
-   - ربط الدفع بالطلب الصحيح.
-   - حماية السعر/العملة/tenant.
+3. Cash payment lifecycle — NOT VERIFIED / P0 LAUNCH GATE
+   - الدفع النقدي فقط هو المسار المالي المؤهل للإطلاق الأول.
+   - إنشاء الطلب ثم إنشاء CASH_ON_DELIVERY payment intent بمفتاح ثابت مشتق من order ID.
+   - إعادة المحاولة يجب أن تعيد نفس intent وحالته دون تغيير ID أو status.
+   - لا يحق للعميل تأكيد التحصيل؛ التأكيد عبر موظف مخول والمسار الخلفي المعتمد فقط.
+   - اختبار تفعيل طريقة النقد لكل tenant، الملكية، المبلغ/العملة، منع التكرار، التأكيد المكرر، audit والدفتر المالي حسب العقد.
+   - إذا لم تكن طريقة النقد مفعلة للـtenant، يفشل إعداد الدفع بوضوح ولا يُدعى أن الطلب مدفوع.
 
-4. Finance/Settlement E2E — NOT VERIFIED
-   - payment success → commission → payout/settlement.
-   - duplicate webhook.
-   - concurrent/replay.
-   - tenant isolation.
-   - GL posting/account mapping/reconciliation.
+4. Cash finance/settlement E2E — NOT VERIFIED
+   - cash intent → collection confirmation → commission/settlement/GL حسب العقد.
+   - duplicate confirmation and idempotent retries.
+   - concurrent/replay and tenant isolation.
+   - reconciliation and audit trail.
+
+5. Electronic payments (Paymob/card) — POST-LAUNCH DEFERRED
+   - ليست بوابة مانعة للإطلاق الأول ما دامت مساراتها غير معروضة/غير قابلة للبدء في نطاق الإطلاق.
+   - تبقى اختبارات HMAC/replay/idempotency وربط الطلب والمبلغ/العملة/tenant ضمن قائمة ما بعد الإطلاق.
+   - لا معاملات إنتاجية أو تفعيل live قبل مراجعة مستقلة وموافقة إطلاق لاحقة.
 
 5. Supabase Security Advisor — OPEN / REVIEWED
    - آخر فحص Production (2026-10-07): public.digital_page_payment_events هو الجدول الوحيد الظاهر كـ RLS enabled بدون policy؛ وهو backend-only/payment-event boundary ومقصود أن يبقى fail-closed.
@@ -1633,3 +1639,18 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — قرار نطاق الإطلاق: Cash-first / SMM بعد الإطلاق
+
+- [x] قرار المنتج: لا يُفعّل الدفع الإلكتروني (Paymob/البطاقات) في الإطلاق الأول؛ يُؤجل لما بعد الإطلاق.
+- [x] قرار المنتج: خدمات SMM المستقلة ومزودوها وطلباتُها ومحافظها تُؤجل لما بعد الإطلاق؛ يظل قسم التسويق والإعلان الداخلي متاحًا ضمن حدوده الحالية.
+- [x] تم ربط إنشاء نية الدفع النقدي بعد إنشاء الطلب في مساري كتالوج العميل والمطعم، مع عدم اعتبار intent بمفرده إثباتًا للتحصيل.
+- [x] تم إصلاح idempotency في API النقدي حتى لا تستبدل إعادة المحاولة معرّف النية أو حالتها، مع رفض إعادة استخدام المفتاح لطلب/مبلغ/عملة مختلفة.
+- [x] تم إيقاف بدء شراء صفحات Portfolio/Menu المدفوعة قبل الإطلاق لأنها تعتمد حاليًا على Paymob ولا يوجد لها مسار نقدي مثبت.
+- [ ] NOT VERIFIED: اختبار cash E2E بمستخدم عميل وموظف تحصيل ومؤسستين/tenant scope، وتأكيد أن tenant_payment_methods يحتوي طريقة CASH_ON_DELIVERY مفعلة لكل نشاط مؤهل.
+- [ ] NOT VERIFIED: اختبار API cash intent idempotency والتأكيد المكرر ورفض cross-order key reuse على PostgreSQL/بيئة معزولة.
+- [ ] NOT VERIFIED: مراجعة كل مسارات checkout الأخرى للتأكد من عدم بدء Paymob أو الدفع الإلكتروني في واجهة الإطلاق الأولى.
+- [ ] POST-LAUNCH: Paymob/card + webhooks/refunds/provider events E2E، وتشغيل SMM فقط بعد إصلاحات الأمن والمزود والمحفظة والاختبارات وموافقة إطلاق منفصلة.
+- لا تغيير على قاعدة الإنتاج أو إعدادات Supabase أو مفاتيح الدفع، ولم يحدث نشر أو دمج.
+- Release remains **BLOCKED / NOT CERTIFIED** حتى اجتياز بوابات النقد والأمن وباقي بوابات الإطلاق الإلزامية.
