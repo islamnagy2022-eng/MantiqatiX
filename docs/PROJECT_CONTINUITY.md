@@ -702,3 +702,13 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #300 exact tested head 710819156f9f2b613f4905d5e1c7266937fc4a32 passed all six PR workflows, including the industry UI contract and Pages validation; deploy skipped in PR context.
 - PR #207 now contains additional static contract checks for all reviewed consumers of mnty_can_platform_admin() (global ad creation, digital-page publishing, captain onboarding review, financial configuration). Exact-head CI has not been returned for this test-only update; do not mark it verified yet.
 - The live RC424 platform-admin authorization issue remains unfixed in production until the ordered RC449/RC462 candidate chain is approved and applied with post-rollout verification. No production mutation, merge, or deployment occurred.
+
+
+## Continuation checkpoint — 2026-10-20 — RC462 behavioral test passed
+
+- Added dedicated disposable PostgreSQL job rc462-mantigo-platform-admin-scope-integration to PR #301.
+- **PASS:** Module Professionalization run 39357112639, job 118414330318, applied RC449 then the canonical RC462 source from candidate commit 54b67bcf2f18e226f0d5206cce66b0bd39a6866c and completed the malformed-permission regression with explicit PASS output.
+- **PASS:** all nine workflows on code/workflow head ecaf98f28048775a0bf5629a6a6fdd27c2cc47f8. Disposable forward replay run 39357112834 applied 31 ordered candidates from the pinned RC424 schema-only baseline and verified two-way tenant isolation. The migration collision guard and all module/security validations passed; Pages deploy was skipped for PR.
+- The updated PR #248/#282 standalone validators have no separately returned exact-head workflow association; their status is not marked green by inference.
+- Production is still RC424. The live MantiGO platform-admin authorization weakness is not fixed in production because RC449/RC462/RC565 have not been deployed. The historical counter_offer_indrive_bid creation provenance, Auth leaked-password protection owner action, adversarial live E2E, Paymob/finance/refund E2E, backup/restore, browser/device/Android, and deployment verification remain open.
+- No production changes, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
