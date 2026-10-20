@@ -9,7 +9,8 @@ values ('supplier-line-test','tenant-a','22222222-2222-4222-8222-222222222222',n
 on conflict(id) do nothing;
 insert into public.catalog_items(id,tenant_id,business_id,branch_id,status)
 values ('66666666-6666-4666-8666-666666666666','tenant-a','22222222-2222-4222-8222-222222222222',null,'ACTIVE'),
- ('88888888-8888-4888-8888-888888888888','tenant-b','99999999-9999-4999-8999-999999999999',null,'ACTIVE')
+ ('88888888-8888-4888-8888-888888888888','tenant-b','99999999-9999-4999-8999-999999999999',null,'ACTIVE'),
+ ('77777777-7777-4777-8777-777777777777','tenant-a','22222222-2222-4222-8222-222222222222',null,'ACTIVE')
 on conflict(id) do nothing;
 insert into public.warehouses(id,tenant_id,business_id,branch_id,status)
 values ('warehouse-global','tenant-a','22222222-2222-4222-8222-222222222222',null,'ACTIVE')
