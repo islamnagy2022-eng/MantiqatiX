@@ -623,7 +623,7 @@ async function openOrderForm(businessId,itemId,branchId=null){
  const meta=user?.user_metadata||{}; const defaultName=meta.full_name||meta.name||user?.email||'';
  const orderAttemptId=crypto.randomUUID(), clientIdempotencyKey=crypto.randomUUID();
  const overlay=document.createElement('div');overlay.className='mx-modal';
- overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">NEW ORDER</span><h2>'+esc(item.name_ar||item.name_en||'طلب')+'</h2><p>السعر المعروض مرجعي؛ الخادم يعيد احتساب الإجمالي اعتمادًا على الكتالوج.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><div class="form-grid"><label class="field"><span>الاسم</span><input id="mx-order-name" value="'+esc(defaultName)+'"></label><label class="field"><span>الهاتف</span><input id="mx-order-phone" value="'+esc(user?.phone||meta.phone||'')+'"></label><label class="field"><span>الكمية</span><input id="mx-order-qty" type="number" min="1" step="1" value="1"></label><label class="field"><span>عنوان التنفيذ/التوصيل</span><input id="mx-order-address" placeholder="أدخل العنوان عند الحاجة"></label></div><button class="btn btn-primary" id="mx-submit-order">إرسال الطلب</button></div>';
+ overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">NEW ORDER</span><h2>'+esc(item.name_ar||item.name_en||'طلب')+'</h2><p>السعر المعروض مرجعي؛ الخادم يعيد احتساب الإجمالي اعتمادًا على الكتالوج.</p></div><button class="text-btn mx-close-modal">إغلاق</button></div><div class="form-grid"><label class="field"><span>الاسم</span><input id="mx-order-name" value="'+esc(defaultName)+'"></label><label class="field"><span>الهاتف</span><input id="mx-order-phone" value="'+esc(user?.phone||meta.phone||'')+'"></label><label class="field"><span>الكمية</span><input id="mx-order-qty" type="number" min="1" step="1" value="1"></label><label class="field"><span>عنوان التنفيذ/التوصيل</span><input id="mx-order-address" placeholder="أدخل العنوان عند الحاجة"></label></div><div class="notice" role="status" style="padding:12px;border-radius:12px;background:#e8f5e9;color:#14532d">طريقة الدفع قبل الإطلاق: نقدًا عند الاستلام فقط. لا يُطلب منك الدفع الإلكتروني.</div><button class="btn btn-primary" id="mx-submit-order">إرسال الطلب بالدفع النقدي</button></div>';
  document.body.appendChild(overlay);
  overlay.querySelector('.mx-close-modal')?.addEventListener('click',closeMxModal);
  document.getElementById('mx-submit-order').onclick=async()=>{
@@ -636,8 +636,11 @@ async function openOrderForm(businessId,itemId,branchId=null){
   submit.disabled=true; submit.textContent='جارٍ إرسال الطلب…';
   try{
    if(!branchId)return showToast('اختر الفرع قبل إرسال الطلب.','error');
-   const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:catalog.tenantId,businessId,branchId,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true,branch_id:branchId}});
-   closeMxModal(); current='الطلبات'; await loadLiveData(); await renderApp(); showToast('تم إرسال الطلب بنجاح. يمكنك متابعة الحالة من الطلبات.','success'); return result;
+   const result=await invokeMntyFunction('order-create',{orderId:orderAttemptId,tenantId:catalog.tenantId,businessId,branchId,clientIdempotencyKey,subtotal,discount:0,tax:0,deliveryFee:0,totalAmount:subtotal,currency:price.currency||'EGP',customerName:name,customerPhone:phone,deliveryAddress:address,items:[{catalogItemId:itemId,quantity:qty,options:[]}],notes:null,metadata:{source:'MNTY_CUSTOMER_CATALOG',pricing_server_authoritative:true,branch_id:branchId,payment_method:'CASH_ON_DELIVERY'}});
+   let cashIntent;
+   try{cashIntent=await invokeMntyApi('/api/v1/payments/intents',{method:'POST',body:{orderId:orderAttemptId,provider:'CASH_ON_DELIVERY',idempotencyKey:'cash-'+clientIdempotencyKey}});}
+   catch(paymentError){throw new Error('تم إنشاء الطلب رقم '+orderAttemptId+' لكن تعذر تهيئة الدفع النقدي: '+(paymentError?.message||'CASH_PAYMENT_SETUP_FAILED')+'. أعد المحاولة بنفس النموذج ولا تنشئ طلبًا جديدًا.');}
+   closeMxModal(); current='الطلبات'; await loadLiveData(); await renderApp(); showToast('تم إرسال الطلب '+orderAttemptId+' بنجاح. طريقة الدفع: نقدًا عند الاستلام.','success'); return {order:result,payment:cashIntent};
   }catch(e){submit.disabled=false;submit.textContent='إرسال الطلب';showToast('تعذر إنشاء الطلب: '+(e?.message||'ORDER_CREATE_FAILED'),'error')}
  };
 }
@@ -1522,9 +1525,21 @@ async function updateOrderStatus(orderId,newStatus){
 const ORDER_ACTION_AR={CONFIRMED:'تأكيد الطلب',PREPARING:'بدء التجهيز',OUT_FOR_DELIVERY:'إرسال للتوصيل',DELIVERED:'تأكيد التسليم',CANCELLED:'إلغاء الطلب'};
 function orderActions(order){
  const actions=orderAllowedNextStatuses(order);
- if(!actions.length)return '<span class="muted">لا توجد إجراءات متاحة</span>';
- return actions.map(s=>'<button class="text-btn" onclick="updateOrderStatus(\''+esc(order.id)+'\',\''+s+'\')">'+esc(ORDER_ACTION_AR[s]||s)+'</button>').join(' ');
+ const role=String(live.role||'').toUpperCase();
+ const canConfirmCash=['ADMIN','MANAGER','CASHIER','STAFF','OWNER','BUSINESS_OWNER','SUPER_ADMIN'].includes(role)&&String(order.status||'').toUpperCase()==='DELIVERED';
+ const cashAction=canConfirmCash?'<button class="text-btn" onclick="confirmCashPaymentForOrder(\''+esc(order.id)+'\')">تأكيد استلام النقد</button>':'';
+ const statusActions=actions.map(s=>'<button class="text-btn" onclick="updateOrderStatus(\''+esc(order.id)+'\',\''+s+'\')">'+esc(ORDER_ACTION_AR[s]||s)+'</button>').join(' ');
+ return [statusActions,cashAction].filter(Boolean).join(' ')||'<span class="muted">لا توجد إجراءات متاحة</span>';
 }
+async function confirmCashPaymentForOrder(orderId){
+ if(!orderId)return;
+ try{
+  await invokeMntyApi('/api/v1/orders/'+encodeURIComponent(orderId)+'/cash/confirm',{method:'POST',body:{}});
+  showToast('تم تسجيل استلام النقد بنجاح.','success');
+  current='الطلبات';await loadLiveData();await renderApp();
+ }catch(error){showToast('تعذر تأكيد استلام النقد: '+(error?.message||'CASH_CONFIRMATION_FAILED'),'error')}
+}
+window.confirmCashPaymentForOrder=confirmCashPaymentForOrder;
 const ORDER_STATUS_AR={PENDING:'قيد الانتظار',CREATED:'تم الإنشاء',CONFIRMED:'تم التأكيد',PREPARING:'جاري التجهيز',OUT_FOR_DELIVERY:'في الطريق',DELIVERED:'تم التسليم',CANCELLED:'ملغي',FAILED:'فشل',EXPIRED:'منتهي'};
 function orderStatusLabel(s){const k=String(s||'').toUpperCase();return ORDER_STATUS_AR[k]||k||'غير محدد'}
 function orderStatusClass(s){return 'mx-order-status mx-order-status-'+String(s||'').toLowerCase().replace(/[^a-z_]+/g,'-')}
@@ -1803,6 +1818,7 @@ async function walletView(){
 window.walletView=walletView;
 
 async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
+ if(window.MNTY_ELECTRONIC_PAYMENTS_ENABLED!==true){showToast('شراء الصفحات الرقمية المدفوعة مؤجل لما بعد الإطلاق','error');return;}
  const type=String(pageType||'PORTFOLIO').toUpperCase();
  if(!['PORTFOLIO','MENU'].includes(type))return;
  const {data:products,error}=await sb.from('digital_page_products').select('id,page_type,code,name_ar,description_ar,price,currency,duration_days,features').eq('page_type',type).eq('active',true).order('price',{ascending:true});

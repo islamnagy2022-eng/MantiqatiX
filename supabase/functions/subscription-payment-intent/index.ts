@@ -6,6 +6,8 @@ const json=(body:unknown,status=200,requestId?:string)=>new Response(JSON.string
 Deno.serve(async req=>{
  const requestId=req.headers.get("x-request-id")||crypto.randomUUID();
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405,requestId);
+ if(Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_ENABLED")!=="true"||Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_POST_LAUNCH_APPROVED")!=="true")return json({error:"ELECTRONIC_PAYMENTS_DEFERRED",requestId},503,requestId);
+ if(Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_ENABLED")!=="true"||Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_POST_LAUNCH_APPROVED")!=="true")return json({error:"ELECTRONIC_PAYMENTS_DEFERRED",requestId},503,requestId);
  const auth=req.headers.get("Authorization")??""; if(!auth.startsWith("Bearer "))return json({error:"AUTH_REQUIRED"},401,requestId);
  try{
   const {data:{user},error:userError}=await admin.auth.getUser(auth.slice(7)); if(userError||!user||user.is_anonymous)return json({error:"AUTH_REQUIRED"},401,requestId);

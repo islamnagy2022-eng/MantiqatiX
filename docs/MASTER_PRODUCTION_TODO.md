@@ -12,6 +12,14 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
+## Launch scope decision — 2026-10-20 (owner-directed)
+- **PRE-LAUNCH: CASH ONLY.** Cash collection and authorized cash confirmation are mandatory release gates and must pass E2E.
+- **POST-LAUNCH: electronic payments.** Paymob/card/online checkout and their production webhook/reconciliation E2E are deferred and are not pre-launch gates. Keep electronic methods unavailable in the launch UI; do not delete their existing code or weaken their security boundaries.
+- **POST-LAUNCH: SMM.** Defer SMM provider integrations, API credential use, automated fulfilment, campaign spend and live billing. Keep SMM secrets and sensitive tables fail-closed.
+- Existing marketing/agency workspace, CRM and lead management are distinct from SMM automation and are not automatically deferred; include only already implemented and independently verified functionality.
+- This scope decision does not certify cash readiness. Global release remains BLOCKED until cash E2E and all other mandatory release gates pass.
+- Canonical details: `docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md`.
+
 # P0 — حواجز الإطلاق
 
 1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
@@ -27,18 +35,19 @@
    - وصول الإشعار وclick-through.
    - عزل مزودين من أعمال مختلفة.
 
-3. Paymob production E2E — WAIT
-   - معاملة حقيقية مصرح بها.
-   - HMAC/replay/idempotency.
-   - ربط الدفع بالطلب الصحيح.
-   - حماية السعر/العملة/tenant.
+3. Electronic payments / Paymob production E2E — DEFERRED POST-LAUNCH (NOT A LAUNCH GATE)
+   - لا تفعيل Paymob/card/online checkout في واجهة الإطلاق.
+   - بعد الإطلاق: معاملة مصرح بها، HMAC/replay/idempotency، ربط الدفع بالطلب الصحيح، وحماية السعر/العملة/tenant.
+   - لا تحذف البنية الموجودة ولا تعتبرها جاهزة؛ تظل NOT VERIFIED حتى اختبارات ما بعد الإطلاق.
 
-4. Finance/Settlement E2E — NOT VERIFIED
-   - payment success → commission → payout/settlement.
-   - duplicate webhook.
-   - concurrent/replay.
-   - tenant isolation.
-   - GL posting/account mapping/reconciliation.
+4. Cash collection + finance/settlement E2E — NOT VERIFIED (P0 LAUNCH GATE)
+   - العميل ينشئ طلبًا باختيار الدفع النقدي فقط في نطاق الإطلاق.
+   - المبلغ/العملة من الطلب والتسعير المعتمد على الخادم، وليس من العميل.
+   - تأكيد استلام النقد بواسطة دور/صلاحية تشغيلية مخولة فقط؛ العميل لا يؤكد استلام نفسه.
+   - tenant/business isolation، انتقالات حالة صحيحة، idempotency وإعادة المحاولة الآمنة.
+   - سجل تدقيق/إيصال أو حالة واضحة، ومطابقة محاسبية وGL/commission/settlement حسب نموذج العمل.
+   - اختبار duplicate confirmation والتزامن ورفض الوصول العابر للمؤسسات.
+   - Electronic payment webhooks/replay/reconciliation are POST-LAUNCH deferred; do not block cash-only launch on them.
 
 5. Supabase Security Advisor — OPEN / REVIEWED
    - آخر فحص Production (2026-10-07): public.digital_page_payment_events هو الجدول الوحيد الظاهر كـ RLS enabled بدون policy؛ وهو backend-only/payment-event boundary ومقصود أن يبقى fail-closed.
@@ -210,11 +219,11 @@
 - [ ] Notifications
 - [ ] Support/CRM
 - [ ] Catalog/pricing
-- [ ] Payment
-- [ ] Webhook replay/idempotency
-- [ ] Commission
-- [ ] Settlement
-- [ ] GL/accounting
+- [ ] Cash-only order/payment E2E (required before launch)
+- [ ] Cash confirmation authorization/idempotency/audit (required before launch)
+- [ ] Cash accounting/commission/settlement/GL as required by launch business model
+- [ ] Electronic payment / Paymob / online checkout / payment webhook E2E (POST-LAUNCH DEFERRED; not a launch gate)
+- [ ] SMM provider integration/automated fulfilment/live billing (POST-LAUNCH DEFERRED; not a launch gate)
 - [ ] Auditability
 - [ ] Backup/restore rehearsal
 - [ ] Monitoring/alerting
@@ -1633,3 +1642,331 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — RC457 medical appointment state machine and exact-head CI
+
+- [x] Added forward-only candidate migration `20261019190000_rc457_medical_appointment_state_machine.sql`; corrected its header to RC457.
+- [x] Added disposable PostgreSQL fixture and integration coverage for allowed transitions, invalid/skipped transitions, terminal-state rewrites, patient ownership, cross-tenant membership, caller mismatch, invalid target, and anon/authenticated EXECUTE boundary.
+- [x] Fixed fixture dollar-quoting syntax and updated the source validator to reference RC457 fixture/integration filenames.
+- [x] Relaxed the documentation assertion to accept the documented backticked `NO_SHOW` semantics wording.
+- [x] Exact-head CI passed on `7e9dd574bec5fb53b21996f2cbe0834df0d450cb`: Migration Version Uniqueness, Approval Action Audit Atomicity, Backend-only Module Boundary, Migration History Immutability, MantiGO Open Ride Privacy Boundary, Open PR Migration Collision Guard, Module Professionalization Validation (including RC457 PostgreSQL integration), and Deploy MantiqatiX Web validation. Web deploy was skipped because this is a PR.
+- [ ] PR #301 remains OPEN / DRAFT / UNMERGED. RC457 is a source candidate only; do not apply it independently. Production ledger was last read at RC424, so RC425 onward requires ordered-chain review/rehearsal.
+- [ ] Review `NO_SHOW` semantics with the medical product owner; complete the full pending migration-chain replay and production E2E before considering rollout.
+- [ ] PR #300 remains OPEN / DRAFT / UNMERGED; its UI-only sector previews are not operational backend modules.
+- Global production release remains **BLOCKED / NOT CERTIFIED**. No production migration, data mutation, or deployment was performed in this work.
+
+
+## 2026-10-19 — RC424 forward replay PASS and live Security Advisor refresh
+
+- [x] Added a disposable forward-replay workflow to PR #301. It fetches the pinned schema-only baseline from PR #284 commit `354b7afd228af08b14144c8f3f04fb9ed671cfdd`, the pending migration sources from PR #282 commit `4ea94c855ab7aa2792681b8884ec6aedf0a61428`, and RC457 from the current candidate branch.
+- [x] Exact-head replay run [39323468016](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39323468016) passed on code head `63afa142222725f6ca0730288dd44e249731ae34`: 31 candidate migrations were applied in immutable filename-timestamp order from the RC424 schema-only baseline; output recorded `FORWARD_MIGRATION_REPLAY=PASS` and `MIGRATION_COUNT=31`.
+- [x] The same replay run passed the disposable two-tenant RLS verification: Tenant A could read its own rows and not private Tenant B rows; Tenant B could read its own rows and not private Tenant A rows.
+- [x] All eight other exact-head workflows passed on the same code head: Module Professionalization Validation (including RC457 PostgreSQL integration), Open PR Migration Collision Guard, Deploy MantiqatiX Web validation (deploy skipped for PR), Backend-only Module Boundary, Approval Action Audit Atomicity, Migration Version Uniqueness, MantiGO Open Ride Privacy Boundary, and Migration History Immutability.
+- [!] Scope limitation: this is a forward replay from the schema-only RC424 baseline, not a blank-database replay of all 283 historical migrations. The authoritative historical creation migration for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing; the baseline contains its current live definition, allowing the pending forward chain to be tested without inventing or stubbing historical source.
+- [x] Read-only Supabase Security Advisor refreshed at `2026-10-19T20:51:49Z`: one RLS-enabled/no-policy table (`public.digital_page_payment_events`, kept fail-closed pending backend-path verification); one anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`, intended public ad discovery but still requires documented per-function review); 40 authenticated-executable SECURITY DEFINER findings; and leaked-password protection remains disabled. Anonymous sign-in notices also remain.
+- [ ] Owner action: enable leaked-password protection in Supabase Auth settings, then re-run Security Advisor. No connected tool exposes this managed Auth setting for a safe in-chat change.
+- [ ] Continue per-function SECURITY DEFINER/RLS/grant review; do not bulk-revoke functions or add broad policies. The live production MantiGO platform-admin RPC definitions remain at RC424 behavior; RC449/RC462/RC565 source and isolated tests have not been applied to production.
+- [ ] PR #301 and PR #300 remain OPEN / DRAFT / UNMERGED. No production migration, database mutation, merge, or deployment occurred.
+- Global release remains **BLOCKED / NOT CERTIFIED** pending Auth settings, remaining security review, real authenticated two-tenant E2E, Paymob/finance/refund E2E, backup/restore and rollback rehearsal, browser/device smoke, and signed Android evidence.
+
+
+## 2026-10-20 — automatic continuation protocol and RC457 exact-head verification
+
+### Latest verified execution
+- [x] RC457 fixture SQL dollar quoting is corrected; validator references the RC457 fixture and integration files.
+- [x] Exact current PR #301 head: `d809070c3777b49d3909af8cc1b6760c00efb422`.
+- [x] Module Professionalization Validation [39323898440](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39323898440) PASS; its `rc457-medical-appointment-state-machine-integration` PostgreSQL job and validator passed.
+- [x] Disposable Forward Migration Replay [39323898338](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39323898338) PASS; pending source candidates replayed in immutable timestamp order from the pinned RC424 schema-only baseline, followed by two-tenant isolation tests.
+- [x] Exact-head workflows PASS: Migration Version Uniqueness [39323898323], Migration History Immutability [39323898384], Open PR Migration Collision Guard [39323898327], Backend-only Module Boundary [39323898303], Approval Action Audit Atomicity [39323898333], MantiGO Open Ride Privacy Boundary [39323898366], and web validation [39323898405]. The web deploy job was skipped as expected for a PR.
+- [ ] PR #301 remains open/draft/unmerged. RC457 remains a candidate; do not apply it alone or out of order.
+- [ ] Full blank-database chronological replay of all 283 historical migrations remains blocked by missing authoritative creation migration provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Forward replay from the RC424 schema-only baseline does not close this historical provenance gate.
+- [ ] Review medical `NO_SHOW` product semantics and continue with the first open release gate after recording this verified CI batch.
+- [ ] Global production release remains **BLOCKED / NOT CERTIFIED**. No production migration, merge, or deployment was performed.
+
+### Mandatory cross-session continuation and user-facing status
+- At the start of every continuation, read this file and `docs/PROJECT_CONTINUITY.md`, then inspect the latest PR/CI head and continue from the first open item in priority order; do not restart from scratch or ask the user to repeat prior decisions.
+- Every user-facing continuation response must include a compact main/subtask status ledger with **DONE + evidence**, **PARTIAL**, **OPEN/NOT VERIFIED**, and **WAIT/owner action** clearly distinguished. Never mark a task complete merely because code or documentation exists.
+- After each material action, refresh this ledger from actual GitHub/CI/runtime evidence and append the session result to this TODO, continuity file, and session log. If an external credential, approval, product decision, or owner-only dashboard action is required, continue all safe independent work and clearly mark only that blocked subtask.
+- Never merge, deploy, apply production migrations, change production grants/RLS/Auth, or create financial/test data in production without explicit authorization and required evidence.
+
+
+## 2026-10-20 continuation — RC457 exact-head replay, security inventory, and next gates
+
+- **Validated code head:** `d67aeaa4bc7738bc124e30f215d3d4b2f9dca56d` on Draft PR [#301](https://github.com/islamnagy2022-eng/MantiQaTiX/pull/301).
+- **PASS:** Disposable Forward Migration Replay [run 39344007574](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39344007574). Restored the pinned schema-only RC424 baseline, replayed 31 pending candidate migrations in immutable filename-timestamp order, and passed the two-tenant isolation verification. All workflow steps, including cleanup, completed successfully.
+- **PASS:** Module Professionalization Validation [run 39344007605](https://github.com/islamnagy2022-eng/MantiQaTiX/actions/runs/39344007605), including the RC457 PostgreSQL state-machine integration, validator, matrimony privacy integration, and targeted-ad search-path integration.
+- **PASS:** Migration Version Uniqueness [39344007471], Migration History Immutability [39344007594], Open PR Migration Collision Guard [39344007523], Backend-only Module Boundary [39344007513], Approval Action Audit Atomicity [39344007476], MantiGO Open Ride Privacy Boundary [39344007496], and web validation [39344007494]. The Pages deploy job was skipped as expected for a PR.
+- **Read-only live function inventory:** 40 public SECURITY DEFINER functions are executable by authenticated; one function is executable by anon, `get_mnty_targeted_advertisements`, the existing bounded public ad-discovery RPC. The reviewed `mnty_active_membership` helper scopes results to `auth.uid()`; `mnty_can` derives authorization through that helper. This is a bounded inventory/spot review, not closure of the full per-function review.
+- **Medical status semantics:** the current candidate only permits `CONFIRMED → NO_SHOW`; older migration source already lists `NO_SHOW` as a recognized target. The product meaning/reporting of `NO_SHOW` still needs explicit review before production rollout.
+- **Scope limit:** the successful replay starts from the pinned RC424 schema-only baseline; it is not a blank-database replay of all 283 historical migrations. The authoritative historical creation migration for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains missing.
+- **Still OPEN / WAIT:** PR #301 and PR #300 remain open/draft/unmerged; production is documented at RC424; leaked-password protection remains disabled and requires owner action in Supabase Auth; full historical migration provenance, per-function security review, authenticated two-tenant E2E, real Paymob/finance/refund E2E, backup/restore and rollback rehearsal, browser/device smoke, and signed Android evidence remain release gates.
+- **Production impact:** no production migration, data mutation, grant/RLS/Auth setting change, merge, or deployment was performed. Global release remains **BLOCKED / NOT CERTIFIED**.
+- **Next executable action:** retain the passing RC457 evidence, finish the medical `NO_SHOW` product-contract review, then continue the next safe P0 gate. Do not apply RC457 alone or out of order.
+
+
+## RC457 / RC300 continuation status — 2026-10-20
+
+### Exact-head verification
+- [x] PR #300 industry workspaces: exact current head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818`; all 6 PR-triggered workflows returned SUCCESS: Marketing Workspace Contract, Industry Workspaces UI Contract, Backend-only Module Boundary, Deploy MantiqaTiX Web workflow validation, MantiGO Open Ride Privacy Boundary, and Module Professionalization Validation. The Pages deploy job is skipped on PR context; this is not proof of a production deployment.
+- [x] PR #301 medical appointment state machine: exact current head `22fe004a2c7f8c162d2a1d84cf411df59b226752`; all 9 PR-triggered workflows returned SUCCESS, including RC457 PostgreSQL integration and disposable forward migration replay from the pinned RC424 schema-only baseline.
+- [x] Forward replay applied 31 pending candidate migrations in timestamp order and passed the two-tenant isolation checks in both directions.
+- [ ] Full blank-database replay of all 283 historical migrations remains BLOCKED because authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` has not been located.
+- [ ] Product contract for `CONFIRMED → NO_SHOW` needs explicit review before production rollout; code/CI success does not decide business semantics.
+
+### Current release blockers — unchanged
+- [ ] Supabase Auth leaked-password protection: owner/configuration action required; not enabled or verified.
+- [ ] Full per-function SECURITY DEFINER and RLS/tenant-isolation adversarial review.
+- [ ] Authenticated two-user/two-tenant E2E across customer/provider/order/payment and notification paths.
+- [ ] Real authorized Paymob/payment, finance/settlement/refund E2E.
+- [ ] Backup/restore rehearsal with measured RPO/RTO and rollback rehearsal.
+- [ ] Interactive browser smoke/accessibility/PWA and real-device push/network regression.
+- [ ] Signed Android release artifact and physical-device evidence.
+- [ ] Main-branch Pages deployment verification and final release evidence package.
+
+### Mandatory continuation/reporting protocol
+- At the start of every continuation, read `docs/PROJECT_CONTINUITY.md`, this TODO, and the latest `docs/SESSION_LOG.md`; inspect current PR heads and exact-head CI rather than trusting an old summary.
+- Continue from the first open gate in the existing priority order; do not ask the user to repeat context or treat “continue” as a request for a status-only answer.
+- In every user-facing result, show main headings and sub-items with explicit states: DONE + VERIFIED, IMPLEMENTED NOT VERIFIED, PARTIAL, BLOCKED/WAIT, or TODO. Include evidence/commit/PR/test references, production impact, and the next executable action.
+- Update this TODO, Project Continuity, and Session Log after material work. Never mark a box complete merely because source exists or a PR workflow passed.
+- No merge, production migration, production configuration change, financial transaction, or deployment without the appropriate explicit authorization and release gates.
+
+**Current global release status: BLOCKED / NOT CERTIFIED.** No production mutation, merge, or deployment was performed in this continuation.
+
+
+## RC457 continuation CI completion — 2026-10-20
+- [x] All nine PR-triggered workflows passed on documentation-only exact head `b85944e607d7536d3cb38a28dc48ac832f0f7176`: web validation (run 39348848391; deploy skipped as expected), migration uniqueness (39348848328), approval audit atomicity (39348848364), migration collision guard (39348848326), module professionalization including RC457 PostgreSQL integration (39348848353), MantiGO privacy (39348848388), migration history immutability (39348848319), backend-only boundary (39348848335), and disposable forward replay (39348848404).
+- [x] Forward replay completed successfully from the pinned RC424 schema-only baseline, with the ordered pending migration chain and two-tenant isolation checks. This does not resolve the missing historical creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)` and is not a blank-database replay.
+- [ ] PR #300 and PR #301 remain open/draft/unmerged; production remains at RC424. No production mutation, merge, or deployment occurred.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC457 fixture repair and exact-head verification — 2026-10-20
+
+- [x] Fixed the RC457 PostgreSQL fixture's placeholder function body using a standard SQL string literal; this resolves the earlier fixture parse error near "$".
+- [x] Exact code head `e20b710e821ab146f03dd4e1c6ae83fc37b085d6`: Module Professionalization Validation passed, including RC457 PostgreSQL integration and the source contract validator.
+- [x] Disposable forward replay passed: 31 pending candidate migrations replayed in immutable timestamp order from the pinned RC424 schema-only baseline; post-replay tenant-isolation checks passed for both tenants.
+- [x] Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, Backend-only Module Boundary, Approval Action Audit Atomicity, and MantiGO Open Ride Privacy Boundary passed on this exact code head.
+- [x] Web validation passed; Pages deploy job was skipped as expected for a pull request. This is not a production deployment.
+- [ ] Full blank-database replay of all historical migrations remains blocked by missing authoritative creation DDL/provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub or bypass the historical dependency.
+- [ ] Review the product/reporting meaning and permitted timing of medical `NO_SHOW` before rollout.
+- [ ] Production Auth leaked-password protection, complete adversarial RLS/SECURITY DEFINER review, real two-tenant browser E2E, authorized Paymob/finance/refund E2E, backup/restore and rollback rehearsal, browser/device validation, signed Android evidence, and main-branch deployment verification remain open.
+- PR #301 remains open/draft/unmerged. Production remains at RC424 (283 applied migration versions). No production mutation, merge, or deployment occurred; global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — focused live platform-admin authorization recheck
+
+- **Read-only Production Security Advisor snapshot** observed at `2026-10-20T00:55Z`: 1 RLS-enabled/no-policy table (`public.digital_page_payment_events`), 1 anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`, the bounded public ad-discovery endpoint), 40 authenticated-executable SECURITY DEFINER findings, and leaked-password protection disabled.
+- **Focused live-function review:** the currently deployed `mnty_can_platform_admin()` still delegates to `mnty_can('admin', NULL, NULL, NULL)`, while the current `mnty_can` role mapping includes tenant `OWNER`/`ADMIN` for the `admin` permission. The deployed `get_mantigo_admin_dashboard_backend` and `get_mantigo_admin_financial_report_backend` also accept broad tenant roles while aggregating platform-wide MantiGO ride/ledger totals. This is a source-level authorization weakness in the live RC424 state; no evidence of exploitation was obtained, and no production call or mutation was performed.
+- **Existing source remediation identified — do not create a duplicate migration:** RC449 (`20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql`) replaces the helper with an explicit active `SUPER_ADMIN` membership bound to `tenant_id='MNTY-PLATFORM'`, `permissions.scope='PLATFORM'`, and `permissions.full_control=true`; it also gates platform-wide dashboard, financial report, settlement, and stale-ride expiry RPCs through that helper and pins `search_path=''`. RC449's disposable PostgreSQL integration and prior source review are recorded in the engineering ledger.
+- **Exact current PR #301 head:** `6cb3d13c515d882e7753f02d74793e4203f0b4e4`. All 9 PR-triggered workflows passed, including Module Professionalization Validation (`39350288996`, RC457 PostgreSQL integration) and Disposable Forward Migration Replay (`39350288821`). Replay applied 31 pending candidate migrations in timestamp order from the pinned RC424 schema-only baseline; two-tenant isolation checks passed both ways. This is not a blank-database replay of all 283 historical migrations.
+- **Production remains unchanged at RC424** (`283` applied versions; latest `20261008222845`). RC449 and the other pending candidates are source-only and have not been applied. The security weakness must be treated as **not fixed in production** until the complete ordered migration chain is approved, applied through the release process, and verified with post-rollout checks.
+- **Next actions:** owner enables Supabase Auth leaked-password protection and reruns Security Advisor; complete function-by-function authorization review and authenticated adversarial tenant E2E; retain the missing historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` as a blocker to a full blank-database replay. No merge, production migration, grant/RLS/Auth change, payment, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+## RC457 medical NO_SHOW timing invariant — 2026-10-20
+- [x] RC457 now rejects `NO_SHOW` when `medical_appointments.date_time` is in the future, raising `MEDICAL_APPOINTMENT_NOT_DUE`.
+- [x] Added a future-dated appointment to the disposable PostgreSQL fixture and a behavioral assertion that premature NO_SHOW is rejected and status remains CONFIRMED.
+- [x] Extended the RC457 source validator to require the timing guard and regression marker.
+- [x] Exact tested code head `2a3a18bf66b4cd1604819517e395a34da7b5b415`: RC457 PostgreSQL integration, ordered forward replay from the pinned RC424 schema-only baseline, migration uniqueness/history/collision, backend-only boundary, approval-audit atomicity, MantiGO privacy, and module validation all PASS. Pages deploy was cancelled/skipped as expected for a PR.
+- [ ] No grace period is enforced after the scheduled time; a product-approved grace policy remains an open decision.
+- [ ] Full blank-database historical replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Production remains at RC424; no production mutation, merge, or deployment occurred.
+
+
+## Exact-head CI refresh — 2026-10-20 04:50 EET
+
+- [x] Exact PR #301 head `e1e57ca3d9cdd4bdfe02d184fe7adbb662ce8137`: all nine PR-triggered workflows completed successfully. Evidence: web validation/deploy workflow run 39354601965 (deploy is PR-gated); MantiGO privacy 39354601966; migration history immutability 39354602024; migration collision guard 39354601956; approval audit atomicity 39354602028; migration uniqueness 39354602000; Module Professionalization Validation 39354601968; backend-only boundary 39354602113; disposable forward replay 39354602065.
+- [x] Module Professionalization Validation includes successful RC457 PostgreSQL integration, targeted-ad search-path integration, matrimony privacy PostgreSQL integration, and source validators.
+- [x] Disposable forward replay restored the pinned RC424 schema-only baseline, replayed the ordered pending candidate migrations, and passed both-direction tenant-isolation checks. This is not a blank-database replay of all 283 historical migrations.
+- [x] RC457 fixture dollar-quoting and validator paths now reference the RC457 test files; premature NO_SHOW is rejected while appointment time is in the future.
+- [ ] PR #301 and PR #300 remain open/draft/unmerged. Production remains at RC424 (283 applied versions; latest 20261008222845). No production migration, merge, or deployment occurred.
+- [ ] Open gates remain: owner action for leaked-password protection; full adversarial SECURITY DEFINER/RLS review; real authenticated two-tenant browser E2E; authorized Paymob/finance/refund E2E; backup/restore and rollback; browser/device/push validation; signed Android artifact; main-branch deployment verification; full historical blank-database replay blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; product decision on NO_SHOW grace period.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
+
+## RC458 — Read-only authorization and appointment concurrency recheck — 2026-10-20
+
+- [x] Re-read live Production SECURITY DEFINER inventory and selected high-impact function bodies using read-only SQL. No production data, DDL, grants, policies, Auth settings, or function definitions were changed.
+- [x] Confirmed live public.mnty_can_platform_admin() still delegates to mnty_can('admin', NULL, NULL, NULL) and therefore does not independently require a platform-scoped SUPER_ADMIN membership.
+- [x] Confirmed live get_mantigo_admin_dashboard_backend and get_mantigo_admin_financial_report_backend permit broad tenant role families while returning platform-wide MantiGO ride/ledger totals; expire_stale_mantigo_rides_backend similarly accepts broad roles while mutating platform-wide stale rides. Treat this as a live production authorization weakness, not proof of exploitation.
+- [x] Verified existing source remediation RC449 (20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql) is present in the pending candidate chain. It requires an ACTIVE SUPER_ADMIN membership in MNTY-PLATFORM with PLATFORM scope and full_control, sets search_path='', and gates platform-wide dashboard, financial report, settlement and stale-ride expiry functions. Do not create a duplicate migration.
+- [x] Verified live medical_appointments has unique partial index uq_medical_appointment_active_doctor_slot on (doctor_id, date_time) for statuses other than CANCELLED/COMPLETED. This provides a database-level concurrency guard against duplicate active doctor/time slots.
+- [x] Confirmed the live appointment-status function remains the RC424-era implementation; RC457 is still source-only and must not be described as deployed.
+- [ ] Apply the RC449 remediation only through the reviewed, complete ordered migration release process; verify post-rollout behavior before closing the production authorization gate.
+- [ ] Complete function-by-function SECURITY DEFINER review and adversarial authenticated tenant/role E2E. Supabase leaked-password protection still requires an owner action in Auth settings.
+- [x] Exact-head CI on PR #301 head e1e57ca3d9cdd4bdfe02d184fe7adbb662ce8137: all nine PR-triggered workflows passed, including RC457 PostgreSQL integration and disposable forward replay (31 pending candidates from pinned RC424 schema-only baseline, two-tenant isolation passed). This is not a blank-database replay of all historical migrations.
+- [ ] PR #300 head d133503c5773590917d13d7d4d57de3bde54f330: five non-deploy workflows passed; the newest Pages workflow run was cancelled while superseded. Prior head d8a9d399f100e4cc5dcdc829b3aad7a2368b8818 had six successful PR workflows, with deployment skipped in PR context. Recheck current exact head before release decisions.
+- Full blank-database historical replay remains blocked by missing authoritative creation provenance for public.counter_offer_indrive_bid(uuid,uuid,numeric). Production remains at RC424 (283 applied versions). No production mutation, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-20 — RC457 medical appointment hardening continuation
+
+- [x] Pinned `update_medical_appointment_status_backend` to an empty `search_path`; the SECURITY DEFINER body uses schema-qualified application relations and `auth.uid()`.
+- [x] Added disposable PostgreSQL fixture coverage for same-tenant cross-business access denial, in addition to cross-tenant denial.
+- [x] Extended the RC457 source-contract validator so it fails if the empty search path or same-tenant cross-business regression disappears.
+- [x] Updated RC457 release notes to document the hardening and test boundary.
+- [ ] Exact-head CI for the latest source/documentation changes is pending. Older CI results do not certify these newer changes.
+- [ ] Full blank-database historical replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- [ ] Production remains at RC424 (283 applied versions as last read-only verified); no production migration, grant, deployment, merge, or financial mutation occurred.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation result — 2026-10-20 — RC462 source convergence and exact-head verification
+
+- [x] Reconciled the RC462 platform-admin guard across candidate branches PR #219, PR #248, and PR #282. The migration blob is now identical (5d789279c920219e2743d650d85a0a5ace9af14f) and uses a VOLATILE PL/pgSQL function with exact JSON containment for {"scope":"PLATFORM","full_control":true}; it does not cast untrusted JSON text to Boolean.
+- [x] Aligned the disposable RC449 fixture auth.uid() implementation across those branches (blob 1e8ecbcb67b04a01d4c9cdfc94a164f81bb47fe9) so it dynamically reads the simulated JWT subject on every invocation. Added validator assertions for function volatility and fixture contract in PR #248 and PR #282 branches.
+- [x] Updated PR #301's disposable forward-replay workflow to fetch the reconciled source candidate at commit 54b67bcf2f18e226f0d5206cce66b0bd39a6866c, rather than the earlier pre-reconciliation source commit.
+- [x] Exact-head CI on PR #301 code/workflow head ee90a84df173c337fce376ac40c61abda91265ad: all nine PR workflows passed. Disposable forward replay run 39356609479 restored the pinned RC424 schema-only baseline, replayed 31 ordered candidate migrations including reconciled RC462, and passed tenant isolation in both directions. Other successful runs: module professionalization 39356609530, backend boundary 39356609586, migration uniqueness 39356609564, history immutability 39356609473, collision guard 39356609583, approval audit 39356609482, MantiGO privacy 39356609547, and web validation 39356609494 (deploy skipped for PR).
+- [x] PR #300 head 710819156f9f2b613f4905d5e1c7266937fc4a32: all six PR workflows passed, including Industry Workspaces UI Contract and Marketing Workspace Contract. Pages deploy was skipped as expected for a PR.
+- [x] RC462 expanded behavioral suite passed on PR #301 code/workflow head ecaf98f28048775a0bf5629a6a6fdd27c2cc47f8 in Module Professionalization run 39357112639, job 118414330318. It fetched canonical sources from 54b67bcf2f18e226f0d5206cce66b0bd39a6866c, applied RC449 then RC462 in disposable PostgreSQL, and passed malformed string, Boolean false, JSON string true, and explicit Boolean true cases plus high-risk RPC denial checks. PR #248/#282 standalone validator/workflow runs have not been returned; do not claim their separate exact-head CI is green.
+- [ ] Production authorization remains BLOCKED: read-only live inspection confirms mnty_can_platform_admin() still delegates to mnty_can('admin', NULL, NULL, NULL); platform-wide MantiGO dashboard/report/expiry RPCs still accept broad tenant role families in RC424. RC449/RC462/RC565 remain candidate source and must be applied only through a reviewed ordered release chain.
+- [ ] Full blank-database historical replay remains blocked by missing authoritative creation provenance for public.counter_offer_indrive_bid(uuid,uuid,numeric). The supplied RC40 archive was searched; it uses a different mantiqatix_bids model and contains no creation DDL for that exact function. Do not stub it or skip the historical revoke.
+- [ ] External/runtime gates remain open: owner action to enable Supabase leaked-password protection; adversarial live tenant/RBAC E2E; authorized Paymob/payment/refund/finance E2E; backup/restore and rollback rehearsal; browser/push/device verification; signed Android artifact; main-branch deployment smoke and final release evidence.
+- PR #300, #301, #248, and #282 remain open/draft/unmerged. Production remains at RC424 (283 recorded versions, latest 20261008222845). No production migration, DDL/DML, grant/RLS/Auth change, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-20 — workflow concurrency and platform-admin consumer coverage
+
+- [x] PR #300 and PR #301 Pages workflows now use a ref-scoped concurrency group, avoiding cross-PR cancellation. Deployment permissions are least-privilege: workflow-level contents: read; pages: write and id-token: write only inside the main-only deploy job.
+- [x] PR #300 exact tested head 710819156f9f2b613f4905d5e1c7266937fc4a32 passed all six PR workflows, including the Industry Workspaces UI Contract and Pages validation. Deploy was skipped in PR context.
+- [ ] PR #207 received a source-contract expansion covering the other consumers of mnty_can_platform_admin(): global ad creation, digital-page publishing, captain onboarding review, and MantiGO financial configuration. The validator also watches their source migration paths. No exact-head workflow result has been returned for that branch; keep this change NOT VERIFIED until CI evidence is available.
+- [ ] Production platform-admin authorization remains a live RC424 blocker until the ordered RC449/RC462 chain is approved, applied through the release process, and verified after rollout. No production changes were made.
+
+
+## RC462 behavioral verification — 2026-10-20
+
+- [x] Added a dedicated disposable PostgreSQL job to PR #301 Module Professionalization: rc462-mantigo-platform-admin-scope-integration.
+- [x] **PASS:** run 39357112639 / job 118414330318 fetched source commit 54b67bcf2f18e226f0d5206cce66b0bd39a6866c, applied RC449 then canonical RC462, and executed the expanded malformed-permission regression. Log result: “RC462 malformed platform-admin permissions regression: PASS”.
+- [x] **PASS:** all nine workflows passed on code/workflow head ecaf98f28048775a0bf5629a6a6fdd27c2cc47f8, including forward replay run 39357112834 (31 candidates from RC424 schema-only baseline; tenant isolation passed both directions), migration collision guard 39357112943, and module validation including RC457 and RC462 PostgreSQL jobs.
+- [ ] PR #248/#282 standalone exact-head workflow associations are still not available from the current query surface; their standalone validators remain NOT VERIFIED separately, even though the canonical RC462 migration and fixture were tested by the PR #301 job.
+- Release remains BLOCKED / NOT CERTIFIED; no production mutation, merge, or deployment occurred.
+
+## Continuation result — 2026-10-20 — RC457 exact-head CI closure
+
+- [x] Verified current PR #301 code head `55fb709a1fab303b051c9204976feda38eb0e798`: all nine PR-triggered workflows completed successfully.
+- [x] PASS: Module Professionalization Validation run `39357339598`, including RC457 PostgreSQL integration and the medical appointment source validator.
+- [x] PASS: Disposable Forward Migration Replay run `39357339582`; the replay starts from the pinned RC424 schema-only baseline and is not a blank-database replay of all 283 historical migrations.
+- [x] PASS: Migration Version Uniqueness `39357339576`, Migration History Immutability `39357339545`, Open PR Migration Collision Guard `39357339621`, Backend-only Module Boundary `39357339553`, Approval Action Audit Atomicity `39357339547`, MantiGO Open Ride Privacy Boundary `39357339544`, and web validation `39357339588`. Pages deployment was skipped as expected for a PR.
+- [x] RC457 includes empty SECURITY DEFINER search_path, caller/auth.uid() binding, active tenant/business membership, row locking, invalid/terminal transition rejection, same-tenant cross-business rejection, and premature NO_SHOW rejection.
+- [ ] Product owner review of NO_SHOW timing/grace-period semantics remains required; current implementation rejects NO_SHOW before the scheduled timestamp but does not impose a post-time grace period.
+- [ ] PR #301 remains open/draft/unmerged. No production migration, merge, deployment, or financial mutation occurred.
+- [ ] Next release blockers remain: owner action to enable Supabase Auth leaked-password protection; adversarial live tenant/RBAC E2E; authorized Paymob/finance/refund E2E; backup/restore and rollback rehearsal; browser/push/device verification; signed Android artifact; main-branch deployment smoke; and final release evidence.
+- [ ] Full blank-database replay of all historical migrations remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Production remains last verified at RC424 (`20261008222845`, 283 applied versions).
+- Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 — RC457 latest exact-head CI refresh
+
+- [x] Verified PR #301 current code head `fe744e59c1df0935917c7491661dc1dc5e561b24`: all nine PR-triggered workflows completed successfully.
+- [x] Module Professionalization Validation run `39358472506` passed, including `rc457-medical-appointment-state-machine-integration`, `rc462-mantigo-platform-admin-scope-integration`, matrimony privacy PostgreSQL, targeted-ad search-path integration, and source validation.
+- [x] Disposable Forward Migration Replay run `39358472520` passed from the pinned RC424 schema-only baseline; this is not a blank-database replay of all historical migrations.
+- [x] Migration Version Uniqueness `39358472523`, Migration History Immutability `39358472543`, Open PR Migration Collision Guard `39358472519`, Backend-only Module Boundary `39358472655`, Approval Action Audit Atomicity `39358472541`, MantiGO Open Ride Privacy Boundary `39358472591`, and web validation `39358472514` passed. Pages deploy was skipped in PR context.
+- [x] PR #300 sector-workspace UI exact head `710819156f9f2b613f4905d5e1c7266937fc4a32` has six successful PR workflows documented in its current PR body; deployment was skipped as expected.
+- [ ] PR #301 remains draft/open/unmerged. RC457 is source/CI-verified only, not applied to production.
+- [ ] Product owner decision remains required for NO_SHOW grace-period semantics.
+- [ ] Remaining global release blockers are unchanged: leaked-password protection owner action; live adversarial tenant/RBAC E2E; authorized Paymob/finance/refund E2E; backup/restore and rollback rehearsal; browser/push/device verification; signed Android artifact; main deployment smoke; final release evidence.
+- [ ] Full blank-database replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not stub the function or skip its historical revoke.
+- [ ] Last read-only production migration checkpoint remains RC424 (`20261008222845`, 283 versions). No production mutation, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 — current PR heads and historical replay blocker
+
+### Verified in this session
+- [x] PR #300 current head `6bc43d47c45d564f7c65ac8a7b85f9f3d2a6df21`: all six PR-triggered workflows completed successfully — Industry Workspaces UI Contract, Marketing Workspace Contract, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, Backend-only Module Boundary, and web validation. Pages deploy workflow completed with PR-context deployment skipped; this is not production deployment.
+- [x] PR #301 current head `7b52ef4684d753c893b97c6dfdeaec2681add4a4`: current PR metadata records all nine PR-triggered workflows passing, including RC457 PostgreSQL integration and disposable forward migration replay from the pinned RC424 schema-only baseline. The replay is not a blank-database replay of all historical migrations.
+- [x] Rechecked repository search, commit search, PR history, and supplied `source_RC40.zip` for authoritative creation source of `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. No creation DDL was found in these sources; the known migration reference is the later revoke migration. No stub, fake historical migration, or skipped revoke was introduced.
+- [x] Confirmed both PRs remain draft/open/unmerged. No production migration, merge, deployment, grant/RLS/Auth mutation, or financial transaction was performed.
+
+### Still open — do not mark DONE
+- [ ] PR #301: product-owner decision on whether `NO_SHOW` needs a post-appointment grace period; current candidate rejects early NO_SHOW but has no post-time grace period.
+- [ ] PR #300: sector-specific backend contracts and authenticated E2E remain separate work; UI-only sector workspaces do not make all 27 sectors operational.
+- [ ] Full blank-database historical replay: blocked until authoritative creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)` is recovered or an explicit owner-approved test-only baseline is provided. Do not infer approval from prior approval of unrelated table baselines.
+- [ ] Production P0: owner action to enable Supabase Auth leaked-password protection; live adversarial tenant/RBAC E2E; authorized Paymob/payment/refund/finance E2E; backup/restore and rollback; browser/push/device verification; signed Android artifact; main-branch deployment smoke.
+- [ ] Production remains last read-only verified at RC424 (`20261008222845`, 283 migration versions). Recheck live production before any rollout decision.
+
+### Next execution order
+1. Keep both UI and medical-state PRs unmerged until review and release dependency decisions are complete.
+2. Continue source recovery/reconciliation for the historical replay dependency without fabricating DDL.
+3. Close the production authorization and payment/recovery gates only with isolated or explicitly authorized runtime evidence.
+4. Preserve the global release status as **BLOCKED / NOT CERTIFIED** until every mandatory gate has verifiable evidence.
+
+
+## Continuation checkpoint — 2026-10-20 — deterministic Supabase CLI in forward replay
+
+- [x] Investigated Disposable Forward Migration Replay failure on code head `27fbfec24cc5e6d665f788322c786a0fa130d17b`: the job failed before migration replay because `supabase/setup-cli@v1` attempted to resolve `version: latest` and hit a GitHub API rate limit (`Failed to resolve latest Supabase CLI release: rate limit exceeded`). This was an infrastructure/tool-version resolution failure, not a migration SQL failure.
+- [x] Updated `.github/workflows/disposable-forward-migration-replay.yml` to pin Supabase CLI `2.39.2` in commit `ae20b393c320b44ebe8bd97d9f4d8c27b063b6f9` so the job does not need latest-release resolution.
+- [x] On the pinned-CLI head, eight other PR-triggered workflows passed: Backend-only Module Boundary, Open PR Migration Collision Guard, Deploy MantiqatiX Web validation (deployment skipped in PR context), Approval Action Audit Atomicity, Migration Version Uniqueness, MantiGO Open Ride Privacy Boundary, Migration History Immutability, and Module Professionalization Validation (including RC457 medical PostgreSQL integration and RC462 integration).
+- [x] Disposable Forward Migration Replay run `39362446830` on code head `ae20b393c320b44ebe8bd97d9f4d8c27b063b6f9` completed successfully with CLI `2.39.2`: `FORWARD_MIGRATION_REPLAY=PASS`, `MIGRATION_COUNT=31`, and tenant isolation passed in both directions. This is a forward replay from the pinned RC424 schema-only baseline, not a blank replay of all historical migrations.
+- [ ] Workflow was then refined to stable CLI `2.113.0` in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`; exact-head CI with this current pin is pending. Keep the earlier 2.39.2 pass as valid evidence for that tested head, but verify the current stable pin before closing CI.
+- [ ] PR #301 remains open/draft/unmerged. No production mutation, migration, merge, deployment, or financial transaction occurred.
+- [ ] Production release remains BLOCKED / NOT CERTIFIED. Continue by polling run `39362446830`; if it fails, inspect the completed job logs and fix the actual failure before proceeding.
+
+
+## Replay CLI version refinement — 2026-10-20
+
+- The first deterministic pin (`2.39.2`) was superseded before acceptance because it is unnecessarily old. The workflow now pins stable Supabase CLI `2.113.0` (published 2026-08-08 per the upstream release record) in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`. This still removes the rate-limited `latest` lookup while using a current stable CLI.
+- The earlier replay runs using `2.39.2` are not treated as verification. Await the exact-head run with `2.113.0` and require the full forward replay plus tenant-isolation step to pass.
+
+
+## Continuation checkpoint — 2026-10-20 — current exact-head CI and next open gates
+
+### Verified on current PR #301 head
+- [x] Current PR #301 head: `2471332a2e468498a2d2d1f46ea5cefb3024fef7`.
+- [x] All nine PR-triggered workflows completed successfully on this exact head: Module Professionalization Validation, Disposable Forward Migration Replay, Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, Backend-only Module Boundary, Approval Action Audit Atomicity, MantiGO Open Ride Privacy Boundary, and web validation. Pages deployment is skipped in PR context by design.
+- [x] Module Professionalization Validation passed, including RC457 medical appointment PostgreSQL integration and source-contract validation.
+- [x] Disposable Forward Migration Replay run `39362801132` passed using pinned Supabase CLI `2.113.0`; log confirms `FORWARD_MIGRATION_REPLAY=PASS`, `MIGRATION_COUNT=31`, and two-way tenant-isolation checks passed.
+- [x] PR #300 current head `6bc43d47c45d564f7c65ac8a7b85f9f3d2a6df21` remains open/draft/unmerged; its six PR workflows are recorded as passing in the latest project checkpoint. This validates the frontend contract, not live backend functionality for all 27 sectors.
+- [x] Rechecked source search for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: live definition is documented, but no authoritative historical creation migration was found. Do not fabricate a stub, skip the historical revoke, or claim blank-database replay.
+
+### Still open — do not mark DONE
+- [ ] Product-owner decision: whether `NO_SHOW` needs a grace period after the scheduled appointment time. Current RC457 rejects early NO_SHOW but imposes no post-time grace period.
+- [ ] Full blank-database replay of historical migrations remains blocked by missing authoritative creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)`. The successful 31-migration replay starts from the pinned RC424 schema-only baseline and is not a replay of all 283 historical migrations.
+- [ ] Owner action: enable Supabase Auth leaked-password protection, then rerun Security Advisor.
+- [ ] Adversarial live tenant/RBAC E2E, authorized Paymob/payment/refund/finance E2E, backup/restore and rollback rehearsal, browser/push/device verification, signed Android artifact, main-branch deployment smoke, and final release evidence remain open.
+- [ ] Sector-specific backend contracts and authenticated E2E remain open beyond PR #300's UI-only scope.
+- [ ] Production last read-only verified at RC424 (`20261008222845`, 283 migration versions); recheck before any rollout decision.
+
+### Safety and release status
+- PR #300 and PR #301 remain open/draft/unmerged. No production migration, merge, deployment, grant/RLS/Auth change, or financial transaction occurred in this checkpoint.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 — RC457 current-head verification
+
+- [x] Verified PR #301 current head `a5507af59de50472e2a4e024f46ba981b135b5f6`; all nine PR-triggered workflows completed successfully.
+- [x] PASS: Module Professionalization Validation run `39363371412`, including RC457 medical appointment PostgreSQL integration and source validator.
+- [x] PASS: Disposable Forward Migration Replay run `39363371480`; replayed 31 pending candidate migrations in immutable timestamp order from the pinned RC424 schema-only baseline and verified tenant isolation in both directions.
+- [x] PASS: Migration Version Uniqueness `39363371402`, Migration History Immutability `39363371525`, Open PR Migration Collision Guard `39363371431`, Backend-only Module Boundary `39363371496`, Approval Action Audit Atomicity `39363371398`, MantiGO Open Ride Privacy Boundary `39363371667`, and web validation `39363371434`. Pages deploy was skipped as expected in PR context.
+- [x] Fixture syntax and RC457 validator paths are now corrected; behavioral tests cover allowed/forbidden transitions, caller mismatch, tenant/business scope, terminal states, premature NO_SHOW, and function execution ACL.
+- [ ] PR #301 remains draft/open/unmerged; no production migration or deployment occurred.
+- [ ] Product-owner decision remains required on any post-appointment NO_SHOW grace period; current logic rejects premature NO_SHOW but has no additional grace period after the scheduled time.
+- [ ] Full blank-database historical replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. The successful replay starts from the pinned RC424 schema-only baseline and is not a replay of all 283 historical migrations.
+- [ ] Production release blockers remain: owner action to enable Supabase Auth leaked-password protection; adversarial live tenant/RBAC E2E; authorized Paymob/payment/refund/finance E2E; backup/restore and rollback; browser/push/device verification; signed Android artifact; main-branch deployment smoke; final release evidence.
+- [ ] PR #300's sector workspaces remain frontend-first; sector-specific backend contracts and authenticated E2E are still required before declaring all 27 sectors operational.
+- [ ] Production last read-only verified at RC424 (`20261008222845`, 283 versions); recheck before any rollout decision.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC457 follow-up — exact-head verification 2026-10-20
+- [x] Rechecked PR #301 exact head `b03b2540d58760ff213641c327377a8ed405b44d`: all nine PR-triggered workflows completed successfully.
+- [x] RC457 medical appointment PostgreSQL integration and disposable forward migration replay both passed; migration uniqueness/history immutability/collision guard, backend-only boundary, approval audit atomicity, MantiGO privacy, and web validation also passed.
+- [x] The earlier fixture SQL and validator-path defects are resolved on this head.
+- [ ] PR #301 remains draft/open/unmerged. Pages deploy was skipped in PR context; no production migration/deployment was performed.
+- [ ] Global release remains blocked by historical blank-replay provenance, Auth leaked-password protection owner action, adversarial live tenant/RBAC E2E, real payment/finance/refund E2E, backup/restore/rollback, browser/push/device and Android evidence, and main deployment smoke.
+
+
+## Scope decision execution record — 2026-10-20
+- [x] Product-owner decision recorded: cash-only before launch; electronic payment processing and SMM live workflows deferred until after launch.
+- [x] Reclassified Paymob production E2E as POST-LAUNCH, not a pre-launch gate.
+- [ ] Cash-only UI/API path audit and authenticated E2E remain OPEN; this decision is not proof of implementation readiness.
+- [ ] Verify cash tenant configuration, authorized confirmation, server-derived amount, idempotency, audit trail, and required cash accounting.
+- [ ] Verify electronic methods are not exposed through the launch workflow; keep their backend security boundaries intact.
+- [ ] Keep SMM credentials/tables fail-closed and verify no SMM spend/fulfilment can be triggered in the launch scope.
+- [ ] Global release remains BLOCKED / NOT CERTIFIED until cash E2E and other mandatory non-deferred gates pass.
+
+
+## RC459 — Cash payment method configuration — 2026-10-20
+
+- [x] Read-only production query found **zero** rows where `tenant_payment_methods.payment_method/provider = CASH_ON_DELIVERY`; the current cash-intent API would reject all tenants with `Cash payment is not enabled for this tenant` until configured.
+- [x] Added ordered, idempotent source migration `20261020110000_rc459_seed_cash_payment_method_for_active_tenants.sql` to enable CASH_ON_DELIVERY for tenants with at least one ACTIVE business. It uses `ON CONFLICT DO NOTHING` to preserve explicit existing tenant settings and does not configure any electronic provider or secret.
+- [x] Marketplace order form now states cash-only and creates a server-side cash payment intent after order creation.
+- [x] Cash intent retries no longer use upsert that could overwrite an existing intent ID; existing intent identity and order/amount/currency/provider are checked, and conflicting idempotency-key reuse is rejected.
+- [ ] RC459 has not been applied to production. Apply only through the reviewed chronological migration release, then verify configured tenants read-only.
+- [ ] Cash checkout E2E and cash reconciliation remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.

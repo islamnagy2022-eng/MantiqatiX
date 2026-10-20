@@ -46,7 +46,10 @@ const requiredReleaseMigrations=[
   "20261010200000_rc451_targeted_ads_empty_search_path.sql",
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
-  "20261011010000_rc456_smm_service_role_access_boundary.sql"
+  "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261019190000_rc457_medical_appointment_state_machine.sql",
+  "20261020100000_rc458_mantigo_cash_confirmation_fail_closed.sql",
+  "20261020110000_rc459_seed_cash_payment_method_for_active_tenants.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
@@ -70,10 +73,13 @@ const liveReconciliationVerified=Boolean(
   reconciliation.required_release_migrations_applied===true &&
   reconciliation.chronological_replay==="PASS" &&
   reconciliation.tenant_isolation_tests==="PASS" &&
-  reconciliation.payment_finance_e2e==="PASS" &&
+  reconciliation.cash_payment_finance_e2e==="PASS" &&
+  reconciliation.cash_method_configuration==="PASS" &&
+  reconciliation.cash_commission_rules==="PASS" &&
+  reconciliation.electronic_payments_disabled==="PASS" &&
   reconciliation.backup_restore_rehearsal==="PASS" &&
   reconciliation.edge_function_contracts==="PASS" &&
-  reconciliation.smm_gateway_parity==="PASS" &&
+  reconciliation.smm_launch_gate==="PASS" &&
   reconciliation.auth_security_settings==="PASS" &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
@@ -81,7 +87,7 @@ const liveReconciliationVerified=Boolean(
 const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked
-    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,rc424_reconciliation:reconciliation.rc424_reconciliation,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,payment_finance_e2e:reconciliation.payment_finance_e2e,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,edge_function_contracts:reconciliation.edge_function_contracts,smm_gateway_parity:reconciliation.smm_gateway_parity,auth_security_settings:reconciliation.auth_security_settings,evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
+    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,rc424_reconciliation:reconciliation.rc424_reconciliation,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,cash_payment_finance_e2e:reconciliation.cash_payment_finance_e2e,cash_method_configuration:reconciliation.cash_method_configuration,cash_commission_rules:reconciliation.cash_commission_rules,electronic_payments_disabled:reconciliation.electronic_payments_disabled,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,edge_function_contracts:reconciliation.edge_function_contracts,smm_launch_gate:reconciliation.smm_launch_gate,auth_security_settings:reconciliation.auth_security_settings,evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
     : `All ${requiredReleaseMigrations.length} required source migrations are present and timestamp-ordered, and the live reconciliation manifest records completed ordered replay plus required runtime/security evidence at ${reconciliation.evidence_ref}.`,
   "P0");
 const wf=exists(".github/workflows/pages.yml")?read(".github/workflows/pages.yml"):"";for(const v of ["validate-production-gate-contract.mjs","validate-finance-boundaries.mjs","validate-digital-pages-boundaries.mjs","validate-security-definer-contract.mjs"])add("CI-"+v,"CI/CD",wf.includes(v)?"PASS":"FAIL",wf.includes(v)?`workflow invokes ${v}`:`workflow missing ${v}`,"P1");
