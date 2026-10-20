@@ -2163,3 +2163,17 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Candidate-branch commits: implementation `54632f8749b1777878df63f861e81c6ecf524dad`; validator `8dc47888ed49eacc10a93039a375e9a211bd025f`; index asset version `e35182bff7146d71012e77d0ac2efc6f7039c01c`; service-worker cache `6b0b66ea5f729e7e9d5135bfeae635de4c13aa6f`.
 - **Verification status:** source-level checks confirm the intended code and PWA version references are present. The available PR-triggered workflow query and commit status query did not return CI runs/statuses for the latest commit, so this change is **NOT YET CI-VERIFIED**. Do not treat it as tested or released until the medical validator and exact-head workflows pass.
 - **Scope/safety:** candidate branch only; no merge, deployment, production migration, Supabase setting, or live-data change. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC459 — MantiGO cash-only UI and network failure hardening — 2026-10-21
+
+- [x] Removed the electronic payment initiation function and click handler from the cash-only customer ride flow; the customer ride view offers cash confirmation only while the ledger state is exactly `REQUIRED`.
+- [x] Cash confirmation now requires the backend response to identify the same ride and report `CASH_CONFIRMED` or the idempotent `PAID` state before the UI reports success.
+- [x] Captain presence and trip-status updates now catch location/network/RPC failures and tell the user to refresh/check authoritative state before retrying ambiguous transitions.
+- [x] Extended `scripts/validate-medical-appointment-state-machine.mjs` source-contract assertions for the cash-only action, exact cash response, presence/transition failure handling, transition actor binding, and required cancellation/failure reason policy.
+- [x] Kept the index and service worker aligned on `operations-modules.js?v=mnty139`; incremented service-worker cache to `mnty-web-v180`.
+- [ ] Run the repository's actual Node validators and SQL regression contracts in CI; no workflow runs or commit status checks were returned for the latest commit at the time of this update.
+- [ ] Run authenticated customer/captain end-to-end tests covering duplicate requests, interrupted network, invalid transitions, payment idempotency, and cross-user access.
+- [ ] Verify deployed Supabase migration state and recovery evidence before any production release.
+- **Candidate commit:** `9f49df84a74848ed213f9440d855d501f6615762` (asset/cache sync; the candidate branch contains the full stage).
+- **Release status:** BLOCKED / NOT CERTIFIED. This checklist records source changes only; it does not assert live database or E2E success.
