@@ -957,25 +957,31 @@ async function loadMedicalWorkspace(){
  if(cache.rowsReady||cache.loading)return;
  cache.loading=true;cache.errors={};live.moduleData.MEDICAL=cache;
  const rows={marketing_provider_profiles:[],medical_appointments:[]},errors={};
- const [providersRes,appointmentsRes]=await Promise.all([
-  sb.from('marketing_provider_profiles').select('id,business_id,owner_user_id,name_ar,name_en,provider_kind,description,specialties,service_areas,status,is_verified,profile_image_path').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['HEALTH','DENTAL','MEDICAL']).order('name_ar',{ascending:true}).limit(100),
-  sb.from('medical_appointments').select('id,tenant_id,business_id,patient_id,doctor_id,date_time,status,reason,created_at,updated_at').order('date_time',{ascending:true}).limit(200)
- ]);
- if(providersRes.error)errors.providers='تعذر تحميل دليل الأطباء';
- if(appointmentsRes.error)errors.appointments='تعذر تحميل المواعيد حسب صلاحيات الحساب';
- let providers=providersRes.data||[];
- const businessIds=[...new Set(providers.map(p=>p.business_id).filter(Boolean))];
- let businessMap=new Map();
- if(businessIds.length){
-  const businessRes=await sb.from('businesses').select('id,name,status').in('id',businessIds).eq('status','ACTIVE');
-  if(businessRes.error)errors.businesses='تعذر التحقق من حالة العيادات';
-  else businessMap=new Map((businessRes.data||[]).map(b=>[String(b.id),b]));
+ try{
+  const [providersRes,appointmentsRes]=await Promise.all([
+   sb.from('marketing_provider_profiles').select('id,business_id,owner_user_id,name_ar,name_en,provider_kind,description,specialties,service_areas,status,is_verified,profile_image_path').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['HEALTH','DENTAL','MEDICAL']).order('name_ar',{ascending:true}).limit(100),
+   sb.from('medical_appointments').select('id,tenant_id,business_id,patient_id,doctor_id,date_time,status,reason,created_at,updated_at').order('date_time',{ascending:true}).limit(200)
+  ]);
+  if(providersRes.error)errors.providers='تعذر تحميل دليل الأطباء';
+  if(appointmentsRes.error)errors.appointments='تعذر تحميل المواعيد حسب صلاحيات الحساب';
+  let providers=providersRes.data||[];
+  const businessIds=[...new Set(providers.map(p=>p.business_id).filter(Boolean))];
+  let businessMap=new Map();
+  if(businessIds.length){
+   const businessRes=await sb.from('businesses').select('id,name,status').in('id',businessIds).eq('status','ACTIVE');
+   if(businessRes.error)errors.businesses='تعذر التحقق من حالة العيادات';
+   else businessMap=new Map((businessRes.data||[]).map(b=>[String(b.id),b]));
+  }
+  if(!errors.businesses)providers=providers.filter(p=>p.business_id&&businessMap.has(String(p.business_id)));
+  rows.marketing_provider_profiles=providers.map(p=>({...p,business_name:businessMap.get(String(p.business_id))?.name||''}));
+  rows.medical_appointments=appointmentsRes.data||[];
+ }catch(error){
+  errors.runtime='تعذر الاتصال بمصادر المواعيد الطبية. أعد المحاولة قبل تنفيذ الحجز.';
+  console.error('[medical-workspace] load failed',String(error?.message||error));
+ }finally{
+  cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;
+  syncModuleRuntime('الأطباء والعيادات');renderApp();
  }
- if(!errors.businesses)providers=providers.filter(p=>p.business_id&&businessMap.has(String(p.business_id)));
- rows.marketing_provider_profiles=providers.map(p=>({...p,business_name:businessMap.get(String(p.business_id))?.name||''}));
- rows.medical_appointments=appointmentsRes.data||[];
- cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;
- syncModuleRuntime('الأطباء والعيادات');renderApp();
 }
 async function retryMedicalWorkspace(){
  const cache=live.moduleData.MEDICAL;
