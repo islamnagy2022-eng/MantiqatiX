@@ -20,7 +20,7 @@ for (const [name,source] of [["payment-intent",payment],["digital-page-payment-i
   assert.match(source,/ELECTRONIC_PAYMENTS_DEFERRED/,name+" must fail closed with a stable response");
 }
 assert.match(api,/provider !== "CASH_ON_DELIVERY"/,"general payment API must remain cash-only");
-assert.match(cashGuard,/revoke all on function public\\.confirm_mantigo_cash_payment_backend\\(uuid,text\\) from public, anon, authenticated/i,"MantiGO customer self-confirmation RPC must be fail-closed until role-scoped confirmation is implemented");
+assert.match(cashGuard,/revoke all on function public\.confirm_mantigo_cash_payment_backend\(uuid,text\) from public, anon, authenticated/i,"MantiGO customer self-confirmation RPC must be fail-closed until role-scoped confirmation is implemented");
 assert.match(app,/MNTY_ELECTRONIC_PAYMENTS_ENABLED!==true/,"digital-page order modal must stop before creating a paid order");
 assert.doesNotMatch(home,/id="mx-mg-card"/,"MantiGO UI must not expose online checkout before launch");
 assert.doesNotMatch(home,/id="mx-mg-cash"/,"MantiGO customer UI must not self-confirm cash receipt");
