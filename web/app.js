@@ -1298,7 +1298,7 @@ async function erpRpc(fn,args){
  }
 }
 function chooseERPRecord(table,label,format,excludeId){
- const rows=(live.moduleData?.ERP?.rows?.[table]||[]).filter(row=>!excludeId||String(row.id)!==String(excludeId));
+ const rows=(live.moduleData?.ERP?.rows?.[table]||window.MNTYOperationsERPData?.[table]||[]).filter(row=>!excludeId||String(row.id)!==String(excludeId));
  if(!rows.length){showToast('لا توجد سجلات متاحة في '+label+' ضمن المؤسسة والفرع الحاليين','error');return null;}
  const menu=rows.map((row,i)=>String(i+1)+') '+format(row)+' ['+row.id+']').join('\n');
  const answer=window.prompt('اختر '+label+' بكتابة الرقم من القائمة أو لصق المعرف:\n'+menu);
