@@ -1,0 +1,48 @@
+name: Job Directory Read Boundary
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/20261020233000_jobs_directory_backend_v1.sql"
+      - "supabase/tests/jobs_directory_backend_*.sql"
+      - ".github/workflows/job-directory-read.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261020233000_jobs_directory_backend_v1.sql"
+      - "supabase/tests/jobs_directory_backend_*.sql"
+      - ".github/workflows/job-directory-read.yml"
+permissions:
+  contents: read
+jobs:
+  job-directory-read-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: job_directory_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d job_directory_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run job directory RPC integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/jobs_directory_backend_fixture.sql "$pg_container:/tmp/jobs_fixture.sql"
+          docker cp supabase/migrations/20261020233000_jobs_directory_backend_v1.sql "$pg_container:/tmp/jobs_migration.sql"
+          docker cp supabase/tests/jobs_directory_backend_integration.sql "$pg_container:/tmp/jobs_test.sql"
+          docker exec "$pg_container" psql -U postgres -d job_directory_test -v ON_ERROR_STOP=1 -f /tmp/jobs_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d job_directory_test -v ON_ERROR_STOP=1 -f /tmp/jobs_migration.sql
+          docker exec "$pg_container" psql -U postgres -d job_directory_test -v ON_ERROR_STOP=1 -f /tmp/jobs_test.sql
