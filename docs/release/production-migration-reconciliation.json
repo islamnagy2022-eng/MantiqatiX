@@ -69,13 +69,14 @@
     },
     "note": "Advisor findings are review signals, not all confirmed vulnerabilities. Do not mass-revoke SECURITY DEFINER execute privileges without mapping intended caller contracts. RLS enabled without policies on digital_page_payment_events may be deliberate deny-by-default; verify intended access."
   },
-  "current_candidate_head": "9f15434a3df391fbbcce848d2a87b333cf798a88",
   "current_candidate_validation": {
     "checked_at": "2026-10-21",
     "candidate_branch": "feat/cash-only-launch-flow-rc458-20261020",
     "rc469_presence_guard_postgres": "NOT VERIFIED; CI run result not returned for latest candidate",
     "chronological_replay_rc469": "NOT VERIFIED; workflow run result not returned for latest candidate",
     "source_validator_rc469_contract": "ADDED; execution result not independently verified",
-    "production_database_mutated": false
+    "production_database_mutated": false,
+    "candidate_code_reviewed_through": "9f15434a3df391fbbcce848d2a87b333cf798a88",
+    "note": "This evidence entry is a documentation update; it does not claim CI validation of later commits."
   }
 }
