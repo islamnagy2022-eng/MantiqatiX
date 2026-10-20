@@ -1960,3 +1960,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify electronic methods are not exposed through the launch workflow; keep their backend security boundaries intact.
 - [ ] Keep SMM credentials/tables fail-closed and verify no SMM spend/fulfilment can be triggered in the launch scope.
 - [ ] Global release remains BLOCKED / NOT CERTIFIED until cash E2E and other mandatory non-deferred gates pass.
+
+
+## RC459 — Cash payment method configuration — 2026-10-20
+
+- [x] Read-only production query found **zero** rows where `tenant_payment_methods.payment_method/provider = CASH_ON_DELIVERY`; the current cash-intent API would reject all tenants with `Cash payment is not enabled for this tenant` until configured.
+- [x] Added ordered, idempotent source migration `20261020110000_rc459_seed_cash_payment_method_for_active_tenants.sql` to enable CASH_ON_DELIVERY for tenants with at least one ACTIVE business. It uses `ON CONFLICT DO NOTHING` to preserve explicit existing tenant settings and does not configure any electronic provider or secret.
+- [x] Marketplace order form now states cash-only and creates a server-side cash payment intent after order creation.
+- [x] Cash intent retries no longer use upsert that could overwrite an existing intent ID; existing intent identity and order/amount/currency/provider are checked, and conflicting idempotency-key reuse is rejected.
+- [ ] RC459 has not been applied to production. Apply only through the reviewed chronological migration release, then verify configured tenants read-only.
+- [ ] Cash checkout E2E and cash reconciliation remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
