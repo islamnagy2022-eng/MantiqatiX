@@ -19,10 +19,19 @@ declare
  business constant uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
  slot bigint := ceil(extract(epoch from now() + interval '2 days')*1000/900000)*900000;
  result jsonb;
+ replay_result jsonb;
 begin
  perform set_config('request.jwt.claim.sub',patient::text,false);
  result := public.create_medical_appointment_backend(patient,'MED-RC467-VALID-0001',business,doctor,slot,'استشارة عامة');
  if result->>'status' <> 'BOOKED' or result->>'doctor_id' <> doctor then raise exception 'RC467_VALID_BOOKING_FAILED'; end if;
+ replay_result := public.create_medical_appointment_backend(patient,'MED-RC467-VALID-0001',business,doctor,slot,'استشارة عامة');
+ if replay_result->>'idempotent_replay' <> 'true' or replay_result->>'id' <> 'MED-RC467-VALID-0001' then
+   raise exception 'RC468_SAME_REQUEST_REPLAY_NOT_IDEMPOTENT';
+ end if;
+ if (select count(*) from public.medical_appointments where id='MED-RC467-VALID-0001') <> 1 then
+   raise exception 'RC468_IDEMPOTENT_REPLAY_CREATED_DUPLICATE';
+ end if;
+ perform public.assert_medical_booking_rejected(patient,'MED-RC467-VALID-0001',business,doctor,slot,'سبب مختلف','APPOINTMENT_ID_ALREADY_EXISTS');
  perform public.assert_medical_booking_rejected(patient,'MED-RC467-PHARMACY-01',business,'ffffffff-ffff-4fff-8fff-ffffffffffff',slot+900000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
  perform public.assert_medical_booking_rejected(patient,'MED-RC467-UNVERIFIED-01',business,'cccccccc-cccc-4ccc-8ccc-cccccccccccc',slot+1800000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
  perform public.assert_medical_booking_rejected(patient,'MED-RC467-PAST-00001',business,doctor,1,'test','APPOINTMENT_TIME_MUST_BE_FUTURE');
