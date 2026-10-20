@@ -110,7 +110,7 @@ assert.ok(rideCreateSource.includes("finally{if(btn)"),"MantiGO create button mu
 assert.ok(rideCreateSource.includes("catch(_){alert('تعذر تأكيد نشر الرحلة"),"MantiGO network failures must be handled without discarding the idempotency key");
 assert.ok(rideCreateSource.indexOf("if(!r.data||!r.data.id)") < rideCreateSource.indexOf("sessionStorage.removeItem(requestKey)"),"MantiGO must verify a ride ID before clearing retry state");
 assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
-assert.match(index,/operations-modules\\.js\\?v=mnty141/,"index must request the current operations module version");
+assert.match(index,/operations-modules\.js\?v=mnty141/,"index must request the current operations module version");
 assert.match(sw,/operations-modules\\.js\\?v=mnty141/,"service worker must precache the same operations module version as index");
 assert.match(sw,/const CACHE='mnty-web-v182'/,"service worker cache version must be incremented when shell assets change");
 assert.ok(operations.includes("MNTY_MEDICAL_BOOKING:"),"operations medical booking must retain a stable request key across ambiguous failures");
