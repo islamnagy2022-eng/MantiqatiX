@@ -842,7 +842,7 @@ async function loadEnterpriseDomainData(m){
  if(m.key==='ERP'){
   try{
    if(!live.tenantId||!live.businessId)throw new Error('ERP_SCOPE_REQUIRED');
-   const result=await invokeMntyFunction('erp-runtime',{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null});
+   const result=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
    if(!result?.success)throw new Error(result?.error||'ERP_DATA_LOAD_FAILED');
    rows.erp_purchase_orders=result.orders||[];
    rows.erp_purchase_receipts=result.receipts||[];
@@ -1242,7 +1242,7 @@ async function erpRpc(fn,args){
  const action=operations[fn];
  if(!action)return showToast('عملية ERP غير معروفة أو غير مسموح بها','error');
  try{
-  const response=await invokeMntyFunction('erp-runtime',{operation:'mutate',action,arguments:args});
+  const response=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null,action,arguments:args}});
   if(!response?.success)throw new Error(response?.error||'ERP_OPERATION_FAILED');
   showToast('تم تنفيذ العملية بنجاح','success');
   live.moduleData={};
