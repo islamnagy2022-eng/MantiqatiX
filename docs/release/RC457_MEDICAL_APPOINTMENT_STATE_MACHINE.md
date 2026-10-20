@@ -26,7 +26,7 @@ The RPC also explicitly permits `NO_SHOW`, so this candidate permits `CONFIRMED 
 | Any terminal state | Any change | any actor | Deny |
 | Any other transition | any actor | Deny |
 
-The function locks the appointment row with `FOR UPDATE`, binds the caller argument to `auth.uid()`, requires active membership in the appointment tenant/business scope, and leaves existing EXECUTE grants unchanged. This migration changes no table, data, RLS policy, or grant.
+The function locks the appointment row with `FOR UPDATE`, binds the caller argument to `auth.uid()`, requires active membership in the appointment tenant/business scope, and leaves existing EXECUTE grants unchanged. This migration changes no table, data, RLS policy, or grant. It also pins the SECURITY DEFINER function to an empty `search_path`; all application relations and `auth.uid()` are schema-qualified, reducing object-shadowing risk.
 
 ## Verification
 
