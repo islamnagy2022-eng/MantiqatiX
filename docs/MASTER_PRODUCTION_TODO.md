@@ -1786,3 +1786,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Exact-head CI on PR #301 head e1e57ca3d9cdd4bdfe02d184fe7adbb662ce8137: all nine PR-triggered workflows passed, including RC457 PostgreSQL integration and disposable forward replay (31 pending candidates from pinned RC424 schema-only baseline, two-tenant isolation passed). This is not a blank-database replay of all historical migrations.
 - [ ] PR #300 head d133503c5773590917d13d7d4d57de3bde54f330: five non-deploy workflows passed; the newest Pages workflow run was cancelled while superseded. Prior head d8a9d399f100e4cc5dcdc829b3aad7a2368b8818 had six successful PR workflows, with deployment skipped in PR context. Recheck current exact head before release decisions.
 - Full blank-database historical replay remains blocked by missing authoritative creation provenance for public.counter_offer_indrive_bid(uuid,uuid,numeric). Production remains at RC424 (283 applied versions). No production mutation, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-20 — RC457 medical appointment hardening continuation
+
+- [x] Pinned `update_medical_appointment_status_backend` to an empty `search_path`; the SECURITY DEFINER body uses schema-qualified application relations and `auth.uid()`.
+- [x] Added disposable PostgreSQL fixture coverage for same-tenant cross-business access denial, in addition to cross-tenant denial.
+- [x] Extended the RC457 source-contract validator so it fails if the empty search path or same-tenant cross-business regression disappears.
+- [x] Updated RC457 release notes to document the hardening and test boundary.
+- [ ] Exact-head CI for the latest source/documentation changes is pending. Older CI results do not certify these newer changes.
+- [ ] Full blank-database historical replay remains blocked by missing authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- [ ] Production remains at RC424 (283 applied versions as last read-only verified); no production migration, grant, deployment, merge, or financial mutation occurred.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
