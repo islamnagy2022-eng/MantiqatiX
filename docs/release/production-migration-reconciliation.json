@@ -14,7 +14,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "candidate 69df9db11fdaa86ceb9a4d8c62073b121dcd426b; GitHub runs 39495915562 (forward replay), 39495915671 (doctor release), 39495915548 (ERP gateway), 39495915544 (opening stock), 39495915321 (backend boundary), 39495914539 (module validation), 39495915784 (MantiGO privacy)",
   "checked_at": "2026-10-21",
-  "reason": "Read-only live Supabase inspection on 2026-10-21 confirms 283 recorded migrations and live ledger ending at RC424 (20261008222845). Candidate forward replay and tenant-isolation tests passed only in an isolated disposable database; no RC425+ migration has been proven applied to production. Production auth/cash settlement E2E, real two-tenant isolation, edge-function/source parity, auth security configuration, backup/restore, and security advisor findings remain unresolved. Do not certify, apply candidate migrations, or deploy until these gates have evidence.",
+  "reason": "Read-only live Supabase inspection confirms the production migration ledger ends at RC424. RC425+ migrations have not been proven applied to production. Earlier PASS evidence refers to historical candidate HEAD 69df9db11fdaa86ceb9a4d8c62073b121dcd426b and must not be treated as validation of the current candidate. RC469 presence-guard PostgreSQL integration and current-head chronological replay results are not verified. Production auth/cash settlement E2E, real two-tenant isolation, edge-function/source parity, auth security configuration, backup/restore, and security advisor findings remain unresolved. Do not certify, apply candidate migrations, or deploy until current evidence satisfies every release gate.",
   "edge_function_contracts": "NOT VERIFIED against live deployed function versions",
   "smm_gateway_parity": "NOT VERIFIED; live function exists but production parity not established",
   "auth_security_settings": "NOT VERIFIED; live security advisor reports leaked-password protection disabled and anonymous-sign-in warnings requiring review",
@@ -68,5 +68,14 @@
       "multiple_permissive_policies": 28
     },
     "note": "Advisor findings are review signals, not all confirmed vulnerabilities. Do not mass-revoke SECURITY DEFINER execute privileges without mapping intended caller contracts. RLS enabled without policies on digital_page_payment_events may be deliberate deny-by-default; verify intended access."
+  },
+  "current_candidate_head": "9f15434a3df391fbbcce848d2a87b333cf798a88",
+  "current_candidate_validation": {
+    "checked_at": "2026-10-21",
+    "candidate_branch": "feat/cash-only-launch-flow-rc458-20261020",
+    "rc469_presence_guard_postgres": "NOT VERIFIED; CI run result not returned for latest candidate",
+    "chronological_replay_rc469": "NOT VERIFIED; workflow run result not returned for latest candidate",
+    "source_validator_rc469_contract": "ADDED; execution result not independently verified",
+    "production_database_mutated": false
   }
 }
