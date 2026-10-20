@@ -184,6 +184,7 @@ declare
   v_tenant_id text;
   v_business_id uuid;
   v_order_id text;
+  v_requested_branch_id text;
   v_receipt_id text;
   v_receipt_number text;
   v_warehouse_id text;
@@ -205,6 +206,7 @@ begin
   v_tenant_id:=nullif(p_arguments->>'p_tenant_id','');
   v_business_id:=nullif(p_arguments->>'p_business_id','')::uuid;
   v_order_id:=nullif(p_arguments->>'p_purchase_order_id','');
+  v_requested_branch_id:=nullif(p_arguments->>'p_branch_id','');
   v_receipt_id:=nullif(p_arguments->>'p_id','');
   v_receipt_number:=nullif(btrim(p_arguments->>'p_receipt_number'),'');
   v_warehouse_id:=nullif(p_arguments->>'p_warehouse_id','');
@@ -220,6 +222,8 @@ begin
   select upper(m.role),m.branch_id::text into v_role,v_member_branch_id
   from public.user_memberships m where m.user_id=p_actor_user_id and m.tenant_id::text=v_tenant_id
     and m.business_id=v_business_id and m.status='ACTIVE'
+    and (m.branch_id is null or m.branch_id::text is not distinct from v_requested_branch_id)
+    and (v_requested_branch_id is not null or m.branch_id is null)
   order by case upper(m.role) when 'OWNER' then 1 when 'BUSINESS_OWNER' then 2 when 'ADMIN' then 3
     when 'MANAGER' then 4 when 'EMPLOYEE' then 5 when 'STAFF' then 6 when 'ACCOUNTANT' then 7
     when 'FINANCE_MANAGER' then 8 when 'FINANCE' then 9 else 99 end,
@@ -235,6 +239,7 @@ begin
     and o.business_id=v_business_id for update;
   if not found then raise exception 'ERP_PURCHASE_ORDER_SCOPE_INVALID'; end if;
   if v_member_branch_id is not null and v_member_branch_id is distinct from v_order_branch_id then raise exception 'ERP_BRANCH_SCOPE_REQUIRED'; end if;
+  if v_requested_branch_id is not null and v_requested_branch_id is distinct from v_order_branch_id then raise exception 'ERP_BRANCH_SCOPE_REQUIRED'; end if;
   if v_member_branch_id is null and v_role not in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER') and v_order_branch_id is not null then
     raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
   end if;
