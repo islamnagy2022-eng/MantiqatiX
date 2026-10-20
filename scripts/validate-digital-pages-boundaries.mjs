@@ -18,7 +18,7 @@ for (const [src, marker, label] of [
   [payment, 'admin.rpc("finalize_digital_page_payment_intent_backend"', 'server-role finalization after provider response'],
   [payment, 'p_provider_order_id:providerOrderId', 'provider order correlation persisted server-side'],
   [payment, 'PAYMENT_PROVIDER_OUTCOME_UNKNOWN', 'ambiguous provider outcome fails closed'],
-  [payment, 'if(providerResponseStatus<200||providerResponseStatus>=300||!p?.id||!p?.client_secret||!providerOrderId){', 'missing or ambiguous provider response fails closed without releasing claim'],
+  [payment, 'if(providerResponseStatus<200||providerResponseStatus>=300||!providerIntentId||!providerClientSecret||!providerOrderId){', 'missing or ambiguous provider response fails closed without releasing claim'],
   [trustedFinalization, 'request.jwt.claim.role', 'trusted role check'],
   [trustedFinalization, 'from authenticated', 'authenticated execute revoked'],
   [trustedFinalization, 'to service_role', 'service role execute grant'],
