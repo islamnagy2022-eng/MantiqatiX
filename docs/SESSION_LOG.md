@@ -253,3 +253,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Live read-only database inspection confirmed `used_item_ads` has no effective authenticated SELECT/INSERT/UPDATE/DELETE table privileges. The table includes `seller_phone`; granting broad SELECT would expose that field through the Data API because RLS policies do not hide individual columns.
 - Updated the sector loader to request only explicit directory fields and exclude `seller_phone`. Source commit `ec6d9dbbc1170d0c7414353f19b0f301c64c9208`; validator assertion commits `0ea0564050305059324ea3d0daa97dbcdd182fcf` and `7026d7f75c59899244f57b1dde84c77e6dcb9e78`.
 - No database grants or production schema were changed. Reads remain unavailable until a reviewed, versioned narrow-column privilege contract is created and verified. Do not grant full-table SELECT.
+
+
+- **Projection minimization follow-up:** removed unused `description`, `image_url`, and `fee_paid` from the used-item select list while retaining only displayed fields and columns needed for filters/order. Validator now guards that minimal projection. Commits: `66fefa4ce874c1eb62962c8f476a3015378fa42e`, `a3d9744dc84b82df633e1035cc8a42d1dfccdeb1`.
