@@ -238,3 +238,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Source commit:** `3b695a8b5eb8197b531a40bad60df9b5544c668f`. **Regression guard commit:** `e3b3ac2a6e1f7918922cf41f56f72cf15a91ad6b`.
 - **Remaining blocker:** used-item reads cannot succeed for authenticated users under the observed privilege state; do not patch with an ad hoc broad GRANT. Establish the intended public/seller read contract first, then add a versioned migration and isolation tests.
 - CI and browser E2E are still pending; production was not modified or deployed.
+
+
+## 2026-10-20 — sector mutation boundary and CI reconciliation
+
+- A source scan of `web/sector-modules.js` found no direct table mutation calls; current writes use `create_education_request_backend`, `submit_job_application_backend`, and `create_job_backend`.
+- Added a validator guard forbidding direct client table mutations in the sector workspace and asserting the three intended RPCs. Commit `dddf3bba6dcf06174596f4ce6b11749ef0a3ef64`; corrected its regex in `2731342b75ab0b889b54d679ee520bd12f589940`.
+- Reconciled GitHub Actions on source head `5098c0617477fbf494c454233dd56c7bf27ca6d7`: web validation/syntax, module professionalization (including PostgreSQL privacy/integration jobs), backend-only module boundary (including PostgreSQL tests), MantiGO privacy integration, and marketing workspace contract succeeded. Web deploy job was skipped.
+- These results predate the new validator guard and latest docs commits; exact-head CI and authenticated browser E2E are still required. Release remains **BLOCKED / NOT CERTIFIED**.
