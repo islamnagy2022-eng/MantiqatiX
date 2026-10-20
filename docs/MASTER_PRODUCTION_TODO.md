@@ -2028,3 +2028,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - The new cash-payment read source assertions correctly targeted customer ownership and tenant/business scoping, but the first CI attempt failed because the validator's regex escaping was over-escaped. This was a test assertion defect; the API source itself was unchanged.
 - Replaced those four brittle regex checks with exact source-fragment assertions. The corrected validator is committed in `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45`; fresh exact-head CI is required to confirm it passes.
 - Release remains **BLOCKED / NOT CERTIFIED** pending CI and real authenticated checkout/confirmation E2E plus recovery evidence.
+
+
+### Exact-head verification — cash payment read validator — 2026-10-20
+- [x] Corrected source-contract validator commit `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45` passed Module Professionalization Validation run [39376626578](https://github.com/islamnagy2022-eng/actions/runs/39376626578), including the cash-only source validator and RC458/RC459/RC460 integration jobs.
+- [x] Exact candidate head `fdd54b1faeb6e38e2cea3d955b4aebe7bf7d9a3e` passed all four observed workflows: Module Professionalization Validation [39376651542](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651542), Disposable Forward Migration Replay [39376655694](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376655694), MantiGO Open Ride Privacy Boundary [39376651355](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651355), and Backend-only Module Boundary [39376651443](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651443).
+- [x] The migration replay started from the pinned RC424 schema-only baseline and completed the configured ordered pending-migration replay plus disposable tenant-isolation checks; this is not a full replay of all historical migrations or production application evidence.
+- [ ] Still NOT VERIFIED: authenticated browser/API cash checkout and authorized cash confirmation, live two-tenant/business adversarial isolation, production Auth/security configuration, and backup/restore/disaster-recovery rehearsal.
+- [ ] PR #307 remains draft/open/unmerged. No production migration, merge, payment, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
