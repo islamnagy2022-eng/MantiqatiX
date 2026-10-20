@@ -94,3 +94,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — SESSION-UI-FIRST — Owner-directed module UI sequencing
+
+- **User requirement:** finish all module interfaces/pages first, including login, search, sponsored surfaces, activity management controls, and job-function/role management; defer subscription packages/accounts and expanded accounting UI until after the first release.
+- **Verified repository context:** main is `149a85c7e5c44b61421edc8391cbb82885902fae`; Draft PR #307 contains cash-only launch work and remains unmerged, while Draft PR #308 records the launch scope. PR #307 exact-head checks observed include a passing Doctor Module Release Contract and a still-running disposable migration replay at the last query. Do not infer full pass from one check.
+- **Decision clarified:** sponsored public display/placement UX may be completed where existing backend contracts support it; ad billing, budget charging, paid campaign execution, SMM execution, external network publication, subscription monetization, and expanded accounting UI are deferred. Preserve existing code/data/contracts and fail closed.
+- **Action performed:** created branch `feat/ui-first-module-completion-20261020` from main; added `docs/MASTER_UI_FIRST_CONTINUATION_PROMPT.md`; inserted the UI-first execution roadmap in the Master TODO; recorded continuity and next implementation gate.
+- **Not performed:** no module application code changes in this batch, no production DDL/DML, migrations, Auth settings, payments, ad-network calls, merge, or deployment. Documentation is not evidence that UI journeys are implemented or verified.
+- **Next:** inventory routes/modules/pages and visible actions; map each to current APIs/RPCs/permissions; implement the highest-impact UI gaps incrementally with role/tenant-aware tests. Keep release **BLOCKED / NOT CERTIFIED**.
