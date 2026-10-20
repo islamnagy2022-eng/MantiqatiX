@@ -243,7 +243,7 @@ assert.match(app,/erpPurchaseOrderLabel\(rows,r\.purchase_order_id\)/);
 assert.match(apiERP,/const productsBase = \(\) => supabaseAdmin\.from\("catalog_items"\)\.select\("\*"\)[\s\S]*?\.eq\("tenant_id", tenantId\)\.eq\("business_id", businessId\)\.eq\("status", "ACTIVE"\)/);
 assert.match(app,/\['ERP','BUSINESS_ERP'\]\.includes\(m\.key\)/,"ERP tables must be loaded through the tenant-scoped API runtime, not direct browser table reads");
 assert.match(app,/invokeMntyApi\('\/api\/v1\/erp\/runtime'/,"ERP data must be loaded through the authenticated API gateway");
-assert.match(app,/\['warehouses','catalog_items','branches','stock_balances','inventory_transactions'\]\.includes\(table\)/,"ERP-only table reads must be excluded from the direct browser query path");
+assert.match(app,/const directTables=m\.tables\.filter\(table=>!MNTY_BACKEND_ONLY_TABLES\.has\(table\)&&!\(\['ERP','BUSINESS_ERP'\]\.includes\(m\.key\)&&\['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'\]\.includes\(table\)\)/,"ERP-only table reads must be excluded from the direct browser query path");
 assert.match(app,/rows\.catalog_items=result\.catalog_items\|\|\[\]/,"ERP product names must load from the authenticated tenant-scoped API response");
 assert.match(app,/rows\.stock_balances=result\.stock_balances\|\|\[\]/,"ERP view must load scoped inventory balances");
 assert.match(app,/rows\.inventory_transactions=result\.inventory_transactions\|\|\[\]/,"ERP view must load scoped inventory movements");
