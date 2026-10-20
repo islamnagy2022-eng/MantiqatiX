@@ -60,7 +60,7 @@ const defs={
 'خدمات المنزل والصيانة':{key:'HOME_MAINTENANCE',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات الصيانة والعروض الفعلية.'},
 'البرمجيات وERP':{key:'SOFTWARE_ERP',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات البرمجيات والعروض الفعلية.'}
 };
-let current=null,rows={},user=null,membership=null,tab='overview',loading=false,error=null,mgRealtime=null;
+let current=null,rows={},user=null,membership=null,tab='overview',loading=false,error=null,mgRealtime=null,medicalRealtime=null;
 async function init(){const s=await sb.auth.getSession();user=s.data?.session?.user||null;if(!user)return;const id=localStorage.getItem('MNTYActiveMembershipId');let q=sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');if(id)q=q.eq('id',id);let r=await q.maybeSingle();if(!r.data)r=await sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE').limit(1).maybeSingle();membership=r.data||null}
 function scope(){return membership?.tenant_id?membership:null}
 function canWrite(){return ['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','SERVICE_PROVIDER'].includes(String(membership?.role||'').toUpperCase())}
@@ -112,6 +112,12 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
  const r=await q;
  if(r.error){error='تعذر تحميل مصدر البيانات '+t+' ضمن النطاق الحالي. لم يتم اعتباره فارغًا؛ أعد المحاولة بعد التحقق من الصلاحيات والاتصال.';loading=false;return render()}
  rows[t]=r.data||[];
+}
+if(d.key==='MEDICAL'&&!medicalRealtime){
+ medicalRealtime=sb.channel('medical-appointments-live')
+  .on('postgres_changes',{event:'*',schema:'public',table:'medical_appointments'},()=>{
+   if(current==='المنظومة الطبية'&&!loading)load(defs[current]);
+  }).subscribe();
 }
 loading=false;render()}
 function shell(d,body){return '<section class="workspace-section"><div class="workspace-head"><div><div class="eyebrow">'+d.key+'</div><h2>'+d.desc+'</h2></div></div>'+body+'</section>'}
@@ -207,7 +213,7 @@ function educationWorkspace(){
  const my=requests.filter(x=>x.requester_user_id===user.id).map(x=>'<tr><td>'+esc(x.student_name||'—')+'</td><td>'+esc(x.target_type||'—')+'</td><td>'+esc(x.subject_or_grade||'—')+'</td><td>'+esc(x.status||'—')+'</td></tr>').join('');
  return shell(defs['مدارس خاصة'],tabs(defs['مدارس خاصة'])+'<div class="notice">طلبات التعليم تُنشأ بالحساب الحالي وتخضع لـRLS؛ لا يتم إنشاء بيانات نيابة عن مستخدم آخر.</div><div class="cards">'+(schoolCards+teacherCards||'<div class="empty-state">لا توجد جهات تعليمية متاحة حاليًا.</div>')+'</div><section class="card" style="margin-top:14px"><h3>طلباتي التعليمية</h3><div class="table-wrap"><table><thead><tr><th>الطالب</th><th>النوع</th><th>المادة/المرحلة</th><th>الحالة</th></tr></thead><tbody>'+(my||'<tr><td colspan="4">لا توجد طلبات.</td></tr>')+'</tbody></table></div></section>');
 }
-function medicalProviderRows(){return (rows.marketing_provider_profiles||[]).filter(p=>p.status==='ACTIVE' && Array.isArray(p.specialties) && p.specialties.some(s=>/طب|طبي|كشف|أسنان|صيدل|تحاليل|أشعة|مستشفى|طوارئ/.test(String(s))));}
+function medicalProviderRows(){return (rows.marketing_provider_profiles||[]).filter(p=>String(p.status||'').toUpperCase()==='ACTIVE' && p.is_verified===true && ['HEALTH','DENTAL','MEDICAL','VETERINARY'].includes(String(p.provider_kind||'').toUpperCase()) && Array.isArray(p.specialties) && p.specialties.some(s=>/طب|طبي|كشف|أسنان|صيدل|تحاليل|أشعة|مستشفى|طوارئ/.test(String(s))));}
 function medicalStatusActions(a){
  const role=String(membership?.role||'').toUpperCase(),status=String(a.status||'').toUpperCase();
  const provider=['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role);
@@ -231,7 +237,7 @@ async function updateMedicalAppointmentStatus(id,target){
 function medicalWorkspace(){const d=defs['المنظومة الطبية'];const providers=medicalProviderRows();const appointments=rows.medical_appointments||[];if(tab==='providers')return shell(d,tabs(d)+'<div class="cards">'+(providers.length?providers.map(p=>'<article class="card"><div class="eyebrow">خدمة طبية</div><h3>'+esc(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><div class="muted">'+esc((p.specialties||[]).join(' · '))+'</div><div class="muted">'+(p.is_verified?'موثق':'غير موثق')+'</div><button class="btn btn-primary" style="margin-top:10px" data-medical-book="'+esc(p.id)+'">حجز موعد</button></article>').join(''):'<div class="empty-state">لا يوجد مقدم خدمة طبي نشط مطابق حاليًا.</div>')+'</div>');
 if(tab==='appointments')return shell(d,tabs(d)+table([['الموعد','id'],['مقدم الخدمة','doctor_id'],['التاريخ',r=>r.date_time?new Date(Number(r.date_time)).toLocaleString('ar-EG'):'—'],['الحالة','status'],['السبب','reason'],['الإجراءات',medicalStatusActions]],appointments));
 return shell(d,tabs(d)+'<div class="cards"><article class="card"><div class="metric">'+providers.length+'</div><div class="muted">مقدمو الخدمة الطبية النشطون</div></article><article class="card"><div class="metric">'+appointments.length+'</div><div class="muted">مواعيدي الظاهرة</div></article></div><p class="muted" style="margin-top:14px">الحجز وتحديث الحالات يتمان عبر Backend RPC؛ الخادم يتحقق من ملكية الطبيب وحالة الموعد وموعد الزيارة.</p>')}
-async function medicalBook(providerId){const p=medicalProviderRows().find(x=>x.id===providerId);if(!p||!p.business_id)return alert('بيانات مقدم الخدمة غير مكتملة.');const raw=prompt('موعد الحجز — اكتب التاريخ والوقت بصيغة YYYY-MM-DD HH:MM','');if(!raw)return;const dt=new Date(raw.replace(' ','T'));if(Number.isNaN(dt.getTime()))return alert('صيغة الموعد غير صحيحة.');if(dt.getTime()<=Date.now())return alert('اختر موعدًا مستقبليًا.');const reason=prompt('سبب الحجز (اختياري):','')??'';const appointmentId=crypto.randomUUID();const r=await sb.rpc('create_medical_appointment_backend',{p_user_id:user.id,p_appointment_id:appointmentId,p_business_id:p.business_id,p_doctor_id:String(p.id),p_date_time:dt.getTime(),p_reason:reason.trim()});if(r.error)return alert(r.error.message);alert('تم إرسال الموعد بنجاح.');tab='appointments';await load(defs[current])}
+async function medicalBook(providerId){const p=medicalProviderRows().find(x=>x.id===providerId);if(!p||!p.business_id)return alert('بيانات مقدم الخدمة غير مكتملة.');const raw=prompt('موعد الحجز — اكتب التاريخ والوقت بصيغة YYYY-MM-DD HH:MM','');if(!raw)return;const dt=new Date(raw.replace(' ','T'));if(Number.isNaN(dt.getTime()))return alert('صيغة الموعد غير صحيحة.');if(dt.getTime()<=Date.now())return alert('اختر موعدًا مستقبليًا.');if(dt.getTime()%900000!==0)return alert('الموعد لازم يكون على ربع ساعة مثل 10:00 أو 10:15 أو 10:30 أو 10:45.');const reason=prompt('سبب الحجز (اختياري):','')??'';const appointmentId=crypto.randomUUID();const r=await sb.rpc('create_medical_appointment_backend',{p_user_id:user.id,p_appointment_id:appointmentId,p_business_id:p.business_id,p_doctor_id:String(p.id),p_date_time:dt.getTime(),p_reason:reason.trim()});if(r.error)return alert(r.error.message);alert('تم إرسال الموعد بنجاح.');tab='appointments';await load(defs[current])}
 async function createEducationRequest(targetId,targetType,targetName){
  const student=prompt('اسم الطالب:',''); if(student===null)return;
  const subject=prompt(targetType==='TEACHER'?'المادة والصف المطلوبان:':'المرحلة الدراسية المطلوبة:',''); if(subject===null)return;
