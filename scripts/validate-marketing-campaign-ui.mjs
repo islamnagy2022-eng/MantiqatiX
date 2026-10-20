@@ -44,7 +44,7 @@ const swAppVersion = sw.match(/\.\/app\.js\?v=([^'"]+)/)?.[1];
 const registeredSwVersion = index.match(/sw\.js\?v=([^'"]+)/)?.[1];
 assert.ok(shellVersion && /mnty-web-v\d+/.test(shellVersion), "PWA cache must use a versioned shell key");
 assert.equal(swAppVersion, appVersion, "service worker and HTML must load the same app build");
-assert.ok(registeredSwVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+)-20261020/.test(registeredSwVersion), "service worker registration cache key must use the current module build version");
+assert.ok(registeredSwVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+|medical-booking-v2)-20261020/.test(registeredSwVersion), "service worker registration cache key must use the current module build version");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
 
 console.log("Marketing workspace contract: PASS (32 assertions)");
