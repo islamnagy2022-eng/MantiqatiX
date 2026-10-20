@@ -577,3 +577,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-20 — Cash-first launch scope (latest continuation decision)
+
+- Product decision: launch-one checkout is CASH_ON_DELIVERY only for eligible order workflows. Paymob/cards/electronic checkout are deferred until after launch.
+- Independent SMM storefront/orders/wallet/provider calls remain deferred by the existing server-side `SMM_INITIAL_LAUNCH_DEFERRED=true` gate. Internal Marketing & Advertising workspace remains distinct and may continue within its current authorized scope.
+- Source changes on branch `feat/cash-first-launch-scope-20261020` wire cash intent creation after customer catalog and restaurant order creation, and harden the API idempotency path so retries return existing intent state rather than replacing IDs/statuses.
+- Paid Digital Pages Portfolio/Menu purchase is temporarily blocked because its current checkout path requires Paymob and no cash fulfillment contract is verified. This is not a claim that those products have a cash workflow.
+- Verification pending: exact-head CI; cash E2E with customer and authorized cashier/staff; tenant-level `tenant_payment_methods` configuration; duplicate/replay/cross-order idempotency tests; full checkout surface review; all unrelated P0 security/backup/browser/device gates.
+- No production database, Supabase Auth, Edge Function deployment, payment, wallet or settlement was mutated. Release remains **BLOCKED / NOT CERTIFIED**.
