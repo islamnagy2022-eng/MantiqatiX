@@ -376,3 +376,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Regression test:** the RC468 integration test now temporarily deactivates the provider, verifies exact replay still returns the committed appointment, and restores the provider fixture. The source validator asserts this ordering and test coverage.
 - **Commits:** migration ordering fix `d00db23d2081a5a9f36f954609fb572009bda8fe`; regression test `c657d6914efa9661c2550db4dd9e6c08e8b5ca26`; validator `ba975ec733e6dc1b457cd5a63249aab5570caa5b`.
 - **Verification:** exact-head workflows must rerun on the latest branch head; prior queued runs do not validate these follow-up commits. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Medical directory parity and slot validation follow-up
+
+- **Finding:** the backend and RC468 booking RPC support verified veterinary providers, and the medical labels already included veterinary care, but the primary customer directory filtered veterinary providers out of both its in-memory allowlist and Supabase query.
+- **Implemented:** added `VETERINARY` consistently to the primary medical provider filter and provider query. Added source-contract assertions to prevent this backend/UI mismatch from returning.
+- **Input hardening:** the booking handler now explicitly rejects timestamps not aligned to the backend's 15-minute slot rule before making the RPC call, and translates `APPOINTMENT_SLOT_ALIGNMENT_REQUIRED` into a clear Arabic action message.
+- **PWA cache:** refreshed the app/service-worker version to `mnty-medical-booking-v2-20261020` and cache to `mnty-web-v173`; verified index/app/service-worker version parity from the branch files.
+- **Commits:** app fix `b3e6b40d9b2cec87bdfeb8505af91be81d84b236`; validator `1820aafa54e85419591028833ef3bb2665f49e25`; slot validation `b85501b6cd067bbfbb4f21cb40cc7c1189a8e2ab`; validator hardening `7e115c674eaeec0fa828f2748299895b4b822916`; cache/index updates `5887916676e9c4b78738ada0987fc7bf3e612ae9` and `29d789c62eb54863e3def38fbdda250f833fc852`.
+- **Verification status:** exact candidate head is `29d789c62eb54863e3def38fbdda250f833fc852`. Doctor Module Release Contract, Disposable Forward Migration Replay, ERP Runtime Gateway Integration, and ERP Opening Stock Integration runs were created but remain `queued`; no test pass is claimed until these runs complete. Source-file parity checks passed by direct inspection only.
+- **Safety:** no merge, deployment, production migration, or live-data mutation occurred. PR #307 remains draft/open/unmerged; global release remains **BLOCKED / NOT CERTIFIED** pending exact-head CI and authenticated cash-flow E2E, live isolation, production security/configuration, and recovery evidence.
