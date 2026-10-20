@@ -200,9 +200,22 @@ serve(async (req) => {
         p_actor_user_id: user.id, p_arguments: args
       })
       if (supplierError) {
-        const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(String(supplierError.message ?? ""))
-        console.error("[erp-runtime] supplier create rejected", { code: supplierError.code, denied })
-        return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : /CODE_ALREADY_EXISTS/.test(String(supplierError.message ?? "")) ? "ERP_SUPPLIER_CODE_ALREADY_EXISTS" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
+        const message = String(supplierError.message ?? "")
+        const publicErrors: Record<string, number> = {
+          UNAUTHENTICATED: 401,
+          ERP_MEMBERSHIP_REQUIRED: 403,
+          ERP_SUPPLIER_CREATE_ROLE_REQUIRED: 403,
+          ERP_BRANCH_SCOPE_REQUIRED: 403,
+          ERP_SUPPLIER_CODE_ALREADY_EXISTS: 409,
+          ERP_SUPPLIER_IDEMPOTENCY_CONFLICT: 409,
+          ERP_SUPPLIER_IDEMPOTENCY_SCOPE_CONFLICT: 409,
+          ERP_SUPPLIER_REQUIRED_FIELDS: 400
+        }
+        const publicCode = Object.keys(publicErrors).find(code => message.includes(code))
+        const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(message)
+        console.error("[erp-runtime] supplier create rejected", { code: supplierError.code, publicCode: publicCode ?? null, denied })
+        if (publicCode) return json({ error: publicCode }, publicErrors[publicCode])
+        return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
       }
       return json({ success: true, result: supplierResult })
     }
