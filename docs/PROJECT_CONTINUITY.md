@@ -763,3 +763,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Used-item RPC now has an isolated PostgreSQL integration fixture/test plus dedicated GitHub Actions workflow. It covers the narrow result shape, grants, anonymous rejection, owner-only sold listings, and tenant/business filtering. CI remains queued; migration remains unapplied to live Supabase.
+
+
+- Used-item RPC behavior is covered by the existing dedicated read-boundary workflow and SQL integration, now applying both migrations and checking seller-phone/owner-ID column grants. Duplicate test files/job were removed; CI still needs to finish on the latest head.
