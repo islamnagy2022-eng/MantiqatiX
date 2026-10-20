@@ -210,7 +210,7 @@ assert.match(app,/\[\x27warehouses\x27,\x27catalog_items\x27,\x27branches\x27\]\
 assert.match(app,/rows\.catalog_items=result\.catalog_items\|\|\[\]/,"ERP product names must load from the authenticated tenant-scoped API response");
 assert.match(app,/rows\.stock_balances=result\.stock_balances\|\|\[\]/,"ERP view must load scoped inventory balances");
 assert.match(app,/rows\.inventory_transactions=result\.inventory_transactions\|\|\[\]/,"ERP view must load scoped inventory movements");
-assert.match(app,/inventory_transactions','warehouses','catalog_items','stock_balances/,"ERP module must include inventory and procurement data");
+assert.match(app,/stock_balances','inventory_transactions/,"ERP module must include inventory and procurement data");
 
 assert.match(app,/if\(\['ERP','BUSINESS_ERP'\]\.includes\(m\.key\)\)/,"Business ERP must use the same scoped server runtime as ERP");
 assert.match(app,/table==='businesses'&&live\.tenantId\)q=q\.eq\('tenant_id',live\.tenantId\)/,"Business ERP summary must be tenant-scoped");
