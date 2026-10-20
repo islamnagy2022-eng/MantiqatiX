@@ -169,3 +169,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Extended `scripts/validate-global-search-failure-state.mjs` with a source-contract assertion for that state.
 - Source comparison: seven targeted patterns matched the fetched `web/app.js` after the change. No Node/Pages workflow or browser E2E was executed/confirmed.
 - Code commits: `791907010399d94fb0f84f2b26548358d20c50e1`; validator commit: `f78b20bf7c91672dcf1bf77b59db8ab8ef36e674`. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Remove unverified security claims from blueprint UI
+
+- Replaced generic module blueprint badges “RLS ENFORCED / RBAC ENFORCED / WRITE SERVER” with “NOT VERIFIED / CONTRACT CHECK” and Arabic explanatory copy. The generic blueprint did not itself prove those security controls had been exercised for every module.
+- Extended `scripts/validate-module-blueprint-actions.mjs` to assert the caveat is present and unsupported ENFORCED badges are absent.
+- Source-pattern inspection: 8/8 targeted checks matched. No local Node run or GitHub Actions pass was obtained, so the validator and runtime remain unverified.
+- Commits: UI `4f49fd4497e6a79808563c108cd57f7621fb6fa4`; validator `98a002ace642a07e350925e116f61659f81f0b7f`. Release remains **BLOCKED / NOT CERTIFIED**.
