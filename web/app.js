@@ -1284,6 +1284,8 @@ async function erpRpc(fn,args){
   }
   showToast('تم تنفيذ العملية بنجاح','success');
   live.moduleData={};
+  // Invalidate the shared ERP reference snapshot so dependent modules never reuse stale suppliers or stock.
+  window.MNTYOperationsERPData=null;
   if(typeof window.MNTYReloadOperationsModule==='function')await window.MNTYReloadOperationsModule();
   await renderApp();
   return response.result;
