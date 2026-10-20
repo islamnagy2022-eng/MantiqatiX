@@ -292,9 +292,12 @@ serve(async (req) => {
     if (membershipError) return json({ error: "Payment access check failed" }, 500)
     const operationalRead = (memberships || []).some((m: any) => {
       const role = String(m.role || "").toUpperCase()
-      const permissions = Array.isArray(m.permissions) ? m.permissions : []
+      const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+      const hasReadPermission = Array.isArray(permissions)
+        ? permissions.includes("PAYMENT_READ_ALL")
+        : permissions.PAYMENT_READ_ALL === true
       const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
-      return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || permissions.includes("PAYMENT_READ_ALL"))
+      return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || hasReadPermission)
     })
     if (!isCustomer && !operationalRead) return json({ error: "Forbidden" }, 403)
     const { data: paymentIntent, error: paymentError } = await supabaseAdmin.from("payment_intents")
