@@ -35,9 +35,11 @@ BEGIN
  LIMIT 1;
  IF NOT FOUND THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
  v_user_role:=coalesce(v_membership.role,'CUSTOMER');
- v_is_authorized:=(upper(v_user_role) in ('ADMIN','MANAGER','CASHIER','STAFF','OWNER')
+ v_is_authorized:=coalesce(
+   upper(v_user_role) in ('ADMIN','MANAGER','CASHIER','STAFF','OWNER')
    OR (jsonb_typeof(coalesce(v_membership.permissions,'{}'::jsonb))='array' AND coalesce(v_membership.permissions,'[]'::jsonb)?'PAYMENT_CONFIRM_CASH')
-   OR coalesce(v_membership.permissions,'{}'::jsonb)->'PAYMENT_CONFIRM_CASH'='true'::jsonb)
+   OR coalesce(v_membership.permissions,'{}'::jsonb)->'PAYMENT_CONFIRM_CASH'='true'::jsonb,
+   false)
    AND upper(v_user_role)<>'CUSTOMER';
  IF NOT v_is_authorized THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
  -- Authorize before returning a prior success so service-role callers cannot use
