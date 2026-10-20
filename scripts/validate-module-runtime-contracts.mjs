@@ -40,12 +40,12 @@ const modules=[
 ];
 const failures=[];
 for(const [file,source] of Object.entries(files)){
- const declared=[...source.matchAll(/(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)\\s*\\(/g)].map(match=>match[1]);
+ const declared=[...source.matchAll(/(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(match=>match[1]);
  const duplicates=[...new Set(declared.filter((name,index)=>declared.indexOf(name)!==index))];
  if(duplicates.length)failures.push("DUPLICATE_FUNCTIONS_"+file.toUpperCase()+":"+duplicates.join(","));
 }
 const erpRouteStart=api.indexOf('path === "/api/v1/erp/runtime"');
-const erpRouteEnd=api.indexOf("\n  if (",erpRouteStart+20);
+const erpRouteEnd=api.indexOf('\n  if (req.method === "GET" && path === "/api/v1/brand")',erpRouteStart+20);
 const erpRoute=api.slice(erpRouteStart,erpRouteEnd>erpRouteStart?erpRouteEnd:undefined);
 for(const required of [
  'erp_suppliers','erp_purchase_order_lines','stock_balances','inventory_transactions',
