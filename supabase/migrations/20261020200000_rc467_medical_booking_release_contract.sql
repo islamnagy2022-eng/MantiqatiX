@@ -140,7 +140,7 @@ begin
   if v_role is null then raise exception 'ACTIVE_MEMBERSHIP_REQUIRED'; end if;
 
   v_provider_role := v_role in ('SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER');
-  if v_role = 'SERVICE_PROVIDER' then
+  if v_role = 'SERVICE_PROVIDER' and not (v_target = 'CANCELLED' and v_patient_id = v_uid) then
     select mp.owner_user_id into v_profile_owner_id
     from public.marketing_provider_profiles mp
     where mp.id::text = v_doctor_id
