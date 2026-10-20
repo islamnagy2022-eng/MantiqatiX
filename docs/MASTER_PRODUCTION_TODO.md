@@ -1649,6 +1649,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] تم إصلاح idempotency في API النقدي حتى لا تستبدل إعادة المحاولة معرّف النية أو حالتها، مع رفض إعادة استخدام المفتاح لطلب/مبلغ/عملة مختلفة.
 - [x] تم إيقاف بدء شراء صفحات Portfolio/Menu المدفوعة قبل الإطلاق لأنها تعتمد حاليًا على Paymob ولا يوجد لها مسار نقدي مثبت.
 - [ ] NOT VERIFIED: اختبار cash E2E بمستخدم عميل وموظف تحصيل ومؤسستين/tenant scope، وتأكيد أن tenant_payment_methods يحتوي طريقة CASH_ON_DELIVERY مفعلة لكل نشاط مؤهل.
+- [ ] NOT VERIFIED: اختبار قراءة حالة نية الدفع من شاشة الطلب، وإظهار زر تأكيد التحصيل للأدوار المخولة فقط، ورفض أي تأكيد غير مخول عبر الخادم.
 - [ ] NOT VERIFIED: اختبار API cash intent idempotency والتأكيد المكرر ورفض cross-order key reuse على PostgreSQL/بيئة معزولة.
 - [ ] NOT VERIFIED: مراجعة كل مسارات checkout الأخرى للتأكد من عدم بدء Paymob أو الدفع الإلكتروني في واجهة الإطلاق الأولى.
 - [ ] POST-LAUNCH: Paymob/card + webhooks/refunds/provider events E2E، وتشغيل SMM فقط بعد إصلاحات الأمن والمزود والمحفظة والاختبارات وموافقة إطلاق منفصلة.
