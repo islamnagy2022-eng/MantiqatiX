@@ -1877,3 +1877,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 2. Continue source recovery/reconciliation for the historical replay dependency without fabricating DDL.
 3. Close the production authorization and payment/recovery gates only with isolated or explicitly authorized runtime evidence.
 4. Preserve the global release status as **BLOCKED / NOT CERTIFIED** until every mandatory gate has verifiable evidence.
+
+
+## Continuation checkpoint — 2026-10-20 — deterministic Supabase CLI in forward replay
+
+- [x] Investigated Disposable Forward Migration Replay failure on code head `27fbfec24cc5e6d665f788322c786a0fa130d17b`: the job failed before migration replay because `supabase/setup-cli@v1` attempted to resolve `version: latest` and hit a GitHub API rate limit (`Failed to resolve latest Supabase CLI release: rate limit exceeded`). This was an infrastructure/tool-version resolution failure, not a migration SQL failure.
+- [x] Updated `.github/workflows/disposable-forward-migration-replay.yml` to pin Supabase CLI `2.39.2` in commit `ae20b393c320b44ebe8bd97d9f4d8c27b063b6f9` so the job does not need latest-release resolution.
+- [x] On the pinned-CLI head, eight other PR-triggered workflows passed: Backend-only Module Boundary, Open PR Migration Collision Guard, Deploy MantiqatiX Web validation (deployment skipped in PR context), Approval Action Audit Atomicity, Migration Version Uniqueness, MantiGO Open Ride Privacy Boundary, Migration History Immutability, and Module Professionalization Validation (including RC457 medical PostgreSQL integration and RC462 integration).
+- [ ] Disposable Forward Migration Replay run `39362446830` is still IN PROGRESS at the `Start isolated Supabase PostgreSQL` step. Baseline restore, ordered replay, and tenant-isolation verification have not yet run on this head; do not claim replay success until the job completes.
+- [ ] PR #301 remains open/draft/unmerged. No production mutation, migration, merge, deployment, or financial transaction occurred.
+- [ ] Production release remains BLOCKED / NOT CERTIFIED. Continue by polling run `39362446830`; if it fails, inspect the completed job logs and fix the actual failure before proceeding.
