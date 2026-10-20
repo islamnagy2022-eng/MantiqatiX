@@ -37,6 +37,7 @@ async function createEducationRequest(targetId,targetType,subjectOrGrade){
  if(!targetId)return alert('بيانات الجهة التعليمية غير مكتملة.');
  const student=window.prompt('اسم الطالب',state.user.email||'')?.trim();
  if(!student)return;
+ if(student.length<2||student.length>200)return alert('اسم الطالب يجب أن يكون من حرفين إلى 200 حرف.');
  const subject=(subjectOrGrade||window.prompt(targetType==='TEACHER'?'المادة':'الصف الدراسي','')||'').trim();
  if(subject.length>500)return alert('المادة أو الصف الدراسي يجب ألا يتجاوز 500 حرف.');
  const {data,error}=await sb.rpc('create_education_request_backend',{p_target_id:targetId,p_target_type:targetType,p_student_name:student,p_subject_or_grade:subject});
