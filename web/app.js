@@ -1092,6 +1092,11 @@ async function createMedicalAppointment(providerId,businessId){
    p_business_id:businessId,p_doctor_id:providerId,p_date_time:timestamp,p_reason:reason||null
   });
   if(error)throw error;
+  // Preserve the retry token unless the backend confirms this exact appointment ID.
+  if(!data||String(data.id||'')!==appointmentId){
+   showToast('لم يصل تأكيد موثوق للحجز من الخادم. احتفظنا ببيانات المحاولة؛ أعد المحاولة بنفس الموعد والسبب لتجنب التكرار','error');
+   return;
+  }
   try{sessionStorage.removeItem(requestKey);}catch(_){}
   if(live.medicalBookingIdempotency)delete live.medicalBookingIdempotency[requestKey];
   showToast(data?.idempotent_replay?'تم استرجاع نتيجة الحجز السابق دون إنشاء موعد مكرر':'تم إرسال طلب الموعد بنجاح','success');
