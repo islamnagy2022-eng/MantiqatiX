@@ -70,6 +70,7 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
  try{
   const data=await invokeErpApi({operation:'list',tenantId:activeScope.tenant_id,businessId:activeScope.business_id,branchId:activeScope.branch_id||null});
   if(!data.success)throw new Error(data.error||'ERP_DATA_LOAD_FAILED');
+  rows.businesses=data.businesses||[];
   rows.erp_purchase_orders=data.orders||[];
   rows.erp_purchase_order_lines=data.order_lines||[];
   rows.erp_suppliers=data.suppliers||[];
@@ -80,12 +81,7 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
   rows.branches=data.branches||[];
   rows.stock_balances=data.stock_balances||[];
   rows.inventory_transactions=data.inventory_transactions||[];
-  window.MNTYOperationsERPData={loaded_at:Date.now(),tenant_id:activeScope.tenant_id,business_id:activeScope.business_id,branch_id:activeScope.branch_id||null,erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_order_lines:rows.erp_purchase_order_lines,erp_suppliers:rows.erp_suppliers,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,warehouses:rows.warehouses,catalog_items:rows.catalog_items,branches:rows.branches,stock_balances:rows.stock_balances,inventory_transactions:rows.inventory_transactions};
-  if(d.key==='BUSINESS_ERP'){
-   const business=await sb.from('businesses').select('id,tenant_id,name,code,status').eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id).maybeSingle();
-   if(business.error)throw business.error;
-   rows.businesses=business.data?[business.data]:[];
-  }
+  window.MNTYOperationsERPData={loaded_at:Date.now(),tenant_id:activeScope.tenant_id,business_id:activeScope.business_id,branch_id:activeScope.branch_id||null,businesses:rows.businesses,erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_order_lines:rows.erp_purchase_order_lines,erp_suppliers:rows.erp_suppliers,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,warehouses:rows.warehouses,catalog_items:rows.catalog_items,branches:rows.branches,stock_balances:rows.stock_balances,inventory_transactions:rows.inventory_transactions};
  }catch(e){error='تعذر تحميل بيانات ERP الفعلية من الخادم. لم يتم عرضها كبيانات فارغة؛ أعد المحاولة بعد التحقق من الاتصال والصلاحيات.';loading=false;return render()}
  loading=false;return render()}for(const t of d.tables){
  if(BACKEND_ONLY_TABLES.has(t)){rows[t]=[];continue}
