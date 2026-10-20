@@ -41,6 +41,74 @@ serve(async (req) => {
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
   if (authError || !user || user.is_anonymous) return json({ error: "Unauthorized" }, 401)
 
+  if (req.method === "POST" && path === "/api/v1/accounting/ledger") {
+    const body = await req.json().catch(() => null)
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "INVALID_REQUEST" }, 400)
+    const tenantId = String(body.tenantId ?? "").trim()
+    const businessId = String(body.businessId ?? "").trim()
+    const branchId = body.branchId ? String(body.branchId).trim() : ""
+    if (!tenantId || !businessId) return json({ error: "ACCOUNTING_SCOPE_REQUIRED" }, 400)
+
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,business_id,branch_id").eq("user_id", user.id).eq("tenant_id", tenantId)
+      .eq("business_id", businessId).eq("status", "ACTIVE")
+    if (membershipError) {
+      console.error("[accounting-ledger] membership lookup failed", { code: membershipError.code })
+      return json({ error: "ACCOUNTING_MEMBERSHIP_LOOKUP_FAILED" }, 500)
+    }
+    const roles = ["OWNER","BUSINESS_OWNER","ADMIN","MANAGER","ACCOUNTANT","FINANCE","FINANCE_MANAGER"]
+    const membership = (memberships ?? []).find((row) => {
+      const role = String(row.role ?? "").toUpperCase()
+      if (!roles.includes(role)) return false
+      return !row.branch_id || (branchId ? String(row.branch_id) === branchId : false)
+    })
+    if (!membership) return json({ error: branchId ? "ACCOUNTING_BRANCH_SCOPE_REQUIRED" : "ACCOUNTING_MEMBERSHIP_REQUIRED" }, 403)
+
+    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
+      .select("id,tenant_id,status").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle()
+    if (businessError) return json({ error: "ACCOUNTING_BUSINESS_LOOKUP_FAILED" }, 500)
+    if (!business || String(business.status ?? "").toUpperCase() !== "ACTIVE") return json({ error: "ACCOUNTING_BUSINESS_SCOPE_INVALID" }, 403)
+    if (branchId) {
+      const { data: branch, error: branchError } = await supabaseAdmin.from("branches")
+        .select("id").eq("id", branchId).eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (branchError) return json({ error: "ACCOUNTING_BRANCH_LOOKUP_FAILED" }, 500)
+      if (!branch) return json({ error: "ACCOUNTING_BRANCH_SCOPE_INVALID" }, 403)
+    }
+
+    let entriesQuery = supabaseAdmin.from("journal_entries").select("id,tenant_id,organization_id,business_id,branch_id,reference_type,reference_id,description,status,entry_date,created_by,created_at")
+      .eq("tenant_id", tenantId).eq("business_id", businessId).limit(500).order("entry_date", { ascending: false })
+    if (branchId) entriesQuery = entriesQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`)
+    const [accountsRes, entriesRes] = await Promise.all([
+      supabaseAdmin.from("chart_of_accounts").select("id,tenant_id,account_code,account_name,account_type,is_active,created_at")
+        .eq("tenant_id", tenantId).limit(500).order("account_code", { ascending: true }),
+      entriesQuery
+    ])
+    if (accountsRes.error || entriesRes.error) {
+      console.error("[accounting-ledger] base query failed", { accounts: !!accountsRes.error, entries: !!entriesRes.error })
+      return json({ error: "ACCOUNTING_DATA_LOAD_FAILED" }, 500)
+    }
+    const entries = entriesRes.data ?? []
+    const entryIds = entries.map((entry) => String(entry.id)).filter(Boolean)
+    let lines: Record<string, unknown>[] = []
+    let ledger: Record<string, unknown>[] = []
+    if (entryIds.length) {
+      const [linesRes, ledgerRes] = await Promise.all([
+        supabaseAdmin.from("journal_entry_lines").select("id,journal_entry_id,account_id,debit,credit,description")
+          .in("journal_entry_id", entryIds).limit(2000),
+        supabaseAdmin.from("general_ledger").select("id,tenant_id,business_id,journal_entry_id,journal_line_id,account_id,debit,credit,running_balance,entry_date,posted_at")
+          .eq("tenant_id", tenantId).eq("business_id", businessId).in("journal_entry_id", entryIds)
+          .limit(2000).order("posted_at", { ascending: false })
+      ])
+      if (linesRes.error || ledgerRes.error) {
+        console.error("[accounting-ledger] protected detail query failed", { lines: !!linesRes.error, ledger: !!ledgerRes.error })
+        return json({ error: "ACCOUNTING_DATA_LOAD_FAILED" }, 500)
+      }
+      lines = linesRes.data ?? []
+      ledger = ledgerRes.data ?? []
+    }
+    return json({ success: true, accounts: accountsRes.data ?? [], entries, lines, ledger })
+  }
+
   if (req.method === "POST" && path === "/api/v1/erp/runtime") {
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "INVALID_REQUEST" }, 400)
