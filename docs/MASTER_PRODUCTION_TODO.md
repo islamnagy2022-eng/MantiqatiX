@@ -12,6 +12,14 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
+## Launch scope decision — 2026-10-20 (owner-directed)
+- **PRE-LAUNCH: CASH ONLY.** Cash collection and authorized cash confirmation are mandatory release gates and must pass E2E.
+- **POST-LAUNCH: electronic payments.** Paymob/card/online checkout and their production webhook/reconciliation E2E are deferred and are not pre-launch gates. Keep electronic methods unavailable in the launch UI; do not delete their existing code or weaken their security boundaries.
+- **POST-LAUNCH: SMM.** Defer SMM provider integrations, API credential use, automated fulfilment, campaign spend and live billing. Keep SMM secrets and sensitive tables fail-closed.
+- Existing marketing/agency workspace, CRM and lead management are distinct from SMM automation and are not automatically deferred; include only already implemented and independently verified functionality.
+- This scope decision does not certify cash readiness. Global release remains BLOCKED until cash E2E and all other mandatory release gates pass.
+- Canonical details: `docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md`.
+
 # P0 — حواجز الإطلاق
 
 1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
@@ -27,18 +35,19 @@
    - وصول الإشعار وclick-through.
    - عزل مزودين من أعمال مختلفة.
 
-3. Paymob production E2E — WAIT
-   - معاملة حقيقية مصرح بها.
-   - HMAC/replay/idempotency.
-   - ربط الدفع بالطلب الصحيح.
-   - حماية السعر/العملة/tenant.
+3. Electronic payments / Paymob production E2E — DEFERRED POST-LAUNCH (NOT A LAUNCH GATE)
+   - لا تفعيل Paymob/card/online checkout في واجهة الإطلاق.
+   - بعد الإطلاق: معاملة مصرح بها، HMAC/replay/idempotency، ربط الدفع بالطلب الصحيح، وحماية السعر/العملة/tenant.
+   - لا تحذف البنية الموجودة ولا تعتبرها جاهزة؛ تظل NOT VERIFIED حتى اختبارات ما بعد الإطلاق.
 
-4. Finance/Settlement E2E — NOT VERIFIED
-   - payment success → commission → payout/settlement.
-   - duplicate webhook.
-   - concurrent/replay.
-   - tenant isolation.
-   - GL posting/account mapping/reconciliation.
+4. Cash collection + finance/settlement E2E — NOT VERIFIED (P0 LAUNCH GATE)
+   - العميل ينشئ طلبًا باختيار الدفع النقدي فقط في نطاق الإطلاق.
+   - المبلغ/العملة من الطلب والتسعير المعتمد على الخادم، وليس من العميل.
+   - تأكيد استلام النقد بواسطة دور/صلاحية تشغيلية مخولة فقط؛ العميل لا يؤكد استلام نفسه.
+   - tenant/business isolation، انتقالات حالة صحيحة، idempotency وإعادة المحاولة الآمنة.
+   - سجل تدقيق/إيصال أو حالة واضحة، ومطابقة محاسبية وGL/commission/settlement حسب نموذج العمل.
+   - اختبار duplicate confirmation والتزامن ورفض الوصول العابر للمؤسسات.
+   - Electronic payment webhooks/replay/reconciliation are POST-LAUNCH deferred; do not block cash-only launch on them.
 
 5. Supabase Security Advisor — OPEN / REVIEWED
    - آخر فحص Production (2026-10-07): public.digital_page_payment_events هو الجدول الوحيد الظاهر كـ RLS enabled بدون policy؛ وهو backend-only/payment-event boundary ومقصود أن يبقى fail-closed.
@@ -210,11 +219,11 @@
 - [ ] Notifications
 - [ ] Support/CRM
 - [ ] Catalog/pricing
-- [ ] Payment
-- [ ] Webhook replay/idempotency
-- [ ] Commission
-- [ ] Settlement
-- [ ] GL/accounting
+- [ ] Cash-only order/payment E2E (required before launch)
+- [ ] Cash confirmation authorization/idempotency/audit (required before launch)
+- [ ] Cash accounting/commission/settlement/GL as required by launch business model
+- [ ] Electronic payment / Paymob / online checkout / payment webhook E2E (POST-LAUNCH DEFERRED; not a launch gate)
+- [ ] SMM provider integration/automated fulfilment/live billing (POST-LAUNCH DEFERRED; not a launch gate)
 - [ ] Auditability
 - [ ] Backup/restore rehearsal
 - [ ] Monitoring/alerting
@@ -1941,3 +1950,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] The earlier fixture SQL and validator-path defects are resolved on this head.
 - [ ] PR #301 remains draft/open/unmerged. Pages deploy was skipped in PR context; no production migration/deployment was performed.
 - [ ] Global release remains blocked by historical blank-replay provenance, Auth leaked-password protection owner action, adversarial live tenant/RBAC E2E, real payment/finance/refund E2E, backup/restore/rollback, browser/push/device and Android evidence, and main deployment smoke.
+
+
+## Scope decision execution record — 2026-10-20
+- [x] Product-owner decision recorded: cash-only before launch; electronic payment processing and SMM live workflows deferred until after launch.
+- [x] Reclassified Paymob production E2E as POST-LAUNCH, not a pre-launch gate.
+- [ ] Cash-only UI/API path audit and authenticated E2E remain OPEN; this decision is not proof of implementation readiness.
+- [ ] Verify cash tenant configuration, authorized confirmation, server-derived amount, idempotency, audit trail, and required cash accounting.
+- [ ] Verify electronic methods are not exposed through the launch workflow; keep their backend security boundaries intact.
+- [ ] Keep SMM credentials/tables fail-closed and verify no SMM spend/fulfilment can be triggered in the launch scope.
+- [ ] Global release remains BLOCKED / NOT CERTIFIED until cash E2E and other mandatory non-deferred gates pass.
