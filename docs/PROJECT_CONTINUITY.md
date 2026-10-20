@@ -734,3 +734,11 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 - Production's live migration inventory currently ends at `20261008222845` (150 records), while the branch has 140 migration files through `20261014230000_rc525_digital_page_product_platform_admin_scope.sql`. Do not apply a used-item grant or other new migration before reconciling this history.
 - Used-item query already avoids seller phone and unused fields, but production still lacks authenticated SELECT privileges. No production database mutation was performed.
+
+
+## 2026-10-20 continuation — used-item narrow read migration
+
+- Prepared `20261020231500_used_item_ads_minimal_directory_read.sql` with a column-level authenticated SELECT grant for directory display/filter fields only, explicitly excluding seller phone. It revokes table-wide SELECT from `anon` and `authenticated` before granting approved columns.
+- Updated UI messaging to separate read availability from the currently unsupported mutation path; validator checks the migration contract.
+- Commits: `b79420ba8df5b997783c749d45fb9e6e7f39fc43`, `a8b7c110dcb9174384e53685ea0576b7b994e205`, `ffc9e192ba3f22323b45a77eef97ca337a7c7a71`.
+- Do not apply to live DB until migration tests and exact-head CI pass. Release remains **BLOCKED / NOT CERTIFIED**.
