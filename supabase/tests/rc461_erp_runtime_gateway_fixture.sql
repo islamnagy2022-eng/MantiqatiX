@@ -64,13 +64,13 @@ create table public.catalog_items(
 create or replace function public.create_purchase_order_backend(
   p_id varchar,p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_order_number varchar,
   p_supplier_id varchar,p_total_amount numeric,p_tax_amount numeric,p_discount_amount numeric,p_reason text
-) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $
+) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin
   insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id,order_number,supplier_id,total_amount,tax_amount,discount_amount,status,reason,created_by)
   values(p_id,p_tenant_id,p_business_id,p_branch_id,p_order_number,p_supplier_id,p_total_amount,p_tax_amount,p_discount_amount,'DRAFT',p_reason,auth.uid())
   on conflict(id) do nothing;
   return jsonb_build_object('success',true,'actor',auth.uid(),'operation','create_purchase_order');
-end $;
+end $$;
 create or replace function public.update_purchase_order_status_backend(p_order_id varchar,p_target_status varchar)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','update_purchase_order_status'); end $$;
