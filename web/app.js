@@ -46,7 +46,7 @@ const modules=[
 const domainModules=[
 {key:'FASHION',name:'التجارة والأزياء',icon:'🛍️',desc:'المنتجات والطلبات والخياطة والمخزون.',tables:['fashion_products','fashion_orders','fashion_tailor_services']},
 {key:'GROCERY',name:'البقالة والسوبر ماركت',icon:'🛒',desc:'كتالوج الأصناف والأسعار والمخزون والطلبات.',tables:['catalog_items','catalog_item_prices','inventory_transactions','orders']},
-{key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries']},
+{key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries','journal_entry_lines']},
 {key:'COMPANIES',name:'المزايدات — الشركات',icon:'🏢',desc:'طلبات الشركات ومقدمو الخدمة والعروض.',tables:['indrive_requests','indrive_bids','businesses']},
 {key:'MARKETING',name:'المزايدات — التسويق',icon:'📣',desc:'طلبات التسويق ومقدمو الخدمة والمشروعات.',tables:['marketing_leads','marketing_provider_profiles','marketing_services','marketing_projects']},
 {key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والمخازن والأرصدة وحركة المخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances','catalog_items']},
@@ -1102,11 +1102,59 @@ function erpPurchaseOrderLabel(rows,id){const item=(rows.erp_purchase_orders||[]
 function erpProductLabel(rows,id){const item=(rows.catalog_items||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.sku||id):String(id||'—')}
 function erpAccountLabel(rows,id){const item=(rows.chart_of_accounts||[]).find(x=>String(x.id)===String(id));return item?String(item.account_code||'')+' — '+String(item.account_name||id):String(id||'—')}
 function erpJournalTotals(rows,entryId,field){return (rows.journal_entry_lines||[]).filter(line=>String(line.journal_entry_id)===String(entryId)).reduce((sum,line)=>sum+Number(line[field]||0),0)}
+async function createAccountingJournal(){
+ if(!user?.id)return authView();
+ if(live.accountingJournalPosting)return;
+ const allowedRoles=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE','FINANCE_MANAGER'];
+ if(!allowedRoles.includes(String(live.role||'').toUpperCase()))return showToast('لا تملك صلاحية إنشاء قيد محاسبي','error');
+ if(!live.tenantId||!live.businessId)return showToast('اختر مؤسسة فعالة قبل إنشاء القيد','error');
+ const cache=live.moduleData?.ACCOUNTING;
+ const accounts=(cache?.rows?.chart_of_accounts||[]).filter(a=>a.is_active===true);
+ if(accounts.length<2)return showToast('يلزم وجود حسابين نشطين على الأقل في دليل الحسابات','error');
+ const accountList=accounts.map((a,i)=>(i+1)+') '+String(a.account_code||'')+' '+String(a.account_name||a.account_name_ar||a.id)).join('\\n');
+ const debitChoice=Number(window.prompt('اختر رقم حساب المدين:\\n'+accountList,'1'));
+ if(!Number.isInteger(debitChoice)||debitChoice<1||debitChoice>accounts.length)return;
+ const debitAccount=accounts[debitChoice-1];
+ const creditChoice=Number(window.prompt('اختر رقم حساب الدائن:\\n'+accountList,String(Math.min(2,accounts.length))));
+ if(!Number.isInteger(creditChoice)||creditChoice<1||creditChoice>accounts.length)return;
+ const creditAccount=accounts[creditChoice-1];
+ if(String(debitAccount.id)===String(creditAccount.id))return showToast('اختر حسابين مختلفين للقيد','error');
+ const amount=Number(window.prompt('قيمة القيد بالجنيه','0'));
+ if(!Number.isFinite(amount)||amount<=0||Math.round(amount*10000)!==amount*10000)return showToast('أدخل قيمة موجبة وبحد أقصى 4 منازل عشرية','error');
+ const description=window.prompt('وصف القيد');
+ if(!description?.trim())return;
+ const referenceId=window.prompt('المرجع الاختياري','')||'';
+ if(!window.confirm('ترحيل قيد متوازن بقيمة '+amount.toLocaleString('ar-EG')+' ج.م؟'))return;
+ const id='journal-'+crypto.randomUUID();
+ const entry={
+  id,tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,
+  entry_number:'MAN-'+new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14)+'-'+crypto.randomUUID().slice(0,6).toUpperCase(),
+  reference_type:'MANUAL',reference_id:referenceId.trim()||null,description:description.trim(),
+  status:'POSTED',total_debit:amount,total_credit:amount,entry_date:new Date().toISOString().slice(0,10)
+ };
+ const lines=[
+  {account_id:String(debitAccount.id),line_number:1,debit:amount,credit:0,description:description.trim()},
+  {account_id:String(creditAccount.id),line_number:2,debit:0,credit:amount,description:description.trim()}
+ ];
+ live.accountingJournalPosting=true;
+ try{
+  const {data,error}=await sb.functions.invoke('financial-journal',{body:{tenantId:live.tenantId,entry,lines}});
+  if(error||!data?.success)throw new Error(data?.error||error?.message||'JOURNAL_POST_FAILED');
+  showToast('تم ترحيل القيد وتحديث دفتر الأستاذ','success');
+  live.moduleData={};
+  await loadDomainModule(current);
+  renderApp();
+ }catch(error){
+  showToast('تعذر تأكيد ترحيل القيد. تحقق من سجل القيود قبل إعادة المحاولة لتجنب التكرار.','error');
+ }finally{live.accountingJournalPosting=false;}
+}
+
 function enterpriseRowsTable(m,rows){
  const sourceRows=(m.tables||[]).map(table=>({table,count:Array.isArray(rows[table])?rows[table].length:0}));
  const sources=()=>recordsTable('مصادر البيانات الموصولة',sourceRows,[['المصدر',r=>r.table],['السجلات',r=>r.count],['الحالة',r=>r.count?'READABLE':'لا توجد سجلات']]);
  if(m.key==='ACCOUNTING'&&current==='المزايدات — المحاسبة'){
-  return recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])
+  const journalAction=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE','FINANCE_MANAGER'].includes(String(live.role||'').toUpperCase())?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createAccountingJournal()" '+(live.accountingJournalPosting?'disabled':'')+'>+ قيد محاسبي جديد</button></div>':'';
+  return journalAction+recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])
    +recordsTable('طلبات الخدمات المحاسبية',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]])
    +recordsTable('العروض والتفاوض',rows.indrive_bids||[],[['مقدم العرض',r=>r.provider_name],['القيمة',r=>r.offered_price],['ملاحظة',r=>r.note],['الحالة',r=>r.status]])
    +recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['المدين',r=>erpJournalTotals(rows,r.id,'debit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['الدائن',r=>erpJournalTotals(rows,r.id,'credit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['التوازن',r=>Math.abs(erpJournalTotals(rows,r.id,'debit')-erpJournalTotals(rows,r.id,'credit'))<0.005?'متوازن':(rows.journal_entry_lines||[]).some(line=>String(line.journal_entry_id)===String(r.id))?'غير متوازن':'بدون تفاصيل'],['الحالة',r=>r.status]])
