@@ -59,6 +59,8 @@ if(!operations.includes('editERPSupplier(')) throw new Error('ERP supplier maste
 
 if(!api.includes('from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP live stock balances are not tenant/business scoped');
 if(!api.includes('from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP inventory movements are not tenant/business scoped');
+if(api.includes('.eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")\n        .limit(300).order("name_ar"')) throw new Error('ERP supplier master must include inactive suppliers so they can be reactivated');
+if(!app.includes("r=>String(r.status||'').toUpperCase()==='ACTIVE'")) throw new Error('new purchase orders must only select active suppliers');
 if(!operations.includes('rows.stock_balances=data.stock_balances||[]') || !operations.includes('rows.inventory_transactions=data.inventory_transactions||[]')) throw new Error('ERP workspace is not connected to stock balance and movement sources');
 if(!operations.includes('الأرصدة الفعلية المرتبطة بالمشتريات') || !operations.includes('سجل حركات المخزون')) throw new Error('ERP workspace does not render linked inventory sources');
 console.log('Backend-only module boundary and ERP runtime gateway PASS');
