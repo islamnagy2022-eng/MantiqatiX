@@ -2840,8 +2840,14 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
 sb.auth.onAuthStateChange((event,session)=>{
 if(event==='SIGNED_OUT'){
 if(window.MNTYMedicalRealtimeChannel){sb.removeChannel(window.MNTYMedicalRealtimeChannel);window.MNTYMedicalRealtimeChannel=null;}
+window.MNTYOperationsERPData=null;
+live.moduleData={};
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';
 window.MXHomeLanding?MXHomeLanding():landingView();return;
+}
+if(session?.user&&String(user?.id||'')!==String(session.user.id)){
+ window.MNTYOperationsERPData=null;
+ live.moduleData={};
 }
 if(session?.user&&!authRenderLock)enterAuthenticatedApp(session.user);
 });
