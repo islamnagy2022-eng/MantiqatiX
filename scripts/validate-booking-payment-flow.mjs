@@ -9,6 +9,9 @@ const payment=fs.readFileSync("supabase/functions/payment-intent/index.ts","utf8
 const required=[
   ["Public provider booking requires auth", "MNTYPendingProvider", home],
   ["Public provider booking opens catalog", "openProviderCatalog", home],
+  ["Published service remains discoverable while fulfillment follows provider path", "منشورة للاستكشاف · التنفيذ حسب مسار مقدم الخدمة", home],
+  ["Provider without a business binding stays visible with incomplete booking status", "الطلب والحجز غير مكتملين حاليًا", home],
+  ["Provider profile exposes incomplete booking status instead of hiding listing", "مسار الطلب والحجز غير مكتمل حاليًا", home],
   ["Order endpoint requires Bearer token", 'authHeader?.startsWith("Bearer ")', api],
   ["Order endpoint rejects anonymous users", "user.is_anonymous", api],
   ["Order creation uses backend RPC", 'rpc("create_order_backend"', api],

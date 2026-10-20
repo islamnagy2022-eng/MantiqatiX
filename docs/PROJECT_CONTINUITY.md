@@ -577,3 +577,51 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-19 — Industry workspaces exact-head CI verified
+
+- [x] Draft PR [#300](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/300), branch `feat/industry-workspaces-ui-20261019`, exact tested head `8518ebfa64ba459a7e3a9c48d45f0f7c36b041dd`: all six PR-triggered workflow runs completed successfully.
+- [x] Industry Workspaces UI Contract [run 39283369300](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39283369300): JavaScript syntax, sector rendering/PWA cache, frontend-only boundary, and runtime workspace contract all passed.
+- [x] Marketing Workspace Contract [run 39283369132](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39283369132) passed; Module Professionalization Validation [run 39283369257](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39283369257) passed; Backend-only Module Boundary [run 39283369129](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39283369129) passed; MantiGO Open Ride Privacy Boundary [run 39283369889](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39283369889) passed.
+- [x] Pages workflow validation [run 39283369173](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39283369173) passed and its deploy job was **skipped**, as expected for a pull request. This is not a production deployment.
+- PR #300 remains open and Draft, with no review submissions or inline review threads. No merge, production migration, Edge Function deployment, or production configuration change was performed.
+- [ ] Next: review existing sector schema and server-side contracts before activating any sector-specific read/write action. Existing module runtime mappings are useful discovery leads, not proof of current production grants/RLS or business/branch isolation.
+- Global release remains **BLOCKED / NOT CERTIFIED**: auth/role/tenant E2E, production payment/finance E2E, backup/restore, live-vs-repository migration/function parity, and main-branch deployment smoke remain open.
+
+
+## 2026-10-19 — read-only sector backend reconnaissance
+
+- [x] Read-only Supabase catalog inspection documented in `docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md`; no production writes or configuration changes.
+- [x] Confirmed shared business sector/category registry and its current table privileges/RLS flags; identified medical appointment RPCs and existing catalog/order contracts for deeper review.
+- [ ] The live policy catalog shows a broad authenticated non-anonymous SELECT policy on `fashion_products` alongside a separate tenant/business/branch boundary policy. Because permissive PostgreSQL policies combine with OR semantics, resolve whether the global visibility is intentional before connecting this table to private inventory/draft views. This is a policy-contract review item, not a declared incident.
+- [ ] Medical appointment data has no direct authenticated table SELECT grant in the inspected privilege surface; only use the existing backend contract after migration provenance, EXECUTE ACL, role scope, and patient/provider negative E2E are verified.
+- [ ] Continue schema/function inventory per sector; do not map pharmacies, labs, radiology, dental, hospitals, or veterinary flows to generic medical/order tables without evidence.
+
+## Latest continuation — medical no-show UI — 2026-10-20
+- PR #300 latest tested code head: `4ded759615e25d5bb9776751ccb32dbc1189e6be`; all six PR workflows passed, including the dedicated sector UI/runtime contract and backend-only integrations. The Pages deploy job was skipped because this is a PR.
+- Added a provider-only `لم يحضر` action for confirmed medical appointments after their scheduled time, with validator assertions.
+- Ship this UI together with PR #301's RC457 backend guard; neither PR is merged and no production deployment occurred.
+- Global production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Continuation rule: visible modules, explicit incomplete states
+
+- Product-owner direction: do not hide modules, sectors, services, or published activities merely because purchase/service fulfillment is incomplete. Visibility/marketing and transaction readiness are distinct states.
+- Current implementation on PR #300: all 27 sector routes remain discoverable; preview controls are now interactive for non-destructive review, and action review reports “غير مكتمل” with prerequisites. No fake records, browser writes, bookings, payments, or save-success claims are permitted.
+- Next: run exact-head CI for the UI changes; fix any validator/runtime failures; then inventory public business/service/product discovery and add separate publication, inquiry, transaction, payment, and fulfillment statuses with verified contact fallback where available.
+- Do not merge/deploy solely because UI CI passes. Global production release remains **BLOCKED / NOT CERTIFIED** until security, tenant isolation, payments/finance, backup/restore, runtime E2E, and deployment evidence are complete.
+
+
+## 2026-10-20 — Visible modules / explicit incomplete operation status
+- Product direction is now recorded in the Master TODO and industry UI docs: keep modules/services visible unless an explicit publication, consent, legal, or owner visibility rule says otherwise; do not hide them just because booking/purchase/fulfillment is incomplete.
+- PR #300 implementation commit `cc105b72d9f01e5ebc8e5386f3bf0623f08fb416` removes disabled preview fields/actions, adds an explicit incomplete state, and lets the user inspect operation prerequisites without submitting data or faking success.
+- The first CI attempt caught one stale validator assertion requiring the old “واجهة فقط” label. Fixed in `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`.
+- Exact-head CI on `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`: all six PR workflows passed; Pages deploy was skipped because this is a PR.
+- Next: confirm documentation-only handoff CI, then inventory the public activity discovery/profile/catalog and inquiry fallback paths. Keep any incomplete transaction explicitly labelled; global production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Public discovery status follow-up
+- Public home source now distinguishes listing visibility from operational readiness: published services remain discoverable, and a provider profile without a bound business/booking path remains visible with “الطلب والحجز غير مكتملين حاليًا”.
+- Exact code head `91927e5e859587be5f6f82634b1b0d937d76ca96` passed all six PR workflows, including the booking/payment source contract and PostgreSQL security integrations; Pages deploy was skipped in PR context.
+- Next: verify whether a tenant-safe, authoritative inquiry/contact endpoint already exists before wiring a fallback. Do not invent an endpoint or claim an inquiry was saved. Global release remains **BLOCKED / NOT CERTIFIED**.

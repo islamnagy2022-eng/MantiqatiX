@@ -22,7 +22,7 @@ assert.match(app, /live\.marketingCampaignUnavailable=/, "missing RC453 schema m
 assert.match(app, /function marketingWorkspaceEntry\(\)/, "marketing entry must fail safely when RC453 is not deployed");
 assert.match(app, /if\(live\.marketingCampaignUnavailable\)return[\s\S]{0,350}marketingAgencyWorkspace\(\)/, "missing campaign tables must retain the existing agency workspace");
 assert.match(app, /case 'التسويق والإعلان': return marketingWorkspaceEntry\(\);/, "marketing route must use the guarded workspace entry");
-assert.match(app, /if\(current==='التسويق والإعلان'\)await loadMarketingCampaignData\(\);await loadDomainModule\(current\)/, "campaign data must load before rendering the marketing workspace");
+assert.match(app, /if\(current==='التسويق والإعلان'\)await loadMarketingCampaignData\(\);if\(!window\.MNTYIndustryWorkspace\?\.supports\(current\)\)await loadDomainModule\(current\)/, "campaign data must load before rendering, while sector routes skip unrelated module loading");
 assert.match(app, /const canManage=Boolean\(live\.businessId[\s\S]{0,250}marketing_campaign_participants/, "campaign mutations must be disabled when campaign read sources fail");
 assert.match(app, /create_marketing_campaign_backend/, "campaign creation must use the backend RPC");
 assert.match(app, /invite_marketing_campaign_partner_backend/, "partner invitation must use the backend RPC");
@@ -36,11 +36,13 @@ assert.doesNotMatch(app, /sb\.from\(['"]marketing_campaign_participants['"]\)\.(
 assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خدمات التسويق الرقمي SMM/, "marketing role home must expose the SMM shortcut");
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SMM quick access");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
-assert.match(index, /app\.js\?v=rc458-marketing-workspace-20261018/, "browser cache key must be refreshed");
+assert.match(index, /app\.js\?v=industry-ui-20261019/, "browser cache key must be refreshed");
 const sw = fs.readFileSync("web/sw.js", "utf8");
-assert.match(sw, /const CACHE='mnty-web-v129'/, "PWA cache must be versioned for the new shell");
-assert.match(sw, /app\.js\?v=rc458-marketing-workspace-20261018/, "service worker must precache the exact versioned app entrypoint");
+assert.match(sw, /const CACHE='mnty-web-v130'/, "PWA cache must be versioned for the new shell");
+assert.match(sw, /app\.js\?v=industry-ui-20261019/, "service worker must precache the exact versioned app entrypoint");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-assert.match(index, /sw\.js\?v=rc369-marketing-cache/, "service worker registration cache key must be refreshed");
+assert.match(index, /sw\.js\?v=industry-ui-20261019/, "service worker registration cache key must be refreshed");
+assert.match(index, /await load\(['"]industry-workspaces\.js\?v=ui20261019['"]\);\s*await load\(['"]app\.js\?v=industry-ui-20261019['"]\)/, "industry workspace module must load before app boot");
+assert.match(sw, /industry-workspaces\.js\?v=ui20261019/, "service worker must precache the industry workspace module version");
 
-console.log("Marketing workspace contract: PASS (32 assertions)");
+console.log("Marketing workspace contract: PASS (34 assertions)");

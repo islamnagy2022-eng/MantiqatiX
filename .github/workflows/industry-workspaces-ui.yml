@@ -1,0 +1,55 @@
+name: Industry Workspaces UI Contract
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "web/industry-workspaces.js"
+      - "docs/INDUSTRY_WORKSPACE_UI.md"
+      - "docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md"
+      - "web/app.js"
+      - "web/index.html"
+      - "web/sw.js"
+      - "scripts/validate-industry-workspaces.mjs"
+      - "scripts/validate-sector-rendering.mjs"
+      - "scripts/test-industry-workspaces-runtime.mjs"
+      - "web/sector-registry.js"
+      - ".github/workflows/industry-workspaces-ui.yml"
+      - ".github/workflows/pages.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/industry-workspaces.js"
+      - "docs/INDUSTRY_WORKSPACE_UI.md"
+      - "docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md"
+      - "web/app.js"
+      - "web/index.html"
+      - "web/sw.js"
+      - "scripts/validate-industry-workspaces.mjs"
+      - "scripts/validate-sector-rendering.mjs"
+      - "scripts/test-industry-workspaces-runtime.mjs"
+      - "web/sector-registry.js"
+      - ".github/workflows/industry-workspaces-ui.yml"
+      - ".github/workflows/pages.yml"
+permissions:
+  contents: read
+jobs:
+  validate-industry-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check web/industry-workspaces.js
+          node --check web/app.js
+          node --check scripts/validate-industry-workspaces.mjs
+          node --check scripts/test-industry-workspaces-runtime.mjs
+      - name: Validate sector rendering and PWA cache
+        run: node scripts/validate-sector-rendering.mjs
+      - name: Validate frontend-only sector workspaces
+        run: node scripts/validate-industry-workspaces.mjs
+      - name: Exercise sector workspace runtime
+        run: node scripts/test-industry-workspaces-runtime.mjs

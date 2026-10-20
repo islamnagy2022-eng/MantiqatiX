@@ -1633,3 +1633,63 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-19 — Industry workspaces PR #300 exact-head CI
+
+- [x] All six GitHub Actions workflows completed successfully for exact PR head `8518ebfa64ba459a7e3a9c48d45f0f7c36b041dd`: Industry Workspaces UI Contract (run 39283369300), Marketing Workspace Contract (39283369132), Module Professionalization Validation (39283369257), Backend-only Module Boundary (39283369129), MantiGO Open Ride Privacy Boundary (39283369889), and Pages validation (39283369173).
+- [x] Pages validation passed; the deploy job was skipped for the PR event. Do not interpret this as production deployment verification.
+- [x] PR #300 remains Draft/unmerged. No production data/schema/configuration was changed.
+- [ ] Review sector-specific schema, RPC/Edge Function contracts, current production grants/RLS, tenant/business/branch scope, and negative isolation tests before connecting sector workspaces to live data.
+- [ ] Keep release **BLOCKED / NOT CERTIFIED** until all global P0 gates (including auth, payment/finance E2E, backup/restore, migration/function parity, and main-branch deployed-site smoke) are independently verified.
+
+
+## 2026-10-19 — sector backend contract audit
+
+- [x] Read-only production catalog reconnaissance recorded in `docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md`; no production mutations were performed.
+- [ ] Review `fashion_products_select` against the intended public/private product visibility contract. The inspected policy allows any non-anonymous authenticated user to SELECT, and a separate permissive tenant/business/branch policy does not narrow that broader policy. Do not treat as a confirmed incident until product visibility intent is established; resolve before connecting private inventory/draft views.
+- [ ] Review medical appointment SECURITY DEFINER functions, migration provenance, exact role/business scope, and patient/provider cross-tenant E2E before connecting medical screens. Direct authenticated SELECT on the table was not granted in the inspected privilege surface.
+- [ ] Inventory the schema/RPC/function contracts for each remaining sector separately; no inferred table mappings or browser direct writes.
+
+## RC457-linked medical no-show UI — 2026-10-20
+- [x] Added a provider/owner/admin/manager-only `لم يحضر` action for CONFIRMED appointments only after the scheduled Unix-millisecond appointment time.
+- [x] Added source-contract assertions for the timing guard, NO_SHOW status, and Arabic action label.
+- [x] Exact tested code head `4ded759615e25d5bb9776751ccb32dbc1189e6be`: Industry Workspaces UI Contract, Marketing Workspace Contract, Pages validation, Module Professionalization Validation, Backend-only Module Boundary (including approval-audit and RC450 financial-journal PostgreSQL jobs), and MantiGO privacy all PASS. Pages deployment job was skipped as expected for a PR.
+- [ ] Keep this UI change paired with PR #301's server-side RC457 guard; both PRs remain open/draft/unmerged. No production deployment occurred.
+
+
+## 2026-10-20 — Product rule: visibility stays open while operations mature
+
+**Principle:** Do not hide a sector, business, service, or product merely because purchase/booking/fulfillment is incomplete. Presence/discovery/marketing and transaction readiness are separate lifecycle dimensions.
+
+### Product behavior checklist
+- [ ] Inventory every public business/service/product discovery surface and record its current source, publication rules, consent requirements, and tenant scope.
+- [ ] Define separate states for listing visibility, inquiry/contact, purchase/booking, payment, fulfillment, and completion; never overload one generic “active” flag.
+- [ ] Show approved published activity according to its publication/consent rules even if a later transaction step is incomplete.
+- [ ] Display a clear incomplete state and the exact missing prerequisite at each unavailable step; do not fake a save, booking, payment, or successful request.
+- [ ] Where an approved and verified inquiry/contact backend path exists, offer it as a fallback while checkout/fulfillment is incomplete. Where no safe path exists, keep the listing visible and label inquiry as incomplete until implemented.
+- [ ] Keep non-destructive interface controls interactive for navigation, filtering, draft preparation, and requirement review; keep sensitive writes server-authoritative and gated by verified authorization contracts.
+- [ ] Add E2E coverage for “visible listing + incomplete transaction”, “visible listing + inquiry fallback”, “hidden only by explicit publication/consent policy”, and cross-tenant isolation.
+- [ ] Ensure dashboards and reports separately count visible listings, inquiries, pending requests, completed transactions, and incomplete workflows.
+- [ ] Do not mark any public listing or transaction flow production-ready without current data-source, consent, RLS/RBAC, backend, CI, and post-deployment evidence.
+
+### Current implementation evidence
+- [x] PR #300 contains all 27 sector workspace routes and sector-specific section inventories; they remain visible in the directory.
+- [x] Updated the sector workspace UI to remove disabled preview/action controls and show explicit “الموديول ظاهر · التشغيل غير مكتمل” status; action-review buttons explain missing backend/security/E2E prerequisites without claiming a transaction occurred.
+- [x] Updated the industry UI contract validator to reject globally disabled sector controls and require the incomplete-state wording.
+- [x] Updated `docs/INDUSTRY_WORKSPACE_UI.md` with this product rule.
+- [x] Exact-head CI **PASS** for UI/status implementation commit `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`: Industry Workspaces UI Contract [39361656812], Marketing Workspace Contract [39361656822], Module Professionalization Validation [39361656750], Backend-only Module Boundary [39361656799] (including approval-audit and RC450 financial-journal PostgreSQL jobs), MantiGO Open Ride Privacy Boundary [39361656727], and Pages validation [39361656795]. Pages deploy was skipped as expected for a PR; this is not production deployment evidence.
+- [x] Public-home discovery status implemented in `web/home.js`: active service cards explicitly state they are published for discovery and fulfillment follows the provider path; providers without a `business_id` remain visible with an explicit incomplete booking/order status, and their profile remains accessible.
+- [ ] Public discovery/marketing surface inventory is only partially complete. Confirm the live listing schemas, publication/consent rules, and tenant scopes; do not add an inquiry fallback until a verified server-authoritative contact/lead contract is established.
+- [ ] Add E2E coverage for visible listing + incomplete booking, published service discovery, profile navigation, and a verified inquiry fallback when available.
+- [ ] Existing restaurant operational screens have their own legacy mutation/security concerns; do not infer readiness or enable unsafe writes from this visibility principle.
+- [ ] Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Public discovery keeps incomplete activities visible
+- [x] Updated `web/home.js` so published service cards distinguish discoverability from fulfillment readiness.
+- [x] Providers without a `business_id` are not hidden; the card and profile show that booking/order is incomplete instead of silently removing the action context.
+- [x] Extended `scripts/validate-booking-payment-flow.mjs` to enforce these public listing status messages.
+- [x] Exact tested code head `91927e5e859587be5f6f82634b1b0d937d76ca96`: Industry Workspaces UI Contract [39361834901], Marketing Workspace Contract [39361834885], Module Professionalization Validation [39361834886] including targeted-ad and matrimony PostgreSQL jobs, Backend-only Module Boundary [39361834759] including approval-audit and RC450 financial-journal PostgreSQL jobs, MantiGO Open Ride Privacy Boundary [39361834935], and Pages validation [39361834873] all PASS. Pages deploy was skipped as expected for a PR.
+- [ ] Inquiry/contact fallback is not yet added: first verify an authoritative, tenant-safe server endpoint and acceptance semantics.
+- No merge, production deployment, schema mutation, payment, or real transaction occurred. Release remains **BLOCKED / NOT CERTIFIED**.

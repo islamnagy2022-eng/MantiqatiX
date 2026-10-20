@@ -94,3 +94,44 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — sector RLS report correction and validator repair
+
+- **Read-only fact:** Production `pg_policies` reports `fashion_products_select` as PERMISSIVE and `legacy_scope_boundary` as RESTRICTIVE; the restrictive predicate requires active tenant/business/branch membership or platform-admin access. Therefore the restrictive policy narrows reads; the earlier reconnaissance wording was incorrect.
+- **Source provenance found:** Candidate migration `supabase/migrations/20260924161040_phase_3_43_legacy_scope_enforcement.sql` exists on PR #207 branch `reconcile/rc425-458-current-main-20261011` at blob `5a3fb87eca0f929bd7203ad4a754a6b1ed18ed9a`. PR #207 remains unmerged, so mainline replay/source convergence and cross-tenant E2E remain open.
+- **Documentation correction:** `docs/SECTOR_BACKEND_CONTRACT_RECONNAISSANCE_20261019.md` now distinguishes permissive OR behavior from restrictive AND behavior and records the candidate migration provenance.
+- **Validator failures found and fixed:** Exact-head CI first failed because `scripts/validate-industry-workspaces.mjs` still asserted the obsolete wording; the first correction also inserted a literal escaped newline, causing a syntax error. Both were fixed; the validator now checks the corrected policy semantics and correction note.
+- **PASS on exact code head** `693b38f7cd107199977f5f1d45f1cbe018064f28`: Industry Workspaces UI Contract [39344809015], Pages validation [39344808844] (deploy skipped for PR), Marketing Workspace Contract [39344808898], Backend-only Module Boundary [39344808911], MantiGO Open Ride Privacy Boundary [39344808982], and Module Professionalization Validation [39344808995], including targeted-ad search-path and matrimony privacy PostgreSQL jobs.
+- **Production impact:** No production SQL, DDL, grants/RLS/Auth changes, merge, or deployment. PR #300 remains draft/open/unmerged. The 27 sector workspaces remain frontend-only and are not 27 operational backend modules.
+- **Next:** keep PR #300 draft until review; connect no sensitive sector workflow before its backend contract, RLS/grants, negative two-tenant tests, and exact-head CI are evidenced. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-20 — medical NO_SHOW UI timing guard
+- Updated `web/app.js` in PR #300 to expose `NO_SHOW` only for CONFIRMED appointments, provider/owner/admin/manager roles, and appointments whose scheduled Unix-millisecond time has arrived.
+- Extended `scripts/validate-industry-workspaces.mjs` to assert the timing guard, status marker, and Arabic label.
+- Exact tested code head: `4ded759615e25d5bb9776751ccb32dbc1189e6be`. PASS: all six PR workflows (Industry Workspaces UI Contract, Marketing Workspace Contract, Pages validation, Module Professionalization Validation, Backend-only Module Boundary, MantiGO privacy). Pages deployment skipped as expected for PR.
+- This UI action depends on the paired RC457 server-side transition guard in PR #301. No production migration, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Product visibility and incomplete workflow controls
+- User direction: module/service visibility and business presence/marketing are core product functions; an incomplete purchase or service workflow must not cause the listing/module to be hidden.
+- Distinguish visibility/publication from inquiry, purchase/booking, payment, fulfillment, and completion states.
+- PR #300 UI now keeps non-mutating preview inputs and action-review controls interactive, displays an explicit incomplete state, and explains prerequisites without writing or pretending success.
+- Updated the UI contract validator and product documentation. Exact-head CI is pending for these changes; no production mutation, merge, or deployment occurred.
+- Next: validate the exact PR head, fix any test failures, then inventory public discovery/listing surfaces and verified inquiry fallback contracts. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Product visibility UI implementation and CI
+- Updated `web/industry-workspaces.js` on PR #300: sector cards and tabs remain visible; disabled preview fields and actions were removed; non-destructive fields remain interactive; action-review controls display **حالة الإجراء: غير مكتمل** and the missing backend/security/E2E prerequisites. No data is submitted or persisted and no success is fabricated.
+- Updated `scripts/validate-industry-workspaces.mjs` to require the visibility/readiness distinction and reject globally disabled controls.
+- Updated `docs/INDUSTRY_WORKSPACE_UI.md`, `docs/MASTER_PRODUCTION_TODO.md`, and `docs/PROJECT_CONTINUITY.md` to record the product principle and next steps.
+- Initial CI failed only because one validator assertion still expected the old label `واجهة فقط · Backend غير موصول`. Fixed in `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`.
+- **PASS on code head `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`:** Industry Workspaces UI Contract [39361656812], Marketing Workspace Contract [39361656822], Module Professionalization Validation [39361656750], Backend-only Module Boundary [39361656799] including approval-audit and RC450 financial-journal PostgreSQL jobs, MantiGO Open Ride Privacy Boundary [39361656727], and Pages validation [39361656795]. Pages deploy skipped as expected for a PR.
+- **Not done:** no merge, production deployment, schema change, payment, or data mutation. PR #300 remains open/draft; public home listing and inquiry/booking fallback contracts still need separate inventory and implementation. Global production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Public discovery status implementation and verification
+- Updated `web/home.js`: service listings state “منشورة للاستكشاف · التنفيذ حسب مسار مقدم الخدمة”; providers without a business binding remain visible and explicitly show that booking/order is incomplete. Their public profile remains accessible.
+- Extended `scripts/validate-booking-payment-flow.mjs` with source-contract checks for both listing and incomplete-booking states.
+- Exact tested code head `91927e5e859587be5f6f82634b1b0d937d76ca96`: all six PR workflows passed—Industry Workspaces UI Contract [39361834901], Marketing Workspace Contract [39361834885], Module Professionalization Validation [39361834886], Backend-only Module Boundary [39361834759], MantiGO Open Ride Privacy Boundary [39361834935], and Pages validation [39361834873]. Included PostgreSQL jobs passed; Pages deploy was skipped as expected on a PR.
+- No merge, deployment, database mutation, payment, or transaction occurred. Inquiry fallback remains pending until an existing server-authoritative and tenant-safe contact/lead contract is verified. Global release remains **BLOCKED / NOT CERTIFIED**.
