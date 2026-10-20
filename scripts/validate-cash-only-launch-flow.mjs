@@ -47,7 +47,7 @@ assert.match(intentRoute,/existingIntent/);
 assert.match(intentRoute,/\.insert\(newIntent\)/);
 assert.doesNotMatch(intentRoute,/\.upsert\(newIntent/,"retry must not replace an existing payment intent id");
 
-assert.match(migration,/coalesce\(auth\.role\(\),'\'\) <> 'service_role'/);
+assert.match(migration,/coalesce\\(auth\\.role\\(\\),''\\) <> 'service_role'/);
 assert.match(migration,/CUSTOMER_MEMBERSHIP_REQUIRED/);
 assert.match(migration,/BUSINESS_TENANT_MISMATCH/);
 assert.match(migration,/CATALOG_PRICE_NOT_FOUND/);
@@ -64,7 +64,7 @@ assert.match(smmGateway,/SMM_DEFERRED/);
 assert.match(todo,/PRE-LAUNCH: CASH ONLY/);
 assert.match(todo,/POST-LAUNCH: electronic payments/);
 assert.match(todo,/POST-LAUNCH: SMM/);
-assert.match(scope,/Cash-only collection/);
+assert.match(scope,/cash-only collection/);
 assert.match(scope,/Digital-page paid checkout is disabled pre-launch/);
 assert.match(index,/app\.js\?v=rc459-cash-only-launch-20261020/);
 assert.match(index,/sw\.js\?v=rc460-cash-only-launch-20261020/);
