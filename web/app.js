@@ -1291,6 +1291,8 @@ async function erpRpc(fn,args){
   const code=String(error?.message||'ERP_OPERATION_FAILED');
   const messages={
    ERP_OPERATION_FORBIDDEN:'ليست لديك صلاحية تنفيذ هذه العملية',
+   ERP_SUPPLIER_CODE_ALREADY_EXISTS:'كود المورد مستخدم بالفعل',
+   ERP_SUPPLIER_REQUIRED_FIELDS:'أدخل اسم المورد والبيانات الأساسية المطلوبة',
    ERP_MEMBERSHIP_REQUIRED:'لا توجد عضوية فعالة في المؤسسة المحددة',
    ERP_BRANCH_SCOPE_REQUIRED:'العملية خارج نطاق فرعك الحالي',
    ERP_SCOPE_MISMATCH:'البيانات لا تطابق المؤسسة أو الفرع المحدد',
