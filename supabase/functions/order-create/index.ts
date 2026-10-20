@@ -41,7 +41,8 @@ Deno.serve(async (req: Request) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "INVALID_JSON" }, 400); }
 
-  const required = ["orderId", "tenantId", "businessId", "clientIdempotencyKey", "currency", "customerName", "customerPhone", "deliveryAddress", "items"];
+  const required = ["orderId", "tenantId", "businessId", "clientIdempotencyKey", "currency", "customerName", "customerPhone", "deliveryAddress", "items", "paymentMethod"];
+  if (String(body.paymentMethod ?? "").toUpperCase() !== "CASH_ON_DELIVERY") return json({ error: "CASH_ONLY_LAUNCH" }, 400);
   for (const key of required) {
     if (body[key] === undefined || body[key] === null) return json({ error: "MISSING_FIELD", field: key }, 400);
   }
@@ -84,6 +85,12 @@ Deno.serve(async (req: Request) => {
   if (businessError || !business || String(business.status).toUpperCase() !== "ACTIVE") {
     return json({ error: "BUSINESS_NOT_AVAILABLE" }, 409);
   }
+
+  const { data: cashMethod, error: cashMethodError } = await admin.from("tenant_payment_methods").select("id")
+    .eq("tenant_id", body.tenantId).eq("payment_method", "CASH_ON_DELIVERY")
+    .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle();
+  if (cashMethodError) return json({ error: "CASH_PAYMENT_CONFIGURATION_UNAVAILABLE" }, 500);
+  if (!cashMethod) return json({ error: "CASH_PAYMENT_NOT_ENABLED_FOR_TENANT" }, 409);
 
   const normalizedItems = body.items.map((raw: any) => ({
     catalogItemId: String(raw?.catalogItemId ?? ""),
@@ -215,6 +222,7 @@ Deno.serve(async (req: Request) => {
     p_notes: body.notes ?? null,
     p_metadata: {
       ...(body.metadata && typeof body.metadata === "object" ? body.metadata : {}),
+      payment_method: "CASH_ON_DELIVERY",
       pricing_server_authoritative: true,
       pricing_authority: "catalog_v1",
       calculated_at: nowIso,
