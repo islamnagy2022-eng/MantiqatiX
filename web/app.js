@@ -26,7 +26,7 @@ async function invokeMntyApi(path,options={}){
  if(!session?.access_token)throw new Error('AUTH_REQUIRED');
  const res=await fetch(cfg.supabaseUrl+'/functions/v1/api'+path,{
   method:options.method||'GET',
-  headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,...(options.headers||{})},
+  headers:{'Content-Type':'application/json','Accept':'application/json','apikey':cfg.supabaseKey,'Authorization':'Bearer '+session.access_token,...(options.headers||{})},
   body:options.body?JSON.stringify(options.body):undefined
  });
  let payload=null;
