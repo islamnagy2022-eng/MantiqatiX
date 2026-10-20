@@ -12,6 +12,9 @@ const sectorModules = read('web/sector-modules.js');
 const usedItemsMigration = read('supabase/migrations/20261020232000_used_item_ads_directory_backend_v1.sql');
 const usedItemsIntegration = read('supabase/tests/used_item_directory_read_integration.sql');
 const usedItemsWorkflow = read('.github/workflows/used-item-directory-read.yml');
+const jobsDirectoryMigration = read('supabase/migrations/20261020233000_jobs_directory_backend_v1.sql');
+const jobsDirectoryIntegration = read('supabase/tests/jobs_directory_backend_integration.sql');
+const jobsDirectoryWorkflow = read('.github/workflows/job-directory-read.yml');
 
 const taxonomy = home.match(/^\s*\['[^']*','[^']*','[^']*','[A-Z0-9_]+\'],?\s*$/gm) || [];
 const checks = [
@@ -52,6 +55,10 @@ const checks = [
   ['used-item integration verifies seller phone and owner ID are not directly readable', usedItemsIntegration.includes("has_column_privilege('authenticated','public.used_item_ads','seller_phone','SELECT')") && usedItemsIntegration.includes("has_column_privilege('authenticated','public.used_item_ads','owner_user_id','SELECT')")],
   ['used-item integration verifies sold-owner isolation and anonymous denial', usedItemsIntegration.includes('OTHER_USERS_SOLD_LISTING_EXPOSED') && usedItemsIntegration.includes('anonymous auth session was accepted') && usedItemsIntegration.includes('missing identity was accepted')],
   ['used-item PostgreSQL integration is wired into backend CI', usedItemsWorkflow.includes('used-item-directory-read-integration') && usedItemsWorkflow.includes('supabase/tests/used_item_directory_read_integration.sql') && usedItemsWorkflow.includes('20261020232000_used_item_ads_directory_backend_v1.sql')],
+  ['jobs and applications are loaded only through server-authorized RPCs', sectorModules.includes("sb.rpc('list_jobs_backend'") && sectorModules.includes("sb.rpc('list_job_applications_backend'") && !/sb\.from\('(jobs|job_applications)'\)\.select/.test(sectorModules)],
+  ['job directory migration revokes direct SELECT and grants only RPC execution', jobsDirectoryMigration.includes('revoke select on table public.jobs, public.job_applications from anon, authenticated;') && jobsDirectoryMigration.includes('grant execute on function public.list_jobs_backend(varchar, uuid) to authenticated;') && jobsDirectoryMigration.includes('grant execute on function public.list_job_applications_backend(varchar, uuid) to authenticated;')],
+  ['job directory RPCs exclude employer and applicant contact details', jobsDirectoryMigration.includes('j.employer_name') && !/returns table[\s\S]*?employer_phone/i.test(jobsDirectoryMigration) && !/returns table[\s\S]*?applicant_phone/i.test(jobsDirectoryMigration) && !/returns table[\s\S]*?cv_summary_text/i.test(jobsDirectoryMigration)],
+  ['job directory PostgreSQL integration is wired into CI', jobsDirectoryWorkflow.includes('job-directory-read-integration') && jobsDirectoryWorkflow.includes('supabase/tests/jobs_directory_backend_integration.sql') && jobsDirectoryIntegration.includes('APPLICANT_OWN_APPLICATION_SCOPE_FAILED') && jobsDirectoryIntegration.includes('JOB_OWNER_APPLICATION_SCOPE_FAILED')],
   ['used-item status notice separates read from mutation availability', sectorModules.includes('إدارة حالة الإعلان غير متاحة من هذه الواجهة حتى يتم اعتماد مسار تعديل آمن في الخادم.')],
   ['sector workspace writes only through server-authorized RPCs', !/sb\.from\(['"][^'"]+['"]\)\.(insert|update|upsert|delete)\b/.test(sectorModules)],
   ['education request RPC is present', sectorModules.includes("sb.rpc('create_education_request_backend'")],
