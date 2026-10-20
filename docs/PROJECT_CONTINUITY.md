@@ -828,6 +828,9 @@ This status is intentional and must remain until the open gates above are indepe
 - RC459 includes disposable PostgreSQL denial/ACL regression and is added to the ordered migration replay. No production migration, payment, merge or deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
 
 ### Follow-up finding — RC460 authoritative amount binding
+
+- **Second finding:** the API's cash-confirmation authorization treated `permissions` as an array only, while RC460 SQL accepts JSONB permission objects using the `?` operator. Updated the API guard to accept either an array containing `PAYMENT_CONFIRM_CASH` or an object containing that key, matching the SQL contract; added a source validator assertion.
+- Latest source commit for these changes: `66f108c2bf718bece3d223dd2207e2578f8eb4fd`. Exact-head CI and PostgreSQL execution are still pending; no merge or production deployment.
 - Review of the cash-only candidate found RC460 compared the intent amount to legacy `orders.total`, while cash intent creation uses `orders.total_amount`. This could reject a valid payment or compare against a stale duplicate field.
 - Corrected RC460 to compare against `orders.total_amount`. The isolated PostgreSQL fixture now intentionally diverges the fields (`total_amount=100`, `total=99`) so the cash confirmation integration detects regression to the legacy field.
 - Added source-contract assertions. The code and fixture changes are committed to the existing cash-only candidate branch at `9263ed453f84f91a6cfa60ba75ef0384c345b3da`.
