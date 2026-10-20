@@ -2,6 +2,7 @@ const {createClient}=window.supabase;
 const cfg=window.MANTIQATIX_CONFIG;
 const sb=window.MNTY_SB || createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
 window.MNTY_SB=sb;
+const MNTY_LAUNCH_SCOPE=Object.freeze({cashOnly:true,electronicPaymentsDeferred:true,smmDeferred:true});
 
 async function invokeMntyFunction(name,body){
  const {data:{session},error:sessionError}=await sb.auth.getSession();
@@ -727,7 +728,7 @@ function dashboard(){
  const quick=filtered(visibleModules).slice(0,8);
  return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM</span><h2>منصة تسويق وربط الخدمات المحلية</h2><p>واجهة موحدة لاكتشاف الخدمات، إدارة الأنشطة، استقبال الطلبات، التسويق، المتابعة والتقارير. كل رقم تشغيلي يظهر من مصدر فعلي فقط.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الموديولات\')">إدارة الموديولات</button></div></div></section><section class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div><div><b>'+countOrDash('orders')+'</b><span>طلبات</span></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>ابدأ من المجال أو الوحدة المناسبة.</p></div><span class="count">'+quick.length+' مساحات</span></div><div class="modules">'+quick.map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div><span class="status">فتح مساحة العمل</span></article>').join('')+'</div><section class="mnty-product-shell" style="margin-top:18px"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT ROADMAP</span><h2>المنصة تُبنى كمنتج واحد</h2><p>الوحدات غير المكتملة خلفيًا لا تتوقف عن الظهور؛ نستكمل تجربة الاستخدام أولًا ثم نربط الخدمات الحقيقية تدريجيًا.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>EVOLVING</span></div><div><b>DATA</b><span>REAL ONLY</span></div><div><b>API</b><span>SERVER</span></div></div></div></section>';
 }
-function smmModulePage(){return `<div class="section-head"><div><h2>خدمات التسويق الرقمي SMM</h2><p>موديول MANTIQATIX لإدارة الخدمات الرقمية والطلبات والموردين من نفس الحساب.</p></div><span class="count">Module / SMM</span></div><div class="embedded-module"><iframe src="smm.html" title="MANTIQATIX SMM Module" loading="lazy"></iframe></div>`}
+function smmModulePage(){return `<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">POST-LAUNCH MODULE</span><h2>خدمات التسويق الرقمي SMM</h2><p>هذه الوحدة مؤجلة لما بعد الإطلاق الأول. لا يمكن تنفيذ طلبات SMM أو مزامنة الموردين أو استخدام مفاتيح API أو إنفاق أرصدة خلال مرحلة الإطلاق النقدي.</p></div><span class="mnty-badge mnty-badge--pending">مؤجل بعد الإطلاق</span></div><div class="mnty-screen-note">قسم التسويق والإعلان وCRM وتخطيط الحملات الداخلي منفصل عن تنفيذ خدمات SMM، ويمكن استخدام الوظائف التي اجتازت التحقق فقط.</div></section>`}
 function enterpriseCommandCenter(){
  const role=String(live.role||'').toUpperCase();
  if(!canSuperAdmin()) return roleWorkspaceDashboard();
@@ -1766,8 +1767,55 @@ function cartView(){
  overlay.querySelector('.mx-close-modal')?.addEventListener('click',close);
  overlay.querySelectorAll('[data-cart-remove]').forEach(b=>b.addEventListener('click',()=>{const next=getMntiCart();next.splice(Number(b.dataset.cartRemove),1);setMntiCart(next);close();cartView()}));
  overlay.querySelector('#mx-cart-clear')?.addEventListener('click',()=>{setMntiCart([]);close();cartView()});
- overlay.querySelector('#mx-cart-checkout')?.addEventListener('click',()=>showToast('اختَر الخدمة من الكتالوج لبدء الطلب والدفع الآمن.','success'));
+ overlay.querySelector('#mx-cart-checkout')?.addEventListener('click',()=>{close();openCashCheckout(items)});
 }
+
+function cashCheckoutAttempt(fingerprint){
+ try{const saved=JSON.parse(sessionStorage.getItem('MNTY_CASH_CHECKOUT_ATTEMPT')||'null');if(saved&&saved.fingerprint===fingerprint&&saved.orderId&&saved.orderKey&&saved.paymentKey)return saved}catch(_){}
+ const attempt={fingerprint,orderId:crypto.randomUUID(),orderKey:crypto.randomUUID(),paymentKey:crypto.randomUUID()};
+ try{sessionStorage.setItem('MNTY_CASH_CHECKOUT_ATTEMPT',JSON.stringify(attempt))}catch(_){}
+ return attempt;
+}
+async function openCashCheckout(items=getMntiCart()){
+ if(!user?.id)return authView();
+ if(!Array.isArray(items)||!items.length)return showToast('السلة فارغة.','error');
+ const businessIds=[...new Set(items.map(x=>String(x.businessId||'')))],branchIds=[...new Set(items.map(x=>String(x.branchId||'')))];
+ if(businessIds.length!==1||!businessIds[0]||branchIds.length!==1)return showToast('كل طلب يجب أن يكون من نشاط وفرع واحد. أتمم كل نشاط أو فرع في طلب مستقل.','error');
+ if(items.some(x=>!x.itemId||!Number.isInteger(Number(x.quantity)||1)||(Number(x.quantity)||1)<1))return showToast('توجد خدمة غير صالحة في السلة. احذفها وأضفها من الكتالوج مرة أخرى.','error');
+ const businessId=businessIds[0],branchId=branchIds[0]||null;
+ const fingerprint=JSON.stringify(items.map(x=>({businessId:String(x.businessId),branchId:String(x.branchId||''),itemId:String(x.itemId),quantity:Math.max(1,Number(x.quantity)||1)})).sort((a,b)=>a.itemId.localeCompare(b.itemId)));
+ const attempt=cashCheckoutAttempt(fingerprint),overlay=document.createElement('div');overlay.className='mx-modal';
+ const defaultName=String(user.user_metadata?.full_name||user.user_metadata?.name||''),defaultPhone=String(user.user_metadata?.phone||'');
+ overlay.innerHTML='<div class="mx-modal-card" dir="rtl"><div class="section-head"><div><span class="eyebrow">CASH-ONLY LAUNCH</span><h2>تأكيد الطلب والدفع النقدي</h2><p>الدفع نقدًا عند الاستلام فقط في مرحلة الإطلاق الحالية.</p></div><button type="button" class="text-btn" id="mx-cash-close">إغلاق</button></div><div class="notice">السعر النهائي والعملة يُحددان من الكتالوج المعتمد على الخادم. لن يتم تحصيل أي مبلغ إلكتروني هنا.</div><label class="field"><span>الاسم بالكامل *</span><input id="mx-cash-name" maxlength="160" required autocomplete="name" value="'+esc(defaultName)+'"></label><label class="field"><span>رقم الهاتف *</span><input id="mx-cash-phone" maxlength="24" required autocomplete="tel" inputmode="tel" value="'+esc(defaultPhone)+'"></label><label class="field"><span>عنوان الاستلام أو التوصيل *</span><textarea id="mx-cash-address" maxlength="500" required autocomplete="street-address" rows="3"></textarea></label><label class="field"><span>ملاحظات (اختياري)</span><textarea id="mx-cash-notes" maxlength="500" rows="2"></textarea></label><div class="action-bar"><button type="button" class="btn btn-primary" id="mx-cash-submit">تأكيد الطلب نقدًا</button><button type="button" class="btn btn-outline" id="mx-cash-cancel">إلغاء</button></div><p class="muted" style="font-size:12px">تأكيد استلام النقد لاحقًا محصور في الأدوار التشغيلية المخولة ولا يستطيع العميل تأكيد استلامه بنفسه.</p></div>';
+ document.body.appendChild(overlay);
+ const close=()=>overlay.remove();overlay.querySelector('#mx-cash-close').onclick=close;overlay.querySelector('#mx-cash-cancel').onclick=close;
+ overlay.querySelector('#mx-cash-submit').onclick=async()=>{
+  const submit=overlay.querySelector('#mx-cash-submit');if(submit.disabled)return;
+  const customerName=overlay.querySelector('#mx-cash-name').value.trim(),customerPhone=overlay.querySelector('#mx-cash-phone').value.trim(),deliveryAddress=overlay.querySelector('#mx-cash-address').value.trim(),notes=overlay.querySelector('#mx-cash-notes').value.trim();
+  if(customerName.length<2)return showToast('اكتب الاسم بالكامل.','error');
+  if(!/^[+0-9() -]{7,24}$/.test(customerPhone))return showToast('راجع رقم الهاتف.','error');
+  if(deliveryAddress.length<5)return showToast('اكتب عنوان الاستلام أو التوصيل بالتفصيل.','error');
+  submit.disabled=true;submit.textContent='جارٍ التحقق وتسجيل الطلب...';
+  try{
+   const query=new URLSearchParams({businessId});if(branchId)query.set('branchId',branchId);
+   const catalog=await invokeMntyApi('/api/v1/catalog?'+query.toString());
+   if(!catalog?.tenantId||String(catalog.businessId)!==businessId)throw new Error('تعذر التحقق من النشاط أو المؤسسة');
+   const available=new Map((catalog.items||[]).map(x=>[String(x.id),x]));
+   const orderItems=items.map(x=>({catalogItemId:String(x.itemId),quantity:Math.max(1,Number(x.quantity)||1),selectedOptionIds:[]}));
+   for(const item of orderItems){const c=available.get(item.catalogItemId);if(!c)throw new Error('إحدى الخدمات لم تعد متاحة. حدّث الكتالوج ثم حاول مرة أخرى.');if(branchId?Boolean(c.branch_id&&String(c.branch_id)!==branchId):Boolean(c.branch_id))throw new Error('إحدى الخدمات تخص فرعًا مختلفًا. أنشئ طلبًا منفصلًا لهذا الفرع.');}
+   const order=await invokeMntyApi('/api/v1/orders',{method:'POST',body:{orderId:attempt.orderId,tenantId:String(catalog.tenantId),businessId,branchId,clientIdempotencyKey:attempt.orderKey,currency:'EGP',customerName,customerPhone,deliveryAddress,notes,paymentMethod:'CASH_ON_DELIVERY',items:orderItems}});
+   if(!order?.id)throw new Error('لم يرجع الخادم رقم طلب صالحًا');
+   const payment=await invokeMntyApi('/api/v1/payments/intents',{method:'POST',body:{orderId:String(order.id),provider:'CASH_ON_DELIVERY',idempotencyKey:attempt.paymentKey}});
+   if(!payment?.id||payment.provider!=='CASH_ON_DELIVERY')throw new Error('تعذر تثبيت اختيار الدفع النقدي');
+   setMntiCart([]);try{sessionStorage.removeItem('MNTY_CASH_CHECKOUT_ATTEMPT')}catch(_){}
+   overlay.innerHTML='<div class="mx-modal-card" dir="rtl"><div class="section-head"><div><span class="eyebrow">ORDER CREATED</span><h2>تم تسجيل طلبك</h2><p>طريقة الدفع: نقدًا عند الاستلام</p></div></div><div class="notice"><b>رقم الطلب:</b> '+esc(order.id)+'<br><b>الإجمالي المعتمد:</b> '+esc(order.total_amount??payment.amount??'—')+' '+esc(order.currency||payment.currency||'EGP')+'<br><b>حالة الدفع:</b> مستحق نقدًا — لم يتم تحصيل مبلغ الآن.</div><div class="action-bar"><button type="button" class="btn btn-primary" id="mx-cash-done">متابعة</button></div></div>';
+   overlay.querySelector('#mx-cash-done').onclick=()=>{close();showToast('تم تسجيل الطلب بالدفع النقدي عند الاستلام.','success');renderApp()};
+  }catch(e){submit.disabled=false;submit.textContent='إعادة المحاولة بنفس الطلب';showToast(e?.message||'تعذر إكمال الطلب النقدي. يمكنك إعادة المحاولة بأمان.','error')}
+ };
+ overlay.querySelector('#mx-cash-name')?.focus();
+}
+window.openCashCheckout=openCashCheckout;
+
 window.cartView=cartView;
 function addToMntiCart(item,price,providerName,businessId,branchId){
  const items=getMntiCart();
@@ -1803,6 +1851,7 @@ async function walletView(){
 window.walletView=walletView;
 
 async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
+ if(MNTY_LAUNCH_SCOPE.electronicPaymentsDeferred){showToast('شراء الصفحات الرقمية المدفوعة مؤجل لما بعد الإطلاق لأن مسار الدفع النقدي لهذه الخدمة لم يجتز التحقق بعد.','error');return;}
  const type=String(pageType||'PORTFOLIO').toUpperCase();
  if(!['PORTFOLIO','MENU'].includes(type))return;
  const {data:products,error}=await sb.from('digital_page_products').select('id,page_type,code,name_ar,description_ar,price,currency,duration_days,features').eq('page_type',type).eq('active',true).order('price',{ascending:true});
