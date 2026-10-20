@@ -646,3 +646,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - The global-search renderer now has a separate accessible state when no search sources are permitted for the current account/role. This avoids conflating authorization-based source unavailability with a valid query returning zero records.
 - Added a source-contract check. Seven source patterns were matched against the latest fetched app source; this is not a test execution or CI proof.
 - Verify exact-head Pages CI and authenticated browser tests before certification. Keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Module blueprint security claim correction
+
+- Generic module blueprint UI no longer asserts RLS/RBAC are enforced without module-specific evidence. It now marks them NOT VERIFIED and directs reviewers to verify server contracts and role tests before trusting sensitive operations.
+- The blueprint source-contract validator now guards this caveat and rejects the former ENFORCED badge wording. Eight source-pattern checks matched against the latest module blueprint; this is not a validator execution or CI result.
+- Next: run exact-head CI and authenticated role/tenant E2E; only then map a module to real read/write workflows. Release remains **BLOCKED / NOT CERTIFIED**.
