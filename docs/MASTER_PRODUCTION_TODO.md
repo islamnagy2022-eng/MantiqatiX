@@ -1866,3 +1866,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] The web validation run's `validate` job succeeded; its `deploy` job was **skipped**, so this run does not establish a deployment.
 - [x] Added a broader source-contract assertion that forbids direct client table INSERT/UPDATE/UPSERT/DELETE calls anywhere in `web/sector-modules.js`, and checks the three intended backend RPCs. Commits: `dddf3bba6dcf06174596f4ce6b11749ef0a3ef64`, regex correction `2731342b75ab0b889b54d679ee520bd12f589940`.
 - [ ] The new assertion and subsequent documentation commits still require their own exact-head CI. No authenticated browser E2E was observed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — safe used-item directory field projection — 2026-10-20
+- [x] The sector loader now explicitly selects the used-item directory fields and omits `seller_phone`; it no longer requests `SELECT *` for this table. This reduces accidental disclosure if narrow read privileges are later restored.
+- [x] Added a regression assertion that guards the explicit projection and verifies the sensitive phone column is absent from the sector source.
+- Source commit: `ec6d9dbbc1170d0c7414353f19b0f301c64c9208`; validator commits: `0ea0564050305059324ea3d0daa97dbcdd182fcf`, `7026d7f75c59899244f57b1dde84c77e6dcb9e78`.
+- [ ] This does not restore missing database SELECT privileges; the module must continue to fail closed until a reviewed migration establishes the intended narrow read contract. Exact-head CI pending.
