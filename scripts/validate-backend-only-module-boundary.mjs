@@ -54,7 +54,7 @@ if(!migration.includes('revoke all on function public.erp_runtime_execute(uuid,t
 const supplierUpdate=fs.readFileSync('supabase/migrations/20261020170000_rc464_erp_supplier_update_backend.sql','utf8');
 if(!supplierUpdate.includes('revoke all on function public.erp_supplier_update_backend(uuid,jsonb) from public,anon,authenticated')) throw new Error('supplier update RPC must remain service-role-only');
 if(!supplierUpdate.includes('ERP_SUPPLIER_STATUS_INVALID')) throw new Error('supplier update must validate lifecycle status');
-if(!gateway.includes('update_supplier') && !app.includes("update_erp_supplier_backend:'update_supplier'")) throw new Error('ERP supplier update action is not wired to the runtime API');
+if(!api.includes('"update_supplier"') || !api.includes('erp_supplier_update_backend') || !app.includes("update_erp_supplier_backend:'update_supplier'")) throw new Error('ERP supplier update action is not wired to the runtime API');
 if(!operations.includes('editERPSupplier(')) throw new Error('ERP supplier master has no edit action');
 
 if(!api.includes('from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId)')) throw new Error('ERP live stock balances are not tenant/business scoped');
