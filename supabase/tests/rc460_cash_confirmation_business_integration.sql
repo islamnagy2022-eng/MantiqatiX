@@ -32,7 +32,7 @@ begin
  if result#>>'{commission_obligation,amount}'<>'10.00' then raise exception 'RC460_COMMISSION_AMOUNT_FAILED'; end if;
  result:=public.confirm_cash_payment('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','22222222-2222-4222-8222-222222222222');
  if result->>'status'<>'success' OR result->>'message'<>'Already confirmed' then raise exception 'RC460_AUTHORIZED_IDEMPOTENT_RETRY_FAILED'; end if;
-end $;
+end $$;
 reset role;
 
 do $$
