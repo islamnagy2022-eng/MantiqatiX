@@ -234,7 +234,45 @@ async function updateMedicalAppointmentStatus(id,target){
 function medicalWorkspace(){const d=defs['المنظومة الطبية'];const providers=medicalProviderRows();const appointments=rows.medical_appointments||[];if(tab==='providers')return shell(d,tabs(d)+'<div class="cards">'+(providers.length?providers.map(p=>'<article class="card"><div class="eyebrow">خدمة طبية</div><h3>'+esc(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><div class="muted">'+esc((p.specialties||[]).join(' · '))+'</div><div class="muted">'+(p.is_verified?'موثق':'غير موثق')+'</div><button class="btn btn-primary" style="margin-top:10px" data-medical-book="'+esc(p.id)+'">حجز موعد</button></article>').join(''):'<div class="empty-state">لا يوجد مقدم خدمة طبي نشط مطابق حاليًا.</div>')+'</div>');
 if(tab==='appointments')return shell(d,tabs(d)+table([['الموعد','id'],['مقدم الخدمة','doctor_id'],['التاريخ',r=>r.date_time?new Date(Number(r.date_time)).toLocaleString('ar-EG'):'—'],['الحالة','status'],['السبب','reason'],['الإجراءات',medicalStatusActions]],appointments));
 return shell(d,tabs(d)+'<div class="cards"><article class="card"><div class="metric">'+providers.length+'</div><div class="muted">مقدمو الخدمة الطبية النشطون</div></article><article class="card"><div class="metric">'+appointments.length+'</div><div class="muted">مواعيدي الظاهرة</div></article></div><p class="muted" style="margin-top:14px">الحجز وتحديث الحالات يتمان عبر Backend RPC؛ الخادم يتحقق من ملكية الطبيب وحالة الموعد وموعد الزيارة.</p>')}
-async function medicalBook(providerId){const p=medicalProviderRows().find(x=>x.id===providerId);if(!p||!p.business_id)return alert('بيانات مقدم الخدمة غير مكتملة.');const raw=prompt('موعد الحجز — اكتب التاريخ والوقت بصيغة YYYY-MM-DD HH:MM','');if(!raw)return;const dt=new Date(raw.replace(' ','T'));if(Number.isNaN(dt.getTime()))return alert('صيغة الموعد غير صحيحة.');if(dt.getTime()<=Date.now())return alert('اختر موعدًا مستقبليًا.');if(dt.getTime()%900000!==0)return alert('الموعد لازم يكون على ربع ساعة مثل 10:00 أو 10:15 أو 10:30 أو 10:45.');const reason=prompt('سبب الحجز (اختياري):','')??'';const appointmentId=crypto.randomUUID();const r=await sb.rpc('create_medical_appointment_backend',{p_user_id:user.id,p_appointment_id:appointmentId,p_business_id:p.business_id,p_doctor_id:String(p.id),p_date_time:dt.getTime(),p_reason:reason.trim()});if(r.error)return alert(r.error.message);alert('تم إرسال الموعد بنجاح.');tab='appointments';await load(defs[current])}
+async function medicalBook(providerId){
+ const p=medicalProviderRows().find(x=>x.id===providerId);
+ if(!user?.id)return alert('سجل الدخول أولا.');
+ if(!p||!p.business_id)return alert('بيانات مقدم الخدمة غير مكتملة.');
+ const raw=prompt('موعد الحجز — اكتب التاريخ والوقت بصيغة YYYY-MM-DD HH:MM','');
+ if(!raw)return;
+ const dt=new Date(raw.replace(' ','T'));
+ if(Number.isNaN(dt.getTime()))return alert('صيغة الموعد غير صحيحة.');
+ if(dt.getTime()<=Date.now())return alert('اختر موعدًا مستقبليًا.');
+ if(dt.getTime()%900000!==0)return alert('الموعد لازم يكون على ربع ساعة مثل 10:00 أو 10:15 أو 10:30 أو 10:45.');
+ const reason=String(prompt('سبب الحجز (اختياري):','')??'').trim();
+ if(reason.length>500)return alert('سبب الحجز يجب ألا يتجاوز 500 حرف.');
+ const requestPayload=JSON.stringify([user.id,p.business_id,String(p.id),dt.getTime(),reason||null]);
+ let requestHash=2166136261;
+ for(let i=0;i<requestPayload.length;i++){requestHash^=requestPayload.charCodeAt(i);requestHash=Math.imul(requestHash,16777619);}
+ const requestKey='MNTY_MEDICAL_BOOKING:'+user.id+':'+(requestHash>>>0).toString(36);
+ let storedRequest=null;
+ try{storedRequest=JSON.parse(sessionStorage.getItem(requestKey)||'null');}catch(_){}
+ storedRequest=storedRequest||window.MNTYMedicalBookingPending?.[requestKey]||null;
+ const appointmentId=storedRequest?.fingerprint===requestPayload&&storedRequest?.id
+  ?storedRequest.id:'MED-'+crypto.randomUUID();
+ const requestRecord={fingerprint:requestPayload,id:appointmentId};
+ window.MNTYMedicalBookingPending=window.MNTYMedicalBookingPending||{};
+ window.MNTYMedicalBookingPending[requestKey]=requestRecord;
+ try{sessionStorage.setItem(requestKey,JSON.stringify(requestRecord));}catch(_){}
+ const r=await sb.rpc('create_medical_appointment_backend',{
+  p_user_id:user.id,p_appointment_id:appointmentId,p_business_id:p.business_id,
+  p_doctor_id:String(p.id),p_date_time:dt.getTime(),p_reason:reason||null
+ });
+ if(r.error){
+  // Keep the stable request ID after ambiguous failures so retrying the same payload is safe.
+  return alert('تعذر تأكيد الحجز: '+r.error.message+'\nأعد المحاولة بنفس الموعد والسبب لاسترجاع النتيجة دون تكرار.');
+ }
+ try{sessionStorage.removeItem(requestKey);}catch(_){}
+ if(window.MNTYMedicalBookingPending)delete window.MNTYMedicalBookingPending[requestKey];
+ alert(r.data?.idempotent_replay?'تم استرجاع الحجز السابق دون إنشاء موعد مكرر.':'تم إرسال الموعد بنجاح.');
+ tab='appointments';
+ await load(defs[current]);
+}
 async function createEducationRequest(targetId,targetType,targetName){
  const student=prompt('اسم الطالب:',''); if(student===null)return;
  const subject=prompt(targetType==='TEACHER'?'المادة والصف المطلوبان:':'المرحلة الدراسية المطلوبة:',''); if(subject===null)return;
