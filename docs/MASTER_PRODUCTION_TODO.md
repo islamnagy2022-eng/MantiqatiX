@@ -1970,3 +1970,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - RC458 adjusts the existing service-role-only `create_order_backend` actor check: a trusted service-role call can proceed only after passing the existing customer membership, tenant/business, provider, branch, catalog and server-pricing checks. The migration does not alter function grants. Disposable PostgreSQL integration covers no-sub service-role calls, authoritative pricing, idempotency and membership rejection.
 - Digital-page paid checkout is blocked before its electronic-payment intent because no verified cash contract exists for that product. SMM UI remains deferred and gateway remains default-deny.
 - Static/CI and disposable PostgreSQL checks must pass; authenticated browser E2E remains NOT VERIFIED. No production migration, payment, merge or deployment is implied.
+
+
+## RC459 — pre-launch electronic payment hard gate — 2026-10-20
+- Added a forward-only RC459 candidate that blocks the legacy authenticated-executable `create_payment_intent_backend` RPC before any electronic intent row is inserted. Existing function ACLs are preserved; the gate returns `ELECTRONIC_PAYMENTS_POST_LAUNCH` until a reviewed post-launch migration removes it.
+- Added fail-closed code gates to Paymob order payments, digital-page paid order creation/payment, subscription payment intents, and MantiGO ride payment intents. The hard-coded launch deferral cannot be overridden by environment configuration alone; post-launch requires a reviewed code change plus explicit enablement.
+- Cash marketplace orders remain on the separate cash-only API path. Digital pages, subscription payments, and MantiGO ride payments remain unavailable before launch until a verified cash path exists or online payments are approved post-launch.
+- RC459 disposable PostgreSQL regression asserts direct authenticated RPC calls are denied before insert and ACLs remain unchanged. Exact-head CI and full ordered forward replay remain required; no production migration, payment, merge, or deployment occurred.
