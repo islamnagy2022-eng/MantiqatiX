@@ -82,7 +82,7 @@ assert.match(operations,/p\.is_verified===true/,"booking discovery must hide unv
 assert.match(operations,/900000!==0/,"booking UI must enforce the backend's 15-minute slot alignment");
 assert.match(operations,/medical-appointments-live/,"doctor appointments must refresh from realtime events");
 assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
-assert.match(index,/operations-modules\.js\?v=mnty131/,"medical workflow asset cache must be refreshed");
+assert.match(index,/operations-modules\.js\?v=mnty132/,"medical workflow asset cache must be refreshed");
 assert.match(index,/app\.js\?v=mnty-doctors-v1-20261020/);
 assert.match(index,/sw\.js\?v=mnty-doctors-v1-20261020/);
 assert.match(sw,/const CACHE='mnty-web-v162'/);
