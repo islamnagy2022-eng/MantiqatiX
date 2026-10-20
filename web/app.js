@@ -1435,7 +1435,7 @@ async function erpRpc(fn,args){
  };
  const action=operations[fn];
  if(!action)return showToast('عملية ERP غير معروفة أو غير مسموح بها','error');
- const createPrefixes={create_erp_supplier_backend:'sup-',create_supplier:'sup-',create_purchase_order:'po-',create_purchase_order_with_lines:'po-',receive_purchase_stock:'rcv-',create_stock_transfer:'tr-'};
+ const createPrefixes={create_erp_supplier_backend:'sup-',create_supplier:'sup-',create_purchase_order:'po-',create_purchase_order_with_lines:'po-',receive_purchase_stock:'rcv-',create_stock_transfer:'tr-',initialize_opening_stock:'opening-'};
  const requestArgs={...args};
  let idempotencyKey=null;
  let fingerprint=null;
@@ -1624,6 +1624,21 @@ async function receivePurchaseStock(preselectedOrderId){
  const qty=Number(window.prompt('الكمية المستلمة (المتبقي '+remaining+')',String(remaining)));
  if(!Number.isFinite(qty)||qty<=0||qty>remaining)return showToast('الكمية يجب أن تكون أكبر من صفر ولا تتجاوز المتبقي في أمر الشراء','error');
  return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId,p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId,p_product_id:productId,p_received_quantity:qty,p_unit_cost:Number(line.unit_cost||0)});
+}
+async function initializeOpeningStock(){
+ if(!user?.id)return authView();
+ if(!live.tenantId||!live.businessId)return showToast('اختر مؤسسة فعالة قبل تسجيل الرصيد الافتتاحي','error');
+ const warehouseId=chooseERPRecord('warehouses','المخزن النشط',r=>(r.name||r.code||'مخزن')+' — '+(r.code||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE'&&(!live.branchId||String(r.branch_id||'')===String(live.branchId)));
+ if(!warehouseId)return;
+ const productId=chooseERPRecord('catalog_items','الصنف النشط',r=>(r.name_ar||r.name_en||r.sku||'صنف')+' — '+(r.sku||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE'&&(!live.branchId||!r.branch_id||String(r.branch_id)===String(live.branchId)));
+ if(!productId)return;
+ const quantity=Number(window.prompt('كمية الرصيد الافتتاحي','1'));
+ if(!Number.isFinite(quantity)||quantity<=0)return showToast('الكمية يجب أن تكون أكبر من صفر','error');
+ const unitCost=Number(window.prompt('تكلفة الوحدة بالجنيه','0'));
+ if(!Number.isFinite(unitCost)||unitCost<0)return showToast('تكلفة الوحدة غير صحيحة','error');
+ const reference=window.prompt('مرجع الرصيد الافتتاحي (مثال OPEN-2026-001)');
+ if(!reference?.trim())return showToast('مرجع الرصيد الافتتاحي مطلوب','error');
+ return erpRpc('initialize_opening_stock_backend',{p_tenant_id:live.tenantId,p_business_id:live.businessId,p_warehouse_id:warehouseId,p_product_id:productId,p_quantity:quantity,p_unit_cost:unitCost,p_reference_id:reference.trim()});
 }
 async function createStockTransfer(){const transferNumber=window.prompt('رقم التحويل');if(!transferNumber?.trim())return;const from=chooseERPRecord('warehouses','المخزن المصدر',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''));if(!from)return;const to=chooseERPRecord('warehouses','المخزن الهدف',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),from);if(!to)return;const product=chooseERPRecord('catalog_items','المنتج',r=>(r.name_ar||r.name_en||r.sku||'منتج')+' — '+(r.sku||''));if(!product)return;const qty=Number(window.prompt('الكمية','1'));if(!Number.isFinite(qty)||qty<=0)return showToast('بيانات التحويل غير صحيحة','error');return erpRpc('create_stock_transfer_backend',{p_id:'tr-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_transfer_number:transferNumber.trim(),p_from_warehouse_id:from,p_to_warehouse_id:to,p_product_id:product,p_quantity:qty})}
 async function updateStockTransferStatus(id,status){if(!id)return;return erpRpc('update_stock_transfer_status_backend',{p_transfer_id:id,p_target_status:status})}
