@@ -54,6 +54,8 @@ for(const required of [
 ])if(!erpRoute.includes(required))failures.push("ERP_ROUTE_MISSING_"+required.toUpperCase());
 if(!files.app.includes("window.MNTYOperationsERPData=null"))failures.push("ERP_SHARED_CACHE_INVALIDATION_MISSING");
 if(!files.app.includes("await window.MNTYReloadOperationsModule()"))failures.push("ERP_DEPENDENT_MODULE_REFRESH_MISSING");
+if(!files.app.includes("data-erp-supplier-edit=")||!files.app.includes("editERPSupplier(this.dataset.erpSupplierEdit)"))failures.push("ERP_SUPPLIER_EDIT_ACTION_NOT_WIRED");
+if(!files.app.includes("String(r.status||'').toUpperCase()==='DRAFT'")||!files.app.includes("String(r.status||'').toUpperCase()==='PENDING_APPROVAL'"))failures.push("ERP_ORDER_STATUS_ACTIONS_NOT_NORMALIZED");
 const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\{key:/gm)].map(m=>m[1]);
 const duplicateOperationDefinitions=[...new Set(operationDefinitions.filter((name,i)=>operationDefinitions.indexOf(name)!==i))];
 if(duplicateOperationDefinitions.length) failures.push("DUPLICATE_MODULE_DEFINITIONS:"+duplicateOperationDefinitions.join(","));
