@@ -859,7 +859,7 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&['journal_entry_lines','general_ledger'].includes(table)));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&['chart_of_accounts','journal_entries','journal_entry_lines','general_ledger'].includes(table)));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
@@ -879,18 +879,17 @@ async function loadEnterpriseDomainData(m){
  for(const result of results){rows[result.table]=result.data;if(result.error)errors[result.table]='READ_FAILED';}
  if(m.key==='ACCOUNTING'&&m.tables.includes('journal_entry_lines')){
   try{
-   const entryIds=(rows.journal_entries||[]).map(entry=>String(entry.id)).filter(Boolean);
-   if(entryIds.length){
-    const [lineResult,ledgerResult]=await Promise.all([
-     sb.from('journal_entry_lines').select('id,journal_entry_id,account_id,debit,credit,description').in('journal_entry_id',entryIds).limit(500),
-     sb.from('general_ledger').select('id,journal_entry_id,account_id,debit,credit,running_balance,entry_date,posted_at').in('journal_entry_id',entryIds).limit(1000).order('posted_at',{ascending:false})
-    ]);
-    if(lineResult.error)throw lineResult.error;
-    rows.journal_entry_lines=lineResult.data||[];
-    if(ledgerResult.error)throw ledgerResult.error;
-    rows.general_ledger=ledgerResult.data||[];
-   }else{rows.journal_entry_lines=[];rows.general_ledger=[];}
-  }catch(error){rows.journal_entry_lines=[];rows.general_ledger=[];errors.journal_entry_lines='READ_FAILED';errors.general_ledger='READ_FAILED';}
+   if(!live.tenantId||!live.businessId)throw new Error('ACCOUNTING_SCOPE_REQUIRED');
+   const result=await invokeMntyApi('/api/v1/accounting/ledger',{method:'POST',body:{tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
+   if(!result?.success)throw new Error(result?.error||'ACCOUNTING_DATA_LOAD_FAILED');
+   rows.chart_of_accounts=result.accounts||[];
+   rows.journal_entries=result.entries||[];
+   rows.journal_entry_lines=result.lines||[];
+   rows.general_ledger=result.ledger||[];
+  }catch(error){
+   rows.chart_of_accounts=[];rows.journal_entries=[];rows.journal_entry_lines=[];rows.general_ledger=[];
+   errors.accounting_ledger=String(error?.message||'ACCOUNTING_DATA_LOAD_FAILED');
+  }
  }
  if(m.key==='MATRIMONY'){
   try{
