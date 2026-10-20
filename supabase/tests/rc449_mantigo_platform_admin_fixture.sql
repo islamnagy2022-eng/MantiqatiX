@@ -9,12 +9,24 @@ end;
 $roles$;
 
 create schema if not exists auth;
+-- VOLATILE is intentional in this disposable fixture only: the integration block
+-- changes request.jwt.claim.sub to emulate distinct HTTP requests in one SQL transaction.
+-- Production Supabase auth.uid() is not altered by this fixture.
 create or replace function auth.uid()
 returns uuid
-language sql
-stable
+language plpgsql
+volatile
 as $function$
-  select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
+declare
+  v_uid uuid;
+begin
+  -- Execute dynamically: current_setting() is STABLE and a cached PL/pgSQL
+  -- expression can retain the first simulated JWT subject for the entire DO block.
+  -- Each invocation must read the current request GUC, as a separate HTTP request would.
+  execute 'select nullif(current_setting(''request.jwt.claim.sub'', true), '''')::uuid'
+    into v_uid;
+  return v_uid;
+end
 $function$;
 
 create table public.user_memberships (
