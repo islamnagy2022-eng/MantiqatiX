@@ -181,6 +181,7 @@ function erpOperationsWorkspace(d){
   +(canCreateSupplier?'<button class="btn btn-primary" type="button" onclick="createERPSupplier()">＋ مورد</button>':'')
   +(canCreatePurchase?'<button class="btn btn-primary" type="button" onclick="createPurchaseOrder()">＋ أمر شراء</button>':'')
   +(canReceivePurchase?'<button class="btn btn-outline" type="button" onclick="receivePurchaseStock()">استلام مشتريات</button>':'')
+  +(canReceivePurchase?'<button class="btn btn-outline" type="button" onclick="initializeOpeningStock()">رصيد افتتاحي</button>':'')
   +(canTransferStock?'<button class="btn btn-outline" type="button" onclick="createStockTransfer()">تحويل مخزني</button>':'')
   +'</div>':'<div class="notice" role="status">القراءة متاحة، لكن إجراءات الكتابة معطلة حتى يتطابق نطاق المؤسسة والفرع مع الاختيار النشط في المنصة.</div>';
  const content='<div class="notice">بيانات الموردين وأوامر الشراء والاستلام والتحويلات تقرأ من بوابة ERP الموثقة. كل عملية كتابة تعود إلى الخادم للتحقق من المؤسسة والفرع والصلاحيات، وأسماء الموردين والمنتجات والمخازن مرتبطة بالبيانات الفعلية.</div>'
