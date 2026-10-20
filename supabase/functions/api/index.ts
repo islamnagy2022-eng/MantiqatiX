@@ -131,7 +131,7 @@ serve(async (req) => {
         catalog_items: safeRows(productsRes.data, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"]),
         stock_balances: safeRows(balancesRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","quantity_on_hand","quantity_reserved","updated_at"]),
         inventory_transactions: safeRows(transactionsRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","transaction_type","quantity","unit_cost","reference_id","created_by","created_at"]),
-        suppliers: safeRows(suppliersData, ["id","tenant_id","business_id","branch_id","supplier_code","name_ar","name_en","contact_name","phone","email","payment_terms","status","created_at","updated_at"])
+        suppliers: safeRows(suppliersData, ["id","tenant_id","business_id","branch_id","supplier_code","name_ar","name_en","contact_name","phone","email","tax_number","payment_terms","notes","status","created_at","updated_at"])
       })
     }
 
