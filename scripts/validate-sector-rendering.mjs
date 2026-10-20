@@ -42,6 +42,7 @@ const checks = [
   ['service worker precaches versioned Supabase SDK', sw.includes("./vendor/supabase.js?v=supabase21172")],
   ['sector source failures are not silently converted to empty results', sectorModules.includes('const r={},failures=[];') && sectorModules.includes('if(x.error){failures.push(t);continue}') && sectorModules.includes('لم يتم اعتبار الخطأ نتيجة فارغة')],
   ['sector query failures are announced accessibly', sectorModules.includes('role="alert" aria-live="polite"')],
+  ['authentication failure is human-readable and does not offer a useless retry', sectorModules.includes("state.error==='AUTH_REQUIRED'?'يلزم تسجيل الدخول بحساب موثق للوصول إلى بيانات هذا القسم.'") && sectorModules.includes("state.error==='AUTH_REQUIRED'?'':'<div style=\"margin-top:12px\"><button type=\"button\" class=\"btn btn-outline\" data-sector-retry>إعادة المحاولة</button></div>'")],
   ['sector query failure offers retry', sectorModules.includes('data-sector-retry') && sectorModules.includes("addEventListener('click',()=>load(defs[current]))")],
   ['sector workspace writes only through server-authorized RPCs', !/sb\.from\(['"][^'"]+['"]\)\.(insert|update|upsert|delete)\b/.test(sectorModules)],
   ['education request RPC is present', sectorModules.includes("sb.rpc('create_education_request_backend'")],
