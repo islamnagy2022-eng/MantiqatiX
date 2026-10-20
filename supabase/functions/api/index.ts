@@ -229,7 +229,7 @@ serve(async (req) => {
       const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
       const hasCreatePermission = Array.isArray(permissions)
         ? permissions.includes("PAYMENT_CREATE")
-        : Object.prototype.hasOwnProperty.call(permissions, "PAYMENT_CREATE")
+        : permissions.PAYMENT_CREATE === true
       const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
       return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || hasCreatePermission)
     })
@@ -342,7 +342,7 @@ serve(async (req) => {
       const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
       const hasCashPermission = Array.isArray(permissions)
         ? permissions.includes("PAYMENT_CONFIRM_CASH")
-        : Object.prototype.hasOwnProperty.call(permissions, "PAYMENT_CONFIRM_CASH")
+        : permissions.PAYMENT_CONFIRM_CASH === true
       const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
       return businessScoped && (["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(role) || hasCashPermission)
     })
