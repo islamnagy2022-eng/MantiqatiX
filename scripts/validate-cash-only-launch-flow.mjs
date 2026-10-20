@@ -409,6 +409,9 @@ assert.match(rc469Integration,/RC469_PRESENCE_GUARD_INTEGRATION: PASS/,"RC469 in
 assert.match(rc469Integration,/has_function_privilege\('anon',[\s\S]*?EXECUTE'\)/,"RC469 integration must prove anonymous callers cannot execute the RPC");
 assert.match(rc469Integration,/has_function_privilege\('authenticated',[\s\S]*?EXECUTE'\)/,"RC469 integration must prove authenticated callers retain intended execution access");
 assert.match(rc469Integration,/offline transition unexpectedly failed/,"RC469 integration must retain a safe offline transition");
+assert.match(rc469Integration,/offline transition unexpectedly erased last known coordinates/,"RC469 offline updates must preserve stored coordinates");
+assert.match(rc469Integration,/audit did not record retained coordinates accurately/,"RC469 audit assertions must reflect persisted coordinates, not only request parameters");
+assert.match(read("supabase/migrations/20261021190000_rc469_mantigo_presence_verification_guard.sql"),/returning vehicle_category,status,verification_status,current_lat,current_lon into v_category,v_status,v_verification,v_saved_lat,v_saved_lon/,"RC469 audit must use persisted coordinates after the update");
 for (const failureCode of ["CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY","CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY","INVALID_AVAILABILITY_STATUS","CAPTAIN_PROFILE_NOT_FOUND","USER_CONTEXT_MISMATCH","INVALID_LATITUDE","INVALID_LONGITUDE"]) {
   assert.ok(rc469Integration.includes(failureCode), "RC469 integration test must cover " + failureCode);
 }
