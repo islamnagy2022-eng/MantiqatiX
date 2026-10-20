@@ -14,6 +14,9 @@ create table public.user_memberships(
 create table public.businesses(
   id uuid primary key, tenant_id varchar not null, name text, status varchar not null default 'ACTIVE'
 );
+insert into public.businesses(id,tenant_id,name,status) values
+ ('22222222-2222-4222-8222-222222222222','tenant-a','Test Business','ACTIVE'),
+ ('99999999-9999-4999-8999-999999999999','tenant-b','Other Business','ACTIVE');
 create table public.erp_purchase_orders(
   id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar,
   order_number varchar, supplier_id varchar, total_amount numeric, tax_amount numeric default 0,
