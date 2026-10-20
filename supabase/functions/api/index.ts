@@ -226,6 +226,22 @@ serve(async (req) => {
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
+    const expectedAmount = Number(order.total)
+    const expectedCurrency = String(order.currency ?? "").toUpperCase()
+    const matchesExisting = (intent: Record<string, unknown>) =>
+      String(intent.order_id) === String(order.id) &&
+      Number(intent.amount) === expectedAmount &&
+      String(intent.currency ?? "").toUpperCase() === expectedCurrency &&
+      intent.provider === "CASH_ON_DELIVERY" &&
+      intent.payment_method === "CASH_ON_DELIVERY"
+    const { data: existing, error: existingError } = await supabaseAdmin.from("payment_intents").select("*")
+      .eq("tenant_id", order.tenant_id).eq("idempotency_key", String(idempotencyKey)).maybeSingle()
+    if (existingError) return json({ error: "Failed to inspect existing payment intent" }, 500)
+    if (existing) {
+      if (!matchesExisting(existing as Record<string, unknown>)) return json({ error: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYMENT" }, 409)
+      return json(existing)
+    }
+
     const newIntent = {
       id: crypto.randomUUID(),
       tenant_id: order.tenant_id,
@@ -237,9 +253,17 @@ serve(async (req) => {
       payment_method: "CASH_ON_DELIVERY",
       idempotency_key: String(idempotencyKey),
     }
-    const { data, error } = await supabaseAdmin.from("payment_intents")
-      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key" }).select().single()
-    if (error) return json({ error: "Failed to create payment intent" }, 500)
+    const { data, error } = await supabaseAdmin.from("payment_intents").insert(newIntent).select().single()
+    if (error) {
+      // A concurrent retry may win the unique (tenant_id,idempotency_key) constraint.
+      const { data: raced } = await supabaseAdmin.from("payment_intents").select("*")
+        .eq("tenant_id", order.tenant_id).eq("idempotency_key", String(idempotencyKey)).maybeSingle()
+      if (raced) {
+        if (!matchesExisting(raced as Record<string, unknown>)) return json({ error: "IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYMENT" }, 409)
+        return json(raced)
+      }
+      return json({ error: "Failed to create payment intent" }, 500)
+    }
     return json(data)
   }
 
