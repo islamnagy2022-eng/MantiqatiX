@@ -695,3 +695,10 @@ This status is intentional and must remain until the open gates above are indepe
 - This replay is not a blank-database replay of all historical migrations. The RC462 updated branches #248/#282 still need their own exact-head behavioral workflow evidence.
 - Production remains at RC424. The MantiGO platform-admin authorization weakness is still live until RC449/RC462 and the ordered chain are reviewed and applied through an approved release. Historical creation provenance for counter_offer_indrive_bid(uuid,uuid,numeric), Auth leaked-password protection owner action, adversarial tenant E2E, real payment/finance/refund E2E, backup/restore, browser/device/Android and deployment checks remain open.
 - No production mutation, merge, or deployment occurred. PRs remain draft/unmerged and global release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-20 — workflow concurrency and platform-admin consumer coverage
+
+- Pages workflow concurrency is now scoped per ref in PR #300 and #301, preventing one PR from cancelling another's validation. Pages deployment permissions remain least-privilege: write permissions are scoped to the main-only deploy job.
+- PR #300 exact tested head 710819156f9f2b613f4905d5e1c7266937fc4a32 passed all six PR workflows, including the industry UI contract and Pages validation; deploy skipped in PR context.
+- PR #207 now contains additional static contract checks for all reviewed consumers of mnty_can_platform_admin() (global ad creation, digital-page publishing, captain onboarding review, financial configuration). Exact-head CI has not been returned for this test-only update; do not mark it verified yet.
+- The live RC424 platform-admin authorization issue remains unfixed in production until the ordered RC449/RC462 candidate chain is approved and applied with post-rollout verification. No production mutation, merge, or deployment occurred.
