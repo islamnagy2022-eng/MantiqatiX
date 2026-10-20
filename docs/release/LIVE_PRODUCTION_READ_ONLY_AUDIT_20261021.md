@@ -33,3 +33,15 @@ Do not apply the candidate migrations or publish the medical UI to production ye
 - [Doctor Module Release Contract](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915671)
 - [ERP Runtime Gateway Integration](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495915548)
 - [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39495914539)
+
+
+## Performance-advisor snapshot — 2026-10-21
+
+The read-only Supabase Performance Advisor returned these counts:
+
+- **105 unindexed foreign keys** — prioritize high-write/high-join tables and add only reviewed, non-duplicate indexes through ordered migrations.
+- **375 Auth/RLS initialization-plan findings** — review policies for repeated `auth.uid()`/JWT evaluation and apply safe scalar-subquery patterns only after confirming policy semantics.
+- **123 unused-index findings** — informational only; do not drop indexes automatically, because advisor windows may not capture rare/critical workloads.
+- **28 multiple-permissive-policy findings** — review the effective OR semantics per table/action; consolidate only where the resulting access contract is unchanged.
+
+These are advisor findings, not 631 independently confirmed defects. No automatic index creation, policy rewrite, privilege revocation, or production schema change was performed. Security Advisor still reports leaked-password protection disabled, one anon-executable SECURITY DEFINER function, 40 authenticated-executable SECURITY DEFINER functions, anonymous-sign-in warnings, and one RLS-enabled table with no policies; review each against intended product contracts before changes.
