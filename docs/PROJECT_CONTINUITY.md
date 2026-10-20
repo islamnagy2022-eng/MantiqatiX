@@ -859,3 +859,10 @@ This status is intentional and must remain until the open gates above are indepe
 - After the exact-head validator/replay workflows passed on `7662b91daada3f9f9bfe887ef450d0c4c03266ba`, code review found `GET /api/v1/orders/:id/cash-payment` recognized `PAYMENT_READ_ALL` arrays only, unlike the adjacent payment-intent read route and SQL contract that also support JSONB permission objects.
 - Updated the cash payment read route to accept array membership permissions or an object flag only when `PAYMENT_READ_ALL === true`; existing customer ownership and business scope checks remain. Added validator assertions for both forms. Commit: `10bbadc05240bc03a92f66526153a1da2081bd85`.
 - Validator and both continuity files updated. Re-run exact-head CI; do not infer verification from the previous green head. Release remains **BLOCKED / NOT CERTIFIED**, PR #307 stays draft/unmerged, and no production changes were made.
+
+
+## Continuation — exact-head CI completed — 2026-10-20
+- Latest verified candidate before this documentation-only commit: `65d8a4fe903264396a815141f80cfb76f3e77ec8`.
+- Exact-head workflows all completed successfully: disposable forward migration replay `39376153889`; backend-only module boundary `39376148719`; module professionalization validation `39376148873` (RC458/RC459/RC460/RC462 and related validation jobs); MantiGO privacy boundary `39376148674`.
+- This resolves the previous note that exact-head CI for the cash-payment read permission parity fix was pending. Do not overstate this as launch certification: authenticated customer cash checkout/authorized cash confirmation E2E, tenant/business isolation in real authenticated flows, production configuration, and backup/restore/DR still require evidence.
+- Keep PR #307 draft and unmerged; global release **BLOCKED / NOT CERTIFIED**. No production changes, migrations, or deployment.
