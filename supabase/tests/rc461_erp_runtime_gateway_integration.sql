@@ -9,6 +9,9 @@ insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id) value
 insert into public.warehouses(id,tenant_id,business_id,branch_id,status) values
  ('warehouse-a','tenant-a','22222222-2222-4222-8222-222222222222','branch-a','ACTIVE'),
  ('warehouse-b','tenant-a','22222222-2222-4222-8222-222222222222','branch-b','ACTIVE');
+insert into public.catalog_items(id,tenant_id,business_id,branch_id,status) values
+ ('55555555-5555-4555-8555-555555555555','tenant-a','22222222-2222-4222-8222-222222222222','branch-b','ACTIVE'),
+ ('66666666-6666-4666-8666-666666666666','tenant-a','22222222-2222-4222-8222-222222222222','branch-a','ACTIVE');
 insert into public.erp_stock_transfers(id,tenant_id,business_id,from_warehouse_id,to_warehouse_id) values
  ('tr-existing','tenant-a','22222222-2222-4222-8222-222222222222','warehouse-a','warehouse-b');
 set local role service_role;
@@ -42,6 +45,13 @@ begin
     perform public.erp_runtime_execute(branch_actor,'create_stock_transfer',
       jsonb_build_object('p_id','tr-cross-branch','p_tenant_id','tenant-a','p_business_id',biz,'p_transfer_number','TR-1','p_from_warehouse_id','warehouse-b','p_to_warehouse_id','warehouse-b','p_product_id','55555555-5555-4555-8555-555555555555','p_quantity',1));
     raise exception 'RC461_CROSS_BRANCH_TRANSFER_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
+  end;
+  begin
+    perform public.erp_runtime_execute(branch_actor,'create_stock_transfer',
+      jsonb_build_object('p_id','tr-cross-product','p_tenant_id','tenant-a','p_business_id',biz,'p_transfer_number','TR-2','p_from_warehouse_id','warehouse-a','p_to_warehouse_id','warehouse-a','p_product_id','55555555-5555-4555-8555-555555555555','p_quantity',1));
+    raise exception 'RC461_CROSS_BRANCH_PRODUCT_WAS_ALLOWED';
   exception when others then
     if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
   end;
