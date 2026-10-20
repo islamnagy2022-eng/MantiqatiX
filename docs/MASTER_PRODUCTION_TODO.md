@@ -1753,3 +1753,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Fixed an additional UX ambiguity: if role filtering leaves zero permitted global-search sources, the UI now says no search sources are available for the current account/role instead of claiming there were zero matching records.
 - [x] Added a source-contract assertion for this state and checked seven source patterns against the fetched `web/app.js` content; all seven matched. This was not a Node execution or CI run.
 - [ ] Exact-head Pages CI, authenticated browser E2E, and runtime permission behavior remain unverified. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Module security status honesty
+
+- [x] Removed unsupported UI claims that RLS/RBAC were “ENFORCED” on generic module blueprint screens. The panel now explicitly says those controls and write contracts are not proven by the presence of a screen and require module-specific backend-contract and role tests.
+- [x] Extended the blueprint source-contract validator to reject unverified “ENFORCED” badges and require explicit verification caveats.
+- [x] Checked eight targeted source patterns against the current module blueprint; all eight matched the intended contract. This was source inspection, not execution of the validator or CI.
+- [ ] Exact-head CI, authenticated browser tests, and live RLS behavior remain unverified. Release stays **BLOCKED / NOT CERTIFIED**.
