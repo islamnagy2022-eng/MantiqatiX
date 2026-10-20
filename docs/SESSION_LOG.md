@@ -269,3 +269,9 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Read-only production SQL verified the three sector RPCs used by the UI exist and have `authenticated_execute=true`, `anon_execute=false`, and `public_execute=false`: `create_education_request_backend`, `submit_job_application_backend`, and `create_job_backend`.
 - The education RPC rejects anonymous sessions and validates the target/student fields; job creation binds caller identity and requires active business membership; job application binds caller identity and validates job/applicant data. Live schema confirms `jobs.id` and `job_applications.job_id` are UUID.
 - No production changes were made. These are catalog/function-contract checks, not authenticated browser E2E.
+
+
+## 2026-10-20 — migration drift confirmed before privilege repair
+
+- Read-only Supabase inventory returned 150 production migration records ending at `20261008222845`. The current development branch's migration directory contains 140 tracked files and includes later migrations through `20261014230000_rc525_digital_page_product_platform_admin_scope.sql`.
+- This drift means the current production privilege state cannot safely be changed by assuming all branch migrations are applied. No migration or grant was applied. A future used-item read fix must be a reviewed narrow-column privilege contract with RLS and query tests, after migration-history reconciliation.
