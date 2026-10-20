@@ -272,6 +272,35 @@ serve(async (req) => {
     return json(data)
   }
 
+  const cashOrderPaymentMatch = path.match(/^\/api\/v1\/orders\/([^/]+)\/cash-payment$/)
+  if (req.method === "GET" && cashOrderPaymentMatch) {
+    const orderId = cashOrderPaymentMatch[1]
+    if (!/^[0-9a-f-]{36}$/i.test(orderId)) return json({ error: "Invalid orderId" }, 400)
+    const { data: order, error: orderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,business_id,customer_id,status,total_amount,currency")
+      .eq("id", orderId).maybeSingle()
+    if (orderError || !order) return json({ error: "Order not found" }, 404)
+    const isCustomer = String(order.customer_id) === String(user.id)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Payment access check failed" }, 500)
+    const operationalRead = (memberships || []).some((m: any) => {
+      const role = String(m.role || "").toUpperCase()
+      const permissions = Array.isArray(m.permissions) ? m.permissions : []
+      const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
+      return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || permissions.includes("PAYMENT_READ_ALL"))
+    })
+    if (!isCustomer && !operationalRead) return json({ error: "Forbidden" }, 403)
+    const { data: paymentIntent, error: paymentError } = await supabaseAdmin.from("payment_intents")
+      .select("id,tenant_id,order_id,amount,currency,status,provider,payment_method,created_at")
+      .eq("tenant_id", order.tenant_id).eq("order_id", order.id)
+      .eq("provider", "CASH_ON_DELIVERY").eq("payment_method", "CASH_ON_DELIVERY")
+      .order("created_at", { ascending: false }).limit(1).maybeSingle()
+    if (paymentError) return json({ error: "Cash payment lookup failed" }, 500)
+    return json({ order, paymentIntent: paymentIntent || null })
+  }
+
+
   const paymentIntentMatch = path.match(/^\/api\/v1\/payments\/intents\/([^/]+)$/)
   if (req.method === "GET" && paymentIntentMatch) {
     const { data: intent, error } = await supabaseAdmin.from("payment_intents").select("*").eq("id", paymentIntentMatch[1]).single()
@@ -293,17 +322,21 @@ serve(async (req) => {
   if (req.method === "POST" && cashConfirmMatch) {
     const intentId = cashConfirmMatch[1]
     const { data: intent, error: intentError } = await supabaseAdmin.from("payment_intents")
-      .select("tenant_id").eq("id", intentId).single()
+      .select("tenant_id,order_id,provider,payment_method,status").eq("id", intentId).single()
     if (intentError || !intent) return json({ error: "Payment intent not found" }, 404)
-
-    const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("role,permissions").eq("user_id", user.id).eq("tenant_id", intent.tenant_id)
-      .eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const authorized = ["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(String(membership.role ?? "").toUpperCase()) ||
-      permissions.includes("PAYMENT_CONFIRM_CASH")
+    if (intent.provider !== "CASH_ON_DELIVERY" || intent.payment_method !== "CASH_ON_DELIVERY") return json({ error: "CASH_PAYMENT_REQUIRED" }, 409)
+    const { data: order, error: orderError } = await supabaseAdmin.from("orders")
+      .select("id,business_id,status").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (orderError || !order) return json({ error: "Linked order not found" }, 404)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Cash confirmation authorization failed" }, 500)
+    const authorized = (memberships || []).some((m: any) => {
+      const role = String(m.role ?? "").toUpperCase()
+      const permissions = Array.isArray(m.permissions) ? m.permissions : []
+      const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
+      return businessScoped && (["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(role) || permissions.includes("PAYMENT_CONFIRM_CASH"))
+    })
     if (!authorized) return json({ error: "Forbidden: insufficient permissions" }, 403)
 
     const { data, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
