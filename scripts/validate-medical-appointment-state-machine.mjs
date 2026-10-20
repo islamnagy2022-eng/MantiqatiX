@@ -110,6 +110,7 @@ assert.match(bookingFunction,/idempotent_replay/,"UI must distinguish a replayed
 assert.match(releaseWorkflow,/20261020200000_rc467_medical_booking_release_contract\.sql/);
 assert.match(releaseWorkflow,/rc462_medical_booking_integration\.sql/);
 assert.match(idempotencyMigration,/on conflict \(id\) do nothing/i,"RC468 must resolve concurrent same-ID inserts atomically");
+assert.match(idempotencyMigration,/medical-booking-id:/,"RC468 must serialize retries by stable request ID before checking/inserting");
 assert.match(idempotencyMigration,/returning id into v_inserted_id/i,"RC468 must distinguish insert success from conflict replay");
 assert.match(idempotencyMigration,/APPOINTMENT_ID_ALREADY_EXISTS/,"RC468 must reject ID reuse with a different booking payload");
 assert.match(idempotencyMigration,/idempotent_replay', true/,"RC468 must return a stable replay result");
