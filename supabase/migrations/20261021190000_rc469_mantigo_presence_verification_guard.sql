@@ -12,7 +12,7 @@ set search_path=public
 as $function$
 declare v_category text; v_status text; v_verification text; v_saved_lat double precision; v_saved_lon double precision;
 begin
-  if p_user_id is null or p_user_id <> auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
+  if auth.uid() is null or p_user_id is null or p_user_id is distinct from auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
   if p_availability_status is null or p_availability_status not in ('OFFLINE','AVAILABLE','BUSY') then raise exception 'INVALID_AVAILABILITY_STATUS'; end if;
   if (p_current_lat is null) <> (p_current_lon is null) then raise exception 'INVALID_COORDINATE_PAIR'; end if;
   if p_current_lat is not null and (p_current_lat < -90 or p_current_lat > 90) then raise exception 'INVALID_LATITUDE'; end if;
