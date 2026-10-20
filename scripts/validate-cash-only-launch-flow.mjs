@@ -196,7 +196,7 @@ assert.match(apiERP,/branches: safeRows\(branchesData/);
 assert.match(app,/function erpBranchLabel\(rows,id\)/);
 assert.match(app,/erpPurchaseOrderLabel\(rows,r\.purchase_order_id\)/);
 assert.match(apiERP,/from\("catalog_items"\)\.select\("\*"\)\.eq\("tenant_id", tenantId\)\.eq\("business_id", businessId\)/);
-assert.match(app,/\[\x27warehouses\x27,\x27catalog_items\x27\]\.includes\(table\)/);
+assert.match(app,/\[\x27warehouses\x27,\x27catalog_items\x27,\x27branches\x27\]\.includes\(table\)/);
 assert.match(app,/invokeMntyApi\('\/api\/v1\/erp\/runtime',\{method:'POST',body:\{operation:'mutate'/);
 assert.match(app,/invokeMntyApi\('\/api\/v1\/erp\/runtime',\{method:'POST',body:\{operation:'list'/);
 assert.match(app,/MNTY_BACKEND_ONLY_TABLES\.has\(table\)/);
